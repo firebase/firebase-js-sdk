@@ -115,27 +115,27 @@ import { Compat } from '../compat/compat';
 import {
   CollectionReference as PublicCollectionReference,
   DocumentChange as PublicDocumentChange,
-  DocumentChangeType,
-  DocumentData,
+  DocumentChangeType as PublicDocumentChangeType,
+  DocumentData as PublicDocumentData,
   DocumentReference as PublicDocumentReference,
   DocumentSnapshot as PublicDocumentSnapshot,
   FirebaseFirestore as PublicFirestore,
-  FirestoreDataConverter,
-  GetOptions,
+  FirestoreDataConverter as PublicFirestoreDataConverter,
+  GetOptions as PublicGetOptions,
   LogLevel as PublicLogLevel,
-  OrderByDirection,
+  OrderByDirection as PublicOrderByDirection,
   PersistenceSettings as PublicPersistenceSettings,
   Query as PublicQuery,
   QueryDocumentSnapshot as PublicQueryDocumentSnapshot,
   QuerySnapshot as PublicQuerySnapshot,
-  SetOptions,
+  SetOptions as PublicSetOptions,
   Settings as PublicSettings,
-  SnapshotListenOptions,
+  SnapshotListenOptions as PublicSnapshotListenOptions,
   SnapshotMetadata as PublicSnapshotMetadata,
   SnapshotOptions as PublicSnapshotOptions,
   Transaction as PublicTransaction,
-  UpdateData,
-  WhereFilterOp,
+  UpdateData as PublicUpdateData,
+  WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
 import { newUserDataReader } from '../../lite/src/api/reference';
@@ -481,13 +481,13 @@ export class Transaction implements PublicTransaction {
   set<T>(
     documentRef: DocumentReference<T>,
     data: Partial<T>,
-    options: SetOptions
+    options: PublicSetOptions
   ): Transaction;
   set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
   set<T>(
     documentRef: PublicDocumentReference<T>,
     value: T | Partial<T>,
-    options?: SetOptions
+    options?: PublicSetOptions
   ): Transaction {
     const ref = validateReference(
       'Transaction.set',
@@ -514,7 +514,7 @@ export class Transaction implements PublicTransaction {
 
   update(
     documentRef: PublicDocumentReference<unknown>,
-    value: UpdateData
+    value: PublicUpdateData
   ): Transaction;
   update(
     documentRef: PublicDocumentReference<unknown>,
@@ -524,7 +524,7 @@ export class Transaction implements PublicTransaction {
   ): Transaction;
   update(
     documentRef: PublicDocumentReference<unknown>,
-    fieldOrUpdateData: string | ExternalFieldPath | UpdateData,
+    fieldOrUpdateData: string | ExternalFieldPath | PublicUpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Transaction {
@@ -589,13 +589,13 @@ export class WriteBatch implements PublicWriteBatch {
   set<T>(
     documentRef: DocumentReference<T>,
     data: Partial<T>,
-    options: SetOptions
+    options: PublicSetOptions
   ): WriteBatch;
   set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   set<T>(
     documentRef: PublicDocumentReference<T>,
     value: T | Partial<T>,
-    options?: SetOptions
+    options?: PublicSetOptions
   ): WriteBatch {
     this.verifyNotCommitted();
     const ref = validateReference(
@@ -625,7 +625,7 @@ export class WriteBatch implements PublicWriteBatch {
 
   update(
     documentRef: PublicDocumentReference<unknown>,
-    value: UpdateData
+    value: PublicUpdateData
   ): WriteBatch;
   update(
     documentRef: PublicDocumentReference<unknown>,
@@ -635,7 +635,7 @@ export class WriteBatch implements PublicWriteBatch {
   ): WriteBatch;
   update(
     documentRef: PublicDocumentReference<unknown>,
-    fieldOrUpdateData: string | ExternalFieldPath | UpdateData,
+    fieldOrUpdateData: string | ExternalFieldPath | PublicUpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
@@ -719,7 +719,7 @@ export class WriteBatch implements PublicWriteBatch {
 /**
  * A reference to a particular document in a collection in the database.
  */
-export class DocumentReference<T = DocumentData>
+export class DocumentReference<T = PublicDocumentData>
   extends _DocumentKeyReference<T>
   implements PublicDocumentReference<T> {
   private _firestoreClient: FirestoreClient;
@@ -728,7 +728,7 @@ export class DocumentReference<T = DocumentData>
   constructor(
     public _key: DocumentKey,
     readonly firestore: Firestore,
-    readonly _converter: FirestoreDataConverter<T> | null
+    readonly _converter: PublicFirestoreDataConverter<T> | null
   ) {
     super(firestore._databaseId, _key, _converter);
     this._firestoreClient = ensureFirestoreConfigured(firestore._delegate);
@@ -738,7 +738,7 @@ export class DocumentReference<T = DocumentData>
   static forPath<U>(
     path: ResourcePath,
     firestore: Firestore,
-    converter: FirestoreDataConverter<U> | null
+    converter: PublicFirestoreDataConverter<U> | null
   ): DocumentReference<U> {
     if (path.length % 2 !== 0) {
       throw new FirestoreError(
@@ -767,7 +767,9 @@ export class DocumentReference<T = DocumentData>
     return this._key.path.canonicalString();
   }
 
-  collection(pathString: string): PublicCollectionReference<DocumentData> {
+  collection(
+    pathString: string
+  ): PublicCollectionReference<PublicDocumentData> {
     validateNonEmptyArgument(
       'DocumentReference.collection',
       'path',
@@ -798,9 +800,9 @@ export class DocumentReference<T = DocumentData>
     );
   }
 
-  set(value: Partial<T>, options: SetOptions): Promise<void>;
+  set(value: Partial<T>, options: PublicSetOptions): Promise<void>;
   set(value: T): Promise<void>;
-  set(value: T | Partial<T>, options?: SetOptions): Promise<void> {
+  set(value: T | Partial<T>, options?: PublicSetOptions): Promise<void> {
     options = validateSetOptions('DocumentReference.set', options);
     const convertedValue = applyFirestoreDataConverter(
       this._converter,
@@ -821,14 +823,14 @@ export class DocumentReference<T = DocumentData>
     );
   }
 
-  update(value: UpdateData): Promise<void>;
+  update(value: PublicUpdateData): Promise<void>;
   update(
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
   update(
-    fieldOrUpdateData: string | ExternalFieldPath | UpdateData,
+    fieldOrUpdateData: string | ExternalFieldPath | PublicUpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void> {
@@ -875,7 +877,7 @@ export class DocumentReference<T = DocumentData>
 
   onSnapshot(observer: PartialObserver<PublicDocumentSnapshot<T>>): Unsubscribe;
   onSnapshot(
-    options: SnapshotListenOptions,
+    options: PublicSnapshotListenOptions,
     observer: PartialObserver<PublicDocumentSnapshot<T>>
   ): Unsubscribe;
   onSnapshot(
@@ -884,7 +886,7 @@ export class DocumentReference<T = DocumentData>
     onCompletion?: CompleteFn
   ): Unsubscribe;
   onSnapshot(
-    options: SnapshotListenOptions,
+    options: PublicSnapshotListenOptions,
     onNext: NextFn<PublicDocumentSnapshot<T>>,
     onError?: ErrorFn,
     onCompletion?: CompleteFn
@@ -899,7 +901,7 @@ export class DocumentReference<T = DocumentData>
       typeof args[currArg] === 'object' &&
       !isPartialObserver(args[currArg])
     ) {
-      options = args[currArg] as SnapshotListenOptions;
+      options = args[currArg] as PublicSnapshotListenOptions;
       currArg++;
     }
 
@@ -936,7 +938,7 @@ export class DocumentReference<T = DocumentData>
     );
   }
 
-  get(options?: GetOptions): Promise<PublicDocumentSnapshot<T>> {
+  get(options?: PublicGetOptions): Promise<PublicDocumentSnapshot<T>> {
     if (options && options.source === 'cache') {
       return firestoreClientGetDocumentFromLocalCache(
         this._firestoreClient,
@@ -962,7 +964,7 @@ export class DocumentReference<T = DocumentData>
   }
 
   withConverter<U>(
-    converter: FirestoreDataConverter<U>
+    converter: PublicFirestoreDataConverter<U>
   ): PublicDocumentReference<U> {
     return new DocumentReference<U>(this._key, this.firestore, converter);
   }
@@ -997,7 +999,7 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
    * True if the snapshot contains the result of local writes (for example
    * `set()` or `update()` calls) that have not yet been committed to the
    * backend. If your listener has opted into metadata updates (via
-   * `SnapshotListenOptions`) you will receive another snapshot with
+   * `PublicSnapshotListenOptions`) you will receive another snapshot with
    * `hasPendingWrites` equal to false once the writes have been committed to
    * the backend.
    */
@@ -1006,7 +1008,7 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
   /**
    * True if the snapshot was created from cached data rather than guaranteed
    * up-to-date server data. If your listener has opted into metadata updates
-   * (via `SnapshotListenOptions`) you will receive another snapshot with
+   * (via `PublicSnapshotListenOptions`) you will receive another snapshot with
    * `fromCache` set to false once the client has received up-to-date data from
    * the backend.
    */
@@ -1037,7 +1039,7 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
  */
 export interface SnapshotOptions extends PublicSnapshotOptions {}
 
-export class DocumentSnapshot<T = DocumentData>
+export class DocumentSnapshot<T = PublicDocumentData>
   implements PublicDocumentSnapshot<T> {
   constructor(
     private _firestore: Firestore,
@@ -1045,7 +1047,7 @@ export class DocumentSnapshot<T = DocumentData>
     public _document: Document | null,
     private _fromCache: boolean,
     private _hasPendingWrites: boolean,
-    private readonly _converter: FirestoreDataConverter<T> | null
+    private readonly _converter: PublicFirestoreDataConverter<T> | null
   ) {}
 
   data(options: PublicSnapshotOptions = {}): T | undefined {
@@ -1136,7 +1138,7 @@ export class DocumentSnapshot<T = DocumentData>
   }
 }
 
-export class QueryDocumentSnapshot<T = DocumentData>
+export class QueryDocumentSnapshot<T = PublicDocumentData>
   extends DocumentSnapshot<T>
   implements PublicQueryDocumentSnapshot<T> {
   data(options?: SnapshotOptions): T {
@@ -1542,20 +1544,20 @@ export function validateHasExplicitOrderByForLimitToLast(
   }
 }
 
-export class Query<T = DocumentData> implements PublicQuery<T> {
+export class Query<T = PublicDocumentData> implements PublicQuery<T> {
   private _dataReader: UserDataReader;
 
   constructor(
     public _query: InternalQuery,
     readonly firestore: Firestore,
-    protected readonly _converter: FirestoreDataConverter<T> | null
+    protected readonly _converter: PublicFirestoreDataConverter<T> | null
   ) {
     this._dataReader = newUserDataReader(firestore._delegate);
   }
 
   where(
     field: string | ExternalFieldPath,
-    opStr: WhereFilterOp,
+    opStr: PublicWhereFilterOp,
     value: unknown
   ): PublicQuery<T> {
     const fieldPath = fieldPathFromArgument('Query.where', field);
@@ -1577,7 +1579,7 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
 
   orderBy(
     field: string | ExternalFieldPath,
-    directionStr?: OrderByDirection
+    directionStr?: PublicOrderByDirection
   ): PublicQuery<T> {
     let direction: Direction;
     if (directionStr === undefined || directionStr === 'asc') {
@@ -1697,7 +1699,7 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
     );
   }
 
-  withConverter<U>(converter: FirestoreDataConverter<U>): PublicQuery<U> {
+  withConverter<U>(converter: PublicFirestoreDataConverter<U>): PublicQuery<U> {
     return new Query<U>(this._query, this.firestore, converter);
   }
 
@@ -1731,7 +1733,7 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
 
   onSnapshot(observer: PartialObserver<PublicQuerySnapshot<T>>): Unsubscribe;
   onSnapshot(
-    options: SnapshotListenOptions,
+    options: PublicSnapshotListenOptions,
     observer: PartialObserver<PublicQuerySnapshot<T>>
   ): Unsubscribe;
   onSnapshot(
@@ -1740,7 +1742,7 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
     onCompletion?: CompleteFn
   ): Unsubscribe;
   onSnapshot(
-    options: SnapshotListenOptions,
+    options: PublicSnapshotListenOptions,
     onNext: NextFn<PublicQuerySnapshot<T>>,
     onError?: ErrorFn,
     onCompletion?: CompleteFn
@@ -1753,7 +1755,7 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
       typeof args[currArg] === 'object' &&
       !isPartialObserver(args[currArg])
     ) {
-      options = args[currArg] as SnapshotListenOptions;
+      options = args[currArg] as PublicSnapshotListenOptions;
       currArg++;
     }
 
@@ -1789,7 +1791,7 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
     return firestoreClientListen(client, this._query, options, observer);
   }
 
-  get(options?: GetOptions): Promise<PublicQuerySnapshot<T>> {
+  get(options?: PublicGetOptions): Promise<PublicQuerySnapshot<T>> {
     validateHasExplicitOrderByForLimitToLast(this._query);
 
     const client = ensureFirestoreConfigured(this.firestore._delegate);
@@ -1807,7 +1809,8 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
   }
 }
 
-export class QuerySnapshot<T = DocumentData> implements PublicQuerySnapshot<T> {
+export class QuerySnapshot<T = PublicDocumentData>
+  implements PublicQuerySnapshot<T> {
   private _cachedChanges: Array<PublicDocumentChange<T>> | null = null;
   private _cachedChangesIncludeMetadataChanges: boolean | null = null;
 
@@ -1817,7 +1820,7 @@ export class QuerySnapshot<T = DocumentData> implements PublicQuerySnapshot<T> {
     private readonly _firestore: Firestore,
     private readonly _originalQuery: InternalQuery,
     private readonly _snapshot: ViewSnapshot,
-    private readonly _converter: FirestoreDataConverter<T> | null
+    private readonly _converter: PublicFirestoreDataConverter<T> | null
   ) {
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
@@ -1859,7 +1862,9 @@ export class QuerySnapshot<T = DocumentData> implements PublicQuerySnapshot<T> {
     return new Query(this._originalQuery, this._firestore, this._converter);
   }
 
-  docChanges(options?: SnapshotListenOptions): Array<PublicDocumentChange<T>> {
+  docChanges(
+    options?: PublicSnapshotListenOptions
+  ): Array<PublicDocumentChange<T>> {
     if (options) {
     }
 
@@ -1920,13 +1925,13 @@ export class QuerySnapshot<T = DocumentData> implements PublicQuerySnapshot<T> {
   }
 }
 
-export class CollectionReference<T = DocumentData>
+export class CollectionReference<T = PublicDocumentData>
   extends Query<T>
   implements PublicCollectionReference<T> {
   constructor(
     readonly _path: ResourcePath,
     firestore: Firestore,
-    _converter: FirestoreDataConverter<T> | null
+    _converter: PublicFirestoreDataConverter<T> | null
   ) {
     super(newQueryForPath(_path), firestore, _converter);
     if (_path.length % 2 !== 1) {
@@ -1943,12 +1948,12 @@ export class CollectionReference<T = DocumentData>
     return this._query.path.lastSegment();
   }
 
-  get parent(): PublicDocumentReference<DocumentData> | null {
+  get parent(): PublicDocumentReference<PublicDocumentData> | null {
     const parentPath = this._query.path.popLast();
     if (parentPath.isEmpty()) {
       return null;
     } else {
-      return new DocumentReference<DocumentData>(
+      return new DocumentReference<PublicDocumentData>(
         new DocumentKey(parentPath),
         this.firestore,
         /* converter= */ null
@@ -1992,7 +1997,7 @@ export class CollectionReference<T = DocumentData>
   }
 
   withConverter<U>(
-    converter: FirestoreDataConverter<U>
+    converter: PublicFirestoreDataConverter<U>
   ): PublicCollectionReference<U> {
     return new CollectionReference<U>(this._path, this.firestore, converter);
   }
@@ -2033,7 +2038,7 @@ export function changesFromSnapshot<DocSnap>(
     hasPendingWrite: boolean
   ) => DocSnap
 ): Array<{
-  type: DocumentChangeType;
+  type: PublicDocumentChangeType;
   doc: DocSnap;
   oldIndex: number;
   newIndex: number;
@@ -2059,7 +2064,7 @@ export function changesFromSnapshot<DocSnap>(
       );
       lastDoc = change.doc;
       return {
-        type: 'added' as DocumentChangeType,
+        type: 'added' as PublicDocumentChangeType,
         doc,
         oldIndex: -1,
         newIndex: index++
@@ -2095,7 +2100,7 @@ export function changesFromSnapshot<DocSnap>(
   }
 }
 
-function resultChangeType(type: ChangeType): DocumentChangeType {
+function resultChangeType(type: ChangeType): PublicDocumentChangeType {
   switch (type) {
     case ChangeType.Added:
       return 'added';
@@ -2110,10 +2115,10 @@ function resultChangeType(type: ChangeType): DocumentChangeType {
 }
 
 /**
- * Converts custom model object of type T into DocumentData by applying the
+ * Converts custom model object of type T into PublicDocumentData by applying the
  * converter if it exists.
  *
- * This function is used when converting user objects to DocumentData
+ * This function is used when converting user objects to PublicDocumentData
  * because we want to provide the user with a more specific error message if
  * their set() or fails due to invalid data originating from a toFirestore()
  * call.
@@ -2121,8 +2126,8 @@ function resultChangeType(type: ChangeType): DocumentChangeType {
 export function applyFirestoreDataConverter<T>(
   converter: UntypedFirestoreDataConverter<T> | null,
   value: T,
-  options?: SetOptions
-): DocumentData {
+  options?: PublicSetOptions
+): PublicDocumentData {
   let convertedValue;
   if (converter) {
     if (options && (options.merge || options.mergeFields)) {
@@ -2134,7 +2139,7 @@ export function applyFirestoreDataConverter<T>(
       convertedValue = converter.toFirestore(value);
     }
   } else {
-    convertedValue = value as DocumentData;
+    convertedValue = value as PublicDocumentData;
   }
   return convertedValue;
 }
