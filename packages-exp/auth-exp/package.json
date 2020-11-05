@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.3",
-    "@firebase/component": "0.1.20",
+    "@firebase/util": "0.3.4",
+    "@firebase/component": "0.1.21",
     "@firebase/auth-types-exp": "0.0.800",
     "node-fetch": "2.6.1",
     "tslib": "^1.11.1"

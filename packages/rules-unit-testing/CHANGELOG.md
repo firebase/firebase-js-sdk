@@ -1,5 +1,17 @@
 # @firebase/rules-unit-testing
 
+## 1.1.0
+
+### Minor Changes
+
+- [`6ef39d4d3`](https://github.com/firebase/firebase-js-sdk/commit/6ef39d4d346e7458f1559f15f82f734dec41611b) [#3928](https://github.com/firebase/firebase-js-sdk/pull/3928) - Add withFunctionTriggersDisabled function which runs a user-provided setup function with emulated Cloud Functions triggers disabled. This can be used to import data into the Realtime Database or Cloud Firestore emulators without triggering locally emulated Cloud Functions. This method only works with Firebase CLI version 8.13.0 or higher.
+
+### Patch Changes
+
+- Updated dependencies [[`9cf727fcc`](https://github.com/firebase/firebase-js-sdk/commit/9cf727fcc3d049551b16ae0698ac33dc2fe45ada)]:
+  - @firebase/util@0.3.4
+  - firebase@8.0.1
+
 ## 1.0.9
 
 ### Patch Changes

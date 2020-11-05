@@ -1,5 +1,12 @@
 # @firebase/functions
 
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/component@0.1.21
+
 ## 0.6.0
 
 ### Minor Changes
