@@ -34,6 +34,7 @@ import firebaseAppCompat from '@firebase/app-compat';
 
 import * as exp from '../../../exp/test/shim';
 import { FieldValue } from '../../../src/compat/field_value';
+import { FieldPath } from '../../../src/api/field_path';
 import { FirebaseApp } from '@firebase/app-types';
 import {
   Firestore,
@@ -115,9 +116,6 @@ export function newTestFirestore(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const legacyNamespace = (firebase as any).firestore;
 
-const FieldPath = usesFunctionalApi()
-  ? exp.FieldPath
-  : legacyNamespace.FieldPath;
 const Timestamp = usesFunctionalApi()
   ? exp.Timestamp
   : legacyNamespace.Timestamp;

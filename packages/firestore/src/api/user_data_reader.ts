@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { DocumentData, SetOptions } from '@firebase/firestore-types';
+import {
+  DocumentData,
+  SetOptions,
+  FieldPath as PublicFieldPath
+} from '@firebase/firestore-types';
 
 import {
   Value as ProtoValue,
@@ -33,7 +37,7 @@ import {
   SetMutation,
   TransformMutation
 } from '../model/mutation';
-import { FieldPath } from '../model/path';
+import { FieldPath as InternalFieldPath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
@@ -46,13 +50,13 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { _BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
 import { Bytes } from '../../lite/src/api/bytes';
 import { Compat } from '../compat/compat';
 import { FieldValue } from '../../lite/src/api/field_value';
+import { FieldPath } from '../../lite/src/api/field_path';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -174,7 +178,7 @@ interface ContextSettings {
    * nonempty path (indicating the context represents a nested location within
    * the data).
    */
-  readonly path?: FieldPath;
+  readonly path?: InternalFieldPath;
   /**
    * Whether or not this context corresponds to an element of an array.
    * If not set, elements are treated as if they were outside of arrays.
@@ -190,7 +194,7 @@ interface ContextSettings {
 /** A "context" object passed around while parsing user data. */
 export class ParseContext {
   readonly fieldTransforms: FieldTransform[];
-  readonly fieldMask: FieldPath[];
+  readonly fieldMask: InternalFieldPath[];
   /**
    * Initializes a ParseContext with the given source and path.
    *
@@ -215,7 +219,7 @@ export class ParseContext {
     readonly serializer: JsonProtoSerializer,
     readonly ignoreUndefinedProperties: boolean,
     fieldTransforms?: FieldTransform[],
-    fieldMask?: FieldPath[]
+    fieldMask?: InternalFieldPath[]
   ) {
     // Minor hack: If fieldTransforms is undefined, we assume this is an
     // external call and we need to validate the entire path.
@@ -226,7 +230,7 @@ export class ParseContext {
     this.fieldMask = fieldMask || [];
   }
 
-  get path(): FieldPath | undefined {
+  get path(): InternalFieldPath | undefined {
     return this.settings.path;
   }
 
@@ -253,7 +257,7 @@ export class ParseContext {
     return context;
   }
 
-  childContextForFieldPath(field: FieldPath): ParseContext {
+  childContextForFieldPath(field: InternalFieldPath): ParseContext {
     const childPath = this.path?.child(field);
     const context = this.contextWith({ path: childPath, arrayElement: false });
     context.validatePath();
@@ -277,7 +281,7 @@ export class ParseContext {
   }
 
   /** Returns 'true' if 'fieldPath' was traversed when creating this context. */
-  contains(fieldPath: FieldPath): boolean {
+  contains(fieldPath: InternalFieldPath): boolean {
     return (
       this.fieldMask.find(field => fieldPath.isPrefixOf(field)) !== undefined ||
       this.fieldTransforms.find(transform =>
@@ -334,7 +338,7 @@ export class UserDataReader {
         dataSource,
         methodName,
         targetDoc,
-        path: FieldPath.emptyPath(),
+        path: InternalFieldPath.emptyPath(),
         arrayElement: false,
         hasConverter
       },
@@ -372,23 +376,14 @@ export function parseSetData(
     fieldMask = new FieldMask(context.fieldMask);
     fieldTransforms = context.fieldTransforms;
   } else if (options.mergeFields) {
-    const validatedFieldPaths: FieldPath[] = [];
+    const validatedFieldPaths: InternalFieldPath[] = [];
 
     for (const stringOrFieldPath of options.mergeFields) {
-      let fieldPath: FieldPath;
-
-      if (stringOrFieldPath instanceof _BaseFieldPath) {
-        fieldPath = stringOrFieldPath._internalPath;
-      } else if (typeof stringOrFieldPath === 'string') {
-        fieldPath = fieldPathFromDotSeparatedString(
-          methodName,
-          stringOrFieldPath,
-          targetDoc
-        );
-      } else {
-        throw fail('Expected stringOrFieldPath to be a string or a FieldPath');
-      }
-
+      const fieldPath = fieldPathFromArgument(
+        methodName,
+        stringOrFieldPath,
+        targetDoc
+      );
       if (!context.contains(fieldPath)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -431,7 +426,7 @@ export function parseUpdateData(
   );
   validatePlainObject('Data must be an object, but it was:', context, input);
 
-  const fieldMaskPaths: FieldPath[] = [];
+  const fieldMaskPaths: InternalFieldPath[] = [];
   const updateData = new ObjectValueBuilder();
   forEach(input as Dict<unknown>, (key, value) => {
     const path = fieldPathFromDotSeparatedString(methodName, key, targetDoc);
@@ -468,7 +463,7 @@ export function parseUpdateVarargs(
   userDataReader: UserDataReader,
   methodName: string,
   targetDoc: DocumentKey,
-  field: string | _BaseFieldPath,
+  field: string | PublicFieldPath | Compat<PublicFieldPath>,
   value: unknown,
   moreFieldsAndValues: unknown[]
 ): ParsedUpdateData {
@@ -492,13 +487,13 @@ export function parseUpdateVarargs(
     keys.push(
       fieldPathFromArgument(
         methodName,
-        moreFieldsAndValues[i] as string | _BaseFieldPath
+        moreFieldsAndValues[i] as string | PublicFieldPath
       )
     );
     values.push(moreFieldsAndValues[i + 1]);
   }
 
-  const fieldMaskPaths: FieldPath[] = [];
+  const fieldMaskPaths: InternalFieldPath[] = [];
   const updateData = new ObjectValueBuilder();
 
   // We iterate in reverse order to pick the last value for a field if the
@@ -797,16 +792,16 @@ function validatePlainObject(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  path: string | _BaseFieldPath | Compat<_BaseFieldPath>,
+  path: string | PublicFieldPath | Compat<PublicFieldPath>,
   targetDoc?: DocumentKey
-): FieldPath {
+): InternalFieldPath {
   // If required, replace the FieldPath Compat class with with the firestore-exp
   // FieldPath.
   if (path instanceof Compat) {
-    path = (path as Compat<_BaseFieldPath>)._delegate;
+    path = (path as Compat<FieldPath>)._delegate;
   }
 
-  if (path instanceof _BaseFieldPath) {
+  if (path instanceof FieldPath) {
     return path._internalPath;
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);
@@ -823,6 +818,11 @@ export function fieldPathFromArgument(
 }
 
 /**
+ * Matches any characters in a field path string that are reserved.
+ */
+const FIELD_PATH_RESERVED = new RegExp('[~\\*/\\[\\]]');
+
+/**
  * Wraps fromDotSeparatedString with an error message about the method that
  * was thrown.
  * @param methodName The publicly visible method name
@@ -834,13 +834,25 @@ export function fieldPathFromDotSeparatedString(
   methodName: string,
   path: string,
   targetDoc?: DocumentKey
-): FieldPath {
-  try {
-    return fromDotSeparatedString(path)._internalPath;
-  } catch (e) {
-    const message = errorMessage(e);
+): InternalFieldPath {
+  const found = path.search(FIELD_PATH_RESERVED);
+  if (found >= 0) {
     throw createError(
-      message,
+      `Invalid field path (${path}). Paths must not contain ` +
+        `'~', '*', '/', '[', or ']'`,
+      methodName,
+      /* hasConverter= */ false,
+      /* path= */ undefined,
+      targetDoc
+    );
+  }
+
+  try {
+    return new FieldPath(...path.split('.'))._internalPath;
+  } catch (e) {
+    throw createError(
+      `Invalid field path (${path}). Paths must not be empty, ` +
+        `begin with '.', end with '.', or contain '..'`,
       methodName,
       /* hasConverter= */ false,
       /* path= */ undefined,
@@ -853,7 +865,7 @@ function createError(
   reason: string,
   methodName: string,
   hasConverter: boolean,
-  path?: FieldPath,
+  path?: InternalFieldPath,
   targetDoc?: DocumentKey
 ): FirestoreError {
   const hasPath = path && !path.isEmpty();
@@ -883,15 +895,10 @@ function createError(
   );
 }
 
-/**
- * Extracts the message from a caught exception, which should be an Error object
- * though JS doesn't guarantee that.
- */
-function errorMessage(error: Error | object): string {
-  return error instanceof Error ? error.message : error.toString();
-}
-
 /** Checks `haystack` if FieldPath `needle` is present. Runs in O(n). */
-function fieldMaskContains(haystack: FieldPath[], needle: FieldPath): boolean {
+function fieldMaskContains(
+  haystack: InternalFieldPath[],
+  needle: InternalFieldPath
+): boolean {
   return haystack.some(v => v.isEqual(needle));
 }
