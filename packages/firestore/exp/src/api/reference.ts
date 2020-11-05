@@ -17,7 +17,6 @@
 
 import { FirebaseFirestore } from './database';
 import {
-  _DocumentKeyReference,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
@@ -80,6 +79,8 @@ import {
   removeSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
 import { FirestoreError } from '../../../src/util/error';
+import { Compat } from '../../../src/compat/compat';
+import { _BaseFieldPath } from '../../../src/api/field_path';
 
 /**
  * An options object that can be passed to {@link onSnapshot()} and {@link
@@ -374,10 +375,16 @@ export function updateDoc(
 
   const dataReader = newUserDataReader(firestore);
 
+  // For Compat types, we have to "extract" the underlying types before
+  // performing validation.
+  if (fieldOrUpdateData instanceof Compat) {
+    fieldOrUpdateData = fieldOrUpdateData._delegate;
+  }
+
   let parsed: ParsedUpdateData;
   if (
     typeof fieldOrUpdateData === 'string' ||
-    fieldOrUpdateData instanceof FieldPath
+    fieldOrUpdateData instanceof _BaseFieldPath
   ) {
     parsed = parseUpdateVarargs(
       dataReader,
@@ -821,7 +828,7 @@ export function executeWrite(
  */
 function convertToDocSnapshot<T>(
   firestore: FirebaseFirestore,
-  ref: _DocumentKeyReference<T>,
+  ref: DocumentReference<T>,
   snapshot: ViewSnapshot
 ): DocumentSnapshot<T> {
   debugAssert(
