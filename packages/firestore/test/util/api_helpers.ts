@@ -73,7 +73,7 @@ export function collectionReference(path: string): CollectionReference {
 export function documentReference(path: string): DocumentReference {
   const db = firestore();
   ensureFirestoreConfigured(db._delegate);
-  return new DocumentReference(key(path), db, /* converter= */ null);
+  return DocumentReference.forKey(key(path), db, /* converter= */ null);
 }
 
 export function documentSnapshot(

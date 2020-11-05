@@ -24,10 +24,8 @@ import { DatabaseId } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
   FirestoreClient,
-  firestoreClientGetDocumentFromLocalCache,
   firestoreClientGetDocumentsFromLocalCache,
   firestoreClientGetDocumentsViaSnapshotListener,
-  firestoreClientGetDocumentViaSnapshotListener,
   firestoreClientListen,
   firestoreClientTransaction,
   firestoreClientWrite
@@ -87,7 +85,6 @@ import {
   Unsubscribe
 } from './observer';
 import {
-  _DocumentKeyReference,
   fieldPathFromArgument,
   parseQueryValue,
   parseSetData,
@@ -108,7 +105,21 @@ import {
   waitForPendingWrites,
   FirebaseFirestore as ExpFirebaseFirestore
 } from '../../exp/src/api/database';
-import { onSnapshotsInSync } from '../../exp/src/api/reference';
+import {
+  DocumentReference as ExpDocumentReference,
+  refEqual,
+  newUserDataReader
+} from '../../lite/src/api/reference';
+import {
+  onSnapshotsInSync,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  getDocFromCache,
+  getDocFromServer,
+  getDoc,
+  onSnapshot
+} from '../../exp/src/api/reference';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
 
@@ -138,9 +149,10 @@ import {
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
-import { newUserDataReader } from '../../lite/src/api/reference';
+
 import { makeDatabaseInfo } from '../../lite/src/api/database';
 import { DEFAULT_HOST } from '../../lite/src/api/components';
+import * as exp from '../../exp/index';
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -720,25 +732,19 @@ export class WriteBatch implements PublicWriteBatch {
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = PublicDocumentData>
-  extends _DocumentKeyReference<T>
+  extends Compat<ExpDocumentReference<T>>
   implements PublicDocumentReference<T> {
-  private _firestoreClient: FirestoreClient;
-  private _dataReader: UserDataReader;
-
   constructor(
-    public _key: DocumentKey,
     readonly firestore: Firestore,
-    readonly _converter: PublicFirestoreDataConverter<T> | null
+    delegate: ExpDocumentReference<T>
   ) {
-    super(firestore._databaseId, _key, _converter);
-    this._firestoreClient = ensureFirestoreConfigured(firestore._delegate);
-    this._dataReader = newUserDataReader(firestore._delegate);
+    super(delegate);
   }
 
   static forPath<U>(
     path: ResourcePath,
     firestore: Firestore,
-    converter: PublicFirestoreDataConverter<U> | null
+    converter: UntypedFirestoreDataConverter<U> | null
   ): DocumentReference<U> {
     if (path.length % 2 !== 0) {
       throw new FirestoreError(
@@ -748,23 +754,41 @@ export class DocumentReference<T = PublicDocumentData>
           `${path.canonicalString()} has ${path.length}`
       );
     }
-    return new DocumentReference(new DocumentKey(path), firestore, converter);
+    return new DocumentReference(
+      firestore,
+      new ExpDocumentReference(
+        firestore._delegate,
+        converter,
+        new DocumentKey(path)
+      )
+    );
+  }
+
+  static forKey<U>(
+    key: DocumentKey,
+    firestore: Firestore,
+    converter: UntypedFirestoreDataConverter<U> | null
+  ): DocumentReference<U> {
+    return new DocumentReference(
+      firestore,
+      new ExpDocumentReference(firestore._delegate, converter, key)
+    );
   }
 
   get id(): string {
-    return this._key.path.lastSegment();
+    return this._delegate.id;
   }
 
   get parent(): PublicCollectionReference<T> {
     return new CollectionReference(
-      this._key.path.popLast(),
+      this._delegate._path.popLast(),
       this.firestore,
-      this._converter
+      this._delegate._converter
     );
   }
 
   get path(): string {
-    return this._key.path.canonicalString();
+    return this._delegate.path;
   }
 
   collection(
@@ -775,52 +799,33 @@ export class DocumentReference<T = PublicDocumentData>
       'path',
       pathString
     );
-    if (!pathString) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Must provide a non-empty collection name to collection()'
-      );
-    }
     const path = ResourcePath.fromString(pathString);
     return new CollectionReference(
-      this._key.path.child(path),
+      this._delegate._path.child(path),
       this.firestore,
       /* converter= */ null
     );
   }
 
   isEqual(other: PublicDocumentReference<T>): boolean {
-    if (!(other instanceof DocumentReference)) {
+    if (other instanceof Compat) {
+      other = other._delegate;
+    }
+    if (!(other instanceof ExpDocumentReference)) {
       return false;
     }
-    return (
-      this.firestore === other.firestore &&
-      this._key.isEqual(other._key) &&
-      this._converter === other._converter
-    );
+    return refEqual(this._delegate, other);
   }
 
   set(value: Partial<T>, options: PublicSetOptions): Promise<void>;
   set(value: T): Promise<void>;
   set(value: T | Partial<T>, options?: PublicSetOptions): Promise<void> {
     options = validateSetOptions('DocumentReference.set', options);
-    const convertedValue = applyFirestoreDataConverter(
-      this._converter,
-      value,
-      options
-    );
-    const parsed = parseSetData(
-      this._dataReader,
-      'DocumentReference.set',
-      this._key,
-      convertedValue,
-      this._converter !== null,
-      options
-    );
-    return firestoreClientWrite(
-      this._firestoreClient,
-      parsed.toMutations(this._key, Precondition.none())
-    );
+    try {
+      return setDoc(this._delegate, value, options);
+    } catch (e) {
+      throw rewriteError(e, 'setDoc', 'DocumentReference.set');
+    }
   }
 
   update(value: PublicUpdateData): Promise<void>;
@@ -834,45 +839,24 @@ export class DocumentReference<T = PublicDocumentData>
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void> {
-    // For Compat types, we have to "extract" the underlying types before
-    // performing validation.
-    if (fieldOrUpdateData instanceof Compat) {
-      fieldOrUpdateData = (fieldOrUpdateData as Compat<_BaseFieldPath>)
-        ._delegate;
+    try {
+      if (arguments.length === 1) {
+        return updateDoc(this._delegate, fieldOrUpdateData as PublicUpdateData);
+      } else {
+        return updateDoc(
+          this._delegate,
+          fieldOrUpdateData as string | ExternalFieldPath,
+          value,
+          ...moreFieldsAndValues
+        );
+      }
+    } catch (e) {
+      throw rewriteError(e, 'updateDoc', 'DocumentReference.update');
     }
-
-    let parsed;
-    if (
-      typeof fieldOrUpdateData === 'string' ||
-      fieldOrUpdateData instanceof _BaseFieldPath
-    ) {
-      parsed = parseUpdateVarargs(
-        this._dataReader,
-        'DocumentReference.update',
-        this._key,
-        fieldOrUpdateData,
-        value,
-        moreFieldsAndValues
-      );
-    } else {
-      parsed = parseUpdateData(
-        this._dataReader,
-        'DocumentReference.update',
-        this._key,
-        fieldOrUpdateData
-      );
-    }
-
-    return firestoreClientWrite(
-      this._firestoreClient,
-      parsed.toMutations(this._key, Precondition.exists(true))
-    );
   }
 
   delete(): Promise<void> {
-    return firestoreClientWrite(this._firestoreClient, [
-      new DeleteMutation(this._key, Precondition.none())
-    ]);
+    return deleteDoc(this._delegate);
   }
 
   onSnapshot(observer: PartialObserver<PublicDocumentSnapshot<T>>): Unsubscribe;
@@ -893,102 +877,129 @@ export class DocumentReference<T = PublicDocumentData>
   ): Unsubscribe;
 
   onSnapshot(...args: unknown[]): Unsubscribe {
-    let options: ListenOptions = {
-      includeMetadataChanges: false
-    };
-    let currArg = 0;
-    if (
-      typeof args[currArg] === 'object' &&
-      !isPartialObserver(args[currArg])
-    ) {
-      options = args[currArg] as PublicSnapshotListenOptions;
-      currArg++;
-    }
-
-    const internalOptions = {
-      includeMetadataChanges: options.includeMetadataChanges
-    };
-
-    if (isPartialObserver(args[currArg])) {
-      const userObserver = args[currArg] as PartialObserver<
-        PublicDocumentSnapshot<T>
-      >;
-      args[currArg] = userObserver.next?.bind(userObserver);
-      args[currArg + 1] = userObserver.error?.bind(userObserver);
-      args[currArg + 2] = userObserver.complete?.bind(userObserver);
-    }
-
-    const observer: PartialObserver<ViewSnapshot> = {
-      next: snapshot => {
-        if (args[currArg]) {
-          (args[currArg] as NextFn<PublicDocumentSnapshot<T>>)(
-            this._convertToDocSnapshot(snapshot)
-          );
-        }
-      },
-      error: args[currArg + 1] as ErrorFn,
-      complete: args[currArg + 2] as CompleteFn
-    };
-
-    return firestoreClientListen(
-      this._firestoreClient,
-      newQueryForPath(this._key.path),
-      internalOptions,
-      observer
+    const options = extractSnapshotOptions(args);
+    const observer = wrapObserver<DocumentSnapshot<T>, exp.DocumentSnapshot<T>>(
+      args,
+      result =>
+        new DocumentSnapshot(
+          this.firestore,
+          result._key,
+          result._document,
+          result.metadata.fromCache,
+          result.metadata.hasPendingWrites,
+          this._delegate._converter as UntypedFirestoreDataConverter<T>
+        )
     );
+    return onSnapshot(this._delegate, options, observer);
   }
 
   get(options?: PublicGetOptions): Promise<PublicDocumentSnapshot<T>> {
-    if (options && options.source === 'cache') {
-      return firestoreClientGetDocumentFromLocalCache(
-        this._firestoreClient,
-        this._key
-      ).then(
-        doc =>
-          new DocumentSnapshot(
-            this.firestore,
-            this._key,
-            doc,
-            /*fromCache=*/ true,
-            doc instanceof Document ? doc.hasLocalMutations : false,
-            this._converter
-          )
-      );
+    let snap: Promise<exp.DocumentSnapshot<T>>;
+    if (options?.source === 'cache') {
+      snap = getDocFromCache(this._delegate);
+    } else if (options?.source === 'server') {
+      snap = getDocFromServer(this._delegate);
     } else {
-      return firestoreClientGetDocumentViaSnapshotListener(
-        this._firestoreClient,
-        this._key,
-        options
-      ).then(snapshot => this._convertToDocSnapshot(snapshot));
+      snap = getDoc(this._delegate);
     }
+
+    return snap.then(
+      result =>
+        new DocumentSnapshot(
+          this.firestore,
+          result._key,
+          result._document,
+          result.metadata.fromCache,
+          result.metadata.hasPendingWrites,
+          this._delegate._converter as UntypedFirestoreDataConverter<T>
+        )
+    );
   }
 
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
   ): PublicDocumentReference<U> {
-    return new DocumentReference<U>(this._key, this.firestore, converter);
-  }
-
-  /**
-   * Converts a ViewSnapshot that contains the current document to a
-   * DocumentSnapshot.
-   */
-  private _convertToDocSnapshot(snapshot: ViewSnapshot): DocumentSnapshot<T> {
-    debugAssert(
-      snapshot.docs.size <= 1,
-      'Too many documents returned on a document query'
-    );
-    const doc = snapshot.docs.get(this._key);
-
-    return new DocumentSnapshot(
+    return new DocumentReference<U>(
       this.firestore,
-      this._key,
-      doc,
-      snapshot.fromCache,
-      snapshot.hasPendingWrites,
-      this._converter
+      this._delegate.withConverter(
+        converter as UntypedFirestoreDataConverter<U>
+      )
     );
   }
+}
+
+/**
+ * Replaces the function name in an error thrown by the firestore-exp API
+ * with the function names used in the classic API.
+ */
+function rewriteError(
+  e: Error,
+  originalFunctionName: string,
+  updatedFunctionName: string
+): Error {
+  e.message = e.message.replace(
+    `${originalFunctionName}()`,
+    `${updatedFunctionName}()`
+  );
+  return e;
+}
+
+/**
+ * Iterates the list of arguments from an `onSnapshot` call and returns the
+ * first argument that may be an `SnapshotListenOptions` object. Returns an
+ * empty object if none is found.
+ */
+export function extractSnapshotOptions(
+  args: unknown[]
+): exp.SnapshotListenOptions {
+  for (const arg of args) {
+    if (typeof arg === 'object' && !isPartialObserver(arg)) {
+      return arg as exp.SnapshotListenOptions;
+    }
+  }
+  return {};
+}
+
+/**
+ * Creates an observer that can be passed to the firestore-exp SDK. The
+ * observer converts all observed values into the format expected by the shim.
+ *
+ * @param args The list of arguments from an `onSnapshot` call.
+ * @param wrapper The function that converts the firestore-exp type into the
+ * type used by this shim.
+ */
+export function wrapObserver<CompatType, ExpType>(
+  args: unknown[],
+  wrapper: (val: ExpType) => CompatType
+): PartialObserver<ExpType> {
+  let userObserver: PartialObserver<CompatType>;
+  if (isPartialObserver(args[0])) {
+    userObserver = args[0] as PartialObserver<CompatType>;
+  } else if (isPartialObserver(args[1])) {
+    userObserver = args[1];
+  } else if (typeof args[0] === 'function') {
+    userObserver = {
+      next: args[0] as NextFn<CompatType> | undefined,
+      error: args[1] as ErrorFn | undefined,
+      complete: args[2] as CompleteFn | undefined
+    };
+  } else {
+    userObserver = {
+      next: args[1] as NextFn<CompatType> | undefined,
+      error: args[2] as ErrorFn | undefined,
+      complete: args[3] as CompleteFn | undefined
+    };
+  }
+
+  return {
+    next: val => {
+      if (userObserver!.next) {
+        userObserver!.next(wrapper(val));
+      }
+    },
+    error: userObserver.error?.bind(userObserver),
+    complete: userObserver.complete?.bind(userObserver)
+  };
 }
 
 /**
@@ -1047,7 +1058,7 @@ export class DocumentSnapshot<T = PublicDocumentData>
     public _document: Document | null,
     private _fromCache: boolean,
     private _hasPendingWrites: boolean,
-    private readonly _converter: PublicFirestoreDataConverter<T> | null
+    private readonly _converter: UntypedFirestoreDataConverter<T> | null
   ) {}
 
   data(options: PublicSnapshotOptions = {}): T | undefined {
@@ -1071,7 +1082,11 @@ export class DocumentSnapshot<T = PublicDocumentData>
           this._firestore._databaseId,
           options.serverTimestamps || 'none',
           key =>
-            new DocumentReference(key, this._firestore, /* converter= */ null),
+            DocumentReference.forKey(
+              key,
+              this._firestore,
+              /* converter= */ null
+            ),
           bytes => new Blob(bytes)
         );
         return userDataWriter.convertValue(this._document.toProto()) as T;
@@ -1093,7 +1108,8 @@ export class DocumentSnapshot<T = PublicDocumentData>
         const userDataWriter = new UserDataWriter(
           this._firestore._databaseId,
           options.serverTimestamps || 'none',
-          key => new DocumentReference(key, this._firestore, this._converter),
+          key =>
+            DocumentReference.forKey(key, this._firestore, this._converter),
           bytes => new Blob(bytes)
         );
         return userDataWriter.convertValue(value);
@@ -1107,7 +1123,7 @@ export class DocumentSnapshot<T = PublicDocumentData>
   }
 
   get ref(): PublicDocumentReference<T> {
-    return new DocumentReference<T>(
+    return DocumentReference.forKey(
       this._key,
       this._firestore,
       this._converter
@@ -1360,6 +1376,10 @@ function parseDocumentIdValue(
   query: InternalQuery,
   documentIdValue: unknown
 ): ProtoValue {
+  if (documentIdValue instanceof Compat) {
+    documentIdValue = documentIdValue._delegate;
+  }
+
   if (typeof documentIdValue === 'string') {
     if (documentIdValue === '') {
       throw new FirestoreError(
@@ -1386,7 +1406,7 @@ function parseDocumentIdValue(
       );
     }
     return refValue(databaseId, new DocumentKey(path));
-  } else if (documentIdValue instanceof _DocumentKeyReference) {
+  } else if (documentIdValue instanceof ExpDocumentReference) {
     return refValue(databaseId, documentIdValue._key);
   } else {
     throw new FirestoreError(
@@ -1931,7 +1951,7 @@ export class CollectionReference<T = PublicDocumentData>
   constructor(
     readonly _path: ResourcePath,
     firestore: Firestore,
-    _converter: PublicFirestoreDataConverter<T> | null
+    _converter: UntypedFirestoreDataConverter<T> | null
   ) {
     super(newQueryForPath(_path), firestore, _converter);
     if (_path.length % 2 !== 1) {
@@ -1953,8 +1973,8 @@ export class CollectionReference<T = PublicDocumentData>
     if (parentPath.isEmpty()) {
       return null;
     } else {
-      return new DocumentReference<PublicDocumentData>(
-        new DocumentKey(parentPath),
+      return DocumentReference.forPath(
+        parentPath,
         this.firestore,
         /* converter= */ null
       );
@@ -1987,8 +2007,8 @@ export class CollectionReference<T = PublicDocumentData>
     const docRef = this.doc();
 
     // Call set() with the converted value directly to avoid calling toFirestore() a second time.
-    return new DocumentReference(
-      (docRef as DocumentReference<T>)._key,
+    return DocumentReference.forKey(
+      (docRef as DocumentReference<T>)._delegate._key,
       this.firestore,
       null
     )
@@ -2007,9 +2027,12 @@ function validateReference<T>(
   methodName: string,
   documentRef: PublicDocumentReference<T>,
   firestore: Firestore
-): _DocumentKeyReference<T> {
-  const reference = cast<DocumentReference<T>>(documentRef, DocumentReference);
-  if (reference.firestore !== firestore) {
+): ExpDocumentReference<T> {
+  const reference = cast<ExpDocumentReference<T>>(
+    documentRef,
+    ExpDocumentReference
+  );
+  if (reference.firestore !== firestore._delegate) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       'Provided document reference is from a different Firestore instance.'

@@ -20,6 +20,7 @@ import { fail } from './assert';
 import { Code, FirestoreError } from './error';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
+import { Compat } from '../compat/compat';
 
 /** Types accepted by validateType() and related methods for validation. */
 export type ValidationType =
@@ -175,6 +176,10 @@ export function cast<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor: { new (...args: any[]): T }
 ): T | never {
+  if (obj instanceof Compat) {
+    obj = obj._delegate;
+  }
+
   if (!(obj instanceof constructor)) {
     if (constructor.name === obj.constructor.name) {
       throw new FirestoreError(
