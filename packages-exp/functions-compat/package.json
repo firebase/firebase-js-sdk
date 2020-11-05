@@ -8,9 +8,7 @@
   "browser": "dist/index.esm5.js",
   "module": "dist/index.esm5.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "license": "Apache-2.0",
   "peerDependencies": {
     "@firebase/app-compat": "0.x"
@@ -48,11 +46,11 @@
   },
   "typings": "dist/functions-compat-public.d.ts",
   "dependencies": {
-    "@firebase/component": "0.1.20",
+    "@firebase/component": "0.1.21",
     "@firebase/functions-exp": "0.0.800",
     "@firebase/functions-types-exp": "0.0.800",
     "@firebase/messaging-types": "0.5.0",
-    "@firebase/util": "0.3.3",
+    "@firebase/util": "0.3.4",
     "tslib": "^1.11.1"
   },
   "nyc": {
