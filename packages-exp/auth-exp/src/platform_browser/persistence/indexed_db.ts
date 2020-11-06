@@ -164,9 +164,10 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
 
 /** @internal */
 export const _POLLING_INTERVAL_MS = 800;
+/** @internal */
+export const _TRANSACTION_RETRY_COUNT = 3;
 
 class IndexedDBLocalPersistence implements Persistence {
-  private static readonly TRANSACTION_RETRY_COUNT = 3;
   static type: 'LOCAL' = 'LOCAL';
 
   type = PersistenceType.LOCAL;
@@ -210,7 +211,7 @@ class IndexedDBLocalPersistence implements Persistence {
         const db = await this._openDb();
         return await op(db);
       } catch (e) {
-        if (numAttempts++ > IndexedDBLocalPersistence.TRANSACTION_RETRY_COUNT) {
+        if (numAttempts++ > _TRANSACTION_RETRY_COUNT) {
           throw e;
         }
         if (this.db) {
