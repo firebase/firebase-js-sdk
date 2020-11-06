@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { primitiveComparator } from '../util/misc';
-
 export class DatabaseInfo {
   /**
    * Constructs a DatabaseInfo using the provided host, databaseId and
@@ -61,13 +59,6 @@ export class DatabaseId {
       other instanceof DatabaseId &&
       other.projectId === this.projectId &&
       other.database === this.database
-    );
-  }
-
-  compareTo(other: DatabaseId): number {
-    return (
-      primitiveComparator(this.projectId, other.projectId) ||
-      primitiveComparator(this.database, other.database)
     );
   }
 }

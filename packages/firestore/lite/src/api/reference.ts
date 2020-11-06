@@ -1221,7 +1221,7 @@ export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
 export function newUserDataReader(
   firestore: FirebaseFirestore
 ): UserDataReader {
-  const settings = firestore._getSettings();
+  const settings = firestore._freezeSettings();
   const serializer = newSerializer(firestore._databaseId);
   return new UserDataReader(
     firestore._databaseId,

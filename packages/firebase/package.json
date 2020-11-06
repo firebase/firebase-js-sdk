@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -45,31 +45,31 @@
   "module": "dist/index.esm.js",
   "react-native": "dist/index.rn.cjs.js",
   "dependencies": {
-    "@firebase/app": "0.6.12",
+    "@firebase/app": "0.6.13",
     "@firebase/app-types": "0.6.1",
     "@firebase/auth": "0.15.1",
-    "@firebase/database": "0.7.0",
-    "@firebase/firestore": "2.0.0",
-    "@firebase/functions": "0.6.0",
-    "@firebase/installations": "0.4.18",
-    "@firebase/messaging": "0.7.2",
+    "@firebase/database": "0.7.1",
+    "@firebase/firestore": "2.0.1",
+    "@firebase/functions": "0.6.1",
+    "@firebase/installations": "0.4.19",
+    "@firebase/messaging": "0.7.3",
     "@firebase/polyfill": "0.3.36",
-    "@firebase/storage": "0.4.0",
-    "@firebase/performance": "0.4.3",
-    "@firebase/remote-config": "0.1.29",
-    "@firebase/analytics": "0.6.1",
-    "@firebase/util": "0.3.3"
+    "@firebase/storage": "0.4.1",
+    "@firebase/performance": "0.4.4",
+    "@firebase/remote-config": "0.1.30",
+    "@firebase/analytics": "0.6.2",
+    "@firebase/util": "0.3.4"
   },
   "devDependencies": {
-    "rollup": "2.29.0",
+    "rollup": "2.33.1",
     "@rollup/plugin-commonjs": "15.1.0",
     "rollup-plugin-license": "2.2.0",
     "@rollup/plugin-node-resolve": "9.0.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
-    "rollup-plugin-typescript2": "0.27.3",
+    "rollup-plugin-typescript2": "0.29.0",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "4.0.2"
+    "typescript": "4.0.5"
   },
   "typings": "index.d.ts",
   "components": [

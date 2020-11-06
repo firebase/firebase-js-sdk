@@ -23,6 +23,7 @@ export interface UpdateProfileRequest {
   idToken: string;
   displayName?: string | null;
   photoUrl?: string | null;
+  returnSecureToken: boolean;
 }
 
 export interface UpdateProfileResponse extends IdTokenResponse {

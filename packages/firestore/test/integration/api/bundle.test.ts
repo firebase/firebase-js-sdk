@@ -59,7 +59,7 @@ const BUNDLE_TEMPLATE = [
   '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}'
 ];
 
-apiDescribe('Bundles', (persistence: boolean) => {
+apiDescribe.only('Bundles', (persistence: boolean) => {
   function verifySnapEqualsTestDocs(snap: firestore.QuerySnapshot): void {
     expect(toDataArray(snap)).to.deep.equal([
       { k: 'a', bar: 1 },

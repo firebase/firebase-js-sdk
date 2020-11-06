@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 0.3.4
+
+### Patch Changes
+
+- [`9cf727fcc`](https://github.com/firebase/firebase-js-sdk/commit/9cf727fcc3d049551b16ae0698ac33dc2fe45ada) [#4001](https://github.com/firebase/firebase-js-sdk/pull/4001) - Do not merge `__proto__` in `deepExtend` to prevent `__proto__` pollution.
+
 ## 0.3.3
 
 ### Patch Changes

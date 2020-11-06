@@ -37,7 +37,6 @@ import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 use(chaiAsPromised);
 
 const newTestFirestore = firebaseExport.newTestFirestore;
-const usesFunctionalApi = firebaseExport.usesFunctionalApi;
 const Timestamp = firebaseExport.Timestamp;
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
@@ -1198,15 +1197,7 @@ apiDescribe('Database', (persistence: boolean) => {
         const expectedError =
           'Persistence can only be cleared before a Firestore instance is ' +
           'initialized or after it is terminated.';
-        if (usesFunctionalApi()) {
-          // The modular API throws an exception rather than rejecting the
-          // Promise, which matches our overall handling of API call violations.
-          expect(() => firestore.clearPersistence()).to.throw(expectedError);
-        } else {
-          await expect(
-            firestore.clearPersistence()
-          ).to.eventually.be.rejectedWith(expectedError);
-        }
+        expect(() => firestore.clearPersistence()).to.throw(expectedError);
       });
     }
   );

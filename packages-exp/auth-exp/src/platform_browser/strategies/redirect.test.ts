@@ -51,7 +51,8 @@ import {
   getRedirectResult,
   linkWithRedirect,
   reauthenticateWithRedirect,
-  signInWithRedirect
+  signInWithRedirect,
+  _getRedirectResult
 } from './redirect';
 import { FirebaseError } from '@firebase/util';
 
@@ -424,6 +425,30 @@ describe('platform_browser/strategies/redirect', () => {
       expect(redirectPersistence._remove).to.have.been.called;
       expect(auth._currentUser?._redirectEventId).to.be.undefined;
       expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).to.be
+        .undefined;
+    });
+
+    it('does not mutate authstate if bypassAuthState is true', async () => {
+      await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
+      const redirectPersistence: Persistence = _getInstance(
+        RedirectPersistence
+      );
+      sinon.spy(redirectPersistence, '_remove');
+
+      const cred = new UserCredentialImpl({
+        user: auth._currentUser!,
+        providerId: externs.ProviderId.GOOGLE,
+        operationType: externs.OperationType.LINK
+      });
+      idpStubs._link.returns(Promise.resolve(cred));
+      const promise = _getRedirectResult(auth, resolver, true);
+      iframeEvent({
+        type: AuthEventType.LINK_VIA_REDIRECT
+      });
+      expect(await promise).to.eq(cred);
+      expect(redirectPersistence._remove).not.to.have.been.called;
+      expect(auth._currentUser?._redirectEventId).not.to.be.undefined;
+      expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).not.to.be
         .undefined;
     });
   });

@@ -43,7 +43,8 @@ export async function signInWithCustomToken(
   customToken: string
 ): Promise<externs.UserCredential> {
   const response: IdTokenResponse = await getIdTokenResponse(auth, {
-    token: customToken
+    token: customToken,
+    returnSecureToken: true
   });
   const authInternal = _castAuth(auth);
   const cred = await UserCredentialImpl._fromIdTokenResponse(

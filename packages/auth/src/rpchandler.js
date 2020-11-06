@@ -1989,7 +1989,7 @@ fireauth.RpcHandler.verifyPhoneNumberForExistingErrorMap_[
  * @private
  */
 fireauth.RpcHandler.validateDeleteLinkedAccountsRequest_ = function(request) {
-  if (!goog.isArray(request['deleteProvider'])) {
+  if (!Array.isArray(request['deleteProvider'])) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   }
 };

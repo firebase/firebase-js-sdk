@@ -56,19 +56,24 @@ export class StsTokenManager {
   }
 
   async getToken(auth: Auth, forceRefresh = false): Promise<string | null> {
+    assert(
+      !this.accessToken || this.refreshToken,
+      AuthErrorCode.TOKEN_EXPIRED,
+      {
+        appName: auth.name
+      }
+    );
+
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return this.accessToken;
     }
 
-    if (!this.refreshToken) {
-      assert(!this.accessToken, AuthErrorCode.TOKEN_EXPIRED, {
-        appName: auth.name
-      });
-      return null;
+    if (this.refreshToken) {
+      await this.refresh(auth, this.refreshToken!);
+      return this.accessToken;
     }
 
-    await this.refresh(auth, this.refreshToken);
-    return this.accessToken;
+    return null;
   }
 
   clearRefreshToken(): void {

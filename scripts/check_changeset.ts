@@ -87,6 +87,7 @@ async function main() {
   const errors = [];
   try {
     await exec('yarn changeset status');
+    console.log(`::set-output name=BLOCKING_FAILURE::false`);
   } catch (e) {
     const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
     let formattedStatusError =
@@ -111,9 +112,7 @@ async function main() {
   }
   try {
     const diffData = await getDiffData();
-    if (diffData == null) {
-      process.exit();
-    } else {
+    if (diffData != null) {
       const { changedPackages, changesetFile } = diffData;
       const changesetPackages = await parseChangesetFile(changesetFile);
       const missingPackages = [...changedPackages].filter(

@@ -14,11 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+use(chaiAsPromised);
+
 import { FirebaseApp } from '@firebase/app-types';
 import * as constants from '../../src/implementation/constants';
 import { Code, FirebaseStorageError } from '../../src/implementation/error';
-import * as type from '../../src/implementation/type';
 import { Headers, XhrIo } from '../../src/implementation/xhrio';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
@@ -44,7 +47,7 @@ export const emptyAuthProvider = new Provider<FirebaseAuthInternalName>(
 export function makeFakeApp(bucketArg?: string): FirebaseApp {
   const app: any = {};
   app.options = {};
-  if (type.isDef(bucketArg)) {
+  if (bucketArg != null) {
     app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucketArg;
   } else {
     app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket;

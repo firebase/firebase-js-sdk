@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
@@ -27,9 +29,15 @@ import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { User } from '../../model/user';
+import * as reauthenticate from '../../core/user/reauthenticate';
+import * as linkUnlink from '../../core/user/link_unlink';
+import * as credential from '../../core/strategies/credential';
+
 import * as idpTasks from './idp';
+import { UserCredentialImpl } from '../user/user_credential_impl';
 
 use(chaiAsPromised);
+use(sinonChai);
 
 describe('core/strategies/idb', () => {
   let auth: TestAuth;
@@ -54,6 +62,7 @@ describe('core/strategies/idb', () => {
 
   afterEach(() => {
     fetch.tearDown();
+    sinon.restore();
   });
 
   describe('signIn', () => {
@@ -89,6 +98,23 @@ describe('core/strategies/idb', () => {
 
       expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
       expect(userCred.user.uid).to.eq('uid');
+    });
+
+    it('passes through the bypassAuthState flag', async () => {
+      const stub = sinon
+        .stub(credential, '_signInWithCredential')
+        .returns(Promise.resolve(({} as unknown) as UserCredentialImpl));
+      await idpTasks._signIn({
+        auth,
+        user,
+        requestUri: 'request-uri',
+        sessionId: 'session-id',
+        tenantId: 'tenant-id',
+        pendingToken: 'pending-token',
+        postBody: 'post-body',
+        bypassAuthState: true
+      });
+      expect(stub.getCall(0).lastArg).to.be.true;
     });
   });
 
@@ -127,6 +153,23 @@ describe('core/strategies/idb', () => {
 
       expect(userCred.operationType).to.eq(OperationType.REAUTHENTICATE);
       expect(userCred.user.uid).to.eq('uid');
+    });
+
+    it('passes through the bypassAuthState flag', async () => {
+      const stub = sinon
+        .stub(reauthenticate, '_reauthenticate')
+        .returns(Promise.resolve(({} as unknown) as UserCredentialImpl));
+      await idpTasks._reauth({
+        auth,
+        user,
+        requestUri: 'request-uri',
+        sessionId: 'session-id',
+        tenantId: 'tenant-id',
+        pendingToken: 'pending-token',
+        postBody: 'post-body',
+        bypassAuthState: true
+      });
+      expect(stub.getCall(0).lastArg).to.be.true;
     });
   });
 
@@ -167,6 +210,23 @@ describe('core/strategies/idb', () => {
 
       expect(userCred.operationType).to.eq(OperationType.LINK);
       expect(userCred.user.uid).to.eq('uid');
+    });
+
+    it('passes through the bypassAuthState flag', async () => {
+      const stub = sinon
+        .stub(linkUnlink, '_link')
+        .returns(Promise.resolve(({} as unknown) as UserCredentialImpl));
+      await idpTasks._link({
+        auth,
+        user,
+        requestUri: 'request-uri',
+        sessionId: 'session-id',
+        tenantId: 'tenant-id',
+        pendingToken: 'pending-token',
+        postBody: 'post-body',
+        bypassAuthState: true
+      });
+      expect(stub.getCall(0).lastArg).to.be.true;
     });
   });
 });
