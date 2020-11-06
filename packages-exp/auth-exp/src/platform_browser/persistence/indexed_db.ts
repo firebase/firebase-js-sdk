@@ -164,6 +164,8 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
 
 /** @internal */
 export const _POLLING_INTERVAL_MS = 800;
+/** @internal */
+export const _TRANSACTION_RETRY_COUNT = 3;
 
 class IndexedDBLocalPersistence implements Persistence {
   static type: 'LOCAL' = 'LOCAL';
@@ -193,12 +195,32 @@ class IndexedDBLocalPersistence implements Persistence {
     );
   }
 
-  private async initialize(): Promise<IDBDatabase> {
+  async _openDb(): Promise<IDBDatabase> {
     if (this.db) {
       return this.db;
     }
     this.db = await _openDatabase();
     return this.db;
+  }
+
+  async _withRetries<T>(op: (db: IDBDatabase) => Promise<T>): Promise<T> {
+    let numAttempts = 0;
+
+    while (true) {
+      try {
+        const db = await this._openDb();
+        return await op(db);
+      } catch (e) {
+        if (numAttempts++ > _TRANSACTION_RETRY_COUNT) {
+          throw e;
+        }
+        if (this.db) {
+          this.db.close();
+          this.db = undefined;
+        }
+        // TODO: consider adding exponential backoff
+      }
+    }
   }
 
   /**
@@ -318,38 +340,35 @@ class IndexedDBLocalPersistence implements Persistence {
   }
 
   async _set(key: string, value: PersistenceValue): Promise<void> {
-    const db = await this.initialize();
     return this._withPendingWrite(async () => {
-      await _putObject(db, key, value);
+      await this._withRetries((db: IDBDatabase) => _putObject(db, key, value));
       this.localCache[key] = value;
       return this.notifyServiceWorker(key);
     });
   }
 
   async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
-    const db = await this.initialize();
-    const obj = (await getObject(db, key)) as T;
+    const obj = (await this._withRetries((db: IDBDatabase) =>
+      getObject(db, key)
+    )) as T;
     this.localCache[key] = obj;
     return obj;
   }
 
   async _remove(key: string): Promise<void> {
-    const db = await this.initialize();
     return this._withPendingWrite(async () => {
-      await deleteObject(db, key);
+      await this._withRetries((db: IDBDatabase) => deleteObject(db, key));
       delete this.localCache[key];
       return this.notifyServiceWorker(key);
     });
   }
 
   private async _poll(): Promise<string[]> {
-    const db = await _openDatabase();
-
     // TODO: check if we need to fallback if getAll is not supported
-    const getAllRequest = getObjectStore(db, false).getAll();
-    const result = await new DBPromise<DBObject[] | null>(
-      getAllRequest
-    ).toPromise();
+    const result = await this._withRetries((db: IDBDatabase) => {
+      const getAllRequest = getObjectStore(db, false).getAll();
+      return new DBPromise<DBObject[] | null>(getAllRequest).toPromise();
+    });
 
     if (!result) {
       return [];
