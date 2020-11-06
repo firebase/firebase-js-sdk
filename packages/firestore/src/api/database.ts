@@ -75,7 +75,7 @@ import {
 } from '../util/input_validation';
 import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
-import { _BaseFieldPath, FieldPath as ExternalFieldPath } from './field_path';
+import { FieldPath as ExpFieldPath } from '../../lite/src/api/field_path';
 import {
   CompleteFn,
   ErrorFn,
@@ -130,6 +130,7 @@ import {
   DocumentData as PublicDocumentData,
   DocumentReference as PublicDocumentReference,
   DocumentSnapshot as PublicDocumentSnapshot,
+  FieldPath as PublicFieldPath,
   FirebaseFirestore as PublicFirestore,
   FirestoreDataConverter as PublicFirestoreDataConverter,
   GetOptions as PublicGetOptions,
@@ -530,28 +531,33 @@ export class Transaction implements PublicTransaction {
   ): Transaction;
   update(
     documentRef: PublicDocumentReference<unknown>,
-    field: string | ExternalFieldPath,
+    field: string | PublicFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Transaction;
   update(
     documentRef: PublicDocumentReference<unknown>,
-    fieldOrUpdateData: string | ExternalFieldPath | PublicUpdateData,
+    fieldOrUpdateData: string | PublicFieldPath | PublicUpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Transaction {
-    let ref;
-    let parsed;
+    const ref = validateReference(
+      'Transaction.update',
+      documentRef,
+      this._firestore
+    );
 
+    // For Compat types, we have to "extract" the underlying types before
+    // performing validation.
+    if (fieldOrUpdateData instanceof Compat) {
+      fieldOrUpdateData = (fieldOrUpdateData as Compat<ExpFieldPath>)._delegate;
+    }
+
+    let parsed;
     if (
       typeof fieldOrUpdateData === 'string' ||
-      fieldOrUpdateData instanceof ExternalFieldPath
+      fieldOrUpdateData instanceof ExpFieldPath
     ) {
-      ref = validateReference(
-        'Transaction.update',
-        documentRef,
-        this._firestore
-      );
       parsed = parseUpdateVarargs(
         this._dataReader,
         'Transaction.update',
@@ -561,11 +567,6 @@ export class Transaction implements PublicTransaction {
         moreFieldsAndValues
       );
     } else {
-      ref = validateReference(
-        'Transaction.update',
-        documentRef,
-        this._firestore
-      );
       parsed = parseUpdateData(
         this._dataReader,
         'Transaction.update',
@@ -641,30 +642,34 @@ export class WriteBatch implements PublicWriteBatch {
   ): WriteBatch;
   update(
     documentRef: PublicDocumentReference<unknown>,
-    field: string | ExternalFieldPath,
+    field: string | PublicFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(
     documentRef: PublicDocumentReference<unknown>,
-    fieldOrUpdateData: string | ExternalFieldPath | PublicUpdateData,
+    fieldOrUpdateData: string | PublicFieldPath | PublicUpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
     this.verifyNotCommitted();
+    const ref = validateReference(
+      'WriteBatch.update',
+      documentRef,
+      this._firestore
+    );
 
-    let ref;
+    // For Compat types, we have to "extract" the underlying types before
+    // performing validation.
+    if (fieldOrUpdateData instanceof Compat) {
+      fieldOrUpdateData = (fieldOrUpdateData as Compat<ExpFieldPath>)._delegate;
+    }
+
     let parsed;
-
     if (
       typeof fieldOrUpdateData === 'string' ||
-      fieldOrUpdateData instanceof ExternalFieldPath
+      fieldOrUpdateData instanceof ExpFieldPath
     ) {
-      ref = validateReference(
-        'WriteBatch.update',
-        documentRef,
-        this._firestore
-      );
       parsed = parseUpdateVarargs(
         this._dataReader,
         'WriteBatch.update',
@@ -674,11 +679,6 @@ export class WriteBatch implements PublicWriteBatch {
         moreFieldsAndValues
       );
     } else {
-      ref = validateReference(
-        'WriteBatch.update',
-        documentRef,
-        this._firestore
-      );
       parsed = parseUpdateData(
         this._dataReader,
         'WriteBatch.update',
@@ -830,12 +830,12 @@ export class DocumentReference<T = PublicDocumentData>
 
   update(value: PublicUpdateData): Promise<void>;
   update(
-    field: string | ExternalFieldPath,
+    field: string | PublicFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
   update(
-    fieldOrUpdateData: string | ExternalFieldPath | PublicUpdateData,
+    fieldOrUpdateData: string | PublicFieldPath | PublicUpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void> {
@@ -845,7 +845,7 @@ export class DocumentReference<T = PublicDocumentData>
       } else {
         return updateDoc(
           this._delegate,
-          fieldOrUpdateData as string | ExternalFieldPath,
+          fieldOrUpdateData as string | ExpFieldPath,
           value,
           ...moreFieldsAndValues
         );
@@ -1095,7 +1095,7 @@ export class DocumentSnapshot<T = PublicDocumentData>
   }
 
   get(
-    fieldPath: string | ExternalFieldPath,
+    fieldPath: string | PublicFieldPath,
     options: PublicSnapshotOptions = {}
   ): unknown {
     if (this._document) {
@@ -1576,7 +1576,7 @@ export class Query<T = PublicDocumentData> implements PublicQuery<T> {
   }
 
   where(
-    field: string | ExternalFieldPath,
+    field: string | PublicFieldPath,
     opStr: PublicWhereFilterOp,
     value: unknown
   ): PublicQuery<T> {
@@ -1598,7 +1598,7 @@ export class Query<T = PublicDocumentData> implements PublicQuery<T> {
   }
 
   orderBy(
-    field: string | ExternalFieldPath,
+    field: string | PublicFieldPath,
     directionStr?: PublicOrderByDirection
   ): PublicQuery<T> {
     let direction: Direction;
