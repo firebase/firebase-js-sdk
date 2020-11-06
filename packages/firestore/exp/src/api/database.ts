@@ -24,8 +24,6 @@ import {
   FirestoreClient,
   firestoreClientDisableNetwork,
   firestoreClientEnableNetwork,
-  firestoreClientGetNamedQuery,
-  firestoreClientLoadBundle,
   firestoreClientWaitForPendingWrites,
   setOfflineComponentProvider,
   setOnlineComponentProvider
@@ -55,8 +53,6 @@ import {
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
 import { PersistenceSettings } from '../../../exp-types';
-import { Query } from '../../../lite/src/api/reference';
-import { LoadBundleTask } from '../../../src/api/bundle';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -434,30 +430,4 @@ function verifyNotInitialized(firestore: FirebaseFirestore): void {
         'methods on a Firestore object.'
     );
   }
-}
-
-export function loadBundle(
-  firestore: FirebaseFirestore,
-  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-): LoadBundleTask {
-  const client = ensureFirestoreConfigured(firestore);
-  const resultTask = new LoadBundleTask();
-
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClientLoadBundle(client, bundleData, resultTask);
-  return resultTask;
-}
-
-export function namedQuery(
-  firestore: FirebaseFirestore,
-  name: string
-): Promise<Query | null> {
-  const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientGetNamedQuery(client, name).then(namedQuery => {
-    if (!namedQuery) {
-      return null;
-    }
-
-    return new Query(firestore, null, namedQuery.query);
-  });
 }

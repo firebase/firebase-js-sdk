@@ -31,8 +31,6 @@ export {
   waitForPendingWrites,
   disableNetwork,
   enableNetwork,
-  namedQuery,
-  loadBundle,
   terminate
 } from './src/api/database';
 

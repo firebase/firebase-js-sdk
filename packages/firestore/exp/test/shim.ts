@@ -31,8 +31,6 @@ import {
   getDocs,
   getDocsFromCache,
   getDocsFromServer,
-  loadBundle,
-  namedQuery,
   onSnapshot,
   query,
   queryEqual,
@@ -57,7 +55,7 @@ import {
   validateSetOptions
 } from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
-import { Firestore } from '../../src/api/database';
+import { Firestore, loadBundle, namedQuery } from '../../src/api/database';
 
 export { GeoPoint, Timestamp } from '../index';
 export { loadBundle, namedQuery };
