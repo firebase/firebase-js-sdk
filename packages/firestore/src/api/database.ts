@@ -830,7 +830,7 @@ export class DocumentReference<T = PublicDocumentData>
     try {
       return setDoc(this._delegate, value, options);
     } catch (e) {
-      throw rewriteError(e, 'setDoc', 'DocumentReference.set');
+      throw replaceFunctionName(e, 'setDoc', 'DocumentReference.set');
     }
   }
 
@@ -857,7 +857,7 @@ export class DocumentReference<T = PublicDocumentData>
         );
       }
     } catch (e) {
-      throw rewriteError(e, 'updateDoc', 'DocumentReference.update');
+      throw replaceFunctionName(e, 'updateDoc', 'DocumentReference.update');
     }
   }
 
@@ -938,7 +938,7 @@ export class DocumentReference<T = PublicDocumentData>
  * Replaces the function name in an error thrown by the firestore-exp API
  * with the function names used in the classic API.
  */
-function rewriteError(
+function replaceFunctionName(
   e: Error,
   originalFunctionName: string,
   updatedFunctionName: string
@@ -968,7 +968,8 @@ export function extractSnapshotOptions(
 
 /**
  * Creates an observer that can be passed to the firestore-exp SDK. The
- * observer converts all observed values into the format expected by the shim.
+ * observer converts all observed values into the format expected by the classic
+ * SDK.
  *
  * @param args The list of arguments from an `onSnapshot` call.
  * @param wrapper The function that converts the firestore-exp type into the
