@@ -7,14 +7,14 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
   },
   "devDependencies": {
-    "firebase": "8.0.0",
-    "@types/chai": "4.2.13",
+    "firebase": "8.0.1",
+    "@types/chai": "4.2.14",
     "@types/mocha": "7.0.2",
     "chai": "4.2.0",
     "karma": "5.2.3",
     "karma-babel-preprocessor": "8.0.1",
     "karma-chrome-launcher": "3.1.0",
-    "karma-firefox-launcher": "2.0.0",
+    "karma-firefox-launcher": "2.1.0",
     "karma-mocha": "2.0.1",
     "karma-sauce-launcher": "1.2.0",
     "karma-spec-reporter": "0.0.32",

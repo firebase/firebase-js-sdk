@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 2.0.1
+
+### Patch Changes
+
+- [`007ddd1eb`](https://github.com/firebase/firebase-js-sdk/commit/007ddd1eb6be0a66df7b1c3264d8dff8857d8399) [#4030](https://github.com/firebase/firebase-js-sdk/pull/4030) - Internal changes to support upcoming modular API.
+
+- Updated dependencies [[`9cf727fcc`](https://github.com/firebase/firebase-js-sdk/commit/9cf727fcc3d049551b16ae0698ac33dc2fe45ada)]:
+  - @firebase/util@0.3.4
+  - @firebase/component@0.1.21
+
 ## 2.0.0
 
 ### Major Changes

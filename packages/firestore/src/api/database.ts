@@ -120,6 +120,7 @@ import {
   getDoc,
   onSnapshot
 } from '../../exp/src/api/reference';
+import { DocumentSnapshot as ExpDocumentSnapshot } from '../../exp/src/api/snapshot';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
 
@@ -153,7 +154,6 @@ import {
 
 import { makeDatabaseInfo } from '../../lite/src/api/database';
 import { DEFAULT_HOST } from '../../lite/src/api/components';
-import * as exp from '../../exp/index';
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -799,6 +799,12 @@ export class DocumentReference<T = PublicDocumentData>
       'path',
       pathString
     );
+    if (!pathString) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Must provide a non-empty collection name to collection()'
+      );
+    }
     const path = ResourcePath.fromString(pathString);
     return new CollectionReference(
       this._delegate._path.child(path),
@@ -878,7 +884,7 @@ export class DocumentReference<T = PublicDocumentData>
 
   onSnapshot(...args: unknown[]): Unsubscribe {
     const options = extractSnapshotOptions(args);
-    const observer = wrapObserver<DocumentSnapshot<T>, exp.DocumentSnapshot<T>>(
+    const observer = wrapObserver<DocumentSnapshot<T>, ExpDocumentSnapshot<T>>(
       args,
       result =>
         new DocumentSnapshot(
@@ -894,7 +900,7 @@ export class DocumentReference<T = PublicDocumentData>
   }
 
   get(options?: PublicGetOptions): Promise<PublicDocumentSnapshot<T>> {
-    let snap: Promise<exp.DocumentSnapshot<T>>;
+    let snap: Promise<ExpDocumentSnapshot<T>>;
     if (options?.source === 'cache') {
       snap = getDocFromCache(this._delegate);
     } else if (options?.source === 'server') {
@@ -951,10 +957,10 @@ function rewriteError(
  */
 export function extractSnapshotOptions(
   args: unknown[]
-): exp.SnapshotListenOptions {
+): PublicSnapshotListenOptions {
   for (const arg of args) {
     if (typeof arg === 'object' && !isPartialObserver(arg)) {
-      return arg as exp.SnapshotListenOptions;
+      return arg as PublicSnapshotListenOptions;
     }
   }
   return {};

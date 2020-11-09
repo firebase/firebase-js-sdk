@@ -36,9 +36,9 @@
   },
   "devDependencies": {
     "@firebase/app-exp": "0.0.800",
-    "rollup": "2.29.0",
+    "rollup": "2.33.1",
     "@rollup/plugin-json": "4.1.0",
-    "rollup-plugin-typescript2": "0.27.3",
+    "rollup-plugin-typescript2": "0.29.0",
     "typescript": "4.0.5"
   },
   "repository": {
@@ -51,10 +51,10 @@
   },
   "typings": "dist/functions-exp-public.d.ts",
   "dependencies": {
-    "@firebase/component": "0.1.20",
+    "@firebase/component": "0.1.21",
     "@firebase/functions-types-exp": "0.0.800",
     "@firebase/messaging-types": "0.5.0",
-    "@firebase/util": "0.3.3",
+    "@firebase/util": "0.3.4",
     "node-fetch": "2.6.1",
     "tslib": "^1.11.1"
   },
