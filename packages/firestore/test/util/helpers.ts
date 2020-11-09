@@ -110,7 +110,6 @@ export type TestSnapshotVersion = number;
 export function testUserDataWriter(): UserDataWriter {
   return new UserDataWriter(
     TEST_DATABASE_ID,
-    'none',
     key => DocumentReference.forKey(key, FIRESTORE, /* converter= */ null),
     bytes => new Blob(bytes)
   );

@@ -54,14 +54,23 @@ export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
  * to the user.
  */
 export class UserDataWriter {
+  /**
+   * @param databaseId DatabaseID for this instance
+   * @param referenceFactory A factory function that returns a firestore-exp or
+   * classic DocumentReference
+   * @param bytesFactory A factory function that returns a firestore-exp Bytes
+   * or a classic Blob type
+   */
   constructor(
     private readonly databaseId: DatabaseId,
-    private readonly serverTimestampBehavior: ServerTimestampBehavior,
     private readonly referenceFactory: (key: DocumentKey) => unknown,
     private readonly bytesFactory: (bytes: ByteString) => Bytes
   ) {}
 
-  convertValue(value: ProtoValue): unknown {
+  convertValue(
+    value: ProtoValue,
+    serverTimestampBehavior: ServerTimestampBehavior = 'none'
+  ): unknown {
     switch (typeOrder(value)) {
       case TypeOrder.NullValue:
         return null;
@@ -72,7 +81,7 @@ export class UserDataWriter {
       case TypeOrder.TimestampValue:
         return this.convertTimestamp(value.timestampValue!);
       case TypeOrder.ServerTimestampValue:
-        return this.convertServerTimestamp(value);
+        return this.convertServerTimestamp(value, serverTimestampBehavior);
       case TypeOrder.StringValue:
         return value.stringValue!;
       case TypeOrder.BlobValue:
@@ -82,18 +91,21 @@ export class UserDataWriter {
       case TypeOrder.GeoPointValue:
         return this.convertGeoPoint(value.geoPointValue!);
       case TypeOrder.ArrayValue:
-        return this.convertArray(value.arrayValue!);
+        return this.convertArray(value.arrayValue!, serverTimestampBehavior);
       case TypeOrder.ObjectValue:
-        return this.convertObject(value.mapValue!);
+        return this.convertObject(value.mapValue!, serverTimestampBehavior);
       default:
         throw fail('Invalid value type: ' + JSON.stringify(value));
     }
   }
 
-  private convertObject(mapValue: ProtoMapValue): DocumentData {
+  private convertObject(
+    mapValue: ProtoMapValue,
+    serverTimestampBehavior: ServerTimestampBehavior
+  ): DocumentData {
     const result: DocumentData = {};
     forEach(mapValue.fields || {}, (key, value) => {
-      result[key] = this.convertValue(value);
+      result[key] = this.convertValue(value, serverTimestampBehavior);
     });
     return result;
   }
@@ -105,18 +117,26 @@ export class UserDataWriter {
     );
   }
 
-  private convertArray(arrayValue: ProtoArrayValue): unknown[] {
-    return (arrayValue.values || []).map(value => this.convertValue(value));
+  private convertArray(
+    arrayValue: ProtoArrayValue,
+    serverTimestampBehavior: ServerTimestampBehavior
+  ): unknown[] {
+    return (arrayValue.values || []).map(value =>
+      this.convertValue(value, serverTimestampBehavior)
+    );
   }
 
-  private convertServerTimestamp(value: ProtoValue): unknown {
-    switch (this.serverTimestampBehavior) {
+  private convertServerTimestamp(
+    value: ProtoValue,
+    serverTimestampBehavior: ServerTimestampBehavior
+  ): unknown {
+    switch (serverTimestampBehavior) {
       case 'previous':
         const previousValue = getPreviousValue(value);
         if (previousValue == null) {
           return null;
         }
-        return this.convertValue(previousValue);
+        return this.convertValue(previousValue, serverTimestampBehavior);
       case 'estimate':
         return this.convertTimestamp(getLocalWriteTime(value));
       default:
