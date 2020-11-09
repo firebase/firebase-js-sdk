@@ -17,13 +17,6 @@
 
 import { Code, FirebaseStorageError } from './error';
 
-/**
- * @return False if the object is undefined or null, true otherwise.
- */
-export function isDef<T>(p: T | null | undefined): p is T {
-  return p != null;
-}
-
 export function isJustDef<T>(p: T | null | undefined): p is T | null {
   return p !== void 0;
 }

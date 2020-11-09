@@ -57,7 +57,8 @@ export abstract class AbstractPopupRedirectOperation
     protected readonly auth: Auth,
     filter: AuthEventType | AuthEventType[],
     protected readonly resolver: PopupRedirectResolver,
-    protected user?: User
+    protected user?: User,
+    private readonly bypassAuthState = false
   ) {
     this.filter = Array.isArray(filter) ? filter : [filter];
   }
@@ -91,7 +92,8 @@ export abstract class AbstractPopupRedirectOperation
       sessionId: sessionId!,
       tenantId: tenantId || undefined,
       postBody: postBody || undefined,
-      user: this.user
+      user: this.user,
+      bypassAuthState: this.bypassAuthState
     };
 
     try {

@@ -24,6 +24,8 @@ jobs:
       id: check-changeset
     - name: Print changeset checker output
       run: echo "${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}"
+    - name: Print blocking failure status
+      run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
     - name: Find Comment
       uses: peter-evans/find-comment@v1
       id: fc
@@ -59,5 +61,5 @@ jobs:
           - No changeset formatting errors detected.
     # Don't want it to throw before editing the comment.
     - name: Fail if checker script logged a blocking failure
-      if: ${{steps.check-changeset.outputs.BLOCKING_FAILURE}}
+      if: ${{steps.check-changeset.outputs.BLOCKING_FAILURE == 'true'}}
       run: exit 1

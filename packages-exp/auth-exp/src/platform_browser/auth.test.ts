@@ -37,6 +37,9 @@ import { _getInstance } from '../core/util/instantiator';
 import { _getClientVersion, ClientPlatform } from '../core/util/version';
 import { Auth } from '../model/auth';
 import { browserPopupRedirectResolver } from './popup_redirect';
+import { PopupRedirectResolver } from '../model/popup_redirect';
+import { UserCredentialImpl } from '../core/user/user_credential_impl';
+import { User } from '../model/user';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -96,6 +99,7 @@ describe('core/auth/initializeAuth', () => {
     let createManagerStub: sinon.SinonSpy;
     let reloadStub: sinon.SinonStub;
     let oldAuth: Auth;
+    let completeRedirectFnStub: sinon.SinonStub;
 
     beforeEach(async () => {
       oldAuth = await testAuth();
@@ -103,6 +107,12 @@ describe('core/auth/initializeAuth', () => {
       reloadStub = sinon
         .stub(reload, '_reloadWithoutSaving')
         .returns(Promise.resolve());
+      completeRedirectFnStub = sinon
+        .stub(
+          _getInstance<PopupRedirectResolver>(browserPopupRedirectResolver),
+          '_completeRedirectFn'
+        )
+        .returns(Promise.resolve(null));
     });
 
     async function initAndWait(
@@ -253,6 +263,40 @@ describe('core/auth/initializeAuth', () => {
         apiScheme: DefaultConfig.API_SCHEME,
         tokenApiHost: DefaultConfig.TOKEN_API_HOST,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
+      });
+    });
+
+    context('#tryRedirectSignIn', () => {
+      it('returns null and clears the redirect user in case of error', async () => {
+        const stub = sinon.stub(
+          _getInstance<Persistence>(browserSessionPersistence)
+        );
+        stub._remove.returns(Promise.resolve());
+        completeRedirectFnStub.returns(Promise.reject(new Error('no')));
+
+        await initAndWait([inMemoryPersistence], browserPopupRedirectResolver);
+        expect(stub._remove).to.have.been.called;
+      });
+
+      it('signs in the redirect user if found', async () => {
+        let user: User | null = null;
+        completeRedirectFnStub.callsFake((auth: Auth) => {
+          user = testUser(auth, 'uid', 'redirectUser@test.com');
+          return Promise.resolve(
+            new UserCredentialImpl({
+              operationType: externs.OperationType.SIGN_IN,
+              user,
+              providerId: null
+            })
+          );
+        });
+
+        const auth = await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver
+        );
+        expect(user).not.to.be.null;
+        expect(auth.currentUser).to.eq(user);
       });
     });
   });

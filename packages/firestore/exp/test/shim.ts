@@ -15,24 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseApp as FirebaseAppLegacy } from '@firebase/app-types';
-import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
-import { deleteApp } from '@firebase/app-exp';
 import * as legacy from '@firebase/firestore-types';
 import * as exp from '../index';
 
 import {
   addDoc,
-  clearIndexedDbPersistence,
   collection,
-  collectionGroup,
   deleteDoc,
-  disableNetwork,
   doc,
   DocumentReference as DocumentReferenceExp,
-  enableIndexedDbPersistence,
-  enableMultiTabIndexedDbPersistence,
-  enableNetwork,
   FieldPath as FieldPathExp,
   getDoc,
   getDocFromCache,
@@ -40,21 +31,13 @@ import {
   getDocs,
   getDocsFromCache,
   getDocsFromServer,
-  initializeFirestore,
-  loadBundle,
-  namedQuery,
   onSnapshot,
-  onSnapshotsInSync,
   query,
   queryEqual,
   refEqual,
-  runTransaction,
   setDoc,
   snapshotEqual,
-  terminate,
   updateDoc,
-  waitForPendingWrites,
-  writeBatch,
   endAt,
   endBefore,
   startAfter,
@@ -72,10 +55,10 @@ import {
   validateSetOptions
 } from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
-import { LoadBundleTask } from '../../exp-types';
+import { Firestore, loadBundle, namedQuery } from '../../src/api/database';
 
 export { GeoPoint, Timestamp } from '../index';
-export { FieldValue } from '../../src/compat/field_value';
+export { loadBundle, namedQuery };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -83,116 +66,11 @@ export { FieldValue } from '../../src/compat/field_value';
 // of the experimental SDK. This shim is used to run integration tests against
 // both SDK versions.
 
-export class FirebaseApp
-  extends Compat<FirebaseAppExp>
-  implements FirebaseAppLegacy {
-  name = this._delegate.name;
-  options = this._delegate.options;
-  automaticDataCollectionEnabled = this._delegate
-    .automaticDataCollectionEnabled;
-
-  delete(): Promise<void> {
-    return deleteApp(this._delegate);
-  }
-}
-
-export class FirebaseFirestore
-  extends Compat<exp.FirebaseFirestore>
-  implements legacy.FirebaseFirestore {
-  app = new FirebaseApp(this._delegate.app);
-
-  settings(settings: legacy.Settings): void {
-    initializeFirestore(this.app._delegate, settings);
-  }
-
-  useEmulator(host: string, port: number): void {
-    this.settings({ host: `${host}:${port}`, ssl: false, merge: true });
-  }
-
-  enablePersistence(settings?: legacy.PersistenceSettings): Promise<void> {
-    return settings?.synchronizeTabs
-      ? enableMultiTabIndexedDbPersistence(this._delegate)
-      : enableIndexedDbPersistence(this._delegate);
-  }
-
-  collection(collectionPath: string): CollectionReference<legacy.DocumentData> {
-    return new CollectionReference(
-      this,
-      collection(this._delegate, collectionPath)
-    );
-  }
-
-  doc(documentPath: string): DocumentReference<legacy.DocumentData> {
-    return new DocumentReference(this, doc(this._delegate, documentPath));
-  }
-
-  collectionGroup(collectionId: string): Query<legacy.DocumentData> {
-    return new Query(this, collectionGroup(this._delegate, collectionId));
-  }
-
-  runTransaction<T>(
-    updateFunction: (transaction: legacy.Transaction) => Promise<T>
-  ): Promise<T> {
-    return runTransaction(this._delegate, t =>
-      updateFunction(new Transaction(this, t))
-    );
-  }
-
-  batch(): legacy.WriteBatch {
-    return new WriteBatch(writeBatch(this._delegate));
-  }
-
-  clearPersistence(): Promise<void> {
-    return clearIndexedDbPersistence(this._delegate);
-  }
-
-  enableNetwork(): Promise<void> {
-    return enableNetwork(this._delegate);
-  }
-
-  disableNetwork(): Promise<void> {
-    return disableNetwork(this._delegate);
-  }
-
-  waitForPendingWrites(): Promise<void> {
-    return waitForPendingWrites(this._delegate);
-  }
-
-  onSnapshotsInSync(observer: {
-    next?: (value: void) => void;
-    error?: (error: legacy.FirestoreError) => void;
-    complete?: () => void;
-  }): () => void;
-  onSnapshotsInSync(onSync: () => void): () => void;
-  onSnapshotsInSync(arg: any): () => void {
-    return onSnapshotsInSync(this._delegate, arg);
-  }
-
-  terminate(): Promise<void> {
-    return terminate(this._delegate);
-  }
-
-  loadBundle(
-    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-  ): LoadBundleTask {
-    return loadBundle(this._delegate, bundleData)!;
-  }
-
-  async namedQuery(name: string): Promise<Query | null> {
-    const query = await namedQuery(this._delegate, name);
-    return !!query ? new Query<legacy.DocumentData>(this, query) : null;
-  }
-
-  INTERNAL = {
-    delete: () => terminate(this._delegate)
-  };
-}
-
 export class Transaction
   extends Compat<exp.Transaction>
   implements legacy.Transaction {
   constructor(
-    private readonly _firestore: FirebaseFirestore,
+    private readonly _firestore: Firestore,
     delegate: exp.Transaction
   ) {
     super(delegate);
@@ -315,7 +193,7 @@ export class DocumentReference<T = legacy.DocumentData>
   extends Compat<exp.DocumentReference<T>>
   implements legacy.DocumentReference<T> {
   constructor(
-    readonly firestore: FirebaseFirestore,
+    readonly firestore: Firestore,
     delegate: exp.DocumentReference<T>
   ) {
     super(delegate);
@@ -438,7 +316,7 @@ export class DocumentSnapshot<T = legacy.DocumentData>
   extends Compat<exp.DocumentSnapshot<T>>
   implements legacy.DocumentSnapshot<T> {
   constructor(
-    private readonly _firestore: FirebaseFirestore,
+    private readonly _firestore: Firestore,
     delegate: exp.DocumentSnapshot<T>
   ) {
     super(delegate);
@@ -453,11 +331,14 @@ export class DocumentSnapshot<T = legacy.DocumentData>
   }
 
   data(options?: legacy.SnapshotOptions): T | undefined {
-    return wrap(this._delegate.data(options));
+    return wrap(this._firestore, this._delegate.data(options));
   }
 
   get(fieldPath: string | FieldPath, options?: legacy.SnapshotOptions): any {
-    return wrap(this._delegate.get(unwrap(fieldPath), options));
+    return wrap(
+      this._firestore,
+      this._delegate.get(unwrap(fieldPath), options)
+    );
   }
 
   isEqual(other: DocumentSnapshot<T>): boolean {
@@ -468,22 +349,15 @@ export class DocumentSnapshot<T = legacy.DocumentData>
 export class QueryDocumentSnapshot<T = legacy.DocumentData>
   extends DocumentSnapshot<T>
   implements legacy.QueryDocumentSnapshot<T> {
-  constructor(
-    firestore: FirebaseFirestore,
-    readonly _delegate: exp.QueryDocumentSnapshot<T>
-  ) {
-    super(firestore, _delegate);
-  }
-
   data(options?: legacy.SnapshotOptions): T {
-    return this._delegate.data(options);
+    return this._delegate.data(options)!;
   }
 }
 
 export class Query<T = legacy.DocumentData>
   extends Compat<exp.Query<T>>
   implements legacy.Query<T> {
-  constructor(readonly firestore: FirebaseFirestore, delegate: exp.Query<T>) {
+  constructor(readonly firestore: Firestore, delegate: exp.Query<T>) {
     super(delegate);
   }
 
@@ -606,7 +480,7 @@ export class Query<T = legacy.DocumentData>
 export class QuerySnapshot<T = legacy.DocumentData>
   implements legacy.QuerySnapshot<T> {
   constructor(
-    readonly _firestore: FirebaseFirestore,
+    readonly _firestore: Firestore,
     readonly _delegate: exp.QuerySnapshot<T>
   ) {}
 
@@ -647,7 +521,7 @@ export class QuerySnapshot<T = legacy.DocumentData>
 export class DocumentChange<T = legacy.DocumentData>
   implements legacy.DocumentChange<T> {
   constructor(
-    private readonly _firestore: FirebaseFirestore,
+    private readonly _firestore: Firestore,
     private readonly _delegate: exp.DocumentChange<T>
   ) {}
   readonly type = this._delegate.type;
@@ -663,7 +537,7 @@ export class CollectionReference<T = legacy.DocumentData>
   extends Query<T>
   implements legacy.CollectionReference<T> {
   constructor(
-    firestore: FirebaseFirestore,
+    readonly firestore: Firestore,
     readonly _delegate: exp.CollectionReference<T>
   ) {
     super(firestore, _delegate);
@@ -712,15 +586,11 @@ export class CollectionReference<T = legacy.DocumentData>
   }
 }
 
-export class FieldPath implements legacy.FieldPath {
-  private readonly fieldNames: string[];
-
+export class FieldPath
+  extends Compat<FieldPathExp>
+  implements legacy.FieldPath {
   constructor(...fieldNames: string[]) {
-    this.fieldNames = fieldNames;
-  }
-
-  get _delegate(): FieldPathExp {
-    return new FieldPathExp(...this.fieldNames);
+    super(new FieldPathExp(...fieldNames));
   }
 
   static documentId(): FieldPath {
@@ -758,25 +628,20 @@ export class Blob extends Compat<BytesExp> implements legacy.Blob {
  * Takes document data that uses the firestore-exp API types and replaces them
  * with the API types defined in this shim.
  */
-function wrap(value: any): any {
+function wrap(firestore: Firestore, value: any): any {
   if (Array.isArray(value)) {
-    return value.map(v => wrap(v));
+    return value.map(v => wrap(firestore, v));
   } else if (value instanceof FieldPathExp) {
     return new FieldPath(...value._internalPath.toArray());
   } else if (value instanceof BytesExp) {
     return new Blob(value);
   } else if (value instanceof DocumentReferenceExp) {
-    // TODO(mrschmidt): Ideally, we should use an existing instance of
-    // FirebaseFirestore here rather than instantiating a new instance
-    return new DocumentReference(
-      new FirebaseFirestore(value.firestore as exp.FirebaseFirestore),
-      value
-    );
+    return new DocumentReference(firestore, value);
   } else if (isPlainObject(value)) {
     const obj: any = {};
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
-        obj[key] = wrap(value[key]);
+        obj[key] = wrap(firestore, value[key]);
       }
     }
     return obj;

@@ -33,7 +33,8 @@ describe('api/account_management/updateProfile', () => {
   const request = {
     idToken: 'my-token',
     email: 'test@foo.com',
-    password: 'my-password'
+    password: 'my-password',
+    returnSecureToken: true
   };
 
   let auth: TestAuth;

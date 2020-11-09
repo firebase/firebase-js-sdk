@@ -39,6 +39,12 @@ describe('core/providers/google', () => {
     expect(cred.signInMethod).to.eq(SignInMethod.GOOGLE);
   });
 
+  it('adds the profile scope by default', () => {
+    const provider = new GoogleAuthProvider();
+    expect(provider.providerId).to.eq(ProviderId.GOOGLE);
+    expect(provider.getScopes()).to.eql(['profile']);
+  });
+
   it('credentialFromResult creates the cred from a tagged result', async () => {
     const auth = await testAuth();
     const userCred = new UserCredentialImpl({

@@ -24,8 +24,6 @@ import {
   FirestoreClient,
   firestoreClientDisableNetwork,
   firestoreClientEnableNetwork,
-  firestoreClientGetNamedQuery,
-  firestoreClientLoadBundle,
   firestoreClientWaitForPendingWrites,
   setOfflineComponentProvider,
   setOnlineComponentProvider
@@ -41,22 +39,20 @@ import {
   FirebaseFirestore as LiteFirestore,
   Settings as LiteSettings
 } from '../../../lite/src/api/database';
+import { DatabaseId } from '../../../src/core/database_info';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector';
 import {
   CACHE_SIZE_UNLIMITED,
   configureFirestore,
-  ensureFirestoreConfigured,
-  FirestoreCompat
+  ensureFirestoreConfigured
 } from '../../../src/api/database';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
 import { PersistenceSettings } from '../../../exp-types';
-import { Query } from '../../../lite/src/api/reference';
-import { LoadBundleTask } from '../../../src/api/bundle';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -74,18 +70,19 @@ export interface Settings extends LiteSettings {
  */
 export class FirebaseFirestore
   extends LiteFirestore
-  implements _FirebaseService, FirestoreCompat {
+  implements _FirebaseService {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
 
   _firestoreClient: FirestoreClient | undefined;
 
   constructor(
-    app: FirebaseApp,
+    databaseIdOrApp: DatabaseId | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    super(app, authProvider);
-    this._persistenceKey = app.name;
+    super(databaseIdOrApp, authProvider);
+    this._persistenceKey =
+      'name' in databaseIdOrApp ? databaseIdOrApp.name : '[DEFAULT]';
   }
 
   _terminate(): Promise<void> {
@@ -169,13 +166,13 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * @return A promise that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
-  firestore: FirestoreCompat,
+  firestore: FirebaseFirestore,
   persistenceSettings?: PersistenceSettings
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
-  const settings = firestore._getSettings();
+  const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new IndexedDbOfflineComponentProvider(
@@ -213,12 +210,12 @@ export function enableIndexedDbPersistence(
  * storage.
  */
 export function enableMultiTabIndexedDbPersistence(
-  firestore: FirestoreCompat
+  firestore: FirebaseFirestore
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
-  const settings = firestore._getSettings();
+  const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new MultiTabOfflineComponentProvider(
@@ -326,7 +323,7 @@ function canFallbackFromIndexedDbError(
  * cleared. Otherwise, the promise is rejected with an error.
  */
 export function clearIndexedDbPersistence(
-  firestore: FirestoreCompat
+  firestore: FirebaseFirestore
 ): Promise<void> {
   if (firestore._initialized && !firestore._terminated) {
     throw new FirestoreError(
@@ -424,7 +421,7 @@ export function terminate(firestore: FirebaseFirestore): Promise<void> {
   return firestore._delete();
 }
 
-function verifyNotInitialized(firestore: FirestoreCompat): void {
+function verifyNotInitialized(firestore: FirebaseFirestore): void {
   if (firestore._initialized || firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
@@ -433,30 +430,4 @@ function verifyNotInitialized(firestore: FirestoreCompat): void {
         'methods on a Firestore object.'
     );
   }
-}
-
-export function loadBundle(
-  firestore: FirebaseFirestore,
-  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-): LoadBundleTask {
-  const client = ensureFirestoreConfigured(firestore);
-  const resultTask = new LoadBundleTask();
-
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClientLoadBundle(client, bundleData, resultTask);
-  return resultTask;
-}
-
-export function namedQuery(
-  firestore: FirebaseFirestore,
-  name: string
-): Promise<Query | null> {
-  const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientGetNamedQuery(client, name).then(namedQuery => {
-    if (!namedQuery) {
-      return null;
-    }
-
-    return new Query(firestore, null, namedQuery.query);
-  });
 }

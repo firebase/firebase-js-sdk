@@ -44,8 +44,8 @@ export function _fromIdTokenResponse(
     ];
     if (signInProvider) {
       const filteredProviderId =
-        providerId !== externs.ProviderId.ANONYMOUS &&
-        providerId !== externs.ProviderId.CUSTOM
+        signInProvider !== externs.ProviderId.ANONYMOUS &&
+        signInProvider !== externs.ProviderId.CUSTOM
           ? (signInProvider as externs.ProviderId)
           : null;
       // Uses generic class in accordance with the legacy SDK.

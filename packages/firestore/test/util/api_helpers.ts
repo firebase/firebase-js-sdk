@@ -41,43 +41,38 @@ import { JsonObject } from '../../src/model/object_value';
 import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
+import { FirebaseFirestore } from '../../exp/src/api/database';
+import { DatabaseId } from '../../src/core/database_info';
 
 /**
  * A mock Firestore. Will not work for integration test.
  */
-export const FIRESTORE = new Firestore(
-  {
-    projectId: TEST_PROJECT,
-    database: '(default)'
-  },
-  new Provider('auth-internal', new ComponentContainer('default')),
-  new IndexedDbPersistenceProvider()
-);
+export const FIRESTORE = newTestFirestore(TEST_PROJECT);
 
 export function firestore(): Firestore {
   return FIRESTORE;
 }
 
-export function newTestFirestore(): Firestore {
+export function newTestFirestore(projectId = 'new-project'): Firestore {
   return new Firestore(
-    {
-      projectId: 'new-project',
-      database: '(default)'
-    },
-    new Provider('auth-internal', new ComponentContainer('default')),
+    new DatabaseId(projectId),
+    new FirebaseFirestore(
+      new DatabaseId(projectId),
+      new Provider('auth-internal', new ComponentContainer('default'))
+    ),
     new IndexedDbPersistenceProvider()
   );
 }
 
 export function collectionReference(path: string): CollectionReference {
   const db = firestore();
-  ensureFirestoreConfigured(db);
+  ensureFirestoreConfigured(db._delegate);
   return new CollectionReference(pathFrom(path), db, /* converter= */ null);
 }
 
 export function documentReference(path: string): DocumentReference {
   const db = firestore();
-  ensureFirestoreConfigured(db);
+  ensureFirestoreConfigured(db._delegate);
   return new DocumentReference(key(path), db, /* converter= */ null);
 }
 

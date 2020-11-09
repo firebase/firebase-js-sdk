@@ -14,10 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as errorsExports from './error';
+
+import { unknown, invalidFormat } from './error';
 
 /**
- * @enum {string}
+ * An enumeration of the possible string formats for upload.
  */
 export type StringFormat = string;
 export const StringFormat = {
@@ -27,9 +28,6 @@ export const StringFormat = {
   DATA_URL: 'data_url'
 };
 
-/**
- * @struct
- */
 export class StringData {
   contentType: string | null;
 
@@ -58,7 +56,7 @@ export function dataFromString(
   }
 
   // assert(false);
-  throw errorsExports.unknown();
+  throw unknown();
 }
 
 export function utf8Bytes_(value: string): Uint8Array {
@@ -108,10 +106,7 @@ export function percentEncodedBytes_(value: string): Uint8Array {
   try {
     decoded = decodeURIComponent(value);
   } catch (e) {
-    throw errorsExports.invalidFormat(
-      StringFormat.DATA_URL,
-      'Malformed data URL.'
-    );
+    throw invalidFormat(StringFormat.DATA_URL, 'Malformed data URL.');
   }
   return utf8Bytes_(decoded);
 }
@@ -123,7 +118,7 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
       const hasUnder = value.indexOf('_') !== -1;
       if (hasMinus || hasUnder) {
         const invalidChar = hasMinus ? '-' : '_';
-        throw errorsExports.invalidFormat(
+        throw invalidFormat(
           format,
           "Invalid character '" +
             invalidChar +
@@ -137,7 +132,7 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
       const hasSlash = value.indexOf('/') !== -1;
       if (hasPlus || hasSlash) {
         const invalidChar = hasPlus ? '+' : '/';
-        throw errorsExports.invalidFormat(
+        throw invalidFormat(
           format,
           "Invalid character '" + invalidChar + "' found: is it base64 encoded?"
         );
@@ -152,7 +147,7 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   try {
     bytes = atob(value);
   } catch (e) {
-    throw errorsExports.invalidFormat(format, 'Invalid character found');
+    throw invalidFormat(format, 'Invalid character found');
   }
   const array = new Uint8Array(bytes.length);
   for (let i = 0; i < bytes.length; i++) {
@@ -161,9 +156,6 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   return array;
 }
 
-/**
- * @struct
- */
 class DataURLParts {
   base64: boolean = false;
   contentType: string | null = null;
@@ -172,7 +164,7 @@ class DataURLParts {
   constructor(dataURL: string) {
     const matches = dataURL.match(/^data:([^,]+)?,/);
     if (matches === null) {
-      throw errorsExports.invalidFormat(
+      throw invalidFormat(
         StringFormat.DATA_URL,
         "Must be formatted 'data:[<mediatype>][;base64],<data>"
       );

@@ -31,5 +31,6 @@ export {
   initializeAdminApp,
   initializeTestApp,
   loadDatabaseRules,
-  loadFirestoreRules
+  loadFirestoreRules,
+  withFunctionTriggersDisabled
 } from './src/api';
