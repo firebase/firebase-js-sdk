@@ -238,11 +238,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
         this._firestoreImpl._databaseId,
         options?.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
         key =>
-          new DocumentReference(
-            this._firestore,
-            /* converter= */ null,
-            key.path
-          ),
+          new DocumentReference(this._firestore, /* converter= */ null, key),
         bytes => new Bytes(bytes)
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
@@ -276,8 +272,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
         const userDataWriter = new UserDataWriter(
           this._firestoreImpl._databaseId,
           options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
-          key =>
-            new DocumentReference(this._firestore, this._converter, key.path),
+          key => new DocumentReference(this._firestore, this._converter, key),
           bytes => new Bytes(bytes)
         );
         return userDataWriter.convertValue(value);

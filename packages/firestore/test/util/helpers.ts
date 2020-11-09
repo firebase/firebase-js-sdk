@@ -111,7 +111,7 @@ export function testUserDataWriter(): UserDataWriter {
   return new UserDataWriter(
     TEST_DATABASE_ID,
     'none',
-    key => new DocumentReference(key, FIRESTORE, /* converter= */ null),
+    key => DocumentReference.forKey(key, FIRESTORE, /* converter= */ null),
     bytes => new Blob(bytes)
   );
 }
@@ -133,8 +133,8 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 }
 
 export function ref(key: string, offset?: number): DocumentReference {
-  return new DocumentReference(
-    new DocumentKey(path(key, offset)),
+  return DocumentReference.forPath(
+    path(key, offset),
     FIRESTORE,
     /* converter= */ null
   );

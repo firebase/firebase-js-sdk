@@ -56,34 +56,19 @@ import { newSerializer } from '../platform/serializer';
 import { Bytes } from '../../lite/src/api/bytes';
 import { Compat } from '../compat/compat';
 import { FieldValue } from '../../lite/src/api/field_value';
+import { DocumentReference } from '../../lite/src/api/reference';
 import { FieldPath } from '../../lite/src/api/field_path';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
 /**
  * An untyped Firestore Data Converter interface that is shared between the
- * lite, full and legacy SDK.
+ * lite, firestore-exp and classic SDK.
  */
 export interface UntypedFirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
   fromFirestore(snapshot: unknown, options?: unknown): T;
-}
-
-/**
- * A reference to a document in a Firebase project.
- *
- * This class serves as a common base class for the public DocumentReferences
- * exposed in the lite, full and legacy SDK.
- */
-// Use underscore prefix to hide this class from our Public API.
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export class _DocumentKeyReference<T> {
-  constructor(
-    readonly _databaseId: DatabaseId,
-    readonly _key: DocumentKey,
-    readonly _converter: UntypedFirestoreDataConverter<T> | null
-  ) {}
 }
 
 /** The result of parsing document data (e.g. for a setData call). */
@@ -692,6 +677,10 @@ function parseScalarValue(
   value: unknown,
   context: ParseContext
 ): ProtoValue | null {
+  if (value instanceof Compat) {
+    value = value._delegate;
+  }
+
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
@@ -725,9 +714,9 @@ function parseScalarValue(
     };
   } else if (value instanceof Bytes) {
     return { bytesValue: toBytes(context.serializer, value._byteString) };
-  } else if (value instanceof _DocumentKeyReference) {
+  } else if (value instanceof DocumentReference) {
     const thisDb = context.databaseId;
-    const otherDb = value._databaseId;
+    const otherDb = value.firestore._databaseId;
     if (!otherDb.isEqual(thisDb)) {
       throw context.createError(
         'Document reference is for database ' +
@@ -737,7 +726,7 @@ function parseScalarValue(
     }
     return {
       referenceValue: toResourceName(
-        value._databaseId || context.databaseId,
+        value.firestore._databaseId || context.databaseId,
         value._key.path
       )
     };
@@ -766,7 +755,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Bytes) &&
-    !(input instanceof _DocumentKeyReference) &&
+    !(input instanceof DocumentReference) &&
     !(input instanceof FieldValue)
   );
 }
