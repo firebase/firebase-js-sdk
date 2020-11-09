@@ -118,7 +118,7 @@ export function createWebStorageOnlineStateKey(persistenceKey: string): string {
 // The WebStorage prefix that plays as a event to indicate the remote documents
 // might have changed due to some secondary tabs loading a bundle.
 // format of the key is:
-//     firestore_remote_documents_changed_<persistenceKey>
+//     firestore_bundle_loaded_<persistenceKey>
 export const BUNDLE_LOADED_KEY_PREFIX = 'firestore_bundle_loaded';
 export function createBundleLoadedKey(persistenceKey: string): string {
   return `${BUNDLE_LOADED_KEY_PREFIX}_${persistenceKey}`;

@@ -1278,7 +1278,7 @@ export async function ignoreIfPrimaryLeaseLoss(
  * This ensures that the loaded documents do not get garbage collected
  * right away.
  */
-export function umbrellaTarget(bundleName: string): Target {
+function umbrellaTarget(bundleName: string): Target {
   // It is OK that the path used for the query is not valid, because this will
   // not be read and queried.
   return queryToTarget(
