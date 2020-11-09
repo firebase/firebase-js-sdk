@@ -36,6 +36,7 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
+  newExpUserDataWriter,
   newUserDataReader,
   Query,
   SetOptions,
@@ -140,6 +141,7 @@ export function getDocFromCache<T>(
 ): Promise<DocumentSnapshot<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
+  const userDataWriter = newExpUserDataWriter(firestore, reference._converter);
 
   const deferred = new Deferred<Document | null>();
   firestore._queue.enqueueAndForget(async () => {
@@ -150,6 +152,7 @@ export function getDocFromCache<T>(
     doc =>
       new DocumentSnapshot(
         firestore,
+        userDataWriter,
         reference._key,
         doc,
         new SnapshotMetadata(
@@ -203,6 +206,7 @@ export function getDocFromServer<T>(
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
+  const userDataWriter = newExpUserDataWriter(firestore, query._converter);
 
   validateHasExplicitOrderByForLimitToLast(query._query);
 
@@ -218,7 +222,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
     );
   });
   return deferred.promise.then(
-    snapshot => new QuerySnapshot(firestore, query, snapshot)
+    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
 
@@ -233,6 +237,7 @@ export function getDocsFromCache<T>(
 ): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
+  const userDataWriter = newExpUserDataWriter(firestore, query._converter);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
@@ -240,7 +245,7 @@ export function getDocsFromCache<T>(
     await executeQueryFromCache(localStore, query._query, deferred);
   });
   return deferred.promise.then(
-    snapshot => new QuerySnapshot(firestore, query, snapshot)
+    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
 
@@ -255,6 +260,7 @@ export function getDocsFromServer<T>(
 ): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
+  const userDataWriter = newExpUserDataWriter(firestore, query._converter);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
@@ -268,7 +274,7 @@ export function getDocsFromServer<T>(
     );
   });
   return deferred.promise.then(
-    snapshot => new QuerySnapshot(firestore, query, snapshot)
+    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
 
@@ -706,7 +712,12 @@ export function onSnapshot<T>(
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<QuerySnapshot<T>>)(
-            new QuerySnapshot(firestore, reference, snapshot)
+            new QuerySnapshot(
+              firestore,
+              newExpUserDataWriter(firestore, reference._converter),
+              reference,
+              snapshot
+            )
           );
         }
       },
@@ -836,8 +847,10 @@ function convertToDocSnapshot<T>(
   );
   const doc = snapshot.docs.get(ref._key);
 
+  const userDataWriter = newExpUserDataWriter(firestore, ref._converter);
   return new DocumentSnapshot(
     firestore,
+    userDataWriter,
     ref._key,
     doc,
     new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache),

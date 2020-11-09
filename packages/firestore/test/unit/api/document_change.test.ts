@@ -18,9 +18,12 @@
 import { expect } from 'chai';
 import {
   changesFromSnapshot,
-  DocumentSnapshot,
-  QueryDocumentSnapshot
+  DocumentReference,
+  QueryDocumentSnapshot,
+  SnapshotMetadata
 } from '../../../src/api/database';
+import { Blob } from '../../../src/api/blob';
+import { QueryDocumentSnapshot as ExpQueryDocumentSnapshot } from '../../../exp/src/api/snapshot';
 import { Query } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
 import { documentKeySet } from '../../../src/model/collections';
@@ -35,6 +38,13 @@ import {
   query
 } from '../../util/helpers';
 import { firestore } from '../../util/api_helpers';
+import { UserDataWriter } from '../../../src/api/user_data_writer';
+
+const userDataWriter = new UserDataWriter(
+  firestore()._databaseId,
+  key => DocumentReference.forKey(key, firestore(), null),
+  bytes => new Blob(bytes)
+);
 
 describe('DocumentChange:', () => {
   function expectPositions(
@@ -60,11 +70,14 @@ describe('DocumentChange:', () => {
       (doc, fromCache, hasPendingWrite) =>
         new QueryDocumentSnapshot(
           firestore(),
-          doc.key,
-          doc,
-          fromCache,
-          hasPendingWrite,
-          /* converter= */ null
+          new ExpQueryDocumentSnapshot(
+            firestore()._delegate,
+            userDataWriter,
+            doc.key,
+            doc,
+            new SnapshotMetadata(hasPendingWrite, fromCache),
+            /* converter= */ null
+          )
         )
     );
 
@@ -76,7 +89,8 @@ describe('DocumentChange:', () => {
         actual.splice(
           change.newIndex,
           0,
-          (change.doc as DocumentSnapshot)._document!
+          ((change.doc as unknown) as QueryDocumentSnapshot)._delegate
+            ._document!
         );
       }
     }

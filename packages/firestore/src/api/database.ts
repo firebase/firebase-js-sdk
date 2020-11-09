@@ -106,6 +106,11 @@ import {
   FirebaseFirestore as ExpFirebaseFirestore
 } from '../../exp/src/api/database';
 import {
+  DocumentSnapshot as ExpDocumentSnapshot,
+  QueryDocumentSnapshot as ExpQueryDocumentSnapshot,
+  snapshotEqual
+} from '../../exp/src/api/snapshot';
+import {
   DocumentReference as ExpDocumentReference,
   refEqual,
   newUserDataReader
@@ -120,7 +125,6 @@ import {
   getDoc,
   onSnapshot
 } from '../../exp/src/api/reference';
-import { DocumentSnapshot as ExpDocumentSnapshot } from '../../exp/src/api/snapshot';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
 
@@ -458,6 +462,7 @@ export class Transaction implements PublicTransaction {
       documentRef,
       this._firestore
     );
+    const userDataWriter = newUserDataWriter(this._firestore, ref._converter);
     return this._transaction
       .lookup([ref._key])
       .then((docs: MaybeDocument[]) => {
@@ -468,20 +473,32 @@ export class Transaction implements PublicTransaction {
         if (doc instanceof NoDocument) {
           return new DocumentSnapshot<T>(
             this._firestore,
-            ref._key,
-            null,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false,
-            ref._converter
+            new ExpDocumentSnapshot(
+              this._firestore._delegate,
+              userDataWriter,
+              ref._key,
+              null,
+              new SnapshotMetadata(
+                /*hasPendingWrites= */ false,
+                /* fromCache= */ false
+              ),
+              ref._converter
+            )
           );
         } else if (doc instanceof Document) {
           return new DocumentSnapshot<T>(
             this._firestore,
-            ref._key,
-            doc,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false,
-            ref._converter
+            new ExpDocumentSnapshot(
+              this._firestore._delegate,
+              userDataWriter,
+              ref._key,
+              doc,
+              new SnapshotMetadata(
+                /*hasPendingWrites= */ false,
+                /* fromCache= */ false
+              ),
+              ref._converter
+            )
           );
         } else {
           throw fail(
@@ -734,11 +751,17 @@ export class WriteBatch implements PublicWriteBatch {
 export class DocumentReference<T = PublicDocumentData>
   extends Compat<ExpDocumentReference<T>>
   implements PublicDocumentReference<T> {
+  private _userDataWriter: UserDataWriter;
+
   constructor(
     readonly firestore: Firestore,
     delegate: ExpDocumentReference<T>
   ) {
     super(delegate);
+    this._userDataWriter = newUserDataWriter(
+      firestore,
+      this._delegate._converter
+    );
   }
 
   static forPath<U>(
@@ -889,11 +912,14 @@ export class DocumentReference<T = PublicDocumentData>
       result =>
         new DocumentSnapshot(
           this.firestore,
-          result._key,
-          result._document,
-          result.metadata.fromCache,
-          result.metadata.hasPendingWrites,
-          this._delegate._converter as UntypedFirestoreDataConverter<T>
+          new ExpDocumentSnapshot(
+            this.firestore._delegate,
+            this._userDataWriter,
+            result._key,
+            result._document,
+            result.metadata,
+            this._delegate._converter
+          )
         )
     );
     return onSnapshot(this._delegate, options, observer);
@@ -913,11 +939,14 @@ export class DocumentReference<T = PublicDocumentData>
       result =>
         new DocumentSnapshot(
           this.firestore,
-          result._key,
-          result._document,
-          result.metadata.fromCache,
-          result.metadata.hasPendingWrites,
-          this._delegate._converter as UntypedFirestoreDataConverter<T>
+          new ExpDocumentSnapshot(
+            this.firestore._delegate,
+            this._userDataWriter,
+            result._key,
+            result._document,
+            result.metadata,
+            this._delegate._converter as UntypedFirestoreDataConverter<T>
+          )
         )
     );
   }
@@ -1058,114 +1087,54 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
 export interface SnapshotOptions extends PublicSnapshotOptions {}
 
 export class DocumentSnapshot<T = PublicDocumentData>
+  extends Compat<ExpDocumentSnapshot<T>>
   implements PublicDocumentSnapshot<T> {
   constructor(
-    private _firestore: Firestore,
-    private _key: DocumentKey,
-    public _document: Document | null,
-    private _fromCache: boolean,
-    private _hasPendingWrites: boolean,
-    private readonly _converter: UntypedFirestoreDataConverter<T> | null
-  ) {}
+    private readonly _firestore: Firestore,
+    delegate: ExpDocumentSnapshot<T>
+  ) {
+    super(delegate);
+  }
 
-  data(options: PublicSnapshotOptions = {}): T | undefined {
-    if (!this._document) {
-      return undefined;
-    } else {
-      // We only want to use the converter and create a new DocumentSnapshot
-      // if a converter has been provided.
-      if (this._converter) {
-        const snapshot = new QueryDocumentSnapshot(
-          this._firestore,
-          this._key,
-          this._document,
-          this._fromCache,
-          this._hasPendingWrites,
-          /* converter= */ null
-        );
-        return this._converter.fromFirestore(snapshot, options);
-      } else {
-        const userDataWriter = new UserDataWriter(
-          this._firestore._databaseId,
-          options.serverTimestamps || 'none',
-          key =>
-            DocumentReference.forKey(
-              key,
-              this._firestore,
-              /* converter= */ null
-            ),
-          bytes => new Blob(bytes)
-        );
-        return userDataWriter.convertValue(this._document.toProto()) as T;
-      }
-    }
+  get ref(): DocumentReference<T> {
+    return new DocumentReference<T>(this._firestore, this._delegate.ref);
+  }
+
+  get id(): string {
+    return this._delegate.id;
+  }
+
+  get metadata(): SnapshotMetadata {
+    return this._delegate.metadata;
+  }
+
+  get exists(): boolean {
+    return this._delegate.exists();
+  }
+
+  data(options?: PublicSnapshotOptions): T | undefined {
+    return this._delegate.data(options);
   }
 
   get(
     fieldPath: string | PublicFieldPath,
-    options: PublicSnapshotOptions = {}
-  ): unknown {
-    if (this._document) {
-      const value = this._document
-        .data()
-        .field(
-          fieldPathFromArgument('DocumentSnapshot.get', fieldPath, this._key)
-        );
-      if (value !== null) {
-        const userDataWriter = new UserDataWriter(
-          this._firestore._databaseId,
-          options.serverTimestamps || 'none',
-          key =>
-            DocumentReference.forKey(key, this._firestore, this._converter),
-          bytes => new Blob(bytes)
-        );
-        return userDataWriter.convertValue(value);
-      }
-    }
-    return undefined;
+    options?: PublicSnapshotOptions
+    // We are using `any` here to avoid an explicit cast by our users.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): any {
+    return this._delegate.get(fieldPath as string | ExpFieldPath, options);
   }
 
-  get id(): string {
-    return this._key.path.lastSegment();
-  }
-
-  get ref(): PublicDocumentReference<T> {
-    return DocumentReference.forKey(
-      this._key,
-      this._firestore,
-      this._converter
-    );
-  }
-
-  get exists(): boolean {
-    return this._document !== null;
-  }
-
-  get metadata(): PublicSnapshotMetadata {
-    return new SnapshotMetadata(this._hasPendingWrites, this._fromCache);
-  }
-
-  isEqual(other: PublicDocumentSnapshot<T>): boolean {
-    if (!(other instanceof DocumentSnapshot)) {
-      return false;
-    }
-    return (
-      this._firestore === other._firestore &&
-      this._fromCache === other._fromCache &&
-      this._key.isEqual(other._key) &&
-      (this._document === null
-        ? other._document === null
-        : this._document.isEqual(other._document)) &&
-      this._converter === other._converter
-    );
+  isEqual(other: DocumentSnapshot<T>): boolean {
+    return snapshotEqual(this._delegate, other._delegate);
   }
 }
 
 export class QueryDocumentSnapshot<T = PublicDocumentData>
   extends DocumentSnapshot<T>
   implements PublicQueryDocumentSnapshot<T> {
-  data(options?: SnapshotOptions): T {
-    const data = super.data(options);
+  data(options?: PublicSnapshotOptions): T {
+    const data = this._delegate.data(options);
     debugAssert(
       data !== undefined,
       'Document in a QueryDocumentSnapshot should exist'
@@ -1742,7 +1711,7 @@ export class Query<T = PublicDocumentData> implements PublicQuery<T> {
         this._query,
         this.firestore._databaseId,
         methodName,
-        docOrField._document,
+        docOrField._delegate._document,
         before
       );
     } else {
@@ -1840,6 +1809,7 @@ export class QuerySnapshot<T = PublicDocumentData>
   implements PublicQuerySnapshot<T> {
   private _cachedChanges: Array<PublicDocumentChange<T>> | null = null;
   private _cachedChangesIncludeMetadataChanges: boolean | null = null;
+  private _userDataWriter: UserDataWriter;
 
   readonly metadata: PublicSnapshotMetadata;
 
@@ -1849,6 +1819,7 @@ export class QuerySnapshot<T = PublicDocumentData>
     private readonly _snapshot: ViewSnapshot,
     private readonly _converter: PublicFirestoreDataConverter<T> | null
   ) {
+    this._userDataWriter = newUserDataWriter(this._firestore, this._converter);
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
       _snapshot.fromCache
@@ -1943,11 +1914,14 @@ export class QuerySnapshot<T = PublicDocumentData>
   ): QueryDocumentSnapshot<T> {
     return new QueryDocumentSnapshot(
       this._firestore,
-      doc.key,
-      doc,
-      fromCache,
-      hasPendingWrites,
-      this._converter
+      new ExpQueryDocumentSnapshot(
+        this._firestore._delegate,
+        this._userDataWriter,
+        doc.key,
+        doc,
+        new SnapshotMetadata(hasPendingWrites, fromCache),
+        this._converter
+      )
     );
   }
 }
@@ -2172,4 +2146,15 @@ export function applyFirestoreDataConverter<T>(
     convertedValue = value as PublicDocumentData;
   }
   return convertedValue;
+}
+
+function newUserDataWriter<T>(
+  firestore: Firestore,
+  converter: UntypedFirestoreDataConverter<T> | null
+): UserDataWriter {
+  return new UserDataWriter(
+    firestore._databaseId,
+    key => DocumentReference.forKey(key, firestore, converter),
+    bytes => new Blob(bytes)
+  );
 }
