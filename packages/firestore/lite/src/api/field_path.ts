@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
-import { _BaseFieldPath } from '../../../src/api/field_path';
-import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
+import {
+  DOCUMENT_KEY_NAME,
+  FieldPath as InternalFieldPath
+} from '../../../src/model/path';
+import { Code, FirestoreError } from '../../../src/util/error';
 
 /**
  * A `FieldPath` refers to a field in a document. The path may consist of a
@@ -26,12 +29,9 @@ import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
  * Create a `FieldPath` by providing field names. If more than one field
  * name is provided, the path will point to a nested field in a document.
  */
-export class FieldPath extends _BaseFieldPath {
-  // Note: This class is stripped down a copy of the FieldPath class in the
-  // legacy SDK. The changes are:
-  // - The `documentId()` static method has been removed
-  // - Input validation is limited to errors that cannot be caught by the
-  //   TypeScript transpiler.
+export class FieldPath {
+  /** Internal representation of a Firestore field path. */
+  readonly _internalPath: InternalFieldPath;
 
   /**
    * Creates a FieldPath from the provided field names. If more than one field
@@ -40,7 +40,17 @@ export class FieldPath extends _BaseFieldPath {
    * @param fieldNames A list of field names.
    */
   constructor(...fieldNames: string[]) {
-    super(fieldNames);
+    for (let i = 0; i < fieldNames.length; ++i) {
+      if (fieldNames[i].length === 0) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid field name at argument $(i + 1). ` +
+            'Field names must not be empty.'
+        );
+      }
+    }
+
+    this._internalPath = new InternalFieldPath(fieldNames);
   }
 
   /**
