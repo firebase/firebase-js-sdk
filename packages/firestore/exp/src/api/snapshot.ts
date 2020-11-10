@@ -17,7 +17,7 @@
 
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument
@@ -181,7 +181,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
 
   constructor(
     readonly _firestore: FirebaseFirestore,
-    userDataWriter: UserDataWriter,
+    userDataWriter: AbstractUserDataWriter,
     key: DocumentKey,
     document: Document | null,
     metadata: SnapshotMetadata,
@@ -328,7 +328,7 @@ export class QuerySnapshot<T = DocumentData> {
 
   constructor(
     readonly _firestore: FirebaseFirestore,
-    readonly _userDataWriter: UserDataWriter,
+    readonly _userDataWriter: AbstractUserDataWriter,
     query: Query<T>,
     readonly _snapshot: ViewSnapshot
   ) {

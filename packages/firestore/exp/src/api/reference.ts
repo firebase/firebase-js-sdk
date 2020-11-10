@@ -36,7 +36,6 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  newExpUserDataWriter,
   newUserDataReader,
   Query,
   SetOptions,
@@ -58,13 +57,13 @@ import {
   Unsubscribe
 } from '../../../src/api/observer';
 import {
-  getEventManager,
   executeQueryFromCache,
   executeQueryViaSnapshotListener,
-  readDocumentFromCache,
-  readDocumentViaSnapshotListener,
+  firestoreClientWrite,
+  getEventManager,
   getLocalStore,
-  firestoreClientWrite
+  readDocumentFromCache,
+  readDocumentViaSnapshotListener
 } from '../../../src/core/firestore_client';
 import {
   newQueryForPath,
@@ -81,6 +80,13 @@ import {
 } from '../../../src/core/event_manager';
 import { FirestoreError } from '../../../src/util/error';
 import { Compat } from '../../../src/compat/compat';
+import { ExpUserDataWriter } from '../../../src/api/user_data_writer';
+
+export {
+  DocumentReference,
+  CollectionReference,
+  Query
+} from '../../../lite/src/api/reference';
 
 /**
  * An options object that can be passed to {@link onSnapshot()} and {@link
@@ -141,7 +147,7 @@ export function getDocFromCache<T>(
 ): Promise<DocumentSnapshot<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
-  const userDataWriter = newExpUserDataWriter(firestore, reference._converter);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   const deferred = new Deferred<Document | null>();
   firestore._queue.enqueueAndForget(async () => {
@@ -206,7 +212,7 @@ export function getDocFromServer<T>(
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
-  const userDataWriter = newExpUserDataWriter(firestore, query._converter);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   validateHasExplicitOrderByForLimitToLast(query._query);
 
@@ -237,7 +243,7 @@ export function getDocsFromCache<T>(
 ): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
-  const userDataWriter = newExpUserDataWriter(firestore, query._converter);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
@@ -260,7 +266,7 @@ export function getDocsFromServer<T>(
 ): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
-  const userDataWriter = newExpUserDataWriter(firestore, query._converter);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
@@ -707,10 +713,7 @@ export function onSnapshot<T>(
   } else {
     firestore = cast(reference.firestore, FirebaseFirestore);
     internalQuery = reference._query;
-    const userDataWriter = newExpUserDataWriter(
-      firestore,
-      reference._converter
-    );
+    const userDataWriter = new ExpUserDataWriter(firestore);
 
     observer = {
       next: snapshot => {
@@ -846,7 +849,7 @@ function convertToDocSnapshot<T>(
   );
   const doc = snapshot.docs.get(ref._key);
 
-  const userDataWriter = newExpUserDataWriter(firestore, ref._converter);
+  const userDataWriter = new ExpUserDataWriter(firestore);
   return new DocumentSnapshot(
     firestore,
     userDataWriter,

@@ -29,7 +29,6 @@ import {
   QuerySnapshot,
   SnapshotMetadata
 } from '../../src/api/database';
-import { Blob } from '../../src/api/blob';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -86,11 +85,7 @@ export function documentSnapshot(
   fromCache: boolean
 ): DocumentSnapshot {
   const db = firestore();
-  const userDataWriter = new UserDataWriter(
-    db._databaseId,
-    key => DocumentReference.forKey(key, db, null),
-    bytes => new Blob(bytes)
-  );
+  const userDataWriter = new UserDataWriter(db);
   if (data) {
     return new DocumentSnapshot(
       firestore(),

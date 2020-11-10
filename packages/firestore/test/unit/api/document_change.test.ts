@@ -18,11 +18,9 @@
 import { expect } from 'chai';
 import {
   changesFromSnapshot,
-  DocumentReference,
   QueryDocumentSnapshot,
   SnapshotMetadata
 } from '../../../src/api/database';
-import { Blob } from '../../../src/api/blob';
 import { QueryDocumentSnapshot as ExpQueryDocumentSnapshot } from '../../../exp/src/api/snapshot';
 import { Query } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
@@ -40,11 +38,7 @@ import {
 import { firestore } from '../../util/api_helpers';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
 
-const userDataWriter = new UserDataWriter(
-  firestore()._databaseId,
-  key => DocumentReference.forKey(key, firestore(), null),
-  bytes => new Blob(bytes)
-);
+const userDataWriter = new UserDataWriter(firestore());
 
 describe('DocumentChange:', () => {
   function expectPositions(

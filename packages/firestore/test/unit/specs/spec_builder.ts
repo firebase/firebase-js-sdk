@@ -41,12 +41,10 @@ import {
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
 import { debugAssert, fail } from '../../../src/util/assert';
-
 import { Code } from '../../../src/util/error';
 import { forEach } from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
-import { TestSnapshotVersion, testUserDataWriter } from '../../util/helpers';
-
+import { TestSnapshotVersion } from '../../util/helpers';
 import { TimerId } from '../../../src/util/async_queue';
 import { RpcError } from './spec_rpc_error';
 import { ObjectMap } from '../../../src/util/obj_map';
@@ -64,8 +62,10 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
+import { UserDataWriter } from '../../../src/api/user_data_writer';
+import { firestore } from '../../util/api_helpers';
 
-const userDataWriter = testUserDataWriter();
+const userDataWriter = new UserDataWriter(firestore());
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.

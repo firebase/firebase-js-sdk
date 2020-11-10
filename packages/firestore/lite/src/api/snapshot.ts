@@ -26,7 +26,7 @@ import {
 import { FieldPath } from './field_path';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import { FieldPath as InternalFieldPath } from '../../../src/model/path';
 import {
   fieldPathFromDotSeparatedString,
@@ -118,7 +118,7 @@ export class DocumentSnapshot<T = DocumentData> {
 
   constructor(
     public _firestore: FirebaseFirestore,
-    public _userDataWriter: UserDataWriter,
+    public _userDataWriter: AbstractUserDataWriter,
     public _key: DocumentKey,
     public _document: Document | null,
     public _converter: UntypedFirestoreDataConverter<T> | null

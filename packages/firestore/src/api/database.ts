@@ -19,7 +19,6 @@ import { Value as ProtoValue } from '../protos/firestore_proto_api';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
-import { Blob } from './blob';
 import { DatabaseId } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -462,7 +461,7 @@ export class Transaction implements PublicTransaction {
       documentRef,
       this._firestore
     );
-    const userDataWriter = newUserDataWriter(this._firestore, ref._converter);
+    const userDataWriter = new UserDataWriter(this._firestore);
     return this._transaction
       .lookup([ref._key])
       .then((docs: MaybeDocument[]) => {
@@ -758,10 +757,7 @@ export class DocumentReference<T = PublicDocumentData>
     delegate: ExpDocumentReference<T>
   ) {
     super(delegate);
-    this._userDataWriter = newUserDataWriter(
-      firestore,
-      this._delegate._converter
-    );
+    this._userDataWriter = new UserDataWriter(firestore);
   }
 
   static forPath<U>(
@@ -1819,7 +1815,7 @@ export class QuerySnapshot<T = PublicDocumentData>
     private readonly _snapshot: ViewSnapshot,
     private readonly _converter: PublicFirestoreDataConverter<T> | null
   ) {
-    this._userDataWriter = newUserDataWriter(this._firestore, this._converter);
+    this._userDataWriter = new UserDataWriter(this._firestore);
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
       _snapshot.fromCache
@@ -2146,15 +2142,4 @@ export function applyFirestoreDataConverter<T>(
     convertedValue = value as PublicDocumentData;
   }
   return convertedValue;
-}
-
-function newUserDataWriter<T>(
-  firestore: Firestore,
-  converter: UntypedFirestoreDataConverter<T> | null
-): UserDataWriter {
-  return new UserDataWriter(
-    firestore._databaseId,
-    key => DocumentReference.forKey(key, firestore, converter),
-    bytes => new Blob(bytes)
-  );
 }

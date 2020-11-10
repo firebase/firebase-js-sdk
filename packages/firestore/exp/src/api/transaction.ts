@@ -29,8 +29,7 @@ import { Transaction as InternalTransaction } from '../../../src/core/transactio
 import { validateReference } from '../../../lite/src/api/write_batch';
 import { getDatastore } from '../../../lite/src/api/components';
 import { DocumentReference } from '../../../lite/src/api/reference';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
-import { Bytes } from '../../../lite/src/api/bytes';
+import { ExpUserDataWriter } from '../../../src/api/user_data_writer';
 
 /**
  * A reference to a transaction.
@@ -58,11 +57,7 @@ export class Transaction extends LiteTransaction {
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference<T>(documentRef, this._firestore);
-    const userDataWriter = new UserDataWriter(
-      this._firestore._databaseId,
-      key => new DocumentReference(this._firestore, ref._converter, key),
-      bytes => new Bytes(bytes)
-    );
+    const userDataWriter = new ExpUserDataWriter(this._firestore);
     return super
       .get(documentRef)
       .then(

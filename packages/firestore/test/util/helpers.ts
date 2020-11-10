@@ -22,7 +22,6 @@ import * as api from '../../src/protos/firestore_proto_api';
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
-import { UserDataWriter } from '../../src/api/user_data_writer';
 import {
   parseQueryValue,
   parseUpdateData,
@@ -106,14 +105,6 @@ import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 /* eslint-disable no-restricted-globals */
 
 export type TestSnapshotVersion = number;
-
-export function testUserDataWriter(): UserDataWriter {
-  return new UserDataWriter(
-    TEST_DATABASE_ID,
-    key => DocumentReference.forKey(key, FIRESTORE, /* converter= */ null),
-    bytes => new Blob(bytes)
-  );
-}
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
   return new UserDataReader(

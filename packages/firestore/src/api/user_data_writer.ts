@@ -46,6 +46,12 @@ import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
 import { ByteString } from '../util/byte_string';
 import { Bytes } from '../../lite/src/api/bytes';
+import { FirebaseFirestore as LiteFirebaseFirestore } from '../../lite/src/api/database';
+import { FirebaseFirestore as ExpFirebaseFirestore } from '../../exp/src/api/database';
+import { DocumentReference as LiteDocumentReference } from '../../lite/src/api/reference';
+import { DocumentReference as ExpDocumentReference } from '../../exp/src/api/reference';
+import { Blob } from './blob';
+import { DocumentReference, Firestore } from './database';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -53,20 +59,7 @@ export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
  * Converts Firestore's internal types to the JavaScript types that we expose
  * to the user.
  */
-export class UserDataWriter {
-  /**
-   * @param databaseId DatabaseID for this instance
-   * @param referenceFactory A factory function that returns a firestore-exp or
-   * classic DocumentReference
-   * @param bytesFactory A factory function that returns a firestore-exp Bytes
-   * or a classic Blob type
-   */
-  constructor(
-    private readonly databaseId: DatabaseId,
-    private readonly referenceFactory: (key: DocumentKey) => unknown,
-    private readonly bytesFactory: (bytes: ByteString) => Bytes
-  ) {}
-
+export abstract class AbstractUserDataWriter {
   convertValue(
     value: ProtoValue,
     serverTimestampBehavior: ServerTimestampBehavior = 'none'
@@ -85,7 +78,7 @@ export class UserDataWriter {
       case TypeOrder.StringValue:
         return value.stringValue!;
       case TypeOrder.BlobValue:
-        return this.bytesFactory(normalizeByteString(value.bytesValue!));
+        return this.convertBytes(normalizeByteString(value.bytesValue!));
       case TypeOrder.RefValue:
         return this.convertReference(value.referenceValue!);
       case TypeOrder.GeoPointValue:
@@ -149,7 +142,10 @@ export class UserDataWriter {
     return new Timestamp(normalizedValue.seconds, normalizedValue.nanos);
   }
 
-  private convertReference(name: string): unknown {
+  protected convertDocumentKey(
+    name: string,
+    expectedDatabaseId: DatabaseId
+  ): DocumentKey {
     const resourcePath = ResourcePath.fromString(name);
     hardAssert(
       isValidResourceName(resourcePath),
@@ -158,18 +154,70 @@ export class UserDataWriter {
     const databaseId = new DatabaseId(resourcePath.get(1), resourcePath.get(3));
     const key = new DocumentKey(resourcePath.popFirst(5));
 
-    if (!databaseId.isEqual(this.databaseId)) {
+    if (!databaseId.isEqual(expectedDatabaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
       logError(
         `Document ${key} contains a document ` +
           `reference within a different database (` +
           `${databaseId.projectId}/${databaseId.database}) which is not ` +
           `supported. It will be treated as a reference in the current ` +
-          `database (${this.databaseId.projectId}/${this.databaseId.database}) ` +
+          `database (${expectedDatabaseId.projectId}/${expectedDatabaseId.database}) ` +
           `instead.`
       );
     }
+    return key;
+  }
 
-    return this.referenceFactory(key);
+  protected abstract convertReference(name: string): unknown;
+
+  protected abstract convertBytes(bytes: ByteString): unknown;
+}
+
+export class UserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: Firestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Blob {
+    return new Blob(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return DocumentReference.forKey(key, this.firestore, /* converter= */ null);
+  }
+}
+
+export class ExpUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: ExpFirebaseFirestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): ExpDocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new ExpDocumentReference(this.firestore, /* converter= */ null, key);
+  }
+}
+
+export class LiteUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: LiteFirebaseFirestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): LiteDocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new LiteDocumentReference(
+      this.firestore,
+      /* converter= */ null,
+      key
+    );
   }
 }

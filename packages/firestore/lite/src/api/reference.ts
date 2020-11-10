@@ -23,7 +23,6 @@ import {
   parseSetData,
   parseUpdateData,
   parseUpdateVarargs,
-  UntypedFirestoreDataConverter,
   UserDataReader
 } from '../../../src/api/user_data_reader';
 import {
@@ -79,8 +78,7 @@ import {
 import { newSerializer } from '../../../src/platform/serializer';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { getDatastore } from './components';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
-import { Bytes } from './bytes';
+import { LiteUserDataWriter } from '../../../src/api/user_data_writer';
 
 /**
  * Document data (for use with {@link setDoc()}) consists of fields mapped to
@@ -916,10 +914,7 @@ export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const datastore = getDatastore(reference.firestore);
-  const userDataWriter = newExpUserDataWriter(
-    reference.firestore,
-    reference._converter
-  );
+  const userDataWriter = new LiteUserDataWriter(reference.firestore);
 
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
@@ -952,10 +947,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   validateHasExplicitOrderByForLimitToLast(query._query);
 
   const datastore = getDatastore(query.firestore);
-  const userDataWriter = newExpUserDataWriter(
-    query.firestore,
-    query._converter
-  );
+  const userDataWriter = new LiteUserDataWriter(query.firestore);
   return invokeRunQueryRpc(datastore, query._query).then(result => {
     const docs = result.map(
       doc =>
@@ -1245,16 +1237,5 @@ export function newUserDataReader(
     firestore._databaseId,
     !!settings.ignoreUndefinedProperties,
     serializer
-  );
-}
-
-export function newExpUserDataWriter<T>(
-  firestore: FirebaseFirestore,
-  converter: UntypedFirestoreDataConverter<T> | null
-): UserDataWriter {
-  return new UserDataWriter(
-    firestore._databaseId,
-    key => new DocumentReference(firestore, converter, key),
-    bytes => new Bytes(bytes)
   );
 }
