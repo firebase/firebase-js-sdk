@@ -324,4 +324,29 @@ describe('platform_browser/persistence/indexed_db', () => {
       });
     });
   });
+
+  describe('closed IndexedDB connection', () => {
+    it('should retry by reopening the connection', async () => {
+      const closeDb = async (): Promise<void> => {
+        const db = await ((persistence as unknown) as {
+          _openDb(): Promise<IDBDatabase>;
+        })._openDb();
+        db.close();
+      };
+      const key = 'my-super-special-persistence-type';
+      const value = PersistenceType.LOCAL;
+
+      expect(await persistence._get(key)).to.be.null;
+
+      await closeDb();
+      await persistence._set(key, value);
+
+      await closeDb();
+      expect(await persistence._get(key)).to.be.eq(value);
+
+      await closeDb();
+      await persistence._remove(key);
+      expect(await persistence._get(key)).to.be.null;
+    });
+  });
 });

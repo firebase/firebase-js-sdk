@@ -24,7 +24,6 @@ import {
   Timestamp as ProtoTimestamp,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
-import { _DocumentKeyReference } from './user_data_reader';
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
@@ -58,9 +57,7 @@ export class UserDataWriter {
   constructor(
     private readonly databaseId: DatabaseId,
     private readonly serverTimestampBehavior: ServerTimestampBehavior,
-    private readonly referenceFactory: (
-      key: DocumentKey
-    ) => _DocumentKeyReference<DocumentData>,
+    private readonly referenceFactory: (key: DocumentKey) => unknown,
     private readonly bytesFactory: (bytes: ByteString) => Bytes
   ) {}
 
@@ -132,7 +129,7 @@ export class UserDataWriter {
     return new Timestamp(normalizedValue.seconds, normalizedValue.nanos);
   }
 
-  private convertReference(name: string): _DocumentKeyReference<DocumentData> {
+  private convertReference(name: string): unknown {
     const resourcePath = ResourcePath.fromString(name);
     hardAssert(
       isValidResourceName(resourcePath),

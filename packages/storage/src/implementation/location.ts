@@ -19,12 +19,10 @@
  * @fileoverview Functionality related to the parsing/composition of bucket/
  * object location.
  */
-import * as errorsExports from './error';
+
+import { invalidDefaultBucket, invalidUrl } from './error';
 import { DEFAULT_HOST } from './constants';
 
-/**
- * @struct
- */
 export class Location {
   private path_: string;
 
@@ -62,7 +60,7 @@ export class Location {
     if (bucketLocation.path === '') {
       return bucketLocation;
     } else {
-      throw errorsExports.invalidDefaultBucket(bucketString);
+      throw invalidDefaultBucket(bucketString);
     }
   }
 
@@ -128,7 +126,7 @@ export class Location {
       }
     }
     if (location == null) {
-      throw errorsExports.invalidUrl(url);
+      throw invalidUrl(url);
     }
     return location;
   }

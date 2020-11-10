@@ -163,16 +163,18 @@ describe('Settings', () => {
     db.settings({ host: 'other.host' });
     db.settings({ ignoreUndefinedProperties: true });
 
-    expect(db._getSettings().ignoreUndefinedProperties).to.be.true;
+    expect(db._delegate._getSettings().ignoreUndefinedProperties).to.be.true;
     // Expect host to be replaced with default host.
-    expect(db._getSettings().host).to.equal('firestore.googleapis.com');
+    expect(db._delegate._getSettings().host).to.equal(
+      'firestore.googleapis.com'
+    );
   });
 
   it('can not use mutually exclusive settings together', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(
-      db.settings.bind(db.settings, {
+    expect(() =>
+      db.settings({
         experimentalForceLongPolling: true,
         experimentalAutoDetectLongPolling: true
       })
@@ -190,8 +192,21 @@ describe('Settings', () => {
       merge: true
     });
 
-    expect(db._getSettings().ignoreUndefinedProperties).to.be.true;
-    expect(db._getSettings().host).to.equal('other.host');
+    expect(db._delegate._getSettings().ignoreUndefinedProperties).to.be.true;
+    expect(db._delegate._getSettings().host).to.equal('other.host');
+  });
+
+  it('can use `merge` without previous call to settings()', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db.settings({ host: 'other.host' });
+    db.settings({
+      ignoreUndefinedProperties: true,
+      merge: true
+    });
+
+    expect(db._delegate._getSettings().ignoreUndefinedProperties).to.be.true;
+    expect(db._delegate._getSettings().host).to.equal('other.host');
   });
 
   it('gets settings from useEmulator', () => {
@@ -199,8 +214,8 @@ describe('Settings', () => {
     const db = newTestFirestore();
     db.useEmulator('localhost', 9000);
 
-    expect(db._getSettings().host).to.equal('localhost:9000');
-    expect(db._getSettings().ssl).to.be.false;
+    expect(db._delegate._getSettings().host).to.equal('localhost:9000');
+    expect(db._delegate._getSettings().ssl).to.be.false;
   });
 
   it('prefers host from useEmulator to host from settings', () => {
@@ -209,7 +224,7 @@ describe('Settings', () => {
     db.settings({ host: 'other.host' });
     db.useEmulator('localhost', 9000);
 
-    expect(db._getSettings().host).to.equal('localhost:9000');
-    expect(db._getSettings().ssl).to.be.false;
+    expect(db._delegate._getSettings().host).to.equal('localhost:9000');
+    expect(db._delegate._getSettings().ssl).to.be.false;
   });
 });

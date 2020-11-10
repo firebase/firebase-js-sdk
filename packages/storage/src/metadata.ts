@@ -14,21 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import * as types from '@firebase/storage-types';
 import { Reference } from './reference';
 
 /**
  * @fileoverview Documentation for the metadata format.
  */
-interface Metadata {
-  bucket: string | undefined;
-  generation: string | undefined;
-  metageneration: string | undefined;
-  fullPath: string | undefined;
-  name: string | undefined;
-  size: number | undefined;
+
+/**
+ * The full set of object metadata, including read-only properties.
+ */
+interface Metadata extends types.FullMetadata {
   type: string | undefined;
-  timeCreated: string | undefined;
-  updated: string | undefined;
   md5Hash: string | undefined;
   cacheControl: string | undefined;
   contentDisposition: string | undefined;

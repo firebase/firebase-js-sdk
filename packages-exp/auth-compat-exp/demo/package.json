@@ -33,7 +33,7 @@
     "rollup-plugin-license": "0.14.0",
     "@rollup/plugin-node-resolve": "9.0.0",
     "rollup-plugin-sourcemaps": "0.6.3",
-    "rollup-plugin-typescript2": "0.27.3",
+    "rollup-plugin-typescript2": "0.29.0",
     "rollup-plugin-uglify": "6.0.4",
     "typescript": "4.0.5"
   },

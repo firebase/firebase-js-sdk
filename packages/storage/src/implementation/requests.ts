@@ -342,7 +342,6 @@ export function multipartUpload(
  * @param opt_finalized True if the server has finished the upload.
  * @param opt_metadata The upload metadata, should
  *     only be passed if opt_finalized is true.
- * @struct
  */
 export class ResumableUploadStatus {
   finalized: boolean;

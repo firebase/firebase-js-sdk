@@ -19,8 +19,6 @@ import { Request } from './request';
 
 /**
  * A request whose promise always fails.
- * @struct
- * @template T
  */
 export class FailRequest<T> implements Request<T> {
   promise_: Promise<T>;

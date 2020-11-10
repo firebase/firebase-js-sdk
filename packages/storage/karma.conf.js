@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-const karma = require('karma');
-const path = require('path');
 const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 

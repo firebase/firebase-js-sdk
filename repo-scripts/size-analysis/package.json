@@ -16,29 +16,29 @@
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts --config ../../config/mocharc.node.js --timeout 60000"
   },
   "dependencies": {
-    "rollup": "2.29.0",
+    "rollup": "2.33.1",
     "@rollup/plugin-commonjs": "15.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-typescript2": "0.27.3",
+    "rollup-plugin-typescript2": "0.29.0",
     "@rollup/plugin-virtual": "2.0.3",
     "webpack": "4.44.2",
-    "@types/webpack": "4.41.22",
-    "webpack-virtual-modules": "0.3.1",
+    "@types/webpack": "4.41.24",
+    "webpack-virtual-modules": "0.3.2",
     "child-process-promise": "2.2.1",
     "memfs": "3.2.0",
     "tmp": "0.2.1",
     "typescript": "4.0.5",
-    "terser": "5.3.5",
-    "yargs": "16.0.3",
-    "@firebase/util": "0.3.3",
+    "terser": "5.3.8",
+    "yargs": "16.1.0",
+    "@firebase/util": "0.3.4",
     "gzip-size": "5.1.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/app": "0.6.12"
+    "@firebase/app": "0.6.13"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",

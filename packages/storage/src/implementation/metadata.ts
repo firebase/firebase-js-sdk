@@ -32,9 +32,6 @@ export function noXform_<T>(metadata: Metadata, value: T): T {
   return value;
 }
 
-/**
- * @struct
- */
 class Mapping<T> {
   local: string;
   writable: boolean;
@@ -90,9 +87,9 @@ export function getMappings(): Mappings {
    */
   function xformSize(
     _metadata: Metadata,
-    size: number | string | undefined
+    size?: number | string
   ): number | undefined {
-    if (type.isDef(size)) {
+    if (size !== undefined) {
       return Number(size);
     } else {
       return size;

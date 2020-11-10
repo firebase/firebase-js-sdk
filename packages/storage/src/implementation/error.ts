@@ -21,7 +21,10 @@ export class FirebaseStorageError extends FirebaseError {
   customData: { serverResponse: string | null } = { serverResponse: null };
 
   constructor(code: Code, message: string) {
-    super(prependCode(code), 'Firebase Storage: ' + message);
+    super(
+      prependCode(code),
+      `Firebase Storage: ${message} (${prependCode(code)})`
+    );
     // Without this, `instanceof FirebaseStorageError`, in tests for example,
     // returns false.
     Object.setPrototypeOf(this, FirebaseStorageError.prototype);
@@ -33,7 +36,7 @@ export class FirebaseStorageError extends FirebaseError {
 
   get message(): string {
     if (this.customData.serverResponse) {
-      return this.message + '\n' + this.customData.serverResponse;
+      return `${this.message}\n${this.customData.serverResponse}`;
     } else {
       return this.message;
     }
@@ -50,9 +53,6 @@ export class FirebaseStorageError extends FirebaseError {
 
 export const errors = {};
 
-/**
- * @enum {string}
- */
 export type Code = string;
 export const Code = {
   // Shared between all platforms
@@ -79,7 +79,8 @@ export const Code = {
   APP_DELETED: 'app-deleted',
   INVALID_ROOT_OPERATION: 'invalid-root-operation',
   INVALID_FORMAT: 'invalid-format',
-  INTERNAL_ERROR: 'internal-error'
+  INTERNAL_ERROR: 'internal-error',
+  UNSUPPORTED_ENVIRONMENT: 'unsupported-environment'
 };
 
 export function prependCode(code: Code): string {
@@ -221,15 +222,8 @@ export function noDownloadURL(): FirebaseStorageError {
   );
 }
 
-export function invalidArgument(
-  index: number,
-  fnName: string,
-  message: string
-): FirebaseStorageError {
-  return new FirebaseStorageError(
-    Code.INVALID_ARGUMENT,
-    'Invalid argument in `' + fnName + '` at index ' + index + ': ' + message
-  );
+export function invalidArgument(message: string): FirebaseStorageError {
+  return new FirebaseStorageError(Code.INVALID_ARGUMENT, message);
 }
 
 export function invalidArgumentCount(
@@ -269,7 +263,7 @@ export function appDeleted(): FirebaseStorageError {
 }
 
 /**
- * @param name The name of the operation that was invalid.
+ * @param name - The name of the operation that was invalid.
  */
 export function invalidRootOperation(name: string): FirebaseStorageError {
   return new FirebaseStorageError(
@@ -282,8 +276,8 @@ export function invalidRootOperation(name: string): FirebaseStorageError {
 }
 
 /**
- * @param format The format that was not valid.
- * @param message A message describing the format violation.
+ * @param format - The format that was not valid.
+ * @param message - A message describing the format violation.
  */
 export function invalidFormat(
   format: string,
@@ -296,7 +290,7 @@ export function invalidFormat(
 }
 
 /**
- * @param message A message describing the internal error.
+ * @param message - A message describing the internal error.
  */
 export function internalError(message: string): FirebaseStorageError {
   throw new FirebaseStorageError(

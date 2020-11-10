@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -63,10 +63,10 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.20",
+    "@firebase/component": "0.1.21",
     "@firebase/firestore-types": "2.0.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.3",
+    "@firebase/util": "0.3.4",
     "@firebase/webchannel-wrapper": "0.4.0",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
@@ -78,19 +78,19 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.12",
+    "@firebase/app": "0.6.13",
     "@rollup/plugin-alias": "3.1.1",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.10.1",
-    "rollup": "2.29.0",
+    "rollup": "2.33.1",
     "rollup-plugin-copy-assets": "1.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
-    "rollup-plugin-typescript2": "0.27.3",
+    "rollup-plugin-typescript2": "0.29.0",
     "ts-node": "9.0.0",
     "typescript": "4.0.5"
   },
