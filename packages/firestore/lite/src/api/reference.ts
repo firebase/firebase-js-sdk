@@ -70,6 +70,7 @@ import {
 } from '../../../src/api/database';
 import { FieldPath } from './field_path';
 import {
+  cast,
   validateCollectionPath,
   validateDocumentPath,
   validateNonEmptyArgument,
@@ -78,6 +79,7 @@ import {
 import { newSerializer } from '../../../src/platform/serializer';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { getDatastore } from './components';
+import { Compat } from '../../../src/compat/compat';
 
 /**
  * Document data (for use with {@link setDoc()}) consists of fields mapped to
@@ -733,6 +735,8 @@ export function collection(
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData> {
+  if (parent instanceof Compat) parent = parent._delegate;
+
   validateNonEmptyArgument('collection', 'path', path);
   if (parent instanceof FirebaseFirestore) {
     const absolutePath = ResourcePath.fromString(path, ...pathSegments);
@@ -780,6 +784,8 @@ export function collectionGroup(
   firestore: FirebaseFirestore,
   collectionId: string
 ): Query<DocumentData> {
+  firestore = cast(firestore, FirebaseFirestore);
+
   validateNonEmptyArgument('collectionGroup', 'collection id', collectionId);
   if (collectionId.indexOf('/') >= 0) {
     throw new FirestoreError(
@@ -858,6 +864,8 @@ export function doc<T>(
   path?: string,
   ...pathSegments: string[]
 ): DocumentReference {
+  if (parent instanceof Compat) parent = parent._delegate;
+
   // We allow omission of 'pathString' but explicitly prohibit passing in both
   // 'undefined' and 'null'.
   if (arguments.length === 1) {
@@ -912,6 +920,7 @@ export function doc<T>(
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
+  reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const datastore = getDatastore(reference.firestore);
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
@@ -940,6 +949,7 @@ export function getDoc<T>(
  * @return A Promise that will be resolved with the results of the query.
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
+  query = cast<Query<T>>(query, Query);
   validateHasExplicitOrderByForLimitToLast(query._query);
 
   const datastore = getDatastore(query.firestore);
@@ -1009,6 +1019,7 @@ export function setDoc<T>(
   data: T,
   options?: SetOptions
 ): Promise<void> {
+  reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const convertedValue = applyFirestoreDataConverter(
     reference._converter,
     data,
@@ -1084,6 +1095,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
+  reference = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const dataReader = newUserDataReader(reference.firestore);
 
   let parsed: ParsedUpdateData;
@@ -1127,7 +1139,10 @@ export function updateDoc(
  * @return A Promise resolved once the document has been successfully
  * deleted from the backend.
  */
-export function deleteDoc(reference: DocumentReference): Promise<void> {
+export function deleteDoc(
+  reference: DocumentReference<unknown>
+): Promise<void> {
+  reference = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(datastore, [
     new DeleteMutation(reference._key, Precondition.none())
@@ -1152,6 +1167,7 @@ export function addDoc<T>(
   reference: CollectionReference<T>,
   data: T
 ): Promise<DocumentReference<T>> {
+  reference = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(reference);
 
   const convertedValue = applyFirestoreDataConverter(
@@ -1188,6 +1204,9 @@ export function refEqual<T>(
   left: DocumentReference<T> | CollectionReference<T>,
   right: DocumentReference<T> | CollectionReference<T>
 ): boolean {
+  if (left instanceof Compat) left = left._delegate;
+  if (right instanceof Compat) right = right._delegate;
+
   if (
     (left instanceof DocumentReference ||
       left instanceof CollectionReference) &&
@@ -1212,6 +1231,9 @@ export function refEqual<T>(
  * Firestore database.
  */
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
+  if (left instanceof Compat) left = left._delegate;
+  if (right instanceof Compat) right = right._delegate;
+
   if (left instanceof Query && right instanceof Query) {
     return (
       left.firestore === right.firestore &&

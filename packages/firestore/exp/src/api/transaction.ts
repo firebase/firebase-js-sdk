@@ -29,6 +29,7 @@ import { Transaction as InternalTransaction } from '../../../src/core/transactio
 import { validateReference } from '../../../lite/src/api/write_batch';
 import { getDatastore } from '../../../lite/src/api/components';
 import { DocumentReference } from '../../../lite/src/api/reference';
+import { cast } from '../../../src/util/input_validation';
 
 /**
  * A reference to a transaction.
@@ -94,6 +95,7 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
+  firestore = cast(firestore, FirebaseFirestore);
   ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<T>();

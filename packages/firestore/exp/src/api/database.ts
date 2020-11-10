@@ -53,6 +53,7 @@ import {
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
 import { PersistenceSettings } from '../../../exp-types';
+import { cast } from '../../../src/util/input_validation';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -169,6 +170,7 @@ export function enableIndexedDbPersistence(
   firestore: FirebaseFirestore,
   persistenceSettings?: PersistenceSettings
 ): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
@@ -212,6 +214,7 @@ export function enableIndexedDbPersistence(
 export function enableMultiTabIndexedDbPersistence(
   firestore: FirebaseFirestore
 ): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
@@ -366,6 +369,7 @@ export function clearIndexedDbPersistence(
 export function waitForPendingWrites(
   firestore: FirebaseFirestore
 ): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientWaitForPendingWrites(client);
 }
@@ -377,6 +381,7 @@ export function waitForPendingWrites(
  * @return A promise that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientEnableNetwork(client);
 }
@@ -390,6 +395,7 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * @return A promise that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientDisableNetwork(client);
 }
