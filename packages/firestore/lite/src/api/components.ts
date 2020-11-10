@@ -55,7 +55,7 @@ export function getDatastore(firestore: FirebaseFirestore): Datastore {
     const databaseInfo = makeDatabaseInfo(
       firestore._databaseId,
       firestore._persistenceKey,
-      firestore._getSettings()
+      firestore._freezeSettings()
     );
     const connection = newConnection(databaseInfo);
     const serializer = newSerializer(firestore._databaseId);

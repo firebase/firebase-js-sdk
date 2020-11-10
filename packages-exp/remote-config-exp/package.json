@@ -35,15 +35,15 @@
     "@firebase/installations-exp": "0.0.800",
     "@firebase/logger": "0.2.6",
     "@firebase/remote-config-types-exp": "0.0.800",
-    "@firebase/util": "0.3.3",
-    "@firebase/component": "0.1.20",
+    "@firebase/util": "0.3.4",
+    "@firebase/component": "0.1.21",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/app-exp": "0.0.800",
-    "rollup": "2.29.0",
-    "rollup-plugin-typescript2": "0.27.3",
+    "rollup": "2.33.1",
+    "rollup-plugin-typescript2": "0.29.0",
     "typescript": "4.0.5"
   },
   "repository": {

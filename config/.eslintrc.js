@@ -184,7 +184,7 @@ module.exports = {
         'assertionStyle': 'as'
       }
     ],
-    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-explicit-any': ['error', { 'ignoreRestArgs': true }],
     '@typescript-eslint/no-namespace': [
       'error',
       {

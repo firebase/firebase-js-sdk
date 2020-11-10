@@ -1,6 +1,6 @@
 {
   "name": "@firebase/rules-unit-testing",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -13,24 +13,25 @@
     "build:deps": "lerna run --scope @firebase/rules-unit-testing --include-dependencies build",
     "dev": "rollup -c -w",
     "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
-    "test": "firebase --debug emulators:exec 'yarn test:nyc'",
+    "test": "firebase --project=foo --debug emulators:exec 'yarn test:nyc'",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "8.0.0",
+    "firebase": "8.0.1",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.3",
+    "@firebase/util": "0.3.4",
     "request": "2.88.2"
   },
   "devDependencies": {
-    "@google-cloud/firestore": "4.4.0",
+    "@google-cloud/firestore": "4.7.0",
     "@types/request": "2.48.5",
-    "firebase-admin": "9.2.0",
-    "firebase-tools": "8.12.1",
-    "rollup": "2.29.0",
-    "rollup-plugin-typescript2": "0.27.3"
+    "firebase-admin": "9.3.0",
+    "firebase-tools": "8.15.0",
+    "firebase-functions": "3.11.0",
+    "rollup": "2.33.1",
+    "rollup-plugin-typescript2": "0.29.0"
   },
   "peerDependencies": {
     "@google-cloud/firestore": "^4.2.0",

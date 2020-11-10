@@ -22,7 +22,6 @@ import * as api from '../../src/protos/firestore_proto_api';
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
-import { fromDotSeparatedString } from '../../src/api/field_path';
 import { UserDataWriter } from '../../src/api/user_data_writer';
 import {
   parseQueryValue,
@@ -112,7 +111,7 @@ export function testUserDataWriter(): UserDataWriter {
   return new UserDataWriter(
     TEST_DATABASE_ID,
     'none',
-    key => new DocumentReference(key, FIRESTORE, /* converter= */ null),
+    key => DocumentReference.forKey(key, FIRESTORE, /* converter= */ null),
     bytes => new Blob(bytes)
   );
 }
@@ -134,8 +133,8 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 }
 
 export function ref(key: string, offset?: number): DocumentReference {
-  return new DocumentReference(
-    new DocumentKey(path(key, offset)),
+  return DocumentReference.forPath(
+    path(key, offset),
     FIRESTORE,
     /* converter= */ null
   );
@@ -203,7 +202,7 @@ export function path(path: string, offset?: number): ResourcePath {
 }
 
 export function field(path: string): FieldPath {
-  return fromDotSeparatedString(path)._internalPath;
+  return new FieldPath(path.split('.'));
 }
 
 export function mask(...paths: string[]): FieldMask {

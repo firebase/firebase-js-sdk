@@ -35,9 +35,6 @@ import * as UrlUtils from './url';
 import { Headers, XhrIo, ErrorCode } from './xhrio';
 import { XhrIoPool } from './xhriopool';
 
-/**
- * @template T
- */
 export interface Request<T> {
   getPromise(): Promise<T>;
 
@@ -46,15 +43,11 @@ export interface Request<T> {
    * appropriate value (if the request is finished before you call this method,
    * but the promise has not yet been resolved), so don't just assume it will be
    * rejected if you call this function.
-   * @param appDelete True if the cancelation came from the app being deleted.
+   * @param appDelete - True if the cancelation came from the app being deleted.
    */
   cancel(appDelete?: boolean): void;
 }
 
-/**
- * @struct
- * @template T
- */
 class NetworkRequest<T> implements Request<T> {
   private url_: string;
   private method_: string;
@@ -164,7 +157,7 @@ class NetworkRequest<T> implements Request<T> {
     }
 
     /**
-     * @param requestWentThrough True if the request eventually went
+     * @param requestWentThrough - True if the request eventually went
      *     through, false if it hit the retry limit or was canceled.
      */
     function backoffDone(
@@ -248,8 +241,7 @@ class NetworkRequest<T> implements Request<T> {
 
 /**
  * A collection of information about the result of a network request.
- * @param opt_canceled Defaults to false.
- * @struct
+ * @param opt_canceled - Defaults to false.
  */
 export class RequestEndStatus {
   /**
@@ -287,9 +279,6 @@ export function addGmpidHeader_(headers: Headers, appId: string | null): void {
   }
 }
 
-/**
- * @template T
- */
 export function makeRequest<T>(
   requestInfo: RequestInfo<T>,
   appId: string | null,

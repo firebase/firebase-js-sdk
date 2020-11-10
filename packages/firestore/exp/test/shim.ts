@@ -15,44 +15,21 @@
  * limitations under the License.
  */
 
-import { FirebaseApp as FirebaseAppLegacy } from '@firebase/app-types';
-import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
-import { deleteApp } from '@firebase/app-exp';
 import * as legacy from '@firebase/firestore-types';
 import * as exp from '../index';
 
 import {
   addDoc,
-  clearIndexedDbPersistence,
-  collection,
-  collectionGroup,
-  deleteDoc,
-  disableNetwork,
   doc,
-  DocumentReference as DocumentReferenceExp,
-  enableIndexedDbPersistence,
-  enableMultiTabIndexedDbPersistence,
-  enableNetwork,
   FieldPath as FieldPathExp,
-  getDoc,
-  getDocFromCache,
-  getDocFromServer,
   getDocs,
   getDocsFromCache,
   getDocsFromServer,
-  initializeFirestore,
   onSnapshot,
-  onSnapshotsInSync,
   query,
   queryEqual,
   refEqual,
-  runTransaction,
-  setDoc,
   snapshotEqual,
-  terminate,
-  updateDoc,
-  waitForPendingWrites,
-  writeBatch,
   endAt,
   endBefore,
   startAfter,
@@ -64,15 +41,19 @@ import {
   Bytes as BytesExp
 } from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
-import { isPartialObserver, PartialObserver } from '../../src/api/observer';
 import {
   isPlainObject,
   validateSetOptions
 } from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
+import {
+  Firestore,
+  DocumentReference,
+  wrapObserver,
+  extractSnapshotOptions
+} from '../../src/api/database';
 
 export { GeoPoint, Timestamp } from '../index';
-export { FieldValue } from '../../src/compat/field_value';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -80,105 +61,11 @@ export { FieldValue } from '../../src/compat/field_value';
 // of the experimental SDK. This shim is used to run integration tests against
 // both SDK versions.
 
-export class FirebaseApp
-  extends Compat<FirebaseAppExp>
-  implements FirebaseAppLegacy {
-  name = this._delegate.name;
-  options = this._delegate.options;
-  automaticDataCollectionEnabled = this._delegate
-    .automaticDataCollectionEnabled;
-
-  delete(): Promise<void> {
-    return deleteApp(this._delegate);
-  }
-}
-
-export class FirebaseFirestore
-  extends Compat<exp.FirebaseFirestore>
-  implements legacy.FirebaseFirestore {
-  app = new FirebaseApp(this._delegate.app);
-
-  settings(settings: legacy.Settings): void {
-    initializeFirestore(this.app._delegate, settings);
-  }
-
-  useEmulator(host: string, port: number): void {
-    this.settings({ host: `${host}:${port}`, ssl: false, merge: true });
-  }
-
-  enablePersistence(settings?: legacy.PersistenceSettings): Promise<void> {
-    return settings?.synchronizeTabs
-      ? enableMultiTabIndexedDbPersistence(this._delegate)
-      : enableIndexedDbPersistence(this._delegate);
-  }
-
-  collection(collectionPath: string): CollectionReference<legacy.DocumentData> {
-    return new CollectionReference(
-      this,
-      collection(this._delegate, collectionPath)
-    );
-  }
-
-  doc(documentPath: string): DocumentReference<legacy.DocumentData> {
-    return new DocumentReference(this, doc(this._delegate, documentPath));
-  }
-
-  collectionGroup(collectionId: string): Query<legacy.DocumentData> {
-    return new Query(this, collectionGroup(this._delegate, collectionId));
-  }
-
-  runTransaction<T>(
-    updateFunction: (transaction: legacy.Transaction) => Promise<T>
-  ): Promise<T> {
-    return runTransaction(this._delegate, t =>
-      updateFunction(new Transaction(this, t))
-    );
-  }
-
-  batch(): legacy.WriteBatch {
-    return new WriteBatch(writeBatch(this._delegate));
-  }
-
-  clearPersistence(): Promise<void> {
-    return clearIndexedDbPersistence(this._delegate);
-  }
-
-  enableNetwork(): Promise<void> {
-    return enableNetwork(this._delegate);
-  }
-
-  disableNetwork(): Promise<void> {
-    return disableNetwork(this._delegate);
-  }
-
-  waitForPendingWrites(): Promise<void> {
-    return waitForPendingWrites(this._delegate);
-  }
-
-  onSnapshotsInSync(observer: {
-    next?: (value: void) => void;
-    error?: (error: legacy.FirestoreError) => void;
-    complete?: () => void;
-  }): () => void;
-  onSnapshotsInSync(onSync: () => void): () => void;
-  onSnapshotsInSync(arg: any): () => void {
-    return onSnapshotsInSync(this._delegate, arg);
-  }
-
-  terminate(): Promise<void> {
-    return terminate(this._delegate);
-  }
-
-  INTERNAL = {
-    delete: () => terminate(this._delegate)
-  };
-}
-
 export class Transaction
   extends Compat<exp.Transaction>
   implements legacy.Transaction {
   constructor(
-    private readonly _firestore: FirebaseFirestore,
+    private readonly _firestore: Firestore,
     delegate: exp.Transaction
   ) {
     super(delegate);
@@ -297,134 +184,11 @@ export class WriteBatch
   }
 }
 
-export class DocumentReference<T = legacy.DocumentData>
-  extends Compat<exp.DocumentReference<T>>
-  implements legacy.DocumentReference<T> {
-  constructor(
-    readonly firestore: FirebaseFirestore,
-    delegate: exp.DocumentReference<T>
-  ) {
-    super(delegate);
-  }
-
-  readonly id = this._delegate.id;
-  readonly path = this._delegate.path;
-
-  get parent(): legacy.CollectionReference<T> {
-    return new CollectionReference<T>(this.firestore, this._delegate.parent);
-  }
-
-  collection(
-    collectionPath: string
-  ): legacy.CollectionReference<legacy.DocumentData> {
-    return new CollectionReference(
-      this.firestore,
-      collection(this._delegate, collectionPath)
-    );
-  }
-
-  isEqual(other: DocumentReference<T>): boolean {
-    return refEqual(this._delegate, other._delegate);
-  }
-
-  set(data: Partial<T>, options?: legacy.SetOptions): Promise<void> {
-    if (options) {
-      validateSetOptions('DocumentReference.set', options);
-      return setDoc(this._delegate, unwrap(data), options);
-    } else {
-      return setDoc(this._delegate, unwrap(data));
-    }
-  }
-
-  update(data: legacy.UpdateData): Promise<void>;
-  update(
-    field: string | FieldPath,
-    value: any,
-    ...moreFieldsAndValues: any[]
-  ): Promise<void>;
-  update(
-    dataOrField: any,
-    value?: any,
-    ...moreFieldsAndValues: any[]
-  ): Promise<void> {
-    if (arguments.length === 1) {
-      return updateDoc(this._delegate, unwrap(dataOrField));
-    } else {
-      return updateDoc(
-        this._delegate,
-        unwrap(dataOrField),
-        unwrap(value),
-        ...unwrap(moreFieldsAndValues)
-      );
-    }
-  }
-
-  delete(): Promise<void> {
-    return deleteDoc(this._delegate);
-  }
-
-  get(options?: legacy.GetOptions): Promise<DocumentSnapshot<T>> {
-    let snap: Promise<exp.DocumentSnapshot<T>>;
-    if (options?.source === 'cache') {
-      snap = getDocFromCache(this._delegate);
-    } else if (options?.source === 'server') {
-      snap = getDocFromServer(this._delegate);
-    } else {
-      snap = getDoc(this._delegate);
-    }
-    return snap.then(result => new DocumentSnapshot(this.firestore, result));
-  }
-
-  onSnapshot(observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
-    error?: (error: legacy.FirestoreError) => void;
-    complete?: () => void;
-  }): () => void;
-  onSnapshot(
-    options: legacy.SnapshotListenOptions,
-    observer: {
-      next?: (snapshot: DocumentSnapshot<T>) => void;
-      error?: (error: legacy.FirestoreError) => void;
-      complete?: () => void;
-    }
-  ): () => void;
-  onSnapshot(
-    onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: legacy.FirestoreError) => void,
-    onCompletion?: () => void
-  ): () => void;
-  onSnapshot(
-    options: legacy.SnapshotListenOptions,
-    onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: legacy.FirestoreError) => void,
-    onCompletion?: () => void
-  ): () => void;
-  onSnapshot(...args: any): () => void {
-    const options = extractSnapshotOptions(args);
-    const observer = wrapObserver<DocumentSnapshot<T>, exp.DocumentSnapshot<T>>(
-      args,
-      snap => new DocumentSnapshot(this.firestore, snap)
-    );
-    return onSnapshot(this._delegate, options, observer);
-  }
-
-  withConverter<U>(
-    converter: legacy.FirestoreDataConverter<U>
-  ): DocumentReference<U> {
-    return new DocumentReference<U>(
-      this.firestore,
-      this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
-      )
-    );
-  }
-}
-
 export class DocumentSnapshot<T = legacy.DocumentData>
   extends Compat<exp.DocumentSnapshot<T>>
   implements legacy.DocumentSnapshot<T> {
   constructor(
-    private readonly _firestore: FirebaseFirestore,
+    private readonly _firestore: Firestore,
     delegate: exp.DocumentSnapshot<T>
   ) {
     super(delegate);
@@ -439,11 +203,14 @@ export class DocumentSnapshot<T = legacy.DocumentData>
   }
 
   data(options?: legacy.SnapshotOptions): T | undefined {
-    return wrap(this._delegate.data(options));
+    return wrap(this._firestore, this._delegate.data(options));
   }
 
   get(fieldPath: string | FieldPath, options?: legacy.SnapshotOptions): any {
-    return wrap(this._delegate.get(unwrap(fieldPath), options));
+    return wrap(
+      this._firestore,
+      this._delegate.get(unwrap(fieldPath), options)
+    );
   }
 
   isEqual(other: DocumentSnapshot<T>): boolean {
@@ -454,22 +221,15 @@ export class DocumentSnapshot<T = legacy.DocumentData>
 export class QueryDocumentSnapshot<T = legacy.DocumentData>
   extends DocumentSnapshot<T>
   implements legacy.QueryDocumentSnapshot<T> {
-  constructor(
-    firestore: FirebaseFirestore,
-    readonly _delegate: exp.QueryDocumentSnapshot<T>
-  ) {
-    super(firestore, _delegate);
-  }
-
   data(options?: legacy.SnapshotOptions): T {
-    return this._delegate.data(options);
+    return this._delegate.data(options)!;
   }
 }
 
 export class Query<T = legacy.DocumentData>
   extends Compat<exp.Query<T>>
   implements legacy.Query<T> {
-  constructor(readonly firestore: FirebaseFirestore, delegate: exp.Query<T>) {
+  constructor(readonly firestore: Firestore, delegate: exp.Query<T>) {
     super(delegate);
   }
 
@@ -592,7 +352,7 @@ export class Query<T = legacy.DocumentData>
 export class QuerySnapshot<T = legacy.DocumentData>
   implements legacy.QuerySnapshot<T> {
   constructor(
-    readonly _firestore: FirebaseFirestore,
+    readonly _firestore: Firestore,
     readonly _delegate: exp.QuerySnapshot<T>
   ) {}
 
@@ -633,7 +393,7 @@ export class QuerySnapshot<T = legacy.DocumentData>
 export class DocumentChange<T = legacy.DocumentData>
   implements legacy.DocumentChange<T> {
   constructor(
-    private readonly _firestore: FirebaseFirestore,
+    private readonly _firestore: Firestore,
     private readonly _delegate: exp.DocumentChange<T>
   ) {}
   readonly type = this._delegate.type;
@@ -649,7 +409,7 @@ export class CollectionReference<T = legacy.DocumentData>
   extends Query<T>
   implements legacy.CollectionReference<T> {
   constructor(
-    firestore: FirebaseFirestore,
+    readonly firestore: Firestore,
     readonly _delegate: exp.CollectionReference<T>
   ) {
     super(firestore, _delegate);
@@ -698,15 +458,11 @@ export class CollectionReference<T = legacy.DocumentData>
   }
 }
 
-export class FieldPath implements legacy.FieldPath {
-  private readonly fieldNames: string[];
-
+export class FieldPath
+  extends Compat<FieldPathExp>
+  implements legacy.FieldPath {
   constructor(...fieldNames: string[]) {
-    this.fieldNames = fieldNames;
-  }
-
-  get _delegate(): FieldPathExp {
-    return new FieldPathExp(...this.fieldNames);
+    super(new FieldPathExp(...fieldNames));
   }
 
   static documentId(): FieldPath {
@@ -744,25 +500,18 @@ export class Blob extends Compat<BytesExp> implements legacy.Blob {
  * Takes document data that uses the firestore-exp API types and replaces them
  * with the API types defined in this shim.
  */
-function wrap(value: any): any {
+function wrap(firestore: Firestore, value: any): any {
   if (Array.isArray(value)) {
-    return value.map(v => wrap(v));
+    return value.map(v => wrap(firestore, v));
   } else if (value instanceof FieldPathExp) {
     return new FieldPath(...value._internalPath.toArray());
   } else if (value instanceof BytesExp) {
     return new Blob(value);
-  } else if (value instanceof DocumentReferenceExp) {
-    // TODO(mrschmidt): Ideally, we should use an existing instance of
-    // FirebaseFirestore here rather than instantiating a new instance
-    return new DocumentReference(
-      new FirebaseFirestore(value.firestore as exp.FirebaseFirestore),
-      value
-    );
   } else if (isPlainObject(value)) {
     const obj: any = {};
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
-        obj[key] = wrap(value[key]);
+        obj[key] = wrap(firestore, value[key]);
       }
     }
     return obj;
@@ -793,60 +542,4 @@ function unwrap(value: any): any {
   } else {
     return value;
   }
-}
-
-/**
- * Creates an observer that can be passed to the firestore-exp SDK. The
- * observer converts all observed values into the format expected by the shim.
- *
- * @param args The list of arguments from an `onSnapshot` call.
- * @param wrapper The function that converts the firestore-exp type into the
- * type used by this shim.
- */
-function wrapObserver<ShimType, ExpType>(
-  args: any,
-  wrapper: (val: ExpType) => ShimType
-): PartialObserver<ExpType> {
-  let userObserver: PartialObserver<ShimType>;
-  if (isPartialObserver(args[0])) {
-    userObserver = args[0] as PartialObserver<ShimType>;
-  } else if (isPartialObserver(args[1])) {
-    userObserver = args[1];
-  } else if (typeof args[0] === 'function') {
-    userObserver = {
-      next: args[0],
-      error: args[1],
-      complete: args[2]
-    };
-  } else {
-    userObserver = {
-      next: args[1],
-      error: args[2],
-      complete: args[3]
-    };
-  }
-
-  return {
-    next: val => {
-      if (userObserver!.next) {
-        userObserver!.next(wrapper(val));
-      }
-    },
-    error: userObserver.error?.bind(userObserver),
-    complete: userObserver.complete?.bind(userObserver)
-  };
-}
-
-/**
- * Iterates the list of arguments from an `onSnapshot` call and returns the
- * first argument that may be an `SnapshotListenOptions` object. Returns an
- * empty object if none is found.
- */
-function extractSnapshotOptions(args: any): exp.SnapshotListenOptions {
-  for (const arg of args) {
-    if (typeof arg === 'object' && !isPartialObserver(arg)) {
-      return arg as exp.SnapshotListenOptions;
-    }
-  }
-  return {};
 }

@@ -35,7 +35,7 @@ import { newSerializer } from '../../../src/platform/serializer';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
-  return (db as Firestore)._queue;
+  return (db as Firestore)._delegate._queue;
 }
 
 export function getDefaultDatabaseInfo(): DatabaseInfo {
