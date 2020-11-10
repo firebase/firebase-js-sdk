@@ -52,7 +52,9 @@ export class FieldPath extends Compat<ExpFieldPath> implements PublicFieldPath {
   }
 
   isEqual(other: PublicFieldPath): boolean {
-    if (other instanceof Compat) other = other._delegate;
+    if (other instanceof Compat) {
+      other = other._delegate;
+    }
 
     if (!(other instanceof ExpFieldPath)) {
       return false;

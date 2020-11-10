@@ -418,7 +418,9 @@ export function parseUpdateData(
 
     // For Compat types, we have to "extract" the underlying types before
     // performing validation.
-    if (value instanceof Compat) value = value._delegate;
+    if (value instanceof Compat) {
+      value = value._delegate;
+    }
 
     const childContext = context.childContextForFieldPath(path);
     if (value instanceof DeleteFieldValueImpl) {
@@ -488,7 +490,9 @@ export function parseUpdateVarargs(
 
       // For Compat types, we have to "extract" the underlying types before
       // performing validation.
-      if (value instanceof Compat) value = value._delegate;
+      if (value instanceof Compat) {
+        value = value._delegate;
+      }
 
       const childContext = context.childContextForFieldPath(path);
       if (value instanceof DeleteFieldValueImpl) {
@@ -553,7 +557,9 @@ export function parseData(
 ): ProtoValue | null {
   // Unwrap the API type from the Compat SDK. This will return the API type
   // from firestore-exp.
-  if (input instanceof Compat) input = input._delegate;
+  if (input instanceof Compat) {
+    input = input._delegate;
+  }
 
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
@@ -671,7 +677,9 @@ function parseScalarValue(
   value: unknown,
   context: ParseContext
 ): ProtoValue | null {
-  if (value instanceof Compat) value = value._delegate;
+  if (value instanceof Compat) {
+    value = value._delegate;
+  }
 
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
@@ -778,7 +786,9 @@ export function fieldPathFromArgument(
 ): InternalFieldPath {
   // If required, replace the FieldPath Compat class with with the firestore-exp
   // FieldPath.
-  if (path instanceof Compat) path = path._delegate;
+  if (path instanceof Compat) {
+    path = path._delegate;
+  }
 
   if (path instanceof FieldPath) {
     return path._internalPath;

@@ -177,7 +177,9 @@ export function cast<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor: { new (...args: any[]): T }
 ): T | never {
-  if (obj instanceof Compat) obj = obj._delegate;
+  if (obj instanceof Compat) {
+    obj = obj._delegate;
+  }
 
   if (!(obj instanceof constructor)) {
     if (constructor.name === obj.constructor.name) {

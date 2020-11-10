@@ -814,7 +814,9 @@ export class DocumentReference<T = PublicDocumentData>
   }
 
   isEqual(other: PublicDocumentReference<T>): boolean {
-    if (other instanceof Compat) other = other._delegate;
+    if (other instanceof Compat) {
+      other = other._delegate;
+    }
 
     if (!(other instanceof ExpDocumentReference)) {
       return false;

@@ -735,7 +735,9 @@ export function collection(
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData> {
-  if (parent instanceof Compat) parent = parent._delegate;
+  if (parent instanceof Compat) {
+    parent = parent._delegate;
+  }
 
   validateNonEmptyArgument('collection', 'path', path);
   if (parent instanceof FirebaseFirestore) {
@@ -864,7 +866,9 @@ export function doc<T>(
   path?: string,
   ...pathSegments: string[]
 ): DocumentReference {
-  if (parent instanceof Compat) parent = parent._delegate;
+  if (parent instanceof Compat) {
+    parent = parent._delegate;
+  }
 
   // We allow omission of 'pathString' but explicitly prohibit passing in both
   // 'undefined' and 'null'.
@@ -1204,8 +1208,12 @@ export function refEqual<T>(
   left: DocumentReference<T> | CollectionReference<T>,
   right: DocumentReference<T> | CollectionReference<T>
 ): boolean {
-  if (left instanceof Compat) left = left._delegate;
-  if (right instanceof Compat) right = right._delegate;
+  if (left instanceof Compat) {
+    left = left._delegate;
+  }
+  if (right instanceof Compat) {
+    right = right._delegate;
+  }
 
   if (
     (left instanceof DocumentReference ||
@@ -1231,8 +1239,12 @@ export function refEqual<T>(
  * Firestore database.
  */
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
-  if (left instanceof Compat) left = left._delegate;
-  if (right instanceof Compat) right = right._delegate;
+  if (left instanceof Compat) {
+    left = left._delegate;
+  }
+  if (right instanceof Compat) {
+    right = right._delegate;
+  }
 
   if (left instanceof Query && right instanceof Query) {
     return (

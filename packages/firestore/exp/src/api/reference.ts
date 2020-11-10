@@ -667,7 +667,9 @@ export function onSnapshot<T>(
   reference: Query<T> | DocumentReference<T>,
   ...args: unknown[]
 ): Unsubscribe {
-  if (reference instanceof Compat) reference = reference._delegate;
+  if (reference instanceof Compat) {
+    reference = reference._delegate;
+  }
 
   let options: SnapshotListenOptions = {
     includeMetadataChanges: false
