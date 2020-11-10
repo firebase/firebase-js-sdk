@@ -5,8 +5,5 @@
   "module": "./dist/index.browser.esm2017.js",
   "browser": "./dist/index.browser.esm2017.js",
   "typings": "./dist/index.d.ts",
-  "private": true,
-  "dependencies": {
-    "@firebase/app-exp": "0.0.800"
-  }
+  "private": true
 }
