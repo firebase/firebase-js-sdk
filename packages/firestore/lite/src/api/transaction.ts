@@ -43,6 +43,7 @@ import {
 } from './reference';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
+import { Compat } from '../../../src/compat/compat';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.
@@ -193,6 +194,12 @@ export class Transaction {
     ...moreFieldsAndValues: unknown[]
   ): this {
     const ref = validateReference(documentRef, this._firestore);
+
+    // For Compat types, we have to "extract" the underlying types before
+    // performing validation.
+    if (fieldOrUpdateData instanceof Compat) {
+      fieldOrUpdateData = fieldOrUpdateData._delegate;
+    }
 
     let parsed;
     if (

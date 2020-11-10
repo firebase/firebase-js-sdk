@@ -78,6 +78,7 @@ import {
 import { newSerializer } from '../../../src/platform/serializer';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { getDatastore } from './components';
+import { Compat } from '../../../src/compat/compat';
 
 /**
  * Document data (for use with {@link setDoc()}) consists of fields mapped to
@@ -1085,6 +1086,12 @@ export function updateDoc(
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
   const dataReader = newUserDataReader(reference.firestore);
+
+  // For Compat types, we have to "extract" the underlying types before
+  // performing validation.
+  if (fieldOrUpdateData instanceof Compat) {
+    fieldOrUpdateData = fieldOrUpdateData._delegate;
+  }
 
   let parsed: ParsedUpdateData;
   if (
