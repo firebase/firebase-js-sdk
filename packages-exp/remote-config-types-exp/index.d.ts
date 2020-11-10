@@ -15,6 +15,11 @@
  * limitations under the License.
  */
 
+/**
+ * The Firebase Remote Config service interface.
+ *
+ * @public
+ */
 export interface RemoteConfig {
   /**
    * Defines configuration for the Remote Config SDK.
@@ -47,11 +52,15 @@ export interface RemoteConfig {
  *   <li>"default" indicates the value was defined by default config.</li>
  *   <li>"remote" indicates the value was defined by fetched config.</li>
  * </ul>
+ *
+ * @public
  */
 export type ValueSource = 'static' | 'default' | 'remote';
 
 /**
  * Wraps a value with metadata and type-safe getters.
+ *
+ * @public
  */
 export interface Value {
   /**
@@ -80,6 +89,8 @@ export interface Value {
 
 /**
  * Defines configuration options for the Remote Config SDK.
+ *
+ * @public
  */
 export interface Settings {
   /**
@@ -105,11 +116,15 @@ export interface Settings {
  *   <li>"failure" indicates the last attempt failed.</li>
  *   <li>"throttle" indicates the last attempt was rate-limited.</li>
  * </ul>
+ *
+ * @public
  */
 export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
 
 /**
  * Defines levels of Remote Config logging.
+ *
+ * @public
  */
 export type LogLevel = 'debug' | 'error' | 'silent';
 
