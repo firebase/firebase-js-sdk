@@ -104,3 +104,4 @@ packages/performance-types-exp  @alikn @zijianjoy @firebase/jssdk-global-approve
 # RC-Exp Code
 packages/remote-config-exp  @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types-exp  @erikeldridge @firebase/jssdk-global-approvers
+packages/remote-config-compat  @erikeldridge @firebase/jssdk-global-approvers
