@@ -42,7 +42,8 @@
     "@firebase/auth-exp": "0.0.900",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/firestore": "2.0.1",
-    "@firebase/performance-exp": "0.0.900"
+    "@firebase/performance-exp": "0.0.900",
+    "@firebase/remote-config-exp": "0.0.900"
   },
   "devDependencies": {
     "rollup": "2.33.1",
@@ -64,6 +65,7 @@
     "functions",
     "firestore",
     "firestore/lite",
-    "performance"
+    "performance",
+    "remote-config"
   ]
 }
