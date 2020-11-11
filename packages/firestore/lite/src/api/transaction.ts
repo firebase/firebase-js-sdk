@@ -37,13 +37,13 @@ import { Deferred } from '../../../src/util/promise';
 import { validateReference } from './write_batch';
 import {
   DocumentReference,
+  LiteUserDataWriter,
   newUserDataReader,
   SetOptions,
   UpdateData
 } from './reference';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
-import { LiteUserDataWriter } from '../../../src/api/user_data_writer';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.

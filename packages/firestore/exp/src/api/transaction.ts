@@ -29,7 +29,7 @@ import { Transaction as InternalTransaction } from '../../../src/core/transactio
 import { validateReference } from '../../../lite/src/api/write_batch';
 import { getDatastore } from '../../../lite/src/api/components';
 import { DocumentReference } from '../../../lite/src/api/reference';
-import { ExpUserDataWriter } from '../../../src/api/user_data_writer';
+import { ExpUserDataWriter } from './reference';
 
 /**
  * A reference to a transaction.

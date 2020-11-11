@@ -80,7 +80,9 @@ import {
 } from '../../../src/core/event_manager';
 import { FirestoreError } from '../../../src/util/error';
 import { Compat } from '../../../src/compat/compat';
-import { ExpUserDataWriter } from '../../../src/api/user_data_writer';
+import { ByteString } from '../../../src/util/byte_string';
+import { Bytes } from '../../../lite/src/api/bytes';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 
 export {
   DocumentReference,
@@ -133,6 +135,21 @@ export function getDoc<T>(
   return deferred.promise.then(snapshot =>
     convertToDocSnapshot(firestore, reference, snapshot)
   );
+}
+
+export class ExpUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: FirebaseFirestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new DocumentReference(this.firestore, /* converter= */ null, key);
+  }
 }
 
 /**

@@ -45,11 +45,6 @@ import { ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
 import { ByteString } from '../util/byte_string';
-import { Bytes } from '../../lite/src/api/bytes';
-import { FirebaseFirestore as LiteFirebaseFirestore } from '../../lite/src/api/database';
-import { FirebaseFirestore as ExpFirebaseFirestore } from '../../exp/src/api/database';
-import { DocumentReference as LiteDocumentReference } from '../../lite/src/api/reference';
-import { DocumentReference as ExpDocumentReference } from '../../exp/src/api/reference';
 import { Blob } from './blob';
 import { DocumentReference, Firestore } from './database';
 
@@ -185,39 +180,5 @@ export class UserDataWriter extends AbstractUserDataWriter {
   protected convertReference(name: string): DocumentReference {
     const key = this.convertDocumentKey(name, this.firestore._databaseId);
     return DocumentReference.forKey(key, this.firestore, /* converter= */ null);
-  }
-}
-
-export class ExpUserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: ExpFirebaseFirestore) {
-    super();
-  }
-
-  protected convertBytes(bytes: ByteString): Bytes {
-    return new Bytes(bytes);
-  }
-
-  protected convertReference(name: string): ExpDocumentReference {
-    const key = this.convertDocumentKey(name, this.firestore._databaseId);
-    return new ExpDocumentReference(this.firestore, /* converter= */ null, key);
-  }
-}
-
-export class LiteUserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: LiteFirebaseFirestore) {
-    super();
-  }
-
-  protected convertBytes(bytes: ByteString): Bytes {
-    return new Bytes(bytes);
-  }
-
-  protected convertReference(name: string): LiteDocumentReference {
-    const key = this.convertDocumentKey(name, this.firestore._databaseId);
-    return new LiteDocumentReference(
-      this.firestore,
-      /* converter= */ null,
-      key
-    );
   }
 }

@@ -78,7 +78,9 @@ import {
 import { newSerializer } from '../../../src/platform/serializer';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { getDatastore } from './components';
-import { LiteUserDataWriter } from '../../../src/api/user_data_writer';
+import { ByteString } from '../../../src/util/byte_string';
+import { Bytes } from './bytes';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 
 /**
  * Document data (for use with {@link setDoc()}) consists of fields mapped to
@@ -894,6 +896,21 @@ export function doc<T>(
       parent instanceof CollectionReference ? parent._converter : null,
       new DocumentKey(absolutePath)
     );
+  }
+}
+
+export class LiteUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: FirebaseFirestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new DocumentReference(this.firestore, /* converter= */ null, key);
   }
 }
 
