@@ -27,7 +27,8 @@ import {
   list,
   getMetadata,
   updateMetadata,
-  getDownloadURL
+  getDownloadURL,
+  uploadBytes
 } from '../../src/reference';
 import { StorageService, ref } from '../../src/service';
 import * as testShared from './testshared';
@@ -252,6 +253,16 @@ describe('Firebase Storage > Reference', () => {
       );
       expect(task.snapshot.metadata!.contentType).to.equal('tomato/soup');
       task.cancel();
+    });
+  });
+
+  describe('uploadBytes', () => {
+    it('Uses metadata.contentType', async () => {
+      // Regression test for b/30989476
+      const snapshot = await uploadBytes(child, new Blob(), {
+        contentType: 'lol/wut'
+      } as Metadata);
+      expect(snapshot.metadata!.contentType).to.equal('lol/wut');
     });
   });
 

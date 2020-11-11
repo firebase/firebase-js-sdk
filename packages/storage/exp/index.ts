@@ -15,21 +15,27 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import {
+  _registerComponent,
+  registerVersion,
+  _getProvider
+} from '@firebase/app-exp';
 
 import { XhrIoPool } from '../src/implementation/xhriopool';
 import { StorageService } from '../src/service';
 import {
   Component,
   ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  Provider
 } from '@firebase/component';
 
 import { name, version } from '../package.json';
+import { FirebaseApp } from '@firebase/app-types-exp';
 
 export { ref } from '../src/service';
 export {
+  uploadBytes,
   uploadBytesResumable,
   uploadString,
   getMetadata,
@@ -44,6 +50,16 @@ export {
  * Type constant for Firebase Storage.
  */
 const STORAGE_TYPE = 'storage-exp';
+
+export function getStorage(app: FirebaseApp): StorageService {
+  // Dependencies
+  const storageProvider: Provider<'storage-exp'> = _getProvider(
+    app,
+    STORAGE_TYPE
+  );
+  const storageInstance = storageProvider.getImmediate();
+  return storageInstance;
+}
 
 function factory(container: ComponentContainer, url?: string): StorageService {
   // Dependencies

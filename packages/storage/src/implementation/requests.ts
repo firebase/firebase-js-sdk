@@ -279,6 +279,36 @@ export function metadataForUpload_(
   return metadataClone;
 }
 
+export function simpleUpload(
+  service: StorageService,
+  location: Location,
+  mappings: MetadataUtils.Mappings,
+  blob: FbsBlob,
+  metadata?: Metadata | null
+): RequestInfo<Metadata> {
+  const urlPart = location.bucketOnlyServerUrl();
+  const headers: { [prop: string]: string } = {
+    'Content-Type': 'application/octet-stream'
+  };
+
+  const metadata_ = metadataForUpload_(location, blob, metadata);
+  const urlParams: UrlParams = { name: metadata_['fullPath']! };
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'POST';
+  const timeout = service.maxUploadRetryTime;
+  const requestInfo = new RequestInfo(
+    url,
+    method,
+    metadataHandler(service, mappings),
+    timeout
+  );
+  requestInfo.urlParams = urlParams;
+  requestInfo.headers = headers;
+  requestInfo.body = blob.uploadData();
+  requestInfo.errorHandler = sharedErrorHandler(location);
+  return requestInfo;
+}
+
 export function multipartUpload(
   service: StorageService,
   location: Location,

@@ -29,3 +29,6 @@ export class UploadTaskSnapshot {
     readonly ref: Reference
   ) {}
 }
+export class UploadTaskNonResumableSnapshot {
+  constructor(readonly metadata: Metadata, readonly ref: Reference) {}
+}

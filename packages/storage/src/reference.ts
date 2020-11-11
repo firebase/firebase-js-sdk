@@ -37,6 +37,8 @@ import { ListOptions, ListResult } from './list';
 import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
+import { UploadTaskNonResumableSnapshot } from './tasksnapshot';
+import * as fbsRequests from './implementation/requests';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -118,7 +120,37 @@ export class Reference {
 }
 
 /**
- * Uploads a blob to this object's location.
+ * Uploads data to this object's location.
+ * The upload is not resumable.
+ * @public
+ * @param ref - Storage Reference where data should be uploaded.
+ * @param data - The data to upload.
+ * @param metadata - Metadata for the newly uploaded string.
+ * @returns An UploadTask that lets you control and
+ *     observe the upload.
+ */
+export async function uploadBytes(
+  ref: Reference,
+  data: Blob | Uint8Array | ArrayBuffer,
+  metadata: Metadata | null = null
+): Promise<UploadTaskNonResumableSnapshot> {
+  ref._throwIfRoot('uploadBytes');
+  const authToken = await ref.storage.getAuthToken();
+  const requestInfo = fbsRequests.multipartUpload(
+    ref.storage,
+    ref._location,
+    getMappings(),
+    new FbsBlob(data),
+    metadata
+  );
+  const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
+  const finalMetadata = metadata || (await multipartRequest.getPromise());
+  return new UploadTaskNonResumableSnapshot(finalMetadata, ref);
+}
+
+/**
+ * Uploads data to this object's location.
+ * The upload is resumable and exposes progress updates.
  * @public
  * @param ref - Storage Reference where data should be uploaded.
  * @param data - The data to upload.
