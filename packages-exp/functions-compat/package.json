@@ -47,8 +47,8 @@
   "typings": "dist/functions-compat-public.d.ts",
   "dependencies": {
     "@firebase/component": "0.1.21",
-    "@firebase/functions-exp": "0.0.800",
-    "@firebase/functions-types-exp": "0.0.800",
+    "@firebase/functions-exp": "0.0.900",
+    "@firebase/functions-types-exp": "0.0.900",
     "@firebase/messaging-types": "0.5.0",
     "@firebase/util": "0.3.4",
     "tslib": "^1.11.1"
