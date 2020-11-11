@@ -29,15 +29,14 @@ import {
   queryEqual,
   SetOptions
 } from '../../../lite/src/api/reference';
-import {
-  changesFromSnapshot,
-  SnapshotMetadata
-} from '../../../src/api/database';
+import { SnapshotMetadata } from '../../../src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { FieldPath } from '../../../lite/src/api/field_path';
 import { SnapshotListenOptions } from './reference';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
+import { debugAssert, fail } from '../../../src/util/assert';
+import { newQueryComparator } from '../../../src/core/query';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type `T`
@@ -403,15 +402,106 @@ export class QuerySnapshot<T = DocumentData> {
       !this._cachedChanges ||
       this._cachedChangesIncludeMetadataChanges !== includeMetadataChanges
     ) {
-      this._cachedChanges = changesFromSnapshot<QueryDocumentSnapshot<T>>(
+      this._cachedChanges = this.changesFromSnapshot(
         this._snapshot,
-        includeMetadataChanges,
-        this._convertToDocumentSnapshot.bind(this)
+        includeMetadataChanges
       );
       this._cachedChangesIncludeMetadataChanges = includeMetadataChanges;
     }
 
     return this._cachedChanges;
+  }
+
+  /**
+   * Calculates the array of DocumentChanges for a given ViewSnapshot.
+   *
+   * Exported for testing.
+   *
+   * @param snapshot The ViewSnapshot that represents the expected state.
+   * @param includeMetadataChanges Whether to include metadata changes.
+   * @param converter A factory function that returns a QueryDocumentSnapshot.
+   * @return An object that matches the DocumentChange API.
+   */
+  changesFromSnapshot(
+    snapshot: ViewSnapshot,
+    includeMetadataChanges: boolean
+  ): Array<DocumentChange<T>> {
+    if (snapshot.oldDocs.isEmpty()) {
+      // Special case the first snapshot because index calculation is easy and
+      // fast
+      let lastDoc: Document;
+      let index = 0;
+      return snapshot.docChanges.map(change => {
+        const doc = this._convertToDocumentSnapshot(
+          change.doc,
+          snapshot.fromCache,
+          snapshot.mutatedKeys.has(change.doc.key)
+        );
+        debugAssert(
+          change.type === ChangeType.Added,
+          'Invalid event type for first snapshot'
+        );
+        debugAssert(
+          !lastDoc ||
+            newQueryComparator(snapshot.query)(lastDoc, change.doc) < 0,
+          'Got added events in wrong order'
+        );
+        lastDoc = change.doc;
+        return {
+          type: 'added' as DocumentChangeType,
+          doc,
+          oldIndex: -1,
+          newIndex: index++
+        };
+      });
+    } else {
+      // A DocumentSet that is updated incrementally as changes are applied to use
+      // to lookup the index of a document.
+      let indexTracker = snapshot.oldDocs;
+      return snapshot.docChanges
+        .filter(
+          change =>
+            includeMetadataChanges || change.type !== ChangeType.Metadata
+        )
+        .map(change => {
+          const doc = this._convertToDocumentSnapshot(
+            change.doc,
+            snapshot.fromCache,
+            snapshot.mutatedKeys.has(change.doc.key)
+          );
+          let oldIndex = -1;
+          let newIndex = -1;
+          if (change.type !== ChangeType.Added) {
+            oldIndex = indexTracker.indexOf(change.doc.key);
+            debugAssert(oldIndex >= 0, 'Index for document not found');
+            indexTracker = indexTracker.delete(change.doc.key);
+          }
+          if (change.type !== ChangeType.Removed) {
+            indexTracker = indexTracker.add(change.doc);
+            newIndex = indexTracker.indexOf(change.doc.key);
+          }
+          return {
+            type: this.resultChangeType(change.type),
+            doc,
+            oldIndex,
+            newIndex
+          };
+        });
+    }
+  }
+
+  resultChangeType(type: ChangeType): DocumentChangeType {
+    switch (type) {
+      case ChangeType.Added:
+        return 'added';
+      case ChangeType.Modified:
+      case ChangeType.Metadata:
+        return 'modified';
+      case ChangeType.Removed:
+        return 'removed';
+      default:
+        return fail('Unknown change type: ' + type);
+    }
   }
 
   private _convertToDocumentSnapshot(
