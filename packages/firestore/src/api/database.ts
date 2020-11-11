@@ -1821,11 +1821,14 @@ export class Query<T = PublicDocumentData> implements PublicQuery<T> {
 }
 
 export class DocumentChange<T = PublicDocumentData>
+  extends Compat<ExpDocumentChange<T>>
   implements PublicDocumentChange<T> {
   constructor(
     private readonly _firestore: Firestore,
-    private readonly _delegate: ExpDocumentChange<T>
-  ) {}
+    delegate: ExpDocumentChange<T>
+  ) {
+    super(delegate);
+  }
 
   get type(): PublicDocumentChangeType {
     return this._delegate.type;
