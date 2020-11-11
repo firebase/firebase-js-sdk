@@ -106,17 +106,17 @@ import {
   ref,
   setMutation,
   testUserDataReader,
-  testUserDataWriter,
   transformMutation,
   version,
   wrap,
   wrapObject
 } from '../../util/helpers';
-
 import { ByteString } from '../../../src/util/byte_string';
 import { parseQueryValue } from '../../../src/api/user_data_reader';
+import { UserDataWriter } from '../../../src/api/user_data_writer';
+import { firestore } from '../../util/api_helpers';
 
-const userDataWriter = testUserDataWriter();
+const userDataWriter = new UserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 

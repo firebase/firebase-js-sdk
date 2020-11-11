@@ -45,7 +45,8 @@ import { ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
 import { ByteString } from '../util/byte_string';
-import { Bytes } from '../../lite/src/api/bytes';
+import { Blob } from './blob';
+import { DocumentReference, Firestore } from './database';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -53,15 +54,11 @@ export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
  * Converts Firestore's internal types to the JavaScript types that we expose
  * to the user.
  */
-export class UserDataWriter {
-  constructor(
-    private readonly databaseId: DatabaseId,
-    private readonly serverTimestampBehavior: ServerTimestampBehavior,
-    private readonly referenceFactory: (key: DocumentKey) => unknown,
-    private readonly bytesFactory: (bytes: ByteString) => Bytes
-  ) {}
-
-  convertValue(value: ProtoValue): unknown {
+export abstract class AbstractUserDataWriter {
+  convertValue(
+    value: ProtoValue,
+    serverTimestampBehavior: ServerTimestampBehavior = 'none'
+  ): unknown {
     switch (typeOrder(value)) {
       case TypeOrder.NullValue:
         return null;
@@ -72,28 +69,31 @@ export class UserDataWriter {
       case TypeOrder.TimestampValue:
         return this.convertTimestamp(value.timestampValue!);
       case TypeOrder.ServerTimestampValue:
-        return this.convertServerTimestamp(value);
+        return this.convertServerTimestamp(value, serverTimestampBehavior);
       case TypeOrder.StringValue:
         return value.stringValue!;
       case TypeOrder.BlobValue:
-        return this.bytesFactory(normalizeByteString(value.bytesValue!));
+        return this.convertBytes(normalizeByteString(value.bytesValue!));
       case TypeOrder.RefValue:
         return this.convertReference(value.referenceValue!);
       case TypeOrder.GeoPointValue:
         return this.convertGeoPoint(value.geoPointValue!);
       case TypeOrder.ArrayValue:
-        return this.convertArray(value.arrayValue!);
+        return this.convertArray(value.arrayValue!, serverTimestampBehavior);
       case TypeOrder.ObjectValue:
-        return this.convertObject(value.mapValue!);
+        return this.convertObject(value.mapValue!, serverTimestampBehavior);
       default:
         throw fail('Invalid value type: ' + JSON.stringify(value));
     }
   }
 
-  private convertObject(mapValue: ProtoMapValue): DocumentData {
+  private convertObject(
+    mapValue: ProtoMapValue,
+    serverTimestampBehavior: ServerTimestampBehavior
+  ): DocumentData {
     const result: DocumentData = {};
     forEach(mapValue.fields || {}, (key, value) => {
-      result[key] = this.convertValue(value);
+      result[key] = this.convertValue(value, serverTimestampBehavior);
     });
     return result;
   }
@@ -105,18 +105,26 @@ export class UserDataWriter {
     );
   }
 
-  private convertArray(arrayValue: ProtoArrayValue): unknown[] {
-    return (arrayValue.values || []).map(value => this.convertValue(value));
+  private convertArray(
+    arrayValue: ProtoArrayValue,
+    serverTimestampBehavior: ServerTimestampBehavior
+  ): unknown[] {
+    return (arrayValue.values || []).map(value =>
+      this.convertValue(value, serverTimestampBehavior)
+    );
   }
 
-  private convertServerTimestamp(value: ProtoValue): unknown {
-    switch (this.serverTimestampBehavior) {
+  private convertServerTimestamp(
+    value: ProtoValue,
+    serverTimestampBehavior: ServerTimestampBehavior
+  ): unknown {
+    switch (serverTimestampBehavior) {
       case 'previous':
         const previousValue = getPreviousValue(value);
         if (previousValue == null) {
           return null;
         }
-        return this.convertValue(previousValue);
+        return this.convertValue(previousValue, serverTimestampBehavior);
       case 'estimate':
         return this.convertTimestamp(getLocalWriteTime(value));
       default:
@@ -129,7 +137,10 @@ export class UserDataWriter {
     return new Timestamp(normalizedValue.seconds, normalizedValue.nanos);
   }
 
-  private convertReference(name: string): unknown {
+  protected convertDocumentKey(
+    name: string,
+    expectedDatabaseId: DatabaseId
+  ): DocumentKey {
     const resourcePath = ResourcePath.fromString(name);
     hardAssert(
       isValidResourceName(resourcePath),
@@ -138,18 +149,36 @@ export class UserDataWriter {
     const databaseId = new DatabaseId(resourcePath.get(1), resourcePath.get(3));
     const key = new DocumentKey(resourcePath.popFirst(5));
 
-    if (!databaseId.isEqual(this.databaseId)) {
+    if (!databaseId.isEqual(expectedDatabaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
       logError(
         `Document ${key} contains a document ` +
           `reference within a different database (` +
           `${databaseId.projectId}/${databaseId.database}) which is not ` +
           `supported. It will be treated as a reference in the current ` +
-          `database (${this.databaseId.projectId}/${this.databaseId.database}) ` +
+          `database (${expectedDatabaseId.projectId}/${expectedDatabaseId.database}) ` +
           `instead.`
       );
     }
+    return key;
+  }
 
-    return this.referenceFactory(key);
+  protected abstract convertReference(name: string): unknown;
+
+  protected abstract convertBytes(bytes: ByteString): unknown;
+}
+
+export class UserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: Firestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Blob {
+    return new Blob(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return DocumentReference.forKey(key, this.firestore, /* converter= */ null);
   }
 }

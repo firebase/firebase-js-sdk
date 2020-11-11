@@ -78,6 +78,9 @@ import {
 import { newSerializer } from '../../../src/platform/serializer';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { getDatastore } from './components';
+import { ByteString } from '../../../src/util/byte_string';
+import { Bytes } from './bytes';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 
 /**
  * Document data (for use with {@link setDoc()}) consists of fields mapped to
@@ -896,6 +899,21 @@ export function doc<T>(
   }
 }
 
+export class LiteUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: FirebaseFirestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new DocumentReference(this.firestore, /* converter= */ null, key);
+  }
+}
+
 /**
  * Reads the document referred to by the specified document reference.
  *
@@ -913,12 +931,15 @@ export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const datastore = getDatastore(reference.firestore);
+  const userDataWriter = new LiteUserDataWriter(reference.firestore);
+
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
       hardAssert(result.length === 1, 'Expected a single document result');
       const maybeDocument = result[0];
       return new DocumentSnapshot<T>(
         reference.firestore,
+        userDataWriter,
         reference._key,
         maybeDocument instanceof Document ? maybeDocument : null,
         reference._converter
@@ -943,11 +964,13 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   validateHasExplicitOrderByForLimitToLast(query._query);
 
   const datastore = getDatastore(query.firestore);
+  const userDataWriter = new LiteUserDataWriter(query.firestore);
   return invokeRunQueryRpc(datastore, query._query).then(result => {
     const docs = result.map(
       doc =>
         new QueryDocumentSnapshot<T>(
           query.firestore,
+          userDataWriter,
           doc.key,
           doc,
           query._converter
