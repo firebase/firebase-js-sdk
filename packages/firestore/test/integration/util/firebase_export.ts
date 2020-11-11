@@ -123,20 +123,5 @@ const Timestamp = usesFunctionalApi()
   : legacyNamespace.Timestamp;
 const GeoPoint = usesFunctionalApi() ? exp.GeoPoint : legacyNamespace.GeoPoint;
 const Blob = usesFunctionalApi() ? exp.Blob : legacyNamespace.Blob;
-const loadBundle = usesFunctionalApi()
-  ? exp.loadBundle
-  : legacyNamespace.loadBundle;
-const namedQuery = usesFunctionalApi()
-  ? exp.namedQuery
-  : legacyNamespace.namedQuery;
 
-export {
-  Firestore,
-  FieldValue,
-  FieldPath,
-  Timestamp,
-  Blob,
-  GeoPoint,
-  loadBundle,
-  namedQuery
-};
+export { Firestore, FieldValue, FieldPath, Timestamp, Blob, GeoPoint };

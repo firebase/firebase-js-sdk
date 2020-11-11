@@ -55,10 +55,9 @@ import {
   validateSetOptions
 } from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
-import { Firestore, loadBundle, namedQuery } from '../../src/api/database';
+import { Firestore } from '../../src/api/database';
 
 export { GeoPoint, Timestamp } from '../index';
-export { loadBundle, namedQuery };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

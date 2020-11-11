@@ -99,16 +99,6 @@ export class FirebaseFirestore {
   INTERNAL: { delete: () => Promise<void> };
 }
 
-export function loadBundle(
-  db: FirebaseFirestore,
-  bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
-): LoadBundleTask;
-
-export function namedQuery(
-  db: FirebaseFirestore,
-  name: string
-): Promise<Query<DocumentData> | null>;
-
 export interface LoadBundleTask {
   onProgress(
     next?: (progress: LoadBundleTaskProgress) => any,
