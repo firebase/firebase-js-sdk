@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions-compat",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "description": "",
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -14,7 +14,7 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.0.800",
+    "@firebase/app-compat": "0.0.900",
     "rollup": "2.33.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.29.0",
