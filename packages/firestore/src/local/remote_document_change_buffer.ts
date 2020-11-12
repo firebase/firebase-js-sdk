@@ -26,6 +26,16 @@ import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
+ * Represents a document change to be applied to remote document cache.
+ */
+interface RemoteDocumentChange {
+  // The document in this change, null if it is a removal from the cache.
+  readonly maybeDocument: MaybeDocument | null;
+  // The timestamp when this change is read.
+  readonly readTime: SnapshotVersion | null;
+}
+
+/**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.
  * It can be used to batch up a set of changes to be written to the cache, but
  * additionally supports reading entries back with the `getEntry()` method,
@@ -44,14 +54,11 @@ export abstract class RemoteDocumentChangeBuffer {
   // existing cache entry should be removed).
   protected changes: ObjectMap<
     DocumentKey,
-    MaybeDocument | null
+    RemoteDocumentChange
   > = new ObjectMap(
     key => key.toString(),
     (l, r) => l.isEqual(r)
   );
-
-  // The read time to use for all added documents in this change buffer.
-  private _readTime: SnapshotVersion | undefined;
 
   private changesApplied = false;
 
@@ -69,23 +76,16 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction
   ): PersistencePromise<void>;
 
-  protected set readTime(value: SnapshotVersion) {
-    // Right now (for simplicity) we just track a single readTime for all the
-    // added entries since we expect them to all be the same, but we could
-    // rework to store per-entry readTimes if necessary.
-    debugAssert(
-      this._readTime === undefined || this._readTime.isEqual(value),
-      'All changes in a RemoteDocumentChangeBuffer must have the same read time'
-    );
-    this._readTime = value;
-  }
-
-  protected get readTime(): SnapshotVersion {
-    debugAssert(
-      this._readTime !== undefined,
-      'Read time is not set. All removeEntry() calls must include a readTime if `trackRemovals` is used.'
-    );
-    return this._readTime;
+  protected getReadTime(key: DocumentKey): SnapshotVersion {
+    const change = this.changes.get(key);
+    if (change) {
+      debugAssert(
+        !!change.readTime,
+        `Read time is not set for ${key}. All removeEntry() calls must include a readTime if 'trackRemovals' is used.`
+      );
+      return change.readTime;
+    }
+    return SnapshotVersion.min();
   }
 
   /**
@@ -96,8 +96,7 @@ export abstract class RemoteDocumentChangeBuffer {
    */
   addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
     this.assertNotApplied();
-    this.readTime = readTime;
-    this.changes.set(maybeDocument.key, maybeDocument);
+    this.changes.set(maybeDocument.key, { maybeDocument, readTime });
   }
 
   /**
@@ -106,12 +105,9 @@ export abstract class RemoteDocumentChangeBuffer {
    * You can only remove documents that have already been retrieved via
    * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
    */
-  removeEntry(key: DocumentKey, readTime?: SnapshotVersion): void {
+  removeEntry(key: DocumentKey, readTime: SnapshotVersion | null = null): void {
     this.assertNotApplied();
-    if (readTime) {
-      this.readTime = readTime;
-    }
-    this.changes.set(key, null);
+    this.changes.set(key, { maybeDocument: null, readTime });
   }
 
   /**
@@ -132,7 +128,9 @@ export abstract class RemoteDocumentChangeBuffer {
     this.assertNotApplied();
     const bufferedEntry = this.changes.get(documentKey);
     if (bufferedEntry !== undefined) {
-      return PersistencePromise.resolve<MaybeDocument | null>(bufferedEntry);
+      return PersistencePromise.resolve<MaybeDocument | null>(
+        bufferedEntry.maybeDocument
+      );
     } else {
       return this.getFromCache(transaction, documentKey);
     }

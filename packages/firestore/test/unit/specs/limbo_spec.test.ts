@@ -444,7 +444,7 @@ describeSpec('Limbo Documents:', [], () => {
         .expectEvents(query1, { fromCache: true })
         .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(true)
-        .expectListen(query1, 'resume-token-1000000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000000' })
         .watchAcksFull(query1, 3 * 1e6)
         .expectLimboDocs(docB.key)
         .ackLimbo(4 * 1e6, deletedDocB)
@@ -476,7 +476,7 @@ describeSpec('Limbo Documents:', [], () => {
         .expectLimboDocs(docB.key, docC.key)
         .client(1)
         .stealPrimaryLease()
-        .expectListen(query1, 'resume-token-1000000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000000' })
         .client(0)
         .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(false)
@@ -489,7 +489,7 @@ describeSpec('Limbo Documents:', [], () => {
         .client(0)
         .expectEvents(query1, { removed: [docB], fromCache: true })
         .stealPrimaryLease()
-        .expectListen(query1, 'resume-token-1000000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000000' })
         .watchAcksFull(query1, 5 * 1e6)
         .expectLimboDocs(docC.key)
         .ackLimbo(6 * 1e6, deletedDocC)
@@ -545,7 +545,7 @@ describeSpec('Limbo Documents:', [], () => {
         // document `docBCommitted`, since we haven't received the resolved
         // document from Watch. Until we do, we return the version from cache
         // even though the backend told it does not match.
-        .userListens(originalQuery, 'resume-token-2000')
+        .userListens(originalQuery, { resumeToken: 'resume-token-2000' })
         .expectEvents(originalQuery, {
           added: [docA, docBDirty],
           fromCache: true

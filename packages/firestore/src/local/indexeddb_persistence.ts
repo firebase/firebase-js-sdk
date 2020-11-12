@@ -30,6 +30,7 @@ import {
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
@@ -222,6 +223,7 @@ export class IndexedDbPersistence implements Persistence {
   private readonly targetCache: IndexedDbTargetCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
+  private readonly bundleCache: IndexedDbBundleCache;
   private readonly webStorage: Storage | null;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
@@ -271,6 +273,7 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer,
       this.indexManager
     );
+    this.bundleCache = new IndexedDbBundleCache(this.serializer);
     if (this.window && this.window.localStorage) {
       this.webStorage = this.window.localStorage;
     } else {
@@ -778,6 +781,14 @@ export class IndexedDbPersistence implements Persistence {
       'Cannot initialize IndexManager before persistence is started.'
     );
     return this.indexManager;
+  }
+
+  getBundleCache(): IndexedDbBundleCache {
+    debugAssert(
+      this.started,
+      'Cannot initialize BundleCache before persistence is started.'
+    );
+    return this.bundleCache;
   }
 
   runTransaction<T>(

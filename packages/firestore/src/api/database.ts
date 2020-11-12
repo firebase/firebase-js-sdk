@@ -25,7 +25,9 @@ import {
   FirestoreClient,
   firestoreClientGetDocumentsFromLocalCache,
   firestoreClientGetDocumentsViaSnapshotListener,
+  firestoreClientGetNamedQuery,
   firestoreClientListen,
+  firestoreClientLoadBundle,
   firestoreClientTransaction,
   firestoreClientWrite
 } from '../core/firestore_client';
@@ -157,6 +159,7 @@ import {
 
 import { makeDatabaseInfo } from '../../lite/src/api/database';
 import { DEFAULT_HOST } from '../../lite/src/api/components';
+import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -438,6 +441,36 @@ export function configureFirestore(firestore: FirebaseFirestore): void {
 
 export function setLogLevel(level: PublicLogLevel): void {
   setClientLogLevel(level);
+}
+
+export function loadBundle(
+  db: Firestore,
+  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+): ApiLoadBundleTask {
+  const resultTask = new LoadBundleTask();
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreClientLoadBundle(
+    ensureFirestoreConfigured(db._delegate),
+    bundleData,
+    resultTask
+  );
+  return resultTask;
+}
+
+export function namedQuery(
+  db: Firestore,
+  name: string
+): Promise<PublicQuery | null> {
+  return firestoreClientGetNamedQuery(
+    ensureFirestoreConfigured(db._delegate),
+    name
+  ).then(namedQuery => {
+    if (!namedQuery) {
+      return null;
+    }
+
+    return new Query(namedQuery.query, db, null);
+  });
 }
 
 /**

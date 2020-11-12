@@ -234,7 +234,9 @@ describeSpec(
             .expectEvents(query1, { added: docs })
             .userUnlistens(query1)
             .watchRemoves(query1)
-            .userListens(query1, 'resume-token-' + currentVersion)
+            .userListens(query1, {
+              resumeToken: 'resume-token-' + currentVersion
+            })
             .expectEvents(query1, { added: docs, fromCache: true })
             .watchAcksFull(query1, ++currentVersion)
             .expectEvents(query1, {})

@@ -173,7 +173,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectPrimaryState(true)
-          .expectListen(query1, 'resume-token-1000')
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
           .watchAcksFull(query1, 2000, docB)
           .expectEvents(query1, { added: [docB] })
       );
@@ -214,7 +214,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectPrimaryState(true)
-          .expectListen(query1, 'resume-token-1000')
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
           .watchAcksFull(query1, 2000, docB)
           .client(2)
           .expectEvents(query1, { added: [docB] })
@@ -506,7 +506,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .userUnlistens(query1)
           // No event since the document was removed
-          .userListens(query1, 'resume-token-1000')
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
       );
     }
   );
@@ -612,7 +612,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         // Verify that `doc1Query` can be listened to again. Note that the
         // resume token is slightly outdated since we failed to persist the
         // target update during the release.
-        .userListens(doc1Query, 'resume-token-1000')
+        .userListens(doc1Query, { resumeToken: 'resume-token-1000' })
         .expectEvents(doc1Query, {
           added: [doc1a],
           fromCache: true
@@ -829,7 +829,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .userUnlistens(query1)
       .watchRemoves(query1)
       .recoverDatabase()
-      .userListens(query1, 'resume-token-1000')
+      .userListens(query1, { resumeToken: 'resume-token-1000' })
       .expectEvents(query1, {
         added: [doc1],
         fromCache: true

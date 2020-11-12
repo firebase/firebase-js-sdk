@@ -22,3 +22,17 @@ import { JsonProtoSerializer } from '../../remote/serializer';
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
   return new JsonProtoSerializer(databaseId, /* useProto3Json= */ true);
 }
+
+/**
+ * An instance of the Platform's 'TextEncoder' implementation.
+ */
+export function newTextEncoder(): TextEncoder {
+  return new TextEncoder();
+}
+
+/**
+ * An instance of the Platform's 'TextDecoder' implementation.
+ */
+export function newTextDecoder(): TextDecoder {
+  return new TextDecoder('utf-8');
+}

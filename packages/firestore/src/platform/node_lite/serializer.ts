@@ -15,10 +15,4 @@
  * limitations under the License.
  */
 
-/** Return the Platform-specific serializer monitor. */
-import { JsonProtoSerializer } from '../../remote/serializer';
-import { DatabaseId } from '../../core/database_info';
-
-export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
-  return new JsonProtoSerializer(databaseId, /* useProto3Json= */ true);
-}
+export * from '../node/serializer';

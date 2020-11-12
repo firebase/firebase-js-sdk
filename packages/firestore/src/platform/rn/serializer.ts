@@ -15,4 +15,8 @@
  * limitations under the License.
  */
 
-export { newSerializer } from '../browser/serializer';
+export {
+  newSerializer,
+  newTextEncoder,
+  newTextDecoder
+} from '../browser/serializer';

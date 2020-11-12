@@ -28,6 +28,7 @@
     "packages/webchannel-wrapper/src/index.d.ts",
     "packages/util/dist/src/crypt.d.ts",
     "packages/util/dist/src/environment.d.ts",
+    "packages/firestore/src/protos/firestore_bundle_proto.ts",
     "packages/firestore/src/protos/firestore_proto_api.d.ts",
     "packages/firestore/src/util/error.ts",
     "packages/firestore/src/local/indexeddb_schema.ts",
