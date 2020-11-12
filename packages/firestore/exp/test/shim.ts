@@ -20,14 +20,8 @@ import * as exp from '../index';
 
 import {
   addDoc,
-  collection,
-  deleteDoc,
   doc,
-  DocumentReference as DocumentReferenceExp,
   FieldPath as FieldPathExp,
-  getDoc,
-  getDocFromCache,
-  getDocFromServer,
   getDocs,
   getDocsFromCache,
   getDocsFromServer,
@@ -35,9 +29,7 @@ import {
   query,
   queryEqual,
   refEqual,
-  setDoc,
   snapshotEqual,
-  updateDoc,
   endAt,
   endBefore,
   startAfter,
@@ -49,13 +41,19 @@ import {
   Bytes as BytesExp
 } from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
-import { isPartialObserver, PartialObserver } from '../../src/api/observer';
 import {
   isPlainObject,
   validateSetOptions
 } from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
-import { Firestore } from '../../src/api/database';
+import {
+  Firestore,
+  DocumentReference,
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  wrapObserver,
+  extractSnapshotOptions
+} from '../../src/api/database';
 
 export { GeoPoint, Timestamp } from '../index';
 
@@ -185,171 +183,6 @@ export class WriteBatch
 
   commit(): Promise<void> {
     return this._delegate.commit();
-  }
-}
-
-export class DocumentReference<T = legacy.DocumentData>
-  extends Compat<exp.DocumentReference<T>>
-  implements legacy.DocumentReference<T> {
-  constructor(
-    readonly firestore: Firestore,
-    delegate: exp.DocumentReference<T>
-  ) {
-    super(delegate);
-  }
-
-  readonly id = this._delegate.id;
-  readonly path = this._delegate.path;
-
-  get parent(): legacy.CollectionReference<T> {
-    return new CollectionReference<T>(this.firestore, this._delegate.parent);
-  }
-
-  collection(
-    collectionPath: string
-  ): legacy.CollectionReference<legacy.DocumentData> {
-    return new CollectionReference(
-      this.firestore,
-      collection(this._delegate, collectionPath)
-    );
-  }
-
-  isEqual(other: DocumentReference<T>): boolean {
-    return refEqual(this._delegate, other._delegate);
-  }
-
-  set(data: Partial<T>, options?: legacy.SetOptions): Promise<void> {
-    if (options) {
-      validateSetOptions('DocumentReference.set', options);
-      return setDoc(this._delegate, unwrap(data), options);
-    } else {
-      return setDoc(this._delegate, unwrap(data));
-    }
-  }
-
-  update(data: legacy.UpdateData): Promise<void>;
-  update(
-    field: string | FieldPath,
-    value: any,
-    ...moreFieldsAndValues: any[]
-  ): Promise<void>;
-  update(
-    dataOrField: any,
-    value?: any,
-    ...moreFieldsAndValues: any[]
-  ): Promise<void> {
-    if (arguments.length === 1) {
-      return updateDoc(this._delegate, unwrap(dataOrField));
-    } else {
-      return updateDoc(
-        this._delegate,
-        unwrap(dataOrField),
-        unwrap(value),
-        ...unwrap(moreFieldsAndValues)
-      );
-    }
-  }
-
-  delete(): Promise<void> {
-    return deleteDoc(this._delegate);
-  }
-
-  get(options?: legacy.GetOptions): Promise<DocumentSnapshot<T>> {
-    let snap: Promise<exp.DocumentSnapshot<T>>;
-    if (options?.source === 'cache') {
-      snap = getDocFromCache(this._delegate);
-    } else if (options?.source === 'server') {
-      snap = getDocFromServer(this._delegate);
-    } else {
-      snap = getDoc(this._delegate);
-    }
-    return snap.then(result => new DocumentSnapshot(this.firestore, result));
-  }
-
-  onSnapshot(observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
-    error?: (error: legacy.FirestoreError) => void;
-    complete?: () => void;
-  }): () => void;
-  onSnapshot(
-    options: legacy.SnapshotListenOptions,
-    observer: {
-      next?: (snapshot: DocumentSnapshot<T>) => void;
-      error?: (error: legacy.FirestoreError) => void;
-      complete?: () => void;
-    }
-  ): () => void;
-  onSnapshot(
-    onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: legacy.FirestoreError) => void,
-    onCompletion?: () => void
-  ): () => void;
-  onSnapshot(
-    options: legacy.SnapshotListenOptions,
-    onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: legacy.FirestoreError) => void,
-    onCompletion?: () => void
-  ): () => void;
-  onSnapshot(...args: any): () => void {
-    const options = extractSnapshotOptions(args);
-    const observer = wrapObserver<DocumentSnapshot<T>, exp.DocumentSnapshot<T>>(
-      args,
-      snap => new DocumentSnapshot(this.firestore, snap)
-    );
-    return onSnapshot(this._delegate, options, observer);
-  }
-
-  withConverter<U>(
-    converter: legacy.FirestoreDataConverter<U>
-  ): DocumentReference<U> {
-    return new DocumentReference<U>(
-      this.firestore,
-      this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
-      )
-    );
-  }
-}
-
-export class DocumentSnapshot<T = legacy.DocumentData>
-  extends Compat<exp.DocumentSnapshot<T>>
-  implements legacy.DocumentSnapshot<T> {
-  constructor(
-    private readonly _firestore: Firestore,
-    delegate: exp.DocumentSnapshot<T>
-  ) {
-    super(delegate);
-  }
-
-  readonly ref = new DocumentReference<T>(this._firestore, this._delegate.ref);
-  readonly id = this._delegate.id;
-  readonly metadata = this._delegate.metadata;
-
-  get exists(): boolean {
-    return this._delegate.exists();
-  }
-
-  data(options?: legacy.SnapshotOptions): T | undefined {
-    return wrap(this._firestore, this._delegate.data(options));
-  }
-
-  get(fieldPath: string | FieldPath, options?: legacy.SnapshotOptions): any {
-    return wrap(
-      this._firestore,
-      this._delegate.get(unwrap(fieldPath), options)
-    );
-  }
-
-  isEqual(other: DocumentSnapshot<T>): boolean {
-    return snapshotEqual(this._delegate, other._delegate);
-  }
-}
-
-export class QueryDocumentSnapshot<T = legacy.DocumentData>
-  extends DocumentSnapshot<T>
-  implements legacy.QueryDocumentSnapshot<T> {
-  data(options?: legacy.SnapshotOptions): T {
-    return this._delegate.data(options)!;
   }
 }
 
@@ -624,32 +457,6 @@ export class Blob extends Compat<BytesExp> implements legacy.Blob {
 }
 
 /**
- * Takes document data that uses the firestore-exp API types and replaces them
- * with the API types defined in this shim.
- */
-function wrap(firestore: Firestore, value: any): any {
-  if (Array.isArray(value)) {
-    return value.map(v => wrap(firestore, v));
-  } else if (value instanceof FieldPathExp) {
-    return new FieldPath(...value._internalPath.toArray());
-  } else if (value instanceof BytesExp) {
-    return new Blob(value);
-  } else if (value instanceof DocumentReferenceExp) {
-    return new DocumentReference(firestore, value);
-  } else if (isPlainObject(value)) {
-    const obj: any = {};
-    for (const key in value) {
-      if (value.hasOwnProperty(key)) {
-        obj[key] = wrap(firestore, value[key]);
-      }
-    }
-    return obj;
-  } else {
-    return value;
-  }
-}
-
-/**
  * Takes user data that uses API types from this shim and replaces them
  * with the the firestore-exp API types.
  */
@@ -671,60 +478,4 @@ function unwrap(value: any): any {
   } else {
     return value;
   }
-}
-
-/**
- * Creates an observer that can be passed to the firestore-exp SDK. The
- * observer converts all observed values into the format expected by the shim.
- *
- * @param args The list of arguments from an `onSnapshot` call.
- * @param wrapper The function that converts the firestore-exp type into the
- * type used by this shim.
- */
-function wrapObserver<ShimType, ExpType>(
-  args: any,
-  wrapper: (val: ExpType) => ShimType
-): PartialObserver<ExpType> {
-  let userObserver: PartialObserver<ShimType>;
-  if (isPartialObserver(args[0])) {
-    userObserver = args[0] as PartialObserver<ShimType>;
-  } else if (isPartialObserver(args[1])) {
-    userObserver = args[1];
-  } else if (typeof args[0] === 'function') {
-    userObserver = {
-      next: args[0],
-      error: args[1],
-      complete: args[2]
-    };
-  } else {
-    userObserver = {
-      next: args[1],
-      error: args[2],
-      complete: args[3]
-    };
-  }
-
-  return {
-    next: val => {
-      if (userObserver!.next) {
-        userObserver!.next(wrapper(val));
-      }
-    },
-    error: userObserver.error?.bind(userObserver),
-    complete: userObserver.complete?.bind(userObserver)
-  };
-}
-
-/**
- * Iterates the list of arguments from an `onSnapshot` call and returns the
- * first argument that may be an `SnapshotListenOptions` object. Returns an
- * empty object if none is found.
- */
-function extractSnapshotOptions(args: any): exp.SnapshotListenOptions {
-  for (const arg of args) {
-    if (typeof arg === 'object' && !isPartialObserver(arg)) {
-      return arg as exp.SnapshotListenOptions;
-    }
-  }
-  return {};
 }

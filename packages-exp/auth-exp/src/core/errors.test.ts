@@ -16,17 +16,51 @@
  */
 
 import { expect } from 'chai';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
+import {
+  AuthErrorCode,
+  debugErrorMap,
+  prodErrorMap,
+  ErrorMapRetriever,
+  AuthErrorParams
+} from './errors';
+import { _createError } from './util/assert';
+import { AuthErrorMap } from '@firebase/auth-types-exp';
+import { ErrorFactory } from '@firebase/util';
 
-describe('core/AUTH_ERROR_FACTORY', () => {
-  it('should create an Auth namespaced FirebaseError', () => {
-    const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-      appName: 'my-app'
-    });
+function getErrorFactory(
+  errorMap: AuthErrorMap
+): ErrorFactory<AuthErrorCode, AuthErrorParams> {
+  const map = (errorMap as ErrorMapRetriever)();
+  const factory = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
+    'auth',
+    'Firebase',
+    map
+  );
+  return factory;
+}
+
+describe('verboseErrorMap', () => {
+  it('should create an Auth namespaced FirebaseError with full message', () => {
+    const error = getErrorFactory(debugErrorMap).create(
+      AuthErrorCode.INTERNAL_ERROR,
+      {}
+    );
     expect(error.code).to.eq('auth/internal-error');
     expect(error.message).to.eq(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    expect(error.name).to.eq('FirebaseError');
+  });
+});
+
+describe('prodErrorMap', () => {
+  it('should create an Auth namespaced FirebaseError with full message', () => {
+    const error = getErrorFactory(prodErrorMap).create(
+      AuthErrorCode.INTERNAL_ERROR,
+      {}
+    );
+    expect(error.code).to.eq('auth/internal-error');
+    expect(error.message).to.eq('Firebase: Error (auth/internal-error).');
     expect(error.name).to.eq('FirebaseError');
   });
 });

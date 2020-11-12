@@ -21,7 +21,7 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
-import { assert, debugFail } from '../util/assert';
+import { _assert, debugFail } from '../util/assert';
 
 /**
  * The number of milliseconds before the official expiration time of a token
@@ -56,12 +56,10 @@ export class StsTokenManager {
   }
 
   async getToken(auth: Auth, forceRefresh = false): Promise<string | null> {
-    assert(
+    _assert(
       !this.accessToken || this.refreshToken,
-      AuthErrorCode.TOKEN_EXPIRED,
-      {
-        appName: auth.name
-      }
+      auth,
+      AuthErrorCode.TOKEN_EXPIRED
     );
 
     if (!forceRefresh && this.accessToken && !this.isExpired) {
@@ -105,21 +103,25 @@ export class StsTokenManager {
 
     const manager = new StsTokenManager();
     if (refreshToken) {
-      assert(typeof refreshToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
+      _assert(typeof refreshToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
         appName
       });
       manager.refreshToken = refreshToken;
     }
     if (accessToken) {
-      assert(typeof accessToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
+      _assert(typeof accessToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
         appName
       });
       manager.accessToken = accessToken;
     }
     if (expirationTime) {
-      assert(typeof expirationTime === 'number', AuthErrorCode.INTERNAL_ERROR, {
-        appName
-      });
+      _assert(
+        typeof expirationTime === 'number',
+        AuthErrorCode.INTERNAL_ERROR,
+        {
+          appName
+        }
+      );
       manager.expirationTime = expirationTime;
     }
     return manager;

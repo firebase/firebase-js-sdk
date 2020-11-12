@@ -19,7 +19,6 @@ import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { FirebaseFirestore } from './database';
 import {
-  _DocumentKeyReference,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
@@ -79,6 +78,9 @@ import {
 import { newSerializer } from '../../../src/platform/serializer';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { getDatastore } from './components';
+import { ByteString } from '../../../src/util/byte_string';
+import { Bytes } from './bytes';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 
 /**
  * Document data (for use with {@link setDoc()}) consists of fields mapped to
@@ -125,9 +127,7 @@ export type SetOptions =
  * and can be used to write, read, or listen to the location. The document at
  * the referenced location may or may not exist.
  */
-export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
-  T
-> {
+export class DocumentReference<T = DocumentData> {
   /** The type of this Firestore reference. */
   readonly type = 'document';
 
@@ -139,18 +139,21 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
 
   constructor(
     firestore: FirebaseFirestore,
-    _converter: FirestoreDataConverter<T> | null,
-    readonly _path: ResourcePath
+    readonly _converter: FirestoreDataConverter<T> | null,
+    readonly _key: DocumentKey
   ) {
-    super(firestore._databaseId, new DocumentKey(_path), _converter);
     this.firestore = firestore;
+  }
+
+  get _path(): ResourcePath {
+    return this._key.path;
   }
 
   /**
    * The document's identifier within its collection.
    */
   get id(): string {
-    return this._path.lastSegment();
+    return this._key.path.lastSegment();
   }
 
   /**
@@ -158,7 +161,7 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
    * to the root of the database).
    */
   get path(): string {
-    return this._path.canonicalString();
+    return this._key.path.canonicalString();
   }
 
   /**
@@ -183,7 +186,7 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
    * @return A `DocumentReference<U>` that uses the provided converter.
    */
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, converter, this._path);
+    return new DocumentReference<U>(this.firestore, converter, this._key);
   }
 }
 
@@ -653,7 +656,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
       return new DocumentReference(
         this.firestore,
         /* converter= */ null,
-        parentPath
+        new DocumentKey(parentPath)
       );
     }
   }
@@ -868,7 +871,11 @@ export function doc<T>(
   if (parent instanceof FirebaseFirestore) {
     const absolutePath = ResourcePath.fromString(path, ...pathSegments);
     validateDocumentPath(absolutePath);
-    return new DocumentReference(parent, /* converter= */ null, absolutePath);
+    return new DocumentReference(
+      parent,
+      /* converter= */ null,
+      new DocumentKey(absolutePath)
+    );
   } else {
     if (
       !(parent instanceof DocumentReference) &&
@@ -887,8 +894,23 @@ export function doc<T>(
     return new DocumentReference(
       parent.firestore,
       parent instanceof CollectionReference ? parent._converter : null,
-      absolutePath
+      new DocumentKey(absolutePath)
     );
+  }
+}
+
+export class LiteUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: FirebaseFirestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new DocumentReference(this.firestore, /* converter= */ null, key);
   }
 }
 
@@ -909,12 +931,15 @@ export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const datastore = getDatastore(reference.firestore);
+  const userDataWriter = new LiteUserDataWriter(reference.firestore);
+
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
       hardAssert(result.length === 1, 'Expected a single document result');
       const maybeDocument = result[0];
       return new DocumentSnapshot<T>(
         reference.firestore,
+        userDataWriter,
         reference._key,
         maybeDocument instanceof Document ? maybeDocument : null,
         reference._converter
@@ -939,11 +964,13 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   validateHasExplicitOrderByForLimitToLast(query._query);
 
   const datastore = getDatastore(query.firestore);
+  const userDataWriter = new LiteUserDataWriter(query.firestore);
   return invokeRunQueryRpc(datastore, query._query).then(result => {
     const docs = result.map(
       doc =>
         new QueryDocumentSnapshot<T>(
           query.firestore,
+          userDataWriter,
           doc.key,
           doc,
           query._converter

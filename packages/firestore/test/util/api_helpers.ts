@@ -26,7 +26,8 @@ import {
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
-  QuerySnapshot
+  QuerySnapshot,
+  SnapshotMetadata
 } from '../../src/api/database';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -43,6 +44,8 @@ import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 import { FirebaseFirestore } from '../../exp/src/api/database';
 import { DatabaseId } from '../../src/core/database_info';
+import { DocumentSnapshot as ExpDocumentSnapshot } from '../../exp/src/api/snapshot';
+import { UserDataWriter } from '../../src/api/user_data_writer';
 
 /**
  * A mock Firestore. Will not work for integration test.
@@ -73,7 +76,7 @@ export function collectionReference(path: string): CollectionReference {
 export function documentReference(path: string): DocumentReference {
   const db = firestore();
   ensureFirestoreConfigured(db._delegate);
-  return new DocumentReference(key(path), db, /* converter= */ null);
+  return DocumentReference.forKey(key(path), db, /* converter= */ null);
 }
 
 export function documentSnapshot(
@@ -81,23 +84,31 @@ export function documentSnapshot(
   data: JsonObject<unknown> | null,
   fromCache: boolean
 ): DocumentSnapshot {
+  const db = firestore();
+  const userDataWriter = new UserDataWriter(db);
   if (data) {
     return new DocumentSnapshot(
       firestore(),
-      key(path),
-      doc(path, 1, data),
-      fromCache,
-      /* hasPendingWrites= */ false,
-      /* converter= */ null
+      new ExpDocumentSnapshot(
+        db._delegate,
+        userDataWriter,
+        key(path),
+        doc(path, 1, data),
+        new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+        /* converter= */ null
+      )
     );
   } else {
     return new DocumentSnapshot(
       firestore(),
-      key(path),
-      null,
-      fromCache,
-      /* hasPendingWrites= */ false,
-      /* converter= */ null
+      new ExpDocumentSnapshot(
+        db._delegate,
+        userDataWriter,
+        key(path),
+        null,
+        new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+        /* converter= */ null
+      )
     );
   }
 }

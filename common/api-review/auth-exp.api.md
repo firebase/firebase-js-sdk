@@ -6,6 +6,7 @@
 
 import { Auth } from '@firebase/auth-types-exp';
 import { CompleteFn } from '@firebase/util';
+import { ErrorFactory } from '@firebase/util';
 import { ErrorFn } from '@firebase/util';
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
@@ -81,6 +82,9 @@ export function createUserWithEmailAndPassword(auth: externs.Auth, email: string
 
 // @public
 export type CustomParameters = Record<string, string>;
+
+// @public
+export const debugErrorMap: externs.AuthErrorMap;
 
 // @public
 export function deleteUser(user: externs.User): Promise<void>;
@@ -308,6 +312,9 @@ export class PhoneMultiFactorGenerator implements externs.PhoneMultiFactorGenera
     // (undocumented)
     static assertion(credential: externs.PhoneAuthCredential): externs.PhoneMultiFactorAssertion;
 }
+
+// @public
+export const prodErrorMap: externs.AuthErrorMap;
 
 // @public
 export function reauthenticateWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<externs.UserCredential>;

@@ -20,6 +20,17 @@ import { activate, fetchConfig } from './api';
 
 // This API is put in a separate file, so we can stub fetchConfig and activate in tests.
 // It's not possible to stub standalone functions from the same module.
+/**
+ *
+ * Performs fetch and activate operations, as a convenience.
+ *
+ * @param remoteConfig - the remote config instance
+ *
+ * @returns A promise which resolves to true if the current call activated the fetched configs.
+ * If the fetched configs were already activated, the promise will resolve to false.
+ *
+ * @public
+ */
 export async function fetchAndActivate(
   remoteConfig: RemoteConfig
 ): Promise<boolean> {

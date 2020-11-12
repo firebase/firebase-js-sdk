@@ -29,11 +29,26 @@ import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
 
+/**
+ *
+ * @param app - the firebase app instance
+ * @returns a remote config instance
+ *
+ * @public
+ */
 export function getRemoteConfig(app: FirebaseApp): RemoteConfig {
   const rcProvider = _getProvider(app, RC_COMPONENT_NAME);
   return rcProvider.getImmediate();
 }
 
+/**
+ * Makes the last fetched config available to the getters.
+ * @param remoteConfig - the remote config instance
+ * @returns A promise which resolves to true if the current call activated the fetched configs.
+ * If the fetched configs were already activated, the promise will resolve to false.
+ *
+ * @public
+ */
 export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
   const rc = remoteConfig as RemoteConfigImpl;
   const [lastSuccessfulFetchResponse, activeConfigEtag] = await Promise.all([
@@ -57,6 +72,13 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
   return true;
 }
 
+/**
+ * Ensures the last activated config are available to the getters.
+ * @param remoteConfig - the remote config instance
+ *
+ * @returns A promise that resolves when the last activated config is available to the getters
+ * @public
+ */
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {
   const rc = remoteConfig as RemoteConfigImpl;
   if (!rc._initializePromise) {
@@ -67,6 +89,11 @@ export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {
   return rc._initializePromise;
 }
 
+/**
+ * Fetches and caches configuration from the Remote Config service.
+ * @param remoteConfig - the remote config instance
+ * @public
+ */
 export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
   const rc = remoteConfig as RemoteConfigImpl;
   // Aborts the request after the given timeout, causing the fetch call to
@@ -103,6 +130,14 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
   }
 }
 
+/**
+ * Gets all config.
+ *
+ * @param remoteConfig - the remote config instance
+ * @returns all config
+ *
+ * @public
+ */
 export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType> {
   const rc = remoteConfig as RemoteConfigImpl;
   return getAllKeys(
@@ -114,18 +149,62 @@ export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType> {
   }, {} as Record<string, ValueType>);
 }
 
+/**
+ * Gets the value for the given key as a boolean.
+ *
+ * Convenience method for calling <code>remoteConfig.getValue(key).asBoolean()</code>.
+ *
+ * @param remoteConfig - the remote config instance
+ * @param key - the name of the parameter
+ *
+ * @returns the value for the given key as a boolean
+ * @public
+ */
 export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean {
   return getValue(remoteConfig, key).asBoolean();
 }
 
+/**
+ * Gets the value for the given key as a number.
+ *
+ * Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>.
+ *
+ * @param remoteConfig - the remote config instance
+ * @param key - the name of the parameter
+ *
+ * @returns the value for the given key as a number
+ *
+ * @public
+ */
 export function getNumber(remoteConfig: RemoteConfig, key: string): number {
   return getValue(remoteConfig, key).asNumber();
 }
 
+/**
+ * Gets the value for the given key as a String.
+ * Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
+ *
+ * @param remoteConfig - the remote config instance
+ * @param key - the name of the parameter
+ *
+ * @returns the value for the given key as a String
+ *
+ * @public
+ */
 export function getString(remoteConfig: RemoteConfig, key: string): string {
   return getValue(remoteConfig, key).asString();
 }
 
+/**
+ * Gets the {@link @firebase/remote-config-types#Value} for the given key.
+ *
+ * @param remoteConfig - the remote config instance
+ * @param key - the name of the parameter
+ *
+ * @returns the value for the given key
+ *
+ * @public
+ */
 export function getValue(remoteConfig: RemoteConfig, key: string): ValueType {
   const rc = remoteConfig as RemoteConfigImpl;
   if (!rc._isInitializationComplete) {
@@ -147,6 +226,14 @@ export function getValue(remoteConfig: RemoteConfig, key: string): ValueType {
   return new Value('static');
 }
 
+/**
+ * Defines the log level to use.
+ *
+ * @param remoteConfig - the remote config instance
+ * @param logLevel - the log level to set
+ *
+ * @public
+ */
 export function setLogLevel(
   remoteConfig: RemoteConfig,
   logLevel: RemoteConfigLogLevel
