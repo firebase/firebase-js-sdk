@@ -78,7 +78,6 @@ interface OutstandingPut {
 }
 
 interface OutstandingGet {
-  action: string;
   request: object;
   onComplete: (response: { [k: string]: unknown }) => void;
 }
@@ -223,18 +222,22 @@ export class PersistentConnection extends ServerActions {
     const index = this.outstandingGets_.length - 1;
 
     if (!this.connected_) {
-      const self = this;
       setTimeout(() => {
-        const get = self.outstandingGets_[index];
+        const get = this.outstandingGets_[index];
         if (get === undefined || outstandingGet !== get) {
           return;
         }
-        delete self.outstandingGets_[index];
-        self.outstandingGetCount_--;
-        if (self.outstandingGetCount_ === 0) {
-          self.outstandingGets_ = [];
+        delete this.outstandingGets_[index];
+        this.outstandingGetCount_--;
+        if (this.outstandingGetCount_ === 0) {
+          this.outstandingGets_ = [];
         }
-        self.log_('get ' + index + ' timed out on connection');
+        this.log_('get ' + index + ' timed out on connection');
+        // It's possible that we were once able to reach the server,
+        // but not anymore. If that's the case, the client could have
+        // an active listener with cached data for this get. The Repo
+        // will try to retrieve this cached data if we can't connect
+        // here.
         deferred.reject(new Error('Client is offline.'));
       }, GET_CONNECT_TIMEOUT);
     }
@@ -263,7 +266,7 @@ export class PersistentConnection extends ServerActions {
     }
     assert(
       query.getQueryParams().isDefault() ||
-      !query.getQueryParams().loadsAllData(),
+        !query.getQueryParams().loadsAllData(),
       'listen() called for non-default but complete query'
     );
     assert(
@@ -285,20 +288,16 @@ export class PersistentConnection extends ServerActions {
 
   private sendGet_(index: number) {
     const get = this.outstandingGets_[index];
-    this.sendRequest(
-      get.action,
-      get.request,
-      (message: { [k: string]: unknown }) => {
-        delete this.outstandingGets_[index];
-        this.outstandingGetCount_--;
-        if (this.outstandingGetCount_ === 0) {
-          this.outstandingGets_ = [];
-        }
-        if (get.onComplete) {
-          get.onComplete(message);
-        }
+    this.sendRequest('g', get.request, (message: { [k: string]: unknown }) => {
+      delete this.outstandingGets_[index];
+      this.outstandingGetCount_--;
+      if (this.outstandingGetCount_ === 0) {
+        this.outstandingGets_ = [];
       }
-    );
+      if (get.onComplete) {
+        get.onComplete(message);
+      }
+    });
   }
 
   private sendListen_(listenSpec: ListenSpec) {
@@ -353,8 +352,8 @@ export class PersistentConnection extends ServerActions {
         const indexPath = query.path.toString();
         warn(
           `Using an unspecified index. Your data will be downloaded and ` +
-          `filtered on the client. Consider adding ${indexSpec} at ` +
-          `${indexPath} to your security rules for better performance.`
+            `filtered on the client. Consider adding ${indexSpec} at ` +
+            `${indexPath} to your security rules for better performance.`
         );
       }
     }
@@ -372,7 +371,7 @@ export class PersistentConnection extends ServerActions {
       //If we're connected we want to let the server know to unauthenticate us. If we're not connected, simply delete
       //the credential so we dont become authenticated next time we connect.
       if (this.connected_) {
-        this.sendRequest('unauth', {}, () => { });
+        this.sendRequest('unauth', {}, () => {});
       }
     }
 
@@ -436,7 +435,7 @@ export class PersistentConnection extends ServerActions {
 
     assert(
       query.getQueryParams().isDefault() ||
-      !query.getQueryParams().loadsAllData(),
+        !query.getQueryParams().loadsAllData(),
       'unlisten() called for non-default but complete query'
     );
     const listen = this.removeListen_(pathString, queryId);
@@ -694,8 +693,8 @@ export class PersistentConnection extends ServerActions {
     } else {
       error(
         'Unrecognized action received from server: ' +
-        stringify(action) +
-        '\nAre you using the latest client?'
+          stringify(action) +
+          '\nAre you using the latest client?'
       );
     }
   }

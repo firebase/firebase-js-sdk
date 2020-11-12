@@ -297,6 +297,32 @@ export class Repo {
     return this.nextWriteId_++;
   }
 
+  /**
+   * The purpose of `getValue` is to return the latest known value
+   * satisfying `query`.
+   *
+   * If the client is connected, this method will send a request
+   * to the server. If the client is not connected, then either:
+   *
+   * 1. The client was once connected, but not anymore.
+   * 2. The client has never connected, this is the first operation
+   *    this repo is handling.
+   *
+   * In case (1), it's possible that the client still has an active
+   * listener, with cached data. Since this is the latest known
+   * value satisfying the query, that's what getValue will return.
+   * If there is no cached data, `getValue` surfaces an "offline"
+   * error.
+   *
+   * In case (2), `getValue` will trigger a time-limited connection
+   * attempt. If the client is unable to connect to the server, the
+   * will surface an "offline" error because there cannot be any
+   * cached data. On the other hand, if the client is able to connect,
+   * `getValue` will return the server's value for the query, if one
+   * exists.
+   *
+   * @param query - The query to surface a value for.
+   */
   getValue(query: Query): Promise<DataSnapshot> {
     return this.server_.get(query).then(
       payload => {
