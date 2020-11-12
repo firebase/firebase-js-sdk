@@ -369,10 +369,16 @@ export class QuerySnapshot<T = DocumentData> {
     this._snapshot.docs.forEach(doc => {
       callback.call(
         thisArg,
-        this._convertToDocumentSnapshot(
+        new QueryDocumentSnapshot<T>(
+          this._firestore,
+          this._userDataWriter,
+          doc.key,
           doc,
-          this._snapshot.fromCache,
-          this._snapshot.mutatedKeys.has(doc.key)
+          new SnapshotMetadata(
+            this._snapshot.mutatedKeys.has(doc.key),
+            this._snapshot.fromCache
+          ),
+          this.query._converter
         )
       );
     });
@@ -402,121 +408,108 @@ export class QuerySnapshot<T = DocumentData> {
       !this._cachedChanges ||
       this._cachedChangesIncludeMetadataChanges !== includeMetadataChanges
     ) {
-      this._cachedChanges = this.changesFromSnapshot(
-        this._snapshot,
-        includeMetadataChanges
-      );
+      this._cachedChanges = changesFromSnapshot(this, includeMetadataChanges);
       this._cachedChangesIncludeMetadataChanges = includeMetadataChanges;
     }
 
     return this._cachedChanges;
   }
+}
 
-  /**
-   * Calculates the array of DocumentChanges for a given ViewSnapshot.
-   *
-   * Exported for testing.
-   *
-   * @param snapshot The ViewSnapshot that represents the expected state.
-   * @param includeMetadataChanges Whether to include metadata changes.
-   * @param converter A factory function that returns a QueryDocumentSnapshot.
-   * @return An object that matches the DocumentChange API.
-   */
-  changesFromSnapshot(
-    snapshot: ViewSnapshot,
-    includeMetadataChanges: boolean
-  ): Array<DocumentChange<T>> {
-    if (snapshot.oldDocs.isEmpty()) {
-      // Special case the first snapshot because index calculation is easy and
-      // fast
-      let lastDoc: Document;
-      let index = 0;
-      return snapshot.docChanges.map(change => {
-        const doc = this._convertToDocumentSnapshot(
+/** Calculates the array of DocumentChanges for a given ViewSnapshot. */
+export function changesFromSnapshot<T>(
+  querySnapshot: QuerySnapshot<T>,
+  includeMetadataChanges: boolean
+): Array<DocumentChange<T>> {
+  if (querySnapshot._snapshot.oldDocs.isEmpty()) {
+    // Special case the first snapshot because index calculation is easy and
+    // fast
+    let lastDoc: Document;
+    let index = 0;
+    return querySnapshot._snapshot.docChanges.map(change => {
+      debugAssert(
+        change.type === ChangeType.Added,
+        'Invalid event type for first snapshot'
+      );
+      debugAssert(
+        !lastDoc ||
+          newQueryComparator(querySnapshot._snapshot.query)(
+            lastDoc,
+            change.doc
+          ) < 0,
+        'Got added events in wrong order'
+      );
+      const doc = new QueryDocumentSnapshot<T>(
+        querySnapshot._firestore,
+        querySnapshot._userDataWriter,
+        change.doc.key,
+        change.doc,
+        new SnapshotMetadata(
+          querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
+          querySnapshot._snapshot.fromCache
+        ),
+        querySnapshot.query._converter
+      );
+      lastDoc = change.doc;
+      return {
+        type: 'added' as DocumentChangeType,
+        doc,
+        oldIndex: -1,
+        newIndex: index++
+      };
+    });
+  } else {
+    // A DocumentSet that is updated incrementally as changes are applied to use
+    // to lookup the index of a document.
+    let indexTracker = querySnapshot._snapshot.oldDocs;
+    return querySnapshot._snapshot.docChanges
+      .filter(
+        change => includeMetadataChanges || change.type !== ChangeType.Metadata
+      )
+      .map(change => {
+        const doc = new QueryDocumentSnapshot<T>(
+          querySnapshot._firestore,
+          querySnapshot._userDataWriter,
+          change.doc.key,
           change.doc,
-          snapshot.fromCache,
-          snapshot.mutatedKeys.has(change.doc.key)
+          new SnapshotMetadata(
+            querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
+            querySnapshot._snapshot.fromCache
+          ),
+          querySnapshot.query._converter
         );
-        debugAssert(
-          change.type === ChangeType.Added,
-          'Invalid event type for first snapshot'
-        );
-        debugAssert(
-          !lastDoc ||
-            newQueryComparator(snapshot.query)(lastDoc, change.doc) < 0,
-          'Got added events in wrong order'
-        );
-        lastDoc = change.doc;
+        let oldIndex = -1;
+        let newIndex = -1;
+        if (change.type !== ChangeType.Added) {
+          oldIndex = indexTracker.indexOf(change.doc.key);
+          debugAssert(oldIndex >= 0, 'Index for document not found');
+          indexTracker = indexTracker.delete(change.doc.key);
+        }
+        if (change.type !== ChangeType.Removed) {
+          indexTracker = indexTracker.add(change.doc);
+          newIndex = indexTracker.indexOf(change.doc.key);
+        }
         return {
-          type: 'added' as DocumentChangeType,
+          type: resultChangeType(change.type),
           doc,
-          oldIndex: -1,
-          newIndex: index++
+          oldIndex,
+          newIndex
         };
       });
-    } else {
-      // A DocumentSet that is updated incrementally as changes are applied to use
-      // to lookup the index of a document.
-      let indexTracker = snapshot.oldDocs;
-      return snapshot.docChanges
-        .filter(
-          change =>
-            includeMetadataChanges || change.type !== ChangeType.Metadata
-        )
-        .map(change => {
-          const doc = this._convertToDocumentSnapshot(
-            change.doc,
-            snapshot.fromCache,
-            snapshot.mutatedKeys.has(change.doc.key)
-          );
-          let oldIndex = -1;
-          let newIndex = -1;
-          if (change.type !== ChangeType.Added) {
-            oldIndex = indexTracker.indexOf(change.doc.key);
-            debugAssert(oldIndex >= 0, 'Index for document not found');
-            indexTracker = indexTracker.delete(change.doc.key);
-          }
-          if (change.type !== ChangeType.Removed) {
-            indexTracker = indexTracker.add(change.doc);
-            newIndex = indexTracker.indexOf(change.doc.key);
-          }
-          return {
-            type: this.resultChangeType(change.type),
-            doc,
-            oldIndex,
-            newIndex
-          };
-        });
-    }
   }
+}
 
-  resultChangeType(type: ChangeType): DocumentChangeType {
-    switch (type) {
-      case ChangeType.Added:
-        return 'added';
-      case ChangeType.Modified:
-      case ChangeType.Metadata:
-        return 'modified';
-      case ChangeType.Removed:
-        return 'removed';
-      default:
-        return fail('Unknown change type: ' + type);
-    }
-  }
-
-  private _convertToDocumentSnapshot(
-    doc: Document,
-    fromCache: boolean,
-    hasPendingWrites: boolean
-  ): QueryDocumentSnapshot<T> {
-    return new QueryDocumentSnapshot<T>(
-      this._firestore,
-      this._userDataWriter,
-      doc.key,
-      doc,
-      new SnapshotMetadata(hasPendingWrites, fromCache),
-      this.query._converter
-    );
+export function resultChangeType(type: ChangeType): DocumentChangeType {
+  switch (type) {
+    case ChangeType.Added:
+      return 'added';
+    case ChangeType.Modified:
+    case ChangeType.Metadata:
+      return 'modified';
+    case ChangeType.Removed:
+      return 'removed';
+    default:
+      return fail('Unknown change type: ' + type);
   }
 }
 
