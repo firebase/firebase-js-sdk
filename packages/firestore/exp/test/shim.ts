@@ -29,7 +29,6 @@ import {
   query,
   queryEqual,
   refEqual,
-  snapshotEqual,
   endAt,
   endBefore,
   startAfter,
@@ -50,7 +49,7 @@ import {
   Firestore,
   DocumentReference,
   DocumentSnapshot,
-  QueryDocumentSnapshot,
+  QuerySnapshot,
   wrapObserver,
   extractSnapshotOptions
 } from '../../src/api/database';
@@ -307,62 +306,6 @@ export class Query<T = legacy.DocumentData>
       )
     );
   }
-}
-
-export class QuerySnapshot<T = legacy.DocumentData>
-  implements legacy.QuerySnapshot<T> {
-  constructor(
-    readonly _firestore: Firestore,
-    readonly _delegate: exp.QuerySnapshot<T>
-  ) {}
-
-  readonly query = new Query(this._firestore, this._delegate.query);
-  readonly metadata = this._delegate.metadata;
-  readonly size = this._delegate.size;
-  readonly empty = this._delegate.empty;
-
-  get docs(): Array<QueryDocumentSnapshot<T>> {
-    return this._delegate.docs.map(
-      doc => new QueryDocumentSnapshot<T>(this._firestore, doc)
-    );
-  }
-
-  docChanges(options?: legacy.SnapshotListenOptions): Array<DocumentChange<T>> {
-    return this._delegate
-      .docChanges(options)
-      .map(docChange => new DocumentChange<T>(this._firestore, docChange));
-  }
-
-  forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
-    thisArg?: any
-  ): void {
-    this._delegate.forEach(snapshot => {
-      callback.call(
-        thisArg,
-        new QueryDocumentSnapshot(this._firestore, snapshot)
-      );
-    });
-  }
-
-  isEqual(other: QuerySnapshot<T>): boolean {
-    return snapshotEqual(this._delegate, other._delegate);
-  }
-}
-
-export class DocumentChange<T = legacy.DocumentData>
-  implements legacy.DocumentChange<T> {
-  constructor(
-    private readonly _firestore: Firestore,
-    private readonly _delegate: exp.DocumentChange<T>
-  ) {}
-  readonly type = this._delegate.type;
-  readonly doc = new QueryDocumentSnapshot<T>(
-    this._firestore,
-    this._delegate.doc
-  );
-  readonly oldIndex = this._delegate.oldIndex;
-  readonly newIndex = this._delegate.oldIndex;
 }
 
 export class CollectionReference<T = legacy.DocumentData>
