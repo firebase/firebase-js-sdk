@@ -100,7 +100,6 @@ import {
   enableMultiTabIndexedDbPersistence,
   enableNetwork,
   FirebaseFirestore,
-  terminate,
   waitForPendingWrites,
   FirebaseFirestore as ExpFirebaseFirestore
 } from '../../exp/src/api/database';
@@ -344,7 +343,7 @@ export class Firestore
   }
 
   INTERNAL = {
-    delete: () => terminate(this._delegate)
+    delete: () => this._delegate._delete()
   };
 
   collection(pathString: string): PublicCollectionReference {
