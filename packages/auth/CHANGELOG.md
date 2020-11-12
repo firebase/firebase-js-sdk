@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.15.2
+
+### Patch Changes
+
+- [`c2b215c19`](https://github.com/firebase/firebase-js-sdk/commit/c2b215c1950b2f75abb6a8dd58544a79bda968f6) [#4059](https://github.com/firebase/firebase-js-sdk/pull/4059) (fixes [#1926](https://github.com/firebase/firebase-js-sdk/issues/1926)) - Retry IndexedDB errors a fixed number of times to handle connection issues in mobile webkit.
+
 ## 0.15.1
 
 ### Patch Changes
