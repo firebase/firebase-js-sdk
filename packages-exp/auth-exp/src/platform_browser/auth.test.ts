@@ -26,7 +26,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
 import { _castAuth, AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { AuthErrorCode } from '../core/errors';
 import { Persistence } from '../core/persistence';
 import { browserLocalPersistence } from './persistence/local_storage';
 import { browserSessionPersistence } from './persistence/session_storage';
@@ -40,6 +40,7 @@ import { browserPopupRedirectResolver } from './popup_redirect';
 import { PopupRedirectResolver } from '../model/popup_redirect';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { User } from '../model/user';
+import { _createError } from '../core/util/assert';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -227,7 +228,7 @@ describe('core/auth/initializeAuth', () => {
       stub._remove.returns(Promise.resolve());
       reloadStub.returns(
         Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.TOKEN_EXPIRED, {
+          _createError(AuthErrorCode.TOKEN_EXPIRED, {
             appName: 'app'
           })
         )
@@ -243,7 +244,7 @@ describe('core/auth/initializeAuth', () => {
       stub._remove.returns(Promise.resolve());
       reloadStub.returns(
         Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+          _createError(AuthErrorCode.NETWORK_REQUEST_FAILED, {
             appName: 'app'
           })
         )

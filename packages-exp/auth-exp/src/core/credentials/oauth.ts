@@ -25,7 +25,7 @@ import {
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
-import { fail } from '../util/assert';
+import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
 
 const IDP_REQUEST_URI = 'http://localhost';
@@ -97,7 +97,7 @@ export class OAuthCredential
       cred.accessToken = params.oauthToken;
       cred.secret = params.oauthTokenSecret;
     } else {
-      fail(AuthErrorCode.ARGUMENT_ERROR, {});
+      _fail(AuthErrorCode.ARGUMENT_ERROR);
     }
 
     return cred;

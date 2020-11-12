@@ -44,6 +44,9 @@ export function _initializeAuthInstance(
     ? persistence
     : [persistence]
   ).map<Persistence>(_getInstance);
+  if (deps?.errorMap) {
+    auth._updateErrorMap(deps.errorMap);
+  }
 
   // This promise is intended to float; auth initialization happens in the
   // background, meanwhile the auth object may be used by the app.

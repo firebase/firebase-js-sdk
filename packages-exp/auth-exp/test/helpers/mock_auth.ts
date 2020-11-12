@@ -17,6 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { PopupRedirectResolver } from '@firebase/auth-types-exp';
+import { debugErrorMap } from '../../src';
 
 import { AuthImpl } from '../../src/core/auth/auth_impl';
 import { PersistedBlob } from '../../src/core/persistence';
@@ -68,6 +69,7 @@ export async function testAuth(
     tokenApiHost: TEST_TOKEN_HOST,
     sdkClientVersion: 'testSDK/0.0.0'
   }) as TestAuth;
+  auth._updateErrorMap(debugErrorMap);
 
   await auth._initializeWithPersistence([persistence], popupRedirectResolver);
   auth.persistenceLayer = persistence;

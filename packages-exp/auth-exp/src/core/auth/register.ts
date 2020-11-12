@@ -21,7 +21,7 @@ import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../../../package.json';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
 import { AuthInternal } from './firebase_internal';
@@ -55,7 +55,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const app = container.getProvider('app-exp').getImmediate()!;
         const { apiKey, authDomain } = app.options;
         return (app => {
-          assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
+          _assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
           const config: externs.Config = {
             apiKey,
             authDomain,

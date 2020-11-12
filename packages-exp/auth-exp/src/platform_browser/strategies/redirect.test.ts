@@ -72,7 +72,7 @@ describe('platform_browser/strategies/redirect', () => {
   let idpStubs: sinon.SinonStubbedInstance<typeof idpTasks>;
 
   beforeEach(async () => {
-    eventManager = new AuthEventManager('test-app');
+    eventManager = new AuthEventManager(({} as unknown) as TestAuth);
     provider = new OAuthProvider(externs.ProviderId.GOOGLE);
     resolver = makeMockPopupRedirectResolver(eventManager);
     _getInstance<PopupRedirectResolver>(

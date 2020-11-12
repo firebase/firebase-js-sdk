@@ -26,7 +26,7 @@ import {
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AuthErrorCode } from '../../core/errors';
-import { debugAssert, fail } from '../../core/util/assert';
+import { debugAssert, _fail } from '../../core/util/assert';
 import {
   _link,
   _reauth,
@@ -119,7 +119,7 @@ export abstract class AbstractPopupRedirectOperation
       case AuthEventType.REAUTH_VIA_REDIRECT:
         return _reauth;
       default:
-        fail(AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
+        _fail(this.auth, AuthErrorCode.INTERNAL_ERROR);
     }
   }
 

@@ -17,8 +17,8 @@
 
 import { querystring } from '@firebase/util';
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
-import { assert } from '../../core/util/assert';
+import { AuthErrorCode } from '../../core/errors';
+import { _assert, _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
@@ -46,20 +46,14 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   private readonly librarySeparatelyLoaded = !!_window().grecaptcha;
 
   load(auth: Auth, hl = ''): Promise<Recaptcha> {
-    assert(isHostLanguageValid(hl), AuthErrorCode.ARGUMENT_ERROR, {
-      appName: auth.name
-    });
+    _assert(isHostLanguageValid(hl), auth, AuthErrorCode.ARGUMENT_ERROR);
 
     if (this.shouldResolveImmediately(hl)) {
       return Promise.resolve(_window().grecaptcha!);
     }
     return new Promise<Recaptcha>((resolve, reject) => {
       const networkTimeout = _window().setTimeout(() => {
-        reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-            appName: auth.name
-          })
-        );
+        reject(_createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
       }, NETWORK_TIMEOUT_DELAY.get());
 
       _window()[_JSLOAD_CALLBACK] = () => {
@@ -69,11 +63,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         const recaptcha = _window().grecaptcha;
 
         if (!recaptcha) {
-          reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-              appName: auth.name
-            })
-          );
+          reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
           return;
         }
 
@@ -98,11 +88,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
 
       jsHelpers._loadJS(url).catch(() => {
         clearTimeout(networkTimeout);
-        reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-            appName: auth.name
-          })
-        );
+        reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
       });
     });
   }

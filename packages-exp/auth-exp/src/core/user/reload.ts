@@ -23,7 +23,7 @@ import {
 } from '../../api/account_management/account';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { _logoutIfInvalidated } from './invalidation';
 import { UserMetadata } from './user_metadata';
 
@@ -35,9 +35,7 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
     getAccountInfo(auth, { idToken })
   );
 
-  assert(response?.users.length, AuthErrorCode.INTERNAL_ERROR, {
-    appName: auth.name
-  });
+  _assert(response?.users.length, auth, AuthErrorCode.INTERNAL_ERROR);
 
   const coreAccount = response.users[0];
 
