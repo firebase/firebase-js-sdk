@@ -233,11 +233,6 @@ export class PersistentConnection extends ServerActions {
           this.outstandingGets_ = [];
         }
         this.log_('get ' + index + ' timed out on connection');
-        // It's possible that we were once able to reach the server,
-        // but not anymore. If that's the case, the client could have
-        // an active listener with cached data for this get. The Repo
-        // will try to retrieve this cached data if we can't connect
-        // here.
         deferred.reject(new Error('Client is offline.'));
       }, GET_CONNECT_TIMEOUT);
     }
