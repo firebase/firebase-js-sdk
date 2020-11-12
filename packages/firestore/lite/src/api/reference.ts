@@ -81,6 +81,7 @@ import { getDatastore } from './components';
 import { ByteString } from '../../../src/util/byte_string';
 import { Bytes } from './bytes';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
+import { Compat } from '../../../src/compat/compat';
 
 /**
  * Document data (for use with {@link setDoc()}) consists of fields mapped to
@@ -595,6 +596,10 @@ function newQueryBoundFromDocOrFields<T>(
   docOrFields: Array<unknown | DocumentSnapshot<T>>,
   before: boolean
 ): Bound {
+  if (docOrFields[0] instanceof Compat) {
+    docOrFields[0] = docOrFields[0]._delegate;
+  }
+
   if (docOrFields[0] instanceof DocumentSnapshot) {
     return newQueryBoundFromDocument(
       query._query,

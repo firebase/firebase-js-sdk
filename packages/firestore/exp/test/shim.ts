@@ -18,28 +18,7 @@
 import * as legacy from '@firebase/firestore-types';
 import * as exp from '../index';
 
-import {
-  addDoc,
-  doc,
-  FieldPath as FieldPathExp,
-  getDocs,
-  getDocsFromCache,
-  getDocsFromServer,
-  onSnapshot,
-  query,
-  queryEqual,
-  refEqual,
-  endAt,
-  endBefore,
-  startAfter,
-  startAt,
-  limitToLast,
-  limit,
-  orderBy,
-  where,
-  Bytes as BytesExp
-} from '../../exp/index';
-import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
+import { FieldPath as FieldPathExp, Bytes as BytesExp } from '../../exp/index';
 import {
   isPlainObject,
   validateSetOptions
@@ -48,10 +27,7 @@ import { Compat } from '../../src/compat/compat';
 import {
   Firestore,
   DocumentReference,
-  DocumentSnapshot,
-  QuerySnapshot,
-  wrapObserver,
-  extractSnapshotOptions
+  DocumentSnapshot
 } from '../../src/api/database';
 
 export { GeoPoint, Timestamp } from '../index';
@@ -182,182 +158,6 @@ export class WriteBatch
 
   commit(): Promise<void> {
     return this._delegate.commit();
-  }
-}
-
-export class Query<T = legacy.DocumentData>
-  extends Compat<exp.Query<T>>
-  implements legacy.Query<T> {
-  constructor(readonly firestore: Firestore, delegate: exp.Query<T>) {
-    super(delegate);
-  }
-
-  where(
-    fieldPath: string | FieldPath,
-    opStr: legacy.WhereFilterOp,
-    value: any
-  ): Query<T> {
-    return new Query<T>(
-      this.firestore,
-      query(this._delegate, where(unwrap(fieldPath), opStr, unwrap(value)))
-    );
-  }
-
-  orderBy(
-    fieldPath: string | FieldPath,
-    directionStr?: legacy.OrderByDirection
-  ): Query<T> {
-    return new Query<T>(
-      this.firestore,
-      query(this._delegate, orderBy(unwrap(fieldPath), directionStr))
-    );
-  }
-
-  limit(n: number): Query<T> {
-    return new Query<T>(this.firestore, query(this._delegate, limit(n)));
-  }
-
-  limitToLast(n: number): Query<T> {
-    return new Query<T>(this.firestore, query(this._delegate, limitToLast(n)));
-  }
-
-  startAt(...args: any[]): Query<T> {
-    return new Query(
-      this.firestore,
-      query(this._delegate, startAt(...unwrap(args)))
-    );
-  }
-
-  startAfter(...args: any[]): Query<T> {
-    return new Query(
-      this.firestore,
-      query(this._delegate, startAfter(...unwrap(args)))
-    );
-  }
-
-  endBefore(...args: any[]): Query<T> {
-    return new Query(
-      this.firestore,
-      query(this._delegate, endBefore(...unwrap(args)))
-    );
-  }
-
-  endAt(...args: any[]): Query<T> {
-    return new Query(
-      this.firestore,
-      query(this._delegate, endAt(...unwrap(args)))
-    );
-  }
-
-  isEqual(other: legacy.Query<T>): boolean {
-    return queryEqual(this._delegate, (other as Query<T>)._delegate);
-  }
-
-  get(options?: legacy.GetOptions): Promise<QuerySnapshot<T>> {
-    let query: Promise<exp.QuerySnapshot<T>>;
-    if (options?.source === 'cache') {
-      query = getDocsFromCache(this._delegate);
-    } else if (options?.source === 'server') {
-      query = getDocsFromServer(this._delegate);
-    } else {
-      query = getDocs(this._delegate);
-    }
-    return query.then(result => new QuerySnapshot(this.firestore, result));
-  }
-
-  onSnapshot(observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: legacy.FirestoreError) => void;
-    complete?: () => void;
-  }): () => void;
-  onSnapshot(
-    options: legacy.SnapshotListenOptions,
-    observer: {
-      next?: (snapshot: QuerySnapshot<T>) => void;
-      error?: (error: legacy.FirestoreError) => void;
-      complete?: () => void;
-    }
-  ): () => void;
-  onSnapshot(
-    onNext: (snapshot: QuerySnapshot<T>) => void,
-    onError?: (error: legacy.FirestoreError) => void,
-    onCompletion?: () => void
-  ): () => void;
-  onSnapshot(
-    options: legacy.SnapshotListenOptions,
-    onNext: (snapshot: QuerySnapshot<T>) => void,
-    onError?: (error: legacy.FirestoreError) => void,
-    onCompletion?: () => void
-  ): () => void;
-  onSnapshot(...args: any): () => void {
-    const options = extractSnapshotOptions(args);
-    const observer = wrapObserver<QuerySnapshot<T>, exp.QuerySnapshot<T>>(
-      args,
-      snap => new QuerySnapshot(this.firestore, snap)
-    );
-    return onSnapshot(this._delegate, options, observer);
-  }
-
-  withConverter<U>(converter: legacy.FirestoreDataConverter<U>): Query<U> {
-    return new Query<U>(
-      this.firestore,
-      this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
-      )
-    );
-  }
-}
-
-export class CollectionReference<T = legacy.DocumentData>
-  extends Query<T>
-  implements legacy.CollectionReference<T> {
-  constructor(
-    readonly firestore: Firestore,
-    readonly _delegate: exp.CollectionReference<T>
-  ) {
-    super(firestore, _delegate);
-  }
-
-  readonly id = this._delegate.id;
-  readonly path = this._delegate.path;
-
-  get parent(): DocumentReference<legacy.DocumentData> | null {
-    const docRef = this._delegate.parent;
-    return docRef
-      ? new DocumentReference<legacy.DocumentData>(this.firestore, docRef)
-      : null;
-  }
-
-  doc(documentPath?: string): DocumentReference<T> {
-    if (documentPath !== undefined) {
-      return new DocumentReference(
-        this.firestore,
-        doc(this._delegate, documentPath)
-      );
-    } else {
-      return new DocumentReference(this.firestore, doc(this._delegate));
-    }
-  }
-
-  add(data: T): Promise<DocumentReference<T>> {
-    return addDoc(this._delegate, unwrap(data)).then(
-      docRef => new DocumentReference(this.firestore, docRef)
-    );
-  }
-
-  isEqual(other: CollectionReference<T>): boolean {
-    return refEqual(this._delegate, other._delegate);
-  }
-
-  withConverter<U>(
-    converter: legacy.FirestoreDataConverter<U>
-  ): CollectionReference<U> {
-    return new CollectionReference<U>(
-      this.firestore,
-      this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
-      )
-    );
   }
 }
 

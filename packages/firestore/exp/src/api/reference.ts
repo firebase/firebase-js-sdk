@@ -87,7 +87,20 @@ import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 export {
   DocumentReference,
   CollectionReference,
-  Query
+  Query,
+  collection,
+  collectionGroup,
+  doc,
+  query,
+  where,
+  limit,
+  limitToLast,
+  orderBy,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  queryEqual
 } from '../../../lite/src/api/reference';
 
 /**
