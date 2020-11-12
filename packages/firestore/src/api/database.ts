@@ -318,7 +318,8 @@ export class Firestore
 
   terminate(): Promise<void> {
     (this.app as _FirebaseApp)._removeServiceInstance('firestore');
-    return this.INTERNAL.delete();
+    (this.app as _FirebaseApp)._removeServiceInstance('firestore-exp');
+    return this._delegate._delete();
   }
 
   waitForPendingWrites(): Promise<void> {
@@ -343,7 +344,7 @@ export class Firestore
   }
 
   INTERNAL = {
-    delete: () => this._delegate._delete()
+    delete: () => this.terminate()
   };
 
   collection(pathString: string): PublicCollectionReference {
