@@ -1,5 +1,5 @@
 ---
-"@firebase/firestore": feature
+"@firebase/firestore": internal
 ---
 
-Add support for loading Firestore Bundle Files.
+Merge bundle loading implementation without exposing public API

@@ -662,8 +662,6 @@ export async function firestoreClientLoadBundle(
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   resultTask: LoadBundleTask
 ): Promise<void> {
-  client.verifyNotTerminated();
-
   const reader = createBundleReader(
     data,
     newSerializer((await client.getConfiguration()).databaseInfo.databaseId)
@@ -677,7 +675,6 @@ export function firestoreClientGetNamedQuery(
   client: FirestoreClient,
   queryName: string
 ): Promise<NamedQuery | undefined> {
-  client.verifyNotTerminated();
   return client.asyncQueue.enqueue(async () =>
     getNamedQuery(await getLocalStore(client), queryName)
   );

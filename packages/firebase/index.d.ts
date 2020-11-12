@@ -8285,43 +8285,6 @@ declare namespace firebase.firestore {
     INTERNAL: { delete: () => Promise<void> };
   }
 
-  export function loadBundle(
-    db: Firestore,
-    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
-  ): LoadBundleTask;
-
-  export function namedQuery(
-    db: Firestore,
-    name: string
-  ): Promise<Query<DocumentData> | null>;
-
-  export interface LoadBundleTask {
-    onProgress(
-      next?: (progress: LoadBundleTaskProgress) => any,
-      error?: (error: Error) => any,
-      complete?: () => void
-    ): void;
-
-    then<T, R>(
-      onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
-      onRejected?: (a: Error) => R | PromiseLike<R>
-    ): Promise<T | R>;
-
-    catch<R>(
-      onRejected: (a: Error) => R | PromiseLike<R>
-    ): Promise<R | LoadBundleTaskProgress>;
-  }
-
-  export interface LoadBundleTaskProgress {
-    documentsLoaded: number;
-    totalDocuments: number;
-    bytesLoaded: number;
-    totalBytes: number;
-    taskState: TaskState;
-  }
-
-  export type TaskState = 'Error' | 'Running' | 'Success';
-
   /**
    * An immutable object representing a geo point in Firestore. The geo point
    * is represented as latitude/longitude pair.
