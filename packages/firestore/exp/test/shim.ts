@@ -40,15 +40,11 @@ import {
   Bytes as BytesExp
 } from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
-import {
-  isPlainObject,
-  validateSetOptions
-} from '../../src/util/input_validation';
+import { isPlainObject } from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
 import {
   Firestore,
   DocumentReference,
-  DocumentSnapshot,
   QuerySnapshot,
   wrapObserver,
   extractSnapshotOptions
@@ -61,72 +57,6 @@ export { GeoPoint, Timestamp } from '../index';
 // This module defines a shim layer that implements the legacy API on top
 // of the experimental SDK. This shim is used to run integration tests against
 // both SDK versions.
-
-export class Transaction
-  extends Compat<exp.Transaction>
-  implements legacy.Transaction {
-  constructor(
-    private readonly _firestore: Firestore,
-    delegate: exp.Transaction
-  ) {
-    super(delegate);
-  }
-
-  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
-    return this._delegate
-      .get(documentRef._delegate)
-      .then(result => new DocumentSnapshot(this._firestore, result));
-  }
-
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: T,
-    options?: legacy.SetOptions
-  ): Transaction {
-    if (options) {
-      validateSetOptions('Transaction.set', options);
-      this._delegate.set(documentRef._delegate, unwrap(data), options);
-    } else {
-      this._delegate.set(documentRef._delegate, unwrap(data));
-    }
-    return this;
-  }
-
-  update(
-    documentRef: DocumentReference<any>,
-    data: legacy.UpdateData
-  ): Transaction;
-  update(
-    documentRef: DocumentReference<any>,
-    field: string | FieldPath,
-    value: any,
-    ...moreFieldsAndValues: any[]
-  ): Transaction;
-  update(
-    documentRef: DocumentReference<any>,
-    dataOrField: any,
-    value?: any,
-    ...moreFieldsAndValues: any[]
-  ): Transaction {
-    if (arguments.length === 2) {
-      this._delegate.update(documentRef._delegate, unwrap(dataOrField));
-    } else {
-      this._delegate.update(
-        documentRef._delegate,
-        unwrap(dataOrField),
-        unwrap(value),
-        ...unwrap(moreFieldsAndValues)
-      );
-    }
-
-    return this;
-  }
-
-  delete(documentRef: DocumentReference<any>): Transaction {
-    this._delegate.delete(documentRef._delegate);
-    return this;
-  }
-}
 
 export class Query<T = legacy.DocumentData>
   extends Compat<exp.Query<T>>

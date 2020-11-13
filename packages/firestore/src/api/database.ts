@@ -27,8 +27,7 @@ import {
   firestoreClientGetDocumentsViaSnapshotListener,
   firestoreClientGetNamedQuery,
   firestoreClientListen,
-  firestoreClientLoadBundle,
-  firestoreClientTransaction
+  firestoreClientLoadBundle
 } from '../core/firestore_client';
 import {
   Bound,
@@ -54,14 +53,13 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../core/query';
-import { Transaction as InternalTransaction } from '../core/transaction';
 import { ViewSnapshot } from '../core/view_snapshot';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
-import { debugAssert, fail } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import {
   cast,
@@ -85,9 +83,6 @@ import {
 import {
   fieldPathFromArgument,
   parseQueryValue,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs,
   UntypedFirestoreDataConverter,
   UserDataReader
 } from './user_data_reader';
@@ -125,6 +120,10 @@ import {
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
 import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
+import {
+  runTransaction,
+  Transaction as ExpTransaction
+} from '../../exp/src/api/transaction';
 
 import {
   CollectionReference as PublicCollectionReference,
@@ -392,12 +391,8 @@ export class Firestore
   runTransaction<T>(
     updateFunction: (transaction: PublicTransaction) => Promise<T>
   ): Promise<T> {
-    const client = ensureFirestoreConfigured(this._delegate);
-    return firestoreClientTransaction(
-      client,
-      (transaction: InternalTransaction) => {
-        return updateFunction(new Transaction(this, transaction));
-      }
+    return runTransaction(this._delegate, transaction =>
+      updateFunction(new Transaction(this, transaction))
     );
   }
 
@@ -478,68 +473,23 @@ export function namedQuery(
 /**
  * A reference to a transaction.
  */
-export class Transaction implements PublicTransaction {
-  private _dataReader: UserDataReader;
-
+export class Transaction
+  extends Compat<ExpTransaction>
+  implements PublicTransaction {
   constructor(
-    private _firestore: Firestore,
-    private _transaction: InternalTransaction
+    private readonly _firestore: Firestore,
+    delegate: ExpTransaction
   ) {
-    this._dataReader = newUserDataReader(this._firestore._delegate);
+    super(delegate);
   }
 
   get<T>(
     documentRef: PublicDocumentReference<T>
   ): Promise<PublicDocumentSnapshot<T>> {
-    const ref = validateReference(
-      'Transaction.get',
-      documentRef,
-      this._firestore
-    );
-    const userDataWriter = new UserDataWriter(this._firestore);
-    return this._transaction
-      .lookup([ref._key])
-      .then((docs: MaybeDocument[]) => {
-        if (!docs || docs.length !== 1) {
-          return fail('Mismatch in docs returned from document lookup.');
-        }
-        const doc = docs[0];
-        if (doc instanceof NoDocument) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            new ExpDocumentSnapshot(
-              this._firestore._delegate,
-              userDataWriter,
-              ref._key,
-              null,
-              new SnapshotMetadata(
-                /*hasPendingWrites= */ false,
-                /* fromCache= */ false
-              ),
-              ref._converter
-            )
-          );
-        } else if (doc instanceof Document) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            new ExpDocumentSnapshot(
-              this._firestore._delegate,
-              userDataWriter,
-              ref._key,
-              doc,
-              new SnapshotMetadata(
-                /*hasPendingWrites= */ false,
-                /* fromCache= */ false
-              ),
-              ref._converter
-            )
-          );
-        } else {
-          throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
-          );
-        }
-      });
+    const ref = castReference(documentRef);
+    return this._delegate
+      .get(ref)
+      .then(result => new DocumentSnapshot(this._firestore, result));
   }
 
   set<T>(
@@ -550,35 +500,22 @@ export class Transaction implements PublicTransaction {
   set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
   set<T>(
     documentRef: PublicDocumentReference<T>,
-    value: T | Partial<T>,
+    data: T | Partial<T>,
     options?: PublicSetOptions
   ): Transaction {
-    const ref = validateReference(
-      'Transaction.set',
-      documentRef,
-      this._firestore
-    );
-    options = validateSetOptions('Transaction.set', options);
-    const convertedValue = applyFirestoreDataConverter(
-      ref._converter,
-      value,
-      options
-    );
-    const parsed = parseSetData(
-      this._dataReader,
-      'Transaction.set',
-      ref._key,
-      convertedValue,
-      ref._converter !== null,
-      options
-    );
-    this._transaction.set(ref._key, parsed);
+    const ref = castReference(documentRef);
+    if (options) {
+      validateSetOptions('Transaction.set', options);
+      this._delegate.set(ref, data, options);
+    } else {
+      this._delegate.set(ref, data);
+    }
     return this;
   }
 
   update(
     documentRef: PublicDocumentReference<unknown>,
-    value: PublicUpdateData
+    data: PublicUpdateData
   ): Transaction;
   update(
     documentRef: PublicDocumentReference<unknown>,
@@ -588,55 +525,28 @@ export class Transaction implements PublicTransaction {
   ): Transaction;
   update(
     documentRef: PublicDocumentReference<unknown>,
-    fieldOrUpdateData: string | PublicFieldPath | PublicUpdateData,
+    dataOrField: unknown,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Transaction {
-    const ref = validateReference(
-      'Transaction.update',
-      documentRef,
-      this._firestore
-    );
-
-    // For Compat types, we have to "extract" the underlying types before
-    // performing validation.
-    if (fieldOrUpdateData instanceof Compat) {
-      fieldOrUpdateData = (fieldOrUpdateData as Compat<ExpFieldPath>)._delegate;
-    }
-
-    let parsed;
-    if (
-      typeof fieldOrUpdateData === 'string' ||
-      fieldOrUpdateData instanceof ExpFieldPath
-    ) {
-      parsed = parseUpdateVarargs(
-        this._dataReader,
-        'Transaction.update',
-        ref._key,
-        fieldOrUpdateData,
-        value,
-        moreFieldsAndValues
-      );
+    const ref = castReference(documentRef);
+    if (arguments.length === 2) {
+      this._delegate.update(ref, dataOrField as PublicUpdateData);
     } else {
-      parsed = parseUpdateData(
-        this._dataReader,
-        'Transaction.update',
-        ref._key,
-        fieldOrUpdateData
+      this._delegate.update(
+        ref,
+        dataOrField as string,
+        value,
+        ...moreFieldsAndValues
       );
     }
 
-    this._transaction.update(ref._key, parsed);
     return this;
   }
 
   delete(documentRef: PublicDocumentReference<unknown>): Transaction {
-    const ref = validateReference(
-      'Transaction.delete',
-      documentRef,
-      this._firestore
-    );
-    this._transaction.delete(ref._key);
+    const ref = castReference(documentRef);
+    this._delegate.delete(ref);
     return this;
   }
 }
@@ -1954,25 +1864,6 @@ function castReference<T>(
     documentRef = documentRef._delegate;
   }
   return cast<ExpDocumentReference<T>>(documentRef, ExpDocumentReference);
-}
-
-function validateReference<T>(
-  methodName: string,
-  documentRef: PublicDocumentReference<T>,
-  firestore: Firestore
-): ExpDocumentReference<T> {
-  const reference = cast<ExpDocumentReference<T>>(
-    documentRef,
-    ExpDocumentReference
-  );
-  if (reference.firestore !== firestore._delegate) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      'Provided document reference is from a different Firestore instance.'
-    );
-  } else {
-    return reference;
-  }
 }
 
 /**
