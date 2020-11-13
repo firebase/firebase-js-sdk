@@ -41,7 +41,7 @@
     "@firebase/app-compat": "0.0.800",
     "@firebase/auth-exp": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
-    "@firebase/firestore": "2.0.1",
+    "@firebase/firestore": "2.0.2",
     "@firebase/performance-exp": "0.0.800",
     "@firebase/remote-config-exp": "0.0.800"
   },
