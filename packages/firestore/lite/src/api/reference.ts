@@ -81,6 +81,7 @@ import { getDatastore } from './components';
 import { ByteString } from '../../../src/util/byte_string';
 import { Bytes } from './bytes';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
+import { Compat } from '../../../src/compat/compat';
 
 /**
  * Document data (for use with {@link setDoc()}) consists of fields mapped to
@@ -1108,6 +1109,12 @@ export function updateDoc(
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
   const dataReader = newUserDataReader(reference.firestore);
+
+  // For Compat types, we have to "extract" the underlying types before
+  // performing validation.
+  if (fieldOrUpdateData instanceof Compat) {
+    fieldOrUpdateData = fieldOrUpdateData._delegate;
+  }
 
   let parsed: ParsedUpdateData;
   if (
