@@ -1138,6 +1138,9 @@ export class Query<T = PublicDocumentData>
     value: unknown
   ): Query<T> {
     try {
+      // The "as string" cast is a little bit of a hack. `where` accepts the
+      // FieldPath Compat type as input, but is not typed as such in order to
+      // not expose this via our public typings file.
       return new Query<T>(
         this.firestore,
         query(this._delegate, where(fieldPath as string, opStr, value))
@@ -1152,6 +1155,9 @@ export class Query<T = PublicDocumentData>
     directionStr?: PublicOrderByDirection
   ): Query<T> {
     try {
+      // The "as string" cast is a little bit of a hack. `orderBy` accepts the
+      // FieldPath Compat type as input, but is not typed as such in order to
+      // not expose this via our public typings file.
       return new Query<T>(
         this.firestore,
         query(this._delegate, orderBy(fieldPath as string, directionStr))
