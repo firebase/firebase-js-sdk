@@ -37,6 +37,7 @@ import { Deferred } from '../../../src/util/promise';
 import { validateReference } from './write_batch';
 import {
   DocumentReference,
+  LiteUserDataWriter,
   newUserDataReader,
   SetOptions,
   UpdateData
@@ -78,6 +79,7 @@ export class Transaction {
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
+    const userDataWriter = new LiteUserDataWriter(this._firestore);
     return this._transaction
       .lookup([ref._key])
       .then((docs: MaybeDocument[]) => {
@@ -88,6 +90,7 @@ export class Transaction {
         if (doc instanceof NoDocument) {
           return new DocumentSnapshot(
             this._firestore,
+            userDataWriter,
             ref._key,
             null,
             ref._converter
@@ -95,6 +98,7 @@ export class Transaction {
         } else if (doc instanceof Document) {
           return new DocumentSnapshot(
             this._firestore,
+            userDataWriter,
             doc.key,
             doc,
             ref._converter

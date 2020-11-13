@@ -1068,7 +1068,7 @@ describeSpec('Writes:', [], () => {
         // Start a new client. DocV1 still has pending writes.
         .client(1)
         .stealPrimaryLease()
-        .expectListen(query1, 'resume-token-1000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000' })
         .userListens(query2)
         .expectEvents(query2, {
           added: [docV1Committed],

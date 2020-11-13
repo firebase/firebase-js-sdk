@@ -22,7 +22,7 @@ import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_err
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { providerDataAsNames } from '../util/providers';
 import { _logoutIfInvalidated } from './invalidation';
 import { _reloadWithoutSaving } from './reload';
@@ -91,7 +91,5 @@ export async function _assertLinkedStatus(
     expected === false
       ? AuthErrorCode.PROVIDER_ALREADY_LINKED
       : AuthErrorCode.NO_SUCH_PROVIDER;
-  assert(providerIds.has(provider) === expected, code, {
-    appName: user.auth.name
-  });
+  _assert(providerIds.has(provider) === expected, user.auth, code);
 }

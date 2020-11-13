@@ -23,12 +23,6 @@
 |  [RecaptchaVerifier](./auth.recaptchaverifier.md) | An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier. |
 |  [TwitterAuthProvider](./auth.twitterauthprovider.md) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.TWITTER](./auth-types.providerid.twitter.md)<!-- -->. |
 
-## Enumerations
-
-|  Enumeration | Description |
-|  --- | --- |
-|  [AuthErrorCode](./auth.autherrorcode.md) | Enumeration of Firebase Auth error codes. |
-
 ## Functions
 
 |  Function | Description |

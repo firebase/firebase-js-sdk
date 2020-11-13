@@ -24,7 +24,7 @@ import { _getCurrentUrl } from '../util/location';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -73,9 +73,11 @@ export async function sendSignInLinkToEmail(
     requestType: externs.Operation.EMAIL_SIGNIN,
     email
   };
-  assert(actionCodeSettings?.handleCodeInApp, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: auth.name
-  });
+  _assert(
+    actionCodeSettings?.handleCodeInApp,
+    auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
   if (actionCodeSettings) {
     _setActionCodeSettingsOnRequest(auth, request, actionCodeSettings);
   }
@@ -147,10 +149,10 @@ export async function signInWithEmailLink(
   );
   // Check if the tenant ID in the email link matches the tenant ID on Auth
   // instance.
-  assert(
+  _assert(
     credential.tenantId === (auth.tenantId || null),
-    AuthErrorCode.TENANT_ID_MISMATCH,
-    { appName: auth.name }
+    auth,
+    AuthErrorCode.TENANT_ID_MISMATCH
   );
   return signInWithCredential(auth, credential);
 }

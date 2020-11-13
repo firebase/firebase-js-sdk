@@ -29,7 +29,6 @@ import {
   query,
   queryEqual,
   refEqual,
-  snapshotEqual,
   endAt,
   endBefore,
   startAfter,
@@ -49,6 +48,8 @@ import { Compat } from '../../src/compat/compat';
 import {
   Firestore,
   DocumentReference,
+  DocumentSnapshot,
+  QuerySnapshot,
   wrapObserver,
   extractSnapshotOptions
 } from '../../src/api/database';
@@ -127,45 +128,60 @@ export class Transaction
   }
 }
 
-export class DocumentSnapshot<T = legacy.DocumentData>
-  extends Compat<exp.DocumentSnapshot<T>>
-  implements legacy.DocumentSnapshot<T> {
-  constructor(
-    private readonly _firestore: Firestore,
-    delegate: exp.DocumentSnapshot<T>
-  ) {
-    super(delegate);
+export class WriteBatch
+  extends Compat<exp.WriteBatch>
+  implements legacy.WriteBatch {
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: T,
+    options?: legacy.SetOptions
+  ): WriteBatch {
+    if (options) {
+      validateSetOptions('WriteBatch.set', options);
+      this._delegate.set(documentRef._delegate, unwrap(data), options);
+    } else {
+      this._delegate.set(documentRef._delegate, unwrap(data));
+    }
+    return this;
   }
 
-  readonly ref = new DocumentReference<T>(this._firestore, this._delegate.ref);
-  readonly id = this._delegate.id;
-  readonly metadata = this._delegate.metadata;
+  update(
+    documentRef: DocumentReference<any>,
+    data: legacy.UpdateData
+  ): WriteBatch;
+  update(
+    documentRef: DocumentReference<any>,
+    field: string | FieldPath,
+    value: any,
+    ...moreFieldsAndValues: any[]
+  ): WriteBatch;
+  update(
+    documentRef: DocumentReference<any>,
+    dataOrField: any,
+    value?: any,
+    ...moreFieldsAndValues: any[]
+  ): WriteBatch {
+    if (arguments.length === 2) {
+      this._delegate.update(documentRef._delegate, unwrap(dataOrField));
+    } else {
+      this._delegate.update(
+        documentRef._delegate,
+        unwrap(dataOrField),
+        unwrap(value),
+        ...unwrap(moreFieldsAndValues)
+      );
+    }
 
-  get exists(): boolean {
-    return this._delegate.exists();
+    return this;
   }
 
-  data(options?: legacy.SnapshotOptions): T | undefined {
-    return wrap(this._firestore, this._delegate.data(options));
+  delete(documentRef: DocumentReference<any>): WriteBatch {
+    this._delegate.delete(documentRef._delegate);
+    return this;
   }
 
-  get(fieldPath: string | FieldPath, options?: legacy.SnapshotOptions): any {
-    return wrap(
-      this._firestore,
-      this._delegate.get(unwrap(fieldPath), options)
-    );
-  }
-
-  isEqual(other: DocumentSnapshot<T>): boolean {
-    return snapshotEqual(this._delegate, other._delegate);
-  }
-}
-
-export class QueryDocumentSnapshot<T = legacy.DocumentData>
-  extends DocumentSnapshot<T>
-  implements legacy.QueryDocumentSnapshot<T> {
-  data(options?: legacy.SnapshotOptions): T {
-    return this._delegate.data(options)!;
+  commit(): Promise<void> {
+    return this._delegate.commit();
   }
 }
 
@@ -292,62 +308,6 @@ export class Query<T = legacy.DocumentData>
   }
 }
 
-export class QuerySnapshot<T = legacy.DocumentData>
-  implements legacy.QuerySnapshot<T> {
-  constructor(
-    readonly _firestore: Firestore,
-    readonly _delegate: exp.QuerySnapshot<T>
-  ) {}
-
-  readonly query = new Query(this._firestore, this._delegate.query);
-  readonly metadata = this._delegate.metadata;
-  readonly size = this._delegate.size;
-  readonly empty = this._delegate.empty;
-
-  get docs(): Array<QueryDocumentSnapshot<T>> {
-    return this._delegate.docs.map(
-      doc => new QueryDocumentSnapshot<T>(this._firestore, doc)
-    );
-  }
-
-  docChanges(options?: legacy.SnapshotListenOptions): Array<DocumentChange<T>> {
-    return this._delegate
-      .docChanges(options)
-      .map(docChange => new DocumentChange<T>(this._firestore, docChange));
-  }
-
-  forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
-    thisArg?: any
-  ): void {
-    this._delegate.forEach(snapshot => {
-      callback.call(
-        thisArg,
-        new QueryDocumentSnapshot(this._firestore, snapshot)
-      );
-    });
-  }
-
-  isEqual(other: QuerySnapshot<T>): boolean {
-    return snapshotEqual(this._delegate, other._delegate);
-  }
-}
-
-export class DocumentChange<T = legacy.DocumentData>
-  implements legacy.DocumentChange<T> {
-  constructor(
-    private readonly _firestore: Firestore,
-    private readonly _delegate: exp.DocumentChange<T>
-  ) {}
-  readonly type = this._delegate.type;
-  readonly doc = new QueryDocumentSnapshot<T>(
-    this._firestore,
-    this._delegate.doc
-  );
-  readonly oldIndex = this._delegate.oldIndex;
-  readonly newIndex = this._delegate.oldIndex;
-}
-
 export class CollectionReference<T = legacy.DocumentData>
   extends Query<T>
   implements legacy.CollectionReference<T> {
@@ -436,30 +396,6 @@ export class Blob extends Compat<BytesExp> implements legacy.Blob {
 
   isEqual(other: Blob): boolean {
     return this._delegate.isEqual(other._delegate);
-  }
-}
-
-/**
- * Takes document data that uses the firestore-exp API types and replaces them
- * with the API types defined in this shim.
- */
-function wrap(firestore: Firestore, value: any): any {
-  if (Array.isArray(value)) {
-    return value.map(v => wrap(firestore, v));
-  } else if (value instanceof FieldPathExp) {
-    return new FieldPath(...value._internalPath.toArray());
-  } else if (value instanceof BytesExp) {
-    return new Blob(value);
-  } else if (isPlainObject(value)) {
-    const obj: any = {};
-    for (const key in value) {
-      if (value.hasOwnProperty(key)) {
-        obj[key] = wrap(firestore, value[key]);
-      }
-    }
-    return obj;
-  } else {
-    return value;
   }
 }
 

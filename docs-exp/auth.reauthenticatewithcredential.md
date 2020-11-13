@@ -25,5 +25,5 @@ Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
 
 ## Remarks
 
-Use before operations such as [updatePassword()](./auth.updatepassword.md) that require tokens from recent sign-in attempts. This method can be used to recover from a [AuthErrorCode.CREDENTIAL\_TOO\_OLD\_LOGIN\_AGAIN](./auth.autherrorcode.credential_too_old_login_again.md) error.
+Use before operations such as [updatePassword()](./auth.updatepassword.md) that require tokens from recent sign-in attempts. This method can be used to recover from a  error.
 

@@ -206,7 +206,8 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
     return new MockMemoryPersistence(
       this.gcEnabled
         ? MemoryEagerDelegate.factory
-        : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
+        : p => new MemoryLruDelegate(p, LruParams.DEFAULT),
+      newSerializer(cfg.databaseInfo.databaseId)
     );
   }
 }

@@ -21,7 +21,7 @@ import { OAuthProvider } from '../../core';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
-import { assert } from '../../core/util/assert';
+import { _assert } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
 import { Auth } from '../../model/auth';
@@ -79,9 +79,11 @@ export async function signInWithRedirect(
   resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
   const authInternal = _castAuth(auth);
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: auth.name
-  });
+  _assert(
+    provider instanceof OAuthProvider,
+    auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   return _withDefaultResolver(authInternal, resolver)._openRedirect(
     authInternal,
@@ -124,9 +126,11 @@ export async function reauthenticateWithRedirect(
   resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
   const userInternal = user as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: userInternal.auth.name
-  });
+  _assert(
+    provider instanceof OAuthProvider,
+    userInternal.auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
@@ -171,9 +175,11 @@ export async function linkWithRedirect(
   resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
   const userInternal = user as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: userInternal.auth.name
-  });
+  _assert(
+    provider instanceof OAuthProvider,
+    userInternal.auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
