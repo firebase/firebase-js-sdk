@@ -28,8 +28,7 @@ import {
   firestoreClientGetNamedQuery,
   firestoreClientListen,
   firestoreClientLoadBundle,
-  firestoreClientTransaction,
-  firestoreClientWrite
+  firestoreClientTransaction
 } from '../core/firestore_client';
 import {
   Bound,
@@ -59,7 +58,6 @@ import { Transaction as InternalTransaction } from '../core/transaction';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
