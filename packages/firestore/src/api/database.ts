@@ -499,7 +499,7 @@ export class Transaction
     } else {
       this._delegate.update(
         ref,
-        dataOrField as string,
+        dataOrField as string | ExpFieldPath,
         value,
         ...moreFieldsAndValues
       );
