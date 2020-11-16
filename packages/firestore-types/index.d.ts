@@ -99,6 +99,43 @@ export class FirebaseFirestore {
   INTERNAL: { delete: () => Promise<void> };
 }
 
+export function loadBundle(
+  db: FirebaseFirestore,
+  bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+): LoadBundleTask;
+
+export function namedQuery(
+  db: FirebaseFirestore,
+  name: string
+): Promise<Query<DocumentData> | null>;
+
+export interface LoadBundleTask {
+  onProgress(
+    next?: (progress: LoadBundleTaskProgress) => any,
+    error?: (error: Error) => any,
+    complete?: () => void
+  ): void;
+
+  then<T, R>(
+    onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
+    onRejected?: (a: Error) => R | PromiseLike<R>
+  ): Promise<T | R>;
+
+  catch<R>(
+    onRejected: (a: Error) => R | PromiseLike<R>
+  ): Promise<R | LoadBundleTaskProgress>;
+}
+
+export interface LoadBundleTaskProgress {
+  documentsLoaded: number;
+  totalDocuments: number;
+  bytesLoaded: number;
+  totalBytes: number;
+  taskState: TaskState;
+}
+
+export type TaskState = 'Error' | 'Running' | 'Success';
+
 export class GeoPoint {
   constructor(latitude: number, longitude: number);
 

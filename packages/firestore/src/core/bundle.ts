@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import * as firestore from '@firebase/firestore-types';
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import {
@@ -40,7 +41,6 @@ import {
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import { ApiLoadBundleTaskProgress } from '../api/bundle';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
@@ -118,7 +118,7 @@ export class BundleConverter {
  */
 export function bundleInitialProgress(
   metadata: BundleMetadata
-): ApiLoadBundleTaskProgress {
+): firestore.LoadBundleTaskProgress {
   return {
     taskState: 'Running',
     documentsLoaded: 0,
@@ -134,7 +134,7 @@ export function bundleInitialProgress(
  */
 export function bundleSuccessProgress(
   metadata: BundleMetadata
-): ApiLoadBundleTaskProgress {
+): firestore.LoadBundleTaskProgress {
   return {
     taskState: 'Success',
     documentsLoaded: metadata.totalDocuments!,
@@ -146,7 +146,7 @@ export function bundleSuccessProgress(
 
 export class BundleLoadResult {
   constructor(
-    readonly progress: ApiLoadBundleTaskProgress,
+    readonly progress: firestore.LoadBundleTaskProgress,
     readonly changedDocs: MaybeDocumentMap
   ) {}
 }
@@ -157,7 +157,7 @@ export class BundleLoadResult {
  */
 export class BundleLoader {
   /** The current progress of loading */
-  private progress: ApiLoadBundleTaskProgress;
+  private progress: firestore.LoadBundleTaskProgress;
   /** Batched queries to be saved into storage */
   private queries: bundleProto.NamedQuery[] = [];
   /** Batched documents to be saved into storage */
@@ -179,7 +179,7 @@ export class BundleLoader {
    */
   addSizedElement(
     element: SizedBundleElement
-  ): ApiLoadBundleTaskProgress | null {
+  ): firestore.LoadBundleTaskProgress | null {
     debugAssert(!element.isBundleMetadata(), 'Unexpected bundle metadata.');
 
     this.progress.bytesLoaded += element.byteLength;

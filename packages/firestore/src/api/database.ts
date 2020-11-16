@@ -156,7 +156,7 @@ import {
 
 import { makeDatabaseInfo } from '../../lite/src/api/database';
 import { DEFAULT_HOST } from '../../lite/src/api/components';
-import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
+import { LoadBundleTask } from './bundle';
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -448,7 +448,7 @@ export function setLogLevel(level: PublicLogLevel): void {
 export function loadBundle(
   db: Firestore,
   bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-): ApiLoadBundleTask {
+): LoadBundleTask {
   const resultTask = new LoadBundleTask();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   firestoreClientLoadBundle(
