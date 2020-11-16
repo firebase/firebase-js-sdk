@@ -17,7 +17,6 @@
 
 import * as legacy from '@firebase/firestore-types';
 
-import { isPlainObject } from '../../src/util/input_validation';
 import { FieldPath as FieldPathExp, Bytes as BytesExp } from '../../exp/index';
 import { Compat } from '../../src/compat/compat';
 
@@ -64,29 +63,5 @@ export class Blob extends Compat<BytesExp> implements legacy.Blob {
 
   isEqual(other: Blob): boolean {
     return this._delegate.isEqual(other._delegate);
-  }
-}
-
-/**
- * Takes user data that uses API types from this shim and replaces them
- * with the the firestore-exp API types.
- */
-function unwrap(value: any): any {
-  if (Array.isArray(value)) {
-    return value.map(v => unwrap(v));
-  } else if (value instanceof Compat) {
-    return value._delegate;
-  } else if (value instanceof FieldPath) {
-    return value._delegate;
-  } else if (isPlainObject(value)) {
-    const obj: any = {};
-    for (const key in value) {
-      if (value.hasOwnProperty(key)) {
-        obj[key] = unwrap(value[key]);
-      }
-    }
-    return obj;
-  } else {
-    return value;
   }
 }

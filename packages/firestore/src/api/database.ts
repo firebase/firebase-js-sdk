@@ -21,7 +21,6 @@ import { DatabaseId } from '../core/database_info';
 import {
   FirestoreClient,
   firestoreClientGetNamedQuery,
-  firestoreClientListen,
   firestoreClientLoadBundle
 } from '../core/firestore_client';
 import { DocumentKey } from '../model/document_key';
@@ -61,7 +60,7 @@ import {
   QuerySnapshot as ExpQuerySnapshot,
   snapshotEqual
 } from '../../exp/src/api/snapshot';
-import { newUserDataReader, refEqual } from '../../lite/src/api/reference';
+import { refEqual } from '../../lite/src/api/reference';
 import {
   addDoc,
   collection,
