@@ -57,27 +57,18 @@ import {
   Unsubscribe
 } from '../../../src/api/observer';
 import {
-  executeQueryFromCache,
-  executeQueryViaSnapshotListener,
-  firestoreClientWrite,
-  getEventManager,
-  getLocalStore,
-  readDocumentFromCache,
-  readDocumentViaSnapshotListener
+  firestoreClientAddSnapshotsInSyncListener,
+  firestoreClientGetDocumentFromLocalCache,
+  firestoreClientGetDocumentsFromLocalCache,
+  firestoreClientGetDocumentsViaSnapshotListener,
+  firestoreClientGetDocumentViaSnapshotListener,
+  firestoreClientListen,
+  firestoreClientWrite
 } from '../../../src/core/firestore_client';
 import {
   newQueryForPath,
   Query as InternalQuery
 } from '../../../src/core/query';
-import { Deferred } from '../../../src/util/promise';
-import { AsyncObserver } from '../../../src/util/async_observer';
-import {
-  addSnapshotsInSyncListener,
-  eventManagerListen,
-  eventManagerUnlisten,
-  QueryListener,
-  removeSnapshotsInSyncListener
-} from '../../../src/core/event_manager';
 import { FirestoreError } from '../../../src/util/error';
 import { Compat } from '../../../src/compat/compat';
 import { ByteString } from '../../../src/util/byte_string';
@@ -134,20 +125,10 @@ export function getDoc<T>(
   const firestore = cast(reference.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
 
-  const deferred = new Deferred<ViewSnapshot>();
-  firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(client);
-    await readDocumentViaSnapshotListener(
-      eventManager,
-      firestore._queue,
-      reference._key,
-      { source: 'default' },
-      deferred
-    );
-  });
-  return deferred.promise.then(snapshot =>
-    convertToDocSnapshot(firestore, reference, snapshot)
-  );
+  return firestoreClientGetDocumentViaSnapshotListener(
+    client,
+    reference._key
+  ).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot));
 }
 
 export class ExpUserDataWriter extends AbstractUserDataWriter {
@@ -179,12 +160,7 @@ export function getDocFromCache<T>(
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
-  const deferred = new Deferred<Document | null>();
-  firestore._queue.enqueueAndForget(async () => {
-    const localStore = await getLocalStore(client);
-    await readDocumentFromCache(localStore, reference._key, deferred);
-  });
-  return deferred.promise.then(
+  return firestoreClientGetDocumentFromLocalCache(client, reference._key).then(
     doc =>
       new DocumentSnapshot(
         firestore,
@@ -213,20 +189,9 @@ export function getDocFromServer<T>(
   const firestore = cast(reference.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
 
-  const deferred = new Deferred<ViewSnapshot>();
-  firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(client);
-    await readDocumentViaSnapshotListener(
-      eventManager,
-      firestore._queue,
-      reference._key,
-      { source: 'server' },
-      deferred
-    );
-  });
-  return deferred.promise.then(snapshot =>
-    convertToDocSnapshot(firestore, reference, snapshot)
-  );
+  return firestoreClientGetDocumentViaSnapshotListener(client, reference._key, {
+    source: 'server'
+  }).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot));
 }
 
 /**
@@ -245,19 +210,10 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   const userDataWriter = new ExpUserDataWriter(firestore);
 
   validateHasExplicitOrderByForLimitToLast(query._query);
-
-  const deferred = new Deferred<ViewSnapshot>();
-  firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(client);
-    await executeQueryViaSnapshotListener(
-      eventManager,
-      firestore._queue,
-      query._query,
-      { source: 'default' },
-      deferred
-    );
-  });
-  return deferred.promise.then(
+  return firestoreClientGetDocumentsViaSnapshotListener(
+    client,
+    query._query
+  ).then(
     snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
@@ -275,12 +231,7 @@ export function getDocsFromCache<T>(
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
-  const deferred = new Deferred<ViewSnapshot>();
-  firestore._queue.enqueueAndForget(async () => {
-    const localStore = await getLocalStore(client);
-    await executeQueryFromCache(localStore, query._query, deferred);
-  });
-  return deferred.promise.then(
+  return firestoreClientGetDocumentsFromLocalCache(client, query._query).then(
     snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
@@ -298,18 +249,9 @@ export function getDocsFromServer<T>(
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
-  const deferred = new Deferred<ViewSnapshot>();
-  firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(client);
-    await executeQueryViaSnapshotListener(
-      eventManager,
-      firestore._queue,
-      query._query,
-      { source: 'server' },
-      deferred
-    );
-  });
-  return deferred.promise.then(
+  return firestoreClientGetDocumentsViaSnapshotListener(client, query._query, {
+    source: 'server'
+  }).then(
     snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
@@ -761,25 +703,12 @@ export function onSnapshot<T>(
   }
 
   const client = ensureFirestoreConfigured(firestore);
-
-  const wrappedObserver = new AsyncObserver(observer);
-  const listener = new QueryListener(
+  return firestoreClientListen(
+    client,
     internalQuery,
-    wrappedObserver,
-    internalOptions
+    internalOptions,
+    observer
   );
-  firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(client);
-    return eventManagerListen(eventManager, listener);
-  });
-
-  return () => {
-    wrappedObserver.mute();
-    firestore._queue.enqueueAndForget(async () => {
-      const eventManager = await getEventManager(client);
-      return eventManagerUnlisten(eventManager, listener);
-    });
-  };
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
@@ -833,26 +762,13 @@ export function onSnapshotsInSync(
   arg: unknown
 ): Unsubscribe {
   const client = ensureFirestoreConfigured(firestore);
-
   const observer = isPartialObserver(arg)
     ? (arg as PartialObserver<void>)
     : {
         next: arg as () => void
       };
 
-  const wrappedObserver = new AsyncObserver(observer);
-  firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(client);
-    addSnapshotsInSyncListener(eventManager, wrappedObserver);
-  });
-
-  return () => {
-    wrappedObserver.mute();
-    firestore._queue.enqueueAndForget(async () => {
-      const eventManager = await getEventManager(client);
-      removeSnapshotsInSyncListener(eventManager, wrappedObserver);
-    });
-  };
+  return firestoreClientAddSnapshotsInSyncListener(client, observer);
 }
 
 /** Locally writes `mutations` on the async queue. */
