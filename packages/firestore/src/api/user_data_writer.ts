@@ -46,6 +46,7 @@ import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
 import { ByteString } from '../util/byte_string';
 import { Blob } from './blob';
+import { Bytes } from '../../lite/src/api/bytes';
 import { DocumentReference, Firestore } from './database';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
@@ -174,7 +175,7 @@ export class UserDataWriter extends AbstractUserDataWriter {
   }
 
   protected convertBytes(bytes: ByteString): Blob {
-    return new Blob(bytes);
+    return new Blob(new Bytes(bytes));
   }
 
   protected convertReference(name: string): DocumentReference {
