@@ -51,7 +51,8 @@ import {
 import { UserDataWriter } from '../../src/api/user_data_writer';
 import {
   ExpUserDataWriter,
-  Query as ExpQuery
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference
 } from '../../exp/src/api/reference';
 
 /**
@@ -77,7 +78,14 @@ export function newTestFirestore(projectId = 'new-project'): Firestore {
 export function collectionReference(path: string): CollectionReference {
   const db = firestore();
   ensureFirestoreConfigured(db._delegate);
-  return new CollectionReference(pathFrom(path), db, /* converter= */ null);
+  return new CollectionReference(
+    db,
+    new ExpCollectionReference(
+      db._delegate,
+      /* converter= */ null,
+      pathFrom(path)
+    )
+  );
 }
 
 export function documentReference(path: string): DocumentReference {
@@ -121,10 +129,14 @@ export function documentSnapshot(
 }
 
 export function query(path: string): Query {
+  const db = firestore();
   return new Query(
-    newQueryForPath(pathFrom(path)),
-    firestore(),
-    /* converter= */ null
+    db,
+    new ExpQuery(
+      db._delegate,
+      /* converter= */ null,
+      newQueryForPath(pathFrom(path))
+    )
   );
 }
 

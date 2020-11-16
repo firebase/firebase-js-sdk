@@ -15,62 +15,25 @@
  * limitations under the License.
  */
 
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
-
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId } from '../core/database_info';
-import { ListenOptions } from '../core/event_manager';
 import {
   FirestoreClient,
-  firestoreClientGetDocumentsFromLocalCache,
-  firestoreClientGetDocumentsViaSnapshotListener,
   firestoreClientGetNamedQuery,
   firestoreClientListen,
   firestoreClientLoadBundle
 } from '../core/firestore_client';
-import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
-  findFilterOperator,
-  getFirstOrderByField,
-  getInequalityFilterField,
-  hasLimitToLast,
-  isCollectionGroupQuery,
-  LimitType,
-  newQueryForCollectionGroup,
-  newQueryForPath,
-  Operator,
-  OrderBy,
-  Query as InternalQuery,
-  queryEquals,
-  queryOrderBy,
-  queryWithAddedFilter,
-  queryWithAddedOrderBy,
-  queryWithEndAt,
-  queryWithLimit,
-  queryWithStartAt
-} from '../core/query';
-import { ViewSnapshot } from '../core/view_snapshot';
-import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
-import { isServerTimestamp } from '../model/server_timestamps';
-import { refValue } from '../model/values';
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import {
   cast,
   validateIsNotUsedTogether,
-  validateNonEmptyArgument,
-  validatePositiveNumber,
-  validateSetOptions,
-  valueDescription
+  validateSetOptions
 } from '../util/input_validation';
 import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
-import { AutoId } from '../util/misc';
 import { FieldPath as ExpFieldPath } from '../../lite/src/api/field_path';
 import {
   CompleteFn,
@@ -80,12 +43,7 @@ import {
   PartialObserver,
   Unsubscribe
 } from './observer';
-import {
-  fieldPathFromArgument,
-  parseQueryValue,
-  UntypedFirestoreDataConverter,
-  UserDataReader
-} from './user_data_reader';
+import { UntypedFirestoreDataConverter } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
 import {
   clearIndexedDbPersistence,
@@ -94,31 +52,52 @@ import {
   enableMultiTabIndexedDbPersistence,
   enableNetwork,
   FirebaseFirestore,
-  waitForPendingWrites,
-  FirebaseFirestore as ExpFirebaseFirestore
+  FirebaseFirestore as ExpFirebaseFirestore,
+  waitForPendingWrites
 } from '../../exp/src/api/database';
 import {
+  DocumentChange as ExpDocumentChange,
   DocumentSnapshot as ExpDocumentSnapshot,
   QuerySnapshot as ExpQuerySnapshot,
-  DocumentChange as ExpDocumentChange,
   snapshotEqual
 } from '../../exp/src/api/snapshot';
-import { refEqual, newUserDataReader } from '../../lite/src/api/reference';
+import { newUserDataReader, refEqual } from '../../lite/src/api/reference';
 import {
-  onSnapshotsInSync,
-  setDoc,
-  updateDoc,
+  addDoc,
+  collection,
+  collectionGroup,
+  CollectionReference as ExpCollectionReference,
   deleteDoc,
+  doc,
+  DocumentReference as ExpDocumentReference,
+  endAt,
+  endBefore,
+  getDoc,
   getDocFromCache,
   getDocFromServer,
-  getDoc,
+  getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
+  limit,
+  limitToLast,
   onSnapshot,
-  DocumentReference as ExpDocumentReference,
+  onSnapshotsInSync,
+  orderBy,
+  query,
   Query as ExpQuery,
+  queryEqual,
+  setDoc,
+  startAfter,
+  startAt,
+  updateDoc,
+  where,
   executeWrite
 } from '../../exp/src/api/reference';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
+import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
+import { makeDatabaseInfo } from '../../lite/src/api/database';
+import { DEFAULT_HOST } from '../../lite/src/api/components';
 import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
 import {
   runTransaction,
@@ -152,10 +131,6 @@ import {
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
-
-import { makeDatabaseInfo } from '../../lite/src/api/database';
-import { DEFAULT_HOST } from '../../lite/src/api/components';
-import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -348,44 +323,34 @@ export class Firestore
   };
 
   collection(pathString: string): PublicCollectionReference {
-    validateNonEmptyArgument('Firestore.collection', 'path', pathString);
-    ensureFirestoreConfigured(this._delegate);
-    return new CollectionReference(
-      ResourcePath.fromString(pathString),
-      this,
-      /* converter= */ null
-    );
+    try {
+      return new CollectionReference(
+        this,
+        collection(this._delegate, pathString)
+      );
+    } catch (e) {
+      throw replaceFunctionName(e, 'collection()', 'Firestore.collection()');
+    }
   }
 
   doc(pathString: string): PublicDocumentReference {
-    validateNonEmptyArgument('Firestore.doc', 'path', pathString);
-    ensureFirestoreConfigured(this._delegate);
-    return DocumentReference.forPath(
-      ResourcePath.fromString(pathString),
-      this,
-      /* converter= */ null
-    );
+    try {
+      return new DocumentReference(this, doc(this._delegate, pathString));
+    } catch (e) {
+      throw replaceFunctionName(e, 'doc()', 'Firestore.doc()');
+    }
   }
 
   collectionGroup(collectionId: string): PublicQuery {
-    validateNonEmptyArgument(
-      'Firestore.collectionGroup',
-      'collectionId',
-      collectionId
-    );
-    if (collectionId.indexOf('/') >= 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid collection ID '${collectionId}' passed to function ` +
-          `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
+    try {
+      return new Query(this, collectionGroup(this._delegate, collectionId));
+    } catch (e) {
+      throw replaceFunctionName(
+        e,
+        'collectionGroup()',
+        'Firestore.collectionGroup()'
       );
     }
-    ensureFirestoreConfigured(this._delegate);
-    return new Query(
-      newQueryForCollectionGroup(collectionId),
-      this,
-      /* converter= */ null
-    );
   }
 
   runTransaction<T>(
@@ -465,8 +430,7 @@ export function namedQuery(
     if (!namedQuery) {
       return null;
     }
-
-    return new Query(namedQuery.query, db, null);
+    return new Query(db, new ExpQuery(db._delegate, null, namedQuery.query));
   });
 }
 
@@ -671,11 +635,7 @@ export class DocumentReference<T = PublicDocumentData>
   }
 
   get parent(): PublicCollectionReference<T> {
-    return new CollectionReference(
-      this._delegate._path.popLast(),
-      this.firestore,
-      this._delegate._converter
-    );
+    return new CollectionReference(this.firestore, this._delegate.parent);
   }
 
   get path(): string {
@@ -685,23 +645,18 @@ export class DocumentReference<T = PublicDocumentData>
   collection(
     pathString: string
   ): PublicCollectionReference<PublicDocumentData> {
-    validateNonEmptyArgument(
-      'DocumentReference.collection',
-      'path',
-      pathString
-    );
-    if (!pathString) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Must provide a non-empty collection name to collection()'
+    try {
+      return new CollectionReference(
+        this.firestore,
+        collection(this._delegate, pathString)
+      );
+    } catch (e) {
+      throw replaceFunctionName(
+        e,
+        'collection()',
+        'DocumentReference.collection()'
       );
     }
-    const path = ResourcePath.fromString(pathString);
-    return new CollectionReference(
-      this._delegate._path.child(path),
-      this.firestore,
-      /* converter= */ null
-    );
   }
 
   isEqual(other: PublicDocumentReference<T>): boolean {
@@ -721,7 +676,7 @@ export class DocumentReference<T = PublicDocumentData>
     try {
       return setDoc(this._delegate, value, options);
     } catch (e) {
-      throw replaceFunctionName(e, 'setDoc', 'DocumentReference.set');
+      throw replaceFunctionName(e, 'setDoc()', 'DocumentReference.set()');
     }
   }
 
@@ -748,7 +703,7 @@ export class DocumentReference<T = PublicDocumentData>
         );
       }
     } catch (e) {
-      throw replaceFunctionName(e, 'updateDoc', 'DocumentReference.update');
+      throw replaceFunctionName(e, 'updateDoc()', 'DocumentReference.update()');
     }
   }
 
@@ -837,13 +792,10 @@ export class DocumentReference<T = PublicDocumentData>
  */
 function replaceFunctionName(
   e: Error,
-  originalFunctionName: string,
-  updatedFunctionName: string
+  original: string | RegExp,
+  updated: string
 ): Error {
-  e.message = e.message.replace(
-    `${originalFunctionName}()`,
-    `${updatedFunctionName}()`
-  );
+  e.message = e.message.replace(original, updated);
   return e;
 }
 
@@ -1011,590 +963,119 @@ export class QueryDocumentSnapshot<T = PublicDocumentData>
   }
 }
 
-export function newQueryFilter(
-  query: InternalQuery,
-  methodName: string,
-  dataReader: UserDataReader,
-  databaseId: DatabaseId,
-  fieldPath: FieldPath,
-  op: Operator,
-  value: unknown
-): FieldFilter {
-  let fieldValue: ProtoValue;
-  if (fieldPath.isKeyField()) {
-    if (op === Operator.ARRAY_CONTAINS || op === Operator.ARRAY_CONTAINS_ANY) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. You can't perform '${op}' ` +
-          'queries on FieldPath.documentId().'
-      );
-    } else if (op === Operator.IN || op === Operator.NOT_IN) {
-      validateDisjunctiveFilterElements(value, op);
-      const referenceList: ProtoValue[] = [];
-      for (const arrayValue of value as ProtoValue[]) {
-        referenceList.push(parseDocumentIdValue(databaseId, query, arrayValue));
-      }
-      fieldValue = { arrayValue: { values: referenceList } };
-    } else {
-      fieldValue = parseDocumentIdValue(databaseId, query, value);
-    }
-  } else {
-    if (
-      op === Operator.IN ||
-      op === Operator.NOT_IN ||
-      op === Operator.ARRAY_CONTAINS_ANY
-    ) {
-      validateDisjunctiveFilterElements(value, op);
-    }
-    fieldValue = parseQueryValue(
-      dataReader,
-      methodName,
-      value,
-      /* allowArrays= */ op === Operator.IN || op === Operator.NOT_IN
-    );
-  }
-  const filter = FieldFilter.create(fieldPath, op, fieldValue);
-  validateNewFilter(query, filter);
-  return filter;
-}
-
-export function newQueryOrderBy(
-  query: InternalQuery,
-  fieldPath: FieldPath,
-  direction: Direction
-): OrderBy {
-  if (query.startAt !== null) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      'Invalid query. You must not call startAt() or startAfter() before ' +
-        'calling orderBy().'
-    );
-  }
-  if (query.endAt !== null) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      'Invalid query. You must not call endAt() or endBefore() before ' +
-        'calling orderBy().'
-    );
-  }
-  const orderBy = new OrderBy(fieldPath, direction);
-  validateNewOrderBy(query, orderBy);
-  return orderBy;
-}
-
-/**
- * Create a Bound from a query and a document.
- *
- * Note that the Bound will always include the key of the document
- * and so only the provided document will compare equal to the returned
- * position.
- *
- * Will throw if the document does not contain all fields of the order by
- * of the query or if any of the fields in the order by are an uncommitted
- * server timestamp.
- */
-export function newQueryBoundFromDocument(
-  query: InternalQuery,
-  databaseId: DatabaseId,
-  methodName: string,
-  doc: Document | null,
-  before: boolean
-): Bound {
-  if (!doc) {
-    throw new FirestoreError(
-      Code.NOT_FOUND,
-      `Can't use a DocumentSnapshot that doesn't exist for ` +
-        `${methodName}().`
-    );
-  }
-
-  const components: ProtoValue[] = [];
-
-  // Because people expect to continue/end a query at the exact document
-  // provided, we need to use the implicit sort order rather than the explicit
-  // sort order, because it's guaranteed to contain the document key. That way
-  // the position becomes unambiguous and the query continues/ends exactly at
-  // the provided document. Without the key (by using the explicit sort
-  // orders), multiple documents could match the position, yielding duplicate
-  // results.
-  for (const orderBy of queryOrderBy(query)) {
-    if (orderBy.field.isKeyField()) {
-      components.push(refValue(databaseId, doc.key));
-    } else {
-      const value = doc.field(orderBy.field);
-      if (isServerTimestamp(value)) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid query. You are trying to start or end a query using a ' +
-            'document for which the field "' +
-            orderBy.field +
-            '" is an uncommitted server timestamp. (Since the value of ' +
-            'this field is unknown, you cannot start/end a query with it.)'
-        );
-      } else if (value !== null) {
-        components.push(value);
-      } else {
-        const field = orderBy.field.canonicalString();
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid query. You are trying to start or end a query using a ` +
-            `document for which the field '${field}' (used as the ` +
-            `orderBy) does not exist.`
-        );
-      }
-    }
-  }
-  return new Bound(components, before);
-}
-
-/**
- * Converts a list of field values to a Bound for the given query.
- */
-export function newQueryBoundFromFields(
-  query: InternalQuery,
-  databaseId: DatabaseId,
-  dataReader: UserDataReader,
-  methodName: string,
-  values: unknown[],
-  before: boolean
-): Bound {
-  // Use explicit order by's because it has to match the query the user made
-  const orderBy = query.explicitOrderBy;
-  if (values.length > orderBy.length) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Too many arguments provided to ${methodName}(). ` +
-        `The number of arguments must be less than or equal to the ` +
-        `number of orderBy() clauses`
-    );
-  }
-
-  const components: ProtoValue[] = [];
-  for (let i = 0; i < values.length; i++) {
-    const rawValue = values[i];
-    const orderByComponent = orderBy[i];
-    if (orderByComponent.field.isKeyField()) {
-      if (typeof rawValue !== 'string') {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid query. Expected a string for document ID in ` +
-            `${methodName}(), but got a ${typeof rawValue}`
-        );
-      }
-      if (!isCollectionGroupQuery(query) && rawValue.indexOf('/') !== -1) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-            `the value passed to ${methodName}() must be a plain document ID, but ` +
-            `'${rawValue}' contains a slash.`
-        );
-      }
-      const path = query.path.child(ResourcePath.fromString(rawValue));
-      if (!DocumentKey.isDocumentKey(path)) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid query. When querying a collection group and ordering by ` +
-            `FieldPath.documentId(), the value passed to ${methodName}() must result in a ` +
-            `valid document path, but '${path}' is not because it contains an odd number ` +
-            `of segments.`
-        );
-      }
-      const key = new DocumentKey(path);
-      components.push(refValue(databaseId, key));
-    } else {
-      const wrapped = parseQueryValue(dataReader, methodName, rawValue);
-      components.push(wrapped);
-    }
-  }
-
-  return new Bound(components, before);
-}
-
-/**
- * Parses the given documentIdValue into a ReferenceValue, throwing
- * appropriate errors if the value is anything other than a DocumentReference
- * or String, or if the string is malformed.
- */
-function parseDocumentIdValue(
-  databaseId: DatabaseId,
-  query: InternalQuery,
-  documentIdValue: unknown
-): ProtoValue {
-  if (documentIdValue instanceof Compat) {
-    documentIdValue = documentIdValue._delegate;
-  }
-
-  if (typeof documentIdValue === 'string') {
-    if (documentIdValue === '') {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid query. When querying with FieldPath.documentId(), you ' +
-          'must provide a valid document ID, but it was an empty string.'
-      );
-    }
-    if (!isCollectionGroupQuery(query) && documentIdValue.indexOf('/') !== -1) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid query. When querying a collection by ` +
-          `FieldPath.documentId(), you must provide a plain document ID, but ` +
-          `'${documentIdValue}' contains a '/' character.`
-      );
-    }
-    const path = query.path.child(ResourcePath.fromString(documentIdValue));
-    if (!DocumentKey.isDocumentKey(path)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid query. When querying a collection group by ` +
-          `FieldPath.documentId(), the value provided must result in a valid document path, ` +
-          `but '${path}' is not because it has an odd number of segments (${path.length}).`
-      );
-    }
-    return refValue(databaseId, new DocumentKey(path));
-  } else if (documentIdValue instanceof ExpDocumentReference) {
-    return refValue(databaseId, documentIdValue._key);
-  } else {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid query. When querying with FieldPath.documentId(), you must provide a valid ` +
-        `string or a DocumentReference, but it was: ` +
-        `${valueDescription(documentIdValue)}.`
-    );
-  }
-}
-
-/**
- * Validates that the value passed into a disjunctive filter satisfies all
- * array requirements.
- */
-function validateDisjunctiveFilterElements(
-  value: unknown,
-  operator: Operator
-): void {
-  if (!Array.isArray(value) || value.length === 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      'Invalid Query. A non-empty array is required for ' +
-        `'${operator.toString()}' filters.`
-    );
-  }
-  if (value.length > 10) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid Query. '${operator.toString()}' filters support a ` +
-        'maximum of 10 elements in the value array.'
-    );
-  }
-}
-
-/**
- * Given an operator, returns the set of operators that cannot be used with it.
- *
- * Operators in a query must adhere to the following set of rules:
- * 1. Only one array operator is allowed.
- * 2. Only one disjunctive operator is allowed.
- * 3. NOT_EQUAL cannot be used with another NOT_EQUAL operator.
- * 4. NOT_IN cannot be used with array, disjunctive, or NOT_EQUAL operators.
- *
- * Array operators: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY
- * Disjunctive operators: IN, ARRAY_CONTAINS_ANY, NOT_IN
- */
-function conflictingOps(op: Operator): Operator[] {
-  switch (op) {
-    case Operator.NOT_EQUAL:
-      return [Operator.NOT_EQUAL, Operator.NOT_IN];
-    case Operator.ARRAY_CONTAINS:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.NOT_IN
-      ];
-    case Operator.IN:
-      return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
-    case Operator.ARRAY_CONTAINS_ANY:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.IN,
-        Operator.NOT_IN
-      ];
-    case Operator.NOT_IN:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.IN,
-        Operator.NOT_IN,
-        Operator.NOT_EQUAL
-      ];
-    default:
-      return [];
-  }
-}
-
-function validateNewFilter(query: InternalQuery, filter: Filter): void {
-  debugAssert(filter instanceof FieldFilter, 'Only FieldFilters are supported');
-
-  if (filter.isInequality()) {
-    const existingField = getInequalityFilterField(query);
-    if (existingField !== null && !existingField.isEqual(filter.field)) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid query. All where filters with an inequality' +
-          ' (<, <=, >, or >=) must be on the same field. But you have' +
-          ` inequality filters on '${existingField.toString()}'` +
-          ` and '${filter.field.toString()}'`
-      );
-    }
-
-    const firstOrderByField = getFirstOrderByField(query);
-    if (firstOrderByField !== null) {
-      validateOrderByAndInequalityMatch(query, filter.field, firstOrderByField);
-    }
-  }
-
-  const conflictingOp = findFilterOperator(query, conflictingOps(filter.op));
-  if (conflictingOp !== null) {
-    // Special case when it's a duplicate op to give a slightly clearer error message.
-    if (conflictingOp === filter.op) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid query. You cannot use more than one ' +
-          `'${filter.op.toString()}' filter.`
-      );
-    } else {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
-          `with '${conflictingOp.toString()}' filters.`
-      );
-    }
-  }
-}
-
-function validateNewOrderBy(query: InternalQuery, orderBy: OrderBy): void {
-  if (getFirstOrderByField(query) === null) {
-    // This is the first order by. It must match any inequality.
-    const inequalityField = getInequalityFilterField(query);
-    if (inequalityField !== null) {
-      validateOrderByAndInequalityMatch(query, inequalityField, orderBy.field);
-    }
-  }
-}
-
-function validateOrderByAndInequalityMatch(
-  baseQuery: InternalQuery,
-  inequality: FieldPath,
-  orderBy: FieldPath
-): void {
-  if (!orderBy.isEqual(inequality)) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid query. You have a where filter with an inequality ` +
-        `(<, <=, >, or >=) on field '${inequality.toString()}' ` +
-        `and so you must also use '${inequality.toString()}' ` +
-        `as your first orderBy(), but your first orderBy() ` +
-        `is on field '${orderBy.toString()}' instead.`
-    );
-  }
-}
-
-export function validateHasExplicitOrderByForLimitToLast(
-  query: InternalQuery
-): void {
-  if (hasLimitToLast(query) && query.explicitOrderBy.length === 0) {
-    throw new FirestoreError(
-      Code.UNIMPLEMENTED,
-      'limitToLast() queries require specifying at least one orderBy() clause'
-    );
-  }
-}
-
-export class Query<T = PublicDocumentData> implements PublicQuery<T> {
-  private _userDataReader: UserDataReader;
-  private _userDataWriter: UserDataWriter;
-
-  constructor(
-    public _query: InternalQuery,
-    readonly firestore: Firestore,
-    protected readonly _converter: UntypedFirestoreDataConverter<T> | null
-  ) {
-    this._userDataReader = newUserDataReader(firestore._delegate);
-    this._userDataWriter = new UserDataWriter(firestore);
+export class Query<T = PublicDocumentData>
+  extends Compat<ExpQuery<T>>
+  implements PublicQuery<T> {
+  constructor(readonly firestore: Firestore, delegate: ExpQuery<T>) {
+    super(delegate);
   }
 
   where(
-    field: string | PublicFieldPath,
+    fieldPath: string | FieldPath,
     opStr: PublicWhereFilterOp,
     value: unknown
-  ): PublicQuery<T> {
-    const fieldPath = fieldPathFromArgument('Query.where', field);
-    const filter = newQueryFilter(
-      this._query,
-      'Query.where',
-      this._userDataReader,
-      this.firestore._databaseId,
-      fieldPath,
-      opStr as Operator,
-      value
-    );
-    return new Query(
-      queryWithAddedFilter(this._query, filter),
-      this.firestore,
-      this._converter
-    );
+  ): Query<T> {
+    try {
+      // The "as string" cast is a little bit of a hack. `where` accepts the
+      // FieldPath Compat type as input, but is not typed as such in order to
+      // not expose this via our public typings file.
+      return new Query<T>(
+        this.firestore,
+        query(this._delegate, where(fieldPath as string, opStr, value))
+      );
+    } catch (e) {
+      throw replaceFunctionName(e, /(orderBy|where)\(\)/, 'Query.$1()');
+    }
   }
 
   orderBy(
-    field: string | PublicFieldPath,
+    fieldPath: string | FieldPath,
     directionStr?: PublicOrderByDirection
-  ): PublicQuery<T> {
-    let direction: Direction;
-    if (directionStr === undefined || directionStr === 'asc') {
-      direction = Direction.ASCENDING;
-    } else if (directionStr === 'desc') {
-      direction = Direction.DESCENDING;
-    } else {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Function Query.orderBy() has unknown direction '${directionStr}', ` +
-          `expected 'asc' or 'desc'.`
+  ): Query<T> {
+    try {
+      // The "as string" cast is a little bit of a hack. `orderBy` accepts the
+      // FieldPath Compat type as input, but is not typed as such in order to
+      // not expose this via our public typings file.
+      return new Query<T>(
+        this.firestore,
+        query(this._delegate, orderBy(fieldPath as string, directionStr))
       );
+    } catch (e) {
+      throw replaceFunctionName(e, /(orderBy|where)\(\)/, 'Query.$1()');
     }
-    const fieldPath = fieldPathFromArgument('Query.orderBy', field);
-    const orderBy = newQueryOrderBy(this._query, fieldPath, direction);
-    return new Query(
-      queryWithAddedOrderBy(this._query, orderBy),
-      this.firestore,
-      this._converter
-    );
   }
 
-  limit(n: number): PublicQuery<T> {
-    validatePositiveNumber('Query.limit', n);
-    return new Query(
-      queryWithLimit(this._query, n, LimitType.First),
-      this.firestore,
-      this._converter
-    );
+  limit(n: number): Query<T> {
+    try {
+      return new Query<T>(this.firestore, query(this._delegate, limit(n)));
+    } catch (e) {
+      throw replaceFunctionName(e, 'limit()', 'Query.limit()');
+    }
   }
 
-  limitToLast(n: number): PublicQuery<T> {
-    validatePositiveNumber('Query.limitToLast', n);
-    return new Query(
-      queryWithLimit(this._query, n, LimitType.Last),
-      this.firestore,
-      this._converter
-    );
+  limitToLast(n: number): Query<T> {
+    try {
+      return new Query<T>(
+        this.firestore,
+        query(this._delegate, limitToLast(n))
+      );
+    } catch (e) {
+      throw replaceFunctionName(e, 'limitToLast()', 'Query.limitToLast()');
+    }
   }
 
-  startAt(
-    docOrField: unknown | PublicDocumentSnapshot<unknown>,
-    ...fields: unknown[]
-  ): PublicQuery<T> {
-    const bound = this.boundFromDocOrFields(
-      'Query.startAt',
-      docOrField,
-      fields,
-      /*before=*/ true
-    );
-    return new Query(
-      queryWithStartAt(this._query, bound),
-      this.firestore,
-      this._converter
-    );
+  startAt(...args: any[]): Query<T> {
+    try {
+      return new Query(this.firestore, query(this._delegate, startAt(...args)));
+    } catch (e) {
+      throw replaceFunctionName(e, 'startAt()', 'Query.startAt()');
+    }
   }
 
-  startAfter(
-    docOrField: unknown | PublicDocumentSnapshot<unknown>,
-    ...fields: unknown[]
-  ): PublicQuery<T> {
-    const bound = this.boundFromDocOrFields(
-      'Query.startAfter',
-      docOrField,
-      fields,
-      /*before=*/ false
-    );
-    return new Query(
-      queryWithStartAt(this._query, bound),
-      this.firestore,
-      this._converter
-    );
+  startAfter(...args: any[]): Query<T> {
+    try {
+      return new Query(
+        this.firestore,
+        query(this._delegate, startAfter(...args))
+      );
+    } catch (e) {
+      throw replaceFunctionName(e, 'startAfter()', 'Query.startAfter()');
+    }
   }
 
-  endBefore(
-    docOrField: unknown | PublicDocumentSnapshot<unknown>,
-    ...fields: unknown[]
-  ): PublicQuery<T> {
-    const bound = this.boundFromDocOrFields(
-      'Query.endBefore',
-      docOrField,
-      fields,
-      /*before=*/ true
-    );
-    return new Query(
-      queryWithEndAt(this._query, bound),
-      this.firestore,
-      this._converter
-    );
+  endBefore(...args: any[]): Query<T> {
+    try {
+      return new Query(
+        this.firestore,
+        query(this._delegate, endBefore(...args))
+      );
+    } catch (e) {
+      throw replaceFunctionName(e, 'endBefore()', 'Query.endBefore()');
+    }
   }
 
-  endAt(
-    docOrField: unknown | PublicDocumentSnapshot<unknown>,
-    ...fields: unknown[]
-  ): PublicQuery<T> {
-    const bound = this.boundFromDocOrFields(
-      'Query.endAt',
-      docOrField,
-      fields,
-      /*before=*/ false
-    );
-    return new Query(
-      queryWithEndAt(this._query, bound),
-      this.firestore,
-      this._converter
-    );
+  endAt(...args: any[]): Query<T> {
+    try {
+      return new Query(this.firestore, query(this._delegate, endAt(...args)));
+    } catch (e) {
+      throw replaceFunctionName(e, 'endAt()', 'Query.endAt()');
+    }
   }
 
   isEqual(other: PublicQuery<T>): boolean {
-    if (!(other instanceof Query)) {
-      return false;
-    }
-    return (
-      this.firestore === other.firestore &&
-      queryEquals(this._query, other._query) &&
-      this._converter === other._converter
-    );
+    return queryEqual(this._delegate, (other as Query<T>)._delegate);
   }
 
-  withConverter<U>(converter: PublicFirestoreDataConverter<U>): PublicQuery<U> {
-    return new Query<U>(this._query, this.firestore, converter);
-  }
-
-  /** Helper function to create a bound from a document or fields */
-  private boundFromDocOrFields(
-    methodName: string,
-    docOrField: unknown | PublicDocumentSnapshot<T>,
-    fields: unknown[],
-    before: boolean
-  ): Bound {
-    if (docOrField instanceof DocumentSnapshot) {
-      return newQueryBoundFromDocument(
-        this._query,
-        this.firestore._databaseId,
-        methodName,
-        docOrField._delegate._document,
-        before
-      );
+  get(options?: PublicGetOptions): Promise<QuerySnapshot<T>> {
+    let query: Promise<ExpQuerySnapshot<T>>;
+    if (options?.source === 'cache') {
+      query = getDocsFromCache(this._delegate);
+    } else if (options?.source === 'server') {
+      query = getDocsFromServer(this._delegate);
     } else {
-      const allFields = [docOrField].concat(fields);
-      return newQueryBoundFromFields(
-        this._query,
-        this.firestore._databaseId,
-        this._userDataReader,
-        methodName,
-        allFields,
-        before
-      );
+      query = getDocs(this._delegate);
     }
+    return query.then(result => new QuerySnapshot(this.firestore, result));
   }
 
   onSnapshot(observer: PartialObserver<PublicQuerySnapshot<T>>): Unsubscribe;
@@ -1615,81 +1096,20 @@ export class Query<T = PublicDocumentData> implements PublicQuery<T> {
   ): Unsubscribe;
 
   onSnapshot(...args: unknown[]): Unsubscribe {
-    let options: ListenOptions = {};
-    let currArg = 0;
-    if (
-      typeof args[currArg] === 'object' &&
-      !isPartialObserver(args[currArg])
-    ) {
-      options = args[currArg] as PublicSnapshotListenOptions;
-      currArg++;
-    }
-
-    if (isPartialObserver(args[currArg])) {
-      const userObserver = args[currArg] as PartialObserver<
-        PublicQuerySnapshot<T>
-      >;
-      args[currArg] = userObserver.next?.bind(userObserver);
-      args[currArg + 1] = userObserver.error?.bind(userObserver);
-      args[currArg + 2] = userObserver.complete?.bind(userObserver);
-    } else {
-    }
-
-    const observer: PartialObserver<ViewSnapshot> = {
-      next: snapshot => {
-        if (args[currArg]) {
-          (args[currArg] as NextFn<PublicQuerySnapshot<T>>)(
-            new QuerySnapshot(
-              this.firestore,
-              new ExpQuerySnapshot(
-                this.firestore._delegate,
-                this._userDataWriter,
-                new ExpQuery(
-                  this.firestore._delegate,
-                  this._converter,
-                  this._query
-                ),
-                snapshot
-              )
-            )
-          );
-        }
-      },
-      error: args[currArg + 1] as ErrorFn,
-      complete: args[currArg + 2] as CompleteFn
-    };
-
-    validateHasExplicitOrderByForLimitToLast(this._query);
-    const client = ensureFirestoreConfigured(this.firestore._delegate);
-    return firestoreClientListen(client, this._query, options, observer);
+    const options = extractSnapshotOptions(args);
+    const observer = wrapObserver<QuerySnapshot<T>, ExpQuerySnapshot<T>>(
+      args,
+      snap => new QuerySnapshot(this.firestore, snap)
+    );
+    return onSnapshot(this._delegate, options, observer);
   }
 
-  get(options?: PublicGetOptions): Promise<PublicQuerySnapshot<T>> {
-    validateHasExplicitOrderByForLimitToLast(this._query);
-
-    const client = ensureFirestoreConfigured(this.firestore._delegate);
-    return (options && options.source === 'cache'
-      ? firestoreClientGetDocumentsFromLocalCache(client, this._query)
-      : firestoreClientGetDocumentsViaSnapshotListener(
-          client,
-          this._query,
-          options
-        )
-    ).then(
-      snap =>
-        new QuerySnapshot(
-          this.firestore,
-          new ExpQuerySnapshot(
-            this.firestore._delegate,
-            this._userDataWriter,
-            new ExpQuery(
-              this.firestore._delegate,
-              this._converter,
-              this._query
-            ),
-            snap
-          )
-        )
+  withConverter<U>(converter: PublicFirestoreDataConverter<U>): Query<U> {
+    return new Query<U>(
+      this.firestore,
+      this._delegate.withConverter(
+        converter as UntypedFirestoreDataConverter<U>
+      )
     );
   }
 }
@@ -1729,11 +1149,7 @@ export class QuerySnapshot<T = PublicDocumentData>
   }
 
   get query(): Query<T> {
-    return new Query(
-      this._delegate.query._query,
-      this._firestore,
-      this._delegate.query._converter
-    );
+    return new Query(this._firestore, this._delegate.query);
   }
 
   get metadata(): SnapshotMetadata {
@@ -1783,77 +1199,62 @@ export class CollectionReference<T = PublicDocumentData>
   extends Query<T>
   implements PublicCollectionReference<T> {
   constructor(
-    readonly _path: ResourcePath,
-    firestore: Firestore,
-    _converter: UntypedFirestoreDataConverter<T> | null
+    readonly firestore: Firestore,
+    readonly _delegate: ExpCollectionReference<T>
   ) {
-    super(newQueryForPath(_path), firestore, _converter);
-    if (_path.length % 2 !== 1) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid collection reference. Collection ' +
-          'references must have an odd number of segments, but ' +
-          `${_path.canonicalString()} has ${_path.length}`
-      );
-    }
+    super(firestore, _delegate);
   }
 
   get id(): string {
-    return this._query.path.lastSegment();
-  }
-
-  get parent(): PublicDocumentReference<PublicDocumentData> | null {
-    const parentPath = this._query.path.popLast();
-    if (parentPath.isEmpty()) {
-      return null;
-    } else {
-      return DocumentReference.forPath(
-        parentPath,
-        this.firestore,
-        /* converter= */ null
-      );
-    }
+    return this._delegate.id;
   }
 
   get path(): string {
-    return this._query.path.canonicalString();
+    return this._delegate.path;
   }
 
-  doc(pathString?: string): PublicDocumentReference<T> {
-    // We allow omission of 'pathString' but explicitly prohibit passing in both
-    // 'undefined' and 'null'.
-    if (arguments.length === 0) {
-      pathString = AutoId.newId();
+  get parent(): DocumentReference<PublicDocumentData> | null {
+    const docRef = this._delegate.parent;
+    return docRef ? new DocumentReference(this.firestore, docRef) : null;
+  }
+
+  doc(documentPath?: string): DocumentReference<T> {
+    try {
+      if (documentPath === undefined) {
+        // Call `doc` without `documentPath` if `documentPath` is `undefined`
+        // as `doc` validates the number of arguments to prevent users from
+        // accidentally passing `undefined`.
+        return new DocumentReference(this.firestore, doc(this._delegate));
+      } else {
+        return new DocumentReference(
+          this.firestore,
+          doc(this._delegate, documentPath)
+        );
+      }
+    } catch (e) {
+      throw replaceFunctionName(e, 'doc()', 'CollectionReference.doc()');
     }
-    validateNonEmptyArgument('CollectionReference.doc', 'path', pathString);
-    const path = ResourcePath.fromString(pathString!);
-    return DocumentReference.forPath<T>(
-      this._query.path.child(path),
-      this.firestore,
-      this._converter
+  }
+
+  add(data: T): Promise<DocumentReference<T>> {
+    return addDoc(this._delegate, data).then(
+      docRef => new DocumentReference(this.firestore, docRef)
     );
   }
 
-  add(value: T): Promise<PublicDocumentReference<T>> {
-    const convertedValue = this._converter
-      ? this._converter.toFirestore(value)
-      : value;
-    const docRef = this.doc();
-
-    // Call set() with the converted value directly to avoid calling toFirestore() a second time.
-    return DocumentReference.forKey(
-      (docRef as DocumentReference<T>)._delegate._key,
-      this.firestore,
-      null
-    )
-      .set(convertedValue)
-      .then(() => docRef);
+  isEqual(other: CollectionReference<T>): boolean {
+    return refEqual(this._delegate, other._delegate);
   }
 
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
-  ): PublicCollectionReference<U> {
-    return new CollectionReference<U>(this._path, this.firestore, converter);
+  ): CollectionReference<U> {
+    return new CollectionReference<U>(
+      this.firestore,
+      this._delegate.withConverter(
+        converter as UntypedFirestoreDataConverter<U>
+      )
+    );
   }
 }
 
