@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.4.2
+
+### Patch Changes
+
+- [`f9dc50e35`](https://github.com/firebase/firebase-js-sdk/commit/f9dc50e3520d50b70eecd28b81887e0053f9f636) [#3499](https://github.com/firebase/firebase-js-sdk/pull/3499) - Refactored Storage to allow for modularization.
+
 ## 0.4.1
 
 ### Patch Changes

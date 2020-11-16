@@ -1520,6 +1520,12 @@ export function updateDoc(
 ): Promise<void> {
   const dataReader = newUserDataReader(reference.firestore);
 
+  // For Compat types, we have to "extract" the underlying types before
+  // performing validation.
+  if (fieldOrUpdateData instanceof Compat) {
+    fieldOrUpdateData = fieldOrUpdateData._delegate;
+  }
+
   let parsed: ParsedUpdateData;
   if (
     typeof fieldOrUpdateData === 'string' ||

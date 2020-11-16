@@ -104,63 +104,6 @@ export class Transaction
   }
 }
 
-export class WriteBatch
-  extends Compat<exp.WriteBatch>
-  implements legacy.WriteBatch {
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: T,
-    options?: legacy.SetOptions
-  ): WriteBatch {
-    if (options) {
-      validateSetOptions('WriteBatch.set', options);
-      this._delegate.set(documentRef._delegate, unwrap(data), options);
-    } else {
-      this._delegate.set(documentRef._delegate, unwrap(data));
-    }
-    return this;
-  }
-
-  update(
-    documentRef: DocumentReference<any>,
-    data: legacy.UpdateData
-  ): WriteBatch;
-  update(
-    documentRef: DocumentReference<any>,
-    field: string | FieldPath,
-    value: any,
-    ...moreFieldsAndValues: any[]
-  ): WriteBatch;
-  update(
-    documentRef: DocumentReference<any>,
-    dataOrField: any,
-    value?: any,
-    ...moreFieldsAndValues: any[]
-  ): WriteBatch {
-    if (arguments.length === 2) {
-      this._delegate.update(documentRef._delegate, unwrap(dataOrField));
-    } else {
-      this._delegate.update(
-        documentRef._delegate,
-        unwrap(dataOrField),
-        unwrap(value),
-        ...unwrap(moreFieldsAndValues)
-      );
-    }
-
-    return this;
-  }
-
-  delete(documentRef: DocumentReference<any>): WriteBatch {
-    this._delegate.delete(documentRef._delegate);
-    return this;
-  }
-
-  commit(): Promise<void> {
-    return this._delegate.commit();
-  }
-}
-
 export class FieldPath
   extends Compat<FieldPathExp>
   implements legacy.FieldPath {

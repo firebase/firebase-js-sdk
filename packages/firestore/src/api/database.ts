@@ -22,13 +22,11 @@ import {
   FirestoreClient,
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle,
-  firestoreClientTransaction,
-  firestoreClientWrite
+  firestoreClientTransaction
 } from '../core/firestore_client';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -100,13 +98,15 @@ import {
   startAfter,
   startAt,
   updateDoc,
-  where
+  where,
+  executeWrite
 } from '../../exp/src/api/reference';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
 import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
 import { makeDatabaseInfo } from '../../lite/src/api/database';
 import { DEFAULT_HOST } from '../../lite/src/api/components';
+import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
 
 import {
   CollectionReference as PublicCollectionReference,
@@ -371,7 +371,11 @@ export class Firestore
 
   batch(): PublicWriteBatch {
     ensureFirestoreConfigured(this._delegate);
-    return new WriteBatch(this);
+    return new WriteBatch(
+      new ExpWriteBatch(this._delegate, mutations =>
+        executeWrite(this._delegate, mutations)
+      )
+    );
   }
 }
 
@@ -604,15 +608,9 @@ export class Transaction implements PublicTransaction {
   }
 }
 
-export class WriteBatch implements PublicWriteBatch {
-  private _mutations = [] as Mutation[];
-  private _committed = false;
-  private _dataReader: UserDataReader;
-
-  constructor(private _firestore: Firestore) {
-    this._dataReader = newUserDataReader(this._firestore._delegate);
-  }
-
+export class WriteBatch
+  extends Compat<ExpWriteBatch>
+  implements PublicWriteBatch {
   set<T>(
     documentRef: DocumentReference<T>,
     data: Partial<T>,
@@ -621,38 +619,22 @@ export class WriteBatch implements PublicWriteBatch {
   set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   set<T>(
     documentRef: PublicDocumentReference<T>,
-    value: T | Partial<T>,
+    data: T | Partial<T>,
     options?: PublicSetOptions
   ): WriteBatch {
-    this.verifyNotCommitted();
-    const ref = validateReference(
-      'WriteBatch.set',
-      documentRef,
-      this._firestore
-    );
-    options = validateSetOptions('WriteBatch.set', options);
-    const convertedValue = applyFirestoreDataConverter(
-      ref._converter,
-      value,
-      options
-    );
-    const parsed = parseSetData(
-      this._dataReader,
-      'WriteBatch.set',
-      ref._key,
-      convertedValue,
-      ref._converter !== null,
-      options
-    );
-    this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.none())
-    );
+    const ref = castReference(documentRef);
+    if (options) {
+      validateSetOptions('WriteBatch.set', options);
+      this._delegate.set(ref, data, options);
+    } else {
+      this._delegate.set(ref, data);
+    }
     return this;
   }
 
   update(
     documentRef: PublicDocumentReference<unknown>,
-    value: PublicUpdateData
+    data: PublicUpdateData
   ): WriteBatch;
   update(
     documentRef: PublicDocumentReference<unknown>,
@@ -662,83 +644,32 @@ export class WriteBatch implements PublicWriteBatch {
   ): WriteBatch;
   update(
     documentRef: PublicDocumentReference<unknown>,
-    fieldOrUpdateData: string | PublicFieldPath | PublicUpdateData,
+    dataOrField: string | PublicFieldPath | PublicUpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
-    this.verifyNotCommitted();
-    const ref = validateReference(
-      'WriteBatch.update',
-      documentRef,
-      this._firestore
-    );
-
-    // For Compat types, we have to "extract" the underlying types before
-    // performing validation.
-    if (fieldOrUpdateData instanceof Compat) {
-      fieldOrUpdateData = (fieldOrUpdateData as Compat<ExpFieldPath>)._delegate;
-    }
-
-    let parsed;
-    if (
-      typeof fieldOrUpdateData === 'string' ||
-      fieldOrUpdateData instanceof ExpFieldPath
-    ) {
-      parsed = parseUpdateVarargs(
-        this._dataReader,
-        'WriteBatch.update',
-        ref._key,
-        fieldOrUpdateData,
-        value,
-        moreFieldsAndValues
-      );
+    const ref = castReference(documentRef);
+    if (arguments.length === 2) {
+      this._delegate.update(ref, dataOrField as PublicUpdateData);
     } else {
-      parsed = parseUpdateData(
-        this._dataReader,
-        'WriteBatch.update',
-        ref._key,
-        fieldOrUpdateData
+      this._delegate.update(
+        ref,
+        dataOrField as string | ExpFieldPath,
+        value,
+        ...moreFieldsAndValues
       );
     }
-
-    this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.exists(true))
-    );
     return this;
   }
 
   delete(documentRef: PublicDocumentReference<unknown>): WriteBatch {
-    this.verifyNotCommitted();
-    const ref = validateReference(
-      'WriteBatch.delete',
-      documentRef,
-      this._firestore
-    );
-    this._mutations = this._mutations.concat(
-      new DeleteMutation(ref._key, Precondition.none())
-    );
+    const ref = castReference(documentRef);
+    this._delegate.delete(ref);
     return this;
   }
 
   commit(): Promise<void> {
-    this.verifyNotCommitted();
-    this._committed = true;
-    if (this._mutations.length > 0) {
-      const client = ensureFirestoreConfigured(this._firestore._delegate);
-      return firestoreClientWrite(client, this._mutations);
-    }
-
-    return Promise.resolve();
-  }
-
-  private verifyNotCommitted(): void {
-    if (this._committed) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'A write batch can no longer be used after commit() ' +
-          'has been called.'
-      );
-    }
+    return this._delegate.commit();
   }
 }
 
@@ -1382,13 +1313,16 @@ export class CollectionReference<T = PublicDocumentData>
 
   doc(documentPath?: string): DocumentReference<T> {
     try {
-      if (documentPath !== undefined) {
+      if (documentPath === undefined) {
+        // Call `doc` without `documentPath` if `documentPath` is `undefined`
+        // as `doc` validates the number of arguments to prevent users from
+        // accidentally passing `undefined`.
+        return new DocumentReference(this.firestore, doc(this._delegate));
+      } else {
         return new DocumentReference(
           this.firestore,
           doc(this._delegate, documentPath)
         );
-      } else {
-        return new DocumentReference(this.firestore, doc(this._delegate));
       }
     } catch (e) {
       throw replaceFunctionName(e, 'doc()', 'CollectionReference.doc()');
@@ -1415,6 +1349,15 @@ export class CollectionReference<T = PublicDocumentData>
       )
     );
   }
+}
+
+function castReference<T>(
+  documentRef: PublicDocumentReference<T>
+): ExpDocumentReference<T> {
+  if (documentRef instanceof Compat) {
+    documentRef = documentRef._delegate;
+  }
+  return cast<ExpDocumentReference<T>>(documentRef, ExpDocumentReference);
 }
 
 function validateReference<T>(
