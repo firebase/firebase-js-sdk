@@ -49,7 +49,6 @@ export function newTestFirestore(
     nameOrApp = 'test-app-' + appCount++;
   }
 
-  let firestore: firestore.FirebaseFirestore;
   const app =
     typeof nameOrApp === 'string'
       ? firebase.initializeApp(
@@ -60,7 +59,7 @@ export function newTestFirestore(
           nameOrApp
         )
       : nameOrApp;
-  firestore = (firebase as any).firestore(app);
+  const firestore = firebase.firestore(app);
 
   if (settings) {
     firestore.settings(settings);
