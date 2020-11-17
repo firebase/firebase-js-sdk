@@ -357,11 +357,13 @@ export class WebChannelConnection extends RestConnection {
     );
 
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
-      if (!event) return;
+      if (!event) {
+        return;
+      }
 
-      if (event.stat == Stat.PROXY) {
+      if (event.stat === Stat.PROXY) {
         logDebug(LOG_TAG, 'Detected buffering proxy');
-      } else if (event.stat == Stat.NOPROXY) {
+      } else if (event.stat === Stat.NOPROXY) {
         logDebug(LOG_TAG, 'Detected no buffering proxy');
       }
     });
