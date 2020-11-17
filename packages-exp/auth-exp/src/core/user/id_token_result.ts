@@ -118,3 +118,16 @@ export function _parseToken(token: string): externs.ParsedToken | null {
     return null;
   }
 }
+
+/**
+ * Extract expiresIn TTL from a token by subtracting the expiration from the issuance.
+ *
+ * @internal
+ */
+export function _tokenExpiresIn(token: string): number {
+  const parsedToken = _parseToken(token);
+  _assert(parsedToken, AuthErrorCode.INTERNAL_ERROR);
+  _assert(typeof parsedToken.exp !== 'undefined', AuthErrorCode.INTERNAL_ERROR);
+  _assert(typeof parsedToken.iat !== 'undefined', AuthErrorCode.INTERNAL_ERROR);
+  return Number(parsedToken.exp) - Number(parsedToken.iat);
+}
