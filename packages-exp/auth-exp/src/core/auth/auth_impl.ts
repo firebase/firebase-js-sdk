@@ -171,7 +171,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   ): Promise<void> {
     // First check to see if we have a pending redirect event.
     let storedUser = (await this.assertedPersistence.getCurrentUser()) as User | null;
-    if (popupRedirectResolver) {
+    if (popupRedirectResolver && this.config.authDomain) {
       await this.getOrInitRedirectPersistenceManager();
       const redirectUserEventId = this.redirectUser?._redirectEventId;
       const storedUserEventId = storedUser?._redirectEventId;
