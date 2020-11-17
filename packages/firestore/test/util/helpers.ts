@@ -95,12 +95,24 @@ import { SortedSet } from '../../src/util/sorted_set';
 import { FIRESTORE } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
+import {
+  JsonProtoSerializer,
+  toDocument,
+  toName,
+  toQueryTarget,
+  toTimestamp,
+  toVersion
+} from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
-import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
+import {
+  JSON_SERIALIZER,
+  TEST_DATABASE_ID
+} from '../unit/local/persistence_test_helpers';
+import { BundledDocuments } from '../../src/core/bundle';
+import * as bundleProto from '../../src/protos/firestore_bundle_proto';
 
 /* eslint-disable no-restricted-globals */
 
@@ -415,6 +427,76 @@ export function docUpdateRemoteEvent(
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
+}
+
+export class TestBundledDocuments {
+  constructor(public documents: BundledDocuments, public bundleName: string) {}
+}
+
+export function bundledDocuments(
+  documents: MaybeDocument[],
+  queryNames?: string[][],
+  bundleName?: string
+): TestBundledDocuments {
+  const result = documents.map((d, index) => {
+    return {
+      metadata: {
+        name: toName(JSON_SERIALIZER, d.key),
+        readTime: toVersion(JSON_SERIALIZER, d.version),
+        exists: d instanceof Document,
+        queries: queryNames ? queryNames[index] : undefined
+      },
+      document:
+        d instanceof Document ? toDocument(JSON_SERIALIZER, d) : undefined
+    };
+  });
+
+  return new TestBundledDocuments(result, bundleName || '');
+}
+
+export class TestNamedQuery {
+  constructor(
+    public namedQuery: bundleProto.NamedQuery,
+    public matchingDocuments: DocumentKeySet
+  ) {}
+}
+
+export function namedQuery(
+  name: string,
+  query: Query,
+  limitType: bundleProto.LimitType,
+  readTime: SnapshotVersion,
+  matchingDocuments: DocumentKeySet = documentKeySet()
+): TestNamedQuery {
+  return {
+    namedQuery: {
+      name,
+      readTime: toTimestamp(JSON_SERIALIZER, readTime.toTimestamp()),
+      bundledQuery: {
+        parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).parent,
+        limitType,
+        structuredQuery: toQueryTarget(JSON_SERIALIZER, queryToTarget(query))
+          .structuredQuery
+      }
+    },
+    matchingDocuments
+  };
+}
+
+export function bundleMetadata(
+  id: string,
+  createTime: TestSnapshotVersion,
+  version = 1,
+  totalDocuments = 1,
+  totalBytes = 1000
+): bundleProto.BundleMetadata {
+  return {
+    id,
+    createTime: { seconds: createTime, nanos: 0 },
+    version,
+    totalDocuments,
+    totalBytes
+  };
 }
 
 export function updateMapping(

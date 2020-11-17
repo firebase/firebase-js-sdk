@@ -23,7 +23,7 @@ import { _getInstance } from '../core/util/instantiator';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
 import { OAuthProvider } from '../core/providers/oauth';
-import { assert, debugAssert, fail } from '../core/util/assert';
+import { _assert, debugAssert, _fail } from '../core/util/assert';
 import { _emulatorUrl } from '../core/util/emulator';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
@@ -87,9 +87,7 @@ export function _withDefaultResolver(
     return _getInstance(resolverOverride);
   }
 
-  assert(auth._popupRedirectResolver, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: auth.name
-  });
+  _assert(auth._popupRedirectResolver, auth, AuthErrorCode.ARGUMENT_ERROR);
 
   return auth._popupRedirectResolver;
 }
@@ -116,7 +114,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 
     await this.originValidation(auth);
     const url = getRedirectUrl(auth, provider, authType, eventId);
-    return _open(auth.name, url, _generateEventId());
+    return _open(auth, url, _generateEventId());
   }
 
   async _openRedirect(
@@ -149,13 +147,11 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 
   private async initAndGetManager(auth: Auth): Promise<EventManager> {
     const iframe = await _openIframe(auth);
-    const manager = new AuthEventManager(auth.name);
+    const manager = new AuthEventManager(auth);
     iframe.register<GapiAuthEvent>(
       'authEvent',
       (iframeEvent: GapiAuthEvent | null) => {
-        assert(iframeEvent?.authEvent, AuthErrorCode.INVALID_AUTH_EVENT, {
-          appName: auth.name
-        });
+        _assert(iframeEvent?.authEvent, auth, AuthErrorCode.INVALID_AUTH_EVENT);
         // TODO: Consider splitting redirect and popup events earlier on
 
         const handled = manager.onEvent(iframeEvent.authEvent);
@@ -183,9 +179,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
           cb(!!isSupported);
         }
 
-        fail(AuthErrorCode.INTERNAL_ERROR, {
-          appName: auth.name
-        });
+        _fail(auth, AuthErrorCode.INTERNAL_ERROR);
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
     );
@@ -231,12 +225,8 @@ function getRedirectUrl(
   authType: AuthEventType,
   eventId?: string
 ): string {
-  assert(auth.config.authDomain, AuthErrorCode.MISSING_AUTH_DOMAIN, {
-    appName: auth.name
-  });
-  assert(auth.config.apiKey, AuthErrorCode.INVALID_API_KEY, {
-    appName: auth.name
-  });
+  _assert(auth.config.authDomain, auth, AuthErrorCode.MISSING_AUTH_DOMAIN);
+  _assert(auth.config.apiKey, auth, AuthErrorCode.INVALID_API_KEY);
 
   const params: WidgetParams = {
     apiKey: auth.config.apiKey,

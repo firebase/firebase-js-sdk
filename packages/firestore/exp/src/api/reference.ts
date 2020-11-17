@@ -28,8 +28,7 @@ import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   applyFirestoreDataConverter,
   ensureFirestoreConfigured,
-  SnapshotMetadata,
-  validateHasExplicitOrderByForLimitToLast
+  SnapshotMetadata
 } from '../../../src/api/database';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
@@ -39,7 +38,8 @@ import {
   newUserDataReader,
   Query,
   SetOptions,
-  UpdateData
+  UpdateData,
+  validateHasExplicitOrderByForLimitToLast
 } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
 import {
@@ -87,7 +87,20 @@ import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 export {
   DocumentReference,
   CollectionReference,
-  Query
+  Query,
+  collection,
+  collectionGroup,
+  doc,
+  query,
+  where,
+  limit,
+  limitToLast,
+  orderBy,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  queryEqual
 } from '../../../lite/src/api/reference';
 
 /**

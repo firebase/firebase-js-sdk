@@ -35,7 +35,7 @@ import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode } from '../../core/errors';
 import { OAuthProvider } from '../../core/providers/oauth';
 import { UserCredentialImpl } from '../../core/user/user_credential_impl';
 import * as eid from '../../core/util/event_id';
@@ -49,6 +49,7 @@ import {
   signInWithPopup
 } from './popup';
 import { _getInstance } from '../../../internal';
+import { _createError } from '../../core/util/assert';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -68,7 +69,7 @@ describe('platform_browser/strategies/popup', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    eventManager = new AuthEventManager(auth.name);
+    eventManager = new AuthEventManager(auth);
     underlyingWindow = { closed: false };
     authPopup = new AuthPopup(underlyingWindow as Window);
     provider = new OAuthProvider(ProviderId.GOOGLE);
@@ -235,11 +236,7 @@ describe('platform_browser/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._signIn.returns(
-        Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
-            appName: auth.name
-          })
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -420,11 +417,7 @@ describe('platform_browser/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._link.returns(
-        Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
-            appName: auth.name
-          })
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -604,11 +597,7 @@ describe('platform_browser/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._reauth.returns(
-        Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
-            appName: auth.name
-          })
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({

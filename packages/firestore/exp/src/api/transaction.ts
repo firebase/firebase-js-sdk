@@ -17,19 +17,16 @@
 
 import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
 import { DocumentSnapshot } from './snapshot';
-import { TransactionRunner } from '../../../src/core/transaction_runner';
-import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirebaseFirestore } from './database';
-import { Deferred } from '../../../src/util/promise';
 import {
   ensureFirestoreConfigured,
   SnapshotMetadata
 } from '../../../src/api/database';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
 import { validateReference } from '../../../lite/src/api/write_batch';
-import { getDatastore } from '../../../lite/src/api/components';
 import { DocumentReference } from '../../../lite/src/api/reference';
 import { ExpUserDataWriter } from './reference';
+import { firestoreClientTransaction } from '../../../src/core/firestore_client';
 
 /**
  * A reference to a transaction.
@@ -97,18 +94,8 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  ensureFirestoreConfigured(firestore);
-
-  const deferred = new Deferred<T>();
-  firestore._queue.enqueueAndForget(async () => {
-    const datastore = await getDatastore(firestore);
-    new TransactionRunner<T>(
-      new AsyncQueue(),
-      datastore,
-      internalTransaction =>
-        updateFunction(new Transaction(firestore, internalTransaction)),
-      deferred
-    ).run();
-  });
-  return deferred.promise;
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientTransaction(client, internalTransaction =>
+    updateFunction(new Transaction(firestore, internalTransaction))
+  );
 }

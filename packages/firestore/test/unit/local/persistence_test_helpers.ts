@@ -75,7 +75,7 @@ export const INDEXEDDB_TEST_DATABASE_NAME =
   indexedDbStoragePrefix(TEST_DATABASE_ID, TEST_PERSISTENCE_KEY) +
   MAIN_DATABASE;
 
-const JSON_SERIALIZER = new JsonProtoSerializer(
+export const JSON_SERIALIZER = new JsonProtoSerializer(
   TEST_DATABASE_ID,
   /* useProto3Json= */ true
 );
@@ -122,13 +122,16 @@ export async function testIndexedDbPersistence(
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return new MemoryPersistence(MemoryEagerDelegate.factory);
+  return new MemoryPersistence(MemoryEagerDelegate.factory, JSON_SERIALIZER);
 }
 
 export async function testMemoryLruPersistence(
   params: LruParams = LruParams.DEFAULT
 ): Promise<MemoryPersistence> {
-  return new MemoryPersistence(p => new MemoryLruDelegate(p, params));
+  return new MemoryPersistence(
+    p => new MemoryLruDelegate(p, params),
+    JSON_SERIALIZER
+  );
 }
 
 /** Clears the persistence in tests */

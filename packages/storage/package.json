@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@firebase/app": "0.6.13",
-    "@firebase/auth": "0.15.1",
+    "@firebase/auth": "0.15.2",
     "rollup": "2.33.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.29.0",

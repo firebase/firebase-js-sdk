@@ -28,7 +28,7 @@ import { IdTokenResponse } from '../../model/id_token';
 import { MutableUserInfo, User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { _logoutIfInvalidated } from './invalidation';
 import { ProactiveRefresh } from './proactive_refresh';
@@ -40,7 +40,7 @@ function assertStringOrUndefined(
   assertion: unknown,
   appName: string
 ): asserts assertion is string | undefined {
-  assert(
+  _assert(
     typeof assertion === 'string' || typeof assertion === 'undefined',
     AuthErrorCode.INTERNAL_ERROR,
     { appName }
@@ -92,9 +92,7 @@ export class UserImpl implements User {
       this,
       this.stsTokenManager.getToken(this.auth, forceRefresh)
     );
-    assert(accessToken, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.auth.name
-    });
+    _assert(accessToken, this.auth, AuthErrorCode.INTERNAL_ERROR);
 
     if (this.accessToken !== accessToken) {
       this.accessToken = accessToken;
@@ -120,9 +118,7 @@ export class UserImpl implements User {
     if (this === user) {
       return;
     }
-    assert(this.uid === user.uid, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.auth.name
-    });
+    _assert(this.uid === user.uid, this.auth, AuthErrorCode.INTERNAL_ERROR);
     this.displayName = user.displayName;
     this.photoURL = user.photoURL;
     this.email = user.email;
@@ -144,9 +140,7 @@ export class UserImpl implements User {
 
   _onReload(callback: NextFn<APIUserInfo>): void {
     // There should only ever be one listener, and that is a single instance of MultiFactorUser
-    assert(!this.reloadListener, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.auth.name
-    });
+    _assert(!this.reloadListener, this.auth, AuthErrorCode.INTERNAL_ERROR);
     this.reloadListener = callback;
     if (this.reloadUserInfo) {
       this._notifyReloadListener(this.reloadUserInfo);
@@ -245,26 +239,26 @@ export class UserImpl implements User {
       stsTokenManager: plainObjectTokenManager
     } = object;
 
-    assert(uid && plainObjectTokenManager, AuthErrorCode.INTERNAL_ERROR, {
-      appName: auth.name
-    });
+    _assert(uid && plainObjectTokenManager, auth, AuthErrorCode.INTERNAL_ERROR);
 
     const stsTokenManager = StsTokenManager.fromJSON(
       this.name,
       plainObjectTokenManager as PersistedBlob
     );
 
-    assert(typeof uid === 'string', AuthErrorCode.INTERNAL_ERROR, {
-      appName: auth.name
-    });
+    _assert(typeof uid === 'string', auth, AuthErrorCode.INTERNAL_ERROR);
     assertStringOrUndefined(displayName, auth.name);
     assertStringOrUndefined(email, auth.name);
-    assert(typeof emailVerified === 'boolean', AuthErrorCode.INTERNAL_ERROR, {
-      appName: auth.name
-    });
-    assert(typeof isAnonymous === 'boolean', AuthErrorCode.INTERNAL_ERROR, {
-      appName: auth.name
-    });
+    _assert(
+      typeof emailVerified === 'boolean',
+      auth,
+      AuthErrorCode.INTERNAL_ERROR
+    );
+    _assert(
+      typeof isAnonymous === 'boolean',
+      auth,
+      AuthErrorCode.INTERNAL_ERROR
+    );
     assertStringOrUndefined(phoneNumber, auth.name);
     assertStringOrUndefined(photoURL, auth.name);
     assertStringOrUndefined(tenantId, auth.name);

@@ -1515,3 +1515,24 @@ declare module '@firebase/component' {
     'auth-exp': Auth;
   }
 }
+
+/**
+ * A mapping of error codes to error messages.
+ *
+ * @discussion
+ *
+ * While error messages are useful for debugging (providing verbose textual
+ * context around what went wrong), these strings take up a lot of space in the
+ * compiled code. When deploying code in production, using {@link prodErrorMap}
+ * will save you roughly 10k compressed/gzipped over {@link debugErrorMap}. You
+ * can select the error map during initialization:
+ *
+ * ```javascript
+ * initializeAuth(app, {errorMap: debugErrorMap})
+ * ```
+ *
+ * When initializing Auth, {@link prodErrorMap} is default.
+ *
+ * @public
+ */
+export interface AuthErrorMap {}

@@ -25,6 +25,7 @@ import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetData } from './target_data';
+import { BundleCache } from './bundle_cache';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +
@@ -223,6 +224,15 @@ export interface Persistence {
    * to emulate the persisted implementation to the extent possible.
    */
   getRemoteDocumentCache(): RemoteDocumentCache;
+
+  /**
+   * Returns a BundleCache representing the persisted cache of loaded bundles.
+   *
+   * Note: The implementation is free to return the same instance every time
+   * this is called. In particular, the memory-backed implementation does this
+   * to emulate the persisted implementation to the extent possible.
+   */
+  getBundleCache(): BundleCache;
 
   /**
    * Returns an IndexManager instance that manages our persisted query indexes.

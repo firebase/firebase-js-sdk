@@ -16,7 +16,8 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
+import { AuthErrorCode } from './errors';
+import { _assert } from './util/assert';
 
 /**
  * Enums for fields in URL query string.
@@ -108,9 +109,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     const code = uri.searchParams.get(QueryField.CODE);
     const operation = parseMode(uri.searchParams.get(QueryField.MODE));
     // Validate API key, code and mode.
-    if (!apiKey || !code || !operation) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {});
-    }
+    _assert(apiKey && code && operation, AuthErrorCode.ARGUMENT_ERROR);
     this.apiKey = apiKey;
     this.operation = operation;
     this.code = code;

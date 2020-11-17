@@ -22,6 +22,8 @@ import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
 import { unwrap, Wrapper } from './wrap';
 
+const _assert: typeof impl._assert = impl._assert;
+
 export class RecaptchaVerifier
   implements compat.RecaptchaVerifier, Wrapper<externs.ApplicationVerifier> {
   readonly verifier: externs.RecaptchaVerifier;
@@ -32,7 +34,7 @@ export class RecaptchaVerifier
     app: FirebaseApp = firebase.app()
   ) {
     // API key is required for web client RPC calls.
-    impl.assertFn(app.options?.apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
+    _assert(app.options?.apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
     this.verifier = new impl.RecaptchaVerifier(

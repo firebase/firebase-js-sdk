@@ -15,35 +15,112 @@
  * limitations under the License.
  */
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode, AuthErrorParams } from '../errors';
+import * as externs from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+import { Auth } from '../../model/auth';
+import {
+  _DEFAULT_AUTH_ERROR_FACTORY,
+  AuthErrorCode,
+  AuthErrorParams
+} from '../errors';
 import { _logError } from './log';
+
+type AuthErrorListParams<K> = K extends keyof AuthErrorParams
+  ? [AuthErrorParams[K]]
+  : [];
+type LessAppName<K extends AuthErrorCode> = Omit<AuthErrorParams[K], 'appName'>;
 
 /**
  * Unconditionally fails, throwing a developer facing INTERNAL_ERROR
  *
+ * @example
+ * ```javascript
+ * fail(auth, AuthErrorCode.MFA_REQUIRED);  // Error: the MFA_REQUIRED error needs more params than appName
+ * fail(auth, AuthErrorCode.MFA_REQUIRED, {serverResponse});  // Compiles
+ * fail(AuthErrorCode.INTERNAL_ERROR);  // Compiles; internal error does not need appName
+ * fail(AuthErrorCode.USER_DELETED);  // Error: USER_DELETED requires app name
+ * fail(auth, AuthErrorCode.USER_DELETED);  // Compiles; USER_DELETED _only_ needs app name
+ * ```
+ *
  * @param appName App name for tagging the error
  * @throws FirebaseError
  */
-export function fail<K extends AuthErrorCode>(
+export function _fail<K extends AuthErrorCode>(
   code: K,
-  ...data: K extends keyof AuthErrorParams ? [AuthErrorParams[K]] : []
+  ...data: {} extends AuthErrorParams[K]
+    ? [AuthErrorParams[K]?]
+    : [AuthErrorParams[K]]
+): never;
+export function _fail<K extends AuthErrorCode>(
+  auth: externs.Auth,
+  code: K,
+  ...data: {} extends LessAppName<K> ? [LessAppName<K>?] : [LessAppName<K>]
+): never;
+export function _fail<K extends AuthErrorCode>(
+  authOrCode: externs.Auth | K,
+  ...rest: unknown[]
 ): never {
-  throw AUTH_ERROR_FACTORY.create(code, ...data);
+  throw createErrorInternal(authOrCode, ...rest);
 }
 
-/**
- * Verifies the given condition and fails if false, throwing a developer facing error
- *
- * @param assertion
- * @param appName
- */
-export function assert<K extends AuthErrorCode>(
+export function _createError<K extends AuthErrorCode>(
+  code: K,
+  ...data: {} extends AuthErrorParams[K]
+    ? [AuthErrorParams[K]?]
+    : [AuthErrorParams[K]]
+): FirebaseError;
+export function _createError<K extends AuthErrorCode>(
+  auth: externs.Auth,
+  code: K,
+  ...data: {} extends LessAppName<K> ? [LessAppName<K>?] : [LessAppName<K>]
+): FirebaseError;
+export function _createError<K extends AuthErrorCode>(
+  authOrCode: externs.Auth | K,
+  ...rest: unknown[]
+): FirebaseError {
+  return createErrorInternal(authOrCode, ...rest);
+}
+
+function createErrorInternal<K extends AuthErrorCode>(
+  authOrCode: externs.Auth | K,
+  ...rest: unknown[]
+): FirebaseError {
+  if (typeof authOrCode !== 'string') {
+    const code = rest[0] as K;
+    const fullParams = [...rest.slice(1)] as AuthErrorListParams<K>;
+    if (fullParams[0]) {
+      fullParams[0].appName = authOrCode.name;
+    }
+
+    return (authOrCode as Auth)._errorFactory.create(code, ...fullParams);
+  }
+
+  return _DEFAULT_AUTH_ERROR_FACTORY.create(
+    authOrCode,
+    ...(rest as AuthErrorListParams<K>)
+  );
+}
+
+export function _assert<K extends AuthErrorCode>(
   assertion: unknown,
   code: K,
-  ...data: K extends keyof AuthErrorParams ? [AuthErrorParams[K]] : []
+  ...data: {} extends AuthErrorParams[K]
+    ? [AuthErrorParams[K]?]
+    : [AuthErrorParams[K]]
+): asserts assertion;
+export function _assert<K extends AuthErrorCode>(
+  assertion: unknown,
+  auth: externs.Auth,
+  code: K,
+  ...data: {} extends LessAppName<K> ? [LessAppName<K>?] : [LessAppName<K>]
+): asserts assertion;
+export function _assert<K extends AuthErrorCode>(
+  assertion: unknown,
+  authOrCode: externs.Auth | K,
+  ...rest: unknown[]
 ): asserts assertion {
   if (!assertion) {
-    fail(code, ...data);
+    throw createErrorInternal(authOrCode, ...rest);
   }
 }
 
@@ -91,7 +168,7 @@ export function assertTypes(
   ...expected: Array<TypeExpectation | Optional>
 ): void {
   if (args.length > expected.length) {
-    fail(AuthErrorCode.ARGUMENT_ERROR, {});
+    _fail(AuthErrorCode.ARGUMENT_ERROR, {});
   }
 
   for (let i = 0; i < expected.length; i++) {
@@ -114,7 +191,7 @@ export function assertTypes(
       }
 
       const required = expect.split('|');
-      assert(required.includes(typeof arg), AuthErrorCode.ARGUMENT_ERROR, {});
+      _assert(required.includes(typeof arg), AuthErrorCode.ARGUMENT_ERROR, {});
     } else if (typeof expect === 'object') {
       // Recursively check record arguments
       const record = arg as Record<string, unknown>;
@@ -126,7 +203,7 @@ export function assertTypes(
         ...keys.map(k => map[k])
       );
     } else {
-      assert(arg instanceof expect, AuthErrorCode.ARGUMENT_ERROR, {});
+      _assert(arg instanceof expect, AuthErrorCode.ARGUMENT_ERROR, {});
     }
   }
 }

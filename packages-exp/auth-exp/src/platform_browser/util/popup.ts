@@ -18,12 +18,13 @@
 import { getUA } from '@firebase/util';
 
 import { AuthErrorCode } from '../../core/errors';
-import { assert } from '../../core/util/assert';
+import { _assert } from '../../core/util/assert';
 import {
   _isChromeIOS,
   _isFirefox,
   _isIOSStandalone
 } from '../../core/util/browser';
+import { Auth } from '../../model/auth';
 
 const BASE_POPUP_OPTIONS = {
   location: 'yes',
@@ -53,7 +54,7 @@ export class AuthPopup {
 }
 
 export function _open(
-  appName: string,
+  auth: Auth,
   url?: string,
   name?: string,
   width = DEFAULT_WIDTH,
@@ -100,7 +101,7 @@ export function _open(
   // about:blank getting sanitized causing browsers like IE/Edge to display
   // brief error message before redirecting to handler.
   const newWin = window.open(url || '', target, optionsString);
-  assert(newWin, AuthErrorCode.POPUP_BLOCKED, { appName });
+  _assert(newWin, auth, AuthErrorCode.POPUP_BLOCKED);
 
   // Flaky on IE edge, encapsulate with a try and catch.
   try {

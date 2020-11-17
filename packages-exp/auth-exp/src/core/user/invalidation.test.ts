@@ -23,8 +23,9 @@ import { FirebaseError } from '@firebase/util';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { _logoutIfInvalidated } from './invalidation';
+import { _createError } from '../util/assert';
 
 use(chaiAsPromised);
 
@@ -39,7 +40,7 @@ describe('core/user/invalidation', () => {
   });
 
   function makeError(code: AuthErrorCode): FirebaseError {
-    return AUTH_ERROR_FACTORY.create(code, { appName: auth.name });
+    return _createError(auth, code);
   }
 
   it('leaves non-invalidation errors alone', async () => {

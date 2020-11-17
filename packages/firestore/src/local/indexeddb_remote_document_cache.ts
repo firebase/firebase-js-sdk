@@ -485,21 +485,21 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
       primitiveComparator(l.canonicalString(), r.canonicalString())
     );
 
-    this.changes.forEach((key, maybeDocument) => {
+    this.changes.forEach((key, documentChange) => {
       const previousSize = this.documentSizes.get(key);
       debugAssert(
         previousSize !== undefined,
         `Cannot modify a document that wasn't read (for ${key})`
       );
-      if (maybeDocument) {
+      if (documentChange.maybeDocument) {
         debugAssert(
-          !this.readTime.isEqual(SnapshotVersion.min()),
+          !this.getReadTime(key).isEqual(SnapshotVersion.min()),
           'Cannot add a document with a read time of zero'
         );
         const doc = toDbRemoteDocument(
           this.documentCache.serializer,
-          maybeDocument,
-          this.readTime
+          documentChange.maybeDocument,
+          this.getReadTime(key)
         );
         collectionParents = collectionParents.add(key.path.popLast());
 
@@ -516,7 +516,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
           const deletedDoc = toDbRemoteDocument(
             this.documentCache.serializer,
             new NoDocument(key, SnapshotVersion.min()),
-            this.readTime
+            this.getReadTime(key)
           );
           promises.push(
             this.documentCache.addEntry(transaction, key, deletedDoc)

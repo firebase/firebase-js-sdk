@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -227,6 +227,14 @@ fireauth.storage.IndexedDB.POLLING_DELAY_ = 800;
 
 
 /**
+ * Maximum number of times to retry a transaction in the event the connection is
+ * closed.
+ * @private @const {number}
+ */
+fireauth.storage.IndexedDB.TRANSACTION_RETRY_COUNT_ = 3;
+
+
+/**
  * The indexedDB polling stop error.
  * @private @const {string}
  */
@@ -341,6 +349,37 @@ fireauth.storage.IndexedDB.prototype.initializeDbAndRun_ =
   return this.initPromise_;
 };
 
+/**
+* Attempts to run a transaction, in the event of an error will re-initialize
+* the DB connection and retry a fixed number of times.
+* @param {function(!IDBDatabase): !goog.Promise<{T}>} transaction A method
+*     which performs a transactional operation on an IDBDatabase.
+* @template T 
+* @return {!goog.Promise<T>}
+* @private
+*/
+fireauth.storage.IndexedDB.prototype.withRetry_ = function(transaction) {
+  let numAttempts = 0;
+  const attempt = (resolve, reject) => {
+    this.initializeDbAndRun_()
+      .then(transaction)
+      .then(resolve)
+      .thenCatch((error) => {
+        if (++numAttempts >
+          fireauth.storage.IndexedDB.TRANSACTION_RETRY_COUNT_) {
+          reject(error);
+          return;
+        }
+        return this.initializeDbAndRun_().then((db) => {
+          db.close();
+          this.initPromise_ = undefined;
+          return attempt(resolve, reject);
+        });
+      });
+  };
+  return new goog.Promise(attempt);
+}
+
 
 /**
  * @return {boolean} Whether indexedDB is available or not.
@@ -416,43 +455,42 @@ fireauth.storage.IndexedDB.prototype.onIDBRequest_ =
  * @override
  */
 fireauth.storage.IndexedDB.prototype.set = function(key, value) {
-  var isLocked = false;
-  var dbTemp;
-  var self = this;
-  return this.initializeDbAndRun_()
-      .then(function(db) {
-        dbTemp = db;
-        var objectStore = self.getDataObjectStore_(
-            self.getTransaction_(dbTemp, true));
-        return self.onIDBRequest_(objectStore.get(key));
-      })
-      .then(function(data) {
-        var objectStore = self.getDataObjectStore_(
-            self.getTransaction_(dbTemp, true));
+  let isLocked = false;
+  return this
+    .withRetry_((db) => {
+      const objectStore =
+        this.getDataObjectStore_(this.getTransaction_(db, true));
+      return this.onIDBRequest_(objectStore.get(key));
+    })
+    .then((data) => {
+      return this.withRetry_((db) => {
+        const objectStore =
+          this.getDataObjectStore_(this.getTransaction_(db, true));
         if (data) {
           // Update the value(s) in the object that you want to change
           data.value = value;
           // Put this updated object back into the database.
-          return self.onIDBRequest_(objectStore.put(data));
+          return this.onIDBRequest_(objectStore.put(data));
         }
-        self.pendingOpsTracker_++;
+        this.pendingOpsTracker_++;
         isLocked = true;
-        var obj = {};
-        obj[self.dataKeyPath_] = key;
-        obj[self.valueKeyPath_] = value;
-        return self.onIDBRequest_(objectStore.add(obj));
-      })
-      .then(function() {
-        // Save in local copy to avoid triggering false external event.
-        self.localMap_[key] = value;
-        // Announce change in key to service worker.
-        return self.notifySW_(key);
-      })
-      .thenAlways(function() {
-        if (isLocked) {
-          self.pendingOpsTracker_--;
-        }
+        const obj = {};
+        obj[this.dataKeyPath_] = key;
+        obj[this.valueKeyPath_] = value;
+        return this.onIDBRequest_(objectStore.add(obj));
       });
+    })
+    .then(() => {
+      // Save in local copy to avoid triggering false external event.
+      this.localMap_[key] = value;
+      // Announce change in key to service worker.
+      return this.notifySW_(key);
+    })
+    .thenAlways(() => {
+      if (isLocked) {
+        this.pendingOpsTracker_--;
+      }
+    });
 };
 
 
@@ -496,15 +534,14 @@ fireauth.storage.IndexedDB.prototype.notifySW_ = function(key) {
  * @override
  */
 fireauth.storage.IndexedDB.prototype.get = function(key) {
-  var self = this;
-  return this.initializeDbAndRun_()
-      .then(function(db) {
-        return self.onIDBRequest_(
-            self.getDataObjectStore_(self.getTransaction_(db, false)).get(key));
-      })
-      .then(function(response) {
-        return response && response.value;
-      });
+  return this
+    .withRetry_((db) => {
+      return this.onIDBRequest_(
+          this.getDataObjectStore_(this.getTransaction_(db, false)).get(key));
+    })
+    .then((response) => {
+      return response && response.value;
+    }); 
 };
 
 
@@ -516,23 +553,22 @@ fireauth.storage.IndexedDB.prototype.get = function(key) {
  * @override
  */
 fireauth.storage.IndexedDB.prototype.remove = function(key) {
-  var isLocked = false;
-  var self = this;
-  return this.initializeDbAndRun_()
-      .then(function(db) {
+  let isLocked = false;
+  return this
+    .withRetry_((db) => {
         isLocked = true;
-        self.pendingOpsTracker_++;
-        return self.onIDBRequest_(
-            self.getDataObjectStore_(
-                self.getTransaction_(db, true))['delete'](key));
-      }).then(function() {
+        this.pendingOpsTracker_++;
+        return this.onIDBRequest_(
+            this.getDataObjectStore_(
+                this.getTransaction_(db, true))['delete'](key));
+      }).then(() => {
         // Delete from local copy to avoid triggering false external event.
-        delete self.localMap_[key];
+        delete this.localMap_[key];
         // Announce change in key to service worker.
-        return self.notifySW_(key);
-      }).thenAlways(function() {
+        return this.notifySW_(key);
+      }).thenAlways(() => {
         if (isLocked) {
-          self.pendingOpsTracker_--;
+          this.pendingOpsTracker_--;
         }
       });
 };

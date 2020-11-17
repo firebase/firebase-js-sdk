@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,15 +33,15 @@ goog.require('goog.testing.recordFunction');
 goog.setTestOnly('fireauth.storage.IndexedDBTest');
 
 
-var mockControl;
-var ignoreArgument;
-var stubs = new goog.testing.PropertyReplacer();
-var db = null;
-var manager;
-var clock;
-var indexedDBMock;
-var containsObjectStore;
-var deleted;
+let mockControl;
+let ignoreArgument;
+const stubs = new goog.testing.PropertyReplacer();
+let db = null;
+let manager;
+let clock;
+let indexedDBMock;
+let containsObjectStore;
+let deleted;
 
 
 
@@ -64,137 +64,148 @@ function setUp() {
     return true;
   };
   indexedDBMock = {
-    deleteDatabase: function(dbName) {
+    deleteDatabase: function (dbName) {
       assertEquals('firebaseLocalStorageDb', dbName);
-      var request = {};
+      const request = {};
       // Simulate successful deletion.
-      goog.Promise.resolve().then(function() {
+      goog.Promise.resolve().then(function () {
         deleted++;
         db = null;
         request.onsuccess();
       });
       return request;
     },
-    open: function(dbName, version) {
+    onopen_: () => { },
+    open: function (dbName, version) {
       assertEquals('firebaseLocalStorageDb', dbName);
       assertEquals(1, version);
-      var dbRequest = {};
-      goog.Promise.resolve().then(function() {
+      const dbRequest = {};
+      goog.Promise.resolve().then(function () {
         db = {
+          connectionActive: true,
           objectStoreNames: {
-            contains: function(name) {
+            contains: function (name) {
               assertEquals('firebaseLocalStorage', name);
               return containsObjectStore();
             }
           },
           key: null,
           store: {},
-          createObjectStore: function(objectStoreName, keyPath) {
-            var request = {
-              'transaction': {
-              }
-            };
-            assertEquals(
-                'firebaseLocalStorage',
-                objectStoreName);
-            assertObjectEquals(
-                {
-                  'keyPath': 'fbase_key'
-                },
-                keyPath);
+          close: function () {
+            if (db) {
+              db.connectionActive = false;
+            }
+          },
+          createObjectStore: function (objectStoreName, keyPath) {
+            const request = { 'transaction': {} };
+            assertEquals('firebaseLocalStorage', objectStoreName);
+            assertObjectEquals({ 'keyPath': 'fbase_key' }, keyPath);
             db.key = keyPath['keyPath'];
             db.store[objectStoreName] = {};
-            goog.Promise.resolve().then(function() {
-              var event = {
-                'target': {
-                  'result': db
-                }
-              };
+            goog.Promise.resolve().then(function () {
+              const event = { 'target': { 'result': db } };
               dbRequest.onsuccess(event);
             });
             return request;
           },
-          transaction: function(objectStores, type) {
-            for (var i = 0; i < objectStores.length; i++) {
+          transaction: function (objectStores, type) {
+            for (let i = 0; i < objectStores.length; i++) {
               if (!db.store[objectStores[i]]) {
                 fail('Object store does not exist!');
               }
             }
             return {
-              objectStore: function(objectStoreName) {
+              objectStore: function (objectStoreName) {
                 if (!db.store[objectStoreName]) {
                   fail('Object store does not exist!');
                 }
                 return {
-                  add: function(data) {
-                    var request = {};
+                  add: function (data) {
+                    if (!db.connectionActive) {
+                      throw new Error(
+                        'Failed to execute \'transaction\' on ' +
+                        '\'IDBDatabase\'.');
+                    }
+                    const request = {};
                     if (type != 'readwrite') {
                       fail('Invalid write operation!');
                     }
                     if (db.store[objectStoreName][data[db.key]]) {
                       fail('Unable to add. Key already exists!');
                     }
-                    goog.Promise.resolve().then(function() {
+                    goog.Promise.resolve().then(function () {
                       db.store[objectStoreName][data[db.key]] = data;
                       request.onsuccess();
                     });
                     return request;
                   },
-                  put: function(data) {
-                    var request = {};
+                  put: function (data) {
+                    if (!db.connectionActive) {
+                      throw new Error(
+                        'Failed to execute \'transaction\' on ' +
+                        '\'IDBDatabase\'.');
+                    }
+                    const request = {};
                     if (type != 'readwrite') {
                       fail('Invalid write operation!');
                     }
                     if (!db.store[objectStoreName][data[db.key]]) {
                       fail('Unable to put. Key does not exist!');
                     }
-                    for (var subKey in data) {
+                    for (let subKey in data) {
                       db.store[objectStoreName][data[db.key]][subKey] =
-                          data[subKey];
+                        data[subKey];
                     }
-                    goog.Promise.resolve().then(function() {
+                    goog.Promise.resolve().then(function () {
                       request.onsuccess();
                     });
                     return request;
                   },
-                  delete: function(keyToRemove) {
-                    var request = {};
+                  delete: function (keyToRemove) {
+                    if (!db.connectionActive) {
+                      throw new Error(
+                        'Failed to execute \'transaction\' on ' +
+                        '\'IDBDatabase\'.');
+                    }
+                    const request = {};
                     if (type != 'readwrite') {
                       fail('Invalid write operation!');
                     }
                     if (db.store[objectStoreName][keyToRemove]) {
                       delete db.store[objectStoreName][keyToRemove];
                     }
-                    goog.Promise.resolve().then(function() {
+                    goog.Promise.resolve().then(function () {
                       request.onsuccess();
                     });
                     return request;
                   },
-                  get: function(keyToGet, callback) {
-                    var request = {};
-                    var data = db.store[objectStoreName][keyToGet] || null;
-                    goog.Promise.resolve().then(function() {
-                      var event = {
-                        'target': {
-                          'result': data
-                        }
-                      };
+                  get: function (keyToGet, callback) {
+                    if (!db.connectionActive) {
+                      throw new Error(
+                        'Failed to execute \'transaction\' on ' +
+                        '\'IDBDatabase\'.');
+                    }
+                    const request = {};
+                    const data = db.store[objectStoreName][keyToGet] || null;
+                    goog.Promise.resolve().then(function () {
+                      const event = { 'target': { 'result': data } };
                       request.onsuccess(event);
                     });
                     return request;
                   },
-                  getAll: function() {
-                    var request = {};
-                    var results = [];
-                    for (var key in db.store[objectStoreName]) {
+                  getAll: function () {
+                    if (!db.connectionActive) {
+                      throw new Error(
+                        'Failed to execute \'transaction\' on ' +
+                        '\'IDBDatabase\'.');
+                    }
+                    const request = {};
+                    const results = [];
+                    for (let key in db.store[objectStoreName]) {
                       results.push(db.store[objectStoreName][key]);
                     }
-                    goog.Promise.resolve().then(function() {
-                      var event = {
-                        'target': {
-                          'result': results
-                        }
-                      };
+                    goog.Promise.resolve().then(function () {
+                      const event = { 'target': { 'result': results } };
                       request.onsuccess(event);
                     });
                     return request;
@@ -204,12 +215,9 @@ function setUp() {
             };
           }
         };
-        var event = {
-          'target': {
-            'result': db
-          }
-        };
+        const event = { 'target': { 'result': db } };
         dbRequest.onupgradeneeded(event);
+        indexedDBMock.onopen_(db);
       });
       return dbRequest;
     }
@@ -355,6 +363,53 @@ function testIndexedDb_setGetRemove_objectStoreMissing() {
       .then(function(data) {
         assertNull(data);
       });
+}
+
+
+function testIndexedDb_setGetRemove_connectionClosed() {
+  manager = getDefaultFireauthManager();
+  manager.addStorageListener(() => {
+    fail('Storage should not be triggered for local changes!');
+  });
+  let numAttempts = 0;
+  let errorThrown = false;
+  return goog.Promise.resolve()
+    .then(() => {
+      return manager.get('key1');
+    })
+    .then(() => {
+      // Close the connection and try a set, it should not throw.
+      db.close();
+      return manager.set('key1', 'value1');
+    })
+    .then(() => {
+      // Close the connection and try a get, it should not throw.
+      db.close();
+      return manager.get('key1');
+    })
+    .then((data) => {
+      // Close the connection and try a remove, it should not throw.
+      db.close();
+      return manager.remove('key1');
+    })
+    .then(() => {
+      db.close();
+      indexedDBMock.onopen_ = (db) => {
+        numAttempts++;
+        db.close();
+      };
+      return manager.set('key1', 'value1');
+    })
+    .thenCatch((error) => {
+      assertEquals(
+        error.message,
+        'Failed to execute \'transaction\' on \'IDBDatabase\'.');
+      errorThrown = true;
+    })
+    .then(() => {
+      assertEquals(3, numAttempts);
+      assertTrue(errorThrown);
+    });
 }
 
 

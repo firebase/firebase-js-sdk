@@ -20,6 +20,8 @@ import { FirebaseFirestore } from './database';
 import { executeWrite } from './reference';
 import { ensureFirestoreConfigured } from '../../../src/api/database';
 
+export { WriteBatch };
+
 /**
  * Creates a write batch, used for performing multiple writes as a single
  * atomic operation. The maximum number of writes allowed in a single WriteBatch
