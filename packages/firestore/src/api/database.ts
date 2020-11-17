@@ -130,6 +130,7 @@ import {
   CollectionReference as PublicCollectionReference,
   DocumentChange as PublicDocumentChange,
   DocumentChangeType as PublicDocumentChangeType,
+  DocumentData,
   DocumentData as PublicDocumentData,
   DocumentReference as PublicDocumentReference,
   DocumentSnapshot as PublicDocumentSnapshot,
@@ -407,6 +408,22 @@ export class Firestore
       new ExpWriteBatch(this._delegate, mutations =>
         executeWrite(this._delegate, mutations)
       )
+    );
+  }
+
+  loadBundle(
+    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+  ): LoadBundleTask {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      '"loadBundle()" does not exist, have you imported "firebase/firestore/bundle"'
+    );
+  }
+
+  namedQuery(name: string): Promise<PublicQuery<DocumentData> | null> {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      '"namedQuery()" does not exist, have you imported "firebase/firestore/bundle"'
     );
   }
 }

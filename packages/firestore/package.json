@@ -15,6 +15,7 @@
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
+    "build:bundle": "rollup -c rollup.config.bundle.js",
     "build:exp:release": "yarn build:exp && yarn build:lite",
     "predev": "yarn prebuild",
     "dev": "rollup -c -w",
@@ -57,6 +58,8 @@
   "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
+  "bundle": "dist/index.bundle.js",
+  "bundleModule": "dist/index.bundle.module.js",
   "license": "Apache-2.0",
   "files": [
     "dist",

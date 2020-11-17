@@ -36,8 +36,6 @@ declare module '@firebase/app-types' {
       Transaction: typeof types.Transaction;
       WriteBatch: typeof types.WriteBatch;
       setLogLevel: typeof types.setLogLevel;
-      loadBundle: typeof types.loadBundle;
-      namedQuery: typeof types.namedQuery;
     };
   }
   interface FirebaseApp {
