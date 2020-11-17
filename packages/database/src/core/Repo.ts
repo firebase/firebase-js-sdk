@@ -315,7 +315,7 @@ export class Repo {
    * error.
    *
    * In case (2), `getValue` will trigger a time-limited connection
-   * attempt. If the client is unable to connect to the server, the
+   * attempt. If the client is unable to connect to the server, it
    * will surface an "offline" error because there cannot be any
    * cached data. On the other hand, if the client is able to connect,
    * `getValue` will return the server's value for the query, if one
