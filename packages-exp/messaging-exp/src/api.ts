@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { ComponentContainer, Provider } from '@firebase/component';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import {
   FirebaseMessaging,
@@ -23,72 +22,44 @@ import {
 } from '@firebase/messaging-types-exp';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
-import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
-import { SwController } from './controllers/sw-controller';
-import { WindowController } from './controllers/window-controller';
+import { MessagingService } from './messaging-service';
+import { Provider } from '@firebase/component';
+import { deleteToken as _deleteToken } from './api/deleteToken';
 import { _getProvider } from '@firebase/app-exp';
-import { extractAppConfig } from './helpers/extract-app-config';
+import { getToken as _getToken } from './api/getToken';
+import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
+import { onMessage as _onMessage } from './api/onMessage';
 
 export function getMessaging(app: FirebaseApp): FirebaseMessaging {
-  const messagingProvider: Provider<'messaging'> = _getProvider(
+  const messagingProvider: Provider<'messaging-exp'> = _getProvider(
     app,
-    'messaging'
+    'messaging-exp'
   );
 
   return messagingProvider.getImmediate();
 }
 
-export function getToken(
+export async function getToken(
   messaging: FirebaseMessaging,
   options?: { vapidKey?: string; swReg?: ServiceWorkerRegistration }
 ): Promise<string> {
-  return messaging.getToken(options);
+  return _getToken(messaging as MessagingService, options);
 }
 
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean> {
-  return messaging.deleteToken();
+  return _deleteToken(messaging as MessagingService);
 }
 
 export function onMessage(
   messaging: FirebaseMessaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
-  return messaging.onMessage(nextOrObserver);
+  return _onMessage(messaging as MessagingService, nextOrObserver);
 }
 
 export function onBackgroundMessage(
   messaging: FirebaseMessaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
-  return messaging.onBackgroundMessage(nextOrObserver);
-}
-
-export class MessagingService implements _FirebaseService {
-  app!: FirebaseApp;
-  readonly windowController: WindowController | null = null;
-  readonly swController: SwController | null = null;
-
-  constructor(container: ComponentContainer) {
-    const app = container.getProvider('app-exp').getImmediate();
-    const appConfig = extractAppConfig(app);
-    const installations = container.getProvider('installations').getImmediate();
-    const analyticsProvider = container.getProvider('analytics-internal');
-
-    const firebaseDependencies: FirebaseInternalDependencies = {
-      app,
-      appConfig,
-      installations,
-      analyticsProvider
-    };
-
-    if (self && 'ServiceWorkerGlobalScope' in self) {
-      this.swController = new SwController(firebaseDependencies);
-    } else {
-      this.windowController = new WindowController(firebaseDependencies);
-    }
-  }
-
-  _delete(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
+  return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
 }

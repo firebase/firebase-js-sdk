@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@firebase/component": "0.1.19",
-    "@firebase/installations": "0.4.17",
+    "@firebase/installations-exp": "0.x",
     "@firebase/messaging-types-exp": "0.0.800",
     "@firebase/util": "0.3.2",
     "idb": "3.0.2",

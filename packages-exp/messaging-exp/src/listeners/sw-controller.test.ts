@@ -17,15 +17,13 @@
 
 import '../testing/setup';
 
-import * as tokenManagementModule from '../core/token-management';
+import * as tokenManagementModule from '../internals/token-manager';
 
-import { BgMessageHandler, SwController } from './sw-controller';
 import {
   CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
   CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_NAME,
   CONSOLE_CAMPAIGN_TIME,
-  DEFAULT_VAPID_KEY,
   FCM_MSG
 } from '../util/constants';
 import { DeepPartial, ValueOf, Writable } from 'ts-essentials';
@@ -39,14 +37,17 @@ import {
   MessagePayloadInternal,
   MessageType
 } from '../interfaces/internal-message-payload';
+import {
+  getFakeAnalyticsProvider,
+  getFakeApp,
+  getFakeInstallations
+} from '../testing/fakes/firebase-dependencies';
 import { spy, stub } from 'sinon';
 
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { MessagingService } from '../messaging-service';
 import { Stub } from '../testing/sinon-types';
-import { dbSet } from '../helpers/idb-manager';
+import { SwController } from './sw-controller';
 import { expect } from 'chai';
-import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
-import { getFakeTokenDetails } from '../testing/fakes/token-details';
 
 const LOCAL_HOST = self.location.host;
 const TEST_LINK = 'https://' + LOCAL_HOST + '/test-link.org';
@@ -70,25 +71,15 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   collapse_key: 'collapse'
 };
 
-// internal message payload (parsed directly from the push event) that contains and only contains
-// data payload.
-const DATA_MESSAGE: MessagePayloadInternal = {
-  data: {
-    key: 'value'
-  },
-  from: 'from',
-  // eslint-disable-next-line camelcase
-  collapse_key: 'collapse'
-};
-
 describe('SwController', () => {
   let addEventListenerStub: Stub<typeof self.addEventListener>;
   // eslint-disable-next-line @typescript-eslint/ban-types
   let eventListenerMap: Map<string, Function>;
-  let swController: SwController;
-  let firebaseDependencies: FirebaseInternalDependencies;
-  let getTokenStub: Stub<typeof tokenManagementModule['getToken']>;
-  let deleteTokenStub: Stub<typeof tokenManagementModule['deleteToken']>;
+  let messaging: MessagingService;
+  let getTokenStub: Stub<typeof tokenManagementModule['getTokenInternal']>;
+  let deleteTokenStub: Stub<
+    typeof tokenManagementModule['deleteTokenInternal']
+  >;
 
   beforeEach(() => {
     mockServiceWorker();
@@ -105,21 +96,24 @@ describe('SwController', () => {
     );
     eventListenerMap = new Map();
 
-    getTokenStub = stub(tokenManagementModule, 'getToken').resolves(
+    getTokenStub = stub(tokenManagementModule, 'getTokenInternal').resolves(
       'token-value'
     );
-    deleteTokenStub = stub(tokenManagementModule, 'deleteToken').resolves(true);
+    deleteTokenStub = stub(
+      tokenManagementModule,
+      'deleteTokenInternal'
+    ).resolves(true);
 
-    firebaseDependencies = getFakeFirebaseDependencies();
-    swController = new SwController(firebaseDependencies);
+    messaging = new MessagingService(
+      getFakeApp(),
+      getFakeInstallations(),
+      getFakeAnalyticsProvider()
+    );
+    new SwController(messaging);
   });
 
   afterEach(() => {
     restoreServiceWorker();
-  });
-
-  it('has app', () => {
-    expect(swController.app).to.equal(firebaseDependencies.app);
   });
 
   it('sets event listeners on initialization', () => {
@@ -129,68 +123,6 @@ describe('SwController', () => {
       'pushsubscriptionchange'
     );
     expect(addEventListenerStub).to.have.been.calledWith('notificationclick');
-  });
-
-  it('throws when window-only methods are called', () => {
-    expect(() => swController.requestPermission()).to.throw(
-      'messaging/only-available-in-window'
-    );
-    expect(() => swController.useServiceWorker()).to.throw(
-      'messaging/only-available-in-window'
-    );
-    expect(() => swController.onMessage()).to.throw(
-      'messaging/only-available-in-window'
-    );
-    expect(() => swController.onTokenRefresh()).to.throw(
-      'messaging/only-available-in-window'
-    );
-  });
-
-  describe('getToken', () => {
-    it('calls getToken with the set VAPID key', async () => {
-      swController.usePublicVapidKey('use-vapid-key');
-      await swController.getToken();
-
-      expect(getTokenStub).to.have.been.calledWith(
-        firebaseDependencies,
-        self.registration,
-        'use-vapid-key'
-      );
-    });
-
-    it('calls getToken with the current VAPID key if it is not set', async () => {
-      const tokenDetails = getFakeTokenDetails();
-      await dbSet(firebaseDependencies, tokenDetails);
-
-      await swController.getToken();
-
-      expect(getTokenStub).to.have.been.calledWith(
-        firebaseDependencies,
-        self.registration,
-        'dmFwaWQta2V5LXZhbHVl'
-      );
-    });
-
-    it('calls getToken with the default VAPID key if there is no token in db', async () => {
-      await swController.getToken();
-
-      expect(getTokenStub).to.have.been.calledWith(
-        firebaseDependencies,
-        self.registration,
-        DEFAULT_VAPID_KEY
-      );
-    });
-  });
-
-  describe('deleteToken', () => {
-    it('calls deleteToken', async () => {
-      await swController.deleteToken();
-
-      expect(deleteTokenStub).to.have.been.calledWith(
-        firebaseDependencies,
-        self.registration
-      );
-    });
   });
 
   describe('onPush', () => {
@@ -274,46 +206,6 @@ describe('SwController', () => {
       });
     });
 
-    it('calls bgMessageHandler if message is not a notification', async () => {
-      const bgMessageHandlerSpy = spy();
-      swController.setBackgroundMessageHandler(bgMessageHandlerSpy);
-
-      await callEventListener(
-        makeEvent('push', {
-          data: {
-            json: () => DATA_MESSAGE
-          }
-        })
-      );
-
-      expect(bgMessageHandlerSpy).to.have.been.calledWith();
-    });
-
-    it('forwards MessagePayload with a notification payload to onBackgroundMessage', async () => {
-      const bgMessageHandlerSpy = spy();
-      const showNotificationSpy = spy(self.registration, 'showNotification');
-
-      swController.onBackgroundMessage(bgMessageHandlerSpy);
-
-      await callEventListener(
-        makeEvent('push', {
-          data: {
-            json: () => ({
-              notification: {
-                ...DISPLAY_MESSAGE
-              },
-              data: {
-                ...DATA_MESSAGE
-              }
-            })
-          }
-        })
-      );
-
-      expect(bgMessageHandlerSpy).to.have.been.called;
-      expect(showNotificationSpy).to.have.been.called;
-    });
-
     it('warns if there are more action buttons than the browser limit', async () => {
       // This doesn't exist on Firefox:
       // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
@@ -343,43 +235,6 @@ describe('SwController', () => {
       expect(warnStub).to.have.been.calledOnceWith(
         'This browser only supports 1 actions. The remaining actions will not be displayed.'
       );
-    });
-  });
-
-  describe('setBackgroundMessageHandler', () => {
-    it('throws on invalid input', () => {
-      expect(() =>
-        swController.setBackgroundMessageHandler(
-          (null as unknown) as BgMessageHandler
-        )
-      ).to.throw('messaging/invalid-bg-handler');
-    });
-  });
-
-  describe('usePublicVapidKey', () => {
-    it('throws on invalid input', () => {
-      expect(() =>
-        swController.usePublicVapidKey((null as unknown) as string)
-      ).to.throw('messaging/invalid-vapid-key');
-
-      expect(() => swController.usePublicVapidKey('')).to.throw(
-        'messaging/invalid-vapid-key'
-      );
-    });
-
-    it('throws if called twice', () => {
-      swController.usePublicVapidKey('dmFwaWQta2V5LXZhbHVl');
-      expect(() =>
-        swController.usePublicVapidKey('dmFwaWQta2V5LXZhbHVl')
-      ).to.throw('messaging/use-vapid-key-after-get-token');
-    });
-
-    it('throws if called after getToken', async () => {
-      await swController.getToken();
-
-      expect(() =>
-        swController.usePublicVapidKey('dmFwaWQta2V5LXZhbHVl')
-      ).to.throw('messaging/use-vapid-key-after-get-token');
     });
   });
 

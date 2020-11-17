@@ -21,7 +21,7 @@ import {
 } from '@firebase/analytics-interop-types';
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types-exp';
 
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { FirebaseInternalDependencies } from '../../interfaces/internal-dependencies';
 import { Provider } from '@firebase/component';
 import { extractAppConfig } from '../../helpers/extract-app-config';
@@ -59,7 +59,7 @@ export function getFakeApp(options: FirebaseOptions = {}): any {
   };
 }
 
-function getFakeInstallations(): FirebaseInstallations {
+export function getFakeInstallations(): FirebaseInstallations {
   return {
     getId: async () => 'FID',
     getToken: async () => 'authToken',
@@ -68,7 +68,9 @@ function getFakeInstallations(): FirebaseInstallations {
   };
 }
 
-function getFakeAnalyticsProvider(): Provider<FirebaseAnalyticsInternalName> {
+export function getFakeAnalyticsProvider(): Provider<
+  FirebaseAnalyticsInternalName
+> {
   const analytics: FirebaseAnalyticsInternal = {
     logEvent() {}
   };

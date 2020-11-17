@@ -17,9 +17,9 @@
 
 import '../testing/setup';
 
-import * as migrateOldDatabaseModule from './migrate-old-database';
+import * as migrateOldDatabaseModule from '../helpers/migrate-old-database';
 
-import { dbGet, dbRemove, dbSet } from './idb-manager';
+import { dbGet, dbRemove, dbSet } from '../internals/idb-manager';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';

@@ -46,49 +46,12 @@ export interface MessagePayload {
   collapseKey: string;
 }
 
-export interface FirebaseMessaging {
-  /** window controller */
-  deleteToken(): Promise<boolean>;
-  getToken(options?: {
-    vapidKey?: string;
-    serviceWorkerRegistration?: ServiceWorkerRegistration;
-  }): Promise<string>;
-  onMessage(
-    nextOrObserver: NextFn<any> | Observer<any>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe;
-
-  /** service worker controller */
-  onBackgroundMessage(
-    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe;
-
-  /** @deprecated */
-  deleteToken(token: string): Promise<boolean>;
-  onTokenRefresh(
-    nextOrObserver: NextFn<any> | Observer<any>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe;
-  /**
-   * @deprecated Use Notification.requestPermission() instead.
-   * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
-   */
-  requestPermission(): Promise<void>;
-  setBackgroundMessageHandler(
-    callback: (payload: any) => Promise<any> | void
-  ): void;
-  useServiceWorker(registration: ServiceWorkerRegistration): void;
-  usePublicVapidKey(b64PublicKey: string): void;
-}
+export interface FirebaseMessaging {}
 
 export type FirebaseMessagingName = 'messaging';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging': FirebaseMessaging;
+    'messaging-exp': FirebaseMessaging;
   }
 }

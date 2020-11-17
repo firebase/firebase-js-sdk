@@ -15,23 +15,19 @@
  * limitations under the License.
  */
 
-import { DEFAULT_VAPID_KEY, FCM_MSG, TAG } from '../util/constants';
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
-import {
-  FirebaseMessaging,
-  MessagePayload
-} from '@firebase/messaging-types-exp';
+import { DEFAULT_VAPID_KEY, FCM_MSG } from '../util/constants';
 import {
   MessagePayloadInternal,
   MessageType,
   NotificationPayloadInternal
 } from '../interfaces/internal-message-payload';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
-import { deleteToken, getToken } from '../core/token-management';
+import {
+  deleteTokenInternal,
+  getTokenInternal
+} from '../internals/token-manager';
 
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { dbGet } from '../helpers/idb-manager';
+import { MessagingService } from '../messaging-service';
+import { dbGet } from '../internals/idb-manager';
 import { externalizePayload } from '../helpers/externalizePayload';
 import { isConsoleMessage } from '../helpers/is-console-message';
 import { sleep } from '../helpers/sleep';
@@ -39,24 +35,8 @@ import { sleep } from '../helpers/sleep';
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
 
-export type BgMessageHandler = (payload: MessagePayload) => unknown;
-
-export class SwController implements FirebaseMessaging, _FirebaseService {
-  // A boolean flag to determine wether an app is using onBackgroundMessage or
-  // setBackgroundMessageHandler. onBackgroundMessage will receive a MessagePayload regardless of if
-  // a notification is displayed. Whereas, setBackgroundMessageHandler will swallow the
-  // MessagePayload if a NotificationPayload is included.
-  private isOnBackgroundMessageUsed: boolean | null = null;
-  private vapidKey: string | null = null;
-  private bgMessageHandler:
-    | BgMessageHandler
-    | null
-    | NextFn<MessagePayload>
-    | Observer<MessagePayload> = null;
-
-  constructor(
-    private readonly firebaseDependencies: FirebaseInternalDependencies
-  ) {
+export class SwController {
+  constructor(private readonly messaging: MessagingService) {
     self.addEventListener('push', e => {
       e.waitUntil(this.onPush(e));
     });
@@ -66,104 +46,6 @@ export class SwController implements FirebaseMessaging, _FirebaseService {
     self.addEventListener('notificationclick', e => {
       e.waitUntil(this.onNotificationClick(e));
     });
-  }
-
-  _delete(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  get app(): FirebaseApp {
-    return this.firebaseDependencies.app;
-  }
-
-  /**
-   * @deprecated. Use onBackgroundMessage(nextOrObserver: NextFn<object> | Observer<object>):
-   * Unsubscribe instead.
-   *
-   * Calling setBackgroundMessageHandler will opt in to some specific behaviors.
-   *
-   * 1.) If a notification doesn't need to be shown due to a window already being visible, then push
-   * messages will be sent to the page. 2.) If a notification needs to be shown, and the message
-   * contains no notification data this method will be called and the promise it returns will be
-   * passed to event.waitUntil. If you do not set this callback then all push messages will let and
-   * the developer can handle them in a their own 'push' event callback
-   *
-   * @param callback The callback to be called when a push message is received and a notification
-   * must be shown. The callback will be given the data from the push message.
-   */
-  setBackgroundMessageHandler(callback: BgMessageHandler): void {
-    this.isOnBackgroundMessageUsed = false;
-
-    if (!callback || typeof callback !== 'function') {
-      throw ERROR_FACTORY.create(ErrorCode.INVALID_BG_HANDLER);
-    }
-
-    this.bgMessageHandler = callback;
-  }
-
-  onBackgroundMessage(
-    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
-  ): Unsubscribe {
-    this.isOnBackgroundMessageUsed = true;
-    this.bgMessageHandler = nextOrObserver;
-
-    return () => {
-      this.bgMessageHandler = null;
-    };
-  }
-
-  // TODO: Remove getToken from SW Controller. Calling this from an old SW can cause all kinds of
-  // trouble.
-  async getToken(): Promise<string> {
-    if (!this.vapidKey) {
-      // Call getToken using the current VAPID key if there already is a token. This is needed
-      // because usePublicVapidKey was not available in SW. It will be removed when vapidKey becomes
-      // a parameter of getToken, or when getToken is removed from SW.
-      const tokenDetails = await dbGet(this.firebaseDependencies);
-      this.vapidKey =
-        tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
-    }
-
-    return getToken(
-      this.firebaseDependencies,
-      self.registration,
-      this.vapidKey
-    );
-  }
-
-  // TODO: Remove deleteToken from SW Controller. Calling this from an old SW can cause all kinds of
-  // trouble.
-  deleteToken(): Promise<boolean> {
-    return deleteToken(this.firebaseDependencies, self.registration);
-  }
-
-  requestPermission(): Promise<void> {
-    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
-  }
-
-  // TODO: Remove this together with getToken from SW Controller.
-  usePublicVapidKey(vapidKey: string): void {
-    if (this.vapidKey !== null) {
-      throw ERROR_FACTORY.create(ErrorCode.USE_VAPID_KEY_AFTER_GET_TOKEN);
-    }
-
-    if (typeof vapidKey !== 'string' || vapidKey.length === 0) {
-      throw ERROR_FACTORY.create(ErrorCode.INVALID_VAPID_KEY);
-    }
-
-    this.vapidKey = vapidKey;
-  }
-
-  useServiceWorker(): void {
-    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
-  }
-
-  onMessage(): Unsubscribe {
-    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
-  }
-
-  onTokenRefresh(): Unsubscribe {
-    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   /**
@@ -179,10 +61,7 @@ export class SwController implements FirebaseMessaging, _FirebaseService {
   async onPush(event: PushEvent): Promise<void> {
     const internalPayload = getMessagePayloadInternal(event);
     if (!internalPayload) {
-      console.debug(
-        TAG +
-          'failed to get parsed MessagePayload from the PushEvent. Skip handling the push.'
-      );
+      // Failed to get parsed MessagePayload from the PushEvent. Skip handling the push.
       return;
     }
 
@@ -192,29 +71,18 @@ export class SwController implements FirebaseMessaging, _FirebaseService {
       return sendMessagePayloadInternalToWindows(clientList, internalPayload);
     }
 
-    // background handling: display and pass to onBackgroundMessage hook
-    let isNotificationShown = false;
+    // background handling: display if possible and pass to onBackgroundMessage hook
     if (!!internalPayload.notification) {
       await showNotification(wrapInternalPayload(internalPayload));
-      isNotificationShown = true;
     }
 
-    // MessagePayload is only passed to `onBackgroundMessage`. Skip passing MessagePayload for
-    // the legacy `setBackgroundMessageHandler` to preserve the SDK behaviors.
-    if (
-      isNotificationShown === true &&
-      this.isOnBackgroundMessageUsed === false
-    ) {
-      return;
-    }
-
-    if (!!this.bgMessageHandler) {
+    if (!!this.messaging.onBackgroundMessageHandler) {
       const payload = externalizePayload(internalPayload);
 
-      if (typeof this.bgMessageHandler === 'function') {
-        this.bgMessageHandler(payload);
+      if (typeof this.messaging.onBackgroundMessageHandler === 'function') {
+        this.messaging.onBackgroundMessageHandler(payload);
       } else {
-        this.bgMessageHandler.next(payload);
+        this.messaging.onBackgroundMessageHandler.next(payload);
       }
     }
   }
@@ -223,17 +91,16 @@ export class SwController implements FirebaseMessaging, _FirebaseService {
     const { newSubscription } = event;
     if (!newSubscription) {
       // Subscription revoked, delete token
-      await deleteToken(this.firebaseDependencies, self.registration);
+      await deleteTokenInternal(this.messaging);
       return;
     }
 
-    const tokenDetails = await dbGet(this.firebaseDependencies);
-    await deleteToken(this.firebaseDependencies, self.registration);
-    await getToken(
-      this.firebaseDependencies,
-      self.registration,
-      tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY
-    );
+    const tokenDetails = await dbGet(this.messaging.firebaseDependencies);
+    await deleteTokenInternal(this.messaging);
+
+    this.messaging.vapidKey =
+      tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
+    await getTokenInternal(this.messaging);
   }
 
   async onNotificationClick(event: NotificationEvent): Promise<void> {

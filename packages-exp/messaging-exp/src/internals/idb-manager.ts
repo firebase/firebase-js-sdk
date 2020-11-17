@@ -19,7 +19,7 @@ import { DB, deleteDb, openDb } from 'idb';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails } from '../interfaces/token-details';
-import { migrateOldDatabase } from './migrate-old-database';
+import { migrateOldDatabase } from '../helpers/migrate-old-database';
 
 // Exported for tests.
 export const DATABASE_NAME = 'firebase-messaging-database';

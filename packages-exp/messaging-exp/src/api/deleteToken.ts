@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,22 @@
  * limitations under the License.
  */
 
-import * as chaiAsPromised from 'chai-as-promised';
-import * as sinonChai from 'sinon-chai';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
-import { dbDelete } from '../internals/idb-manager';
-import { deleteDb } from 'idb';
-import { restore } from 'sinon';
-import { use } from 'chai';
+import { MessagingService } from '../messaging-service';
+import { deleteTokenInternal } from '../internals/token-manager';
+import { registerDefaultSw } from '../helpers/registerDefaultSw';
 
-use(chaiAsPromised);
-use(sinonChai);
+export async function deleteToken(
+  messaging: MessagingService
+): Promise<boolean> {
+  if (!navigator) {
+    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
+  }
 
-afterEach(async () => {
-  restore();
-  await dbDelete();
-  await deleteDb('fcm_token_details_db');
-});
+  if (!messaging.swRegistration) {
+    await registerDefaultSw(messaging);
+  }
+
+  return deleteTokenInternal(messaging);
+}

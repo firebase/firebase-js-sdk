@@ -15,68 +15,66 @@
  * limitations under the License.
  */
 
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { SubscriptionOptions, TokenDetails } from '../interfaces/token-details';
 import {
   arrayToBase64,
   base64ToArray
 } from '../helpers/array-base64-translator';
-import { dbGet, dbRemove, dbSet } from '../helpers/idb-manager';
-import { requestDeleteToken, requestGetToken, requestUpdateToken } from './api';
+import { dbGet, dbRemove, dbSet } from './idb-manager';
+import {
+  requestDeleteToken,
+  requestGetToken,
+  requestUpdateToken
+} from './requests';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { MessagingService } from '../messaging-service';
 
-/** UpdateRegistration will be called once every week. */
+// UpdateRegistration will be called once every week.
 const TOKEN_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export async function getToken(
-  firebaseDependencies: FirebaseInternalDependencies,
-  swRegistration: ServiceWorkerRegistration,
-  vapidKey: string
+export async function getTokenInternal(
+  messaging: MessagingService
 ): Promise<string> {
-  if (Notification.permission !== 'granted') {
-    throw ERROR_FACTORY.create(ErrorCode.PERMISSION_BLOCKED);
-  }
-
-  // If a PushSubscription exists it's returned, otherwise a new subscription is generated and
-  // returned.
-  const pushSubscription = await getPushSubscription(swRegistration, vapidKey);
-  const tokenDetails = await dbGet(firebaseDependencies);
+  const pushSubscription = await getPushSubscription(
+    messaging.swRegistration!,
+    messaging.vapidKey!
+  );
 
   const subscriptionOptions: SubscriptionOptions = {
-    vapidKey,
-    swScope: swRegistration.scope,
+    vapidKey: messaging.vapidKey!,
+    swScope: messaging.swRegistration!.scope,
     endpoint: pushSubscription.endpoint,
     auth: arrayToBase64(pushSubscription.getKey('auth')!),
     p256dh: arrayToBase64(pushSubscription.getKey('p256dh')!)
   };
 
+  const tokenDetails = await dbGet(messaging.firebaseDependencies);
   if (!tokenDetails) {
     // No token, get a new one.
-    return getNewToken(firebaseDependencies, subscriptionOptions);
+    return getNewToken(messaging.firebaseDependencies, subscriptionOptions);
   } else if (
     !isTokenValid(tokenDetails.subscriptionOptions!, subscriptionOptions)
   ) {
     // Invalid token, get a new one.
     try {
-      await requestDeleteToken(firebaseDependencies, tokenDetails.token);
+      await requestDeleteToken(
+        messaging.firebaseDependencies!,
+        tokenDetails.token
+      );
     } catch (e) {
       // Suppress errors because of #2364
       console.warn(e);
     }
 
-    return getNewToken(firebaseDependencies, subscriptionOptions);
+    return getNewToken(messaging.firebaseDependencies!, subscriptionOptions);
   } else if (Date.now() >= tokenDetails.createTime + TOKEN_EXPIRATION_MS) {
     // Weekly token refresh
-    return updateToken(
-      {
-        token: tokenDetails.token,
-        createTime: Date.now(),
-        subscriptionOptions
-      },
-      firebaseDependencies,
-      swRegistration
-    );
+    return updateToken(messaging, {
+      token: tokenDetails.token,
+      createTime: Date.now(),
+      subscriptionOptions
+    });
   } else {
     // Valid token, nothing to do.
     return tokenDetails.token;
@@ -87,18 +85,20 @@ export async function getToken(
  * This method deletes the token from the database, unsubscribes the token from FCM, and unregisters
  * the push subscription if it exists.
  */
-export async function deleteToken(
-  firebaseDependencies: FirebaseInternalDependencies,
-  swRegistration: ServiceWorkerRegistration
+export async function deleteTokenInternal(
+  messaging: MessagingService
 ): Promise<boolean> {
-  const tokenDetails = await dbGet(firebaseDependencies);
+  const tokenDetails = await dbGet(messaging.firebaseDependencies);
   if (tokenDetails) {
-    await requestDeleteToken(firebaseDependencies, tokenDetails.token);
-    await dbRemove(firebaseDependencies);
+    await requestDeleteToken(
+      messaging.firebaseDependencies,
+      tokenDetails.token
+    );
+    await dbRemove(messaging.firebaseDependencies);
   }
 
   // Unsubscribe from the push subscription.
-  const pushSubscription = await swRegistration.pushManager.getSubscription();
+  const pushSubscription = await messaging.swRegistration!.pushManager.getSubscription();
   if (pushSubscription) {
     return pushSubscription.unsubscribe();
   }
@@ -108,13 +108,12 @@ export async function deleteToken(
 }
 
 async function updateToken(
-  tokenDetails: TokenDetails,
-  firebaseDependencies: FirebaseInternalDependencies,
-  swRegistration: ServiceWorkerRegistration
+  messaging: MessagingService,
+  tokenDetails: TokenDetails
 ): Promise<string> {
   try {
     const updatedToken = await requestUpdateToken(
-      firebaseDependencies,
+      messaging.firebaseDependencies,
       tokenDetails
     );
 
@@ -124,10 +123,10 @@ async function updateToken(
       createTime: Date.now()
     };
 
-    await dbSet(firebaseDependencies, updatedTokenDetails);
+    await dbSet(messaging.firebaseDependencies, updatedTokenDetails);
     return updatedToken;
   } catch (e) {
-    await deleteToken(firebaseDependencies, swRegistration);
+    await deleteTokenInternal(messaging);
     throw e;
   }
 }
@@ -160,6 +159,7 @@ async function getPushSubscription(
   if (subscription) {
     return subscription;
   }
+
   return swRegistration.pushManager.subscribe({
     userVisibleOnly: true,
     // Chrome <= 75 doesn't support base64-encoded VAPID key. For backward compatibility, VAPID key
