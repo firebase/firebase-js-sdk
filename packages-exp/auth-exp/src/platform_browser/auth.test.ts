@@ -119,7 +119,7 @@ describe('core/auth/initializeAuth', () => {
     async function initAndWait(
       persistence: externs.Persistence | externs.Persistence[],
       popupRedirectResolver?: externs.PopupRedirectResolver,
-      authDomain = FAKE_APP.options.authDomain,
+      authDomain = FAKE_APP.options.authDomain
     ): Promise<externs.Auth> {
       const auth = new AuthImpl(FAKE_APP, {
         apiKey: FAKE_APP.options.apiKey!,
@@ -281,7 +281,11 @@ describe('core/auth/initializeAuth', () => {
       });
 
       it('does not run redirect sign in attempt if authDomain not set', async () => {
-        await initAndWait([inMemoryPersistence], browserPopupRedirectResolver, '');
+        await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver,
+          ''
+        );
         expect(completeRedirectFnStub).not.to.have.been.called;
       });
 
