@@ -136,7 +136,7 @@ export async function uploadBytes(
 ): Promise<UploadTaskNonResumableSnapshot> {
   ref._throwIfRoot('uploadBytes');
   const authToken = await ref.storage.getAuthToken();
-  const requestInfo = fbsRequests.multipartUpload(
+  const requestInfo = fbsRequests.simpleUpload(
     ref.storage,
     ref._location,
     getMappings(),
