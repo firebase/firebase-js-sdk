@@ -8111,50 +8111,45 @@ google-closure-compiler-java@^20200112.0.0:
   resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20200112.0.0.tgz#2b99f5e2869a573a1b35558ff3b6e6bc054a116f"
   integrity sha512-h/ExDCXAw88nOniQSbbK6et31kOwmaDxl6t52dnETCIzituQtGToPzy21vUel1o8o+FvWUybLoap+dEYBam1pA==
 
-google-closure-compiler-java@^20200628.0.0:
-  version "20200628.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20200628.0.0.tgz#cb9138001acd7fb6195b1d0c2d3c6205a85389d1"
-  integrity sha512-ikQEHiuaRR8d3w4QWsJqC2baDfoIyw/KqDW7LXyxbq6WpRiJ+ItTAtShVoqzQTyn3IXVL8viUMGb/AxkUv01RA==
+google-closure-compiler-java@^20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20201102.0.1.tgz#15fa3e0701ee1a756168fdaf3b53fe61425b1b64"
+  integrity sha512-pXJIlyqepHhih0HCbShkAZJyViIxdyd4V7MnCUZEXLIIlygw92e2dC+5XiONDQZgRlF93BPmWCy9jr7wYoW1hQ==
 
 google-closure-compiler-js@^20200112.0.0:
   version "20200112.0.0"
   resolved "https://registry.npmjs.org/google-closure-compiler-js/-/google-closure-compiler-js-20200112.0.0.tgz#cb9fc1636671f3ce927e668e29db69b65cae6f2d"
   integrity sha512-xW47rSuiRaql6q1YN7+b3FXIW74b1nCcENVwm9cigw1H5gWoBMBJOmpZiXnjMfmYC+MALjPQ8giMzvSeP+2X5A==
 
-google-closure-compiler-js@^20200628.0.0:
-  version "20200628.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-js/-/google-closure-compiler-js-20200628.0.0.tgz#476d50d8b5155dd9d923a1394e0af76bcc8905ec"
-  integrity sha512-kGO/fvKDNOawBmzpWEzLW2EMb0ikTc0Y1hZEedLOex/cOm9zc5Cn8w2L0f963ydgFcj4fszzIgAtmZ9CRxqkfg==
-
 google-closure-compiler-linux@^20200112.0.0:
   version "20200112.0.0"
   resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20200112.0.0.tgz#e6c7943cc0114046dbe9fc685e4d7d4eb536c1dc"
   integrity sha512-imTfdYP7BVTzzp3y7MuZP+98nEkbX7LZsZtxalNpl56vd+Ysc9/vOHXS14CdSoThaXIVlzX/lfjOlBRqPow+ew==
 
-google-closure-compiler-linux@^20200628.0.0:
-  version "20200628.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20200628.0.0.tgz#25de6807f13f066a0329384b39c605f5b03484f2"
-  integrity sha512-SSglqHEW+PtHCOXPwhZFxFzRVxXdvyunkfwP0y2FAO2b0xF6lRfrZSgs0/lgkwlcO2RHnJtIhU8y4bzYMn24QQ==
+google-closure-compiler-linux@^20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20201102.0.1.tgz#a66f18142866c5d3186d0d0c0809538d38f7b998"
+  integrity sha512-aRbyTGnQoFXchcpEFNrP1p/WIvYOgN3hYKI+MOHWkvwVJBY2P8gpb07hAigO8fj+QKD/SFCl+2pXP+JniWOEqw==
 
 google-closure-compiler-osx@^20200112.0.0:
   version "20200112.0.0"
   resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20200112.0.0.tgz#df7a22c0dc32702b47c8ac4521f79bbe439effad"
   integrity sha512-E3S1KqZw4+Zov0VXCkjomPrYhyuuV6jH9InBchQ7cZfipFJjhQmSRf39u4Mu0sINW7GXfODZbzBwOXhEIquFQw==
 
-google-closure-compiler-osx@^20200628.0.0:
-  version "20200628.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20200628.0.0.tgz#d4e8c0a0cfea1fcf935f7af0db46cdcebeabe308"
-  integrity sha512-Ntd/kYqjYu7CScvne0yscZGqQV19y7BCu5PXxGtcs9G5KLe7Ep9RxPWznvFGZXky5vPc6Yq9p6E2uOhpA20cIg==
+google-closure-compiler-osx@^20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20201102.0.1.tgz#5099b29a7db553ded849e06cbbce194ecf9cd231"
+  integrity sha512-VguqEAOYI6XYZN6JcLMP8fpsoXk1Z9YuntMjv0IDVydkbZaHYOI4zE39FJhMuWiN7gOzSX2b/BBC6GsSh1F3fw==
 
 google-closure-compiler-windows@^20200112.0.0:
   version "20200112.0.0"
   resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20200112.0.0.tgz#8300d1e651f2c84ed565e729ccf40d6ed7e63771"
   integrity sha512-+5+UJFKXH0LGnYEHSVJxWwhtvX/MI6uebkAQkhma0057QsKs8fOToWuHL8/UbJULB4WUPa3DlHy0+Izs5z6lCQ==
 
-google-closure-compiler-windows@^20200628.0.0:
-  version "20200628.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20200628.0.0.tgz#6b175fd2e432576c86575248b4634c8c58e738a3"
-  integrity sha512-Il4NIhzvemgEk2kC33tDj9HVpqXEU8SmS1f3AmkLMAUbSI5FdBBzTqjLRa8Y/ucEz4nTRqvpTvbOG3vhIVUUWw==
+google-closure-compiler-windows@^20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20201102.0.1.tgz#8b6c5c3f7050a738b71c59f9dd9863fb6cca282a"
+  integrity sha512-LlynipQi/iP76mjkOu6Rc1mCRuxTAhRvLjq10aGfVjKwpbCAF0Jq2a5k2ygr4xYiINNi2/L2qUw6ObPm9wQCOw==
 
 google-closure-compiler@20200112.0.0:
   version "20200112.0.0"
@@ -8172,26 +8167,30 @@ google-closure-compiler@20200112.0.0:
     google-closure-compiler-osx "^20200112.0.0"
     google-closure-compiler-windows "^20200112.0.0"
 
-google-closure-compiler@20200628.0.0:
-  version "20200628.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20200628.0.0.tgz#939e8be9b27fb4504d051263ef0b96d75e444a57"
-  integrity sha512-ZMhFmlzNCWdL43UbTHzdFa4fgAfBR37TbAOKLSLUATT3RvCNu0AvX0rQBuJNzmI21ySsM9T3r5WXPBwiL0Hn4g==
+google-closure-compiler@20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20201102.0.1.tgz#372670b1b047969d12de663698593e31944ad1bf"
+  integrity sha512-Cz+1jOswH0MwMVPu1rRH1xD4KYuY5XW2ox5aXwqaAxevqmirhr36f8wgKPHuVRSovFejW640r6UFwyrOT6U0CA==
   dependencies:
     chalk "2.x"
-    google-closure-compiler-java "^20200628.0.0"
-    google-closure-compiler-js "^20200628.0.0"
+    google-closure-compiler-java "^20201102.0.1"
     minimist "1.x"
     vinyl "2.x"
     vinyl-sourcemaps-apply "^0.2.0"
   optionalDependencies:
-    google-closure-compiler-linux "^20200628.0.0"
-    google-closure-compiler-osx "^20200628.0.0"
-    google-closure-compiler-windows "^20200628.0.0"
+    google-closure-compiler-linux "^20201102.0.1"
+    google-closure-compiler-osx "^20201102.0.1"
+    google-closure-compiler-windows "^20201102.0.1"
 
 google-closure-library@20200830.0.0:
   version "20200830.0.0"
   resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20200830.0.0.tgz#9f3807e5a4af55ebf2c8a22853d53b8da39a48e8"
   integrity sha512-s4ma73K+FTeVywSMjVOxQ435t6kPfSlxEtIflq7Gabp2fxAnc9i8vUpvT8ZP/GH89LwSJReIaBGtrn72rfNC5Q==
+
+google-closure-library@20201006.0.0:
+  version "20201006.0.0"
+  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20201006.0.0.tgz#5b2f325309566a63b97e22e57c71263fa98f22b4"
+  integrity sha512-jYTKvUBUkTFCO+PJLcqJrh4BNMHlInzPYpijg8lty/HIF1rH+qutHchlFdiSNad8HBVKIlMf3UzXRPXvmujrIg==
 
 google-gax@^1.14.2:
   version "1.15.3"
