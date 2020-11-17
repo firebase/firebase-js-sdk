@@ -22,6 +22,7 @@ import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { _assert, debugFail } from '../util/assert';
+import { _tokenExpiresIn } from './id_token_result';
 
 /**
  * The number of milliseconds before the official expiration time of a token
@@ -48,10 +49,23 @@ export class StsTokenManager {
   updateFromServerResponse(
     response: IdTokenResponse | FinalizeMfaResponse
   ): void {
+    _assert(response.idToken, AuthErrorCode.INTERNAL_ERROR);
+    _assert(
+      typeof response.idToken !== 'undefined',
+      AuthErrorCode.INTERNAL_ERROR
+    );
+    _assert(
+      typeof response.refreshToken !== 'undefined',
+      AuthErrorCode.INTERNAL_ERROR
+    );
+    const expiresIn =
+      'expiresIn' in response && typeof response.expiresIn !== 'undefined'
+        ? Number(response.expiresIn)
+        : _tokenExpiresIn(response.idToken);
     this.updateTokensAndExpiration(
       response.idToken,
       response.refreshToken,
-      'expiresIn' in response ? response.expiresIn : undefined
+      expiresIn
     );
   }
 
@@ -83,19 +97,21 @@ export class StsTokenManager {
       auth,
       oldToken
     );
-    this.updateTokensAndExpiration(accessToken, refreshToken, expiresIn);
+    this.updateTokensAndExpiration(
+      accessToken,
+      refreshToken,
+      Number(expiresIn)
+    );
   }
 
   private updateTokensAndExpiration(
-    accessToken?: string,
-    refreshToken?: string,
-    expiresInSec?: string
+    accessToken: string,
+    refreshToken: string,
+    expiresInSec: number
   ): void {
     this.refreshToken = refreshToken || null;
     this.accessToken = accessToken || null;
-    if (expiresInSec) {
-      this.expirationTime = Date.now() + Number(expiresInSec) * 1000;
-    }
+    this.expirationTime = Date.now() + expiresInSec * 1000;
   }
 
   static fromJSON(appName: string, object: PersistedBlob): StsTokenManager {
