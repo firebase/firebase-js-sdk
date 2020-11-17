@@ -15,16 +15,29 @@
  * limitations under the License.
  */
 
-import { initializeApp } from '@firebase/app-exp';
+import { initializeApp, deleteApp } from '@firebase/app-exp';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { getAuth, signInAnonymously } from '@firebase/auth-exp';
-// import { getStorage, ref, uploadBytes } from '../../exp/index';
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytes,
+  uploadBytesResumable,
+  uploadString,
+  deleteObject,
+  getMetadata,
+  updateMetadata,
+  listAll
+} from '../../exp/index';
 
 // See https://github.com/typescript-eslint/typescript-eslint/issues/363
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // import * as storage from '@firebase/storage-types';
 
-// import { expect } from 'chai';
-// import { StorageService } from '../../src/service';
+import { expect } from 'chai';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { StorageService } from '../../src/service';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');
@@ -32,33 +45,110 @@ const PROJECT_CONFIG = require('../../../../config/project.json');
 export const PROJECT_ID = PROJECT_CONFIG.projectId;
 export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
 export const API_KEY = PROJECT_CONFIG.apiKey;
+export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 
-let appCount = 0;
-
-// export async function withTestInstance(
-//   fn: (storage: StorageService) => void | Promise<void>
-// ): Promise<void> {
-//   const app = initializeApp(
-//     { apiKey: API_KEY, projectId: PROJECT_ID, storageBucket: STORAGE_BUCKET },
-//     'test-app-' + appCount++
-//   );
-//   await signInAnonymously(getAuth(app));
-//   // const storage = getStorage(app);
-//   // return fn(storage);
-// }
-
-describe.only('FirebaseStorage', () => {
-  it('can upload bytes', async () => {
-    const app = initializeApp(
-      { apiKey: API_KEY, projectId: PROJECT_ID, storageBucket: STORAGE_BUCKET },
-      'test-app-' + appCount++
-    );
+describe('FirebaseStorage Exp', () => {
+  let app: FirebaseApp;
+  let storage: StorageService;
+  beforeEach(async () => {
+    app = initializeApp({
+      apiKey: API_KEY,
+      projectId: PROJECT_ID,
+      storageBucket: STORAGE_BUCKET,
+      authDomain: AUTH_DOMAIN
+    });
     await signInAnonymously(getAuth(app));
-    console.log('signed in!');
-    // return withTestInstance(async storage => {
-    //   console.log('got it!');
-    // const reference = ref(storage, 'public/bytes');
-    // await uploadBytes(reference, new Uint8Array([0, 1, 3]));
-    // });
+    storage = getStorage(app);
+  });
+  afterEach(async () => {
+    await deleteApp(app);
+  });
+  it('can upload bytes', async () => {
+    const reference = ref(storage, 'public/exp-bytes');
+    const snap = await uploadBytes(reference, new Uint8Array([0, 1, 3]));
+    expect(snap.metadata.timeCreated).to.exist;
+  });
+  it('can upload bytes (resumable)', async () => {
+    const reference = ref(storage, 'public/exp-bytesresumable');
+    const snap = await uploadBytesResumable(
+      reference,
+      new Uint8Array([0, 1, 3])
+    );
+    expect(snap.metadata.timeCreated).to.exist;
+  });
+
+  it('can upload string', async () => {
+    const reference = ref(storage, 'public/exp-string');
+    const snap = await uploadString(reference, 'foo');
+    expect(snap.metadata.timeCreated).to.exist;
+  });
+
+  it('validates operations on root', () => {
+    const reference = ref(storage, '');
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      uploadString(reference, 'foo');
+      expect.fail();
+    } catch (e) {
+      expect(e.message).to.satisfy((v: string) =>
+        v.match(
+          /The operation 'uploadString' cannot be performed on a root reference/
+        )
+      );
+    }
+  });
+
+  it('can delete object ', async () => {
+    const reference = ref(storage, 'public/exp-delete');
+    await uploadString(reference, 'foo');
+    await getDownloadURL(reference);
+    await deleteObject(reference);
+    try {
+      await getDownloadURL(reference);
+      expect.fail();
+    } catch (e) {
+      expect(e.message).to.satisfy((v: string) =>
+        v.match(/Object 'public\/exp-delete' does not exist/)
+      );
+    }
+  });
+
+  it('can get download URL', async () => {
+    const reference = ref(storage, 'public/exp-downloadurl');
+    await uploadBytes(reference, new Uint8Array([0, 1, 3]));
+    const url = await getDownloadURL(reference);
+    expect(url).to.satisfy((v: string) =>
+      v.match(
+        /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/.*\/o\/public%2Fexp-downloadurl/
+      )
+    );
+  });
+
+  it('can get metadata', async () => {
+    const reference = ref(storage, 'public/exp-getmetadata');
+    await uploadBytes(reference, new Uint8Array([0, 1, 3]));
+    const metadata = await getMetadata(reference);
+    expect(metadata.name).to.equal('exp-getmetadata');
+  });
+
+  it('can update metadata', async () => {
+    const reference = ref(storage, 'public/exp-updatemetadata');
+    await uploadBytes(reference, new Uint8Array([0, 1, 3]));
+    const metadata = await updateMetadata(reference, {
+      customMetadata: { foo: 'bar' }
+    });
+    expect(metadata.customMetadata).to.deep.equal({ foo: 'bar' });
+  });
+
+  it('can list files', async () => {
+    const referenceA = ref(storage, 'public/exp-list/a');
+    const referenceB = ref(storage, 'public/exp-list/b');
+    const referenceCD = ref(storage, 'public/exp-list/c/d');
+    await uploadString(referenceA, '');
+    await uploadString(referenceB, '');
+    await uploadString(referenceCD, '');
+    const listResult = await listAll(await ref(storage, 'public/exp-list'));
+    expect(listResult.items.map(v => v.name)).to.have.members(['a', 'b']);
+    expect(listResult.prefixes.map(v => v.name)).to.have.members(['c']);
   });
 });

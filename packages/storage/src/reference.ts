@@ -37,7 +37,7 @@ import { ListOptions, ListResult } from './list';
 import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
-import { UploadTaskNonResumableSnapshot } from './tasksnapshot';
+import { UploadTaskSnapshot } from './tasksnapshot';
 import * as fbsRequests from './implementation/requests';
 
 /**
@@ -126,14 +126,13 @@ export class Reference {
  * @param ref - Storage Reference where data should be uploaded.
  * @param data - The data to upload.
  * @param metadata - Metadata for the newly uploaded string.
- * @returns An UploadTask that lets you control and
- *     observe the upload.
+ * @returns An UploadTaskNonResumableSnapshot
  */
 export async function uploadBytes(
   ref: Reference,
   data: Blob | Uint8Array | ArrayBuffer,
   metadata: Metadata | null = null
-): Promise<UploadTaskNonResumableSnapshot> {
+): Promise<UploadTaskSnapshot> {
   ref._throwIfRoot('uploadBytes');
   const authToken = await ref.storage.getAuthToken();
   const requestInfo = fbsRequests.simpleUpload(
@@ -143,9 +142,9 @@ export async function uploadBytes(
     new FbsBlob(data),
     metadata
   );
-  const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
-  const finalMetadata = metadata || (await multipartRequest.getPromise());
-  return new UploadTaskNonResumableSnapshot(finalMetadata, ref);
+  const request = ref.storage.makeRequest(requestInfo, authToken);
+  const finalMetadata = metadata || (await request.getPromise());
+  return new UploadTaskSnapshot(finalMetadata, ref);
 }
 
 /**
@@ -183,7 +182,7 @@ export function uploadString(
   format: StringFormat = StringFormat.RAW,
   metadata?: Metadata
 ): UploadTask {
-  ref._throwIfRoot('putString');
+  ref._throwIfRoot('uploadString');
   const data = dataFromString(format, value);
   const metadataClone = { ...metadata } as Metadata;
   if (metadataClone['contentType'] == null && data.contentType != null) {
@@ -322,7 +321,7 @@ export async function getMetadata(ref: Reference): Promise<Metadata> {
  */
 export async function updateMetadata(
   ref: Reference,
-  metadata: Metadata
+  metadata: { [key: string]: unknown }
 ): Promise<Metadata> {
   ref._throwIfRoot('updateMetadata');
   const authToken = await ref.storage.getAuthToken();

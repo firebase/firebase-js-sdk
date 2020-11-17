@@ -36,7 +36,7 @@ import {
   Unsubscribe
 } from './implementation/observer';
 import { Request } from './implementation/request';
-import { UploadTaskSnapshot } from './tasksnapshot';
+import { UploadTaskResumableSnapshot } from './tasksnapshot';
 import { async as fbsAsync } from './implementation/async';
 import * as fbsMetadata from './implementation/metadata';
 import * as fbsRequests from './implementation/requests';
@@ -64,7 +64,7 @@ export class UploadTask {
   _transferred: number = 0;
   private _needToFetchStatus: boolean = false;
   private _needToFetchMetadata: boolean = false;
-  private _observers: Array<StorageObserver<UploadTaskSnapshot>> = [];
+  private _observers: Array<StorageObserver<UploadTaskResumableSnapshot>> = [];
   private _resumable: boolean;
   /**
    * @internal
@@ -76,9 +76,9 @@ export class UploadTask {
   private _chunkMultiplier: number = 1;
   private _errorHandler: (p1: FirebaseStorageError) => void;
   private _metadataErrorHandler: (p1: FirebaseStorageError) => void;
-  private _resolve?: (p1: UploadTaskSnapshot) => void = undefined;
+  private _resolve?: (p1: UploadTaskResumableSnapshot) => void = undefined;
   private _reject?: (p1: FirebaseStorageError) => void = undefined;
-  private _promise: Promise<UploadTaskSnapshot>;
+  private _promise: Promise<UploadTaskResumableSnapshot>;
 
   /**
    * @param ref - The firebaseStorage.Reference object this task came
@@ -429,9 +429,9 @@ export class UploadTask {
     }
   }
 
-  get snapshot(): UploadTaskSnapshot {
+  get snapshot(): UploadTaskResumableSnapshot {
     const externalState = taskStateFromInternalTaskState(this._state);
-    return new UploadTaskSnapshot(
+    return new UploadTaskResumableSnapshot(
       this._transferred,
       this._blob.size(),
       externalState,
@@ -448,11 +448,11 @@ export class UploadTask {
   on(
     type: TaskEvent,
     nextOrObserver?:
-      | StorageObserver<UploadTaskSnapshot>
-      | ((a: UploadTaskSnapshot) => unknown),
+      | StorageObserver<UploadTaskResumableSnapshot>
+      | ((a: UploadTaskResumableSnapshot) => unknown),
     error?: ErrorFn,
     completed?: CompleteFn
-  ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
+  ): Unsubscribe | Subscribe<UploadTaskResumableSnapshot> {
     const observer = new Observer(nextOrObserver, error, completed);
     this._addObserver(observer);
     return () => {
@@ -467,13 +467,15 @@ export class UploadTask {
    * @param onRejected - The rejection callback.
    */
   then<U>(
-    onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null,
+    onFulfilled?:
+      | ((value: UploadTaskResumableSnapshot) => U | Promise<U>)
+      | null,
     onRejected?: ((error: FirebaseStorageError) => U | Promise<U>) | null
   ): Promise<U> {
     // These casts are needed so that TypeScript can infer the types of the
     // resulting Promise.
     return this._promise.then<U>(
-      onFulfilled as (value: UploadTaskSnapshot) => U | Promise<U>,
+      onFulfilled as (value: UploadTaskResumableSnapshot) => U | Promise<U>,
       onRejected as ((error: unknown) => Promise<never>) | null
     );
   }
@@ -490,7 +492,7 @@ export class UploadTask {
   /**
    * Adds the given observer.
    */
-  private _addObserver(observer: Observer<UploadTaskSnapshot>): void {
+  private _addObserver(observer: Observer<UploadTaskResumableSnapshot>): void {
     this._observers.push(observer);
     this._notifyObserver(observer);
   }
@@ -498,7 +500,9 @@ export class UploadTask {
   /**
    * Removes the given observer.
    */
-  private _removeObserver(observer: Observer<UploadTaskSnapshot>): void {
+  private _removeObserver(
+    observer: Observer<UploadTaskResumableSnapshot>
+  ): void {
     const i = this._observers.indexOf(observer);
     if (i !== -1) {
       this._observers.splice(i, 1);
@@ -536,7 +540,9 @@ export class UploadTask {
     }
   }
 
-  private _notifyObserver(observer: Observer<UploadTaskSnapshot>): void {
+  private _notifyObserver(
+    observer: Observer<UploadTaskResumableSnapshot>
+  ): void {
     const externalState = taskStateFromInternalTaskState(this._state);
     switch (externalState) {
       case TaskState.RUNNING:

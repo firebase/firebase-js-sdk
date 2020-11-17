@@ -217,7 +217,7 @@ export function getDownloadUrl(
 export function updateMetadata(
   service: StorageService,
   location: Location,
-  metadata: Metadata,
+  metadata: { [key: string]: unknown },
   mappings: MetadataUtils.Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
@@ -279,6 +279,9 @@ export function metadataForUpload_(
   return metadataClone;
 }
 
+/**
+ * Prepare RequestInfo for non-resumable uploads as Content-Type: octet-stream.
+ */
 export function simpleUpload(
   service: StorageService,
   location: Location,
@@ -308,7 +311,9 @@ export function simpleUpload(
   requestInfo.errorHandler = sharedErrorHandler(location);
   return requestInfo;
 }
-
+/**
+ * Prepare RequestInfo for resumable uploads as Content-Type: multipart.
+ */
 export function multipartUpload(
   service: StorageService,
   location: Location,

@@ -31,12 +31,28 @@ module.exports = function (config) {
 };
 
 function getTestFiles(argv) {
-  if (argv.unit) {
-    return ['test/unit/*'];
-  } else if (argv.integration) {
-    return ['test/integration/*'];
+  let unitTestFiles = [];
+  let integrationTestFiles = [];
+  if (argv.exp) {
+    unitTestFiles = ['test/unit/*'].filter(
+      filename => !filename.includes('.compat.')
+    );
+    integrationTestFiles = ['test/integration/*exp*'];
+  } else if (argv.compat) {
+    unitTestFiles = ['test/unit/*'].filter(
+      filename => !filename.includes('.exp.')
+    );
+    integrationTestFiles = ['test/integration/*compat*'];
   } else {
-    return ['test/**/*'];
+    console.log('Specify "exp" or "compat" option for karma command.');
+    return;
+  }
+  if (argv.unit) {
+    return unitTestFiles;
+  } else if (argv.integration) {
+    return integrationTestFiles;
+  } else {
+    return [...unitTestFiles, ...integrationTestFiles];
   }
 }
 

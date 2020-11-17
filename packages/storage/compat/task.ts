@@ -26,7 +26,7 @@ import {
   Subscribe,
   Unsubscribe
 } from '../src/implementation/observer';
-import { UploadTaskSnapshot } from '../src/tasksnapshot';
+import { UploadTaskResumableSnapshot } from '../src/tasksnapshot';
 import { ReferenceCompat } from './reference';
 import { FirebaseStorageError } from '../src/implementation/error';
 
@@ -75,19 +75,19 @@ export class UploadTaskCompat implements types.UploadTask {
     completed?: CompleteFn | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshotCompat> {
     let wrappedNextOrObserver:
-      | StorageObserver<UploadTaskSnapshot>
+      | StorageObserver<UploadTaskResumableSnapshot>
       | undefined
-      | ((a: UploadTaskSnapshot) => unknown) = undefined;
+      | ((a: UploadTaskResumableSnapshot) => unknown) = undefined;
     if (!!nextOrObserver) {
       if (typeof nextOrObserver === 'function') {
-        wrappedNextOrObserver = (taskSnapshot: UploadTaskSnapshot) =>
+        wrappedNextOrObserver = (taskSnapshot: UploadTaskResumableSnapshot) =>
           nextOrObserver(
             new UploadTaskSnapshotCompat(taskSnapshot, this, this._ref)
           );
       } else {
         wrappedNextOrObserver = {
           next: !!nextOrObserver.next
-            ? (taskSnapshot: UploadTaskSnapshot) =>
+            ? (taskSnapshot: UploadTaskResumableSnapshot) =>
                 nextOrObserver.next!(
                   new UploadTaskSnapshotCompat(taskSnapshot, this, this._ref)
                 )

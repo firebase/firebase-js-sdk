@@ -19,7 +19,7 @@ import { Metadata } from './metadata';
 import { Reference } from './reference';
 import { UploadTask } from './task';
 
-export class UploadTaskSnapshot {
+export class UploadTaskResumableSnapshot {
   constructor(
     readonly bytesTransferred: number,
     readonly totalBytes: number,
@@ -29,6 +29,6 @@ export class UploadTaskSnapshot {
     readonly ref: Reference
   ) {}
 }
-export class UploadTaskNonResumableSnapshot {
+export class UploadTaskSnapshot {
   constructor(readonly metadata: Metadata, readonly ref: Reference) {}
 }
