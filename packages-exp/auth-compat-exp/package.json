@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth-compat",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "private": true,
   "description": "FirebaseAuth compatibility package that uses API style compatible with Firebase@7 and prior versions",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -28,8 +28,8 @@
   },
   "dependencies": {
     "@firebase/auth-types": "0.10.1",
-    "@firebase/auth-exp": "0.0.800",
-    "@firebase/auth-types-exp": "0.0.800",
+    "@firebase/auth-exp": "0.0.900",
+    "@firebase/auth-types-exp": "0.0.900",
     "@firebase/component": "0.1.21",
     "@firebase/util": "0.3.4",
     "tslib": "^1.11.1"
