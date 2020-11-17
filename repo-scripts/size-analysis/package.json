@@ -16,7 +16,7 @@
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts --config ../../config/mocharc.node.js --timeout 60000"
   },
   "dependencies": {
-    "rollup": "2.33.1",
+    "rollup": "2.33.2",
     "@rollup/plugin-commonjs": "15.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",
@@ -24,14 +24,14 @@
     "rollup-plugin-typescript2": "0.29.0",
     "@rollup/plugin-virtual": "2.0.3",
     "webpack": "4.44.2",
-    "@types/webpack": "4.41.24",
+    "@types/webpack": "4.41.25",
     "webpack-virtual-modules": "0.3.2",
     "child-process-promise": "2.2.1",
     "memfs": "3.2.0",
     "tmp": "0.2.1",
     "typescript": "4.0.5",
-    "terser": "5.3.8",
-    "yargs": "16.1.0",
+    "terser": "5.4.0",
+    "yargs": "16.1.1",
     "@firebase/util": "0.3.4",
     "gzip-size": "5.1.1"
   },
