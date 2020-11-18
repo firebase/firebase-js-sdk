@@ -27,10 +27,12 @@ import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
 import {
+  convertQueryTargetToQuery,
   fromDocument,
   fromDocumentsTarget,
   fromMutation,
   fromQueryTarget,
+  fromVersion,
   JsonProtoSerializer,
   toDocument,
   toDocumentsTarget,
@@ -41,7 +43,9 @@ import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
 import {
+  DbBundle,
   DbMutationBatch,
+  DbNamedQuery,
   DbNoDocument,
   DbQuery,
   DbRemoteDocument,
@@ -51,6 +55,9 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
+import { Bundle, NamedQuery } from '../core/bundle';
+import { LimitType, Query, queryWithLimit } from '../core/query';
+import * as bundleProto from '../protos/firestore_bundle_proto';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -270,4 +277,85 @@ export function toDbTarget(
  */
 function isDocumentQuery(dbQuery: DbQuery): dbQuery is PublicDocumentsTarget {
   return (dbQuery as PublicDocumentsTarget).documents !== undefined;
+}
+
+/** Encodes a DbBundle to a Bundle. */
+export function fromDbBundle(dbBundle: DbBundle): Bundle {
+  return {
+    id: dbBundle.bundleId,
+    createTime: fromDbTimestamp(dbBundle.createTime),
+    version: dbBundle.version
+  };
+}
+
+/** Encodes a BundleMetadata to a DbBundle. */
+export function toDbBundle(metadata: bundleProto.BundleMetadata): DbBundle {
+  return {
+    bundleId: metadata.id!,
+    createTime: toDbTimestamp(fromVersion(metadata.createTime!)),
+    version: metadata.version!
+  };
+}
+
+/** Encodes a DbNamedQuery to a NamedQuery. */
+export function fromDbNamedQuery(dbNamedQuery: DbNamedQuery): NamedQuery {
+  return {
+    name: dbNamedQuery.name,
+    query: fromBundledQuery(dbNamedQuery.bundledQuery),
+    readTime: fromDbTimestamp(dbNamedQuery.readTime)
+  };
+}
+
+/** Encodes a NamedQuery from a bundle proto to a DbNamedQuery. */
+export function toDbNamedQuery(query: bundleProto.NamedQuery): DbNamedQuery {
+  return {
+    name: query.name!,
+    readTime: toDbTimestamp(fromVersion(query.readTime!)),
+    bundledQuery: query.bundledQuery!
+  };
+}
+
+/**
+ * Encodes a `BundledQuery` from bundle proto to a Query object.
+ *
+ * This reconstructs the original query used to build the bundle being loaded,
+ * including features exists only in SDKs (for example: limit-to-last).
+ */
+export function fromBundledQuery(
+  bundledQuery: bundleProto.BundledQuery
+): Query {
+  const query = convertQueryTargetToQuery({
+    parent: bundledQuery.parent!,
+    structuredQuery: bundledQuery.structuredQuery!
+  });
+  if (bundledQuery.limitType === 'LAST') {
+    debugAssert(
+      !!query.limit,
+      'Bundled query has limitType LAST, but limit is null'
+    );
+    return queryWithLimit(query, query.limit, LimitType.Last);
+  }
+  return query;
+}
+
+/** Encodes a NamedQuery proto object to a NamedQuery model object. */
+export function fromProtoNamedQuery(
+  namedQuery: bundleProto.NamedQuery
+): NamedQuery {
+  return {
+    name: namedQuery.name!,
+    query: fromBundledQuery(namedQuery.bundledQuery!),
+    readTime: fromVersion(namedQuery.readTime!)
+  };
+}
+
+/** Encodes a BundleMetadata proto object to a Bundle model object. */
+export function fromBundleMetadata(
+  metadata: bundleProto.BundleMetadata
+): Bundle {
+  return {
+    id: metadata.id!,
+    version: metadata.version!,
+    createTime: fromVersion(metadata.createTime!)
+  };
 }

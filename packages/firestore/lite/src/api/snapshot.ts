@@ -26,14 +26,13 @@ import {
 import { FieldPath } from './field_path';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import { FieldPath as InternalFieldPath } from '../../../src/model/path';
 import {
   fieldPathFromDotSeparatedString,
   UntypedFirestoreDataConverter
 } from '../../../src/api/user_data_reader';
 import { arrayEquals } from '../../../src/util/misc';
-import { Bytes } from './bytes';
 import { Compat } from '../../../src/compat/compat';
 
 /**
@@ -119,6 +118,7 @@ export class DocumentSnapshot<T = DocumentData> {
 
   constructor(
     public _firestore: FirebaseFirestore,
+    public _userDataWriter: AbstractUserDataWriter,
     public _key: DocumentKey,
     public _document: Document | null,
     public _converter: UntypedFirestoreDataConverter<T> | null
@@ -164,20 +164,14 @@ export class DocumentSnapshot<T = DocumentData> {
       // if a converter has been provided.
       const snapshot = new QueryDocumentSnapshot(
         this._firestore,
+        this._userDataWriter,
         this._key,
         this._document,
         /* converter= */ null
       );
       return this._converter.fromFirestore(snapshot);
     } else {
-      const userDataWriter = new UserDataWriter(
-        this._firestore._databaseId,
-        /* serverTimestampBehavior=*/ 'none',
-        key =>
-          new DocumentReference(this._firestore, /* converter= */ null, key),
-        bytes => new Bytes(bytes)
-      );
-      return userDataWriter.convertValue(this._document.toProto()) as T;
+      return this._userDataWriter.convertValue(this._document.toProto()) as T;
     }
   }
 
@@ -198,13 +192,7 @@ export class DocumentSnapshot<T = DocumentData> {
         .data()
         .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
       if (value !== null) {
-        const userDataWriter = new UserDataWriter(
-          this._firestore._databaseId,
-          /* serverTimestampBehavior=*/ 'none',
-          key => new DocumentReference(this._firestore, this._converter, key),
-          bytes => new Bytes(bytes)
-        );
-        return userDataWriter.convertValue(value);
+        return this._userDataWriter.convertValue(value);
       }
     }
     return undefined;
@@ -329,10 +317,12 @@ export function snapshotEqual<T>(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  arg: string | FieldPath
+  arg: string | FieldPath | Compat<FieldPath>
 ): InternalFieldPath {
   if (typeof arg === 'string') {
     return fieldPathFromDotSeparatedString(methodName, arg);
+  } else if (arg instanceof Compat) {
+    return arg._delegate._internalPath;
   } else {
     return arg._internalPath;
   }

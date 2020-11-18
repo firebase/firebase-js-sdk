@@ -27,6 +27,7 @@ import {
   newQueryForPath,
   Operator,
   OrderBy,
+  Query,
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -338,21 +339,26 @@ export function fromName(
   name: string
 ): DocumentKey {
   const resource = fromResourceName(name);
-  hardAssert(
-    resource.get(1) === serializer.databaseId.projectId,
-    'Tried to deserialize key from different project: ' +
-      resource.get(1) +
-      ' vs ' +
-      serializer.databaseId.projectId
-  );
-  hardAssert(
-    (!resource.get(3) && !serializer.databaseId.database) ||
-      resource.get(3) === serializer.databaseId.database,
-    'Tried to deserialize key from different database: ' +
-      resource.get(3) +
-      ' vs ' +
-      serializer.databaseId.database
-  );
+
+  if (resource.get(1) !== serializer.databaseId.projectId) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Tried to deserialize key from different project: ' +
+        resource.get(1) +
+        ' vs ' +
+        serializer.databaseId.projectId
+    );
+  }
+
+  if (resource.get(3) !== serializer.databaseId.database) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Tried to deserialize key from different database: ' +
+        resource.get(3) +
+        ' vs ' +
+        serializer.databaseId.database
+    );
+  }
   return new DocumentKey(extractLocalPathFromResourceName(resource));
 }
 
@@ -887,7 +893,7 @@ export function toQueryTarget(
   return result;
 }
 
-export function fromQueryTarget(target: ProtoQueryTarget): Target {
+export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
   let path = fromQueryPath(target.parent!);
 
   const query = target.structuredQuery!;
@@ -931,18 +937,20 @@ export function fromQueryTarget(target: ProtoQueryTarget): Target {
     endAt = fromCursor(query.endAt);
   }
 
-  return queryToTarget(
-    newQuery(
-      path,
-      collectionGroup,
-      orderBy,
-      filterBy,
-      limit,
-      LimitType.First,
-      startAt,
-      endAt
-    )
+  return newQuery(
+    path,
+    collectionGroup,
+    orderBy,
+    filterBy,
+    limit,
+    LimitType.First,
+    startAt,
+    endAt
   );
+}
+
+export function fromQueryTarget(target: ProtoQueryTarget): Target {
+  return queryToTarget(convertQueryTargetToQuery(target));
 }
 
 export function toListenRequestLabels(
@@ -992,6 +1000,14 @@ export function toTarget(
 
   if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
+  } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0) {
+    // TODO(wuandy): Consider removing above check because it is most likely true.
+    // Right now, many tests depend on this behaviour though (leaving min() out
+    // of serialization).
+    result.readTime = toTimestamp(
+      serializer,
+      targetData.snapshotVersion.toTimestamp()
+    );
   }
 
   return result;

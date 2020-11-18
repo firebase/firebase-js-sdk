@@ -16,6 +16,8 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+import { ErrorFactory } from '@firebase/util';
+import { AuthErrorCode, AuthErrorParams } from '../core/errors';
 
 import { PopupRedirectResolver } from './popup_redirect';
 import { User } from './user';
@@ -85,6 +87,7 @@ export interface Auth extends externs.Auth {
   tenantId: string | null;
   /** @internal */
   readonly settings: externs.AuthSettings;
+  _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams>;
 
   /** @internal */
   useDeviceLanguage(): void;
@@ -95,4 +98,5 @@ export interface Auth extends externs.Auth {
 export interface Dependencies {
   persistence?: externs.Persistence | externs.Persistence[];
   popupRedirectResolver?: externs.PopupRedirectResolver;
+  errorMap?: externs.AuthErrorMap;
 }

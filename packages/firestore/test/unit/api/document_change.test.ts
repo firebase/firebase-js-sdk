@@ -16,12 +16,8 @@
  */
 
 import { expect } from 'chai';
-import {
-  changesFromSnapshot,
-  DocumentSnapshot,
-  QueryDocumentSnapshot
-} from '../../../src/api/database';
-import { Query } from '../../../src/core/query';
+import { QuerySnapshot } from '../../../exp/src/api/snapshot';
+import { Query as InternalQuery } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
@@ -35,10 +31,11 @@ import {
   query
 } from '../../util/helpers';
 import { firestore } from '../../util/api_helpers';
+import { ExpUserDataWriter, Query } from '../../../exp/src/api/reference';
 
 describe('DocumentChange:', () => {
   function expectPositions(
-    query: Query,
+    query: InternalQuery,
     initialDocs: Document[],
     updates: Array<Document | DocumentKey>
   ): void {
@@ -54,30 +51,20 @@ describe('DocumentChange:', () => {
     const expected = documentSetAsArray(updatedSnapshot.docs);
     const actual = documentSetAsArray(initialSnapshot.docs);
 
-    const changes = changesFromSnapshot(
-      updatedSnapshot,
-      true,
-      (doc, fromCache, hasPendingWrite) =>
-        new QueryDocumentSnapshot(
-          firestore(),
-          doc.key,
-          doc,
-          fromCache,
-          hasPendingWrite,
-          /* converter= */ null
-        )
+    const db = firestore()._delegate;
+    const snapshot = new QuerySnapshot(
+      db,
+      new ExpUserDataWriter(db),
+      new Query(db, /* converter= */ null, query),
+      updatedSnapshot
     );
 
-    for (const change of changes) {
+    for (const change of snapshot.docChanges()) {
       if (change.type !== 'added') {
         actual.splice(change.oldIndex, 1);
       }
       if (change.type !== 'removed') {
-        actual.splice(
-          change.newIndex,
-          0,
-          (change.doc as DocumentSnapshot)._document!
-        );
+        actual.splice(change.newIndex, 0, change.doc._document!);
       }
     }
 

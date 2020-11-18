@@ -192,7 +192,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface Document {
     name?: string;
     fields?: ApiClientObjectMap<Value>;
-    createTime?: string;
+    createTime?: Timestamp;
     updateTime?: Timestamp;
   }
   interface DocumentChange {
@@ -353,7 +353,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     query?: QueryTarget;
     documents?: DocumentsTarget;
     resumeToken?: string | Uint8Array;
-    readTime?: string;
+    readTime?: Timestamp;
     targetId?: number;
     once?: boolean;
   }

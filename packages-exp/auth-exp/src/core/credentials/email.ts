@@ -26,7 +26,7 @@ import {
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
-import { fail } from '../util/assert';
+import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
 
 /**
@@ -116,7 +116,7 @@ export class EmailAuthCredential
           oobCode: this.password
         });
       default:
-        fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+        _fail(auth, AuthErrorCode.INTERNAL_ERROR);
     }
   }
 
@@ -137,7 +137,7 @@ export class EmailAuthCredential
           oobCode: this.password
         });
       default:
-        fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+        _fail(auth, AuthErrorCode.INTERNAL_ERROR);
     }
   }
 

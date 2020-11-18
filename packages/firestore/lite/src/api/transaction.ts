@@ -37,6 +37,7 @@ import { Deferred } from '../../../src/util/promise';
 import { validateReference } from './write_batch';
 import {
   DocumentReference,
+  LiteUserDataWriter,
   newUserDataReader,
   SetOptions,
   UpdateData
@@ -44,6 +45,7 @@ import {
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
 import { cast } from '../../../src/util/input_validation';
+import { Compat } from '../../../src/compat/compat';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.
@@ -78,6 +80,7 @@ export class Transaction {
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
+    const userDataWriter = new LiteUserDataWriter(this._firestore);
     return this._transaction
       .lookup([ref._key])
       .then((docs: MaybeDocument[]) => {
@@ -88,6 +91,7 @@ export class Transaction {
         if (doc instanceof NoDocument) {
           return new DocumentSnapshot(
             this._firestore,
+            userDataWriter,
             ref._key,
             null,
             ref._converter
@@ -95,6 +99,7 @@ export class Transaction {
         } else if (doc instanceof Document) {
           return new DocumentSnapshot(
             this._firestore,
+            userDataWriter,
             doc.key,
             doc,
             ref._converter
@@ -194,6 +199,12 @@ export class Transaction {
     ...moreFieldsAndValues: unknown[]
   ): this {
     const ref = validateReference(documentRef, this._firestore);
+
+    // For Compat types, we have to "extract" the underlying types before
+    // performing validation.
+    if (fieldOrUpdateData instanceof Compat) {
+      fieldOrUpdateData = fieldOrUpdateData._delegate;
+    }
 
     let parsed;
     if (

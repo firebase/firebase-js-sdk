@@ -26,7 +26,8 @@ import {
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
-  QuerySnapshot
+  QuerySnapshot,
+  SnapshotMetadata
 } from '../../src/api/database';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -43,6 +44,16 @@ import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 import { FirebaseFirestore } from '../../exp/src/api/database';
 import { DatabaseId } from '../../src/core/database_info';
+import {
+  QuerySnapshot as ExpQuerySnapshot,
+  DocumentSnapshot as ExpDocumentSnapshot
+} from '../../exp/src/api/snapshot';
+import { UserDataWriter } from '../../src/api/user_data_writer';
+import {
+  ExpUserDataWriter,
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference
+} from '../../exp/src/api/reference';
 
 /**
  * A mock Firestore. Will not work for integration test.
@@ -67,7 +78,14 @@ export function newTestFirestore(projectId = 'new-project'): Firestore {
 export function collectionReference(path: string): CollectionReference {
   const db = firestore();
   ensureFirestoreConfigured(db._delegate);
-  return new CollectionReference(pathFrom(path), db, /* converter= */ null);
+  return new CollectionReference(
+    db,
+    new ExpCollectionReference(
+      db._delegate,
+      /* converter= */ null,
+      pathFrom(path)
+    )
+  );
 }
 
 export function documentReference(path: string): DocumentReference {
@@ -81,32 +99,44 @@ export function documentSnapshot(
   data: JsonObject<unknown> | null,
   fromCache: boolean
 ): DocumentSnapshot {
+  const db = firestore();
+  const userDataWriter = new UserDataWriter(db);
   if (data) {
     return new DocumentSnapshot(
       firestore(),
-      key(path),
-      doc(path, 1, data),
-      fromCache,
-      /* hasPendingWrites= */ false,
-      /* converter= */ null
+      new ExpDocumentSnapshot(
+        db._delegate,
+        userDataWriter,
+        key(path),
+        doc(path, 1, data),
+        new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+        /* converter= */ null
+      )
     );
   } else {
     return new DocumentSnapshot(
       firestore(),
-      key(path),
-      null,
-      fromCache,
-      /* hasPendingWrites= */ false,
-      /* converter= */ null
+      new ExpDocumentSnapshot(
+        db._delegate,
+        userDataWriter,
+        key(path),
+        null,
+        new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+        /* converter= */ null
+      )
     );
   }
 }
 
 export function query(path: string): Query {
+  const db = firestore();
   return new Query(
-    newQueryForPath(pathFrom(path)),
-    firestore(),
-    /* converter= */ null
+    db,
+    new ExpQuery(
+      db._delegate,
+      /* converter= */ null,
+      newQueryForPath(pathFrom(path))
+    )
   );
 }
 
@@ -153,10 +183,14 @@ export function querySnapshot(
     syncStateChanged,
     false
   );
+  const db = firestore();
   return new QuerySnapshot(
-    firestore(),
-    query,
-    viewSnapshot,
-    /* converter= */ null
+    db,
+    new ExpQuerySnapshot(
+      db._delegate,
+      new ExpUserDataWriter(db._delegate),
+      new ExpQuery(db._delegate, /* converter= */ null, query),
+      viewSnapshot
+    )
   );
 }

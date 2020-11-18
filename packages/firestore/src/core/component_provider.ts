@@ -36,7 +36,8 @@ import {
   syncEngineHandleCredentialChange,
   newSyncEngine,
   SyncEngine,
-  ensureWriteCallbacks
+  ensureWriteCallbacks,
+  synchronizeWithChangedDocuments
 } from './sync_engine';
 import {
   fillWritePipeline,
@@ -67,6 +68,7 @@ import { newConnection, newConnectivityMonitor } from '../platform/connection';
 import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
 import { CredentialsProvider } from '../api/credentials';
+import { JsonProtoSerializer } from '../remote/serializer';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
@@ -105,7 +107,10 @@ export class MemoryOfflineComponentProvider
   gcScheduler!: GarbageCollectionScheduler | null;
   synchronizeTabs = false;
 
+  serializer!: JsonProtoSerializer;
+
   async initialize(cfg: ComponentConfiguration): Promise<void> {
+    this.serializer = newSerializer(cfg.databaseInfo.databaseId);
     this.sharedClientState = this.createSharedClientState(cfg);
     this.persistence = this.createPersistence(cfg);
     await this.persistence.start();
@@ -123,12 +128,13 @@ export class MemoryOfflineComponentProvider
     return newLocalStore(
       this.persistence,
       new IndexFreeQueryEngine(),
-      cfg.initialUser
+      cfg.initialUser,
+      this.serializer
     );
   }
 
   createPersistence(cfg: ComponentConfiguration): Persistence {
-    return new MemoryPersistence(MemoryEagerDelegate.factory);
+    return new MemoryPersistence(MemoryEagerDelegate.factory, this.serializer);
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
@@ -173,6 +179,15 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     await fillWritePipeline(this.onlineComponentProvider.remoteStore);
   }
 
+  createLocalStore(cfg: ComponentConfiguration): LocalStore {
+    return newLocalStore(
+      this.persistence,
+      new IndexFreeQueryEngine(),
+      cfg.initialUser,
+      this.serializer
+    );
+  }
+
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration
   ): GarbageCollectionScheduler | null {
@@ -190,7 +205,6 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       this.cacheSizeBytes !== undefined
         ? LruParams.withCacheSize(this.cacheSizeBytes)
         : LruParams.DEFAULT;
-    const serializer = newSerializer(cfg.databaseInfo.databaseId);
 
     return new IndexedDbPersistence(
       this.synchronizeTabs,
@@ -200,7 +214,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       cfg.asyncQueue,
       getWindow(),
       getDocument(),
-      serializer,
+      this.serializer,
       this.sharedClientState,
       !!this.forceOwnership
     );
@@ -242,7 +256,11 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
           null,
           syncEngine
         ),
-        getActiveClients: getActiveClients.bind(null, syncEngine)
+        getActiveClients: getActiveClients.bind(null, syncEngine),
+        synchronizeWithChangedDocuments: synchronizeWithChangedDocuments.bind(
+          null,
+          syncEngine
+        )
       };
       await this.sharedClientState.start();
     }

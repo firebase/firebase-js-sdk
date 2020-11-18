@@ -278,7 +278,7 @@ describeSpec('Listens:', [], () => {
           // Remove and re-add listener.
           .userUnlistens(query1)
           .watchRemoves(query1)
-          .userListens(query1, 'resume-token-1000')
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
           .expectEvents(query1, { added: [docAv2], fromCache: true })
           // watch sends old snapshot.
           .watchAcksFull(query1, 1000, docAv1)
@@ -313,7 +313,7 @@ describeSpec('Listens:', [], () => {
           .expectEvents(query1, { modified: [docAv2] })
           // restart the client and re-listen.
           .restart()
-          .userListens(query1, 'resume-token-1000')
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
           .expectEvents(query1, { added: [docAv2], fromCache: true })
           // watch sends old snapshot.
           .watchAcksFull(query1, 1000, docAv1)
@@ -353,7 +353,7 @@ describeSpec('Listens:', [], () => {
         // us up to docAV2 since that's the last relevant change to the query
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
-        .userListens(visibleQuery, 'resume-token-1000')
+        .userListens(visibleQuery, { resumeToken: 'resume-token-1000' })
         .watchAcks(visibleQuery)
         .watchSends({ removed: [visibleQuery] }, docAv2)
         .watchCurrents(visibleQuery, 'resume-token-5000')
@@ -362,7 +362,7 @@ describeSpec('Listens:', [], () => {
         .userUnlistens(visibleQuery)
         .watchRemoves(visibleQuery)
         // Listen to allQuery again and make sure we still get docAv3.
-        .userListens(allQuery, 'resume-token-4000')
+        .userListens(allQuery, { resumeToken: 'resume-token-4000' })
         .expectEvents(allQuery, { added: [docAv3], fromCache: true })
         .watchAcksFull(allQuery, 6000)
         .expectEvents(allQuery, { fromCache: false })
@@ -398,7 +398,7 @@ describeSpec('Listens:', [], () => {
         // us up to docAV2 since that's the last relevant change to the query
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
-        .userListens(visibleQuery, 'resume-token-1000')
+        .userListens(visibleQuery, { resumeToken: 'resume-token-1000' })
         .watchAcks(visibleQuery)
         .watchSends({ removed: [visibleQuery] }, docAv2)
         .watchCurrents(visibleQuery, 'resume-token-5000')
@@ -407,7 +407,7 @@ describeSpec('Listens:', [], () => {
         .userUnlistens(visibleQuery)
         .watchRemoves(visibleQuery)
         // Listen to allQuery again and make sure we still get no docs.
-        .userListens(allQuery, 'resume-token-4000')
+        .userListens(allQuery, { resumeToken: 'resume-token-4000' })
         .watchAcksFull(allQuery, 6000)
         .expectEvents(allQuery, { fromCache: false })
     );
@@ -484,7 +484,7 @@ describeSpec('Listens:', [], () => {
         .userUnlistens(collQuery)
         .watchRemoves(collQuery)
         // Verify that DocA and DocB exists
-        .userListens(collQuery, 'resume-token-1000')
+        .userListens(collQuery, { resumeToken: 'resume-token-1000' })
         .expectEvents(collQuery, { added: [docA, docB], fromCache: true })
         .userUnlistens(collQuery)
         // Now send a document query that produces no results from the server
@@ -498,7 +498,7 @@ describeSpec('Listens:', [], () => {
         .userUnlistens(docQuery)
         .watchRemoves(docQuery)
         // Re-add the initial collection query. Only Doc B exists now
-        .userListens(collQuery, 'resume-token-1000')
+        .userListens(collQuery, { resumeToken: 'resume-token-1000' })
         .expectEvents(collQuery, { added: [docB], fromCache: true })
     );
   });
@@ -514,7 +514,7 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query1, { added: [docA] })
       .userUnlistens(query1)
       .watchRemoves(query1)
-      .userListens(query1, 'resume-token-1000')
+      .userListens(query1, { resumeToken: 'resume-token-1000' })
       .expectEvents(query1, { added: [docA], fromCache: true })
       .watchAcks(query1)
       .watchSends({ removed: [query1] }, deletedDocA)
@@ -536,7 +536,7 @@ describeSpec('Listens:', [], () => {
       .watchSends({ affects: [query1] }, docB)
       .watchSnapshots(2000)
       .watchRemoves(query1)
-      .userListens(query1, 'resume-token-1000')
+      .userListens(query1, { resumeToken: 'resume-token-1000' })
       .expectEvents(query1, { added: [docA], fromCache: true });
   });
 
@@ -560,7 +560,7 @@ describeSpec('Listens:', [], () => {
           // snapshot and don't synthesize a document delete.
           .expectEvents(query1, { fromCache: false })
           .userUnlistens(query1)
-          .userListens(query1, 'resume-token-2000')
+          .userListens(query1, { resumeToken: 'resume-token-2000' })
           .expectEvents(query1, { added: [docA], fromCache: true })
       );
     }
@@ -596,7 +596,7 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query1, { added: [docA] })
       .userUnlistens(query1)
       .watchRemoves(query1)
-      .userListens(query1, 'resume-token-2000')
+      .userListens(query1, { resumeToken: 'resume-token-2000' })
       .expectEvents(query1, { added: [docA], fromCache: true })
       .watchAcksFull(query1, 3000)
       .expectEvents(query1, {});
@@ -616,7 +616,7 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query1, { added: [docA] })
       .userUnlistens(query1)
       .watchRemoves(query1)
-      .userListens(query1, 'resume-token-2000')
+      .userListens(query1, { resumeToken: 'resume-token-2000' })
       .expectEvents(query1, { added: [docA], fromCache: true })
       .watchAcksFull(query1, 3000)
       .expectEvents(query1, {});
@@ -639,7 +639,7 @@ describeSpec('Listens:', [], () => {
         .userUnlistens(query1)
         .watchRemoves(query1)
 
-        .userListens(query1, 'resume-token-2000')
+        .userListens(query1, { resumeToken: 'resume-token-2000' })
         .expectEvents(query1, { added: [docA], fromCache: true })
         .watchAcks(query1)
         .watchCurrents(query1, 'resume-token-3000')
@@ -667,7 +667,7 @@ describeSpec('Listens:', [], () => {
           .watchSnapshots(2000, [], 'resume-token-2000')
           .restart()
 
-          .userListens(query1, 'resume-token-1000')
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
           .expectEvents(query1, { added: [docA], fromCache: true })
           .watchAcks(query1)
           .watchCurrents(query1, 'resume-token-3000')
@@ -700,7 +700,7 @@ describeSpec('Listens:', [], () => {
           .watchSnapshots(minutesLater, [], 'resume-token-minutes-later')
           .restart()
 
-          .userListens(query1, 'resume-token-minutes-later')
+          .userListens(query1, { resumeToken: 'resume-token-minutes-later' })
           .expectEvents(query1, { added: [docA], fromCache: true })
           .watchAcks(query1)
           .watchCurrents(query1, 'resume-token-even-later')
@@ -862,7 +862,7 @@ describeSpec('Listens:', [], () => {
       .userListens(query1)
       .expectEvents(query1, { added: [docA], fromCache: true })
       .client(0)
-      .expectListen(query1, 'resume-token-1000')
+      .expectListen(query1, { resumeToken: 'resume-token-1000' })
       .watchAcksFull(query1, 2000, docB)
       .client(1)
       .expectEvents(query1, { added: [docB] });
@@ -1133,7 +1133,7 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query1, { fromCache: true })
         .client(0)
         .enableNetwork()
-        .expectListen(query1, 'resume-token-1000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000' })
         .watchAcksFull(query1, 2000)
         .client(1)
         .expectEvents(query1, {});
@@ -1184,7 +1184,7 @@ describeSpec('Listens:', [], () => {
         .client(1)
         .expectEvents(query1, { fromCache: true })
         .client(2)
-        .expectListen(query1, 'resume-token-1000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000' })
         .expectPrimaryState(true)
         .watchAcksFull(query1, 2000)
         .client(0)
@@ -1269,7 +1269,7 @@ describeSpec('Listens:', [], () => {
         .client(1)
         .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(true)
-        .expectListen(query1, 'resume-token-1000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000' })
         .watchAcksFull(query1, 2000, docB)
         .expectEvents(query1, { added: [docB] })
         .client(2)
@@ -1299,7 +1299,7 @@ describeSpec('Listens:', [], () => {
       .client(1)
       .runTimer(TimerId.ClientMetadataRefresh)
       .expectPrimaryState(true)
-      .expectListen(query1, 'resume-token-1000')
+      .expectListen(query1, { resumeToken: 'resume-token-1000' })
       .watchAcksFull(query1, 2000, docB)
       .client(2)
       .expectEvents(query1, { added: [docB] });
@@ -1321,7 +1321,7 @@ describeSpec('Listens:', [], () => {
         .userListens(query1)
         .expectEvents(query1, { added: [docA] })
         .stealPrimaryLease()
-        .expectListen(query1, 'resume-token-1000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000' })
         .watchAcksFull(query1, 2000, docB)
         .expectEvents(query1, { added: [docB] })
         .client(0)
@@ -1359,7 +1359,7 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query1, { added: [docA] })
       .client(2)
       .stealPrimaryLease()
-      .expectListen(query1, 'resume-token-1000')
+      .expectListen(query1, { resumeToken: 'resume-token-1000' })
       .client(1)
       .runTimer(TimerId.ClientMetadataRefresh)
       .expectPrimaryState(false)
@@ -1369,7 +1369,7 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query1, { added: [docB] })
       .client(1)
       .stealPrimaryLease()
-      .expectListen(query1, 'resume-token-2000')
+      .expectListen(query1, { resumeToken: 'resume-token-2000' })
       .watchAcksFull(query1, 3000, docC)
       .client(0)
       .expectEvents(query1, { added: [docC] });
@@ -1427,7 +1427,7 @@ describeSpec('Listens:', [], () => {
         .shutdown()
         .client(2)
         .expectPrimaryState(true)
-        .expectListen(query1, 'resume-token-1000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000' })
         .watchAcksFull(query1, 2000, docB)
         .client(1)
         .expectEvents(query1, { added: [docB] });
@@ -1448,7 +1448,7 @@ describeSpec('Listens:', [], () => {
           .expectEvents(query1, {})
           .client(1)
           .stealPrimaryLease()
-          .expectListen(query1, 'resume-token-1000')
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
           .watchAcksFull(query1, 2000, docA)
           .shutdown()
           .client(0)
@@ -1457,7 +1457,7 @@ describeSpec('Listens:', [], () => {
           // is already eligible to obtain it again.
           .runTimer(TimerId.ClientMetadataRefresh)
           .expectPrimaryState(true)
-          .expectListen(query1, 'resume-token-2000')
+          .expectListen(query1, { resumeToken: 'resume-token-2000' })
           .expectEvents(query1, { added: [docA] })
       );
     }

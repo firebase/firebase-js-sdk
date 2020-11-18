@@ -42,6 +42,7 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
+  syncEngineLoadBundle,
   activeLimboDocumentResolutions,
   enqueuedLimboDocumentResolutions,
   registerPendingWritesCallback,
@@ -144,12 +145,17 @@ import {
   SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { BundleReader } from '../../../src/util/bundle_reader';
+import { LoadBundleTask } from '../../../src/api/bundle';
 import { encodeBase64 } from '../../../src/platform/base64';
 import {
   FakeDocument,
   SharedFakeWebStorage,
   testWindow
 } from '../../util/test_platform';
+import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+import { logWarn } from '../../../src/util/log';
+import { newTextEncoder } from '../../../src/platform/serializer';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -364,6 +370,8 @@ abstract class TestRunner {
       return this.doAddSnapshotsInSyncListener();
     } else if ('removeSnapshotsInSyncListener' in step) {
       return this.doRemoveSnapshotsInSyncListener();
+    } else if ('loadBundle' in step) {
+      return this.doLoadBundle(step.loadBundle!);
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
@@ -417,8 +425,9 @@ abstract class TestRunner {
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
     let targetFailed = false;
 
-    const querySpec = listenSpec[1];
+    const querySpec = listenSpec.query;
     const query = parseQuery(querySpec);
+
     const aggregator = new EventAggregator(query, e => {
       if (e.error) {
         targetFailed = true;
@@ -505,6 +514,20 @@ abstract class TestRunner {
       throw new Error('There must be a listener to unlisten to');
     }
     return Promise.resolve();
+  }
+
+  private async doLoadBundle(bundle: string): Promise<void> {
+    const reader = new BundleReader(
+      toByteStreamReader(newTextEncoder().encode(bundle)),
+      this.serializer
+    );
+    const task = new LoadBundleTask();
+    return this.queue.enqueue(async () => {
+      syncEngineLoadBundle(this.syncEngine, reader, task);
+      await task.catch(e => {
+        logWarn(`Loading bundle failed with ${e}`);
+      });
+    });
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
@@ -1030,18 +1053,24 @@ abstract class TestRunner {
       // TODO(mcg): populate the purpose of the target once it's possible to
       // encode that in the spec tests. For now, hard-code that it's a listen
       // despite the fact that it's not always the right value.
-      const expectedTarget = toTarget(
-        this.serializer,
-        new TargetData(
-          queryToTarget(parseQuery(expected.queries[0])),
-          targetId,
-          TargetPurpose.Listen,
-          ARBITRARY_SEQUENCE_NUMBER,
-          SnapshotVersion.min(),
-          SnapshotVersion.min(),
-          byteStringFromString(expected.resumeToken)
-        )
+      let targetData = new TargetData(
+        queryToTarget(parseQuery(expected.queries[0])),
+        targetId,
+        TargetPurpose.Listen,
+        ARBITRARY_SEQUENCE_NUMBER
       );
+      if (expected.resumeToken && expected.resumeToken !== '') {
+        targetData = targetData.withResumeToken(
+          byteStringFromString(expected.resumeToken),
+          SnapshotVersion.min()
+        );
+      } else {
+        targetData = targetData.withResumeToken(
+          ByteString.EMPTY_BYTE_STRING,
+          version(expected.readTime!)
+        );
+      }
+      const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
@@ -1312,6 +1341,8 @@ export interface SpecStep {
   addSnapshotsInSyncListener?: true;
   /** Unlistens from a SnapshotsInSync event. */
   removeSnapshotsInSyncListener?: true;
+  /** Loads a bundle from a string. */
+  loadBundle?: string;
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
@@ -1397,8 +1428,10 @@ export interface SpecStep {
   expectedWaitForPendingWritesEvents?: number;
 }
 
-/** [<target-id>, <query-path>] */
-export type SpecUserListen = [TargetId, string | SpecQuery];
+export interface SpecUserListen {
+  targetId: TargetId;
+  query: string | SpecQuery;
+}
 
 /** [<target-id>, <query-path>] */
 export type SpecUserUnlisten = [TargetId, string | SpecQuery];

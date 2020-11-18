@@ -58,7 +58,7 @@ describeSpec('Limits:', [], () => {
         })
         .userUnlistens(query1)
         .userSets('collection/c', { key: 'c' })
-        .userListens(query1, 'resume-token-1000')
+        .userListens(query1, { resumeToken: 'resume-token-1000' })
         .expectEvents(query1, {
           added: [doc1, doc2],
           fromCache: true
@@ -203,7 +203,7 @@ describeSpec('Limits:', [], () => {
         .userUnlistens(limitQuery)
         .watchRemoves(limitQuery)
         .userSets('collection/a', { matches: false })
-        .userListens(limitQuery, 'resume-token-1004')
+        .userListens(limitQuery, { resumeToken: 'resume-token-1004' })
         .expectEvents(limitQuery, { added: [doc2, doc3], fromCache: true });
     }
   );
@@ -238,7 +238,7 @@ describeSpec('Limits:', [], () => {
         .userUnlistens(limitQuery)
         .watchRemoves(limitQuery)
         .userSets('collection/a', { pos: 4 })
-        .userListens(limitQuery, 'resume-token-1004')
+        .userListens(limitQuery, { resumeToken: 'resume-token-1004' })
         .expectEvents(limitQuery, { added: [doc2, doc3], fromCache: true });
     }
   );
@@ -273,11 +273,11 @@ describeSpec('Limits:', [], () => {
         .expectEvents(limitQuery, {})
         .userUnlistens(limitQuery)
         .watchRemoves(limitQuery)
-        .userListens(fullQuery, 'resume-token-1003')
+        .userListens(fullQuery, { resumeToken: 'resume-token-1003' })
         .expectEvents(fullQuery, { added: [doc1, doc2, doc3], fromCache: true })
         .watchAcksFull(fullQuery, 1005, doc1Edited)
         .expectEvents(fullQuery, { modified: [doc1Edited] })
-        .userListens(limitQuery, 'resume-token-1004')
+        .userListens(limitQuery, { resumeToken: 'resume-token-1004' })
         .expectEvents(limitQuery, { added: [doc2, doc3], fromCache: true });
     }
   );
@@ -332,7 +332,7 @@ describeSpec('Limits:', [], () => {
           // We listen to the limit query again. Note that we include
           // `firstDocument` in the local result since we did not resolve its
           // limbo state.
-          .userListens(limitQuery, 'resume-token-1001')
+          .userListens(limitQuery, { resumeToken: 'resume-token-1001' })
           .expectEvents(limitQuery, { added: [firstDocument], fromCache: true })
           .watchAcks(limitQuery)
           // Watch resumes the query from the provided resume token, but does
@@ -400,7 +400,7 @@ describeSpec('Limits:', [], () => {
         .watchRemoves(fullQuery)
         // Re-issue the limit query and verify that we return `secondDocument`
         // from cache.
-        .userListens(limitQuery, 'resume-token-2001')
+        .userListens(limitQuery, { resumeToken: 'resume-token-2001' })
         .expectEvents(limitQuery, {
           added: [secondDocument],
           fromCache: true

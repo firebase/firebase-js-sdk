@@ -21,7 +21,7 @@ import {
   MfaEnrollment
 } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
-import { fail } from '../core/util/assert';
+import { _fail } from '../core/util/assert';
 import { Auth } from '../model/auth';
 
 export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
@@ -45,7 +45,7 @@ export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
     if ('phoneInfo' in enrollment) {
       return PhoneMultiFactorInfo._fromServerResponse(auth, enrollment);
     }
-    return fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+    return _fail(auth, AuthErrorCode.INTERNAL_ERROR);
   }
 }
 

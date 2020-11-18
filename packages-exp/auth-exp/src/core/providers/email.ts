@@ -20,7 +20,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthCredential } from '../credentials/email';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 
 /**
  * {@inheritdoc @firebase/auth-types#EmailAuthProvider}
@@ -49,7 +49,7 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
     emailLink: string
   ): EmailAuthCredential {
     const actionCodeUrl = ActionCodeURL.parseLink(emailLink);
-    assert(actionCodeUrl, AuthErrorCode.ARGUMENT_ERROR, {});
+    _assert(actionCodeUrl, AuthErrorCode.ARGUMENT_ERROR);
 
     return EmailAuthCredential._fromEmailAndCode(
       email,

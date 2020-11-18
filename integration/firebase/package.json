@@ -7,7 +7,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
   },
   "devDependencies": {
-    "firebase": "8.0.1",
+    "firebase": "8.0.2",
     "@types/chai": "4.2.14",
     "@types/mocha": "7.0.2",
     "chai": "4.2.0",

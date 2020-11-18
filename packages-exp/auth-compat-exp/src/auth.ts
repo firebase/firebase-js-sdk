@@ -37,6 +37,7 @@ import {
 import { unwrap, Wrapper } from './wrap';
 
 const PERSISTENCE_KEY = 'persistence';
+const _assert: typeof impl._assert = impl._assert;
 
 export class Auth
   implements compat.FirebaseAuth, Wrapper<externs.Auth>, _FirebaseService {
@@ -59,9 +60,11 @@ export class Auth
     const hierarchy = persistences.map<impl.Persistence>(impl._getInstance);
 
     // TODO: platform needs to be determined using heuristics
-    impl.assertFn(apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
+    _assert(apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
+
+    this.auth._updateErrorMap(impl.debugErrorMap);
 
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.
@@ -128,10 +131,10 @@ export class Auth
     return impl.isSignInWithEmailLink(this.auth, emailLink);
   }
   async getRedirectResult(): Promise<compat.UserCredential> {
-    impl.assertFn(
+    _assert(
       _isPopupRedirectSupported(),
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
-      { appName: this.app.name }
+      this.auth,
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     const credential = await impl.getRedirectResult(
       this.auth,
@@ -201,7 +204,7 @@ export class Auth
         case Persistence.NONE:
           return impl.inMemoryPersistence;
         default:
-          return impl.fail(impl.AuthErrorCode.ARGUMENT_ERROR, {
+          return impl._fail(impl.AuthErrorCode.ARGUMENT_ERROR, {
             appName: auth.name
           });
       }
@@ -266,10 +269,10 @@ export class Auth
   async signInWithPopup(
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
-    impl.assertFn(
+    _assert(
       _isPopupRedirectSupported(),
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
-      { appName: this.app.name }
+      this.auth,
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     return convertCredential(
       this.auth,
@@ -281,10 +284,10 @@ export class Auth
     );
   }
   async signInWithRedirect(provider: compat.AuthProvider): Promise<void> {
-    impl.assertFn(
+    _assert(
       _isPopupRedirectSupported(),
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
-      { appName: this.app.name }
+      this.auth,
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     this.savePersistenceForRedirect();
     return impl.signInWithRedirect(
