@@ -62,7 +62,7 @@ export class Blob extends Compat<Bytes> {
     return this._delegate.toUint8Array();
   }
 
-  isEqual(other: Blob) : boolean {
+  isEqual(other: Blob): boolean {
     return this._delegate.isEqual(other._delegate);
   }
 
