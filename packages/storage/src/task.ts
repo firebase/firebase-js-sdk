@@ -48,14 +48,14 @@ import {
   getMetadata,
   multipartUpload
 } from './implementation/requests';
-import { Reference } from './reference';
+import { StorageReference } from './reference';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
  * upload and manage callbacks for various events.
  */
 export class UploadTask {
-  private _ref: Reference;
+  private _ref: StorageReference;
   /**
    * @internal
    */
@@ -92,7 +92,11 @@ export class UploadTask {
    *     from, untyped to avoid cyclic dependencies.
    * @param blob - The blob to upload.
    */
-  constructor(ref: Reference, blob: FbsBlob, metadata: Metadata | null = null) {
+  constructor(
+    ref: StorageReference,
+    blob: FbsBlob,
+    metadata: Metadata | null = null
+  ) {
     this._ref = ref;
     this._blob = blob;
     this._metadata = metadata;

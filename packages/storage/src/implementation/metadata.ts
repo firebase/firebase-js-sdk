@@ -25,7 +25,7 @@ import { Location } from './location';
 import { lastComponent } from './path';
 import { isString } from './type';
 import { makeUrl, makeQueryString } from './url';
-import { Reference } from '../reference';
+import { StorageReference } from '../reference';
 import { StorageService } from '../service';
 
 export function noXform_<T>(metadata: Metadata, value: T): T {
@@ -112,7 +112,7 @@ export function getMappings(): Mappings {
 }
 
 export function addRef(metadata: Metadata, service: StorageService): void {
-  function generateRef(): Reference {
+  function generateRef(): StorageReference {
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
     const loc = new Location(bucket, path);

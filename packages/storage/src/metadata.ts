@@ -16,7 +16,7 @@
  */
 
 import * as types from '@firebase/storage-types';
-import { Reference } from './reference';
+import { StorageReference } from './reference';
 
 /**
  * @fileoverview Documentation for the metadata format.
@@ -35,7 +35,7 @@ interface Metadata extends types.FullMetadata {
   contentType: string | undefined;
   downloadTokens: string[] | undefined;
   customMetadata: { [key: string]: string } | undefined;
-  ref: Reference | undefined;
+  ref: StorageReference | undefined;
 
   [prop: string]: unknown;
 }

@@ -53,6 +53,7 @@ export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 describe('FirebaseStorage Exp', () => {
   let app: FirebaseApp;
   let storage: StorageService;
+
   beforeEach(async () => {
     app = initializeApp({
       apiKey: API_KEY,
@@ -63,14 +64,17 @@ describe('FirebaseStorage Exp', () => {
     await signInAnonymously(getAuth(app));
     storage = getStorage(app);
   });
+
   afterEach(async () => {
     await deleteApp(app);
   });
+
   it('can upload bytes', async () => {
     const reference = ref(storage, 'public/exp-bytes');
     const snap = await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     expect(snap.metadata.timeCreated).to.exist;
   });
+
   it('can upload bytes (resumable)', async () => {
     const reference = ref(storage, 'public/exp-bytesresumable');
     const snap = await uploadBytesResumable(
@@ -109,14 +113,6 @@ describe('FirebaseStorage Exp', () => {
       Error,
       /Object 'public\/exp-delete' does not exist/
     );
-    // try {
-    //   await getDownloadURL(reference);
-    //   expect.fail();
-    // } catch (e) {
-    //   expect(e.message).to.satisfy((v: string) =>
-    //     v.match(/Object 'public\/exp-delete' does not exist/)
-    //   );
-    // }
   });
 
   it('can get download URL', async () => {

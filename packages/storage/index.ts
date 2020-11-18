@@ -21,7 +21,7 @@ import { StringFormat } from './src/implementation/string';
 import { TaskEvent, TaskState } from './src/implementation/taskenums';
 
 import { XhrIoPool } from './src/implementation/xhriopool';
-import { Reference } from './src/reference';
+import { StorageReference } from './src/reference';
 import { StorageService } from './src/service';
 import * as types from '@firebase/storage-types';
 import {
@@ -60,7 +60,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
     TaskEvent,
     StringFormat,
     Storage: StorageService,
-    Reference
+    StorageReference: Reference
   };
   instance.INTERNAL.registerComponent(
     new Component(STORAGE_TYPE, factory, ComponentType.PUBLIC)

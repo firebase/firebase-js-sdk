@@ -20,7 +20,7 @@ import { FailRequest } from './implementation/failrequest';
 import { Request, makeRequest } from './implementation/request';
 import { RequestInfo } from './implementation/requestinfo';
 import { XhrIoPool } from './implementation/xhriopool';
-import { Reference, getChild } from './reference';
+import { StorageReference, getChild } from './reference';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
@@ -43,8 +43,8 @@ export function isUrl(path?: string): boolean {
 /**
  * Returns a firebaseStorage.Reference for the given url.
  */
-function refFromURL(service: StorageService, url: string): Reference {
-  return new Reference(service, url);
+function refFromURL(service: StorageService, url: string): StorageReference {
+  return new StorageReference(service, url);
 }
 
 /**
@@ -52,15 +52,15 @@ function refFromURL(service: StorageService, url: string): Reference {
  * bucket.
  */
 function refFromPath(
-  ref: StorageService | Reference,
+  ref: StorageService | StorageReference,
   path?: string
-): Reference {
+): StorageReference {
   if (ref instanceof StorageService) {
     const service = ref;
     if (service._bucket == null) {
       throw noDefaultBucket();
     }
-    const reference = new Reference(service, service._bucket!);
+    const reference = new StorageReference(service, service._bucket!);
     if (path != null) {
       return refFromPath(reference, path);
     } else {
@@ -85,7 +85,7 @@ function refFromPath(
  * @param url - URL. If empty, returns root reference.
  * @public
  */
-export function ref(storage: StorageService, url?: string): Reference;
+export function ref(storage: StorageService, url?: string): StorageReference;
 /**
  * Returns a storage Reference for the given path in the
  * default bucket.
@@ -95,13 +95,13 @@ export function ref(storage: StorageService, url?: string): Reference;
  * @public
  */
 export function ref(
-  storageOrRef: StorageService | Reference,
+  storageOrRef: StorageService | StorageReference,
   path?: string
-): Reference;
+): StorageReference;
 export function ref(
-  serviceOrRef: StorageService | Reference,
+  serviceOrRef: StorageService | StorageReference,
   pathOrUrl?: string
-): Reference | null {
+): StorageReference | null {
   if (pathOrUrl && isUrl(pathOrUrl)) {
     if (serviceOrRef instanceof StorageService) {
       return refFromURL(serviceOrRef, pathOrUrl);
@@ -217,8 +217,8 @@ export class StorageService implements _FirebaseService {
    * Returns a new firebaseStorage.Reference object referencing this StorageService
    * at the given Location.
    */
-  makeStorageReference(loc: Location): Reference {
-    return new Reference(this, loc);
+  makeStorageReference(loc: Location): StorageReference {
+    return new StorageReference(this, loc);
   }
 
   /**

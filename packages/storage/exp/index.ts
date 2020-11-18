@@ -63,7 +63,6 @@ export function getStorage(app: FirebaseApp): StorageService {
 }
 
 function factory(container: ComponentContainer, url?: string): StorageService {
-  // Dependencies
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
 

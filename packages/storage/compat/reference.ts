@@ -16,7 +16,7 @@
  */
 
 import {
-  Reference,
+  StorageReference,
   getChild,
   uploadBytesResumable,
   list,
@@ -39,7 +39,7 @@ import { FbsBlob } from '../src/implementation/blob';
 
 export class ReferenceCompat implements types.Reference {
   constructor(
-    private readonly _delegate: Reference,
+    private readonly _delegate: StorageReference,
     public storage: StorageServiceCompat
   ) {}
 

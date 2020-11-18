@@ -19,7 +19,7 @@ import { FbsBlob } from '../../src/implementation/blob';
 import { Location } from '../../src/implementation/location';
 import { Unsubscribe } from '../../src/implementation/observer';
 import { TaskEvent, TaskState } from '../../src/implementation/taskenums';
-import { Reference } from '../../src/reference';
+import { StorageReference } from '../../src/reference';
 import { UploadTask } from '../../src/task';
 import { fakeServerHandler, storageServiceWithHandler } from './testshared';
 
@@ -31,7 +31,7 @@ describe('Firebase Storage > Upload Task', () => {
   it('Works for a small upload w/ an observer', done => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new Reference(storageService, testLocation),
+      new StorageReference(storageService, testLocation),
       smallBlob
     );
     task.on(
@@ -44,7 +44,7 @@ describe('Firebase Storage > Upload Task', () => {
   it('Works for a small upload w/ a promise', () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new Reference(storageService, testLocation),
+      new StorageReference(storageService, testLocation),
       smallBlob
     );
     return task.then(snapshot => {
@@ -54,7 +54,7 @@ describe('Firebase Storage > Upload Task', () => {
   it('Works for a small upload canceled w/ a promise', () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new Reference(storageService, testLocation),
+      new StorageReference(storageService, testLocation),
       smallBlob
     );
     const promise: Promise<string | null> = task.then<string | null>(
@@ -70,7 +70,7 @@ describe('Firebase Storage > Upload Task', () => {
   it('Works properly with multiple observers', () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new Reference(storageService, testLocation),
+      new StorageReference(storageService, testLocation),
       smallBlob
     );
 
@@ -133,7 +133,7 @@ describe('Firebase Storage > Upload Task', () => {
   it("Works properly with an observer missing the 'next' method", () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new Reference(storageService, testLocation),
+      new StorageReference(storageService, testLocation),
       smallBlob
     );
     return new Promise(resolve => {
@@ -151,7 +151,7 @@ describe('Firebase Storage > Upload Task', () => {
   function runNormalUploadTest(blob: FbsBlob): Promise<void> {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new Reference(storageService, testLocation),
+      new StorageReference(storageService, testLocation),
       blob
     );
 
@@ -270,7 +270,7 @@ describe('Firebase Storage > Upload Task', () => {
       fixedAssertTrue(lastIsAll);
 
       const task2 = new UploadTask(
-        new Reference(storageService, testLocation),
+        new StorageReference(storageService, testLocation),
         blob
       );
       const events2: string[] = [];

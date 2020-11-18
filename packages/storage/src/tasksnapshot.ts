@@ -16,8 +16,13 @@
  */
 import { TaskState } from './implementation/taskenums';
 import { Metadata } from './metadata';
-import { Reference } from './reference';
+import { StorageReference } from './reference';
 import { UploadTask } from './task';
+
+export interface UploadTaskSnapshot {
+  readonly metadata: Metadata;
+  readonly ref: StorageReference;
+}
 
 export interface UploadTaskResumableSnapshot {
   readonly bytesTransferred: number;
@@ -25,9 +30,5 @@ export interface UploadTaskResumableSnapshot {
   readonly state: TaskState;
   readonly metadata: Metadata;
   readonly task: UploadTask;
-  readonly ref: Reference;
-}
-export interface UploadTaskSnapshot {
-  readonly metadata: Metadata;
-  readonly ref: Reference;
+  readonly ref: StorageReference;
 }

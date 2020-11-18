@@ -20,7 +20,7 @@ import { StringFormat } from '../../src/implementation/string';
 import { Headers } from '../../src/implementation/xhrio';
 import { Metadata } from '../../src/metadata';
 import {
-  Reference,
+  StorageReference,
   uploadString,
   uploadBytesResumable,
   deleteObject,
@@ -48,19 +48,19 @@ function makeFakeService(
   return new StorageService(app, authProvider, testShared.makePool(sendHook));
 }
 
-function makeStorage(url: string): Reference {
+function makeStorage(url: string): StorageReference {
   const service = new StorageService(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
     testShared.makePool(null)
   );
-  return new Reference(service, url);
+  return new StorageReference(service, url);
 }
 
 function withFakeSend(
   testFn: (text: string, headers?: Headers) => void,
   resolveFn: () => void
-): Reference {
+): StorageReference {
   function newSend(
     xhrio: TestingXhrIo,
     url: string,
