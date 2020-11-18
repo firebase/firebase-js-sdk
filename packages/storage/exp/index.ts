@@ -19,6 +19,7 @@ import {
   _registerComponent,
   registerVersion,
   _getProvider
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 
 import { XhrIoPool } from '../src/implementation/xhriopool';

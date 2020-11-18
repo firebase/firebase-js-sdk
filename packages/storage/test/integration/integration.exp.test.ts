@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app-exp';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { getAuth, signInAnonymously } from '@firebase/auth-exp';
