@@ -62,6 +62,10 @@ export class Blob extends Compat<Bytes> {
     return this._delegate.toUint8Array();
   }
 
+  isEqual(other: Blob) {
+    return this._delegate.isEqual(other._delegate);
+  }
+
   toString(): string {
     return 'Blob(base64: ' + this.toBase64() + ')';
   }
