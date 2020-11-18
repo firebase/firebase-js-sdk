@@ -59,7 +59,7 @@ export class DeleteFieldValueImpl extends FieldValue {
 }
 
 /**
- * Creates a child context for parsing SerializableFieldValues.
+ * Creates a child context for parsing FieldValues.
  *
  * This is different than calling `ParseContext.contextWith` because it keeps
  * the fieldTransforms and fieldMask separate.
