@@ -16,13 +16,16 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
+import { AuthErrorCode } from './errors';
+import { _assert } from './util/assert';
 
 /**
  * Enums for fields in URL query string.
+ *
  * @enum {string}
+ * @internal
  */
-enum QueryField {
+const enum QueryField {
   API_KEY = 'apiKey',
   CODE = 'oobCode',
   CONTINUE_URL = 'continueUrl',
@@ -32,24 +35,36 @@ enum QueryField {
 }
 
 /**
- * Map from mode string in action code URL to Action Code Info operation.
- */
-const MODE_TO_OPERATION_MAP: { [key: string]: externs.Operation } = {
-  'recoverEmail': externs.Operation.RECOVER_EMAIL,
-  'resetPassword': externs.Operation.PASSWORD_RESET,
-  'signIn': externs.Operation.EMAIL_SIGNIN,
-  'verifyEmail': externs.Operation.VERIFY_EMAIL,
-  'verifyAndChangeEmail': externs.Operation.VERIFY_AND_CHANGE_EMAIL,
-  'revertSecondFactorAddition': externs.Operation.REVERT_SECOND_FACTOR_ADDITION
-};
-
-/**
  * Maps the mode string in action code URL to Action Code Info operation.
+ *
+ * @param mode
+ * @internal
  */
 function parseMode(mode: string | null): externs.Operation | null {
-  return mode ? MODE_TO_OPERATION_MAP[mode] || null : null;
+  switch (mode) {
+    case 'recoverEmail':
+      return externs.Operation.RECOVER_EMAIL;
+    case 'resetPassword':
+      return externs.Operation.PASSWORD_RESET;
+    case 'signIn':
+      return externs.Operation.EMAIL_SIGNIN;
+    case 'verifyEmail':
+      return externs.Operation.VERIFY_EMAIL;
+    case 'verifyAndChangeEmail':
+      return externs.Operation.VERIFY_AND_CHANGE_EMAIL;
+    case 'revertSecondFactorAddition':
+      return externs.Operation.REVERT_SECOND_FACTOR_ADDITION;
+    default:
+      return null;
+  }
 }
 
+/**
+ * Helper to parse FDL links
+ *
+ * @param url
+ * @internal
+ */
 function parseDeepLink(url: string): string {
   const uri = new URL(url);
   const link = uri.searchParams.get('link');
@@ -63,23 +78,38 @@ function parseDeepLink(url: string): string {
   return iOSDoubleDeepLink || iOSDeepLink || doubleDeepLink || link || url;
 }
 
+/**
+ * {@inheritDoc @firebase/auth-types#ActionCodeURL}
+ *
+ * @public
+ */
 export class ActionCodeURL implements externs.ActionCodeURL {
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.apiKey} */
   readonly apiKey: string;
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.code} */
   readonly code: string;
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.continueUrl} */
   readonly continueUrl: string | null;
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.languageCode} */
   readonly languageCode: string | null;
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.operation} */
   readonly operation: externs.Operation;
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.tenantId} */
   readonly tenantId: string | null;
 
+  /**
+   * @param actionLink - The link from which to extract the URL.
+   * @returns The ActionCodeURL object, or null if the link is invalid.
+   *
+   * @internal
+   */
   constructor(actionLink: string) {
     const uri = new URL(actionLink);
     const apiKey = uri.searchParams.get(QueryField.API_KEY);
     const code = uri.searchParams.get(QueryField.CODE);
     const operation = parseMode(uri.searchParams.get(QueryField.MODE));
     // Validate API key, code and mode.
-    if (!apiKey || !code || !operation) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {});
-    }
+    _assert(apiKey && code && operation, AuthErrorCode.ARGUMENT_ERROR);
     this.apiKey = apiKey;
     this.operation = operation;
     this.code = code;
@@ -88,6 +118,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
   }
 
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink} */
   static parseLink(link: string): externs.ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {
@@ -98,6 +129,11 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   }
 }
 
+/**
+ * {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink}
+ *
+ * @public
+ */
 export function parseActionCodeURL(link: string): externs.ActionCodeURL | null {
   return ActionCodeURL.parseLink(link);
 }

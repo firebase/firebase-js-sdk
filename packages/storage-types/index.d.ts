@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { Observer, Unsubscribe } from '@firebase/util';
+import { FirebaseApp } from '@firebase/app-types';
+import { CompleteFn, FirebaseError, NextFn, Unsubscribe } from '@firebase/util';
 
 export interface FullMetadata extends UploadMetadata {
   bucket: string;
@@ -48,7 +48,7 @@ export interface Reference {
     metadata?: UploadMetadata
   ): UploadTask;
   root: Reference;
-  storage: Storage;
+  storage: FirebaseStorage;
   toString(): string;
   updateMetadata(metadata: SettableMetadata): Promise<FullMetadata>;
   listAll(): Promise<ListResult>;
@@ -85,24 +85,34 @@ export interface UploadMetadata extends SettableMetadata {
   md5Hash?: string | null;
 }
 
+interface FirebaseStorageError extends FirebaseError {
+  serverResponse: string | null;
+}
+
+export interface StorageObserver<T> {
+  next?: NextFn<T> | null;
+  error?: (error: FirebaseStorageError) => void | null;
+  complete?: CompleteFn | null;
+}
+
 export interface UploadTask {
   cancel(): boolean;
-  catch(onRejected: (a: Error) => any): Promise<any>;
+  catch(onRejected: (error: FirebaseStorageError) => any): Promise<any>;
   on(
     event: TaskEvent,
     nextOrObserver?:
-      | Partial<Observer<UploadTaskSnapshot>>
+      | StorageObserver<UploadTaskSnapshot>
       | null
-      | ((a: UploadTaskSnapshot) => any),
-    error?: ((a: Error) => any) | null,
+      | ((snapshot: UploadTaskSnapshot) => any),
+    error?: ((a: FirebaseStorageError) => any) | null,
     complete?: Unsubscribe | null
   ): Function;
   pause(): boolean;
   resume(): boolean;
   snapshot: UploadTaskSnapshot;
   then(
-    onFulfilled?: ((a: UploadTaskSnapshot) => any) | null,
-    onRejected?: ((a: Error) => any) | null
+    onFulfilled?: ((snapshot: UploadTaskSnapshot) => any) | null,
+    onRejected?: ((error: FirebaseStorageError) => any) | null
   ): Promise<any>;
 }
 

@@ -20,24 +20,18 @@
  */
 export * from '../index';
 
-import { assert } from '../src/core/util/assert';
-
 export { SignInWithIdpResponse } from '../src/api/authentication/idp';
 export { AuthErrorCode } from '../src/core/errors';
 export { Persistence } from '../src/core/persistence';
+export { _persistenceKeyName } from '../src/core/persistence/persistence_user_manager';
 export { UserImpl } from '../src/core/user/user_impl';
 export { _getInstance } from '../src/core/util/instantiator';
 export { UserCredential, UserParameters } from '../src/model/user';
-export {
-  AuthImplCompat,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
-} from '../src/core/auth/auth_impl';
+export { registerAuth } from '../src/core/auth/register';
+export { DefaultConfig, AuthImpl } from '../src/core/auth/auth_impl';
 
 export { ClientPlatform, _getClientVersion } from '../src/core/util/version';
 
 export { _generateEventId } from '../src/core/util/event_id';
 
-export { fail } from '../src/core/util/assert';
-export const assertFn: typeof assert = assert;
+export { _fail, _assert } from '../src/core/util/assert';

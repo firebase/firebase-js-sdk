@@ -24,7 +24,7 @@ export class UploadTaskSnapshot {
     readonly bytesTransferred: number,
     readonly totalBytes: number,
     readonly state: TaskState,
-    readonly metadata: Metadata | null,
+    readonly metadata: Metadata,
     readonly task: UploadTask,
     readonly ref: Reference
   ) {}

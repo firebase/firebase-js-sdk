@@ -4,6 +4,8 @@
 
 ## FieldPath.(constructor)
 
+Constructs a new instance of the `FieldPath` class
+
 <b>Signature:</b>
 
 ```typescript

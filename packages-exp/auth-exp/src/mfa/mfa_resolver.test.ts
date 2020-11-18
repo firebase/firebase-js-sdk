@@ -28,13 +28,14 @@ import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
 import { AuthCredential } from '../core/credentials';
 import { PhoneAuthCredential } from '../core/credentials/phone';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { AuthErrorCode } from '../core/errors';
 import { EmailAuthProvider } from '../core/providers/email';
 import { User, UserCredential } from '../model/user';
-import { MultiFactorAssertion } from './assertions';
+import { MultiFactorAssertion } from './mfa_assertion';
 import { PhoneMultiFactorAssertion } from '../platform_browser/mfa/assertions/phone';
 import { MultiFactorError } from './mfa_error';
 import { getMultiFactorResolver, MultiFactorResolver } from './mfa_resolver';
+import { _createError } from '../core/util/assert';
 
 use(chaiAsPromised);
 
@@ -51,8 +52,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
       'email',
       'password'
     ) as AuthCredential;
-    underlyingError = AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
-      appName: auth.name,
+    underlyingError = _createError(auth, AuthErrorCode.MFA_REQUIRED, {
       serverResponse: {
         localId: 'local-id',
         expiresIn: '3600',

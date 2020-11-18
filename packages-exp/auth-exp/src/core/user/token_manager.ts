@@ -17,17 +17,21 @@
 
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { requestStsToken } from '../../api/authentication/token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
-import { assert, debugFail } from '../util/assert';
+import { _assert, debugFail } from '../util/assert';
 
 /**
  * The number of milliseconds before the official expiration time of a token
  * to refresh that token, to provide a buffer for RPCs to complete.
+ *
+ * @internal
  */
-export const TOKEN_REFRESH_BUFFER_MS = 30_000;
+export const enum Buffer {
+  TOKEN_REFRESH = 30_000
+}
 
 export class StsTokenManager {
   refreshToken: string | null = null;
@@ -37,7 +41,7 @@ export class StsTokenManager {
   get isExpired(): boolean {
     return (
       !this.expirationTime ||
-      Date.now() > this.expirationTime - TOKEN_REFRESH_BUFFER_MS
+      Date.now() > this.expirationTime - Buffer.TOKEN_REFRESH
     );
   }
 
@@ -51,27 +55,30 @@ export class StsTokenManager {
     );
   }
 
-  async getToken(auth: AuthCore, forceRefresh = false): Promise<string | null> {
+  async getToken(auth: Auth, forceRefresh = false): Promise<string | null> {
+    _assert(
+      !this.accessToken || this.refreshToken,
+      auth,
+      AuthErrorCode.TOKEN_EXPIRED
+    );
+
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return this.accessToken;
     }
 
-    if (!this.refreshToken) {
-      assert(!this.accessToken, AuthErrorCode.TOKEN_EXPIRED, {
-        appName: auth.name
-      });
-      return null;
+    if (this.refreshToken) {
+      await this.refresh(auth, this.refreshToken!);
+      return this.accessToken;
     }
 
-    await this.refresh(auth, this.refreshToken);
-    return this.accessToken;
+    return null;
   }
 
   clearRefreshToken(): void {
     this.refreshToken = null;
   }
 
-  private async refresh(auth: AuthCore, oldToken: string): Promise<void> {
+  private async refresh(auth: Auth, oldToken: string): Promise<void> {
     const { accessToken, refreshToken, expiresIn } = await requestStsToken(
       auth,
       oldToken
@@ -96,21 +103,25 @@ export class StsTokenManager {
 
     const manager = new StsTokenManager();
     if (refreshToken) {
-      assert(typeof refreshToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
+      _assert(typeof refreshToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
         appName
       });
       manager.refreshToken = refreshToken;
     }
     if (accessToken) {
-      assert(typeof accessToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
+      _assert(typeof accessToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
         appName
       });
       manager.accessToken = accessToken;
     }
     if (expirationTime) {
-      assert(typeof expirationTime === 'number', AuthErrorCode.INTERNAL_ERROR, {
-        appName
-      });
+      _assert(
+        typeof expirationTime === 'number',
+        AuthErrorCode.INTERNAL_ERROR,
+        {
+          appName
+        }
+      );
       manager.expirationTime = expirationTime;
     }
     return manager;
@@ -124,10 +135,14 @@ export class StsTokenManager {
     };
   }
 
-  _copy(stsTokenManager: StsTokenManager): void {
+  _assign(stsTokenManager: StsTokenManager): void {
     this.accessToken = stsTokenManager.accessToken;
     this.refreshToken = stsTokenManager.refreshToken;
     this.expirationTime = stsTokenManager.expirationTime;
+  }
+
+  _clone(): StsTokenManager {
+    return Object.assign(new StsTokenManager(), this.toJSON());
   }
 
   _performRefresh(): never {

@@ -235,11 +235,38 @@ describe('core/user/user_impl', () => {
     it('should not trigger additional callbacks', async () => {
       const cb = sinon.spy();
       auth.onAuthStateChanged(cb);
-      await auth.updateCurrentUser(null);
+      await auth._updateCurrentUser(null);
       cb.resetHistory();
 
       await UserImpl._fromIdTokenResponse(auth, idTokenResponse);
       expect(cb).not.to.have.been.called;
+    });
+  });
+
+  describe('_clone', () => {
+    it('copies the user to a new object', () => {
+      const stsTokenManager = Object.assign(new StsTokenManager(), {
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        expirationTime: 3
+      });
+
+      const user = new UserImpl({
+        auth,
+        uid: 'uid',
+        stsTokenManager,
+        displayName: 'name',
+        email: 'email',
+        phoneNumber: 'number',
+        photoURL: 'photo',
+        emailVerified: false,
+        isAnonymous: true
+      });
+
+      const copy = user._clone();
+      expect(copy).not.to.eq(user);
+      expect(copy.stsTokenManager).not.to.eq(user.stsTokenManager);
+      expect(copy.toJSON()).to.eql(user.toJSON());
     });
   });
 });

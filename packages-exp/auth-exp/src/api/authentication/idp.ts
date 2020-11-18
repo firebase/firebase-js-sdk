@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '..';
+import { Endpoint, HttpMethod, _performSignInRequest } from '../index';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface SignInWithIdpRequest {
   requestUri: string;
@@ -39,7 +39,7 @@ export interface SignInWithIdpResponse extends IdTokenResponse {
 }
 
 export async function signInWithIdp(
-  auth: AuthCore,
+  auth: Auth,
   request: SignInWithIdpRequest
 ): Promise<SignInWithIdpResponse> {
   return _performSignInRequest<SignInWithIdpRequest, SignInWithIdpResponse>(

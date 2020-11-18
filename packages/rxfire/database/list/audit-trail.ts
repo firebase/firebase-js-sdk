@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-import { database } from 'firebase';
+import firebase from 'firebase';
 import { Observable } from 'rxjs';
 import { QueryChange, ListenEvent } from '../interfaces';
 import { fromRef } from '../fromRef';
 import { map, withLatestFrom, scan, skipWhile } from 'rxjs/operators';
 import { stateChanges } from './index';
+
+type Query = firebase.database.Query;
 
 interface LoadedMetadata {
   data: QueryChange;
@@ -28,7 +30,7 @@ interface LoadedMetadata {
 }
 
 export function auditTrail(
-  query: database.Query,
+  query: Query,
   events?: ListenEvent[]
 ): Observable<QueryChange[]> {
   const auditTrail$ = stateChanges(query, events).pipe(
@@ -40,7 +42,7 @@ export function auditTrail(
   return waitForLoaded(query, auditTrail$);
 }
 
-function loadedData(query: database.Query): Observable<LoadedMetadata> {
+function loadedData(query: Query): Observable<LoadedMetadata> {
   // Create an observable of loaded values to retrieve the
   // known dataset. This will allow us to know what key to
   // emit the "whole" array at when listening for child events.
@@ -60,7 +62,7 @@ function loadedData(query: database.Query): Observable<LoadedMetadata> {
 }
 
 function waitForLoaded(
-  query: database.Query,
+  query: Query,
   snap$: Observable<QueryChange[]>
 ): Observable<QueryChange[]> {
   const loaded$ = loadedData(query);

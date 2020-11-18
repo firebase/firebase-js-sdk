@@ -22,14 +22,13 @@ import {
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
+  ensureFirestoreConfigured,
   Firestore,
+  IndexedDbPersistenceProvider,
   Query,
-  QuerySnapshot
+  QuerySnapshot,
+  SnapshotMetadata
 } from '../../src/api/database';
-import {
-  MultiTabOfflineComponentProvider,
-  OnlineComponentProvider
-} from '../../src/core/component_provider';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -43,60 +42,56 @@ import { JsonObject } from '../../src/model/object_value';
 import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
+import { FirebaseFirestore } from '../../exp/src/api/database';
+import { DatabaseId } from '../../src/core/database_info';
+import {
+  QuerySnapshot as ExpQuerySnapshot,
+  DocumentSnapshot as ExpDocumentSnapshot
+} from '../../exp/src/api/snapshot';
+import { UserDataWriter } from '../../src/api/user_data_writer';
+import {
+  ExpUserDataWriter,
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference
+} from '../../exp/src/api/reference';
 
-const onlineComponentProvider = new OnlineComponentProvider();
-const offlineComponentProvider = new MultiTabOfflineComponentProvider(
-  onlineComponentProvider
-);
 /**
  * A mock Firestore. Will not work for integration test.
  */
-export const FIRESTORE = new Firestore(
-  {
-    projectId: TEST_PROJECT,
-    database: '(default)'
-  },
-  new Provider('auth-internal', new ComponentContainer('default')),
-  offlineComponentProvider,
-  onlineComponentProvider
-);
+export const FIRESTORE = newTestFirestore(TEST_PROJECT);
 
 export function firestore(): Firestore {
   return FIRESTORE;
 }
 
-export function newTestFirestore(): Firestore {
+export function newTestFirestore(projectId = 'new-project'): Firestore {
   return new Firestore(
-    {
-      projectId: 'new-project',
-      database: '(default)'
-    },
-    new Provider('auth-internal', new ComponentContainer('default')),
-    offlineComponentProvider,
-    onlineComponentProvider
+    new DatabaseId(projectId),
+    new FirebaseFirestore(
+      new DatabaseId(projectId),
+      new Provider('auth-internal', new ComponentContainer('default'))
+    ),
+    new IndexedDbPersistenceProvider()
   );
 }
 
 export function collectionReference(path: string): CollectionReference {
-  const firestoreClient = firestore();
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClient.ensureClientConfigured();
+  const db = firestore();
+  ensureFirestoreConfigured(db._delegate);
   return new CollectionReference(
-    pathFrom(path),
-    firestoreClient,
-    /* converter= */ null
+    db,
+    new ExpCollectionReference(
+      db._delegate,
+      /* converter= */ null,
+      pathFrom(path)
+    )
   );
 }
 
 export function documentReference(path: string): DocumentReference {
-  const firestoreClient = firestore();
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClient.ensureClientConfigured();
-  return new DocumentReference(
-    key(path),
-    firestoreClient,
-    /* converter= */ null
-  );
+  const db = firestore();
+  ensureFirestoreConfigured(db._delegate);
+  return DocumentReference.forKey(key(path), db, /* converter= */ null);
 }
 
 export function documentSnapshot(
@@ -104,32 +99,44 @@ export function documentSnapshot(
   data: JsonObject<unknown> | null,
   fromCache: boolean
 ): DocumentSnapshot {
+  const db = firestore();
+  const userDataWriter = new UserDataWriter(db);
   if (data) {
     return new DocumentSnapshot(
       firestore(),
-      key(path),
-      doc(path, 1, data),
-      fromCache,
-      /* hasPendingWrites= */ false,
-      /* converter= */ null
+      new ExpDocumentSnapshot(
+        db._delegate,
+        userDataWriter,
+        key(path),
+        doc(path, 1, data),
+        new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+        /* converter= */ null
+      )
     );
   } else {
     return new DocumentSnapshot(
       firestore(),
-      key(path),
-      null,
-      fromCache,
-      /* hasPendingWrites= */ false,
-      /* converter= */ null
+      new ExpDocumentSnapshot(
+        db._delegate,
+        userDataWriter,
+        key(path),
+        null,
+        new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+        /* converter= */ null
+      )
     );
   }
 }
 
 export function query(path: string): Query {
+  const db = firestore();
   return new Query(
-    newQueryForPath(pathFrom(path)),
-    firestore(),
-    /* converter= */ null
+    db,
+    new ExpQuery(
+      db._delegate,
+      /* converter= */ null,
+      newQueryForPath(pathFrom(path))
+    )
   );
 }
 
@@ -176,10 +183,14 @@ export function querySnapshot(
     syncStateChanged,
     false
   );
+  const db = firestore();
   return new QuerySnapshot(
-    firestore(),
-    query,
-    viewSnapshot,
-    /* converter= */ null
+    db,
+    new ExpQuerySnapshot(
+      db._delegate,
+      new ExpUserDataWriter(db._delegate),
+      new ExpQuery(db._delegate, /* converter= */ null, query),
+      viewSnapshot
+    )
   );
 }

@@ -116,13 +116,4 @@ describe('RemoteDocumentChangeBuffer', () => {
       .catch(() => errors++)
       .then(() => expect(errors).to.equal(2));
   });
-
-  it('cannot add documents with different read times', async () => {
-    // This test merely validates an assert that was added to the
-    // RemoteDocumentChangeBuffer to simplify our tracking of document
-    // read times. If we do need to track documents with different read
-    // times, this test should simply be removed.
-    buffer.addEntry(INITIAL_DOC, version(1));
-    expect(() => buffer.addEntry(INITIAL_DOC, version(2))).to.throw();
-  });
 });

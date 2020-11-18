@@ -16,7 +16,7 @@
  */
 
 const tmp = require('tmp');
-const json = require('rollup-plugin-json');
+const json = require('@rollup/plugin-json');
 const alias = require('@rollup/plugin-alias');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
@@ -129,7 +129,75 @@ const manglePrivatePropertiesOptions = {
   },
   mangle: {
     properties: {
-      regex: /^__PRIVATE_/
+      regex: /^__PRIVATE_/,
+      // All JS Keywords are reserved. Although this should be taken cared of by
+      // Terser, we have seen issues with `do`, hence the extra caution.
+      reserved: [
+        'abstract',
+        'arguments',
+        'await',
+        'boolean',
+        'break',
+        'byte',
+        'case',
+        'catch',
+        'char',
+        'class',
+        'const',
+        'continue',
+        'debugger',
+        'default',
+        'delete',
+        'do',
+        'double',
+        'else',
+        'enum',
+        'eval',
+        'export',
+        'extends',
+        'false',
+        'final',
+        'finally',
+        'float',
+        'for',
+        'function',
+        'goto',
+        'if',
+        'implements',
+        'import',
+        'in',
+        'instanceof',
+        'int',
+        'interface',
+        'let',
+        'long',
+        'native',
+        'new',
+        'null',
+        'package',
+        'private',
+        'protected',
+        'public',
+        'return',
+        'short',
+        'static',
+        'super',
+        'switch',
+        'synchronized',
+        'this',
+        'throw',
+        'throws',
+        'transient',
+        'true',
+        'try',
+        'typeof',
+        'var',
+        'void',
+        'volatile',
+        'while',
+        'with',
+        'yield'
+      ]
     }
   }
 };

@@ -52,11 +52,15 @@ describe('core/strategies/signInWithCustomToken', () => {
   };
 
   let auth: TestAuth;
+  let signInRoute: mockFetch.Route;
 
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
-    mockEndpoint(Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN, idTokenResponse);
+    signInRoute = mockEndpoint(
+      Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
+      idTokenResponse
+    );
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [serverUser]
     });
@@ -76,6 +80,14 @@ describe('core/strategies/signInWithCustomToken', () => {
     expect(user.uid).to.eq('local-id');
     expect(user.displayName).to.eq('display-name');
     expect(operationType).to.eq(OperationType.SIGN_IN);
+  });
+
+  it('should send with a valid request', async () => {
+    await signInWithCustomToken(auth, 'j.w.t');
+    expect(signInRoute.calls[0].request).to.eql({
+      token: 'j.w.t',
+      returnSecureToken: true
+    });
   });
 
   it('should update the current user', async () => {

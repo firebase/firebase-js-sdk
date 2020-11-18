@@ -55,11 +55,23 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
       email
     });
-    await sendSignInLinkToEmail(auth, email);
+    await sendSignInLinkToEmail(auth, email, {
+      handleCodeInApp: true,
+      url: 'continue-url'
+    });
     expect(mock.calls[0].request).to.eql({
       requestType: externs.Operation.EMAIL_SIGNIN,
-      email
+      email,
+      canHandleCodeInApp: true,
+      continueUrl: 'continue-url'
     });
+  });
+
+  it('should require handleCodeInApp to be true', async () => {
+    await expect(sendSignInLinkToEmail(auth, email)).to.be.rejectedWith(
+      FirebaseError,
+      'auth/argument-error).'
+    );
   });
 
   it('should surface errors', async () => {
@@ -73,7 +85,12 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       },
       400
     );
-    await expect(sendSignInLinkToEmail(auth, email)).to.be.rejectedWith(
+    await expect(
+      sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      })
+    ).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );

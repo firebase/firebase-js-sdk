@@ -16,7 +16,7 @@
  */
 
 import { AuthErrorCode } from '../../core/errors';
-import { assert } from '../../core/util/assert';
+import { _assert } from '../../core/util/assert';
 import { Auth } from '../../model/auth';
 import { Parameters, Recaptcha } from './recaptcha';
 
@@ -83,7 +83,7 @@ export class MockWidget {
       typeof containerOrId === 'string'
         ? document.getElementById(containerOrId)
         : containerOrId;
-    assert(container, AuthErrorCode.ARGUMENT_ERROR, { appName });
+    _assert(container, AuthErrorCode.ARGUMENT_ERROR, { appName });
 
     this.container = container;
     this.isVisible = this.params.size !== 'invisible';

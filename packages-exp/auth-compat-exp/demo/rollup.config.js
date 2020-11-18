@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import commonjs from 'rollup-plugin-commonjs';
-import json from 'rollup-plugin-json';
-import resolveModule from 'rollup-plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import resolveModule from '@rollup/plugin-node-resolve';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
@@ -41,7 +41,7 @@ const umdBuilds = [
    * App UMD Builds
    */
   {
-    input: '../../../packages/firebase/app/index.ts',
+    input: '../../firebase-exp/compat/app/index.ts',
     output: {
       file: 'public/dist/firebase-app.js',
       sourcemap: true,
@@ -59,7 +59,8 @@ const umdBuilds = [
       extend: true,
       name: 'firebase',
       globals: {
-        '@firebase/app': 'firebase'
+        '@firebase/app-compat': 'firebase',
+        '@firebase/app-exp': 'firebase.INTERNAL.modularAPIs'
       },
       /**
        * use iife to avoid below error in the old Safari browser
@@ -81,7 +82,7 @@ const umdBuilds = [
           }`
     },
     plugins: [...plugins],
-    external: ['@firebase/app']
+    external: ['@firebase/app-compat', '@firebase/app-exp']
   }
 ];
 

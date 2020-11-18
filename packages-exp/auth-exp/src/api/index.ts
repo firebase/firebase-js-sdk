@@ -17,32 +17,29 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import {
-  AUTH_ERROR_FACTORY,
-  AuthErrorCode,
-  NamedErrorParams
-} from '../core/errors';
-import { fail } from '../core/util/assert';
+import { AuthErrorCode, NamedErrorParams } from '../core/errors';
+import { _createError, _fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
-import { Auth, AuthCore } from '../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
+import { Auth as AuthInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 
-export enum HttpMethod {
+export const enum HttpMethod {
   POST = 'POST',
   GET = 'GET'
 }
 
-export enum HttpHeader {
+export const enum HttpHeader {
   CONTENT_TYPE = 'Content-Type',
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
   X_CLIENT_VERSION = 'X-Client-Version'
 }
 
-export enum Endpoint {
+export const enum Endpoint {
   CREATE_AUTH_URI = '/v1/accounts:createAuthUri',
   DELETE_ACCOUNT = '/v1/accounts:delete',
   RESET_PASSWORD = '/v1/accounts:resetPassword',
@@ -68,7 +65,7 @@ export enum Endpoint {
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
 export async function _performApiRequest<T, V>(
-  auth: AuthCore,
+  auth: Auth,
   method: HttpMethod,
   path: Endpoint,
   request?: T,
@@ -113,14 +110,14 @@ export async function _performApiRequest<T, V>(
 }
 
 export async function _performFetchWithErrorHandling<V>(
-  auth: AuthCore,
+  auth: Auth,
   customErrorMap: Partial<ServerErrorMap<ServerError>>,
   fetchFn: () => Promise<Response>
 ): Promise<V> {
-  (auth as Auth)._canInitEmulator = false;
+  (auth as AuthInternal)._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
-    const networkTimeout = new NetworkTimeout<Response>(auth.name);
+    const networkTimeout = new NetworkTimeout<Response>(auth);
     const response: Response = await Promise.race<Promise<Response>>([
       fetchFn(),
       networkTimeout.promise
@@ -148,27 +145,23 @@ export async function _performFetchWithErrorHandling<V>(
       } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
         throw makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
       }
-
-      const authError = errorMap[serverErrorCode];
-      if (authError) {
-        fail(authError, { appName: auth.name });
-      } else {
-        // TODO probably should handle improperly formatted errors as well
-        // If you see this, add an entry to SERVER_ERROR_MAP for the corresponding error
-        console.error(`Unexpected API error: ${json.error.message}`);
-        fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
-      }
+      const authError =
+        errorMap[serverErrorCode] ||
+        ((serverErrorCode
+          .toLowerCase()
+          .replace(/[_\s]+/g, '-') as unknown) as AuthErrorCode);
+      _fail(auth, authError);
     }
   } catch (e) {
     if (e instanceof FirebaseError) {
       throw e;
     }
-    fail(AuthErrorCode.NETWORK_REQUEST_FAILED, { appName: auth.name });
+    _fail(auth, AuthErrorCode.NETWORK_REQUEST_FAILED);
   }
 }
 
 export async function _performSignInRequest<T, V extends IdTokenResponse>(
-  auth: AuthCore,
+  auth: Auth,
   method: HttpMethod,
   path: Endpoint,
   request?: T,
@@ -182,8 +175,7 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
     customErrorMap
   )) as V;
   if ('mfaPendingCredential' in serverResponse) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
-      appName: auth.name,
+    _fail(auth, AuthErrorCode.MFA_REQUIRED, {
       serverResponse
     });
   }
@@ -192,14 +184,14 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
 }
 
 export function _getFinalTarget(
-  auth: AuthCore,
+  auth: Auth,
   host: string,
   path: string,
   query: string
 ): string {
   const base = `${host}${path}?${query}`;
 
-  if (!auth.config.emulator) {
+  if (!(auth as AuthInternal).config.emulator) {
     return `${auth.config.apiScheme}://${base}`;
   }
 
@@ -213,11 +205,7 @@ class NetworkTimeout<T> {
   private timer: any | null = null;
   readonly promise = new Promise<T>((_, reject) => {
     this.timer = setTimeout(() => {
-      return reject(
-        AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
-          appName: this.appName
-        })
-      );
+      return reject(_createError(this.auth, AuthErrorCode.TIMEOUT));
     }, DEFAULT_API_TIMEOUT_MS.get());
   });
 
@@ -225,7 +213,7 @@ class NetworkTimeout<T> {
     clearTimeout(this.timer);
   }
 
-  constructor(private readonly appName: string) {}
+  constructor(private readonly auth: Auth) {}
 }
 
 interface PotentialResponse extends IdTokenResponse {
@@ -234,12 +222,12 @@ interface PotentialResponse extends IdTokenResponse {
 }
 
 function makeTaggedError(
-  { name }: AuthCore,
+  auth: Auth,
   code: AuthErrorCode,
   response: PotentialResponse
 ): FirebaseError {
   const errorParams: NamedErrorParams = {
-    appName: name
+    appName: auth.name
   };
 
   if (response.email) {
@@ -249,7 +237,9 @@ function makeTaggedError(
     errorParams.phoneNumber = response.phoneNumber;
   }
 
-  const error = AUTH_ERROR_FACTORY.create(code, errorParams);
-  (error as TaggedWithTokenResponse)._tokenResponse = response;
+  const error = _createError(auth, code, errorParams);
+
+  // We know customData is defined on error because errorParams is defined
+  (error.customData! as TaggedWithTokenResponse)._tokenResponse = response;
   return error;
 }

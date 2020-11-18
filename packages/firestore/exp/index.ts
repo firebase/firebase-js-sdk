@@ -31,8 +31,7 @@ export {
   waitForPendingWrites,
   disableNetwork,
   enableNetwork,
-  terminate,
-  Settings
+  terminate
 } from './src/api/database';
 
 export {

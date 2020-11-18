@@ -43,11 +43,12 @@ import {
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { testUser, testAuth } from '../../../test/helpers/mock_auth';
 import { TaggedWithTokenResponse } from '../../model/id_token';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { TwitterAuthProvider } from './twitter';
+import { _createError } from '../util/assert';
 
-describe('src/core/providers/twitter', () => {
+describe('core/providers/twitter', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = TwitterAuthProvider.credential('token', 'secret');
     expect(cred.accessToken).to.eq('token');
@@ -76,10 +77,10 @@ describe('src/core/providers/twitter', () => {
   });
 
   it('credentialFromError creates the cred from a tagged error', () => {
-    const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.NEED_CONFIRMATION, {
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
       appName: 'foo'
     });
-    (error as TaggedWithTokenResponse)._tokenResponse = {
+    (error.customData! as TaggedWithTokenResponse)._tokenResponse = {
       ...TEST_ID_TOKEN_RESPONSE,
       oauthAccessToken: 'access-token',
       oauthTokenSecret: 'token-secret'

@@ -240,8 +240,7 @@ export class AsyncQueue {
     if (document) {
       logDebug(
         LOG_TAG,
-        'Visibility state changed to  ',
-        document.visibilityState
+        'Visibility state changed to ' + document.visibilityState
       );
     }
     this.backoff.skipBackoff();
@@ -321,8 +320,10 @@ export class AsyncQueue {
    * operations were retried successfully.
    */
   enqueueRetryable(op: () => Promise<void>): void {
-    this.retryableOps.push(op);
-    this.enqueueAndForget(() => this.retryNextOp());
+    this.enqueueAndForget(() => {
+      this.retryableOps.push(op);
+      return this.retryNextOp();
+    });
   }
 
   /**

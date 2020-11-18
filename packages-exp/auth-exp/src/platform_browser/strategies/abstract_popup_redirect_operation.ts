@@ -26,7 +26,7 @@ import {
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AuthErrorCode } from '../../core/errors';
-import { debugAssert, fail } from '../../core/util/assert';
+import { debugAssert, _fail } from '../../core/util/assert';
 import {
   _link,
   _reauth,
@@ -57,7 +57,8 @@ export abstract class AbstractPopupRedirectOperation
     protected readonly auth: Auth,
     filter: AuthEventType | AuthEventType[],
     protected readonly resolver: PopupRedirectResolver,
-    protected user?: User
+    protected user?: User,
+    private readonly bypassAuthState = false
   ) {
     this.filter = Array.isArray(filter) ? filter : [filter];
   }
@@ -91,7 +92,8 @@ export abstract class AbstractPopupRedirectOperation
       sessionId: sessionId!,
       tenantId: tenantId || undefined,
       postBody: postBody || undefined,
-      user: this.user
+      user: this.user,
+      bypassAuthState: this.bypassAuthState
     };
 
     try {
@@ -117,7 +119,7 @@ export abstract class AbstractPopupRedirectOperation
       case AuthEventType.REAUTH_VIA_REDIRECT:
         return _reauth;
       default:
-        fail(AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
+        _fail(this.auth, AuthErrorCode.INTERNAL_ERROR);
     }
   }
 

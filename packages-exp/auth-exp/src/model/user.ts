@@ -25,64 +25,95 @@ import { UserMetadata } from '../core/user/user_metadata';
 import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
 
+/** @internal */
 export type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
 };
 
+/** @internal */
 export interface UserParameters {
   uid: string;
   auth: Auth;
   stsTokenManager: StsTokenManager;
 
-  displayName?: string;
-  email?: string;
-  phoneNumber?: string;
-  photoURL?: string;
-  isAnonymous?: boolean;
-  emailVerified?: boolean;
-  tenantId?: string;
+  displayName?: string | null;
+  email?: string | null;
+  phoneNumber?: string | null;
+  photoURL?: string | null;
+  isAnonymous?: boolean | null;
+  emailVerified?: boolean | null;
+  tenantId?: string | null;
 
-  createdAt?: string;
-  lastLoginAt?: string;
+  createdAt?: string | null;
+  lastLoginAt?: string | null;
 }
 
+/** @internal */
 export interface User extends externs.User {
+  /** @internal */
   displayName: string | null;
+  /** @internal */
   email: string | null;
+  /** @internal */
   phoneNumber: string | null;
+  /** @internal */
   photoURL: string | null;
 
+  /** @internal */
   auth: Auth;
+  /** @internal  */
   providerId: externs.ProviderId.FIREBASE;
+  /** @internal */
   refreshToken: string;
+  /** @internal */
   emailVerified: boolean;
+  /** @internal */
   tenantId: string | null;
+  /** @internal */
   providerData: MutableUserInfo[];
+  /** @internal */
   metadata: UserMetadata;
 
+  /** @internal */
   stsTokenManager: StsTokenManager;
+  /** @internal */
   _redirectEventId?: string;
 
+  /** @internal */
   _updateTokensIfNecessary(
     response: IdTokenResponse | FinalizeMfaResponse,
     reload?: boolean
   ): Promise<void>;
 
-  _copy(user: User): void;
+  /** @internal */
+  _assign(user: User): void;
+  /** @internal */
+  _clone(): User;
+  /** @internal */
   _onReload: (cb: NextFn<APIUserInfo>) => void;
+  /** @internal */
   _notifyReloadListener: NextFn<APIUserInfo>;
+  /** @internal */
   _startProactiveRefresh: () => void;
+  /** @internal */
   _stopProactiveRefresh: () => void;
 
+  /** @internal */
   getIdToken(forceRefresh?: boolean): Promise<string>;
+  /** @internal */
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
+  /** @internal */
   reload(): Promise<void>;
+  /** @internal */
   delete(): Promise<void>;
+  /** @internal */
   toJSON(): PersistedBlob;
 }
 
+/** @internal */
 export interface UserCredential
   extends externs.UserCredential,
     TaggedWithTokenResponse {
+  /** @internal */
   user: User;
 }

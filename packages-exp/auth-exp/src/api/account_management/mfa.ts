@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { SignInWithPhoneNumberRequest } from '../authentication/sms';
 import { FinalizeMfaResponse } from '../authentication/mfa';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 
 /**
  * MFA Info as returned by the API
@@ -57,7 +57,7 @@ export interface StartPhoneMfaEnrollmentResponse {
 }
 
 export function startEnrollPhoneMfa(
-  auth: AuthCore,
+  auth: Auth,
   request: Omit<StartPhoneMfaEnrollmentRequest, 'tenantId'>
 ): Promise<StartPhoneMfaEnrollmentResponse> {
   return _performApiRequest<
@@ -80,7 +80,7 @@ export interface FinalizePhoneMfaEnrollmentResponse
   extends FinalizeMfaResponse {}
 
 export function finalizeEnrollPhoneMfa(
-  auth: AuthCore,
+  auth: Auth,
   request: Omit<FinalizePhoneMfaEnrollmentRequest, 'tenantId'>
 ): Promise<FinalizePhoneMfaEnrollmentResponse> {
   return _performApiRequest<
@@ -101,7 +101,7 @@ export interface WithdrawMfaRequest {
 export interface WithdrawMfaResponse extends FinalizeMfaResponse {}
 
 export function withdrawMfa(
-  auth: AuthCore,
+  auth: Auth,
   request: Omit<WithdrawMfaRequest, 'tenantId'>
 ): Promise<WithdrawMfaResponse> {
   return _performApiRequest<WithdrawMfaRequest, WithdrawMfaResponse>(

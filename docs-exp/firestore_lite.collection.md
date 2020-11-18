@@ -9,7 +9,8 @@
 ```typescript
 export function collection(
   firestore: FirebaseFirestore,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 ```
 
@@ -18,7 +19,8 @@ export function collection(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  firestore | [FirebaseFirestore](./firestore_lite.firebasefirestore.md) |  |
-|  collectionPath | string |  |
+|  path | string |  |
+|  pathComponents | string\[\] |  |
 
 <b>Returns:</b>
 

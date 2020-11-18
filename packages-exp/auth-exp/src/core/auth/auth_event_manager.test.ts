@@ -18,6 +18,7 @@
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import { testAuth } from '../../../test/helpers/mock_auth';
 
 import {
   AuthEvent,
@@ -30,7 +31,7 @@ import { AuthEventManager } from './auth_event_manager';
 
 use(sinonChai);
 
-describe('src/core/auth/auth_event_manager', () => {
+describe('core/auth/auth_event_manager', () => {
   let manager: AuthEventManager;
 
   function makeConsumer(
@@ -53,8 +54,8 @@ describe('src/core/auth/auth_event_manager', () => {
     } as AuthEvent;
   }
 
-  beforeEach(() => {
-    manager = new AuthEventManager('app-name');
+  beforeEach(async () => {
+    manager = new AuthEventManager(await testAuth());
   });
 
   it('multiple consumers may be registered for one event type', () => {

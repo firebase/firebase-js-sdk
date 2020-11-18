@@ -35,16 +35,17 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode } from '../../core/errors';
 import { UserCredentialImpl } from '../../core/user/user_credential_impl';
 import { _getInstance } from '../../core/util/instantiator';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 import * as idp from '../../core/strategies/idp';
+import { _createError } from '../../core/util/assert';
 
 use(sinonChai);
 use(chaiAsPromised);
 
-const ERROR = AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+const ERROR = _createError(AuthErrorCode.INTERNAL_ERROR, {
   appName: 'test'
 });
 
@@ -57,7 +58,7 @@ class WrapperOperation extends AbstractPopupRedirectOperation {
   cleanUp = sinon.stub();
 }
 
-describe('src/core/strategies/abstract_popup_redirect_operation', () => {
+describe('platform_browser/strategies/abstract_popup_redirect_operation', () => {
   let auth: TestAuth;
   let resolver: PopupRedirectResolver;
   let eventManager: EventManager;
@@ -65,7 +66,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    eventManager = new AuthEventManager(auth.name);
+    eventManager = new AuthEventManager(auth);
     resolver = _getInstance(makeMockPopupRedirectResolver(eventManager));
     idpStubs = sinon.stub(idp);
   });
@@ -185,7 +186,8 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
           sessionId: BASE_AUTH_EVENT.sessionId!,
           tenantId: BASE_AUTH_EVENT.tenantId || undefined,
           postBody: BASE_AUTH_EVENT.postBody || undefined,
-          user: undefined
+          user: undefined,
+          bypassAuthState: false
         };
       }
 
@@ -235,6 +237,25 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
         finishPromise(authEvent({ type }));
         await operation.execute();
         expect(idp._reauth).to.have.been.calledWith(expectedIdpTaskParams());
+      });
+
+      it('includes the bypassAuthState parameter', async () => {
+        operation = new WrapperOperation(
+          auth,
+          AuthEventType.REAUTH_VIA_REDIRECT,
+          resolver,
+          undefined,
+          /** bypassAuthState */ true
+        );
+
+        const type = AuthEventType.REAUTH_VIA_REDIRECT;
+        updateFilter(type);
+        finishPromise(authEvent({ type }));
+        await operation.execute();
+        expect(idp._reauth).to.have.been.calledWith({
+          ...expectedIdpTaskParams(),
+          bypassAuthState: true
+        });
       });
     });
   });

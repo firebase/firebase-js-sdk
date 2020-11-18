@@ -63,6 +63,13 @@ export { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 // MFA
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
+/**
+ * Initializes an Auth instance with platform specific default dependencies.
+ *
+ * @param app - The Firebase App.
+ *
+ * @public
+ */
 export function getAuth(app?: FirebaseApp): Auth {
   return initializeAuth(app, {
     popupRedirectResolver: browserPopupRedirectResolver,

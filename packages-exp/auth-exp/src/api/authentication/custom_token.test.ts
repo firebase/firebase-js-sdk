@@ -32,7 +32,8 @@ use(chaiAsPromised);
 
 describe('api/authentication/signInWithCustomToken', () => {
   const request = {
-    token: 'my-token'
+    token: 'my-token',
+    returnSecureToken: true
   };
 
   let auth: TestAuth;

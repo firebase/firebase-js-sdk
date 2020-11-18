@@ -35,7 +35,7 @@ import { RecaptchaVerifier } from './recaptcha_verifier';
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
+describe('platform_browser/recaptcha/recaptcha_verifier', () => {
   let auth: TestAuth;
   let container: HTMLElement;
   let verifier: RecaptchaVerifier;

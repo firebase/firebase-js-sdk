@@ -8,7 +8,8 @@
 
 ```typescript
 export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirebaseFirestore,
+  persistenceSettings?: PersistenceSettings
 ): Promise<void>;
 ```
 
@@ -17,6 +18,7 @@ export function enableIndexedDbPersistence(
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
+|  persistenceSettings | [PersistenceSettings](./firestore_.persistencesettings.md) |  |
 
 <b>Returns:</b>
 

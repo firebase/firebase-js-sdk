@@ -24,48 +24,36 @@ import {
   increment
 } from '../../exp/index';
 import * as legacy from '@firebase/firestore-types';
-import {
-  validateArgType,
-  validateAtLeastNumberOfArgs,
-  validateExactNumberOfArgs,
-  validateNoArgs
-} from '../util/input_validation';
 import { Compat } from './compat';
 
 export class FieldValue
   extends Compat<exp.FieldValue>
   implements legacy.FieldValue {
   static serverTimestamp(): FieldValue {
-    validateNoArgs('FieldValue.serverTimestamp', arguments);
     const delegate = serverTimestamp();
     delegate._methodName = 'FieldValue.serverTimestamp';
     return new FieldValue(delegate);
   }
 
   static delete(): FieldValue {
-    validateNoArgs('FieldValue.delete', arguments);
     const delegate = deleteField();
     delegate._methodName = 'FieldValue.delete';
     return new FieldValue(delegate);
   }
 
   static arrayUnion(...elements: unknown[]): FieldValue {
-    validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     const delegate = arrayUnion(...elements);
     delegate._methodName = 'FieldValue.arrayUnion';
     return new FieldValue(delegate);
   }
 
   static arrayRemove(...elements: unknown[]): FieldValue {
-    validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     const delegate = arrayRemove(...elements);
     delegate._methodName = 'FieldValue.arrayRemove';
     return new FieldValue(delegate);
   }
 
   static increment(n: number): FieldValue {
-    validateArgType('FieldValue.increment', 'number', 1, n);
-    validateExactNumberOfArgs('FieldValue.increment', arguments, 1);
     const delegate = increment(n);
     delegate._methodName = 'FieldValue.increment';
     return new FieldValue(delegate);

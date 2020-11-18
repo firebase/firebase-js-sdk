@@ -20,11 +20,11 @@ import {
   HttpMethod,
   _performApiRequest,
   _performSignInRequest
-} from '..';
+} from '../index';
 import { AuthErrorCode } from '../../core/errors';
 import { IdTokenResponse } from '../../model/id_token';
 import { ServerError, ServerErrorMap } from '../errors';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface SendPhoneVerificationCodeRequest {
   phoneNumber: string;
@@ -36,7 +36,7 @@ export interface SendPhoneVerificationCodeResponse {
 }
 
 export async function sendPhoneVerificationCode(
-  auth: AuthCore,
+  auth: Auth,
   request: SendPhoneVerificationCodeRequest
 ): Promise<SendPhoneVerificationCodeResponse> {
   return _performApiRequest<
@@ -63,7 +63,7 @@ export interface SignInWithPhoneNumberResponse extends IdTokenResponse {
 }
 
 export async function signInWithPhoneNumber(
-  auth: AuthCore,
+  auth: Auth,
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
   return _performSignInRequest<
@@ -73,7 +73,7 @@ export async function signInWithPhoneNumber(
 }
 
 export async function linkWithPhoneNumber(
-  auth: AuthCore,
+  auth: Auth,
   request: LinkWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
   return _performSignInRequest<
@@ -94,7 +94,7 @@ const VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_: Partial<ServerErrorMap<
 };
 
 export async function verifyPhoneNumberForExisting(
-  auth: AuthCore,
+  auth: Auth,
   request: SignInWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
   const apiRequest: VerifyPhoneNumberForExistingRequest = {

@@ -18,21 +18,36 @@
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
-import { testUser, testAuth } from '../../../test/helpers/mock_auth';
-import { _getInstance } from '../../core/util/instantiator';
+import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { Persistence, PersistenceType } from '../../core/persistence';
 import {
+  SingletonInstantiator,
+  _getInstance
+} from '../../core/util/instantiator';
+import {
+  _EventType,
+  KeyChangedRequest,
+  _TimeoutDuration
+} from '../messagechannel/index';
+import { Receiver } from '../messagechannel/receiver';
+import { Sender } from '../messagechannel/sender';
+import * as workerUtil from '../util/worker';
+import {
   indexedDBLocalPersistence,
-  _POLLING_INTERVAL_MS,
-  _putObject,
+  _clearDatabase,
   _openDatabase,
-  _clearDatabase
+  _POLLING_INTERVAL_MS,
+  _putObject
 } from './indexed_db';
 
 use(sinonChai);
 
-describe('core/persistence/indexed_db', () => {
+interface TestPersistence extends Persistence {
+  _workerInitializationPromise: Promise<void>;
+}
+
+describe('platform_browser/persistence/indexed_db', () => {
   const persistence: Persistence = _getInstance(indexedDBLocalPersistence);
 
   afterEach(sinon.restore);
@@ -156,6 +171,182 @@ describe('core/persistence/indexed_db', () => {
         expect(callback).to.have.been.calledWith(newValue);
         expect(otherCallback).to.have.been.calledWith(newValue);
       });
+    });
+  });
+
+  context('service worker integration', () => {
+    let serviceWorker: ServiceWorker;
+    let persistence: TestPersistence;
+
+    beforeEach(() => {
+      serviceWorker = (new FakeServiceWorker() as unknown) as ServiceWorker;
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    context('as a service worker', () => {
+      let sender: Sender;
+      let db: IDBDatabase;
+
+      beforeEach(async () => {
+        sender = new Sender(serviceWorker);
+        sinon.stub(workerUtil, '_isWorker').returns(true);
+        sinon.stub(workerUtil, '_getWorkerGlobalScope').returns(serviceWorker);
+        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<
+          TestPersistence
+        >)();
+        db = await _openDatabase();
+      });
+
+      it('should respond to pings', async () => {
+        await persistence._workerInitializationPromise;
+        const response = await sender._send(
+          _EventType.PING,
+          {},
+          _TimeoutDuration.ACK
+        );
+
+        expect(response).to.have.deep.members([
+          {
+            fulfilled: true,
+            value: [_EventType.KEY_CHANGED]
+          }
+        ]);
+      });
+
+      it('should let us know if the key didnt actually change on a key changed event', async () => {
+        await persistence._workerInitializationPromise;
+        const response = await sender._send(
+          _EventType.KEY_CHANGED,
+          {
+            key: 'foo'
+          },
+          _TimeoutDuration.LONG_ACK
+        );
+
+        expect(response).to.have.deep.members([
+          {
+            fulfilled: true,
+            value: {
+              keyProcessed: false
+            }
+          }
+        ]);
+      });
+
+      it('should refresh on key changed events when a key has changed', async () => {
+        await persistence._workerInitializationPromise;
+        await _putObject(db, 'foo', 'bar');
+        const response = await sender._send(
+          _EventType.KEY_CHANGED,
+          {
+            key: 'foo'
+          },
+          _TimeoutDuration.LONG_ACK
+        );
+
+        expect(response).to.have.deep.members([
+          {
+            fulfilled: true,
+            value: {
+              keyProcessed: true
+            }
+          }
+        ]);
+      });
+    });
+
+    context('as a service worker controller', () => {
+      let receiver: Receiver;
+
+      beforeEach(() => {
+        receiver = Receiver._getInstance(serviceWorker);
+        sinon.stub(workerUtil, '_isWorker').returns(false);
+        sinon
+          .stub(workerUtil, '_getActiveServiceWorker')
+          .returns(Promise.resolve(serviceWorker));
+        sinon
+          .stub(workerUtil, '_getServiceWorkerController')
+          .returns(serviceWorker);
+        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<
+          TestPersistence
+        >)();
+      });
+
+      it('should send a ping on init', async () => {
+        return new Promise(resolve => {
+          receiver._subscribe(_EventType.PING, () => {
+            resolve();
+            return [_EventType.KEY_CHANGED];
+          });
+          return persistence._workerInitializationPromise;
+        });
+      });
+
+      it('should send a key changed event when a key is set', async () => {
+        return new Promise(async resolve => {
+          await persistence._workerInitializationPromise;
+          receiver._subscribe(
+            _EventType.KEY_CHANGED,
+            (_origin: string, data: KeyChangedRequest) => {
+              expect(data.key).to.eq('foo');
+              resolve();
+              return {
+                keyProcessed: true
+              };
+            }
+          );
+          return persistence._set('foo', 'bar');
+        });
+      });
+
+      it('should send a key changed event when a key is removed', async () => {
+        return new Promise(async resolve => {
+          receiver._subscribe(
+            _EventType.KEY_CHANGED,
+            async (_origin: string, data: KeyChangedRequest) => {
+              expect(data.key).to.eq('foo');
+              const persistedValue = await persistence._get('foo');
+              if (!persistedValue) {
+                resolve();
+              }
+              return {
+                keyProcessed: true
+              };
+            }
+          );
+          await persistence._workerInitializationPromise;
+          await persistence._set('foo', 'bar');
+          return persistence._remove('foo');
+        });
+      });
+    });
+  });
+
+  describe('closed IndexedDB connection', () => {
+    it('should retry by reopening the connection', async () => {
+      const closeDb = async (): Promise<void> => {
+        const db = await ((persistence as unknown) as {
+          _openDb(): Promise<IDBDatabase>;
+        })._openDb();
+        db.close();
+      };
+      const key = 'my-super-special-persistence-type';
+      const value = PersistenceType.LOCAL;
+
+      expect(await persistence._get(key)).to.be.null;
+
+      await closeDb();
+      await persistence._set(key, value);
+
+      await closeDb();
+      expect(await persistence._get(key)).to.be.eq(value);
+
+      await closeDb();
+      await persistence._remove(key);
+      expect(await persistence._get(key)).to.be.null;
     });
   });
 });

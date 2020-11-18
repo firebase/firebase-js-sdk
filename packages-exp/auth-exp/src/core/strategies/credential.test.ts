@@ -38,12 +38,14 @@ import { MultiFactorError } from '../../mfa/mfa_error';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
 import {
   linkWithCredential,
   reauthenticateWithCredential,
-  signInWithCredential
+  signInWithCredential,
+  _signInWithCredential
 } from './credential';
+import { _createError } from '../util/assert';
 
 use(chaiAsPromised);
 
@@ -111,6 +113,15 @@ describe('core/strategies/credential', () => {
       expect(auth.currentUser).to.eq(user);
     });
 
+    it('does not update the current user if bypass is true', async () => {
+      stub(authCredential, '_getIdTokenResponse').returns(
+        Promise.resolve(idTokenResponse)
+      );
+      const { user } = await _signInWithCredential(auth, authCredential, true);
+      expect(auth.currentUser).to.be.null;
+      expect(user).not.to.be.null;
+    });
+
     it('should handle MFA', async () => {
       const serverResponse: IdTokenMfaResponse = {
         localId: 'uid',
@@ -125,8 +136,7 @@ describe('core/strategies/credential', () => {
       };
       stub(authCredential, '_getIdTokenResponse').returns(
         Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
-            appName: auth.name,
+          _createError(auth, AuthErrorCode.MFA_REQUIRED, {
             serverResponse
           })
         )

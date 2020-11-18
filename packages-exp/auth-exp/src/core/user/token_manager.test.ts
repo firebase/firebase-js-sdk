@@ -23,9 +23,9 @@ import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
-import { _ENDPOINT } from '../../api/authentication/token';
+import { Endpoint } from '../../api/authentication/token';
 import { IdTokenResponse } from '../../model/id_token';
-import { StsTokenManager, TOKEN_REFRESH_BUFFER_MS } from './token_manager';
+import { StsTokenManager, Buffer } from './token_manager';
 
 use(chaiAsPromised);
 
@@ -52,12 +52,12 @@ describe('core/user/token_manager', () => {
     });
 
     it('is true if exp is in future but within buffer', () => {
-      stsTokenManager.expirationTime = now + (TOKEN_REFRESH_BUFFER_MS - 10);
+      stsTokenManager.expirationTime = now + (Buffer.TOKEN_REFRESH - 10);
       expect(stsTokenManager.isExpired).to.eq(true);
     });
 
     it('is fals if exp is far enough in future', () => {
-      stsTokenManager.expirationTime = now + (TOKEN_REFRESH_BUFFER_MS + 10);
+      stsTokenManager.expirationTime = now + (Buffer.TOKEN_REFRESH + 10);
       expect(stsTokenManager.isExpired).to.eq(false);
     });
   });
@@ -89,7 +89,7 @@ describe('core/user/token_manager', () => {
       let mock: fetch.Route;
       beforeEach(() => {
         const { apiKey, tokenApiHost, apiScheme } = auth.config;
-        const endpoint = `${apiScheme}://${tokenApiHost}${_ENDPOINT}?key=${apiKey}`;
+        const endpoint = `${apiScheme}://${tokenApiHost}${Endpoint.TOKEN}?key=${apiKey}`;
         mock = fetch.mock(endpoint, {
           'access_token': 'new-access-token',
           'refresh_token': 'new-refresh-token',
@@ -158,9 +158,22 @@ describe('core/user/token_manager', () => {
     });
   });
 
+  describe('#_clone', () => {
+    it('copies the manager to a new object', () => {
+      Object.assign(stsTokenManager, {
+        accessToken: 'token',
+        refreshToken: 'refresh',
+        expirationTime: now
+      });
+
+      const copy = stsTokenManager._clone();
+      expect(copy).not.to.eq(stsTokenManager);
+      expect(copy.toJSON()).to.eql(stsTokenManager.toJSON());
+    });
+  });
+
   describe('.fromJSON', () => {
-    const errorString =
-      'Firebase: An internal AuthError has occurred. (auth/internal-error).';
+    const errorString = 'auth/internal-error';
 
     it('throws if refresh token is not a string', () => {
       expect(() =>

@@ -32,6 +32,7 @@ import {
 } from '../../api/account_management/account';
 import { _reloadWithoutSaving, reload } from './reload';
 import { UserMetadata } from './user_metadata';
+import { User } from '../../model/user';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -160,10 +161,61 @@ describe('core/user/reload', () => {
     user.auth.currentUser = user;
 
     const cb = sinon.stub();
-    user.auth._onIdTokenChanged(cb);
+    user.auth.onIdTokenChanged(cb);
 
     await reload(user);
     expect(cb).to.have.been.calledWith(user);
     expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+  });
+
+  context('anonymous carryover', () => {
+    let user: User;
+    beforeEach(() => {
+      user = testUser(auth, 'abc', '', true);
+    });
+    function setup(
+      isAnonStart: boolean,
+      emailStart: string,
+      passwordHash: string,
+      providerData: Array<{ providerId: string }>
+    ): void {
+      // Get around readonly property
+      const mutUser = (user as unknown) as Record<string, unknown>;
+      mutUser.isAnonymous = isAnonStart;
+      mutUser.email = emailStart;
+
+      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+        users: [
+          {
+            providerUserInfo: [...providerData],
+            passwordHash
+          }
+        ]
+      });
+    }
+
+    it('user stays not anonymous even if reload user is', async () => {
+      setup(false, '', '', []); // After reload the user would count as anon
+      await _reloadWithoutSaving(user);
+      expect(user.isAnonymous).to.be.false;
+    });
+
+    it('user stays anonymous if reload user is anonymous', async () => {
+      setup(true, '', '', []); // After reload the user would count as anon
+      await _reloadWithoutSaving(user);
+      expect(user.isAnonymous).to.be.true;
+    });
+
+    it('user becomes not anonymous if reload user is not', async () => {
+      setup(true, '', '', [{ providerId: 'google' }]); // After reload the user would count as anon
+      await _reloadWithoutSaving(user);
+      expect(user.isAnonymous).to.be.false;
+    });
+
+    it('user becomes not anonymous if password hash set', async () => {
+      setup(true, 'email', 'pass', [{ providerId: 'google' }]); // After reload the user would count as anon
+      await _reloadWithoutSaving(user);
+      expect(user.isAnonymous).to.be.false;
+    });
   });
 });

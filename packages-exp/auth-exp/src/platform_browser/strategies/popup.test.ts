@@ -35,20 +35,21 @@ import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode } from '../../core/errors';
 import { OAuthProvider } from '../../core/providers/oauth';
 import { UserCredentialImpl } from '../../core/user/user_credential_impl';
 import * as eid from '../../core/util/event_id';
 import { AuthPopup } from '../util/popup';
 import * as idpTasks from '../../core/strategies/idp';
 import {
-  _AUTH_EVENT_TIMEOUT,
+  _Timeout,
   _POLL_WINDOW_CLOSE_TIMEOUT,
   linkWithPopup,
   reauthenticateWithPopup,
   signInWithPopup
 } from './popup';
 import { _getInstance } from '../../../internal';
+import { _createError } from '../../core/util/assert';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -56,7 +57,7 @@ use(chaiAsPromised);
 const MATCHING_EVENT_ID = 'matching-event-id';
 const OTHER_EVENT_ID = 'wrong-id';
 
-describe('src/core/strategies/popup', () => {
+describe('platform_browser/strategies/popup', () => {
   let resolver: PopupRedirectResolver;
   let provider: OAuthProvider;
   let eventManager: AuthEventManager;
@@ -68,7 +69,7 @@ describe('src/core/strategies/popup', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    eventManager = new AuthEventManager(auth.name);
+    eventManager = new AuthEventManager(auth);
     underlyingWindow = { closed: false };
     authPopup = new AuthPopup(underlyingWindow as Window);
     provider = new OAuthProvider(ProviderId.GOOGLE);
@@ -107,6 +108,34 @@ describe('src/core/strategies/popup', () => {
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
+    });
+
+    it('completes the full flow with default resolver', async () => {
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
+      auth._popupRedirectResolver = _getInstance(resolver);
+      idpStubs._signIn.returns(Promise.resolve(cred));
+      const promise = signInWithPopup(auth, provider);
+      iframeEvent({
+        type: AuthEventType.SIGN_IN_VIA_POPUP
+      });
+      expect(await promise).to.eq(cred);
+    });
+
+    it('errors if resolver not provided and not on auth', async () => {
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
+      idpStubs._signIn.returns(Promise.resolve(cred));
+      await expect(signInWithPopup(auth, provider)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('ignores events for another event id', async () => {
@@ -187,7 +216,7 @@ describe('src/core/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
@@ -207,11 +236,7 @@ describe('src/core/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._signIn.returns(
-        Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
-            appName: auth.name
-          })
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -263,6 +288,34 @@ describe('src/core/strategies/popup', () => {
         type: AuthEventType.LINK_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
+    });
+
+    it('completes the full flow with default resolver', async () => {
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
+      user.auth._popupRedirectResolver = _getInstance(resolver);
+      idpStubs._link.returns(Promise.resolve(cred));
+      const promise = linkWithPopup(user, provider);
+      iframeEvent({
+        type: AuthEventType.LINK_VIA_POPUP
+      });
+      expect(await promise).to.eq(cred);
+    });
+
+    it('errors if resolver not provided and not on auth', async () => {
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
+      idpStubs._link.returns(Promise.resolve(cred));
+      await expect(linkWithPopup(user, provider)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('ignores events for another event id', async () => {
@@ -343,7 +396,7 @@ describe('src/core/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
@@ -364,11 +417,7 @@ describe('src/core/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._link.returns(
-        Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
-            appName: auth.name
-          })
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -420,6 +469,34 @@ describe('src/core/strategies/popup', () => {
         type: AuthEventType.REAUTH_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
+    });
+
+    it('completes the full flow with default resolver', async () => {
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
+      user.auth._popupRedirectResolver = _getInstance(resolver);
+      idpStubs._reauth.returns(Promise.resolve(cred));
+      const promise = reauthenticateWithPopup(user, provider);
+      iframeEvent({
+        type: AuthEventType.REAUTH_VIA_POPUP
+      });
+      expect(await promise).to.eq(cred);
+    });
+
+    it('errors if resolver not provided and not on auth', async () => {
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
+      idpStubs._reauth.returns(Promise.resolve(cred));
+      await expect(reauthenticateWithPopup(user, provider)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('ignores events for another event id', async () => {
@@ -507,7 +584,7 @@ describe('src/core/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP
@@ -520,11 +597,7 @@ describe('src/core/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._reauth.returns(
-        Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
-            appName: auth.name
-          })
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({

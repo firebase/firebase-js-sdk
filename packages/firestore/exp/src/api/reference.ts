@@ -17,19 +17,18 @@
 
 import { FirebaseFirestore } from './database';
 import {
-  _DocumentKeyReference,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
   parseUpdateVarargs
 } from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
-import { cast } from '../../../lite/src/api/util';
+import { cast } from '../../../src/util/input_validation';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   applyFirestoreDataConverter,
-  SnapshotMetadata,
-  validateHasExplicitOrderByForLimitToLast
+  ensureFirestoreConfigured,
+  SnapshotMetadata
 } from '../../../src/api/database';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
@@ -39,7 +38,8 @@ import {
   newUserDataReader,
   Query,
   SetOptions,
-  UpdateData
+  UpdateData,
+  validateHasExplicitOrderByForLimitToLast
 } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
 import {
@@ -56,10 +56,12 @@ import {
   PartialObserver,
   Unsubscribe
 } from '../../../src/api/observer';
-import { getEventManager, getLocalStore, getSyncEngine } from './components';
 import {
   executeQueryFromCache,
   executeQueryViaSnapshotListener,
+  firestoreClientWrite,
+  getEventManager,
+  getLocalStore,
   readDocumentFromCache,
   readDocumentViaSnapshotListener
 } from '../../../src/core/firestore_client';
@@ -68,7 +70,6 @@ import {
   Query as InternalQuery
 } from '../../../src/core/query';
 import { Deferred } from '../../../src/util/promise';
-import { syncEngineWrite } from '../../../src/core/sync_engine';
 import { AsyncObserver } from '../../../src/util/async_observer';
 import {
   addSnapshotsInSyncListener,
@@ -78,6 +79,29 @@ import {
   removeSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
 import { FirestoreError } from '../../../src/util/error';
+import { Compat } from '../../../src/compat/compat';
+import { ByteString } from '../../../src/util/byte_string';
+import { Bytes } from '../../../lite/src/api/bytes';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
+
+export {
+  DocumentReference,
+  CollectionReference,
+  Query,
+  collection,
+  collectionGroup,
+  doc,
+  query,
+  where,
+  limit,
+  limitToLast,
+  orderBy,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  queryEqual
+} from '../../../lite/src/api/reference';
 
 /**
  * An options object that can be passed to {@link onSnapshot()} and {@link
@@ -108,11 +132,11 @@ export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
+  const client = ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestore);
+    const eventManager = await getEventManager(client);
     await readDocumentViaSnapshotListener(
       eventManager,
       firestore._queue,
@@ -126,6 +150,21 @@ export function getDoc<T>(
   );
 }
 
+export class ExpUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: FirebaseFirestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new DocumentReference(this.firestore, /* converter= */ null, key);
+  }
+}
+
 /**
  * Reads the document referred to by this `DocumentReference` from cache.
  * Returns an error if the document is not currently cached.
@@ -137,17 +176,19 @@ export function getDocFromCache<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
+  const client = ensureFirestoreConfigured(firestore);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   const deferred = new Deferred<Document | null>();
   firestore._queue.enqueueAndForget(async () => {
-    const localStore = await getLocalStore(firestore);
+    const localStore = await getLocalStore(client);
     await readDocumentFromCache(localStore, reference._key, deferred);
   });
   return deferred.promise.then(
     doc =>
       new DocumentSnapshot(
         firestore,
+        userDataWriter,
         reference._key,
         doc,
         new SnapshotMetadata(
@@ -170,11 +211,11 @@ export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
+  const client = ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestore);
+    const eventManager = await getEventManager(client);
     await readDocumentViaSnapshotListener(
       eventManager,
       firestore._queue,
@@ -200,13 +241,14 @@ export function getDocFromServer<T>(
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
+  const client = ensureFirestoreConfigured(firestore);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   validateHasExplicitOrderByForLimitToLast(query._query);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestore);
+    const eventManager = await getEventManager(client);
     await executeQueryViaSnapshotListener(
       eventManager,
       firestore._queue,
@@ -216,7 +258,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
     );
   });
   return deferred.promise.then(
-    snapshot => new QuerySnapshot(firestore, query, snapshot)
+    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
 
@@ -230,15 +272,16 @@ export function getDocsFromCache<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
+  const client = ensureFirestoreConfigured(firestore);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
-    const localStore = await getLocalStore(firestore);
+    const localStore = await getLocalStore(client);
     await executeQueryFromCache(localStore, query._query, deferred);
   });
   return deferred.promise.then(
-    snapshot => new QuerySnapshot(firestore, query, snapshot)
+    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
 
@@ -252,11 +295,12 @@ export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
+  const client = ensureFirestoreConfigured(firestore);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestore);
+    const eventManager = await getEventManager(client);
     await executeQueryViaSnapshotListener(
       eventManager,
       firestore._queue,
@@ -266,7 +310,7 @@ export function getDocsFromServer<T>(
     );
   });
   return deferred.promise.then(
-    snapshot => new QuerySnapshot(firestore, query, snapshot)
+    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
   );
 }
 
@@ -305,7 +349,6 @@ export function setDoc<T>(
   options?: SetOptions
 ): Promise<void> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
 
   const convertedValue = applyFirestoreDataConverter(
     reference._converter,
@@ -370,9 +413,14 @@ export function updateDoc(
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
 
   const dataReader = newUserDataReader(firestore);
+
+  // For Compat types, we have to "extract" the underlying types before
+  // performing validation.
+  if (fieldOrUpdateData instanceof Compat) {
+    fieldOrUpdateData = fieldOrUpdateData._delegate;
+  }
 
   let parsed: ParsedUpdateData;
   if (
@@ -414,8 +462,6 @@ export function deleteDoc(
   reference: DocumentReference<unknown>
 ): Promise<void> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
-
   const mutations = [new DeleteMutation(reference._key, Precondition.none())];
   return executeWrite(firestore, mutations);
 }
@@ -435,7 +481,6 @@ export function addDoc<T>(
   data: T
 ): Promise<DocumentReference<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  firestore._verifyNotTerminated();
 
   const docRef = doc(reference);
   const convertedValue = applyFirestoreDataConverter(
@@ -698,12 +743,13 @@ export function onSnapshot<T>(
   } else {
     firestore = cast(reference.firestore, FirebaseFirestore);
     internalQuery = reference._query;
+    const userDataWriter = new ExpUserDataWriter(firestore);
 
     observer = {
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<QuerySnapshot<T>>)(
-            new QuerySnapshot(firestore, reference, snapshot)
+            new QuerySnapshot(firestore, userDataWriter, reference, snapshot)
           );
         }
       },
@@ -714,7 +760,7 @@ export function onSnapshot<T>(
     validateHasExplicitOrderByForLimitToLast(reference._query);
   }
 
-  firestore._verifyNotTerminated();
+  const client = ensureFirestoreConfigured(firestore);
 
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(
@@ -723,14 +769,14 @@ export function onSnapshot<T>(
     internalOptions
   );
   firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestore);
+    const eventManager = await getEventManager(client);
     return eventManagerListen(eventManager, listener);
   });
 
   return () => {
     wrappedObserver.mute();
     firestore._queue.enqueueAndForget(async () => {
-      const eventManager = await getEventManager(firestore);
+      const eventManager = await getEventManager(client);
       return eventManagerUnlisten(eventManager, listener);
     });
   };
@@ -786,7 +832,7 @@ export function onSnapshotsInSync(
   firestore: FirebaseFirestore,
   arg: unknown
 ): Unsubscribe {
-  firestore._verifyNotTerminated();
+  const client = ensureFirestoreConfigured(firestore);
 
   const observer = isPartialObserver(arg)
     ? (arg as PartialObserver<void>)
@@ -796,14 +842,14 @@ export function onSnapshotsInSync(
 
   const wrappedObserver = new AsyncObserver(observer);
   firestore._queue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestore);
+    const eventManager = await getEventManager(client);
     addSnapshotsInSyncListener(eventManager, wrappedObserver);
   });
 
   return () => {
     wrappedObserver.mute();
     firestore._queue.enqueueAndForget(async () => {
-      const eventManager = await getEventManager(firestore);
+      const eventManager = await getEventManager(client);
       removeSnapshotsInSyncListener(eventManager, wrappedObserver);
     });
   };
@@ -814,12 +860,8 @@ export function executeWrite(
   firestore: FirebaseFirestore,
   mutations: Mutation[]
 ): Promise<void> {
-  const deferred = new Deferred<void>();
-  firestore._queue.enqueueAndForget(async () => {
-    const syncEngine = await getSyncEngine(firestore);
-    return syncEngineWrite(syncEngine, mutations, deferred);
-  });
-  return deferred.promise;
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientWrite(client, mutations);
 }
 
 /**
@@ -828,7 +870,7 @@ export function executeWrite(
  */
 function convertToDocSnapshot<T>(
   firestore: FirebaseFirestore,
-  ref: _DocumentKeyReference<T>,
+  ref: DocumentReference<T>,
   snapshot: ViewSnapshot
 ): DocumentSnapshot<T> {
   debugAssert(
@@ -837,8 +879,10 @@ function convertToDocSnapshot<T>(
   );
   const doc = snapshot.docs.get(ref._key);
 
+  const userDataWriter = new ExpUserDataWriter(firestore);
   return new DocumentSnapshot(
     firestore,
+    userDataWriter,
     ref._key,
     doc,
     new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache),

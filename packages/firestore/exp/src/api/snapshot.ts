@@ -17,10 +17,7 @@
 
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
-import {
-  ServerTimestampBehavior,
-  UserDataWriter
-} from '../../../src/api/user_data_writer';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument
@@ -28,22 +25,18 @@ import {
 import { FirebaseFirestore } from './database';
 import {
   DocumentData,
-  DocumentReference,
   Query,
   queryEqual,
   SetOptions
 } from '../../../lite/src/api/reference';
-import {
-  changesFromSnapshot,
-  SnapshotMetadata
-} from '../../../src/api/database';
+import { SnapshotMetadata } from '../../../src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { FieldPath } from '../../../lite/src/api/field_path';
 import { SnapshotListenOptions } from './reference';
-import { Bytes } from '../../../lite/src/api/bytes';
-
-const DEFAULT_SERVER_TIMESTAMP_BEHAVIOR: ServerTimestampBehavior = 'none';
+import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
+import { debugAssert, fail } from '../../../src/util/assert';
+import { newQueryComparator } from '../../../src/core/query';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type `T`
@@ -187,12 +180,13 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
 
   constructor(
     readonly _firestore: FirebaseFirestore,
+    userDataWriter: AbstractUserDataWriter,
     key: DocumentKey,
     document: Document | null,
     metadata: SnapshotMetadata,
-    converter: FirestoreDataConverter<T> | null
+    converter: UntypedFirestoreDataConverter<T> | null
   ) {
-    super(_firestore, key, document, converter);
+    super(_firestore, userDataWriter, key, document, converter);
     this._firestoreImpl = _firestore;
     this.metadata = metadata;
   }
@@ -219,7 +213,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
    * @return An `Object` containing all fields in the document or `undefined` if
    * the document doesn't exist.
    */
-  data(options?: SnapshotOptions): T | undefined {
+  data(options: SnapshotOptions = {}): T | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -227,6 +221,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
       // if a converter has been provided.
       const snapshot = new QueryDocumentSnapshot(
         this._firestore,
+        this._userDataWriter,
         this._key,
         this._document,
         this.metadata,
@@ -234,19 +229,10 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
       );
       return this._converter.fromFirestore(snapshot, options);
     } else {
-      const userDataWriter = new UserDataWriter(
-        this._firestoreImpl._databaseId,
-        /* timestampsInSnapshots= */ true,
-        options?.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
-        key =>
-          new DocumentReference(
-            this._firestore,
-            /* converter= */ null,
-            key.path
-          ),
-        bytes => new Bytes(bytes)
-      );
-      return userDataWriter.convertValue(this._document.toProto()) as T;
+      return this._userDataWriter.convertValue(
+        this._document.toProto(),
+        options.serverTimestamps
+      ) as T;
     }
   }
 
@@ -274,15 +260,10 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
         .data()
         .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
       if (value !== null) {
-        const userDataWriter = new UserDataWriter(
-          this._firestoreImpl._databaseId,
-          /* timestampsInSnapshots= */ true,
-          options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
-          key =>
-            new DocumentReference(this._firestore, this._converter, key.path),
-          bytes => new Bytes(bytes)
+        return this._userDataWriter.convertValue(
+          value,
+          options.serverTimestamps
         );
-        return userDataWriter.convertValue(value);
       }
     }
     return undefined;
@@ -346,6 +327,7 @@ export class QuerySnapshot<T = DocumentData> {
 
   constructor(
     readonly _firestore: FirebaseFirestore,
+    readonly _userDataWriter: AbstractUserDataWriter,
     query: Query<T>,
     readonly _snapshot: ViewSnapshot
   ) {
@@ -387,10 +369,16 @@ export class QuerySnapshot<T = DocumentData> {
     this._snapshot.docs.forEach(doc => {
       callback.call(
         thisArg,
-        this._convertToDocumentSnapshot(
+        new QueryDocumentSnapshot<T>(
+          this._firestore,
+          this._userDataWriter,
+          doc.key,
           doc,
-          this._snapshot.fromCache,
-          this._snapshot.mutatedKeys.has(doc.key)
+          new SnapshotMetadata(
+            this._snapshot.mutatedKeys.has(doc.key),
+            this._snapshot.fromCache
+          ),
+          this.query._converter
         )
       );
     });
@@ -420,29 +408,108 @@ export class QuerySnapshot<T = DocumentData> {
       !this._cachedChanges ||
       this._cachedChangesIncludeMetadataChanges !== includeMetadataChanges
     ) {
-      this._cachedChanges = changesFromSnapshot<QueryDocumentSnapshot<T>>(
-        this._snapshot,
-        includeMetadataChanges,
-        this._convertToDocumentSnapshot.bind(this)
-      );
+      this._cachedChanges = changesFromSnapshot(this, includeMetadataChanges);
       this._cachedChangesIncludeMetadataChanges = includeMetadataChanges;
     }
 
     return this._cachedChanges;
   }
+}
 
-  private _convertToDocumentSnapshot(
-    doc: Document,
-    fromCache: boolean,
-    hasPendingWrites: boolean
-  ): QueryDocumentSnapshot<T> {
-    return new QueryDocumentSnapshot<T>(
-      this._firestore,
-      doc.key,
-      doc,
-      new SnapshotMetadata(hasPendingWrites, fromCache),
-      this.query._converter
-    );
+/** Calculates the array of DocumentChanges for a given ViewSnapshot. */
+export function changesFromSnapshot<T>(
+  querySnapshot: QuerySnapshot<T>,
+  includeMetadataChanges: boolean
+): Array<DocumentChange<T>> {
+  if (querySnapshot._snapshot.oldDocs.isEmpty()) {
+    // Special case the first snapshot because index calculation is easy and
+    // fast
+    let lastDoc: Document;
+    let index = 0;
+    return querySnapshot._snapshot.docChanges.map(change => {
+      debugAssert(
+        change.type === ChangeType.Added,
+        'Invalid event type for first snapshot'
+      );
+      debugAssert(
+        !lastDoc ||
+          newQueryComparator(querySnapshot._snapshot.query)(
+            lastDoc,
+            change.doc
+          ) < 0,
+        'Got added events in wrong order'
+      );
+      const doc = new QueryDocumentSnapshot<T>(
+        querySnapshot._firestore,
+        querySnapshot._userDataWriter,
+        change.doc.key,
+        change.doc,
+        new SnapshotMetadata(
+          querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
+          querySnapshot._snapshot.fromCache
+        ),
+        querySnapshot.query._converter
+      );
+      lastDoc = change.doc;
+      return {
+        type: 'added' as DocumentChangeType,
+        doc,
+        oldIndex: -1,
+        newIndex: index++
+      };
+    });
+  } else {
+    // A DocumentSet that is updated incrementally as changes are applied to use
+    // to lookup the index of a document.
+    let indexTracker = querySnapshot._snapshot.oldDocs;
+    return querySnapshot._snapshot.docChanges
+      .filter(
+        change => includeMetadataChanges || change.type !== ChangeType.Metadata
+      )
+      .map(change => {
+        const doc = new QueryDocumentSnapshot<T>(
+          querySnapshot._firestore,
+          querySnapshot._userDataWriter,
+          change.doc.key,
+          change.doc,
+          new SnapshotMetadata(
+            querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
+            querySnapshot._snapshot.fromCache
+          ),
+          querySnapshot.query._converter
+        );
+        let oldIndex = -1;
+        let newIndex = -1;
+        if (change.type !== ChangeType.Added) {
+          oldIndex = indexTracker.indexOf(change.doc.key);
+          debugAssert(oldIndex >= 0, 'Index for document not found');
+          indexTracker = indexTracker.delete(change.doc.key);
+        }
+        if (change.type !== ChangeType.Removed) {
+          indexTracker = indexTracker.add(change.doc);
+          newIndex = indexTracker.indexOf(change.doc.key);
+        }
+        return {
+          type: resultChangeType(change.type),
+          doc,
+          oldIndex,
+          newIndex
+        };
+      });
+  }
+}
+
+export function resultChangeType(type: ChangeType): DocumentChangeType {
+  switch (type) {
+    case ChangeType.Added:
+      return 'added';
+    case ChangeType.Modified:
+    case ChangeType.Metadata:
+      return 'modified';
+    case ChangeType.Removed:
+      return 'removed';
+    default:
+      return fail('Unknown change type: ' + type);
   }
 }
 

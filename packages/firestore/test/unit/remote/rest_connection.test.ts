@@ -61,7 +61,8 @@ describe('RestConnection', () => {
     'persistenceKey',
     'example.com',
     /*ssl=*/ false,
-    /*forceLongPolling=*/ false
+    /*forceLongPolling=*/ false,
+    /*autoDetectLongPolling=*/ false
   );
   const connection = new TestRestConnection(testDatabaseInfo);
 

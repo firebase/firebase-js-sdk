@@ -24,6 +24,7 @@ import { Persistence } from '../persistence';
 import { _getInstance } from '../util/instantiator';
 import { _castAuth, AuthImpl } from './auth_impl';
 
+/** @public */
 export function initializeAuth(
   app: FirebaseApp = getApp(),
   deps?: Dependencies
@@ -43,6 +44,9 @@ export function _initializeAuthInstance(
     ? persistence
     : [persistence]
   ).map<Persistence>(_getInstance);
+  if (deps?.errorMap) {
+    auth._updateErrorMap(deps.errorMap);
+  }
 
   // This promise is intended to float; auth initialization happens in the
   // background, meanwhile the auth object may be used by the app.

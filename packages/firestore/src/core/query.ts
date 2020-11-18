@@ -23,8 +23,6 @@ import {
   arrayValueContains,
   canonicalId,
   isArray,
-  isNanValue,
-  isNullValue,
   isReferenceValue,
   typeOrder,
   valueCompare,
@@ -32,7 +30,6 @@ import {
 } from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import {
   canonifyTarget,
@@ -603,22 +600,6 @@ export class FieldFilter extends Filter {
         );
         return new KeyFieldFilter(field, op, value);
       }
-    } else if (isNullValue(value)) {
-      if (op !== Operator.EQUAL && op !== Operator.NOT_EQUAL) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          "Invalid query. Null only supports '==' and '!=' comparisons."
-        );
-      }
-      return new FieldFilter(field, op, value);
-    } else if (isNanValue(value)) {
-      if (op !== Operator.EQUAL && op !== Operator.NOT_EQUAL) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          "Invalid query. NaN only supports '==' and '!=' comparisons."
-        );
-      }
-      return new FieldFilter(field, op, value);
     } else if (op === Operator.ARRAY_CONTAINS) {
       return new ArrayContainsFilter(field, value);
     } else if (op === Operator.IN) {

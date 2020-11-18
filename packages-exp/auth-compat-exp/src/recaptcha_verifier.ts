@@ -15,29 +15,47 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { FirebaseApp } from '@firebase/app-types';
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
+import { unwrap, Wrapper } from './wrap';
+
+const _assert: typeof impl._assert = impl._assert;
 
 export class RecaptchaVerifier
-  extends impl.RecaptchaVerifier
-  implements compat.RecaptchaVerifier {
+  implements compat.RecaptchaVerifier, Wrapper<externs.ApplicationVerifier> {
+  readonly verifier: externs.RecaptchaVerifier;
+  type: string;
   constructor(
     container: HTMLElement | string,
     parameters?: object | null,
     app: FirebaseApp = firebase.app()
   ) {
     // API key is required for web client RPC calls.
-    impl.assertFn(app.options?.apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
+    _assert(app.options?.apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
-    super(
+    this.verifier = new impl.RecaptchaVerifier(
       container,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parameters as any,
-      (app.auth!() as unknown) as externs.Auth
+
+      unwrap(app.auth!())
     );
+    this.type = this.verifier.type;
+  }
+  clear(): void {
+    this.verifier.clear();
+  }
+  render(): Promise<number> {
+    return this.verifier.render();
+  }
+  verify(): Promise<string> {
+    return this.verifier.verify();
+  }
+  unwrap(): externs.ApplicationVerifier {
+    return this.verifier;
   }
 }

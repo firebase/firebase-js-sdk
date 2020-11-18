@@ -18,6 +18,9 @@
 import { WriteBatch } from '../../../lite/src/api/write_batch';
 import { FirebaseFirestore } from './database';
 import { executeWrite } from './reference';
+import { ensureFirestoreConfigured } from '../../../src/api/database';
+
+export { WriteBatch };
 
 /**
  * Creates a write batch, used for performing multiple writes as a single
@@ -31,7 +34,7 @@ import { executeWrite } from './reference';
  * writes.
  */
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
-  firestore._verifyNotTerminated();
+  ensureFirestoreConfigured(firestore);
   return new WriteBatch(firestore, mutations =>
     executeWrite(firestore, mutations)
   );

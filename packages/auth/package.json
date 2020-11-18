@@ -1,8 +1,8 @@
 {
   "name": "@firebase/auth",
-  "version": "0.14.9",
+  "version": "0.15.2",
   "main": "dist/auth.js",
-  "browser": "dist/auth.js",
+  "browser": "dist/auth.esm.js",
   "module": "dist/auth.esm.js",
   "description": "Javascript library for Firebase Auth SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -25,8 +25,9 @@
     "@firebase/auth-types": "0.10.1"
   },
   "devDependencies": {
+    "firebase-tools": "8.15.0",
     "google-closure-compiler": "20200112.0.0",
-    "google-closure-library": "20200224.0.0",
+    "google-closure-library": "20200830.0.0",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5"
   },

@@ -20,25 +20,36 @@ import * as externs from '@firebase/auth-types-exp';
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthCredential } from '../credentials/email';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 
+/**
+ * {@inheritdoc @firebase/auth-types#EmailAuthProvider}
+ *
+ * @public
+ */
 export class EmailAuthProvider implements externs.EmailAuthProvider {
+  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.PROVIDER_ID} */
   static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
+  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD} */
   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD =
     externs.SignInMethod.EMAIL_PASSWORD;
+  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD} */
   static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
+  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.providerId} */
   readonly providerId = EmailAuthProvider.PROVIDER_ID;
 
+  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.credential} */
   static credential(email: string, password: string): EmailAuthCredential {
     return EmailAuthCredential._fromEmailAndPassword(email, password);
   }
 
+  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.credentialWithLink} */
   static credentialWithLink(
     email: string,
     emailLink: string
   ): EmailAuthCredential {
     const actionCodeUrl = ActionCodeURL.parseLink(emailLink);
-    assert(actionCodeUrl, AuthErrorCode.ARGUMENT_ERROR, {});
+    _assert(actionCodeUrl, AuthErrorCode.ARGUMENT_ERROR);
 
     return EmailAuthCredential._fromEmailAndCode(
       email,

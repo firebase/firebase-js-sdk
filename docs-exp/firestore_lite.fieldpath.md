@@ -14,7 +14,7 @@ export class FieldPath
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(fieldNames)](./firestore_lite.fieldpath._constructor_.md) |  |  |
+|  [(constructor)(fieldNames)](./firestore_lite.fieldpath._constructor_.md) |  | Constructs a new instance of the <code>FieldPath</code> class |
 
 ## Methods
 

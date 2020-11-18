@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '..';
+import { Endpoint, HttpMethod, _performSignInRequest } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface SignUpRequest {
   returnSecureToken?: boolean;
@@ -31,7 +31,7 @@ export interface SignUpResponse extends IdTokenResponse {
 }
 
 export async function signUp(
-  auth: AuthCore,
+  auth: Auth,
   request: SignUpRequest
 ): Promise<SignUpResponse> {
   return _performSignInRequest<SignUpRequest, SignUpResponse>(
