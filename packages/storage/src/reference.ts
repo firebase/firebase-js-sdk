@@ -134,20 +134,7 @@ export async function uploadBytes(
   metadata?: Metadata
 ): Promise<UploadTaskSnapshot> {
   ref._throwIfRoot('uploadBytes');
-  const authToken = await ref.storage.getAuthToken();
-  const requestInfo = multipartUpload(
-    ref.storage,
-    ref._location,
-    getMappings(),
-    new FbsBlob(data),
-    metadata
-  );
-  const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
-  const finalMetadata = await multipartRequest.getPromise();
-  return {
-    metadata: finalMetadata,
-    ref
-  };
+  return _nonResumableUpload(ref, data, metadata);
 }
 
 /**
@@ -187,18 +174,29 @@ export async function uploadString(
   metadata?: Metadata
 ): Promise<UploadTaskSnapshot> {
   ref._throwIfRoot('uploadString');
-  const authToken = await ref.storage.getAuthToken();
   const data = dataFromString(format, value);
   const metadataClone = { ...metadata } as Metadata;
   if (metadataClone['contentType'] == null && data.contentType != null) {
     metadataClone['contentType'] = data.contentType!;
   }
+  return _nonResumableUpload(ref, data.data, metadataClone);
+}
+
+/**
+ * Base code for nonresumable upload, used by uploadString and uploadBytes.
+ */
+export async function _nonResumableUpload(
+  ref: Reference,
+  data: Uint8Array | Blob | ArrayBuffer,
+  metadata?: Metadata
+): Promise<UploadTaskSnapshot> {
+  const authToken = await ref.storage.getAuthToken();
   const requestInfo = multipartUpload(
     ref.storage,
     ref._location,
     getMappings(),
-    new FbsBlob(data.data, true),
-    metadataClone
+    new FbsBlob(data, true),
+    metadata
   );
   const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
   const finalMetadata = await multipartRequest.getPromise();

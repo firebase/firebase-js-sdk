@@ -28,7 +28,8 @@ import {
   getMetadata,
   updateMetadata,
   getDownloadURL,
-  uploadBytes
+  uploadBytes,
+  _nonResumableUpload
 } from '../../src/reference';
 import { StorageService, ref } from '../../src/service';
 import * as testShared from './testshared';
@@ -36,6 +37,7 @@ import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { fakeServerHandler, storageServiceWithHandler } from './testshared';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
@@ -56,7 +58,7 @@ function makeStorage(url: string): Reference {
 }
 
 function withFakeSend(
-  testFn: (text: string) => void,
+  testFn: (text: string, headers?: Headers) => void,
   resolveFn: () => void
 ): Reference {
   function newSend(
@@ -67,7 +69,7 @@ function withFakeSend(
     headers?: Headers
   ): void {
     (body as Blob).text().then(text => {
-      testFn(text);
+      testFn(text, headers);
       xhrio.abort();
       resolveFn();
     });
@@ -254,7 +256,8 @@ describe('Firebase Storage > Reference', () => {
   describe('uploadString', () => {
     it('Uses metadata.contentType for RAW format', done => {
       // Regression test for b/30989476
-      const root = withFakeSend((text: string) => {
+      const root = withFakeSend((text: string, headers?: Headers) => {
+        console.log(headers);
         expect(text).to.include('"contentType":"lol/wut"');
       }, done);
       uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {
@@ -292,6 +295,17 @@ describe('Firebase Storage > Reference', () => {
       uploadBytes(ref(root, 'hello'), new Blob(), {
         contentType: 'lol/wut'
       } as Metadata);
+    });
+  });
+
+  describe('nonResumableUpload', () => {
+    it('uploads without error', async () => {
+      const storageService = storageServiceWithHandler(fakeServerHandler({}));
+      const root = ref(storageService, 'gs://test-bucket/');
+      const childRef = ref(root, 'child');
+      const blob = new Blob(['a']);
+      const snapshot = await _nonResumableUpload(childRef, blob);
+      expect(snapshot.ref).to.equal(childRef);
     });
   });
 
