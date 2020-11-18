@@ -278,39 +278,6 @@ export function metadataForUpload_(
 }
 
 /**
- * Prepare RequestInfo for non-resumable uploads as Content-Type: octet-stream.
- */
-export function simpleUpload(
-  service: StorageService,
-  location: Location,
-  mappings: Mappings,
-  blob: FbsBlob,
-  metadata?: Metadata | null
-): RequestInfo<Metadata> {
-  const urlPart = location.bucketOnlyServerUrl();
-
-  const metadata_ = metadataForUpload_(location, blob, metadata);
-  const headers: { [prop: string]: string } = {
-    // metadataForUpload_ always populates the contentType field.
-    'Content-Type': metadata_['contentType']!
-  };
-  const urlParams: UrlParams = { name: metadata_['fullPath']! };
-  const url = makeUrl(urlPart);
-  const method = 'POST';
-  const timeout = service.maxUploadRetryTime;
-  const requestInfo = new RequestInfo(
-    url,
-    method,
-    metadataHandler(service, mappings),
-    timeout
-  );
-  requestInfo.urlParams = urlParams;
-  requestInfo.headers = headers;
-  requestInfo.body = blob.uploadData();
-  requestInfo.errorHandler = sharedErrorHandler(location);
-  return requestInfo;
-}
-/**
  * Prepare RequestInfo for resumable uploads as Content-Type: multipart.
  */
 export function multipartUpload(

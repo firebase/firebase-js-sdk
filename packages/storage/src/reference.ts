@@ -29,7 +29,7 @@ import {
   updateMetadata as requestsUpdateMetadata,
   getDownloadUrl as requestsGetDownloadUrl,
   deleteObject as requestsDeleteObject,
-  simpleUpload
+  multipartUpload
 } from './implementation/requests';
 import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
@@ -135,15 +135,15 @@ export async function uploadBytes(
 ): Promise<UploadTaskSnapshot> {
   ref._throwIfRoot('uploadBytes');
   const authToken = await ref.storage.getAuthToken();
-  const requestInfo = simpleUpload(
+  const requestInfo = multipartUpload(
     ref.storage,
     ref._location,
     getMappings(),
     new FbsBlob(data),
     metadata
   );
-  const request = ref.storage.makeRequest(requestInfo, authToken);
-  const finalMetadata = await request.getPromise();
+  const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
+  const finalMetadata = await multipartRequest.getPromise();
   return {
     metadata: finalMetadata,
     ref
@@ -193,15 +193,15 @@ export async function uploadString(
   if (metadataClone['contentType'] == null && data.contentType != null) {
     metadataClone['contentType'] = data.contentType!;
   }
-  const requestInfo = simpleUpload(
+  const requestInfo = multipartUpload(
     ref.storage,
     ref._location,
     getMappings(),
     new FbsBlob(data.data, true),
     metadataClone
   );
-  const request = ref.storage.makeRequest(requestInfo, authToken);
-  const finalMetadata = await request.getPromise();
+  const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
+  const finalMetadata = await multipartRequest.getPromise();
   return {
     metadata: finalMetadata,
     ref
