@@ -20,11 +20,11 @@
  */
 import { Metadata } from '../metadata';
 
-import * as json from './json';
+import { jsonObjectOrNull } from './json';
 import { Location } from './location';
-import * as path from './path';
-import * as type from './type';
-import * as UrlUtils from './url';
+import { lastComponent } from './path';
+import { isString } from './type';
+import { makeUrl, makeQueryString } from './url';
 import { Reference } from '../reference';
 import { StorageService } from '../service';
 
@@ -55,10 +55,10 @@ export { Mappings };
 let mappings_: Mappings | null = null;
 
 export function xformPath(fullPath: string | undefined): string | undefined {
-  if (!type.isString(fullPath) || fullPath.length < 2) {
+  if (!isString(fullPath) || fullPath.length < 2) {
     return fullPath;
   } else {
-    return path.lastComponent(fullPath);
+    return lastComponent(fullPath);
   }
 }
 
@@ -145,7 +145,7 @@ export function fromResourceString(
   resourceString: string,
   mappings: Mappings
 ): Metadata | null {
-  const obj = json.jsonObjectOrNull(resourceString);
+  const obj = jsonObjectOrNull(resourceString);
   if (obj === null) {
     return null;
   }
@@ -157,11 +157,11 @@ export function downloadUrlFromResourceString(
   metadata: Metadata,
   resourceString: string
 ): string | null {
-  const obj = json.jsonObjectOrNull(resourceString);
+  const obj = jsonObjectOrNull(resourceString);
   if (obj === null) {
     return null;
   }
-  if (!type.isString(obj['downloadTokens'])) {
+  if (!isString(obj['downloadTokens'])) {
     // This can happen if objects are uploaded through GCS and retrieved
     // through list, so we don't want to throw an Error.
     return null;
@@ -176,8 +176,8 @@ export function downloadUrlFromResourceString(
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
     const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
-    const base = UrlUtils.makeUrl(urlPart);
-    const queryString = UrlUtils.makeQueryString({
+    const base = makeUrl(urlPart);
+    const queryString = makeQueryString({
       alt: 'media',
       token
     });
@@ -187,7 +187,7 @@ export function downloadUrlFromResourceString(
 }
 
 export function toResourceString(
-  metadata: { [key: string]: unknown },
+  metadata: Record<string, unknown>,
   mappings: Mappings
 ): string {
   const resource: {

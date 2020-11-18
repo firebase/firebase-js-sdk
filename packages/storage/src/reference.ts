@@ -28,7 +28,8 @@ import {
   getMetadata as requestsGetMetadata,
   updateMetadata as requestsUpdateMetadata,
   getDownloadUrl as requestsGetDownloadUrl,
-  deleteObject as requestsDeleteObject
+  deleteObject as requestsDeleteObject,
+  simpleUpload
 } from './implementation/requests';
 import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
@@ -38,7 +39,6 @@ import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
 import { UploadTaskSnapshot } from './tasksnapshot';
-import * as fbsRequests from './implementation/requests';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -131,11 +131,11 @@ export class Reference {
 export async function uploadBytes(
   ref: Reference,
   data: Blob | Uint8Array | ArrayBuffer,
-  metadata: Metadata | null = null
+  metadata?: Metadata
 ): Promise<UploadTaskSnapshot> {
   ref._throwIfRoot('uploadBytes');
   const authToken = await ref.storage.getAuthToken();
-  const requestInfo = fbsRequests.simpleUpload(
+  const requestInfo = simpleUpload(
     ref.storage,
     ref._location,
     getMappings(),
@@ -143,8 +143,11 @@ export async function uploadBytes(
     metadata
   );
   const request = ref.storage.makeRequest(requestInfo, authToken);
-  const finalMetadata = metadata || (await request.getPromise());
-  return new UploadTaskSnapshot(finalMetadata, ref);
+  const finalMetadata = await request.getPromise();
+  return {
+    metadata: finalMetadata,
+    ref
+  };
 }
 
 /**
@@ -160,7 +163,7 @@ export async function uploadBytes(
 export function uploadBytesResumable(
   ref: Reference,
   data: Blob | Uint8Array | ArrayBuffer,
-  metadata: Metadata | null = null
+  metadata?: Metadata
 ): UploadTask {
   ref._throwIfRoot('uploadBytesResumable');
   return new UploadTask(ref, new FbsBlob(data), metadata);
@@ -168,6 +171,7 @@ export function uploadBytesResumable(
 
 /**
  * Uploads a string to this object's location.
+ * The upload is not resumable.
  * @public
  * @param ref - Storage Reference where string should be uploaded.
  * @param value - The string to upload.
@@ -176,19 +180,32 @@ export function uploadBytesResumable(
  * @returns An UploadTask that lets you control and
  *     observe the upload.
  */
-export function uploadString(
+export async function uploadString(
   ref: Reference,
   value: string,
   format: StringFormat = StringFormat.RAW,
   metadata?: Metadata
-): UploadTask {
+): Promise<UploadTaskSnapshot> {
   ref._throwIfRoot('uploadString');
+  const authToken = await ref.storage.getAuthToken();
   const data = dataFromString(format, value);
   const metadataClone = { ...metadata } as Metadata;
   if (metadataClone['contentType'] == null && data.contentType != null) {
     metadataClone['contentType'] = data.contentType!;
   }
-  return new UploadTask(ref, new FbsBlob(data.data, true), metadataClone);
+  const requestInfo = simpleUpload(
+    ref.storage,
+    ref._location,
+    getMappings(),
+    new FbsBlob(data.data, true),
+    metadataClone
+  );
+  const request = ref.storage.makeRequest(requestInfo, authToken);
+  const finalMetadata = await request.getPromise();
+  return {
+    metadata: finalMetadata,
+    ref
+  };
 }
 
 /**
@@ -321,7 +338,7 @@ export async function getMetadata(ref: Reference): Promise<Metadata> {
  */
 export async function updateMetadata(
   ref: Reference,
-  metadata: { [key: string]: unknown }
+  metadata: Record<string, unknown>
 ): Promise<Metadata> {
   ref._throwIfRoot('updateMetadata');
   const authToken = await ref.storage.getAuthToken();

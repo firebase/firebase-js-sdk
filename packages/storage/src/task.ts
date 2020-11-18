@@ -38,10 +38,17 @@ import {
 import { Request } from './implementation/request';
 import { UploadTaskResumableSnapshot } from './tasksnapshot';
 import { async as fbsAsync } from './implementation/async';
-import * as fbsMetadata from './implementation/metadata';
-import * as fbsRequests from './implementation/requests';
+import { Mappings, getMappings } from './implementation/metadata';
+import {
+  createResumableUpload,
+  getResumableUploadStatus,
+  resumableUploadChunkSize,
+  ResumableUploadStatus,
+  continueResumableUpload,
+  getMetadata,
+  multipartUpload
+} from './implementation/requests';
 import { Reference } from './reference';
-import { getMappings } from './implementation/metadata';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -57,7 +64,7 @@ export class UploadTask {
    * @internal
    */
   _metadata: Metadata | null;
-  private _mappings: fbsMetadata.Mappings;
+  private _mappings: Mappings;
   /**
    * @internal
    */
@@ -182,7 +189,7 @@ export class UploadTask {
 
   private _createResumable(): void {
     this._resolveToken(authToken => {
-      const requestInfo = fbsRequests.createResumableUpload(
+      const requestInfo = createResumableUpload(
         this._ref.storage,
         this._ref._location,
         this._mappings,
@@ -207,7 +214,7 @@ export class UploadTask {
     // TODO(andysoto): assert(this.uploadUrl_ !== null);
     const url = this._uploadUrl as string;
     this._resolveToken(authToken => {
-      const requestInfo = fbsRequests.getResumableUploadStatus(
+      const requestInfo = getResumableUploadStatus(
         this._ref.storage,
         this._ref._location,
         url,
@@ -219,7 +226,7 @@ export class UploadTask {
       );
       this._request = statusRequest;
       statusRequest.getPromise().then(status => {
-        status = status as fbsRequests.ResumableUploadStatus;
+        status = status as ResumableUploadStatus;
         this._request = undefined;
         this._updateProgress(status.current);
         this._needToFetchStatus = false;
@@ -232,9 +239,8 @@ export class UploadTask {
   }
 
   private _continueUpload(): void {
-    const chunkSize =
-      fbsRequests.resumableUploadChunkSize * this._chunkMultiplier;
-    const status = new fbsRequests.ResumableUploadStatus(
+    const chunkSize = resumableUploadChunkSize * this._chunkMultiplier;
+    const status = new ResumableUploadStatus(
       this._transferred,
       this._blob.size()
     );
@@ -244,7 +250,7 @@ export class UploadTask {
     this._resolveToken(authToken => {
       let requestInfo;
       try {
-        requestInfo = fbsRequests.continueResumableUpload(
+        requestInfo = continueResumableUpload(
           this._ref._location,
           this._ref.storage,
           url,
@@ -264,25 +270,22 @@ export class UploadTask {
         authToken
       );
       this._request = uploadRequest;
-      uploadRequest
-        .getPromise()
-        .then((newStatus: fbsRequests.ResumableUploadStatus) => {
-          this._increaseMultiplier();
-          this._request = undefined;
-          this._updateProgress(newStatus.current);
-          if (newStatus.finalized) {
-            this._metadata = newStatus.metadata;
-            this._transition(InternalTaskState.SUCCESS);
-          } else {
-            this.completeTransitions_();
-          }
-        }, this._errorHandler);
+      uploadRequest.getPromise().then((newStatus: ResumableUploadStatus) => {
+        this._increaseMultiplier();
+        this._request = undefined;
+        this._updateProgress(newStatus.current);
+        if (newStatus.finalized) {
+          this._metadata = newStatus.metadata;
+          this._transition(InternalTaskState.SUCCESS);
+        } else {
+          this.completeTransitions_();
+        }
+      }, this._errorHandler);
     });
   }
 
   private _increaseMultiplier(): void {
-    const currentSize =
-      fbsRequests.resumableUploadChunkSize * this._chunkMultiplier;
+    const currentSize = resumableUploadChunkSize * this._chunkMultiplier;
 
     // Max chunk size is 32M.
     if (currentSize < 32 * 1024 * 1024) {
@@ -292,7 +295,7 @@ export class UploadTask {
 
   private _fetchMetadata(): void {
     this._resolveToken(authToken => {
-      const requestInfo = fbsRequests.getMetadata(
+      const requestInfo = getMetadata(
         this._ref.storage,
         this._ref._location,
         this._mappings
@@ -312,7 +315,7 @@ export class UploadTask {
 
   private _oneShotUpload(): void {
     this._resolveToken(authToken => {
-      const requestInfo = fbsRequests.multipartUpload(
+      const requestInfo = multipartUpload(
         this._ref.storage,
         this._ref._location,
         this._mappings,
@@ -431,14 +434,14 @@ export class UploadTask {
 
   get snapshot(): UploadTaskResumableSnapshot {
     const externalState = taskStateFromInternalTaskState(this._state);
-    return new UploadTaskResumableSnapshot(
-      this._transferred,
-      this._blob.size(),
-      externalState,
-      this._metadata!,
-      this,
-      this._ref
-    );
+    return {
+      bytesTransferred: this._transferred,
+      totalBytes: this._blob.size(),
+      state: externalState,
+      metadata: this._metadata!,
+      task: this,
+      ref: this._ref
+    };
   }
 
   /**

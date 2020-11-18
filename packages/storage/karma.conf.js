@@ -31,21 +31,20 @@ module.exports = function (config) {
 };
 
 function getTestFiles(argv) {
-  let unitTestFiles = [];
+  let unitTestFiles = ['test/unit/*'];
   let integrationTestFiles = [];
   if (argv.exp) {
-    unitTestFiles = ['test/unit/*'].filter(
+    unitTestFiles = unitTestFiles.filter(
       filename => !filename.includes('.compat.')
     );
     integrationTestFiles = ['test/integration/*exp*'];
   } else if (argv.compat) {
-    unitTestFiles = ['test/unit/*'].filter(
+    unitTestFiles = unitTestFiles.filter(
       filename => !filename.includes('.exp.')
     );
     integrationTestFiles = ['test/integration/*compat*'];
   } else {
-    console.log('Specify "exp" or "compat" option for karma command.');
-    return;
+    integrationTestFiles = ['test/integration/*'];
   }
   if (argv.unit) {
     return unitTestFiles;

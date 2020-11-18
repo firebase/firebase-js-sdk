@@ -35,7 +35,9 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // import * as storage from '@firebase/storage-types';
 
-import { expect } from 'chai';
+import { use, expect } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+use(chaiAsPromised);
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { StorageService } from '../../src/service';
 
@@ -83,11 +85,10 @@ describe('FirebaseStorage Exp', () => {
     expect(snap.metadata.timeCreated).to.exist;
   });
 
-  it('validates operations on root', () => {
+  it('validates operations on root', async () => {
     const reference = ref(storage, '');
     try {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      uploadString(reference, 'foo');
+      await uploadString(reference, 'foo');
       expect.fail();
     } catch (e) {
       expect(e.message).to.satisfy((v: string) =>
@@ -103,14 +104,18 @@ describe('FirebaseStorage Exp', () => {
     await uploadString(reference, 'foo');
     await getDownloadURL(reference);
     await deleteObject(reference);
-    try {
-      await getDownloadURL(reference);
-      expect.fail();
-    } catch (e) {
-      expect(e.message).to.satisfy((v: string) =>
-        v.match(/Object 'public\/exp-delete' does not exist/)
-      );
-    }
+    await expect(getDownloadURL(reference)).to.eventually.be.rejectedWith(
+      Error,
+      /Object 'public\/exp-delete' does not exist/
+    );
+    // try {
+    //   await getDownloadURL(reference);
+    //   expect.fail();
+    // } catch (e) {
+    //   expect(e.message).to.satisfy((v: string) =>
+    //     v.match(/Object 'public\/exp-delete' does not exist/)
+    //   );
+    // }
   });
 
   it('can get download URL', async () => {

@@ -19,16 +19,15 @@ import { Metadata } from './metadata';
 import { Reference } from './reference';
 import { UploadTask } from './task';
 
-export class UploadTaskResumableSnapshot {
-  constructor(
-    readonly bytesTransferred: number,
-    readonly totalBytes: number,
-    readonly state: TaskState,
-    readonly metadata: Metadata,
-    readonly task: UploadTask,
-    readonly ref: Reference
-  ) {}
+export interface UploadTaskResumableSnapshot {
+  readonly bytesTransferred: number;
+  readonly totalBytes: number;
+  readonly state: TaskState;
+  readonly metadata: Metadata;
+  readonly task: UploadTask;
+  readonly ref: Reference;
 }
-export class UploadTaskSnapshot {
-  constructor(readonly metadata: Metadata, readonly ref: Reference) {}
+export interface UploadTaskSnapshot {
+  readonly metadata: Metadata;
+  readonly ref: Reference;
 }
