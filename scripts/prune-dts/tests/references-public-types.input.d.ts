@@ -15,9 +15,14 @@
  * limitations under the License.
  */
 
-export class Foo {
-  /** @hideconstructor */
-  constructor(bar: string);
+declare class Bar {}
+export class Foo extends Bar {}
+export function foo(bar: Bar): Bar;
+export class Foobar {
+  constructor(bar: Bar);
+  bar: Bar;
+  readonly barProperty: Bar;
+  get barGetter(): Bar;
+  barMethod(bar: Bar): Bar;
 }
-
 export {};

@@ -21,3 +21,4 @@ declare class Bar {
 export class Foo extends Bar {
   foo: string;
 }
+export {};

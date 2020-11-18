@@ -227,7 +227,7 @@ function convertPropertiesForEnclosingClass(
     /* importAdder= */ undefined,
     (c: ts.ClassElement) => newMembers.push(c)
   );
-  return [];
+  return newMembers;
 }
 /**
  * Replaces input types of public APIs that consume non-exported types, which

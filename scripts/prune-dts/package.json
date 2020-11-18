@@ -26,6 +26,8 @@
     "reportDir": "./coverage/node"
   },
   "devDependencies": {
-    "mocha": "8.2.1"
+    "@types/prettier": "2.1.5",
+    "mocha": "8.2.1",
+    "prettier": "2.1.2"
   }
 }

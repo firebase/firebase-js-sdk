@@ -19,3 +19,5 @@ export function foo(): void;
 declare function bar(): void;
 export class Foo {}
 declare class Bar {}
+
+export {};

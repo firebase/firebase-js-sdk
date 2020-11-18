@@ -18,6 +18,7 @@
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
+import { format, resolveConfig } from 'prettier';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 
@@ -27,13 +28,12 @@ const testCasesDir = path.resolve(__dirname, 'tests');
 const tmpDir = os.tmpdir();
 
 const testDataFilter = /(.*).input.d.ts/;
-const testCaseFilterRe = /.*inherits.*/;
+const testCaseFilterRe = /.*/;
 
-function runScript(filename: string): string {
-  const inputFile = path.resolve(testCasesDir, filename);
+function runScript(inputFile: string): string {
   const outputFile = path.resolve(tmpDir, 'output.d.ts');
   pruneDts(inputFile, outputFile);
-  return fs.readFileSync(outputFile, 'utf-8');
+  return outputFile;
 }
 
 interface TestCase {
@@ -67,12 +67,33 @@ function getTestCases(): TestCase[] {
 
 describe('Prune DTS', () => {
   for (const testCase of getTestCases()) {
-    it(testCase.name, () => {
-      const expectedDts = fs.readFileSync(
-        path.resolve(testCasesDir, testCase.outputFileName),
+    it(testCase.name, async () => {
+      const absoluteInputFile = path.resolve(
+        testCasesDir,
+        testCase.inputFileName
+      );
+      const absoluteOutputFile = path.resolve(
+        testCasesDir,
+        testCase.outputFileName
+      );
+
+      const tmpFile = runScript(absoluteInputFile);
+      const prettierConfig = await resolveConfig(absoluteInputFile);
+
+      const expectedDtsUnformatted = fs.readFileSync(
+        absoluteOutputFile,
         'utf-8'
       );
-      const actualDts = runScript(testCase.inputFileName);
+      const expectedDts = format(expectedDtsUnformatted, {
+        filepath: absoluteOutputFile,
+        ...prettierConfig
+      });
+      const actualDtsUnformatted = fs.readFileSync(tmpFile, 'utf-8');
+      const actualDts = format(actualDtsUnformatted, {
+        filepath: tmpFile,
+        ...prettierConfig
+      });
+
       expect(actualDts).to.equal(expectedDts);
     });
   }

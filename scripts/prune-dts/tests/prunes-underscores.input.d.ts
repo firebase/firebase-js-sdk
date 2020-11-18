@@ -18,4 +18,9 @@
 export class Foo {
   foo: string;
   _bar: string;
+  _barMethod(): string;
+  get _barGetter(): string;
+  readonly _barProperty: string;
 }
+
+export {};
