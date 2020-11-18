@@ -31,7 +31,6 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
 import { isIndexedDbTransactionError } from './simple_db';
-import { CACHE_SIZE_UNLIMITED } from '../api/database';
 
 const LOG_TAG = 'LruGarbageCollector';
 
