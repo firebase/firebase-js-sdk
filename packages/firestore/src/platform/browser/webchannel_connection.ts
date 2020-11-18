@@ -265,7 +265,7 @@ export class WebChannelConnection extends RestConnection {
     const unguardedEventListen = <T>(
       target: EventTarget,
       type: string | number,
-      fn: (param?: T) => void
+      fn: (param: T) => void
     ): void => {
       // TODO(dimond): closure typing seems broken because WebChannel does
       // not implement goog.events.Listenable
@@ -319,7 +319,7 @@ export class WebChannelConnection extends RestConnection {
       WebChannel.EventType.MESSAGE,
       msg => {
         if (!closed) {
-          const msgData = msg!.data[0];
+          const msgData = msg.data[0];
           hardAssert(!!msgData, 'Got a webchannel message without data.');
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
@@ -357,10 +357,6 @@ export class WebChannelConnection extends RestConnection {
     );
 
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
-      if (!event) {
-        return;
-      }
-
       if (event.stat === Stat.PROXY) {
         logDebug(LOG_TAG, 'Detected buffering proxy');
       } else if (event.stat === Stat.NOPROXY) {
