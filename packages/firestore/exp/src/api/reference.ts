@@ -757,7 +757,8 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
   } else {
-    firestore = cast(reference.firestore, FirebaseFirestore);
+    const query = cast<Query<T>>(reference, Query);
+    firestore = cast(query.firestore, FirebaseFirestore);
     internalQuery = reference._query;
     const userDataWriter = new ExpUserDataWriter(firestore);
 
@@ -765,12 +766,7 @@ export function onSnapshot<T>(
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<QuerySnapshot<T>>)(
-            new QuerySnapshot(
-              firestore,
-              userDataWriter,
-              reference as Query<T>,
-              snapshot
-            )
+            new QuerySnapshot(firestore, userDataWriter, query, snapshot)
           );
         }
       },
