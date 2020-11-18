@@ -43,13 +43,11 @@ function runTest(port: number, projectId: string, withPersistence: boolean) {
   if (withPersistence) {
     childProcesses.push(
       spawn('yarn', ['test:node:persistence:prod'], options),
-      spawn('yarn', ['test:exp:persistence:prod'], options),
       spawn('yarn', ['test:lite:prod'], options)
     );
   } else {
     childProcesses.push(
       spawn('yarn', ['test:node:prod'], options),
-      spawn('yarn', ['test:exp:prod'], options),
       spawn('yarn', ['test:lite:prod'], options)
     );
   }

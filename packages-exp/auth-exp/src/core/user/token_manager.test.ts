@@ -26,6 +26,8 @@ import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api/authentication/token';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, Buffer } from './token_manager';
+import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import { makeJWT } from '../../../test/helpers/jwt';
 
 use(chaiAsPromised);
 
@@ -72,6 +74,18 @@ describe('core/user/token_manager', () => {
 
       expect(stsTokenManager.expirationTime).to.eq(now + 60_000);
       expect(stsTokenManager.accessToken).to.eq('id-token');
+      expect(stsTokenManager.refreshToken).to.eq('refresh-token');
+    });
+
+    it('falls back to exp and iat when expiresIn is ommited (ie: MFA)', () => {
+      const idToken = makeJWT({ 'exp': '180', 'iat': '120' });
+      stsTokenManager.updateFromServerResponse({
+        idToken,
+        refreshToken: 'refresh-token'
+      } as FinalizeMfaResponse);
+
+      expect(stsTokenManager.expirationTime).to.eq(now + 60_000);
+      expect(stsTokenManager.accessToken).to.eq(idToken);
       expect(stsTokenManager.refreshToken).to.eq('refresh-token');
     });
   });

@@ -335,6 +335,43 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  it('maintains correct DocumentChange indices', async () => {
+    const testDocs = {
+      'a': { order: 1 },
+      'b': { order: 2 },
+      'c': { 'order': 3 }
+    };
+    await withTestCollection(persistence, testDocs, async coll => {
+      const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
+      const unlisten = coll.orderBy('order').onSnapshot(accumulator.storeEvent);
+      await accumulator
+        .awaitEvent()
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(3);
+          verifyDocumentChange(changes[0], 'a', -1, 0, 'added');
+          verifyDocumentChange(changes[1], 'b', -1, 1, 'added');
+          verifyDocumentChange(changes[2], 'c', -1, 2, 'added');
+        })
+        .then(() => coll.doc('b').set({ order: 4 }))
+        .then(() => accumulator.awaitEvent())
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(1);
+          verifyDocumentChange(changes[0], 'b', 1, 2, 'modified');
+        })
+        .then(() => coll.doc('c').delete())
+        .then(() => accumulator.awaitEvent())
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(1);
+          verifyDocumentChange(changes[0], 'c', 1, -1, 'removed');
+        });
+
+      unlisten();
+    });
+  });
+
   it('can listen for the same query with different options', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
     return withTestCollection(persistence, testDocs, coll => {
@@ -1165,3 +1202,16 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 });
+
+function verifyDocumentChange<T>(
+  change: firestore.DocumentChange<T>,
+  id: string,
+  oldIndex: number,
+  newIndex: number,
+  type: firestore.DocumentChangeType
+): void {
+  expect(change.doc.id).to.equal(id);
+  expect(change.type).to.equal(type);
+  expect(change.oldIndex).to.equal(oldIndex);
+  expect(change.newIndex).to.equal(newIndex);
+}

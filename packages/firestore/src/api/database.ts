@@ -1136,7 +1136,7 @@ export class DocumentChange<T = PublicDocumentData>
   }
 
   get newIndex(): number {
-    return this._delegate.oldIndex;
+    return this._delegate.newIndex;
   }
 }
 

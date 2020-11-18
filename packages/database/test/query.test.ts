@@ -15,16 +15,20 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { use, expect } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import { Reference } from '../src/api/Reference';
+import { DataSnapshot } from '../src/api/DataSnapshot';
 import { Query } from '../src/api/Query';
 import '../src/core/snap/ChildrenNode';
-import { getRandomNode, getPath, pause } from './helpers/util';
+import { getRandomNode, getFreshRepo, getPath, pause } from './helpers/util';
 import {
   EventAccumulator,
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
+
+use(chaiAsPromised);
 
 type TaskList = Array<[Query, any]>;
 
@@ -2189,6 +2193,80 @@ describe('Query Tests', () => {
             }
           });
       });
+  });
+
+  it('get at empty node is null', async () => {
+    const node = getRandomNode() as Reference;
+    expect((await node.get()).val()).to.equal(null);
+  });
+
+  it('get at non-empty root returns correct value', async () => {
+    const node = getRandomNode() as Reference;
+    const expected = { foo: 'a', bar: 'b' };
+    await node.set(expected);
+    const snapshot = await node.get();
+    expect(snapshot.val()).to.deep.equal(expected);
+  });
+
+  it('get for removed node returns correct value', async () => {
+    const node = getRandomNode() as Reference;
+    const expected = { foo: 'a', bar: 'b' };
+    await node.set(expected);
+    let snapshot = await node.get();
+    const val = snapshot.val();
+    expect(val).to.deep.equal(expected);
+    await node.remove();
+    snapshot = await node.get();
+    expect(snapshot.val()).to.be.null;
+  });
+
+  it('get while offline is rejected', async () => {
+    const node = getRandomNode() as Reference;
+    node.database.goOffline();
+    try {
+      await expect(node.get()).to.eventually.be.rejected;
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get reads from cache if database is not connected', async () => {
+    const node = getRandomNode() as Reference;
+    const node2 = getFreshRepo(node.path);
+    try {
+      await node2.set({ foo: 'bar' });
+      const onSnapshot = await new Promise((resolve, _) => {
+        node.on('value', snap => {
+          resolve(snap);
+        });
+      });
+      node.database.goOffline();
+      const getSnapshot = await node.get();
+      // node's cache dropped here.
+      node.off();
+      expect(getSnapshot.val()).to.deep.equal(
+        (onSnapshot as DataSnapshot).val()
+      );
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get does not cache sibling data', async () => {
+    const reader = getRandomNode() as Reference;
+    const writer = getFreshRepo(reader.path);
+    await writer.set({
+      foo: { cached: { data: '1' }, notCached: { data: '2' } }
+    });
+    const snapshot = await reader.child('foo/cached').get();
+    expect(snapshot.val()).to.deep.equal({ data: '1' });
+    reader.database.goOffline();
+    try {
+      await expect(reader.child('foo/notCached').get()).to.eventually.be
+        .rejected;
+    } finally {
+      reader.database.goOnline();
+    }
   });
 
   it('set() at query root raises correct value event', done => {

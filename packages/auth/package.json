@@ -25,7 +25,7 @@
     "@firebase/auth-types": "0.10.1"
   },
   "devDependencies": {
-    "firebase-tools": "8.15.0",
+    "firebase-tools": "8.16.2",
     "google-closure-compiler": "20200112.0.0",
     "google-closure-library": "20200830.0.0",
     "gulp": "4.0.2",
