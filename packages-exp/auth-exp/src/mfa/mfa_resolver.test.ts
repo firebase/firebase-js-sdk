@@ -17,6 +17,7 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
 
 import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
@@ -28,44 +29,52 @@ import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
 import { AuthCredential } from '../core/credentials';
 import { PhoneAuthCredential } from '../core/credentials/phone';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { AuthErrorCode } from '../core/errors';
 import { EmailAuthProvider } from '../core/providers/email';
 import { User, UserCredential } from '../model/user';
-import { MultiFactorAssertion } from './assertions';
+import { MultiFactorAssertion } from './mfa_assertion';
 import { PhoneMultiFactorAssertion } from '../platform_browser/mfa/assertions/phone';
 import { MultiFactorError } from './mfa_error';
 import { getMultiFactorResolver, MultiFactorResolver } from './mfa_resolver';
+import { _createError } from '../core/util/assert';
+import { makeJWT } from '../../test/helpers/jwt';
 
 use(chaiAsPromised);
 
 describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
+  const finalIdToken = makeJWT({ 'exp': '3600', 'iat': '1200' });
   let auth: TestAuth;
   let underlyingError: FirebaseError;
   let error: MultiFactorError;
   let primaryFactorCredential: AuthCredential;
+  let clock: sinon.SinonFakeTimers;
 
   beforeEach(async () => {
+    clock = sinon.useFakeTimers();
     auth = await testAuth();
     auth.tenantId = 'tenant-id';
     primaryFactorCredential = EmailAuthProvider.credential(
       'email',
       'password'
     ) as AuthCredential;
-    underlyingError = AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
-      appName: auth.name,
+    underlyingError = _createError(auth, AuthErrorCode.MFA_REQUIRED, {
       serverResponse: {
         localId: 'local-id',
-        expiresIn: '3600',
         mfaPendingCredential: 'mfa-pending-credential',
         mfaInfo: [
           {
             mfaEnrollmentId: 'mfa-enrollment-id',
             enrolledAt: Date.now(),
-            phoneInfo: 'phone-info'
+            phoneInfo: '+*******1234',
+            displayName: ''
           }
         ]
       }
     });
+  });
+
+  afterEach(() => {
+    sinon.restore();
   });
 
   describe('MultiFactorResolver', () => {
@@ -110,7 +119,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
 
       beforeEach(() => {
         mock = mockEndpoint(Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, {
-          idToken: 'final-id-token',
+          idToken: finalIdToken,
           refreshToken: 'final-refresh-token'
         });
 
@@ -135,13 +144,13 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
             assertion
           )) as UserCredential;
           expect(userCredential.user.uid).to.eq('local-id');
-          expect(await userCredential.user.getIdToken()).to.eq(
-            'final-id-token'
+          expect(await userCredential.user.getIdToken()).to.eq(finalIdToken);
+          expect(userCredential.user.stsTokenManager.expirationTime).to.eq(
+            clock.now + 2400 * 1000
           );
           expect(userCredential._tokenResponse).to.eql({
             localId: 'local-id',
-            expiresIn: '3600',
-            idToken: 'final-id-token',
+            idToken: finalIdToken,
             refreshToken: 'final-refresh-token'
           });
           expect(mock.calls[0].request).to.eql({
@@ -175,13 +184,13 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
             assertion
           )) as UserCredential;
           expect(userCredential.user).to.eq(user);
-          expect(await userCredential.user.getIdToken()).to.eq(
-            'final-id-token'
+          expect(await userCredential.user.getIdToken()).to.eq(finalIdToken);
+          expect(userCredential.user.stsTokenManager.expirationTime).to.eq(
+            clock.now + 2400 * 1000
           );
           expect(userCredential._tokenResponse).to.eql({
             localId: 'local-id',
-            expiresIn: '3600',
-            idToken: 'final-id-token',
+            idToken: finalIdToken,
             refreshToken: 'final-refresh-token'
           });
           expect(mock.calls[0].request).to.eql({

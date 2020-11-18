@@ -38,6 +38,7 @@ import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
 import { Database } from '../api/Database';
+import { DataSnapshot } from '../api/DataSnapshot';
 import { ServerActions } from './ServerActions';
 import { Query } from '../api/Query';
 import { EventRegistration } from './view/EventRegistration';
@@ -54,6 +55,9 @@ const INTERRUPT_REASON = 'repo_interrupt';
  * A connection to a single data repository.
  */
 export class Repo {
+  /** Key for uniquely identifying this repo, used in RepoManager */
+  readonly key: string;
+
   dataUpdateCount = 0;
   private infoSyncTree_: SyncTree;
   private serverSyncTree_: SyncTree;
@@ -81,23 +85,28 @@ export class Repo {
 
   constructor(
     public repoInfo_: RepoInfo,
-    forceRestClient: boolean,
+    private forceRestClient_: boolean,
     public app: FirebaseApp,
-    authTokenProvider: AuthTokenProvider
+    public authTokenProvider_: AuthTokenProvider
   ) {
-    this.stats_ = StatsManager.getCollection(repoInfo_);
+    // This key is intentionally not updated if RepoInfo is later changed or replaced
+    this.key = this.repoInfo_.toURLString();
+  }
 
-    if (forceRestClient || beingCrawled()) {
+  start(): void {
+    this.stats_ = StatsManager.getCollection(this.repoInfo_);
+
+    if (this.forceRestClient_ || beingCrawled()) {
       this.server_ = new ReadonlyRestClient(
         this.repoInfo_,
         this.onDataUpdate_.bind(this),
-        authTokenProvider
+        this.authTokenProvider_
       );
 
       // Minor hack: Fire onConnect immediately, since there's no actual connection.
       setTimeout(this.onConnectStatus_.bind(this, true), 0);
     } else {
-      const authOverride = app.options['databaseAuthVariableOverride'];
+      const authOverride = this.app.options['databaseAuthVariableOverride'];
       // Validate authOverride
       if (typeof authOverride !== 'undefined' && authOverride !== null) {
         if (typeof authOverride !== 'object') {
@@ -114,25 +123,25 @@ export class Repo {
 
       this.persistentConnection_ = new PersistentConnection(
         this.repoInfo_,
-        app.options.appId,
+        this.app.options.appId,
         this.onDataUpdate_.bind(this),
         this.onConnectStatus_.bind(this),
         this.onServerInfoUpdate_.bind(this),
-        authTokenProvider,
+        this.authTokenProvider_,
         authOverride
       );
 
       this.server_ = this.persistentConnection_;
     }
 
-    authTokenProvider.addTokenChangeListener(token => {
+    this.authTokenProvider_.addTokenChangeListener(token => {
       this.server_.refreshAuthToken(token);
     });
 
     // In the case of multiple Repos for the same repoInfo (i.e. there are multiple Firebase.Contexts being used),
     // we only want to create one StatsReporter.  As such, we'll report stats over the first Repo created.
     this.statsReporter_ = StatsManager.getOrCreateReporter(
-      repoInfo_,
+      this.repoInfo_,
       () => new StatsReporter(this.stats_, this.server_)
     );
 
@@ -294,6 +303,71 @@ export class Repo {
 
   private getNextWriteId_(): number {
     return this.nextWriteId_++;
+  }
+
+  /**
+   * The purpose of `getValue` is to return the latest known value
+   * satisfying `query`.
+   *
+   * If the client is connected, this method will send a request
+   * to the server. If the client is not connected, then either:
+   *
+   * 1. The client was once connected, but not anymore.
+   * 2. The client has never connected, this is the first operation
+   *    this repo is handling.
+   *
+   * In case (1), it's possible that the client still has an active
+   * listener, with cached data. Since this is the latest known
+   * value satisfying the query, that's what getValue will return.
+   * If there is no cached data, `getValue` surfaces an "offline"
+   * error.
+   *
+   * In case (2), `getValue` will trigger a time-limited connection
+   * attempt. If the client is unable to connect to the server, it
+   * will surface an "offline" error because there cannot be any
+   * cached data. On the other hand, if the client is able to connect,
+   * `getValue` will return the server's value for the query, if one
+   * exists.
+   *
+   * @param query - The query to surface a value for.
+   */
+  getValue(query: Query): Promise<DataSnapshot> {
+    return this.server_.get(query).then(
+      payload => {
+        const node = nodeFromJSON(payload as string);
+        const events = this.serverSyncTree_.applyServerOverwrite(
+          query.path,
+          node
+        );
+        this.eventQueue_.raiseEventsAtPath(query.path, events);
+        return Promise.resolve(
+          new DataSnapshot(
+            node,
+            query.getRef(),
+            query.getQueryParams().getIndex()
+          )
+        );
+      },
+      err => {
+        this.log_(
+          'get for query ' +
+            stringify(query) +
+            ' falling back to cache after error: ' +
+            err
+        );
+        const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);
+        if (!cached.isEmpty()) {
+          return Promise.resolve(
+            new DataSnapshot(
+              cached,
+              query.getRef(),
+              query.getQueryParams().getIndex()
+            )
+          );
+        }
+        return Promise.reject(new Error(err as string));
+      }
+    );
   }
 
   setWithPriority(

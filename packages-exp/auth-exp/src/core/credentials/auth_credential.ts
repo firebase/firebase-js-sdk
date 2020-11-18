@@ -16,27 +16,37 @@
  */
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
 
+/**
+ * {@inheritdoc @firebase/auth-types#AuthCredential}
+ *
+ * @public
+ */
 export class AuthCredential {
+  /** @internal */
   protected constructor(
     readonly providerId: string,
     readonly signInMethod: string
   ) {}
 
+  /** {@inheritdoc @firebase/auth-types#AuthCredential.toJSON} */
   toJSON(): object {
     return debugFail('not implemented');
   }
 
-  _getIdTokenResponse(_auth: AuthCore): Promise<PhoneOrOauthTokenResponse> {
+  /** @internal */
+  _getIdTokenResponse(_auth: Auth): Promise<PhoneOrOauthTokenResponse> {
     return debugFail('not implemented');
   }
-  _linkToIdToken(_auth: AuthCore, _idToken: string): Promise<IdTokenResponse> {
+  /** @internal */
+  _linkToIdToken(_auth: Auth, _idToken: string): Promise<IdTokenResponse> {
     return debugFail('not implemented');
   }
-  _getReauthenticationResolver(_auth: AuthCore): Promise<IdTokenResponse> {
+  /** @internal */
+  _getReauthenticationResolver(_auth: Auth): Promise<IdTokenResponse> {
     return debugFail('not implemented');
   }
 }

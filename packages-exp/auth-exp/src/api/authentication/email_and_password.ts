@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import { Operation } from '@firebase/auth-types-exp';
+import { Operation, Auth } from '@firebase/auth-types-exp';
 
 import {
   Endpoint,
   HttpMethod,
   _performApiRequest,
   _performSignInRequest
-} from '..';
+} from '../index';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
-import { AuthCore } from '../../model/auth';
 
 export interface SignInWithPasswordRequest {
   returnSecureToken?: boolean;
@@ -38,7 +37,7 @@ export interface SignInWithPasswordResponse extends IdTokenResponse {
 }
 
 export async function signInWithPassword(
-  auth: AuthCore,
+  auth: Auth,
   request: SignInWithPasswordRequest
 ): Promise<SignInWithPasswordResponse> {
   return _performSignInRequest<
@@ -94,7 +93,7 @@ export interface EmailSignInResponse extends GetOobCodeResponse {}
 export interface VerifyAndChangeEmailResponse extends GetOobCodeRequest {}
 
 async function sendOobCode(
-  auth: AuthCore,
+  auth: Auth,
   request: GetOobCodeRequest
 ): Promise<GetOobCodeResponse> {
   return _performApiRequest<GetOobCodeRequest, GetOobCodeResponse>(
@@ -106,28 +105,28 @@ async function sendOobCode(
 }
 
 export async function sendEmailVerification(
-  auth: AuthCore,
+  auth: Auth,
   request: VerifyEmailRequest
 ): Promise<VerifyEmailResponse> {
   return sendOobCode(auth, request);
 }
 
 export async function sendPasswordResetEmail(
-  auth: AuthCore,
+  auth: Auth,
   request: PasswordResetRequest
 ): Promise<PasswordResetResponse> {
   return sendOobCode(auth, request);
 }
 
 export async function sendSignInLinkToEmail(
-  auth: AuthCore,
+  auth: Auth,
   request: EmailSignInRequest
 ): Promise<EmailSignInResponse> {
   return sendOobCode(auth, request);
 }
 
 export async function verifyAndChangeEmail(
-  auth: AuthCore,
+  auth: Auth,
   request: VerifyAndChangeEmailRequest
 ): Promise<VerifyAndChangeEmailResponse> {
   return sendOobCode(auth, request);

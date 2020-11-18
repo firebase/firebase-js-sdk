@@ -20,7 +20,7 @@ import { rollup } from 'rollup';
 
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const alias = require('@rollup/plugin-alias');
-const json = require('rollup-plugin-json');
+const json = require('@rollup/plugin-json');
 
 const util = require('../rollup.shared');
 

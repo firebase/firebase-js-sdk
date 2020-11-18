@@ -69,26 +69,16 @@ export interface ErrorData {
   [key: string]: unknown;
 }
 
-export interface FirebaseError extends Error, ErrorData {
-  // Unique code for error - format is service/error-code-string.
-  readonly code: string;
-
-  // Developer-friendly error message.
-  readonly message: string;
-
-  // Always 'FirebaseError'.
-  readonly name: typeof ERROR_NAME;
-
-  // Where available - stack backtrace in a string.
-  readonly stack?: string;
-}
-
 // Based on code from:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
 export class FirebaseError extends Error {
   readonly name = ERROR_NAME;
 
-  constructor(readonly code: string, message: string) {
+  constructor(
+    readonly code: string,
+    message: string,
+    public customData?: Record<string, unknown>
+  ) {
     super(message);
 
     // Fix For ES5
@@ -125,21 +115,7 @@ export class ErrorFactory<
     // Service Name: Error message (service/code).
     const fullMessage = `${this.serviceName}: ${message} (${fullCode}).`;
 
-    const error = new FirebaseError(fullCode, fullMessage);
-
-    // Keys with an underscore at the end of their name are not included in
-    // error.data for some reason.
-    // TODO: Replace with Object.entries when lib is updated to es2017.
-    for (const key of Object.keys(customData)) {
-      if (key.slice(-1) !== '_') {
-        if (key in error) {
-          console.warn(
-            `Overwriting FirebaseError base field "${key}" can cause unexpected behavior.`
-          );
-        }
-        error[key] = customData[key];
-      }
-    }
+    const error = new FirebaseError(fullCode, fullMessage, customData);
 
     return error;
   }

@@ -18,11 +18,11 @@
 import { SDK_VERSION } from '@firebase/app-exp';
 import { querystring } from '@firebase/util';
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
-import { assert } from '../../core/util/assert';
+import { AuthErrorCode } from '../../core/errors';
+import { _assert, _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _emulatorUrl } from '../../core/util/emulator';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as gapiLoader from './gapi';
 
@@ -39,11 +39,12 @@ const IFRAME_ATTRIBUTES = {
   }
 };
 
-function getIframeUrl(auth: AuthCore): string {
+function getIframeUrl(auth: Auth): string {
   const config = auth.config;
+  _assert(config.authDomain, auth, AuthErrorCode.MISSING_AUTH_DOMAIN);
   const url = config.emulator
     ? _emulatorUrl(config, EMULATED_IFRAME_PATH)
-    : `https://${auth.config.authDomain!}/${IFRAME_PATH}`;
+    : `https://${auth.config.authDomain}/${IFRAME_PATH}`;
 
   const params = {
     apiKey: config.apiKey,
@@ -56,12 +57,10 @@ function getIframeUrl(auth: AuthCore): string {
   return `${url}?${querystring(params).slice(1)}`;
 }
 
-export async function _openIframe(
-  auth: AuthCore
-): Promise<gapi.iframes.Iframe> {
+export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
   const context = await gapiLoader._loadGapi(auth);
   const gapi = _window().gapi;
-  assert(gapi, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+  _assert(gapi, auth, AuthErrorCode.INTERNAL_ERROR);
   return context.open(
     {
       where: document.body,
@@ -77,11 +76,9 @@ export async function _openIframe(
           setHideOnLeave: false
         });
 
-        const networkError = AUTH_ERROR_FACTORY.create(
-          AuthErrorCode.NETWORK_REQUEST_FAILED,
-          {
-            appName: auth.name
-          }
+        const networkError = _createError(
+          auth,
+          AuthErrorCode.NETWORK_REQUEST_FAILED
         );
         // Confirm iframe is correctly loaded.
         // To fallback on failure, set a timeout.

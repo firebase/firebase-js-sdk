@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '..';
+import { Endpoint, HttpMethod, _performSignInRequest } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface SignInWithCustomTokenRequest {
   token: string;
+  returnSecureToken: boolean;
 }
 
 export interface SignInWithCustomTokenResponse extends IdTokenResponse {}
 
 export async function signInWithCustomToken(
-  auth: AuthCore,
+  auth: Auth,
   request: SignInWithCustomTokenRequest
 ): Promise<SignInWithCustomTokenResponse> {
   return _performSignInRequest<

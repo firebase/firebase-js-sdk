@@ -30,6 +30,7 @@ import {
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
@@ -105,15 +106,13 @@ const MAX_PRIMARY_ELIGIBLE_AGE_MS = 5000;
 const CLIENT_METADATA_REFRESH_INTERVAL_MS = 4000;
 /** User-facing error when the primary lease is required but not available. */
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
-  'Failed to obtain exclusive access to the persistence layer. ' +
-  'To allow shared access, make sure to invoke ' +
-  '`enablePersistence()` with `synchronizeTabs:true` in all tabs. ' +
+  'Failed to obtain exclusive access to the persistence layer. To allow ' +
+  'shared access, multi-tab synchronization has to be enabled in all tabs. ' +
   'If you are using `experimentalForceOwningTab:true`, make sure that only ' +
   'one tab has persistence enabled at any given time.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
-  'This platform is either missing' +
-  ' IndexedDB or is known to have an incomplete implementation. Offline' +
-  ' persistence has been disabled.';
+  'This platform is either missing IndexedDB or is known to have ' +
+  'an incomplete implementation. Offline persistence has been disabled.';
 
 // The format of the LocalStorage key that stores zombied client is:
 //     firestore_zombie_<persistence_prefix>_<instance_key>
@@ -224,6 +223,7 @@ export class IndexedDbPersistence implements Persistence {
   private readonly targetCache: IndexedDbTargetCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
+  private readonly bundleCache: IndexedDbBundleCache;
   private readonly webStorage: Storage | null;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
@@ -273,6 +273,7 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer,
       this.indexManager
     );
+    this.bundleCache = new IndexedDbBundleCache(this.serializer);
     if (this.window && this.window.localStorage) {
       this.webStorage = this.window.localStorage;
     } else {
@@ -780,6 +781,14 @@ export class IndexedDbPersistence implements Persistence {
       'Cannot initialize IndexManager before persistence is started.'
     );
     return this.indexManager;
+  }
+
+  getBundleCache(): IndexedDbBundleCache {
+    debugAssert(
+      this.started,
+      'Cannot initialize BundleCache before persistence is started.'
+    );
+    return this.bundleCache;
   }
 
   runTransaction<T>(

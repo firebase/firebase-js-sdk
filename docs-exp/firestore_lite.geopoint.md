@@ -14,7 +14,7 @@ export class GeoPoint
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(latitude, longitude)](./firestore_lite.geopoint._constructor_.md) |  |  |
+|  [(constructor)(latitude, longitude)](./firestore_lite.geopoint._constructor_.md) |  | Constructs a new instance of the <code>GeoPoint</code> class |
 
 ## Properties
 

@@ -1,12 +1,16 @@
 {
   "name": "@firebase/auth-types-exp",
   "private": true,
-  "version": "0.0.800",
+  "version": "0.0.900",
   "description": "@firebase/auth-exp Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "tsc"
+    "test": "tsc",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn api-report && yarn doc"
   },
   "files": [
     "index.d.ts"
@@ -20,6 +24,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "4.0.2"
+    "typescript": "4.0.5"
   }
 }

@@ -18,9 +18,9 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { _castAuth } from '../../core/auth/auth_impl';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode } from '../../core/errors';
 import { OAuthProvider } from '../../core/providers/oauth';
-import { assert, debugAssert } from '../../core/util/assert';
+import { _assert, debugAssert, _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
@@ -30,72 +30,162 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User } from '../../model/user';
+import { _withDefaultResolver } from '../popup_redirect';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
-// The event timeout is the same on mobile and desktop, no need for Delay.
-export const _AUTH_EVENT_TIMEOUT = 2020;
+/*
+ * The event timeout is the same on mobile and desktop, no need for Delay.
+ * @internal
+ */
+export const enum _Timeout {
+  AUTH_EVENT = 2000
+}
 export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
 
+/**
+ * Authenticates a Firebase client using a popup-based OAuth authentication flow.
+ *
+ * @remarks
+ * If succeeds, returns the signed in user along with the provider's credential. If sign in was
+ * unsuccessful, returns an error object containing additional information about the error.
+ *
+ * @example
+ * ```javascript
+ * // Sign in using a popup.
+ * const provider = new FacebookAuthProvider();
+ * const result = await signInWithPopup(auth, provider);
+ *
+ * // The signed-in user info.
+ * const user = result.user;
+ * // This gives you a Facebook Access Token.
+ * const credential = provider.credentialFromResult(auth, result);
+ * const token = credential.accessToken;
+ * ```
+ *
+ * @param auth - The Auth instance.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
+ *
+ *
+ * @public
+ */
 export async function signInWithPopup(
   auth: externs.Auth,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: auth.name
-  });
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  const authInternal = _castAuth(auth);
+  _assert(
+    provider instanceof OAuthProvider,
+    auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
+  const resolverInternal = _withDefaultResolver(authInternal, resolver);
   const action = new PopupOperation(
-    _castAuth(auth),
+    authInternal,
     AuthEventType.SIGN_IN_VIA_POPUP,
     provider,
-    resolver
+    resolverInternal
   );
   return action.executeNotNull();
 }
 
+/**
+ * Reauthenticates the current user with the specified {@link OAuthProvider} using a pop-up based
+ * OAuth flow.
+ *
+ * @remarks
+ * If the reauthentication is successful, the returned result will contain the user and the
+ * provider's credential.
+ *
+ * @example
+ * ```javascript
+ * // Sign in using a popup.
+ * const provider = new FacebookAuthProvider();
+ * const result = await signInWithPopup(auth, provider);
+ * // Reauthenticate using a popup.
+ * await reauthenticateWithPopup(result.user, provider);
+ * ```
+ *
+ * @param user - The user.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
+ *
+ * @public
+ */
 export async function reauthenticateWithPopup(
-  userExtern: externs.User,
+  user: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
-  const user = userExtern as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: user.auth.name
-  });
+  const userInternal = user as User;
+  _assert(
+    provider instanceof OAuthProvider,
+    userInternal.auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
-
+  const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   const action = new PopupOperation(
-    user.auth,
+    userInternal.auth,
     AuthEventType.REAUTH_VIA_POPUP,
     provider,
-    resolver,
-    user
+    resolverInternal,
+    userInternal
   );
   return action.executeNotNull();
 }
 
+/**
+ * Links the authenticated provider to the user account using a pop-up based OAuth flow.
+ *
+ * @remarks
+ * If the linking is successful, the returned result will contain the user and the provider's credential.
+ *
+ *
+ * @example
+ * ```javascript
+ * // Sign in using some other provider.
+ * const result = await signInWithEmailAndPassword(auth, email, password);
+ * // Link using a popup.
+ * const provider = new FacebookAuthProvider();
+ * await linkWithPopup(result.user, provider);
+ * ```
+ *
+ * @param user - The user.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
+ *
+ * @public
+ */
 export async function linkWithPopup(
-  userExtern: externs.User,
+  user: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
-  const user = userExtern as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: user.auth.name
-  });
+  const userInternal = user as User;
+  _assert(
+    provider instanceof OAuthProvider,
+    userInternal.auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
 
   const action = new PopupOperation(
-    user.auth,
+    userInternal.auth,
     AuthEventType.LINK_VIA_POPUP,
     provider,
-    resolver,
-    user
+    resolverInternal,
+    userInternal
   );
   return action.executeNotNull();
 }
@@ -103,6 +193,8 @@ export async function linkWithPopup(
 /**
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
+ *
+ * @internal
  */
 class PopupOperation extends AbstractPopupRedirectOperation {
   // Only one popup is ever shown at once. The lifecycle of the current popup
@@ -128,7 +220,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
 
   async executeNotNull(): Promise<externs.UserCredential> {
     const result = await this.execute();
-    assert(result, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
+    _assert(result, this.auth, AuthErrorCode.INTERNAL_ERROR);
     return result;
   }
 
@@ -156,15 +248,13 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     this.resolver._isIframeWebStorageSupported(this.auth, isSupported => {
       if (!isSupported) {
         this.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.WEB_STORAGE_UNSUPPORTED, {
-            appName: this.auth.name
-          })
+          _createError(this.auth, AuthErrorCode.WEB_STORAGE_UNSUPPORTED)
         );
       }
     });
 
     // Handle user closure. Notice this does *not* use await
-    this.pollUserCancellation(this.auth.name);
+    this.pollUserCancellation();
   }
 
   get eventId(): string | null {
@@ -172,11 +262,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
   }
 
   cancel(): void {
-    this.reject(
-      AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
-        appName: this.auth.name
-      })
-    );
+    this.reject(_createError(this.auth, AuthErrorCode.EXPIRED_POPUP_REQUEST));
   }
 
   cleanUp(): void {
@@ -193,7 +279,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     PopupOperation.currentPopupAction = null;
   }
 
-  private pollUserCancellation(appName: string): void {
+  private pollUserCancellation(): void {
     const poll = (): void => {
       if (this.authWindow?.window?.closed) {
         // Make sure that there is sufficient time for whatever action to
@@ -202,11 +288,9 @@ class PopupOperation extends AbstractPopupRedirectOperation {
         this.pollId = window.setTimeout(() => {
           this.pollId = null;
           this.reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.POPUP_CLOSED_BY_USER, {
-              appName
-            })
+            _createError(this.auth, AuthErrorCode.POPUP_CLOSED_BY_USER)
           );
-        }, _AUTH_EVENT_TIMEOUT);
+        }, _Timeout.AUTH_EVENT);
         return;
       }
 

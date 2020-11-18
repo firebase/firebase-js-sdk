@@ -19,21 +19,33 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
-import { assert, fail } from '../../core/util/assert';
+import { _assert, _fail } from '../../core/util/assert';
+import { _castAuth } from '../../core/auth/auth_impl';
 
+/**
+ * {@inheritdoc @firebase/auth-types#PhoneAuthProvider}
+ * @public
+ */
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.PROVIDER_ID} */
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.PHONE_SIGN_IN_METHOD} */
   static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
 
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.providerId} */
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
+  private readonly auth: Auth;
 
-  constructor(private readonly auth: AuthCore) {}
+  constructor(auth: externs.Auth) {
+    this.auth = _castAuth(auth);
+  }
 
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.verifyPhoneNumber} */
   verifyPhoneNumber(
     phoneOptions: externs.PhoneInfoOptions | string,
     applicationVerifier: externs.ApplicationVerifier
@@ -45,6 +57,7 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     );
   }
 
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.credential} */
   static credential(
     verificationId: string,
     verificationCode: string
@@ -59,9 +72,11 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     userCredential: externs.UserCredential
   ): externs.AuthCredential | null {
     const credential = userCredential as UserCredential;
-    assert(credential._tokenResponse, AuthErrorCode.ARGUMENT_ERROR, {
-      appName: credential.user.auth.name
-    });
+    _assert(
+      credential._tokenResponse,
+      credential.user.auth,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
     const {
       phoneNumber,
       temporaryProof
@@ -73,6 +88,6 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
       );
     }
 
-    fail(AuthErrorCode.ARGUMENT_ERROR, { appName: credential.user.auth.name });
+    _fail(credential.user.auth, AuthErrorCode.ARGUMENT_ERROR);
   }
 }

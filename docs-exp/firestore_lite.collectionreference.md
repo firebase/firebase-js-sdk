@@ -24,6 +24,5 @@ export class CollectionReference<T = DocumentData> extends Query<T>
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [doc(documentPath)](./firestore_lite.collectionreference.doc.md) |  |  |
 |  [withConverter(converter)](./firestore_lite.collectionreference.withconverter.md) |  |  |
 

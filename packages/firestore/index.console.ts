@@ -15,7 +15,15 @@
  * limitations under the License.
  */
 
-export { Firestore } from './src/api/database';
+import { FirebaseFirestore as FirestoreExp } from './exp/src/api/database';
+import {
+  Firestore as FirestoreCompat,
+  MemoryPersistenceProvider
+} from './src/api/database';
+import { Provider } from '@firebase/component';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { DatabaseId } from './src/core/database_info';
+import { Code, FirestoreError } from './src/util/error';
 export {
   CollectionReference,
   DocumentReference,
@@ -27,3 +35,37 @@ export { GeoPoint } from './src/api/geo_point';
 export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/compat/field_value';
 export { Timestamp } from './src/api/timestamp';
+
+export interface FirestoreDatabase {
+  projectId: string;
+  database?: string;
+}
+
+/** Firestore class that exposes the constructor expected by the Console. */
+export class Firestore extends FirestoreCompat {
+  constructor(
+    firestoreDatabase: FirestoreDatabase,
+    authProvider: Provider<FirebaseAuthInternalName>
+  ) {
+    super(
+      databaseIdFromFirestoreDatabase(firestoreDatabase),
+      new FirestoreExp(
+        databaseIdFromFirestoreDatabase(firestoreDatabase),
+        authProvider
+      ),
+      new MemoryPersistenceProvider()
+    );
+  }
+}
+
+function databaseIdFromFirestoreDatabase(
+  firestoreDatabase: FirestoreDatabase
+): DatabaseId {
+  if (!firestoreDatabase.projectId) {
+    throw new FirestoreError(Code.INVALID_ARGUMENT, 'Must provide projectId');
+  }
+  return new DatabaseId(
+    firestoreDatabase.projectId,
+    firestoreDatabase.database
+  );
+}

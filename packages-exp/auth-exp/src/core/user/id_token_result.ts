@@ -19,11 +19,23 @@ import * as externs from '@firebase/auth-types-exp';
 import { base64Decode } from '@firebase/util';
 
 import { User } from '../../model/user';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { _logError } from '../util/log';
 import { utcTimestampToDateString } from '../util/time';
 import { AuthErrorCode } from '../errors';
 
+/**
+ * Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
+ *
+ * @remarks
+ * Returns the current token if it has not expired or if it will not expire in the next five
+ * minutes. Otherwise, this will refresh the token and return a new one.
+ *
+ * @param user - The user.
+ * @param forceRefresh - Force refresh regardless of token expiration.
+ *
+ * @public
+ */
 export function getIdToken(
   user: externs.User,
   forceRefresh = false
@@ -31,18 +43,30 @@ export function getIdToken(
   return user.getIdToken(forceRefresh);
 }
 
+/**
+ * Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+ *
+ * @remarks
+ * Returns the current token if it has not expired or if it will not expire in the next five
+ * minutes. Otherwise, this will refresh the token and return a new one.
+ *
+ * @param user - The user.
+ * @param forceRefresh - Force refresh regardless of token expiration.
+ *
+ * @public
+ */
 export async function getIdTokenResult(
-  externUser: externs.User,
+  user: externs.User,
   forceRefresh = false
 ): Promise<externs.IdTokenResult> {
-  const user = externUser as User;
+  const userInternal = user as User;
   const token = await user.getIdToken(forceRefresh);
   const claims = _parseToken(token);
 
-  assert(
+  _assert(
     claims && claims.exp && claims.auth_time && claims.iat,
-    AuthErrorCode.INTERNAL_ERROR,
-    { appName: user.auth.name }
+    userInternal.auth,
+    AuthErrorCode.INTERNAL_ERROR
   );
   const firebase =
     typeof claims.firebase === 'object' ? claims.firebase : undefined;
@@ -70,6 +94,7 @@ function secondsStringToMilliseconds(seconds: string): number {
   return Number(seconds) * 1000;
 }
 
+/** @internal */
 export function _parseToken(token: string): externs.ParsedToken | null {
   const [algorithm, payload, signature] = token.split('.');
   if (
@@ -92,4 +117,17 @@ export function _parseToken(token: string): externs.ParsedToken | null {
     _logError('Caught error parsing JWT payload as JSON', e);
     return null;
   }
+}
+
+/**
+ * Extract expiresIn TTL from a token by subtracting the expiration from the issuance.
+ *
+ * @internal
+ */
+export function _tokenExpiresIn(token: string): number {
+  const parsedToken = _parseToken(token);
+  _assert(parsedToken, AuthErrorCode.INTERNAL_ERROR);
+  _assert(typeof parsedToken.exp !== 'undefined', AuthErrorCode.INTERNAL_ERROR);
+  _assert(typeof parsedToken.iat !== 'undefined', AuthErrorCode.INTERNAL_ERROR);
+  return Number(parsedToken.exp) - Number(parsedToken.iat);
 }

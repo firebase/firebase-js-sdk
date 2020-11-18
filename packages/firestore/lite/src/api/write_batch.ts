@@ -38,6 +38,7 @@ import { FirebaseFirestore } from './database';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
+import { Compat } from '../../../src/compat/compat';
 
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.
@@ -156,8 +157,13 @@ export class WriteBatch {
     this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
 
-    let parsed;
+    // For Compat types, we have to "extract" the underlying types before
+    // performing validation.
+    if (fieldOrUpdateData instanceof Compat) {
+      fieldOrUpdateData = fieldOrUpdateData._delegate;
+    }
 
+    let parsed;
     if (
       typeof fieldOrUpdateData === 'string' ||
       fieldOrUpdateData instanceof FieldPath
@@ -234,9 +240,12 @@ export class WriteBatch {
 }
 
 export function validateReference<T>(
-  documentRef: DocumentReference<T>,
+  documentRef: DocumentReference<T> | Compat<DocumentReference<T>>,
   firestore: FirebaseFirestore
 ): DocumentReference<T> {
+  if (documentRef instanceof Compat) {
+    documentRef = documentRef._delegate;
+  }
   if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,

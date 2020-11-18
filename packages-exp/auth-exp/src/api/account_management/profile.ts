@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface UpdateProfileRequest {
   idToken: string;
   displayName?: string | null;
   photoUrl?: string | null;
+  returnSecureToken: boolean;
 }
 
 export interface UpdateProfileResponse extends IdTokenResponse {
@@ -31,7 +32,7 @@ export interface UpdateProfileResponse extends IdTokenResponse {
 }
 
 export async function updateProfile(
-  auth: AuthCore,
+  auth: Auth,
   request: UpdateProfileRequest
 ): Promise<UpdateProfileResponse> {
   return _performApiRequest<UpdateProfileRequest, UpdateProfileResponse>(

@@ -335,6 +335,43 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  it('maintains correct DocumentChange indices', async () => {
+    const testDocs = {
+      'a': { order: 1 },
+      'b': { order: 2 },
+      'c': { 'order': 3 }
+    };
+    await withTestCollection(persistence, testDocs, async coll => {
+      const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
+      const unlisten = coll.orderBy('order').onSnapshot(accumulator.storeEvent);
+      await accumulator
+        .awaitEvent()
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(3);
+          verifyDocumentChange(changes[0], 'a', -1, 0, 'added');
+          verifyDocumentChange(changes[1], 'b', -1, 1, 'added');
+          verifyDocumentChange(changes[2], 'c', -1, 2, 'added');
+        })
+        .then(() => coll.doc('b').set({ order: 4 }))
+        .then(() => accumulator.awaitEvent())
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(1);
+          verifyDocumentChange(changes[0], 'b', 1, 2, 'modified');
+        })
+        .then(() => coll.doc('c').delete())
+        .then(() => accumulator.awaitEvent())
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(1);
+          verifyDocumentChange(changes[0], 'c', 1, -1, 'removed');
+        });
+
+      unlisten();
+    });
+  });
+
   it('can listen for the same query with different options', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
     return withTestCollection(persistence, testDocs, coll => {
@@ -759,7 +796,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       a: { array: [42] },
       b: { array: ['a', 42, 'c'] },
       c: { array: [41.999, '42', { a: [42] }] },
-      d: { array: [42], array2: ['bingo'] }
+      d: { array: [42], array2: ['bingo'] },
+      e: { array: [null] },
+      f: { array: [Number.NaN] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -773,6 +812,15 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // NOTE: The backend doesn't currently support null, NaN, objects, or
       // arrays, so there isn't much of anything else interesting to test.
+      // With null.
+      const snapshot3 = await coll.where('zip', 'array-contains', null).get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With NaN.
+      const snapshot4 = await coll
+        .where('zip', 'array-contains', Number.NaN)
+        .get();
+      expect(toDataArray(snapshot4)).to.deep.equal([]);
     });
   });
 
@@ -784,7 +832,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       d: { zip: [98101] },
       e: { zip: ['98101', { zip: 98101 }] },
       f: { zip: { code: 500 } },
-      g: { zip: [98101, 98102] }
+      g: { zip: [98101, 98102] },
+      h: { zip: null },
+      i: { zip: Number.NaN }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -800,6 +850,24 @@ apiDescribe('Queries', (persistence: boolean) => {
       // With objects.
       const snapshot2 = await coll.where('zip', 'in', [{ code: 500 }]).get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
+
+      // With null.
+      const snapshot3 = await coll.where('zip', 'in', [null]).get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With null and a value.
+      const snapshot4 = await coll.where('zip', 'in', [98101, null]).get();
+      expect(toDataArray(snapshot4)).to.deep.equal([{ zip: 98101 }]);
+
+      // With NaN.
+      const snapshot5 = await coll.where('zip', 'in', [Number.NaN]).get();
+      expect(toDataArray(snapshot5)).to.deep.equal([]);
+
+      // With NaN and a value.
+      const snapshot6 = await coll
+        .where('zip', 'in', [98101, Number.NaN])
+        .get();
+      expect(toDataArray(snapshot6)).to.deep.equal([{ zip: 98101 }]);
     });
   });
 
@@ -913,7 +981,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       d: { array: [42], array2: ['bingo'] },
       e: { array: [43] },
       f: { array: [{ a: 42 }] },
-      g: { array: 42 }
+      g: { array: 42 },
+      h: { array: [null] },
+      i: { array: [Number.NaN] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -932,6 +1002,30 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where('array', 'array-contains-any', [{ a: 42 }])
         .get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
+
+      // With null.
+      const snapshot3 = await coll
+        .where('array', 'array-contains-any', [null])
+        .get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With null and a value.
+      const snapshot4 = await coll
+        .where('array', 'array-contains-any', [43, null])
+        .get();
+      expect(toDataArray(snapshot4)).to.deep.equal([{ array: [43] }]);
+
+      // With NaN.
+      const snapshot5 = await coll
+        .where('array', 'array-contains-any', [Number.NaN])
+        .get();
+      expect(toDataArray(snapshot5)).to.deep.equal([]);
+
+      // With NaN and a value.
+      const snapshot6 = await coll
+        .where('array', 'array-contains-any', [43, Number.NaN])
+        .get();
+      expect(toDataArray(snapshot6)).to.deep.equal([{ array: [43] }]);
     });
   });
 
@@ -1108,3 +1202,16 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 });
+
+function verifyDocumentChange<T>(
+  change: firestore.DocumentChange<T>,
+  id: string,
+  oldIndex: number,
+  newIndex: number,
+  type: firestore.DocumentChangeType
+): void {
+  expect(change.doc.id).to.equal(id);
+  expect(change.type).to.equal(type);
+  expect(change.oldIndex).to.equal(oldIndex);
+  expect(change.newIndex).to.equal(newIndex);
+}

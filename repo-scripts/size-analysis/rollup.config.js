@@ -18,7 +18,7 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)

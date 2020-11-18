@@ -17,6 +17,7 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
 
 import { ProviderId } from '@firebase/auth-types-exp';
 
@@ -31,8 +32,9 @@ import { User } from '../model/user';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
 import { multiFactor, MultiFactorUser } from './mfa_user';
-import { MultiFactorAssertion } from './assertions';
-import { AuthCore } from '../model/auth';
+import { MultiFactorAssertion } from './mfa_assertion';
+import { Auth } from '../model/auth';
+import { makeJWT } from '../../test/helpers/jwt';
 
 use(chaiAsPromised);
 
@@ -42,14 +44,14 @@ class MockMultiFactorAssertion extends MultiFactorAssertion {
   }
 
   async _finalizeEnroll(
-    _auth: AuthCore,
+    _auth: Auth,
     _idToken: string,
     _displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
     return this.response;
   }
   async _finalizeSignIn(
-    _auth: AuthCore,
+    _auth: Auth,
     _mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
     return this.response;
@@ -57,16 +59,22 @@ class MockMultiFactorAssertion extends MultiFactorAssertion {
 }
 
 describe('core/mfa/mfa_user/MultiFactorUser', () => {
+  const idToken = makeJWT({ 'exp': '3600', 'iat': '1200' });
   let auth: TestAuth;
   let mfaUser: MultiFactorUser;
+  let clock: sinon.SinonFakeTimers;
 
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
+    clock = sinon.useFakeTimers();
     mfaUser = MultiFactorUser._fromUser(testUser(auth, 'uid', undefined, true));
   });
 
-  afterEach(mockFetch.tearDown);
+  afterEach(() => {
+    mockFetch.tearDown();
+    sinon.restore();
+  });
 
   describe('getSession', () => {
     it('should return the id token', async () => {
@@ -99,7 +107,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     };
 
     const serverResponse: FinalizeMfaResponse = {
-      idToken: 'final-id-token',
+      idToken,
       refreshToken: 'refresh-token'
     };
 
@@ -114,7 +122,10 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     it('should update the tokens', async () => {
       await mfaUser.enroll(assertion);
 
-      expect(await mfaUser.user.getIdToken()).to.eq('final-id-token');
+      expect(await mfaUser.user.getIdToken()).to.eq(idToken);
+      expect(mfaUser.user.stsTokenManager.expirationTime).to.eq(
+        clock.now + 2400 * 1000
+      );
     });
 
     it('should update the enrolled Factors', async () => {
@@ -131,7 +142,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     let withdrawMfaEnrollmentMock: mockFetch.Route;
 
     const serverResponse: FinalizeMfaResponse = {
-      idToken: 'final-id-token',
+      idToken,
       refreshToken: 'refresh-token'
     };
 
@@ -199,7 +210,10 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     it('should update the tokens', async () => {
       await mfaUser.unenroll(mfaInfo);
 
-      expect(await mfaUser.user.getIdToken()).to.eq('final-id-token');
+      expect(await mfaUser.user.getIdToken()).to.eq(idToken);
+      expect(mfaUser.user.stsTokenManager.expirationTime).to.eq(
+        clock.now + 2400 * 1000
+      );
     });
 
     context('token revoked by backend', () => {

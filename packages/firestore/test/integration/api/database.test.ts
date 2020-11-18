@@ -26,17 +26,17 @@ import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
   withTestCollection,
+  withTestDbsSettings,
   withTestDb,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
-import { DEFAULT_SETTINGS } from '../util/settings';
+import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
 use(chaiAsPromised);
 
 const newTestFirestore = firebaseExport.newTestFirestore;
-const usesFunctionalApi = firebaseExport.usesFunctionalApi;
 const Timestamp = firebaseExport.Timestamp;
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
@@ -1197,15 +1197,7 @@ apiDescribe('Database', (persistence: boolean) => {
         const expectedError =
           'Persistence can only be cleared before a Firestore instance is ' +
           'initialized or after it is terminated.';
-        if (usesFunctionalApi()) {
-          // The modular API throws an exception rather than rejecting the
-          // Promise, which matches our overall handling of API call violations.
-          expect(() => firestore.clearPersistence()).to.throw(expectedError);
-        } else {
-          await expect(
-            firestore.clearPersistence()
-          ).to.eventually.be.rejectedWith(expectedError);
-        }
+        expect(() => firestore.clearPersistence()).to.throw(expectedError);
       });
     }
   );
@@ -1599,5 +1591,31 @@ apiDescribe('Database', (persistence: boolean) => {
         expect(docRef.isEqual(docRef2)).to.be.false;
       });
     });
+  });
+
+  it('can set and get data with auto detect long polling enabled', () => {
+    const settings = {
+      ...DEFAULT_SETTINGS,
+      experimentalAutoDetectLongPolling: true
+    };
+
+    return withTestDbsSettings(
+      persistence,
+      DEFAULT_PROJECT_ID,
+      settings,
+      1,
+      async ([db]) => {
+        const data = { name: 'Rafi', email: 'abc@xyz.com' };
+        const doc = await db.collection('users').doc();
+
+        return doc
+          .set(data)
+          .then(() => doc.get())
+          .then(snapshot => {
+            expect(snapshot.exists).to.be.ok;
+            expect(snapshot.data()).to.deep.equal(data);
+          });
+      }
+    );
   });
 });

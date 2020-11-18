@@ -26,9 +26,9 @@ export const CACHE_SIZE_UNLIMITED: number;
 export interface Settings {
   host?: string;
   ssl?: boolean;
-  timestampsInSnapshots?: boolean;
   cacheSizeBytes?: number;
   experimentalForceLongPolling?: boolean;
+  experimentalAutoDetectLongPolling?: boolean;
   ignoreUndefinedProperties?: boolean;
   merge?: boolean;
 }
@@ -60,6 +60,8 @@ export class FirebaseFirestore {
   private constructor();
 
   settings(settings: Settings): void;
+
+  useEmulator(host: string, port: number): void;
 
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
 

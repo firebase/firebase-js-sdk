@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode } from '../../core/errors';
+import { _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as js from '../load_js';
 
 const NETWORK_TIMEOUT = new Delay(30000, 60000);
-const LOADJS_CALLBACK_PREFIX = 'iframefcb';
 
 /**
  * Reset unlaoded GApi modules. If gapi.load fails due to a network error,
@@ -54,7 +54,7 @@ function resetUnloadedGapiModules(): void {
   }
 }
 
-function loadGapi(auth: AuthCore): Promise<gapi.iframes.Context> {
+function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
   return new Promise<gapi.iframes.Context>((resolve, reject) => {
     // Function to run when gapi.load is ready.
     function loadGapiIframe(): void {
@@ -73,11 +73,7 @@ function loadGapi(auth: AuthCore): Promise<gapi.iframes.Context> {
           // failed attempt.
           // Timeout when gapi.iframes.Iframe not loaded.
           resetUnloadedGapiModules();
-          reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-              appName: auth.name
-            })
-          );
+          reject(_createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
         },
         timeout: NETWORK_TIMEOUT.get()
       });
@@ -95,7 +91,7 @@ function loadGapi(auth: AuthCore): Promise<gapi.iframes.Context> {
       // multiple times in parallel and could result in the later callback
       // overwriting the previous one. This would end up with a iframe
       // timeout.
-      const cbName = js._generateCallbackName(LOADJS_CALLBACK_PREFIX);
+      const cbName = js._generateCallbackName('iframefcb');
       // GApi loader not available, dynamically load platform.js.
       _window()[cbName] = () => {
         // GApi loader should be ready.
@@ -103,11 +99,7 @@ function loadGapi(auth: AuthCore): Promise<gapi.iframes.Context> {
           loadGapiIframe();
         } else {
           // Gapi loader failed, throw error.
-          reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-              appName: auth.name
-            })
-          );
+          reject(_createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
         }
       };
       // Load GApi loader.
@@ -121,7 +113,7 @@ function loadGapi(auth: AuthCore): Promise<gapi.iframes.Context> {
 }
 
 let cachedGApiLoader: Promise<gapi.iframes.Context> | null = null;
-export function _loadGapi(auth: AuthCore): Promise<gapi.iframes.Context> {
+export function _loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
   cachedGApiLoader = cachedGApiLoader || loadGapi(auth);
   return cachedGApiLoader;
 }

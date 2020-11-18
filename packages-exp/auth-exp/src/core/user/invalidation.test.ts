@@ -23,23 +23,24 @@ import { FirebaseError } from '@firebase/util';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { _logoutIfInvalidated } from './invalidation';
+import { _createError } from '../util/assert';
 
 use(chaiAsPromised);
 
-describe('src/core/user/invalidation', () => {
+describe('core/user/invalidation', () => {
   let user: User;
   let auth: Auth;
 
   beforeEach(async () => {
     auth = await testAuth();
     user = testUser(auth, 'uid');
-    await auth.updateCurrentUser(user);
+    await auth._updateCurrentUser(user);
   });
 
   function makeError(code: AuthErrorCode): FirebaseError {
-    return AUTH_ERROR_FACTORY.create(code, { appName: auth.name });
+    return _createError(auth, code);
   }
 
   it('leaves non-invalidation errors alone', async () => {
@@ -63,6 +64,14 @@ describe('src/core/user/invalidation', () => {
     expect(auth.currentUser).to.be.null;
   });
 
+  it('does not log out if bypass auth state is true', async () => {
+    const error = makeError(AuthErrorCode.USER_DISABLED);
+    try {
+      await _logoutIfInvalidated(user, Promise.reject(error), true);
+    } catch {}
+    expect(auth.currentUser).to.eq(user);
+  });
+
   it('logs out the user if the error is token_expired', async () => {
     const error = makeError(AuthErrorCode.TOKEN_EXPIRED);
     await expect(
@@ -76,7 +85,7 @@ describe('src/core/user/invalidation', () => {
 
     beforeEach(async () => {
       user2 = testUser(auth, 'uid2');
-      await auth.updateCurrentUser(user2);
+      await auth._updateCurrentUser(user2);
     });
 
     it('does not log out user2 if the error is user_disabled', async () => {

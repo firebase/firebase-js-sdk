@@ -20,7 +20,7 @@ import { withdrawMfa } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
 import { _logoutIfInvalidated } from '../core/user/invalidation';
 import { User } from '../model/user';
-import { MultiFactorAssertion } from './assertions';
+import { MultiFactorAssertion } from './mfa_assertion';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession } from './mfa_session';
 
@@ -99,6 +99,16 @@ const multiFactorUserCache = new WeakMap<
   externs.MultiFactorUser
 >();
 
+/**
+ * The {@link @firebase/auth-types#MultiFactorUser} corresponding to the user.
+ *
+ * @remarks
+ * This is used to access all multi-factor properties and operations related to the user.
+ *
+ * @param user - The user.
+ *
+ * @public
+ */
 export function multiFactor(user: externs.User): externs.MultiFactorUser {
   if (!multiFactorUserCache.has(user)) {
     multiFactorUserCache.set(user, MultiFactorUser._fromUser(user as User));

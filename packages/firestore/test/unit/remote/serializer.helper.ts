@@ -106,17 +106,17 @@ import {
   ref,
   setMutation,
   testUserDataReader,
-  testUserDataWriter,
   transformMutation,
   version,
   wrap,
   wrapObject
 } from '../../util/helpers';
-
 import { ByteString } from '../../../src/util/byte_string';
 import { parseQueryValue } from '../../../src/api/user_data_reader';
+import { UserDataWriter } from '../../../src/api/user_data_writer';
+import { firestore } from '../../util/api_helpers';
 
-const userDataWriter = testUserDataWriter();
+const userDataWriter = new UserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 
@@ -310,8 +310,8 @@ export function serializerTest(
 
       it('converts TimestampValue from proto', () => {
         const examples = [
-          new Date(Date.UTC(2016, 0, 2, 10, 20, 50, 850)),
-          new Date(Date.UTC(2016, 5, 17, 10, 50, 15, 0))
+          new Timestamp(1451730050, 850000000),
+          new Timestamp(1466160615, 0)
         ];
 
         const expectedJson = [
@@ -339,25 +339,25 @@ export function serializerTest(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916123456Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916123456).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916123456));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916123Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916123000).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916123000));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916000000).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916000000));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 0).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 0));
       });
 
       it('converts TimestampValue to string (useProto3Json=true)', () => {

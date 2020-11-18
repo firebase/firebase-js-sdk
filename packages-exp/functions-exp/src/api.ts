@@ -56,18 +56,20 @@ export function getFunctions(
 }
 
 /**
- * Changes this instance to point to a Cloud Functions emulator running
- * locally. See https://firebase.google.com/docs/functions/local-emulator
+ * Modify this instance to communicate with the Cloud Functions emulator.
  *
- * @param origin - The origin of the local emulator, such as
- * "http://localhost:5005".
+ * Note: this must be called before this instance has been used to do any operations.
+ *
+ * @param host The emulator host (ex: localhost)
+ * @param port The emulator port (ex: 5001)
  * @public
  */
 export function useFunctionsEmulator(
   functionsInstance: Functions,
-  origin: string
+  host: string,
+  port: number
 ): void {
-  _useFunctionsEmulator(functionsInstance as FunctionsService, origin);
+  _useFunctionsEmulator(functionsInstance as FunctionsService, host, port);
 }
 
 /**

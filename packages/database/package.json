@@ -1,10 +1,10 @@
 {
   "name": "@firebase/database",
-  "version": "0.6.13",
+  "version": "0.7.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
   "files": ["dist"],
@@ -25,20 +25,20 @@
   "license": "Apache-2.0",
   "peerDependencies": {},
   "dependencies": {
-    "@firebase/database-types": "0.5.2",
+    "@firebase/database-types": "0.6.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.2",
-    "@firebase/component": "0.1.19",
+    "@firebase/util": "0.3.4",
+    "@firebase/component": "0.1.21",
     "@firebase/auth-interop-types": "0.1.5",
     "faye-websocket": "0.11.3",
     "tslib": "^1.11.1"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.11",
+    "@firebase/app": "0.6.13",
     "@firebase/app-types": "0.6.1",
-    "rollup": "2.28.1",
-    "rollup-plugin-typescript2": "0.27.2",
-    "typescript": "4.0.2"
+    "rollup": "2.33.2",
+    "rollup-plugin-typescript2": "0.29.0",
+    "typescript": "4.0.5"
   },
   "repository": {
     "directory": "packages/database",

@@ -31,27 +31,40 @@ interface Profile {
   photoURL?: string | null;
 }
 
+/**
+ * Updates a user's profile data.
+ *
+ * @param user - The user.
+ * @param profile - The profile's `displayName` and `photoURL` to update.
+ *
+ * @public
+ */
 export async function updateProfile(
-  externUser: externs.User,
+  user: externs.User,
   { displayName, photoURL: photoUrl }: Profile
 ): Promise<void> {
   if (displayName === undefined && photoUrl === undefined) {
     return;
   }
 
-  const user = externUser as User;
+  const userInternal = user as User;
   const idToken = await user.getIdToken();
-  const profileRequest = { idToken, displayName, photoUrl };
+  const profileRequest = {
+    idToken,
+    displayName,
+    photoUrl,
+    returnSecureToken: true
+  };
   const response = await _logoutIfInvalidated(
-    user,
-    apiUpdateProfile(user.auth, profileRequest)
+    userInternal,
+    apiUpdateProfile(userInternal.auth, profileRequest)
   );
 
-  user.displayName = response.displayName || null;
-  user.photoURL = response.photoUrl || null;
+  userInternal.displayName = response.displayName || null;
+  userInternal.photoURL = response.photoUrl || null;
 
   // Update the password provider as well
-  const passwordProvider = user.providerData.find(
+  const passwordProvider = userInternal.providerData.find(
     ({ providerId }) => providerId === externs.ProviderId.PASSWORD
   );
   if (passwordProvider) {
@@ -59,25 +72,53 @@ export async function updateProfile(
     passwordProvider.photoURL = user.photoURL;
   }
 
-  await user._updateTokensIfNecessary(response);
+  await userInternal._updateTokensIfNecessary(response);
 }
 
+/**
+ * Updates the user's email address.
+ *
+ * @remarks
+ * An email will be sent to the original email address (if it was set) that allows to revoke the
+ * email address change, in order to protect them from account hijacking.
+ *
+ * Important: this is a security sensitive operation that requires the user to have recently signed
+ * in. If this requirement isn't met, ask the user to authenticate again and then call
+ * {@link reauthenticateWithCredential}.
+ *
+ * @param user - The user.
+ * @param newEmail - The new email address.
+ *
+ * @public
+ */
 export function updateEmail(
-  externUser: externs.User,
+  user: externs.User,
   newEmail: string
 ): Promise<void> {
-  const user = externUser as User;
-  return updateEmailOrPassword(user, newEmail, null);
+  return updateEmailOrPassword(user as User, newEmail, null);
 }
 
+/**
+ * Updates the user's password.
+ *
+ * @remarks
+ * Important: this is a security sensitive operation that requires the user to have recently signed
+ * in. If this requirement isn't met, ask the user to authenticate again and then call
+ * {@link reauthenticateWithCredential}.
+ *
+ * @param user - The user.
+ * @param newPassword - The new password.
+ *
+ * @public
+ */
 export function updatePassword(
-  externUser: externs.User,
+  user: externs.User,
   newPassword: string
 ): Promise<void> {
-  const user = externUser as User;
-  return updateEmailOrPassword(user, null, newPassword);
+  return updateEmailOrPassword(user as User, null, newPassword);
 }
 
+/** @internal */
 async function updateEmailOrPassword(
   user: User,
   email: string | null,
@@ -85,7 +126,10 @@ async function updateEmailOrPassword(
 ): Promise<void> {
   const { auth } = user;
   const idToken = await user.getIdToken();
-  const request: UpdateEmailPasswordRequest = { idToken };
+  const request: UpdateEmailPasswordRequest = {
+    idToken,
+    returnSecureToken: true
+  };
 
   if (email) {
     request.email = email;

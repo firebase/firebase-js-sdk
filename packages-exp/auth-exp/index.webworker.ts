@@ -20,7 +20,7 @@ import { Auth } from '@firebase/auth-types-exp';
 
 import { AuthImpl } from './src/core/auth/auth_impl';
 import { _initializeAuthInstance } from './src/core/auth/initialize';
-import { _AUTH_COMPONENT_NAME, registerAuth } from './src/core/auth/register';
+import { _ComponentName, registerAuth } from './src/core/auth/register';
 import { Persistence } from './src/core/persistence';
 import { _getInstance } from './src/core/util/instantiator';
 import { ClientPlatform } from './src/core/util/version';
@@ -39,7 +39,7 @@ export function getAuth(app = getApp()): Auth {
   // available. That means doing the whole rigamarole
   const auth = _getProvider(
     app,
-    _AUTH_COMPONENT_NAME
+    _ComponentName.AUTH
   ).getImmediate() as AuthImpl;
 
   // This promise is intended to float; auth initialization happens in the

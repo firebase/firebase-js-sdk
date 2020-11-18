@@ -16,71 +16,87 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
+import { ErrorFactory } from '@firebase/util';
+import { AuthErrorCode, AuthErrorParams } from '../core/errors';
 
 import { PopupRedirectResolver } from './popup_redirect';
-import { User, UserParameters } from './user';
+import { User } from './user';
 
+/** @internal */
 export type AppName = string;
+/** @internal */
 export type ApiKey = string;
+/** @internal */
 export type AuthDomain = string;
 
+/** @internal */
 export interface ConfigInternal extends externs.Config {
+  /**
+   * @internal
+   * @readonly
+   */
   emulator?: {
-    hostname: string;
-    port: number;
+    url: string;
   };
 }
 
-/**
- * Core implementation of the Auth object, the signatures here should match across both legacy
- * and modern implementations
- */
-export interface AuthCore {
-  readonly name: AppName;
-  readonly config: ConfigInternal;
-  languageCode: string | null;
-  tenantId: string | null;
-  readonly settings: externs.AuthSettings;
-
-  useDeviceLanguage(): void;
-  signOut(): Promise<void>;
-}
-
-export interface Auth extends AuthCore {
-  currentUser: User | null;
+/** @internal */
+export interface Auth extends externs.Auth {
+  /** @internal */
+  currentUser: externs.User | null;
+  /** @internal */
   _canInitEmulator: boolean;
+  /** @internal */
   _isInitialized: boolean;
+  /** @internal */
   _initializationPromise: Promise<void> | null;
-  updateCurrentUser(user: User | null): Promise<void>;
+  /** @internal */
+  _updateCurrentUser(user: User | null): Promise<void>;
 
+  /** @internal */
   _onStorageEvent(): void;
-  _createUser(params: UserParameters): User;
-  _setPersistence(persistence: externs.Persistence): void;
-  _onAuthStateChanged(
-    nextOrObserver: externs.NextOrObserver<User>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe;
-  _onIdTokenChanged(
-    nextOrObserver: externs.NextOrObserver<User>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe;
+
+  /** @internal */
   _notifyListenersIfCurrent(user: User): void;
+  /** @internal */
   _persistUserIfCurrent(user: User): Promise<void>;
+  /** @internal */
   _setRedirectUser(
     user: User | null,
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void>;
+  /** @internal */
   _redirectUserForId(id: string): Promise<User | null>;
+  /** @internal */
   _popupRedirectResolver: PopupRedirectResolver | null;
+  /** @internal */
   _key(): string;
+  /** @internal */
   _startProactiveRefresh(): void;
+  /** @internal */
   _stopProactiveRefresh(): void;
+  _getPersistence(): string;
+
+  /** @internal */
+  readonly name: AppName;
+  /** @internal */
+  readonly config: ConfigInternal;
+  /** @internal */
+  languageCode: string | null;
+  /** @internal */
+  tenantId: string | null;
+  /** @internal */
+  readonly settings: externs.AuthSettings;
+  _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams>;
+
+  /** @internal */
+  useDeviceLanguage(): void;
+  /** @internal */
+  signOut(): Promise<void>;
 }
 
 export interface Dependencies {
   persistence?: externs.Persistence | externs.Persistence[];
   popupRedirectResolver?: externs.PopupRedirectResolver;
+  errorMap?: externs.AuthErrorMap;
 }

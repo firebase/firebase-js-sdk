@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
@@ -23,7 +23,8 @@ import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
 
-export { database, firestore } from 'firebase';
+const { firestore, database } = firebase;
+export { firestore, database };
 
 /** If this environment variable is set, use it for the database emulator's address. */
 const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_HOST';
@@ -35,31 +36,131 @@ const FIRESTORE_ADDRESS_ENV: string = 'FIRESTORE_EMULATOR_HOST';
 /** The default address for the local Firestore emulator. */
 const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 
+/** Environment variable to locate the Emulator Hub */
+const HUB_HOST_ENV: string = 'FIREBASE_EMULATOR_HUB';
+/** The default address for the Emulator hub */
+const HUB_HOST_DEFAULT: string = 'localhost:4400';
+
 /** The actual address for the database emulator */
 let _databaseHost: string | undefined = undefined;
 
 /** The actual address for the Firestore emulator */
 let _firestoreHost: string | undefined = undefined;
 
-/** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
-function createUnsecuredJwt(auth: object): string {
+export type Provider =
+  | 'custom'
+  | 'email'
+  | 'password'
+  | 'phone'
+  | 'anonymous'
+  | 'google.com'
+  | 'facebook.com'
+  | 'github.com'
+  | 'twitter.com'
+  | 'microsoft.com'
+  | 'apple.com';
+
+export type FirebaseIdToken = {
+  // Always set to https://securetoken.google.com/PROJECT_ID
+  iss: string;
+
+  // Always set to PROJECT_ID
+  aud: string;
+
+  // The user's unique id
+  sub: string;
+
+  // The token issue time, in seconds since epoch
+  iat: number;
+
+  // The token expiry time, normally 'iat' + 3600
+  exp: number;
+
+  // The user's unique id, must be equal to 'sub'
+  user_id: string;
+
+  // The time the user authenticated, normally 'iat'
+  auth_time: number;
+
+  // The sign in provider, only set when the provider is 'anonymous'
+  provider_id?: 'anonymous';
+
+  // The user's primary email
+  email?: string;
+
+  // The user's email verification status
+  email_verified?: boolean;
+
+  // The user's primary phone number
+  phone_number?: string;
+
+  // The user's display name
+  name?: string;
+
+  // The user's profile photo URL
+  picture?: string;
+
+  // Information on all identities linked to this user
+  firebase: {
+    // The primary sign-in provider
+    sign_in_provider: Provider;
+
+    // A map of providers to the user's list of unique identifiers from
+    // each provider
+    identities?: { [provider in Provider]?: string[] };
+  };
+
+  // Custom claims set by the developer
+  [claim: string]: any;
+};
+
+// To avoid a breaking change, we accept the 'uid' option here, but
+// new users should prefer 'sub' instead.
+export type TokenOptions = Partial<FirebaseIdToken> & { uid?: string };
+
+function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
   // Unsecured JWTs use "none" as the algorithm.
   const header = {
     alg: 'none',
-    kid: 'fakekid'
+    kid: 'fakekid',
+    type: 'JWT'
   };
-  // Ensure that the auth payload has a value for 'iat'.
-  (auth as any).iat = (auth as any).iat || 0;
-  // Use `uid` field as a backup when `sub` is missing.
-  (auth as any).sub = (auth as any).sub || (auth as any).uid;
-  if (!(auth as any).sub) {
-    throw new Error("auth must be an object with a 'sub' or 'uid' field");
+
+  const project = projectId || 'fake-project';
+  const iat = token.iat || 0;
+  const uid = token.sub || token.uid || token.user_id;
+  if (!uid) {
+    throw new Error("Auth must contain 'sub', 'uid', or 'user_id' field!");
   }
+
+  const payload: FirebaseIdToken = {
+    // Set all required fields to decent defaults
+    iss: `https://securetoken.google.com/${project}`,
+    aud: project,
+    iat: iat,
+    exp: iat + 3600,
+    auth_time: iat,
+    sub: uid,
+    user_id: uid,
+    firebase: {
+      sign_in_provider: 'custom',
+      identities: {}
+    },
+
+    // Override with user options
+    ...token
+  };
+
+  // Remove the uid option since it's not actually part of the token spec.
+  if (payload.uid) {
+    delete payload.uid;
+  }
+
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
   return [
     base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
-    base64.encodeString(JSON.stringify(auth), /*webSafe=*/ false),
+    base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
     signature
   ].join('.');
 }
@@ -71,15 +172,15 @@ export function apps(): firebase.app.App[] {
 export type AppOptions = {
   databaseName?: string;
   projectId?: string;
-  auth?: object;
+  auth?: TokenOptions;
 };
 /** Construct an App authenticated with options.auth. */
 export function initializeTestApp(options: AppOptions): firebase.app.App {
-  return initializeApp(
-    options.auth ? createUnsecuredJwt(options.auth) : undefined,
-    options.databaseName,
-    options.projectId
-  );
+  const jwt = options.auth
+    ? createUnsecuredJwt(options.auth, options.projectId)
+    : undefined;
+
+  return initializeApp(jwt, options.databaseName, options.projectId);
 }
 
 export type AdminAppOptions = {
@@ -211,7 +312,7 @@ export type LoadDatabaseRulesOptions = {
   databaseName: string;
   rules: string;
 };
-export function loadDatabaseRules(
+export async function loadDatabaseRules(
   options: LoadDatabaseRulesOptions
 ): Promise<void> {
   if (!options.databaseName) {
@@ -222,33 +323,25 @@ export function loadDatabaseRules(
     throw Error('must provide rules to loadDatabaseRules');
   }
 
-  return new Promise((resolve, reject) => {
-    request.put(
-      {
-        uri: `http://${getDatabaseHost()}/.settings/rules.json?ns=${
-          options.databaseName
-        }`,
-        headers: { Authorization: 'Bearer owner' },
-        body: options.rules
-      },
-      (err, resp, body) => {
-        if (err) {
-          reject(err);
-        } else if (resp.statusCode !== 200) {
-          reject(JSON.parse(body).error);
-        } else {
-          resolve();
-        }
-      }
-    );
+  const resp = await requestPromise(request.put, {
+    method: 'PUT',
+    uri: `http://${getDatabaseHost()}/.settings/rules.json?ns=${
+      options.databaseName
+    }`,
+    headers: { Authorization: 'Bearer owner' },
+    body: options.rules
   });
+
+  if (resp.statusCode !== 200) {
+    throw new Error(JSON.parse(resp.body.error));
+  }
 }
 
 export type LoadFirestoreRulesOptions = {
   projectId: string;
   rules: string;
 };
-export function loadFirestoreRules(
+export async function loadFirestoreRules(
   options: LoadFirestoreRulesOptions
 ): Promise<void> {
   if (!options.projectId) {
@@ -259,64 +352,98 @@ export function loadFirestoreRules(
     throw new Error('must provide rules to loadFirestoreRules');
   }
 
-  return new Promise((resolve, reject) => {
-    request.put(
-      {
-        uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
-          options.projectId
-        }:securityRules`,
-        body: JSON.stringify({
-          rules: {
-            files: [{ content: options.rules }]
-          }
-        })
-      },
-      (err, resp, body) => {
-        if (err) {
-          reject(err);
-        } else if (resp.statusCode !== 200) {
-          console.log('body', body);
-          reject(JSON.parse(body).error);
-        } else {
-          resolve();
-        }
+  const resp = await requestPromise(request.put, {
+    method: 'PUT',
+    uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
+      options.projectId
+    }:securityRules`,
+    body: JSON.stringify({
+      rules: {
+        files: [{ content: options.rules }]
       }
-    );
+    })
   });
+
+  if (resp.statusCode !== 200) {
+    throw new Error(JSON.parse(resp.body.error));
+  }
 }
 
 export type ClearFirestoreDataOptions = {
   projectId: string;
 };
-export function clearFirestoreData(
+export async function clearFirestoreData(
   options: ClearFirestoreDataOptions
 ): Promise<void> {
   if (!options.projectId) {
     throw new Error('projectId not specified');
   }
 
-  return new Promise((resolve, reject) => {
-    request.delete(
-      {
-        uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
-          options.projectId
-        }/databases/(default)/documents`,
-        body: JSON.stringify({
-          database: `projects/${options.projectId}/databases/(default)`
-        })
-      },
-      (err, resp, body) => {
-        if (err) {
-          reject(err);
-        } else if (resp.statusCode !== 200) {
-          console.log('body', body);
-          reject(JSON.parse(body).error);
-        } else {
-          resolve();
-        }
-      }
-    );
+  const resp = await requestPromise(request.delete, {
+    method: 'DELETE',
+    uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
+      options.projectId
+    }/databases/(default)/documents`,
+    body: JSON.stringify({
+      database: `projects/${options.projectId}/databases/(default)`
+    })
   });
+
+  if (resp.statusCode !== 200) {
+    throw new Error(JSON.parse(resp.body.error));
+  }
+}
+
+/**
+ * Run a setup function with background Cloud Functions triggers disabled. This can be used to
+ * import data into the Realtime Database or Cloud Firestore emulator without triggering locally
+ * emulated Cloud Functions.
+ *
+ * This method only works with Firebase CLI version 8.13.0 or higher.
+ *
+ * @param fn an function which returns a promise.
+ */
+export async function withFunctionTriggersDisabled<TResult>(
+  fn: () => TResult | Promise<TResult>
+): Promise<TResult> {
+  let hubHost = process.env[HUB_HOST_ENV];
+  if (!hubHost) {
+    console.warn(
+      `${HUB_HOST_ENV} is not set, assuming the Emulator hub is running at ${HUB_HOST_DEFAULT}`
+    );
+    hubHost = HUB_HOST_DEFAULT;
+  }
+
+  // Disable background triggers
+  const disableRes = await requestPromise(request.put, {
+    method: 'PUT',
+    uri: `http://${hubHost}/functions/disableBackgroundTriggers`
+  });
+  if (disableRes.statusCode !== 200) {
+    throw new Error(
+      `HTTP Error ${disableRes.statusCode} when disabling functions triggers, are you using firebase-tools 8.13.0 or higher?`
+    );
+  }
+
+  // Run the user's function
+  let result: TResult | undefined = undefined;
+  try {
+    result = await fn();
+  } finally {
+    // Re-enable background triggers
+    const enableRes = await requestPromise(request.put, {
+      method: 'PUT',
+      uri: `http://${hubHost}/functions/enableBackgroundTriggers`
+    });
+    if (enableRes.statusCode !== 200) {
+      throw new Error(
+        `HTTP Error ${enableRes.statusCode} when enabling functions triggers, are you using firebase-tools 8.13.0 or higher?`
+      );
+    }
+  }
+
+  // Return the user's function result
+  return result;
 }
 
 export function assertFails(pr: Promise<any>): any {
@@ -344,4 +471,23 @@ export function assertFails(pr: Promise<any>): any {
 
 export function assertSucceeds(pr: Promise<any>): any {
   return pr;
+}
+
+function requestPromise(
+  method: typeof request.get,
+  options: request.CoreOptions & request.UriOptions
+): Promise<{ statusCode: number; body: any }> {
+  return new Promise((resolve, reject) => {
+    const callback: request.RequestCallback = (err, resp, body) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ statusCode: resp.statusCode, body });
+      }
+    };
+
+    // Unfortunately request's default method is not very test-friendly so having
+    // the caler pass in the method here makes this whole thing compatible with sinon
+    method(options, callback);
+  });
 }

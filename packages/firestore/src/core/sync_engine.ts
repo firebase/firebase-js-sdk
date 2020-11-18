@@ -17,17 +17,19 @@
 
 import { User } from '../auth/user';
 import {
+  hasNewerBundle,
+  applyRemoteEventToLocalCache,
   getNewDocumentChanges,
   getCachedTarget,
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
+  saveBundle,
   getActiveClientsFromPersistence,
   lookupMutationDocuments,
   removeCachedMutationBatchMetadata,
   allocateTarget,
   executeQuery,
   releaseTarget,
-  applyRemoteEventToLocalCache,
   rejectBatch,
   handleUserChange,
   localWrite,
@@ -58,7 +60,7 @@ import {
 } from '../remote/remote_store';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -96,6 +98,13 @@ import {
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { BundleReader } from '../util/bundle_reader';
+import {
+  BundleLoader,
+  bundleInitialProgress,
+  bundleSuccessProgress
+} from './bundle';
+import { LoadBundleTask } from '../api/bundle';
 import {
   EventManager,
   eventManagerOnOnlineStateChange,
@@ -1150,6 +1159,21 @@ async function synchronizeViewAndComputeSnapshot(
   return viewSnapshot;
 }
 
+/**
+ * Retrieves newly changed documents from remote document cache and raises
+ * snapshots if needed.
+ */
+// PORTING NOTE: Multi-Tab only.
+export async function synchronizeWithChangedDocuments(
+  syncEngine: SyncEngine
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+
+  return getNewDocumentChanges(syncEngineImpl.localStore).then(changes =>
+    emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
+  );
+}
+
 /** Applies a mutation state to an existing batch.  */
 // PORTING NOTE: Multi-Tab only.
 export async function applyBatchState(
@@ -1507,4 +1531,78 @@ export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     syncEngineImpl
   );
   return syncEngineImpl;
+}
+
+/**
+ * Loads a Firestore bundle into the SDK. The returned promise resolves when
+ * the bundle finished loading.
+ *
+ * @param bundleReader Bundle to load into the SDK.
+ * @param task LoadBundleTask used to update the loading progress to public API.
+ */
+export function syncEngineLoadBundle(
+  syncEngine: SyncEngine,
+  bundleReader: BundleReader,
+  task: LoadBundleTask
+): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
+    syncEngineImpl.sharedClientState.notifyBundleLoaded();
+  });
+}
+
+async function loadBundleImpl(
+  syncEngine: SyncEngineImpl,
+  reader: BundleReader,
+  task: LoadBundleTask
+): Promise<void> {
+  try {
+    const metadata = await reader.getMetadata();
+    const skip = await hasNewerBundle(syncEngine.localStore, metadata);
+    if (skip) {
+      await reader.close();
+      task._completeWith(bundleSuccessProgress(metadata));
+      return;
+    }
+
+    task._updateProgress(bundleInitialProgress(metadata));
+
+    const loader = new BundleLoader(
+      metadata,
+      syncEngine.localStore,
+      reader.serializer
+    );
+    let element = await reader.nextElement();
+    while (element) {
+      debugAssert(
+        !element.payload.metadata,
+        'Unexpected BundleMetadata element.'
+      );
+      const progress = await loader.addSizedElement(element);
+      if (progress) {
+        task._updateProgress(progress);
+      }
+
+      element = await reader.nextElement();
+    }
+
+    const result = await loader.complete();
+    // TODO(b/160876443): This currently raises snapshots with
+    // `fromCache=false` if users already listen to some queries and bundles
+    // has newer version.
+    await emitNewSnapsAndNotifyLocalStore(
+      syncEngine,
+      result.changedDocs,
+      /* remoteEvent */ undefined
+    );
+
+    // Save metadata, so loading the same bundle will skip.
+    await saveBundle(syncEngine.localStore, metadata);
+    task._completeWith(result.progress);
+  } catch (e) {
+    logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
+    task._failWith(e);
+  }
 }

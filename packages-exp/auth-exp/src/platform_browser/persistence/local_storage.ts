@@ -50,8 +50,13 @@ class BrowserLocalPersistence
 
   constructor() {
     super(localStorage, PersistenceType.LOCAL);
+    this.boundEventHandler = this.onStorageEvent.bind(this);
   }
 
+  private readonly boundEventHandler: (
+    event: StorageEvent,
+    poll?: boolean
+  ) => void;
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
   private readonly localCache: Record<string, string | null> = {};
   // setTimeout return value is platform specific
@@ -195,11 +200,11 @@ class BrowserLocalPersistence
   }
 
   private attachListener(): void {
-    window.addEventListener('storage', this.onStorageEvent.bind(this));
+    window.addEventListener('storage', this.boundEventHandler);
   }
 
   private detachListener(): void {
-    window.removeEventListener('storage', this.onStorageEvent);
+    window.removeEventListener('storage', this.boundEventHandler);
   }
 
   _addListener(key: string, listener: StorageEventListener): void {
@@ -236,4 +241,10 @@ class BrowserLocalPersistence
   }
 }
 
+/**
+ * An implementation of {@link @firebase/auth-types#Persistence} of type 'LOCAL' using `localStorage`
+ * for the underlying storage.
+ *
+ * @public
+ */
 export const browserLocalPersistence: externs.Persistence = BrowserLocalPersistence;

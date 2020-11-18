@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -40,23 +40,23 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app-exp": "0.0.800",
-    "rollup": "2.28.1",
-    "rollup-plugin-commonjs": "10.1.0",
-    "rollup-plugin-json": "4.0.0",
-    "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.27.2",
+    "@firebase/app-exp": "0.0.900",
+    "rollup": "2.33.2",
+    "@rollup/plugin-commonjs": "15.1.0",
+    "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-node-resolve": "9.0.0",
+    "rollup-plugin-typescript2": "0.29.0",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "4.0.2"
+    "typescript": "4.0.5"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
     "@firebase/app-types-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-types-exp": "0.0.800",
-    "@firebase/util": "0.3.2",
-    "@firebase/component": "0.1.19",
+    "@firebase/installations-types-exp": "0.0.900",
+    "@firebase/util": "0.3.4",
+    "@firebase/component": "0.1.21",
     "idb": "3.0.2",
     "tslib": "^1.11.1"
   }

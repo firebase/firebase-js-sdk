@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assertFn, AuthErrorCode } from '@firebase/auth-exp/internal';
+import { _assert, AuthErrorCode } from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-types-exp';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
 import { _isWebStorageSupported, _isWorker } from './platform';
@@ -34,45 +34,45 @@ export function _validatePersistenceArgument(
   auth: externs.Auth,
   persistence: string
 ): void {
-  assertFn(
+  _assert(
     Object.values(Persistence).includes(persistence),
-    AuthErrorCode.INVALID_PERSISTENCE,
-    { appName: auth.name }
+    auth,
+    AuthErrorCode.INVALID_PERSISTENCE
   );
   // Validate if the specified type is supported in the current environment.
   if (isReactNative()) {
     // This is only supported in a browser.
-    assertFn(
+    _assert(
       persistence !== Persistence.SESSION,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
-      { appName: auth.name }
+      auth,
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
   if (isNode()) {
     // Only none is supported in Node.js.
-    assertFn(
+    _assert(
       persistence === Persistence.NONE,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
-      { appName: auth.name }
+      auth,
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
   if (_isWorker()) {
     // In a worker environment, either LOCAL or NONE are supported.
     // If indexedDB not supported and LOCAL provided, throw an error
-    assertFn(
+    _assert(
       persistence === Persistence.NONE ||
         (persistence === Persistence.LOCAL && isIndexedDBAvailable()),
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
-      { appName: auth.name }
+      auth,
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
   // This is restricted by what the browser supports.
-  assertFn(
+  _assert(
     persistence === Persistence.NONE || _isWebStorageSupported(),
-    AuthErrorCode.UNSUPPORTED_PERSISTENCE,
-    { appName: auth.name }
+    auth,
+    AuthErrorCode.UNSUPPORTED_PERSISTENCE
   );
 }

@@ -17,12 +17,14 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
+import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
-import { assert } from '../../core/util/assert';
+import { _assert } from '../../core/util/assert';
 import { _isHttpOrHttps } from '../../core/util/location';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
+import { _isWorker } from '../util/worker';
 import { Parameters, Recaptcha } from './recaptcha';
 import {
   MockReCaptchaLoaderImpl,
@@ -39,17 +41,22 @@ const DEFAULT_PARAMS: Parameters = {
 
 type TokenCallback = (token: string) => void;
 
+/**
+ * {@inheritdoc @firebase/auth-types#RecaptchaVerifier}
+ * @public
+ */
 export class RecaptchaVerifier
   implements externs.RecaptchaVerifier, ApplicationVerifier {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
-  private readonly appName: string;
   private destroyed = false;
   private widgetId: number | null = null;
   private readonly container: HTMLElement;
   private readonly isInvisible: boolean;
   private readonly tokenChangeListeners = new Set<TokenCallback>();
   private renderPromise: Promise<number> | null = null;
+  private readonly auth: Auth;
 
+  /** @internal */
   readonly _recaptchaLoader: ReCaptchaLoader;
   private recaptcha: Recaptcha | null = null;
 
@@ -58,20 +65,20 @@ export class RecaptchaVerifier
     private readonly parameters: Parameters = {
       ...DEFAULT_PARAMS
     },
-    private readonly auth: AuthCore
+    authExtern: externs.Auth
   ) {
-    this.appName = this.auth.name;
+    this.auth = _castAuth(authExtern);
     this.isInvisible = this.parameters.size === 'invisible';
-    assert(
+    _assert(
       typeof document !== 'undefined',
-      AuthErrorCode.OPERATION_NOT_SUPPORTED,
-      { appName: this.appName }
+      this.auth,
+      AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     const container =
       typeof containerOrId === 'string'
         ? document.getElementById(containerOrId)
         : containerOrId;
-    assert(container, AuthErrorCode.ARGUMENT_ERROR, { appName: this.appName });
+    _assert(container, this.auth, AuthErrorCode.ARGUMENT_ERROR);
 
     this.container = container;
     this.parameters.callback = this.makeTokenCallback(this.parameters.callback);
@@ -84,6 +91,7 @@ export class RecaptchaVerifier
     // TODO: Figure out if sdk version is needed
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.verify} */
   async verify(): Promise<string> {
     this.assertNotDestroyed();
     const id = await this.render();
@@ -110,6 +118,7 @@ export class RecaptchaVerifier
     });
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.render} */
   render(): Promise<number> {
     try {
       this.assertNotDestroyed();
@@ -132,6 +141,7 @@ export class RecaptchaVerifier
     return this.renderPromise;
   }
 
+  /** @internal */
   _reset(): void {
     this.assertNotDestroyed();
     if (this.widgetId !== null) {
@@ -139,6 +149,7 @@ export class RecaptchaVerifier
     }
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.clear} */
   clear(): void {
     this.assertNotDestroyed();
     this.destroyed = true;
@@ -151,13 +162,11 @@ export class RecaptchaVerifier
   }
 
   private validateStartingState(): void {
-    assert(!this.parameters.sitekey, AuthErrorCode.ARGUMENT_ERROR, {
-      appName: this.appName
-    });
-    assert(
+    _assert(!this.parameters.sitekey, this.auth, AuthErrorCode.ARGUMENT_ERROR);
+    _assert(
       this.isInvisible || !this.container.hasChildNodes(),
-      AuthErrorCode.ARGUMENT_ERROR,
-      { appName: this.appName }
+      this.auth,
+      AuthErrorCode.ARGUMENT_ERROR
     );
   }
 
@@ -178,9 +187,7 @@ export class RecaptchaVerifier
   }
 
   private assertNotDestroyed(): void {
-    assert(!this.destroyed, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.appName
-    });
+    _assert(!this.destroyed, this.auth, AuthErrorCode.INTERNAL_ERROR);
   }
 
   private async makeRenderPromise(): Promise<number> {
@@ -203,9 +210,11 @@ export class RecaptchaVerifier
   }
 
   private async init(): Promise<void> {
-    assert(_isHttpOrHttps() && !isWorker(), AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.appName
-    });
+    _assert(
+      _isHttpOrHttps() && !_isWorker(),
+      this.auth,
+      AuthErrorCode.INTERNAL_ERROR
+    );
 
     await domReady();
     this.recaptcha = await this._recaptchaLoader.load(
@@ -214,23 +223,14 @@ export class RecaptchaVerifier
     );
 
     const siteKey = await getRecaptchaParams(this.auth);
-    assert(siteKey, AuthErrorCode.INTERNAL_ERROR, { appName: this.appName });
+    _assert(siteKey, this.auth, AuthErrorCode.INTERNAL_ERROR);
     this.parameters.sitekey = siteKey;
   }
 
   private getAssertedRecaptcha(): Recaptcha {
-    assert(this.recaptcha, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.appName
-    });
+    _assert(this.recaptcha, this.auth, AuthErrorCode.INTERNAL_ERROR);
     return this.recaptcha;
   }
-}
-
-function isWorker(): boolean {
-  return (
-    typeof _window()['WorkerGlobalScope'] !== 'undefined' &&
-    typeof _window()['importScripts'] === 'function'
-  );
 }
 
 function domReady(): Promise<void> {

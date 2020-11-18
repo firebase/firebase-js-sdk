@@ -23,39 +23,45 @@ import {
   _getFinalTarget,
   _performFetchWithErrorHandling,
   HttpMethod
-} from '../';
+} from '../index';
 import { FetchProvider } from '../../core/util/fetch_provider';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
-export const _ENDPOINT = '/v1/token';
-const GRANT_TYPE = 'refresh_token';
+export const enum Endpoint {
+  TOKEN = '/v1/token'
+}
 
 /** The server responses with snake_case; we convert to camelCase */
 interface RequestStsTokenServerResponse {
-  access_token?: string;
-  expires_in?: string;
-  refresh_token?: string;
+  access_token: string;
+  expires_in: string;
+  refresh_token: string;
 }
 
 export interface RequestStsTokenResponse {
-  accessToken?: string;
-  expiresIn?: string;
-  refreshToken?: string;
+  accessToken: string;
+  expiresIn: string;
+  refreshToken: string;
 }
 
 export async function requestStsToken(
-  auth: AuthCore,
+  auth: Auth,
   refreshToken: string
 ): Promise<RequestStsTokenResponse> {
   const response = await _performFetchWithErrorHandling<
     RequestStsTokenServerResponse
   >(auth, {}, () => {
     const body = querystring({
-      'grant_type': GRANT_TYPE,
+      'grant_type': 'refresh_token',
       'refresh_token': refreshToken
     }).slice(1);
     const { tokenApiHost, apiKey, sdkClientVersion } = auth.config;
-    const url = _getFinalTarget(auth, tokenApiHost, _ENDPOINT, `key=${apiKey}`);
+    const url = _getFinalTarget(
+      auth,
+      tokenApiHost,
+      Endpoint.TOKEN,
+      `key=${apiKey}`
+    );
 
     return FetchProvider.fetch()(url, {
       method: HttpMethod.POST,

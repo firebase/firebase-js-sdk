@@ -16,20 +16,16 @@
  */
 
 import { Unsubscribe } from '@firebase/util';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
 import { Auth } from '../../model/auth';
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'auth-internal-exp': AuthInternal;
-  }
-}
+import { User } from '../../model/user';
 
 interface TokenListener {
   (tok: string | null): unknown;
 }
 
-export class AuthInternal {
+export class AuthInternal implements FirebaseAuthInternal {
   private readonly internalListeners: Map<
     TokenListener,
     Unsubscribe
@@ -58,8 +54,8 @@ export class AuthInternal {
       return;
     }
 
-    const unsubscribe = this.auth._onIdTokenChanged(user => {
-      listener(user?.stsTokenManager.accessToken || null);
+    const unsubscribe = this.auth.onIdTokenChanged(user => {
+      listener((user as User | null)?.stsTokenManager.accessToken || null);
     });
     this.internalListeners.set(listener, unsubscribe);
     this.updateProactiveRefresh();

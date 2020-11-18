@@ -177,6 +177,11 @@ async function generateSizeReport(): Promise<BinarySizeRequestBody> {
   };
 }
 
-generateSizeReport().then(report => {
-  upload(report, RequestEndpoint.BINARY_SIZE);
-});
+generateSizeReport()
+  .then(report => {
+    upload(report, RequestEndpoint.BINARY_SIZE);
+  })
+  .catch(err => {
+    console.error(err);
+    process.exit(1);
+  });

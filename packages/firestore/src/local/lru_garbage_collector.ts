@@ -172,10 +172,11 @@ const GC_DID_NOT_RUN: LruResults = {
   documentsRemoved: 0
 };
 
+export const LRU_COLLECTION_DISABLED = -1;
+export const LRU_MINIMUM_CACHE_SIZE_BYTES = 1 * 1024 * 1024;
+export const LRU_DEFAULT_CACHE_SIZE_BYTES = 40 * 1024 * 1024;
+
 export class LruParams {
-  static readonly COLLECTION_DISABLED = CACHE_SIZE_UNLIMITED;
-  static readonly MINIMUM_CACHE_SIZE_BYTES = 1 * 1024 * 1024;
-  static readonly DEFAULT_CACHE_SIZE_BYTES = 40 * 1024 * 1024;
   private static readonly DEFAULT_COLLECTION_PERCENTILE = 10;
   private static readonly DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT = 1000;
 
@@ -188,13 +189,13 @@ export class LruParams {
   }
 
   static readonly DEFAULT: LruParams = new LruParams(
-    LruParams.DEFAULT_CACHE_SIZE_BYTES,
+    LRU_DEFAULT_CACHE_SIZE_BYTES,
     LruParams.DEFAULT_COLLECTION_PERCENTILE,
     LruParams.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT
   );
 
   static readonly DISABLED: LruParams = new LruParams(
-    LruParams.COLLECTION_DISABLED,
+    LRU_COLLECTION_DISABLED,
     0,
     0
   );
@@ -238,7 +239,7 @@ export class LruScheduler implements GarbageCollectionScheduler {
     );
     if (
       this.garbageCollector.params.cacheSizeCollectionThreshold !==
-      LruParams.COLLECTION_DISABLED
+      LRU_COLLECTION_DISABLED
     ) {
       this.scheduleGC(localStore);
     }
@@ -355,9 +356,7 @@ export class LruGarbageCollector {
     txn: PersistenceTransaction,
     activeTargetIds: ActiveTargets
   ): PersistencePromise<LruResults> {
-    if (
-      this.params.cacheSizeCollectionThreshold === LruParams.COLLECTION_DISABLED
-    ) {
+    if (this.params.cacheSizeCollectionThreshold === LRU_COLLECTION_DISABLED) {
       logDebug('LruGarbageCollector', 'Garbage collection skipped; disabled');
       return PersistencePromise.resolve(GC_DID_NOT_RUN);
     }

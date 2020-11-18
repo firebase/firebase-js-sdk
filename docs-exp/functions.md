@@ -10,5 +10,5 @@
 |  --- | --- |
 |  [getFunctions(app, regionOrCustomDomain)](./functions.getfunctions.md) | Returns a Functions instance for the given app. |
 |  [httpsCallable(functionsInstance, name, options)](./functions.httpscallable.md) | Returns a reference to the callable https trigger with the given name. |
-|  [useFunctionsEmulator(functionsInstance, origin)](./functions.usefunctionsemulator.md) | Changes this instance to point to a Cloud Functions emulator running locally. See https://firebase.google.com/docs/functions/local-emulator |
+|  [useFunctionsEmulator(functionsInstance, host, port)](./functions.usefunctionsemulator.md) | Modify this instance to communicate with the Cloud Functions emulator.<!-- -->Note: this must be called before this instance has been used to do any operations. |
 
