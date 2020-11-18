@@ -759,7 +759,7 @@ export function onSnapshot<T>(
   } else {
     const query = cast<Query<T>>(reference, Query);
     firestore = cast(query.firestore, FirebaseFirestore);
-    internalQuery = reference._query;
+    internalQuery = query._query;
     const userDataWriter = new ExpUserDataWriter(firestore);
 
     observer = {
