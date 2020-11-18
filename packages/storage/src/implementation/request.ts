@@ -136,8 +136,6 @@ class NetworkRequest<T> implements Request<T> {
       xhr
         .send(self.url_, self.method_, self.body_, self.headers_)
         .then((xhr: XhrIo) => {
-          console.log('response');
-          console.log(xhr);
           if (self.progressCallback_ !== null) {
             xhr.removeUploadProgressListener(progressListener);
           }

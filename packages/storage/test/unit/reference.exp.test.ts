@@ -55,6 +55,31 @@ function makeStorage(url: string): Reference {
   return new Reference(service, url);
 }
 
+function withFakeSend(
+  testFn: (text: string) => void,
+  resolveFn: () => void
+): Reference {
+  function newSend(
+    xhrio: TestingXhrIo,
+    url: string,
+    method: string,
+    body?: ArrayBufferView | Blob | string | null,
+    headers?: Headers
+  ): void {
+    (body as Blob).text().then(text => {
+      testFn(text);
+      xhrio.abort();
+      resolveFn();
+    });
+  }
+  const service = makeFakeService(
+    testShared.fakeApp,
+    testShared.fakeAuthProvider,
+    newSend
+  );
+  return ref(service, 'gs://test-bucket');
+}
+
 describe('Firebase Storage > Reference', () => {
   const root = makeStorage('gs://test-bucket/');
   const child = makeStorage('gs://test-bucket/hello');
@@ -227,55 +252,44 @@ describe('Firebase Storage > Reference', () => {
   });
 
   describe('uploadString', () => {
-    it('Uses metadata.contentType for RAW format', async () => {
+    it('Uses metadata.contentType for RAW format', done => {
       // Regression test for b/30989476
-      const snapshot = await uploadString(child, 'hello', StringFormat.RAW, {
+      const root = withFakeSend((text: string) => {
+        expect(text).to.include('"contentType":"lol/wut"');
+      }, done);
+      uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {
         contentType: 'lol/wut'
       } as Metadata);
-      expect(snapshot.metadata.contentType).to.equal('lol/wut');
     });
-    // it('Uses embedded content type in DATA_URL format', async () => {
-    //   const snapshot = await uploadString(
-    //     child,
-    //     'data:lol/wat;base64,aaaa',
-    //     StringFormat.DATA_URL
-    //   );
-    //   expect(snapshot.metadata.contentType).to.equal('lol/wat');
-    // });
-    // it('Lets metadata.contentType override embedded content type in DATA_URL format', async () => {
-    //   const snapshot = await uploadString(
-    //     child,
-    //     'data:ignore/me;base64,aaaa',
-    //     StringFormat.DATA_URL,
-    //     { contentType: 'tomato/soup' } as Metadata
-    //   );
-    //   expect(snapshot.metadata.contentType).to.equal('tomato/soup');
-    // });
+    it('Uses embedded content type in DATA_URL format', done => {
+      const root = withFakeSend((text: string) => {
+        expect(text).to.include('"contentType":"lol/wat"');
+      }, done);
+      uploadString(
+        ref(root, 'test'),
+        'data:lol/wat;base64,aaaa',
+        StringFormat.DATA_URL
+      );
+    });
+    it('Lets metadata.contentType override embedded content type in DATA_URL format', done => {
+      const root = withFakeSend((text: string) => {
+        expect(text).to.include('"contentType":"tomato/soup"');
+      }, done);
+      uploadString(
+        ref(root, 'test'),
+        'data:ignore/me;base64,aaaa',
+        StringFormat.DATA_URL,
+        { contentType: 'tomato/soup' } as Metadata
+      );
+    });
   });
 
-  describe.only('uploadBytes', () => {
-    it('Uses metadata.contentType', async () => {
-      function newSend(
-        xhrio: TestingXhrIo,
-        url: string,
-        method: string,
-        body?: ArrayBufferView | Blob | string | null,
-        headers?: Headers
-      ): void {
-        console.log(body);
-        expect(headers).to.not.be.undefined;
-        expect(headers!['Authorization']).to.equal(
-          'Firebase ' + testShared.authToken
-        );
-      }
-      const service = makeFakeService(
-        testShared.fakeApp,
-        testShared.fakeAuthProvider,
-        newSend
-      );
-      const reference = ref(service, 'gs://test-bucket');
-      // Regression test for b/30989476
-      await uploadBytes(ref(reference, 'hello'), new Blob(), {
+  describe('uploadBytes', () => {
+    it('Uses metadata.contentType', done => {
+      const root = withFakeSend((text: string) => {
+        expect(text).to.include('"contentType":"lol/wut"');
+      }, done);
+      uploadBytes(ref(root, 'hello'), new Blob(), {
         contentType: 'lol/wut'
       } as Metadata);
     });
@@ -303,13 +317,13 @@ describe('Firebase Storage > Reference', () => {
         'storage/invalid-root-operation'
       );
     });
-    it('uploadString throws', () => {
-      expect(() =>
+    it('uploadString throws', async () => {
+      await expect(
         uploadString(root, 'raw', StringFormat.RAW)
       ).to.be.rejectedWith('storage/invalid-root-operation');
     });
-    it('uploadBytes throws', () => {
-      expect(() => uploadBytes(root, new Blob(['a']))).to.be.rejectedWith(
+    it('uploadBytes throws', async () => {
+      await expect(uploadBytes(root, new Blob(['a']))).to.be.rejectedWith(
         'storage/invalid-root-operation'
       );
     });
