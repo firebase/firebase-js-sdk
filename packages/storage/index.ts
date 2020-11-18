@@ -60,7 +60,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
     TaskEvent,
     StringFormat,
     Storage: StorageService,
-    StorageReference: Reference
+    StorageReference
   };
   instance.INTERNAL.registerComponent(
     new Component(STORAGE_TYPE, factory, ComponentType.PUBLIC)
