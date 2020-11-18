@@ -328,6 +328,7 @@ export function makeDatabaseInfo(
 ): DatabaseInfo {
   return new DatabaseInfo(
     databaseId,
+    appId,
     persistenceKey,
     settings.host,
     settings.ssl,
