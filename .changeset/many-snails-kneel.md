@@ -1,5 +1,4 @@
 ---
-"@firebase/database": patch
 "firebase": patch
 ---
 
