@@ -33,8 +33,6 @@ import * as type from './type';
 import * as UrlUtils from './url';
 import { Headers, XhrIo, ErrorCode } from './xhrio';
 import { XhrIoPool } from './xhriopool';
-// Firebase SDK version
-import { version } from '../../../../package.json';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -268,8 +266,12 @@ export function addAuthHeader_(
   }
 }
 
-export function addVersionHeader_(headers: Headers): void {
-  headers['X-Firebase-Storage-Version'] = 'webjs/' + (version ?? 'AppManager');
+export function addVersionHeader_(
+  headers: Headers,
+  firebaseVersion?: string
+): void {
+  headers['X-Firebase-Storage-Version'] =
+    'webjs/' + (firebaseVersion ?? 'AppManager');
 }
 
 export function addGmpidHeader_(headers: Headers, appId: string | null): void {
@@ -282,14 +284,15 @@ export function makeRequest<T>(
   requestInfo: RequestInfo<T>,
   appId: string | null,
   authToken: string | null,
-  pool: XhrIoPool
+  pool: XhrIoPool,
+  firebaseVersion?: string
 ): Request<T> {
   const queryPart = UrlUtils.makeQueryString(requestInfo.urlParams);
   const url = requestInfo.url + queryPart;
   const headers = Object.assign({}, requestInfo.headers);
   addGmpidHeader_(headers, appId);
   addAuthHeader_(headers, authToken);
-  addVersionHeader_(headers);
+  addVersionHeader_(headers, firebaseVersion);
   return new NetworkRequest<T>(
     url,
     requestInfo.method,

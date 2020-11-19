@@ -4,10 +4,10 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
-import { _FirebaseService } from '@firebase/app-types';
+import { _FirebaseService } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 import * as types from '@firebase/storage-types';
 

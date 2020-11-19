@@ -151,7 +151,11 @@ export class StorageService implements _FirebaseService {
     /**
      * @internal
      */
-    readonly _url?: string
+    readonly _url?: string,
+    /**
+     * @internal
+     */
+    readonly _firebaseVersion?: string
   ) {
     this._maxOperationRetryTime = constants.DEFAULT_MAX_OPERATION_RETRY_TIME;
     this._maxUploadRetryTime = constants.DEFAULT_MAX_UPLOAD_RETRY_TIME;
@@ -235,7 +239,8 @@ export class StorageService implements _FirebaseService {
         requestInfo,
         this._appId,
         authToken,
-        this._pool
+        this._pool,
+        this._firebaseVersion
       );
       this._requests.add(request);
       // Request removes itself from set when complete.

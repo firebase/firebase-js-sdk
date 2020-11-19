@@ -18,7 +18,8 @@
 import {
   _registerComponent,
   registerVersion,
-  _getProvider
+  _getProvider,
+  SDK_VERSION
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 
@@ -76,7 +77,8 @@ function factory(container: ComponentContainer, url?: string): StorageService {
     app,
     authProvider,
     new XhrIoPool(),
-    url
+    url,
+    SDK_VERSION
   ) as unknown) as StorageService;
 }
 

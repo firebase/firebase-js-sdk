@@ -51,7 +51,13 @@ function factory(
   // of creating a new one.
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(app, authProvider, new XhrIoPool(), url)
+    new StorageService(
+      app,
+      authProvider,
+      new XhrIoPool(),
+      url,
+      firebase.SDK_VERSION
+    )
   );
   return storageServiceCompat;
 }
