@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
-import { newQueryForPath, Query, queryToTarget } from '../core/query';
+import { Query, queryToTarget } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
@@ -25,7 +25,6 @@ import {
   DocumentKeySet,
   documentKeySet,
   DocumentMap,
-  documentVersionMap,
   DocumentVersionMap,
   maybeDocumentMap,
   MaybeDocumentMap
@@ -76,13 +75,8 @@ import {
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
-import * as bundleProto from '../protos/firestore_bundle_proto';
-import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import { BundleCache } from './bundle_cache';
-import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
-import { fromBundledQuery } from './local_serializer';
-import { ByteString } from '../util/byte_string';
-import { ResourcePath } from '../model/path';
+import { JsonProtoSerializer } from '../remote/serializer';
 
 const LOG_TAG = 'LocalStore';
 

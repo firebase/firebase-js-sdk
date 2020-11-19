@@ -31,7 +31,7 @@ import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert, debugCast } from '../util/assert';
 import { LocalStore } from '../local/local_store';
-import { SizedBundleElement } from '../util/bundle_reader';
+import { SizedBundleElement, BundleReader } from '../util/bundle_reader';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -43,7 +43,6 @@ import {
   getSyncEngine
 } from './firestore_client';
 import { LoadBundleTask } from '../api/bundle';
-import { BundleReader } from '../util/bundle_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import {

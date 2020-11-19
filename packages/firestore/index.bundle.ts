@@ -25,9 +25,11 @@ export function registerBundle(instance: typeof Firestore): void {
   instance.prototype.loadBundle = function (
     data: ArrayBuffer | ReadableStream<Uint8Array> | string
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return loadBundle(this as any, data);
   };
   instance.prototype.namedQuery = function (queryName: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return namedQuery(this as any, queryName);
   };
 
