@@ -20,6 +20,7 @@ import { Document } from '../../../src/model/document';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
+  FirestoreDataConverter as LiteFirestoreDataConverter,
   fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
 import { FirebaseFirestore } from './database';
@@ -80,7 +81,8 @@ import { newQueryComparator } from '../../../src/core/query';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T> {
+export interface FirestoreDataConverter<T>
+  extends LiteFirestoreDataConverter<T> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
@@ -88,6 +90,13 @@ export interface FirestoreDataConverter<T> {
    * `toFirestore()` must be defined with `Partial<T>`.
    */
   toFirestore(modelObject: T): DocumentData;
+
+  /**
+   * Called by the Firestore SDK to convert a custom model object of type `T`
+   * into a plain Javascript object (suitable for writing directly to the
+   * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
+   * and {@link Transaction#set()}} with `merge:true` or `mergeFields`.
+   */
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
   /**
@@ -178,6 +187,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
    */
   readonly metadata: SnapshotMetadata;
 
+  /** @hideconstructor protected */
   constructor(
     readonly _firestore: FirebaseFirestore,
     userDataWriter: AbstractUserDataWriter,
@@ -325,6 +335,7 @@ export class QuerySnapshot<T = DocumentData> {
   private _cachedChanges?: Array<DocumentChange<T>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
+  /** @hideconstructor */
   constructor(
     readonly _firestore: FirebaseFirestore,
     readonly _userDataWriter: AbstractUserDataWriter,

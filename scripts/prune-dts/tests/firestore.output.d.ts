@@ -14,8 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
 import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { _FirebaseService } from '@firebase/app-types';
 import { LogLevel } from '@firebase/logger';
+import { Provider } from '@firebase/component';
+import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
+import { SnapshotMetadata as SnapshotMetadata_2 } from '@firebase/firestore-types';
 export declare function addDoc<T>(
   reference: CollectionReference<T>,
   data: T

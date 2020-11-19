@@ -49,8 +49,11 @@ export function toByteStreamReaderHelper(
         readFrom += bytesPerRead;
         return result;
       }
-
-      return { value: undefined, done: true };
+      
+      // TypesScript's lib.dom.d.ts doesn't have proper typings of 
+      // ReadableStreamReadResult yet.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return { done: true } as any;
     },
     async cancel(): Promise<void> {},
     releaseLock() {}

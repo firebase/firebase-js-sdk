@@ -56,6 +56,7 @@ export class WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
+  /** @hideconstructor */
   constructor(
     private readonly _firestore: FirebaseFirestore,
     private readonly _commitHandler: (m: Mutation[]) => Promise<void>

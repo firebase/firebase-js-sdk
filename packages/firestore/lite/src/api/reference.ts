@@ -147,6 +147,7 @@ export class DocumentReference<T = DocumentData> {
    */
   readonly firestore: FirebaseFirestore;
 
+  /** @hideconstructor */
   constructor(
     firestore: FirebaseFirestore,
     readonly _converter: FirestoreDataConverter<T> | null,
@@ -215,6 +216,8 @@ export class Query<T = DocumentData> {
   readonly firestore: FirebaseFirestore;
 
   // This is the lite version of the Query class in the main SDK.
+
+  /** @hideconstructor protected */
   constructor(
     firestore: FirebaseFirestore,
     readonly _converter: FirestoreDataConverter<T> | null,
@@ -1034,6 +1037,7 @@ export function validateHasExplicitOrderByForLimitToLast(
 export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type = 'collection';
 
+  /** @hideconstructor */
   constructor(
     readonly firestore: FirebaseFirestore,
     converter: FirestoreDataConverter<T> | null,

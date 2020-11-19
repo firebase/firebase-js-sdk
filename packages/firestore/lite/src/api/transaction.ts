@@ -64,6 +64,7 @@ export class Transaction {
 
   private readonly _dataReader: UserDataReader;
 
+  /** @hideconstructor */
   constructor(
     protected readonly _firestore: FirebaseFirestore,
     private readonly _transaction: InternalTransaction

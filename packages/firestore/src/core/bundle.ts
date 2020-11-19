@@ -23,9 +23,15 @@ import {
   fromVersion,
   JsonProtoSerializer
 } from '../remote/serializer';
-import * as bundleProto from '../protos/firestore_bundle_proto';
-import { BundleMetadata } from '../protos/firestore_bundle_proto';
-import * as api from '../protos/firestore_proto_api';
+import {
+  Document as ProtoDocument,
+  Timestamp as ProtoTimestamp
+} from '../protos/firestore_proto_api';
+import {
+  BundledDocumentMetadata as ProtoBundledDocumentMetadata,
+  BundleMetadata as ProtoBundleMetadata,
+  NamedQuery as ProtoNamedQuery
+} from '../protos/firestore_bundle_proto';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert } from '../util/assert';
@@ -70,8 +76,8 @@ export interface NamedQuery {
  * itself, if it exists.
  */
 interface BundledDocument {
-  metadata: bundleProto.BundledDocumentMetadata;
-  document?: api.Document;
+  metadata: ProtoBundledDocumentMetadata;
+  document?: ProtoDocument;
 }
 
 /**
@@ -107,7 +113,7 @@ export class BundleConverter {
     }
   }
 
-  toSnapshotVersion(time: api.Timestamp): SnapshotVersion {
+  toSnapshotVersion(time: ProtoTimestamp): SnapshotVersion {
     return fromVersion(time);
   }
 }
@@ -117,7 +123,7 @@ export class BundleConverter {
  * loading a bundle.
  */
 export function bundleInitialProgress(
-  metadata: BundleMetadata
+  metadata: ProtoBundleMetadata
 ): ApiLoadBundleTaskProgress {
   return {
     taskState: 'Running',
@@ -133,7 +139,7 @@ export function bundleInitialProgress(
  * has succeeded.
  */
 export function bundleSuccessProgress(
-  metadata: BundleMetadata
+  metadata: ProtoBundleMetadata
 ): ApiLoadBundleTaskProgress {
   return {
     taskState: 'Success',
@@ -159,12 +165,12 @@ export class BundleLoader {
   /** The current progress of loading */
   private progress: ApiLoadBundleTaskProgress;
   /** Batched queries to be saved into storage */
-  private queries: bundleProto.NamedQuery[] = [];
+  private queries: ProtoNamedQuery[] = [];
   /** Batched documents to be saved into storage */
   private documents: BundledDocuments = [];
 
   constructor(
-    private bundleMetadata: bundleProto.BundleMetadata,
+    private bundleMetadata: ProtoBundleMetadata,
     private localStore: LocalStore,
     private serializer: JsonProtoSerializer
   ) {

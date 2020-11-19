@@ -165,6 +165,7 @@ export class FirebaseFirestore implements _FirebaseService {
 
   private _app?: FirebaseApp;
 
+  /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>

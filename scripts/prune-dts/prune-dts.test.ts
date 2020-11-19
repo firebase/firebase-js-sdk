@@ -22,7 +22,7 @@ import { format, resolveConfig } from 'prettier';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 
-import { pruneDts } from './prune-dts';
+import {pruneDts, removeUnusedImports} from './prune-dts';
 
 const testCasesDir = path.resolve(__dirname, 'tests');
 const tmpDir = os.tmpdir();
@@ -32,7 +32,7 @@ const testCaseFilterRe = /.*/;
 
 async function runScript(inputFile: string): Promise<string> {
   const outputFile = path.resolve(tmpDir, 'output.d.ts');
-  await pruneDts(inputFile, outputFile);
+  pruneDts(inputFile, outputFile);
   return outputFile;
 }
 

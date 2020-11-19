@@ -880,6 +880,7 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
    */
   readonly fromCache: boolean;
 
+  /** @hideconstructor */
   constructor(hasPendingWrites: boolean, fromCache: boolean) {
     this.hasPendingWrites = hasPendingWrites;
     this.fromCache = fromCache;
