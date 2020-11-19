@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { resolve } from 'path';
+import { resolve as pathResolve } from 'path';
 import * as fs from 'fs';
 import { execSync } from 'child_process';
 import * as terser from 'terser';
@@ -25,6 +25,8 @@ import {
   RequestBody,
   RequestEndpoint
 } from './size_report_helper';
+import * as rollup from 'rollup';
+import commonjs from '@rollup/plugin-commonjs';
 
 interface Report {
   sdk: string;
@@ -38,7 +40,7 @@ interface BinarySizeRequestBody extends RequestBody {
 // CDN scripts
 function generateReportForCDNScripts(): Report[] {
   const reports = [];
-  const firebaseRoot = resolve(__dirname, '../../packages/firebase');
+  const firebaseRoot = pathResolve(__dirname, '../../packages/firebase');
   const pkgJson = require(`${firebaseRoot}/package.json`);
 
   const special_files = [
@@ -103,8 +105,16 @@ async function generateReportForNPMPackages(): Promise<Report[]> {
 
       for (const field of fields) {
         if (packageJson[field]) {
-          const filePath = `${path}/${packageJson[field]}`;
-          const rawCode = fs.readFileSync(filePath, 'utf-8');
+          const filePath = pathResolve(path, packageJson[field]);
+          // Need to create a bundle and get the size of the bundle instead of reading the size of the file directly.
+          // It is because some packages might be split into multiple files in order to share code between entry points.
+          const bundle = await rollup.rollup({
+            input: filePath,
+            plugins: [commonjs()]
+          });
+
+          const { output } = await bundle.generate({ format: 'es' });
+          const rawCode = output[0].code;
 
           // remove comments and whitespaces, then get size
           const { code } = await terser.minify(rawCode, {
@@ -122,7 +132,6 @@ async function generateReportForNPMPackages(): Promise<Report[]> {
 
       resolve();
     });
-
     taskPromises.push(promise);
   }
 }
