@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.8.0
+
+### Minor Changes
+
+- [`34973cde2`](https://github.com/firebase/firebase-js-sdk/commit/34973cde218e570baccd235d5bb6c6146559f80b) [#3812](https://github.com/firebase/firebase-js-sdk/pull/3812) - Add a `get` method for database queries that returns server result when connected
+
 ## 0.7.1
 
 ### Patch Changes

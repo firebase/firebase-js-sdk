@@ -1,5 +1,13 @@
 # @firebase/firestore
 
+## 2.0.3
+
+### Patch Changes
+
+- [`6c6c49ad6`](https://github.com/firebase/firebase-js-sdk/commit/6c6c49ad6b3c3d66e9ecb8397c4ac39bea256e80) [#4053](https://github.com/firebase/firebase-js-sdk/pull/4053) - Internal changes for the upcoming modular API.
+
+* [`e0bf3f70b`](https://github.com/firebase/firebase-js-sdk/commit/e0bf3f70bf82f3587e60ab4484fe37d01cea0051) [#4080](https://github.com/firebase/firebase-js-sdk/pull/4080) (fixes [#4071](https://github.com/firebase/firebase-js-sdk/issues/4071)) - Fixes a regression introduced in v8.0.2 that returned invalid values for `DocumentChange.newIndex`.
+
 ## 2.0.2
 
 ### Patch Changes
