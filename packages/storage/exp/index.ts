@@ -52,6 +52,12 @@ export {
  */
 const STORAGE_TYPE = 'storage-exp';
 
+/**
+ * Gets a Firebase StorageService instance for the given Firebase app.
+ * @public
+ * @param app - Firebase app to get Storage instance for.
+ * @returns A Firebase StorageService instance.
+ */
 export function getStorage(app: FirebaseApp): StorageService {
   // Dependencies
   const storageProvider: Provider<'storage-exp'> = _getProvider(
