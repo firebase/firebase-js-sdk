@@ -20,7 +20,6 @@
  * abstract representations.
  */
 
-import firebase from '@firebase/app';
 import * as backoff from './backoff';
 import {
   FirebaseStorageError,
@@ -34,6 +33,8 @@ import * as type from './type';
 import * as UrlUtils from './url';
 import { Headers, XhrIo, ErrorCode } from './xhrio';
 import { XhrIoPool } from './xhriopool';
+// Firebase SDK version
+import { version } from '../../../../package.json';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -268,9 +269,7 @@ export function addAuthHeader_(
 }
 
 export function addVersionHeader_(headers: Headers): void {
-  const version =
-    typeof firebase !== 'undefined' ? firebase.SDK_VERSION : 'AppManager';
-  headers['X-Firebase-Storage-Version'] = 'webjs/' + version;
+  headers['X-Firebase-Storage-Version'] = 'webjs/' + (version ?? 'AppManager');
 }
 
 export function addGmpidHeader_(headers: Headers, appId: string | null): void {
