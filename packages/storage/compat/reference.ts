@@ -118,7 +118,7 @@ export class ReferenceCompat implements types.Reference {
     const data = dataFromString(format, value);
     const metadataClone = { ...metadata } as Metadata;
     if (metadataClone['contentType'] == null && data.contentType != null) {
-      metadataClone['contentType'] = data.contentType!;
+      metadataClone['contentType'] = data.contentType;
     }
     return new UploadTaskCompat(
       new UploadTask(

@@ -18,12 +18,12 @@
 import * as types from '@firebase/storage-types';
 import { ReferenceCompat } from './reference';
 import { UploadTaskCompat } from './task';
-import { UploadTaskResumableSnapshot } from '../src/tasksnapshot';
+import { UploadTaskSnapshot } from '../src/tasksnapshot';
 import { Metadata } from '../src/metadata';
 
 export class UploadTaskSnapshotCompat implements types.UploadTaskSnapshot {
   constructor(
-    readonly _delegate: UploadTaskResumableSnapshot,
+    readonly _delegate: UploadTaskSnapshot,
     readonly task: UploadTaskCompat,
     readonly ref: ReferenceCompat
   ) {}

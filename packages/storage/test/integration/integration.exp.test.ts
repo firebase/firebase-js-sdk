@@ -32,15 +32,12 @@ import {
   listAll
 } from '../../exp/index';
 
-// See https://github.com/typescript-eslint/typescript-eslint/issues/363
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// import * as storage from '@firebase/storage-types';
-
 import { use, expect } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-use(chaiAsPromised);
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { StorageService } from '../../src/service';
+
+use(chaiAsPromised);
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');

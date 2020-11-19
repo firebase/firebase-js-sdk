@@ -125,6 +125,7 @@ function extractBucket(config?: FirebaseOptions): Location | null {
 
 /**
  * A service that provides Firebase Storage Reference instances.
+ * @public
  * @param opt_url - gs:// url to a custom Storage Bucket
  */
 export class StorageService implements _FirebaseService {

@@ -331,12 +331,12 @@ describe('Firebase Storage > Reference', () => {
         'storage/invalid-root-operation'
       );
     });
-    it('uploadString throws', async () => {
+    it('uploadString throws', () => {
       expect(() => uploadString(root, 'raw', StringFormat.RAW)).to.throw(
         'storage/invalid-root-operation'
       );
     });
-    it('uploadBytes throws', async () => {
+    it('uploadBytes throws', () => {
       expect(() => uploadBytes(root, new Blob(['a']))).to.throw(
         'storage/invalid-root-operation'
       );

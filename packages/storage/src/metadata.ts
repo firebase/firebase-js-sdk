@@ -24,6 +24,7 @@ import { StorageReference } from './reference';
 
 /**
  * The full set of object metadata, including read-only properties.
+ * @public
  */
 interface Metadata extends types.FullMetadata {
   type: string | undefined;

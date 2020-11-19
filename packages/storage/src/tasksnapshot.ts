@@ -19,12 +19,20 @@ import { Metadata } from './metadata';
 import { StorageReference } from './reference';
 import { UploadTask } from './task';
 
-export interface UploadTaskSnapshot {
+/**
+ * Result returned from a non-resumable upload.
+ * @public
+ */
+export interface UploadResult {
   readonly metadata: Metadata;
   readonly ref: StorageReference;
 }
 
-export interface UploadTaskResumableSnapshot {
+/**
+ * Holds data about the current state of the upload task.
+ * @public
+ */
+export interface UploadTaskSnapshot {
   readonly bytesTransferred: number;
   readonly totalBytes: number;
   readonly state: TaskState;

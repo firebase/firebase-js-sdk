@@ -278,7 +278,7 @@ export function metadataForUpload_(
 }
 
 /**
- * Prepare RequestInfo for resumable uploads as Content-Type: multipart.
+ * Prepare RequestInfo for uploads as Content-Type: multipart.
  */
 export function multipartUpload(
   service: StorageService,
@@ -453,7 +453,7 @@ export function getResumableUploadStatus(
  * Any uploads via the resumable upload API must transfer a number of bytes
  * that is a multiple of this number.
  */
-export const resumableUploadChunkSize: number = 256 * 1024;
+export const RESUMABLE_UPLOAD_CHUNK_SIZE: number = 256 * 1024;
 
 /**
  * @param url From a call to fbs.requests.createResumableUpload.

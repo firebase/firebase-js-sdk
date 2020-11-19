@@ -35,7 +35,7 @@ import {
 import { name, version } from '../package.json';
 import { FirebaseApp } from '@firebase/app-types-exp';
 
-export { ref } from '../src/service';
+export { ref, StorageService } from '../src/service';
 export {
   uploadBytes,
   uploadBytesResumable,
@@ -45,8 +45,14 @@ export {
   list,
   listAll,
   getDownloadURL,
-  deleteObject
+  deleteObject,
+  StorageReference
 } from '../src/reference';
+export { Metadata } from '../src/metadata';
+export { ListOptions, ListResult } from '../src/list';
+export { UploadTask } from '../src/task';
+export { UploadResult, UploadTaskSnapshot } from '../src/tasksnapshot';
+export { StringFormat } from '../src/implementation/string';
 
 /**
  * Type constant for Firebase Storage.

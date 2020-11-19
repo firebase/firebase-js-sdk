@@ -38,10 +38,11 @@ import { ListOptions, ListResult } from './list';
 import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
-import { UploadTaskSnapshot } from './tasksnapshot';
+import { UploadResult } from './tasksnapshot';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
+ * @public
  * @param location - An fbs.location, or the URL at
  *     which to base this object, in one of the following forms:
  *         gs://<bucket>/<object-path>
@@ -129,26 +130,25 @@ export class StorageReference {
  * @param ref - StorageReference where data should be uploaded.
  * @param data - The data to upload.
  * @param metadata - Metadata for the newly uploaded data.
- * @returns An UploadTaskNonResumableSnapshot
+ * @returns A Promise containing an UploadResult
  */
 export function uploadBytes(
   ref: StorageReference,
   data: Blob | Uint8Array | ArrayBuffer,
   metadata?: Metadata
-): Promise<UploadTaskSnapshot> {
+): Promise<UploadResult> {
   ref._throwIfRoot('uploadBytes');
   return _nonResumableUpload(ref, data, metadata);
 }
 
 /**
  * Uploads data to this object's location.
- * The upload is resumable and exposes progress updates.
+ * The upload can be paused and resumed, and exposes progress updates.
  * @public
  * @param ref - StorageReference where data should be uploaded.
  * @param data - The data to upload.
  * @param metadata - Metadata for the newly uploaded data.
- * @returns An UploadTask that lets you control and
- *     observe the upload.
+ * @returns An UploadTaskSnapshot
  */
 export function uploadBytesResumable(
   ref: StorageReference,
@@ -167,15 +167,14 @@ export function uploadBytesResumable(
  * @param value - The string to upload.
  * @param format - The format of the string to upload.
  * @param metadata - Metadata for the newly uploaded string.
- * @returns An UploadTask that lets you control and
- *     observe the upload.
+ * @returns A Promise containing an UploadResult
  */
 export function uploadString(
   ref: StorageReference,
   value: string,
   format: StringFormat = StringFormat.RAW,
   metadata?: Metadata
-): Promise<UploadTaskSnapshot> {
+): Promise<UploadResult> {
   ref._throwIfRoot('uploadString');
   const data = dataFromString(format, value);
   const metadataClone = { ...metadata } as Metadata;
@@ -186,13 +185,13 @@ export function uploadString(
 }
 
 /**
- * Base code for nonresumable upload, used by uploadString and uploadBytes.
+ * Shared code for nonresumable upload, used by uploadString and uploadBytes.
  */
 export async function _nonResumableUpload(
   ref: StorageReference,
   data: Uint8Array | Blob | ArrayBuffer,
   metadata?: Metadata
-): Promise<UploadTaskSnapshot> {
+): Promise<UploadResult> {
   const authToken = await ref.storage.getAuthToken();
   const requestInfo = multipartUpload(
     ref.storage,

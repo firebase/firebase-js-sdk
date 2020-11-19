@@ -24,11 +24,13 @@ import { StorageReference } from './reference';
 
 /**
  * The options `list()` accepts.
+ * @public
  */
 export interface ListOptions extends types.ListOptions {}
 
 /**
- * Result returned by list().
+ * Result returned by `list()`.
+ * @public
  */
 export interface ListResult {
   prefixes: StorageReference[];
