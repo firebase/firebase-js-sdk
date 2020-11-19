@@ -23,7 +23,6 @@ import {
 } from '../api/credentials';
 import { User } from '../auth/user';
 import {
-  getNamedQuery,
   executeQuery,
   handleUserChange,
   LocalStore,
@@ -55,7 +54,6 @@ import {
   registerPendingWritesCallback,
   SyncEngine,
   syncEngineListen,
-  syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
 } from './sync_engine';
@@ -77,12 +75,6 @@ import { logDebug } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Persistence } from '../local/persistence';
 import { Datastore } from '../remote/datastore';
-import { BundleReader } from '../util/bundle_reader';
-import { LoadBundleTask } from '../api/bundle';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { NamedQuery } from './bundle';
-import { JsonProtoSerializer } from '../remote/serializer';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -276,7 +268,7 @@ function getRemoteStore(client: FirestoreClient): Promise<RemoteStore> {
   return ensureOnlineComponents(client).then(c => c.remoteStore);
 }
 
-function getSyncEngine(client: FirestoreClient): Promise<SyncEngine> {
+export function getSyncEngine(client: FirestoreClient): Promise<SyncEngine> {
   return ensureOnlineComponents(client).then(c => c.syncEngine);
 }
 
@@ -655,40 +647,4 @@ export function executeQueryViaSnapshotListener(
     waitForSyncWhenOnline: true
   });
   return eventManagerListen(eventManager, listener);
-}
-
-export async function firestoreClientLoadBundle(
-  client: FirestoreClient,
-  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
-  resultTask: LoadBundleTask
-): Promise<void> {
-  const reader = createBundleReader(
-    data,
-    newSerializer((await client.getConfiguration()).databaseInfo.databaseId)
-  );
-  client.asyncQueue.enqueueAndForget(async () => {
-    syncEngineLoadBundle(await getSyncEngine(client), reader, resultTask);
-  });
-}
-
-export function firestoreClientGetNamedQuery(
-  client: FirestoreClient,
-  queryName: string
-): Promise<NamedQuery | undefined> {
-  return client.asyncQueue.enqueue(async () =>
-    getNamedQuery(await getLocalStore(client), queryName)
-  );
-}
-
-function createBundleReader(
-  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
-  serializer: JsonProtoSerializer
-): BundleReader {
-  let content: ReadableStream<Uint8Array> | ArrayBuffer;
-  if (typeof data === 'string') {
-    content = newTextEncoder().encode(data);
-  } else {
-    content = data;
-  }
-  return new BundleReader(toByteStreamReader(content), serializer);
 }

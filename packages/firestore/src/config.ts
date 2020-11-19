@@ -30,9 +30,7 @@ import {
   QuerySnapshot,
   Transaction,
   WriteBatch,
-  setLogLevel,
-  loadBundle,
-  namedQuery
+  setLogLevel
 } from './api/database';
 import { Blob } from './api/blob';
 import { FieldPath } from './api/field_path';
@@ -56,8 +54,6 @@ const firestoreNamespace = {
   FieldPath,
   FieldValue,
   setLogLevel,
-  loadBundle,
-  namedQuery,
   CACHE_SIZE_UNLIMITED
 };
 
