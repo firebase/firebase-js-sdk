@@ -40,7 +40,7 @@ export class Bytes {
     } catch (e) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Failed to construct Bytes from Base64 string: ' + e
+        'Failed to construct data from Base64 string: ' + e
       );
     }
   }
