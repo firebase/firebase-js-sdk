@@ -2,4 +2,4 @@
 "firebase": patch
 ---
 
-Add type definitions for get()
+Add the missing type definition for 'Query.get()' for RTDB
