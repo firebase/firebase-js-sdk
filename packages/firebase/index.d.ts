@@ -6174,7 +6174,7 @@ declare namespace firebase.database {
     /**
      * Gets the most up-to-date result for this query.
      *
-     * @return A promse which resolves to the resulting DataSnapshot if
+     * @return A promise which resolves to the resulting DataSnapshot if
      * a value is available, or rejects if the client is unable to return
      * a value (e.g., if the server is unreachable and there is nothing
      * cached).
