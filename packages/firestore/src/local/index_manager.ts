@@ -22,7 +22,7 @@ import { PersistencePromise } from './persistence_promise';
 /**
  * Represents a set of indexes that are used to execute queries efficiently.
  *
- * Currently the only index is a [collection id] => [parent path] index, used
+ * Currently the only index is a [collection id] =&gt; [parent path] index, used
  * to execute Collection Group queries.
  */
 export interface IndexManager {

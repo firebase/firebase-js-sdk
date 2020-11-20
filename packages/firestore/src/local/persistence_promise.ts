@@ -27,10 +27,10 @@ export type Resolver<T> = (value?: T) => void;
 export type Rejector = (error: Error) => void;
 
 /**
- * PersistencePromise<> is essentially a re-implementation of Promise<> except
+ * PersistencePromise is essentially a re-implementation of Promise except
  * it has a .next() method instead of .then() and .next() and .catch() callbacks
  * are executed synchronously when a PersistencePromise resolves rather than
- * asynchronously (Promise<> implementations use setImmediate() or similar).
+ * asynchronously (Promise implementations use setImmediate() or similar).
  *
  * This is necessary to interoperate with IndexedDB which will automatically
  * commit transactions if control is returned to the event loop without

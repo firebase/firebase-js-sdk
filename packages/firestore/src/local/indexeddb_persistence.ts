@@ -292,7 +292,7 @@ export class IndexedDbPersistence implements Persistence {
   /**
    * Attempt to start IndexedDb persistence.
    *
-   * @return {Promise<void>} Whether persistence was enabled.
+   * @returns Whether persistence was enabled.
    */
   start(): Promise<void> {
     debugAssert(!this.started, 'IndexedDbPersistence double-started!');
@@ -1306,7 +1306,7 @@ function sentinelKey(key: DocumentKey): [TargetId, EncodedResourcePath] {
 }
 
 /**
- * @return A value suitable for writing a sentinel row in the target-document
+ * @returns A value suitable for writing a sentinel row in the target-document
  * store.
  */
 function sentinelRow(
