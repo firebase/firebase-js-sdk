@@ -1,5 +1,12 @@
 # Unreleased
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [[`4f6313262`](https://github.com/firebase/firebase-js-sdk/commit/4f63132622fa46ca7373ab93440c76bcb1822620)]:
+  - @firebase/database-types@0.6.1
+
 ## 0.8.0
 
 ### Minor Changes
