@@ -171,6 +171,8 @@ function prunePrivateImports<
       } else {
         // Hide the type we are inheriting from and merge its declarations
         // into the current class.
+        // TODO: We really only need to do this when the type that is extended
+        // is a class. We should skip this for interfaces.
         const privateType = typeChecker.getTypeAtLocation(type);
         additionalMembers.push(
           ...convertPropertiesForEnclosingClass(
