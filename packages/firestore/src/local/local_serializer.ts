@@ -57,7 +57,7 @@ import {
 import { TargetData, TargetPurpose } from './target_data';
 import { Bundle, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
-import * as bundleProto from '../protos/firestore_bundle_proto';
+import { BundleMetadata as ProtoBundleMetadata} from '../protos/firestore_bundle_proto';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -289,7 +289,7 @@ export function fromDbBundle(dbBundle: DbBundle): Bundle {
 }
 
 /** Encodes a BundleMetadata to a DbBundle. */
-export function toDbBundle(metadata: bundleProto.BundleMetadata): DbBundle {
+export function toDbBundle(metadata: ProtoBundleMetadata): DbBundle {
   return {
     bundleId: metadata.id!,
     createTime: toDbTimestamp(fromVersion(metadata.createTime!)),

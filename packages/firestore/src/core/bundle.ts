@@ -23,7 +23,7 @@ import {
   fromVersion,
   JsonProtoSerializer
 } from '../remote/serializer';
-import * as bundleProto from '../protos/firestore_bundle_proto';
+import { NamedQuery as ProtoNamedQuery, BundleMetadata as ProtoBundleMetadata, BundledDocumentMetadata as ProtoBundledDocumentMetadata} from '../protos/firestore_bundle_proto';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
@@ -70,7 +70,7 @@ export interface NamedQuery {
  * itself, if it exists.
  */
 interface BundledDocument {
-  metadata: bundleProto.BundledDocumentMetadata;
+  metadata: ProtoBundledDocumentMetadata;
   document?: api.Document;
 }
 
@@ -159,12 +159,12 @@ export class BundleLoader {
   /** The current progress of loading */
   private progress: ApiLoadBundleTaskProgress;
   /** Batched queries to be saved into storage */
-  private queries: bundleProto.NamedQuery[] = [];
+  private queries: ProtoNamedQuery[] = [];
   /** Batched documents to be saved into storage */
   private documents: BundledDocuments = [];
 
   constructor(
-    private bundleMetadata: bundleProto.BundleMetadata,
+    private bundleMetadata: ProtoBundleMetadata,
     private localStore: LocalStore,
     private serializer: JsonProtoSerializer
   ) {

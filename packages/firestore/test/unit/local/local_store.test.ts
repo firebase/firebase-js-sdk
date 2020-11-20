@@ -115,7 +115,7 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
 import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
-import * as bundleProto from '../../../src/protos/firestore_bundle_proto';
+import { BundleMetadata as ProtoBundleMetadata} from '../../../src/protos/firestore_bundle_proto';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -473,7 +473,7 @@ class LocalStoreTester {
   }
 
   toHaveNewerBundle(
-    metadata: bundleProto.BundleMetadata,
+    metadata: ProtoBundleMetadata,
     expected: boolean
   ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
@@ -496,7 +496,7 @@ class LocalStoreTester {
     return this;
   }
 
-  afterSavingBundle(metadata: bundleProto.BundleMetadata): LocalStoreTester {
+  afterSavingBundle(metadata: ProtoBundleMetadata): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() =>
       saveBundle(this.localStore, metadata)
     );
