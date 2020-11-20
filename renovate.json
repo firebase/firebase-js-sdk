@@ -18,7 +18,6 @@
     "karma-sauce-launcher",
     "protractor",
     "long",
-    "rollup-plugin-copy-assets",
     "idb",
     "whatwg-fetch",
     "typedoc"

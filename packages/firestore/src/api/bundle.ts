@@ -20,6 +20,11 @@ import { Deferred } from '../util/promise';
 import { PartialObserver } from './observer';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
+import { ensureFirestoreConfigured, Query, Firestore } from './database';
+import {
+  firestoreClientGetNamedQuery,
+  firestoreClientLoadBundle
+} from '../core/bundle';
 
 export class LoadBundleTask
   implements
@@ -115,4 +120,34 @@ export class LoadBundleTask
       this._progressObserver.next(progress);
     }
   }
+}
+
+export function loadBundle(
+  db: Firestore,
+  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+): LoadBundleTask {
+  const resultTask = new LoadBundleTask();
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreClientLoadBundle(
+    ensureFirestoreConfigured(db._delegate),
+    bundleData,
+    resultTask
+  );
+  return resultTask;
+}
+
+export function namedQuery(
+  db: Firestore,
+  name: string
+): Promise<firestore.Query | null> {
+  return firestoreClientGetNamedQuery(
+    ensureFirestoreConfigured(db._delegate),
+    name
+  ).then(namedQuery => {
+    if (!namedQuery) {
+      return null;
+    }
+
+    return new Query(namedQuery.query, db, null);
+  });
 }

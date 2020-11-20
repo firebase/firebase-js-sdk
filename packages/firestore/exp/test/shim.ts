@@ -51,13 +51,11 @@ import {
   DocumentSnapshot,
   QuerySnapshot,
   wrapObserver,
-  extractSnapshotOptions,
-  loadBundle,
-  namedQuery
+  extractSnapshotOptions
 } from '../../src/api/database';
 
 export { GeoPoint, Timestamp } from '../index';
-export { loadBundle, namedQuery };
+export { loadBundle, namedQuery } from '../../src/api/bundle';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

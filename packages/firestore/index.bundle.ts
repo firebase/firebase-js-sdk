@@ -15,23 +15,25 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
-import { loadBundle, namedQuery } from './src/api/database';
+import { Firestore } from './src/api/database';
+import { loadBundle, namedQuery } from './src/api/bundle';
 
 /**
  * Registers the memory-only Firestore build with the components framework.
  */
-export function registerBundle(
-  instance: typeof firestore.FirebaseFirestore
-): void {
+export function registerBundle(instance: typeof Firestore): void {
   instance.prototype.loadBundle = function (
     data: ArrayBuffer | ReadableStream<Uint8Array> | string
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return loadBundle(this as any, data);
   };
   instance.prototype.namedQuery = function (queryName: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return namedQuery(this as any, queryName);
   };
+
+  //TODO: add loadBundle and namedQuery to the firestore namespace
 }
 
-registerBundle(firestore.FirebaseFirestore);
+registerBundle(Firestore);
