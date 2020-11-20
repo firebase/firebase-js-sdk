@@ -25,7 +25,6 @@ import {
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
 import { validateReference } from '../../../lite/src/api/write_batch';
 import { DocumentReference } from '../../../lite/src/api/reference';
-import { cast } from '../../../src/util/input_validation';
 import { ExpUserDataWriter } from './reference';
 import { firestoreClientTransaction } from '../../../src/core/firestore_client';
 
