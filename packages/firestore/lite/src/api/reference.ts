@@ -194,7 +194,7 @@ export class DocumentReference<T = DocumentData> {
    * your custom type `U`.
    *
    * @param converter Converts objects to and from Firestore.
-   * @return A `DocumentReference<U>` that uses the provided converter.
+   * @returns A `DocumentReference<U>` that uses the provided converter.
    */
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U> {
     return new DocumentReference<U>(this.firestore, converter, this._key);
@@ -233,7 +233,7 @@ export class Query<T = DocumentData> {
    * data and your custom type `U`.
    *
    * @param converter Converts objects to and from Firestore.
-   * @return A `Query<U>` that uses the provided converter.
+   * @returns A `Query<U>` that uses the provided converter.
    */
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
@@ -344,7 +344,7 @@ export type WhereFilterOp =
  * @param fieldPath The path to compare
  * @param opStr The operation string (e.g "<", "<=", "==", ">", ">=", "!=").
  * @param value The value for comparison
- * @return The created `Query`.
+ * @returns The created `Query`.
  */
 export function where(
   fieldPath: string | FieldPath,
@@ -389,7 +389,7 @@ export type OrderByDirection = 'desc' | 'asc';
  * @param fieldPath The field to sort by.
  * @param directionStr Optional direction to sort by ('asc' or 'desc'). If
  * not specified, order will be ascending.
- * @return The created `Query`.
+ * @returns The created `Query`.
  */
 export function orderBy(
   fieldPath: string | FieldPath,
@@ -422,7 +422,7 @@ class QueryLimitConstraint extends QueryConstraint {
  * Creates a `QueryConstraint` that only returns the first matching documents.
  *
  * @param limit The maximum number of items to return.
- * @return The created `Query`.
+ * @returns The created `Query`.
  */
 export function limit(limit: number): QueryConstraint {
   validatePositiveNumber('limit', limit);
@@ -436,7 +436,7 @@ export function limit(limit: number): QueryConstraint {
  * otherwise an exception will be thrown during execution.
  *
  * @param limit The maximum number of items to return.
- * @return The created `Query`.
+ * @returns The created `Query`.
  */
 export function limitToLast(limit: number): QueryConstraint {
   validatePositiveNumber('limitToLast', limit);
@@ -474,7 +474,7 @@ class QueryStartAtConstraint extends QueryConstraint {
  * `orderBy` of this query.
  *
  * @param snapshot The snapshot of the document to start at.
- * @return A `QueryConstraint` to pass to `query()`.
+ * @returns A `QueryConstraint` to pass to `query()`.
  */
 export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 /**
@@ -484,7 +484,7 @@ export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  *
  * @param fieldValues The field values to start this query at, in order
  * of the query's order by.
- * @return A `QueryConstraint` to pass to `query()`.
+ * @returns A `QueryConstraint` to pass to `query()`.
  */
 export function startAt(...fieldValues: unknown[]): QueryConstraint;
 export function startAt(
@@ -500,7 +500,7 @@ export function startAt(
  * orderBy of the query.
  *
  * @param snapshot The snapshot of the document to start after.
- * @return A `QueryConstraint` to pass to `query()`
+ * @returns A `QueryConstraint` to pass to `query()`
  */
 export function startAfter(
   snapshot: DocumentSnapshot<unknown>
@@ -512,7 +512,7 @@ export function startAfter(
  *
  * @param fieldValues The field values to start this query after, in order
  * of the query's order by.
- * @return A `QueryConstraint` to pass to `query()`
+ * @returns A `QueryConstraint` to pass to `query()`
  */
 export function startAfter(...fieldValues: unknown[]): QueryConstraint;
 export function startAfter(
@@ -556,7 +556,7 @@ class QueryEndAtConstraint extends QueryConstraint {
  * orderBy of the query.
  *
  * @param snapshot The snapshot of the document to end before.
- * @return A `QueryConstraint` to pass to `query()`
+ * @returns A `QueryConstraint` to pass to `query()`
  */
 export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 /**
@@ -566,7 +566,7 @@ export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  *
  * @param fieldValues The field values to end this query before, in order
  * of the query's order by.
- * @return A `QueryConstraint` to pass to `query()`
+ * @returns A `QueryConstraint` to pass to `query()`
  */
 export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 export function endBefore(
@@ -582,7 +582,7 @@ export function endBefore(
  * orderBy of the query.
  *
  * @param snapshot The snapshot of the document to end at.
- * @return A `QueryConstraint` to pass to `query()`
+ * @returns A `QueryConstraint` to pass to `query()`
  */
 export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 /**
@@ -592,7 +592,7 @@ export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  *
  * @param fieldValues The field values to end this query at, in order
  * of the query's order by.
- * @return A `QueryConstraint` to pass to `query()`
+ * @returns A `QueryConstraint` to pass to `query()`
  */
 export function endAt(...fieldValues: unknown[]): QueryConstraint;
 export function endAt(
@@ -1083,7 +1083,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * converter will convert between Firestore data and your custom type `U`.
    *
    * @param converter Converts objects to and from Firestore.
-   * @return A `CollectionReference<U>` that uses the provided converter.
+   * @returns A `CollectionReference<U>` that uses the provided converter.
    */
   withConverter<U>(
     converter: FirestoreDataConverter<U>
@@ -1102,7 +1102,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
  * argument.
  * @throws If the final path has an even number of segments and does not point
  * to a collection.
- * @return The `CollectionReference` instance.
+ * @returns The `CollectionReference` instance.
  */
 export function collection(
   firestore: FirebaseFirestore,
@@ -1119,7 +1119,7 @@ export function collection(
  * argument.
  * @throws If the final path has an even number of segments and does not point
  * to a collection.
- * @return The `CollectionReference` instance.
+ * @returns The `CollectionReference` instance.
  */
 export function collection(
   reference: CollectionReference<unknown>,
@@ -1136,7 +1136,7 @@ export function collection(
  * to the first argument.
  * @throws If the final path has an even number of segments and does not point
  * to a collection.
- * @return The `CollectionReference` instance.
+ * @returns The `CollectionReference` instance.
  */
 export function collection(
   reference: DocumentReference,
@@ -1192,7 +1192,7 @@ export function collection(
  * @param collectionId Identifies the collections to query over. Every
  * collection or subcollection with this ID as the last segment of its path
  * will be included. Cannot contain a slash.
- * @return The created `Query`.
+ * @returns The created `Query`.
  */
 export function collectionGroup(
   firestore: FirebaseFirestore,
@@ -1224,7 +1224,7 @@ export function collectionGroup(
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to
  * a document.
- * @return The `DocumentReference` instance.
+ * @returns The `DocumentReference` instance.
  */
 export function doc(
   firestore: FirebaseFirestore,
@@ -1244,7 +1244,7 @@ export function doc(
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to
  * a document.
- * @return The `DocumentReference` instance.
+ * @returns The `DocumentReference` instance.
  */
 export function doc<T>(
   reference: CollectionReference<T>,
@@ -1261,7 +1261,7 @@ export function doc<T>(
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to
  * a document.
- * @return The `DocumentReference` instance.
+ * @returns The `DocumentReference` instance.
  */
 export function doc(
   reference: DocumentReference<unknown>,
@@ -1339,7 +1339,7 @@ export class LiteUserDataWriter extends AbstractUserDataWriter {
  * caching or see local modifications, please use the full Firestore SDK.
  *
  * @param reference The reference of the document to fetch.
- * @return A Promise resolved with a `DocumentSnapshot` containing the current
+ * @returns A Promise resolved with a `DocumentSnapshot` containing the current
  * document contents.
  */
 export function getDoc<T>(
@@ -1373,7 +1373,7 @@ export function getDoc<T>(
  * modifications, use the full Firestore SDK.
  *
  * @param query The `Query` to execute.
- * @return A Promise that will be resolved with the results of the query.
+ * @returns A Promise that will be resolved with the results of the query.
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   validateHasExplicitOrderByForLimitToLast(query._query);
@@ -1414,7 +1414,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  *
  * @param reference A reference to the document to write.
  * @param data A map of the fields and values for the document.
- * @return A Promise resolved once the data has been successfully written
+ * @returns A Promise resolved once the data has been successfully written
  * to the backend.
  */
 export function setDoc<T>(
@@ -1434,7 +1434,7 @@ export function setDoc<T>(
  * @param reference A reference to the document to write.
  * @param data A map of the fields and values for the document.
  * @param options An object to configure the set behavior.
- * @return A Promise resolved once the data has been successfully written
+ * @returns A Promise resolved once the data has been successfully written
  * to the backend.
  */
 export function setDoc<T>(
@@ -1483,7 +1483,7 @@ export function setDoc<T>(
  * @param data An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
- * @return A Promise resolved once the data has been successfully written
+ * @returns A Promise resolved once the data has been successfully written
  * to the backend.
  */
 export function updateDoc(
@@ -1507,7 +1507,7 @@ export function updateDoc(
  * @param field The first field to update.
  * @param value The first value.
  * @param moreFieldsAndValues Additional key value pairs.
- * @return A Promise resolved once the data has been successfully written
+ * @returns A Promise resolved once the data has been successfully written
  * to the backend.
  */
 export function updateDoc(
@@ -1568,7 +1568,7 @@ export function updateDoc(
  * until the client is online, use the full Firestore SDK.
  *
  * @param reference A reference to the document to delete.
- * @return A Promise resolved once the document has been successfully
+ * @returns A Promise resolved once the document has been successfully
  * deleted from the backend.
  */
 export function deleteDoc(reference: DocumentReference): Promise<void> {
@@ -1589,7 +1589,7 @@ export function deleteDoc(reference: DocumentReference): Promise<void> {
  *
  * @param reference A reference to the collection to add this document to.
  * @param data An Object containing the data for the new document.
- * @return A Promise resolved with a `DocumentReference` pointing to the
+ * @returns A Promise resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend.
  */
 export function addDoc<T>(
@@ -1625,7 +1625,7 @@ export function addDoc<T>(
  *
  * @param left A reference to compare.
  * @param right A reference to compare.
- * @return true if the references point to the same location in the same
+ * @returns true if the references point to the same location in the same
  * Firestore database.
  */
 export function refEqual<T>(
@@ -1652,7 +1652,7 @@ export function refEqual<T>(
  *
  * @param left A `Query` to compare.
  * @param right A Query` to compare.
- * @return true if the references point to the same location in the same
+ * @returns true if the references point to the same location in the same
  * Firestore database.
  */
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {

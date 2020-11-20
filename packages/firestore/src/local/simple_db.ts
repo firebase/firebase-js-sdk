@@ -579,7 +579,7 @@ export class SimpleDbStore<
    * IndexedDb's `add()`, this method will fail on primary key collisions.
    *
    * @param value The object to write.
-   * @return The key of the value to add.
+   * @returns The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
     logDebug(LOG_TAG, 'ADD', this.store.name, value, value);
@@ -592,7 +592,7 @@ export class SimpleDbStore<
    * if no object exists with the specified key.
    *
    * @key The key of the object to get.
-   * @return The object with the specified key or null if no object exists.
+   * @returns The object with the specified key or null if no object exists.
    */
   get(key: KeyType): PersistencePromise<ValueType | null> {
     const request = this.store.get(key);

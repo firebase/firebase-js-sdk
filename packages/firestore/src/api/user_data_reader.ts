@@ -548,7 +548,7 @@ export function parseQueryValue(
  * @param input Data to be parsed.
  * @param context A context object representing the current path being parsed,
  * the source of the data being parsed, etc.
- * @return The parsed value, or null if the value was a FieldValue sentinel
+ * @returns The parsed value, or null if the value was a FieldValue sentinel
  * that should not be included in the resulting parsed data.
  */
 export function parseData(
@@ -671,7 +671,7 @@ function parseSentinelFieldValue(
 /**
  * Helper to parse a scalar value (i.e. not an Object, Array, or FieldValue)
  *
- * @return The parsed value
+ * @returns The parsed value
  */
 function parseScalarValue(
   value: unknown,

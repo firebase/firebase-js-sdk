@@ -42,7 +42,7 @@ export interface RemoteDocumentCache {
    * Looks up an entry in the cache.
    *
    * @param documentKey The key of the entry to look up.
-   * @return The cached Document or NoDocument entry, or null if we have nothing
+   * @returns The cached Document or NoDocument entry, or null if we have nothing
    * cached.
    */
   getEntry(
@@ -54,7 +54,7 @@ export interface RemoteDocumentCache {
    * Looks up a set of entries in the cache.
    *
    * @param documentKeys The keys of the entries to look up.
-   * @return The cached Document or NoDocument entries indexed by key. If an entry is not cached,
+   * @returns The cached Document or NoDocument entries indexed by key. If an entry is not cached,
    *     the corresponding key will be mapped to a null value.
    */
   getEntries(
@@ -73,7 +73,7 @@ export interface RemoteDocumentCache {
    * @param query The query to match documents against.
    * @param sinceReadTime If not set to SnapshotVersion.min(), return only
    *     documents that have been read since this snapshot version (exclusive).
-   * @return The set of matching documents.
+   * @returns The set of matching documents.
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,

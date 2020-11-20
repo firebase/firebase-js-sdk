@@ -144,7 +144,7 @@ export class DocumentSnapshot<T = DocumentData> {
   /**
    * Signals whether or not the document at the snapshot's location exists.
    *
-   * @return true if the document exists.
+   * @returns true if the document exists.
    */
   exists(): this is QueryDocumentSnapshot<T> {
     return this._document !== null;
@@ -154,7 +154,7 @@ export class DocumentSnapshot<T = DocumentData> {
    * Retrieves all fields in the document as an `Object`. Returns `undefined` if
    * the document doesn't exist.
    *
-   * @return An `Object` containing all fields in the document or `undefined`
+   * @returns An `Object` containing all fields in the document or `undefined`
    * if the document doesn't exist.
    */
   data(): T | undefined {
@@ -182,7 +182,7 @@ export class DocumentSnapshot<T = DocumentData> {
    *
    * @param fieldPath The path (for example 'foo' or 'foo.bar') to a specific
    * field.
-   * @return The data at the specified field location or undefined if no such
+   * @returns The data at the specified field location or undefined if no such
    * field exists in the document.
    */
   // We are using `any` here to avoid an explicit cast by our users.
@@ -218,7 +218,7 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
    * Retrieves all fields in the document as an `Object`.
    *
    * @override
-   * @return An `Object` containing all fields in the document.
+   * @returns An `Object` containing all fields in the document.
    */
   data(): T {
     return super.data() as T;
@@ -282,7 +282,7 @@ export class QuerySnapshot<T = DocumentData> {
  *
  * @param left A snapshot to compare.
  * @param right A snapshot to compare.
- * @return true if the snapshots are equal.
+ * @returns true if the snapshots are equal.
  */
 export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,

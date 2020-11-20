@@ -38,7 +38,7 @@ export class Timestamp {
   /**
    * Creates a new timestamp with the current date, with millisecond precision.
    *
-   * @return a new timestamp representing the current date.
+   * @returns a new timestamp representing the current date.
    */
   static now(): Timestamp {
     return Timestamp.fromMillis(Date.now());
@@ -48,7 +48,7 @@ export class Timestamp {
    * Creates a new timestamp from the given date.
    *
    * @param date The date to initialize the `Timestamp` from.
-   * @return A new `Timestamp` representing the same point in time as the given
+   * @returns A new `Timestamp` representing the same point in time as the given
    *     date.
    */
   static fromDate(date: Date): Timestamp {
@@ -60,7 +60,7 @@ export class Timestamp {
    *
    * @param milliseconds Number of milliseconds since Unix epoch
    *     1970-01-01T00:00:00Z.
-   * @return A new `Timestamp` representing the same point in time as the given
+   * @returns A new `Timestamp` representing the same point in time as the given
    *     number of milliseconds.
    */
   static fromMillis(milliseconds: number): Timestamp {
@@ -112,7 +112,7 @@ export class Timestamp {
    * Converts a `Timestamp` to a JavaScript `Date` object. This conversion causes
    * a loss of precision since `Date` objects only support millisecond precision.
    *
-   * @return JavaScript `Date` object representing the same point in time as
+   * @returns JavaScript `Date` object representing the same point in time as
    *     this `Timestamp`, with millisecond precision.
    */
   toDate(): Date {
@@ -123,7 +123,7 @@ export class Timestamp {
    * Converts a `Timestamp` to a numeric timestamp (in milliseconds since
    * epoch). This operation causes a loss of precision.
    *
-   * @return The point in time corresponding to this timestamp, represented as
+   * @returns The point in time corresponding to this timestamp, represented as
    *     the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
    */
   toMillis(): number {
@@ -141,7 +141,7 @@ export class Timestamp {
    * Returns true if this `Timestamp` is equal to the provided one.
    *
    * @param other The `Timestamp` to compare against.
-   * @return true if this `Timestamp` is equal to the provided one.
+   * @returns true if this `Timestamp` is equal to the provided one.
    */
   isEqual(other: Timestamp): boolean {
     return (

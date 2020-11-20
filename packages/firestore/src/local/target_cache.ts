@@ -48,7 +48,7 @@ export interface TargetCache {
   ): PersistencePromise<SnapshotVersion>;
 
   /**
-   * @return The highest sequence number observed, including any that might be
+   * @returns The highest sequence number observed, including any that might be
    *         persisted on-disk.
    */
   getHighestSequenceNumber(
@@ -125,7 +125,7 @@ export interface TargetCache {
    * Looks up a TargetData entry by target.
    *
    * @param target The query target corresponding to the entry to look up.
-   * @return The cached TargetData entry, or null if the cache has no entry for
+   * @returns The cached TargetData entry, or null if the cache has no entry for
    * the target.
    */
   getTargetData(

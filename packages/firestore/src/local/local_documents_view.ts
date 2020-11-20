@@ -62,7 +62,7 @@ export class LocalDocumentsView {
   /**
    * Get the local view of the document identified by `key`.
    *
-   * @return Local view of the document or null if we don't have any cached
+   * @returns Local view of the document or null if we don't have any cached
    * state for it.
    */
   getDocument(

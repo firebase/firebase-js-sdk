@@ -118,7 +118,7 @@ export class View {
    * @param docChanges The doc changes to apply to this view.
    * @param previousChanges If this is being called with a refill, then start
    *        with this set of docs and changes instead of the current view.
-   * @return a new set of docs, changes, and refill flag.
+   * @returns a new set of docs, changes, and refill flag.
    */
   computeDocChanges(
     docChanges: MaybeDocumentMap,
@@ -289,7 +289,7 @@ export class View {
    *        change.
    * @param targetChange A target change to apply for computing limbo docs and
    *        sync state.
-   * @return A new ViewChange with the given docs, changes, and sync state.
+   * @returns A new ViewChange with the given docs, changes, and sync state.
    */
   // PORTING NOTE: The iOS/Android clients always compute limbo document changes.
   applyChanges(
@@ -462,7 +462,7 @@ export class View {
    * @param queryResult.remoteKeys - The keys of the documents that match the
    * query according to the backend.
    *
-   * @return The ViewChange that resulted from this synchronization.
+   * @returns The ViewChange that resulted from this synchronization.
    */
   // PORTING NOTE: Multi-tab only.
   synchronizeWithPersistedState(queryResult: QueryResult): ViewChange {

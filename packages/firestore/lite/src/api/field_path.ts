@@ -57,7 +57,7 @@ export class FieldPath {
    * Returns true if this `FieldPath` is equal to the provided one.
    *
    * @param other The `FieldPath` to compare against.
-   * @return true if this `FieldPath` is equal to the provided one.
+   * @returns true if this `FieldPath` is equal to the provided one.
    */
   isEqual(other: FieldPath): boolean {
     return this._internalPath.isEqual(other._internalPath);

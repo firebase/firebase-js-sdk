@@ -76,7 +76,7 @@ export class Transaction {
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
    * @param documentRef A reference to the document to be read.
-   * @return A `DocumentSnapshot` with the read data.
+   * @returns A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
@@ -118,7 +118,7 @@ export class Transaction {
    *
    * @param documentRef A reference to the document to be set.
    * @param data An object of the fields and values for the document.\
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(documentRef: DocumentReference<T>, data: T): this;
   /**
@@ -130,7 +130,7 @@ export class Transaction {
    * @param documentRef A reference to the document to be set.
    * @param data An object of the fields and values for the document.
    * @param options An object to configure the set behavior.
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(
     documentRef: DocumentReference<T>,
@@ -169,7 +169,7 @@ export class Transaction {
    * @param data An object containing the fields and values with which to
    * update the document. Fields can contain dots to reference nested fields
    * within the document.
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
   /**
@@ -184,7 +184,7 @@ export class Transaction {
    * @param field The first field to update.
    * @param value The first value.
    * @param moreFieldsAndValues Additional key/value pairs.
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   update(
     documentRef: DocumentReference<unknown>,
@@ -236,7 +236,7 @@ export class Transaction {
    * Deletes the document referred to by the provided {@link DocumentReference}.
    *
    * @param documentRef A reference to the document to be deleted.
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   delete(documentRef: DocumentReference<unknown>): this {
     const ref = validateReference(documentRef, this._firestore);
@@ -256,7 +256,7 @@ export class Transaction {
  * @param firestore A reference to the Firestore database to run this
  * transaction against.
  * @param updateFunction The function to execute within the transaction context.
- * @return  If the transaction completed successfully or was explicitly aborted
+ * @returns  If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
  * rejected promise with the corresponding failure error is returned.

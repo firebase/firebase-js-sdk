@@ -67,7 +67,7 @@ export class ObjectValue {
    * Returns the value at the given path or null.
    *
    * @param path the path to search
-   * @return The value at the path or if there it doesn't exist.
+   * @returns The value at the path or if there it doesn't exist.
    */
   field(path: FieldPath): ProtoValue | null {
     if (path.isEmpty()) {
@@ -119,7 +119,7 @@ export class ObjectValueBuilder {
    *
    * @param path The field path to set.
    * @param value The value to set.
-   * @return The current Builder instance.
+   * @returns The current Builder instance.
    */
   set(path: FieldPath, value: ProtoValue): ObjectValueBuilder {
     debugAssert(
@@ -135,7 +135,7 @@ export class ObjectValueBuilder {
    * specified path, nothing is changed.
    *
    * @param path The field path to remove.
-   * @return The current Builder instance.
+   * @returns The current Builder instance.
    */
   delete(path: FieldPath): ObjectValueBuilder {
     debugAssert(
@@ -203,7 +203,7 @@ export class ObjectValueBuilder {
    * FieldValue.emptyPath() to represent the root.
    * @param currentOverlays The overlays at the current nesting level in the
    * same format as `overlayMap`.
-   * @return The merged data at `currentPath` or null if no modifications
+   * @returns The merged data at `currentPath` or null if no modifications
    * were applied.
    */
   private applyOverlay(

@@ -890,7 +890,7 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
    * Returns true if this `SnapshotMetadata` is equal to the provided one.
    *
    * @param other The `SnapshotMetadata` to compare against.
-   * @return true if this `SnapshotMetadata` is equal to the provided one.
+   * @returns true if this `SnapshotMetadata` is equal to the provided one.
    */
   isEqual(other: PublicSnapshotMetadata): boolean {
     return (

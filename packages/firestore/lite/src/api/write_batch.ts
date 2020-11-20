@@ -70,7 +70,7 @@ export class WriteBatch {
    *
    * @param documentRef A reference to the document to be set.
    * @param data An object of the fields and values for the document.
-   * @return This `WriteBatch` instance. Used for chaining method calls.
+   * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   /**
@@ -82,7 +82,7 @@ export class WriteBatch {
    * @param documentRef A reference to the document to be set.
    * @param data An object of the fields and values for the document.
    * @param options An object to configure the set behavior.
-   * @return This `WriteBatch` instance. Used for chaining method calls.
+   * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   set<T>(
     documentRef: DocumentReference<T>,
@@ -125,7 +125,7 @@ export class WriteBatch {
    * @param data An object containing the fields and values with which to
    * update the document. Fields can contain dots to reference nested fields
    * within the document.
-   * @return This `WriteBatch` instance. Used for chaining method calls.
+   * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
   /**
@@ -140,7 +140,7 @@ export class WriteBatch {
    * @param field The first field to update.
    * @param value The first value.
    * @param moreFieldsAndValues Additional key value pairs.
-   * @return This `WriteBatch` instance. Used for chaining method calls.
+   * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   update(
     documentRef: DocumentReference<unknown>,
@@ -195,7 +195,7 @@ export class WriteBatch {
    * Deletes the document referred to by the provided {@link DocumentReference}.
    *
    * @param documentRef A reference to the document to be deleted.
-   * @return This `WriteBatch` instance. Used for chaining method calls.
+   * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   delete(documentRef: DocumentReference<unknown>): WriteBatch {
     this.verifyNotCommitted();
@@ -214,7 +214,7 @@ export class WriteBatch {
    * write fails. If you would like to see local modifications or buffer writes
    * until the client is online, use the full Firestore SDK.
    *
-   * @return A Promise resolved once all of the writes in the batch have been
+   * @returns A Promise resolved once all of the writes in the batch have been
    * successfully written to the backend as an atomic unit (note that it won't
    * resolve while you're offline).
    */
@@ -266,7 +266,7 @@ export function validateReference<T>(
  * write fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
- * @return A `WriteBatch` that can be used to atomically execute multiple
+ * @returns A `WriteBatch` that can be used to atomically execute multiple
  * writes.
  */
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {

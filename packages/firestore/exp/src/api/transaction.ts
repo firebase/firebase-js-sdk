@@ -51,7 +51,7 @@ export class Transaction extends LiteTransaction {
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
    * @param documentRef A reference to the document to be read.
-   * @return A `DocumentSnapshot` with the read data.
+   * @returns A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference<T>(documentRef, this._firestore);
@@ -86,7 +86,7 @@ export class Transaction extends LiteTransaction {
  * @param firestore A reference to the Firestore database to run this
  * transaction against.
  * @param updateFunction The function to execute within the transaction context.
- * @return If the transaction completed successfully or was explicitly aborted
+ * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
  * rejected promise with the corresponding failure error is returned.

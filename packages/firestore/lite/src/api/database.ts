@@ -267,7 +267,7 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
  * @param app The {@link FirebaseApp} with which the `Firestore` instance will be
  * associated.
  * @param settings A settings object to configure the `Firestore` instance.
- * @return A newly initialized Firestore instance.
+ * @returns A newly initialized Firestore instance.
  */
 export function initializeFirestore(
   app: FirebaseApp,
@@ -288,7 +288,7 @@ export function initializeFirestore(
  *
  * @param app The {@link FirebaseApp} instance that the returned Firestore
  * instance is associated with.
- * @return The `Firestore` instance of the provided app.
+ * @returns The `Firestore` instance of the provided app.
  */
 export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   return _getProvider(
@@ -313,7 +313,7 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * its resources or in combination with {@link clearIndexedDbPersistence()} to
  * ensure that all local state is destroyed between test runs.
  *
- * @return A promise that is resolved when the instance has been successfully
+ * @returns A promise that is resolved when the instance has been successfully
  * terminated.
  */
 export function terminate(firestore: FirebaseFirestore): Promise<void> {

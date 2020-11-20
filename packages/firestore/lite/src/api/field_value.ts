@@ -64,7 +64,7 @@ export function serverTimestamp(): FieldValue {
  * containing exactly the specified elements.
  *
  * @param elements The elements to union into the array.
- * @return The `FieldValue` sentinel for use in a call to `setDoc()` or
+ * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
  * `updateDoc()`.
  */
 export function arrayUnion(...elements: unknown[]): FieldValue {
@@ -81,7 +81,7 @@ export function arrayUnion(...elements: unknown[]): FieldValue {
  * already an array it will be overwritten with an empty array.
  *
  * @param elements The elements to remove from the array.
- * @return The `FieldValue` sentinel for use in a call to `setDoc()` or
+ * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
  * `updateDoc()`
  */
 export function arrayRemove(...elements: unknown[]): FieldValue {
@@ -106,7 +106,7 @@ export function arrayRemove(...elements: unknown[]): FieldValue {
  * yet exist, the transformation sets the field to the given value.
  *
  * @param n The value to increment by.
- * @return The `FieldValue` sentinel for use in a call to `setDoc()` or
+ * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
  * `updateDoc()`
  */
 export function increment(n: number): FieldValue {

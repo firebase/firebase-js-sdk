@@ -125,7 +125,7 @@ export interface SnapshotListenOptions {
  * {@link getDocFromCache()} or {@link getDocFromServer()}.
  *
  * @param reference The reference of the document to fetch.
- * @return A Promise resolved with a `DocumentSnapshot` containing the
+ * @returns A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
 export function getDoc<T>(
@@ -169,7 +169,7 @@ export class ExpUserDataWriter extends AbstractUserDataWriter {
  * Reads the document referred to by this `DocumentReference` from cache.
  * Returns an error if the document is not currently cached.
  *
- * @return A Promise resolved with a `DocumentSnapshot` containing the
+ * @returns A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
 export function getDocFromCache<T>(
@@ -204,7 +204,7 @@ export function getDocFromCache<T>(
  * Reads the document referred to by this `DocumentReference` from the server.
  * Returns an error if the network is not available.
  *
- * @return A Promise resolved with a `DocumentSnapshot` containing the
+ * @returns A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
 export function getDocFromServer<T>(
@@ -237,7 +237,7 @@ export function getDocFromServer<T>(
  * you are offline and the server cannot be reached. To specify this behavior,
  * invoke {@link getDocsFromCache()} or {@link getDocsFromServer()}.
  *
- * @return A Promise that will be resolved with the results of the query.
+ * @returns A Promise that will be resolved with the results of the query.
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
@@ -266,7 +266,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  * Executes the query and returns the results as a `QuerySnapshot` from cache.
  * Returns an error if the document is not currently cached.
  *
- * @return A Promise that will be resolved with the results of the query.
+ * @returns A Promise that will be resolved with the results of the query.
  */
 export function getDocsFromCache<T>(
   query: Query<T>
@@ -289,7 +289,7 @@ export function getDocsFromCache<T>(
  * Executes the query and returns the results as a `QuerySnapshot` from the
  * server. Returns an error if the network is not available.
  *
- * @return A Promise that will be resolved with the results of the query.
+ * @returns A Promise that will be resolved with the results of the query.
  */
 export function getDocsFromServer<T>(
   query: Query<T>
@@ -320,7 +320,7 @@ export function getDocsFromServer<T>(
  *
  * @param reference A reference to the document to write.
  * @param data A map of the fields and values for the document.
- * @return A Promise resolved once the data has been successfully written
+ * @returns A Promise resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
 export function setDoc<T>(
@@ -335,7 +335,7 @@ export function setDoc<T>(
  * @param reference A reference to the document to write.
  * @param data A map of the fields and values for the document.
  * @param options An object to configure the set behavior.
- * @return A Promise resolved once the data has been successfully written
+ * @returns A Promise resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
 export function setDoc<T>(
@@ -378,7 +378,7 @@ export function setDoc<T>(
  * @param data An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
- * @return A Promise resolved once the data has been successfully written
+ * @returns A Promise resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
 export function updateDoc(
@@ -397,7 +397,7 @@ export function updateDoc(
  * @param field The first field to update.
  * @param value The first value.
  * @param moreFieldsAndValues Additional key value pairs.
- * @return A Promise resolved once the data has been successfully written
+ * @returns A Promise resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
 export function updateDoc(
@@ -455,7 +455,7 @@ export function updateDoc(
  * Deletes the document referred to by the specified `DocumentReference`.
  *
  * @param reference A reference to the document to delete.
- * @return A Promise resolved once the document has been successfully
+ * @returns A Promise resolved once the document has been successfully
  * deleted from the backend (note that it won't resolve while you're offline).
  */
 export function deleteDoc(
@@ -472,7 +472,7 @@ export function deleteDoc(
  *
  * @param reference A reference to the collection to add this document to.
  * @param data An Object containing the data for the new document.
- * @return A Promise resolved with a `DocumentReference` pointing to the
+ * @returns A Promise resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend (Note that it
  * won't resolve while you're offline).
  */
@@ -515,7 +515,7 @@ export function addDoc<T>(
  *
  * @param reference A reference to the document to listen to.
  * @param observer A single object containing `next` and `error` callbacks.
- * @return An unsubscribe function that can be called to cancel
+ * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
 export function onSnapshot<T>(
@@ -537,7 +537,7 @@ export function onSnapshot<T>(
  * @param reference A reference to the document to listen to.
  * @param options Options controlling the listen behavior.
  * @param observer A single object containing `next` and `error` callbacks.
- * @return An unsubscribe function that can be called to cancel
+ * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
 export function onSnapshot<T>(
@@ -564,7 +564,7 @@ export function onSnapshot<T>(
  * cancelled. No further callbacks will occur.
  * @param onCompletion Can be provided, but will not be called since streams are
  * never ending.
- * @return An unsubscribe function that can be called to cancel
+ * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
 export function onSnapshot<T>(
@@ -589,7 +589,7 @@ export function onSnapshot<T>(
  * cancelled. No further callbacks will occur.
  * @param onCompletion Can be provided, but will not be called since streams are
  * never ending.
- * @return An unsubscribe function that can be called to cancel
+ * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
 export function onSnapshot<T>(
@@ -610,7 +610,7 @@ export function onSnapshot<T>(
  *
  * @param query The query to listen to.
  * @param observer A single object containing `next` and `error` callbacks.
- * @return An unsubscribe function that can be called to cancel
+ * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
 export function onSnapshot<T>(
@@ -633,7 +633,7 @@ export function onSnapshot<T>(
  * @param query The query to listen to.
  * @param options Options controlling the listen behavior.
  * @param observer A single object containing `next` and `error` callbacks.
- * @return An unsubscribe function that can be called to cancel
+ * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
 export function onSnapshot<T>(
@@ -661,7 +661,7 @@ export function onSnapshot<T>(
  * never ending.
  * @param onError A callback to be called if the listen fails or is
  * cancelled. No further callbacks will occur.
- * @return An unsubscribe function that can be called to cancel
+ * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
 export function onSnapshot<T>(
@@ -687,7 +687,7 @@ export function onSnapshot<T>(
  * never ending.
  * @param onError A callback to be called if the listen fails or is
  * cancelled. No further callbacks will occur.
- * @return An unsubscribe function that can be called to cancel
+ * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
 export function onSnapshot<T>(
@@ -797,7 +797,7 @@ export function onSnapshot<T>(
  *
  * @param firestore The instance of Firestore for synchronizing snapshots.
  * @param observer A single object containing `next` and `error` callbacks.
- * @return An unsubscribe function that can be called to cancel the snapshot
+ * @returns An unsubscribe function that can be called to cancel the snapshot
  * listener.
  */
 export function onSnapshotsInSync(
@@ -821,7 +821,7 @@ export function onSnapshotsInSync(
  * @param firestore The instance of Firestore for synchronizing snapshots.
  * @param onSync A callback to be called every time all snapshot listeners are
  * in sync with each other.
- * @return An unsubscribe function that can be called to cancel the snapshot
+ * @returns An unsubscribe function that can be called to cancel the snapshot
  * listener.
  */
 export function onSnapshotsInSync(

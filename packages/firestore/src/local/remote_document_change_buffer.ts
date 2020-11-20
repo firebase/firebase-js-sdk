@@ -118,7 +118,7 @@ export abstract class RemoteDocumentChangeBuffer {
    * @param transaction The transaction in which to perform any persistence
    *     operations.
    * @param documentKey The key of the entry to look up.
-   * @return The cached Document or NoDocument entry, or null if we have nothing
+   * @returns The cached Document or NoDocument entry, or null if we have nothing
    * cached.
    */
   getEntry(
@@ -143,7 +143,7 @@ export abstract class RemoteDocumentChangeBuffer {
    * @param transaction The transaction in which to perform any persistence
    *     operations.
    * @param documentKeys The keys of the entries to look up.
-   * @return A map of cached `Document`s or `NoDocument`s, indexed by key. If an
+   * @returns A map of cached `Document`s or `NoDocument`s, indexed by key. If an
    *     entry cannot be found, the corresponding key will be mapped to a null
    *     value.
    */

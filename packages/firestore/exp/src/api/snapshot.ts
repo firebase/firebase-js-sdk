@@ -220,7 +220,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
    * @param options An options object to configure how data is retrieved from
    * the snapshot (for example the desired behavior for server timestamps that
    * have not yet been set to their final value).
-   * @return An `Object` containing all fields in the document or `undefined` if
+   * @returns An `Object` containing all fields in the document or `undefined` if
    * the document doesn't exist.
    */
   data(options: SnapshotOptions = {}): T | undefined {
@@ -259,7 +259,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
    * @param options An options object to configure how the field is retrieved
    * from the snapshot (for example the desired behavior for server timestamps
    * that have not yet been set to their final value).
-   * @return The data at the specified field location or undefined if no such
+   * @returns The data at the specified field location or undefined if no such
    * field exists in the document.
    */
   // We are using `any` here to avoid an explicit cast by our users.
@@ -305,7 +305,7 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
    * @param options An options object to configure how data is retrieved from
    * the snapshot (for example the desired behavior for server timestamps that
    * have not yet been set to their final value).
-   * @return An `Object` containing all fields in the document.
+   * @returns An `Object` containing all fields in the document.
    */
   data(options: SnapshotOptions = {}): T {
     return super.data(options) as T;
@@ -531,7 +531,7 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
  *
  * @param left A snapshot to compare.
  * @param right A snapshot to compare.
- * @return true if the snapshots are equal.
+ * @returns true if the snapshots are equal.
  */
 export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,

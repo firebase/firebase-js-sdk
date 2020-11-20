@@ -307,7 +307,7 @@ export class MemoryMutationQueue implements MutationQueue {
    * Finds the index of the given batchId in the mutation queue. This operation
    * is O(1).
    *
-   * @return The computed index of the batch with the given batchId, based on
+   * @returns The computed index of the batch with the given batchId, based on
    * the state of the queue. Note this index can be negative if the requested
    * batchId has already been remvoed from the queue or past the end of the
    * queue if the batchId is larger than the last added batch.

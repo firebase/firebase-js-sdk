@@ -73,7 +73,7 @@ export class GeoPoint {
    * Returns true if this `GeoPoint` is equal to the provided one.
    *
    * @param other The `GeoPoint` to compare against.
-   * @return true if this `GeoPoint` is equal to the provided one.
+   * @returns true if this `GeoPoint` is equal to the provided one.
    */
   isEqual(other: GeoPoint): boolean {
     return this._lat === other._lat && this._long === other._long;

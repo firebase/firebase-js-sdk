@@ -1257,7 +1257,7 @@ export async function synchronizeLastDocumentChangeReadTime(
  * are re-thrown.
  *
  * @param err An error returned by a LocalStore operation.
- * @return A Promise that resolves after we recovered, or the original error.
+ * @returns A Promise that resolves after we recovered, or the original error.
  */
 export async function ignoreIfPrimaryLeaseLoss(
   err: FirestoreError

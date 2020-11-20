@@ -151,7 +151,7 @@ export function query(path: string): Query {
  * @param mutatedKeys The list of document with pending writes.
  * @param fromCache Whether the query snapshot is cache result.
  * @param syncStateChanged Whether the sync state has changed.
- * @return A query snapshot that consists of both sets of documents.
+ * @returns A query snapshot that consists of both sets of documents.
  */
 export function querySnapshot(
   path: string,
