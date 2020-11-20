@@ -93,7 +93,7 @@ import { DocumentReference as ExpDocumentReference } from '../../../exp/src/api/
 import { isServerTimestamp } from '../../../src/model/server_timestamps';
 
 /**
- * Document data (for use with {@link setDoc()}) consists of fields mapped to
+ * Document data (for use with {@link setDoc}) consists of fields mapped to
  * values.
  */
 export interface DocumentData {
@@ -102,7 +102,7 @@ export interface DocumentData {
 }
 
 /**
- * Update data (for use with {@link updateDoc()}) consists of field paths (e.g.
+ * Update data (for use with {@link updateDoc}) consists of field paths (e.g.
  * 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference
  * nested fields within the document.
  */
@@ -112,8 +112,8 @@ export interface UpdateData {
 }
 
 /**
- * An options object that configures the behavior of {@link setDoc()}, {@link
- * WriteBatch#set()} and {@link Transaction#set()} calls. These calls can be
+ * An options object that configures the behavior of {@link setDoc}, {@link
+ * WriteBatch#set} and {@link Transaction#set} calls. These calls can be
  * configured to perform granular merges instead of overwriting the target
  * documents in their entirety by providing a `SetOptions` with `merge: true`.
  *
@@ -189,7 +189,7 @@ export class DocumentReference<T = DocumentData> {
   /**
    * Applies a custom data converter to this `DocumentReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
-   * setDoc()}, {@link getDoc()}, etc. with the returned `DocumentReference`
+   * setDoc}, {@link getDoc}, etc. with the returned `DocumentReference`
    * instance, the provided converter will convert between Firestore data and
    * your custom type `U`.
    *
@@ -228,7 +228,7 @@ export class Query<T = DocumentData> {
 
   /**
    * Applies a custom data converter to this query, allowing you to use your own
-   * custom model objects with Firestore. When you call {@link getDocs()} with
+   * custom model objects with Firestore. When you call {@link getDocs} with
    * the returned query, the provided converter will convert between Firestore
    * data and your custom type `U`.
    *
@@ -253,10 +253,10 @@ export type QueryConstraintType =
 
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
- * Firestore query. `QueryConstraint`s are created by invoking {@link where()},
- * {@link orderBy()}, {@link startAt()}, {@link startAfter()}, {@link
- * endBefore()}, {@link endAt()}, {@link limit()} or {@link limitToLast()} and
- * can then be passed to {@link query()} to create a new query instance that
+ * Firestore query. `QueryConstraint`s are created by invoking {@link where},
+ * {@link orderBy}, {@link startAt}, {@link startAfter}, {@link
+ * endBefore}, {@link endAt}, {@link limit} or {@link limitToLast} and
+ * can then be passed to {@link query} to create a new query instance that
  * also contains this `QueryConstraint`.
  */
 export abstract class QueryConstraint {
@@ -320,7 +320,7 @@ class QueryFilterConstraint extends QueryConstraint {
 }
 
 /**
- * Filter conditions in a {@link where()} clause are specified using the
+ * Filter conditions in a {@link where} clause are specified using the
  * strings '&lt;', '&lt;=', '==', '!=', '&gt;=', '&gt;', 'array-contains', 'in',
  * 'array-contains-any', and 'not-in'.
  */
@@ -378,7 +378,7 @@ class QueryOrderByConstraint extends QueryConstraint {
 }
 
 /**
- * The direction of a {@link orderBy()} clause is specified as 'desc' or 'asc'
+ * The direction of a {@link orderBy} clause is specified as 'desc' or 'asc'
  * (descending or ascending).
  */
 export type OrderByDirection = 'desc' | 'asc';
@@ -1033,7 +1033,7 @@ export function validateHasExplicitOrderByForLimitToLast(
 
 /**
  * A `CollectionReference` object can be used for adding documents, getting
- * document references, and querying for documents (using {@link query()}`).
+ * document references, and querying for documents (using {@link query}).
  */
 export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type = 'collection';
@@ -1080,7 +1080,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
   /**
    * Applies a custom data converter to this CollectionReference, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
-   * addDoc()} with the returned `CollectionReference` instance, the provided
+   * addDoc} with the returned `CollectionReference` instance, the provided
    * converter will convert between Firestore data and your custom type `U`.
    *
    * @param converter - Converts objects to and from Firestore.
@@ -1652,7 +1652,7 @@ export function refEqual<T>(
  * the same constraints.
  *
  * @param left - A `Query` to compare.
- * @param right - A Query` to compare.
+ * @param right - A `Query` to compare.
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */

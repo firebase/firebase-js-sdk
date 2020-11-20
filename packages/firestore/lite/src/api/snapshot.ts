@@ -79,7 +79,7 @@ export interface FirestoreDataConverter<T> {
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
-   * and {@link Transaction#set}}.
+   * and {@link Transaction#set}.
    */
   toFirestore(modelObject: T): DocumentData;
 
@@ -87,7 +87,7 @@ export interface FirestoreDataConverter<T> {
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
-   * and {@link Transaction#set}} with `merge:true` or `mergeFields`.
+   * and {@link Transaction#set} with `merge:true` or `mergeFields`.
    */
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 

@@ -59,7 +59,7 @@ export class SortedSet<T> {
     });
   }
 
-  /** Iterates over `elem`s such that: range[0] <= elem < range[1]. */
+  /** Iterates over `elem`s such that: range[0] &lt;= elem &lt; range[1]. */
   forEachInRange(range: [T, T], cb: (elem: T) => void): void {
     const iter = this.data.getIteratorFrom(range[0]);
     while (iter.hasNext()) {
@@ -72,7 +72,7 @@ export class SortedSet<T> {
   }
 
   /**
-   * Iterates over `elem`s such that: start <= elem until false is returned.
+   * Iterates over `elem`s such that: start &lt;= elem until false is returned.
    */
   forEachWhile(cb: (elem: T) => boolean, start?: T): void {
     let iter: SortedMapIterator<T, boolean>;

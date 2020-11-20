@@ -202,7 +202,7 @@ export interface Persistence {
    * this is called for a given user. In particular, the memory-backed
    * implementation does this to emulate the persisted implementation to the
    * extent possible (e.g. in the case of uid switching from
-   * sally=>jack=>sally, sally's mutation queue will be preserved).
+   * sally=&gt;jack=&gt;sally, sally's mutation queue will be preserved).
    */
   getMutationQueue(user: User): MutationQueue;
 
@@ -256,7 +256,7 @@ export interface Persistence {
    * @param action - A description of the action performed by this transaction,
    * used for logging.
    * @param mode - The underlying mode of the IndexedDb transaction. Can be
-   * 'readonly`, 'readwrite' or 'readwrite-primary'. Transactions marked
+   * 'readonly', 'readwrite' or 'readwrite-primary'. Transactions marked
    * 'readwrite-primary' can only be executed by the primary client. In this
    * mode, the transactionOperation will not be run if the primary lease cannot
    * be acquired and the returned promise will be rejected with a

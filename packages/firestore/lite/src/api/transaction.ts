@@ -54,7 +54,7 @@ import { Compat } from '../../../src/compat/compat';
  *
  * The `Transaction` object passed to a transaction's `updateFunction` provides
  * the methods to read and write data within the transaction context. See
- * {@link runTransaction()}.
+ * {@link runTransaction}.
  */
 export class Transaction {
   // This is the tree-shakeable version of the Transaction class used in the
@@ -117,7 +117,7 @@ export class Transaction {
    * DocumentReference}. If the document does not exist yet, it will be created.
    *
    * @param documentRef - A reference to the document to be set.
-   * @param data - An object of the fields and values for the document.\
+   * @param data - An object of the fields and values for the document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(documentRef: DocumentReference<T>, data: T): this;

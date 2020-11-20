@@ -181,7 +181,7 @@ export class FirebaseFirestore implements _FirebaseService {
   }
 
   /**
-   * The {@link FirebaseApp app} associated with this `Firestore` service
+   * The {@link FirebaseApp} associated with this `Firestore` service
    * instance.
    */
   get app(): FirebaseApp {

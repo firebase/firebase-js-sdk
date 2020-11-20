@@ -87,7 +87,7 @@ export interface RemoteDocumentCache {
    *
    * Multi-Tab Note: This should only be called by the primary client.
    *
-   * @param options.trackRemovals - Whether to create sentinel entries for
+   * @param options - Specify `trackRemovals` to create sentinel entries for
    * removed documents, which allows removals to be tracked by
    * `getNewDocumentChanges()`.
    */

@@ -212,7 +212,7 @@ export class MutationBatchResult {
   /**
    * Creates a new MutationBatchResult for the given batch and results. There
    * must be one result for each mutation in the batch. This static factory
-   * caches a document=>version mapping (docVersions).
+   * caches a document=&gt;version mapping (docVersions).
    */
   static from(
     batch: MutationBatch,
