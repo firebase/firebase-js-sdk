@@ -24,7 +24,6 @@ import {
   JsonProtoSerializer
 } from '../remote/serializer';
 import { NamedQuery as ProtoNamedQuery, BundleMetadata as ProtoBundleMetadata, BundledDocumentMetadata as ProtoBundledDocumentMetadata} from '../protos/firestore_bundle_proto';
-import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
@@ -117,7 +116,7 @@ export class BundleConverter {
  * loading a bundle.
  */
 export function bundleInitialProgress(
-  metadata: BundleMetadata
+  metadata: ProtoBundleMetadata
 ): ApiLoadBundleTaskProgress {
   return {
     taskState: 'Running',
@@ -133,7 +132,7 @@ export function bundleInitialProgress(
  * has succeeded.
  */
 export function bundleSuccessProgress(
-  metadata: BundleMetadata
+  metadata: ProtoBundleMetadata
 ): ApiLoadBundleTaskProgress {
   return {
     taskState: 'Success',
