@@ -68,8 +68,8 @@ export interface TargetCache {
    * snapshot version of the last consistent snapshot received from the backend
    * (see getLastRemoteSnapshotVersion() for more details).
    *
-   * @param highestListenSequenceNumber The new maximum listen sequence number.
-   * @param lastRemoteSnapshotVersion The new snapshot version. Optional.
+   * @param highestListenSequenceNumber - The new maximum listen sequence number.
+   * @param lastRemoteSnapshotVersion - The new snapshot version. Optional.
    */
   setTargetsMetadata(
     transaction: PersistenceTransaction,
@@ -83,7 +83,7 @@ export interface TargetCache {
    * The cache key is extracted from `targetData.target`. The key must not already
    * exist in the cache.
    *
-   * @param targetData A TargetData instance to put in the cache.
+   * @param targetData - A TargetData instance to put in the cache.
    */
   addTargetData(
     transaction: PersistenceTransaction,
@@ -95,7 +95,7 @@ export interface TargetCache {
    *
    * The cache key is extracted from `targetData.target`. The entry must already
    * exist in the cache, and it will be replaced.
-   * @param {TargetData} targetData The TargetData to be replaced into the cache.
+    * @param {TargetData} targetData The TargetData to be replaced into the cache.
    */
   updateTargetData(
     transaction: PersistenceTransaction,
@@ -124,7 +124,7 @@ export interface TargetCache {
   /**
    * Looks up a TargetData entry by target.
    *
-   * @param target The query target corresponding to the entry to look up.
+   * @param target - The query target corresponding to the entry to look up.
    * @returns The cached TargetData entry, or null if the cache has no entry for
    * the target.
    */

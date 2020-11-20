@@ -130,10 +130,10 @@ function getTestTimeout(tags: string[]): number | undefined {
 
 /**
  * Like it(), but for spec tests.
- * @param name A name to give the test.
- * @param tags Tags to apply to the test (e.g. 'exclusive' to only run
+ * @param name - A name to give the test.
+ * @param tags - Tags to apply to the test (e.g. 'exclusive' to only run
  *             individual tests)
- * @param builder A function that returns a spec.
+ * @param builder - A function that returns a spec.
  * If writeToJSONFile has been called, the spec will be stored in
  * `specsInThisTest`. Otherwise, it will be run, just as it() would run it.
  */
@@ -224,10 +224,10 @@ export function specTest(
 
 /**
  * Like describe, but for spec tests.
- * @param name A name to give the test.
- * @param tags Tags to apply to all tests in the spec (e.g. 'exclusive' to
+ * @param name - A name to give the test.
+ * @param tags - Tags to apply to all tests in the spec (e.g. 'exclusive' to
  *             only run individual tests)
- * @param builder A function that calls specTest for each test case.
+ * @param builder - A function that calls specTest for each test case.
  * If writeToJSONFile has been called, the specs will be stored in
  * that file. Otherwise, they will be run, just as describe would run.
  */

@@ -152,9 +152,9 @@ export class LocalDocumentsView {
   /**
    * Performs a query against the local view of all documents.
    *
-   * @param transaction The persistence transaction.
-   * @param query The query to match documents against.
-   * @param sinceReadTime If not set to SnapshotVersion.min(), return only
+   * @param transaction - The persistence transaction.
+   * @param query - The query to match documents against.
+   * @param sinceReadTime - If not set to SnapshotVersion.min(), return only
    *     documents that have been read since this snapshot version (exclusive).
    */
   getDocumentsMatchingQuery(

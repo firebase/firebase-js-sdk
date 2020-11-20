@@ -117,10 +117,10 @@ export interface UpdateData {
  * configured to perform granular merges instead of overwriting the target
  * documents in their entirety by providing a `SetOptions` with `merge: true`.
  *
- * @param merge Changes the behavior of a `setDoc()` call to only replace the
+ * @param merge - Changes the behavior of a `setDoc()` call to only replace the
  * values specified in its data argument. Fields omitted from the `setDoc()`
  * call remain untouched.
- * @param mergeFields Changes the behavior of `setDoc()` calls to only replace
+ * @param mergeFields - Changes the behavior of `setDoc()` calls to only replace
  * the specified field paths. Any field path that is not specified is ignored
  * and remains untouched.
  */
@@ -193,7 +193,7 @@ export class DocumentReference<T = DocumentData> {
    * instance, the provided converter will convert between Firestore data and
    * your custom type `U`.
    *
-   * @param converter Converts objects to and from Firestore.
+   * @param converter - Converts objects to and from Firestore.
    * @returns A `DocumentReference<U>` that uses the provided converter.
    */
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U> {
@@ -232,7 +232,7 @@ export class Query<T = DocumentData> {
    * the returned query, the provided converter will convert between Firestore
    * data and your custom type `U`.
    *
-   * @param converter Converts objects to and from Firestore.
+   * @param converter - Converts objects to and from Firestore.
    * @returns A `Query<U>` that uses the provided converter.
    */
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U> {
@@ -274,8 +274,8 @@ export abstract class QueryConstraint {
  * Creates a new immutable instance of `query` that is extended to also include
  * additional query constraints.
  *
- * @param query The query instance to use as a base for the new constraints.
- * @param queryConstraints The list of `QueryConstraint`s to apply.
+ * @param query - The query instance to use as a base for the new constraints.
+ * @param queryConstraints - The list of `QueryConstraint`s to apply.
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
@@ -341,9 +341,9 @@ export type WhereFilterOp =
  * specified field and that the value should satisfy the relation constraint
  * provided.
  *
- * @param fieldPath The path to compare
- * @param opStr The operation string (e.g "<", "<=", "==", ">", ">=", "!=").
- * @param value The value for comparison
+ * @param fieldPath - The path to compare
+ * @param opStr - The operation string (e.g "<", "<=", "==", ">", ">=", "!=").
+ * @param value - The value for comparison
  * @returns The created `Query`.
  */
 export function where(
@@ -386,8 +386,8 @@ export type OrderByDirection = 'desc' | 'asc';
  * Creates a `QueryConstraint` that sorts the query result by the
  * specified field, optionally in descending order instead of ascending.
  *
- * @param fieldPath The field to sort by.
- * @param directionStr Optional direction to sort by ('asc' or 'desc'). If
+ * @param fieldPath - The field to sort by.
+ * @param directionStr - Optional direction to sort by ('asc' or 'desc'). If
  * not specified, order will be ascending.
  * @returns The created `Query`.
  */
@@ -421,7 +421,7 @@ class QueryLimitConstraint extends QueryConstraint {
 /**
  * Creates a `QueryConstraint` that only returns the first matching documents.
  *
- * @param limit The maximum number of items to return.
+ * @param limit - The maximum number of items to return.
  * @returns The created `Query`.
  */
 export function limit(limit: number): QueryConstraint {
@@ -435,7 +435,7 @@ export function limit(limit: number): QueryConstraint {
  * You must specify at least one `orderBy` clause for `limitToLast` queries,
  * otherwise an exception will be thrown during execution.
  *
- * @param limit The maximum number of items to return.
+ * @param limit - The maximum number of items to return.
  * @returns The created `Query`.
  */
 export function limitToLast(limit: number): QueryConstraint {
@@ -473,7 +473,7 @@ class QueryStartAtConstraint extends QueryConstraint {
  * of the query. The document must contain all of the fields provided in the
  * `orderBy` of this query.
  *
- * @param snapshot The snapshot of the document to start at.
+ * @param snapshot - The snapshot of the document to start at.
  * @returns A `QueryConstraint` to pass to `query()`.
  */
 export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
@@ -482,7 +482,7 @@ export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  * provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
- * @param fieldValues The field values to start this query at, in order
+ * @param fieldValues - The field values to start this query at, in order
  * of the query's order by.
  * @returns A `QueryConstraint` to pass to `query()`.
  */
@@ -499,7 +499,7 @@ export function startAt(
  * of the query. The document must contain all of the fields provided in the
  * orderBy of the query.
  *
- * @param snapshot The snapshot of the document to start after.
+ * @param snapshot - The snapshot of the document to start after.
  * @returns A `QueryConstraint` to pass to `query()`
  */
 export function startAfter(
@@ -510,7 +510,7 @@ export function startAfter(
  * provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
- * @param fieldValues The field values to start this query after, in order
+ * @param fieldValues - The field values to start this query after, in order
  * of the query's order by.
  * @returns A `QueryConstraint` to pass to `query()`
  */
@@ -555,7 +555,7 @@ class QueryEndAtConstraint extends QueryConstraint {
  * the query. The document must contain all of the fields provided in the
  * orderBy of the query.
  *
- * @param snapshot The snapshot of the document to end before.
+ * @param snapshot - The snapshot of the document to end before.
  * @returns A `QueryConstraint` to pass to `query()`
  */
 export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
@@ -564,7 +564,7 @@ export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  * provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
- * @param fieldValues The field values to end this query before, in order
+ * @param fieldValues - The field values to end this query before, in order
  * of the query's order by.
  * @returns A `QueryConstraint` to pass to `query()`
  */
@@ -581,7 +581,7 @@ export function endBefore(
  * the query. The document must contain all of the fields provided in the
  * orderBy of the query.
  *
- * @param snapshot The snapshot of the document to end at.
+ * @param snapshot - The snapshot of the document to end at.
  * @returns A `QueryConstraint` to pass to `query()`
  */
 export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
@@ -590,7 +590,7 @@ export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  * provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
- * @param fieldValues The field values to end this query at, in order
+ * @param fieldValues - The field values to end this query at, in order
  * of the query's order by.
  * @returns A `QueryConstraint` to pass to `query()`
  */
@@ -1082,7 +1082,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * addDoc()} with the returned `CollectionReference` instance, the provided
    * converter will convert between Firestore data and your custom type `U`.
    *
-   * @param converter Converts objects to and from Firestore.
+   * @param converter - Converts objects to and from Firestore.
    * @returns A `CollectionReference<U>` that uses the provided converter.
    */
   withConverter<U>(
@@ -1096,9 +1096,9 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
  * Gets a `CollectionReference` instance that refers to the collection at
  * the specified absolute path.
  *
- * @param firestore A reference to the root Firestore instance.
- * @param path A slash-separated path to a collection.
- * @param pathSegments Additional path segments to apply relative to the first
+ * @param firestore - A reference to the root Firestore instance.
+ * @param path - A slash-separated path to a collection.
+ * @param pathSegments - Additional path segments to apply relative to the first
  * argument.
  * @throws If the final path has an even number of segments and does not point
  * to a collection.
@@ -1113,9 +1113,9 @@ export function collection(
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
  *
- * @param reference A reference to a collection.
- * @param path A slash-separated path to a collection.
- * @param pathSegments Additional path segments to apply relative to the first
+ * @param reference - A reference to a collection.
+ * @param path - A slash-separated path to a collection.
+ * @param pathSegments - Additional path segments to apply relative to the first
  * argument.
  * @throws If the final path has an even number of segments and does not point
  * to a collection.
@@ -1130,9 +1130,9 @@ export function collection(
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
  *
- * @param reference A reference to a Firestore document.
- * @param path A slash-separated path to a collection.
- * @param pathSegments Additional path segments that will be applied relative
+ * @param reference - A reference to a Firestore document.
+ * @param path - A slash-separated path to a collection.
+ * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an even number of segments and does not point
  * to a collection.
@@ -1188,8 +1188,8 @@ export function collection(
  * database that are contained in a collection or subcollection with the
  * given `collectionId`.
  *
- * @param firestore A reference to the root Firestore instance.
- * @param collectionId Identifies the collections to query over. Every
+ * @param firestore - A reference to the root Firestore instance.
+ * @param collectionId - Identifies the collections to query over. Every
  * collection or subcollection with this ID as the last segment of its path
  * will be included. Cannot contain a slash.
  * @returns The created `Query`.
@@ -1218,9 +1218,9 @@ export function collectionGroup(
  * Gets a `DocumentReference` instance that refers to the document at the
  * specified abosulute path.
  *
- * @param firestore A reference to the root Firestore instance.
- * @param path A slash-separated path to a document.
- * @param pathSegments Additional path segments that will be applied relative
+ * @param firestore - A reference to the root Firestore instance.
+ * @param path - A slash-separated path to a document.
+ * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to
  * a document.
@@ -1237,10 +1237,10 @@ export function doc(
  * automatically-generated unique ID will be used for the returned
  * `DocumentReference`.
  *
- * @param reference A reference to a collection.
- * @param path A slash-separated path to a document. Has to be omitted to use
+ * @param reference - A reference to a collection.
+ * @param path - A slash-separated path to a document. Has to be omitted to use
  * auto-genrated IDs.
- * @param pathSegments Additional path segments that will be applied relative
+ * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to
  * a document.
@@ -1255,9 +1255,9 @@ export function doc<T>(
  * Gets a `DocumentReference` instance that refers to a document within
  * `reference` at the specified relative path.
  *
- * @param reference A reference to a Firestore document.
- * @param path A slash-separated path to a document.
- * @param pathSegments Additional path segments that will be applied relative
+ * @param reference - A reference to a Firestore document.
+ * @param path - A slash-separated path to a document.
+ * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to
  * a document.
@@ -1338,7 +1338,7 @@ export class LiteUserDataWriter extends AbstractUserDataWriter {
  * backend. If the client is offline, the read fails. If you like to use
  * caching or see local modifications, please use the full Firestore SDK.
  *
- * @param reference The reference of the document to fetch.
+ * @param reference - The reference of the document to fetch.
  * @returns A Promise resolved with a `DocumentSnapshot` containing the current
  * document contents.
  */
@@ -1372,7 +1372,7 @@ export function getDoc<T>(
  * offline, the operation fails. To see previously cached result and local
  * modifications, use the full Firestore SDK.
  *
- * @param query The `Query` to execute.
+ * @param query - The `Query` to execute.
  * @returns A Promise that will be resolved with the results of the query.
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
@@ -1412,8 +1412,8 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  * write fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
- * @param reference A reference to the document to write.
- * @param data A map of the fields and values for the document.
+ * @param reference - A reference to the document to write.
+ * @param data - A map of the fields and values for the document.
  * @returns A Promise resolved once the data has been successfully written
  * to the backend.
  */
@@ -1431,9 +1431,9 @@ export function setDoc<T>(
  * write fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
- * @param reference A reference to the document to write.
- * @param data A map of the fields and values for the document.
- * @param options An object to configure the set behavior.
+ * @param reference - A reference to the document to write.
+ * @param data - A map of the fields and values for the document.
+ * @param options - An object to configure the set behavior.
  * @returns A Promise resolved once the data has been successfully written
  * to the backend.
  */
@@ -1479,8 +1479,8 @@ export function setDoc<T>(
  * update fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
- * @param reference A reference to the document to update.
- * @param data An object containing the fields and values with which to
+ * @param reference - A reference to the document to update.
+ * @param data - An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
  * @returns A Promise resolved once the data has been successfully written
@@ -1503,10 +1503,10 @@ export function updateDoc(
  * update fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
- * @param reference A reference to the document to update.
- * @param field The first field to update.
- * @param value The first value.
- * @param moreFieldsAndValues Additional key value pairs.
+ * @param reference - A reference to the document to update.
+ * @param field - The first field to update.
+ * @param value - The first value.
+ * @param moreFieldsAndValues - Additional key value pairs.
  * @returns A Promise resolved once the data has been successfully written
  * to the backend.
  */
@@ -1567,7 +1567,7 @@ export function updateDoc(
  * delete fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
- * @param reference A reference to the document to delete.
+ * @param reference - A reference to the document to delete.
  * @returns A Promise resolved once the document has been successfully
  * deleted from the backend.
  */
@@ -1587,8 +1587,8 @@ export function deleteDoc(reference: DocumentReference): Promise<void> {
  * write fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
- * @param reference A reference to the collection to add this document to.
- * @param data An Object containing the data for the new document.
+ * @param reference - A reference to the collection to add this document to.
+ * @param data - An Object containing the data for the new document.
  * @returns A Promise resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend.
  */
@@ -1623,8 +1623,8 @@ export function addDoc<T>(
 /**
  * Returns true if the provided references are equal.
  *
- * @param left A reference to compare.
- * @param right A reference to compare.
+ * @param left - A reference to compare.
+ * @param right - A reference to compare.
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
@@ -1650,8 +1650,8 @@ export function refEqual<T>(
  * Returns true if the provided queries point to the same collection and apply
  * the same constraints.
  *
- * @param left A `Query` to compare.
- * @param right A Query` to compare.
+ * @param left - A `Query` to compare.
+ * @param right - A Query` to compare.
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */

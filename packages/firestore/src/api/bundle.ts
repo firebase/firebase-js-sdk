@@ -124,7 +124,7 @@ export class LoadBundleTask
 
   /**
    * Notifies a progress update of loading a bundle.
-   * @param progress The new progress.
+   * @param progress - The new progress.
    */
   _updateProgress(progress: ApiLoadBundleTaskProgress): void {
     debugAssert(

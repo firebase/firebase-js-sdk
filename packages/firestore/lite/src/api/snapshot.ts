@@ -95,7 +95,7 @@ export interface FirestoreDataConverter<T> {
    * Called by the Firestore SDK to convert Firestore data into an object of
    * type T. You can access your data by calling: `snapshot.data()`.
    *
-   * @param snapshot A `QueryDocumentSnapshot` containing your data and
+   * @param snapshot - A `QueryDocumentSnapshot` containing your data and
    * metadata.
    */
   fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
@@ -180,7 +180,7 @@ export class DocumentSnapshot<T = DocumentData> {
    * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
    * document or field doesn't exist.
    *
-   * @param fieldPath The path (for example 'foo' or 'foo.bar') to a specific
+   * @param fieldPath - The path (for example 'foo' or 'foo.bar') to a specific
    * field.
    * @returns The data at the specified field location or undefined if no such
    * field exists in the document.
@@ -265,9 +265,9 @@ export class QuerySnapshot<T = DocumentData> {
   /**
    * Enumerates all of the documents in the `QuerySnapshot`.
    *
-   * @param callback A callback to be called with a `QueryDocumentSnapshot` for
+   * @param callback - A callback to be called with a `QueryDocumentSnapshot` for
    * each document in the snapshot.
-   * @param thisArg The `this` binding for the callback.
+   * @param thisArg - The `this` binding for the callback.
    */
   forEach(
     callback: (result: QueryDocumentSnapshot<T>) => void,
@@ -280,8 +280,8 @@ export class QuerySnapshot<T = DocumentData> {
 /**
  * Returns true if the provided snapshots are equal.
  *
- * @param left A snapshot to compare.
- * @param right A snapshot to compare.
+ * @param left - A snapshot to compare.
+ * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
 export function snapshotEqual<T>(

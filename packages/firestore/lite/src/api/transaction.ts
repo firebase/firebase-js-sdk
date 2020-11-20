@@ -75,7 +75,7 @@ export class Transaction {
   /**
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
-   * @param documentRef A reference to the document to be read.
+   * @param documentRef - A reference to the document to be read.
    * @returns A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
@@ -116,8 +116,8 @@ export class Transaction {
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
    *
-   * @param documentRef A reference to the document to be set.
-   * @param data An object of the fields and values for the document.\
+   * @param documentRef - A reference to the document to be set.
+   * @param data - An object of the fields and values for the document.\
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(documentRef: DocumentReference<T>, data: T): this;
@@ -127,9 +127,9 @@ export class Transaction {
    * If you provide `merge` or `mergeFields`, the provided data can be merged
    * into an existing document.
    *
-   * @param documentRef A reference to the document to be set.
-   * @param data An object of the fields and values for the document.
-   * @param options An object to configure the set behavior.
+   * @param documentRef - A reference to the document to be set.
+   * @param data - An object of the fields and values for the document.
+   * @param options - An object to configure the set behavior.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(
@@ -165,8 +165,8 @@ export class Transaction {
    * DocumentReference}. The update will fail if applied to a document that does
    * not exist.
    *
-   * @param documentRef A reference to the document to be updated.
-   * @param data An object containing the fields and values with which to
+   * @param documentRef - A reference to the document to be updated.
+   * @param data - An object containing the fields and values with which to
    * update the document. Fields can contain dots to reference nested fields
    * within the document.
    * @returns This `Transaction` instance. Used for chaining method calls.
@@ -180,10 +180,10 @@ export class Transaction {
    * Nested fields can be updated by providing dot-separated field path
    * strings or by providing `FieldPath` objects.
    *
-   * @param documentRef A reference to the document to be updated.
-   * @param field The first field to update.
-   * @param value The first value.
-   * @param moreFieldsAndValues Additional key/value pairs.
+   * @param documentRef - A reference to the document to be updated.
+   * @param field - The first field to update.
+   * @param value - The first value.
+   * @param moreFieldsAndValues - Additional key/value pairs.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   update(
@@ -235,7 +235,7 @@ export class Transaction {
   /**
    * Deletes the document referred to by the provided {@link DocumentReference}.
    *
-   * @param documentRef A reference to the document to be deleted.
+   * @param documentRef - A reference to the document to be deleted.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   delete(documentRef: DocumentReference<unknown>): this {
@@ -253,9 +253,9 @@ export class Transaction {
  *
  * The maximum number of writes allowed in a single transaction is 500.
  *
- * @param firestore A reference to the Firestore database to run this
+ * @param firestore - A reference to the Firestore database to run this
  * transaction against.
- * @param updateFunction The function to execute within the transaction context.
+ * @param updateFunction - The function to execute within the transaction context.
  * @returns  If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a

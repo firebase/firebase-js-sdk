@@ -50,7 +50,7 @@ export class Transaction extends LiteTransaction {
   /**
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
-   * @param documentRef A reference to the document to be read.
+   * @param documentRef - A reference to the document to be read.
    * @returns A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
@@ -83,9 +83,9 @@ export class Transaction extends LiteTransaction {
  *
  * The maximum number of writes allowed in a single transaction is 500.
  *
- * @param firestore A reference to the Firestore database to run this
+ * @param firestore - A reference to the Firestore database to run this
  * transaction against.
- * @param updateFunction The function to execute within the transaction context.
+ * @param updateFunction - The function to execute within the transaction context.
  * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a

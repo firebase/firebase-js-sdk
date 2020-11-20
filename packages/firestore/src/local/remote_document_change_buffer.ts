@@ -115,9 +115,9 @@ export abstract class RemoteDocumentChangeBuffer {
    * and if no buffered change applies, this will forward to
    * `RemoteDocumentCache.getEntry()`.
    *
-   * @param transaction The transaction in which to perform any persistence
+   * @param transaction - The transaction in which to perform any persistence
    *     operations.
-   * @param documentKey The key of the entry to look up.
+   * @param documentKey - The key of the entry to look up.
    * @returns The cached Document or NoDocument entry, or null if we have nothing
    * cached.
    */
@@ -140,9 +140,9 @@ export abstract class RemoteDocumentChangeBuffer {
    * Looks up several entries in the cache, forwarding to
    * `RemoteDocumentCache.getEntry()`.
    *
-   * @param transaction The transaction in which to perform any persistence
+   * @param transaction - The transaction in which to perform any persistence
    *     operations.
-   * @param documentKeys The keys of the entries to look up.
+   * @param documentKeys - The keys of the entries to look up.
    * @returns A map of cached `Document`s or `NoDocument`s, indexed by key. If an
    *     entry cannot be found, the corresponding key will be mapped to a null
    *     value.

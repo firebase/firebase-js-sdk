@@ -37,10 +37,10 @@ export interface Connection {
    * Invokes an RPC by name, given a request message as a JavaScript object
    * representing the JSON to send.
    *
-   * @param rpcName the name of the RPC to invoke
-   * @param path the path to invoke this RPC on
-   * @param request the Raw JSON object encoding of the request message
-   * @param token the Token to use for the RPC.
+   * @param rpcName - the name of the RPC to invoke
+   * @param path - the path to invoke this RPC on
+   * @param request - the Raw JSON object encoding of the request message
+   * @param token - the Token to use for the RPC.
    * @returns a Promise containing the JSON object encoding of the response
    */
   invokeRPC<Req, Resp>(
@@ -55,10 +55,10 @@ export interface Connection {
    * object representing the JSON to send. The responses will be consumed to
    * completion and then returned as an array.
    *
-   * @param rpcName the name of the RPC to invoke
-   * @param path the path to invoke this RPC on
-   * @param request the Raw JSON object encoding of the request message
-   * @param token the Token to use for the RPC.
+   * @param rpcName - the name of the RPC to invoke
+   * @param path - the path to invoke this RPC on
+   * @param request - the Raw JSON object encoding of the request message
+   * @param token - the Token to use for the RPC.
    * @returns a Promise containing an array with the JSON object encodings of the
    * responses
    */
@@ -72,8 +72,8 @@ export interface Connection {
   /**
    * Opens a stream to the given stream RPC endpoint. Returns a stream which
    * will try to open itself.
-   * @param rpcName the name of the RPC to open the stream on
-   * @param token the Token to use for the RPC.
+   * @param rpcName - the name of the RPC to open the stream on
+   * @param token - the Token to use for the RPC.
    */
   openStream<Req, Resp>(
     rpcName: string,

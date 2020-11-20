@@ -65,7 +65,7 @@ export class DocumentKey {
   /**
    * Creates and returns a new document key with the given segments.
    *
-   * @param segments The segments of the path to the document
+   * @param segments - The segments of the path to the document
    * @returns A new instance of DocumentKey
    */
   static fromSegments(segments: string[]): DocumentKey {

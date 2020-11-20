@@ -264,9 +264,9 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
  * {@link getFirestore()}. If the custom settings are empty, this function is
  * equivalent to calling {@link getFirestore()}.
  *
- * @param app The {@link FirebaseApp} with which the `Firestore` instance will be
+ * @param app - The {@link FirebaseApp} with which the `Firestore` instance will be
  * associated.
- * @param settings A settings object to configure the `Firestore` instance.
+ * @param settings - A settings object to configure the `Firestore` instance.
  * @returns A newly initialized Firestore instance.
  */
 export function initializeFirestore(
@@ -286,7 +286,7 @@ export function initializeFirestore(
  * provided {@link FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app The {@link FirebaseApp} instance that the returned Firestore
+ * @param app - The {@link FirebaseApp} instance that the returned Firestore
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */

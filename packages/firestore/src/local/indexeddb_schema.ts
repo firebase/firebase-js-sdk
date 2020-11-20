@@ -737,7 +737,7 @@ export class DbRemoteDocumentGlobal {
   static key = 'remoteDocumentGlobalKey';
 
   /**
-   * @param byteSize Approximately the total size in bytes of all the documents in the document
+   * @param byteSize - Approximately the total size in bytes of all the documents in the document
    * cache.
    */
   constructor(public byteSize: number) {}
@@ -1027,7 +1027,7 @@ function dropRemoteDocumentChangesStore(db: IDBDatabase): void {
 /**
  * Creates the target global singleton row.
  *
- * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
+  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
 function writeEmptyTargetGlobalEntry(
   txn: SimpleDbTransaction

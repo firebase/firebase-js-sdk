@@ -104,9 +104,9 @@ export class FirebaseFirestore
  * {@link getFirestore()}. If the custom settings are empty, this function is
  * equivalent to calling {@link getFirestore()}.
  *
- * @param app The {@link FirebaseApp} with which the `Firestore` instance will
+ * @param app - The {@link FirebaseApp} with which the `Firestore` instance will
  * be associated.
- * @param settings A settings object to configure the `Firestore` instance.
+ * @param settings - A settings object to configure the `Firestore` instance.
  * @returns A newly initialized `Firestore` instance.
  */
 export function initializeFirestore(
@@ -138,7 +138,7 @@ export function initializeFirestore(
  * provided {@link FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app The {@link FirebaseApp} instance that the returned Firestore
+ * @param app - The {@link FirebaseApp} instance that the returned Firestore
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
@@ -164,8 +164,8 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
- * @param firestore The `Firestore` instance to enable persistence for.
- * @param persistenceSettings Optional settings object to configure persistence.
+ * @param firestore - The `Firestore` instance to enable persistence for.
+ * @param persistenceSettings - Optional settings object to configure persistence.
  * @returns A promise that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
@@ -208,7 +208,7 @@ export function enableIndexedDbPersistence(
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
- * @param firestore The `Firestore` instance to enable persistence for.
+ * @param firestore - The `Firestore` instance to enable persistence for.
  * @returns A promise that represents successfully enabling persistent
  * storage.
  */
@@ -321,7 +321,7 @@ function canFallbackFromIndexedDbError(
  * to the disclosure of cached data in between user sessions, we strongly
  * recommend not enabling persistence at all.
  *
- * @param firestore The `Firestore` instance to clear persistence for.
+ * @param firestore - The `Firestore` instance to clear persistence for.
  * @returns A promise that is resolved when the persistent storage is
  * cleared. Otherwise, the promise is rejected with an error.
  */

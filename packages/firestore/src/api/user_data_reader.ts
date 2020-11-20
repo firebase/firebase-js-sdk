@@ -183,14 +183,14 @@ export class ParseContext {
   /**
    * Initializes a ParseContext with the given source and path.
    *
-   * @param settings The settings for the parser.
-   * @param databaseId The database ID of the Firestore instance.
-   * @param serializer The serializer to use to generate the Value proto.
-   * @param ignoreUndefinedProperties Whether to ignore undefined properties
+   * @param settings - The settings for the parser.
+   * @param databaseId - The database ID of the Firestore instance.
+   * @param serializer - The serializer to use to generate the Value proto.
+   * @param ignoreUndefinedProperties - Whether to ignore undefined properties
    * rather than throw.
-   * @param fieldTransforms A mutable list of field transforms encountered while
+   * @param fieldTransforms - A mutable list of field transforms encountered while
    *     parsing the data.
-   * @param fieldMask A mutable list of field paths encountered while parsing
+   * @param fieldMask - A mutable list of field paths encountered while parsing
    *     the data.
    *
    * TODO(b/34871131): We don't support array paths right now, so path can be
@@ -520,7 +520,7 @@ export function parseUpdateVarargs(
  * Parse a "query value" (e.g. value in a where filter or a value in a cursor
  * bound).
  *
- * @param allowArrays Whether the query value is an array that may directly
+ * @param allowArrays - Whether the query value is an array that may directly
  * contain additional arrays (e.g. the operand of an `in` query).
  */
 export function parseQueryValue(
@@ -545,8 +545,8 @@ export function parseQueryValue(
 /**
  * Parses user data to Protobuf Values.
  *
- * @param input Data to be parsed.
- * @param context A context object representing the current path being parsed,
+ * @param input - Data to be parsed.
+ * @param context - A context object representing the current path being parsed,
  * the source of the data being parsed, etc.
  * @returns The parsed value, or null if the value was a FieldValue sentinel
  * that should not be included in the resulting parsed data.
@@ -814,10 +814,10 @@ const FIELD_PATH_RESERVED = new RegExp('[~\\*/\\[\\]]');
 /**
  * Wraps fromDotSeparatedString with an error message about the method that
  * was thrown.
- * @param methodName The publicly visible method name
- * @param path The dot-separated string form of a field path which will be split
+ * @param methodName - The publicly visible method name
+ * @param path - The dot-separated string form of a field path which will be split
  * on dots.
- * @param targetDoc The document against which the field path will be evaluated.
+ * @param targetDoc - The document against which the field path will be evaluated.
  */
 export function fieldPathFromDotSeparatedString(
   methodName: string,

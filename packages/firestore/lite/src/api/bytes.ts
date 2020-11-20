@@ -33,7 +33,7 @@ export class Bytes {
    * Creates a new `Bytes` object from the given Base64 string, converting it to
    * bytes.
    *
-   * @param base64 The Base64 string used to create the `Bytes` object.
+   * @param base64 - The Base64 string used to create the `Bytes` object.
    */
   static fromBase64String(base64: string): Bytes {
     try {
@@ -49,7 +49,7 @@ export class Bytes {
   /**
    * Creates a new `Bytes` object from the given Uint8Array.
    *
-   * @param array The Uint8Array used to create the `Bytes` object.
+   * @param array - The Uint8Array used to create the `Bytes` object.
    */
   static fromUint8Array(array: Uint8Array): Bytes {
     return new Bytes(ByteString.fromUint8Array(array));
@@ -85,7 +85,7 @@ export class Bytes {
   /**
    * Returns true if this `Bytes` object is equal to the provided one.
    *
-   * @param other The `Bytes` object to compare against.
+   * @param other - The `Bytes` object to compare against.
    * @returns true if this `Bytes` object is equal to the provided one.
    */
   isEqual(other: Bytes): boolean {

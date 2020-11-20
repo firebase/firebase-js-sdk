@@ -379,7 +379,7 @@ export class IndexedDbTargetCache implements TargetCache {
   /**
    * Looks up a TargetData entry by target ID.
    *
-   * @param targetId The target ID of the TargetData entry to look up.
+   * @param targetId - The target ID of the TargetData entry to look up.
    * @returns The cached TargetData entry, or null if the cache has no entry for
    * the target.
    */

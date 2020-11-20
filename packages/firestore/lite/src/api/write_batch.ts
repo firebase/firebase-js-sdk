@@ -68,8 +68,8 @@ export class WriteBatch {
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
    *
-   * @param documentRef A reference to the document to be set.
-   * @param data An object of the fields and values for the document.
+   * @param documentRef - A reference to the document to be set.
+   * @param data - An object of the fields and values for the document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
@@ -79,9 +79,9 @@ export class WriteBatch {
    * If you provide `merge` or `mergeFields`, the provided data can be merged
    * into an existing document.
    *
-   * @param documentRef A reference to the document to be set.
-   * @param data An object of the fields and values for the document.
-   * @param options An object to configure the set behavior.
+   * @param documentRef - A reference to the document to be set.
+   * @param data - An object of the fields and values for the document.
+   * @param options - An object to configure the set behavior.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   set<T>(
@@ -121,8 +121,8 @@ export class WriteBatch {
    * DocumentReference}. The update will fail if applied to a document that does
    * not exist.
    *
-   * @param documentRef A reference to the document to be updated.
-   * @param data An object containing the fields and values with which to
+   * @param documentRef - A reference to the document to be updated.
+   * @param data - An object containing the fields and values with which to
    * update the document. Fields can contain dots to reference nested fields
    * within the document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
@@ -136,10 +136,10 @@ export class WriteBatch {
    * Nested fields can be update by providing dot-separated field path strings
    * or by providing `FieldPath` objects.
    *
-   * @param documentRef A reference to the document to be updated.
-   * @param field The first field to update.
-   * @param value The first value.
-   * @param moreFieldsAndValues Additional key value pairs.
+   * @param documentRef - A reference to the document to be updated.
+   * @param field - The first field to update.
+   * @param value - The first value.
+   * @param moreFieldsAndValues - Additional key value pairs.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   update(
@@ -194,7 +194,7 @@ export class WriteBatch {
   /**
    * Deletes the document referred to by the provided {@link DocumentReference}.
    *
-   * @param documentRef A reference to the document to be deleted.
+   * @param documentRef - A reference to the document to be deleted.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   delete(documentRef: DocumentReference<unknown>): WriteBatch {

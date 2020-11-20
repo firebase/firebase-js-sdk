@@ -81,8 +81,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   /**
    * Creates a new mutation queue for the given user.
-   * @param user The user for which to create a mutation queue.
-   * @param serializer The serializer to use when persisting to IndexedDb.
+   * @param user - The user for which to create a mutation queue.
+   * @param serializer - The serializer to use when persisting to IndexedDb.
    */
   static forUser(
     user: User,

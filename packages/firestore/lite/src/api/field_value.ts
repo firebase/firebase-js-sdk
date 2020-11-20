@@ -31,7 +31,7 @@ import { FieldTransform } from '../../../src/model/mutation';
  */
 export abstract class FieldValue {
   /**
-   * @param _methodName The public API endpoint that returns this class.
+   * @param _methodName - The public API endpoint that returns this class.
    */
   constructor(public _methodName: string) {}
 
@@ -63,7 +63,7 @@ export function serverTimestamp(): FieldValue {
  * modified is not already an array it will be overwritten with an array
  * containing exactly the specified elements.
  *
- * @param elements The elements to union into the array.
+ * @param elements - The elements to union into the array.
  * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
  * `updateDoc()`.
  */
@@ -80,7 +80,7 @@ export function arrayUnion(...elements: unknown[]): FieldValue {
  * specified will be removed from the array. If the field being modified is not
  * already an array it will be overwritten with an empty array.
  *
- * @param elements The elements to remove from the array.
+ * @param elements - The elements to remove from the array.
  * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
  * `updateDoc()`
  */
@@ -105,7 +105,7 @@ export function arrayRemove(...elements: unknown[]): FieldValue {
  * If the current field value is not of type `number`, or if the field does not
  * yet exist, the transformation sets the field to the given value.
  *
- * @param n The value to increment by.
+ * @param n - The value to increment by.
  * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
  * `updateDoc()`
  */

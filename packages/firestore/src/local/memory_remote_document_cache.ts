@@ -69,7 +69,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
   private size = 0;
 
   /**
-   * @param sizer Used to assess the size of a document. For eager GC, this is expected to just
+   * @param sizer - Used to assess the size of a document. For eager GC, this is expected to just
    * return 0 to avoid unnecessarily doing the work of calculating the size.
    */
   constructor(
@@ -205,8 +205,8 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
 /**
  * Creates a new memory-only RemoteDocumentCache.
  *
- * @param indexManager A class that manages collection group indices.
- * @param sizer Used to assess the size of a document. For eager GC, this is expected to just
+ * @param indexManager - A class that manages collection group indices.
+ * @param sizer - Used to assess the size of a document. For eager GC, this is expected to just
  * return 0 to avoid unnecessarily doing the work of calculating the size.
  */
 export function newMemoryRemoteDocumentCache(

@@ -26,8 +26,8 @@ export const DEFAULT_BYTES_PER_READ = 10240;
 
 /**
  * Builds a `ByteStreamReader` from a UInt8Array.
- * @param source The data source to use.
- * @param bytesPerRead How many bytes each `read()` from the returned reader
+ * @param source - The data source to use.
+ * @param bytesPerRead - How many bytes each `read()` from the returned reader
  *        will read.
  */
 export function toByteStreamReaderHelper(

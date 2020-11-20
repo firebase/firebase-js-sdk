@@ -115,8 +115,8 @@ export class View {
    * what the new results should be, what the changes were, and whether we may
    * need to go back to the local cache for more results. Does not make any
    * changes to the view.
-   * @param docChanges The doc changes to apply to this view.
-   * @param previousChanges If this is being called with a refill, then start
+   * @param docChanges - The doc changes to apply to this view.
+   * @param previousChanges - If this is being called with a refill, then start
    *        with this set of docs and changes instead of the current view.
    * @returns a new set of docs, changes, and refill flag.
    */
@@ -284,10 +284,10 @@ export class View {
   /**
    * Updates the view with the given ViewDocumentChanges and optionally updates
    * limbo docs and sync state from the provided target change.
-   * @param docChanges The set of changes to make to the view's docs.
-   * @param updateLimboDocuments Whether to update limbo documents based on this
+   * @param docChanges - The set of changes to make to the view's docs.
+   * @param updateLimboDocuments - Whether to update limbo documents based on this
    *        change.
-   * @param targetChange A target change to apply for computing limbo docs and
+   * @param targetChange - A target change to apply for computing limbo docs and
    *        sync state.
    * @returns A new ViewChange with the given docs, changes, and sync state.
    */
@@ -457,9 +457,9 @@ export class View {
    *   of `syncedDocuments` since secondary clients update their query views
    *   based purely on synthesized RemoteEvents.
    *
-   * @param queryResult.documents - The documents that match the query according
+    * @param queryResult.documents - The documents that match the query according
    * to the LocalStore.
-   * @param queryResult.remoteKeys - The keys of the documents that match the
+    * @param queryResult.remoteKeys - The keys of the documents that match the
    * query according to the backend.
    *
    * @returns The ViewChange that resulted from this synchronization.
