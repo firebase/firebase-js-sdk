@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -52,12 +52,15 @@ import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
-import { PersistenceSettings } from '../../../exp-types';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
+
+export interface PersistenceSettings {
+  forceOwnership?: boolean;
+}
 
 export interface Settings extends LiteSettings {
   cacheSizeBytes?: number;
@@ -68,9 +71,7 @@ export interface Settings extends LiteSettings {
  *
  * Do not call this constructor directly. Instead, use {@link getFirestore()}.
  */
-export class FirebaseFirestore
-  extends LiteFirestore
-  implements _FirebaseService {
+export class FirebaseFirestore extends LiteFirestore {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
 
