@@ -57,7 +57,11 @@ import {
 import { TargetData, TargetPurpose } from './target_data';
 import { Bundle, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
-import { BundleMetadata as ProtoBundleMetadata } from '../protos/firestore_bundle_proto';
+import {
+  BundleMetadata as ProtoBundleMetadata,
+  NamedQuery as ProtoNamedQuery,
+  BundledQuery as ProtoBundledQuery
+} from '../protos/firestore_bundle_proto';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -307,7 +311,7 @@ export function fromDbNamedQuery(dbNamedQuery: DbNamedQuery): NamedQuery {
 }
 
 /** Encodes a NamedQuery from a bundle proto to a DbNamedQuery. */
-export function toDbNamedQuery(query: bundleProto.NamedQuery): DbNamedQuery {
+export function toDbNamedQuery(query: ProtoNamedQuery): DbNamedQuery {
   return {
     name: query.name!,
     readTime: toDbTimestamp(fromVersion(query.readTime!)),
@@ -321,9 +325,7 @@ export function toDbNamedQuery(query: bundleProto.NamedQuery): DbNamedQuery {
  * This reconstructs the original query used to build the bundle being loaded,
  * including features exists only in SDKs (for example: limit-to-last).
  */
-export function fromBundledQuery(
-  bundledQuery: bundleProto.BundledQuery
-): Query {
+export function fromBundledQuery(bundledQuery: ProtoBundledQuery): Query {
   const query = convertQueryTargetToQuery({
     parent: bundledQuery.parent!,
     structuredQuery: bundledQuery.structuredQuery!
@@ -339,9 +341,7 @@ export function fromBundledQuery(
 }
 
 /** Encodes a NamedQuery proto object to a NamedQuery model object. */
-export function fromProtoNamedQuery(
-  namedQuery: bundleProto.NamedQuery
-): NamedQuery {
+export function fromProtoNamedQuery(namedQuery: ProtoNamedQuery): NamedQuery {
   return {
     name: namedQuery.name!,
     query: fromBundledQuery(namedQuery.bundledQuery!),
@@ -350,9 +350,7 @@ export function fromProtoNamedQuery(
 }
 
 /** Encodes a BundleMetadata proto object to a Bundle model object. */
-export function fromBundleMetadata(
-  metadata: bundleProto.BundleMetadata
-): Bundle {
+export function fromBundleMetadata(metadata: ProtoBundleMetadata): Bundle {
   return {
     id: metadata.id!,
     version: metadata.version!,
