@@ -9,7 +9,9 @@
     "extractorMessageReporting": {
       "ae-missing-release-tag": {
         "logLevel": "none"
-      },
+      }
+    },
+    "tsdocMessageReporting": {
       "tsdoc-undefined-tag": {
         "logLevel": "none"
       }
