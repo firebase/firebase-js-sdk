@@ -457,9 +457,9 @@ export class View {
    *   of `syncedDocuments` since secondary clients update their query views
    *   based purely on synthesized RemoteEvents.
    *
-    * @param queryResult.documents - The documents that match the query according
+   * @param queryResult.documents - The documents that match the query according
    * to the LocalStore.
-    * @param queryResult.remoteKeys - The keys of the documents that match the
+   * @param queryResult.remoteKeys - The keys of the documents that match the
    * query according to the backend.
    *
    * @returns The ViewChange that resulted from this synchronization.

@@ -95,7 +95,7 @@ export interface TargetCache {
    *
    * The cache key is extracted from `targetData.target`. The entry must already
    * exist in the cache, and it will be replaced.
-    * @param {TargetData} targetData The TargetData to be replaced into the cache.
+   * @param targetData - The TargetData to be replaced into the cache.
    */
   updateTargetData(
     transaction: PersistenceTransaction,

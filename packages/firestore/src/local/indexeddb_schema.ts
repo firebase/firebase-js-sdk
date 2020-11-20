@@ -1027,7 +1027,7 @@ function dropRemoteDocumentChangesStore(db: IDBDatabase): void {
 /**
  * Creates the target global singleton row.
  *
-  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
+ * @param txn - The version upgrade transaction for indexeddb
  */
 function writeEmptyTargetGlobalEntry(
   txn: SimpleDbTransaction
