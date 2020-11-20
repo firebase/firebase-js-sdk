@@ -6172,6 +6172,16 @@ declare namespace firebase.database {
     ): void;
 
     /**
+     * Gets the most up-to-date result for this query.
+     *
+     * @return A promise which resolves to the resulting DataSnapshot if
+     * a value is available, or rejects if the client is unable to return
+     * a value (e.g., if the server is unreachable and there is nothing
+     * cached).
+     */
+    get(): Promise<DataSnapshot>;
+
+    /**
      * Listens for data changes at a particular location.
      *
      * This is the primary way to read data from a Database. Your callback
