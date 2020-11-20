@@ -17,7 +17,10 @@
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { NamedQuery as ProtoNamedQuery, BundleMetadata as ProtoBundleMetadata} from '../protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata
+} from '../protos/firestore_bundle_proto';
 import { BundleCache } from './bundle_cache';
 import { Bundle, NamedQuery } from '../core/bundle';
 import {

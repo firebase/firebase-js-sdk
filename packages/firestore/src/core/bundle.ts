@@ -23,7 +23,11 @@ import {
   fromVersion,
   JsonProtoSerializer
 } from '../remote/serializer';
-import { NamedQuery as ProtoNamedQuery, BundleMetadata as ProtoBundleMetadata, BundledDocumentMetadata as ProtoBundledDocumentMetadata} from '../protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata,
+  BundledDocumentMetadata as ProtoBundledDocumentMetadata
+} from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';

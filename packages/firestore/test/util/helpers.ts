@@ -112,7 +112,11 @@ import {
   TEST_DATABASE_ID
 } from '../unit/local/persistence_test_helpers';
 import { BundledDocuments } from '../../src/core/bundle';
-import { NamedQuery as ProtoNamedQuery, BundleMetadata as ProtoBundleMetadata, LimitType as ProtoLimitType} from '../../src/protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata,
+  LimitType as ProtoLimitType
+} from '../../src/protos/firestore_bundle_proto';
 
 /* eslint-disable no-restricted-globals */
 

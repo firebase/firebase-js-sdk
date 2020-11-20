@@ -76,7 +76,10 @@ import {
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
-import { NamedQuery as ProtoNamedQuery, BundleMetadata as ProtoBundleMetadata} from '../protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata
+} from '../protos/firestore_bundle_proto';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import { BundleCache } from './bundle_cache';
 import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
