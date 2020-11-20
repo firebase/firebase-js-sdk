@@ -33,10 +33,7 @@ import { ESLint } from 'eslint';
  * @param inputLocation The file path to the .d.ts produced by API explorer.
  * @param outputLocation The output location for the pruned .d.ts file.
  */
-export async function pruneDts(
-  inputLocation: string,
-  outputLocation: string
-): Promise<void> {
+export function pruneDts(inputLocation: string, outputLocation: string): void {
   const compilerOptions = {};
   const host = ts.createCompilerHost(compilerOptions);
   const program = ts.createProgram([inputLocation], compilerOptions, host);
@@ -49,24 +46,26 @@ export async function pruneDts(
 
   const content = printer.printFile(transformedSourceFile);
   fs.writeFileSync(outputLocation, content);
-
-  await removeUnusedImports(outputLocation);
 }
 
-async function removeUnusedImports(outputLocation: string): Promise<void> {
+export async function removeUnusedImports(
+  outputLocation: string
+): Promise<void> {
   const eslint = new ESLint({
     fix: true,
-    baseConfig: {
-      'parserOptions': {
-        'ecmaVersion': 2017,
-        sourceType: 'module'
+    overrideConfig: {
+      parserOptions: {
+        ecmaVersion: 2017,
+        sourceType: 'module',
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.eslint.json']
       },
-      'env': {
-        'es6': true
+      env: {
+        es6: true
       },
-      'plugins': ['unused-imports', '@typescript-eslint'],
-      'parser': '@typescript-eslint/parser',
-      'rules': {
+      plugins: ['unused-imports', '@typescript-eslint'],
+      parser: '@typescript-eslint/parser',
+      rules: {
         'unused-imports/no-unused-imports-ts': ['error']
       }
     }
@@ -432,5 +431,8 @@ const argv = yargs.options({
 }).argv;
 
 if (argv.input && argv.output) {
+  console.log('Removing private exports...');
   pruneDts(argv.input, argv.output);
+  console.log('Removing unused imports...');
+  removeUnusedImports(argv.output).then(() => console.log('Done.'));
 }
