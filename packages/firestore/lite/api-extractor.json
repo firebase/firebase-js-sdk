@@ -4,5 +4,17 @@
   "dtsRollup": {
     "enabled": true,
     "publicTrimmedFilePath": "../dist/lite/private.d.ts"
+  },
+  "messages": {
+    "extractorMessageReporting": {
+      "ae-missing-release-tag": {
+        "logLevel": "none"
+      }
+    },
+    "tsdocMessageReporting": {
+      "tsdoc-undefined-tag": {
+        "logLevel": "none"
+      }
+    }
   }
 }
