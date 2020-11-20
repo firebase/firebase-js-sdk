@@ -149,7 +149,7 @@ export class FirestoreSettings {
 /**
  * The Cloud Firestore service interface.
  *
- * Do not call this constructor directly. Instead, use {@link getFirestore()}.
+ * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
 export class FirebaseFirestore implements _FirebaseService {
   readonly _databaseId: DatabaseId;
@@ -261,8 +261,8 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
 /**
  * Initializes a new instance of Cloud Firestore with the provided settings.
  * Can only be called before any other functions, including
- * {@link getFirestore()}. If the custom settings are empty, this function is
- * equivalent to calling {@link getFirestore()}.
+ * {@link getFirestore}. If the custom settings are empty, this function is
+ * equivalent to calling {@link getFirestore}.
  *
  * @param app - The {@link FirebaseApp} with which the `Firestore` instance will be
  * associated.
@@ -306,11 +306,11 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * response from the server will not be resolved.
  *
  * To restart after termination, create a new instance of FirebaseFirestore with
- * {@link getFirestore()}.
+ * {@link getFirestore}.
  *
  * Note: Under normal circumstances, calling `terminate()` is not required. This
  * function is useful only when you want to force this instance to release all of
- * its resources or in combination with {@link clearIndexedDbPersistence()} to
+ * its resources or in combination with {@link clearIndexedDbPersistence} to
  * ensure that all local state is destroyed between test runs.
  *
  * @returns A promise that is resolved when the instance has been successfully

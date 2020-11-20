@@ -43,9 +43,9 @@ import { Compat } from '../../../src/compat/compat';
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.
  *
- * A `WriteBatch` object can be acquired by calling {@link writeBatch()}. It
+ * A `WriteBatch` object can be acquired by calling {@link writeBatch}. It
  * provides methods for adding writes to the write batch. None of the writes
- * will be committed (or visible locally) until {@link WriteBatch#commit()} is
+ * will be committed (or visible locally) until {@link WriteBatch#commit} is
  * called.
  */
 export class WriteBatch {

@@ -69,7 +69,7 @@ export interface Settings extends LiteSettings {
 /**
  * The Cloud Firestore service interface.
  *
- * Do not call this constructor directly. Instead, use {@link getFirestore()}.
+ * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
 export class FirebaseFirestore
   extends LiteFirestore {
@@ -101,8 +101,8 @@ export class FirebaseFirestore
 /**
  * Initializes a new instance of Cloud Firestore with the provided settings.
  * Can only be called before any other function, including
- * {@link getFirestore()}. If the custom settings are empty, this function is
- * equivalent to calling {@link getFirestore()}.
+ * {@link getFirestore}. If the custom settings are empty, this function is
+ * equivalent to calling {@link getFirestore}.
  *
  * @param app - The {@link FirebaseApp} with which the `Firestore` instance will
  * be associated.
@@ -150,8 +150,8 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * Attempts to enable persistent storage, if possible.
  *
  * Must be called before any other functions (other than
- * {@link initializeFirestore()}, {@link getFirestore()} or
- * {@link clearIndexedDbPersistence()}.
+ * {@link initializeFirestore}, {@link getFirestore} or
+ * {@link clearIndexedDbPersistence}.
  *
  * If this fails, `enableIndexedDbPersistence()` will reject the promise it
  * returns. Note that even after this failure, the `Firestore` instance will
@@ -310,7 +310,7 @@ function canFallbackFromIndexedDbError(
  * Must be called while the `Firestore` instance is not started (after the app is
  * terminated or when the app is first initialized). On startup, this function
  * must be called before other functions (other than {@link
- * initializeFirestore()} or {@link getFirestore()})). If the `Firestore`
+ * initializeFirestore} or {@link getFirestore})). If the `Firestore`
  * instance is still running, the promise will be rejected with the error code
  * of `failed-precondition`.
  *
@@ -375,7 +375,7 @@ export function waitForPendingWrites(
 
 /**
  * Re-enables use of the network for this Firestore instance after a prior
- * call to {@link disableNetwork()}.
+ * call to {@link disableNetwork}.
  *
  * @returns A promise that is resolved once the network has been enabled.
  */
@@ -386,7 +386,7 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
 
 /**
  * Disables network usage for this instance. It can be re-enabled via {@link
- * enableNetwork()}. While the network is disabled, any snapshot listeners,
+ * enableNetwork}. While the network is disabled, any snapshot listeners,
  * `getDoc()` or `getDocs()` calls will return results from cache, and any write
  * operations will be queued until the network is restored.
  *
@@ -404,7 +404,7 @@ export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * may be used. Any other function will throw a `FirestoreError`.
  *
  * To restart after termination, create a new instance of FirebaseFirestore with
- * {@link getFirestore()}.
+ * {@link getFirestore}.
  *
  * Termination does not cancel any pending writes, and any promises that are
  * awaiting a response from the server will not be resolved. If you have

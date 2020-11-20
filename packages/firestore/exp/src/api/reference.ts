@@ -104,7 +104,7 @@ export {
 } from '../../../lite/src/api/reference';
 
 /**
- * An options object that can be passed to {@link onSnapshot()} and {@link
+ * An options object that can be passed to {@link onSnapshot} and {@link
  * QuerySnapshot#docChanges} to control which types of changes to include in the
  * result set.
  */
@@ -122,7 +122,7 @@ export interface SnapshotListenOptions {
  * Note: `getDoc()` attempts to provide up-to-date data when possible by waiting
  * for data from the server, but it may return cached data or fail if you are
  * offline and the server cannot be reached. To specify this behavior, invoke
- * {@link getDocFromCache()} or {@link getDocFromServer()}.
+ * {@link getDocFromCache} or {@link getDocFromServer}.
  *
  * @param reference - The reference of the document to fetch.
  * @returns A Promise resolved with a `DocumentSnapshot` containing the
@@ -235,7 +235,7 @@ export function getDocFromServer<T>(
  * Note: `getDocs()` attempts to provide up-to-date data when possible by
  * waiting for data from the server, but it may return cached data or fail if
  * you are offline and the server cannot be reached. To specify this behavior,
- * invoke {@link getDocsFromCache()} or {@link getDocsFromServer()}.
+ * invoke {@link getDocsFromCache} or {@link getDocsFromServer}.
  *
  * @returns A Promise that will be resolved with the results of the query.
  */

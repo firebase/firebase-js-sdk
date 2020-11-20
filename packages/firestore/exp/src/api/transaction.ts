@@ -33,7 +33,7 @@ import { firestoreClientTransaction } from '../../../src/core/firestore_client';
  *
  * The `Transaction` object passed to a transaction's `updateFunction` provides
  * the methods to read and write data within the transaction context. See
- * {@link runTransaction()}.
+ * {@link runTransaction}.
  */
 export class Transaction extends LiteTransaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
