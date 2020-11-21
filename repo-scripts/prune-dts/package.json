@@ -12,7 +12,11 @@
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --require ts-node/register --timeout 5000 *.test.ts"
   },
   "license": "Apache-2.0",
-  "dependencies": {},
+  "dependencies": {
+    "eslint": "7.14.0",
+    "eslint-plugin-unused-imports": "1.0.0",
+    "prettier": "2.2.0"
+  },
   "repository": {
     "directory": "repo-scripts/prune-dts",
     "type": "git",
@@ -30,9 +34,6 @@
   "devDependencies": {
     "@types/eslint": "7.2.5",
     "@types/prettier": "2.1.5",
-    "eslint": "7.13.0",
-    "eslint-plugin-unused-imports": "1.0.0",
     "mocha": "8.2.1",
-    "prettier": "2.1.2"
   }
 }

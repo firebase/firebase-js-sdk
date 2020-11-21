@@ -240,9 +240,10 @@ function convertPropertiesForEnclosingClass(
   currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration
 ): ts.NamedDeclaration[] {
   const newMembers: ts.NamedDeclaration[] = [];
-  // The `codefix` package is not public but it does exactly what we want. We
-  // can explore adding a slimmed down version of this package to our repository
-  // if this dependency should ever break.
+  // The `codefix` package is not public but it does exactly what we want. It's 
+  // the same package that is used by VSCode to fill in missing members, which
+  // is what we are using it for in this script. `codefix` handles missing
+  // properties, methods and correctly deduces generics.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (ts as any).codefix.createMissingMemberNodes(
     currentClass,
@@ -308,6 +309,8 @@ function extractExportedSymbol(
             if (ts.isIdentifier(type.expression)) {
               const subclassName = type.expression.escapedText;
               if (subclassName === localSymbolName) {
+                // TODO: We may need to change this to return a Union type if 
+                // more than one public type corresponds to the private type.
                 return symbol;
               }
             }
