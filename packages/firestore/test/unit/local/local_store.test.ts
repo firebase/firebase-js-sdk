@@ -34,15 +34,10 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
-  applyBundleDocuments,
-  getNamedQuery,
-  hasNewerBundle,
   applyRemoteEventToLocalCache,
   LocalStore,
   LocalWriteResult,
   newLocalStore,
-  saveBundle,
-  saveNamedQuery,
   synchronizeLastDocumentChangeReadTime,
   notifyLocalViewChanges,
   acknowledgeBatch,
@@ -55,6 +50,13 @@ import {
   getHighestUnacknowledgedBatchId,
   rejectBatch
 } from '../../../src/local/local_store';
+import {
+  applyBundleDocuments,
+  getNamedQuery,
+  hasNewerBundle,
+  saveBundle,
+  saveNamedQuery
+} from '../../../src/local/local_store_bundle';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
 import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';

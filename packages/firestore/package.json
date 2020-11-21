@@ -15,7 +15,6 @@
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
-    "build:bundle": "rollup -c rollup.config.bundle.js",
     "build:exp:release": "yarn build:exp && yarn build:lite",
     "predev": "yarn prebuild",
     "dev": "rollup -c -w",

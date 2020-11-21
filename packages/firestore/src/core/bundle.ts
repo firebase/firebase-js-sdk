@@ -324,7 +324,7 @@ function createBundleReader(
  * @param bundleReader Bundle to load into the SDK.
  * @param task LoadBundleTask used to update the loading progress to public API.
  */
-function syncEngineLoadBundle(
+export function syncEngineLoadBundle(
   syncEngine: SyncEngine,
   bundleReader: BundleReader,
   task: LoadBundleTask
