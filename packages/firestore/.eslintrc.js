@@ -23,10 +23,11 @@ module.exports = {
     // https://github.com/typescript-eslint/typescript-eslint/issues/251#issuecomment-463943250
     tsconfigRootDir: __dirname
   },
-  plugins: ['import'],
+  plugins: ['unused-imports', 'import'],
   rules: {
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'import/no-default-export': 'error',
+    'unused-imports/no-unused-imports-ts': ['error'],
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
