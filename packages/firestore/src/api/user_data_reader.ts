@@ -419,7 +419,7 @@ export function parseUpdateData(
     // For Compat types, we have to "extract" the underlying types before
     // performing validation.
     if (value instanceof Compat) {
-      value = (value as Compat<unknown>)._delegate;
+      value = value._delegate;
     }
 
     const childContext = context.childContextForFieldPath(path);
@@ -491,7 +491,7 @@ export function parseUpdateVarargs(
       // For Compat types, we have to "extract" the underlying types before
       // performing validation.
       if (value instanceof Compat) {
-        value = (value as Compat<unknown>)._delegate;
+        value = value._delegate;
       }
 
       const childContext = context.childContextForFieldPath(path);
@@ -787,7 +787,7 @@ export function fieldPathFromArgument(
   // If required, replace the FieldPath Compat class with with the firestore-exp
   // FieldPath.
   if (path instanceof Compat) {
-    path = (path as Compat<FieldPath>)._delegate;
+    path = path._delegate;
   }
 
   if (path instanceof FieldPath) {

@@ -38,6 +38,7 @@ import { FirebaseFirestore } from './database';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
+import { cast } from '../../../src/util/input_validation';
 import { Compat } from '../../../src/compat/compat';
 
 /**
@@ -269,6 +270,7 @@ export function validateReference<T>(
  * writes.
  */
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
+  firestore = cast(firestore, FirebaseFirestore);
   const datastore = getDatastore(firestore);
   return new WriteBatch(firestore, writes =>
     invokeCommitRpc(datastore, writes)

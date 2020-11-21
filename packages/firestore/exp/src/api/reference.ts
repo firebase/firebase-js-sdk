@@ -131,6 +131,7 @@ export interface SnapshotListenOptions {
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
+  reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast(reference.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -175,6 +176,7 @@ export class ExpUserDataWriter extends AbstractUserDataWriter {
 export function getDocFromCache<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
+  reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast(reference.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
@@ -210,6 +212,7 @@ export function getDocFromCache<T>(
 export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
+  reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast(reference.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -240,6 +243,7 @@ export function getDocFromServer<T>(
  * @return A Promise that will be resolved with the results of the query.
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
+  query = cast<Query<T>>(query, Query);
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
@@ -271,6 +275,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
 export function getDocsFromCache<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
+  query = cast<Query<T>>(query, Query);
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
@@ -294,6 +299,7 @@ export function getDocsFromCache<T>(
 export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
+  query = cast<Query<T>>(query, Query);
   const firestore = cast(query.firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
@@ -348,6 +354,7 @@ export function setDoc<T>(
   data: T,
   options?: SetOptions
 ): Promise<void> {
+  reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast(reference.firestore, FirebaseFirestore);
 
   const convertedValue = applyFirestoreDataConverter(
@@ -412,6 +419,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
+  reference = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const firestore = cast(reference.firestore, FirebaseFirestore);
 
   const dataReader = newUserDataReader(firestore);
@@ -701,6 +709,10 @@ export function onSnapshot<T>(
   reference: Query<T> | DocumentReference<T>,
   ...args: unknown[]
 ): Unsubscribe {
+  if (reference instanceof Compat) {
+    reference = reference._delegate;
+  }
+
   let options: SnapshotListenOptions = {
     includeMetadataChanges: false
   };
@@ -733,7 +745,11 @@ export function onSnapshot<T>(
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<DocumentSnapshot<T>>)(
-            convertToDocSnapshot(firestore, reference, snapshot)
+            convertToDocSnapshot(
+              firestore,
+              reference as DocumentReference<T>,
+              snapshot
+            )
           );
         }
       },
@@ -741,15 +757,16 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
   } else {
-    firestore = cast(reference.firestore, FirebaseFirestore);
-    internalQuery = reference._query;
+    const query = cast<Query<T>>(reference, Query);
+    firestore = cast(query.firestore, FirebaseFirestore);
+    internalQuery = query._query;
     const userDataWriter = new ExpUserDataWriter(firestore);
 
     observer = {
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<QuerySnapshot<T>>)(
-            new QuerySnapshot(firestore, userDataWriter, reference, snapshot)
+            new QuerySnapshot(firestore, userDataWriter, query, snapshot)
           );
         }
       },
@@ -832,6 +849,7 @@ export function onSnapshotsInSync(
   firestore: FirebaseFirestore,
   arg: unknown
 ): Unsubscribe {
+  firestore = cast(firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
 
   const observer = isPartialObserver(arg)

@@ -662,6 +662,7 @@ export class DocumentReference<T = PublicDocumentData>
     if (other instanceof Compat) {
       other = other._delegate;
     }
+
     if (!(other instanceof ExpDocumentReference)) {
       return false;
     }

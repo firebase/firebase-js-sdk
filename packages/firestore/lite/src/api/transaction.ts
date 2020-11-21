@@ -44,6 +44,7 @@ import {
 } from './reference';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
+import { cast } from '../../../src/util/input_validation';
 import { Compat } from '../../../src/compat/compat';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
@@ -264,6 +265,7 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
+  firestore = cast(firestore, FirebaseFirestore);
   const datastore = getDatastore(firestore);
   const deferred = new Deferred<T>();
   new TransactionRunner<T>(

@@ -35,7 +35,10 @@ import {
   LRU_DEFAULT_CACHE_SIZE_BYTES,
   LRU_MINIMUM_CACHE_SIZE_BYTES
 } from '../../../src/local/lru_garbage_collector';
-import { validateIsNotUsedTogether } from '../../../src/util/input_validation';
+import {
+  cast,
+  validateIsNotUsedTogether
+} from '../../../src/util/input_validation';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -316,6 +319,7 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * terminated.
  */
 export function terminate(firestore: FirebaseFirestore): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   _removeServiceInstance(firestore.app, 'firestore/lite');
   return firestore._delete();
 }
