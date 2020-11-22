@@ -24,7 +24,6 @@ import {
   withTestDb
 } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
-import '../../../index.bundle';
 
 export const encoder = new TextEncoder();
 
