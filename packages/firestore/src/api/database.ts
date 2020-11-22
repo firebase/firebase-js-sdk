@@ -421,7 +421,7 @@ export class Firestore
   namedQuery(name: string): Promise<PublicQuery<DocumentData> | null> {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
-      '"namedQuery()" does not exist, have you imported "firebase/firestore/bundle"'
+      '"namedQuery()" does not exist, have you imported "firebase/firestore/bundle"?'
     );
   }
 }
