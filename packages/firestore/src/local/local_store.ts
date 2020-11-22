@@ -76,7 +76,10 @@ import {
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
-import * as bundleProto from '../protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata
+} from '../protos/firestore_bundle_proto';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import { BundleCache } from './bundle_cache';
 import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
@@ -1370,7 +1373,7 @@ export async function applyBundleDocuments(
  */
 export function hasNewerBundle(
   localStore: LocalStore,
-  bundleMetadata: bundleProto.BundleMetadata
+  bundleMetadata: ProtoBundleMetadata
 ): Promise<boolean> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const bundleConverter = new BundleConverter(localStoreImpl.serializer);
@@ -1395,7 +1398,7 @@ export function hasNewerBundle(
  */
 export function saveBundle(
   localStore: LocalStore,
-  bundleMetadata: bundleProto.BundleMetadata
+  bundleMetadata: ProtoBundleMetadata
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
@@ -1432,7 +1435,7 @@ export function getNamedQuery(
  */
 export async function saveNamedQuery(
   localStore: LocalStore,
-  query: bundleProto.NamedQuery,
+  query: ProtoNamedQuery,
   documents: DocumentKeySet = documentKeySet()
 ): Promise<void> {
   // Allocate a target for the named query such that it can be resumed
