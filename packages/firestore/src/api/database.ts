@@ -414,7 +414,7 @@ export class Firestore
   ): LoadBundleTask {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
-      '"loadBundle()" does not exist, have you imported "firebase/firestore/bundle"'
+      '"loadBundle()" does not exist, have you imported "firebase/firestore/bundle"?'
     );
   }
 
