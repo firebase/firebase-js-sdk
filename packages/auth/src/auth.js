@@ -295,8 +295,9 @@ fireauth.Auth.prototype.useDeviceLanguage = function() {
 /**
  * Sets the emulator configuration (go/firebase-emulator-connection-api).
  * @param {string} url The url for the Auth emulator.
+ * @param {?Object=} options Optional options to specify emulator settings.
  */
-fireauth.Auth.prototype.useEmulator = function(url) {
+fireauth.Auth.prototype.useEmulator = function(url, options) {
   // Emulator config can only be set once.
   if (!this.emulatorConfig_) {
     if (!/^https?:\/\//.test(url)) {
@@ -305,7 +306,8 @@ fireauth.Auth.prototype.useEmulator = function(url) {
           'Emulator URL must start with a valid scheme (http:// or https://).');
     }
     // Emit a warning so dev knows we are now in test mode.
-    this.emitEmulatorWarning_();
+    const disableBanner = options ? !!options['disableWarnings'] : false;
+    this.emitEmulatorWarning_(disableBanner);
     // Persist the config.
     this.emulatorConfig_ = { url };
     // Disable app verification.
@@ -319,14 +321,16 @@ fireauth.Auth.prototype.useEmulator = function(url) {
 
 
 /**
- * Emits a console warning and a visual banner if emulator integration is
- * enabled.
- */
-fireauth.Auth.prototype.emitEmulatorWarning_ = function() {
-  fireauth.util.consoleWarn('WARNING: You are using the Auth Emulator,' +
+   * Emits a console info and a visual banner if emulator integration is
+   * enabled.
+   * @param {boolean} disableBanner Whether visual banner should be disabled.
+   * @private
+   */
+fireauth.Auth.prototype.emitEmulatorWarning_ = function(disableBanner) {
+  fireauth.util.consoleInfo('WARNING: You are using the Auth Emulator,' +
     ' which is intended for local testing only.  Do not use with' +
     ' production credentials.');
-  if (goog.global.document) {
+  if (goog.global.document && !disableBanner) {
     fireauth.util.onDomReady().then(() => {
       const ele = goog.global.document.createElement('div');
       ele.innerText = 'Running in emulator mode. Do not use with production' +

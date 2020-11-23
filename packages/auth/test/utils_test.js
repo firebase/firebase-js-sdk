@@ -1791,8 +1791,8 @@ function testConsoleWarn() {
     // those browsers.
     return;
   }
-  var consoleWarn = mockControl.createMethodMock(goog.global.console, 'warn');
-  var message = 'This is my message.';
+  const consoleWarn = mockControl.createMethodMock(goog.global.console, 'warn');
+  const message = 'This is my message.';
   consoleWarn(message).$once();
 
   mockControl.$replayAll();
@@ -1803,6 +1803,28 @@ function testConsoleWarn() {
 
 function testConsoleWarn_doesntBreakIE() {
   fireauth.util.consoleWarn('This should not trigger an error in IE.');
+}
+
+
+function testConsoleInfo() {
+  if (typeof console === 'undefined') {
+    // Ignore browsers that don't support console. The test
+    // testConsoleInfo_doesntBreakIE tests that this function doesn't break
+    // those browsers.
+    return;
+  }
+  const consoleInfo = mockControl.createMethodMock(goog.global.console, 'info');
+  const message = 'This is my message.';
+  consoleInfo(message).$once();
+
+  mockControl.$replayAll();
+
+  fireauth.util.consoleInfo(message);
+}
+
+
+function testConsoleInfo_doesntBreakIE() {
+  fireauth.util.consoleInfo('This should not trigger an error in IE.');
 }
 
 

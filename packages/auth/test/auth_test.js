@@ -914,7 +914,7 @@ function testUseEmulator() {
     goog.testing.recordFunction());
   stubs.replace(
     fireauth.util,
-    'consoleWarn',
+    'consoleInfo',
     goog.testing.recordFunction());
   var handler = goog.testing.recordFunction();
   stubs.replace(
@@ -935,7 +935,7 @@ function testUseEmulator() {
   assertEquals(0, handler.getCallCount());
   assertEquals(
     0, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
-  assertEquals(0, fireauth.util.consoleWarn.getCallCount());
+  assertEquals(0, fireauth.util.consoleInfo.getCallCount());
   assertEquals(
     0,
     fireauth.AuthSettings.prototype.setAppVerificationDisabledForTesting.
@@ -958,8 +958,17 @@ function testUseEmulator() {
     fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
       .getArgument(0)
   );
-  // Should emit a console warning.
-  assertEquals(1, fireauth.util.consoleWarn.getCallCount());
+  // Should emit a console warning and a banner.
+  assertEquals(1, fireauth.util.consoleInfo.getCallCount());
+  if (goog.global.document) {
+    asyncTestCase.waitForSignals(1);
+    fireauth.util.onDomReady().then(() => {
+      const el =
+          goog.global.document.querySelector('.firebase-emulator-warning');
+      assertNotNull(el);
+      asyncTestCase.signal();
+    });
+  }
   // Should disable App verification.
   assertEquals(
     true,
@@ -975,7 +984,7 @@ function testUseEmulator() {
     auth1.getEmulatorConfig());
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
-  assertEquals(1, fireauth.util.consoleWarn.getCallCount());
+  assertEquals(1, fireauth.util.consoleInfo.getCallCount());
 
   // Updating to different config should still not trigger event.
   auth1.useEmulator('http://emulator.other.domain:9876');
@@ -986,6 +995,58 @@ function testUseEmulator() {
     auth1.getEmulatorConfig());
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+}
+
+
+function testUseEmulator_withDisableWarnings() {
+  // Listen to emulator config calls on RpcHandler.
+  stubs.replace(
+      fireauth.RpcHandler.prototype, 'updateEmulatorConfig',
+      goog.testing.recordFunction());
+  stubs.replace(fireauth.util, 'consoleInfo', goog.testing.recordFunction());
+  const handler = goog.testing.recordFunction();
+
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+
+  // Listen to all emulatorConfigChange events dispatched by the Auth instance.
+  goog.events.listen(
+      auth1, fireauth.constants.AuthEventType.EMULATOR_CONFIG_CHANGED, handler);
+
+  assertUndefined(fireauth.constants.emulatorConfig);
+  assertEquals(0, handler.getCallCount());
+  assertEquals(
+      0, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+  assertEquals(0, fireauth.util.consoleInfo.getCallCount());
+
+  // Update the emulator config.
+  auth1.useEmulator(
+      'http://emulator.test.domain:1234', {disableWarnings: true});
+  assertObjectEquals(
+      {
+        url: 'http://emulator.test.domain:1234',
+      },
+      auth1.getEmulatorConfig());
+  // Should notify the RPC handler.
+  assertEquals(
+      1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+  assertObjectEquals(
+      {
+        url: 'http://emulator.test.domain:1234',
+      },
+      fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+          .getArgument(0));
+  // Should emit a console info but not a banner.
+  assertEquals(1, fireauth.util.consoleInfo.getCallCount());
+  if (goog.global.document) {
+    asyncTestCase.waitForSignals(1);
+    fireauth.util.onDomReady().then(() => {
+      const el =
+          goog.global.document.querySelector('.firebase-emulator-warning');
+      assertNull(el);
+      asyncTestCase.signal();
+    });
+  }
 }
 
 

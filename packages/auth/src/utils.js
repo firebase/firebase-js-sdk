@@ -1407,6 +1407,17 @@ fireauth.util.consoleWarn = function(message) {
 
 
 /**
+ * Logs an info message to the console, if the console is available.
+ * @param {string} message
+ */
+fireauth.util.consoleInfo = function(message) {
+  if (typeof console !== 'undefined' && typeof console.info === 'function') {
+    console.info(message);
+  }
+};
+
+
+/**
  * Parses a UTC time stamp string or number and returns the corresponding UTC
  * date string if valid. Otherwise, returns null.
  * @param {?string|number} utcTimestamp The UTC timestamp number or string.
