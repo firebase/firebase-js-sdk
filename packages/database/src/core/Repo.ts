@@ -45,8 +45,6 @@ import { EventRegistration } from './view/EventRegistration';
 import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
 import { Node } from './snap/Node';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Provider } from '@firebase/component';
 import { Indexable } from './util/misc';
 
 const INTERRUPT_REASON = 'repo_interrupt';

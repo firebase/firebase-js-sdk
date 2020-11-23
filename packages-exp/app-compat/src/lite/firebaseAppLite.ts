@@ -17,7 +17,6 @@
 
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import {
-  _FirebaseApp,
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
