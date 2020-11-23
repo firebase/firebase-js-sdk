@@ -321,11 +321,11 @@ fireauth.Auth.prototype.useEmulator = function(url, options) {
 
 
 /**
-   * Emits a console info and a visual banner if emulator integration is
-   * enabled.
-   * @param {boolean} disableBanner Whether visual banner should be disabled.
-   * @private
-   */
+ * Emits a console info and a visual banner if emulator integration is
+ * enabled.
+ * @param {boolean} disableBanner Whether visual banner should be disabled.
+ * @private
+ */
 fireauth.Auth.prototype.emitEmulatorWarning_ = function(disableBanner) {
   fireauth.util.consoleInfo('WARNING: You are using the Auth Emulator,' +
     ' which is intended for local testing only.  Do not use with' +
