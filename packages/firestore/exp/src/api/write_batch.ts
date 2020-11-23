@@ -31,7 +31,7 @@ export { WriteBatch };
  * Unlike transactions, write batches are persisted offline and therefore are
  * preferable when you don't need to condition your writes on read data.
  *
- * @return A `WriteBatch` that can be used to atomically execute multiple
+ * @returns A `WriteBatch` that can be used to atomically execute multiple
  * writes.
  */
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {

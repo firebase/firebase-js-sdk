@@ -38,7 +38,7 @@ export class Timestamp {
   /**
    * Creates a new timestamp with the current date, with millisecond precision.
    *
-   * @return a new timestamp representing the current date.
+   * @returns a new timestamp representing the current date.
    */
   static now(): Timestamp {
     return Timestamp.fromMillis(Date.now());
@@ -47,8 +47,8 @@ export class Timestamp {
   /**
    * Creates a new timestamp from the given date.
    *
-   * @param date The date to initialize the `Timestamp` from.
-   * @return A new `Timestamp` representing the same point in time as the given
+   * @param date - The date to initialize the `Timestamp` from.
+   * @returns A new `Timestamp` representing the same point in time as the given
    *     date.
    */
   static fromDate(date: Date): Timestamp {
@@ -58,9 +58,9 @@ export class Timestamp {
   /**
    * Creates a new timestamp from the given number of milliseconds.
    *
-   * @param milliseconds Number of milliseconds since Unix epoch
+   * @param milliseconds - Number of milliseconds since Unix epoch
    *     1970-01-01T00:00:00Z.
-   * @return A new `Timestamp` representing the same point in time as the given
+   * @returns A new `Timestamp` representing the same point in time as the given
    *     number of milliseconds.
    */
   static fromMillis(milliseconds: number): Timestamp {
@@ -72,10 +72,10 @@ export class Timestamp {
   /**
    * Creates a new timestamp.
    *
-   * @param seconds The number of seconds of UTC time since Unix epoch
+   * @param seconds - The number of seconds of UTC time since Unix epoch
    *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
    *     9999-12-31T23:59:59Z inclusive.
-   * @param nanoseconds The non-negative fractions of a second at nanosecond
+   * @param nanoseconds - The non-negative fractions of a second at nanosecond
    *     resolution. Negative second values with fractions must still have
    *     non-negative nanoseconds values that count forward in time. Must be
    *     from 0 to 999,999,999 inclusive.
@@ -112,7 +112,7 @@ export class Timestamp {
    * Converts a `Timestamp` to a JavaScript `Date` object. This conversion causes
    * a loss of precision since `Date` objects only support millisecond precision.
    *
-   * @return JavaScript `Date` object representing the same point in time as
+   * @returns JavaScript `Date` object representing the same point in time as
    *     this `Timestamp`, with millisecond precision.
    */
   toDate(): Date {
@@ -123,7 +123,7 @@ export class Timestamp {
    * Converts a `Timestamp` to a numeric timestamp (in milliseconds since
    * epoch). This operation causes a loss of precision.
    *
-   * @return The point in time corresponding to this timestamp, represented as
+   * @returns The point in time corresponding to this timestamp, represented as
    *     the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
    */
   toMillis(): number {
@@ -140,8 +140,8 @@ export class Timestamp {
   /**
    * Returns true if this `Timestamp` is equal to the provided one.
    *
-   * @param other The `Timestamp` to compare against.
-   * @return true if this `Timestamp` is equal to the provided one.
+   * @param other - The `Timestamp` to compare against.
+   * @returns true if this `Timestamp` is equal to the provided one.
    */
   isEqual(other: Timestamp): boolean {
     return (

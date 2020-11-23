@@ -37,7 +37,7 @@ export class FieldPath {
    * Creates a FieldPath from the provided field names. If more than one field
    * name is provided, the path will point to a nested field in a document.
    *
-   * @param fieldNames A list of field names.
+   * @param fieldNames - A list of field names.
    */
   constructor(...fieldNames: string[]) {
     for (let i = 0; i < fieldNames.length; ++i) {
@@ -56,8 +56,8 @@ export class FieldPath {
   /**
    * Returns true if this `FieldPath` is equal to the provided one.
    *
-   * @param other The `FieldPath` to compare against.
-   * @return true if this `FieldPath` is equal to the provided one.
+   * @param other - The `FieldPath` to compare against.
+   * @returns true if this `FieldPath` is equal to the provided one.
    */
   isEqual(other: FieldPath): boolean {
     return this._internalPath.isEqual(other._internalPath);

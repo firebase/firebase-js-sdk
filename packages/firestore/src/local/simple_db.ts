@@ -553,9 +553,9 @@ export class SimpleDbStore<
   /**
    * Writes a value into the Object Store.
    *
-   * @param key Optional explicit key to use when writing the object, else the
+   * @param key - Optional explicit key to use when writing the object, else the
    * key will be auto-assigned (e.g. via the defined keyPath for the store).
-   * @param value The object to write.
+   * @param value - The object to write.
    */
   put(value: ValueType): PersistencePromise<void>;
   put(key: KeyType, value: ValueType): PersistencePromise<void>;
@@ -578,8 +578,8 @@ export class SimpleDbStore<
    * Adds a new value into an Object Store and returns the new key. Similar to
    * IndexedDb's `add()`, this method will fail on primary key collisions.
    *
-   * @param value The object to write.
-   * @return The key of the value to add.
+   * @param value - The object to write.
+   * @returns The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
     logDebug(LOG_TAG, 'ADD', this.store.name, value, value);
@@ -592,7 +592,7 @@ export class SimpleDbStore<
    * if no object exists with the specified key.
    *
    * @key The key of the object to get.
-   * @return The object with the specified key or null if no object exists.
+   * @returns The object with the specified key or null if no object exists.
    */
   get(key: KeyType): PersistencePromise<ValueType | null> {
     const request = this.store.get(key);
@@ -667,8 +667,9 @@ export class SimpleDbStore<
   /**
    * Iterates over keys and values in an object store.
    *
-   * @param options Options specifying how to iterate the objects in the store.
-   * @param callback will be called for each iterated object. Iteration can be
+   * @param options - Options specifying how to iterate the objects in the
+   * store.
+   * @param callback - will be called for each iterated object. Iteration can be
    * canceled at any point by calling the doneFn passed to the callback.
    * The callback can return a PersistencePromise if it performs async
    * operations but note that iteration will continue without waiting for them

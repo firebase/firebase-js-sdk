@@ -655,13 +655,13 @@ export function applyRemoteEventToLocalCache(
  * Populates document change buffer with documents from backend or a bundle.
  * Returns the document changes resulting from applying those documents.
  *
- * @param txn Transaction to use to read existing documents from storage.
- * @param documentBuffer Document buffer to collect the resulted changes to be
+ * @param txn - Transaction to use to read existing documents from storage.
+ * @param documentBuffer - Document buffer to collect the resulted changes to be
  *        applied to storage.
- * @param documents Documents to be applied.
- * @param globalVersion A `SnapshotVersion` representing the read time if all
+ * @param documents - Documents to be applied.
+ * @param globalVersion - A `SnapshotVersion` representing the read time if all
  *        documents have the same read time.
- * @param documentVersions A DocumentKey-to-SnapshotVersion map if documents
+ * @param documentVersions - A DocumentKey-to-SnapshotVersion map if documents
  *        have their own read time.
  *
  * Note: this function will use `documentVersions` if it is defined;
@@ -852,7 +852,7 @@ export async function notifyLocalViewChanges(
 /**
  * Gets the mutation batch after the passed in batchId in the mutation queue
  * or null if empty.
- * @param afterBatchId If provided, the batch to search after.
+ * @param afterBatchId - If provided, the batch to search after.
  * @returns The next mutation or null if there wasn't one.
  */
 export function nextMutationBatch(
@@ -1037,7 +1037,7 @@ export async function releaseTarget(
  * potentially taking advantage of query data from previous executions (such
  * as the set of remote keys).
  *
- * @param usePreviousResults Whether results from previous executions can
+ * @param usePreviousResults - Whether results from previous executions can
  * be used to optimize this query execution.
  */
 export function executeQuery(
@@ -1259,8 +1259,8 @@ export async function synchronizeLastDocumentChangeReadTime(
  * `applyPrimaryLease` to propagate the primary state change). All other errors
  * are re-thrown.
  *
- * @param err An error returned by a LocalStore operation.
- * @return A Promise that resolves after we recovered, or the original error.
+ * @param err - An error returned by a LocalStore operation.
+ * @returns A Promise that resolves after we recovered, or the original error.
  */
 export async function ignoreIfPrimaryLeaseLoss(
   err: FirestoreError
@@ -1394,7 +1394,6 @@ export function hasNewerBundle(
 
 /**
  * Saves the given `BundleMetadata` to local persistence.
- * @param bundleMetadata
  */
 export function saveBundle(
   localStore: LocalStore,

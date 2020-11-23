@@ -55,7 +55,7 @@ import { Compat } from '../../../src/compat/compat';
  *
  * The `Transaction` object passed to a transaction's `updateFunction` provides
  * the methods to read and write data within the transaction context. See
- * {@link runTransaction()}.
+ * {@link runTransaction}.
  */
 export class Transaction {
   // This is the tree-shakeable version of the Transaction class used in the
@@ -65,6 +65,7 @@ export class Transaction {
 
   private readonly _dataReader: UserDataReader;
 
+  /** @hideconstructor */
   constructor(
     protected readonly _firestore: FirebaseFirestore,
     private readonly _transaction: InternalTransaction
@@ -75,8 +76,8 @@ export class Transaction {
   /**
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
-   * @param documentRef A reference to the document to be read.
-   * @return A `DocumentSnapshot` with the read data.
+   * @param documentRef - A reference to the document to be read.
+   * @returns A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
@@ -116,9 +117,9 @@ export class Transaction {
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
    *
-   * @param documentRef A reference to the document to be set.
-   * @param data An object of the fields and values for the document.\
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @param documentRef - A reference to the document to be set.
+   * @param data - An object of the fields and values for the document.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(documentRef: DocumentReference<T>, data: T): this;
   /**
@@ -127,10 +128,10 @@ export class Transaction {
    * If you provide `merge` or `mergeFields`, the provided data can be merged
    * into an existing document.
    *
-   * @param documentRef A reference to the document to be set.
-   * @param data An object of the fields and values for the document.
-   * @param options An object to configure the set behavior.
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @param documentRef - A reference to the document to be set.
+   * @param data - An object of the fields and values for the document.
+   * @param options - An object to configure the set behavior.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(
     documentRef: DocumentReference<T>,
@@ -165,11 +166,11 @@ export class Transaction {
    * DocumentReference}. The update will fail if applied to a document that does
    * not exist.
    *
-   * @param documentRef A reference to the document to be updated.
-   * @param data An object containing the fields and values with which to
+   * @param documentRef - A reference to the document to be updated.
+   * @param data - An object containing the fields and values with which to
    * update the document. Fields can contain dots to reference nested fields
    * within the document.
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
   /**
@@ -180,11 +181,11 @@ export class Transaction {
    * Nested fields can be updated by providing dot-separated field path
    * strings or by providing `FieldPath` objects.
    *
-   * @param documentRef A reference to the document to be updated.
-   * @param field The first field to update.
-   * @param value The first value.
-   * @param moreFieldsAndValues Additional key/value pairs.
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @param documentRef - A reference to the document to be updated.
+   * @param field - The first field to update.
+   * @param value - The first value.
+   * @param moreFieldsAndValues - Additional key/value pairs.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   update(
     documentRef: DocumentReference<unknown>,
@@ -235,8 +236,8 @@ export class Transaction {
   /**
    * Deletes the document referred to by the provided {@link DocumentReference}.
    *
-   * @param documentRef A reference to the document to be deleted.
-   * @return This `Transaction` instance. Used for chaining method calls.
+   * @param documentRef - A reference to the document to be deleted.
+   * @returns This `Transaction` instance. Used for chaining method calls.
    */
   delete(documentRef: DocumentReference<unknown>): this {
     const ref = validateReference(documentRef, this._firestore);
@@ -253,10 +254,11 @@ export class Transaction {
  *
  * The maximum number of writes allowed in a single transaction is 500.
  *
- * @param firestore A reference to the Firestore database to run this
+ * @param firestore - A reference to the Firestore database to run this
  * transaction against.
- * @param updateFunction The function to execute within the transaction context.
- * @return  If the transaction completed successfully or was explicitly aborted
+ * @param updateFunction - The function to execute within the transaction
+ * context.
+ * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
  * rejected promise with the corresponding failure error is returned.
