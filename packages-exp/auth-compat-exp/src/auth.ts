@@ -28,7 +28,7 @@ import {
 } from '@firebase/util';
 
 import { _validatePersistenceArgument, Persistence } from './persistence';
-import { _getClientPlatform, _isPopupRedirectSupported } from './platform';
+import { _isPopupRedirectSupported } from './platform';
 import { User } from './user';
 import {
   convertConfirmationResult,

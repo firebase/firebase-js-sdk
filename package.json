@@ -47,6 +47,7 @@
     "docgen": "yarn docgen:js; yarn docgen:node",
     "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
     "lint": "lerna run --scope @firebase/* --scope rxfire lint",
+    "lint:fix": "lerna run --scope @firebase/* --scope rxfire lint:fix",
     "size-report": "ts-node-script scripts/size_report/report_binary_size.ts",
     "modular-export-size-report": "ts-node-script scripts/size_report/report_modular_export_binary_size.ts",
     "api-report": "lerna run --scope @firebase/*-exp --scope @firebase/firestore api-report",

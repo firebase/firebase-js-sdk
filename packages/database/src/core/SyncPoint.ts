@@ -27,7 +27,7 @@ import { EventRegistration } from './view/EventRegistration';
 import { Node } from './snap/Node';
 import { Path } from './util/Path';
 import { Event } from './view/Event';
-import { Reference, ReferenceConstructor } from '../api/Reference';
+import { ReferenceConstructor } from '../api/Reference';
 
 let __referenceConstructor: ReferenceConstructor;
 

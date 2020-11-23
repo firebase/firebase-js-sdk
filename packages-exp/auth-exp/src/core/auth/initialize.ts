@@ -22,7 +22,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { Dependencies } from '../../model/auth';
 import { Persistence } from '../persistence';
 import { _getInstance } from '../util/instantiator';
-import { _castAuth, AuthImpl } from './auth_impl';
+import { AuthImpl } from './auth_impl';
 
 /** @public */
 export function initializeAuth(
