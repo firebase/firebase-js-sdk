@@ -95,7 +95,7 @@ export class WriteBatch {
     data: T,
     options?: SetOptions
   ): WriteBatch {
-    this.verifyNotCommitted();
+    this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
 
     const convertedValue = applyFirestoreDataConverter(
@@ -155,7 +155,7 @@ export class WriteBatch {
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
-    this.verifyNotCommitted();
+    this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
 
     // For Compat types, we have to "extract" the underlying types before
@@ -199,7 +199,7 @@ export class WriteBatch {
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
   delete(documentRef: DocumentReference<unknown>): WriteBatch {
-    this.verifyNotCommitted();
+    this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
     this._mutations = this._mutations.concat(
       new DeleteMutation(ref._key, Precondition.none())
@@ -220,7 +220,7 @@ export class WriteBatch {
    * resolve while you're offline).
    */
   commit(): Promise<void> {
-    this.verifyNotCommitted();
+    this._verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
       return this._commitHandler(this._mutations);
@@ -229,7 +229,7 @@ export class WriteBatch {
     return Promise.resolve();
   }
 
-  private verifyNotCommitted(): void {
+  private _verifyNotCommitted(): void {
     if (this._committed) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
