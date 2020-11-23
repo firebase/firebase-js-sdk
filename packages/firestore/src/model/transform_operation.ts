@@ -101,7 +101,7 @@ export function applyTransformOperationToRemoteDocument(
  * idempotent transforms, as they can be re-played even if the backend has
  * already applied them.
  *
- * @return a base value to store along with the mutation, or null for
+ * @returns a base value to store along with the mutation, or null for
  * idempotent transforms.
  */
 export function computeTransformOperationBaseValue(

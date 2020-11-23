@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -25,7 +25,7 @@
   "license": "Apache-2.0",
   "peerDependencies": {},
   "dependencies": {
-    "@firebase/database-types": "0.6.0",
+    "@firebase/database-types": "0.6.1",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.4",
     "@firebase/component": "0.1.21",

@@ -49,8 +49,8 @@ const encoder = newTextEncoder();
 /**
  * Create a `ReadableStream` from a string.
  *
- * @param content: Bundle in string.
- * @param bytesPerRead: How many bytes to read from the underlying buffer from
+ * @param content - Bundle in string.
+ * @param bytesPerRead - How many bytes to read from the underlying buffer from
  * each read through the stream.
  */
 export function byteStreamReaderFromString(

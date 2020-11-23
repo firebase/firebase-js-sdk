@@ -69,8 +69,8 @@ export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
  */
 class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   /**
-   * @param serializer The document serializer.
-   * @param indexManager The query indexes that need to be maintained.
+   * @param serializer - The document serializer.
+   * @param indexManager - The query indexes that need to be maintained.
    */
   constructor(
     readonly serializer: LocalSerializer,
@@ -137,8 +137,9 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   /**
    * Looks up an entry in the cache.
    *
-   * @param documentKey The key of the entry to look up.
-   * @return The cached MaybeDocument entry and its size, or null if we have nothing cached.
+   * @param documentKey - The key of the entry to look up.
+   * @returns The cached MaybeDocument entry and its size, or null if we have
+   * nothing cached.
    */
   getSizedEntry(
     transaction: PersistenceTransaction,
@@ -175,8 +176,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   /**
    * Looks up several entries in the cache.
    *
-   * @param documentKeys The set of keys entries to look up.
-   * @return A map of MaybeDocuments indexed by key (if a document cannot be
+   * @param documentKeys - The set of keys entries to look up.
+   * @returns A map of MaybeDocuments indexed by key (if a document cannot be
    *     found, the key will be mapped to null) and a map of sizes indexed by
    *     key (zero if the key cannot be found).
    */
@@ -367,8 +368,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
 /**
  * Creates a new IndexedDbRemoteDocumentCache.
  *
- * @param serializer The document serializer.
- * @param indexManager The query indexes that need to be maintained.
+ * @param serializer - The document serializer.
+ * @param indexManager - The query indexes that need to be maintained.
  */
 export function newIndexedDbRemoteDocumentCache(
   serializer: LocalSerializer,
@@ -463,8 +464,8 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   );
 
   /**
-   * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
-   * @param trackRemovals Whether to create sentinel deletes that can be tracked by
+   * @param documentCache - The IndexedDbRemoteDocumentCache to apply the changes to.
+   * @param trackRemovals - Whether to create sentinel deletes that can be tracked by
    * `getNewDocumentChanges()`.
    */
   constructor(

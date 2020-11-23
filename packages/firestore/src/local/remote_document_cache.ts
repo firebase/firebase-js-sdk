@@ -41,9 +41,9 @@ export interface RemoteDocumentCache {
   /**
    * Looks up an entry in the cache.
    *
-   * @param documentKey The key of the entry to look up.
-   * @return The cached Document or NoDocument entry, or null if we have nothing
-   * cached.
+   * @param documentKey - The key of the entry to look up.*
+   * @returns The cached Document or NoDocument entry, or null if we have
+   * nothing cached.
    */
   getEntry(
     transaction: PersistenceTransaction,
@@ -53,9 +53,9 @@ export interface RemoteDocumentCache {
   /**
    * Looks up a set of entries in the cache.
    *
-   * @param documentKeys The keys of the entries to look up.
-   * @return The cached Document or NoDocument entries indexed by key. If an entry is not cached,
-   *     the corresponding key will be mapped to a null value.
+   * @param documentKeys - The keys of the entries to look up.
+   * @returns The cached Document or NoDocument entries indexed by key. If an
+   * entry is not cached, the corresponding key will be mapped to a null value.
    */
   getEntries(
     transaction: PersistenceTransaction,
@@ -70,10 +70,10 @@ export interface RemoteDocumentCache {
    *
    * Cached NoDocument entries have no bearing on query results.
    *
-   * @param query The query to match documents against.
-   * @param sinceReadTime If not set to SnapshotVersion.min(), return only
+   * @param query - The query to match documents against.
+   * @param sinceReadTime - If not set to SnapshotVersion.min(), return only
    *     documents that have been read since this snapshot version (exclusive).
-   * @return The set of matching documents.
+   * @returns The set of matching documents.
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
@@ -87,7 +87,7 @@ export interface RemoteDocumentCache {
    *
    * Multi-Tab Note: This should only be called by the primary client.
    *
-   * @param options.trackRemovals Whether to create sentinel entries for
+   * @param options - Specify `trackRemovals` to create sentinel entries for
    * removed documents, which allows removals to be tracked by
    * `getNewDocumentChanges()`.
    */

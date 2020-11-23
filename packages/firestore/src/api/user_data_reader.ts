@@ -183,15 +183,15 @@ export class ParseContext {
   /**
    * Initializes a ParseContext with the given source and path.
    *
-   * @param settings The settings for the parser.
-   * @param databaseId The database ID of the Firestore instance.
-   * @param serializer The serializer to use to generate the Value proto.
-   * @param ignoreUndefinedProperties Whether to ignore undefined properties
+   * @param settings - The settings for the parser.
+   * @param databaseId - The database ID of the Firestore instance.
+   * @param serializer - The serializer to use to generate the Value proto.
+   * @param ignoreUndefinedProperties - Whether to ignore undefined properties
    * rather than throw.
-   * @param fieldTransforms A mutable list of field transforms encountered while
-   *     parsing the data.
-   * @param fieldMask A mutable list of field paths encountered while parsing
-   *     the data.
+   * @param fieldTransforms - A mutable list of field transforms encountered
+   * while parsing the data.
+   * @param fieldMask - A mutable list of field paths encountered while parsing
+   * the data.
    *
    * TODO(b/34871131): We don't support array paths right now, so path can be
    * null to indicate the context represents any location within an array (in
@@ -419,7 +419,7 @@ export function parseUpdateData(
     // For Compat types, we have to "extract" the underlying types before
     // performing validation.
     if (value instanceof Compat) {
-      value = (value as Compat<unknown>)._delegate;
+      value = value._delegate;
     }
 
     const childContext = context.childContextForFieldPath(path);
@@ -491,7 +491,7 @@ export function parseUpdateVarargs(
       // For Compat types, we have to "extract" the underlying types before
       // performing validation.
       if (value instanceof Compat) {
-        value = (value as Compat<unknown>)._delegate;
+        value = value._delegate;
       }
 
       const childContext = context.childContextForFieldPath(path);
@@ -520,7 +520,7 @@ export function parseUpdateVarargs(
  * Parse a "query value" (e.g. value in a where filter or a value in a cursor
  * bound).
  *
- * @param allowArrays Whether the query value is an array that may directly
+ * @param allowArrays - Whether the query value is an array that may directly
  * contain additional arrays (e.g. the operand of an `in` query).
  */
 export function parseQueryValue(
@@ -545,10 +545,10 @@ export function parseQueryValue(
 /**
  * Parses user data to Protobuf Values.
  *
- * @param input Data to be parsed.
- * @param context A context object representing the current path being parsed,
+ * @param input - Data to be parsed.
+ * @param context - A context object representing the current path being parsed,
  * the source of the data being parsed, etc.
- * @return The parsed value, or null if the value was a FieldValue sentinel
+ * @returns The parsed value, or null if the value was a FieldValue sentinel
  * that should not be included in the resulting parsed data.
  */
 export function parseData(
@@ -671,7 +671,7 @@ function parseSentinelFieldValue(
 /**
  * Helper to parse a scalar value (i.e. not an Object, Array, or FieldValue)
  *
- * @return The parsed value
+ * @returns The parsed value
  */
 function parseScalarValue(
   value: unknown,
@@ -787,7 +787,7 @@ export function fieldPathFromArgument(
   // If required, replace the FieldPath Compat class with with the firestore-exp
   // FieldPath.
   if (path instanceof Compat) {
-    path = (path as Compat<FieldPath>)._delegate;
+    path = path._delegate;
   }
 
   if (path instanceof FieldPath) {
@@ -814,10 +814,11 @@ const FIELD_PATH_RESERVED = new RegExp('[~\\*/\\[\\]]');
 /**
  * Wraps fromDotSeparatedString with an error message about the method that
  * was thrown.
- * @param methodName The publicly visible method name
- * @param path The dot-separated string form of a field path which will be split
- * on dots.
- * @param targetDoc The document against which the field path will be evaluated.
+ * @param methodName - The publicly visible method name
+ * @param path - The dot-separated string form of a field path which will be
+ * split on dots.
+ * @param targetDoc - The document against which the field path will be
+ * evaluated.
  */
 export function fieldPathFromDotSeparatedString(
   methodName: string,

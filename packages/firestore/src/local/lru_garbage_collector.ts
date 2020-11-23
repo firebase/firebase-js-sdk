@@ -65,7 +65,7 @@ export interface LruDelegate {
    * Removes all targets that have a sequence number less than or equal to `upperBound`, and are not
    * present in the `activeTargetIds` set.
    *
-   * @return the number of targets removed.
+   * @returns the number of targets removed.
    */
   removeTargets(
     txn: PersistenceTransaction,
@@ -77,7 +77,7 @@ export interface LruDelegate {
    * Removes all unreferenced documents from the cache that have a sequence number less than or
    * equal to the given `upperBound`.
    *
-   * @return the number of documents removed.
+   * @returns the number of documents removed.
    */
   removeOrphanedDocuments(
     txn: PersistenceTransaction,

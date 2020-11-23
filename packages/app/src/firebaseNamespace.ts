@@ -16,7 +16,7 @@
  */
 
 import { FirebaseNamespace } from '@firebase/app-types';
-import { _FirebaseApp, _FirebaseNamespace } from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { createSubscribe, deepExtend, ErrorFactory } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
 import { createFirebaseNamespaceCore } from './firebaseNamespaceCore';

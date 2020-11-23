@@ -23,7 +23,6 @@ import { OAuthProvider } from '../../core/providers/oauth';
 import { _assert, debugAssert, _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
-import { _getInstance } from '../../core/util/instantiator';
 import { Auth } from '../../model/auth';
 import {
   AuthEventType,

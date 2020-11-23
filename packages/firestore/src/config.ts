@@ -60,8 +60,8 @@ const firestoreNamespace = {
 /**
  * Configures Firestore as part of the Firebase SDK by calling registerService.
  *
- * @param firebase The FirebaseNamespace to register Firestore with
- * @param firestoreFactory A factory function that returns a new Firestore
+ * @param firebase - The FirebaseNamespace to register Firestore with
+ * @param firestoreFactory - A factory function that returns a new Firestore
  *    instance.
  */
 export function configureForFirebase(

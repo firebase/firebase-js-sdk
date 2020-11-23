@@ -1,5 +1,11 @@
 # @firebase/database-types
 
+## 0.6.1
+
+### Patch Changes
+
+- [`4f6313262`](https://github.com/firebase/firebase-js-sdk/commit/4f63132622fa46ca7373ab93440c76bcb1822620) [#4096](https://github.com/firebase/firebase-js-sdk/pull/4096) - Add the missing type definition for 'Query.get()' for RTDB
+
 ## 0.6.0
 
 ### Minor Changes
