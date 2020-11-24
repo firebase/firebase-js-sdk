@@ -41,7 +41,7 @@ export function getLogLevel(): LogLevel {
  *     <li><code>`silent` to turn off logging.</li>
  *   </ul>
  */
-export function setLogLevel(logLevel: LogLevelString | LogLevel): void {
+export function setLogLevel(logLevel: LogLevelString): void {
   logClient.setLogLevel(logLevel);
 }
 

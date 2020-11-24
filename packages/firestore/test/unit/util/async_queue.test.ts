@@ -20,7 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { expect, use } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
+import {
+  getLogLevel,
+  setLogLevel,
+  LogLevelString
+} from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 import { fail } from '../../../src/util/assert';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
@@ -83,7 +87,7 @@ describe('AsyncQueue', () => {
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();
-    setLogLevel(LogLevel.SILENT);
+    setLogLevel('silent');
 
     // Schedule a failing operation and make sure it's handled correctly.
     const op1Promise = queue
@@ -134,7 +138,7 @@ describe('AsyncQueue', () => {
       }).to.throw(/already failed:.*Simulated Error/);
 
       // Finally, restore log level.
-      setLogLevel(oldLogLevel);
+      setLogLevel((oldLogLevel as unknown) as LogLevelString);
     });
   });
 
