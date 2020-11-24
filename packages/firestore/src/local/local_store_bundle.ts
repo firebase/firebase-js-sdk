@@ -28,7 +28,8 @@ import {
 import { debugCast } from '../util/assert';
 
 import * as bundleProto from '../protos/firestore_bundle_proto';
-import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
+import { BundleConverter, BundledDocuments } from '../core/bundle';
+import { NamedQuery } from '../core/bundle_types';
 import { fromVersion } from '../remote/serializer';
 import { fromBundledQuery } from './local_serializer';
 import { ByteString } from '../util/byte_string';

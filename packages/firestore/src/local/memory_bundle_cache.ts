@@ -19,7 +19,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import * as bundleProto from '../protos/firestore_bundle_proto';
 import { BundleCache } from './bundle_cache';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { Bundle, NamedQuery } from '../core/bundle_types';
 import {
   fromBundleMetadata,
   fromProtoNamedQuery,

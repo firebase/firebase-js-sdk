@@ -38,23 +38,27 @@ export default [
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
-  },
-  {
-    input: {
-      index: pkg.esm2017,
-      memory: path.resolve('./memory', memoryPkg.esm2017),
-      bundle: path.resolve('./bundle', bundlePkg.esm2017)
     },
-    output: {
-      dir: 'dist/esm5',
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
+    onwarn(warning) {
+      if (warning.code === 'CIRCULAR_DEPENDENCY') {
+        console.error(`(!) ${warning.message}`);
+      }
     }
+    // {
+    //   input: {
+    //     index: pkg.esm2017,
+    //     memory: path.resolve('./memory', memoryPkg.esm2017),
+    //     bundle: path.resolve('./bundle', bundlePkg.esm2017)
+    //   },
+    //   output: {
+    //     dir: 'dist/esm5',
+    //     format: 'es',
+    //     sourcemap: true
+    //   },
+    //   plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
+    //   external: util.resolveBrowserExterns,
+    //   treeshake: {
+    //     moduleSideEffects: false
+    //   }
   }
 ];

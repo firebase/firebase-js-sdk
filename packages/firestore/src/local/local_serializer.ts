@@ -55,7 +55,7 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { Bundle, NamedQuery } from '../core/bundle_types';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import * as bundleProto from '../protos/firestore_bundle_proto';
 
