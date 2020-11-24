@@ -43,7 +43,7 @@ declare module '@firebase/component' {
 }
 
 /**
- * Returns an Analytics instance for the given app.
+ * Returns an AnalyticsService instance for the given app.
  *
  * @public
  *
@@ -60,12 +60,12 @@ export function getAnalytics(app: FirebaseApp): AnalyticsService {
 }
 
 /**
- * this is a public static method provided to users that wraps four different checks:
+ * This is a public static method provided to users that wraps four different checks:
  *
- * 1. check if it's not a browser extension environment.
- * 1. check if cookie is enabled in current browser.
- * 3. check if IndexedDB is supported by the browser environment.
- * 4. check if the current browser context is valid for using IndexedDB.
+ * 1. Check if it's not a browser extension environment.
+ * 2. Check if cookies are enabled in current browser.
+ * 3. Check if IndexedDB is supported by the browser environment.
+ * 4. Check if the current browser context is valid for using IndexedDB.open().
  *
  * @public
  *

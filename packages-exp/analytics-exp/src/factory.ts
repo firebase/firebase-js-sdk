@@ -255,7 +255,7 @@ export function factory(
  * @public
  *
  * @param service - AnalyticsService instance.
- * @param eventName
+ * @param eventName - Event name to log. Can be a standard analytics event or any custom string.
  * @param eventParams
  * @param options
  */
@@ -280,7 +280,7 @@ export function logEvent(
  * @public
  *
  * @param service - AnalyticsService instance.
- * @param screenName
+ * @param screenName - Screen name to set.
  * @param options
  */
 export function setCurrentScreen(
@@ -302,7 +302,7 @@ export function setCurrentScreen(
  * @public
  *
  * @param service - AnalyticsService instance.
- * @param id
+ * @param id - User ID to set.
  * @param options
  */
 export function setUserId(
@@ -322,10 +322,6 @@ export function setUserId(
  * Use gtag 'config' command to set all params specified.
  *
  * @public
- *
- * @param service - AnalyticsService instance.
- * @param properties
- * @param options
  */
 export function setUserProperties(
   service: AnalyticsService,
