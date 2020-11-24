@@ -486,6 +486,13 @@ describe('core/auth/auth_impl useEmulator', () => {
 
   afterEach(() => {
     fetch.tearDown();
+    sinon.restore();
+
+    // The DOM persists through tests; remove the banner if it is attached
+    const banner = typeof document !== 'undefined' ? document.querySelector('.firebase-emulator-warning') : null;
+    if (banner) {
+      banner.parentElement?.removeChild(banner);
+    }
   });
 
   context('useEmulator', () => {
@@ -518,6 +525,39 @@ describe('core/auth/auth_impl useEmulator', () => {
         FirebaseError,
         'auth/invalid-emulator-scheme'
       );
+    });
+
+    it('attaches a banner to the DOM', () => {
+      auth.useEmulator('http://localhost:2020');
+      if (typeof document !== 'undefined') {
+        const el = document.querySelector('.firebase-emulator-warning')!;
+        expect(el).not.to.be.null;
+        expect(el.textContent).to.eq('Running in emulator mode. ' +
+            'Do not use with production credentials.');
+      }
+    });
+
+    it('logs out a warning to the console', () => {
+      sinon.stub(console, 'info');
+      auth.useEmulator('http://localhost:2020');
+      expect(console.info).to.have.been.calledWith(
+        'WARNING: You are using the Auth Emulator,' +
+    ' which is intended for local testing only.  Do not use with' +
+    ' production credentials.'
+      );
+    });
+
+    it('logs out the warning but has no banner if disableBanner true', () => {
+      sinon.stub(console, 'info');
+      auth.useEmulator('http://localhost:2020', true);
+      expect(console.info).to.have.been.calledWith(
+        'WARNING: You are using the Auth Emulator,' +
+    ' which is intended for local testing only.  Do not use with' +
+    ' production credentials.'
+      );
+      if (typeof document !== 'undefined') {
+        expect(document.querySelector('.firebase-emulator-warning')).to.be.null;
+      }
     });
   });
 
