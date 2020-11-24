@@ -8,6 +8,7 @@ import { Analytics } from '@firebase/analytics-types-exp';
 import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
 import { CustomParams } from '@firebase/analytics-types-exp';
 import { DynamicConfig } from '@firebase/analytics-types-exp';
+import { EventNameString } from '@firebase/analytics-types-exp';
 import { EventParams } from '@firebase/analytics-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
@@ -38,7 +39,188 @@ export function getGlobalVars(): {
 export function isSupported(): Promise<boolean>;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: string, eventParams?: EventParams, options?: AnalyticsCallOptions): void;
+export function logEvent(analyticsInstance: Analytics, eventName: 'add_payment_info', eventParams?: {
+    coupon?: EventParams['coupon'];
+    currency?: EventParams['currency'];
+    items?: EventParams['items'];
+    payment_type?: EventParams['payment_type'];
+    value?: EventParams['value'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'add_shipping_info', eventParams: {
+    coupon?: EventParams['coupon'];
+    currency?: EventParams['currency'];
+    items?: EventParams['items'];
+    shipping_tier?: EventParams['shipping_tier'];
+    value?: EventParams['value'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart', eventParams: {
+    currency?: EventParams['currency'];
+    value?: EventParams['value'];
+    items?: EventParams['items'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'begin_checkout', eventParams: {
+    currency?: EventParams['currency'];
+    coupon?: EventParams['coupon'];
+    value?: EventParams['value'];
+    items?: EventParams['items'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'checkout_progress', eventParams: {
+    currency?: EventParams['currency'];
+    coupon?: EventParams['coupon'];
+    value?: EventParams['value'];
+    items?: EventParams['items'];
+    checkout_step?: EventParams['checkout_step'];
+    checkout_option?: EventParams['checkout_option'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'exception', eventParams: {
+    description?: EventParams['description'];
+    fatal?: EventParams['fatal'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'generate_lead', eventParams: {
+    value?: EventParams['value'];
+    currency?: EventParams['currency'];
+    transaction_id?: EventParams['transaction_id'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'login', eventParams: {
+    method?: EventParams['method'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'page_view', eventParams: {
+    page_title?: string;
+    page_location?: string;
+    page_path?: string;
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'purchase' | 'refund', eventParams: {
+    value?: EventParams['value'];
+    currency?: EventParams['currency'];
+    transaction_id: EventParams['transaction_id'];
+    tax?: EventParams['tax'];
+    shipping?: EventParams['shipping'];
+    items?: EventParams['items'];
+    coupon?: EventParams['coupon'];
+    affiliation?: EventParams['affiliation'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'screen_view', eventParams: {
+    app_name: string;
+    screen_name: EventParams['screen_name'];
+    app_id?: string;
+    app_version?: string;
+    app_installer_id?: string;
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'search' | 'view_search_results', eventParams: {
+    search_term?: EventParams['search_term'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'select_content', eventParams: {
+    items?: EventParams['items'];
+    promotions?: EventParams['promotions'];
+    content_type?: EventParams['content_type'];
+    content_id?: EventParams['content_id'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'select_item', eventParams: {
+    items?: EventParams['items'];
+    item_list_name?: EventParams['item_list_name'];
+    item_list_id?: EventParams['item_list_id'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'select_promotion' | 'view_promotion', eventParams: {
+    items?: EventParams['items'];
+    promotion_id?: EventParams['promotion_id'];
+    promotion_name?: EventParams['promotion_name'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'set_checkout_option', eventParams: {
+    checkout_step?: EventParams['checkout_step'];
+    checkout_option?: EventParams['checkout_option'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'share', eventParams: {
+    method?: EventParams['method'];
+    content_type?: EventParams['content_type'];
+    content_id?: EventParams['content_id'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'sign_up', eventParams: {
+    method?: EventParams['method'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'timing_complete', eventParams: {
+    name: string;
+    value: number;
+    event_category?: string;
+    event_label?: string;
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'view_cart' | 'view_item', eventParams: {
+    currency?: EventParams['currency'];
+    items?: EventParams['items'];
+    value?: EventParams['value'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// @public
+export function logEvent(analyticsInstance: Analytics, eventName: 'view_item_list', eventParams: {
+    items?: EventParams['items'];
+    item_list_name?: EventParams['item_list_name'];
+    item_list_id?: EventParams['item_list_id'];
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
+
+// Warning: (ae-forgotten-export) The symbol "CustomEventName" needs to be exported by the entry point index.d.ts
+//
+// @public
+export function logEvent<T extends string>(analyticsInstance: Analytics, eventName: CustomEventName<T>, eventParams?: {
+    [key: string]: any;
+}, options?: AnalyticsCallOptions): void;
 
 // Warning: (ae-internal-missing-underscore) The name "resetGlobalVars" should be prefixed with an underscore because the declaration is marked as @internal
 //
