@@ -573,8 +573,8 @@ function emitEmulatorWarning(disableBanner: boolean): void {
   function attachBanner(): void {
     const el = document.createElement('p');
     const sty = el.style;
-    el.innerText = 'Running in emulator mode. Do not use with' +
-        ' production credentials.';
+    el.innerText =
+      'Running in emulator mode. Do not use with' + ' production credentials.';
     sty.position = 'fixed';
     sty.width = '100%';
     sty.backgroundColor = '#ffffff';
@@ -591,12 +591,16 @@ function emitEmulatorWarning(disableBanner: boolean): void {
 
   if (typeof console !== 'undefined' && typeof console.info === 'function') {
     console.info(
-    'WARNING: You are using the Auth Emulator,' +
-    ' which is intended for local testing only.  Do not use with' +
-    ' production credentials.');
+      'WARNING: You are using the Auth Emulator,' +
+        ' which is intended for local testing only.  Do not use with' +
+        ' production credentials.'
+    );
   }
-  if (typeof window !== 'undefined' && typeof document !== 'undefined' && !disableBanner) {
-
+  if (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
+    !disableBanner
+  ) {
     if (document.readyState === 'loading') {
       window.addEventListener('DOMContentLoaded', attachBanner);
     } else {

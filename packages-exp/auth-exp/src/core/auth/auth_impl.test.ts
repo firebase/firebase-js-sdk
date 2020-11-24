@@ -489,7 +489,10 @@ describe('core/auth/auth_impl useEmulator', () => {
     sinon.restore();
 
     // The DOM persists through tests; remove the banner if it is attached
-    const banner = typeof document !== 'undefined' ? document.querySelector('.firebase-emulator-warning') : null;
+    const banner =
+      typeof document !== 'undefined'
+        ? document.querySelector('.firebase-emulator-warning')
+        : null;
     if (banner) {
       banner.parentElement?.removeChild(banner);
     }
@@ -532,8 +535,10 @@ describe('core/auth/auth_impl useEmulator', () => {
       if (typeof document !== 'undefined') {
         const el = document.querySelector('.firebase-emulator-warning')!;
         expect(el).not.to.be.null;
-        expect(el.textContent).to.eq('Running in emulator mode. ' +
-            'Do not use with production credentials.');
+        expect(el.textContent).to.eq(
+          'Running in emulator mode. ' +
+            'Do not use with production credentials.'
+        );
       }
     });
 
@@ -542,8 +547,8 @@ describe('core/auth/auth_impl useEmulator', () => {
       auth.useEmulator('http://localhost:2020');
       expect(console.info).to.have.been.calledWith(
         'WARNING: You are using the Auth Emulator,' +
-    ' which is intended for local testing only.  Do not use with' +
-    ' production credentials.'
+          ' which is intended for local testing only.  Do not use with' +
+          ' production credentials.'
       );
     });
 
@@ -552,8 +557,8 @@ describe('core/auth/auth_impl useEmulator', () => {
       auth.useEmulator('http://localhost:2020', true);
       expect(console.info).to.have.been.calledWith(
         'WARNING: You are using the Auth Emulator,' +
-    ' which is intended for local testing only.  Do not use with' +
-    ' production credentials.'
+          ' which is intended for local testing only.  Do not use with' +
+          ' production credentials.'
       );
       if (typeof document !== 'undefined') {
         expect(document.querySelector('.firebase-emulator-warning')).to.be.null;
