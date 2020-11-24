@@ -43,6 +43,7 @@ const nodePlugins = [
     transformers: [util.removeAssertTransformer, importPathTransformer]
   }),
   json({ preferConst: true }),
+  // Needed as we also use the *.proto files
   copy({
     targets: [
       {
