@@ -138,7 +138,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
    * Looks up an entry in the cache.
    *
    * @param documentKey - The key of the entry to look up.
-   * @returns The cached MaybeDocument entry and its size, or null if we have nothing cached.
+   * @returns The cached MaybeDocument entry and its size, or null if we have
+   * nothing cached.
    */
   getSizedEntry(
     transaction: PersistenceTransaction,

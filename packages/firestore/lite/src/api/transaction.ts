@@ -44,6 +44,7 @@ import {
 } from './reference';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
+import { cast } from '../../../src/util/input_validation';
 import { Compat } from '../../../src/compat/compat';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
@@ -255,8 +256,9 @@ export class Transaction {
  *
  * @param firestore - A reference to the Firestore database to run this
  * transaction against.
- * @param updateFunction - The function to execute within the transaction context.
- * @returns  If the transaction completed successfully or was explicitly aborted
+ * @param updateFunction - The function to execute within the transaction
+ * context.
+ * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
  * rejected promise with the corresponding failure error is returned.
@@ -265,6 +267,7 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
+  firestore = cast(firestore, FirebaseFirestore);
   const datastore = getDatastore(firestore);
   const deferred = new Deferred<T>();
   new TransactionRunner<T>(

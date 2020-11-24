@@ -85,7 +85,8 @@ export class Transaction extends LiteTransaction {
  *
  * @param firestore - A reference to the Firestore database to run this
  * transaction against.
- * @param updateFunction - The function to execute within the transaction context.
+ * @param updateFunction - The function to execute within the transaction
+ * context.
  * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a

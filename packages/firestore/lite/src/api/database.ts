@@ -35,7 +35,10 @@ import {
   LRU_DEFAULT_CACHE_SIZE_BYTES,
   LRU_MINIMUM_CACHE_SIZE_BYTES
 } from '../../../src/local/lru_garbage_collector';
-import { validateIsNotUsedTogether } from '../../../src/util/input_validation';
+import {
+  cast,
+  validateIsNotUsedTogether
+} from '../../../src/util/input_validation';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -264,8 +267,8 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
  * {@link getFirestore}. If the custom settings are empty, this function is
  * equivalent to calling {@link getFirestore}.
  *
- * @param app - The {@link FirebaseApp} with which the `Firestore` instance will be
- * associated.
+ * @param app - The {@link FirebaseApp} with which the `Firestore` instance will
+ * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
  * @returns A newly initialized Firestore instance.
  */
@@ -317,6 +320,7 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * terminated.
  */
 export function terminate(firestore: FirebaseFirestore): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   _removeServiceInstance(firestore.app, 'firestore/lite');
   return firestore._delete();
 }

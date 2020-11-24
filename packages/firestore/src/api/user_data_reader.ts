@@ -188,10 +188,10 @@ export class ParseContext {
    * @param serializer - The serializer to use to generate the Value proto.
    * @param ignoreUndefinedProperties - Whether to ignore undefined properties
    * rather than throw.
-   * @param fieldTransforms - A mutable list of field transforms encountered while
-   *     parsing the data.
+   * @param fieldTransforms - A mutable list of field transforms encountered
+   * while parsing the data.
    * @param fieldMask - A mutable list of field paths encountered while parsing
-   *     the data.
+   * the data.
    *
    * TODO(b/34871131): We don't support array paths right now, so path can be
    * null to indicate the context represents any location within an array (in
@@ -419,7 +419,7 @@ export function parseUpdateData(
     // For Compat types, we have to "extract" the underlying types before
     // performing validation.
     if (value instanceof Compat) {
-      value = (value as Compat<unknown>)._delegate;
+      value = value._delegate;
     }
 
     const childContext = context.childContextForFieldPath(path);
@@ -491,7 +491,7 @@ export function parseUpdateVarargs(
       // For Compat types, we have to "extract" the underlying types before
       // performing validation.
       if (value instanceof Compat) {
-        value = (value as Compat<unknown>)._delegate;
+        value = value._delegate;
       }
 
       const childContext = context.childContextForFieldPath(path);
@@ -787,7 +787,7 @@ export function fieldPathFromArgument(
   // If required, replace the FieldPath Compat class with with the firestore-exp
   // FieldPath.
   if (path instanceof Compat) {
-    path = (path as Compat<FieldPath>)._delegate;
+    path = path._delegate;
   }
 
   if (path instanceof FieldPath) {
@@ -815,9 +815,10 @@ const FIELD_PATH_RESERVED = new RegExp('[~\\*/\\[\\]]');
  * Wraps fromDotSeparatedString with an error message about the method that
  * was thrown.
  * @param methodName - The publicly visible method name
- * @param path - The dot-separated string form of a field path which will be split
- * on dots.
- * @param targetDoc - The document against which the field path will be evaluated.
+ * @param path - The dot-separated string form of a field path which will be
+ * split on dots.
+ * @param targetDoc - The document against which the field path will be
+ * evaluated.
  */
 export function fieldPathFromDotSeparatedString(
   methodName: string,

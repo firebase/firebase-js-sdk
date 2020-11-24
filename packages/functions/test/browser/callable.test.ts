@@ -17,7 +17,6 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseApp } from '@firebase/app-types/private';
 import { makeFakeApp, createTestService } from '../utils';
 import {
   FirebaseMessaging,

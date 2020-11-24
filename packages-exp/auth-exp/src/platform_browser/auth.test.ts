@@ -24,7 +24,7 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
-import { _castAuth, AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
+import { AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AuthErrorCode } from '../core/errors';
 import { Persistence } from '../core/persistence';

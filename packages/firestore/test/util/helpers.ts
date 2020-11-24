@@ -112,7 +112,11 @@ import {
   TEST_DATABASE_ID
 } from '../unit/local/persistence_test_helpers';
 import { BundledDocuments } from '../../src/core/bundle';
-import * as bundleProto from '../../src/protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata,
+  LimitType as ProtoLimitType
+} from '../../src/protos/firestore_bundle_proto';
 
 /* eslint-disable no-restricted-globals */
 
@@ -456,7 +460,7 @@ export function bundledDocuments(
 
 export class TestNamedQuery {
   constructor(
-    public namedQuery: bundleProto.NamedQuery,
+    public namedQuery: ProtoNamedQuery,
     public matchingDocuments: DocumentKeySet
   ) {}
 }
@@ -464,7 +468,7 @@ export class TestNamedQuery {
 export function namedQuery(
   name: string,
   query: Query,
-  limitType: bundleProto.LimitType,
+  limitType: ProtoLimitType,
   readTime: SnapshotVersion,
   matchingDocuments: DocumentKeySet = documentKeySet()
 ): TestNamedQuery {
@@ -489,7 +493,7 @@ export function bundleMetadata(
   version = 1,
   totalDocuments = 1,
   totalBytes = 1000
-): bundleProto.BundleMetadata {
+): ProtoBundleMetadata {
   return {
     id,
     createTime: { seconds: createTime, nanos: 0 },

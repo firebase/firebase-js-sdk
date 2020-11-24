@@ -23,7 +23,6 @@ import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
 import { _assert } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
-import { _getInstance } from '../../core/util/instantiator';
 import { Auth } from '../../model/auth';
 import {
   AuthEvent,

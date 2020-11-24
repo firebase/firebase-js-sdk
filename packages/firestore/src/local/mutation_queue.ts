@@ -60,8 +60,8 @@ export interface MutationQueue {
    * Gets the first unacknowledged mutation batch after the passed in batchId
    * in the mutation queue or null if empty.
    *
-   * @param batchId - The batch to search after, or BATCHID_UNKNOWN for the first
-   * mutation in the queue.
+   * @param batchId - The batch to search after, or BATCHID_UNKNOWN for the
+   * first mutation in the queue.
    *
    * @returns the next mutation or null if there wasn't one.
    */
@@ -71,10 +71,12 @@ export interface MutationQueue {
   ): PersistencePromise<MutationBatch | null>;
 
   /**
-   * Gets the largest (latest) batch id in mutation queue for the current user that is pending
-   * server response, returns `BATCHID_UNKNOWN` if the queue is empty.
+   * Gets the largest (latest) batch id in mutation queue for the current user
+   * that is pending server response, returns `BATCHID_UNKNOWN` if the queue is
+   * empty.
    *
-   * @returns the largest batch id in the mutation queue that is not acknowledged.
+   * @returns the largest batch id in the mutation queue that is not
+   * acknowledged.
    */
   getHighestUnacknowledgedBatchId(
     transaction: PersistenceTransaction

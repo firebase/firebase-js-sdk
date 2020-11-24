@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -52,15 +52,13 @@ import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
+import { PersistenceSettings } from '../../../exp-types';
+import { cast } from '../../../src/util/input_validation';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
-
-export interface PersistenceSettings {
-  forceOwnership?: boolean;
-}
 
 export interface Settings extends LiteSettings {
   cacheSizeBytes?: number;
@@ -69,10 +67,11 @@ export interface Settings extends LiteSettings {
 /**
  * The Cloud Firestore service interface.
  *
- * Do not call this constructor directly. Instead, use {@link getFirestore}.
+ * Do not call this constructor directly. Instead, use {@link getFirestore()}.
  */
 export class FirebaseFirestore
-  extends LiteFirestore {
+  extends LiteFirestore
+  implements _FirebaseService {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
 
@@ -165,13 +164,15 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  *     persistence implementation.
  *
  * @param firestore - The `Firestore` instance to enable persistence for.
- * @param persistenceSettings - Optional settings object to configure persistence.
+ * @param persistenceSettings - Optional settings object to configure
+ * persistence.
  * @returns A promise that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
   firestore: FirebaseFirestore,
   persistenceSettings?: PersistenceSettings
 ): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
@@ -215,6 +216,7 @@ export function enableIndexedDbPersistence(
 export function enableMultiTabIndexedDbPersistence(
   firestore: FirebaseFirestore
 ): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
@@ -369,6 +371,7 @@ export function clearIndexedDbPersistence(
 export function waitForPendingWrites(
   firestore: FirebaseFirestore
 ): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientWaitForPendingWrites(client);
 }
@@ -380,6 +383,7 @@ export function waitForPendingWrites(
  * @returns A promise that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientEnableNetwork(client);
 }
@@ -393,6 +397,7 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * @returns A promise that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
+  firestore = cast(firestore, FirebaseFirestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientDisableNetwork(client);
 }

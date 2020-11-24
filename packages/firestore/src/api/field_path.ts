@@ -55,6 +55,7 @@ export class FieldPath extends Compat<ExpFieldPath> implements PublicFieldPath {
     if (other instanceof Compat) {
       other = other._delegate;
     }
+
     if (!(other instanceof ExpFieldPath)) {
       return false;
     }

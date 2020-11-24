@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { registerVersion } from '@firebase/app-exp';
-
-import { name, version } from '../package.json';
-
-export function registerCoreComponents(variant?: string): void {
-  // Register `app` package.
-  registerVersion(name, version, variant);
+declare interface A {
+  a: string;
 }
+export class B implements  A{
+  a: string;
+}
+export {};

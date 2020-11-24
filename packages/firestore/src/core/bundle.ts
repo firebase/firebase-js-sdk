@@ -24,14 +24,11 @@ import {
   JsonProtoSerializer
 } from '../remote/serializer';
 import {
-  Document as ProtoDocument,
-  Timestamp as ProtoTimestamp
-} from '../protos/firestore_proto_api';
-import {
-  BundledDocumentMetadata as ProtoBundledDocumentMetadata,
+  NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata,
-  NamedQuery as ProtoNamedQuery
+  BundledDocumentMetadata as ProtoBundledDocumentMetadata
 } from '../protos/firestore_bundle_proto';
+import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert } from '../util/assert';
@@ -77,7 +74,7 @@ export interface NamedQuery {
  */
 interface BundledDocument {
   metadata: ProtoBundledDocumentMetadata;
-  document?: ProtoDocument;
+  document?: api.Document;
 }
 
 /**
@@ -113,7 +110,7 @@ export class BundleConverter {
     }
   }
 
-  toSnapshotVersion(time: ProtoTimestamp): SnapshotVersion {
+  toSnapshotVersion(time: api.Timestamp): SnapshotVersion {
     return fromVersion(time);
   }
 }

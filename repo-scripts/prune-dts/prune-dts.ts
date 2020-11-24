@@ -18,7 +18,6 @@
 import * as yargs from 'yargs';
 import * as ts from 'typescript';
 import * as fs from 'fs';
-import * as path from 'path';
 import { ESLint } from 'eslint';
 
 /**
@@ -34,10 +33,7 @@ import { ESLint } from 'eslint';
  * @param inputLocation The file path to the .d.ts produced by API explorer.
  * @param outputLocation The output location for the pruned .d.ts file.
  */
-export function pruneDts(
-  inputLocation: string,
-  outputLocation: string
-): void {
+export function pruneDts(inputLocation: string, outputLocation: string): void {
   const compilerOptions = {};
   const host = ts.createCompilerHost(compilerOptions);
   const program = ts.createProgram([inputLocation], compilerOptions, host);
@@ -52,7 +48,9 @@ export function pruneDts(
   fs.writeFileSync(outputLocation, content);
 }
 
-export async function removeUnusedImports(outputLocation: string): Promise<void> {
+export async function removeUnusedImports(
+  outputLocation: string
+): Promise<void> {
   const eslint = new ESLint({
     fix: true,
     overrideConfig: {
@@ -60,7 +58,7 @@ export async function removeUnusedImports(outputLocation: string): Promise<void>
         ecmaVersion: 2017,
         sourceType: 'module',
         tsconfigRootDir: __dirname,
-        project: ["./tsconfig.eslint.json"],
+        project: ['./tsconfig.eslint.json']
       },
       env: {
         es6: true
@@ -173,6 +171,8 @@ function prunePrivateImports<
       } else {
         // Hide the type we are inheriting from and merge its declarations
         // into the current class.
+        // TODO: We really only need to do this when the type that is extended
+        // is a class. We should skip this for interfaces.
         const privateType = typeChecker.getTypeAtLocation(type);
         additionalMembers.push(
           ...convertPropertiesForEnclosingClass(
@@ -240,9 +240,10 @@ function convertPropertiesForEnclosingClass(
   currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration
 ): ts.NamedDeclaration[] {
   const newMembers: ts.NamedDeclaration[] = [];
-  // The `codefix` package is not public but it does exactly what we want. We
-  // can explore adding a slimmed down version of this package to our repository
-  // if this dependency should ever break.
+  // The `codefix` package is not public but it does exactly what we want. It's 
+  // the same package that is used by VSCode to fill in missing members, which
+  // is what we are using it for in this script. `codefix` handles missing
+  // properties, methods and correctly deduces generics.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (ts as any).codefix.createMissingMemberNodes(
     currentClass,
@@ -308,6 +309,8 @@ function extractExportedSymbol(
             if (ts.isIdentifier(type.expression)) {
               const subclassName = type.expression.escapedText;
               if (subclassName === localSymbolName) {
+                // TODO: We may need to change this to return a Union type if 
+                // more than one public type corresponds to the private type.
                 return symbol;
               }
             }
@@ -433,8 +436,8 @@ const argv = yargs.options({
 }).argv;
 
 if (argv.input && argv.output) {
-  console.log("Removing private exports...");
+  console.log('Removing private exports...');
   pruneDts(argv.input, argv.output);
-  console.log("Removing unused imports...");
-  removeUnusedImports(argv.output).then(() => console.log("Done."));
+  console.log('Removing unused imports...');
+  removeUnusedImports(argv.output).then(() => console.log('Done.'));
 }

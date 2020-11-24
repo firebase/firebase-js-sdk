@@ -19,6 +19,7 @@ import { WriteBatch } from '../../../lite/src/api/write_batch';
 import { FirebaseFirestore } from './database';
 import { executeWrite } from './reference';
 import { ensureFirestoreConfigured } from '../../../src/api/database';
+import { cast } from '../../../src/util/input_validation';
 
 export { WriteBatch };
 
@@ -34,6 +35,7 @@ export { WriteBatch };
  * writes.
  */
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
+  firestore = cast(firestore, FirebaseFirestore);
   ensureFirestoreConfigured(firestore);
   return new WriteBatch(firestore, mutations =>
     executeWrite(firestore, mutations)

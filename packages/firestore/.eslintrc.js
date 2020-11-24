@@ -26,7 +26,6 @@ module.exports = {
   plugins: ['import'],
   rules: {
     'no-console': ['error', { allow: ['warn', 'error'] }],
-    'import/no-default-export': 'error',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {

@@ -288,6 +288,13 @@ export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,
   right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean {
+  if (left instanceof Compat) {
+    left = left._delegate;
+  }
+  if (right instanceof Compat) {
+    right = right._delegate;
+  }
+
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
       left._firestore === right._firestore &&

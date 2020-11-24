@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
 
 import { XhrIoPool } from '../src/implementation/xhriopool';

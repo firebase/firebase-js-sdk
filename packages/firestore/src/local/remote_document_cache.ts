@@ -41,9 +41,9 @@ export interface RemoteDocumentCache {
   /**
    * Looks up an entry in the cache.
    *
-   * @param documentKey - The key of the entry to look up.
-   * @returns The cached Document or NoDocument entry, or null if we have nothing
-   * cached.
+   * @param documentKey - The key of the entry to look up.*
+   * @returns The cached Document or NoDocument entry, or null if we have
+   * nothing cached.
    */
   getEntry(
     transaction: PersistenceTransaction,
@@ -54,8 +54,8 @@ export interface RemoteDocumentCache {
    * Looks up a set of entries in the cache.
    *
    * @param documentKeys - The keys of the entries to look up.
-   * @returns The cached Document or NoDocument entries indexed by key. If an entry is not cached,
-   *     the corresponding key will be mapped to a null value.
+   * @returns The cached Document or NoDocument entries indexed by key. If an
+   * entry is not cached, the corresponding key will be mapped to a null value.
    */
   getEntries(
     transaction: PersistenceTransaction,

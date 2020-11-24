@@ -667,7 +667,8 @@ export class SimpleDbStore<
   /**
    * Iterates over keys and values in an object store.
    *
-   * @param options - Options specifying how to iterate the objects in the store.
+   * @param options - Options specifying how to iterate the objects in the
+   * store.
    * @param callback - will be called for each iterated object. Iteration can be
    * canceled at any point by calling the doneFn passed to the callback.
    * The callback can return a PersistencePromise if it performs async

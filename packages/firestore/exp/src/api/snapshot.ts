@@ -20,7 +20,6 @@ import { Document } from '../../../src/model/document';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
-  FirestoreDataConverter as LiteFirestoreDataConverter,
   fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
 import { FirebaseFirestore } from './database';
@@ -81,11 +80,10 @@ import { newQueryComparator } from '../../../src/core/query';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T>
-  extends LiteFirestoreDataConverter<T> {
+export interface FirestoreDataConverter<T> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
+   * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). To use `set()` with `merge` and `mergeFields`,
    * `toFirestore()` must be defined with `Partial<T>`.
    */
@@ -93,7 +91,7 @@ export interface FirestoreDataConverter<T>
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
+   * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
    * and {@link Transaction#set} with `merge:true` or `mergeFields`.
    */

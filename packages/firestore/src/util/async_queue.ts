@@ -471,8 +471,8 @@ export class AsyncQueue {
   /**
    * For Tests: Runs some or all delayed operations early.
    *
-   * @param lastTimerId - Delayed operations up to and including this TimerId will
-   *  be drained. Pass TimerId.All to run all delayed operations.
+   * @param lastTimerId - Delayed operations up to and including this TimerId
+   * will be drained. Pass TimerId.All to run all delayed operations.
    * @returns a Promise that resolves once all operations have been run.
    */
   runAllDelayedOperationsUntil(lastTimerId: TimerId): Promise<void> {
