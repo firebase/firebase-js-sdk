@@ -7,8 +7,8 @@
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
-    "api-report:exp": "(cd exp; api-extractor run --local --verbose) && TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../scripts/prune-dts/prune-dts.ts --input dist/exp/private.d.ts --output dist/exp/index.d.ts",
-    "api-report:lite": "(cd lite; api-extractor run --local --verbose) && TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../scripts/prune-dts/prune-dts.ts --input dist/lite/private.d.ts --output dist/lite/index.d.ts",
+    "api-report:exp": "(cd exp; api-extractor run --local --verbose) && TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/prune-dts.ts --input dist/exp/private.d.ts --output dist/exp/index.d.ts",
+    "api-report:lite": "(cd lite; api-extractor run --local --verbose) && TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/prune-dts.ts --input dist/lite/private.d.ts --output dist/lite/index.d.ts",
     "bundle": "rollup -c",
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json && run-p api-report:exp api-report:lite",
     "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.browser.memory.js' 'bundle rollup.config.node.js' 'bundle rollup.config.node.memory.js' 'bundle rollup.config.rn.js' 'bundle rollup.config.rn.memory.js' build:lite build:exp",

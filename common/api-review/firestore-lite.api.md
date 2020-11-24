@@ -67,7 +67,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 }
 
 // @public
-export function deleteDoc(reference: DocumentReference): Promise<void>;
+export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
 // @public
 export function deleteField(): FieldValue;
