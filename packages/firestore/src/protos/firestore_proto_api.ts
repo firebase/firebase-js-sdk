@@ -391,7 +391,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     verify?: string;
     transform?: DocumentTransform;
     updateMask?: DocumentMask;
-    updateTransform?: FieldTransform[];
+    updateTransforms?: FieldTransform[];
     currentDocument?: Precondition;
   }
   interface WriteRequest {
