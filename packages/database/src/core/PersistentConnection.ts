@@ -19,14 +19,14 @@ import {
   contains,
   isEmpty,
   safeGet,
-  CONSTANTS,
   stringify,
   assert,
   isAdmin,
   isValidFormat,
   isMobileCordova,
   isReactNative,
-  isNodeSdk
+  isNodeSdk,
+  Deferred
 } from '@firebase/util';
 
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
@@ -44,6 +44,7 @@ import { SDK_VERSION } from './version';
 
 const RECONNECT_MIN_DELAY = 1000;
 const RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000; // 5 minutes in milliseconds (Case: 1858)
+const GET_CONNECT_TIMEOUT = 3 * 1000;
 const RECONNECT_MAX_DELAY_FOR_ADMINS = 30 * 1000; // 30 seconds for admin clients (likely to be a backend server)
 const RECONNECT_DELAY_MULTIPLIER = 1.3;
 const RECONNECT_DELAY_RESET_TIMEOUT = 30000; // Reset delay back to MIN_DELAY after being connected for 30sec.
@@ -75,6 +76,11 @@ interface OutstandingPut {
   onComplete: (a: string, b?: string) => void;
 }
 
+interface OutstandingGet {
+  request: object;
+  onComplete: (response: { [k: string]: unknown }) => void;
+}
+
 /**
  * Firebase connection.  Abstracts wire protocol and handles reconnecting.
  *
@@ -93,7 +99,9 @@ export class PersistentConnection extends ServerActions {
     Map</* queryId */ string, ListenSpec>
   > = new Map();
   private outstandingPuts_: OutstandingPut[] = [];
+  private outstandingGets_: OutstandingGet[] = [];
   private outstandingPutCount_ = 0;
+  private outstandingGetCount_ = 0;
   private onDisconnectRequestQueue_: OnDisconnectRequest[] = [];
   private connected_ = false;
   private reconnectDelay_ = RECONNECT_MIN_DELAY;
@@ -184,6 +192,57 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
+  get(query: Query): Promise<string> {
+    const deferred = new Deferred<string>();
+    const request = {
+      p: query.path.toString(),
+      q: query.queryObject()
+    };
+    const outstandingGet = {
+      action: 'g',
+      request,
+      onComplete: (message: { [k: string]: unknown }) => {
+        const payload = message['d'] as string;
+        if (message['s'] === 'ok') {
+          this.onDataUpdate_(
+            request['p'],
+            payload,
+            /*isMerge*/ false,
+            /*tag*/ null
+          );
+          deferred.resolve(payload);
+        } else {
+          deferred.reject(payload);
+        }
+      }
+    };
+    this.outstandingGets_.push(outstandingGet);
+    this.outstandingGetCount_++;
+    const index = this.outstandingGets_.length - 1;
+
+    if (!this.connected_) {
+      setTimeout(() => {
+        const get = this.outstandingGets_[index];
+        if (get === undefined || outstandingGet !== get) {
+          return;
+        }
+        delete this.outstandingGets_[index];
+        this.outstandingGetCount_--;
+        if (this.outstandingGetCount_ === 0) {
+          this.outstandingGets_ = [];
+        }
+        this.log_('get ' + index + ' timed out on connection');
+        deferred.reject(new Error('Client is offline.'));
+      }, GET_CONNECT_TIMEOUT);
+    }
+
+    if (this.connected_) {
+      this.sendGet_(index);
+    }
+
+    return deferred.promise;
+  }
+
   /**
    * @inheritDoc
    */
@@ -219,6 +278,20 @@ export class PersistentConnection extends ServerActions {
     if (this.connected_) {
       this.sendListen_(listenSpec);
     }
+  }
+
+  private sendGet_(index: number) {
+    const get = this.outstandingGets_[index];
+    this.sendRequest('g', get.request, (message: { [k: string]: unknown }) => {
+      delete this.outstandingGets_[index];
+      this.outstandingGetCount_--;
+      if (this.outstandingGetCount_ === 0) {
+        this.outstandingGets_ = [];
+      }
+      if (get.onComplete) {
+        get.onComplete(message);
+      }
+    });
   }
 
   private sendListen_(listenSpec: ListenSpec) {
@@ -949,6 +1022,12 @@ export class PersistentConnection extends ServerActions {
         request.data,
         request.onComplete
       );
+    }
+
+    for (let i = 0; i < this.outstandingGets_.length; i++) {
+      if (this.outstandingGets_[i]) {
+        this.sendGet_(i);
+      }
     }
   }
 

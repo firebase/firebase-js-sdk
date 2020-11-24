@@ -16,8 +16,8 @@
  */
 
 import * as rollup from 'rollup';
-import resolve, { Options } from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
+import resolve, { RollupNodeResolveOptions } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 // @ts-ignore
 import virtual from '@rollup/plugin-virtual';
 
@@ -31,7 +31,7 @@ export async function bundleWithRollup(
   fileContent: string,
   moduleDirectory?: string
 ): Promise<string> {
-  const resolveOptions: Options = {
+  const resolveOptions: RollupNodeResolveOptions = {
     mainFields: ['esm2017', 'module', 'main']
   };
 

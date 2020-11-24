@@ -260,11 +260,11 @@ export abstract class Mutation {
  * expected state (e.g. it is null or outdated), an `UnknownDocument` can be
  * returned.
  *
- * @param mutation The mutation to apply.
- * @param maybeDoc The document to mutate. The input document can be null if
+ * @param mutation - The mutation to apply.
+ * @param maybeDoc - The document to mutate. The input document can be null if
  *     the client has no knowledge of the pre-mutation state of the document.
- * @param mutationResult The result of applying the mutation from the backend.
- * @return The mutated document. The returned document may be an
+ * @param mutationResult - The result of applying the mutation from the backend.
+ * @returns The mutated document. The returned document may be an
  *     UnknownDocument if the mutation could not be applied to the locally
  *     cached base document.
  */
@@ -306,15 +306,15 @@ export function applyMutationToRemoteDocument(
  * of computing the new local view of a document. Both the input and returned
  * documents can be null.
  *
- * @param mutation The mutation to apply.
- * @param maybeDoc The document to mutate. The input document can be null if
+ * @param mutation - The mutation to apply.
+ * @param maybeDoc - The document to mutate. The input document can be null if
  *     the client has no knowledge of the pre-mutation state of the document.
- * @param baseDoc The state of the document prior to this mutation batch. The
+ * @param baseDoc - The state of the document prior to this mutation batch. The
  *     input document can be null if the client has no knowledge of the
  *     pre-mutation state of the document.
- * @param localWriteTime A timestamp indicating the local write time of the
+ * @param localWriteTime - A timestamp indicating the local write time of the
  *     batch this mutation is a part of.
- * @return The mutated document. The returned document may be null, but only
+ * @returns The mutated document. The returned document may be null, but only
  *     if maybeDoc was null and the mutation would not create a new document.
  */
 export function applyMutationToLocalView(
@@ -358,7 +358,7 @@ export function applyMutationToLocalView(
  * mutation. The base value is null for idempotent mutations, as they can be
  * re-played even if the backend has already applied them.
  *
- * @return a base value to store along with the mutation, or null for
+ * @returns a base value to store along with the mutation, or null for
  * idempotent mutations.
  */
 export function extractMutationBaseValue(
@@ -717,10 +717,10 @@ function requireDocument(
  * representing the result of applying a transform) for use after a
  * TransformMutation has been acknowledged by the server.
  *
- * @param fieldTransforms The field transforms to apply the result to.
- * @param baseDoc The document prior to applying this mutation batch.
- * @param serverTransformResults The transform results received by the server.
- * @return The transform results list.
+ * @param fieldTransforms - The field transforms to apply the result to.
+ * @param baseDoc - The document prior to applying this mutation batch.
+ * @param serverTransformResults - The transform results received by the server.
+ * @returns The transform results list.
  */
 function serverTransformResults(
   fieldTransforms: FieldTransform[],
@@ -757,13 +757,13 @@ function serverTransformResults(
  * representing the result of applying a transform) for use when applying a
  * TransformMutation locally.
  *
- * @param fieldTransforms The field transforms to apply the result to.
- * @param localWriteTime The local time of the transform mutation (used to
+ * @param fieldTransforms - The field transforms to apply the result to.
+ * @param localWriteTime - The local time of the transform mutation (used to
  *     generate ServerTimestampValues).
- * @param maybeDoc The current state of the document after applying all
+ * @param maybeDoc - The current state of the document after applying all
  *     previous mutations.
- * @param baseDoc The document prior to applying this mutation batch.
- * @return The transform results list.
+ * @param baseDoc - The document prior to applying this mutation batch.
+ * @returns The transform results list.
  */
 function localTransformResults(
   fieldTransforms: FieldTransform[],

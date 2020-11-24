@@ -38,14 +38,13 @@ import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
 import { Database } from '../api/Database';
+import { DataSnapshot } from '../api/DataSnapshot';
 import { ServerActions } from './ServerActions';
 import { Query } from '../api/Query';
 import { EventRegistration } from './view/EventRegistration';
 import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
 import { Node } from './snap/Node';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Provider } from '@firebase/component';
 import { Indexable } from './util/misc';
 
 const INTERRUPT_REASON = 'repo_interrupt';
@@ -302,6 +301,71 @@ export class Repo {
 
   private getNextWriteId_(): number {
     return this.nextWriteId_++;
+  }
+
+  /**
+   * The purpose of `getValue` is to return the latest known value
+   * satisfying `query`.
+   *
+   * If the client is connected, this method will send a request
+   * to the server. If the client is not connected, then either:
+   *
+   * 1. The client was once connected, but not anymore.
+   * 2. The client has never connected, this is the first operation
+   *    this repo is handling.
+   *
+   * In case (1), it's possible that the client still has an active
+   * listener, with cached data. Since this is the latest known
+   * value satisfying the query, that's what getValue will return.
+   * If there is no cached data, `getValue` surfaces an "offline"
+   * error.
+   *
+   * In case (2), `getValue` will trigger a time-limited connection
+   * attempt. If the client is unable to connect to the server, it
+   * will surface an "offline" error because there cannot be any
+   * cached data. On the other hand, if the client is able to connect,
+   * `getValue` will return the server's value for the query, if one
+   * exists.
+   *
+   * @param query - The query to surface a value for.
+   */
+  getValue(query: Query): Promise<DataSnapshot> {
+    return this.server_.get(query).then(
+      payload => {
+        const node = nodeFromJSON(payload as string);
+        const events = this.serverSyncTree_.applyServerOverwrite(
+          query.path,
+          node
+        );
+        this.eventQueue_.raiseEventsAtPath(query.path, events);
+        return Promise.resolve(
+          new DataSnapshot(
+            node,
+            query.getRef(),
+            query.getQueryParams().getIndex()
+          )
+        );
+      },
+      err => {
+        this.log_(
+          'get for query ' +
+            stringify(query) +
+            ' falling back to cache after error: ' +
+            err
+        );
+        const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);
+        if (!cached.isEmpty()) {
+          return Promise.resolve(
+            new DataSnapshot(
+              cached,
+              query.getRef(),
+              query.getQueryParams().getIndex()
+            )
+          );
+        }
+        return Promise.reject(new Error(err as string));
+      }
+    );
   }
 
   setWithPriority(

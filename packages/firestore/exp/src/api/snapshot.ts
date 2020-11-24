@@ -20,6 +20,7 @@ import { Document } from '../../../src/model/document';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
+  FirestoreDataConverter as LiteFirestoreDataConverter,
   fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
 import { FirebaseFirestore } from './database';
@@ -80,22 +81,30 @@ import { newQueryComparator } from '../../../src/core/query';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T> {
+export interface FirestoreDataConverter<T>
+  extends LiteFirestoreDataConverter<T> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
+   * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). To use `set()` with `merge` and `mergeFields`,
    * `toFirestore()` must be defined with `Partial<T>`.
    */
   toFirestore(modelObject: T): DocumentData;
+
+  /**
+   * Called by the Firestore SDK to convert a custom model object of type `T`
+   * into a plain JavaScript object (suitable for writing directly to the
+   * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
+   * and {@link Transaction#set} with `merge:true` or `mergeFields`.
+   */
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
    * type T. You can access your data by calling: `snapshot.data(options)`.
    *
-   * @param snapshot A `QueryDocumentSnapshot` containing your data and metadata.
-   * @param options The `SnapshotOptions` from the initial call to `data()`.
+   * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
+   * @param options - The `SnapshotOptions` from the initial call to `data()`.
    */
   fromFirestore(
     snapshot: QueryDocumentSnapshot<DocumentData>,
@@ -178,6 +187,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
    */
   readonly metadata: SnapshotMetadata;
 
+  /** @hideconstructor protected */
   constructor(
     readonly _firestore: FirebaseFirestore,
     userDataWriter: AbstractUserDataWriter,
@@ -207,10 +217,10 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
    * set to their final value will be returned as `null`. You can override
    * this by passing an options object.
    *
-   * @param options An options object to configure how data is retrieved from
+   * @param options - An options object to configure how data is retrieved from
    * the snapshot (for example the desired behavior for server timestamps that
    * have not yet been set to their final value).
-   * @return An `Object` containing all fields in the document or `undefined` if
+   * @returns An `Object` containing all fields in the document or `undefined` if
    * the document doesn't exist.
    */
   data(options: SnapshotOptions = {}): T | undefined {
@@ -244,12 +254,12 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
    * its final value will be returned as `null`. You can override this by
    * passing an options object.
    *
-   * @param fieldPath The path (for example 'foo' or 'foo.bar') to a specific
+   * @param fieldPath - The path (for example 'foo' or 'foo.bar') to a specific
    * field.
-   * @param options An options object to configure how the field is retrieved
+   * @param options - An options object to configure how the field is retrieved
    * from the snapshot (for example the desired behavior for server timestamps
    * that have not yet been set to their final value).
-   * @return The data at the specified field location or undefined if no such
+   * @returns The data at the specified field location or undefined if no such
    * field exists in the document.
    */
   // We are using `any` here to avoid an explicit cast by our users.
@@ -292,10 +302,10 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
    * this by passing an options object.
    *
    * @override
-   * @param options An options object to configure how data is retrieved from
+   * @param options - An options object to configure how data is retrieved from
    * the snapshot (for example the desired behavior for server timestamps that
    * have not yet been set to their final value).
-   * @return An `Object` containing all fields in the document.
+   * @returns An `Object` containing all fields in the document.
    */
   data(options: SnapshotOptions = {}): T {
     return super.data(options) as T;
@@ -325,6 +335,7 @@ export class QuerySnapshot<T = DocumentData> {
   private _cachedChanges?: Array<DocumentChange<T>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
+  /** @hideconstructor */
   constructor(
     readonly _firestore: FirebaseFirestore,
     readonly _userDataWriter: AbstractUserDataWriter,
@@ -358,9 +369,9 @@ export class QuerySnapshot<T = DocumentData> {
   /**
    * Enumerates all of the documents in the `QuerySnapshot`.
    *
-   * @param callback A callback to be called with a `QueryDocumentSnapshot` for
+   * @param callback - A callback to be called with a `QueryDocumentSnapshot` for
    * each document in the snapshot.
-   * @param thisArg The `this` binding for the callback.
+   * @param thisArg - The `this` binding for the callback.
    */
   forEach(
     callback: (result: QueryDocumentSnapshot<T>) => void,
@@ -389,7 +400,7 @@ export class QuerySnapshot<T = DocumentData> {
    * is the first snapshot, all documents will be in the list as 'added'
    * changes.
    *
-   * @param options `SnapshotListenOptions` that control whether metadata-only
+   * @param options - `SnapshotListenOptions` that control whether metadata-only
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
@@ -518,9 +529,9 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
 /**
  * Returns true if the provided snapshots are equal.
  *
- * @param left A snapshot to compare.
- * @param right A snapshot to compare.
- * @return true if the snapshots are equal.
+ * @param left - A snapshot to compare.
+ * @param right - A snapshot to compare.
+ * @returns true if the snapshots are equal.
  */
 export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,

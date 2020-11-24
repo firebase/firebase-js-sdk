@@ -62,7 +62,7 @@ export class LocalDocumentsView {
   /**
    * Get the local view of the document identified by `key`.
    *
-   * @return Local view of the document or null if we don't have any cached
+   * @returns Local view of the document or null if we don't have any cached
    * state for it.
    */
   getDocument(
@@ -152,9 +152,9 @@ export class LocalDocumentsView {
   /**
    * Performs a query against the local view of all documents.
    *
-   * @param transaction The persistence transaction.
-   * @param query The query to match documents against.
-   * @param sinceReadTime If not set to SnapshotVersion.min(), return only
+   * @param transaction - The persistence transaction.
+   * @param query - The query to match documents against.
+   * @param sinceReadTime - If not set to SnapshotVersion.min(), return only
    *     documents that have been read since this snapshot version (exclusive).
    */
   getDocumentsMatchingQuery(

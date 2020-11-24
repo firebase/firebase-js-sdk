@@ -44,13 +44,13 @@ export const BATCHID_UNKNOWN = -1;
  */
 export class MutationBatch {
   /**
-   * @param batchId The unique ID of this mutation batch.
-   * @param localWriteTime The original write time of this mutation.
-   * @param baseMutations Mutations that are used to populate the base
+   * @param batchId - The unique ID of this mutation batch.
+   * @param localWriteTime - The original write time of this mutation.
+   * @param baseMutations - Mutations that are used to populate the base
    * values when this mutation is applied locally. This can be used to locally
    * overwrite values that are persisted in the remote document cache. Base
    * mutations are never sent to the backend.
-   * @param mutations The user-provided mutations in this mutation batch.
+   * @param mutations - The user-provided mutations in this mutation batch.
    * User-provided mutations are applied both locally and remotely on the
    * backend.
    */
@@ -67,9 +67,9 @@ export class MutationBatch {
    * Applies all the mutations in this MutationBatch to the specified document
    * to create a new remote document
    *
-   * @param docKey The key of the document to apply mutations to.
-   * @param maybeDoc The document to apply mutations to.
-   * @param batchResult The result of applying the MutationBatch to the
+   * @param docKey - The key of the document to apply mutations to.
+   * @param maybeDoc - The document to apply mutations to.
+   * @param batchResult - The result of applying the MutationBatch to the
    * backend.
    */
   applyToRemoteDocument(
@@ -111,8 +111,8 @@ export class MutationBatch {
    * Computes the local view of a document given all the mutations in this
    * batch.
    *
-   * @param docKey The key of the document to apply mutations to.
-   * @param maybeDoc The document to apply mutations to.
+   * @param docKey - The key of the document to apply mutations to.
+   * @param maybeDoc - The document to apply mutations to.
    */
   applyToLocalView(
     docKey: DocumentKey,
@@ -212,7 +212,7 @@ export class MutationBatchResult {
   /**
    * Creates a new MutationBatchResult for the given batch and results. There
    * must be one result for each mutation in the batch. This static factory
-   * caches a document=>version mapping (docVersions).
+   * caches a document=&gt;version mapping (docVersions).
    */
   static from(
     batch: MutationBatch,

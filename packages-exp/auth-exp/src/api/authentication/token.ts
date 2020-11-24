@@ -33,15 +33,15 @@ export const enum Endpoint {
 
 /** The server responses with snake_case; we convert to camelCase */
 interface RequestStsTokenServerResponse {
-  access_token?: string;
-  expires_in?: string;
-  refresh_token?: string;
+  access_token: string;
+  expires_in: string;
+  refresh_token: string;
 }
 
 export interface RequestStsTokenResponse {
-  accessToken?: string;
-  expiresIn?: string;
-  refreshToken?: string;
+  accessToken: string;
+  expiresIn: string;
+  refreshToken: string;
 }
 
 export async function requestStsToken(

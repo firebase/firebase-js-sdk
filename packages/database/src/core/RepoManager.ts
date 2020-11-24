@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { safeGet, CONSTANTS } from '@firebase/util';
+import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal, log } from './util/util';
 import { parseRepoInfo } from './util/libs/parser';

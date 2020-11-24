@@ -23,7 +23,6 @@ import {
   ErrorMapRetriever,
   AuthErrorParams
 } from './errors';
-import { _createError } from './util/assert';
 import { AuthErrorMap } from '@firebase/auth-types-exp';
 import { ErrorFactory } from '@firebase/util';
 

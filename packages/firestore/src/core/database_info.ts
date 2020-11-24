@@ -20,15 +20,15 @@ export class DatabaseInfo {
    * Constructs a DatabaseInfo using the provided host, databaseId and
    * persistenceKey.
    *
-   * @param databaseId The database to use.
-   * @param appId The Firebase App Id.
-   * @param persistenceKey A unique identifier for this Firestore's local
+   * @param databaseId - The database to use.
+   * @param appId - The Firebase App Id.
+   * @param persistenceKey - A unique identifier for this Firestore's local
    * storage (used in conjunction with the databaseId).
-   * @param host The Firestore backend host to connect to.
-   * @param ssl Whether to use SSL when connecting.
-   * @param forceLongPolling Whether to use the forceLongPolling option
+   * @param host - The Firestore backend host to connect to.
+   * @param ssl - Whether to use SSL when connecting.
+   * @param forceLongPolling - Whether to use the forceLongPolling option
    * when using WebChannel as the network transport.
-   * @param autoDetectLongPolling Whether to use the detectBufferingProxy
+   * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
    */
   constructor(

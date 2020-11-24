@@ -296,6 +296,13 @@ export class Query {
   }
 
   /**
+   * Get the server-value for this query, or return a cached value if not connected.
+   */
+  get(): Promise<DataSnapshot> {
+    return this.repo.getValue(this);
+  }
+
+  /**
    * Attaches a listener, waits for the first event, and then removes the listener
    * @param {!string} eventType
    * @param {!function(!DataSnapshot, string=)} userCallback

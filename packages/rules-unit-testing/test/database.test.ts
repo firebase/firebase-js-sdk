@@ -103,6 +103,31 @@ describe('Testing Module Tests', function () {
       .catch(() => {});
   });
 
+  it('assertFails() if code is PERMISSION_DENIED', async function () {
+    const success = Promise.resolve('success');
+    const permissionDenied = Promise.reject({
+      code: 'PERMISSION_DENIED'
+    });
+    const otherFailure = Promise.reject('failure');
+    await firebase
+      .assertFails(success)
+      .then(() => {
+        throw new Error('Expected success to fail.');
+      })
+      .catch(() => {});
+
+    await firebase.assertFails(permissionDenied).catch(() => {
+      throw new Error('Expected permissionDenied to succeed.');
+    });
+
+    await firebase
+      .assertFails(otherFailure)
+      .then(() => {
+        throw new Error('Expected otherFailure to fail.');
+      })
+      .catch(() => {});
+  });
+
   it('initializeTestApp() with auth=null does not set access token', async function () {
     const app = firebase.initializeTestApp({
       projectId: 'foo',

@@ -25,8 +25,6 @@ import { validateArgCount } from '@firebase/util';
 import { validateUrl } from '../core/util/validation';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import { RepoInfo } from '../core/RepoInfo';
-import { FirebaseDatabase } from '@firebase/database-types';
 
 /**
  * Class representing a firebase database.

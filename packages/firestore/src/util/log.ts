@@ -31,9 +31,8 @@ export function getLogLevel(): LogLevel {
 /**
  * Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
  *
- * @param logLevel
- *   The verbosity you set for activity and error logging. Can be any of
- *   the following values:
+ * @param logLevel - The verbosity you set for activity and error logging. Can
+ *   be any of the following values:
  *
  *   <ul>
  *     <li>`debug` for the most verbose logging level, primarily for
@@ -42,7 +41,7 @@ export function getLogLevel(): LogLevel {
  *     <li><code>`silent` to turn off logging.</li>
  *   </ul>
  */
-export function setLogLevel(logLevel: LogLevelString | LogLevel): void {
+export function setLogLevel(logLevel: LogLevelString): void {
   logClient.setLogLevel(logLevel);
 }
 

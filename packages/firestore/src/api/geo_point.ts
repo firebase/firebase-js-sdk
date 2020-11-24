@@ -34,8 +34,8 @@ export class GeoPoint {
   /**
    * Creates a new immutable `GeoPoint` object with the provided latitude and
    * longitude values.
-   * @param latitude The latitude as number between -90 and 90.
-   * @param longitude The longitude as number between -180 and 180.
+   * @param latitude - The latitude as number between -90 and 90.
+   * @param longitude - The longitude as number between -180 and 180.
    */
   constructor(latitude: number, longitude: number) {
     if (!isFinite(latitude) || latitude < -90 || latitude > 90) {
@@ -72,8 +72,8 @@ export class GeoPoint {
   /**
    * Returns true if this `GeoPoint` is equal to the provided one.
    *
-   * @param other The `GeoPoint` to compare against.
-   * @return true if this `GeoPoint` is equal to the provided one.
+   * @param other - The `GeoPoint` to compare against.
+   * @returns true if this `GeoPoint` is equal to the provided one.
    */
   isEqual(other: GeoPoint): boolean {
     return this._lat === other._lat && this._long === other._long;

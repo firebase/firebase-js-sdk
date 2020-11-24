@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "private": true,
   "description": "FirebaseApp",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -30,7 +30,7 @@
     "typings:internal": "node ./use_typings.js"
   },
   "dependencies": {
-    "@firebase/app-types-exp": "0.0.800",
+    "@firebase/app-types-exp": "0.0.900",
     "@firebase/util": "0.3.4",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.1.21",
@@ -38,7 +38,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.33.1",
+    "rollup": "2.33.2",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.29.0",

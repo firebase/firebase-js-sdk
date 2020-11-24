@@ -663,6 +663,7 @@ export class DocumentReference<T = PublicDocumentData>
     if (other instanceof Compat) {
       other = other._delegate;
     }
+
     if (!(other instanceof ExpDocumentReference)) {
       return false;
     }
@@ -820,8 +821,8 @@ export function extractSnapshotOptions(
  * observer converts all observed values into the format expected by the classic
  * SDK.
  *
- * @param args The list of arguments from an `onSnapshot` call.
- * @param wrapper The function that converts the firestore-exp type into the
+ * @param args - The list of arguments from an `onSnapshot` call.
+ * @param wrapper - The function that converts the firestore-exp type into the
  * type used by this shim.
  */
 export function wrapObserver<CompatType, ExpType>(
@@ -881,6 +882,7 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
    */
   readonly fromCache: boolean;
 
+  /** @hideconstructor */
   constructor(hasPendingWrites: boolean, fromCache: boolean) {
     this.hasPendingWrites = hasPendingWrites;
     this.fromCache = fromCache;
@@ -889,8 +891,8 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
   /**
    * Returns true if this `SnapshotMetadata` is equal to the provided one.
    *
-   * @param other The `SnapshotMetadata` to compare against.
-   * @return true if this `SnapshotMetadata` is equal to the provided one.
+   * @param other - The `SnapshotMetadata` to compare against.
+   * @returns true if this `SnapshotMetadata` is equal to the provided one.
    */
   isEqual(other: PublicSnapshotMetadata): boolean {
     return (
@@ -1137,7 +1139,7 @@ export class DocumentChange<T = PublicDocumentData>
   }
 
   get newIndex(): number {
-    return this._delegate.oldIndex;
+    return this._delegate.newIndex;
   }
 }
 

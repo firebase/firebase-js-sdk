@@ -78,16 +78,16 @@ export interface FirestoreDataConverter<T> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
-   * and {@link Transaction#set()}}.
+   * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
+   * and {@link Transaction#set}.
    */
   toFirestore(modelObject: T): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
-   * and {@link Transaction#set()}} with `merge:true` or `mergeFields`.
+   * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
+   * and {@link Transaction#set} with `merge:true` or `mergeFields`.
    */
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
@@ -95,7 +95,7 @@ export interface FirestoreDataConverter<T> {
    * Called by the Firestore SDK to convert Firestore data into an object of
    * type T. You can access your data by calling: `snapshot.data()`.
    *
-   * @param snapshot A `QueryDocumentSnapshot` containing your data and
+   * @param snapshot - A `QueryDocumentSnapshot` containing your data and
    * metadata.
    */
   fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
@@ -116,6 +116,7 @@ export class DocumentSnapshot<T = DocumentData> {
   // - No support for SnapshotMetadata.
   // - No support for SnapshotOptions.
 
+  /** @hideconstructor protected */
   constructor(
     public _firestore: FirebaseFirestore,
     public _userDataWriter: AbstractUserDataWriter,
@@ -143,7 +144,7 @@ export class DocumentSnapshot<T = DocumentData> {
   /**
    * Signals whether or not the document at the snapshot's location exists.
    *
-   * @return true if the document exists.
+   * @returns true if the document exists.
    */
   exists(): this is QueryDocumentSnapshot<T> {
     return this._document !== null;
@@ -153,7 +154,7 @@ export class DocumentSnapshot<T = DocumentData> {
    * Retrieves all fields in the document as an `Object`. Returns `undefined` if
    * the document doesn't exist.
    *
-   * @return An `Object` containing all fields in the document or `undefined`
+   * @returns An `Object` containing all fields in the document or `undefined`
    * if the document doesn't exist.
    */
   data(): T | undefined {
@@ -179,9 +180,9 @@ export class DocumentSnapshot<T = DocumentData> {
    * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
    * document or field doesn't exist.
    *
-   * @param fieldPath The path (for example 'foo' or 'foo.bar') to a specific
+   * @param fieldPath - The path (for example 'foo' or 'foo.bar') to a specific
    * field.
-   * @return The data at the specified field location or undefined if no such
+   * @returns The data at the specified field location or undefined if no such
    * field exists in the document.
    */
   // We are using `any` here to avoid an explicit cast by our users.
@@ -217,7 +218,7 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
    * Retrieves all fields in the document as an `Object`.
    *
    * @override
-   * @return An `Object` containing all fields in the document.
+   * @returns An `Object` containing all fields in the document.
    */
   data(): T {
     return super.data() as T;
@@ -238,6 +239,7 @@ export class QuerySnapshot<T = DocumentData> {
    */
   readonly query: Query<T>;
 
+  /** @hideconstructor */
   constructor(
     _query: Query<T>,
     readonly _docs: Array<QueryDocumentSnapshot<T>>
@@ -263,9 +265,9 @@ export class QuerySnapshot<T = DocumentData> {
   /**
    * Enumerates all of the documents in the `QuerySnapshot`.
    *
-   * @param callback A callback to be called with a `QueryDocumentSnapshot` for
+   * @param callback - A callback to be called with a `QueryDocumentSnapshot` for
    * each document in the snapshot.
-   * @param thisArg The `this` binding for the callback.
+   * @param thisArg - The `this` binding for the callback.
    */
   forEach(
     callback: (result: QueryDocumentSnapshot<T>) => void,
@@ -278,14 +280,21 @@ export class QuerySnapshot<T = DocumentData> {
 /**
  * Returns true if the provided snapshots are equal.
  *
- * @param left A snapshot to compare.
- * @param right A snapshot to compare.
- * @return true if the snapshots are equal.
+ * @param left - A snapshot to compare.
+ * @param right - A snapshot to compare.
+ * @returns true if the snapshots are equal.
  */
 export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,
   right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean {
+  if (left instanceof Compat) {
+    left = left._delegate;
+  }
+  if (right instanceof Compat) {
+    right = right._delegate;
+  }
+
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
       left._firestore === right._firestore &&

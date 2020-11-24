@@ -24,6 +24,7 @@ import { ByteString } from '../../../src/util/byte_string';
 export class Bytes {
   _byteString: ByteString;
 
+  /** @hideconstructor */
   constructor(byteString: ByteString) {
     this._byteString = byteString;
   }
@@ -32,7 +33,7 @@ export class Bytes {
    * Creates a new `Bytes` object from the given Base64 string, converting it to
    * bytes.
    *
-   * @param base64 The Base64 string used to create the `Bytes` object.
+   * @param base64 - The Base64 string used to create the `Bytes` object.
    */
   static fromBase64String(base64: string): Bytes {
     try {
@@ -40,7 +41,7 @@ export class Bytes {
     } catch (e) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Failed to construct Bytes from Base64 string: ' + e
+        'Failed to construct data from Base64 string: ' + e
       );
     }
   }
@@ -48,7 +49,7 @@ export class Bytes {
   /**
    * Creates a new `Bytes` object from the given Uint8Array.
    *
-   * @param array The Uint8Array used to create the `Bytes` object.
+   * @param array - The Uint8Array used to create the `Bytes` object.
    */
   static fromUint8Array(array: Uint8Array): Bytes {
     return new Bytes(ByteString.fromUint8Array(array));
@@ -57,7 +58,7 @@ export class Bytes {
   /**
    * Returns the underlying bytes as a Base64-encoded string.
    *
-   * @return The Base64-encoded string created from the `Bytes` object.
+   * @returns The Base64-encoded string created from the `Bytes` object.
    */
   toBase64(): string {
     return this._byteString.toBase64();
@@ -66,7 +67,7 @@ export class Bytes {
   /**
    * Returns the underlying bytes in a new `Uint8Array`.
    *
-   * @return The Uint8Array created from the `Bytes` object.
+   * @returns The Uint8Array created from the `Bytes` object.
    */
   toUint8Array(): Uint8Array {
     return this._byteString.toUint8Array();
@@ -75,7 +76,7 @@ export class Bytes {
   /**
    * Returns a string representation of the `Bytes` object.
    *
-   * @return A string representation of the `Bytes` object.
+   * @returns A string representation of the `Bytes` object.
    */
   toString(): string {
     return 'Bytes(base64: ' + this.toBase64() + ')';
@@ -84,8 +85,8 @@ export class Bytes {
   /**
    * Returns true if this `Bytes` object is equal to the provided one.
    *
-   * @param other The `Bytes` object to compare against.
-   * @return true if this `Bytes` object is equal to the provided one.
+   * @param other - The `Bytes` object to compare against.
+   * @returns true if this `Bytes` object is equal to the provided one.
    */
   isEqual(other: Bytes): boolean {
     return this._byteString.isEqual(other._byteString);

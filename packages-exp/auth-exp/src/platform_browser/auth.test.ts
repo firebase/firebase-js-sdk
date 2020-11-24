@@ -24,7 +24,7 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
-import { _castAuth, AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
+import { AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AuthErrorCode } from '../core/errors';
 import { Persistence } from '../core/persistence';
@@ -118,14 +118,15 @@ describe('core/auth/initializeAuth', () => {
 
     async function initAndWait(
       persistence: externs.Persistence | externs.Persistence[],
-      popupRedirectResolver?: externs.PopupRedirectResolver
+      popupRedirectResolver?: externs.PopupRedirectResolver,
+      authDomain = FAKE_APP.options.authDomain
     ): Promise<externs.Auth> {
       const auth = new AuthImpl(FAKE_APP, {
         apiKey: FAKE_APP.options.apiKey!,
         apiHost: DefaultConfig.API_HOST,
         apiScheme: DefaultConfig.API_SCHEME,
         tokenApiHost: DefaultConfig.TOKEN_API_HOST,
-        authDomain: FAKE_APP.options.authDomain,
+        authDomain,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
 
@@ -277,6 +278,15 @@ describe('core/auth/initializeAuth', () => {
 
         await initAndWait([inMemoryPersistence], browserPopupRedirectResolver);
         expect(stub._remove).to.have.been.called;
+      });
+
+      it('does not run redirect sign in attempt if authDomain not set', async () => {
+        await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver,
+          ''
+        );
+        expect(completeRedirectFnStub).not.to.have.been.called;
       });
 
       it('signs in the redirect user if found', async () => {
