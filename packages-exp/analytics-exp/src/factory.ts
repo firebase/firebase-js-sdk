@@ -23,7 +23,7 @@ import {
   CustomParams,
   AnalyticsCallOptions,
   EventParams,
-  FirebaseAnalytics
+  Analytics
 } from '@firebase/analytics-types-exp';
 import {
   insertScriptTag,
@@ -45,7 +45,10 @@ import { initializeIds } from './initialize-ids';
 import { logger } from './logger';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 
-export class AnalyticsService implements FirebaseAnalytics, _FirebaseService {
+/**
+ * Analytics Service class.
+ */
+export class AnalyticsService implements Analytics, _FirebaseService {
   constructor(public app: FirebaseApp) {}
   _delete(): Promise<void> {
     delete initializationPromisesMap[this.app.options.appId!];
@@ -109,6 +112,7 @@ let globalInitDone: boolean = false;
 
 /**
  * For testing
+ * @internal
  */
 export function resetGlobalVars(
   newGlobalInitDone = false,
@@ -124,6 +128,7 @@ export function resetGlobalVars(
 
 /**
  * For testing
+ * @internal
  */
 export function getGlobalVars(): {
   initializationPromisesMap: { [appId: string]: Promise<string> };
@@ -138,12 +143,16 @@ export function getGlobalVars(): {
 }
 
 /**
- * This must be run before calling firebase.analytics() or it won't
+ * Configures Firebase Analytics to use custom `gtag` or `dataLayer` names.
+ * Intended to be used if `gtag.js` script has been installed on
+ * this page independently of Firebase Analytics, and is using non-default
+ * names for either the `gtag` function or for `dataLayer`.
+ * Must be called before calling `firebase.analytics()` or it won't
  * have any effect.
  *
  * @public
  *
- * @param options Custom gtag and dataLayer names.
+ * @param options - Custom gtag and dataLayer names.
  */
 export function settings(options: SettingsOptions): void {
   if (globalInitDone) {
@@ -181,6 +190,10 @@ function warnOnBrowserContextMismatch(): void {
   }
 }
 
+/**
+ * Analytics instance factory.
+ * @internal
+ */
 export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
@@ -248,26 +261,25 @@ export function factory(
  * Sends analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
- * List of official event parameters can be found in
+ * List of official event parameters can be found in the gtag.js
+ * reference documentation:
  * {@link https://developers.google.com/gtagjs/reference/event
- * the gtag.js reference documentation}.
+ * | the gtag.js reference documentation}.
  *
  * @public
  *
- * @param service - AnalyticsService instance.
+ * @param analyticsInstance - Firebase Analytics instance.
  * @param eventName - Event name to log. Can be a standard analytics event or any custom string.
- * @param eventParams
- * @param options
  */
 export function logEvent(
-  service: AnalyticsService,
+  analyticsInstance: Analytics,
   eventName: string,
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
 ): void {
   internalLogEvent(
     wrappedGtagFunction,
-    initializationPromisesMap[service.app.options.appId!],
+    initializationPromisesMap[analyticsInstance.app.options.appId!],
     eventName,
     eventParams,
     options
@@ -279,18 +291,17 @@ export function logEvent(
  *
  * @public
  *
- * @param service - AnalyticsService instance.
+ * @param analyticsInstance - Firebase Analytics instance.
  * @param screenName - Screen name to set.
- * @param options
  */
 export function setCurrentScreen(
-  service: AnalyticsService,
+  analyticsInstance: Analytics,
   screenName: string,
   options?: AnalyticsCallOptions
 ): void {
   internalSetCurrentScreen(
     wrappedGtagFunction,
-    initializationPromisesMap[service.app.options.appId!],
+    initializationPromisesMap[analyticsInstance.app.options.appId!],
     screenName,
     options
   ).catch(e => logger.error(e));
@@ -301,18 +312,17 @@ export function setCurrentScreen(
  *
  * @public
  *
- * @param service - AnalyticsService instance.
+ * @param analyticsInstance - Firebase Analytics instance.
  * @param id - User ID to set.
- * @param options
  */
 export function setUserId(
-  service: AnalyticsService,
+  analyticsInstance: Analytics,
   id: string,
   options?: AnalyticsCallOptions
 ): void {
   internalSetUserId(
     wrappedGtagFunction,
-    initializationPromisesMap[service.app.options.appId!],
+    initializationPromisesMap[analyticsInstance.app.options.appId!],
     id,
     options
   ).catch(e => logger.error(e));
@@ -324,13 +334,13 @@ export function setUserId(
  * @public
  */
 export function setUserProperties(
-  service: AnalyticsService,
+  analyticsInstance: Analytics,
   properties: CustomParams,
   options?: AnalyticsCallOptions
 ): void {
   internalSetUserProperties(
     wrappedGtagFunction,
-    initializationPromisesMap[service.app.options.appId!],
+    initializationPromisesMap[analyticsInstance.app.options.appId!],
     properties,
     options
   ).catch(e => logger.error(e));
@@ -342,15 +352,15 @@ export function setUserProperties(
  *
  * @public
  *
- * @param service - AnalyticsService instance.
+ * @param analyticsInstance - Firebase Analytics instance.
  * @param enabled - If true, enables collection, if false, disables it.
  */
 export function setAnalyticsCollectionEnabled(
-  service: AnalyticsService,
+  analyticsInstance: Analytics,
   enabled: boolean
 ): void {
   internalSetAnalyticsCollectionEnabled(
-    initializationPromisesMap[service.app.options.appId!],
+    initializationPromisesMap[analyticsInstance.app.options.appId!],
     enabled
   ).catch(e => logger.error(e));
 }

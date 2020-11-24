@@ -33,7 +33,10 @@ export interface AnalyticsCallOptions {
   global: boolean;
 }
 
-export interface FirebaseAnalytics {
+export interface Analytics {
+  /**
+   * The FirebaseApp this Functions instance is associated with.
+   */
   app: FirebaseApp;
 }
 
@@ -69,7 +72,7 @@ export interface Gtag {
  * Standard gtag.js control parameters.
  * For more information, see
  * {@link https://developers.google.com/gtagjs/reference/parameter
- * the gtag.js documentation on parameters}.
+ * | the gtag.js documentation on parameters}.
  */
 export interface ControlParams {
   groups?: string | string[];
@@ -82,7 +85,7 @@ export interface ControlParams {
  * Standard gtag.js event parameters.
  * For more information, see
  * {@link https://developers.google.com/gtagjs/reference/parameter
- * the gtag.js documentation on parameters}.
+ * | the gtag.js documentation on parameters}.
  */
 export interface EventParams {
   checkout_option?: string;

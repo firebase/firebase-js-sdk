@@ -17,22 +17,22 @@
 
 import { expect } from 'chai';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
-import './testing/setup';
+import '../testing/setup';
 import {
   settings as analyticsSettings,
   factory as analyticsFactory,
   resetGlobalVars,
   getGlobalVars
 } from './index';
-import { getFakeApp } from './testing/get-fake-firebase-services';
+import { getFakeApp } from '../testing/get-fake-firebase-services';
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { GtagCommand, EventName } from './src/constants';
-import { findGtagScriptOnPage } from './src/helpers';
-import { removeGtagScript } from './testing/gtag-script-util';
+import { GtagCommand, EventName } from './constants';
+import { findGtagScriptOnPage } from './helpers';
+import { removeGtagScript } from '../testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
-import { AnalyticsError } from './src/errors';
-import { logEvent } from './src/api';
-import { AnalyticsService } from './src/factory';
+import { AnalyticsError } from './errors';
+import { logEvent } from './api';
+import { AnalyticsService } from './factory';
 import * as installations from '@firebase/installations-exp';
 
 let analyticsInstance: AnalyticsService = {} as AnalyticsService;

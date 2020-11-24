@@ -39,7 +39,7 @@ const es5Builds = [
    * Browser Builds
    */
   {
-    input: 'index.ts',
+    input: './src/index.ts',
     output: [
       { file: pkg.main, format: 'cjs', sourcemap: true },
       { file: pkg.module, format: 'es', sourcemap: true }
@@ -69,7 +69,7 @@ const es2017Builds = [
    *  Browser Builds
    */
   {
-    input: 'index.ts',
+    input: './src/index.ts',
     output: {
       file: pkg.esm2017,
       format: 'es',

@@ -17,6 +17,7 @@
 
 import { _getProvider } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { Analytics } from '@firebase/analytics-types-exp';
 import { Provider } from '@firebase/component';
 import {
   isIndexedDBAvailable,
@@ -43,13 +44,13 @@ declare module '@firebase/component' {
 }
 
 /**
- * Returns an AnalyticsService instance for the given app.
+ * Returns a Firebase Analytics instance for the given app.
  *
  * @public
  *
  * @param app - The FirebaseApp to use.
  */
-export function getAnalytics(app: FirebaseApp): AnalyticsService {
+export function getAnalytics(app: FirebaseApp): Analytics {
   // Dependencies
   const analyticsProvider: Provider<'analytics-exp'> = _getProvider(
     app,

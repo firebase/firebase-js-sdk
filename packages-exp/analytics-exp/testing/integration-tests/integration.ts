@@ -16,7 +16,7 @@
  */
 
 import { initializeApp, deleteApp } from '@firebase/app-exp';
-import { getAnalytics, logEvent } from '../../index';
+import { getAnalytics, logEvent } from '../../src/index';
 import '../setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';

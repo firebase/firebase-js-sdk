@@ -17,22 +17,17 @@
 
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
-import {
-  factory,
-  settings,
-  resetGlobalVars,
-  getGlobalVars
-} from './src/factory';
-import { ANALYTICS_TYPE, EventName } from './src/constants';
+import { factory, settings, resetGlobalVars, getGlobalVars } from './factory';
+import { ANALYTICS_TYPE, EventName } from './constants';
 import {
   Component,
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
-import { ERROR_FACTORY, AnalyticsError } from './src/errors';
-import { isSupported, logEvent } from './src/api';
-import { name, version } from './package.json';
-import { AnalyticsCallOptions } from '@firebase/analytics-types';
+import { ERROR_FACTORY, AnalyticsError } from './errors';
+import { isSupported, logEvent } from './api';
+import { name, version } from '../package.json';
+import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
 
 declare global {
   interface Window {
@@ -40,9 +35,9 @@ declare global {
   }
 }
 
-export * from './src/api';
+export * from './api';
 
-export function registerAnalytics(): void {
+function registerAnalytics(): void {
   _registerComponent(
     new Component(
       ANALYTICS_TYPE,
@@ -89,6 +84,6 @@ export function registerAnalytics(): void {
   }
 }
 
-export { factory, settings, resetGlobalVars, getGlobalVars };
+export { factory, resetGlobalVars, getGlobalVars };
 
 registerAnalytics();
