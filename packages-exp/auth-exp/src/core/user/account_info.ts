@@ -24,7 +24,6 @@ import {
 import { updateProfile as apiUpdateProfile } from '../../api/account_management/profile';
 import { User } from '../../model/user';
 import { _logoutIfInvalidated } from './invalidation';
-import { _reloadWithoutSaving } from './reload';
 
 interface Profile {
   displayName?: string | null;

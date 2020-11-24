@@ -321,8 +321,8 @@ export abstract class PersistentStream<
    *
    * A new stream can be opened by calling start().
    *
-   * @param finalState the intended state of the stream after closing.
-   * @param error the error the connection was closed with.
+   * @param finalState - the intended state of the stream after closing.
+   * @param error - the error the connection was closed with.
    */
   private async close(
     finalState: PersistentStreamState,
@@ -390,7 +390,7 @@ export abstract class PersistentStream<
   /**
    * Called after the stream has received a message. The function will be
    * called on the right queue and must return a Promise.
-   * @param message The message received from the stream.
+   * @param message - The message received from the stream.
    */
   protected abstract onMessage(message: ReceiveType): Promise<void>;
 

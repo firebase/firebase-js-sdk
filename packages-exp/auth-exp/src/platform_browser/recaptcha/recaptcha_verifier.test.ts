@@ -28,7 +28,7 @@ import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { _window } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import { _JSLOAD_CALLBACK, ReCaptchaLoader } from './recaptcha_loader';
+import { ReCaptchaLoader } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 import { RecaptchaVerifier } from './recaptcha_verifier';
 

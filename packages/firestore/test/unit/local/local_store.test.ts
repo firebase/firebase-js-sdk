@@ -115,7 +115,7 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
 import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
-import * as bundleProto from '../../../src/protos/firestore_bundle_proto';
+import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -316,13 +316,13 @@ class LocalStoreTester {
    * Asserts the expected number of mutations and documents read by
    * the MutationQueue and the RemoteDocumentCache.
    *
-   * @param expectedCount.mutationsByQuery The number of mutations read by
+   * @param expectedCount.mutationsByQuery - The number of mutations read by
    * executing a query against the MutationQueue.
-   * @param expectedCount.mutationsByKey The number of mutations read by
+   * @param expectedCount.mutationsByKey - The number of mutations read by
    * document key lookups.
-   * @param expectedCount.documentsByQuery The number of mutations read by
+   * @param expectedCount.documentsByQuery - The number of mutations read by
    * executing a query against the RemoteDocumentCache.
-   * @param expectedCount.documentsByKey The number of documents read by
+   * @param expectedCount.documentsByKey - The number of documents read by
    * document key lookups.
    */
   toHaveRead(expectedCount: {
@@ -473,7 +473,7 @@ class LocalStoreTester {
   }
 
   toHaveNewerBundle(
-    metadata: bundleProto.BundleMetadata,
+    metadata: ProtoBundleMetadata,
     expected: boolean
   ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
@@ -496,7 +496,7 @@ class LocalStoreTester {
     return this;
   }
 
-  afterSavingBundle(metadata: bundleProto.BundleMetadata): LocalStoreTester {
+  afterSavingBundle(metadata: ProtoBundleMetadata): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() =>
       saveBundle(this.localStore, metadata)
     );

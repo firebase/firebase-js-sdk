@@ -227,7 +227,7 @@ export function mapRpcCodeFromCode(code: Code | undefined): number {
 /**
  * Converts an HTTP Status Code to the equivalent error code.
  *
- * @param status An HTTP Status Code, like 200, 404, 503, etc.
+ * @param status - An HTTP Status Code, like 200, 404, 503, etc.
  * @returns The equivalent Code. Unknown status codes are mapped to
  *     Code.UNKNOWN.
  */
@@ -308,7 +308,7 @@ export function mapCodeFromHttpStatus(status?: number): Code {
 /**
  * Converts an HTTP response's error status to the equivalent error code.
  *
- * @param status An HTTP error response status ("FAILED_PRECONDITION",
+ * @param status - An HTTP error response status ("FAILED_PRECONDITION",
  * "UNKNOWN", etc.)
  * @returns The equivalent Code. Non-matching responses are mapped to
  *     Code.UNKNOWN.

@@ -155,12 +155,12 @@ export class IndexFreeQueryEngine implements QueryEngine {
    * Determines if a limit query needs to be refilled from cache, making it
    * ineligible for index-free execution.
    *
-   * @param sortedPreviousResults The documents that matched the query when it
+   * @param sortedPreviousResults - The documents that matched the query when it
    * was last synchronized, sorted by the query's comparator.
-   * @param remoteKeys The document keys that matched the query at the last
+   * @param remoteKeys - The document keys that matched the query at the last
    * snapshot.
-   * @param limboFreeSnapshotVersion The version of the snapshot when the query
-   * was last synchronized.
+   * @param limboFreeSnapshotVersion - The version of the snapshot when the
+   * query was last synchronized.
    */
   private needsRefill(
     limitType: LimitType,

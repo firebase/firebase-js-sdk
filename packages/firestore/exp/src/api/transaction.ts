@@ -33,12 +33,13 @@ import { firestoreClientTransaction } from '../../../src/core/firestore_client';
  *
  * The `Transaction` object passed to a transaction's `updateFunction` provides
  * the methods to read and write data within the transaction context. See
- * {@link runTransaction()}.
+ * {@link runTransaction}.
  */
 export class Transaction extends LiteTransaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
   // but is subclassed in order to return its own DocumentSnapshot types.
 
+  /** @hideconstructor */
   constructor(
     protected readonly _firestore: FirebaseFirestore,
     _transaction: InternalTransaction
@@ -49,8 +50,8 @@ export class Transaction extends LiteTransaction {
   /**
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
-   * @param documentRef A reference to the document to be read.
-   * @return A `DocumentSnapshot` with the read data.
+   * @param documentRef - A reference to the document to be read.
+   * @returns A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference<T>(documentRef, this._firestore);
@@ -82,10 +83,11 @@ export class Transaction extends LiteTransaction {
  *
  * The maximum number of writes allowed in a single transaction is 500.
  *
- * @param firestore A reference to the Firestore database to run this
+ * @param firestore - A reference to the Firestore database to run this
  * transaction against.
- * @param updateFunction The function to execute within the transaction context.
- * @return If the transaction completed successfully or was explicitly aborted
+ * @param updateFunction - The function to execute within the transaction
+ * context.
+ * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
  * rejected promise with the corresponding failure error is returned.

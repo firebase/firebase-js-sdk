@@ -18,7 +18,6 @@
 import { RepoInfo } from '../core/RepoInfo';
 import {
   assert,
-  CONSTANTS as ENV_CONSTANTS,
   jsonEval,
   stringify,
   isNodeSdk

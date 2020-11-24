@@ -290,8 +290,8 @@ export class MemoryMutationQueue implements MutationQueue {
    * Finds the index of the given batchId in the mutation queue and asserts that
    * the resulting index is within the bounds of the queue.
    *
-   * @param batchId The batchId to search for
-   * @param action A description of what the caller is doing, phrased in passive
+   * @param batchId - The batchId to search for
+   * @param action - A description of what the caller is doing, phrased in passive
    * form (e.g. "acknowledged" in a routine that acknowledges batches).
    */
   private indexOfExistingBatchId(batchId: BatchId, action: string): number {
@@ -307,7 +307,7 @@ export class MemoryMutationQueue implements MutationQueue {
    * Finds the index of the given batchId in the mutation queue. This operation
    * is O(1).
    *
-   * @return The computed index of the batch with the given batchId, based on
+   * @returns The computed index of the batch with the given batchId, based on
    * the state of the queue. Note this index can be negative if the requested
    * batchId has already been remvoed from the queue or past the end of the
    * queue if the batchId is larger than the last added batch.

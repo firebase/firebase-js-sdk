@@ -454,9 +454,14 @@ export function assertFails(pr: Promise<any>): any {
       );
     },
     (err: any) => {
+      const errCode = (err && err.code && err.code.toLowerCase()) || '';
+      const errMessage =
+        (err && err.message && err.message.toLowerCase()) || '';
       const isPermissionDenied =
-        (err && err.message && err.message.indexOf('PERMISSION_DENIED') >= 0) ||
-        (err && err.code === 'permission-denied');
+        errCode === 'permission-denied' ||
+        errCode === 'permission_denied' ||
+        errMessage.indexOf('permission_denied') >= 0;
+
       if (!isPermissionDenied) {
         return Promise.reject(
           new Error(

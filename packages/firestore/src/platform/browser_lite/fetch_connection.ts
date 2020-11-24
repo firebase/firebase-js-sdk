@@ -29,8 +29,8 @@ import { DatabaseInfo } from '../../core/database_info';
  */
 export class FetchConnection extends RestConnection {
   /**
-   * @param databaseInfo The connection info.
-   * @param fetchImpl `fetch` or a Polyfill that implements the fetch API.
+   * @param databaseInfo - The connection info.
+   * @param fetchImpl - `fetch` or a Polyfill that implements the fetch API.
    */
   constructor(
     databaseInfo: DatabaseInfo,

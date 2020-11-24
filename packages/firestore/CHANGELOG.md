@@ -1,5 +1,14 @@
 # @firebase/firestore
 
+## 2.0.4
+
+### Patch Changes
+
+- [`9822e125c`](https://github.com/firebase/firebase-js-sdk/commit/9822e125c399ae7271d4a9077f82b184a44526e4) [#4078](https://github.com/firebase/firebase-js-sdk/pull/4078) - Fix an issue that prevented `experimentalAutoDetectLongPolling` from working correctly.
+
+- Updated dependencies [[`9822e125c`](https://github.com/firebase/firebase-js-sdk/commit/9822e125c399ae7271d4a9077f82b184a44526e4)]:
+  - @firebase/webchannel-wrapper@0.4.1
+
 ## 2.0.3
 
 ### Patch Changes

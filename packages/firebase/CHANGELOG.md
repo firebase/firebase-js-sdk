@@ -1,5 +1,15 @@
 # firebase
 
+## 8.1.1
+
+### Patch Changes
+
+- [`4f6313262`](https://github.com/firebase/firebase-js-sdk/commit/4f63132622fa46ca7373ab93440c76bcb1822620) [#4096](https://github.com/firebase/firebase-js-sdk/pull/4096) - Add the missing type definition for 'Query.get()' for RTDB
+
+- Updated dependencies [[`9822e125c`](https://github.com/firebase/firebase-js-sdk/commit/9822e125c399ae7271d4a9077f82b184a44526e4)]:
+  - @firebase/firestore@2.0.4
+  - @firebase/database@0.8.1
+
 ## 8.1.0
 
 ### Minor Changes

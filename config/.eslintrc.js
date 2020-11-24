@@ -24,7 +24,12 @@ module.exports = {
     'node': true
   },
   'parser': '@typescript-eslint/parser',
-  'plugins': ['@typescript-eslint', '@typescript-eslint/tslint', 'import'],
+  'plugins': [
+    '@typescript-eslint',
+    '@typescript-eslint/tslint',
+    'import',
+    'unused-imports'
+  ],
   'parserOptions': {
     'ecmaVersion': 2015,
     'sourceType': 'module'
@@ -72,6 +77,7 @@ module.exports = {
       }
     ],
     'radix': 'error',
+    'unused-imports/no-unused-imports-ts': 'error',
     'default-case': 'error',
     'eqeqeq': [
       'error',

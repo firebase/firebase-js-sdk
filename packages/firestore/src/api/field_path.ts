@@ -35,7 +35,7 @@ export class FieldPath extends Compat<ExpFieldPath> implements PublicFieldPath {
    * Creates a FieldPath from the provided field names. If more than one field
    * name is provided, the path will point to a nested field in a document.
    *
-   * @param fieldNames A list of field names.
+   * @param fieldNames - A list of field names.
    */
   constructor(...fieldNames: string[]) {
     super(new ExpFieldPath(...fieldNames));
@@ -55,6 +55,7 @@ export class FieldPath extends Compat<ExpFieldPath> implements PublicFieldPath {
     if (other instanceof Compat) {
       other = other._delegate;
     }
+
     if (!(other instanceof ExpFieldPath)) {
       return false;
     }
