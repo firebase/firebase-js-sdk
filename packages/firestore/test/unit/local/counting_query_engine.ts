@@ -16,7 +16,6 @@
  */
 
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { QueryEngine } from '../../../src/local/query_engine';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { PersistenceTransaction } from '../../../src/local/persistence';
 import { Query } from '../../../src/core/query';
@@ -24,17 +23,13 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
-
-export enum QueryEngineType {
-  IndexFree,
-  Simple
-}
+import {QueryEngine} from "../../../src/local/query_engine";
 
 /**
  * A test-only query engine that forwards all API calls and exposes the number
  * of documents and mutations read.
  */
-export class CountingQueryEngine implements QueryEngine {
+export class CountingQueryEngine extends QueryEngine {
   /**
    * The number of mutations returned by the MutationQueue's
    * `getAllMutationBatchesAffectingQuery()` API (since the last call to
@@ -62,11 +57,6 @@ export class CountingQueryEngine implements QueryEngine {
    */
   documentsReadByKey = 0;
 
-  constructor(
-    private readonly queryEngine: QueryEngine,
-    readonly type: QueryEngineType
-  ) {}
-
   resetCounts(): void {
     this.mutationsReadByQuery = 0;
     this.mutationsReadByKey = 0;
@@ -80,7 +70,7 @@ export class CountingQueryEngine implements QueryEngine {
     lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
-    return this.queryEngine.getDocumentsMatchingQuery(
+    return super.getDocumentsMatchingQuery(
       transaction,
       query,
       lastLimboFreeSnapshotVersion,
@@ -95,7 +85,7 @@ export class CountingQueryEngine implements QueryEngine {
       localDocuments.indexManager
     );
 
-    return this.queryEngine.setLocalDocumentsView(view);
+    return super.setLocalDocumentsView(view);
   }
 
   private wrapRemoteDocumentCache(

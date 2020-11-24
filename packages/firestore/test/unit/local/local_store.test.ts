@@ -31,7 +31,6 @@ import {
 import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   applyBundleDocuments,
@@ -57,7 +56,6 @@ import {
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
-import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -110,7 +108,7 @@ import {
   version
 } from '../../util/helpers';
 
-import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
+import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
@@ -508,33 +506,9 @@ class LocalStoreTester {
   }
 }
 
-describe('LocalStore w/ Memory Persistence (SimpleQueryEngine)', () => {
-  addEqualityMatcher();
-
+describe('LocalStore w/ Memory Persistence', () => {
   async function initialize(): Promise<LocalStoreComponents> {
-    const queryEngine = new CountingQueryEngine(
-      new SimpleQueryEngine(),
-      QueryEngineType.Simple
-    );
-    const persistence = await persistenceHelpers.testMemoryEagerPersistence();
-    const localStore = newLocalStore(
-      persistence,
-      queryEngine,
-      User.UNAUTHENTICATED,
-      JSON_SERIALIZER
-    );
-    return { queryEngine, persistence, localStore };
-  }
-
-  genericLocalStoreTests(initialize, /* gcIsEager= */ true);
-});
-
-describe('LocalStore w/ Memory Persistence (IndexFreeQueryEngine)', () => {
-  async function initialize(): Promise<LocalStoreComponents> {
-    const queryEngine = new CountingQueryEngine(
-      new IndexFreeQueryEngine(),
-      QueryEngineType.IndexFree
-    );
+    const queryEngine = new CountingQueryEngine();
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
     const localStore = newLocalStore(
       persistence,
@@ -549,7 +523,7 @@ describe('LocalStore w/ Memory Persistence (IndexFreeQueryEngine)', () => {
   genericLocalStoreTests(initialize, /* gcIsEager= */ true);
 });
 
-describe('LocalStore w/ IndexedDB Persistence (SimpleQueryEngine)', () => {
+describe('LocalStore w/ IndexedDB Persistence', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn(
       'No IndexedDB. Skipping LocalStore w/ IndexedDB persistence tests.'
@@ -558,38 +532,7 @@ describe('LocalStore w/ IndexedDB Persistence (SimpleQueryEngine)', () => {
   }
 
   async function initialize(): Promise<LocalStoreComponents> {
-    const queryEngine = new CountingQueryEngine(
-      new SimpleQueryEngine(),
-      QueryEngineType.Simple
-    );
-    const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = newLocalStore(
-      persistence,
-      queryEngine,
-      User.UNAUTHENTICATED,
-      JSON_SERIALIZER
-    );
-    await synchronizeLastDocumentChangeReadTime(localStore);
-    return { queryEngine, persistence, localStore };
-  }
-
-  addEqualityMatcher();
-  genericLocalStoreTests(initialize, /* gcIsEager= */ false);
-});
-
-describe('LocalStore w/ IndexedDB Persistence (IndexFreeQueryEngine)', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn(
-      'No IndexedDB. Skipping LocalStore w/ IndexedDB persistence tests.'
-    );
-    return;
-  }
-
-  async function initialize(): Promise<LocalStoreComponents> {
-    const queryEngine = new CountingQueryEngine(
-      new IndexFreeQueryEngine(),
-      QueryEngineType.IndexFree
-    );
+    const queryEngine = new CountingQueryEngine();
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
     const localStore = newLocalStore(
       persistence,
@@ -1913,7 +1856,7 @@ function genericLocalStoreTests(
   });
 
   it('uses target mapping to execute queries', () => {
-    if (queryEngine.type !== QueryEngineType.IndexFree || gcIsEager) {
+    if (gcIsEager) {
       return;
     }
 

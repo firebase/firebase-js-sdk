@@ -27,7 +27,6 @@ import {
 } from '../../../src/local/persistence';
 import { TargetCache } from '../../../src/local/target_cache';
 import { QueryEngine } from '../../../src/local/query_engine';
-import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -67,17 +66,17 @@ const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.min();
  * `getDocumentsMatchingQuery()` to detect index-free execution.
  */
 class TestLocalDocumentsView extends LocalDocumentsView {
-  expectIndexFreeExecution: boolean | undefined;
+  exceptFullCollectionScan: boolean | undefined;
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    const indexFreeExecution = !SnapshotVersion.min().isEqual(sinceReadTime);
+    const skipsDocumentsBeforeSnapshot = !SnapshotVersion.min().isEqual(sinceReadTime);
 
-    expect(indexFreeExecution).to.eq(
-      this.expectIndexFreeExecution,
+    expect(skipsDocumentsBeforeSnapshot).to.eq(
+      !this.exceptFullCollectionScan,
       'Observed query execution mode did not match expectation'
     );
 
@@ -85,7 +84,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   }
 }
 
-describe('IndexFreeQueryEngine', () => {
+describe('QueryEngine', () => {
   let persistence!: Persistence;
   let remoteDocumentCache!: RemoteDocumentCache;
   let targetCache!: TargetCache;
@@ -115,12 +114,12 @@ describe('IndexFreeQueryEngine', () => {
     });
   }
 
-  async function expectIndexFreeQuery<T>(op: () => Promise<T>): Promise<T> {
+  async function expectOptimizedCollectionQuery<T>(op: () => Promise<T>): Promise<T> {
     try {
-      localDocuments.expectIndexFreeExecution = true;
+      localDocuments.exceptFullCollectionScan = false;
       return await op();
     } finally {
-      localDocuments.expectIndexFreeExecution = undefined;
+      localDocuments.exceptFullCollectionScan = undefined;
     }
   }
 
@@ -128,10 +127,10 @@ describe('IndexFreeQueryEngine', () => {
     op: () => Promise<T>
   ): Promise<T> {
     try {
-      localDocuments.expectIndexFreeExecution = false;
+      localDocuments.exceptFullCollectionScan = true;
       return await op();
     } finally {
-      localDocuments.expectIndexFreeExecution = undefined;
+      localDocuments.exceptFullCollectionScan = undefined;
     }
   }
 
@@ -140,8 +139,9 @@ describe('IndexFreeQueryEngine', () => {
     lastLimboFreeSnapshot: SnapshotVersion
   ): Promise<DocumentSet> {
     debugAssert(
-      localDocuments.expectIndexFreeExecution !== undefined,
-      'Encountered runQuery() call not wrapped in expectIndexFreeQuery()/expectFullCollectionQuery()'
+      localDocuments.exceptFullCollectionScan !== undefined,
+      'Encountered runQuery() call not wrapped in ' + 
+      'expectOptimizedCollectionQuery()/expectFullCollectionQuery()'
     );
 
     return persistence.runTransaction('runQuery', 'readonly', txn => {
@@ -170,7 +170,7 @@ describe('IndexFreeQueryEngine', () => {
   beforeEach(async () => {
     persistence = await testMemoryEagerPersistence();
     targetCache = persistence.getTargetCache();
-    queryEngine = new IndexFreeQueryEngine();
+    queryEngine = new QueryEngine();
 
     remoteDocumentCache = persistence.getRemoteDocumentCache();
 
@@ -188,7 +188,7 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
 
-    const docs = await expectIndexFreeQuery(() =>
+    const docs = await expectOptimizedCollectionQuery(() =>
       runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
 
@@ -204,7 +204,7 @@ describe('IndexFreeQueryEngine', () => {
     // Add a mutated document that is not yet part of query's set of remote keys.
     await addDocument(PENDING_NON_MATCHING_DOC_A);
 
-    const docs = await expectIndexFreeQuery(() =>
+    const docs = await expectOptimizedCollectionQuery(() =>
       runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
 
@@ -217,7 +217,7 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
 
-    let docs = await expectIndexFreeQuery(() =>
+    let docs = await expectOptimizedCollectionQuery(() =>
       runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [MATCHING_DOC_A, MATCHING_DOC_B]);
@@ -225,7 +225,7 @@ describe('IndexFreeQueryEngine', () => {
     // Add a mutated document that is not yet part of query's set of remote keys.
     await addDocument(UPDATED_MATCHING_DOC_B);
 
-    docs = await expectIndexFreeQuery(() =>
+    docs = await expectOptimizedCollectionQuery(() =>
       runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [MATCHING_DOC_A, UPDATED_MATCHING_DOC_B]);
@@ -392,7 +392,7 @@ describe('IndexFreeQueryEngine', () => {
     // Since the last document in the limit didn't change (and hence we know
     // that all documents written prior to query execution still sort after
     // "coll/b"), we should use an Index-Free query.
-    const docs = await expectIndexFreeQuery(() =>
+    const docs = await expectOptimizedCollectionQuery(() =>
       runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [
