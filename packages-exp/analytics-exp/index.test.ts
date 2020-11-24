@@ -24,17 +24,13 @@ import {
   resetGlobalVars,
   getGlobalVars
 } from './index';
-import {
-  getFakeApp,
-  getFakeInstallations
-} from './testing/get-fake-firebase-services';
+import { getFakeApp } from './testing/get-fake-firebase-services';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { GtagCommand, EventName } from './src/constants';
 import { findGtagScriptOnPage } from './src/helpers';
 import { removeGtagScript } from './testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 import { AnalyticsError } from './src/errors';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { logEvent } from './src/api';
 import { AnalyticsService } from './src/factory';
 import * as installations from '@firebase/installations-exp';
@@ -65,11 +61,11 @@ function stubFetch(status: number, body: object): void {
   fetchStub.returns(Promise.resolve(mockResponse));
 }
 
-function stubInstallations(
+function stubGetId(
   fid: string = 'fid-1234',
   // eslint-disable-next-line @typescript-eslint/ban-types
   onFidResolve?: () => any
-) {
+): void {
   getIdStub = stub(installations, 'getId');
   if (onFidResolve) {
     getIdStub.callsFake(onFidResolve);
@@ -96,14 +92,14 @@ describe('FirebaseAnalytics instance tests', () => {
 
     it('Throws if no appId in config', () => {
       const app = getFakeApp({ apiKey: fakeAppParams.apiKey });
-      stubInstallations();
+      stubGetId();
       expect(() => analyticsFactory(app, {})).to.throw(
         AnalyticsError.NO_APP_ID
       );
     });
     it('Throws if no apiKey or measurementId in config', () => {
       const app = getFakeApp({ appId: fakeAppParams.appId });
-      stubInstallations();
+      stubGetId();
       expect(() => analyticsFactory(app, {})).to.throw(
         AnalyticsError.NO_API_KEY
       );
@@ -114,7 +110,7 @@ describe('FirebaseAnalytics instance tests', () => {
         appId: fakeAppParams.appId,
         measurementId: fakeMeasurementId
       });
-      stubInstallations();
+      stubGetId();
       analyticsFactory(app, {});
       expect(warnStub.args[0][1]).to.include(
         `Falling back to the measurement ID ${fakeMeasurementId}`
@@ -123,7 +119,7 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Throws if creating an instance with already-used appId', () => {
       const app = getFakeApp(fakeAppParams);
-      stubInstallations();
+      stubGetId();
       resetGlobalVars(false, { [fakeAppParams.appId]: Promise.resolve() });
       expect(() => analyticsFactory(app, {})).to.throw(
         AnalyticsError.ALREADY_EXISTS
@@ -139,7 +135,7 @@ describe('FirebaseAnalytics instance tests', () => {
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
-      stubInstallations('fid-1234', () => fidDeferred.resolve());
+      stubGetId('fid-1234', () => fidDeferred.resolve());
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
@@ -189,7 +185,6 @@ describe('FirebaseAnalytics instance tests', () => {
 
   describe('Standard app, mismatched environment', () => {
     let app: FirebaseApp = {} as FirebaseApp;
-    let installations: FirebaseInstallations = {} as FirebaseInstallations;
     const gtagStub: SinonStub = stub();
     let fidDeferred: Deferred<void>;
     let warnStub: SinonStub;
@@ -199,9 +194,7 @@ describe('FirebaseAnalytics instance tests', () => {
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
-      installations = getFakeInstallations('fid-1234', () =>
-        fidDeferred.resolve()
-      );
+      stubGetId('fid-1234', () => fidDeferred.resolve());
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
@@ -285,7 +278,7 @@ describe('FirebaseAnalytics instance tests', () => {
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
-      stubInstallations('fid-1234', () => fidDeferred.resolve());
+      stubGetId('fid-1234', () => fidDeferred.resolve());
       window[customGtagName] = gtagStub;
       window[customDataLayerName] = [];
       analyticsSettings({
@@ -338,7 +331,7 @@ describe('FirebaseAnalytics instance tests', () => {
     it('Adds the script tag to the page', async () => {
       resetGlobalVars();
       const app = getFakeApp(fakeAppParams);
-      stubInstallations();
+      stubGetId();
       stubFetch(200, {});
       stubIdbOpen();
       analyticsInstance = analyticsFactory(app, {});

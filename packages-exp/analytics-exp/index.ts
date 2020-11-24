@@ -17,7 +17,6 @@
 
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
 import {
   factory,
   settings,
@@ -31,10 +30,9 @@ import {
   ComponentContainer
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './src/errors';
-import { isSupported } from './src/api';
+import { isSupported, logEvent } from './src/api';
 import { name, version } from './package.json';
-import { logEvent } from './src/factory';
-import { AnalyticsCallOptions, EventParams } from '@firebase/analytics-types';
+import { AnalyticsCallOptions } from '@firebase/analytics-types';
 
 declare global {
   interface Window {

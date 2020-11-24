@@ -47,7 +47,7 @@ import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 
 export class AnalyticsService implements FirebaseAnalytics, _FirebaseService {
   constructor(public app: FirebaseApp) {}
-  _delete() {
+  _delete(): Promise<void> {
     delete initializationPromisesMap[this.app.options.appId!];
     return Promise.resolve();
   }
@@ -264,7 +264,7 @@ export function logEvent(
   eventName: string,
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
-) {
+): void {
   internalLogEvent(
     wrappedGtagFunction,
     initializationPromisesMap[service.app.options.appId!],
@@ -287,7 +287,7 @@ export function setCurrentScreen(
   service: AnalyticsService,
   screenName: string,
   options?: AnalyticsCallOptions
-) {
+): void {
   internalSetCurrentScreen(
     wrappedGtagFunction,
     initializationPromisesMap[service.app.options.appId!],
@@ -309,7 +309,7 @@ export function setUserId(
   service: AnalyticsService,
   id: string,
   options?: AnalyticsCallOptions
-) {
+): void {
   internalSetUserId(
     wrappedGtagFunction,
     initializationPromisesMap[service.app.options.appId!],
@@ -331,7 +331,7 @@ export function setUserProperties(
   service: AnalyticsService,
   properties: CustomParams,
   options?: AnalyticsCallOptions
-) {
+): void {
   internalSetUserProperties(
     wrappedGtagFunction,
     initializationPromisesMap[service.app.options.appId!],
@@ -352,7 +352,7 @@ export function setUserProperties(
 export function setAnalyticsCollectionEnabled(
   service: AnalyticsService,
   enabled: boolean
-) {
+): void {
   internalSetAnalyticsCollectionEnabled(
     initializationPromisesMap[service.app.options.appId!],
     enabled

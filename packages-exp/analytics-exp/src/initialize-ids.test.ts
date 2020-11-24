@@ -44,11 +44,11 @@ function stubFetch(): void {
   fetchStub.returns(Promise.resolve(mockResponse));
 }
 
-function stubInstallations(
+function stubGetId(
   fid: string = 'fid-1234',
   // eslint-disable-next-line @typescript-eslint/ban-types
   onFidResolve?: () => any
-) {
+): void {
   getIdStub = stub(installations, 'getId');
   if (onFidResolve) {
     getIdStub.callsFake(onFidResolve);
@@ -65,7 +65,7 @@ describe('initializeIds()', () => {
   beforeEach(() => {
     fidDeferred = new Deferred<string>();
     app = getFakeApp(fakeAppParams);
-    stubInstallations(fakeFid, fidDeferred.resolve);
+    stubGetId(fakeFid, fidDeferred.resolve);
   });
   afterEach(() => {
     fetchStub.restore();
