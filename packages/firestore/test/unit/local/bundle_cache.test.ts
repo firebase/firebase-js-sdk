@@ -35,7 +35,7 @@ import {
   testIndexedDbPersistence,
   testMemoryEagerPersistence
 } from './persistence_test_helpers';
-import { NamedQuery } from '../../../src/core/bundle';
+import { NamedQuery } from '../../../src/core/bundle_types';
 import { toQueryTarget } from '../../../src/remote/serializer';
 
 describe('MemoryBundleCache', () => {

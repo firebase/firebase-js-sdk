@@ -218,8 +218,8 @@ exports.es2017Plugins = function (platform, mangled = false) {
         cacheDir: tmp.dirSync(),
         transformers: [removeAssertAndPrefixInternalTransformer]
       }),
-      json({ preferConst: true })
-      // terser(manglePrivatePropertiesOptions)
+      json({ preferConst: true }),
+      terser(manglePrivatePropertiesOptions)
     ];
   } else {
     return [
