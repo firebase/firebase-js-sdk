@@ -34,7 +34,7 @@ import {
   toDbBundle,
   toDbNamedQuery
 } from './local_serializer';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { Bundle, NamedQuery } from '../core/bundle_types';
 
 export class IndexedDbBundleCache implements BundleCache {
   constructor(private serializer: LocalSerializer) {}

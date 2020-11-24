@@ -16,6 +16,7 @@
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
     "build:exp:release": "yarn build:exp && yarn build:lite",
+    "build:browser": "rollup -c rollup.config.browser.js",
     "predev": "yarn prebuild",
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",

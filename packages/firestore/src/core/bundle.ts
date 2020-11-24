@@ -16,7 +16,6 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import {
   fromDocument,
@@ -59,30 +58,7 @@ import {
   saveBundle,
   saveNamedQuery
 } from '../local/local_store_bundle';
-
-/**
- * Represents a Firestore bundle saved by the SDK in its local storage.
- */
-export interface Bundle {
-  readonly id: string;
-  readonly version: number;
-  /**
-   * Set to the snapshot version of the bundle if created by the Server SDKs.
-   * Otherwise set to SnapshotVersion.MIN.
-   */
-  readonly createTime: SnapshotVersion;
-}
-
-/**
- * Represents a Query saved by the SDK in its local storage.
- */
-export interface NamedQuery {
-  readonly name: string;
-  readonly query: Query;
-  /** The time at which the results for this query were read. */
-  readonly readTime: SnapshotVersion;
-}
-
+import { NamedQuery } from './bundle_types';
 /**
  * Represents a bundled document, including the metadata and the document
  * itself, if it exists.
