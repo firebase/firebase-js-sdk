@@ -73,7 +73,9 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    const skipsDocumentsBeforeSnapshot = !SnapshotVersion.min().isEqual(sinceReadTime);
+    const skipsDocumentsBeforeSnapshot = !SnapshotVersion.min().isEqual(
+      sinceReadTime
+    );
 
     expect(skipsDocumentsBeforeSnapshot).to.eq(
       !this.exceptFullCollectionScan,
@@ -114,7 +116,9 @@ describe('QueryEngine', () => {
     });
   }
 
-  async function expectOptimizedCollectionQuery<T>(op: () => Promise<T>): Promise<T> {
+  async function expectOptimizedCollectionQuery<T>(
+    op: () => Promise<T>
+  ): Promise<T> {
     try {
       localDocuments.exceptFullCollectionScan = false;
       return await op();
@@ -140,8 +144,8 @@ describe('QueryEngine', () => {
   ): Promise<DocumentSet> {
     debugAssert(
       localDocuments.exceptFullCollectionScan !== undefined,
-      'Encountered runQuery() call not wrapped in ' + 
-      'expectOptimizedCollectionQuery()/expectFullCollectionQuery()'
+      'Encountered runQuery() call not wrapped in ' +
+        'expectOptimizedCollectionQuery()/expectFullCollectionQuery()'
     );
 
     return persistence.runTransaction('runQuery', 'readonly', txn => {

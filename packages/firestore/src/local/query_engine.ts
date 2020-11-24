@@ -39,7 +39,6 @@ import { debugAssert } from '../util/assert';
 import { getLogLevel, LogLevel, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
 
-
 /**
  * A query engine that takes advantage of the target document mapping in the
  * QueryCache. Query execution is optimized by only reading the documents that
