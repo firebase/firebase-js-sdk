@@ -128,6 +128,7 @@ export class FirestoreClient {
     await this.receivedInitialUser.promise;
 
     return {
+      // TODO: Add callback
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
       clientId: this.clientId,

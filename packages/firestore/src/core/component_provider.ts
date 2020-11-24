@@ -384,6 +384,7 @@ export class OnlineComponentProvider {
     startAsPrimary: boolean
   ): SyncEngine {
     return newSyncEngine(
+      // TODO: Add callback
       this.localStore,
       this.remoteStore,
       this.eventManager,

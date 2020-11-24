@@ -80,7 +80,8 @@ export class FirebaseFirestore
   /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    authProvider: Provider<FirebaseAuthInternalName>,
+    // Add network callback argument
   ) {
     super(databaseIdOrApp, authProvider);
     this._persistenceKey =

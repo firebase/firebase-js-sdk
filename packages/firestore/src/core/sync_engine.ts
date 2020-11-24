@@ -1509,6 +1509,7 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     null,
     syncEngineImpl
   );
+  // TODO: Register callback (create a new free function that takes in SyncEngine)
   syncEngineImpl.syncEngineListener.onWatchChange = eventManagerOnWatchChange.bind(
     null,
     syncEngineImpl.eventManager

@@ -51,9 +51,10 @@ export class Firestore extends FirestoreCompat {
       databaseIdFromFirestoreDatabase(firestoreDatabase),
       new FirestoreExp(
         databaseIdFromFirestoreDatabase(firestoreDatabase),
-        authProvider
+        authProvider,
+        // Add network callback
       ),
-      new MemoryPersistenceProvider()
+      new MemoryPersistenceProvider(),
     );
   }
 }

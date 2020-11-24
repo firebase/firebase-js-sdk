@@ -915,6 +915,7 @@ function ensureWatchStream(
         onOpen: onWatchStreamOpen.bind(null, remoteStoreImpl),
         onClose: onWatchStreamClose.bind(null, remoteStoreImpl),
         onWatchChange: onWatchStreamChange.bind(null, remoteStoreImpl)
+        // TODO: Add new listener that then invokes RemoteSyncer
       }
     );
 

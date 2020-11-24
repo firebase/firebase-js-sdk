@@ -72,4 +72,6 @@ export interface RemoteSyncer {
    * May be called repeatedly for the same user.
    */
   handleCredentialChange?(user: User): Promise<void>;
+  
+  // TODO: Add new callback method
 }
