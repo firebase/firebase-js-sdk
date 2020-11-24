@@ -13,7 +13,6 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { _FirebaseService } from '@firebase/app-types-exp';
 import { MinimalDynamicConfig } from '@firebase/analytics-types-exp';
-import { SettingsOptions } from '@firebase/analytics-types-exp';
 
 // Warning: (ae-forgotten-export) The symbol "AnalyticsService" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "factory" should be prefixed with an underscore because the declaration is marked as @internal
@@ -50,9 +49,6 @@ export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enab
 
 // @public
 export function setCurrentScreen(analyticsInstance: Analytics, screenName: string, options?: AnalyticsCallOptions): void;
-
-// @public
-export function settings(options: SettingsOptions): void;
 
 // @public
 export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;

@@ -87,8 +87,14 @@ function stubIdbOpen(): void {
 
 describe('FirebaseAnalytics instance tests', () => {
   describe('Initialization', () => {
-    beforeEach(() => resetGlobalVars());
-    afterEach(() => getIdStub.restore());
+    beforeEach(() => {
+      clock = useFakeTimers();
+      resetGlobalVars();
+    });
+    afterEach(() => {
+      clock.restore();
+      getIdStub.restore();
+    });
 
     it('Throws if no appId in config', () => {
       const app = getFakeApp({ apiKey: fakeAppParams.apiKey });
@@ -104,18 +110,24 @@ describe('FirebaseAnalytics instance tests', () => {
         AnalyticsError.NO_API_KEY
       );
     });
-    it('Warns if config has no apiKey but does have a measurementId', () => {
+    it('Warns if config has no apiKey but does have a measurementId', async () => {
       const warnStub = stub(console, 'warn');
       const app = getFakeApp({
         appId: fakeAppParams.appId,
         measurementId: fakeMeasurementId
       });
       stubGetId();
+      stubIdbOpen();
       analyticsFactory(app, {});
+      // Successfully resolves fake IDB open request.
+      fakeRequest.onsuccess();
+      // Lets async IDB validation process complete.
+      // await clock.runAllAsync();
       expect(warnStub.args[0][1]).to.include(
         `Falling back to the measurement ID ${fakeMeasurementId}`
       );
       warnStub.restore();
+      idbOpenStub.restore();
     });
     it('Throws if creating an instance with already-used appId', () => {
       const app = getFakeApp(fakeAppParams);
@@ -130,7 +142,7 @@ describe('FirebaseAnalytics instance tests', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
-    before(() => {
+    before(async () => {
       clock = useFakeTimers();
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
@@ -141,6 +153,8 @@ describe('FirebaseAnalytics instance tests', () => {
       stubFetch(200, { measurementId: fakeMeasurementId });
       stubIdbOpen();
       analyticsInstance = analyticsFactory(app, {});
+      // Successfully resolves fake IDB open request.
+      fakeRequest.onsuccess();
     });
     after(() => {
       delete window['gtag'];
@@ -158,8 +172,6 @@ describe('FirebaseAnalytics instance tests', () => {
       logEvent(analyticsInstance, EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
-      // Successfully resolves fake IDB open request.
-      fakeRequest.onsuccess();
       // Clear promise chain started by logEvent.
       await clock.runAllAsync();
       expect(gtagStub).to.have.been.calledWith('js');
@@ -214,6 +226,8 @@ describe('FirebaseAnalytics instance tests', () => {
     it('Warns on initialization if cookies not available', async () => {
       cookieStub = stub(navigator, 'cookieEnabled').value(false);
       analyticsInstance = analyticsFactory(app, {});
+      // Successfully resolves fake IDB open request.
+      fakeRequest.onsuccess();
       expect(warnStub.args[0][1]).to.include(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
@@ -223,6 +237,8 @@ describe('FirebaseAnalytics instance tests', () => {
     it('Warns on initialization if in browser extension', async () => {
       window.chrome = { runtime: { id: 'blah' } };
       analyticsInstance = analyticsFactory(app, {});
+      // Successfully resolves fake IDB open request.
+      fakeRequest.onsuccess();
       expect(warnStub.args[0][1]).to.include(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
@@ -288,6 +304,8 @@ describe('FirebaseAnalytics instance tests', () => {
       stubIdbOpen();
       stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, {});
+      // Successfully resolves fake IDB open request.
+      fakeRequest.onsuccess();
     });
     after(() => {
       delete window[customGtagName];
@@ -302,8 +320,6 @@ describe('FirebaseAnalytics instance tests', () => {
       logEvent(analyticsInstance, EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
-      // Successfully resolves fake IDB open request.
-      fakeRequest.onsuccess();
       // Clear promise chain started by logEvent.
       await clock.runAllAsync();
       expect(gtagStub).to.have.been.calledWith('js');
