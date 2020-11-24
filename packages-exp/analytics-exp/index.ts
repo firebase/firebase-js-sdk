@@ -42,6 +42,8 @@ declare global {
   }
 }
 
+export * from './src/api';
+
 export function registerAnalytics(): void {
   _registerComponent(
     new Component(

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 export function getFakeApp(fakeAppParams?: {
   appId?: string;
@@ -35,12 +35,7 @@ export function getFakeApp(fakeAppParams?: {
       appId: fakeAppParams?.appId,
       measurementId: fakeAppParams?.measurementId
     },
-    automaticDataCollectionEnabled: true,
-    delete: async () => {},
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    installations: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    analytics: null as any
+    automaticDataCollectionEnabled: true
   };
 }
 

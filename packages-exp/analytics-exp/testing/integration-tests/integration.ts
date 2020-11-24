@@ -15,22 +15,31 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import '../../index.ts';
+import { initializeApp, deleteApp } from '@firebase/app-exp';
+import { getAnalytics, logEvent } from '../../index';
 import '../setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
+import { FirebaseApp } from '@firebase/app-types-exp';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const config = require('../../../../config/project.json');
+let config: Record<string, string>;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  config = require('../../../../config/project.json');
+} catch (e) {
+  throw new Error(
+    "Couldn't find config/project.json, make sure you ran test:setup."
+  );
+}
 
 const RETRY_INTERVAL = 1000;
 
 describe('FirebaseAnalytics Integration Smoke Tests', () => {
-  afterEach(() => firebase.app().delete());
+  let app: FirebaseApp;
+  afterEach(() => deleteApp(app));
   it('logEvent() sends correct network request.', async () => {
-    firebase.initializeApp(config);
-    firebase.analytics().logEvent('login');
+    app = initializeApp(config);
+    logEvent(getAnalytics(app), 'login');
     async function checkForEventCalls(): Promise<number> {
       await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
       const resources = performance.getEntriesByType('resource');
@@ -53,10 +62,10 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
       expect(warnStub.args[0][1]).to.include('does not match');
       done();
     });
-    firebase.initializeApp({
+    app = initializeApp({
       ...config,
       measurementId: 'wrong-id'
     });
-    firebase.analytics();
+    getAnalytics(app);
   });
 });
