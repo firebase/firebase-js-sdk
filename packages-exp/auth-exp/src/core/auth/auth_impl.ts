@@ -574,7 +574,7 @@ function emitEmulatorWarning(disableBanner: boolean): void {
     const el = document.createElement('p');
     const sty = el.style;
     el.innerText =
-      'Running in emulator mode. Do not use with' + ' production credentials.';
+      'Running in emulator mode. Do not use with production credentials.';
     sty.position = 'fixed';
     sty.width = '100%';
     sty.backgroundColor = '#ffffff';
