@@ -47,10 +47,7 @@ message Write {
     // This only requires read access to the document.
     string verify = 5;
 
-    // Applies a tranformation to a document.
-    // At most one `transform` per document is allowed in a given request.
-    // An `update` cannot follow a `transform` on the same document in a given
-    // request.
+    // Applies a transformation to a document.
     DocumentTransform transform = 6;
   }
 
