@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as api from './firestore_proto_api';
+import { StructuredQuery, Timestamp, Document } from './firestore_proto_api';
 
 /** Properties of a BundledQuery. */
 export interface BundledQuery {
@@ -23,7 +23,7 @@ export interface BundledQuery {
   parent?: string | null;
 
   /** BundledQuery structuredQuery */
-  structuredQuery?: api.StructuredQuery | null;
+  structuredQuery?: StructuredQuery | null;
 
   /** BundledQuery limitType */
   limitType?: LimitType | null;
@@ -41,7 +41,7 @@ export interface NamedQuery {
   bundledQuery?: BundledQuery | null;
 
   /** NamedQuery readTime */
-  readTime?: api.Timestamp | null;
+  readTime?: Timestamp | null;
 }
 
 /** Properties of a BundledDocumentMetadata. */
@@ -50,7 +50,7 @@ export interface BundledDocumentMetadata {
   name?: string | null;
 
   /** BundledDocumentMetadata readTime */
-  readTime?: api.Timestamp | null;
+  readTime?: Timestamp | null;
 
   /** BundledDocumentMetadata exists */
   exists?: boolean | null;
@@ -65,7 +65,7 @@ export interface BundleMetadata {
   id?: string | null;
 
   /** BundleMetadata createTime */
-  createTime?: api.Timestamp | null;
+  createTime?: Timestamp | null;
 
   /** BundleMetadata version */
   version?: number | null;
@@ -89,5 +89,5 @@ export interface BundleElement {
   documentMetadata?: BundledDocumentMetadata | null;
 
   /** BundleElement document */
-  document?: api.Document | null;
+  document?: Document | null;
 }
