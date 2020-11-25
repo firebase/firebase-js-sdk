@@ -33,7 +33,7 @@
     "rollup-plugin-terser": "6.1.0",
     "rollup-plugin-typescript2": "0.29.0",
     "rollup-plugin-uglify": "6.0.4",
-    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-node-resolve": "10.0.0",
     "lerna": "3.22.1"
   },
   "repository": {
