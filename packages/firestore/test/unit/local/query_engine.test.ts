@@ -66,7 +66,7 @@ const MISSING_LAST_LIMBO_FREE_SNAPSHOT = SnapshotVersion.min();
  * `getDocumentsMatchingQuery()` to detect index-free execution.
  */
 class TestLocalDocumentsView extends LocalDocumentsView {
-  exceptFullCollectionScan: boolean | undefined;
+  expectFullCollectionScan: boolean | undefined;
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
@@ -78,7 +78,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     );
 
     expect(skipsDocumentsBeforeSnapshot).to.eq(
-      !this.exceptFullCollectionScan,
+      !this.expectFullCollectionScan,
       'Observed query execution mode did not match expectation'
     );
 
@@ -120,10 +120,10 @@ describe('QueryEngine', () => {
     op: () => Promise<T>
   ): Promise<T> {
     try {
-      localDocuments.exceptFullCollectionScan = false;
+      localDocuments.expectFullCollectionScan = false;
       return await op();
     } finally {
-      localDocuments.exceptFullCollectionScan = undefined;
+      localDocuments.expectFullCollectionScan = undefined;
     }
   }
 
@@ -131,10 +131,10 @@ describe('QueryEngine', () => {
     op: () => Promise<T>
   ): Promise<T> {
     try {
-      localDocuments.exceptFullCollectionScan = true;
+      localDocuments.expectFullCollectionScan = true;
       return await op();
     } finally {
-      localDocuments.exceptFullCollectionScan = undefined;
+      localDocuments.expectFullCollectionScan = undefined;
     }
   }
 
@@ -143,7 +143,7 @@ describe('QueryEngine', () => {
     lastLimboFreeSnapshot: SnapshotVersion
   ): Promise<DocumentSet> {
     debugAssert(
-      localDocuments.exceptFullCollectionScan !== undefined,
+      localDocuments.expectFullCollectionScan !== undefined,
       'Encountered runQuery() call not wrapped in ' +
         'expectOptimizedCollectionQuery()/expectFullCollectionQuery()'
     );

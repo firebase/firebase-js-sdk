@@ -55,7 +55,7 @@ import { SortedSet } from '../util/sorted_set';
  * - Limit queries where a document edit may cause the document to sort below
  *   another document that is in the local cache.
  *
- * - Queries that have never been CURRENT or free of Limbo documents.
+ * - Queries that have never been CURRENT or free of limbo documents.
  */
 export class QueryEngine {
   private localDocumentsView: LocalDocumentsView | undefined;
