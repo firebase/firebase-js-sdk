@@ -22,7 +22,7 @@ import {
   BundleMetadata as ProtoBundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { BundleCache } from './bundle_cache';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { Bundle, NamedQuery } from '../core/bundle_types';
 import {
   fromBundleMetadata,
   fromProtoNamedQuery,

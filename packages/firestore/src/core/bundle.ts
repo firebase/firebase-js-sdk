@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from './query';
+import { LoadBundleTaskProgress } from '@firebase/firestore-types';
 import { SnapshotVersion } from './snapshot_version';
 import {
   fromDocument,
@@ -31,43 +31,37 @@ import {
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
-import { debugAssert } from '../util/assert';
-import {
-  applyBundleDocuments,
-  LocalStore,
-  saveNamedQuery
-} from '../local/local_store';
-import { SizedBundleElement } from '../util/bundle_reader';
+import { debugAssert, debugCast } from '../util/assert';
+import { LocalStore } from '../local/local_store';
+import { SizedBundleElement, BundleReader } from '../util/bundle_reader';
 import {
   documentKeySet,
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import { ApiLoadBundleTaskProgress } from '../api/bundle';
-
-/**
- * Represents a Firestore bundle saved by the SDK in its local storage.
- */
-export interface Bundle {
-  readonly id: string;
-  readonly version: number;
-  /**
-   * Set to the snapshot version of the bundle if created by the Server SDKs.
-   * Otherwise set to SnapshotVersion.MIN.
-   */
-  readonly createTime: SnapshotVersion;
-}
-
-/**
- * Represents a Query saved by the SDK in its local storage.
- */
-export interface NamedQuery {
-  readonly name: string;
-  readonly query: Query;
-  /** The time at which the results for this query were read. */
-  readonly readTime: SnapshotVersion;
-}
-
+import {
+  FirestoreClient,
+  getLocalStore,
+  getSyncEngine
+} from './firestore_client';
+import { LoadBundleTask } from '../api/bundle';
+import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
+import {
+  emitNewSnapsAndNotifyLocalStore,
+  SyncEngine,
+  SyncEngineImpl
+} from './sync_engine';
+import { logWarn } from '../util/log';
+import { LOG_TAG } from '../../lite/src/api/components';
+import {
+  applyBundleDocuments,
+  getNamedQuery,
+  hasNewerBundle,
+  saveBundle,
+  saveNamedQuery
+} from '../local/local_store_bundle';
+import { NamedQuery } from './bundle_types';
 /**
  * Represents a bundled document, including the metadata and the document
  * itself, if it exists.
@@ -119,9 +113,9 @@ export class BundleConverter {
  * Returns a `LoadBundleTaskProgress` representing the initial progress of
  * loading a bundle.
  */
-export function bundleInitialProgress(
+function bundleInitialProgress(
   metadata: ProtoBundleMetadata
-): ApiLoadBundleTaskProgress {
+): LoadBundleTaskProgress {
   return {
     taskState: 'Running',
     documentsLoaded: 0,
@@ -135,9 +129,9 @@ export function bundleInitialProgress(
  * Returns a `LoadBundleTaskProgress` representing the progress that the loading
  * has succeeded.
  */
-export function bundleSuccessProgress(
+function bundleSuccessProgress(
   metadata: ProtoBundleMetadata
-): ApiLoadBundleTaskProgress {
+): LoadBundleTaskProgress {
   return {
     taskState: 'Success',
     documentsLoaded: metadata.totalDocuments!,
@@ -147,9 +141,9 @@ export function bundleSuccessProgress(
   };
 }
 
-export class BundleLoadResult {
+class BundleLoadResult {
   constructor(
-    readonly progress: ApiLoadBundleTaskProgress,
+    readonly progress: LoadBundleTaskProgress,
     readonly changedDocs: MaybeDocumentMap
   ) {}
 }
@@ -158,9 +152,9 @@ export class BundleLoadResult {
  * A class to process the elements from a bundle, load them into local
  * storage and provide progress update while loading.
  */
-export class BundleLoader {
+class BundleLoader {
   /** The current progress of loading */
-  private progress: ApiLoadBundleTaskProgress;
+  private progress: LoadBundleTaskProgress;
   /** Batched queries to be saved into storage */
   private queries: ProtoNamedQuery[] = [];
   /** Batched documents to be saved into storage */
@@ -180,9 +174,7 @@ export class BundleLoader {
    * Returns a new progress if adding the element leads to a new progress,
    * otherwise returns null.
    */
-  addSizedElement(
-    element: SizedBundleElement
-  ): ApiLoadBundleTaskProgress | null {
+  addSizedElement(element: SizedBundleElement): LoadBundleTaskProgress | null {
     debugAssert(!element.isBundleMetadata(), 'Unexpected bundle metadata.');
 
     this.progress.bytesLoaded += element.byteLength;
@@ -263,5 +255,115 @@ export class BundleLoader {
 
     this.progress.taskState = 'Success';
     return new BundleLoadResult({ ...this.progress }, changedDocuments);
+  }
+}
+
+export async function firestoreClientLoadBundle(
+  client: FirestoreClient,
+  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
+  resultTask: LoadBundleTask
+): Promise<void> {
+  const reader = createBundleReader(
+    data,
+    newSerializer((await client.getConfiguration()).databaseInfo.databaseId)
+  );
+  client.asyncQueue.enqueueAndForget(async () => {
+    syncEngineLoadBundle(await getSyncEngine(client), reader, resultTask);
+  });
+}
+
+export function firestoreClientGetNamedQuery(
+  client: FirestoreClient,
+  queryName: string
+): Promise<NamedQuery | undefined> {
+  return client.asyncQueue.enqueue(async () =>
+    getNamedQuery(await getLocalStore(client), queryName)
+  );
+}
+
+function createBundleReader(
+  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
+  serializer: JsonProtoSerializer
+): BundleReader {
+  let content: ReadableStream<Uint8Array> | ArrayBuffer;
+  if (typeof data === 'string') {
+    content = newTextEncoder().encode(data);
+  } else {
+    content = data;
+  }
+  return new BundleReader(toByteStreamReader(content), serializer);
+}
+
+/**
+ * Loads a Firestore bundle into the SDK. The returned promise resolves when
+ * the bundle finished loading.
+ *
+ * @param bundleReader Bundle to load into the SDK.
+ * @param task LoadBundleTask used to update the loading progress to public API.
+ */
+export function syncEngineLoadBundle(
+  syncEngine: SyncEngine,
+  bundleReader: BundleReader,
+  task: LoadBundleTask
+): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
+    syncEngineImpl.sharedClientState.notifyBundleLoaded();
+  });
+}
+
+async function loadBundleImpl(
+  syncEngine: SyncEngineImpl,
+  reader: BundleReader,
+  task: LoadBundleTask
+): Promise<void> {
+  try {
+    const metadata = await reader.getMetadata();
+    const skip = await hasNewerBundle(syncEngine.localStore, metadata);
+    if (skip) {
+      await reader.close();
+      task._completeWith(bundleSuccessProgress(metadata));
+      return;
+    }
+
+    task._updateProgress(bundleInitialProgress(metadata));
+
+    const loader = new BundleLoader(
+      metadata,
+      syncEngine.localStore,
+      reader.serializer
+    );
+    let element = await reader.nextElement();
+    while (element) {
+      debugAssert(
+        !element.payload.metadata,
+        'Unexpected BundleMetadata element.'
+      );
+      const progress = await loader.addSizedElement(element);
+      if (progress) {
+        task._updateProgress(progress);
+      }
+
+      element = await reader.nextElement();
+    }
+
+    const result = await loader.complete();
+    // TODO(b/160876443): This currently raises snapshots with
+    // `fromCache=false` if users already listen to some queries and bundles
+    // has newer version.
+    await emitNewSnapsAndNotifyLocalStore(
+      syncEngine,
+      result.changedDocs,
+      /* remoteEvent */ undefined
+    );
+
+    // Save metadata, so loading the same bundle will skip.
+    await saveBundle(syncEngine.localStore, metadata);
+    task._completeWith(result.progress);
+  } catch (e) {
+    logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
+    task._failWith(e);
   }
 }

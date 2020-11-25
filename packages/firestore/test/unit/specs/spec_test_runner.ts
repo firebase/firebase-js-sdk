@@ -42,7 +42,6 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
-  syncEngineLoadBundle,
   activeLimboDocumentResolutions,
   enqueuedLimboDocumentResolutions,
   registerPendingWritesCallback,
@@ -156,6 +155,7 @@ import {
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { logWarn } from '../../../src/util/log';
 import { newTextEncoder } from '../../../src/platform/serializer';
+import { syncEngineLoadBundle } from '../../../src/core/bundle';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
