@@ -248,7 +248,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/*.js', 'dist/exp/*.js']
+        include: ['dist/**/*.js']
       }),
       terser({
         output: {
