@@ -17,7 +17,10 @@
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import * as bundleProto from '../protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata
+} from '../protos/firestore_bundle_proto';
 import { BundleCache } from './bundle_cache';
 import { Bundle, NamedQuery } from '../core/bundle_types';
 import {
@@ -41,7 +44,7 @@ export class MemoryBundleCache implements BundleCache {
 
   saveBundleMetadata(
     transaction: PersistenceTransaction,
-    bundleMetadata: bundleProto.BundleMetadata
+    bundleMetadata: ProtoBundleMetadata
   ): PersistencePromise<void> {
     this.bundles.set(bundleMetadata.id!, fromBundleMetadata(bundleMetadata));
     return PersistencePromise.resolve();
@@ -56,7 +59,7 @@ export class MemoryBundleCache implements BundleCache {
 
   saveNamedQuery(
     transaction: PersistenceTransaction,
-    query: bundleProto.NamedQuery
+    query: ProtoNamedQuery
   ): PersistencePromise<void> {
     this.namedQueries.set(query.name!, fromProtoNamedQuery(query));
     return PersistencePromise.resolve();

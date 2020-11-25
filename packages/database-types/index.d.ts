@@ -81,6 +81,7 @@ export interface Query {
     callback?: (a: DataSnapshot, b?: string | null) => any,
     context?: Object | null
   ): void;
+  get(): Promise<DataSnapshot>;
   on(
     eventType: EventType,
     callback: (a: DataSnapshot, b?: string | null) => any,

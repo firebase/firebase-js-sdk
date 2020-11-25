@@ -1,7 +1,7 @@
 {
   "name": "@firebase/auth-types-exp",
   "private": true,
-  "version": "0.0.800",
+  "version": "0.0.900",
   "description": "@firebase/auth-exp Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",

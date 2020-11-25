@@ -18,7 +18,10 @@
 import { Persistence } from '../../../src/local/persistence';
 import { BundleCache } from '../../../src/local/bundle_cache';
 import { Bundle, NamedQuery } from '../../../src/core/bundle_types';
-import * as bundleProto from '../../../src/protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata
+} from '../../../src/protos/firestore_bundle_proto';
 
 /**
  * A wrapper around a BundleCache that automatically creates a
@@ -41,7 +44,7 @@ export class TestBundleCache {
     );
   }
 
-  saveBundleMetadata(metadata: bundleProto.BundleMetadata): Promise<void> {
+  saveBundleMetadata(metadata: ProtoBundleMetadata): Promise<void> {
     return this.persistence.runTransaction(
       'saveBundleMetadata',
       'readwrite',
@@ -61,7 +64,7 @@ export class TestBundleCache {
     );
   }
 
-  setNamedQuery(query: bundleProto.NamedQuery): Promise<void> {
+  setNamedQuery(query: ProtoNamedQuery): Promise<void> {
     return this.persistence.runTransaction(
       'setNamedQuery',
       'readwrite',

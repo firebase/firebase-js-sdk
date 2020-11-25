@@ -16,13 +16,7 @@
  */
 
 import { RepoInfo } from '../core/RepoInfo';
-import {
-  assert,
-  CONSTANTS as ENV_CONSTANTS,
-  jsonEval,
-  stringify,
-  isNodeSdk
-} from '@firebase/util';
+import { assert, jsonEval, stringify, isNodeSdk } from '@firebase/util';
 import { logWrapper, splitStringBySize } from '../core/util/util';
 import { StatsManager } from '../core/stats/StatsManager';
 import {

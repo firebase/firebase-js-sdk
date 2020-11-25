@@ -25,6 +25,7 @@ import {
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle
 } from '../core/bundle';
+import { Query as ExpQuery } from '../../exp/src/api/reference';
 
 export class LoadBundleTask
   implements
@@ -107,7 +108,7 @@ export class LoadBundleTask
 
   /**
    * Notifies a progress update of loading a bundle.
-   * @param progress The new progress.
+   * @param progress - The new progress.
    */
   _updateProgress(progress: firestore.LoadBundleTaskProgress): void {
     debugAssert(
@@ -148,6 +149,6 @@ export function namedQuery(
       return null;
     }
 
-    return new Query(namedQuery.query, db, null);
+    return new Query(db, new ExpQuery(db._delegate, null, namedQuery.query));
   });
 }

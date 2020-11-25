@@ -477,7 +477,7 @@ export function firestoreClientTransaction<T>(
   return deferred.promise;
 }
 
-export async function readDocumentFromCache(
+async function readDocumentFromCache(
   localStore: LocalStore,
   docKey: DocumentKey,
   result: Deferred<Document | null>
@@ -512,7 +512,7 @@ export async function readDocumentFromCache(
  * Retrieves a latency-compensated document from the backend via a
  * SnapshotListener.
  */
-export function readDocumentViaSnapshotListener(
+function readDocumentViaSnapshotListener(
   eventManager: EventManager,
   asyncQueue: AsyncQueue,
   key: DocumentKey,
@@ -579,7 +579,7 @@ export function readDocumentViaSnapshotListener(
   return eventManagerListen(eventManager, listener);
 }
 
-export async function executeQueryFromCache(
+async function executeQueryFromCache(
   localStore: LocalStore,
   query: Query,
   result: Deferred<ViewSnapshot>
@@ -610,7 +610,7 @@ export async function executeQueryFromCache(
  * Retrieves a latency-compensated query snapshot from the backend via a
  * SnapshotListener.
  */
-export function executeQueryViaSnapshotListener(
+function executeQueryViaSnapshotListener(
   eventManager: EventManager,
   asyncQueue: AsyncQueue,
   query: Query,

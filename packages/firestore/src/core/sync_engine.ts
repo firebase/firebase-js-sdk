@@ -584,10 +584,10 @@ export function applyOnlineStateChange(
  * Rejects the listen for the given targetID. This can be triggered by the
  * backend for any active target.
  *
- * @param syncEngine The sync engine implementation.
- * @param targetId The targetID corresponds to one previously initiated by the
+ * @param syncEngine - The sync engine implementation.
+ * @param targetId - The targetID corresponds to one previously initiated by the
  * user as part of TargetData passed to listen() on RemoteStore.
- * @param err A description of the condition that has forced the rejection.
+ * @param err - A description of the condition that has forced the rejection.
  * Nearly always this will be an indication that the user is no longer
  * authorized to see the data matching the target.
  */
@@ -1289,9 +1289,9 @@ function resetLimboDocuments(syncEngine: SyncEngine): void {
  * persistence. Raises snapshots for any changes that affect the local
  * client and returns the updated state of all target's query data.
  *
- * @param syncEngine The sync engine implementation
- * @param targets the list of targets with views that need to be recomputed
- * @param transitionToPrimary `true` iff the tab transitions from a secondary
+ * @param syncEngine - The sync engine implementation
+ * @param targets - the list of targets with views that need to be recomputed
+ * @param transitionToPrimary - `true` iff the tab transitions from a secondary
  * tab to a primary tab
  */
 // PORTING NOTE: Multi-Tab only.

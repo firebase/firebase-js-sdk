@@ -209,9 +209,10 @@ export const Code = {
 
 /** An error returned by a Firestore operation. */
 export class FirestoreError extends Error {
-  name = 'FirebaseError';
-  stack?: string;
+  readonly name: string = 'FirebaseError';
+  readonly stack?: string;
 
+  /** @hideconstructor */
   constructor(readonly code: FirestoreErrorCode, readonly message: string) {
     super(message);
 

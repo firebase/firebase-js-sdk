@@ -202,7 +202,7 @@ export interface Persistence {
    * this is called for a given user. In particular, the memory-backed
    * implementation does this to emulate the persisted implementation to the
    * extent possible (e.g. in the case of uid switching from
-   * sally=>jack=>sally, sally's mutation queue will be preserved).
+   * sally=&gt;jack=&gt;sally, sally's mutation queue will be preserved).
    */
   getMutationQueue(user: User): MutationQueue;
 
@@ -253,16 +253,16 @@ export interface Persistence {
    * the transaction will be committed and the Promise returned by this method
    * will resolve.
    *
-   * @param action A description of the action performed by this transaction,
+   * @param action - A description of the action performed by this transaction,
    * used for logging.
-   * @param mode The underlying mode of the IndexedDb transaction. Can be
-   * 'readonly`, 'readwrite' or 'readwrite-primary'. Transactions marked
+   * @param mode - The underlying mode of the IndexedDb transaction. Can be
+   * 'readonly', 'readwrite' or 'readwrite-primary'. Transactions marked
    * 'readwrite-primary' can only be executed by the primary client. In this
    * mode, the transactionOperation will not be run if the primary lease cannot
    * be acquired and the returned promise will be rejected with a
    * FAILED_PRECONDITION error.
-   * @param transactionOperation The operation to run inside a transaction.
-   * @return A promise that is resolved once the transaction completes.
+   * @param transactionOperation - The operation to run inside a transaction.
+   * @returns A promise that is resolved once the transaction completes.
    */
   runTransaction<T>(
     action: string,

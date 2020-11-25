@@ -36,7 +36,7 @@ export function isNegativeZero(value: number): boolean {
 
 /**
  * Returns whether a value is an integer and in the safe integer range
- * @param value The value to test for being an integer and in the safe range
+ * @param value - The value to test for being an integer and in the safe range
  */
 export function isSafeInteger(value: unknown): boolean {
   return (

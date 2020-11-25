@@ -14,22 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { registerFirestore } from '../register';
-registerFirestore();
-/**
- * This will include all of the test files and compile them as needed
- *
- * Taken from karma-webpack source:
- * https://github.com/webpack-contrib/karma-webpack#alternative-usage
- */
-
-// 'context()' definition requires additional dependency on webpack-env package.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const testsContext = (require as any).context(
-  '../../test/integration/api',
-  true,
-  /^.*\.test\.ts$/
-);
-const browserTests = testsContext.keys();
-browserTests.forEach(testsContext);
+export declare class B<T> {
+  get b(): T;
+  get c(): T;
+}
+export declare class A<T> extends B<T> {
+  get a(): T;
+}
+export {};

@@ -51,7 +51,8 @@ import {
 import { UserDataWriter } from '../../src/api/user_data_writer';
 import {
   ExpUserDataWriter,
-  Query as ExpQuery
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference
 } from '../../exp/src/api/reference';
 
 /**
@@ -77,7 +78,14 @@ export function newTestFirestore(projectId = 'new-project'): Firestore {
 export function collectionReference(path: string): CollectionReference {
   const db = firestore();
   ensureFirestoreConfigured(db._delegate);
-  return new CollectionReference(pathFrom(path), db, /* converter= */ null);
+  return new CollectionReference(
+    db,
+    new ExpCollectionReference(
+      db._delegate,
+      /* converter= */ null,
+      pathFrom(path)
+    )
+  );
 }
 
 export function documentReference(path: string): DocumentReference {
@@ -121,25 +129,31 @@ export function documentSnapshot(
 }
 
 export function query(path: string): Query {
+  const db = firestore();
   return new Query(
-    newQueryForPath(pathFrom(path)),
-    firestore(),
-    /* converter= */ null
+    db,
+    new ExpQuery(
+      db._delegate,
+      /* converter= */ null,
+      newQueryForPath(pathFrom(path))
+    )
   );
 }
 
 /**
  * A convenience method for creating a particular query snapshot for tests.
  *
- * @param path To be used in constructing the query.
- * @param oldDocs Provides the prior set of documents in the QuerySnapshot. Each entry maps to a
- *     document, with the key being the document id, and the value being the document contents.
- * @param docsToAdd Specifies data to be added into the query snapshot as of now. Each entry maps
- *     to a document, with the key being the document id, and the value being the document contents.
- * @param mutatedKeys The list of document with pending writes.
- * @param fromCache Whether the query snapshot is cache result.
- * @param syncStateChanged Whether the sync state has changed.
- * @return A query snapshot that consists of both sets of documents.
+ * @param path - To be used in constructing the query.
+ * @param oldDocs - Provides the prior set of documents in the QuerySnapshot.
+ * Each entry maps to a document, with the key being the document id, and the
+ * value being the document contents.
+ * @param docsToAdd - Specifies data to be added into the query snapshot as of
+ * now. Each entry maps to a document, with the key being the document id, and
+ * the value being the document contents.
+ * @param mutatedKeys - The list of document with pending writes.
+ * @param fromCache - Whether the query snapshot is cache result.
+ * @param syncStateChanged - Whether the sync state has changed.
+ * @returns A query snapshot that consists of both sets of documents.
  */
 export function querySnapshot(
   path: string,

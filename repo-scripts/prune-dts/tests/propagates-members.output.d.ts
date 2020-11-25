@@ -14,5 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// This file exists to solve an unresolved import error during the build.
+export class B {
+  b: string;
+  a: string;
+}
+export class C extends B {
+  c: string;
+}
+export {};

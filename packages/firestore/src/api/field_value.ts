@@ -69,10 +69,10 @@ export class DeleteFieldValueImpl extends FieldValue {
  * are not considered writes since they cannot contain any FieldValue sentinels,
  * etc.
  *
- * @param fieldValue The sentinel FieldValue for which to create a child
+ * @param fieldValue - The sentinel FieldValue for which to create a child
  *     context.
- * @param context The parent context.
- * @param arrayElement Whether or not the FieldValue has an array.
+ * @param context - The parent context.
+ * @param arrayElement - Whether or not the FieldValue has an array.
  */
 function createSentinelChildContext(
   fieldValue: FieldValue,

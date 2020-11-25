@@ -17,31 +17,29 @@
 
 import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
 import { DocumentSnapshot } from './snapshot';
-import { TransactionRunner } from '../../../src/core/transaction_runner';
-import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirebaseFirestore } from './database';
-import { Deferred } from '../../../src/util/promise';
 import {
   ensureFirestoreConfigured,
   SnapshotMetadata
 } from '../../../src/api/database';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
 import { validateReference } from '../../../lite/src/api/write_batch';
-import { getDatastore } from '../../../lite/src/api/components';
 import { DocumentReference } from '../../../lite/src/api/reference';
 import { ExpUserDataWriter } from './reference';
+import { firestoreClientTransaction } from '../../../src/core/firestore_client';
 
 /**
  * A reference to a transaction.
  *
  * The `Transaction` object passed to a transaction's `updateFunction` provides
  * the methods to read and write data within the transaction context. See
- * {@link runTransaction()}.
+ * {@link runTransaction}.
  */
 export class Transaction extends LiteTransaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
   // but is subclassed in order to return its own DocumentSnapshot types.
 
+  /** @hideconstructor */
   constructor(
     protected readonly _firestore: FirebaseFirestore,
     _transaction: InternalTransaction
@@ -52,8 +50,8 @@ export class Transaction extends LiteTransaction {
   /**
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
-   * @param documentRef A reference to the document to be read.
-   * @return A `DocumentSnapshot` with the read data.
+   * @param documentRef - A reference to the document to be read.
+   * @returns A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference<T>(documentRef, this._firestore);
@@ -85,10 +83,11 @@ export class Transaction extends LiteTransaction {
  *
  * The maximum number of writes allowed in a single transaction is 500.
  *
- * @param firestore A reference to the Firestore database to run this
+ * @param firestore - A reference to the Firestore database to run this
  * transaction against.
- * @param updateFunction The function to execute within the transaction context.
- * @return If the transaction completed successfully or was explicitly aborted
+ * @param updateFunction - The function to execute within the transaction
+ * context.
+ * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
  * rejected promise with the corresponding failure error is returned.
@@ -97,18 +96,8 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  ensureFirestoreConfigured(firestore);
-
-  const deferred = new Deferred<T>();
-  firestore._queue.enqueueAndForget(async () => {
-    const datastore = await getDatastore(firestore);
-    new TransactionRunner<T>(
-      new AsyncQueue(),
-      datastore,
-      internalTransaction =>
-        updateFunction(new Transaction(firestore, internalTransaction)),
-      deferred
-    ).run();
-  });
-  return deferred.promise;
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientTransaction(client, internalTransaction =>
+    updateFunction(new Transaction(firestore, internalTransaction))
+  );
 }

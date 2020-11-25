@@ -21,7 +21,6 @@ import {
   FirebaseNamespace
 } from '@firebase/app-types'; // TODO: create @firebase/app-types-compat before the official release
 import {
-  _FirebaseApp,
   _FirebaseNamespace,
   FirebaseService,
   FirebaseServiceNamespace

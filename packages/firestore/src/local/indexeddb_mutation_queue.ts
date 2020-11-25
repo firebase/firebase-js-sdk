@@ -81,8 +81,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   /**
    * Creates a new mutation queue for the given user.
-   * @param user The user for which to create a mutation queue.
-   * @param serializer The serializer to use when persisting to IndexedDb.
+   * @param user - The user for which to create a mutation queue.
+   * @param serializer - The serializer to use when persisting to IndexedDb.
    */
   static forUser(
     user: User,
@@ -574,7 +574,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
 }
 
 /**
- * @return true if the mutation queue for the given user contains a pending
+ * @returns true if the mutation queue for the given user contains a pending
  *         mutation for the given key.
  */
 function mutationQueueContainsKey(
@@ -617,7 +617,7 @@ export function mutationQueuesContainKey(
 
 /**
  * Delete a mutation batch and the associated document mutations.
- * @return A PersistencePromise of the document mutations that were removed.
+ * @returns A PersistencePromise of the document mutations that were removed.
  */
 export function removeMutationBatch(
   txn: SimpleDbTransaction,

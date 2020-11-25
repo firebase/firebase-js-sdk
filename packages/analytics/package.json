@@ -35,7 +35,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/app": "0.6.13",
-    "rollup": "2.33.1",
+    "rollup": "2.33.2",
     "@rollup/plugin-commonjs": "15.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",

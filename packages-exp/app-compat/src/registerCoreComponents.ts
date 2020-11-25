@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { registerVersion } from '@firebase/app-exp';
 
 import { name, version } from '../package.json';

@@ -17,7 +17,10 @@
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import * as bundleProto from '../protos/firestore_bundle_proto';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata
+} from '../protos/firestore_bundle_proto';
 import { BundleCache } from './bundle_cache';
 import {
   DbBundle,
@@ -55,7 +58,7 @@ export class IndexedDbBundleCache implements BundleCache {
 
   saveBundleMetadata(
     transaction: PersistenceTransaction,
-    bundleMetadata: bundleProto.BundleMetadata
+    bundleMetadata: ProtoBundleMetadata
   ): PersistencePromise<void> {
     return bundlesStore(transaction).put(toDbBundle(bundleMetadata));
   }
@@ -76,7 +79,7 @@ export class IndexedDbBundleCache implements BundleCache {
 
   saveNamedQuery(
     transaction: PersistenceTransaction,
-    query: bundleProto.NamedQuery
+    query: ProtoNamedQuery
   ): PersistencePromise<void> {
     return namedQueriesStore(transaction).put(toDbNamedQuery(query));
   }

@@ -108,9 +108,9 @@ function genericMutationQueueTests(): void {
   /**
    * Removes the first n entries from the given batches and returns them.
    *
-   * @param n The number of batches to remove.
-   * @param batches The array to mutate, removing entries from it.
-   * @return A new array containing all the entries that were removed from
+   * @param n - The number of batches to remove.
+   * @param batches - The array to mutate, removing entries from it.
+   * @returns A new array containing all the entries that were removed from
    * batches.
    */
   async function removeFirstBatches(

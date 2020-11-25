@@ -115,11 +115,11 @@ export class DelayedOperation<T extends unknown> implements PromiseLike<T> {
    * Creates and returns a DelayedOperation that has been scheduled to be
    * executed on the provided asyncQueue after the provided delayMs.
    *
-   * @param asyncQueue The queue to schedule the operation on.
-   * @param id A Timer ID identifying the type of operation this is.
-   * @param delayMs The delay (ms) before the operation should be scheduled.
-   * @param op The operation to run.
-   * @param removalCallback A callback to be called synchronously once the
+   * @param asyncQueue - The queue to schedule the operation on.
+   * @param id - A Timer ID identifying the type of operation this is.
+   * @param delayMs - The delay (ms) before the operation should be scheduled.
+   * @param op - The operation to run.
+   * @param removalCallback - A callback to be called synchronously once the
    *   operation is executed or canceled, notifying the AsyncQueue to remove it
    *   from its delayedOperations list.
    *   PORTING NOTE: This exists to prevent making removeDelayedOperation() and
@@ -471,8 +471,8 @@ export class AsyncQueue {
   /**
    * For Tests: Runs some or all delayed operations early.
    *
-   * @param lastTimerId Delayed operations up to and including this TimerId will
-   *  be drained. Pass TimerId.All to run all delayed operations.
+   * @param lastTimerId - Delayed operations up to and including this TimerId
+   * will be drained. Pass TimerId.All to run all delayed operations.
    * @returns a Promise that resolves once all operations have been run.
    */
   runAllDelayedOperationsUntil(lastTimerId: TimerId): Promise<void> {
@@ -527,7 +527,7 @@ export function wrapInUserErrorIfRecoverable(
 /**
  * Chrome includes Error.message in Error.stack. Other browsers do not.
  * This returns expected output of message + stack when available.
- * @param error Error or FirestoreError
+ * @param error - Error or FirestoreError
  */
 function getMessageOrStack(error: Error): string {
   let message = error.message || '';

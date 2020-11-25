@@ -847,8 +847,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const reason =
           `Invalid query. You have a where filter with an ` +
           `inequality (<, <=, >, or >=) on field 'x' and so you must also ` +
-          `use 'x' as your first orderBy(), but your first orderBy() is on ` +
-          `field 'y' instead.`;
+          `use 'x' as your first argument to Query.orderBy(), but your first ` +
+          `orderBy() is on field 'y' instead.`;
         expect(() => collection.where('x', '>', 32).orderBy('y')).to.throw(
           reason
         );
@@ -1163,12 +1163,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('collection');
         const query = collection.orderBy('foo');
         let reason =
-          'Invalid query. You must not call startAt() or startAfter() before calling orderBy().';
+          'Invalid query. You must not call startAt() or startAfter() before calling Query.orderBy().';
         expect(() => query.startAt(1).orderBy('bar')).to.throw(reason);
         expect(() => query.startAfter(1).orderBy('bar')).to.throw(reason);
 
         reason =
-          'Invalid query. You must not call endAt() or endBefore() before calling orderBy().';
+          'Invalid query. You must not call endAt() or endBefore() before calling Query.orderBy().';
         expect(() => query.endAt(1).orderBy('bar')).to.throw(reason);
         expect(() => query.endBefore(1).orderBy('bar')).to.throw(reason);
       }

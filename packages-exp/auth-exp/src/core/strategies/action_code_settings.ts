@@ -27,7 +27,7 @@ export function _setActionCodeSettingsOnRequest(
   actionCodeSettings: ActionCodeSettings
 ): void {
   _assert(
-    actionCodeSettings.url.length > 0,
+    actionCodeSettings.url?.length > 0,
     auth,
     AuthErrorCode.INVALID_CONTINUE_URI
   );

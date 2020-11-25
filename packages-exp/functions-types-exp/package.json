@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions-types-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "description": "@firebase/functions Types",
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",

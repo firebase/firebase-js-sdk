@@ -16,7 +16,7 @@
  */
 
 import { FirebaseNamespace, VersionService } from '@firebase/app-types';
-import { _FirebaseApp, _FirebaseNamespace } from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { expect } from 'chai';
 import './setup';

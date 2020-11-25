@@ -16,7 +16,7 @@
  */
 
 import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
-import { _FirebaseNamespace, _FirebaseApp } from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
 import { DataSnapshot } from './src/api/DataSnapshot';
 import { Query } from './src/api/Query';

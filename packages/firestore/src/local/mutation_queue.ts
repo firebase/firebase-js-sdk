@@ -34,12 +34,12 @@ export interface MutationQueue {
   /**
    * Creates a new mutation batch and adds it to this mutation queue.
    *
-   * @param transaction The transaction this operation is scoped to.
-   * @param localWriteTime The original write time of this mutation.
-   * @param baseMutations Mutations that are used to populate the base values
+   * @param transaction - The transaction this operation is scoped to.
+   * @param localWriteTime - The original write time of this mutation.
+   * @param baseMutations - Mutations that are used to populate the base values
    * when this mutation is applied locally. These mutations are used to locally
    * overwrite values that are persisted in the remote document cache.
-   * @param mutations The user-provided mutations in this mutation batch.
+   * @param mutations - The user-provided mutations in this mutation batch.
    */
   addMutationBatch(
     transaction: PersistenceTransaction,
@@ -60,10 +60,10 @@ export interface MutationQueue {
    * Gets the first unacknowledged mutation batch after the passed in batchId
    * in the mutation queue or null if empty.
    *
-   * @param batchId The batch to search after, or BATCHID_UNKNOWN for the first
-   * mutation in the queue.
+   * @param batchId - The batch to search after, or BATCHID_UNKNOWN for the
+   * first mutation in the queue.
    *
-   * @return the next mutation or null if there wasn't one.
+   * @returns the next mutation or null if there wasn't one.
    */
   getNextMutationBatchAfterBatchId(
     transaction: PersistenceTransaction,
@@ -71,10 +71,12 @@ export interface MutationQueue {
   ): PersistencePromise<MutationBatch | null>;
 
   /**
-   * Gets the largest (latest) batch id in mutation queue for the current user that is pending
-   * server response, returns `BATCHID_UNKNOWN` if the queue is empty.
+   * Gets the largest (latest) batch id in mutation queue for the current user
+   * that is pending server response, returns `BATCHID_UNKNOWN` if the queue is
+   * empty.
    *
-   * @return the largest batch id in the mutation queue that is not acknowledged.
+   * @returns the largest batch id in the mutation queue that is not
+   * acknowledged.
    */
   getHighestUnacknowledgedBatchId(
     transaction: PersistenceTransaction

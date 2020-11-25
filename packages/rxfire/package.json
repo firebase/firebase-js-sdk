@@ -40,8 +40,8 @@
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "8.0.2",
-    "rollup": "2.33.1",
+    "firebase": "8.1.1",
+    "rollup": "2.33.2",
     "@rollup/plugin-commonjs": "15.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",
     "rollup-plugin-typescript2": "0.29.0",

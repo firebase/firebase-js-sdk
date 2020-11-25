@@ -391,6 +391,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     verify?: string;
     transform?: DocumentTransform;
     updateMask?: DocumentMask;
+    updateTransforms?: FieldTransform[];
     currentDocument?: Precondition;
   }
   interface WriteRequest {
@@ -696,7 +697,7 @@ export interface ProjectsDatabasesDocumentsWriteNamedParameters {
   $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
 }
 export abstract class ProjectsDatabasesDocumentsApiClient {
-  private constructor();
+  private constructor() {}
   abstract batchGet(
     database: string,
     $requestBody: BatchGetDocumentsRequest,
@@ -1121,7 +1122,7 @@ export interface ProjectsDatabasesIndexesListNamedParameters {
   pageToken?: string;
 }
 export abstract class ProjectsDatabasesIndexesApiClient {
-  private constructor();
+  private constructor() {}
   abstract create(
     parent: string,
     $requestBody: Index,

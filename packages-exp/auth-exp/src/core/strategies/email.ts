@@ -25,7 +25,6 @@ import * as api from '../../api/authentication/email_and_password';
 import { User } from '../../model/user';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
-import { _castAuth } from '../auth/auth_impl';
 
 /**
  * Gets the list of possible sign in methods for the given email address.
