@@ -34,6 +34,6 @@ export {
 export { GeoPoint } from './src/api/geo_point';
 export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/compat/field_value';
-export { Timestamp } from './src/api/Timestamp';
+export { Timestamp } from './src/api/timestamp';
 export { FirebaseFirestore as ExpFirebaseFirestore } from './exp/src/api/database';
 export { loadBundle, namedQuery } from './src/api/bundle';
