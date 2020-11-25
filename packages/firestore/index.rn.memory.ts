@@ -18,8 +18,11 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import { FirebaseFirestore as ExpFirebaseFirestore } from './exp/src/api/database';
-import { Firestore, MemoryPersistenceProvider } from './src/api/database';
+import {
+  Firestore,
+  MemoryPersistenceProvider,
+  ExpFirebaseFirestore
+} from './export';
 import { configureForFirebase } from './src/config';
 
 import './register-module';

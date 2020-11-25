@@ -129,7 +129,6 @@ const manglePrivatePropertiesOptions = {
   },
   mangle: {
     properties: {
-      debug: true,
       regex: /^__PRIVATE_/,
       // All JS Keywords are reserved. Although this should be taken cared of by
       // Terser, we have seen issues with `do`, hence the extra caution.
