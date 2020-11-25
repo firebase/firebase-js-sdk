@@ -176,9 +176,9 @@ export interface DocumentChange<T = DocumentData> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
-  T
-> {
+export class DocumentSnapshot<
+  T = DocumentData
+> extends LiteDocumentSnapshot<T> {
   private readonly _firestoreImpl: FirebaseFirestore;
 
   /**
@@ -291,9 +291,9 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
-  T
-> {
+export class QueryDocumentSnapshot<
+  T = DocumentData
+> extends DocumentSnapshot<T> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *

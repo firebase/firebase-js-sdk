@@ -16,7 +16,7 @@
     "build:release": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.browser.memory.js' 'bundle rollup.config.node.js' 'bundle rollup.config.node.memory.js' 'bundle rollup.config.rn.js' 'bundle rollup.config.rn.memory.js'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
     "build:console": "node tools/console.build.js",
-    "build:exp": "rollup -c rollup.config.exp.js ",
+    "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
     "build:exp:release": "yarn build:exp && yarn build:lite",
     "predev": "yarn prebuild",

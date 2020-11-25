@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {StructuredQuery, Timestamp, Document} from './firestore_proto_api';
+import { StructuredQuery, Timestamp, Document } from './firestore_proto_api';
 
 /** Properties of a BundledQuery. */
 export interface BundledQuery {
