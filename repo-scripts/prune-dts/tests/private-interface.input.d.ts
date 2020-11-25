@@ -18,7 +18,7 @@
 declare interface A {
   a: string;
 }
-export class B implements  A{
+export class B implements A {
   a: string;
 }
 export {};

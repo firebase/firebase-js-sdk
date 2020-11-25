@@ -33,15 +33,10 @@ import { BatchId, TargetId } from '../../../src/core/types';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
-  applyBundleDocuments,
-  getNamedQuery,
-  hasNewerBundle,
   applyRemoteEventToLocalCache,
   LocalStore,
   LocalWriteResult,
   newLocalStore,
-  saveBundle,
-  saveNamedQuery,
   synchronizeLastDocumentChangeReadTime,
   notifyLocalViewChanges,
   acknowledgeBatch,
@@ -54,6 +49,13 @@ import {
   getHighestUnacknowledgedBatchId,
   rejectBatch
 } from '../../../src/local/local_store';
+import {
+  applyBundleDocuments,
+  getNamedQuery,
+  hasNewerBundle,
+  saveBundle,
+  saveNamedQuery
+} from '../../../src/local/local_store_bundle';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
 import {
@@ -112,7 +114,8 @@ import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
-import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
+import { BundledDocuments } from '../../../src/core/bundle';
+import { NamedQuery } from '../../../src/core/bundle_types';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
 
 export interface LocalStoreComponents {

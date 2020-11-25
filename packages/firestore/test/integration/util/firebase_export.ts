@@ -28,9 +28,11 @@ import { FieldValue } from '../../../src/compat/field_value';
 import { FieldPath } from '../../../src/api/field_path';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Blob } from '../../../src/api/blob';
+null;
 import { GeoPoint } from '../../../src/api/geo_point';
 import { FirebaseApp } from '@firebase/app-types';
 import { Firestore } from '../../../src/api/database';
+import '../../../index.bundle';
 
 // TODO(dimond): Right now we create a new app and Firestore instance for
 // every test and never clean them up. We may need to revisit.

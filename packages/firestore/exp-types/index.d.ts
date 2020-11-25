@@ -516,6 +516,43 @@ export function snapshotEqual<T>(
   right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean;
 
+export interface LoadBundleTask {
+  onProgress(
+    next?: (progress: LoadBundleTaskProgress) => any,
+    error?: (error: Error) => any,
+    complete?: () => void
+  ): void;
+
+  then<T, R>(
+    onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
+    onRejected?: (a: Error) => R | PromiseLike<R>
+  ): Promise<T | R>;
+
+  catch<R>(
+    onRejected: (a: Error) => R | PromiseLike<R>
+  ): Promise<R | LoadBundleTaskProgress>;
+}
+
+export interface LoadBundleTaskProgress {
+  documentsLoaded: number;
+  totalDocuments: number;
+  bytesLoaded: number;
+  totalBytes: number;
+  taskState: TaskState;
+}
+
+export type TaskState = 'Error' | 'Running' | 'Success';
+
+export function loadBundle(
+  firestore: FirebaseFirestore,
+  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+): LoadBundleTask;
+
+export function namedQuery(
+  firestore: FirebaseFirestore,
+  name: string
+): Promise<Query<DocumentData> | null>;
+
 export type FirestoreErrorCode =
   | 'cancelled'
   | 'unknown'

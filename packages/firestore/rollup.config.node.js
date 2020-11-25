@@ -18,25 +18,31 @@
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
 import pkg from './package.json';
+import bundlePkg from './bundle/package.json';
+import memoryPkg from './memory/package.json';
+import path from 'path';
 
 const util = require('./rollup.shared');
 
 export default [
   {
-    input: 'index.node.ts',
+    input: {
+      index: 'index.node.ts',
+      memory: 'index.node.memory.ts',
+      bundle: 'index.bundle.ts'
+    },
     output: {
-      file: pkg['main-esm2017'],
+      dir: 'dist/node-esm2017',
       format: 'es',
       sourcemap: true
     },
     plugins: [
       ...util.es2017Plugins('node'),
-      // Needed as we also use the *.proto files
-      copy({
-        assets: ['./src/protos']
-      }),
       replace({
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
+      }),
+      copy({
+        assets: ['./src/protos']
       })
     ],
     external: util.resolveNodeExterns,
@@ -45,8 +51,18 @@ export default [
     }
   },
   {
-    input: pkg['main-esm2017'],
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    input: {
+      index: pkg['main-esm2017'],
+      memory: path.resolve('./memory', memoryPkg['main-esm2017']),
+      bundle: path.resolve('./bundle', bundlePkg['main-esm2017'])
+    },
+    output: [
+      {
+        dir: 'dist/node-cjs',
+        format: 'cjs',
+        sourcemap: true
+      }
+    ],
     plugins: util.es2017ToEs5Plugins(),
     external: util.resolveNodeExterns,
     treeshake: {

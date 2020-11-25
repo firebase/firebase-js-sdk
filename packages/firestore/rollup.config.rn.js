@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
-import pkg from './package.json';
-
 const util = require('./rollup.shared');
 
 export default {
-  input: 'index.rn.ts',
+  input: {
+    index: 'index.rn.ts',
+    memory: 'index.rn.memory.ts',
+    bundle: 'index.bundle.ts'
+  },
   output: {
-    file: pkg['react-native'],
+    dir: 'dist/rn',
     format: 'es',
     sourcemap: true
   },

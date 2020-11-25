@@ -18,11 +18,7 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId } from '../core/database_info';
-import {
-  FirestoreClient,
-  firestoreClientGetNamedQuery,
-  firestoreClientLoadBundle
-} from '../core/firestore_client';
+import { FirestoreClient } from '../core/firestore_client';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
@@ -94,7 +90,7 @@ import {
 } from '../../exp/src/api/reference';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
-import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
+import { LoadBundleTask } from './bundle';
 import { makeDatabaseInfo } from '../../lite/src/api/database';
 import { DEFAULT_HOST } from '../../lite/src/api/components';
 import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
@@ -107,6 +103,7 @@ import {
   CollectionReference as PublicCollectionReference,
   DocumentChange as PublicDocumentChange,
   DocumentChangeType as PublicDocumentChangeType,
+  DocumentData,
   DocumentData as PublicDocumentData,
   DocumentReference as PublicDocumentReference,
   DocumentSnapshot as PublicDocumentSnapshot,
@@ -368,6 +365,22 @@ export class Firestore
       )
     );
   }
+
+  loadBundle(
+    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+  ): LoadBundleTask {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      '"loadBundle()" does not exist, have you imported "firebase/firestore/bundle"?'
+    );
+  }
+
+  namedQuery(name: string): Promise<PublicQuery<DocumentData> | null> {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      '"namedQuery()" does not exist, have you imported "firebase/firestore/bundle"?'
+    );
+  }
 }
 
 export function ensureFirestoreConfigured(
@@ -402,35 +415,6 @@ export function configureFirestore(firestore: FirebaseFirestore): void {
 
 export function setLogLevel(level: PublicLogLevel): void {
   setClientLogLevel(level);
-}
-
-export function loadBundle(
-  db: Firestore,
-  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-): ApiLoadBundleTask {
-  const resultTask = new LoadBundleTask();
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClientLoadBundle(
-    ensureFirestoreConfigured(db._delegate),
-    bundleData,
-    resultTask
-  );
-  return resultTask;
-}
-
-export function namedQuery(
-  db: Firestore,
-  name: string
-): Promise<PublicQuery | null> {
-  return firestoreClientGetNamedQuery(
-    ensureFirestoreConfigured(db._delegate),
-    name
-  ).then(namedQuery => {
-    if (!namedQuery) {
-      return null;
-    }
-    return new Query(db, new ExpQuery(db._delegate, null, namedQuery.query));
-  });
 }
 
 /**

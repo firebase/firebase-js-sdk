@@ -129,6 +129,7 @@ const manglePrivatePropertiesOptions = {
   },
   mangle: {
     properties: {
+      debug: true,
       regex: /^__PRIVATE_/,
       // All JS Keywords are reserved. Although this should be taken cared of by
       // Terser, we have seen issues with `do`, hence the extra caution.
@@ -248,7 +249,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/*.js', 'dist/exp/*.js']
+        include: ['dist/**/*.js']
       }),
       terser({
         output: {

@@ -16,27 +16,25 @@
  */
 
 import pkg from './package.json';
+import bundlePkg from './bundle/package.json';
+import memoryPkg from './memory/package.json';
+import path from 'path';
 
 const util = require('./rollup.shared');
 
 export default [
   {
-    input: 'index.ts',
+    input: {
+      index: 'index.ts',
+      memory: 'index.memory.ts',
+      bundle: 'index.bundle.ts'
+    },
     output: {
-      file: pkg.esm2017,
+      dir: 'dist/esm2017',
       format: 'es',
       sourcemap: true
     },
     plugins: util.es2017Plugins('browser', /* mangled= */ true),
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
-  {
-    input: pkg.esm2017,
-    output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
