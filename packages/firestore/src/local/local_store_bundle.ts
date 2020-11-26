@@ -27,7 +27,10 @@ import {
 } from '../model/collections';
 import { debugCast } from '../util/assert';
 
-import * as bundleProto from '../protos/firestore_bundle_proto';
+import {
+  BundleMetadata,
+  NamedQuery as ProtoNamedQuery
+} from '../protos/firestore_bundle_proto';
 import { BundleConverter, BundledDocuments } from '../core/bundle';
 import { NamedQuery } from '../core/bundle_types';
 import { fromVersion } from '../remote/serializer';
@@ -125,7 +128,7 @@ export async function applyBundleDocuments(
  */
 export function hasNewerBundle(
   localStore: LocalStore,
-  bundleMetadata: bundleProto.BundleMetadata
+  bundleMetadata: BundleMetadata
 ): Promise<boolean> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const bundleConverter = new BundleConverter(localStoreImpl.serializer);
@@ -150,7 +153,7 @@ export function hasNewerBundle(
  */
 export function saveBundle(
   localStore: LocalStore,
-  bundleMetadata: bundleProto.BundleMetadata
+  bundleMetadata: BundleMetadata
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
@@ -187,7 +190,7 @@ export function getNamedQuery(
  */
 export async function saveNamedQuery(
   localStore: LocalStore,
-  query: bundleProto.NamedQuery,
+  query: ProtoNamedQuery,
   documents: DocumentKeySet = documentKeySet()
 ): Promise<void> {
   // Allocate a target for the named query such that it can be resumed

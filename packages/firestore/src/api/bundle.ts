@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-import { LoadBundleTaskProgress } from '@firebase/firestore-types';
+import {
+  LoadBundleTask as ApiLoadBundleTask,
+  LoadBundleTaskProgress
+} from '@firebase/firestore-types';
 import { Deferred } from '../util/promise';
 import { PartialObserver } from './observer';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { ensureFirestoreConfigured, Query, Firestore } from './database';
+import { Query as ExpQuery } from '../../exp/src/api/reference';
 import {
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle
 } from '../core/bundle';
-import { Query as ExpQuery } from '../../exp/src/api/reference';
 
 export class LoadBundleTask
-  implements LoadBundleTask, PromiseLike<LoadBundleTaskProgress> {
+  implements ApiLoadBundleTask, PromiseLike<LoadBundleTaskProgress> {
   private _progressObserver: PartialObserver<LoadBundleTaskProgress> = {};
   private _taskCompletionResolver = new Deferred<LoadBundleTaskProgress>();
 
@@ -122,9 +125,9 @@ export function loadBundle(
   bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
 ): LoadBundleTask {
   const resultTask = new LoadBundleTask();
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
   firestoreClientLoadBundle(
     ensureFirestoreConfigured(db._delegate),
+    db._databaseId,
     bundleData,
     resultTask
   );

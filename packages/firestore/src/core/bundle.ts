@@ -24,29 +24,22 @@ import {
   JsonProtoSerializer
 } from '../remote/serializer';
 import {
-  NamedQuery as ProtoNamedQuery,
+  BundledDocumentMetadata as ProtoBundledDocumentMetadata,
   BundleMetadata as ProtoBundleMetadata,
-  BundledDocumentMetadata as ProtoBundledDocumentMetadata
+  NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert, debugCast } from '../util/assert';
 import { LocalStore } from '../local/local_store';
-import { SizedBundleElement, BundleReader } from '../util/bundle_reader';
+import { BundleReader, SizedBundleElement } from '../util/bundle_reader';
 import {
   documentKeySet,
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import {
-  FirestoreClient,
-  getLocalStore,
-  getSyncEngine
-} from './firestore_client';
 import { LoadBundleTask } from '../api/bundle';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { toByteStreamReader } from '../platform/byte_stream_reader';
 import {
   emitNewSnapsAndNotifyLocalStore,
   SyncEngine,
@@ -61,7 +54,16 @@ import {
   saveBundle,
   saveNamedQuery
 } from '../local/local_store_bundle';
+import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
+import { DatabaseId } from './database_info';
 import { NamedQuery } from './bundle_types';
+import {
+  FirestoreClient,
+  getLocalStore,
+  getSyncEngine
+} from './firestore_client';
+
 /**
  * Represents a bundled document, including the metadata and the document
  * itself, if it exists.
@@ -258,15 +260,13 @@ class BundleLoader {
   }
 }
 
-export async function firestoreClientLoadBundle(
+export function firestoreClientLoadBundle(
   client: FirestoreClient,
+  databaseId: DatabaseId,
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   resultTask: LoadBundleTask
-): Promise<void> {
-  const reader = createBundleReader(
-    data,
-    newSerializer((await client.getConfiguration()).databaseInfo.databaseId)
-  );
+): void {
+  const reader = createBundleReader(data, newSerializer(databaseId));
   client.asyncQueue.enqueueAndForget(async () => {
     syncEngineLoadBundle(await getSyncEngine(client), reader, resultTask);
   });
