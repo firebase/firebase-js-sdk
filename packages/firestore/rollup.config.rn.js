@@ -15,22 +15,48 @@
  * limitations under the License.
  */
 
+const alias = require('@rollup/plugin-alias');
 const util = require('./rollup.shared');
 
-export default {
-  input: {
-    index: 'index.rn.ts',
-    memory: 'index.rn.memory.ts',
-    bundle: 'index.bundle.ts'
+export default [
+  {
+    input: 'export.ts',
+    output: {
+      file: 'dist/prebuild.rn.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: util.es2017Plugins('rn', /* mangled= */ true),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
-  output: {
-    dir: 'dist/rn',
-    format: 'es',
-    sourcemap: true
-  },
-  plugins: util.es2017Plugins('rn', /* mangled= */ true),
-  external: util.resolveBrowserExterns,
-  treeshake: {
-    moduleSideEffects: false
+  {
+    input: {
+      index: 'index.ts',
+      memory: 'index.memory.ts',
+      bundle: 'index.bundle.ts'
+    },
+    output: {
+      dir: 'dist/rn',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      alias({
+        entries: [
+          {
+            find: /^(.*)\/export$/,
+            replacement: `$1\/dist/prebuild.rn.js`
+          }
+        ]
+      }),
+      ...util.es2017Plugins('rn', /* mangled= */ false)
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
-};
+];

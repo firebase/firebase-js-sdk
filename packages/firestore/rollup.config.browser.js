@@ -15,14 +15,23 @@
  * limitations under the License.
  */
 
-import pkg from './package.json';
-import bundlePkg from './bundle/package.json';
-import memoryPkg from './memory/package.json';
-import path from 'path';
-
+const alias = require('@rollup/plugin-alias');
 const util = require('./rollup.shared');
 
 export default [
+  {
+    input: 'export.ts',
+    output: {
+      file: 'dist/prebuild.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: util.es2017Plugins('browser', /* mangled= */ true),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
   {
     input: {
       index: 'index.ts',
@@ -34,10 +43,21 @@ export default [
       format: 'es',
       sourcemap: true
     },
-    plugins: util.es2017Plugins('browser', /* mangled= */ true),
+    plugins: [
+      alias({
+        entries: [
+          {
+            find: /^(.*)\/export$/,
+            replacement: `$1\/dist/prebuild.js`
+          }
+        ]
+      }),
+      ...util.es2017Plugins('browser', /* mangled= */ false)
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
   }
+  // TODO: Add ES5 export
 ];
