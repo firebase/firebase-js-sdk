@@ -18,7 +18,7 @@
 import { Firestore, loadBundle, namedQuery } from './export';
 
 /**
- * Registers the memory-only Firestore build with the components framework.
+ * Prototype patches bundle loading to Firestore.
  */
 export function registerBundle(instance: typeof Firestore): void {
   instance.prototype.loadBundle = function (
