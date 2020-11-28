@@ -81,7 +81,8 @@ import { getNamedQuery } from '../local/local_store_bundle';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { BundleReader } from '../util/bundle_reader';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { NamedQuery, syncEngineLoadBundle } from './bundle';
+import { syncEngineLoadBundle } from './bundle';
+import { NamedQuery } from './bundle_types';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

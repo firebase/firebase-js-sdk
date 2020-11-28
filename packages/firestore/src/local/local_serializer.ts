@@ -61,7 +61,7 @@ import {
   NamedQuery as ProtoNamedQuery,
   BundledQuery as ProtoBundledQuery
 } from '../protos/firestore_bundle_proto';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { Bundle, NamedQuery } from '../core/bundle_types';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

@@ -116,8 +116,9 @@ import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
-import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
+import { BundledDocuments } from '../../../src/core/bundle';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
+import { NamedQuery } from '../../../src/core/bundle_types';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
