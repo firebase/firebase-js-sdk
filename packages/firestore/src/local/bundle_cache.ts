@@ -21,7 +21,7 @@ import {
   NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata
 } from '../protos/firestore_bundle_proto';
-import { Bundle, NamedQuery } from '../core/bundle_types';
+import { Bundle, NamedQuery } from '../core/bundle';
 
 /**
  * Provides interfaces to save and read Firestore bundles.

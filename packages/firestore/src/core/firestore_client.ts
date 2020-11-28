@@ -58,7 +58,7 @@ import {
   syncEngineWrite
 } from './sync_engine';
 import { View } from './view';
-import { DatabaseInfo } from './database_info';
+import { DatabaseId, DatabaseInfo } from './database_info';
 import { newQueryForPath, Query } from './query';
 import { Transaction } from './transaction';
 import { ViewSnapshot } from './view_snapshot';
@@ -75,6 +75,13 @@ import { logDebug } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Persistence } from '../local/persistence';
 import { Datastore } from '../remote/datastore';
+import { LoadBundleTask } from '../api/bundle';
+import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { getNamedQuery } from '../local/local_store_bundle';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { BundleReader } from '../util/bundle_reader';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
+import { NamedQuery, syncEngineLoadBundle } from './bundle';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -647,4 +654,38 @@ function executeQueryViaSnapshotListener(
     waitForSyncWhenOnline: true
   });
   return eventManagerListen(eventManager, listener);
+}
+
+export function firestoreClientLoadBundle(
+  client: FirestoreClient,
+  databaseId: DatabaseId,
+  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
+  resultTask: LoadBundleTask
+): void {
+  const reader = createBundleReader(data, newSerializer(databaseId));
+  client.asyncQueue.enqueueAndForget(async () => {
+    syncEngineLoadBundle(await getSyncEngine(client), reader, resultTask);
+  });
+}
+
+export function firestoreClientGetNamedQuery(
+  client: FirestoreClient,
+  queryName: string
+): Promise<NamedQuery | undefined> {
+  return client.asyncQueue.enqueue(async () =>
+    getNamedQuery(await getLocalStore(client), queryName)
+  );
+}
+
+function createBundleReader(
+  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
+  serializer: JsonProtoSerializer
+): BundleReader {
+  let content: ReadableStream<Uint8Array> | ArrayBuffer;
+  if (typeof data === 'string') {
+    content = newTextEncoder().encode(data);
+  } else {
+    content = data;
+  }
+  return new BundleReader(toByteStreamReader(content), serializer);
 }

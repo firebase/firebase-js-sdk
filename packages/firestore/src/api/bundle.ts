@@ -28,7 +28,7 @@ import { Query as ExpQuery } from '../../exp/src/api/reference';
 import {
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle
-} from '../core/bundle';
+} from '../core/firestore_client';
 
 export class LoadBundleTask
   implements ApiLoadBundleTask, PromiseLike<LoadBundleTaskProgress> {

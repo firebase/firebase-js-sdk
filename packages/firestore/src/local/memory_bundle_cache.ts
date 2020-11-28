@@ -22,12 +22,12 @@ import {
   BundleMetadata as ProtoBundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { BundleCache } from './bundle_cache';
-import { Bundle, NamedQuery } from '../core/bundle_types';
 import {
   fromBundleMetadata,
   fromProtoNamedQuery,
   LocalSerializer
 } from './local_serializer';
+import { Bundle, NamedQuery } from '../core/bundle';
 
 export class MemoryBundleCache implements BundleCache {
   private bundles = new Map<string, Bundle>();

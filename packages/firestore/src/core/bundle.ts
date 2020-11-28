@@ -16,6 +16,7 @@
  */
 
 import { LoadBundleTaskProgress } from '@firebase/firestore-types';
+import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import {
   fromDocument,
@@ -49,20 +50,33 @@ import { logWarn } from '../util/log';
 import { LOG_TAG } from '../../lite/src/api/components';
 import {
   applyBundleDocuments,
-  getNamedQuery,
   hasNewerBundle,
   saveBundle,
   saveNamedQuery
 } from '../local/local_store_bundle';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { DatabaseId } from './database_info';
-import { NamedQuery } from './bundle_types';
-import {
-  FirestoreClient,
-  getLocalStore,
-  getSyncEngine
-} from './firestore_client';
+
+/**
+ * Represents a Firestore bundle saved by the SDK in its local storage.
+ */
+export interface Bundle {
+  readonly id: string;
+  readonly version: number;
+  /**
+   * Set to the snapshot version of the bundle if created by the Server SDKs.
+   * Otherwise set to SnapshotVersion.MIN.
+   */
+  readonly createTime: SnapshotVersion;
+}
+
+/**
+ * Represents a Query saved by the SDK in its local storage.
+ */
+export interface NamedQuery {
+  readonly name: string;
+  readonly query: Query;
+  /** The time at which the results for this query were read. */
+  readonly readTime: SnapshotVersion;
+}
 
 /**
  * Represents a bundled document, including the metadata and the document
@@ -258,40 +272,6 @@ class BundleLoader {
     this.progress.taskState = 'Success';
     return new BundleLoadResult({ ...this.progress }, changedDocuments);
   }
-}
-
-export function firestoreClientLoadBundle(
-  client: FirestoreClient,
-  databaseId: DatabaseId,
-  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
-  resultTask: LoadBundleTask
-): void {
-  const reader = createBundleReader(data, newSerializer(databaseId));
-  client.asyncQueue.enqueueAndForget(async () => {
-    syncEngineLoadBundle(await getSyncEngine(client), reader, resultTask);
-  });
-}
-
-export function firestoreClientGetNamedQuery(
-  client: FirestoreClient,
-  queryName: string
-): Promise<NamedQuery | undefined> {
-  return client.asyncQueue.enqueue(async () =>
-    getNamedQuery(await getLocalStore(client), queryName)
-  );
-}
-
-function createBundleReader(
-  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
-  serializer: JsonProtoSerializer
-): BundleReader {
-  let content: ReadableStream<Uint8Array> | ArrayBuffer;
-  if (typeof data === 'string') {
-    content = newTextEncoder().encode(data);
-  } else {
-    content = data;
-  }
-  return new BundleReader(toByteStreamReader(content), serializer);
 }
 
 /**

@@ -55,13 +55,13 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { Bundle, NamedQuery } from '../core/bundle_types';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import {
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery,
   BundledQuery as ProtoBundledQuery
 } from '../protos/firestore_bundle_proto';
+import { Bundle, NamedQuery } from '../core/bundle';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
