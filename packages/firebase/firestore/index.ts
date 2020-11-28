@@ -16,3 +16,4 @@
  */
 
 import '@firebase/firestore';
+import '@firebase/firestore/bundle';

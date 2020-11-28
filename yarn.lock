@@ -7681,15 +7681,6 @@ fs-extra@^0.30.0:
     path-is-absolute "^1.0.0"
     rimraf "^2.2.8"
 
-fs-extra@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.npmjs.org/fs-extra/-/fs-extra-5.0.0.tgz#414d0110cdd06705734d055652c5411260c31abd"
-  integrity sha512-66Pm4RYbjzdyeuqudYqhFiNBbCIuI9kgRqLPSHIlXHidW8NIQtVdkM1yeZ4lXwuhbTETv3EUGMNHAAw6hiundQ==
-  dependencies:
-    graceful-fs "^4.1.2"
-    jsonfile "^4.0.0"
-    universalify "^0.1.0"
-
 fs-extra@^7.0.1, fs-extra@~7.0.1:
   version "7.0.1"
   resolved "https://registry.npmjs.org/fs-extra/-/fs-extra-7.0.1.tgz#4f189c44aa123b895f722804f55ea23eadc348e9"
@@ -13824,12 +13815,12 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rollup-plugin-copy-assets@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/rollup-plugin-copy-assets/-/rollup-plugin-copy-assets-1.1.0.tgz#017e22bef9a9f6ddc632bae60cd660e0270c7706"
-  integrity sha512-hfBZns2x15XC6N97jhGUiYoNQp1jZ1/mFrM3sbf3GIqGaDEcFPe7+J1H50HIMLG4nVM8YxTJOhMsrXnD4E+2NQ==
+rollup-plugin-copy-assets@2.0.3:
+  version "2.0.3"
+  resolved "https://registry.npmjs.org/rollup-plugin-copy-assets/-/rollup-plugin-copy-assets-2.0.3.tgz#9a9098894c3ded16d2eee8c4108055e332b5f59f"
+  integrity sha512-ETShhQGb9SoiwcNrvb3BhUNSGR89Jao0+XxxfzzLW1YsUzx8+rMO4z9oqWWmo6OHUmfNQRvqRj0cAyPkS9lN9w==
   dependencies:
-    fs-extra "^5.0.0"
+    fs-extra "^7.0.1"
 
 rollup-plugin-license@2.2.0:
   version "2.2.0"

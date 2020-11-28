@@ -1,3 +1,8 @@
+import pkg from './package.json';
+import path from 'path';
+import memoryPkg from './memory/package.json';
+import bundlePkg from './bundle/package.json';
+
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -58,6 +63,24 @@ export default [
     treeshake: {
       moduleSideEffects: false
     }
+  },
+  {
+    input: {
+      index: pkg['esm2017'],
+      memory: path.resolve('./memory', memoryPkg['esm2017']),
+      bundle: path.resolve('./bundle', bundlePkg['esm2017'])
+    },
+    output: [
+      {
+        dir: 'dist/esm5',
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: util.es2017ToEs5Plugins(),
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
-  // TODO: Add ES5 export
 ];
