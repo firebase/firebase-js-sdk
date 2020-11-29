@@ -33,6 +33,19 @@ export default [
     }
   },
   {
+    input: 'export.memory.ts',
+    output: {
+      file: 'dist/prebuild.rn.memory.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: util.es2017Plugins('rn', /* mangled= */ true),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  {
     input: {
       index: 'index.ts',
       memory: 'index.memory.ts',
@@ -46,6 +59,10 @@ export default [
     plugins: [
       alias({
         entries: [
+          {
+            find: /^(.*)\/export\.memory$/,
+            replacement: `$1\/dist/prebuild.rn.memory.js`
+          },
           {
             find: /^(.*)\/export$/,
             replacement: `$1\/dist/prebuild.rn.js`
