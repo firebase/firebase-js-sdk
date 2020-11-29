@@ -1117,12 +1117,12 @@ declare namespace firebase {
    * // https://console.firebase.google.com
    * firebase.initializeApp({
    *   apiKey: "AIza....",                             // Auth / General Use
-   *   appId: "1:27992087142:web:ce....",      // General Use
+   *   appId: "1:27992087142:web:ce....",              // General Use
    *   projectId: "my-firebase-project",               // General Use
    *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
    *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
    *   storageBucket: "YOUR_APP.appspot.com",          // Storage
-   *   messagingSenderId: "123456789",                  // Cloud Messaging
+   *   messagingSenderId: "123456789",                 // Cloud Messaging
    *   measurementId: "G-12345"                        // Analytics
    * });
    * ```
