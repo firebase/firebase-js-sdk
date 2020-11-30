@@ -62,8 +62,8 @@ function customDeepEqual(
     // compared with API types from Firestore classic. We do want to
     // differentiate between these types in our tests to ensure that the we do
     // not return firestore-exp types in the classic SDK.
-    let leftObj = left as Record<string, unknown>;
-    let rightObj = right as Record<string, unknown>;
+    const leftObj = left as Record<string, unknown>;
+    const rightObj = right as Record<string, unknown>;
     if (
       leftObj.constructor.name === rightObj.constructor.name &&
       leftObj.constructor !== rightObj.constructor
