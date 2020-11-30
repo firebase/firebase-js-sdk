@@ -16,6 +16,7 @@
  */
 
 import { use } from 'chai';
+import { Indexable } from '../../src/util/misc';
 
 /**
  * Duck-typed interface for objects that have an isEqual() method.
@@ -55,6 +56,19 @@ function customDeepEqual(
       right instanceof customMatcher.forType
     ) {
       return customMatcher.equalsFn(left, right);
+    }
+  }
+  if (left && typeof left === 'object' && right && typeof right === 'object') {
+    // The `isEqual` check below returns true if firestore-exp types are
+    // compared with API types from Firestore classic. We do want to
+    // differentiate between these types in our tests to ensure that the we do
+    // not return firestore-exp types in the classic SDK.
+    if (
+      (left as Indexable).constructor.name ===
+        (right as Indexable).constructor.name &&
+      (left as Indexable).constructor !== (right as Indexable).constructor
+    ) {
+      return false;
     }
   }
   if (typeof left === 'object' && left && 'isEqual' in left) {
