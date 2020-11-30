@@ -16,7 +16,7 @@
  */
 
 import replace from 'rollup-plugin-replace';
-import copy from 'rollup-plugin-copy-assets';
+import copy from 'rollup-plugin-copy';
 import pkg from './package.json';
 import bundlePkg from './bundle/package.json';
 import memoryPkg from './memory/package.json';
@@ -28,7 +28,6 @@ export default [
   {
     input: {
       index: 'index.node.ts',
-      memory: 'index.node.memory.ts',
       bundle: 'index.bundle.ts'
     },
     output: {
@@ -39,10 +38,10 @@ export default [
     plugins: [
       ...util.es2017Plugins('node'),
       replace({
-        'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
+        'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../protos')
       }),
       copy({
-        assets: ['./src/protos']
+        targets: [{ src: 'src/protos', dest: 'dist' }]
       })
     ],
     external: util.resolveNodeExterns,
@@ -53,7 +52,6 @@ export default [
   {
     input: {
       index: pkg['main-esm2017'],
-      memory: path.resolve('./memory', memoryPkg['main-esm2017']),
       bundle: path.resolve('./bundle', bundlePkg['main-esm2017'])
     },
     output: [
@@ -64,6 +62,44 @@ export default [
       }
     ],
     plugins: util.es2017ToEs5Plugins(),
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  {
+    input: {
+      index: 'index.node.memory.ts',
+      bundle: 'index.bundle.ts'
+    },
+    output: {
+      dir: 'dist/memory/node-esm2017',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      ...util.es2017Plugins('node'),
+      replace({
+        'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../protos')
+      })
+    ],
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  {
+    input: {
+      index: path.resolve('./memory', memoryPkg['main-esm2017']),
+      bundle: path.resolve('./bundle', bundlePkg['main-esm2017'])
+    },
+    output: [
+      {
+        dir: 'dist/memory/node-cjs',
+        format: 'cjs',
+        sourcemap: true
+      }
+    ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false

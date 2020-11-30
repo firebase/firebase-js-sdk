@@ -203,6 +203,17 @@ const manglePrivatePropertiesOptions = {
 };
 exports.manglePrivatePropertiesOptions = manglePrivatePropertiesOptions;
 
+exports.applyPrebuilt = function (name = 'prebuilt.js') {
+  alias({
+    entries: [
+      {
+        find: /^(.*)\/export$/,
+        replacement: `$1\/dist/${name}.js`
+      }
+    ]
+  });
+};
+
 exports.es2017Plugins = function (platform, mangled = false) {
   if (mangled) {
     return [
