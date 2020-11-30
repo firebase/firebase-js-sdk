@@ -28,7 +28,8 @@ import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
 
 /**
- * Makeshift polyfill for Promise.allSettled()
+ * Makeshift polyfill for Promise.allSettled(). Resolves when all promises
+ * have either resolved or rejected.
  *
  * @param promises Array of promises to wait for.
  */
