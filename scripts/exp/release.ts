@@ -47,7 +47,9 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     /**
      * Welcome to the firebase release CLI!
      */
-    console.log('Welcome to the Firebase Exp Packages release CLI!');
+    console.log(
+      `Welcome to the Firebase Exp Packages release CLI! dryRun: ${dryRun}`
+    );
 
     /**
      * Update fields in package.json and stuff
@@ -176,6 +178,15 @@ async function buildPackages() {
 
   // Build exp packages developed in place
   // Firestore
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
   await spawn(
     'yarn',
     ['lerna', 'run', '--scope', '@firebase/firestore', 'build:exp:release'],
