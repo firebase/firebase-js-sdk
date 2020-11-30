@@ -48,7 +48,7 @@ import {
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
 } from './functions';
 
-export { settings } from './factory';
+export { analyticsSettings } from './factory';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

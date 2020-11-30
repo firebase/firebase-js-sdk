@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 
 export function getFakeApp(fakeAppParams?: {
   appId?: string;
@@ -35,5 +36,19 @@ export function getFakeApp(fakeAppParams?: {
       measurementId: fakeAppParams?.measurementId
     },
     automaticDataCollectionEnabled: true
+  };
+}
+
+export function getFakeInstallations(
+  fid: string = 'fid-1234',
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  onFidResolve?: Function
+): _FirebaseInstallationsInternal {
+  return {
+    getId: async () => {
+      onFidResolve && onFidResolve();
+      return fid;
+    },
+    getToken: async () => 'authToken'
   };
 }

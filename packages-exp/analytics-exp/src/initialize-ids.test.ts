@@ -18,20 +18,23 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
-import { initializeIds } from './initialize-ids';
-import { getFakeApp } from '../testing/get-fake-firebase-services';
+import { initializeAnalytics } from './initialize-ids';
+import {
+  getFakeApp,
+  getFakeInstallations
+} from '../testing/get-fake-firebase-services';
 import { GtagCommand } from './constants';
 import { DynamicConfig } from '@firebase/analytics-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { Deferred } from '@firebase/util';
-import * as installations from '@firebase/installations-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeFid = 'fid-1234-zyxw';
 const fakeAppId = 'abcdefgh12345:23405';
 const fakeAppParams = { appId: fakeAppId, apiKey: 'AAbbCCdd12345' };
 let fetchStub: SinonStub;
-let getIdStub: SinonStub;
+let fakeInstallations: _FirebaseInstallationsInternal;
 
 function stubFetch(): void {
   fetchStub = stub(window, 'fetch');
@@ -44,18 +47,6 @@ function stubFetch(): void {
   fetchStub.returns(Promise.resolve(mockResponse));
 }
 
-function stubGetId(
-  fid: string = 'fid-1234',
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  onFidResolve?: () => any
-): void {
-  getIdStub = stub(installations, 'getId');
-  if (onFidResolve) {
-    getIdStub.callsFake(onFidResolve);
-  }
-  getIdStub.returns(fid);
-}
-
 describe('initializeIds()', () => {
   const gtagStub: SinonStub = stub();
   const dynamicPromisesList: Array<Promise<DynamicConfig>> = [];
@@ -65,19 +56,18 @@ describe('initializeIds()', () => {
   beforeEach(() => {
     fidDeferred = new Deferred<string>();
     app = getFakeApp(fakeAppParams);
-    stubGetId(fakeFid, fidDeferred.resolve);
+    fakeInstallations = getFakeInstallations(fakeFid, fidDeferred.resolve);
   });
   afterEach(() => {
     fetchStub.restore();
-    getIdStub.restore();
   });
   it('gets FID and measurement ID and calls gtag config with them', async () => {
     stubFetch();
-    await initializeIds(
+    await initializeAnalytics(
       app,
       dynamicPromisesList,
       measurementIdToAppId,
-      {},
+      fakeInstallations,
       gtagStub
     );
     expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
@@ -88,11 +78,11 @@ describe('initializeIds()', () => {
   });
   it('puts dynamic fetch promise into dynamic promises list', async () => {
     stubFetch();
-    await initializeIds(
+    await initializeAnalytics(
       app,
       dynamicPromisesList,
       measurementIdToAppId,
-      {},
+      fakeInstallations,
       gtagStub
     );
     const dynamicPromiseResult = await dynamicPromisesList[0];
@@ -101,11 +91,11 @@ describe('initializeIds()', () => {
   });
   it('puts dynamically fetched measurementId into lookup table', async () => {
     stubFetch();
-    await initializeIds(
+    await initializeAnalytics(
       app,
       dynamicPromisesList,
       measurementIdToAppId,
-      {},
+      fakeInstallations,
       gtagStub
     );
     expect(measurementIdToAppId[fakeMeasurementId]).to.equal(fakeAppId);
@@ -113,11 +103,11 @@ describe('initializeIds()', () => {
   it('warns on local/fetched measurement ID mismatch', async () => {
     stubFetch();
     const consoleStub = stub(console, 'warn');
-    await initializeIds(
+    await initializeAnalytics(
       getFakeApp({ ...fakeAppParams, measurementId: 'old-measurement-id' }),
       dynamicPromisesList,
       measurementIdToAppId,
-      {},
+      fakeInstallations,
       gtagStub
     );
     expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);

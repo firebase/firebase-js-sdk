@@ -28,6 +28,17 @@ import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
 
 /**
+ * Makeshift polyfill for Promise.allSettled()
+ *
+ * @param promises Array of promises to wait for.
+ */
+export function promiseAllSettled<T>(
+  promises: Array<Promise<T>>
+): Promise<T[]> {
+  return Promise.all(promises.map(promise => promise.catch(e => e)));
+}
+
+/**
  * Inserts gtag script tag into the page to asynchronously download gtag.
  * @param dataLayerName Name of datalayer (most often the default, "_dataLayer").
  */
@@ -86,7 +97,9 @@ async function gtagOnConfig(
       // find the appId (if any) corresponding to this measurementId. If there is one, wait on
       // that appId's initialization promise. If there is none, promise resolves and gtag
       // call goes through.
-      const dynamicConfigResults = await Promise.all(dynamicConfigPromisesList);
+      const dynamicConfigResults = await promiseAllSettled(
+        dynamicConfigPromisesList
+      );
       const foundConfig = dynamicConfigResults.find(
         config => config.measurementId === measurementId
       );
@@ -131,7 +144,9 @@ async function gtagOnEvent(
       }
       // Checking 'send_to' fields requires having all measurement ID results back from
       // the dynamic config fetch.
-      const dynamicConfigResults = await Promise.all(dynamicConfigPromisesList);
+      const dynamicConfigResults = await promiseAllSettled(
+        dynamicConfigPromisesList
+      );
       for (const sendToId of gaSendToList) {
         // Any fetched dynamic measurement ID that matches this 'send_to' ID
         const foundConfig = dynamicConfigResults.find(

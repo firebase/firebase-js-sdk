@@ -21,8 +21,7 @@ import {
   MinimalDynamicConfig
 } from '@firebase/analytics-types-exp';
 import { GtagCommand, GA_FID_KEY, ORIGIN_KEY } from './constants';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
-import { getId } from '@firebase/installations-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { fetchDynamicConfigWithRetry } from './get-config';
 import { logger } from './logger';
 import { FirebaseApp } from '@firebase/app-types-exp';
@@ -64,17 +63,17 @@ async function validateIndexedDB(): Promise<boolean> {
  * @param gtagCore The gtag function that's not wrapped.
  * @param dynamicConfigPromisesList Array of all dynamic config promises.
  * @param measurementIdToAppId Maps measurementID to appID.
- * @param installations FirebaseInstallations instance.
+ * @param installations _FirebaseInstallationsInternal instance.
  *
  * @returns Measurement ID.
  */
-export async function initializeIds(
+export async function initializeAnalytics(
   app: FirebaseApp,
   dynamicConfigPromisesList: Array<
     Promise<DynamicConfig | MinimalDynamicConfig>
   >,
   measurementIdToAppId: { [key: string]: string },
-  installations: FirebaseInstallations,
+  installations: _FirebaseInstallationsInternal,
   gtagCore: Gtag
 ): Promise<string> {
   const dynamicConfigPromise = fetchDynamicConfigWithRetry(app);
@@ -102,7 +101,7 @@ export async function initializeIds(
   const fidPromise: Promise<string | undefined> = validateIndexedDB().then(
     envIsValid => {
       if (envIsValid) {
-        return getId(installations);
+        return installations.getId();
       } else {
         return undefined;
       }

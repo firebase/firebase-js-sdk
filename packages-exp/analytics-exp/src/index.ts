@@ -17,15 +17,15 @@
 
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
-import { factory, settings, resetGlobalVars, getGlobalVars } from './factory';
-import { ANALYTICS_TYPE, EventName } from './constants';
+import { factory, resetGlobalVars, getGlobalVars } from './factory';
+import { ANALYTICS_TYPE } from './constants';
 import {
   Component,
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
-import { isSupported, logEvent } from './api';
+import { logEvent } from './api';
 import { name, version } from '../package.json';
 import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
 
@@ -45,17 +45,13 @@ function registerAnalytics(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-exp').getImmediate();
         const installations = container
-          .getProvider('installations-exp')
+          .getProvider('installations-exp-internal')
           .getImmediate();
 
         return factory(app, installations);
       },
       ComponentType.PUBLIC
-    ).setServiceProps({
-      settings,
-      EventName,
-      isSupported
-    })
+    )
   );
 
   _registerComponent(

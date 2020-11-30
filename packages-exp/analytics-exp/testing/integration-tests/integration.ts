@@ -16,6 +16,7 @@
  */
 
 import { initializeApp, deleteApp } from '@firebase/app-exp';
+import '@firebase/installations-exp';
 import { getAnalytics, logEvent } from '../../src/index';
 import '../setup';
 import { expect } from 'chai';
@@ -39,7 +40,7 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
   afterEach(() => deleteApp(app));
   it('logEvent() sends correct network request.', async () => {
     app = initializeApp(config);
-    logEvent(getAnalytics(app), 'login');
+    logEvent(getAnalytics(app), 'login', { method: 'email' });
     async function checkForEventCalls(): Promise<number> {
       await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
       const resources = performance.getEntriesByType('resource');

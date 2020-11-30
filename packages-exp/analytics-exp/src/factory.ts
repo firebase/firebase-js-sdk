@@ -29,9 +29,9 @@ import {
   findGtagScriptOnPage
 } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
-import { initializeIds } from './initialize-ids';
+import { initializeAnalytics } from './initialize-ids';
 import { logger } from './logger';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 
@@ -137,14 +137,14 @@ export function getGlobalVars(): {
  * Intended to be used if `gtag.js` script has been installed on
  * this page independently of Firebase Analytics, and is using non-default
  * names for either the `gtag` function or for `dataLayer`.
- * Must be called before calling `firebase.analytics()` or it won't
+ * Must be called before calling `getAnalytics()` or it won't
  * have any effect.
  *
  * @public
  *
  * @param options - Custom gtag and dataLayer names.
  */
-export function settings(options: SettingsOptions): void {
+export function analyticsSettings(options: SettingsOptions): void {
   if (globalInitDone) {
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
   }
@@ -186,7 +186,7 @@ function warnOnBrowserContextMismatch(): void {
  */
 export function factory(
   app: FirebaseApp,
-  installations: FirebaseInstallations
+  installations: _FirebaseInstallationsInternal
 ): AnalyticsService {
   warnOnBrowserContextMismatch();
   const appId = app.options.appId;
@@ -234,7 +234,7 @@ export function factory(
   }
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = initializeIds(
+  initializationPromisesMap[appId] = initializeAnalytics(
     app,
     dynamicConfigPromisesList,
     measurementIdToAppId,
