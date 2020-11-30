@@ -16,7 +16,6 @@
  */
 
 import { use } from 'chai';
-import { Indexable } from '../../src/util/misc';
 
 /**
  * Duck-typed interface for objects that have an isEqual() method.
@@ -64,9 +63,10 @@ function customDeepEqual(
     // differentiate between these types in our tests to ensure that the we do
     // not return firestore-exp types in the classic SDK.
     if (
-      (left as Indexable).constructor.name ===
-        (right as Indexable).constructor.name &&
-      (left as Indexable).constructor !== (right as Indexable).constructor
+      (left as Record<string, unknown>).constructor.name ===
+        (right as Record<string, unknown>).constructor.name &&
+      (left as Record<string, unknown>).constructor !==
+        (right as Record<string, unknown>).constructor
     ) {
       return false;
     }
