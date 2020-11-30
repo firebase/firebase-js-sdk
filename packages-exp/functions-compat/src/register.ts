@@ -18,7 +18,6 @@
 import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { FunctionsService } from './service';
-import '@firebase/functions-exp';
 import {
   Component,
   ComponentType,
