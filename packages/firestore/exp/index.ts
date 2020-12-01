@@ -33,7 +33,8 @@ export {
   enableNetwork,
   terminate,
   Settings,
-  PersistenceSettings
+  PersistenceSettings,
+  useFirestoreEmulator
 } from './src/api/database';
 
 export {

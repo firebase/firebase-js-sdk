@@ -32,7 +32,7 @@ import {
   validateIsNotUsedTogether,
   validateSetOptions
 } from '../util/input_validation';
-import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
+import { setLogLevel as setClientLogLevel } from '../util/log';
 import { FieldPath as ExpFieldPath } from '../../lite/src/api/field_path';
 import {
   CompleteFn,
@@ -52,6 +52,7 @@ import {
   enableNetwork,
   FirebaseFirestore,
   FirebaseFirestore as ExpFirebaseFirestore,
+  useFirestoreEmulator,
   waitForPendingWrites
 } from '../../exp/src/api/database';
 import {
@@ -96,7 +97,6 @@ import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
 import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
 import { makeDatabaseInfo } from '../../lite/src/api/database';
-import { DEFAULT_HOST } from '../../lite/src/api/components';
 import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
 import {
   runTransaction,
@@ -241,17 +241,7 @@ export class Firestore
   }
 
   useEmulator(host: string, port: number): void {
-    if (this._delegate._getSettings().host !== DEFAULT_HOST) {
-      logWarn(
-        'Host has been set in both settings() and useEmulator(), emulator host will be used'
-      );
-    }
-
-    this.settings({
-      host: `${host}:${port}`,
-      ssl: false,
-      merge: true
-    });
+    useFirestoreEmulator(this._delegate, host, port);
   }
 
   enableNetwork(): Promise<void> {

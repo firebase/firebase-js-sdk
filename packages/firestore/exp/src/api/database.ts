@@ -54,6 +54,8 @@ import {
 } from '../../../src/local/indexeddb_persistence';
 import { cast } from '../../../src/util/input_validation';
 
+export { useFirestoreEmulator } from '../../../lite/src/api/database';
+
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
