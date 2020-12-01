@@ -140,8 +140,11 @@ async function buildPackages() {
       'run',
       '--scope',
       // We replace `@firebase/app-exp` with `@firebase/app` during compilation, so we need to
-      // compile @firebase/app to make rollup happy though it's not an actual dependency.
+      // compile @firebase/app first to make rollup happy though it's not an actual dependency.
       '@firebase/app',
+      '--scope',
+      // the same reason above
+      '@firebase/functions',
       '--scope',
       '@firebase/util',
       '--scope',
