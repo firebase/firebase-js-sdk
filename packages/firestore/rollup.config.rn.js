@@ -52,7 +52,7 @@ export default [
           }
         ]
       }),
-      ...util.es2017Plugins('rn', /* mangled= */ false)
+      ...util.es2017Plugins('rn', /* mangled= */ true)
     ],
     external: util.resolveBrowserExterns,
     treeshake: {

@@ -57,7 +57,7 @@ export default [
           }
         ]
       }),
-      ...util.es2017Plugins('browser', /* mangled= */ false)
+      ...util.es2017Plugins('browser', /* mangled= */ true)
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -78,7 +78,7 @@ export default [
       }
     ],
     plugins: util.es2017ToEs5Plugins(),
-    external: util.resolveNodeExterns,
+    external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
