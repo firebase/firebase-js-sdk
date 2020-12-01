@@ -20,6 +20,7 @@ import copy from 'rollup-plugin-copy';
 import pkg from './package.json';
 import bundlePkg from './bundle/package.json';
 import memoryPkg from './memory/package.json';
+import memoryBundlePkg from './memory-bundle/package.json';
 import path from 'path';
 
 const util = require('./rollup.shared');
@@ -91,7 +92,7 @@ export default [
   {
     input: {
       index: path.resolve('./memory', memoryPkg['main-esm2017']),
-      bundle: path.resolve('./bundle', bundlePkg['main-esm2017'])
+      bundle: path.resolve('./bundle', memoryBundlePkg['main-esm2017'])
     },
     output: [
       {

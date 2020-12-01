@@ -208,7 +208,7 @@ exports.applyPrebuilt = function (name = 'prebuilt.js') {
     entries: [
       {
         find: /^(.*)\/export$/,
-        replacement: `$1\/dist/${name}.js`
+        replacement: `$1\/dist/${name}`
       }
     ]
   });

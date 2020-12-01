@@ -2,6 +2,7 @@ import pkg from './package.json';
 import path from 'path';
 import memoryPkg from './memory/package.json';
 import bundlePkg from './bundle/package.json';
+import memoryBundlePkg from './memory-bundle/package.json';
 
 /**
  * @license
@@ -100,7 +101,7 @@ export default [
   {
     input: {
       index: path.resolve('./memory', memoryPkg['esm2017']),
-      bundle: path.resolve('./bundle', bundlePkg['esm2017'])
+      bundle: path.resolve('./bundle', memoryBundlePkg['esm2017'])
     },
     output: [
       {
