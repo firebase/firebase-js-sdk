@@ -4,6 +4,8 @@
 
 ## DocumentSnapshot.exists() method
 
+Signals whether or not the document at the snapshot's location exists.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ exists(): this is QueryDocumentSnapshot<T>;
 <b>Returns:</b>
 
 this is [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md)<!-- -->&lt;T&gt;
+
+true if the document exists.
 

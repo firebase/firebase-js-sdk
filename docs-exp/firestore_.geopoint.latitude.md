@@ -4,8 +4,10 @@
 
 ## GeoPoint.latitude property
 
+The latitude of this `GeoPoint` instance.
+
 <b>Signature:</b>
 
 ```typescript
-readonly latitude: number;
+get latitude(): number;
 ```

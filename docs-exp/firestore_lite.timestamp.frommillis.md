@@ -4,6 +4,8 @@
 
 ## Timestamp.fromMillis() method
 
+Creates a new timestamp from the given number of milliseconds.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ static fromMillis(milliseconds: number): Timestamp;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  milliseconds | number |  |
+|  milliseconds | number | Number of milliseconds since Unix epoch 1970-01-01T00:00:00Z. |
 
 <b>Returns:</b>
 
 [Timestamp](./firestore_lite.timestamp.md)
+
+A new `Timestamp` representing the same point in time as the given number of milliseconds.
 

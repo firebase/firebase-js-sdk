@@ -4,8 +4,10 @@
 
 ## DocumentData interface
 
+Document data (for use with ) consists of fields mapped to values.
+
 <b>Signature:</b>
 
 ```typescript
-export interface DocumentData 
+export declare interface DocumentData 
 ```

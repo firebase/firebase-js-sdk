@@ -4,19 +4,23 @@
 
 ## arrayUnion() function
 
+Returns a special value that can be used with  or  that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements.
+
 <b>Signature:</b>
 
 ```typescript
-export function arrayUnion(...elements: any[]): FieldValue;
+export declare function arrayUnion(...elements: unknown[]): FieldValue;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  elements | any\[\] |  |
+|  elements | unknown\[\] | The elements to union into the array. |
 
 <b>Returns:</b>
 
 [FieldValue](./firestore_.fieldvalue.md)
+
+The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`<!-- -->.
 

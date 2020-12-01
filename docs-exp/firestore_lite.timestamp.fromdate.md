@@ -4,6 +4,8 @@
 
 ## Timestamp.fromDate() method
 
+Creates a new timestamp from the given date.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ static fromDate(date: Date): Timestamp;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  date | Date |  |
+|  date | Date | The date to initialize the <code>Timestamp</code> from. |
 
 <b>Returns:</b>
 
 [Timestamp](./firestore_lite.timestamp.md)
+
+A new `Timestamp` representing the same point in time as the given date.
 

@@ -4,6 +4,8 @@
 
 ## Timestamp.isEqual() method
 
+Returns true if this `Timestamp` is equal to the provided one.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ isEqual(other: Timestamp): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [Timestamp](./firestore_.timestamp.md) |  |
+|  other | [Timestamp](./firestore_.timestamp.md) | The <code>Timestamp</code> to compare against. |
 
 <b>Returns:</b>
 
 boolean
+
+true if this `Timestamp` is equal to the provided one.
 

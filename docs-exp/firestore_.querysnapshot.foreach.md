@@ -4,21 +4,20 @@
 
 ## QuerySnapshot.forEach() method
 
+Enumerates all of the documents in the `QuerySnapshot`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
-    thisArg?: any
-  ): void;
+forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  callback | (result: [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md)<!-- -->&lt;T&gt;) =&gt; void |  |
-|  thisArg | any |  |
+|  callback | (result: [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called with a <code>QueryDocumentSnapshot</code> for each document in the snapshot. |
+|  thisArg | unknown | The <code>this</code> binding for the callback. |
 
 <b>Returns:</b>
 

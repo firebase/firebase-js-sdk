@@ -7,24 +7,19 @@
 <b>Signature:</b>
 
 ```typescript
-update(
-    documentRef: DocumentReference<any>,
-    field: string | FieldPath,
-    value: any,
-    ...moreFieldsAndValues: any[]
-  ): Transaction;
+update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;any&gt; |  |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;unknown&gt; |  |
 |  field | string \| [FieldPath](./firestore_.fieldpath.md) |  |
-|  value | any |  |
-|  moreFieldsAndValues | any\[\] |  |
+|  value | unknown |  |
+|  moreFieldsAndValues | unknown\[\] |  |
 
 <b>Returns:</b>
 
-[Transaction](./firestore_.transaction.md)
+this
 

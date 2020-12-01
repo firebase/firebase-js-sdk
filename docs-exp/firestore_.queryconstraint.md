@@ -4,15 +4,17 @@
 
 ## QueryConstraint class
 
+A `QueryConstraint` is used to narrow the set of documents returned by a Firestore query. `QueryConstraint`<!-- -->s are created by invoking [where()](./firestore_.where.md)<!-- -->, [orderBy()](./firestore_.orderby.md)<!-- -->, , , , , [limit()](./firestore_.limit.md) or [limitToLast()](./firestore_.limittolast.md) and can then be passed to [query()](./firestore_.query.md) to create a new query instance that also contains this `QueryConstraint`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export class QueryConstraint 
+export declare abstract class QueryConstraint 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [type](./firestore_.queryconstraint.type.md) |  | [QueryConstraintType](./firestore_.queryconstrainttype.md) |  |
+|  [type](./firestore_.queryconstraint.type.md) |  | [QueryConstraintType](./firestore_.queryconstrainttype.md) | The type of this query constraints |
 

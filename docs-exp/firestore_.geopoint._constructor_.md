@@ -4,7 +4,7 @@
 
 ## GeoPoint.(constructor)
 
-Constructs a new instance of the `GeoPoint` class
+Creates a new immutable `GeoPoint` object with the provided latitude and longitude values.
 
 <b>Signature:</b>
 
@@ -16,6 +16,6 @@ constructor(latitude: number, longitude: number);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  latitude | number |  |
-|  longitude | number |  |
+|  latitude | number | The latitude as number between -90 and 90. |
+|  longitude | number | The longitude as number between -180 and 180. |
 

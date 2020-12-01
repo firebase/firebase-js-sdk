@@ -4,23 +4,26 @@
 
 ## query() function
 
+Creates a new immutable instance of `query` that is extended to also include additional query constraints.
+
 <b>Signature:</b>
 
 ```typescript
-export function query<T>(
-  query: CollectionReference<T> | Query<T>,
-  ...constraints: QueryConstraint[]
-): Query<T>;
+export declare function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; \| [Query](./firestore_.query.md)<!-- -->&lt;T&gt; |  |
-|  constraints | [QueryConstraint](./firestore_.queryconstraint.md)<!-- -->\[\] |  |
+|  query | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; | The query instance to use as a base for the new constraints. |
+|  queryConstraints | [QueryConstraint](./firestore_.queryconstraint.md)<!-- -->\[\] | The list of <code>QueryConstraint</code>s to apply. |
 
 <b>Returns:</b>
 
 [Query](./firestore_.query.md)<!-- -->&lt;T&gt;
+
+## Exceptions
+
+if any of the provided query constraints cannot be combined with the existing or new constraints.
 

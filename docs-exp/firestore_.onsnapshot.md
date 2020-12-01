@@ -4,27 +4,30 @@
 
 ## onSnapshot() function
 
+Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
+
+NOTE: Although an `onCompletion` callback can be provided, it will never be called because the snapshot stream is never-ending.
+
 <b>Signature:</b>
 
 ```typescript
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
-  observer: {
+export declare function onSnapshot<T>(reference: DocumentReference<T>, observer: {
     next?: (snapshot: DocumentSnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): () => void;
+}): Unsubscribe;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; |  |
-|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md)<!-- -->) =&gt; void; complete?: () =&gt; void; } |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
+|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
-() =&gt; void
+[Unsubscribe](./firestore_.unsubscribe.md)
+
+An unsubscribe function that can be called to cancel the snapshot listener.
 

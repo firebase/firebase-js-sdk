@@ -30,6 +30,15 @@ async function generateDocs() {
     stdio: 'inherit'
   });
 
+  // generate public typings for firestore
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
+    {
+      stdio: 'inherit'
+    }
+  );
+
   await spawn('yarn', ['api-report'], {
     stdio: 'inherit'
   });

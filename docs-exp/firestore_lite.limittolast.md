@@ -4,19 +4,25 @@
 
 ## limitToLast() function
 
+Creates a `QueryConstraint` that only returns the last matching documents.
+
+You must specify at least one `orderBy` clause for `limitToLast` queries, otherwise an exception will be thrown during execution.
+
 <b>Signature:</b>
 
 ```typescript
-export function limitToLast(limit: number): QueryConstraint;
+export declare function limitToLast(limit: number): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  limit | number |  |
+|  limit | number | The maximum number of items to return. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_lite.queryconstraint.md)
+
+The created `Query`<!-- -->.
 

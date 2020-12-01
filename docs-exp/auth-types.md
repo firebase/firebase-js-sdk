@@ -37,6 +37,12 @@
 |  [ApplicationVerifier](./auth-types.applicationverifier.md) | A verifier for domain verification and abuse prevention. |
 |  [Auth](./auth-types.auth.md) | Interface representing Firebase Auth service. |
 |  [AuthError](./auth-types.autherror.md) | Interface for an Auth error. |
+|  [AuthErrorMap](./auth-types.autherrormap.md) | A mapping of error codes to error messages.<!-- -->While error messages are useful for debugging (providing verbose textual context around what went wrong), these strings take up a lot of space in the compiled code. When deploying code in production, using  will save you roughly 10k compressed/gzipped over . You can select the error map during initialization:
+```javascript
+initializeAuth(app, {errorMap: debugErrorMap})
+
+```
+When initializing Auth,  is default. |
 |  [AuthProvider](./auth-types.authprovider.md) | Interface that represents an auth provider, used to facilitate creating [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
 |  [AuthSettings](./auth-types.authsettings.md) | Interface representing an Auth instance's settings. |
 |  [Config](./auth-types.config.md) | Interface representing the Auth config. |

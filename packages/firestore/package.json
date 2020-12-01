@@ -45,7 +45,7 @@
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
     "prepare": "yarn build:release",
-    "api-report": "api-extractor run --local --verbose",
+    "api-report": "rm -rf temp && api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs"
   },

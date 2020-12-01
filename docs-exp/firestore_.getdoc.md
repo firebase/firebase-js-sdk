@@ -4,21 +4,25 @@
 
 ## getDoc() function
 
+Reads the document referred to by this `DocumentReference`<!-- -->.
+
+Note: `getDoc()` attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocFromCache()](./firestore_.getdocfromcache.md) or [getDocFromServer()](./firestore_.getdocfromserver.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export function getDoc<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+export declare function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; | The reference of the document to fetch. |
 
 <b>Returns:</b>
 
 Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt;&gt;
+
+A Promise resolved with a `DocumentSnapshot` containing the current document contents.
 

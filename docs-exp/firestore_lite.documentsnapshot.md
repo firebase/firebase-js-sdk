@@ -4,24 +4,34 @@
 
 ## DocumentSnapshot class
 
+A `DocumentSnapshot` contains data read from a document in your Firestore database. The data can be extracted with `.data()` or `.get(<field>)` to get a specific field.
+
+For a `DocumentSnapshot` that points to a non-existing document, any data access will return 'undefined'. You can use the `exists()` method to explicitly verify a document's existence.
+
 <b>Signature:</b>
 
 ```typescript
-export class DocumentSnapshot<T = DocumentData> 
+export declare class DocumentSnapshot<T = DocumentData> 
 ```
+
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)()](./firestore_lite.documentsnapshot._constructor_.md) |  | Constructs a new instance of the <code>DocumentSnapshot</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [id](./firestore_lite.documentsnapshot.id.md) |  | string |  |
-|  [ref](./firestore_lite.documentsnapshot.ref.md) |  | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; |  |
+|  [id](./firestore_lite.documentsnapshot.id.md) |  | string | Property of the <code>DocumentSnapshot</code> that provides the document's ID. |
+|  [ref](./firestore_lite.documentsnapshot.ref.md) |  | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; | The <code>DocumentReference</code> for the document included in the <code>DocumentSnapshot</code>. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [data()](./firestore_lite.documentsnapshot.data.md) |  |  |
-|  [exists()](./firestore_lite.documentsnapshot.exists.md) |  |  |
-|  [get(fieldPath)](./firestore_lite.documentsnapshot.get.md) |  |  |
+|  [data()](./firestore_lite.documentsnapshot.data.md) |  | Retrieves all fields in the document as an <code>Object</code>. Returns <code>undefined</code> if the document doesn't exist. |
+|  [exists()](./firestore_lite.documentsnapshot.exists.md) |  | Signals whether or not the document at the snapshot's location exists. |
+|  [get(fieldPath)](./firestore_lite.documentsnapshot.get.md) |  | Retrieves the field specified by <code>fieldPath</code>. Returns <code>undefined</code> if the document or field doesn't exist. |
 

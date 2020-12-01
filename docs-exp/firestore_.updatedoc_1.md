@@ -4,27 +4,28 @@
 
 ## updateDoc() function
 
+Updates fields in the document referred to by the specified `DocumentReference` The update will fail if applied to a document that does not exist.
+
+Nested fields can be updated by providing dot-separated field path strings or by providing `FieldPath` objects.
+
 <b>Signature:</b>
 
 ```typescript
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  field: string | FieldPath,
-  value: any,
-  ...moreFieldsAndValues: any[]
-): Promise<void>;
+export declare function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;unknown&gt; |  |
-|  field | string \| [FieldPath](./firestore_.fieldpath.md) |  |
-|  value | any |  |
-|  moreFieldsAndValues | any\[\] |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;unknown&gt; | A reference to the document to update. |
+|  field | string \| [FieldPath](./firestore_.fieldpath.md) | The first field to update. |
+|  value | unknown | The first value. |
+|  moreFieldsAndValues | unknown\[\] | Additional key value pairs. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A Promise resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 

@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-readonly app: FirebaseApp;
+get app(): FirebaseApp;
 ```

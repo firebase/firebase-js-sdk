@@ -5,749 +5,481 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { LogLevelString as LogLevel } from '@firebase/logger';
 
 // @public (undocumented)
-export function addDoc<T>(
-  reference: CollectionReference<T>,
-  data: T
-): Promise<DocumentReference<T>>;
+export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
 
-// @public (undocumented)
-export function arrayRemove(...elements: any[]): FieldValue;
+// @public
+export function arrayRemove(...elements: unknown[]): FieldValue;
 
-// @public (undocumented)
-export function arrayUnion(...elements: any[]): FieldValue;
+// @public
+export function arrayUnion(...elements: unknown[]): FieldValue;
 
-// @public (undocumented)
+// @public
 export class Bytes {
-  // (undocumented)
-  static fromBase64String(base64: string): Blob;
-
-  // (undocumented)
-  static fromUint8Array(array: Uint8Array): Blob;
-
-  // (undocumented)
-  isEqual(other: Blob): boolean;
-
-  // (undocumented)
-  toBase64(): string;
-
-  // (undocumented)
-  toUint8Array(): Uint8Array;
+    static fromBase64String(base64: string): Bytes;
+    static fromUint8Array(array: Uint8Array): Bytes;
+    isEqual(other: Bytes): boolean;
+    toBase64(): string;
+    toString(): string;
+    toUint8Array(): Uint8Array;
 }
 
-// @public (undocumented)
-export const CACHE_SIZE_UNLIMITED: number;
+// @public
+export const CACHE_SIZE_UNLIMITED = -1;
 
-// @public (undocumented)
-export function clearIndexedDbPersistence(
-  firestore: FirebaseFirestore
-): Promise<void>;
+// @public
+export function clearIndexedDbPersistence(firestore: FirebaseFirestore): Promise<void>;
 
-// @public (undocumented)
-export function collection(
-  firestore: FirebaseFirestore,
-  path: string,
-  ...pathComponents: string[]
-): CollectionReference<DocumentData>;
+// @public
+export function collection(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
-// @public (undocumented)
-export function collection(
-  reference: CollectionReference<unknown>,
-  path: string,
-  ...pathComponents: string[]
-): CollectionReference<DocumentData>;
+// @public
+export function collection(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
-// @public (undocumented)
-export function collection(
-  reference: DocumentReference,
-  path: string,
-  ...pathComponents: string[]
-): CollectionReference<DocumentData>;
+// @public
+export function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
-// @public (undocumented)
-export function collectionGroup(
-  firestore: FirebaseFirestore,
-  collectionId: string
-): Query<DocumentData>;
+// @public
+export function collectionGroup(firestore: FirebaseFirestore, collectionId: string): Query<DocumentData>;
 
-// @public (undocumented)
+// @public
 export class CollectionReference<T = DocumentData> extends Query<T> {
-  // (undocumented)
-  readonly id: string;
-  // (undocumented)
-  get parent(): DocumentReference<DocumentData> | null;
-  // (undocumented)
-  readonly path: string;
-  // (undocumented)
-  readonly type: 'collection';
-  // (undocumented)
-  withConverter<U>(
-    converter: FirestoreDataConverter<U>
-  ): CollectionReference<U>;
+    // (undocumented)
+    readonly firestore: FirebaseFirestore;
+    get id(): string;
+    get parent(): DocumentReference<DocumentData> | null;
+    get path(): string;
+    // (undocumented)
+    readonly type = "collection";
+    withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
 }
 
-// @public (undocumented)
+// @public
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function deleteField(): FieldValue;
 
-// @public (undocumented)
+// @public
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
 
-// @public (undocumented)
-export function doc(
-  firestore: FirebaseFirestore,
-  path: string,
-  ...pathComponents: string[]
-): DocumentReference<DocumentData>;
+// @public
+export function doc(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
 
-// @public (undocumented)
-export function doc<T>(
-  reference: CollectionReference<T>,
-  path?: string,
-  ...pathComponents: string[]
-): DocumentReference<T>;
+// @public
+export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
 
-// @public (undocumented)
-export function doc(
-  reference: DocumentReference<unknown>,
-  path: string,
-  ...pathComponents: string[]
-): DocumentReference<DocumentData>;
+// @public
+export function doc(reference: DocumentReference<unknown>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
 
-// @public (undocumented)
+// @public
 export interface DocumentChange<T = DocumentData> {
-  // (undocumented)
-  readonly doc: QueryDocumentSnapshot<T>;
-  // (undocumented)
-  readonly newIndex: number;
-  // (undocumented)
-  readonly oldIndex: number;
-  // (undocumented)
-  readonly type: DocumentChangeType;
+    readonly doc: QueryDocumentSnapshot<T>;
+    readonly newIndex: number;
+    readonly oldIndex: number;
+    readonly type: DocumentChangeType;
 }
 
-// @public (undocumented)
+// @public
 export type DocumentChangeType = 'added' | 'removed' | 'modified';
 
-// @public (undocumented)
+// @public
 export interface DocumentData {
-  // (undocumented)
-  [field: string]: any;
+    // (undocumented)
+    [field: string]: any;
 }
 
-// @public (undocumented)
+// @public
 export function documentId(): FieldPath;
 
-// @public (undocumented)
+// @public
 export class DocumentReference<T = DocumentData> {
-  // (undocumented)
-  readonly converter: FirestoreDataConverter<T> | null;
-  // (undocumented)
-  readonly firestore: FirebaseFirestore;
-  // (undocumented)
-  readonly id: string;
-  // (undocumented)
-  get parent(): CollectionReference<T>;
-  // (undocumented)
-  readonly path: string;
-  // (undocumented)
-  readonly type: 'document';
-  // (undocumented)
-  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+    readonly firestore: FirebaseFirestore;
+    get id(): string;
+    get parent(): CollectionReference<T>;
+    get path(): string;
+    readonly type = "document";
+    withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
-// @public (undocumented)
+// @public
 export class DocumentSnapshot<T = DocumentData> {
-  protected constructor();
-
-  // (undocumented)
-  data(options?: SnapshotOptions): T | undefined;
-
-  // (undocumented)
-  exists(): this is QueryDocumentSnapshot<T>;
-
-  // (undocumented)
-  get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
-
-  // (undocumented)
-  readonly id: string;
-
-  // (undocumented)
-  readonly metadata: SnapshotMetadata;
-
-  // (undocumented)
-  readonly ref: DocumentReference<T>;
+    protected constructor();
+    data(options?: SnapshotOptions): T | undefined;
+    exists(): this is QueryDocumentSnapshot<T>;
+    get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
+    // (undocumented)
+    get id(): string;
+    readonly metadata: SnapshotMetadata;
+    // (undocumented)
+    get ref(): DocumentReference<T>;
 }
 
-// @public (undocumented)
-export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore,
-  persistenceSettings?: PersistenceSettings
-): Promise<void>;
+// @public
+export function enableIndexedDbPersistence(firestore: FirebaseFirestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 
-// @public (undocumented)
-export function enableMultiTabIndexedDbPersistence(
-  firestore: FirebaseFirestore
-): Promise<void>;
+// @public
+export function enableMultiTabIndexedDbPersistence(firestore: FirebaseFirestore): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
 
-// @public (undocumented)
-export function endAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+// @public
+export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 
-// @public (undocumented)
-export function endAt(...fieldValues: any[]): QueryConstraint;
+// @public
+export function endAt(...fieldValues: unknown[]): QueryConstraint;
 
-// @public (undocumented)
-export function endBefore(snapshot: DocumentSnapshot<any>): QueryConstraint;
+// @public
+export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 
-// @public (undocumented)
-export function endBefore(...fieldValues: any[]): QueryConstraint;
+// @public
+export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export class FieldPath {
-  constructor(...fieldNames: string[]);
-  // (undocumented)
-  isEqual(other: FieldPath): boolean;
+    constructor(...fieldNames: string[]);
+    isEqual(other: FieldPath): boolean;
 }
 
-// @public (undocumented)
-export class FieldValue {
-  // (undocumented)
-  isEqual(other: FieldValue): boolean;
+// @public
+export abstract class FieldValue {
+    constructor(_methodName: string);
+    // (undocumented)
+    abstract isEqual(other: FieldValue): boolean;
 }
 
-// @public (undocumented)
+// @public
 export class FirebaseFirestore {
-  // (undocumented)
-  readonly app: FirebaseApp;
+    // (undocumented)
+    get app(): FirebaseApp;
 }
 
-// @public (undocumented)
+// @public
 export interface FirestoreDataConverter<T> {
-  // (undocumented)
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData>,
-    options?: SnapshotOptions
-  ): T;
-  // (undocumented)
-  toFirestore(modelObject: T): DocumentData;
-  // (undocumented)
-  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>, options?: SnapshotOptions): T;
+    toFirestore(modelObject: T): DocumentData;
+    toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 }
 
-// @public (undocumented)
-export interface FirestoreError {
-  // (undocumented)
-  code: FirestoreErrorCode;
-  // (undocumented)
-  message: string;
-  // (undocumented)
-  name: string;
-  // (undocumented)
-  stack?: string;
+// @public
+export class FirestoreError {
+    // (undocumented)
+    readonly code: FirestoreErrorCode;
+    // (undocumented)
+    readonly message: string;
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly stack?: string;
 }
 
-// @public (undocumented)
-export type FirestoreErrorCode =
-  | 'cancelled'
-  | 'unknown'
-  | 'invalid-argument'
-  | 'deadline-exceeded'
-  | 'not-found'
-  | 'already-exists'
-  | 'permission-denied'
-  | 'resource-exhausted'
-  | 'failed-precondition'
-  | 'aborted'
-  | 'out-of-range'
-  | 'unimplemented'
-  | 'internal'
-  | 'unavailable'
-  | 'data-loss'
-  | 'unauthenticated';
+// @public
+export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
-// @public (undocumented)
+// @public
 export class GeoPoint {
-  constructor(latitude: number, longitude: number);
-
-  // (undocumented)
-  isEqual(other: GeoPoint): boolean;
-
-  // (undocumented)
-  readonly latitude: number;
-
-  // (undocumented)
-  readonly longitude: number;
+    constructor(latitude: number, longitude: number);
+    isEqual(other: GeoPoint): boolean;
+    get latitude(): number;
+    get longitude(): number;
+    // (undocumented)
+    toJSON(): {
+        latitude: number;
+        longitude: number;
+    };
 }
 
-// @public (undocumented)
-export function getDoc<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+// @public
+export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
-// @public (undocumented)
-export function getDocFromCache<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+// @public
+export function getDocFromCache<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
-// @public (undocumented)
-export function getDocFromServer<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+// @public
+export function getDocFromServer<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
-// @public (undocumented)
+// @public
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
-// @public (undocumented)
+// @public
 export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
-// @public (undocumented)
-export function getDocsFromServer<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>>;
+// @public
+export function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
-// @public (undocumented)
+// @public
 export function getFirestore(app: FirebaseApp): FirebaseFirestore;
 
-// @public (undocumented)
+// @public
 export function increment(n: number): FieldValue;
 
-// @public (undocumented)
-export function initializeFirestore(
-  app: FirebaseApp,
-  settings: Settings
-): FirebaseFirestore;
+// @public
+export function initializeFirestore(app: FirebaseApp, settings: Settings): FirebaseFirestore;
 
-// @public (undocumented)
+// @public
 export function limit(limit: number): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function limitToLast(limit: number): QueryConstraint;
 
-// @public (undocumented)
-export type LogLevel =
-  | 'debug'
-  | 'error'
-  | 'silent'
-  | 'warn'
-  | 'info'
-  | 'verbose';
+export { LogLevel }
 
-// @public (undocumented)
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
-  observer: {
+// @public
+export function onSnapshot<T>(reference: DocumentReference<T>, observer: {
     next?: (snapshot: DocumentSnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): () => void;
+}): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
-  options: SnapshotListenOptions,
-  observer: {
+// @public
+export function onSnapshot<T>(reference: DocumentReference<T>, options: SnapshotListenOptions, observer: {
     next?: (snapshot: DocumentSnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): () => void;
+}): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
-  onNext: (snapshot: DocumentSnapshot<T>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): () => void;
+// @public
+export function onSnapshot<T>(reference: DocumentReference<T>, onNext: (snapshot: DocumentSnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
-  options: SnapshotListenOptions,
-  onNext: (snapshot: DocumentSnapshot<T>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): () => void;
+// @public
+export function onSnapshot<T>(reference: DocumentReference<T>, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshot<T>(
-  query: Query<T>,
-  observer: {
+// @public
+export function onSnapshot<T>(query: Query<T>, observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): () => void;
+}): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshot<T>(
-  query: Query<T>,
-  options: SnapshotListenOptions,
-  observer: {
+// @public
+export function onSnapshot<T>(query: Query<T>, options: SnapshotListenOptions, observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): () => void;
+}): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshot<T>(
-  query: Query<T>,
-  onNext: (snapshot: QuerySnapshot<T>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): () => void;
+// @public
+export function onSnapshot<T>(query: Query<T>, onNext: (snapshot: QuerySnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshot<T>(
-  query: Query<T>,
-  options: SnapshotListenOptions,
-  onNext: (snapshot: QuerySnapshot<T>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): () => void;
+// @public
+export function onSnapshot<T>(query: Query<T>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
-  observer: {
+// @public
+export function onSnapshotsInSync(firestore: FirebaseFirestore, observer: {
     next?: (value: void) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): () => void;
+}): Unsubscribe;
 
-// @public (undocumented)
-export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
-  onSync: () => void
-): () => void;
+// @public
+export function onSnapshotsInSync(firestore: FirebaseFirestore, onSync: () => void): Unsubscribe;
 
-// @public (undocumented)
-export function orderBy(
-  fieldPath: string | FieldPath,
-  directionStr?: OrderByDirection
-): QueryConstraint;
+// @public
+export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export type OrderByDirection = 'desc' | 'asc';
 
 // @public (undocumented)
 export interface PersistenceSettings {
-  // (undocumented)
-  forceOwnership?: boolean;
+    // (undocumented)
+    forceOwnership?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export class Query<T = DocumentData> {
-  protected constructor();
-  // (undocumented)
-  readonly converter: FirestoreDataConverter<T> | null;
-  // (undocumented)
-  readonly firestore: FirebaseFirestore;
-  // (undocumented)
-  readonly type: 'query' | 'collection';
-  // (undocumented)
-  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+    protected constructor();
+    readonly firestore: FirebaseFirestore;
+    readonly type: 'query' | 'collection';
+    withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
-// @public (undocumented)
-export function query<T>(
-  query: CollectionReference<T> | Query<T>,
-  ...constraints: QueryConstraint[]
-): Query<T>;
+// @public
+export function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
 
-// @public (undocumented)
-export class QueryConstraint {
-  // (undocumented)
-  readonly type: QueryConstraintType;
+// @public
+export abstract class QueryConstraint {
+    abstract readonly type: QueryConstraintType;
 }
 
-// @public (undocumented)
-export type QueryConstraintType =
-  | 'where'
-  | 'orderBy'
-  | 'limit'
-  | 'limitToLast'
-  | 'startAt'
-  | 'startAfter'
-  | 'endAt'
-  | 'endBefore';
+// @public
+export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 
-// @public (undocumented)
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
-  T
-> {
-  // (undocumented)
-  data(options?: SnapshotOptions): T;
+// @public
+export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
+    // @override
+    data(options?: SnapshotOptions): T;
 }
 
-// @public (undocumented)
+// @public
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 
-// @public (undocumented)
+// @public
 export class QuerySnapshot<T = DocumentData> {
-  // (undocumented)
-  docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
-  // (undocumented)
-  readonly docs: Array<QueryDocumentSnapshot<T>>;
-  // (undocumented)
-  readonly empty: boolean;
-  // (undocumented)
-  forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
-    thisArg?: any
-  ): void;
-  // (undocumented)
-  readonly metadata: SnapshotMetadata;
-  // (undocumented)
-  readonly query: Query<T>;
-  // (undocumented)
-  readonly size: number;
+    docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
+    get docs(): Array<QueryDocumentSnapshot<T>>;
+    get empty(): boolean;
+    forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
+    readonly metadata: SnapshotMetadata;
+    readonly query: Query<T>;
+    get size(): number;
 }
 
-// @public (undocumented)
-export function refEqual<T>(
-  left: DocumentReference<T> | CollectionReference<T>,
-  right: DocumentReference<T> | CollectionReference<T>
-): boolean;
+// @public
+export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
-// @public (undocumented)
-export function runTransaction<T>(
-  firestore: FirebaseFirestore,
-  updateFunction: (transaction: Transaction) => Promise<T>
-): Promise<T>;
+// @public
+export function runTransaction<T>(firestore: FirebaseFirestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
 
-// @public (undocumented)
+// @public
 export function serverTimestamp(): FieldValue;
 
-// @public (undocumented)
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: T
-): Promise<void>;
+// @public
+export function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<void>;
 
-// @public (undocumented)
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: Partial<T>,
-  options: SetOptions
-): Promise<void>;
+// @public
+export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function setLogLevel(logLevel: LogLevel): void;
 
-// @public (undocumented)
-export type SetOptions =
-  | {
-      readonly merge?: boolean;
-    }
-  | {
-      readonly mergeFields?: Array<string | FieldPath>;
-    };
+// @public
+export type SetOptions = {
+    readonly merge?: boolean;
+} | {
+    readonly mergeFields?: Array<string | FieldPath>;
+};
 
 // @public (undocumented)
 export interface Settings {
-  // (undocumented)
-  cacheSizeBytes?: number;
-  // (undocumented)
-  host?: string;
-  // (undocumented)
-  ignoreUndefinedProperties?: boolean;
-  // (undocumented)
-  ssl?: boolean;
+    // (undocumented)
+    cacheSizeBytes?: number;
+    // (undocumented)
+    experimentalAutoDetectLongPolling?: boolean;
+    // (undocumented)
+    experimentalForceLongPolling?: boolean;
+    // (undocumented)
+    host?: string;
+    // (undocumented)
+    ignoreUndefinedProperties?: boolean;
+    // (undocumented)
+    ssl?: boolean;
 }
 
-// @public (undocumented)
-export function snapshotEqual<T>(
-  left: DocumentSnapshot<T> | QuerySnapshot<T>,
-  right: DocumentSnapshot<T> | QuerySnapshot<T>
-): boolean;
+// @public
+export function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
 
-// @public (undocumented)
+// @public
 export interface SnapshotListenOptions {
-  // (undocumented)
-  readonly includeMetadataChanges?: boolean;
+    readonly includeMetadataChanges?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export class SnapshotMetadata {
-  // (undocumented)
-  readonly fromCache: boolean;
-
-  // (undocumented)
-  readonly hasPendingWrites: boolean;
-
-  // (undocumented)
-  isEqual(other: SnapshotMetadata): boolean;
+    readonly fromCache: boolean;
+    readonly hasPendingWrites: boolean;
+    isEqual(other: SnapshotMetadata): boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface SnapshotOptions {
-  // (undocumented)
-  readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
+    readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
 }
 
-// @public (undocumented)
-export function startAfter(snapshot: DocumentSnapshot<any>): QueryConstraint;
+// @public
+export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 
-// @public (undocumented)
-export function startAfter(...fieldValues: any[]): QueryConstraint;
+// @public
+export function startAfter(...fieldValues: unknown[]): QueryConstraint;
 
-// @public (undocumented)
-export function startAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+// @public
+export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 
-// @public (undocumented)
-export function startAt(...fieldValues: any[]): QueryConstraint;
+// @public
+export function startAt(...fieldValues: unknown[]): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function terminate(firestore: FirebaseFirestore): Promise<void>;
 
-// @public (undocumented)
+// @public
 export class Timestamp {
-  constructor(seconds: number, nanoseconds: number);
-
-  // (undocumented)
-  static fromDate(date: Date): Timestamp;
-
-  // (undocumented)
-  static fromMillis(milliseconds: number): Timestamp;
-
-  // (undocumented)
-  isEqual(other: Timestamp): boolean;
-
-  // (undocumented)
-  readonly nanoseconds: number;
-
-  // (undocumented)
-  static now(): Timestamp;
-
-  // (undocumented)
-  readonly seconds: number;
-
-  // (undocumented)
-  toDate(): Date;
-
-  // (undocumented)
-  toMillis(): number;
-
-  // (undocumented)
-  valueOf(): string;
+    constructor(seconds: number, nanoseconds: number);
+    static fromDate(date: Date): Timestamp;
+    static fromMillis(milliseconds: number): Timestamp;
+    isEqual(other: Timestamp): boolean;
+    // (undocumented)
+    readonly nanoseconds: number;
+    static now(): Timestamp;
+    // (undocumented)
+    readonly seconds: number;
+    toDate(): Date;
+    // (undocumented)
+    toJSON(): {
+        seconds: number;
+        nanoseconds: number;
+    };
+    toMillis(): number;
+    // (undocumented)
+    toString(): string;
+    valueOf(): string;
 }
 
-// @public (undocumented)
+// @public
 export class Transaction {
-  // (undocumented)
-  delete(documentRef: DocumentReference<any>): Transaction;
-
-  // (undocumented)
-  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
-
-  // (undocumented)
-  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
-
-  // (undocumented)
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: Partial<T>,
-    options: SetOptions
-  ): Transaction;
-
-  // (undocumented)
-  update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
-
-  // (undocumented)
-  update(
-    documentRef: DocumentReference<any>,
-    field: string | FieldPath,
-    value: any,
-    ...moreFieldsAndValues: any[]
-  ): Transaction;
+    // (undocumented)
+    delete(documentRef: DocumentReference<unknown>): this;
+    get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+    // (undocumented)
+    set<T>(documentRef: DocumentReference<T>, data: T): this;
+    // (undocumented)
+    set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): this;
+    // (undocumented)
+    update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
+    // (undocumented)
+    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 }
 
 // @public (undocumented)
+export interface Unsubscribe {
+    // (undocumented)
+    (): void;
+}
+
+// @public
 export interface UpdateData {
-  // (undocumented)
-  [fieldPath: string]: any;
+    // (undocumented)
+    [fieldPath: string]: any;
 }
 
-// @public (undocumented)
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  data: UpdateData
-): Promise<void>;
+// @public
+export function updateDoc(reference: DocumentReference<unknown>, data: UpdateData): Promise<void>;
 
-// @public (undocumented)
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  field: string | FieldPath,
-  value: any,
-  ...moreFieldsAndValues: any[]
-): Promise<void>;
+// @public
+export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
-// @public (undocumented)
-export function waitForPendingWrites(
-  firestore: FirebaseFirestore
-): Promise<void>;
+// @public
+export function waitForPendingWrites(firestore: FirebaseFirestore): Promise<void>;
 
-// @public (undocumented)
-export function where(
-  fieldPath: string | FieldPath,
-  opStr: WhereFilterOp,
-  value: any
-): QueryConstraint;
+// @public
+export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
 
-// @public (undocumented)
-export type WhereFilterOp =
-  | '<'
-  | '<='
-  | '=='
-  | '!='
-  | '>='
-  | '>'
-  | 'array-contains'
-  | 'in'
-  | 'array-contains-any'
-  | 'not-in';
+// @public
+export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
-// @public (undocumented)
+// @public
 export class WriteBatch {
-  // (undocumented)
-  commit(): Promise<void>;
-
-  // (undocumented)
-  delete(documentRef: DocumentReference<any>): WriteBatch;
-
-  // (undocumented)
-  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
-
-  // (undocumented)
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: Partial<T>,
-    options: SetOptions
-  ): WriteBatch;
-
-  // (undocumented)
-  update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
-
-  // (undocumented)
-  update(
-    documentRef: DocumentReference<any>,
-    field: string | FieldPath,
-    value: any,
-    ...moreFieldsAndValues: any[]
-  ): WriteBatch;
+    commit(): Promise<void>;
+    delete(documentRef: DocumentReference<unknown>): WriteBatch;
+    set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
+    set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): WriteBatch;
+    update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 }
 
-// @public (undocumented)
+// @public
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
 
 

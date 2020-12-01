@@ -4,12 +4,17 @@
 
 ## QueryDocumentSnapshot.data() method
 
+Retrieves all fields in the document as an `Object`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
+/** @override */
 data(): T;
 ```
 <b>Returns:</b>
 
 T
+
+An `Object` containing all fields in the document.
 

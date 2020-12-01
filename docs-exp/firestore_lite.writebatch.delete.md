@@ -4,19 +4,23 @@
 
 ## WriteBatch.delete() method
 
+Deletes the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-delete(documentRef: DocumentReference<any>): WriteBatch;
+delete(documentRef: DocumentReference<unknown>): WriteBatch;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;any&gt; |  |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;unknown&gt; | A reference to the document to be deleted. |
 
 <b>Returns:</b>
 
 [WriteBatch](./firestore_lite.writebatch.md)
+
+This `WriteBatch` instance. Used for chaining method calls.
 

@@ -4,8 +4,10 @@
 
 ## QuerySnapshot.docs property
 
+An array of all the documents in the `QuerySnapshot`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-readonly docs: Array<QueryDocumentSnapshot<T>>;
+get docs(): Array<QueryDocumentSnapshot<T>>;
 ```

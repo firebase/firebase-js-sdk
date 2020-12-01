@@ -8,8 +8,7 @@ import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseService } from '@firebase/app-types-exp';
-import { LogLevel } from '@firebase/logger';
-import { LogLevelString } from '@firebase/logger';
+import { LogLevelString as LogLevel } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
 
@@ -262,8 +261,6 @@ export function limitToLast(limit: number): QueryConstraint;
 
 export { LogLevel }
 
-export { LogLevelString }
-
 // @public
 export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
 
@@ -333,7 +330,7 @@ export function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<voi
 export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
 
 // @public
-export function setLogLevel(logLevel: LogLevelString): void;
+export function setLogLevel(logLevel: LogLevel): void;
 
 // @public
 export type SetOptions = {

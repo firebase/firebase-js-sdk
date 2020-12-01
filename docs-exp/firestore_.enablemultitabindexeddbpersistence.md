@@ -4,21 +4,29 @@
 
 ## enableMultiTabIndexedDbPersistence() function
 
+Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.
+
+If this fails, `enableMultiTabIndexedDbPersistence()` will reject the promise it returns. Note that even after this failure, the `Firestore` instance will remain usable, however offline persistence will be disabled.
+
+There are several reasons why this can fail, which can be identified by the `code` on the error.
+
+\* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation.
+
 <b>Signature:</b>
 
 ```typescript
-export function enableMultiTabIndexedDbPersistence(
-  firestore: FirebaseFirestore
-): Promise<void>;
+export declare function enableMultiTabIndexedDbPersistence(firestore: FirebaseFirestore): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
+|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) | The <code>Firestore</code> instance to enable persistence for. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A promise that represents successfully enabling persistent storage.
 

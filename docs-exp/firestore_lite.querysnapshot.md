@@ -4,24 +4,26 @@
 
 ## QuerySnapshot class
 
+A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects representing the results of a query. The documents can be accessed as an array via the `docs` property or enumerated using the `forEach` method. The number of documents can be determined via the `empty` and `size` properties.
+
 <b>Signature:</b>
 
 ```typescript
-export class QuerySnapshot<T = DocumentData> 
+export declare class QuerySnapshot<T = DocumentData> 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [docs](./firestore_lite.querysnapshot.docs.md) |  | Array&lt;[QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md)<!-- -->&lt;T&gt;&gt; |  |
-|  [empty](./firestore_lite.querysnapshot.empty.md) |  | boolean |  |
-|  [query](./firestore_lite.querysnapshot.query.md) |  | [Query](./firestore_lite.query.md)<!-- -->&lt;T&gt; |  |
-|  [size](./firestore_lite.querysnapshot.size.md) |  | number |  |
+|  [docs](./firestore_lite.querysnapshot.docs.md) |  | Array&lt;[QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md)<!-- -->&lt;T&gt;&gt; | An array of all the documents in the <code>QuerySnapshot</code>. |
+|  [empty](./firestore_lite.querysnapshot.empty.md) |  | boolean | True if there are no documents in the <code>QuerySnapshot</code>. |
+|  [query](./firestore_lite.querysnapshot.query.md) |  | [Query](./firestore_lite.query.md)<!-- -->&lt;T&gt; | The query on which you called [getDocs()](./firestore_.getdocs.md) in order to get this <code>QuerySnapshot</code>. |
+|  [size](./firestore_lite.querysnapshot.size.md) |  | number | The number of documents in the <code>QuerySnapshot</code>. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [forEach(callback, thisArg)](./firestore_lite.querysnapshot.foreach.md) |  |  |
+|  [forEach(callback, thisArg)](./firestore_lite.querysnapshot.foreach.md) |  | Enumerates all of the documents in the <code>QuerySnapshot</code>. |
 

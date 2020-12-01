@@ -4,6 +4,8 @@
 
 ## DocumentSnapshot.data() method
 
+Retrieves all fields in the document as an `Object`<!-- -->. Returns `undefined` if the document doesn't exist.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ data(): T | undefined;
 <b>Returns:</b>
 
 T \| undefined
+
+An `Object` containing all fields in the document or `undefined` if the document doesn't exist.
 

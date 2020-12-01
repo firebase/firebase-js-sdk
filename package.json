@@ -90,7 +90,7 @@
     "@typescript-eslint/eslint-plugin-tslint": "4.8.1",
     "@typescript-eslint/parser": "4.8.1",
     "api-documenter-me": "0.1.0",
-    "api-extractor-me": "0.1.0",
+    "api-extractor-me": "0.1.1",
     "babel-loader": "8.2.1",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",

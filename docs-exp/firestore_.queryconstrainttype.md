@@ -4,16 +4,10 @@
 
 ## QueryConstraintType type
 
+Describes the different query constraints available in this SDK.
+
 <b>Signature:</b>
 
 ```typescript
-export type QueryConstraintType =
-  | 'where'
-  | 'orderBy'
-  | 'limit'
-  | 'limitToLast'
-  | 'startAt'
-  | 'startAfter'
-  | 'endAt'
-  | 'endBefore';
+export declare type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 ```

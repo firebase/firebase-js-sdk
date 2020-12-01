@@ -3562,10 +3562,10 @@ api-documenter-me@0.1.0:
     js-yaml "~3.13.1"
     resolve "~1.17.0"
 
-api-extractor-me@0.1.0:
-  version "0.1.0"
-  resolved "https://registry.npmjs.org/api-extractor-me/-/api-extractor-me-0.1.0.tgz#2c26880ed38d01005c458c80e70f135609cfaac5"
-  integrity sha512-Nq/07XbwxymfCKDpap5AyCWTKM4w1Gvz/WVKc2coJH4TSUkxFJimbvXiQSUCGtpKNGGyy0+R0QITqZD5yRDBsg==
+api-extractor-me@0.1.1:
+  version "0.1.1"
+  resolved "https://registry.npmjs.org/api-extractor-me/-/api-extractor-me-0.1.1.tgz#02d29491d4c2eaa68c72a93062a544fdf6065255"
+  integrity sha512-4MSy8pv7Y701/GY4iMJMPhVOlIey6sulYR24cY61PS+vOnFIU4ctBe8VAnHHJj+FORtiS7thm4vDlEbDjeWEEw==
   dependencies:
     "@microsoft/tsdoc" "0.12.19"
     "@rushstack/node-core-library" "3.25.0"
@@ -6723,7 +6723,7 @@ eslint-visitor-keys@^2.0.0:
   resolved "https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-2.0.0.tgz#21fdc8fbcd9c795cc0321f0563702095751511a8"
   integrity sha512-QudtT6av5WXels9WjIM7qz1XD1cWGvX4gGXvp/zBn9nXG02D0utdU3Em2m/QjTnrsk6bBjmCygl3rmj118msQQ==
 
-eslint@7.13.0, eslint@^7.11.0:
+eslint@7.13.0:
   version "7.13.0"
   resolved "https://registry.npmjs.org/eslint/-/eslint-7.13.0.tgz#7f180126c0dcdef327bfb54b211d7802decc08da"
   integrity sha512-uCORMuOO8tUzJmsdRtrvcGq5qposf7Rw0LwkTJkoDbOycVQtQjmnhZSuLQnozLE4TmAzlMVV45eCHmQ1OpDKUQ==
@@ -15755,7 +15755,7 @@ typescript@3.7.x:
   resolved "https://registry.npmjs.org/typescript/-/typescript-3.7.5.tgz#0692e21f65fd4108b9330238aac11dd2e177a1ae"
   integrity sha512-/P5lkRXkWHNAbcJIiHPfRoKqyd7bsyCma1hZNUGfn20qm64T6ZBlrzprymeu918H+mB/0rIg2gGK/BXkhhYgBw==
 
-typescript@4.0.5, typescript@^4.0.3:
+typescript@4.0.5:
   version "4.0.5"
   resolved "https://registry.npmjs.org/typescript/-/typescript-4.0.5.tgz#ae9dddfd1069f1cb5beb3ef3b2170dd7c1332389"
   integrity sha512-ywmr/VrTVCmNTJ6iV2LwIrfG1P+lv6luD8sUJs+2eI9NLGigaN+nUQc13iHqisq7bra9lnmUSYqbJvegraBOPQ==

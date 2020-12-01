@@ -7,17 +7,17 @@
 <b>Signature:</b>
 
 ```typescript
-update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
+update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;any&gt; |  |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;unknown&gt; |  |
 |  data | [UpdateData](./firestore_.updatedata.md) |  |
 
 <b>Returns:</b>
 
-[Transaction](./firestore_.transaction.md)
+this
 

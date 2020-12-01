@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-stack?: string;
+readonly stack?: string;
 ```

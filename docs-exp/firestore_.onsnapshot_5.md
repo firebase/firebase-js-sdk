@@ -4,29 +4,31 @@
 
 ## onSnapshot() function
 
+Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
+
+NOTE: Although an `onCompletion` callback can be provided, it will never be called because the snapshot stream is never-ending.
+
 <b>Signature:</b>
 
 ```typescript
-export function onSnapshot<T>(
-  query: Query<T>,
-  options: SnapshotListenOptions,
-  observer: {
+export declare function onSnapshot<T>(query: Query<T>, options: SnapshotListenOptions, observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
-  }
-): () => void;
+}): Unsubscribe;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; |  |
-|  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md) |  |
-|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md)<!-- -->) =&gt; void; complete?: () =&gt; void; } |  |
+|  query | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; | The query to listen to. |
+|  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md) | Options controlling the listen behavior. |
+|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
-() =&gt; void
+[Unsubscribe](./firestore_.unsubscribe.md)
+
+An unsubscribe function that can be called to cancel the snapshot listener.
 

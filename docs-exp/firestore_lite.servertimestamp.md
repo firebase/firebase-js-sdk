@@ -4,10 +4,12 @@
 
 ## serverTimestamp() function
 
+Returns a sentinel used with  or  to include a server-generated timestamp in the written data.
+
 <b>Signature:</b>
 
 ```typescript
-export function serverTimestamp(): FieldValue;
+export declare function serverTimestamp(): FieldValue;
 ```
 <b>Returns:</b>
 

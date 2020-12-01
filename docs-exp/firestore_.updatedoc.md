@@ -4,23 +4,24 @@
 
 ## updateDoc() function
 
+Updates fields in the document referred to by the specified `DocumentReference`<!-- -->. The update will fail if applied to a document that does not exist.
+
 <b>Signature:</b>
 
 ```typescript
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  data: UpdateData
-): Promise<void>;
+export declare function updateDoc(reference: DocumentReference<unknown>, data: UpdateData): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;unknown&gt; |  |
-|  data | [UpdateData](./firestore_.updatedata.md) |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;unknown&gt; | A reference to the document to update. |
+|  data | [UpdateData](./firestore_.updatedata.md) | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A Promise resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 

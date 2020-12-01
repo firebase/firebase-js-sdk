@@ -4,8 +4,10 @@
 
 ## DocumentReference.path property
 
+A string representing the path of the referenced document (relative to the root of the database).
+
 <b>Signature:</b>
 
 ```typescript
-readonly path: string;
+get path(): string;
 ```

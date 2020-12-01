@@ -4,19 +4,21 @@
 
 ## Bytes.fromBase64String() method
 
+Creates a new `Bytes` object from the given Base64 string, converting it to bytes.
+
 <b>Signature:</b>
 
 ```typescript
-static fromBase64String(base64: string): Blob;
+static fromBase64String(base64: string): Bytes;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  base64 | string |  |
+|  base64 | string | The Base64 string used to create the <code>Bytes</code> object. |
 
 <b>Returns:</b>
 
-Blob
+[Bytes](./firestore_lite.bytes.md)
 

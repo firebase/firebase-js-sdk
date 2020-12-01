@@ -4,10 +4,12 @@
 
 ## disableNetwork() function
 
+Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.enablenetwork.md)<!-- -->. While the network is disabled, any snapshot listeners, `getDoc()` or `getDocs()` calls will return results from cache, and any write operations will be queued until the network is restored.
+
 <b>Signature:</b>
 
 ```typescript
-export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
+export declare function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
 ```
 
 ## Parameters
@@ -19,4 +21,6 @@ export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A promise that is resolved once the network has been disabled.
 

@@ -7,13 +7,16 @@
 <b>Signature:</b>
 
 ```typescript
-export interface Settings 
+export declare interface Settings 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [cacheSizeBytes](./firestore_lite.settings.cachesizebytes.md) | number |  |
+|  [experimentalAutoDetectLongPolling](./firestore_lite.settings.experimentalautodetectlongpolling.md) | boolean |  |
+|  [experimentalForceLongPolling](./firestore_lite.settings.experimentalforcelongpolling.md) | boolean |  |
 |  [host](./firestore_lite.settings.host.md) | string |  |
 |  [ignoreUndefinedProperties](./firestore_lite.settings.ignoreundefinedproperties.md) | boolean |  |
 |  [ssl](./firestore_lite.settings.ssl.md) | boolean |  |

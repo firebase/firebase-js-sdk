@@ -4,6 +4,8 @@
 
 ## DocumentReference.firestore property
 
+The [FirebaseFirestore](./firestore_.firebasefirestore.md) the document is in. This is useful for performing transactions, for example.
+
 <b>Signature:</b>
 
 ```typescript
