@@ -23,10 +23,10 @@ import { loadBundle, namedQuery } from './src/api/bundle';
  */
 export function registerBundle(instance: typeof Firestore): void {
   instance.prototype.loadBundle = function (
+    this: Firestore,
     data: ArrayBuffer | ReadableStream<Uint8Array> | string
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return loadBundle(this as any, data);
+    return loadBundle(this data);
   };
   instance.prototype.namedQuery = function (queryName: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
