@@ -78,7 +78,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * since the last release. This simplifies the script and works fine for exp packages.
      *
      * 2. Removes -exp in package names because we will publish them using
-     * the existing package names under a special release tag (e.g. firebase@exp).
+     * the existing package names under a special release tag (firebase@exp).
      */
     const versions = await updatePackageNamesAndVersions(packagePaths);
 
