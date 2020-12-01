@@ -4,21 +4,20 @@
 
 ## FirestoreDataConverter.fromFirestore() method
 
+Called by the Firestore SDK to convert Firestore data into an object of type T. You can access your data by calling: `snapshot.data(options)`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData>,
-    options?: SnapshotOptions
-  ): T;
+fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>, options?: SnapshotOptions): T;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md)<!-- -->&gt; |  |
-|  options | [SnapshotOptions](./firestore_.snapshotoptions.md) |  |
+|  snapshot | [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md)<!-- -->&gt; | A <code>QueryDocumentSnapshot</code> containing your data and metadata. |
+|  options | [SnapshotOptions](./firestore_.snapshotoptions.md) | The <code>SnapshotOptions</code> from the initial call to <code>data()</code>. |
 
 <b>Returns:</b>
 

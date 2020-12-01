@@ -4,10 +4,18 @@
 
 ## terminate() function
 
+Terminates the provided Firestore instance.
+
+After calling `terminate()` only the `clearIndexedDbPersistence()` functions may be used. Any other function will throw a `FirestoreError`<!-- -->. Termination does not cancel any pending writes, and any promises that are awaiting a response from the server will not be resolved.
+
+To restart after termination, create a new instance of FirebaseFirestore with [getFirestore()](./firestore_.getfirestore.md)<!-- -->.
+
+Note: Under normal circumstances, calling `terminate()` is not required. This function is useful only when you want to force this instance to release all of its resources or in combination with [clearIndexedDbPersistence()](./firestore_.clearindexeddbpersistence.md) to ensure that all local state is destroyed between test runs.
+
 <b>Signature:</b>
 
 ```typescript
-export function terminate(firestore: FirebaseFirestore): Promise<void>;
+export declare function terminate(firestore: FirebaseFirestore): Promise<void>;
 ```
 
 ## Parameters
@@ -19,4 +27,6 @@ export function terminate(firestore: FirebaseFirestore): Promise<void>;
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A promise that is resolved when the instance has been successfully terminated.
 

@@ -4,22 +4,24 @@
 
 ## SnapshotMetadata class
 
+Metadata about a snapshot, describing the state of the snapshot.
+
 <b>Signature:</b>
 
 ```typescript
-export class SnapshotMetadata 
+export declare class SnapshotMetadata 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [fromCache](./firestore_.snapshotmetadata.fromcache.md) |  | boolean |  |
-|  [hasPendingWrites](./firestore_.snapshotmetadata.haspendingwrites.md) |  | boolean |  |
+|  [fromCache](./firestore_.snapshotmetadata.fromcache.md) |  | boolean | True if the snapshot was created from cached data rather than guaranteed up-to-date server data. If your listener has opted into metadata updates (via <code>SnapshotListenOptions</code>) you will receive another snapshot with <code>fromCache</code> set to false once the client has received up-to-date data from the backend. |
+|  [hasPendingWrites](./firestore_.snapshotmetadata.haspendingwrites.md) |  | boolean | True if the snapshot contains the result of local writes (for example <code>set()</code> or <code>update()</code> calls) that have not yet been committed to the backend. If your listener has opted into metadata updates (via <code>SnapshotListenOptions</code>) you will receive another snapshot with <code>hasPendingWrites</code> equal to false once the writes have been committed to the backend. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [isEqual(other)](./firestore_.snapshotmetadata.isequal.md) |  |  |
+|  [isEqual(other)](./firestore_.snapshotmetadata.isequal.md) |  | Returns true if this <code>SnapshotMetadata</code> is equal to the provided one. |
 

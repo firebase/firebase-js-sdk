@@ -4,6 +4,8 @@
 
 ## Transaction.get() method
 
+Reads the document referenced by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; |  |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; | A reference to the document to be read. |
 
 <b>Returns:</b>
 
 Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt;&gt;
+
+A `DocumentSnapshot` with the read data.
 

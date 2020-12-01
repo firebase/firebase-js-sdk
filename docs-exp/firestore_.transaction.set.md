@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
+set<T>(documentRef: DocumentReference<T>, data: T): this;
 ```
 
 ## Parameters
@@ -19,5 +19,5 @@ set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
 
 <b>Returns:</b>
 
-[Transaction](./firestore_.transaction.md)
+this
 

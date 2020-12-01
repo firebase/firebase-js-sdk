@@ -2,20 +2,22 @@
 
 [Home](./index.md) &gt; [@firebase/firestore](./firestore.md) &gt; [/](./firestore_.md) &gt; [FirestoreError](./firestore_.firestoreerror.md)
 
-## FirestoreError interface
+## FirestoreError class
+
+An error returned by a Firestore operation.
 
 <b>Signature:</b>
 
 ```typescript
-export interface FirestoreError 
+export declare class FirestoreError 
 ```
 
 ## Properties
 
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [code](./firestore_.firestoreerror.code.md) | [FirestoreErrorCode](./firestore_.firestoreerrorcode.md) |  |
-|  [message](./firestore_.firestoreerror.message.md) | string |  |
-|  [name](./firestore_.firestoreerror.name.md) | string |  |
-|  [stack](./firestore_.firestoreerror.stack.md) | string |  |
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [code](./firestore_.firestoreerror.code.md) |  | [FirestoreErrorCode](./firestore_.firestoreerrorcode.md) |  |
+|  [message](./firestore_.firestoreerror.message.md) |  | string |  |
+|  [name](./firestore_.firestoreerror.name.md) |  | string |  |
+|  [stack](./firestore_.firestoreerror.stack.md) |  | string |  |
 

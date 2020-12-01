@@ -4,23 +4,24 @@
 
 ## initializeFirestore() function
 
+Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.getfirestore.md)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.getfirestore.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export function initializeFirestore(
-  app: FirebaseApp,
-  settings: Settings
-): FirebaseFirestore;
+export declare function initializeFirestore(app: FirebaseApp, settings: Settings): FirebaseFirestore;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
-|  settings | [Settings](./firestore_.settings.md) |  |
+|  app | [FirebaseApp](./app-types.firebaseapp.md) | The  with which the <code>Firestore</code> instance will be associated. |
+|  settings | [Settings](./firestore_.settings.md) | A settings object to configure the <code>Firestore</code> instance. |
 
 <b>Returns:</b>
 
 [FirebaseFirestore](./firestore_.firebasefirestore.md)
+
+A newly initialized `Firestore` instance.
 

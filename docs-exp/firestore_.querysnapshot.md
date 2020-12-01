@@ -4,26 +4,28 @@
 
 ## QuerySnapshot class
 
+A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects representing the results of a query. The documents can be accessed as an array via the `docs` property or enumerated using the `forEach` method. The number of documents can be determined via the `empty` and `size` properties.
+
 <b>Signature:</b>
 
 ```typescript
-export class QuerySnapshot<T = DocumentData> 
+export declare class QuerySnapshot<T = DocumentData> 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [docs](./firestore_.querysnapshot.docs.md) |  | Array&lt;[QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md)<!-- -->&lt;T&gt;&gt; |  |
-|  [empty](./firestore_.querysnapshot.empty.md) |  | boolean |  |
-|  [metadata](./firestore_.querysnapshot.metadata.md) |  | [SnapshotMetadata](./firestore_.snapshotmetadata.md) |  |
-|  [query](./firestore_.querysnapshot.query.md) |  | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; |  |
-|  [size](./firestore_.querysnapshot.size.md) |  | number |  |
+|  [docs](./firestore_.querysnapshot.docs.md) |  | Array&lt;[QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md)<!-- -->&lt;T&gt;&gt; | An array of all the documents in the <code>QuerySnapshot</code>. |
+|  [empty](./firestore_.querysnapshot.empty.md) |  | boolean | True if there are no documents in the <code>QuerySnapshot</code>. |
+|  [metadata](./firestore_.querysnapshot.metadata.md) |  | [SnapshotMetadata](./firestore_.snapshotmetadata.md) | Metadata about this snapshot, concerning its source and if it has local modifications. |
+|  [query](./firestore_.querysnapshot.query.md) |  | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; | The query on which you called <code>get</code> or <code>onSnapshot</code> in order to get this <code>QuerySnapshot</code>. |
+|  [size](./firestore_.querysnapshot.size.md) |  | number | The number of documents in the <code>QuerySnapshot</code>. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [docChanges(options)](./firestore_.querysnapshot.docchanges.md) |  |  |
-|  [forEach(callback, thisArg)](./firestore_.querysnapshot.foreach.md) |  |  |
+|  [docChanges(options)](./firestore_.querysnapshot.docchanges.md) |  | Returns an array of the documents changes since the last snapshot. If this is the first snapshot, all documents will be in the list as 'added' changes. |
+|  [forEach(callback, thisArg)](./firestore_.querysnapshot.foreach.md) |  | Enumerates all of the documents in the <code>QuerySnapshot</code>. |
 

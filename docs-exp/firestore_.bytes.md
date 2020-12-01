@@ -4,19 +4,22 @@
 
 ## Bytes class
 
+An immutable object representing an array of bytes.
+
 <b>Signature:</b>
 
 ```typescript
-export class Bytes 
+export declare class Bytes 
 ```
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromBase64String(base64)](./firestore_.bytes.frombase64string.md) | <code>static</code> |  |
-|  [fromUint8Array(array)](./firestore_.bytes.fromuint8array.md) | <code>static</code> |  |
-|  [isEqual(other)](./firestore_.bytes.isequal.md) |  |  |
-|  [toBase64()](./firestore_.bytes.tobase64.md) |  |  |
-|  [toUint8Array()](./firestore_.bytes.touint8array.md) |  |  |
+|  [fromBase64String(base64)](./firestore_.bytes.frombase64string.md) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Base64 string, converting it to bytes. |
+|  [fromUint8Array(array)](./firestore_.bytes.fromuint8array.md) | <code>static</code> | Creates a new <code>Bytes</code> object from the given Uint8Array. |
+|  [isEqual(other)](./firestore_.bytes.isequal.md) |  | Returns true if this <code>Bytes</code> object is equal to the provided one. |
+|  [toBase64()](./firestore_.bytes.tobase64.md) |  | Returns the underlying bytes as a Base64-encoded string. |
+|  [toString()](./firestore_.bytes.tostring.md) |  | Returns a string representation of the <code>Bytes</code> object. |
+|  [toUint8Array()](./firestore_.bytes.touint8array.md) |  | Returns the underlying bytes in a new <code>Uint8Array</code>. |
 

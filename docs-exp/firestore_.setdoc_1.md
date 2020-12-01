@@ -4,25 +4,25 @@
 
 ## setDoc() function
 
+Writes to the document referred to by the specified `DocumentReference`<!-- -->. If the document does not yet exist, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
+
 <b>Signature:</b>
 
 ```typescript
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: Partial<T>,
-  options: SetOptions
-): Promise<void>;
+export declare function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; |  |
-|  data | Partial&lt;T&gt; |  |
-|  options | [SetOptions](./firestore_.setoptions.md) |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; | A reference to the document to write. |
+|  data | Partial&lt;T&gt; | A map of the fields and values for the document. |
+|  options | [SetOptions](./firestore_.setoptions.md) | An object to configure the set behavior. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A Promise resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 

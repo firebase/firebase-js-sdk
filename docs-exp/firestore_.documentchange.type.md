@@ -4,6 +4,8 @@
 
 ## DocumentChange.type property
 
+The type of change ('added', 'modified', or 'removed').
+
 <b>Signature:</b>
 
 ```typescript

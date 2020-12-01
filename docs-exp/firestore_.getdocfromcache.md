@@ -4,12 +4,12 @@
 
 ## getDocFromCache() function
 
+Reads the document referred to by this `DocumentReference` from cache. Returns an error if the document is not currently cached.
+
 <b>Signature:</b>
 
 ```typescript
-export function getDocFromCache<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+export declare function getDocFromCache<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 ```
 
 ## Parameters
@@ -21,4 +21,6 @@ export function getDocFromCache<T>(
 <b>Returns:</b>
 
 Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt;&gt;
+
+A Promise resolved with a `DocumentSnapshot` containing the current document contents.
 

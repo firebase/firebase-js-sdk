@@ -4,23 +4,24 @@
 
 ## collectionGroup() function
 
+Creates and returns a new `Query` instance that includes all documents in the database that are contained in a collection or subcollection with the given `collectionId`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export function collectionGroup(
-  firestore: FirebaseFirestore,
-  collectionId: string
-): Query<DocumentData>;
+export declare function collectionGroup(firestore: FirebaseFirestore, collectionId: string): Query<DocumentData>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
-|  collectionId | string |  |
+|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) | A reference to the root Firestore instance. |
+|  collectionId | string | Identifies the collections to query over. Every collection or subcollection with this ID as the last segment of its path will be included. Cannot contain a slash. |
 
 <b>Returns:</b>
 
 [Query](./firestore_.query.md)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md)<!-- -->&gt;
+
+The created `Query`<!-- -->.
 

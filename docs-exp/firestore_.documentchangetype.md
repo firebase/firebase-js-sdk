@@ -4,8 +4,10 @@
 
 ## DocumentChangeType type
 
+The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
+
 <b>Signature:</b>
 
 ```typescript
-export type DocumentChangeType = 'added' | 'removed' | 'modified';
+export declare type DocumentChangeType = 'added' | 'removed' | 'modified';
 ```

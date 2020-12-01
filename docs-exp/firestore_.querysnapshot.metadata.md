@@ -4,6 +4,8 @@
 
 ## QuerySnapshot.metadata property
 
+Metadata about this snapshot, concerning its source and if it has local modifications.
+
 <b>Signature:</b>
 
 ```typescript

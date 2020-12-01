@@ -90,8 +90,10 @@
 |  [browserLocalPersistence](./auth.browserlocalpersistence.md) | An implementation of [Persistence](./auth-types.persistence.md) of type 'LOCAL' using <code>localStorage</code> for the underlying storage. |
 |  [browserPopupRedirectResolver](./auth.browserpopupredirectresolver.md) | An implementation of [PopupRedirectResolver](./auth-types.popupredirectresolver.md) suitable for browser based applications. |
 |  [browserSessionPersistence](./auth.browsersessionpersistence.md) | An implementation of [Persistence](./auth-types.persistence.md) of 'SESSION' using <code>sessionStorage</code> for the underlying storage. |
+|  [debugErrorMap](./auth.debugerrormap.md) | A verbose error map with detailed descriptions for most error codes.<!-- -->See discussion at [AuthErrorMap](./auth-types.autherrormap.md) |
 |  [indexedDBLocalPersistence](./auth.indexeddblocalpersistence.md) | An implementation of [Persistence](./auth-types.persistence.md) of type 'LOCAL' using <code>indexedDB</code> for the underlying storage. |
 |  [inMemoryPersistence](./auth.inmemorypersistence.md) | An implementation of [Persistence](./auth-types.persistence.md) of type 'NONE'. |
+|  [prodErrorMap](./auth.proderrormap.md) | A minimal error map with all verbose error messages stripped.<!-- -->See discussion at [AuthErrorMap](./auth-types.autherrormap.md) |
 
 ## Type Aliases
 

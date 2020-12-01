@@ -4,6 +4,8 @@
 
 ## DocumentReference.parent property
 
+The collection this `DocumentReference` belongs to.
+
 <b>Signature:</b>
 
 ```typescript

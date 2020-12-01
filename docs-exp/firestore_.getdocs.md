@@ -4,10 +4,14 @@
 
 ## getDocs() function
 
+Executes the query and returns the results as a `QuerySnapshot`<!-- -->.
+
+Note: `getDocs()` attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocsFromCache()](./firestore_.getdocsfromcache.md) or [getDocsFromServer()](./firestore_.getdocsfromserver.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 ```
 
 ## Parameters
@@ -19,4 +23,6 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 <b>Returns:</b>
 
 Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->&lt;T&gt;&gt;
+
+A Promise that will be resolved with the results of the query.
 

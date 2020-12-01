@@ -4,8 +4,10 @@
 
 ## DocumentReference.type property
 
+The type of this Firestore reference.
+
 <b>Signature:</b>
 
 ```typescript
-readonly type: 'document';
+readonly type = "document";
 ```

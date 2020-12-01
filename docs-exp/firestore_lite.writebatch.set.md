@@ -4,6 +4,8 @@
 
 ## WriteBatch.set() method
 
+Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. If the document does not exist yet, it will be created.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,12 @@ set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; |  |
-|  data | T |  |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; | A reference to the document to be set. |
+|  data | T | An object of the fields and values for the document. |
 
 <b>Returns:</b>
 
 [WriteBatch](./firestore_lite.writebatch.md)
+
+This `WriteBatch` instance. Used for chaining method calls.
 

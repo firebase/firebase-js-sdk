@@ -4,6 +4,8 @@
 
 ## DocumentReference.withConverter() method
 
+Applies a custom data converter to this `DocumentReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call , [getDoc()](./firestore_.getdoc.md)<!-- -->, etc. with the returned `DocumentReference` instance, the provided converter will convert between Firestore data and your custom type `U`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md)<!-- -->&lt;U&gt; |  |
+|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md)<!-- -->&lt;U&gt; | Converts objects to and from Firestore. |
 
 <b>Returns:</b>
 
 [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;U&gt;
+
+A `DocumentReference<U>` that uses the provided converter.
 

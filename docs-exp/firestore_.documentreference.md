@@ -4,26 +4,27 @@
 
 ## DocumentReference class
 
+A `DocumentReference` refers to a document location in a Firestore database and can be used to write, read, or listen to the location. The document at the referenced location may or may not exist.
+
 <b>Signature:</b>
 
 ```typescript
-export class DocumentReference<T = DocumentData> 
+export declare class DocumentReference<T = DocumentData> 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [converter](./firestore_.documentreference.converter.md) |  | [FirestoreDataConverter](./firestore_.firestoredataconverter.md)<!-- -->&lt;T&gt; \| null |  |
-|  [firestore](./firestore_.documentreference.firestore.md) |  | [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
-|  [id](./firestore_.documentreference.id.md) |  | string |  |
-|  [parent](./firestore_.documentreference.parent.md) |  | [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; |  |
-|  [path](./firestore_.documentreference.path.md) |  | string |  |
-|  [type](./firestore_.documentreference.type.md) |  | 'document' |  |
+|  [firestore](./firestore_.documentreference.firestore.md) |  | [FirebaseFirestore](./firestore_.firebasefirestore.md) | The [FirebaseFirestore](./firestore_.firebasefirestore.md) the document is in. This is useful for performing transactions, for example. |
+|  [id](./firestore_.documentreference.id.md) |  | string | The document's identifier within its collection. |
+|  [parent](./firestore_.documentreference.parent.md) |  | [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; | The collection this <code>DocumentReference</code> belongs to. |
+|  [path](./firestore_.documentreference.path.md) |  | string | A string representing the path of the referenced document (relative to the root of the database). |
+|  [type](./firestore_.documentreference.type.md) |  | (not declared) | The type of this Firestore reference. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [withConverter(converter)](./firestore_.documentreference.withconverter.md) |  |  |
+|  [withConverter(converter)](./firestore_.documentreference.withconverter.md) |  | Applies a custom data converter to this <code>DocumentReference</code>, allowing you to use your own custom model objects with Firestore. When you call , [getDoc()](./firestore_.getdoc.md)<!-- -->, etc. with the returned <code>DocumentReference</code> instance, the provided converter will convert between Firestore data and your custom type <code>U</code>. |
 

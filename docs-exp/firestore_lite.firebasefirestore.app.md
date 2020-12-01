@@ -4,8 +4,10 @@
 
 ## FirebaseFirestore.app property
 
+The  associated with this `Firestore` service instance.
+
 <b>Signature:</b>
 
 ```typescript
-readonly app: FirebaseApp;
+get app(): FirebaseApp;
 ```

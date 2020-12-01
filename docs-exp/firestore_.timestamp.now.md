@@ -4,6 +4,8 @@
 
 ## Timestamp.now() method
 
+Creates a new timestamp with the current date, with millisecond precision.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ static now(): Timestamp;
 <b>Returns:</b>
 
 [Timestamp](./firestore_.timestamp.md)
+
+a new timestamp representing the current date.
 

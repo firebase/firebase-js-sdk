@@ -8,120 +8,120 @@
 
 |  Class | Description |
 |  --- | --- |
-|  [Bytes](./firestore_.bytes.md) |  |
-|  [CollectionReference](./firestore_.collectionreference.md) |  |
-|  [DocumentReference](./firestore_.documentreference.md) |  |
-|  [DocumentSnapshot](./firestore_.documentsnapshot.md) |  |
-|  [FieldPath](./firestore_.fieldpath.md) |  |
-|  [FieldValue](./firestore_.fieldvalue.md) |  |
-|  [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
-|  [GeoPoint](./firestore_.geopoint.md) |  |
-|  [Query](./firestore_.query.md) |  |
-|  [QueryConstraint](./firestore_.queryconstraint.md) |  |
-|  [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md) |  |
-|  [QuerySnapshot](./firestore_.querysnapshot.md) |  |
-|  [SnapshotMetadata](./firestore_.snapshotmetadata.md) |  |
-|  [Timestamp](./firestore_.timestamp.md) |  |
-|  [Transaction](./firestore_.transaction.md) |  |
-|  [WriteBatch](./firestore_.writebatch.md) |  |
+|  [Bytes](./firestore_.bytes.md) | An immutable object representing an array of bytes. |
+|  [CollectionReference](./firestore_.collectionreference.md) | A <code>CollectionReference</code> object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.query.md)<!-- -->). |
+|  [DocumentReference](./firestore_.documentreference.md) | A <code>DocumentReference</code> refers to a document location in a Firestore database and can be used to write, read, or listen to the location. The document at the referenced location may or may not exist. |
+|  [DocumentSnapshot](./firestore_.documentsnapshot.md) | A <code>DocumentSnapshot</code> contains data read from a document in your Firestore database. The data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->For a <code>DocumentSnapshot</code> that points to a non-existing document, any data access will return 'undefined'. You can use the <code>exists()</code> method to explicitly verify a document's existence. |
+|  [FieldPath](./firestore_.fieldpath.md) | A <code>FieldPath</code> refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).<!-- -->Create a <code>FieldPath</code> by providing field names. If more than one field name is provided, the path will point to a nested field in a document. |
+|  [FieldValue](./firestore_.fieldvalue.md) | Sentinel values that can be used when writing document fields with <code>set()</code> or <code>update()</code>. |
+|  [FirebaseFirestore](./firestore_.firebasefirestore.md) | The Cloud Firestore service interface.<!-- -->Do not call this constructor directly. Instead, use [getFirestore()](./firestore_.getfirestore.md)<!-- -->. |
+|  [FirestoreError](./firestore_.firestoreerror.md) | An error returned by a Firestore operation. |
+|  [GeoPoint](./firestore_.geopoint.md) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
+|  [Query](./firestore_.query.md) | A <code>Query</code> refers to a Query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
+|  [QueryConstraint](./firestore_.queryconstraint.md) | A <code>QueryConstraint</code> is used to narrow the set of documents returned by a Firestore query. <code>QueryConstraint</code>s are created by invoking [where()](./firestore_.where.md)<!-- -->, [orderBy()](./firestore_.orderby.md)<!-- -->, , , , , [limit()](./firestore_.limit.md) or [limitToLast()](./firestore_.limittolast.md) and can then be passed to [query()](./firestore_.query.md) to create a new query instance that also contains this <code>QueryConstraint</code>. |
+|  [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
+|  [QuerySnapshot](./firestore_.querysnapshot.md) | A <code>QuerySnapshot</code> contains zero or more <code>DocumentSnapshot</code> objects representing the results of a query. The documents can be accessed as an array via the <code>docs</code> property or enumerated using the <code>forEach</code> method. The number of documents can be determined via the <code>empty</code> and <code>size</code> properties. |
+|  [SnapshotMetadata](./firestore_.snapshotmetadata.md) | Metadata about a snapshot, describing the state of the snapshot. |
+|  [Timestamp](./firestore_.timestamp.md) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto |
+|  [Transaction](./firestore_.transaction.md) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.runtransaction.md)<!-- -->. |
+|  [WriteBatch](./firestore_.writebatch.md) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.writebatch.md)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until  is called. |
 
 ## Functions
 
 |  Function | Description |
 |  --- | --- |
 |  [addDoc(reference, data)](./firestore_.adddoc.md) |  |
-|  [arrayRemove(elements)](./firestore_.arrayremove.md) |  |
-|  [arrayUnion(elements)](./firestore_.arrayunion.md) |  |
-|  [clearIndexedDbPersistence(firestore)](./firestore_.clearindexeddbpersistence.md) |  |
-|  [collection(firestore, path, pathComponents)](./firestore_.collection.md) |  |
-|  [collection(reference, path, pathComponents)](./firestore_.collection_1.md) |  |
-|  [collection(reference, path, pathComponents)](./firestore_.collection_2.md) |  |
-|  [collectionGroup(firestore, collectionId)](./firestore_.collectiongroup.md) |  |
-|  [deleteDoc(reference)](./firestore_.deletedoc.md) |  |
-|  [deleteField()](./firestore_.deletefield.md) |  |
-|  [disableNetwork(firestore)](./firestore_.disablenetwork.md) |  |
-|  [doc(firestore, path, pathComponents)](./firestore_.doc.md) |  |
-|  [doc(reference, path, pathComponents)](./firestore_.doc_1.md) |  |
-|  [doc(reference, path, pathComponents)](./firestore_.doc_2.md) |  |
-|  [documentId()](./firestore_.documentid.md) |  |
-|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.enableindexeddbpersistence.md) |  |
-|  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.enablemultitabindexeddbpersistence.md) |  |
-|  [enableNetwork(firestore)](./firestore_.enablenetwork.md) |  |
-|  [endAt(snapshot)](./firestore_.endat.md) |  |
-|  [endAt(fieldValues)](./firestore_.endat_1.md) |  |
-|  [endBefore(snapshot)](./firestore_.endbefore.md) |  |
-|  [endBefore(fieldValues)](./firestore_.endbefore_1.md) |  |
-|  [getDoc(reference)](./firestore_.getdoc.md) |  |
-|  [getDocFromCache(reference)](./firestore_.getdocfromcache.md) |  |
-|  [getDocFromServer(reference)](./firestore_.getdocfromserver.md) |  |
-|  [getDocs(query)](./firestore_.getdocs.md) |  |
-|  [getDocsFromCache(query)](./firestore_.getdocsfromcache.md) |  |
-|  [getDocsFromServer(query)](./firestore_.getdocsfromserver.md) |  |
-|  [getFirestore(app)](./firestore_.getfirestore.md) |  |
-|  [increment(n)](./firestore_.increment.md) |  |
-|  [initializeFirestore(app, settings)](./firestore_.initializefirestore.md) |  |
-|  [limit(limit)](./firestore_.limit.md) |  |
-|  [limitToLast(limit)](./firestore_.limittolast.md) |  |
-|  [onSnapshot(reference, observer)](./firestore_.onsnapshot.md) |  |
-|  [onSnapshot(reference, options, observer)](./firestore_.onsnapshot_1.md) |  |
-|  [onSnapshot(reference, onNext, onError, onCompletion)](./firestore_.onsnapshot_2.md) |  |
-|  [onSnapshot(reference, options, onNext, onError, onCompletion)](./firestore_.onsnapshot_3.md) |  |
-|  [onSnapshot(query, observer)](./firestore_.onsnapshot_4.md) |  |
-|  [onSnapshot(query, options, observer)](./firestore_.onsnapshot_5.md) |  |
-|  [onSnapshot(query, onNext, onError, onCompletion)](./firestore_.onsnapshot_6.md) |  |
-|  [onSnapshot(query, options, onNext, onError, onCompletion)](./firestore_.onsnapshot_7.md) |  |
-|  [onSnapshotsInSync(firestore, observer)](./firestore_.onsnapshotsinsync.md) |  |
-|  [onSnapshotsInSync(firestore, onSync)](./firestore_.onsnapshotsinsync_1.md) |  |
-|  [orderBy(fieldPath, directionStr)](./firestore_.orderby.md) |  |
-|  [query(query, constraints)](./firestore_.query.md) |  |
-|  [queryEqual(left, right)](./firestore_.queryequal.md) |  |
-|  [refEqual(left, right)](./firestore_.refequal.md) |  |
-|  [runTransaction(firestore, updateFunction)](./firestore_.runtransaction.md) |  |
-|  [serverTimestamp()](./firestore_.servertimestamp.md) |  |
-|  [setDoc(reference, data)](./firestore_.setdoc.md) |  |
-|  [setDoc(reference, data, options)](./firestore_.setdoc_1.md) |  |
-|  [setLogLevel(logLevel)](./firestore_.setloglevel.md) |  |
-|  [snapshotEqual(left, right)](./firestore_.snapshotequal.md) |  |
-|  [startAfter(snapshot)](./firestore_.startafter.md) |  |
-|  [startAfter(fieldValues)](./firestore_.startafter_1.md) |  |
-|  [startAt(snapshot)](./firestore_.startat.md) |  |
-|  [startAt(fieldValues)](./firestore_.startat_1.md) |  |
-|  [terminate(firestore)](./firestore_.terminate.md) |  |
-|  [updateDoc(reference, data)](./firestore_.updatedoc.md) |  |
-|  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_.updatedoc_1.md) |  |
-|  [waitForPendingWrites(firestore)](./firestore_.waitforpendingwrites.md) |  |
-|  [where(fieldPath, opStr, value)](./firestore_.where.md) |  |
-|  [writeBatch(firestore)](./firestore_.writebatch.md) |  |
+|  [arrayRemove(elements)](./firestore_.arrayremove.md) | Returns a special value that can be used with [setDoc()](./firestore_.setdoc.md) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
+|  [arrayUnion(elements)](./firestore_.arrayunion.md) | Returns a special value that can be used with  or  that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
+|  [clearIndexedDbPersistence(firestore)](./firestore_.clearindexeddbpersistence.md) | Clears the persistent storage. This includes pending writes and cached documents.<!-- -->Must be called while the <code>Firestore</code> instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.initializefirestore.md) or [getFirestore()](./firestore_.getfirestore.md)<!-- -->)). If the <code>Firestore</code> instance is still running, the promise will be rejected with the error code of <code>failed-precondition</code>.<!-- -->Note: <code>clearIndexedDbPersistence()</code> is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all. |
+|  [collection(firestore, path, pathSegments)](./firestore_.collection.md) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
+|  [collection(reference, path, pathSegments)](./firestore_.collection_1.md) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
+|  [collection(reference, path, pathSegments)](./firestore_.collection_2.md) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
+|  [collectionGroup(firestore, collectionId)](./firestore_.collectiongroup.md) | Creates and returns a new <code>Query</code> instance that includes all documents in the database that are contained in a collection or subcollection with the given <code>collectionId</code>. |
+|  [deleteDoc(reference)](./firestore_.deletedoc.md) | Deletes the document referred to by the specified <code>DocumentReference</code>. |
+|  [deleteField()](./firestore_.deletefield.md) | Returns a sentinel for use with  or  with <code>{merge: true}</code> to mark a field for deletion. |
+|  [disableNetwork(firestore)](./firestore_.disablenetwork.md) | Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.enablenetwork.md)<!-- -->. While the network is disabled, any snapshot listeners, <code>getDoc()</code> or <code>getDocs()</code> calls will return results from cache, and any write operations will be queued until the network is restored. |
+|  [doc(firestore, path, pathSegments)](./firestore_.doc.md) | Gets a <code>DocumentReference</code> instance that refers to the document at the specified abosulute path. |
+|  [doc(reference, path, pathSegments)](./firestore_.doc_1.md) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned <code>DocumentReference</code>. |
+|  [doc(reference, path, pathSegments)](./firestore_.doc_2.md) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. |
+|  [documentId()](./firestore_.documentid.md) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
+|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.enableindexeddbpersistence.md) | Attempts to enable persistent storage, if possible.<!-- -->Must be called before any other functions (other than [initializeFirestore()](./firestore_.initializefirestore.md)<!-- -->, [getFirestore()](./firestore_.getfirestore.md) or [clearIndexedDbPersistence()](./firestore_.clearindexeddbpersistence.md)<!-- -->.<!-- -->If this fails, <code>enableIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the <code>Firestore</code> instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation. |
+|  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.enablemultitabindexeddbpersistence.md) | Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.<!-- -->If this fails, <code>enableMultiTabIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the <code>Firestore</code> instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation. |
+|  [enableNetwork(firestore)](./firestore_.enablenetwork.md) | Re-enables use of the network for this Firestore instance after a prior call to [disableNetwork()](./firestore_.disablenetwork.md)<!-- -->. |
+|  [endAt(snapshot)](./firestore_.endat.md) | Creates a <code>QueryConstraint</code> that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
+|  [endAt(fieldValues)](./firestore_.endat_1.md) | Creates a <code>QueryConstraint</code> that modifies the result set to end at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  [endBefore(snapshot)](./firestore_.endbefore.md) | Creates a <code>QueryConstraint</code> that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
+|  [endBefore(fieldValues)](./firestore_.endbefore_1.md) | Creates a <code>QueryConstraint</code> that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  [getDoc(reference)](./firestore_.getdoc.md) | Reads the document referred to by this <code>DocumentReference</code>.<!-- -->Note: <code>getDoc()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocFromCache()](./firestore_.getdocfromcache.md) or [getDocFromServer()](./firestore_.getdocfromserver.md)<!-- -->. |
+|  [getDocFromCache(reference)](./firestore_.getdocfromcache.md) | Reads the document referred to by this <code>DocumentReference</code> from cache. Returns an error if the document is not currently cached. |
+|  [getDocFromServer(reference)](./firestore_.getdocfromserver.md) | Reads the document referred to by this <code>DocumentReference</code> from the server. Returns an error if the network is not available. |
+|  [getDocs(query)](./firestore_.getdocs.md) | Executes the query and returns the results as a <code>QuerySnapshot</code>.<!-- -->Note: <code>getDocs()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocsFromCache()](./firestore_.getdocsfromcache.md) or [getDocsFromServer()](./firestore_.getdocsfromserver.md)<!-- -->. |
+|  [getDocsFromCache(query)](./firestore_.getdocsfromcache.md) | Executes the query and returns the results as a <code>QuerySnapshot</code> from cache. Returns an error if the document is not currently cached. |
+|  [getDocsFromServer(query)](./firestore_.getdocsfromserver.md) | Executes the query and returns the results as a <code>QuerySnapshot</code> from the server. Returns an error if the network is not available. |
+|  [getFirestore(app)](./firestore_.getfirestore.md) | Returns the existing instance of Firestore that is associated with the provided . If no instance exists, initializes a new instance with default settings. |
+|  [increment(n)](./firestore_.increment.md) | Returns a special value that can be used with  or  that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
+|  [initializeFirestore(app, settings)](./firestore_.initializefirestore.md) | Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.getfirestore.md)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.getfirestore.md)<!-- -->. |
+|  [limit(limit)](./firestore_.limit.md) | Creates a <code>QueryConstraint</code> that only returns the first matching documents. |
+|  [limitToLast(limit)](./firestore_.limittolast.md) | Creates a <code>QueryConstraint</code> that only returns the last matching documents.<!-- -->You must specify at least one <code>orderBy</code> clause for <code>limitToLast</code> queries, otherwise an exception will be thrown during execution. |
+|  [onSnapshot(reference, observer)](./firestore_.onsnapshot.md) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(reference, options, observer)](./firestore_.onsnapshot_1.md) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(reference, onNext, onError, onCompletion)](./firestore_.onsnapshot_2.md) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(reference, options, onNext, onError, onCompletion)](./firestore_.onsnapshot_3.md) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(query, observer)](./firestore_.onsnapshot_4.md) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(query, options, observer)](./firestore_.onsnapshot_5.md) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(query, onNext, onError, onCompletion)](./firestore_.onsnapshot_6.md) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(query, options, onNext, onError, onCompletion)](./firestore_.onsnapshot_7.md) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshotsInSync(firestore, observer)](./firestore_.onsnapshotsinsync.md) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use SnapshotMetadata in the individual listeners to determine if a snapshot is from the cache or the server. |
+|  [onSnapshotsInSync(firestore, onSync)](./firestore_.onsnapshotsinsync_1.md) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use SnapshotMetadata in the individual listeners to determine if a snapshot is from the cache or the server. |
+|  [orderBy(fieldPath, directionStr)](./firestore_.orderby.md) | Creates a <code>QueryConstraint</code> that sorts the query result by the specified field, optionally in descending order instead of ascending. |
+|  [query(query, queryConstraints)](./firestore_.query.md) | Creates a new immutable instance of <code>query</code> that is extended to also include additional query constraints. |
+|  [queryEqual(left, right)](./firestore_.queryequal.md) | Returns true if the provided queries point to the same collection and apply the same constraints. |
+|  [refEqual(left, right)](./firestore_.refequal.md) | Returns true if the provided references are equal. |
+|  [runTransaction(firestore, updateFunction)](./firestore_.runtransaction.md) | Executes the given <code>updateFunction</code> and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the <code>updateFunction</code>. If it fails to commit after 5 attempts, the transaction fails.<!-- -->The maximum number of writes allowed in a single transaction is 500. |
+|  [serverTimestamp()](./firestore_.servertimestamp.md) | Returns a sentinel used with  or  to include a server-generated timestamp in the written data. |
+|  [setDoc(reference, data)](./firestore_.setdoc.md) | Writes to the document referred to by this <code>DocumentReference</code>. If the document does not yet exist, it will be created. |
+|  [setDoc(reference, data, options)](./firestore_.setdoc_1.md) | Writes to the document referred to by the specified <code>DocumentReference</code>. If the document does not yet exist, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
+|  [setLogLevel(logLevel)](./firestore_.setloglevel.md) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
+|  [snapshotEqual(left, right)](./firestore_.snapshotequal.md) | Returns true if the provided snapshots are equal. |
+|  [startAfter(snapshot)](./firestore_.startafter.md) | Creates a <code>QueryConstraint</code> that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
+|  [startAfter(fieldValues)](./firestore_.startafter_1.md) | Creates a <code>QueryConstraint</code> that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  [startAt(snapshot)](./firestore_.startat.md) | Creates a <code>QueryConstraint</code> that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the <code>orderBy</code> of this query. |
+|  [startAt(fieldValues)](./firestore_.startat_1.md) | Creates a <code>QueryConstraint</code> that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  [terminate(firestore)](./firestore_.terminate.md) | Terminates the provided Firestore instance.<!-- -->After calling <code>terminate()</code> only the <code>clearIndexedDbPersistence()</code> function may be used. Any other function will throw a <code>FirestoreError</code>.<!-- -->To restart after termination, create a new instance of FirebaseFirestore with [getFirestore()](./firestore_.getfirestore.md)<!-- -->.<!-- -->Termination does not cancel any pending writes, and any promises that are awaiting a response from the server will not be resolved. If you have persistence enabled, the next time you start this instance, it will resume sending these writes to the server.<!-- -->Note: Under normal circumstances, calling <code>terminate()</code> is not required. This function is useful only when you want to force this instance to release all of its resources or in combination with <code>clearIndexedDbPersistence()</code> to ensure that all local state is destroyed between test runs. |
+|  [updateDoc(reference, data)](./firestore_.updatedoc.md) | Updates fields in the document referred to by the specified <code>DocumentReference</code>. The update will fail if applied to a document that does not exist. |
+|  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_.updatedoc_1.md) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
+|  [waitForPendingWrites(firestore)](./firestore_.waitforpendingwrites.md) | Waits until all currently pending writes for the active user have been acknowledged by the backend.<!-- -->The returned Promise resolves immediately if there are no outstanding writes. Otherwise, the Promise waits for all previously issued writes (including those written in a previous app session), but it does not wait for writes that were added after the function is called. If you want to wait for additional writes, call <code>waitForPendingWrites()</code> again.<!-- -->Any outstanding <code>waitForPendingWrites()</code> Promises are rejected during user changes. |
+|  [where(fieldPath, opStr, value)](./firestore_.where.md) | Creates a <code>QueryConstraint</code> that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided. |
+|  [writeBatch(firestore)](./firestore_.writebatch.md) | Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single WriteBatch is 500.<!-- -->Unlike transactions, write batches are persisted offline and therefore are preferable when you don't need to condition your writes on read data. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [DocumentChange](./firestore_.documentchange.md) |  |
-|  [DocumentData](./firestore_.documentdata.md) |  |
-|  [FirestoreDataConverter](./firestore_.firestoredataconverter.md) |  |
-|  [FirestoreError](./firestore_.firestoreerror.md) |  |
+|  [DocumentChange](./firestore_.documentchange.md) | A <code>DocumentChange</code> represents a change to the documents matching a query. It contains the document affected and the type of change that occurred. |
+|  [DocumentData](./firestore_.documentdata.md) | Document data (for use with ) consists of fields mapped to values. |
+|  [FirestoreDataConverter](./firestore_.firestoredataconverter.md) | Converter used by <code>withConverter()</code> to transform user objects of type <code>T</code> into Firestore data.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
 |  [PersistenceSettings](./firestore_.persistencesettings.md) |  |
 |  [Settings](./firestore_.settings.md) |  |
-|  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md) |  |
-|  [SnapshotOptions](./firestore_.snapshotoptions.md) |  |
-|  [UpdateData](./firestore_.updatedata.md) |  |
+|  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md) | An options object that can be passed to  and  to control which types of changes to include in the result set. |
+|  [SnapshotOptions](./firestore_.snapshotoptions.md) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
+|  [Unsubscribe](./firestore_.unsubscribe.md) |  |
+|  [UpdateData](./firestore_.updatedata.md) | Update data (for use with ) consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. |
 
 ## Variables
 
 |  Variable | Description |
 |  --- | --- |
-|  [CACHE\_SIZE\_UNLIMITED](./firestore_.cache_size_unlimited.md) |  |
+|  [CACHE\_SIZE\_UNLIMITED](./firestore_.cache_size_unlimited.md) | Constant used to indicate the LRU garbage collection should be disabled. Set this value as the <code>cacheSizeBytes</code> on the settings passed to the <code>Firestore</code> instance. |
 
 ## Type Aliases
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [DocumentChangeType](./firestore_.documentchangetype.md) |  |
-|  [FirestoreErrorCode](./firestore_.firestoreerrorcode.md) |  |
-|  [LogLevel](./firestore_.loglevel.md) |  |
-|  [OrderByDirection](./firestore_.orderbydirection.md) |  |
-|  [QueryConstraintType](./firestore_.queryconstrainttype.md) |  |
-|  [SetOptions](./firestore_.setoptions.md) |  |
-|  [WhereFilterOp](./firestore_.wherefilterop.md) |  |
+|  [DocumentChangeType](./firestore_.documentchangetype.md) | The type of a <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
+|  [FirestoreErrorCode](./firestore_.firestoreerrorcode.md) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
+|  [OrderByDirection](./firestore_.orderbydirection.md) | The direction of a [orderBy()](./firestore_.orderby.md) clause is specified as 'desc' or 'asc' (descending or ascending). |
+|  [QueryConstraintType](./firestore_.queryconstrainttype.md) | Describes the different query constraints available in this SDK. |
+|  [SetOptions](./firestore_.setoptions.md) | An options object that configures the behavior of ,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
+|  [WhereFilterOp](./firestore_.wherefilterop.md) | Filter conditions in a [where()](./firestore_.where.md) clause are specified using the strings '&amp;lt;', '&amp;lt;=', '==', '!=', '&amp;gt;=', '&amp;gt;', 'array-contains', 'in', 'array-contains-any', and 'not-in'. |
 

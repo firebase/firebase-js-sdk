@@ -4,19 +4,25 @@
 
 ## getDocs() function
 
+Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->.
+
+All queries are executed directly by the server, even if the the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK.
+
 <b>Signature:</b>
 
 ```typescript
-export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_lite.query.md)<!-- -->&lt;T&gt; |  |
+|  query | [Query](./firestore_lite.query.md)<!-- -->&lt;T&gt; | The <code>Query</code> to execute. |
 
 <b>Returns:</b>
 
 Promise&lt;[QuerySnapshot](./firestore_lite.querysnapshot.md)<!-- -->&lt;T&gt;&gt;
+
+A Promise that will be resolved with the results of the query.
 

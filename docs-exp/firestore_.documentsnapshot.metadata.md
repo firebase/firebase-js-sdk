@@ -4,6 +4,8 @@
 
 ## DocumentSnapshot.metadata property
 
+Metadata about the `DocumentSnapshot`<!-- -->, including information about its source and local modifications.
+
 <b>Signature:</b>
 
 ```typescript

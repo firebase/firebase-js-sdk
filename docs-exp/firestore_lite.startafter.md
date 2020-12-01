@@ -4,19 +4,23 @@
 
 ## startAfter() function
 
+Creates a `QueryConstraint` that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
+
 <b>Signature:</b>
 
 ```typescript
-export function startAfter(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export declare function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_lite.documentsnapshot.md)<!-- -->&lt;any&gt; |  |
+|  snapshot | [DocumentSnapshot](./firestore_lite.documentsnapshot.md)<!-- -->&lt;unknown&gt; | The snapshot of the document to start after. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_lite.queryconstraint.md)
+
+A `QueryConstraint` to pass to `query()`
 

@@ -4,19 +4,23 @@
 
 ## endBefore() function
 
+Creates a `QueryConstraint` that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
+
 <b>Signature:</b>
 
 ```typescript
-export function endBefore(...fieldValues: any[]): QueryConstraint;
+export declare function endBefore(...fieldValues: unknown[]): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldValues | any\[\] |  |
+|  fieldValues | unknown\[\] | The field values to end this query before, in order of the query's order by. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_lite.queryconstraint.md)
+
+A `QueryConstraint` to pass to `query()`
 

@@ -4,6 +4,8 @@
 
 ## Timestamp.valueOf() method
 
+Converts this object to a primitive string, which allows Timestamp objects to be compared using the `>`<!-- -->, `<=`<!-- -->, `>=` and `>` operators.
+
 <b>Signature:</b>
 
 ```typescript

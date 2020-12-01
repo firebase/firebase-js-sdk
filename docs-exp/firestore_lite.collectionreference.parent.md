@@ -4,6 +4,8 @@
 
 ## CollectionReference.parent property
 
+A reference to the containing `DocumentReference` if this is a subcollection. If this isn't a subcollection, the reference is null.
+
 <b>Signature:</b>
 
 ```typescript
