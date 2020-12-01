@@ -146,6 +146,9 @@ async function buildPackages() {
       // the same reason above
       '@firebase/functions',
       '--scope',
+      // the same reason above
+      '@firebase/remote-config',
+      '--scope',
       '@firebase/util',
       '--scope',
       '@firebase/component',
