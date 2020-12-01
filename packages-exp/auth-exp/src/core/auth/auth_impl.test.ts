@@ -554,7 +554,7 @@ describe('core/auth/auth_impl useEmulator', () => {
 
     it('logs out the warning but has no banner if disableBanner true', () => {
       sinon.stub(console, 'info');
-      auth.useEmulator('http://localhost:2020', true);
+      auth.useEmulator('http://localhost:2020', {disableWarnings: true});
       expect(console.info).to.have.been.calledWith(
         'WARNING: You are using the Auth Emulator,' +
           ' which is intended for local testing only.  Do not use with' +
