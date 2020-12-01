@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,17 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
 import { es5BuildsNoPlugin, es2017BuildsNoPlugin } from './rollup.shared.js';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 /**
  * ES5 Builds
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    clean: true,
+    abortOnError: false,
+    transformers: [importPathTransformer]
   }),
   json()
 ];
@@ -45,7 +49,10 @@ const es2017BuildPlugins = [
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    clean: true,
+    abortOnError: false,
+    transformers: [importPathTransformer]
   }),
   json({
     preferConst: true

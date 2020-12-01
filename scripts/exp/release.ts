@@ -47,7 +47,9 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     /**
      * Welcome to the firebase release CLI!
      */
-    console.log('Welcome to the Firebase Exp Packages release CLI!');
+    console.log(
+      `Welcome to the Firebase Exp Packages release CLI! dryRun: ${dryRun}`
+    );
 
     /**
      * Update fields in package.json and stuff
@@ -76,7 +78,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * since the last release. This simplifies the script and works fine for exp packages.
      *
      * 2. Removes -exp in package names because we will publish them using
-     * the existing package names under a special release tag (e.g. firebase@exp).
+     * the existing package names under a special release tag (firebase@exp).
      */
     const versions = await updatePackageNamesAndVersions(packagePaths);
 
@@ -138,8 +140,14 @@ async function buildPackages() {
       'run',
       '--scope',
       // We replace `@firebase/app-exp` with `@firebase/app` during compilation, so we need to
-      // compile @firebase/app to make rollup happy though it's not an actual dependency.
+      // compile @firebase/app first to make rollup happy though it's not an actual dependency.
       '@firebase/app',
+      '--scope',
+      // the same reason above
+      '@firebase/functions',
+      '--scope',
+      // the same reason above
+      '@firebase/remote-config',
       '--scope',
       '@firebase/util',
       '--scope',
@@ -176,6 +184,15 @@ async function buildPackages() {
 
   // Build exp packages developed in place
   // Firestore
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
   await spawn(
     'yarn',
     ['lerna', 'run', '--scope', '@firebase/firestore', 'build:exp:release'],
