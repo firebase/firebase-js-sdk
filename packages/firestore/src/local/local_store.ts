@@ -184,7 +184,7 @@ export interface LocalStore {
  * This is useful to implement optional features (like bundles) in free
  * functions, such that they are tree-shakeable.
  */
-export class LocalStoreImpl implements LocalStore {
+class LocalStoreImpl implements LocalStore {
   /**
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
@@ -668,7 +668,7 @@ export function applyRemoteEventToLocalCache(
  * Note: this function will use `documentVersions` if it is defined;
  * when it is not defined, resorts to `globalVersion`.
  */
-export function populateDocumentChangeBuffer(
+function populateDocumentChangeBuffer(
   txn: PersistenceTransaction,
   documentBuffer: RemoteDocumentChangeBuffer,
   documents: MaybeDocumentMap,
@@ -1277,6 +1277,20 @@ export async function ignoreIfPrimaryLeaseLoss(
 }
 
 /**
+ * Creates a new target using the given bundle name, which will be used to
+ * hold the keys of all documents from the bundle in query-document mappings.
+ * This ensures that the loaded documents do not get garbage collected
+ * right away.
+ */
+function umbrellaTarget(bundleName: string): Target {
+  // It is OK that the path used for the query is not valid, because this will
+  // not be read and queried.
+  return queryToTarget(
+    newQueryForPath(ResourcePath.fromString(`__bundle__/docs/${bundleName}`))
+  );
+}
+
+/**
  * Applies the documents from a bundle to the "ground-state" (remote)
  * documents.
  *
@@ -1475,19 +1489,5 @@ export async function saveNamedQuery(
           localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
         );
     }
-  );
-}
-
-/**
- * Creates a new target using the given bundle name, which will be used to
- * hold the keys of all documents from the bundle in query-document mappings.
- * This ensures that the loaded documents do not get garbage collected
- * right away.
- */
-function umbrellaTarget(bundleName: string): Target {
-  // It is OK that the path used for the query is not valid, because this will
-  // not be read and queried.
-  return queryToTarget(
-    newQueryForPath(ResourcePath.fromString(`__bundle__/docs/${bundleName}`))
   );
 }
