@@ -69,7 +69,6 @@ export interface PasswordResetRequest extends GetOobCodeRequest {
   requestType: Operation.PASSWORD_RESET;
   email: string;
   captchaResp?: string;
-  userIp?: string;
 }
 
 export interface EmailSignInRequest extends GetOobCodeRequest {

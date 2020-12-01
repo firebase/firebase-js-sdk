@@ -155,9 +155,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .onSnapshot(storeLimitEvent.storeEvent);
 
       // Setup mirroring `limitToLast` query
-      const storeLimitToLastEvent = new EventsAccumulator<
-        firestore.QuerySnapshot
-      >();
+      const storeLimitToLastEvent = new EventsAccumulator<firestore.QuerySnapshot>();
       let limitToLastUnlisten = collection
         .orderBy('sort', 'desc')
         .limitToLast(2)
