@@ -1,6 +1,6 @@
 ---
 "@firebase/auth": patch
-"@firebase": patch
+"firebase": patch
 ---
 
 Fix issue with IndexedDB retry logic causing uncaught errors
