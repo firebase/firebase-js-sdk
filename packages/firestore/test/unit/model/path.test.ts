@@ -160,6 +160,11 @@ describe('Path', () => {
     expect(abc.isPrefixOf(ba)).to.equal(false);
   });
 
+  it('escaped FieldPath with segments', () => {
+    const path = new FieldPath(['foo.`bar`']);
+    expect(path.canonicalString()).to.equal('`foo.\\`bar\\``');
+  });
+
   it('can be constructed from field path.', () => {
     const path = FieldPath.fromServerFormat('foo\\..bar\\\\.baz');
     expect(path.toArray()).to.deep.equal(['foo.', 'bar\\', 'baz']);
