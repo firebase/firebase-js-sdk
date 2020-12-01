@@ -78,45 +78,45 @@ const browserPlugins = [
 
 const allBuilds = [
   // Node ESM build
-  // {
-  //   input: './lite/index.ts',
-  //   output: {
-  //     file: path.resolve('./lite', pkg['main-esm']),
-  //     format: 'es',
-  //     sourcemap: true
-  //   },
-  //   plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins],
-  //   external: util.resolveNodeExterns,
-  //   treeshake: {
-  //     moduleSideEffects: false
-  //   }
-  // },
-  // // Node UMD build
-  // {
-  //   input: path.resolve('./lite', pkg['main-esm']),
-  //   output: {
-  //     file: path.resolve('./lite', pkg.main),
-  //     format: 'umd',
-  //     name: 'firebase.firestore',
-  //     sourcemap: true
-  //   },
-  //   plugins: [
-  //     typescriptPlugin({
-  //       typescript,
-  //       compilerOptions: {
-  //         allowJs: true,
-  //         target: 'es5'
-  //       },
-  //       include: ['dist/lite/*.js']
-  //     }),
-  //     json(),
-  //     sourcemaps()
-  //   ],
-  //   external: util.resolveNodeExterns,
-  //   treeshake: {
-  //     moduleSideEffects: false
-  //   }
-  // },
+  {
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg['main-esm']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins],
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Node UMD build
+  {
+    input: path.resolve('./lite', pkg['main-esm']),
+    output: {
+      file: path.resolve('./lite', pkg.main),
+      format: 'umd',
+      name: 'firebase.firestore',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        compilerOptions: {
+          allowJs: true,
+          target: 'es5'
+        },
+        include: ['dist/lite/*.js']
+      }),
+      json(),
+      sourcemaps()
+    ],
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
   // Browser build
   {
     input: './lite/index.ts',
@@ -133,21 +133,21 @@ const allBuilds = [
     treeshake: {
       moduleSideEffects: false
     }
-  }
+  },
   // RN build
-  // {
-  //   input: './lite/index.ts',
-  //   output: {
-  //     file: path.resolve('./lite', pkg['react-native']),
-  //     format: 'es',
-  //     sourcemap: true
-  //   },
-  //   plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins],
-  //   external: util.resolveBrowserExterns,
-  //   treeshake: {
-  //     moduleSideEffects: false
-  //   }
-  // }
+  {
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg['react-native']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  }
 ];
 
 export default allBuilds;
