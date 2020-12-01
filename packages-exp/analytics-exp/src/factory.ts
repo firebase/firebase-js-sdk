@@ -31,7 +31,7 @@ import {
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
-import { initializeAnalytics } from './initialize-ids';
+import { initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 

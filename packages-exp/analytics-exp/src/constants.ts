@@ -31,15 +31,17 @@ export const DYNAMIC_CONFIG_URL =
 
 export const GTAG_URL = 'https://www.googletagmanager.com/gtag/js';
 
-export enum GtagCommand {
+export const enum GtagCommand {
   EVENT = 'event',
   SET = 'set',
   CONFIG = 'config'
 }
 
-/*
+/**
  * Officially recommended event names for gtag.js
  * Any other string is also allowed.
+ *
+ * @public
  */
 export const enum EventName {
   ADD_SHIPPING_INFO = 'add_shipping_info',
@@ -47,7 +49,10 @@ export const enum EventName {
   ADD_TO_CART = 'add_to_cart',
   ADD_TO_WISHLIST = 'add_to_wishlist',
   BEGIN_CHECKOUT = 'begin_checkout',
-  /** @deprecated */
+  /**
+   * @deprecated This event name is deprecated and is unsupported in updated
+   * Enhanced Ecommerce reports.
+   */
   CHECKOUT_PROGRESS = 'checkout_progress',
   EXCEPTION = 'exception',
   GENERATE_LEAD = 'generate_lead',
@@ -61,7 +66,10 @@ export const enum EventName {
   SELECT_CONTENT = 'select_content',
   SELECT_ITEM = 'select_item',
   SELECT_PROMOTION = 'select_promotion',
-  /** @deprecated */
+  /**
+   * @deprecated This event name is deprecated and is unsupported in updated
+   * Enhanced Ecommerce reports.
+   */
   SET_CHECKOUT_OPTION = 'set_checkout_option',
   SHARE = 'share',
   SIGN_UP = 'sign_up',

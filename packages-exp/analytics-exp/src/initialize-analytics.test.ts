@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
-import { initializeAnalytics } from './initialize-ids';
+import { initializeAnalytics } from './initialize-analytics';
 import {
   getFakeApp,
   getFakeInstallations
