@@ -318,8 +318,9 @@ export function useFirestoreEmulator(
   port: number
 ): void {
   firestore = cast(firestore, FirebaseFirestore);
+  const settings = firestore._getSettings();
 
-  if (firestore._getSettings().host !== DEFAULT_HOST) {
+  if (settings.host !== DEFAULT_HOST && settings.host !== host) {
     logWarn(
       'Host has been set in both settings() and useEmulator(), emulator host ' +
         'will be used'
@@ -327,7 +328,7 @@ export function useFirestoreEmulator(
   }
 
   firestore._setSettings({
-    ...firestore._getSettings(),
+    ...settings,
     host: `${host}:${port}`,
     ssl: false
   });
