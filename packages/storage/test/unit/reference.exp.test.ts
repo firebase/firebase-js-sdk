@@ -28,8 +28,7 @@ import {
   getMetadata,
   updateMetadata,
   getDownloadURL,
-  uploadBytes,
-  _nonResumableUpload
+  uploadBytes
 } from '../../src/reference';
 import { StorageService, ref } from '../../src/service';
 import * as testShared from './testshared';
@@ -296,16 +295,13 @@ describe('Firebase Storage > Reference', () => {
         contentType: 'lol/wut'
       } as Metadata);
     });
-  });
-
-  describe('nonResumableUpload', () => {
     it('uploads without error', async () => {
       const storageService = storageServiceWithHandler(fakeServerHandler({}));
       const root = ref(storageService, 'gs://test-bucket/');
       const childRef = ref(root, 'child');
       const blob = new Blob(['a']);
-      const snapshot = await _nonResumableUpload(childRef, blob);
-      expect(snapshot.ref).to.equal(childRef);
+      const result = await uploadBytes(childRef, blob);
+      expect(result.ref).to.equal(childRef);
     });
   });
 

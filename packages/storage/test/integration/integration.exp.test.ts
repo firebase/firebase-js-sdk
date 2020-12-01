@@ -146,7 +146,7 @@ describe('FirebaseStorage Exp', () => {
     await uploadString(referenceA, '');
     await uploadString(referenceB, '');
     await uploadString(referenceCD, '');
-    const listResult = await listAll(await ref(storage, 'public/exp-list'));
+    const listResult = await listAll(ref(storage, 'public/exp-list'));
     expect(listResult.items.map(v => v.name)).to.have.members(['a', 'b']);
     expect(listResult.prefixes.map(v => v.name)).to.have.members(['c']);
   });

@@ -33,6 +33,7 @@ import {
   ComponentType
 } from '@firebase/component';
 import { StorageService } from '../../src/service';
+import { Metadata } from '../../src/metadata';
 
 export const authToken = 'totally-legit-auth-token';
 export const bucket = 'mybucket';
@@ -164,7 +165,7 @@ export function assertObjectIncludes(
   }
 }
 
-const defaultFakeMetadata = { 'downloadTokens': 'a,b' };
+const defaultFakeMetadata: Partial<Metadata> = { 'downloadTokens': ['a', 'b'] };
 
 interface Response {
   status: number;
@@ -200,7 +201,7 @@ export function storageServiceWithHandler(
 }
 
 export function fakeServerHandler(
-  fakeMetadata: Record<string, unknown> = defaultFakeMetadata
+  fakeMetadata: Partial<Metadata> = defaultFakeMetadata
 ): RequestHandler {
   const stats: {
     [num: number]: {

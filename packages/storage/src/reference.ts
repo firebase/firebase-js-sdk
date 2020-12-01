@@ -138,7 +138,25 @@ export function uploadBytes(
   metadata?: Metadata
 ): Promise<UploadResult> {
   ref._throwIfRoot('uploadBytes');
-  return _nonResumableUpload(ref, data, metadata);
+  return ref.storage
+    .getAuthToken()
+    .then(authToken => {
+      const requestInfo = multipartUpload(
+        ref.storage,
+        ref._location,
+        getMappings(),
+        new FbsBlob(data, true),
+        metadata
+      );
+      const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
+      return multipartRequest.getPromise();
+    })
+    .then(finalMetadata => {
+      return {
+        metadata: finalMetadata,
+        ref
+      };
+    });
 }
 
 /**
@@ -148,7 +166,7 @@ export function uploadBytes(
  * @param ref - StorageReference where data should be uploaded.
  * @param data - The data to upload.
  * @param metadata - Metadata for the newly uploaded data.
- * @returns An UploadTaskSnapshot
+ * @returns An UploadTask
  */
 export function uploadBytesResumable(
   ref: StorageReference,
@@ -181,31 +199,7 @@ export function uploadString(
   if (metadataClone['contentType'] == null && data.contentType != null) {
     metadataClone['contentType'] = data.contentType!;
   }
-  return _nonResumableUpload(ref, data.data, metadataClone);
-}
-
-/**
- * Shared code for nonresumable upload, used by uploadString and uploadBytes.
- */
-export async function _nonResumableUpload(
-  ref: StorageReference,
-  data: Uint8Array | Blob | ArrayBuffer,
-  metadata?: Metadata
-): Promise<UploadResult> {
-  const authToken = await ref.storage.getAuthToken();
-  const requestInfo = multipartUpload(
-    ref.storage,
-    ref._location,
-    getMappings(),
-    new FbsBlob(data, true),
-    metadata
-  );
-  const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
-  const finalMetadata = await multipartRequest.getPromise();
-  return {
-    metadata: finalMetadata,
-    ref
-  };
+  return uploadBytes(ref, data.data, metadataClone);
 }
 
 /**
@@ -338,7 +332,7 @@ export async function getMetadata(ref: StorageReference): Promise<Metadata> {
  */
 export async function updateMetadata(
   ref: StorageReference,
-  metadata: Record<string, unknown>
+  metadata: Partial<Metadata>
 ): Promise<Metadata> {
   ref._throwIfRoot('updateMetadata');
   const authToken = await ref.storage.getAuthToken();

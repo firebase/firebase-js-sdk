@@ -187,7 +187,7 @@ export function downloadUrlFromResourceString(
 }
 
 export function toResourceString(
-  metadata: Record<string, unknown>,
+  metadata: Partial<Metadata>,
   mappings: Mappings
 ): string {
   const resource: {

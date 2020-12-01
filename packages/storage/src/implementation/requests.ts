@@ -215,7 +215,7 @@ export function getDownloadUrl(
 export function updateMetadata(
   service: StorageService,
   location: Location,
-  metadata: Record<string, unknown>,
+  metadata: Partial<Metadata>,
   mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
