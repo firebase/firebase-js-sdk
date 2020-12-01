@@ -97,7 +97,7 @@ export class Auth
   signOut(): Promise<void> {
     return this.auth.signOut();
   }
-  useEmulator(url: string, options?: {disableWarnings: boolean}): void {
+  useEmulator(url: string, options?: { disableWarnings: boolean }): void {
     this.auth.useEmulator(url, options);
   }
   applyActionCode(code: string): Promise<void> {

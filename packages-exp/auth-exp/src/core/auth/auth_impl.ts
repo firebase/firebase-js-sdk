@@ -271,7 +271,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     this.languageCode = _getUserLanguage();
   }
 
-  useEmulator(url: string, options?: {disableWarnings: boolean}): void {
+  useEmulator(url: string, options?: { disableWarnings: boolean }): void {
     _assert(this._canInitEmulator, this, AuthErrorCode.EMULATOR_CONFIG_FAILED);
 
     _assert(
@@ -592,8 +592,8 @@ function emitEmulatorWarning(disableBanner: boolean): void {
   if (typeof console !== 'undefined' && typeof console.info === 'function') {
     console.info(
       'WARNING: You are using the Auth Emulator,' +
-          ' which is intended for local testing only.  Do not use with' +
-          ' production credentials.'
+        ' which is intended for local testing only.  Do not use with' +
+        ' production credentials.'
     );
   }
   if (
