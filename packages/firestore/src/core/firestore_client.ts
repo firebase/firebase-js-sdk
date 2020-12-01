@@ -24,6 +24,7 @@ import {
 import { User } from '../auth/user';
 import {
   executeQuery,
+  getNamedQuery,
   handleUserChange,
   LocalStore,
   readLocalDocument
@@ -54,6 +55,7 @@ import {
   registerPendingWritesCallback,
   SyncEngine,
   syncEngineListen,
+  syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
 } from './sync_engine';
@@ -77,11 +79,9 @@ import { Persistence } from '../local/persistence';
 import { Datastore } from '../remote/datastore';
 import { LoadBundleTask } from '../api/bundle';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { getNamedQuery } from '../local/local_store_bundle';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { BundleReader } from '../util/bundle_reader';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { syncEngineLoadBundle } from './bundle';
 import { NamedQuery } from './bundle_types';
 
 const LOG_TAG = 'FirestoreClient';

@@ -47,6 +47,7 @@ import {
   registerPendingWritesCallback,
   SyncEngine,
   syncEngineListen,
+  syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
 } from '../../../src/core/sync_engine';
@@ -155,7 +156,6 @@ import {
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { logWarn } from '../../../src/util/log';
 import { newTextEncoder } from '../../../src/platform/serializer';
-import { syncEngineLoadBundle } from '../../../src/core/bundle';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
