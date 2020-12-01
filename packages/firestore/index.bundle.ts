@@ -26,14 +26,16 @@ export function registerBundle(instance: typeof Firestore): void {
     this: Firestore,
     data: ArrayBuffer | ReadableStream<Uint8Array> | string
   ) {
-    return loadBundle(this data);
+    return loadBundle(this, data);
   };
-  instance.prototype.namedQuery = function (queryName: string) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return namedQuery(this as any, queryName);
+  instance.prototype.namedQuery = function (
+    this: Firestore,
+    queryName: string
+  ) {
+    return namedQuery(this, queryName);
   };
 
-  //TODO: add loadBundle and namedQuery to the firestore namespace
+  //TODO(wuandy): add loadBundle and namedQuery to the firestore namespace
 }
 
 registerBundle(Firestore);
