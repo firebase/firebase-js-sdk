@@ -85,7 +85,7 @@ export { WriteBatch, writeBatch } from './src/api/write_batch';
 
 export { Transaction, runTransaction } from './src/api/transaction';
 
-export { setLogLevel, LogLevel, LogLevelString } from '../src/util/log';
+export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
 export { Bytes } from './src/api/bytes';
 
