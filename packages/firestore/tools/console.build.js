@@ -21,7 +21,7 @@
  */
 const rollup = require('rollup');
 const { uglify } = require('rollup-plugin-uglify');
-const resolve = require('@rollup/plugin-node-resolve');
+const { nodeResolve } = require('@rollup/plugin-node-resolve');
 const fs = require('fs');
 const util = require('util');
 const fs_writeFile = util.promisify(fs.writeFile);
@@ -50,7 +50,7 @@ const es2017OutputOptions = {
 const es2017toEs5InputOptions = {
   input: esm2017OutputFile,
   plugins: [
-    resolve(),
+    nodeResolve(),
     ...rollupUtil.es2017ToEs5Plugins(/* mangled= */ true),
     uglify({
       output: {
