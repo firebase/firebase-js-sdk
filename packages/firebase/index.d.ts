@@ -485,7 +485,7 @@ declare namespace firebase {
     linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
     metadata: firebase.auth.UserMetadata;
     /**
-     * The {@link firebase.User.MultiFactor} object corresponding to the current user.
+     * The {@link firebase.User.MultiFactorUser} object corresponding to the current user.
      * This is used to access all multi-factor properties and operations related to the
      * current user.
      */
@@ -1964,7 +1964,7 @@ declare namespace firebase.auth {
      * For the REVERT_SECOND_FACTOR_ADDITION action, which allows a user to unenroll
      * a newly added second factor, this object contains a `multiFactorInfo` field with
      * the information about the second factor. For phone second factor, the
-     * `multiFactorInfo` is a {@link firebase.auth.Auth.PhoneMultiFactorInfo} object,
+     * `multiFactorInfo` is a {@link firebase.auth.PhoneMultiFactorInfo} object,
      * which contains the phone number.
      */
     data: {
@@ -3323,8 +3323,8 @@ declare namespace firebase.auth {
   /**
    * An authentication error.
    * For method-specific error codes, refer to the specific methods in the
-   * documentation. For common error codes, check the reference below. Use {@link
-   * firebase.auth.Error#code} to get the specific error code. For a detailed
+   * documentation. For common error codes, check the reference below. Use{@link
+   * firebase.auth.Error.code} to get the specific error code. For a detailed
    * message, use {@link firebase.auth.Error.message}.
    * Errors with the code <strong>auth/account-exists-with-different-credential
    * </strong> will have the additional fields <strong>email</strong> and <strong>
@@ -3452,7 +3452,7 @@ declare namespace firebase.auth {
     phoneNumber?: string;
     /**
      * The tenant ID being used for sign-in/linking. If you use
-     * {@link firebase.auth.signInWithRedirect} to sign in, you have to
+     * {@link firebase.auth.Auth.signInWithRedirect} to sign in, you have to
      * set the tenant ID on Auth instanace again as the tenant ID is not
      * persisted after redirection.
      */
@@ -7534,18 +7534,18 @@ declare namespace firebase.storage {
      * @param url A URL in the form: <br />
      *     1) a gs:// URL, for example `gs://bucket/files/image.png` <br />
      *     2) a download URL taken from object metadata. <br />
-     *     @see {@link firebase.storage.FullMetadata.prototype.downloadURLs}
+     *     @see {@link firebase.storage.FullMetadata.downloadURLs}
      * @return A reference for the given URL.
      */
     refFromURL(url: string): firebase.storage.Reference;
     /**
      * @param time The new maximum operation retry time in milliseconds.
-     * @see {@link firebase.storage.Storage.prototype.maxOperationRetryTime}
+     * @see {@link firebase.storage.Storage.maxOperationRetryTime}
      */
     setMaxOperationRetryTime(time: number): any;
     /**
      * @param time The new maximum upload retry time in milliseconds.
-     * @see {@link firebase.storage.Storage.prototype.maxUploadRetryTime}
+     * @see {@link firebase.storage.Storage.maxUploadRetryTime}
      */
     setMaxUploadRetryTime(time: number): any;
   }
@@ -7593,7 +7593,7 @@ declare namespace firebase.storage {
   /**
    * An event that is triggered on a task.
    * @enum {string}
-   * @see {@link firebase.storage.UploadTask.prototype.on}
+   * @see {@link firebase.storage.UploadTask.on}
    */
   type TaskEvent = string;
   var TaskEvent: {
