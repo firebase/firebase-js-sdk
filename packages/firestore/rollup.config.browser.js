@@ -51,7 +51,7 @@ export default [
     },
     plugins: [
       util.applyPrebuilt(),
-      ...util.es2017Plugins('browser', /* mangled= */ true)
+      ...util.es2017Plugins('browser', /* mangled= */ false)
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -90,7 +90,7 @@ export default [
     },
     plugins: [
       util.applyPrebuilt(),
-      ...util.es2017Plugins('browser', /* mangled= */ true)
+      ...util.es2017Plugins('browser', /* mangled= */ false)
     ],
     external: util.resolveBrowserExterns,
     treeshake: {

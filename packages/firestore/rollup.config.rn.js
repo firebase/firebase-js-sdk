@@ -45,7 +45,7 @@ export default [
     },
     plugins: [
       util.applyPrebuilt('prebuilt.rn.js'),
-      ...util.es2017Plugins('rn', /* mangled= */ true)
+      ...util.es2017Plugins('rn', /* mangled= */ false)
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
