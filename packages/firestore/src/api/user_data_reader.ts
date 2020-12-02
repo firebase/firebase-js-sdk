@@ -17,13 +17,13 @@
 
 import {
   DocumentData,
-  SetOptions,
-  FieldPath as PublicFieldPath
+  FieldPath as PublicFieldPath,
+  SetOptions
 } from '@firebase/firestore-types';
 
 import {
-  Value as ProtoValue,
-  MapValue as ProtoMapValue
+  MapValue as ProtoMapValue,
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
@@ -34,8 +34,7 @@ import {
   Mutation,
   PatchMutation,
   Precondition,
-  SetMutation,
-  TransformMutation
+  SetMutation
 } from '../model/mutation';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
@@ -79,19 +78,23 @@ export class ParsedSetData {
     readonly fieldTransforms: FieldTransform[]
   ) {}
 
-  toMutations(key: DocumentKey, precondition: Precondition): Mutation[] {
-    const mutations = [] as Mutation[];
+  toMutation(key: DocumentKey, precondition: Precondition): Mutation {
     if (this.fieldMask !== null) {
-      mutations.push(
-        new PatchMutation(key, this.data, this.fieldMask, precondition)
+      return new PatchMutation(
+        key,
+        this.data,
+        this.fieldMask,
+        precondition,
+        this.fieldTransforms
       );
     } else {
-      mutations.push(new SetMutation(key, this.data, precondition));
+      return new SetMutation(
+        key,
+        this.data,
+        precondition,
+        this.fieldTransforms
+      );
     }
-    if (this.fieldTransforms.length > 0) {
-      mutations.push(new TransformMutation(key, this.fieldTransforms));
-    }
-    return mutations;
   }
 }
 
@@ -103,14 +106,14 @@ export class ParsedUpdateData {
     readonly fieldTransforms: FieldTransform[]
   ) {}
 
-  toMutations(key: DocumentKey, precondition: Precondition): Mutation[] {
-    const mutations = [
-      new PatchMutation(key, this.data, this.fieldMask, precondition)
-    ] as Mutation[];
-    if (this.fieldTransforms.length > 0) {
-      mutations.push(new TransformMutation(key, this.fieldTransforms));
-    }
-    return mutations;
+  toMutation(key: DocumentKey, precondition: Precondition): Mutation {
+    return new PatchMutation(
+      key,
+      this.data,
+      this.fieldMask,
+      precondition,
+      this.fieldTransforms
+    );
   }
 }
 

@@ -43,7 +43,6 @@ import {
   mutationResult,
   patchMutation,
   setMutation,
-  transformMutation,
   unknownDoc,
   version,
   wrap,
@@ -213,7 +212,7 @@ describe('Mutation', () => {
     const docData = { foo: { bar: 'bar-value' }, baz: 'baz-value' };
 
     const baseDoc = doc('collection/key', 0, docData);
-    const transform = transformMutation('collection/key', {
+    const transform = patchMutation('collection/key', {
       'foo.bar': FieldValue.serverTimestamp()
     });
 
@@ -244,19 +243,20 @@ describe('Mutation', () => {
   // we don't have unit tests for it currently. We could consider removing this
   // test once we have integration tests.
   it('can create arrayUnion() transform.', () => {
-    const transform = transformMutation('collection/key', {
+    const transform = patchMutation('collection/key', {
       foo: FieldValue.arrayUnion('tag'),
       'bar.baz': FieldValue.arrayUnion(true, { nested: { a: [1, 2] } })
     });
-    expect(transform.fieldTransforms.length).to.equal(2);
+    expect(transform.fieldTransforms).to.not.be.undefined;
+    expect(transform.fieldTransforms!.length).to.equal(2);
 
-    const first = transform.fieldTransforms[0];
+    const first = transform.fieldTransforms![0];
     expect(first.field).to.deep.equal(field('foo'));
     expect(first.transform).to.deep.equal(
       new ArrayUnionTransformOperation([wrap('tag')])
     );
 
-    const second = transform.fieldTransforms[1];
+    const second = transform.fieldTransforms![1];
     expect(second.field).to.deep.equal(field('bar.baz'));
     expect(second.transform).to.deep.equal(
       new ArrayUnionTransformOperation([
@@ -270,12 +270,13 @@ describe('Mutation', () => {
   // we don't have unit tests for it currently. We could consider removing this
   // test once we have integration tests.
   it('can create arrayRemove() transform.', () => {
-    const transform = transformMutation('collection/key', {
+    const transform = patchMutation('collection/key', {
       foo: FieldValue.arrayRemove('tag')
     });
-    expect(transform.fieldTransforms.length).to.equal(1);
+    expect(transform.fieldTransforms).to.not.be.undefined;
+    expect(transform.fieldTransforms!.length).to.equal(1);
 
-    const first = transform.fieldTransforms[0];
+    const first = transform.fieldTransforms![0];
     expect(first.field).to.deep.equal(field('foo'));
     expect(first.transform).to.deep.equal(
       new ArrayRemoveTransformOperation([wrap('tag')])
@@ -393,7 +394,7 @@ describe('Mutation', () => {
       : [transformData];
 
     for (const transformData of transforms) {
-      const transform = transformMutation('collection/key', transformData);
+      const transform = patchMutation('collection/key', transformData);
       transformedDoc = applyMutationToLocalView(
         transform,
         transformedDoc,
@@ -412,7 +413,7 @@ describe('Mutation', () => {
     const docData = { foo: { bar: 'bar-value' }, baz: 'baz-value' };
 
     const baseDoc = doc('collection/key', 0, docData);
-    const transform = transformMutation('collection/key', {
+    const transform = patchMutation('collection/key', {
       'foo.bar': FieldValue.serverTimestamp()
     });
 
@@ -443,7 +444,7 @@ describe('Mutation', () => {
   it('can apply server-acked array transforms to document', () => {
     const docData = { array1: [1, 2], array2: ['a', 'b'] };
     const baseDoc = doc('collection/key', 0, docData);
-    const transform = transformMutation('collection/key', {
+    const transform = setMutation('collection/key', {
       array1: FieldValue.arrayUnion(2, 3),
       array2: FieldValue.arrayRemove('a', 'c')
     });
@@ -530,7 +531,7 @@ describe('Mutation', () => {
   it('can apply server-acked numeric add transform to document', () => {
     const docData = { sum: 1 };
     const baseDoc = doc('collection/key', 0, docData);
-    const transform = transformMutation('collection/key', {
+    const transform = setMutation('collection/key', {
       sum: FieldValue.increment(2)
     });
 
@@ -615,14 +616,12 @@ describe('Mutation', () => {
 
     const set = setMutation('collection/key', {});
     const patch = patchMutation('collection/key', {});
-    const transform = transformMutation('collection/key', {});
     const deleter = deleteMutation('collection/key');
 
     const mutationResult = new MutationResult(
       version(7),
       /*transformResults=*/ null
     );
-    const transformResult = new MutationResult(version(7), []);
     const docV7Unknown = unknownDoc('collection/key', 7);
     const docV7Deleted = deletedDoc('collection/key', 7, {
       hasCommittedMutations: true
@@ -641,15 +640,6 @@ describe('Mutation', () => {
     assertVersionTransitions(patch, docV3, mutationResult, docV7Committed);
     assertVersionTransitions(patch, deletedV3, mutationResult, docV7Unknown);
     assertVersionTransitions(patch, null, mutationResult, docV7Unknown);
-
-    assertVersionTransitions(transform, docV3, transformResult, docV7Committed);
-    assertVersionTransitions(
-      transform,
-      deletedV3,
-      transformResult,
-      docV7Unknown
-    );
-    assertVersionTransitions(transform, null, transformResult, docV7Unknown);
 
     assertVersionTransitions(deleter, docV3, mutationResult, docV7Deleted);
     assertVersionTransitions(deleter, deletedV3, mutationResult, docV7Deleted);
@@ -680,7 +670,7 @@ describe('Mutation', () => {
     };
 
     // Server timestamps are idempotent and don't have base values.
-    const transform = transformMutation('collection/key', allTransforms);
+    const transform = patchMutation('collection/key', allTransforms);
     expect(extractMutationBaseValue(transform, baseDoc)).to.be.null;
   });
 
@@ -709,7 +699,7 @@ describe('Mutation', () => {
         missing: FieldValue.increment(1)
       }
     };
-    const transform = transformMutation('collection/key', allTransforms);
+    const transform = patchMutation('collection/key', allTransforms);
 
     const expectedBaseValue = wrapObject({
       double: 42.0,
@@ -728,7 +718,7 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, { sum: 0 });
 
     const increment = { sum: FieldValue.increment(1) };
-    const transform = transformMutation('collection/key', increment);
+    const transform = setMutation('collection/key', increment);
 
     let mutatedDoc = applyMutationToLocalView(
       transform,

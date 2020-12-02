@@ -103,7 +103,6 @@ import {
   TestBundledDocuments,
   TestNamedQuery,
   TestSnapshotVersion,
-  transformMutation,
   unknownDoc,
   version
 } from '../../util/helpers';
@@ -1321,19 +1320,19 @@ function genericLocalStoreTests(
   // would probably be better implemented as spec tests but currently they don't
   // support transforms.
 
-  it('handles SetMutation -> TransformMutation -> TransformMutation', () => {
+  it('handles SetMutation -> Transform -> Transform', () => {
     return expectLocalStore()
       .after(setMutation('foo/bar', { sum: 0 }))
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true }))
-      .after(transformMutation('foo/bar', { sum: FieldValue.increment(1) }))
+      .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true }))
-      .after(transformMutation('foo/bar', { sum: FieldValue.increment(2) }))
+      .after(patchMutation('foo/bar', { sum: FieldValue.increment(2) }))
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 3 }, { hasLocalMutations: true })
       )
@@ -1343,7 +1342,7 @@ function genericLocalStoreTests(
 
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)(
-    'handles SetMutation -> Ack -> TransformMutation -> Ack -> TransformMutation',
+    'handles SetMutation -> Ack -> Transform -> Ack -> Transform',
     () => {
       return expectLocalStore()
         .after(setMutation('foo/bar', { sum: 0 }))
@@ -1358,7 +1357,7 @@ function genericLocalStoreTests(
         .toContain(
           doc('foo/bar', 1, { sum: 0 }, { hasCommittedMutations: true })
         )
-        .after(transformMutation('foo/bar', { sum: FieldValue.increment(1) }))
+        .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
         .toReturnChanged(
           doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
         )
@@ -1373,7 +1372,7 @@ function genericLocalStoreTests(
         .toContain(
           doc('foo/bar', 2, { sum: 1 }, { hasCommittedMutations: true })
         )
-        .after(transformMutation('foo/bar', { sum: FieldValue.increment(2) }))
+        .after(patchMutation('foo/bar', { sum: FieldValue.increment(2) }))
         .toReturnChanged(
           doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true })
         )
@@ -1382,7 +1381,7 @@ function genericLocalStoreTests(
     }
   );
 
-  it('handles SetMutation -> TransformMutation -> RemoteEvent -> TransformMutation', () => {
+  it('handles SetMutation -> Transform-> RemoteEvent -> Transform', () => {
     const query1 = query('foo');
     return (
       expectLocalStore()
@@ -1399,7 +1398,7 @@ function genericLocalStoreTests(
         .afterAcknowledgingMutation({ documentVersion: 1 })
         .toReturnChanged(doc('foo/bar', 1, { sum: 0 }))
         .toContain(doc('foo/bar', 1, { sum: 0 }))
-        .after(transformMutation('foo/bar', { sum: FieldValue.increment(1) }))
+        .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
         .toReturnChanged(
           doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
         )
@@ -1415,7 +1414,7 @@ function genericLocalStoreTests(
         .toContain(doc('foo/bar', 2, { sum: 1 }, { hasLocalMutations: true }))
         // Add another increment. Note that we still compute the increment based
         // on the local value.
-        .after(transformMutation('foo/bar', { sum: FieldValue.increment(2) }))
+        .after(patchMutation('foo/bar', { sum: FieldValue.increment(2) }))
         .toReturnChanged(
           doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true })
         )
@@ -1477,8 +1476,8 @@ function genericLocalStoreTests(
         )
         .toReturnChanged(doc('foo/bar', 1, { sum: 0, arrayUnion: [] }))
         .afterMutations([
-          transformMutation('foo/bar', { sum: FieldValue.increment(1) }),
-          transformMutation('foo/bar', {
+          patchMutation('foo/bar', { sum: FieldValue.increment(1) }),
+          patchMutation('foo/bar', {
             arrayUnion: FieldValue.arrayUnion('foo')
           })
         ])
@@ -1516,10 +1515,13 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
-      .afterMutations([
-        patchMutation('foo/bar', {}, Precondition.none()),
-        transformMutation('foo/bar', { sum: FieldValue.increment(1) })
-      ])
+      .after(
+        patchMutation(
+          'foo/bar',
+          { sum: FieldValue.increment(1) },
+          Precondition.none()
+        )
+      )
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
       )
@@ -1542,10 +1544,7 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
-      .afterMutations([
-        patchMutation('foo/bar', {}),
-        transformMutation('foo/bar', { sum: FieldValue.increment(1) })
-      ])
+      .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
       .toReturnChanged(deletedDoc('foo/bar', 0))
       .toNotContain('foo/bar')
       .afterRemoteEvent(
@@ -1654,10 +1653,13 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
-      .afterMutations([
-        patchMutation('foo/bar', {}, Precondition.none()),
-        transformMutation('foo/bar', { sum: FieldValue.increment(1) })
-      ])
+      .after(
+        patchMutation(
+          'foo/bar',
+          { sum: FieldValue.increment(1) },
+          Precondition.none()
+        )
+      )
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
       )
@@ -1683,10 +1685,7 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
-      .afterMutations([
-        patchMutation('foo/bar', {}),
-        transformMutation('foo/bar', { sum: FieldValue.increment(1) })
-      ])
+      .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
       .toReturnChanged(deletedDoc('foo/bar', 0))
       .toNotContain('foo/bar')
       .after(bundledDocuments([doc('foo/bar', 1, { sum: 1337 })]))

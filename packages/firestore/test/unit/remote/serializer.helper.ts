@@ -48,6 +48,7 @@ import {
   FieldMask,
   Mutation,
   mutationEquals,
+  PatchMutation,
   Precondition,
   SetMutation,
   VerifyMutation
@@ -106,7 +107,6 @@ import {
   ref,
   setMutation,
   testUserDataReader,
-  transformMutation,
   version,
   wrap,
   wrapObject
@@ -115,6 +115,10 @@ import { ByteString } from '../../../src/util/byte_string';
 import { parseQueryValue } from '../../../src/api/user_data_reader';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
 import { firestore } from '../../util/api_helpers';
+import { TEST_SERIALIZER } from '../local/persistence_test_helpers';
+import { Write } from '../../../src/protos/firestore_proto_api';
+import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
+import { fromDbMutationBatch } from '../../../src/local/local_serializer';
 
 const userDataWriter = new UserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
@@ -661,66 +665,108 @@ export function serializerTest(
         verifyMutation(mutation, proto);
       });
 
-      it('TransformMutation (ServerTimestamp transform)', () => {
-        const mutation = transformMutation('baz/quux', {
+      it('ServerTimestamp transform', () => {
+        let mutation = patchMutation('baz/quux', {
           a: FieldValue.serverTimestamp(),
           'bar.baz': FieldValue.serverTimestamp()
         });
-        const proto = {
-          transform: {
-            document: toName(s, mutation.key),
-            fieldTransforms: [
-              { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
-              { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
-            ]
-          },
+        let proto = {
+          update: toMutationDocument(s, mutation.key, mutation.data),
+          updateMask: toDocumentMask(mutation.fieldMask),
+          updateTransforms: [
+            { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
+            { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
+          ],
           currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
+
+        const mutation2 = setMutation('baz/quux', {
+          a: FieldValue.serverTimestamp()
+        });
+        const proto2 = {
+          update: toMutationDocument(s, mutation2.key, mutation2.value),
+          updateTransforms: [
+            { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' }
+          ]
+        };
+        verifyMutation(mutation2, proto2);
       });
 
-      it('TransformMutation (Numeric Add transform)', () => {
-        const mutation = transformMutation('baz/quux', {
+      it('Numeric Add transform', () => {
+        const mutation = patchMutation('baz/quux', {
           integer: FieldValue.increment(42),
           double: FieldValue.increment(13.37)
         });
         const proto = {
-          transform: {
-            document: toName(s, mutation.key),
-            fieldTransforms: [
-              { fieldPath: 'integer', increment: { integerValue: '42' } },
-              { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-            ]
-          },
+          update: toMutationDocument(s, mutation.key, mutation.data),
+          updateMask: toDocumentMask(mutation.fieldMask),
+          updateTransforms: [
+            { fieldPath: 'integer', increment: { integerValue: '42' } },
+            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
+          ],
           currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
+
+        const mutation2 = setMutation('baz/quux', {
+          integer: FieldValue.increment(42),
+          double: FieldValue.increment(13.37)
+        });
+        const proto2 = {
+          update: toMutationDocument(s, mutation2.key, mutation2.value),
+          updateTransforms: [
+            { fieldPath: 'integer', increment: { integerValue: '42' } },
+            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
+          ]
+        };
+        verifyMutation(mutation2, proto2);
       });
 
-      it('TransformMutation (Array transforms)', () => {
-        const mutation = transformMutation('docs/1', {
+      it('Array transforms', () => {
+        const mutation = patchMutation('docs/1', {
           a: FieldValue.arrayUnion('a', 2),
           'bar.baz': FieldValue.arrayRemove({ x: 1 })
         });
-        const proto: api.Write = {
-          transform: {
-            document: toName(s, mutation.key),
-            fieldTransforms: [
-              {
-                fieldPath: 'a',
-                appendMissingElements: {
-                  values: [wrap('a'), wrap(2)]
-                }
-              },
-              {
-                fieldPath: 'bar.baz',
-                removeAllFromArray: { values: [wrap({ x: 1 })] }
+        const proto = {
+          update: toMutationDocument(s, mutation.key, mutation.data),
+          updateMask: toDocumentMask(mutation.fieldMask),
+          updateTransforms: [
+            {
+              fieldPath: 'a',
+              appendMissingElements: {
+                values: [wrap('a'), wrap(2)]
               }
-            ]
-          },
+            },
+            {
+              fieldPath: 'bar.baz',
+              removeAllFromArray: { values: [wrap({ x: 1 })] }
+            }
+          ],
           currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
+
+        const mutation2 = setMutation('docs/1', {
+          a: FieldValue.arrayUnion('a', 2),
+          bar: FieldValue.arrayRemove({ x: 1 })
+        });
+        const proto2 = {
+          update: toMutationDocument(s, mutation2.key, mutation2.value),
+          updateTransforms: [
+            {
+              fieldPath: 'a',
+              appendMissingElements: {
+                values: [wrap('a'), wrap(2)]
+              }
+            },
+            {
+              fieldPath: 'bar',
+              removeAllFromArray: { values: [wrap({ x: 1 })] }
+            }
+          ]
+        };
+        verifyMutation(mutation2, proto2);
       });
 
       it('SetMutation with precondition', () => {

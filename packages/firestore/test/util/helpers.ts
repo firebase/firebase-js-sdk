@@ -24,6 +24,7 @@ import { expect } from 'chai';
 import { Blob } from '../../src/api/blob';
 import {
   parseQueryValue,
+  parseSetData,
   parseUpdateData,
   UserDataReader
 } from '../../src/api/user_data_reader';
@@ -76,8 +77,7 @@ import {
   MutationResult,
   PatchMutation,
   Precondition,
-  SetMutation,
-  TransformMutation
+  SetMutation
 } from '../../src/model/mutation';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
@@ -230,7 +230,20 @@ export function setMutation(
   keyStr: string,
   json: JsonObject<unknown>
 ): SetMutation {
-  return new SetMutation(key(keyStr), wrapObject(json), Precondition.none());
+  const setKey = key(keyStr);
+  const parsed = parseSetData(
+    testUserDataReader(),
+    'setMutation',
+    setKey,
+    json,
+    false
+  );
+  return new SetMutation(
+    setKey,
+    parsed.data,
+    Precondition.none(),
+    parsed.fieldTransforms.length > 0 ? parsed.fieldTransforms : undefined
+  );
 }
 
 export function patchMutation(
@@ -258,32 +271,13 @@ export function patchMutation(
     patchKey,
     parsed.data,
     parsed.fieldMask,
-    precondition
+    precondition,
+    parsed.fieldTransforms.length > 0 ? parsed.fieldTransforms : undefined
   );
 }
 
 export function deleteMutation(keyStr: string): DeleteMutation {
   return new DeleteMutation(key(keyStr), Precondition.none());
-}
-
-/**
- * Creates a TransformMutation by parsing any FieldValue sentinels in the
- * provided data. The data is expected to use dotted-notation for nested fields
- * (i.e. { "foo.bar": FieldValue.foo() } and must not contain any non-sentinel
- * data.
- */
-export function transformMutation(
-  keyStr: string,
-  data: Dict<unknown>
-): TransformMutation {
-  const transformKey = key(keyStr);
-  const result = parseUpdateData(
-    testUserDataReader(),
-    'transformMutation()',
-    transformKey,
-    data
-  );
-  return new TransformMutation(transformKey, result.fieldTransforms);
 }
 
 export function mutationResult(
@@ -754,19 +748,23 @@ export class DocComparator {
 // Use any, so we can dynamically call .isEqual().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectEqual(left: any, right: any, message?: string): void {
-  message = message || '';
-  if (typeof left.isEqual !== 'function') {
-    return fail(
-      JSON.stringify(left) + ' does not support isEqual (left) ' + message
-    );
+  try {
+    message = message || '';
+    if (typeof left.isEqual !== 'function') {
+      return fail(
+        JSON.stringify(left) + ' does not support isEqual (left) ' + message
+      );
+    }
+    if (typeof right.isEqual !== 'function') {
+      return fail(
+        JSON.stringify(right) + ' does not support isEqual (right) ' + message
+      );
+    }
+    expect(left.isEqual(right)).to.equal(true, message);
+    expect(right.isEqual(left)).to.equal(true, message);
+  } catch (e) {
+    throw e;
   }
-  if (typeof right.isEqual !== 'function') {
-    return fail(
-      JSON.stringify(right) + ' does not support isEqual (right) ' + message
-    );
-  }
-  expect(left.isEqual(right)).to.equal(true, message);
-  expect(right.isEqual(left)).to.equal(true, message);
 }
 
 // Use any, so we can dynamically call .isEqual().
