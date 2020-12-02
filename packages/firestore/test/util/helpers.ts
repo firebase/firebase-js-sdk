@@ -748,23 +748,19 @@ export class DocComparator {
 // Use any, so we can dynamically call .isEqual().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectEqual(left: any, right: any, message?: string): void {
-  try {
-    message = message || '';
-    if (typeof left.isEqual !== 'function') {
-      return fail(
-        JSON.stringify(left) + ' does not support isEqual (left) ' + message
-      );
-    }
-    if (typeof right.isEqual !== 'function') {
-      return fail(
-        JSON.stringify(right) + ' does not support isEqual (right) ' + message
-      );
-    }
-    expect(left.isEqual(right)).to.equal(true, message);
-    expect(right.isEqual(left)).to.equal(true, message);
-  } catch (e) {
-    throw e;
+  message = message || '';
+  if (typeof left.isEqual !== 'function') {
+    return fail(
+      JSON.stringify(left) + ' does not support isEqual (left) ' + message
+    );
   }
+  if (typeof right.isEqual !== 'function') {
+    return fail(
+      JSON.stringify(right) + ' does not support isEqual (right) ' + message
+    );
+  }
+  expect(left.isEqual(right)).to.equal(true, message);
+  expect(right.isEqual(left)).to.equal(true, message);
 }
 
 // Use any, so we can dynamically call .isEqual().
