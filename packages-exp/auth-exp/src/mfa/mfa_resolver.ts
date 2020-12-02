@@ -119,7 +119,6 @@ export function getMultiFactorResolver(
 ): externs.MultiFactorResolver {
   const errorInternal = error as MultiFactorError;
   _assert(error.operationType, auth, AuthErrorCode.ARGUMENT_ERROR);
-  _assert(error.credential, auth, AuthErrorCode.ARGUMENT_ERROR);
   _assert(
     errorInternal.serverResponse?.mfaPendingCredential,
     auth,

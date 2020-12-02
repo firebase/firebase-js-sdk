@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import { OperationType, ProviderId } from '@firebase/auth-types-exp';
+import { FactorId, OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
@@ -27,10 +27,8 @@ import { testAuth, testUser, TestAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
-import { AuthCredential } from '../core/credentials';
 import { PhoneAuthCredential } from '../core/credentials/phone';
 import { AuthErrorCode } from '../core/errors';
-import { EmailAuthProvider } from '../core/providers/email';
 import { User, UserCredential } from '../model/user';
 import { MultiFactorAssertion } from './mfa_assertion';
 import { PhoneMultiFactorAssertion } from '../platform_browser/mfa/assertions/phone';
@@ -45,17 +43,12 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
   let auth: TestAuth;
   let underlyingError: FirebaseError;
   let error: MultiFactorError;
-  let primaryFactorCredential: AuthCredential;
   let clock: sinon.SinonFakeTimers;
 
   beforeEach(async () => {
     clock = sinon.useFakeTimers();
     auth = await testAuth();
     auth.tenantId = 'tenant-id';
-    primaryFactorCredential = EmailAuthProvider.credential(
-      'email',
-      'password'
-    ) as AuthCredential;
     underlyingError = _createError(auth, AuthErrorCode.MFA_REQUIRED, {
       serverResponse: {
         localId: 'local-id',
@@ -233,7 +226,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
 
       it('can be used to obtain a resolver', () => {
         const resolver = getMultiFactorResolver(auth, error);
-        expect(resolver.hints[0].factorId).to.eq(ProviderId.PHONE);
+        expect(resolver.hints[0].factorId).to.eq(FactorId.PHONE);
       });
     });
   });
