@@ -25,7 +25,7 @@ export const REFERER_PARAM = 'r';
 
 export const FORGE_REF = 'f';
 
-// Matches *.corp.google.com and console.firebase.google.com.
+// Matches console.firebase.google.com and *.corp.google.com.
 export const FORGE_DOMAIN_RE = /(console\.firebase|.*\.corp)\.google\.com/;
 
 export const LAST_SESSION_PARAM = 'ls';
