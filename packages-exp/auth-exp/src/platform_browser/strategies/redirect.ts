@@ -236,6 +236,7 @@ export async function getRedirectResult(
   auth: externs.Auth,
   resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential | null> {
+  await _castAuth(auth)._initializationPromise;
   return _getRedirectResult(auth, resolver, false);
 }
 
