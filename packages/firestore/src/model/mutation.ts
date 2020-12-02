@@ -690,27 +690,6 @@ function patchObject(mutation: PatchMutation, data: ObjectValue): ObjectValue {
 }
 
 /**
- * Asserts that the given MaybeDocument is actually a Document and verifies
- * that it matches the key for this mutation. Since we only support
- * transformations with precondition exists this method is guaranteed to be
- * safe.
- */
-function requireDocument(
-  mutation: Mutation,
-  maybeDoc: MaybeDocument | null
-): Document {
-  debugAssert(
-    maybeDoc instanceof Document,
-    'Unknown MaybeDocument type ' + maybeDoc
-  );
-  debugAssert(
-    maybeDoc.key.isEqual(mutation.key),
-    'Can only transform a document with the same key'
-  );
-  return maybeDoc;
-}
-
-/**
  * Creates a list of "transform results" (a transform result is a field value
  * representing the result of applying a transform) for use after a
  * TransformMutation has been acknowledged by the server.

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
+import { expect } from 'chai';
 import { fromDbMutationBatch } from '../../../src/local/local_serializer';
 import { TEST_SERIALIZER } from './persistence_test_helpers';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
@@ -23,7 +23,6 @@ import { Write } from '../../../src/protos/firestore_proto_api';
 import { deleteMutation, patchMutation, setMutation } from '../../util/helpers';
 import {
   JsonProtoSerializer,
-  toDocument,
   toDocumentMask,
   toMutation,
   toMutationDocument,
@@ -41,7 +40,7 @@ describe('Local Serializer', () => {
   const batchId = 1;
 
   it('SetMutation + TransformMutation (legacy) are squashed', () => {
-    let mutationSet = setMutation('foo/bar', {
+    const mutationSet = setMutation('foo/bar', {
       a: 'b'
     });
     const mutations: Write[] = [
@@ -83,7 +82,7 @@ describe('Local Serializer', () => {
   });
 
   it('PatchMutation + TransformMutation (legacy) are squashed', () => {
-    let mutationPatch = patchMutation('foo/bar', {
+    const mutationPatch = patchMutation('foo/bar', {
       a: 'b'
     });
     const mutations: Write[] = [
@@ -127,7 +126,7 @@ describe('Local Serializer', () => {
   });
 
   it('TransformMutation (legacy) + TransformMutation (legacy) throw assertion', () => {
-    let mutationPatch = patchMutation('foo/bar', {
+    const mutationPatch = patchMutation('foo/bar', {
       a: 'b'
     });
     const mutations: Write[] = [
@@ -169,7 +168,7 @@ describe('Local Serializer', () => {
   });
 
   it('TransformMutation (legacy) on its own throws assertion', () => {
-    let mutationPatch = patchMutation('foo/bar', {
+    const mutationPatch = patchMutation('foo/bar', {
       a: 'b'
     });
     const mutations: Write[] = [
@@ -200,7 +199,7 @@ describe('Local Serializer', () => {
   });
 
   it('DeleteMutation + TransformMutation (legacy) on its own throws assertion', () => {
-    let mutation = deleteMutation('foo/bar');
+    const mutation = deleteMutation('foo/bar');
     const mutations: Write[] = [
       {
         delete: toName(s, mutation.key)
@@ -232,13 +231,13 @@ describe('Local Serializer', () => {
   });
 
   it('multiple mutations are squashed', () => {
-    let mutationPatch = patchMutation('foo/bar', {
+    const mutationPatch = patchMutation('foo/bar', {
       a: 'b'
     });
-    let mutationSet = setMutation('foo/bar', {
+    const mutationSet = setMutation('foo/bar', {
       a: 'b'
     });
-    let mutationDelete = deleteMutation('foo/baz');
+    const mutationDelete = deleteMutation('foo/baz');
 
     // INPUT:
     // SetMutation -> SetMutation -> TransformMutation ->

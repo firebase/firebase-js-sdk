@@ -48,7 +48,6 @@ import {
   FieldMask,
   Mutation,
   mutationEquals,
-  PatchMutation,
   Precondition,
   SetMutation,
   VerifyMutation
@@ -115,10 +114,6 @@ import { ByteString } from '../../../src/util/byte_string';
 import { parseQueryValue } from '../../../src/api/user_data_reader';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
 import { firestore } from '../../util/api_helpers';
-import { TEST_SERIALIZER } from '../local/persistence_test_helpers';
-import { Write } from '../../../src/protos/firestore_proto_api';
-import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
-import { fromDbMutationBatch } from '../../../src/local/local_serializer';
 
 const userDataWriter = new UserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
@@ -666,11 +661,11 @@ export function serializerTest(
       });
 
       it('ServerTimestamp transform', () => {
-        let mutation = patchMutation('baz/quux', {
+        const mutation = patchMutation('baz/quux', {
           a: FieldValue.serverTimestamp(),
           'bar.baz': FieldValue.serverTimestamp()
         });
-        let proto = {
+        const proto = {
           update: toMutationDocument(s, mutation.key, mutation.data),
           updateMask: toDocumentMask(mutation.fieldMask),
           updateTransforms: [
