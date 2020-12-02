@@ -265,7 +265,7 @@ export class FieldPath extends BasePath<FieldPath> {
   canonicalString(): string {
     return this.toArray()
       .map(str => {
-        str = str.replace('\\', '\\\\').replace('`', '\\`');
+        str = str.replace(/\\/g, '\\\\').replace(/`/g, '\\`');
         if (!FieldPath.isValidIdentifier(str)) {
           str = '`' + str + '`';
         }

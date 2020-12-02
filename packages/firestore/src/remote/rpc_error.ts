@@ -314,7 +314,7 @@ export function mapCodeFromHttpStatus(status?: number): Code {
  *     Code.UNKNOWN.
  */
 export function mapCodeFromHttpResponseErrorStatus(status: string): Code {
-  const serverError = status.toLowerCase().replace('_', '-');
+  const serverError = status.toLowerCase().replace(/_/g, '-');
   return Object.values(Code).indexOf(serverError as Code) >= 0
     ? (serverError as Code)
     : Code.UNKNOWN;
