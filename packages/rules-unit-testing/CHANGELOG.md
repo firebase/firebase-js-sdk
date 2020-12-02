@@ -1,5 +1,14 @@
 # @firebase/rules-unit-testing
 
+## 1.1.4
+
+### Patch Changes
+
+- [`3a19f9e69`](https://github.com/firebase/firebase-js-sdk/commit/3a19f9e6987360dbded076937723acb3d1de82c9) [#4093](https://github.com/firebase/firebase-js-sdk/pull/4093) - Fix assertFails not recognising database permission denied error
+
+- Updated dependencies [[`11563b227`](https://github.com/firebase/firebase-js-sdk/commit/11563b227f30c9282c45e4a8128d5679954dcfd1)]:
+  - firebase@8.1.2
+
 ## 1.1.3
 
 ### Patch Changes
