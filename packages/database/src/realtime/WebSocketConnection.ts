@@ -16,16 +16,11 @@
  */
 
 import { RepoInfo } from '../core/RepoInfo';
-import {
-  assert,
-  jsonEval,
-  stringify,
-  isNodeSdk
-} from '@firebase/util';
+import { assert, jsonEval, stringify, isNodeSdk } from '@firebase/util';
 import { logWrapper, splitStringBySize } from '../core/util/util';
 import { StatsManager } from '../core/stats/StatsManager';
 import {
-  FORGE_DOMAIN,
+  FORGE_DOMAIN_RE,
   FORGE_REF,
   LAST_SESSION_PARAM,
   PROTOCOL_VERSION,
@@ -121,8 +116,8 @@ export class WebSocketConnection implements Transport {
     if (
       !isNodeSdk() &&
       typeof location !== 'undefined' &&
-      location.href &&
-      location.href.indexOf(FORGE_DOMAIN) !== -1
+      location.hostname &&
+      FORGE_DOMAIN_RE.test(location.hostname)
     ) {
       urlParams[REFERER_PARAM] = FORGE_REF;
     }
