@@ -204,7 +204,7 @@ const manglePrivatePropertiesOptions = {
 exports.manglePrivatePropertiesOptions = manglePrivatePropertiesOptions;
 
 exports.applyPrebuilt = function (name = 'prebuilt.js') {
-  alias({
+  return alias({
     entries: [
       {
         find: /^(.*)\/export$/,
