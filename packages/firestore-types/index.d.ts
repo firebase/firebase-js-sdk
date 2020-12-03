@@ -105,7 +105,7 @@ export class FirebaseFirestore {
   INTERNAL: { delete: () => Promise<void> };
 }
 
-export interface LoadBundleTask {
+export interface LoadBundleTask extends PromiseLike<LoadBundleTaskProgress> {
   onProgress(
     next?: (progress: LoadBundleTaskProgress) => any,
     error?: (error: Error) => any,

@@ -8325,7 +8325,7 @@ declare namespace firebase.firestore {
    *
    * The API is compatible with `Promise<LoadBundleTaskProgress>`.
    */
-  export interface LoadBundleTask extends PromiseLIke< LoadBundleTaskProgress> {
+  export interface LoadBundleTask extends PromiseLike<LoadBundleTaskProgress> {
     /**
      * Registers functions to listen to bundle loading progresses.
      * @param next Called there is a progress update from bundle loading, typically whenever
