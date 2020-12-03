@@ -19,7 +19,7 @@ import { User } from '../auth/user';
 import { DatabaseId } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { debugAssert, fail } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
@@ -152,19 +152,6 @@ export const MAIN_DATABASE = 'main';
  * longer optional.
  */
 export class IndexedDbPersistence implements Persistence {
-  static getStore<Key extends IDBValidKey, Value>(
-    txn: PersistenceTransaction,
-    store: string
-  ): SimpleDbStore<Key, Value> {
-    if (txn instanceof IndexedDbTransaction) {
-      return SimpleDb.getStore<Key, Value>(txn.simpleDbTransaction, store);
-    } else {
-      throw fail(
-        'IndexedDbPersistence must use instances of IndexedDbTransaction'
-      );
-    }
-  }
-
   private simpleDb: SimpleDb;
 
   private listenSequence: ListenSequence | null = null;
@@ -469,10 +456,10 @@ export class IndexedDbPersistence implements Persistence {
         'maybeGarbageCollectMultiClientState',
         'readwrite-primary',
         txn => {
-          const metadataStore = IndexedDbPersistence.getStore<
+          const metadataStore = txn.getStore<
             DbClientMetadataKey,
             DbClientMetadata
-          >(txn, DbClientMetadata.store);
+          >(DbClientMetadata.store);
 
           return metadataStore.loadAll().next(existingClients => {
             const active = this.filterActiveClients(
@@ -1062,10 +1049,7 @@ export class IndexedDbPersistence implements Persistence {
 function primaryClientStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbPrimaryClientKey, DbPrimaryClient> {
-  return IndexedDbPersistence.getStore<DbPrimaryClientKey, DbPrimaryClient>(
-    txn,
-    DbPrimaryClient.store
-  );
+  return txn.getStore(DbPrimaryClient.store);
 }
 
 /**
@@ -1074,10 +1058,7 @@ function primaryClientStore(
 function clientMetadataStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbClientMetadataKey, DbClientMetadata> {
-  return IndexedDbPersistence.getStore<DbClientMetadataKey, DbClientMetadata>(
-    txn,
-    DbClientMetadata.store
-  );
+  return txn.getStore(DbClientMetadata.store);
 }
 
 /**
