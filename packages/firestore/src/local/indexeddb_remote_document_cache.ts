@@ -37,7 +37,6 @@ import { SortedSet } from '../util/sorted_set';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
-import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
@@ -583,10 +582,9 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
 function documentGlobalStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal> {
-  return IndexedDbPersistence.getStore<
-    DbRemoteDocumentGlobalKey,
-    DbRemoteDocumentGlobal
-  >(txn, DbRemoteDocumentGlobal.store);
+  return txn.getStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
+    DbRemoteDocumentGlobal.store
+  );
 }
 
 /**
@@ -595,8 +593,7 @@ function documentGlobalStore(
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
-  return IndexedDbPersistence.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
-    txn,
+  return txn.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
     DbRemoteDocument.store
   );
 }

@@ -22,10 +22,7 @@ import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 import { encodeResourcePath } from './encoded_resource_path';
-import {
-  LruDelegate,
-  newLruGarbageCollector
-} from './lru_garbage_collector_impl';
+import { newLruGarbageCollector } from './lru_garbage_collector_impl';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { estimateByteSize } from '../model/values';
@@ -50,6 +47,7 @@ import {
 } from './persistence_transaction';
 import {
   ActiveTargets,
+  LruDelegate,
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';

@@ -22,7 +22,6 @@ import { ListenSequence } from '../../../src/core/listen_sequence';
 import { queryToTarget } from '../../../src/core/query';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { LruDelegate } from '../../../src/local/lru_garbage_collector_impl';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 
@@ -46,6 +45,7 @@ import { primitiveComparator } from '../../../src/util/misc';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import {
   ActiveTargets,
+  LruDelegate,
   LruGarbageCollector,
   LruParams
 } from '../../../src/local/lru_garbage_collector';

@@ -31,10 +31,6 @@ import { SortedSet } from '../util/sorted_set';
 import { decodeResourcePath } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import {
-  IndexedDbPersistence,
-  IndexedDbTransaction
-} from './indexeddb_persistence';
-import {
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbMutationBatch,
@@ -52,6 +48,7 @@ import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { PersistenceTransaction } from './persistence_transaction';
+import { IndexedDbTransaction } from './indexeddb_transaction';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -670,8 +667,7 @@ export function removeMutationBatch(
 function mutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
-  return IndexedDbPersistence.getStore<DbMutationBatchKey, DbMutationBatch>(
-    txn,
+  return txn.getStore<DbMutationBatchKey, DbMutationBatch>(
     DbMutationBatch.store
   );
 }
@@ -682,10 +678,9 @@ function mutationsStore(
 function documentMutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
-  return IndexedDbPersistence.getStore<
-    DbDocumentMutationKey,
-    DbDocumentMutation
-  >(txn, DbDocumentMutation.store);
+  return txn.getStore<DbDocumentMutationKey, DbDocumentMutation>(
+    DbDocumentMutation.store
+  );
 }
 
 /**
@@ -694,8 +689,7 @@ function documentMutationsStore(
 function mutationQueuesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
-  return IndexedDbPersistence.getStore<DbMutationQueueKey, DbMutationQueue>(
-    txn,
+  return txn.getStore<DbMutationQueueKey, DbMutationQueue>(
     DbMutationQueue.store
   );
 }

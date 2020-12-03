@@ -23,7 +23,6 @@ import {
   encodeResourcePath
 } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
-import { IndexedDbPersistence } from './indexeddb_persistence';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
@@ -110,8 +109,7 @@ export class IndexedDbIndexManager implements IndexManager {
 function collectionParentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbCollectionParentKey, DbCollectionParent> {
-  return IndexedDbPersistence.getStore<
-    DbCollectionParentKey,
-    DbCollectionParent
-  >(txn, DbCollectionParent.store);
+  return txn.getStore<DbCollectionParentKey, DbCollectionParent>(
+    DbCollectionParent.store
+  );
 }

@@ -2,6 +2,7 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import { SortedMap } from '../util/sorted_map';
 import { ListenSequenceNumber, TargetId } from '../core/types';
+import { TargetData } from './target_data';
 
 /**
  * @license
@@ -125,4 +126,57 @@ export interface LruResults {
   readonly sequenceNumbersCollected: number;
   readonly targetsRemoved: number;
   readonly documentsRemoved: number;
+}
+
+/**
+ * Persistence layers intending to use LRU Garbage collection should have reference delegates that
+ * implement this interface. This interface defines the operations that the LRU garbage collector
+ * needs from the persistence layer.
+ */
+export interface LruDelegate {
+  readonly garbageCollector: LruGarbageCollector;
+
+  /** Enumerates all the targets in the TargetCache. */
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (target: TargetData) => void
+  ): PersistencePromise<void>;
+
+  getSequenceNumberCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number>;
+
+  /**
+   * Enumerates sequence numbers for documents not associated with a target.
+   * Note that this may include duplicate sequence numbers.
+   */
+  forEachOrphanedDocumentSequenceNumber(
+    txn: PersistenceTransaction,
+    f: (sequenceNumber: ListenSequenceNumber) => void
+  ): PersistencePromise<void>;
+
+  /**
+   * Removes all targets that have a sequence number less than or equal to `upperBound`, and are not
+   * present in the `activeTargetIds` set.
+   *
+   * @returns the number of targets removed.
+   */
+  removeTargets(
+    txn: PersistenceTransaction,
+    upperBound: ListenSequenceNumber,
+    activeTargetIds: ActiveTargets
+  ): PersistencePromise<number>;
+
+  /**
+   * Removes all unreferenced documents from the cache that have a sequence number less than or
+   * equal to the given `upperBound`.
+   *
+   * @returns the number of documents removed.
+   */
+  removeOrphanedDocuments(
+    txn: PersistenceTransaction,
+    upperBound: ListenSequenceNumber
+  ): PersistencePromise<number>;
+
+  getCacheSize(txn: PersistenceTransaction): PersistencePromise<number>;
 }

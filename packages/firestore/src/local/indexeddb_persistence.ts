@@ -18,22 +18,12 @@
 import { User } from '../auth/user';
 import { DatabaseId } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
-import { ListenSequenceNumber, TargetId } from '../core/types';
-import { DocumentKey } from '../model/document_key';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
-import {
-  decodeResourcePath,
-  EncodedResourcePath,
-  encodeResourcePath
-} from './encoded_resource_path';
-import {
-  IndexedDbMutationQueue,
-  mutationQueuesContainKey
-} from './indexeddb_mutation_queue';
+import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import {
   IndexedDbRemoteDocumentCache,
   newIndexedDbRemoteDocumentCache
@@ -44,32 +34,18 @@ import {
   DbClientMetadataKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
-  DbTargetDocument,
   SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';
-import {
-  documentTargetStore,
-  IndexedDbTargetCache
-} from './indexeddb_target_cache';
+import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { LocalSerializer } from './local_serializer';
-import {
-  LruDelegate,
-  newLruGarbageCollector
-} from './lru_garbage_collector_impl';
-import {
-  Persistence,
-  PrimaryStateListener,
-  ReferenceDelegate
-} from './persistence';
+import { Persistence, PrimaryStateListener } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ClientId } from './shared_client_state';
-import { TargetData } from './target_data';
 import {
   isIndexedDbTransactionError,
   SimpleDb,
-  SimpleDbStore,
-  SimpleDbTransaction
+  SimpleDbStore
 } from './simple_db';
 import { DocumentLike, WindowLike } from '../util/types';
 import {
@@ -77,13 +53,13 @@ import {
   PersistenceTransactionMode,
   PRIMARY_LEASE_LOST_ERROR_MSG
 } from './persistence_transaction';
-import {
-  ActiveTargets,
-  LruParams,
-  LruGarbageCollector
-} from './lru_garbage_collector';
+import { LruParams } from './lru_garbage_collector';
 import { BundleCache } from './bundle_cache';
 import { IndexManager } from './index_manager';
+import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
+import { IndexedDbTransaction } from './indexeddb_transaction';
+import { IndexedDbIndexManager } from './indexeddb_index_manager';
+import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -128,15 +104,6 @@ const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
  * appended to the prefix provided to the IndexedDbPersistence constructor.
  */
 export const MAIN_DATABASE = 'main';
-
-export class IndexedDbTransaction extends PersistenceTransaction {
-  constructor(
-    readonly simpleDbTransaction: SimpleDbTransaction,
-    readonly currentSequenceNumber: ListenSequenceNumber
-  ) {
-    super();
-  }
-}
 
 /**
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
@@ -226,9 +193,11 @@ export class IndexedDbPersistence implements Persistence {
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
   private readonly targetCache: IndexedDbTargetCache;
+  private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
+  private readonly bundleCache: IndexedDbBundleCache;
   private readonly webStorage: Storage | null;
-  readonly referenceDelegate: IndexedDbLruDelegate;
+  readonly referenceDelegate: IndexedDbLruDelegateImpl;
 
   constructor(
     /**
@@ -244,8 +213,6 @@ export class IndexedDbPersistence implements Persistence {
     private readonly window: WindowLike | null,
     private readonly document: DocumentLike | null,
     serializer: JsonProtoSerializer,
-    private readonly bundleCache: BundleCache,
-    private readonly indexManager: IndexManager,
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
 
     /**
@@ -261,7 +228,7 @@ export class IndexedDbPersistence implements Persistence {
       );
     }
 
-    this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
+    this.referenceDelegate = new IndexedDbLruDelegateImpl(this, lruParams);
     this.dbName = persistenceKey + MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.simpleDb = new SimpleDb(
@@ -273,10 +240,12 @@ export class IndexedDbPersistence implements Persistence {
       this.referenceDelegate,
       this.serializer
     );
+    this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(
       this.serializer,
       this.indexManager
     );
+    this.bundleCache = new IndexedDbBundleCache();
     if (this.window && this.window.localStorage) {
       this.webStorage = this.window.localStorage;
     } else {
@@ -1108,223 +1077,6 @@ function clientMetadataStore(
   return IndexedDbPersistence.getStore<DbClientMetadataKey, DbClientMetadata>(
     txn,
     DbClientMetadata.store
-  );
-}
-
-/** Provides LRU functionality for IndexedDB persistence. */
-export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
-  readonly garbageCollector: LruGarbageCollector;
-
-  constructor(private readonly db: IndexedDbPersistence, params: LruParams) {
-    this.garbageCollector = newLruGarbageCollector(this, params);
-  }
-
-  getSequenceNumberCount(
-    txn: PersistenceTransaction
-  ): PersistencePromise<number> {
-    const docCountPromise = this.orphanedDocumentCount(txn);
-    const targetCountPromise = this.db.getTargetCache().getTargetCount(txn);
-    return targetCountPromise.next(targetCount =>
-      docCountPromise.next(docCount => targetCount + docCount)
-    );
-  }
-
-  private orphanedDocumentCount(
-    txn: PersistenceTransaction
-  ): PersistencePromise<number> {
-    let orphanedCount = 0;
-    return this.forEachOrphanedDocumentSequenceNumber(txn, _ => {
-      orphanedCount++;
-    }).next(() => orphanedCount);
-  }
-
-  forEachTarget(
-    txn: PersistenceTransaction,
-    f: (q: TargetData) => void
-  ): PersistencePromise<void> {
-    return this.db.getTargetCache().forEachTarget(txn, f);
-  }
-
-  forEachOrphanedDocumentSequenceNumber(
-    txn: PersistenceTransaction,
-    f: (sequenceNumber: ListenSequenceNumber) => void
-  ): PersistencePromise<void> {
-    return this.forEachOrphanedDocument(txn, (docKey, sequenceNumber) =>
-      f(sequenceNumber)
-    );
-  }
-
-  addReference(
-    txn: PersistenceTransaction,
-    targetId: TargetId,
-    key: DocumentKey
-  ): PersistencePromise<void> {
-    return writeSentinelKey(txn, key);
-  }
-
-  removeReference(
-    txn: PersistenceTransaction,
-    targetId: TargetId,
-    key: DocumentKey
-  ): PersistencePromise<void> {
-    return writeSentinelKey(txn, key);
-  }
-
-  removeTargets(
-    txn: PersistenceTransaction,
-    upperBound: ListenSequenceNumber,
-    activeTargetIds: ActiveTargets
-  ): PersistencePromise<number> {
-    return this.db
-      .getTargetCache()
-      .removeTargets(txn, upperBound, activeTargetIds);
-  }
-
-  markPotentiallyOrphaned(
-    txn: PersistenceTransaction,
-    key: DocumentKey
-  ): PersistencePromise<void> {
-    return writeSentinelKey(txn, key);
-  }
-
-  /**
-   * Returns true if anything would prevent this document from being garbage
-   * collected, given that the document in question is not present in any
-   * targets and has a sequence number less than or equal to the upper bound for
-   * the collection run.
-   */
-  private isPinned(
-    txn: PersistenceTransaction,
-    docKey: DocumentKey
-  ): PersistencePromise<boolean> {
-    return mutationQueuesContainKey(txn, docKey);
-  }
-
-  removeOrphanedDocuments(
-    txn: PersistenceTransaction,
-    upperBound: ListenSequenceNumber
-  ): PersistencePromise<number> {
-    const documentCache = this.db.getRemoteDocumentCache();
-    const changeBuffer = documentCache.newChangeBuffer();
-
-    const promises: Array<PersistencePromise<void>> = [];
-    let documentCount = 0;
-
-    const iteration = this.forEachOrphanedDocument(
-      txn,
-      (docKey, sequenceNumber) => {
-        if (sequenceNumber <= upperBound) {
-          const p = this.isPinned(txn, docKey).next(isPinned => {
-            if (!isPinned) {
-              documentCount++;
-              // Our size accounting requires us to read all documents before
-              // removing them.
-              return changeBuffer.getEntry(txn, docKey).next(() => {
-                changeBuffer.removeEntry(docKey);
-                return documentTargetStore(txn).delete(sentinelKey(docKey));
-              });
-            }
-          });
-          promises.push(p);
-        }
-      }
-    );
-
-    return iteration
-      .next(() => PersistencePromise.waitFor(promises))
-      .next(() => changeBuffer.apply(txn))
-      .next(() => documentCount);
-  }
-
-  removeTarget(
-    txn: PersistenceTransaction,
-    targetData: TargetData
-  ): PersistencePromise<void> {
-    const updated = targetData.withSequenceNumber(txn.currentSequenceNumber);
-    return this.db.getTargetCache().updateTargetData(txn, updated);
-  }
-
-  updateLimboDocument(
-    txn: PersistenceTransaction,
-    key: DocumentKey
-  ): PersistencePromise<void> {
-    return writeSentinelKey(txn, key);
-  }
-
-  /**
-   * Call provided function for each document in the cache that is 'orphaned'. Orphaned
-   * means not a part of any target, so the only entry in the target-document index for
-   * that document will be the sentinel row (targetId 0), which will also have the sequence
-   * number for the last time the document was accessed.
-   */
-  private forEachOrphanedDocument(
-    txn: PersistenceTransaction,
-    f: (docKey: DocumentKey, sequenceNumber: ListenSequenceNumber) => void
-  ): PersistencePromise<void> {
-    const store = documentTargetStore(txn);
-    let nextToReport: ListenSequenceNumber = ListenSequence.INVALID;
-    let nextPath: EncodedResourcePath;
-    return store
-      .iterate(
-        {
-          index: DbTargetDocument.documentTargetsIndex
-        },
-        ([targetId, docKey], { path, sequenceNumber }) => {
-          if (targetId === 0) {
-            // if nextToReport is valid, report it, this is a new key so the
-            // last one must not be a member of any targets.
-            if (nextToReport !== ListenSequence.INVALID) {
-              f(new DocumentKey(decodeResourcePath(nextPath)), nextToReport);
-            }
-            // set nextToReport to be this sequence number. It's the next one we
-            // might report, if we don't find any targets for this document.
-            // Note that the sequence number must be defined when the targetId
-            // is 0.
-            nextToReport = sequenceNumber!;
-            nextPath = path;
-          } else {
-            // set nextToReport to be invalid, we know we don't need to report
-            // this one since we found a target for it.
-            nextToReport = ListenSequence.INVALID;
-          }
-        }
-      )
-      .next(() => {
-        // Since we report sequence numbers after getting to the next key, we
-        // need to check if the last key we iterated over was an orphaned
-        // document and report it.
-        if (nextToReport !== ListenSequence.INVALID) {
-          f(new DocumentKey(decodeResourcePath(nextPath)), nextToReport);
-        }
-      });
-  }
-
-  getCacheSize(txn: PersistenceTransaction): PersistencePromise<number> {
-    return this.db.getRemoteDocumentCache().getSize(txn);
-  }
-}
-
-function sentinelKey(key: DocumentKey): [TargetId, EncodedResourcePath] {
-  return [0, encodeResourcePath(key.path)];
-}
-
-/**
- * @returns A value suitable for writing a sentinel row in the target-document
- * store.
- */
-function sentinelRow(
-  key: DocumentKey,
-  sequenceNumber: ListenSequenceNumber
-): DbTargetDocument {
-  return new DbTargetDocument(0, encodeResourcePath(key.path), sequenceNumber);
-}
-
-function writeSentinelKey(
-  txn: PersistenceTransaction,
-  key: DocumentKey
-): PersistencePromise<void> {
-  return documentTargetStore(txn).put(
-    sentinelRow(key, txn.currentSequenceNumber)
   );
 }
 

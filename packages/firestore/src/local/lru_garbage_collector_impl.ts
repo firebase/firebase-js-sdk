@@ -25,13 +25,13 @@ import { SortedSet } from '../util/sorted_set';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
 import { GarbageCollectionScheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { TargetData } from './target_data';
 import { isIndexedDbTransactionError } from './simple_db';
 import { PersistenceTransaction } from './persistence_transaction';
 import {
   ActiveTargets,
   GC_DID_NOT_RUN,
   LRU_COLLECTION_DISABLED,
+  LruDelegate,
   LruGarbageCollector,
   LruParams,
   LruResults
@@ -45,59 +45,6 @@ export const LRU_MINIMUM_CACHE_SIZE_BYTES = 1 * 1024 * 1024;
 const INITIAL_GC_DELAY_MS = 1 * 60 * 1000;
 /** Minimum amount of time between GC checks, after the first one. */
 const REGULAR_GC_DELAY_MS = 5 * 60 * 1000;
-
-/**
- * Persistence layers intending to use LRU Garbage collection should have reference delegates that
- * implement this interface. This interface defines the operations that the LRU garbage collector
- * needs from the persistence layer.
- */
-export interface LruDelegate {
-  readonly garbageCollector: LruGarbageCollector;
-
-  /** Enumerates all the targets in the TargetCache. */
-  forEachTarget(
-    txn: PersistenceTransaction,
-    f: (target: TargetData) => void
-  ): PersistencePromise<void>;
-
-  getSequenceNumberCount(
-    txn: PersistenceTransaction
-  ): PersistencePromise<number>;
-
-  /**
-   * Enumerates sequence numbers for documents not associated with a target.
-   * Note that this may include duplicate sequence numbers.
-   */
-  forEachOrphanedDocumentSequenceNumber(
-    txn: PersistenceTransaction,
-    f: (sequenceNumber: ListenSequenceNumber) => void
-  ): PersistencePromise<void>;
-
-  /**
-   * Removes all targets that have a sequence number less than or equal to `upperBound`, and are not
-   * present in the `activeTargetIds` set.
-   *
-   * @returns the number of targets removed.
-   */
-  removeTargets(
-    txn: PersistenceTransaction,
-    upperBound: ListenSequenceNumber,
-    activeTargetIds: ActiveTargets
-  ): PersistencePromise<number>;
-
-  /**
-   * Removes all unreferenced documents from the cache that have a sequence number less than or
-   * equal to the given `upperBound`.
-   *
-   * @returns the number of documents removed.
-   */
-  removeOrphanedDocuments(
-    txn: PersistenceTransaction,
-    upperBound: ListenSequenceNumber
-  ): PersistencePromise<number>;
-
-  getCacheSize(txn: PersistenceTransaction): PersistencePromise<number>;
-}
 
 // The type and comparator for the items contained in the SortedSet used in
 // place of a priority queue for the RollingSequenceNumberBuffer.

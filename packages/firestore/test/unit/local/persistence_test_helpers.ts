@@ -115,8 +115,6 @@ export async function testIndexedDbPersistence(
     getWindow(),
     getDocument(),
     JSON_SERIALIZER,
-    new IndexedDbBundleCache(),
-    new IndexedDbIndexManager(),
     MOCK_SEQUENCE_NUMBER_SYNCER,
     /** forceOwningTab= */ false
   );

@@ -28,10 +28,6 @@ import {
   encodeResourcePath
 } from './encoded_resource_path';
 import {
-  IndexedDbLruDelegate,
-  IndexedDbPersistence
-} from './indexeddb_persistence';
-import {
   DbTarget,
   DbTargetDocument,
   DbTargetDocumentKey,
@@ -47,6 +43,7 @@ import { SimpleDbStore } from './simple_db';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { PersistenceTransaction } from './persistence_transaction';
 import { ActiveTargets } from './lru_garbage_collector';
+import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -406,10 +403,7 @@ export class IndexedDbTargetCache implements TargetCache {
 function targetsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
-  return IndexedDbPersistence.getStore<DbTargetKey, DbTarget>(
-    txn,
-    DbTarget.store
-  );
+  return txn.getStore<DbTargetKey, DbTarget>(DbTarget.store);
 }
 
 /**
@@ -418,10 +412,7 @@ function targetsStore(
 function globalTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
-  return IndexedDbPersistence.getStore<DbTargetGlobalKey, DbTargetGlobal>(
-    txn,
-    DbTargetGlobal.store
-  );
+  return txn.getStore<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store);
 }
 
 /**
@@ -430,8 +421,7 @@ function globalTargetStore(
 export function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
-  return IndexedDbPersistence.getStore<DbTargetDocumentKey, DbTargetDocument>(
-    txn,
+  return txn.getStore<DbTargetDocumentKey, DbTargetDocument>(
     DbTargetDocument.store
   );
 }

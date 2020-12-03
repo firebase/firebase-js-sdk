@@ -72,6 +72,7 @@ import {
 import { LruParams } from '../local/lru_garbage_collector';
 import { IndexedDbBundleCache } from '../local/indexeddb_bundle_cache';
 import { IndexedDbIndexManager } from '../local/indexeddb_index_manager';
+import { IndexedDbLruDelegateImpl } from '../local/indexeddb_lru_delegate_impl';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
@@ -218,8 +219,6 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       getWindow(),
       getDocument(),
       this.serializer,
-      new IndexedDbBundleCache(),
-      new IndexedDbIndexManager(),
       this.sharedClientState,
       !!this.forceOwnership
     );

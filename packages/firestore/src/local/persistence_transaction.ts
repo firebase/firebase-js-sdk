@@ -16,6 +16,9 @@
  */
 
 import { ListenSequenceNumber } from '../core/types';
+import { SimpleDb, SimpleDbStore } from './simple_db';
+import { fail } from '../util/assert';
+import { IndexedDbTransaction } from './indexeddb_transaction';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +
@@ -46,5 +49,13 @@ export abstract class PersistenceTransaction {
 
   raiseOnCommittedEvent(): void {
     this.onCommittedListeners.forEach(listener => listener());
+  }
+
+  getStore<Key extends IDBValidKey, Value>(
+    store: string
+  ): SimpleDbStore<Key, Value> {
+    throw fail(
+      'IndexedDbPersistence must use instances of IndexedDbTransaction'
+    );
   }
 }
