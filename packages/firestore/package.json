@@ -56,7 +56,8 @@
   "files": [
     "dist",
     "memory/package.json",
-    "bundle/package.json"
+    "bundle/package.json",
+    "memory-bundle/package.json"
   ],
   "dependencies": {
     "@firebase/component": "0.1.21",

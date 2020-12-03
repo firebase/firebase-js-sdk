@@ -25,8 +25,15 @@ import { SnapshotVersion } from './snapshot_version';
  * Represents a Firestore bundle saved by the SDK in its local storage.
  */
 export interface Bundle {
+  /**
+   * Id of the bundle. It is used together with `createTime` to determine if a
+   * bundle has been loaded by the SDK.
+   */
   readonly id: string;
+
+  /** Schema version of the bundle. */
   readonly version: number;
+
   /**
    * Set to the snapshot version of the bundle if created by the Server SDKs.
    * Otherwise set to SnapshotVersion.MIN.
@@ -38,7 +45,9 @@ export interface Bundle {
  * Represents a Query saved by the SDK in its local storage.
  */
 export interface NamedQuery {
+  /** The name of the query. */
   readonly name: string;
+  /** The underlying query associated with `name`. */
   readonly query: Query;
   /** The time at which the results for this query were read. */
   readonly readTime: SnapshotVersion;

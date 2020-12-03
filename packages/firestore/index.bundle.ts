@@ -33,8 +33,6 @@ export function registerBundle(instance: typeof Firestore): void {
   ) {
     return namedQuery(this, queryName);
   };
-
-  //TODO(wuandy): add loadBundle and namedQuery to the firestore namespace
 }
 
 registerBundle(Firestore);
