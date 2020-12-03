@@ -59,8 +59,7 @@ import {
 import {
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION,
-  SchemaConverter
+  SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import {
@@ -156,6 +155,7 @@ import { logWarn } from '../../../src/util/log';
 import { newTextEncoder } from '../../../src/platform/serializer';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
 import { DocumentKey } from '../../../src/model/path';
+import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 

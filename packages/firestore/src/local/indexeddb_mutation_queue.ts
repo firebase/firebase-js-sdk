@@ -35,8 +35,7 @@ import {
   DbMutationBatch,
   DbMutationBatchKey,
   DbMutationQueue,
-  DbMutationQueueKey,
-  removeMutationBatch
+  DbMutationQueueKey
 } from './indexeddb_schema';
 import {
   fromDbMutationBatch,
@@ -49,6 +48,7 @@ import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore } from './simple_db';
 import { PersistenceTransaction } from './persistence_transaction';
 import { IndexedDbTransaction } from './indexeddb_transaction';
+import { removeMutationBatch } from './indexeddb_schema_converter';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {

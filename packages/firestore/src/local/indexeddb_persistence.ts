@@ -34,8 +34,7 @@ import {
   DbClientMetadataKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION,
-  SchemaConverter
+  SCHEMA_VERSION
 } from './indexeddb_schema';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { LocalSerializer } from './local_serializer';
@@ -60,6 +59,7 @@ import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
 import { IndexedDbTransaction } from './indexeddb_transaction';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
+import { SchemaConverter } from './indexeddb_schema_converter';
 
 const LOG_TAG = 'IndexedDbPersistence';
 

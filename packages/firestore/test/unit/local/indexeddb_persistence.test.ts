@@ -48,7 +48,6 @@ import {
   DbTargetKey,
   DbTimestamp,
   SCHEMA_VERSION,
-  SchemaConverter,
   V1_STORES,
   V3_STORES,
   V4_STORES,
@@ -83,6 +82,7 @@ import { FakeDocument, testDocument } from '../../util/test_platform';
 import { getWindow } from '../../../src/platform/dom';
 import { Context } from 'mocha';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
 
 use(chaiAsPromised);
 
