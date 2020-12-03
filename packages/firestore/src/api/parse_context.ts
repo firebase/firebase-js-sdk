@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,9 @@
  * limitations under the License.
  */
 
-import { FieldTransform } from '../model/mutation';
-import { ParseContext } from './parse_context';
+import { DatabaseId } from '../core/database_info';
 
-/**
- * Sentinel values that can be used when writing document fields with `set()`
- * or `update()`.
- */
-export abstract class FieldValue {
-  /**
-   * @param _methodName - The public API endpoint that returns this class.
-   */
-  constructor(public _methodName: string) {}
-
-  abstract isEqual(other: FieldValue): boolean;
-
-  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
+export interface ParseContext {
+  readonly databaseId: DatabaseId;
+  readonly ignoreUndefinedProperties: boolean;
 }

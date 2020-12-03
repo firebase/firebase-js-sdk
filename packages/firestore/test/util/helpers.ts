@@ -23,6 +23,7 @@ import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
 import {
+  DeleteFieldValueImpl,
   parseQueryValue,
   parseUpdateData,
   UserDataReader
@@ -98,7 +99,6 @@ import {
 } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
-import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
 import {
   JSON_SERIALIZER,

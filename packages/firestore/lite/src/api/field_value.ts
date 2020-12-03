@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
+import { FieldValue } from '../../../src/api/field_value';
 import {
   ArrayRemoveFieldValueImpl,
   ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
-  FieldValue,
   NumericIncrementFieldValueImpl,
   ServerTimestampFieldValueImpl
-} from '../../../src/api/field_value';
+} from '../../../src/api/user_data_reader';
 
 /**
  * Returns a sentinel for use with {@link updateDoc} or

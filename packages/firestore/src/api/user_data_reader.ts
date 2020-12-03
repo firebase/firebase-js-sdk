@@ -17,13 +17,13 @@
 
 import {
   DocumentData,
-  SetOptions,
-  FieldPath as PublicFieldPath
+  FieldPath as PublicFieldPath,
+  SetOptions
 } from '@firebase/firestore-types';
 
 import {
-  Value as ProtoValue,
-  MapValue as ProtoMapValue
+  MapValue as ProtoMapValue,
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
@@ -51,7 +51,7 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { DeleteFieldValueImpl, FieldValue } from './field_value';
+import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
 import { Bytes } from '../../lite/src/api/bytes';
@@ -59,6 +59,13 @@ import { Compat } from '../compat/compat';
 import { DocumentReference } from '../../lite/src/api/reference';
 import { FieldPath } from '../../lite/src/api/field_path';
 import { toNumber } from '../remote/value_serializer';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
+  ServerTimestampTransform
+} from '../model/transform_operation';
+import { ParseContext } from './parse_context';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -178,7 +185,7 @@ interface ContextSettings {
 }
 
 /** A "context" object passed around while parsing user data. */
-export class ParseContext {
+class ParseContextImpl implements ParseContext {
   readonly fieldTransforms: FieldTransform[];
   readonly fieldMask: InternalFieldPath[];
   /**
@@ -225,8 +232,8 @@ export class ParseContext {
   }
 
   /** Returns a new context with the specified settings overwritten. */
-  contextWith(configuration: Partial<ContextSettings>): ParseContext {
-    return new ParseContext(
+  contextWith(configuration: Partial<ContextSettings>): ParseContextImpl {
+    return new ParseContextImpl(
       { ...this.settings, ...configuration },
       this.databaseId,
       this.serializer,
@@ -236,21 +243,21 @@ export class ParseContext {
     );
   }
 
-  childContextForField(field: string): ParseContext {
+  childContextForField(field: string): ParseContextImpl {
     const childPath = this.path?.child(field);
     const context = this.contextWith({ path: childPath, arrayElement: false });
     context.validatePathSegment(field);
     return context;
   }
 
-  childContextForFieldPath(field: InternalFieldPath): ParseContext {
+  childContextForFieldPath(field: InternalFieldPath): ParseContextImpl {
     const childPath = this.path?.child(field);
     const context = this.contextWith({ path: childPath, arrayElement: false });
     context.validatePath();
     return context;
   }
 
-  childContextForArray(index: number): ParseContext {
+  childContextForArray(index: number): ParseContextImpl {
     // TODO(b/34871131): We don't support array paths right now; so make path
     // undefined.
     return this.contextWith({ path: undefined, arrayElement: true });
@@ -318,8 +325,8 @@ export class UserDataReader {
     methodName: string,
     targetDoc?: DocumentKey,
     hasConverter = false
-  ): ParseContext {
-    return new ParseContext(
+  ): ParseContextImpl {
+    return new ParseContextImpl(
       {
         dataSource,
         methodName,
@@ -396,6 +403,148 @@ export function parseSetData(
     fieldMask,
     fieldTransforms
   );
+}
+
+export class DeleteFieldValueImpl extends FieldValue {
+  _toFieldTransform(context: ParseContextImpl): null {
+    if (context.dataSource === UserDataSource.MergeSet) {
+      // No transform to add for a delete, but we need to add it to our
+      // fieldMask so it gets deleted.
+      context.fieldMask.push(context.path!);
+    } else if (context.dataSource === UserDataSource.Update) {
+      debugAssert(
+        context.path!.length > 0,
+        `${this._methodName}() at the top level should have already ` +
+          'been handled.'
+      );
+      throw context.createError(
+        `${this._methodName}() can only appear at the top level ` +
+          'of your update data'
+      );
+    } else {
+      // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
+      throw context.createError(
+        `${this._methodName}() cannot be used with set() unless you pass ` +
+          '{merge:true}'
+      );
+    }
+    return null;
+  }
+
+  isEqual(other: FieldValue): boolean {
+    return other instanceof DeleteFieldValueImpl;
+  }
+}
+
+/**
+ * Creates a child context for parsing SerializableFieldValues.
+ *
+ * This is different than calling `ParseContext.contextWith` because it keeps
+ * the fieldTransforms and fieldMask separate.
+ *
+ * The created context has its `dataSource` set to `UserDataSource.Argument`.
+ * Although these values are used with writes, any elements in these FieldValues
+ * are not considered writes since they cannot contain any FieldValue sentinels,
+ * etc.
+ *
+ * @param fieldValue - The sentinel FieldValue for which to create a child
+ *     context.
+ * @param context - The parent context.
+ * @param arrayElement - Whether or not the FieldValue has an array.
+ */
+function createSentinelChildContext(
+  fieldValue: FieldValue,
+  context: ParseContextImpl,
+  arrayElement: boolean
+): ParseContextImpl {
+  return new ParseContextImpl(
+    {
+      dataSource: UserDataSource.Argument,
+      targetDoc: context.settings.targetDoc,
+      methodName: fieldValue._methodName,
+      arrayElement
+    },
+    context.databaseId,
+    context.serializer,
+    context.ignoreUndefinedProperties
+  );
+}
+
+export class ServerTimestampFieldValueImpl extends FieldValue {
+  _toFieldTransform(context: ParseContextImpl): FieldTransform {
+    return new FieldTransform(context.path!, new ServerTimestampTransform());
+  }
+
+  isEqual(other: FieldValue): boolean {
+    return other instanceof ServerTimestampFieldValueImpl;
+  }
+}
+
+export class ArrayUnionFieldValueImpl extends FieldValue {
+  constructor(methodName: string, private readonly _elements: unknown[]) {
+    super(methodName);
+  }
+
+  _toFieldTransform(context: ParseContextImpl): FieldTransform {
+    const parseContext = createSentinelChildContext(
+      this,
+      context,
+      /*array=*/ true
+    );
+    const parsedElements = this._elements.map(
+      element => parseData(element, parseContext)!
+    );
+    const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
+    return new FieldTransform(context.path!, arrayUnion);
+  }
+
+  isEqual(other: FieldValue): boolean {
+    // TODO(mrschmidt): Implement isEquals
+    return this === other;
+  }
+}
+
+export class ArrayRemoveFieldValueImpl extends FieldValue {
+  constructor(methodName: string, readonly _elements: unknown[]) {
+    super(methodName);
+  }
+
+  _toFieldTransform(context: ParseContextImpl): FieldTransform {
+    const parseContext = createSentinelChildContext(
+      this,
+      context,
+      /*array=*/ true
+    );
+    const parsedElements = this._elements.map(
+      element => parseData(element, parseContext)!
+    );
+    const arrayUnion = new ArrayRemoveTransformOperation(parsedElements);
+    return new FieldTransform(context.path!, arrayUnion);
+  }
+
+  isEqual(other: FieldValue): boolean {
+    // TODO(mrschmidt): Implement isEquals
+    return this === other;
+  }
+}
+
+export class NumericIncrementFieldValueImpl extends FieldValue {
+  constructor(methodName: string, private readonly _operand: number) {
+    super(methodName);
+  }
+
+  _toFieldTransform(context: ParseContextImpl): FieldTransform {
+    const numericIncrement = new NumericIncrementTransformOperation(
+      context.serializer,
+      toNumber(context.serializer, this._operand)
+    );
+    return new FieldTransform(context.path!, numericIncrement);
+  }
+
+  isEqual(other: FieldValue): boolean {
+    // TODO(mrschmidt): Implement isEquals
+    return this === other;
+  }
 }
 
 /** Parse update data from an update() call. */
@@ -554,7 +703,7 @@ export function parseQueryValue(
  */
 export function parseData(
   input: unknown,
-  context: ParseContext
+  context: ParseContextImpl
 ): ProtoValue | null {
   // Unwrap the API type from the Compat SDK. This will return the API type
   // from firestore-exp.
@@ -602,7 +751,7 @@ export function parseData(
 
 function parseObject(
   obj: Dict<unknown>,
-  context: ParseContext
+  context: ParseContextImpl
 ): { mapValue: ProtoMapValue } {
   const fields: Dict<ProtoValue> = {};
 
@@ -624,7 +773,7 @@ function parseObject(
   return { mapValue: { fields } };
 }
 
-function parseArray(array: unknown[], context: ParseContext): ProtoValue {
+function parseArray(array: unknown[], context: ParseContextImpl): ProtoValue {
   const values: ProtoValue[] = [];
   let entryIndex = 0;
   for (const entry of array) {
@@ -649,7 +798,7 @@ function parseArray(array: unknown[], context: ParseContext): ProtoValue {
  */
 function parseSentinelFieldValue(
   value: FieldValue,
-  context: ParseContext
+  context: ParseContextImpl
 ): void {
   // Sentinels are only supported with writes, and not within arrays.
   if (!isWrite(context.dataSource)) {
@@ -676,7 +825,7 @@ function parseSentinelFieldValue(
  */
 function parseScalarValue(
   value: unknown,
-  context: ParseContext
+  context: ParseContextImpl
 ): ProtoValue | null {
   if (value instanceof Compat) {
     value = value._delegate;
@@ -763,7 +912,7 @@ function looksLikeJsonObject(input: unknown): boolean {
 
 function validatePlainObject(
   message: string,
-  context: ParseContext,
+  context: ParseContextImpl,
   input: unknown
 ): asserts input is Dict<unknown> {
   if (!looksLikeJsonObject(input) || !isPlainObject(input)) {
