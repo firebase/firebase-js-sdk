@@ -8291,10 +8291,26 @@ declare namespace firebase.firestore {
      */
     terminate(): Promise<void>;
 
+    /**
+     * Loads a Firestore bundle into the local cache.
+     *
+     * @param bundleData An object representing the bundle to be load, could be a `ArrayBuffer`,
+     *        a `ReadableStream<Uint8Array>` or a `string`.
+     *
+     * @return A `LoadBundleTask` object, which notifies callers with progress update, completion
+     *        or error event. It can be used as a `Promise<LoadBundleTaskProgress>`.
+     */
     loadBundle(
-      bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+      bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
     ): LoadBundleTask;
 
+    /**
+     * Reads a Firestore query from local cache that is associated to a given name.
+     *
+     * The named queries are from bundles, and saved as a result of `loadBundle`. `namedQuery`
+     * retrieves the queries used to built the bundles, saving the need to manually construct
+     * those queries.
+     */
     namedQuery(name: string): Promise<Query<DocumentData> | null>;
 
     /**
@@ -8303,31 +8319,71 @@ declare namespace firebase.firestore {
     INTERNAL: { delete: () => Promise<void> };
   }
 
+  /**
+   * Represents the task of loading a Firestore bundle. It provides progress of the bundle
+   * loading, task completion and error events should they be any.
+   *
+   * It can be used as a `Promise<LoadBundleTaskProgress>`.
+   */
   export interface LoadBundleTask {
+    /**
+     * Registers functions to listen to bundle loading progresses.
+     * @param next Called there is a progress update from bundle loading, typically whenever
+     *        a Firestore document is loaded it will generate a progress update.
+     * @param error Called when there is an error occurred from loading the bundle. The task
+     *        aborts after reporting the error, and there should be no more updates after this.
+     * @param complete Called when the loading task is complete.
+     */
     onProgress(
       next?: (progress: LoadBundleTaskProgress) => any,
       error?: (error: Error) => any,
       complete?: () => void
     ): void;
 
+    /**
+     * Implements a `Promise<LoadBundleTaskProgress>` interface.
+     *
+     * @param onFulfilled It is called with the compeltion `LoadBundleTaskProgress` when the
+     *        loading task completes.
+     * @param onRejected It is called when there is an error occurred from loading the bundle.
+     */
     then<T, R>(
       onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
       onRejected?: (a: Error) => R | PromiseLike<R>
     ): Promise<T | R>;
 
+    /**
+     * Implements a `Promise<LoadBundleTaskProgress>` interface.
+     *
+     * @param onRejected It is called when there is an error occurred from loading the bundle.
+     */
     catch<R>(
       onRejected: (a: Error) => R | PromiseLike<R>
     ): Promise<R | LoadBundleTaskProgress>;
   }
 
+  /**
+   * Represents a progress update or a final state from loading bundles.
+   */
   export interface LoadBundleTaskProgress {
+    /** How many documents have been loaded. */
     documentsLoaded: number;
+    /** How many documents are in the bundle being loaded. */
     totalDocuments: number;
+    /** How many bytes have been loaded. */
     bytesLoaded: number;
+    /** How many bytes are in the bundle being loaded. */
     totalBytes: number;
+    /** Current task state. */
     taskState: TaskState;
   }
 
+  /**
+   * Represents the state of bundle loading tasks.
+   *
+   * Both 'Error' and 'Success' are sinking state: task will abort or complete and there will
+   * be no more updates after they are reported.
+   */
   export type TaskState = 'Error' | 'Running' | 'Success';
 
   /**

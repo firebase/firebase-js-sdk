@@ -97,7 +97,7 @@ export class FirebaseFirestore {
   terminate(): Promise<void>;
 
   loadBundle(
-    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): LoadBundleTask;
 
   namedQuery(name: string): Promise<Query<DocumentData> | null>;
