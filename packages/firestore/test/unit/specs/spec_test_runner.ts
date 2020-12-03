@@ -156,6 +156,7 @@ import {
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { logWarn } from '../../../src/util/log';
 import { newTextEncoder } from '../../../src/platform/serializer';
+import { newBundleReader } from '../../../src/util/bundle_reader_impl';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -517,7 +518,7 @@ abstract class TestRunner {
   }
 
   private async doLoadBundle(bundle: string): Promise<void> {
-    const reader = new BundleReader(
+    const reader = newBundleReader(
       toByteStreamReader(newTextEncoder().encode(bundle)),
       this.serializer
     );

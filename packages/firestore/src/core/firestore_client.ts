@@ -83,6 +83,7 @@ import {
   handleUserChange,
   readLocalDocument
 } from '../local/local_store_impl';
+import { newBundleReader } from '../util/bundle_reader_impl';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -690,5 +691,5 @@ function createBundleReader(
   } else {
     content = data;
   }
-  return new BundleReader(toByteStreamReader(content), serializer);
+  return newBundleReader(toByteStreamReader(content), serializer);
 }
