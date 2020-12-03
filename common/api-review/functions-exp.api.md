@@ -4,10 +4,10 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types';
-import { Functions } from '@firebase/functions-types';
-import { HttpsCallable } from '@firebase/functions-types';
-import { HttpsCallableOptions } from '@firebase/functions-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { Functions } from '@firebase/functions-types-exp';
+import { HttpsCallable } from '@firebase/functions-types-exp';
+import { HttpsCallableOptions } from '@firebase/functions-types-exp';
 
 // @public
 export function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;

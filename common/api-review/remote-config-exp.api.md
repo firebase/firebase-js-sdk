@@ -4,10 +4,10 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types';
-import { LogLevel } from '@firebase/remote-config-types';
-import { RemoteConfig } from '@firebase/remote-config-types';
-import { Value } from '@firebase/remote-config-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { LogLevel } from '@firebase/remote-config-types-exp';
+import { RemoteConfig } from '@firebase/remote-config-types-exp';
+import { Value } from '@firebase/remote-config-types-exp';
 
 // @public
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
