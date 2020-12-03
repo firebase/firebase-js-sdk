@@ -32,7 +32,6 @@ import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   fromDbBundle,
   fromDbNamedQuery,
-  LocalSerializer,
   toDbBundle,
   toDbNamedQuery
 } from './local_serializer';

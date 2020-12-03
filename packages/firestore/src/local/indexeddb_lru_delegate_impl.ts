@@ -29,11 +29,10 @@ import {
   documentTargetStore,
   IndexedDbTargetCache
 } from './indexeddb_target_cache';
-import { Persistence, ReferenceDelegate } from './persistence';
+import { Persistence } from './persistence';
 import { newLruGarbageCollector } from './lru_garbage_collector_impl';
 import {
   ActiveTargets,
-  LruDelegate,
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';

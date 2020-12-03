@@ -20,20 +20,7 @@ import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { newTextDecoder } from '../platform/serializer';
 import { debugAssert } from './assert';
-import {
-  BundleReader,
-  BundleSource,
-  SizedBundleElement
-} from './bundle_reader';
-import { toByteStreamReader } from '../platform/byte_stream_reader';
-
-/**
- * When applicable, how many bytes to read from the underlying data source
- * each time.
- *
- * Not applicable for ReadableStreams.
- */
-const BYTES_PER_READ = 10240;
+import { BundleReader, SizedBundleElement } from './bundle_reader';
 
 /**
  * A class representing a bundle.

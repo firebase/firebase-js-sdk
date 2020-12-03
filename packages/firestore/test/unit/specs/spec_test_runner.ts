@@ -145,7 +145,6 @@ import {
   SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { BundleReader } from '../../../src/util/bundle_reader';
 import { LoadBundleTask } from '../../../src/api/bundle';
 import { encodeBase64 } from '../../../src/platform/base64';
 import {
