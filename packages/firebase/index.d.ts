@@ -8353,7 +8353,7 @@ declare namespace firebase.firestore {
     ): Promise<T | R>;
 
     /**
-     * Implements a `Promise<LoadBundleTaskProgress>` interface.
+     * Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
      *
      * @param onRejected It is called when there is an error occurred from loading the bundle.
      */
