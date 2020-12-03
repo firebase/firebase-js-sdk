@@ -56,7 +56,8 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
             RECOVER_EMAIL: externs.ActionCodeOperation.RECOVER_EMAIL,
             REVERT_SECOND_FACTOR_ADDITION:
               externs.ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION,
-            VERIFY_AND_CHANGE_EMAIL: externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
+            VERIFY_AND_CHANGE_EMAIL:
+              externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
             VERIFY_EMAIL: externs.ActionCodeOperation.VERIFY_EMAIL
           }
         },
