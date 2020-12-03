@@ -42,9 +42,9 @@ import { debugAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { applyMutationToLocalView, PatchMutation } from '../model/mutation';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we

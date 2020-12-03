@@ -20,10 +20,10 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
 import { Target } from '../core/target';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * Represents cached targets received from the remote backend.

@@ -16,7 +16,7 @@
  */
 
 import { User } from '../auth/user';
-import { ListenSequenceNumber, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
 import { LocalStore } from './local_store';
@@ -26,32 +26,11 @@ import { TargetCache } from './target_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetData } from './target_data';
 import { BundleCache } from './bundle_cache';
+import { PersistenceTransaction } from './persistence_transaction';
 
 export const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +
   'It might be necessary to refresh the browser tab.';
-
-/**
- * A base class representing a persistence transaction, encapsulating both the
- * transaction's sequence numbers as well as a list of onCommitted listeners.
- *
- * When you call Persistence.runTransaction(), it will create a transaction and
- * pass it to your callback. You then pass it to any method that operates
- * on persistence.
- */
-export abstract class PersistenceTransaction {
-  private readonly onCommittedListeners: Array<() => void> = [];
-
-  abstract readonly currentSequenceNumber: ListenSequenceNumber;
-
-  addOnCommittedListener(listener: () => void): void {
-    this.onCommittedListeners.push(listener);
-  }
-
-  raiseOnCommittedEvent(): void {
-    this.onCommittedListeners.forEach(listener => listener());
-  }
-}
 
 /** The different modes supported by `IndexedDbPersistence.runTransaction()`. */
 export type PersistenceTransactionMode =

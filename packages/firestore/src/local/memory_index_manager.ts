@@ -19,8 +19,8 @@ import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { SortedSet } from '../util/sorted_set';
 import { IndexManager } from './index_manager';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * An in-memory implementation of IndexManager.

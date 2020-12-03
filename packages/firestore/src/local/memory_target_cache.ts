@@ -25,12 +25,12 @@ import { ObjectMap } from '../util/obj_map';
 
 import { ActiveTargets } from './lru_garbage_collector';
 import { MemoryPersistence } from './memory_persistence';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
+import { PersistenceTransaction } from './persistence_transaction';
 
 export class MemoryTargetCache implements TargetCache {
   /**

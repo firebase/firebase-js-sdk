@@ -55,11 +55,7 @@ import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
-import {
-  Persistence,
-  PersistenceTransaction,
-  PRIMARY_LEASE_LOST_ERROR_MSG
-} from './persistence';
+import { Persistence, PRIMARY_LEASE_LOST_ERROR_MSG } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { QueryEngine } from './query_engine';
@@ -86,6 +82,7 @@ import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
 import { fromBundledQuery } from './local_serializer';
 import { ByteString } from '../util/byte_string';
 import { ResourcePath } from '../model/path';
+import { PersistenceTransaction } from './persistence_transaction';
 
 const LOG_TAG = 'LocalStore';
 

@@ -41,7 +41,6 @@ import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
-  PersistenceTransaction,
   PersistenceTransactionMode,
   ReferenceDelegate
 } from './persistence';
@@ -51,6 +50,7 @@ import { TargetData } from './target_data';
 import { MemoryBundleCache } from './memory_bundle_cache';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { LocalSerializer } from './local_serializer';
+import { PersistenceTransaction } from './persistence_transaction';
 
 const LOG_TAG = 'MemoryPersistence';
 /**

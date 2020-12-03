@@ -28,9 +28,10 @@ import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction, ReferenceDelegate } from './persistence';
+import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
+import { PersistenceTransaction } from './persistence_transaction';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**

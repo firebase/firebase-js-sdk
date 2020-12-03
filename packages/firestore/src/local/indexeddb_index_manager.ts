@@ -26,9 +26,9 @@ import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore } from './simple_db';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * A persisted implementation of IndexManager.

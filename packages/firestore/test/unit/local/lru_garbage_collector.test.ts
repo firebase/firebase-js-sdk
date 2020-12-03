@@ -29,10 +29,7 @@ import {
   LruParams
 } from '../../../src/local/lru_garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
+import { Persistence } from '../../../src/local/persistence';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { TargetCache } from '../../../src/local/target_cache';
@@ -51,6 +48,7 @@ import { key, query, version, wrapObject } from '../../util/helpers';
 import { SortedMap } from '../../../src/util/sorted_map';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { primitiveComparator } from '../../../src/util/misc';
+import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 
 describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
   NamedQuery as ProtoNamedQuery,
@@ -38,6 +37,7 @@ import {
   toDbNamedQuery
 } from './local_serializer';
 import { Bundle, NamedQuery } from '../core/bundle';
+import { PersistenceTransaction } from './persistence_transaction';
 
 export class IndexedDbBundleCache implements BundleCache {
   constructor(private serializer: LocalSerializer) {}

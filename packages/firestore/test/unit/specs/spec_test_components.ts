@@ -24,7 +24,6 @@ import {
 import {
   GarbageCollectionScheduler,
   Persistence,
-  PersistenceTransaction,
   PersistenceTransactionMode
 } from '../../../src/local/persistence';
 import {
@@ -64,6 +63,7 @@ import { WindowLike } from '../../../src/util/types';
 import { newSerializer } from '../../../src/platform/serializer';
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject

@@ -31,10 +31,10 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 import { IndexManager } from './index_manager';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { PersistenceTransaction } from './persistence_transaction';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
 

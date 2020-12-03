@@ -63,7 +63,6 @@ import {
 } from './lru_garbage_collector';
 import {
   Persistence,
-  PersistenceTransaction,
   PersistenceTransactionMode,
   PRIMARY_LEASE_LOST_ERROR_MSG,
   PrimaryStateListener,
@@ -79,6 +78,7 @@ import {
   SimpleDbTransaction
 } from './simple_db';
 import { DocumentLike, WindowLike } from '../util/types';
+import { PersistenceTransaction } from './persistence_transaction';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
