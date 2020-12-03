@@ -20,7 +20,6 @@ import { registerFirestore } from './register';
 registerFirestore();
 
 export {
-  Settings,
   FirebaseFirestore,
   initializeFirestore,
   getFirestore,
@@ -94,3 +93,4 @@ export { Timestamp } from '../src/api/timestamp';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
 export { FieldValue } from '../src/api/field_value';
+export { Settings } from './src/api/components';

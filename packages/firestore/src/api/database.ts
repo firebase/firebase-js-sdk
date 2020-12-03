@@ -93,8 +93,6 @@ import {
 } from '../../exp/src/api/reference';
 import { Compat } from '../compat/compat';
 import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
-import { makeDatabaseInfo } from '../../lite/src/api/database';
-import { DEFAULT_HOST } from '../../lite/src/api/components';
 import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
 import {
   runTransaction,
@@ -129,6 +127,7 @@ import {
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
+import { DEFAULT_HOST, makeDatabaseInfo } from '../../lite/src/api/components';
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.

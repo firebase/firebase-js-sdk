@@ -35,10 +35,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
-import {
-  FirebaseFirestore as LiteFirestore,
-  Settings as LiteSettings
-} from '../../../lite/src/api/database';
+import { FirebaseFirestore as LiteFirestore } from '../../../lite/src/api/database';
 import { DatabaseId } from '../../../src/core/database_info';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
@@ -53,6 +50,7 @@ import {
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
 import { cast } from '../../../src/util/input_validation';
+import { Settings as LiteSettings } from '../../../lite/src/api/components';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
