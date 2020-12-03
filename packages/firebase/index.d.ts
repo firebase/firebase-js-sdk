@@ -8323,7 +8323,7 @@ declare namespace firebase.firestore {
    * Represents the task of loading a Firestore bundle. It provides progress of the bundle
    * loading, task completion and error events should they be any.
    *
-   * It can be used as a `Promise<LoadBundleTaskProgress>`.
+   * The API is compatible with `Promise<LoadBundleTaskProgress>`.
    */
   export interface LoadBundleTask {
     /**
