@@ -26,7 +26,6 @@ import {
 import { fail } from '../util/assert';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
-import { DocumentKey } from './document_key';
 import { arrayEquals, primitiveComparator } from '../util/misc';
 import { DatabaseId } from '../core/database_info';
 import {
@@ -40,6 +39,7 @@ import {
   normalizeTimestamp
 } from './normalize';
 import { TypeOrder } from './type_order';
+import { DocumentKey } from './path';
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {

@@ -21,10 +21,10 @@ import { BatchId } from '../../../src/core/types';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentKeySet } from '../../../src/model/collections';
-import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { SortedMap } from '../../../src/util/sorted_map';
+import { DocumentKey } from '../../../src/model/path';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a

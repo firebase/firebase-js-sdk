@@ -17,7 +17,6 @@
 
 import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
@@ -51,6 +50,7 @@ import {
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
+import { DocumentKey } from '../model/path';
 
 const LOG_TAG = 'MemoryPersistence';
 /**

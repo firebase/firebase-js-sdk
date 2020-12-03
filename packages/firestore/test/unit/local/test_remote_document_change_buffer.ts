@@ -18,8 +18,8 @@
 import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import { MaybeDocument } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { DocumentKey } from '../../../src/model/path';
 
 /**
  * A wrapper around a RemoteDocumentChangeBuffer that automatically creates a

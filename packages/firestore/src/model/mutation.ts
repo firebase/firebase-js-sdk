@@ -27,9 +27,8 @@ import {
   NoDocument,
   UnknownDocument
 } from './document';
-import { DocumentKey } from './document_key';
 import { FieldMask, ObjectValue, ObjectValueBuilder } from './object_value';
-import { FieldPath } from './path';
+import { DocumentKey, FieldPath } from './path';
 import {
   applyTransformOperationToLocalView,
   applyTransformOperationToRemoteDocument,

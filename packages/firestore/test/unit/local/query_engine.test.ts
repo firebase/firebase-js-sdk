@@ -29,12 +29,12 @@ import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
 import { debugAssert } from '../../../src/util/assert';
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
 import { doc, filter, key, orderBy, query, version } from '../../util/helpers';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
+import { DocumentKey } from '../../../src/model/path';
 
 const TEST_TARGET_ID = 1;
 

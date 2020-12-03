@@ -24,7 +24,6 @@ import {
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import { Document, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
   RemoteStore,
@@ -84,6 +83,7 @@ import {
   readLocalDocument
 } from '../local/local_store_impl';
 import { newBundleReader } from '../util/bundle_reader_impl';
+import { DocumentKey } from '../model/path';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

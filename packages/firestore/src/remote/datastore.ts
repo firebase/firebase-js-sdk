@@ -17,7 +17,6 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { Document, MaybeDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
@@ -45,6 +44,7 @@ import {
 } from './persistent_stream';
 import { AsyncQueue } from '../util/async_queue';
 import { Query, queryToTarget } from '../core/query';
+import { DocumentKey } from '../model/path';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google

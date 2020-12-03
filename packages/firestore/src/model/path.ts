@@ -366,3 +366,57 @@ export class FieldPath extends BasePath<FieldPath> {
     return new FieldPath([]);
   }
 }
+
+export class DocumentKey {
+  constructor(readonly path: ResourcePath) {
+    debugAssert(
+      DocumentKey.isDocumentKey(path),
+      'Invalid DocumentKey with an odd number of segments: ' +
+        path.toArray().join('/')
+    );
+  }
+
+  static fromPath(path: string): DocumentKey {
+    return new DocumentKey(ResourcePath.fromString(path));
+  }
+
+  static fromName(name: string): DocumentKey {
+    return new DocumentKey(ResourcePath.fromString(name).popFirst(5));
+  }
+
+  /** Returns true if the document is in the specified collectionId. */
+  hasCollectionId(collectionId: string): boolean {
+    return (
+      this.path.length >= 2 &&
+      this.path.get(this.path.length - 2) === collectionId
+    );
+  }
+
+  isEqual(other: DocumentKey | null): boolean {
+    return (
+      other !== null && ResourcePath.comparator(this.path, other.path) === 0
+    );
+  }
+
+  toString(): string {
+    return this.path.toString();
+  }
+
+  static comparator(k1: DocumentKey, k2: DocumentKey): number {
+    return ResourcePath.comparator(k1.path, k2.path);
+  }
+
+  static isDocumentKey(path: ResourcePath): boolean {
+    return path.length % 2 === 0;
+  }
+
+  /**
+   * Creates and returns a new document key with the given segments.
+   *
+   * @param segments - The segments of the path to the document
+   * @returns A new instance of DocumentKey
+   */
+  static fromSegments(segments: string[]): DocumentKey {
+    return new DocumentKey(new ResourcePath(segments.slice()));
+  }
+}

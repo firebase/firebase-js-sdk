@@ -22,12 +22,12 @@ import {
   NullableMaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { PersistenceTransaction } from './persistence_transaction';
+import { DocumentKey } from '../model/path';
 
 /**
  * Represents cached documents received from the remote backend.

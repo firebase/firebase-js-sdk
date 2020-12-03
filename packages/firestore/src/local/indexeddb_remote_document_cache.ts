@@ -28,16 +28,15 @@ import {
   NullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
-import { ResourcePath } from '../model/path';
+import { DocumentKey, ResourcePath } from '../model/path';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-
 import { SnapshotVersion } from '../core/snapshot_version';
-import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
+import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import {
+  dbDocumentSize,
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
   DbRemoteDocumentGlobalKey,
@@ -600,21 +599,4 @@ function remoteDocumentsStore(
 
 function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
   return docKey.path.toArray();
-}
-
-/**
- * Retrusn an approximate size for the given document.
- */
-export function dbDocumentSize(doc: DbRemoteDocument): number {
-  let value: unknown;
-  if (doc.document) {
-    value = doc.document;
-  } else if (doc.unknownDocument) {
-    value = doc.unknownDocument;
-  } else if (doc.noDocument) {
-    value = doc.noDocument;
-  } else {
-    throw fail('Unknown remote document type');
-  }
-  return JSON.stringify(value).length;
 }

@@ -70,13 +70,12 @@ import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { PersistencePromise } from './persistence_promise';
-import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
 import {
   remoteDocumentCacheGetLastReadTime,
   remoteDocumentCacheGetNewDocumentChanges
 } from './indexeddb_remote_document_cache';
-import { ResourcePath } from '../model/path';
+import { DocumentKey, ResourcePath } from '../model/path';
 import {
   extractMutationBaseValue,
   Mutation,

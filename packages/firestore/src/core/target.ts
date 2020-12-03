@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { DocumentKey } from '../model/document_key';
-import { FieldPath, ResourcePath } from '../model/path';
+import { DocumentKey, FieldPath, ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
 import { debugAssert, debugCast, fail } from '../util/assert';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';

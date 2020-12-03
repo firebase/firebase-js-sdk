@@ -61,7 +61,6 @@ import {
   UnknownDocument
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
-import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
@@ -73,7 +72,7 @@ import {
   SetMutation,
   TransformMutation
 } from '../../src/model/mutation';
-import { FieldPath, ResourcePath } from '../../src/model/path';
+import { DocumentKey, FieldPath, ResourcePath } from '../../src/model/path';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,

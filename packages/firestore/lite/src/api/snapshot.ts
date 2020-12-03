@@ -24,10 +24,12 @@ import {
   SetOptions
 } from './reference';
 import { FieldPath } from './field_path';
-import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
-import { FieldPath as InternalFieldPath } from '../../../src/model/path';
+import {
+  DocumentKey,
+  FieldPath as InternalFieldPath
+} from '../../../src/model/path';
 import {
   fieldPathFromDotSeparatedString,
   UntypedFirestoreDataConverter
@@ -211,9 +213,9 @@ export class DocumentSnapshot<T = DocumentData> {
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
+  T
+> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *

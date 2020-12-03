@@ -34,9 +34,8 @@ import {
   nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
-import { ResourcePath } from '../model/path';
+import { DocumentKey, ResourcePath } from '../model/path';
 
 import { debugAssert } from '../util/assert';
 import { IndexManager } from './index_manager';

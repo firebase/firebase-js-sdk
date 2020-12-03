@@ -26,7 +26,6 @@ import {
   MaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
@@ -107,6 +106,7 @@ import {
   removeCachedMutationBatchMetadata,
   saveBundle
 } from '../local/local_store_impl';
+import { DocumentKey } from '../model/path';
 
 const LOG_TAG = 'SyncEngine';
 

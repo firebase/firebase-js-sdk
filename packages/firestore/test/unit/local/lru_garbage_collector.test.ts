@@ -31,7 +31,6 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document, MaybeDocument } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import {
   Mutation,
   Precondition,
@@ -49,6 +48,7 @@ import {
   LruGarbageCollector,
   LruParams
 } from '../../../src/local/lru_garbage_collector';
+import { DocumentKey } from '../../../src/model/path';
 
 describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {

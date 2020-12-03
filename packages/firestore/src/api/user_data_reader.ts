@@ -27,7 +27,6 @@ import {
 } from '../protos/firestore_proto_api';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
-import { DocumentKey } from '../model/document_key';
 import {
   FieldTransform,
   Mutation,
@@ -36,7 +35,7 @@ import {
   SetMutation,
   TransformMutation
 } from '../model/mutation';
-import { FieldPath as InternalFieldPath } from '../model/path';
+import { DocumentKey, FieldPath as InternalFieldPath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';

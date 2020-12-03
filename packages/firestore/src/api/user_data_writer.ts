@@ -27,7 +27,6 @@ import {
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
-import { DocumentKey } from '../model/document_key';
 import { typeOrder } from '../model/values';
 import {
   getLocalWriteTime,
@@ -35,7 +34,7 @@ import {
 } from '../model/server_timestamps';
 import { fail, hardAssert } from '../util/assert';
 import { forEach } from '../util/obj';
-import { ResourcePath } from '../model/path';
+import { DocumentKey, ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
 import { ByteString } from '../util/byte_string';

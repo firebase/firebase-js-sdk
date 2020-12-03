@@ -21,7 +21,6 @@ import {
   MaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
 import { debugAssert, fail } from '../util/assert';
@@ -41,6 +40,7 @@ import {
   ViewSnapshot
 } from './view_snapshot';
 import { QueryResult } from '../local/local_store_impl';
+import { DocumentKey } from '../model/path';
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {

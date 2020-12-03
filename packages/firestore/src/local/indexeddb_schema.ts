@@ -16,34 +16,30 @@
  */
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
-import { ResourcePath } from '../model/path';
+import { DocumentKey, ResourcePath } from '../model/path';
 import { BundledQuery } from '../protos/firestore_bundle_proto';
 import {
-  Write as ProtoWrite,
   Document as ProtoDocument,
+  DocumentsTarget as ProtoDocumentsTarget,
   QueryTarget as ProtoQueryTarget,
-  DocumentsTarget as ProtoDocumentsTarget
+  Write as ProtoWrite
 } from '../protos/firestore_proto_api';
-import { debugAssert, hardAssert } from '../util/assert';
-
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import {
   decodeResourcePath,
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { removeMutationBatch } from './indexeddb_mutation_queue';
-import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import {
   fromDbMutationBatch,
   fromDbTarget,
   LocalSerializer,
   toDbTarget
 } from './local_serializer';
-import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
 
 /**
  * Schema Version for the Web client:
@@ -207,7 +203,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     return queuesStore.loadAll().next(queues => {
       return PersistencePromise.forEach(queues, (queue: DbMutationQueue) => {
         const range = IDBKeyRange.bound(
-          [queue.userId, BATCHID_UNKNOWN],
+          [queue.userId, Number.MIN_SAFE_INTEGER],
           [queue.userId, queue.lastAcknowledgedBatchId]
         );
 
@@ -348,6 +344,71 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       return targetStore.put(updatedDbTarget);
     });
   }
+}
+
+/**
+ * Delete a mutation batch and the associated document mutations.
+ * @returns A PersistencePromise of the document mutations that were removed.
+ */
+export function removeMutationBatch(
+  txn: SimpleDbTransaction,
+  userId: string,
+  batch: { batchId: number; mutations: Array<{ key: DocumentKey }> }
+): PersistencePromise<DocumentKey[]> {
+  const mutationStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+    DbMutationBatch.store
+  );
+  const indexTxn = txn.store<DbDocumentMutationKey, DbDocumentMutation>(
+    DbDocumentMutation.store
+  );
+  const promises: Array<PersistencePromise<void>> = [];
+
+  const range = IDBKeyRange.only(batch.batchId);
+  let numDeleted = 0;
+  const removePromise = mutationStore.iterate(
+    { range },
+    (key, value, control) => {
+      numDeleted++;
+      return control.delete();
+    }
+  );
+  promises.push(
+    removePromise.next(() => {
+      hardAssert(
+        numDeleted === 1,
+        'Dangling document-mutation reference found: Missing batch ' +
+          batch.batchId
+      );
+    })
+  );
+  const removedDocuments: DocumentKey[] = [];
+  for (const mutation of batch.mutations) {
+    const indexKey = DbDocumentMutation.key(
+      userId,
+      mutation.key.path,
+      batch.batchId
+    );
+    promises.push(indexTxn.delete(indexKey));
+    removedDocuments.push(mutation.key);
+  }
+  return PersistencePromise.waitFor(promises).next(() => removedDocuments);
+}
+
+/**
+ * Returns an approximate size for the given document.
+ */
+export function dbDocumentSize(doc: DbRemoteDocument): number {
+  let value: unknown;
+  if (doc.document) {
+    value = doc.document;
+  } else if (doc.unknownDocument) {
+    value = doc.unknownDocument;
+  } else if (doc.noDocument) {
+    value = doc.noDocument;
+  } else {
+    throw fail('Unknown remote document type');
+  }
+  return JSON.stringify(value).length;
 }
 
 function sentinelKey(path: ResourcePath): DbTargetDocumentKey {

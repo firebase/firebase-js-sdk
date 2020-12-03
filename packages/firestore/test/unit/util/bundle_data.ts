@@ -26,7 +26,6 @@ import {
   toName,
   toQueryTarget
 } from '../../../src/remote/serializer';
-import { DocumentKey } from '../../../src/model/document_key';
 import {
   newSerializer,
   newTextEncoder
@@ -37,6 +36,7 @@ import {
   queryToTarget,
   queryWithLimit
 } from '../../../src/core/query';
+import { DocumentKey } from '../../../src/model/path';
 
 export const encoder = newTextEncoder();
 

@@ -22,7 +22,7 @@ import { Persistence } from '../../../src/local/persistence';
 import { TargetCache } from '../../../src/local/target_cache';
 import { TargetData } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
-import { DocumentKey } from '../../../src/model/document_key';
+import { DocumentKey } from '../../../src/model/path';
 
 /**
  * A wrapper around a TargetCache that automatically creates a

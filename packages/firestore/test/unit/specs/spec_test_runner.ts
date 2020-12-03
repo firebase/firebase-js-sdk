@@ -70,7 +70,6 @@ import {
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import * as api from '../../../src/protos/firestore_proto_api';
@@ -156,6 +155,7 @@ import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { logWarn } from '../../../src/util/log';
 import { newTextEncoder } from '../../../src/platform/serializer';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
+import { DocumentKey } from '../../../src/model/path';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 

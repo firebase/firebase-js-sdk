@@ -19,7 +19,6 @@ import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
-import { DocumentKey } from '../model/document_key';
 import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 import { TargetIdGenerator } from '../core/target_id_generator';
@@ -44,6 +43,7 @@ import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { PersistenceTransaction } from './persistence_transaction';
 import { ActiveTargets } from './lru_garbage_collector';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
+import { DocumentKey } from '../model/path';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(

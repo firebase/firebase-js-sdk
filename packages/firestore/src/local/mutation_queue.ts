@@ -18,13 +18,13 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { BatchId } from '../core/types';
-import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
 import { SortedMap } from '../util/sorted_map';
 
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { DocumentKey } from '../model/path';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue {

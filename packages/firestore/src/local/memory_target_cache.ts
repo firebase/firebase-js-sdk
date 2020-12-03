@@ -19,7 +19,6 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
-import { DocumentKey } from '../model/document_key';
 import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
@@ -31,6 +30,7 @@ import { TargetData } from './target_data';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { PersistenceTransaction } from './persistence_transaction';
 import { ActiveTargets } from './lru_garbage_collector';
+import { DocumentKey } from '../model/path';
 
 export class MemoryTargetCache implements TargetCache {
   /**

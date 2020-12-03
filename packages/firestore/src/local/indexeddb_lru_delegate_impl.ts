@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { DocumentKey } from '../model/document_key';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DbTargetDocument } from './indexeddb_schema';
 import {
@@ -40,6 +39,7 @@ import { TargetData } from './target_data';
 import { mutationQueuesContainKey } from './indexeddb_mutation_queue';
 import { ListenSequence } from '../core/listen_sequence';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
+import { DocumentKey } from '../model/path';
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export class IndexedDbLruDelegateImpl implements IndexedDbLruDelegate {

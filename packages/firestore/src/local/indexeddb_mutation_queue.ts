@@ -20,10 +20,9 @@ import { User } from '../auth/user';
 import { isCollectionGroupQuery, isDocumentQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
-import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
-import { ResourcePath } from '../model/path';
+import { DocumentKey, ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
@@ -36,7 +35,8 @@ import {
   DbMutationBatch,
   DbMutationBatchKey,
   DbMutationQueue,
-  DbMutationQueueKey
+  DbMutationQueueKey,
+  removeMutationBatch
 } from './indexeddb_schema';
 import {
   fromDbMutationBatch,
@@ -46,7 +46,7 @@ import {
 import { MutationQueue } from './mutation_queue';
 import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDbStore } from './simple_db';
 import { PersistenceTransaction } from './persistence_transaction';
 import { IndexedDbTransaction } from './indexeddb_transaction';
 
@@ -611,54 +611,6 @@ export function mutationQueuesContainKey(
       });
     })
     .next(() => found);
-}
-
-/**
- * Delete a mutation batch and the associated document mutations.
- * @returns A PersistencePromise of the document mutations that were removed.
- */
-export function removeMutationBatch(
-  txn: SimpleDbTransaction,
-  userId: string,
-  batch: MutationBatch
-): PersistencePromise<DocumentKey[]> {
-  const mutationStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-    DbMutationBatch.store
-  );
-  const indexTxn = txn.store<DbDocumentMutationKey, DbDocumentMutation>(
-    DbDocumentMutation.store
-  );
-  const promises: Array<PersistencePromise<void>> = [];
-
-  const range = IDBKeyRange.only(batch.batchId);
-  let numDeleted = 0;
-  const removePromise = mutationStore.iterate(
-    { range },
-    (key, value, control) => {
-      numDeleted++;
-      return control.delete();
-    }
-  );
-  promises.push(
-    removePromise.next(() => {
-      hardAssert(
-        numDeleted === 1,
-        'Dangling document-mutation reference found: Missing batch ' +
-          batch.batchId
-      );
-    })
-  );
-  const removedDocuments: DocumentKey[] = [];
-  for (const mutation of batch.mutations) {
-    const indexKey = DbDocumentMutation.key(
-      userId,
-      mutation.key.path,
-      batch.batchId
-    );
-    promises.push(indexTxn.delete(indexKey));
-    removedDocuments.push(mutation.key);
-  }
-  return PersistencePromise.waitFor(promises).next(() => removedDocuments);
 }
 
 /**

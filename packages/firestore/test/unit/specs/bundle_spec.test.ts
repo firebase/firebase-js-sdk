@@ -32,10 +32,10 @@ import {
   JSON_SERIALIZER,
   TEST_DATABASE_ID
 } from '../local/persistence_test_helpers';
-import { DocumentKey } from '../../../src/model/document_key';
 import { toVersion } from '../../../src/remote/serializer';
 import { JsonObject } from '../../../src/model/object_value';
 import { LimitType } from '../../../src/protos/firestore_bundle_proto';
+import { DocumentKey } from '../../../src/model/path';
 
 interface TestBundleDocument {
   key: DocumentKey;

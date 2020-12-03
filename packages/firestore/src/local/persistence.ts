@@ -17,7 +17,6 @@
 
 import { User } from '../auth/user';
 import { TargetId } from '../core/types';
-import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
 import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
@@ -30,6 +29,7 @@ import {
   PersistenceTransaction,
   PersistenceTransactionMode
 } from './persistence_transaction';
+import { DocumentKey } from '../model/path';
 
 /**
  * Callback type for primary state notifications. This callback can be

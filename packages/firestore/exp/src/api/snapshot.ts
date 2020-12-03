@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import {
@@ -38,6 +37,7 @@ import { SnapshotListenOptions } from './reference';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
 import { debugAssert, fail } from '../../../src/util/assert';
 import { newQueryComparator } from '../../../src/core/query';
+import { DocumentKey } from '../../../src/model/path';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type `T`
@@ -176,9 +176,9 @@ export interface DocumentChange<T = DocumentData> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<
-  T = DocumentData
-> extends LiteDocumentSnapshot<T> {
+export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
+  T
+> {
   private readonly _firestoreImpl: FirebaseFirestore;
 
   /**
@@ -291,9 +291,9 @@ export class DocumentSnapshot<
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
+  T
+> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *

@@ -37,7 +37,6 @@ import {
   MaybeDocument,
   NoDocument
 } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import {
   isPermanentWriteError,
@@ -68,7 +67,7 @@ import {
 } from './spec_test_runner';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
 import { firestore } from '../../util/api_helpers';
-import { ResourcePath } from '../../../src/model/path';
+import { DocumentKey, ResourcePath } from '../../../src/model/path';
 
 const userDataWriter = new UserDataWriter(firestore());
 

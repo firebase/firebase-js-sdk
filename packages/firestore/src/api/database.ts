@@ -23,8 +23,7 @@ import {
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle
 } from '../core/firestore_client';
-import { DocumentKey } from '../model/document_key';
-import { FieldPath, ResourcePath } from '../model/path';
+import { DocumentKey, FieldPath, ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import {

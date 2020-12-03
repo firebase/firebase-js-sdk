@@ -18,7 +18,6 @@
 import { Value as ProtoValue } from '../../../src/protos/firestore_proto_api';
 
 import { Document } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import { FirebaseFirestore } from './database';
 import {
   ParsedUpdateData,
@@ -47,6 +46,7 @@ import {
   queryWithStartAt
 } from '../../../src/core/query';
 import {
+  DocumentKey,
   FieldPath as InternalFieldPath,
   ResourcePath
 } from '../../../src/model/path';
