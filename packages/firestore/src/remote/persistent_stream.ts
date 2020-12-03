@@ -45,6 +45,7 @@ import {
   toTarget,
   versionFromListenResponse
 } from './serializer';
+import { TimeToFirstByteArgs, TimeToFirstByteCallback } from './stream_bridge';
 import { WatchChange } from './watch_change';
 
 const LOG_TAG = 'PersistentStream';
@@ -127,6 +128,8 @@ export interface PersistentStreamListener {
    * FirestoreError will be set.
    */
   onClose: (err?: FirestoreError) => Promise<void>;
+
+  onTimeToFirstByte: TimeToFirstByteCallback;
 }
 
 /** The time a stream stays open after it is marked idle. */
@@ -394,6 +397,10 @@ export abstract class PersistentStream<
    */
   protected abstract onMessage(message: ReceiveType): Promise<void>;
 
+  public onTimeToFirstByte(data: TimeToFirstByteArgs): void {
+    this.listener.onTimeToFirstByte(data);
+  }
+
   private auth(): void {
     debugAssert(
       this.state === PersistentStreamState.Initial,
@@ -460,6 +467,15 @@ export abstract class PersistentStream<
       dispatchIfNotClosed(() => {
         return this.onMessage(msg);
       });
+    });
+    this.stream.onTimeToFirstByte(data => {
+      dispatchIfNotClosed(
+        () =>
+          new Promise(resolve => {
+            this.onTimeToFirstByte(data);
+            resolve();
+          })
+      );
     });
   }
 

@@ -109,8 +109,10 @@ import {
   EventManager,
   eventManagerOnOnlineStateChange,
   eventManagerOnWatchChange,
-  eventManagerOnWatchError
+  eventManagerOnWatchError,
+  onTimeToFirstByte
 } from './event_manager';
+import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -260,6 +262,7 @@ class SyncEngineImpl implements SyncEngine {
   _isPrimaryClient: undefined | boolean = undefined;
 
   constructor(
+    readonly timeToFirstByte: TimeToFirstByteCallback,
     readonly localStore: LocalStore,
     readonly remoteStore: RemoteStore,
     readonly eventManager: EventManager,
@@ -275,6 +278,7 @@ class SyncEngineImpl implements SyncEngine {
 }
 
 export function newSyncEngine(
+  timeToFirstByte: TimeToFirstByteCallback,
   localStore: LocalStore,
   remoteStore: RemoteStore,
   eventManager: EventManager,
@@ -285,6 +289,7 @@ export function newSyncEngine(
   isPrimary: boolean
 ): SyncEngine {
   const syncEngine = new SyncEngineImpl(
+    timeToFirstByte,
     localStore,
     remoteStore,
     eventManager,
@@ -1509,6 +1514,16 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     null,
     syncEngineImpl
   );
+
+  let timeToFirstByteRaised = false;
+
+  syncEngineImpl.remoteStore.remoteSyncer.handleTimeToFirstByte = data => {
+    if (!timeToFirstByteRaised) {
+      timeToFirstByteRaised = true;
+      syncEngineImpl.timeToFirstByte(data);
+    }
+  };
+
   syncEngineImpl.syncEngineListener.onWatchChange = eventManagerOnWatchChange.bind(
     null,
     syncEngineImpl.eventManager

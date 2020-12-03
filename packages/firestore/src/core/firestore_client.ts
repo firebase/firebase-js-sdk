@@ -83,6 +83,7 @@ import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { NamedQuery } from './bundle';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -102,12 +103,13 @@ export class FirestoreClient {
   onlineComponents?: OnlineComponentProvider;
 
   constructor(
+    public readonly onTimeToFirstByte: TimeToFirstByteCallback,
     private credentials: CredentialsProvider,
     /**
      * Asynchronous queue responsible for all of our internal processing. When
      * we get incoming work from the user (via public API) or the network
      * (incoming GRPC messages), we should always schedule onto this queue.
-     * This ensures all of our work is properly serialized (e.g. we don't
+     * This Fes all of our work is properly serialized (e.g. we don't
      * start processing a new operation while the previous one is waiting for
      * an async I/O to complete).
      */
@@ -223,6 +225,7 @@ export async function setOnlineComponentProvider(
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
   const configuration = await client.getConfiguration();
   await onlineComponentProvider.initialize(
+    client.onTimeToFirstByte,
     offlineComponentProvider,
     configuration
   );

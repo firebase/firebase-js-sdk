@@ -24,6 +24,7 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { DatabaseId } from './src/core/database_info';
 import { Code, FirestoreError } from './src/util/error';
+import { TimeToFirstByteCallback } from './src/remote/stream_bridge';
 export {
   CollectionReference,
   DocumentReference,
@@ -45,13 +46,15 @@ export interface FirestoreDatabase {
 export class Firestore extends FirestoreCompat {
   constructor(
     firestoreDatabase: FirestoreDatabase,
-    authProvider: Provider<FirebaseAuthInternalName>
+    authProvider: Provider<FirebaseAuthInternalName>,
+    timeToFirstByte: TimeToFirstByteCallback
   ) {
     super(
       databaseIdFromFirestoreDatabase(firestoreDatabase),
       new FirestoreExp(
         databaseIdFromFirestoreDatabase(firestoreDatabase),
-        authProvider
+        authProvider,
+        timeToFirstByte
       ),
       new MemoryPersistenceProvider()
     );

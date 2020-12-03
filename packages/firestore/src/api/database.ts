@@ -394,6 +394,7 @@ export function configureFirestore(firestore: FirebaseFirestore): void {
     settings
   );
   firestore._firestoreClient = new FirestoreClient(
+    firestore._onTimeToFirstByteCallback,
     firestore._credentials,
     firestore._queue,
     databaseInfo

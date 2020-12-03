@@ -69,6 +69,7 @@ import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
 import { CredentialsProvider } from '../api/credentials';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
@@ -317,6 +318,7 @@ export class OnlineComponentProvider {
   syncEngine!: SyncEngine;
 
   async initialize(
+    timeToFirstByte: TimeToFirstByteCallback,
     offlineComponentProvider: OfflineComponentProvider,
     cfg: ComponentConfiguration
   ): Promise<void> {
@@ -332,6 +334,7 @@ export class OnlineComponentProvider {
     this.remoteStore = this.createRemoteStore(cfg);
     this.eventManager = this.createEventManager(cfg);
     this.syncEngine = this.createSyncEngine(
+      timeToFirstByte,
       cfg,
       /* startAsPrimary=*/ !offlineComponentProvider.synchronizeTabs
     );
@@ -380,10 +383,12 @@ export class OnlineComponentProvider {
   }
 
   createSyncEngine(
+    timeToFirstByte: TimeToFirstByteCallback,
     cfg: ComponentConfiguration,
     startAsPrimary: boolean
   ): SyncEngine {
     return newSyncEngine(
+      timeToFirstByte,
       this.localStore,
       this.remoteStore,
       this.eventManager,

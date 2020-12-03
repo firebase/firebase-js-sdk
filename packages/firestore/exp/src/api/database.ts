@@ -53,6 +53,7 @@ import {
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
 import { cast } from '../../../src/util/input_validation';
+import { TimeToFirstByteCallback } from '../../../src/remote/stream_bridge';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -81,7 +82,8 @@ export class FirebaseFirestore extends LiteFirestore {
   /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    authProvider: Provider<FirebaseAuthInternalName>,
+    public onTimeToFirstByteCallback: TimeToFirstByteCallback
   ) {
     super(databaseIdOrApp, authProvider);
     this._persistenceKey =

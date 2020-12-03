@@ -241,6 +241,9 @@ export class WebChannelConnection extends RestConnection {
     // on a closed stream
     let closed = false;
 
+    let connectionStartTime: Date | null = null;
+    let hasRaisedTimeToFirstByteEvent = false;
+
     const streamBridge = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
@@ -284,6 +287,8 @@ export class WebChannelConnection extends RestConnection {
       if (!closed) {
         logDebug(LOG_TAG, 'WebChannel transport opened.');
       }
+
+      connectionStartTime = new Date();
     });
 
     unguardedEventListen(channel, WebChannel.EventType.CLOSE, () => {
@@ -361,6 +366,18 @@ export class WebChannelConnection extends RestConnection {
         logDebug(LOG_TAG, 'Detected buffering proxy');
       } else if (event.stat === Stat.NOPROXY) {
         logDebug(LOG_TAG, 'Detected no buffering proxy');
+      }
+
+      if (!hasRaisedTimeToFirstByteEvent) {
+        hasRaisedTimeToFirstByteEvent = true;
+
+        const connectionStopTime = new Date();
+        const elapsedMs = +connectionStopTime - +connectionStartTime!;
+
+        streamBridge.callOnTimeToFirstByte({
+          type: event.stat,
+          timeToFirstByte: elapsedMs
+        });
       }
     });
 

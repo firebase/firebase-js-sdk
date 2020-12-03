@@ -20,6 +20,13 @@ import { FirestoreError } from '../util/error';
 
 import { Stream } from './connection';
 
+export interface TimeToFirstByteArgs {
+  type: number;
+  timeToFirstByte: number;
+}
+
+export type TimeToFirstByteCallback = (data: TimeToFirstByteArgs) => void;
+
 /**
  * Provides a simple helper class that implements the Stream interface to
  * bridge to other implementations that are streams but do not implement the
@@ -29,6 +36,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   private wrappedOnOpen: (() => void) | undefined;
   private wrappedOnClose: ((err?: FirestoreError) => void) | undefined;
   private wrappedOnMessage: ((msg: O) => void) | undefined;
+  private wrappedOnTimeToFirstByte: TimeToFirstByteCallback | undefined;
 
   private sendFn: (msg: I) => void;
   private closeFn: () => void;
@@ -51,6 +59,14 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   onMessage(callback: (msg: O) => void): void {
     debugAssert(!this.wrappedOnMessage, 'Called onMessage on stream twice!');
     this.wrappedOnMessage = callback;
+  }
+
+  onTimeToFirstByte(callback: TimeToFirstByteCallback): void {
+    debugAssert(
+      !this.wrappedOnTimeToFirstByte,
+      'Called onTimeToFirstByte on stream twice!'
+    );
+    this.wrappedOnTimeToFirstByte = callback;
   }
 
   close(): void {
@@ -83,5 +99,13 @@ export class StreamBridge<I, O> implements Stream<I, O> {
       'Cannot call onMessage because no callback was set'
     );
     this.wrappedOnMessage(msg);
+  }
+
+  callOnTimeToFirstByte(data: { type: number; timeToFirstByte: number }): void {
+    debugAssert(
+      this.wrappedOnTimeToFirstByte !== undefined,
+      'Cannot call callOnTimeToFirstByte because no callback was set'
+    );
+    this.wrappedOnTimeToFirstByte(data);
   }
 }

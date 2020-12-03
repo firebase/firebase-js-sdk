@@ -57,6 +57,7 @@ import {
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { User } from '../auth/user';
+import { TimeToFirstByteArgs } from './stream_bridge';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -744,6 +745,13 @@ async function onWriteStreamOpen(
   ensureWriteStream(remoteStoreImpl).writeHandshake();
 }
 
+function onTimeToFirstByteAvailable(
+  remoteStoreImpl: RemoteStoreImpl,
+  data: TimeToFirstByteArgs
+): void {
+  remoteStoreImpl.remoteSyncer.handleTimeToFirstByte!(data);
+}
+
 async function onWriteHandshakeComplete(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
@@ -914,7 +922,11 @@ function ensureWatchStream(
       {
         onOpen: onWatchStreamOpen.bind(null, remoteStoreImpl),
         onClose: onWatchStreamClose.bind(null, remoteStoreImpl),
-        onWatchChange: onWatchStreamChange.bind(null, remoteStoreImpl)
+        onWatchChange: onWatchStreamChange.bind(null, remoteStoreImpl),
+        onTimeToFirstByte: onTimeToFirstByteAvailable.bind(
+          null,
+          remoteStoreImpl
+        )
       }
     );
 
@@ -964,7 +976,11 @@ function ensureWriteStream(
           null,
           remoteStoreImpl
         ),
-        onMutationResult: onMutationResult.bind(null, remoteStoreImpl)
+        onMutationResult: onMutationResult.bind(null, remoteStoreImpl),
+        onTimeToFirstByte: onTimeToFirstByteAvailable.bind(
+          null,
+          remoteStoreImpl
+        )
       }
     );
 
