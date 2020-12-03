@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "2.0.4",
+  "version": "0.0.900",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -45,21 +45,21 @@
     "test:node:persistence:prod": "node ./scripts/run-tests.js --main=index.node.ts --persistence 'test/{,!(browser)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
-    "prepare": "yarn build:release",
     "api-report": "rm -rf temp && api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs"
   },
-  "main": "dist/index.node.cjs.js",
-  "main-esm2017": "dist/index.node.esm2017.js",
-  "react-native": "dist/index.rn.esm2017.js",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "main": "dist/exp/index.node.umd.js",
+  "react-native": "dist/exp/index.rn.esm2017.js",
+  "browser": "dist/exp/index.browser.esm2017.js",
+  "module": "dist/exp/index.browser.esm2017.js",
   "license": "Apache-2.0",
   "files": [
     "dist",
-    "memory/package.json"
+    "memory/package.json",
+    "dist/exp/index.d.ts",
+    "lite/package.json",
+    "dist/lite/index.d.ts"
   ],
   "dependencies": {
     "@firebase/component": "0.1.21",
@@ -73,8 +73,8 @@
     "tslib": "^1.11.1"
   },
   "peerDependencies": {
-    "@firebase/app": "0.x",
-    "@firebase/app-types": "0.x"
+    "@firebase/app-exp": "0.x",
+    "@firebase/app-types-exp": "0.x"
   },
   "devDependencies": {
     "@firebase/app": "0.6.13",
@@ -103,7 +103,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/exp/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

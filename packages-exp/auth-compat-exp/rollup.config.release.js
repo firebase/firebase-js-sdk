@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 import { getAllBuilds } from './rollup.config.shared';
 
 // eslint-disable-next-line import/no-default-export
-export default getAllBuilds({});
+export default getAllBuilds({
+  clean: true,
+  transformers: [importPathTransformer]
+});

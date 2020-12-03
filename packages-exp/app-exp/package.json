@@ -8,7 +8,9 @@
   "browser": "dist/index.esm5.js",
   "module": "dist/index.esm5.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -52,7 +54,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "./dist/app-exp.d.ts",
+  "typings": "./dist/app-exp-public.d.ts",
   "nyc": {
     "extension": [
       ".ts"
