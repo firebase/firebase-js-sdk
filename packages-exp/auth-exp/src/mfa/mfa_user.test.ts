@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import { ProviderId } from '@firebase/auth-types-exp';
+import { FactorId } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
 import { testAuth, testUser, TestAuth } from '../../test/helpers/mock_auth';
@@ -40,7 +40,7 @@ use(chaiAsPromised);
 
 class MockMultiFactorAssertion extends MultiFactorAssertion {
   constructor(readonly response: FinalizeMfaResponse) {
-    super(ProviderId.PHONE);
+    super(FactorId.PHONE);
   }
 
   async _finalizeEnroll(
@@ -133,7 +133,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
 
       expect(mfaUser.enrolledFactors.length).to.eq(1);
       const enrolledFactor = mfaUser.enrolledFactors[0];
-      expect(enrolledFactor.factorId).to.eq(ProviderId.PHONE);
+      expect(enrolledFactor.factorId).to.eq(FactorId.PHONE);
       expect(enrolledFactor.uid).to.eq('mfa-id');
     });
   });
@@ -298,7 +298,7 @@ describe('core/mfa/mfa_user/multiFactor', () => {
       expect(mfaUser.enrolledFactors.length).to.eq(1);
       const mfaInfo = mfaUser.enrolledFactors[0];
       expect(mfaInfo.uid).to.eq('enrollment-id');
-      expect(mfaInfo.factorId).to.eq(ProviderId.PHONE);
+      expect(mfaInfo.factorId).to.eq(FactorId.PHONE);
     });
 
     it('should update the enrolled factors if the user is reloaded', async () => {

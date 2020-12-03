@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Operation, Auth } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, Auth } from '@firebase/auth-types-exp';
 
 import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
@@ -29,7 +29,7 @@ export interface ResetPasswordRequest {
 export interface ResetPasswordResponse {
   email: string;
   newEmail?: string;
-  requestType?: Operation;
+  requestType?: ActionCodeOperation;
   mfaInfo?: MfaEnrollment;
 }
 

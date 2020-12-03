@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
-import { Operation, OperationType } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -60,7 +60,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     });
     await sendPasswordResetEmail(auth, email);
     expect(mock.calls[0].request).to.eql({
-      requestType: Operation.PASSWORD_RESET,
+      requestType: ActionCodeOperation.PASSWORD_RESET,
       email
     });
   });
@@ -98,7 +98,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       });
 
       expect(mock.calls[0].request).to.eql({
-        requestType: Operation.PASSWORD_RESET,
+        requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -124,7 +124,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         dynamicLinkDomain: 'fdl-domain'
       });
       expect(mock.calls[0].request).to.eql({
-        requestType: Operation.PASSWORD_RESET,
+        requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -238,7 +238,7 @@ describe('core/strategies/checkActionCode', () => {
 
   it('should verify the oob code', async () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
-      requestType: Operation.PASSWORD_RESET,
+      requestType: ActionCodeOperation.PASSWORD_RESET,
       email: 'foo@bar.com'
     });
     const response = await checkActionCode(auth, oobCode);
@@ -248,7 +248,7 @@ describe('core/strategies/checkActionCode', () => {
         previousEmail: null,
         multiFactorInfo: null
       },
-      operation: Operation.PASSWORD_RESET
+      operation: ActionCodeOperation.PASSWORD_RESET
     });
     expect(mock.calls[0].request).to.eql({
       oobCode
@@ -257,7 +257,7 @@ describe('core/strategies/checkActionCode', () => {
 
   it('should return the newEmail', async () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
-      requestType: Operation.PASSWORD_RESET,
+      requestType: ActionCodeOperation.PASSWORD_RESET,
       email,
       newEmail
     });
@@ -268,7 +268,7 @@ describe('core/strategies/checkActionCode', () => {
         previousEmail: newEmail,
         multiFactorInfo: null
       },
-      operation: Operation.PASSWORD_RESET
+      operation: ActionCodeOperation.PASSWORD_RESET
     });
     expect(mock.calls[0].request).to.eql({
       oobCode
@@ -320,7 +320,7 @@ describe('core/strategies/verifyPasswordResetCode', () => {
 
   it('should verify the oob code', async () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
-      requestType: Operation.PASSWORD_RESET,
+      requestType: ActionCodeOperation.PASSWORD_RESET,
       email: 'foo@bar.com',
       previousEmail: null
     });

@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { Operation } from '@firebase/auth-types-exp';
+import { ActionCodeOperation } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
@@ -102,7 +102,7 @@ describe('api/authentication/signInWithPassword', () => {
 
 describe('api/authentication/sendEmailVerification', () => {
   const request: VerifyEmailRequest = {
-    requestType: Operation.VERIFY_EMAIL,
+    requestType: ActionCodeOperation.VERIFY_EMAIL,
     idToken: 'my-token'
   };
 
@@ -159,7 +159,7 @@ describe('api/authentication/sendEmailVerification', () => {
 
 describe('api/authentication/sendPasswordResetEmail', () => {
   const request: PasswordResetRequest = {
-    requestType: Operation.PASSWORD_RESET,
+    requestType: ActionCodeOperation.PASSWORD_RESET,
     email: 'test@foo.com'
   };
 
@@ -216,7 +216,7 @@ describe('api/authentication/sendPasswordResetEmail', () => {
 
 describe('api/authentication/sendSignInLinkToEmail', () => {
   const request: EmailSignInRequest = {
-    requestType: Operation.EMAIL_SIGNIN,
+    requestType: ActionCodeOperation.EMAIL_SIGNIN,
     email: 'test@foo.com'
   };
 
@@ -273,7 +273,7 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
 
 describe('api/authentication/verifyAndChangeEmail', () => {
   const request: VerifyAndChangeEmailRequest = {
-    requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+    requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
     idToken: 'id-token',
     newEmail: 'test@foo.com'
   };

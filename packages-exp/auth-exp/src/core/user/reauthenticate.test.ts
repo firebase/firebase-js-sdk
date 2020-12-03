@@ -155,7 +155,6 @@ describe('core/user/reauthenticate', () => {
     const error = await expect(
       _reauthenticate(user, credential)
     ).to.be.rejectedWith(MultiFactorError);
-    expect(error.credential).to.eq(credential);
     expect(error.operationType).to.eq(OperationType.REAUTHENTICATE);
     expect(error.serverResponse).to.eql(serverResponse);
     expect(error.user).to.eq(user);

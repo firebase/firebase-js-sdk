@@ -30,7 +30,7 @@ export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
   readonly enrollmentTime: string;
 
   protected constructor(
-    readonly factorId: externs.ProviderId,
+    readonly factorId: externs.FactorId,
     response: MfaEnrollment
   ) {
     this.uid = response.mfaEnrollmentId;
@@ -53,7 +53,7 @@ export class PhoneMultiFactorInfo extends MultiFactorInfo {
   readonly phoneNumber: string;
 
   private constructor(response: PhoneMfaEnrollment) {
-    super(externs.ProviderId.PHONE, response);
+    super(externs.FactorId.PHONE, response);
     this.phoneNumber = response.phoneInfo;
   }
 
