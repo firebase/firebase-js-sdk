@@ -48,6 +48,7 @@ import { WindowLike } from '../../../src/util/types';
 import { getDocument, getWindow } from '../../../src/platform/dom';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { IndexedDbBundleCache } from '../../../src/local/indexeddb_bundle_cache';
+import { IndexedDbIndexManager } from '../../../src/local/indexeddb_index_manager';
 
 /* eslint-disable no-restricted-globals */
 
@@ -115,6 +116,7 @@ export async function testIndexedDbPersistence(
     getDocument(),
     JSON_SERIALIZER,
     new IndexedDbBundleCache(),
+    new IndexedDbIndexManager(),
     MOCK_SEQUENCE_NUMBER_SYNCER,
     /** forceOwningTab= */ false
   );

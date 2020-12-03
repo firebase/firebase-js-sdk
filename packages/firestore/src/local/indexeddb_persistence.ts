@@ -30,7 +30,6 @@ import {
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
@@ -84,6 +83,7 @@ import {
   LruGarbageCollector
 } from './lru_garbage_collector';
 import { BundleCache } from './bundle_cache';
+import { IndexManager } from './index_manager';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -226,7 +226,6 @@ export class IndexedDbPersistence implements Persistence {
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
   private readonly targetCache: IndexedDbTargetCache;
-  private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage | null;
   readonly referenceDelegate: IndexedDbLruDelegate;
@@ -246,6 +245,7 @@ export class IndexedDbPersistence implements Persistence {
     private readonly document: DocumentLike | null,
     serializer: JsonProtoSerializer,
     private readonly bundleCache: BundleCache,
+    private readonly indexManager: IndexManager,
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
 
     /**
@@ -273,7 +273,6 @@ export class IndexedDbPersistence implements Persistence {
       this.referenceDelegate,
       this.serializer
     );
-    this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(
       this.serializer,
       this.indexManager
@@ -779,7 +778,7 @@ export class IndexedDbPersistence implements Persistence {
     return this.remoteDocumentCache;
   }
 
-  getIndexManager(): IndexedDbIndexManager {
+  getIndexManager(): IndexManager {
     debugAssert(
       this.started,
       'Cannot initialize IndexManager before persistence is started.'
