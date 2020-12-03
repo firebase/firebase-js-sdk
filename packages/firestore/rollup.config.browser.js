@@ -32,14 +32,14 @@ export default [
     treeshake: {
       moduleSideEffects: false
     }
-  },
-  {
-    input: pkg.esm2017,
-    output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
   }
+  // {
+  //   input: pkg.esm2017,
+  //   output: { file: pkg.module, format: 'es', sourcemap: true },
+  //   plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
+  //   external: util.resolveBrowserExterns,
+  //   treeshake: {
+  //     moduleSideEffects: false
+  //   }
+  // }
 ];

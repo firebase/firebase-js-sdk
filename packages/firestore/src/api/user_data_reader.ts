@@ -29,7 +29,6 @@ import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
 import {
-  FieldMask,
   FieldTransform,
   Mutation,
   PatchMutation,
@@ -42,7 +41,11 @@ import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
-import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
+import {
+  FieldMask,
+  ObjectValue,
+  ObjectValueBuilder
+} from '../model/object_value';
 import {
   JsonProtoSerializer,
   toBytes,
