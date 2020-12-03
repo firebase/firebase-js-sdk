@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 
 import { Blob } from '../../../src/api/blob';
-import { DocumentReference } from '../../../src/api/database';
+import { DocumentReference, UserDataWriter } from '../../../src/api/database';
 import { FieldValue } from '../../../src/compat/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
@@ -117,7 +117,6 @@ import {
 } from '../../util/helpers';
 import { ByteString } from '../../../src/util/byte_string';
 import { parseQueryValue } from '../../../src/api/user_data_reader';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
 import { firestore } from '../../util/api_helpers';
 
 const userDataWriter = new UserDataWriter(firestore());

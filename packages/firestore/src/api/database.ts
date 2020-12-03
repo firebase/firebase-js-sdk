@@ -41,7 +41,6 @@ import {
   Unsubscribe
 } from './observer';
 import { UntypedFirestoreDataConverter } from './user_data_reader';
-import { UserDataWriter } from './user_data_writer';
 import {
   clearIndexedDbPersistence,
   disableNetwork,
@@ -126,6 +125,10 @@ import {
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
 import { DEFAULT_HOST } from '../../lite/src/api/components';
+import { ByteString } from '../util/byte_string';
+import { Blob } from './blob';
+import { Bytes } from '../../lite/src/api/bytes';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
@@ -356,6 +359,21 @@ export class Firestore
         executeWrite(this._delegate, mutations)
       )
     );
+  }
+}
+
+export class UserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: Firestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Blob {
+    return new Blob(new Bytes(bytes));
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return DocumentReference.forKey(key, this.firestore, /* converter= */ null);
   }
 }
 

@@ -38,9 +38,6 @@ import { DocumentKey, ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
 import { ByteString } from '../util/byte_string';
-import { Blob } from './blob';
-import { Bytes } from '../../lite/src/api/bytes';
-import { DocumentReference, Firestore } from './database';
 import {
   normalizeByteString,
   normalizeNumber,
@@ -166,19 +163,4 @@ export abstract class AbstractUserDataWriter {
   protected abstract convertReference(name: string): unknown;
 
   protected abstract convertBytes(bytes: ByteString): unknown;
-}
-
-export class UserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: Firestore) {
-    super();
-  }
-
-  protected convertBytes(bytes: ByteString): Blob {
-    return new Blob(new Bytes(bytes));
-  }
-
-  protected convertReference(name: string): DocumentReference {
-    const key = this.convertDocumentKey(name, this.firestore._databaseId);
-    return DocumentReference.forKey(key, this.firestore, /* converter= */ null);
-  }
 }

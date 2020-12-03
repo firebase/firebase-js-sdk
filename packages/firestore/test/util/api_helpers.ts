@@ -25,7 +25,8 @@ import {
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
-  QuerySnapshot
+  QuerySnapshot,
+  UserDataWriter
 } from '../../src/api/database';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -50,7 +51,6 @@ import {
   QuerySnapshot as ExpQuerySnapshot,
   DocumentSnapshot as ExpDocumentSnapshot
 } from '../../exp/src/api/snapshot';
-import { UserDataWriter } from '../../src/api/user_data_writer';
 import {
   ExpUserDataWriter,
   Query as ExpQuery,
