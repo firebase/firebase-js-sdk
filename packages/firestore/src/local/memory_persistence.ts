@@ -23,11 +23,9 @@ import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 import { encodeResourcePath } from './encoded_resource_path';
 import {
-  ActiveTargets,
   LruDelegate,
-  LruGarbageCollector,
-  LruParams
-} from './lru_garbage_collector';
+  newLruGarbageCollector
+} from './lru_garbage_collector_impl';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { estimateByteSize } from '../model/values';
@@ -51,6 +49,11 @@ import { MemoryBundleCache } from './memory_bundle_cache';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence_transaction';
+import {
+  ActiveTargets,
+  LruGarbageCollector,
+  LruParams
+} from './lru_garbage_collector';
 
 const LOG_TAG = 'MemoryPersistence';
 /**
@@ -339,7 +342,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     private readonly persistence: MemoryPersistence,
     lruParams: LruParams
   ) {
-    this.garbageCollector = new LruGarbageCollector(this, lruParams);
+    this.garbageCollector = newLruGarbageCollector(this, lruParams);
   }
 
   // No-ops, present so memory persistence doesn't have to care which delegate

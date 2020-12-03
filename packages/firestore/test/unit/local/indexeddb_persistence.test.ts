@@ -55,7 +55,6 @@ import {
   V6_STORES,
   V8_STORES
 } from '../../../src/local/indexeddb_schema';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
@@ -83,6 +82,7 @@ import { canonifyTarget } from '../../../src/core/target';
 import { FakeDocument, testDocument } from '../../util/test_platform';
 import { getWindow } from '../../../src/platform/dom';
 import { Context } from 'mocha';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 
 use(chaiAsPromised);
 

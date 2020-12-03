@@ -30,15 +30,15 @@ import {
   makeCredentialsProvider
 } from '../../../src/api/credentials';
 import { removeComponents } from './components';
-import {
-  LRU_COLLECTION_DISABLED,
-  LRU_DEFAULT_CACHE_SIZE_BYTES,
-  LRU_MINIMUM_CACHE_SIZE_BYTES
-} from '../../../src/local/lru_garbage_collector';
+import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
 import {
   cast,
   validateIsNotUsedTogether
 } from '../../../src/util/input_validation';
+import {
+  LRU_COLLECTION_DISABLED,
+  LRU_DEFAULT_CACHE_SIZE_BYTES
+} from '../../../src/local/lru_garbage_collector';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

@@ -42,7 +42,7 @@ import {
 import { DatabaseId } from '../../../src/core/database_info';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
-import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector';
+import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
 import {
   CACHE_SIZE_UNLIMITED,
   configureFirestore,

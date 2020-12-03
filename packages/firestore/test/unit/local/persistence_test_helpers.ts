@@ -31,7 +31,6 @@ import {
   MAIN_DATABASE
 } from '../../../src/local/indexeddb_persistence';
 import { LocalSerializer } from '../../../src/local/local_serializer';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   MemoryEagerDelegate,
   MemoryLruDelegate,
@@ -47,6 +46,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { AutoId } from '../../../src/util/misc';
 import { WindowLike } from '../../../src/util/types';
 import { getDocument, getWindow } from '../../../src/platform/dom';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 
 /* eslint-disable no-restricted-globals */
 

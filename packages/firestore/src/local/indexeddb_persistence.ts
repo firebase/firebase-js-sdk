@@ -56,11 +56,9 @@ import {
 } from './indexeddb_target_cache';
 import { LocalSerializer } from './local_serializer';
 import {
-  ActiveTargets,
   LruDelegate,
-  LruGarbageCollector,
-  LruParams
-} from './lru_garbage_collector';
+  newLruGarbageCollector
+} from './lru_garbage_collector_impl';
 import {
   Persistence,
   PersistenceTransactionMode,
@@ -79,6 +77,11 @@ import {
 } from './simple_db';
 import { DocumentLike, WindowLike } from '../util/types';
 import { PersistenceTransaction } from './persistence_transaction';
+import {
+  ActiveTargets,
+  LruParams,
+  LruGarbageCollector
+} from './lru_garbage_collector';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -1113,7 +1116,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   readonly garbageCollector: LruGarbageCollector;
 
   constructor(private readonly db: IndexedDbPersistence, params: LruParams) {
-    this.garbageCollector = new LruGarbageCollector(this, params);
+    this.garbageCollector = newLruGarbageCollector(this, params);
   }
 
   getSequenceNumberCount(

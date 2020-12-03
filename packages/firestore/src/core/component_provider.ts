@@ -50,7 +50,7 @@ import { User } from '../auth/user';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
-import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
+import { LruScheduler } from '../local/lru_garbage_collector_impl';
 import { QueryEngine } from '../local/query_engine';
 import {
   indexedDbStoragePrefix,
@@ -69,6 +69,7 @@ import {
   newLocalStore,
   synchronizeLastDocumentChangeReadTime
 } from '../local/local_store_impl';
+import { LruParams } from '../local/lru_garbage_collector';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;

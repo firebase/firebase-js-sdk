@@ -54,7 +54,6 @@ import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { Persistence } from './persistence';
 import { QueryEngine } from './query_engine';
 import { User } from '../auth/user';
-import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { ClientId } from './shared_client_state';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
@@ -82,6 +81,7 @@ import { LocalViewChanges } from './local_view_changes';
 import { isIndexedDbTransactionError } from './simple_db';
 import { logDebug } from '../util/log';
 import { LocalStore } from './local_store';
+import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 
 export const LOG_TAG = 'LocalStore';
 /**

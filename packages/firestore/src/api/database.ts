@@ -92,7 +92,6 @@ import {
   where,
   executeWrite
 } from '../../exp/src/api/reference';
-import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { Compat } from '../compat/compat';
 import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
 import { makeDatabaseInfo } from '../../lite/src/api/database';
@@ -130,6 +129,7 @@ import {
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
+import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
