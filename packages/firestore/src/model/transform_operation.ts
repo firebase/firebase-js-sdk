@@ -19,11 +19,11 @@ import { Value as ProtoValue } from '../protos/firestore_proto_api';
 
 import { Timestamp } from '../api/timestamp';
 import { debugAssert } from '../util/assert';
-import { JsonProtoSerializer, toDouble, toInteger } from '../remote/serializer';
 import { isArray, isInteger, isNumber, valueEquals } from './values';
 import { serverTimestamp } from './server_timestamps';
 import { arrayEquals } from '../util/misc';
 import { normalizeNumber } from './normalize';
+import { Serializer, toDouble, toInteger } from '../remote/value_serializer';
 
 /** Represents a transform within a TransformMutation. */
 export class TransformOperation {
@@ -184,10 +184,7 @@ function applyArrayRemoveTransformOperation(
  * arithmetic is used and precision loss can occur for values greater than 2^53.
  */
 export class NumericIncrementTransformOperation extends TransformOperation {
-  constructor(
-    readonly serializer: JsonProtoSerializer,
-    readonly operand: ProtoValue
-  ) {
+  constructor(readonly serializer: Serializer, readonly operand: ProtoValue) {
     super();
     debugAssert(
       isNumber(operand),

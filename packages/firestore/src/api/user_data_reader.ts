@@ -49,7 +49,6 @@ import {
 import {
   JsonProtoSerializer,
   toBytes,
-  toNumber,
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
@@ -61,6 +60,7 @@ import { Compat } from '../compat/compat';
 import { FieldValue } from '../../lite/src/api/field_value';
 import { DocumentReference } from '../../lite/src/api/reference';
 import { FieldPath } from '../../lite/src/api/field_path';
+import { toNumber } from '../remote/value_serializer';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 

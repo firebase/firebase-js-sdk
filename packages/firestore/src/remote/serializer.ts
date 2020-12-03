@@ -70,20 +70,16 @@ import {
   QueryTarget as ProtoQueryTarget,
   Status as ProtoStatus,
   Target as ProtoTarget,
+  TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
   Value as ProtoValue,
   Write as ProtoWrite,
-  TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   WriteResult as ProtoWriteResult
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { ByteString } from '../util/byte_string';
-import {
-  isNegativeZero,
-  isNullOrUndefined,
-  isSafeInteger
-} from '../util/types';
+import { isNullOrUndefined } from '../util/types';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -102,6 +98,7 @@ import {
 } from './watch_change';
 import { isNanValue, isNullValue } from '../model/values';
 import { normalizeTimestamp } from '../model/normalize';
+import { Serializer } from './value_serializer';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -143,7 +140,7 @@ function assertPresent(value: unknown, description: string): asserts value {
  * TODO(klimt): We can remove the databaseId argument if we keep the full
  * resource name in documents.
  */
-export class JsonProtoSerializer {
+export class JsonProtoSerializer implements Serializer {
   constructor(
     readonly databaseId: DatabaseId,
     readonly useProto3Json: boolean
@@ -188,45 +185,6 @@ function fromInt32Proto(
     result = val;
   }
   return isNullOrUndefined(result) ? null : result;
-}
-
-/**
- * Returns an IntegerValue for `value`.
- */
-export function toInteger(value: number): ProtoValue {
-  return { integerValue: '' + value };
-}
-
-/**
- * Returns an DoubleValue for `value` that is encoded based the serializer's
- * `useProto3Json` setting.
- */
-export function toDouble(
-  serializer: JsonProtoSerializer,
-  value: number
-): ProtoValue {
-  if (serializer.useProto3Json) {
-    if (isNaN(value)) {
-      return { doubleValue: 'NaN' };
-    } else if (value === Infinity) {
-      return { doubleValue: 'Infinity' };
-    } else if (value === -Infinity) {
-      return { doubleValue: '-Infinity' };
-    }
-  }
-  return { doubleValue: isNegativeZero(value) ? '-0' : value };
-}
-
-/**
- * Returns a value for a number that's appropriate to put into a proto.
- * The return value is an IntegerValue if it can safely represent the value,
- * otherwise a DoubleValue is returned.
- */
-export function toNumber(
-  serializer: JsonProtoSerializer,
-  value: number
-): ProtoValue {
-  return isSafeInteger(value) ? toInteger(value) : toDouble(serializer, value);
 }
 
 /**

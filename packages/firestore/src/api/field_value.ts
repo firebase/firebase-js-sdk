@@ -24,8 +24,8 @@ import {
 } from '../model/transform_operation';
 import { ParseContext, parseData, UserDataSource } from './user_data_reader';
 import { debugAssert } from '../util/assert';
-import { toNumber } from '../remote/serializer';
 import { FieldValue } from '../../lite/src/api/field_value';
+import { toNumber } from '../remote/value_serializer';
 
 export class DeleteFieldValueImpl extends FieldValue {
   _toFieldTransform(context: ParseContext): null {
