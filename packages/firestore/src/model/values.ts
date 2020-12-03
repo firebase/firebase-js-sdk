@@ -23,7 +23,6 @@ import {
   Value
 } from '../protos/firestore_proto_api';
 
-import { TypeOrder } from './object_value';
 import { fail } from '../util/assert';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
@@ -40,6 +39,7 @@ import {
   normalizeNumber,
   normalizeTimestamp
 } from './normalize';
+import { TypeOrder } from './type_order';
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {

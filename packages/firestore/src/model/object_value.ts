@@ -16,16 +16,17 @@
  */
 
 import {
-  Value as ProtoValue,
-  MapValue as ProtoMapValue
+  MapValue as ProtoMapValue,
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 
 import { debugAssert } from '../util/assert';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
-import { valueEquals, isMapValue, typeOrder } from './values';
+import { isMapValue, typeOrder, valueEquals } from './values';
 import { forEach } from '../util/obj';
 import { arrayEquals } from '../util/misc';
+import { TypeOrder } from './type_order';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -71,22 +72,6 @@ export class FieldMask {
 
 export interface JsonObject<T> {
   [name: string]: T;
-}
-
-export const enum TypeOrder {
-  // This order is based on the backend's ordering, but modified to support
-  // server timestamps.
-  NullValue = 0,
-  BooleanValue = 1,
-  NumberValue = 2,
-  TimestampValue = 3,
-  ServerTimestampValue = 4,
-  StringValue = 5,
-  BlobValue = 6,
-  RefValue = 7,
-  GeoPointValue = 8,
-  ArrayValue = 9,
-  ObjectValue = 10
 }
 
 /**
