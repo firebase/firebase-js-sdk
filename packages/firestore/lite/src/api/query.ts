@@ -96,7 +96,6 @@ import {
 } from '../../../src/model/path';
 import { Value as ProtoValue } from '../../../src/protos/firestore_proto_api';
 import { refValue } from '../../../src/model/values';
-import { DocumentReference as ExpDocumentReference } from '../../../exp/src/api/reference';
 import { isServerTimestamp } from '../../../src/model/server_timestamps';
 
 export class LiteUserDataWriter extends AbstractUserDataWriter {
@@ -1099,7 +1098,7 @@ function parseDocumentIdValue(
       );
     }
     return refValue(databaseId, new DocumentKey(path));
-  } else if (documentIdValue instanceof ExpDocumentReference) {
+  } else if (documentIdValue instanceof DocumentReference) {
     return refValue(databaseId, documentIdValue._key);
   } else {
     throw new FirestoreError(
