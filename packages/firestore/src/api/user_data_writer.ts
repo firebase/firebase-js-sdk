@@ -28,12 +28,7 @@ import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
-import {
-  normalizeByteString,
-  normalizeNumber,
-  normalizeTimestamp,
-  typeOrder
-} from '../model/values';
+import { typeOrder } from '../model/values';
 import {
   getLocalWriteTime,
   getPreviousValue
@@ -48,6 +43,11 @@ import { ByteString } from '../util/byte_string';
 import { Blob } from './blob';
 import { Bytes } from '../../lite/src/api/bytes';
 import { DocumentReference, Firestore } from './database';
+import {
+  normalizeByteString,
+  normalizeNumber,
+  normalizeTimestamp
+} from '../model/normalize';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 

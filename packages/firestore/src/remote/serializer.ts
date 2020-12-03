@@ -97,7 +97,8 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
+import { isNanValue, isNullValue } from '../model/values';
+import { normalizeTimestamp } from '../model/normalize';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};

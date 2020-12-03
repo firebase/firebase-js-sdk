@@ -20,15 +20,10 @@ import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { debugAssert } from '../util/assert';
 import { JsonProtoSerializer, toDouble, toInteger } from '../remote/serializer';
-import {
-  isArray,
-  isInteger,
-  isNumber,
-  normalizeNumber,
-  valueEquals
-} from './values';
+import { isArray, isInteger, isNumber, valueEquals } from './values';
 import { serverTimestamp } from './server_timestamps';
 import { arrayEquals } from '../util/misc';
+import { normalizeNumber } from './normalize';
 
 /** Represents a transform within a TransformMutation. */
 export class TransformOperation {
