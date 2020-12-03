@@ -51,11 +51,11 @@ import {
   QuerySnapshot as ExpQuerySnapshot,
   DocumentSnapshot as ExpDocumentSnapshot
 } from '../../exp/src/api/snapshot';
+import { ExpUserDataWriter } from '../../exp/src/api/crud';
 import {
-  ExpUserDataWriter,
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference
-} from '../../exp/src/api/crud';
+} from '../../exp/src/api/reference';
 
 /**
  * A mock Firestore. Will not work for integration test.

@@ -30,7 +30,8 @@ import {
   query
 } from '../../util/helpers';
 import { firestore } from '../../util/api_helpers';
-import { ExpUserDataWriter, Query } from '../../../exp/src/api/crud';
+import { ExpUserDataWriter } from '../../../exp/src/api/crud';
+import { Query } from '../../../exp/src/api/reference';
 import { DocumentKey } from '../../../src/model/path';
 
 describe('DocumentChange:', () => {

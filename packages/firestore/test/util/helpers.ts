@@ -63,10 +63,13 @@ import {
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject, ObjectValue } from '../../src/model/object_value';
+import {
+  FieldMask,
+  JsonObject,
+  ObjectValue
+} from '../../src/model/object_value';
 import {
   DeleteMutation,
-  FieldMask,
   MutationResult,
   PatchMutation,
   Precondition,

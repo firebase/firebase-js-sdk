@@ -20,7 +20,8 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { DbTarget } from '../../../src/local/indexeddb_schema';
+import { DbTarget, DbTargetKey } from '../../../src/local/indexeddb_schema';
+import { TargetId } from '../../../src/core/types';
 
 let persistence: Persistence;
 
@@ -54,7 +55,9 @@ describe('IndexedDbTransaction', () => {
     let runCount = 0;
     let commitCount = 0;
     await persistence.runTransaction('onCommitted', 'readwrite', txn => {
-      const targetsStore = txn.getStore(DbTarget.store);
+      const targetsStore = txn.getStore<DbTargetKey, { targetId: TargetId }>(
+        DbTarget.store
+      );
 
       txn.addOnCommittedListener(() => {
         ++commitCount;
