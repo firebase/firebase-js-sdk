@@ -70,6 +70,7 @@ import {
   synchronizeLastDocumentChangeReadTime
 } from '../local/local_store_impl';
 import { LruParams } from '../local/lru_garbage_collector';
+import { IndexedDbBundleCache } from '../local/indexeddb_bundle_cache';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
@@ -216,6 +217,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       getWindow(),
       getDocument(),
       this.serializer,
+      new IndexedDbBundleCache(),
       this.sharedClientState,
       !!this.forceOwnership
     );

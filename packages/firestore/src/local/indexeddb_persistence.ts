@@ -30,7 +30,6 @@ import {
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
@@ -84,6 +83,7 @@ import {
   LruParams,
   LruGarbageCollector
 } from './lru_garbage_collector';
+import { BundleCache } from './bundle_cache';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -228,7 +228,6 @@ export class IndexedDbPersistence implements Persistence {
   private readonly targetCache: IndexedDbTargetCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
-  private readonly bundleCache: IndexedDbBundleCache;
   private readonly webStorage: Storage | null;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
@@ -246,6 +245,7 @@ export class IndexedDbPersistence implements Persistence {
     private readonly window: WindowLike | null,
     private readonly document: DocumentLike | null,
     serializer: JsonProtoSerializer,
+    private readonly bundleCache: BundleCache,
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
 
     /**
@@ -278,7 +278,6 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer,
       this.indexManager
     );
-    this.bundleCache = new IndexedDbBundleCache(this.serializer);
     if (this.window && this.window.localStorage) {
       this.webStorage = this.window.localStorage;
     } else {
@@ -788,7 +787,7 @@ export class IndexedDbPersistence implements Persistence {
     return this.indexManager;
   }
 
-  getBundleCache(): IndexedDbBundleCache {
+  getBundleCache(): BundleCache {
     debugAssert(
       this.started,
       'Cannot initialize BundleCache before persistence is started.'
