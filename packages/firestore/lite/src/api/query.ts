@@ -15,40 +15,17 @@
  * limitations under the License.
  */
 
-import {
-  DocumentData as PublicDocumentData,
-  SetOptions as PublicSetOptions
-} from '@firebase/firestore-types';
-
 import { FieldPath } from './field_path';
 import {
-  cast,
   validatePositiveNumber,
   valueDescription
 } from '../../../src/util/input_validation';
 import { Compat } from '../../../src/compat/compat';
 import {
-  ParsedUpdateData,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs,
-  UntypedFirestoreDataConverter,
-  UserDataReader,
-  parseQueryValue
+  parseQueryValue,
+  UserDataReader
 } from '../../../src/api/user_data_reader';
-import { getDatastore } from './components';
-import {
-  invokeBatchGetDocumentsRpc,
-  invokeCommitRpc,
-  invokeRunQueryRpc
-} from '../../../src/remote/datastore';
-import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import {
-  DocumentSnapshot,
-  fieldPathFromArgument,
-  QueryDocumentSnapshot,
-  QuerySnapshot
-} from './snapshot';
+import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
 import {
   findFilterOperator,
   getFirstOrderByField,
@@ -70,16 +47,9 @@ import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import { ByteString } from '../../../src/util/byte_string';
 import { Bytes } from './bytes';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { debugAssert, hardAssert } from '../../../src/util/assert';
+import { debugAssert } from '../../../src/util/assert';
 import { Document } from '../../../src/model/document';
-import {
-  CollectionReference,
-  doc,
-  DocumentReference,
-  Query,
-  SetOptions,
-  UpdateData
-} from './reference';
+import { DocumentReference, Query } from './reference';
 import {
   Bound,
   Direction,
@@ -112,35 +82,6 @@ export class LiteUserDataWriter extends AbstractUserDataWriter {
     return new DocumentReference(this.firestore, /* converter= */ null, key);
   }
 }
-/**
- * Converts custom model object of type T into DocumentData by applying the
- * converter if it exists.
- *
- * This function is used when converting user objects to DocumentData
- * because we want to provide the user with a more specific error message if
- * their set() or fails due to invalid data originating from a toFirestore()
- * call.
- */
-export function applyFirestoreDataConverter<T>(
-  converter: UntypedFirestoreDataConverter<T> | null,
-  value: T,
-  options?: PublicSetOptions
-): PublicDocumentData {
-  let convertedValue;
-  if (converter) {
-    if (options && (options.merge || options.mergeFields)) {
-      // Cast to `any` in order to satisfy the union type constraint on
-      // toFirestore().
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      convertedValue = (converter as any).toFirestore(value, options);
-    } else {
-      convertedValue = converter.toFirestore(value);
-    }
-  } else {
-    convertedValue = value as PublicDocumentData;
-  }
-  return convertedValue;
-}
 
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery
@@ -151,306 +92,6 @@ export function validateHasExplicitOrderByForLimitToLast(
       'limitToLast() queries require specifying at least one orderBy() clause'
     );
   }
-}
-
-/**
- * Reads the document referred to by the specified document reference.
- *
- * All documents are directly fetched from the server, even if the document was
- * previously read or modified. Recent modifications are only reflected in the
- * retrieved `DocumentSnapshot` if they have already been applied by the
- * backend. If the client is offline, the read fails. If you like to use
- * caching or see local modifications, please use the full Firestore SDK.
- *
- * @param reference - The reference of the document to fetch.
- * @returns A Promise resolved with a `DocumentSnapshot` containing the current
- * document contents.
- */
-export function getDoc<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>> {
-  reference = cast<DocumentReference<T>>(reference, DocumentReference);
-  const datastore = getDatastore(reference.firestore);
-  const userDataWriter = new LiteUserDataWriter(reference.firestore);
-
-  return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
-    result => {
-      hardAssert(result.length === 1, 'Expected a single document result');
-      const maybeDocument = result[0];
-      return new DocumentSnapshot<T>(
-        reference.firestore,
-        userDataWriter,
-        reference._key,
-        maybeDocument instanceof Document ? maybeDocument : null,
-        reference._converter
-      );
-    }
-  );
-}
-
-/**
- * Executes the query and returns the results as a {@link QuerySnapshot}.
- *
- * All queries are executed directly by the server, even if the the query was
- * previously executed. Recent modifications are only reflected in the retrieved
- * results if they have already been applied by the backend. If the client is
- * offline, the operation fails. To see previously cached result and local
- * modifications, use the full Firestore SDK.
- *
- * @param query - The `Query` to execute.
- * @returns A Promise that will be resolved with the results of the query.
- */
-export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
-  query = cast<Query<T>>(query, Query);
-  validateHasExplicitOrderByForLimitToLast(query._query);
-
-  const datastore = getDatastore(query.firestore);
-  const userDataWriter = new LiteUserDataWriter(query.firestore);
-  return invokeRunQueryRpc(datastore, query._query).then(result => {
-    const docs = result.map(
-      doc =>
-        new QueryDocumentSnapshot<T>(
-          query.firestore,
-          userDataWriter,
-          doc.key,
-          doc,
-          query._converter
-        )
-    );
-
-    if (hasLimitToLast(query._query)) {
-      // Limit to last queries reverse the orderBy constraint that was
-      // specified by the user. As such, we need to reverse the order of the
-      // results to return the documents in the expected order.
-      docs.reverse();
-    }
-
-    return new QuerySnapshot<T>(query, docs);
-  });
-}
-
-/**
- * Writes to the document referred to by the specified `DocumentReference`. If
- * the document does not yet exist, it will be created.
- *
- * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
- * write fails. If you would like to see local modifications or buffer writes
- * until the client is online, use the full Firestore SDK.
- *
- * @param reference - A reference to the document to write.
- * @param data - A map of the fields and values for the document.
- * @returns A Promise resolved once the data has been successfully written
- * to the backend.
- */
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: T
-): Promise<void>;
-/**
- * Writes to the document referred to by the specified `DocumentReference`. If
- * the document does not yet exist, it will be created. If you provide `merge`
- * or `mergeFields`, the provided data can be merged into an existing document.
- *
- * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
- * write fails. If you would like to see local modifications or buffer writes
- * until the client is online, use the full Firestore SDK.
- *
- * @param reference - A reference to the document to write.
- * @param data - A map of the fields and values for the document.
- * @param options - An object to configure the set behavior.
- * @returns A Promise resolved once the data has been successfully written
- * to the backend.
- */
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: Partial<T>,
-  options: SetOptions
-): Promise<void>;
-
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: T,
-  options?: SetOptions
-): Promise<void> {
-  reference = cast<DocumentReference<T>>(reference, DocumentReference);
-  const convertedValue = applyFirestoreDataConverter(
-    reference._converter,
-    data,
-    options
-  );
-  const dataReader = newUserDataReader(reference.firestore);
-  const parsed = parseSetData(
-    dataReader,
-    'setDoc',
-    reference._key,
-    convertedValue,
-    reference._converter !== null,
-    options
-  );
-
-  const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(
-    datastore,
-    parsed.toMutations(reference._key, Precondition.none())
-  );
-}
-
-/**
- * Updates fields in the document referred to by the specified
- * `DocumentReference`. The update will fail if applied to a document that does
- * not exist.
- *
- * The result of this update will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
- * update fails. If you would like to see local modifications or buffer writes
- * until the client is online, use the full Firestore SDK.
- *
- * @param reference - A reference to the document to update.
- * @param data - An object containing the fields and values with which to
- * update the document. Fields can contain dots to reference nested fields
- * within the document.
- * @returns A Promise resolved once the data has been successfully written
- * to the backend.
- */
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  data: UpdateData
-): Promise<void>;
-/**
- * Updates fields in the document referred to by the specified
- * `DocumentReference` The update will fail if applied to a document that does
- * not exist.
- *
- * Nested fields can be updated by providing dot-separated field path
- * strings or by providing `FieldPath` objects.
- *
- * The result of this update will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
- * update fails. If you would like to see local modifications or buffer writes
- * until the client is online, use the full Firestore SDK.
- *
- * @param reference - A reference to the document to update.
- * @param field - The first field to update.
- * @param value - The first value.
- * @param moreFieldsAndValues - Additional key value pairs.
- * @returns A Promise resolved once the data has been successfully written
- * to the backend.
- */
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  field: string | FieldPath,
-  value: unknown,
-  ...moreFieldsAndValues: unknown[]
-): Promise<void>;
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  fieldOrUpdateData: string | FieldPath | UpdateData,
-  value?: unknown,
-  ...moreFieldsAndValues: unknown[]
-): Promise<void> {
-  reference = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const dataReader = newUserDataReader(reference.firestore);
-
-  // For Compat types, we have to "extract" the underlying types before
-  // performing validation.
-  if (fieldOrUpdateData instanceof Compat) {
-    fieldOrUpdateData = fieldOrUpdateData._delegate;
-  }
-
-  let parsed: ParsedUpdateData;
-  if (
-    typeof fieldOrUpdateData === 'string' ||
-    fieldOrUpdateData instanceof FieldPath
-  ) {
-    parsed = parseUpdateVarargs(
-      dataReader,
-      'updateDoc',
-      reference._key,
-      fieldOrUpdateData,
-      value,
-      moreFieldsAndValues
-    );
-  } else {
-    parsed = parseUpdateData(
-      dataReader,
-      'updateDoc',
-      reference._key,
-      fieldOrUpdateData
-    );
-  }
-
-  const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(
-    datastore,
-    parsed.toMutations(reference._key, Precondition.exists(true))
-  );
-}
-
-/**
- * Deletes the document referred to by the specified `DocumentReference`.
- *
- * The deletion will only be reflected in document reads that occur after the
- * returned Promise resolves. If the client is offline, the
- * delete fails. If you would like to see local modifications or buffer writes
- * until the client is online, use the full Firestore SDK.
- *
- * @param reference - A reference to the document to delete.
- * @returns A Promise resolved once the document has been successfully
- * deleted from the backend.
- */
-export function deleteDoc(
-  reference: DocumentReference<unknown>
-): Promise<void> {
-  reference = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(datastore, [
-    new DeleteMutation(reference._key, Precondition.none())
-  ]);
-}
-
-/**
- * Add a new document to specified `CollectionReference` with the given data,
- * assigning it a document ID automatically.
- *
- * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
- * write fails. If you would like to see local modifications or buffer writes
- * until the client is online, use the full Firestore SDK.
- *
- * @param reference - A reference to the collection to add this document to.
- * @param data - An Object containing the data for the new document.
- * @returns A Promise resolved with a `DocumentReference` pointing to the
- * newly created document after it has been written to the backend.
- */
-export function addDoc<T>(
-  reference: CollectionReference<T>,
-  data: T
-): Promise<DocumentReference<T>> {
-  reference = cast<CollectionReference<T>>(reference, CollectionReference);
-  const docRef = doc(reference);
-
-  const convertedValue = applyFirestoreDataConverter(
-    reference._converter,
-    data
-  );
-
-  const dataReader = newUserDataReader(reference.firestore);
-  const parsed = parseSetData(
-    dataReader,
-    'addDoc',
-    docRef._key,
-    convertedValue,
-    docRef._converter !== null,
-    {}
-  );
-
-  const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(
-    datastore,
-    parsed.toMutations(docRef._key, Precondition.exists(false))
-  ).then(() => docRef);
 }
 
 export function newUserDataReader(

@@ -55,7 +55,7 @@ import {
   ExpUserDataWriter,
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference
-} from '../../exp/src/api/reference';
+} from '../../exp/src/api/crud';
 
 /**
  * A mock Firestore. Will not work for integration test.

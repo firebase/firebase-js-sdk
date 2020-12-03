@@ -39,11 +39,8 @@ import { FieldPath } from './field_path';
 import { getDatastore } from './components';
 import { cast } from '../../../src/util/input_validation';
 import { Compat } from '../../../src/compat/compat';
-import {
-  applyFirestoreDataConverter,
-  LiteUserDataWriter,
-  newUserDataReader
-} from './query';
+import { LiteUserDataWriter, newUserDataReader } from './query';
+import { applyFirestoreDataConverter } from './crud';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.

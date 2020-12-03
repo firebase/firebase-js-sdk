@@ -61,12 +61,7 @@ import {
 import { refEqual } from '../../lite/src/api/reference';
 import {
   addDoc,
-  collection,
-  collectionGroup,
-  CollectionReference as ExpCollectionReference,
   deleteDoc,
-  doc,
-  DocumentReference as ExpDocumentReference,
   endAt,
   endBefore,
   executeWrite,
@@ -82,13 +77,20 @@ import {
   onSnapshotsInSync,
   orderBy,
   query,
-  Query as ExpQuery,
-  queryEqual,
   setDoc,
   startAfter,
   startAt,
   updateDoc,
   where
+} from '../../exp/src/api/crud';
+import {
+  doc,
+  collection,
+  collectionGroup,
+  queryEqual,
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference,
+  DocumentReference as ExpDocumentReference
 } from '../../exp/src/api/reference';
 import { Compat } from '../compat/compat';
 import { ApiLoadBundleTask, LoadBundleTask } from './bundle';

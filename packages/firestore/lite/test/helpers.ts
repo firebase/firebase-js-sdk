@@ -34,7 +34,7 @@ import { AutoId } from '../../src/util/misc';
 import { expect } from 'chai';
 import { QueryDocumentSnapshot } from '../src/api/snapshot';
 import { Settings } from '../../exp/src/api/database';
-import { setDoc } from '../src/api/query';
+import { setDoc } from '../src/api/crud';
 
 let appCount = 0;
 

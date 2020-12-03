@@ -32,7 +32,7 @@ import {
 import { Code, FirestoreError } from '../../../src/util/error';
 import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { FieldPath } from '../../../lite/src/api/field_path';
-import { SnapshotListenOptions } from './reference';
+import { SnapshotListenOptions } from './crud';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
 import { debugAssert, fail } from '../../../src/util/assert';
 import { newQueryComparator } from '../../../src/core/query';

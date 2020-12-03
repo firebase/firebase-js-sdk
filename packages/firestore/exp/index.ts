@@ -56,8 +56,10 @@ export {
   collectionGroup,
   SetOptions,
   DocumentData,
-  UpdateData
-} from '../lite/src/api/reference';
+  UpdateData,
+  refEqual,
+  queryEqual
+} from './src/api/reference';
 
 export { Unsubscribe } from '../src/api/observer';
 
@@ -76,7 +78,23 @@ export {
   updateDoc,
   deleteDoc,
   addDoc
-} from './src/api/reference';
+} from './src/api/crud';
+
+export {
+  endAt,
+  endBefore,
+  startAfter,
+  startAt,
+  limitToLast,
+  limit,
+  orderBy,
+  OrderByDirection,
+  where,
+  WhereFilterOp,
+  query,
+  QueryConstraint,
+  QueryConstraintType
+} from './src/api/query';
 
 export {
   deleteField,
@@ -90,32 +108,18 @@ export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
 export { Bytes } from '../lite/src/api/bytes';
 
-export { writeBatch } from './src/api/write_batch';
-
-export { WriteBatch } from '../lite/src/api/write_batch';
+export { WriteBatch, writeBatch } from './src/api/write_batch';
 
 export { GeoPoint } from '../src/api/geo_point';
 
 export { Timestamp } from '../src/api/timestamp';
 
-export { refEqual, queryEqual } from '../lite/src/api/reference';
+export {} from '../lite/src/api/reference';
 
-export { SnapshotListenOptions } from './src/api/reference';
+export { SnapshotListenOptions } from './src/api/crud';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
 export { FieldValue } from '../src/api/field_value';
-export { endAt } from '../lite/src/api/query';
-export { endBefore } from '../lite/src/api/query';
-export { startAfter } from '../lite/src/api/query';
-export { startAt } from '../lite/src/api/query';
-export { limitToLast } from '../lite/src/api/query';
-export { limit } from '../lite/src/api/query';
-export { orderBy } from '../lite/src/api/query';
-export { OrderByDirection } from '../lite/src/api/query';
-export { where } from '../lite/src/api/query';
-export { WhereFilterOp } from '../lite/src/api/query';
-export { query } from '../lite/src/api/query';
-export { QueryConstraint } from '../lite/src/api/query';
-export { QueryConstraintType } from '../lite/src/api/query';
+
 export { CACHE_SIZE_UNLIMITED } from './src/api/database';
 export { SnapshotMetadata } from './src/api/database';

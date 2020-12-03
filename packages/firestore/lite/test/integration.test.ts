@@ -68,22 +68,24 @@ import { Timestamp } from '../../src/api/timestamp';
 import { Bytes } from '../src/api/bytes';
 import { FieldValue } from '../../src/api/field_value';
 import {
-  addDoc,
-  deleteDoc,
   endAt,
   endBefore,
-  getDoc,
-  getDocs,
   limit,
   limitToLast,
   orderBy,
   query,
-  setDoc,
   startAfter,
   startAt,
-  updateDoc,
   where
 } from '../src/api/query';
+import {
+  addDoc,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc
+} from '../src/api/crud';
 
 use(chaiAsPromised);
 
