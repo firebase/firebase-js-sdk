@@ -17,11 +17,7 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { OnlineState, TargetId } from '../core/types';
-import {
-  LocalStore,
-  getLastRemoteSnapshotVersion,
-  nextMutationBatch
-} from '../local/local_store';
+import { LocalStore } from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
@@ -57,6 +53,10 @@ import {
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { User } from '../auth/user';
+import {
+  getLastRemoteSnapshotVersion,
+  nextMutationBatch
+} from '../local/local_store_impl';
 
 const LOG_TAG = 'RemoteStore';
 

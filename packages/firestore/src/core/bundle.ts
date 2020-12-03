@@ -32,11 +32,7 @@ import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert } from '../util/assert';
-import {
-  applyBundleDocuments,
-  LocalStore,
-  saveNamedQuery
-} from '../local/local_store';
+import { LocalStore } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
 import {
   documentKeySet,
@@ -44,6 +40,10 @@ import {
   MaybeDocumentMap
 } from '../model/collections';
 import { ApiLoadBundleTaskProgress } from '../api/bundle';
+import {
+  applyBundleDocuments,
+  saveNamedQuery
+} from '../local/local_store_impl';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.

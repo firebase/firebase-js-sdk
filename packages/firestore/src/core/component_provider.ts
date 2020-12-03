@@ -21,11 +21,7 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import {
-  LocalStore,
-  newLocalStore,
-  synchronizeLastDocumentChangeReadTime
-} from '../local/local_store';
+import { LocalStore } from '../local/local_store';
 import {
   applyActiveTargetsChange,
   applyBatchState,
@@ -69,6 +65,10 @@ import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
 import { CredentialsProvider } from '../api/credentials';
 import { JsonProtoSerializer } from '../remote/serializer';
+import {
+  newLocalStore,
+  synchronizeLastDocumentChangeReadTime
+} from '../local/local_store_impl';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;

@@ -22,13 +22,7 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import {
-  getNamedQuery,
-  executeQuery,
-  handleUserChange,
-  LocalStore,
-  readLocalDocument
-} from '../local/local_store';
+import { LocalStore } from '../local/local_store';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -83,6 +77,12 @@ import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { NamedQuery } from './bundle';
 import { JsonProtoSerializer } from '../remote/serializer';
+import {
+  executeQuery,
+  getNamedQuery,
+  handleUserChange,
+  readLocalDocument
+} from '../local/local_store_impl';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

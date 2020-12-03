@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { QueryResult } from '../local/local_store';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -41,6 +40,7 @@ import {
   SyncState,
   ViewSnapshot
 } from './view_snapshot';
+import { QueryResult } from '../local/local_store_impl';
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {
