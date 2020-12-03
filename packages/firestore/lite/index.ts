@@ -73,6 +73,14 @@ export { FieldPath, documentId } from './src/api/field_path';
 export { FieldValue } from './src/api/field_value';
 
 export {
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp,
+  deleteField
+} from './src/api/field_value_helpers';
+
+export {
   FirestoreDataConverter,
   DocumentSnapshot,
   QueryDocumentSnapshot,
@@ -93,9 +101,3 @@ export { GeoPoint } from '../src/api/geo_point';
 export { Timestamp } from '../src/api/timestamp';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
-
-export { increment } from './src/api/field_value_helpers';
-export { arrayRemove } from './src/api/field_value_helpers';
-export { arrayUnion } from './src/api/field_value_helpers';
-export { serverTimestamp } from './src/api/field_value_helpers';
-export { deleteField } from './src/api/field_value_helpers';

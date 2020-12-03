@@ -97,14 +97,15 @@ export {
   QueryConstraintType
 } from './src/api/query';
 
+export { FieldValue } from './src/api/field_value';
+
 export {
-  FieldValue,
-  deleteField,
   increment,
   arrayRemove,
   arrayUnion,
-  serverTimestamp
-} from './src/api/field_value';
+  serverTimestamp,
+  deleteField
+} from './src/api/field_value_helpers';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 

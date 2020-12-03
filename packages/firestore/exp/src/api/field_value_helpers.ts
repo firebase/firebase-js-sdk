@@ -15,4 +15,10 @@
  * limitations under the License.
  */
 
-export { FieldValue } from '../../../lite/src/api/field_value';
+export {
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp,
+  deleteField
+} from '../../../lite/src/api/field_value_helpers';
