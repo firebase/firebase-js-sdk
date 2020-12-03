@@ -19,7 +19,7 @@ import { Firestore } from './src/api/database';
 import { loadBundle, namedQuery } from './src/api/bundle';
 
 /**
- * Registers the memory-only Firestore build with the components framework.
+ * Registers Firestore bundle loading features with the components framework.
  */
 export function registerBundle(instance: typeof Firestore): void {
   instance.prototype.loadBundle = function (
@@ -34,8 +34,6 @@ export function registerBundle(instance: typeof Firestore): void {
   ) {
     return namedQuery(this, queryName);
   };
-
-  //TODO(wuandy): add loadBundle and namedQuery to the firestore namespace
 }
 
 registerBundle(Firestore);
