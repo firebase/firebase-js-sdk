@@ -1072,12 +1072,12 @@ export abstract class MultiFactorResolver {
    * The list of hints for the second factors needed to complete the sign-in for the current
    * session.
    */
-  hints: MultiFactorInfo[];
+  readonly hints: MultiFactorInfo[];
   /**
    * The session identifier for the current sign-in flow, which can be used to complete the second
    * factor sign-in.
    */
-  session: MultiFactorSession;
+  readonly session: MultiFactorSession;
   /**
    * A helper function to help users complete sign in with a second factor using an
    * {@link @firebase/auth-types#MultiFactorAssertion} confirming the user successfully completed the second factor
@@ -1423,7 +1423,7 @@ export interface UserCredential {
   /**
    * The provider which was used to authenticate the user.
    */
-  providerId: ProviderId | null;
+  providerId: string | null;
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
@@ -1495,7 +1495,7 @@ export interface AdditionalUserInfo {
   /**
    * Identifier for the provider used to authenticate this user.
    */
-  readonly providerId: ProviderId | null;
+  readonly providerId: string | null;
   /**
    * The username if the provider is GitHub or Twitter.
    */

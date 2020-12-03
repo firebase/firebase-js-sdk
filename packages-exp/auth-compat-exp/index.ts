@@ -51,13 +51,13 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       .setServiceProps({
         ActionCodeInfo: {
           Operation: {
-            EMAIL_SIGNIN: externs.Operation.EMAIL_SIGNIN,
-            PASSWORD_RESET: externs.Operation.PASSWORD_RESET,
-            RECOVER_EMAIL: externs.Operation.RECOVER_EMAIL,
+            EMAIL_SIGNIN: externs.ActionCodeOperation.EMAIL_SIGNIN,
+            PASSWORD_RESET: externs.ActionCodeOperation.PASSWORD_RESET,
+            RECOVER_EMAIL: externs.ActionCodeOperation.RECOVER_EMAIL,
             REVERT_SECOND_FACTOR_ADDITION:
-              externs.Operation.REVERT_SECOND_FACTOR_ADDITION,
-            VERIFY_AND_CHANGE_EMAIL: externs.Operation.VERIFY_AND_CHANGE_EMAIL,
-            VERIFY_EMAIL: externs.Operation.VERIFY_EMAIL
+              externs.ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION,
+            VERIFY_AND_CHANGE_EMAIL: externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
+            VERIFY_EMAIL: externs.ActionCodeOperation.VERIFY_EMAIL
           }
         },
         EmailAuthProvider: impl.EmailAuthProvider,
