@@ -26,17 +26,10 @@ import { TargetCache } from './target_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetData } from './target_data';
 import { BundleCache } from './bundle_cache';
-import { PersistenceTransaction } from './persistence_transaction';
-
-export const PRIMARY_LEASE_LOST_ERROR_MSG =
-  'The current tab is not in the required state to perform this operation. ' +
-  'It might be necessary to refresh the browser tab.';
-
-/** The different modes supported by `IndexedDbPersistence.runTransaction()`. */
-export type PersistenceTransactionMode =
-  | 'readonly'
-  | 'readwrite'
-  | 'readwrite-primary';
+import {
+  PersistenceTransaction,
+  PersistenceTransactionMode
+} from './persistence_transaction';
 
 /**
  * Callback type for primary state notifications. This callback can be

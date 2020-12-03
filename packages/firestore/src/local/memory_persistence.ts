@@ -37,18 +37,17 @@ import {
 } from './memory_remote_document_cache';
 import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
-import {
-  Persistence,
-  PersistenceTransactionMode,
-  ReferenceDelegate
-} from './persistence';
+import { Persistence, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
 import { MemoryBundleCache } from './memory_bundle_cache';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { LocalSerializer } from './local_serializer';
-import { PersistenceTransaction } from './persistence_transaction';
+import {
+  PersistenceTransaction,
+  PersistenceTransactionMode
+} from './persistence_transaction';
 import {
   ActiveTargets,
   LruGarbageCollector,

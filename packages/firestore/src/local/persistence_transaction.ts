@@ -17,6 +17,16 @@
 
 import { ListenSequenceNumber } from '../core/types';
 
+export const PRIMARY_LEASE_LOST_ERROR_MSG =
+  'The current tab is not in the required state to perform this operation. ' +
+  'It might be necessary to refresh the browser tab.';
+
+/** The different modes supported by `Persistence.runTransaction()`. */
+export type PersistenceTransactionMode =
+  | 'readonly'
+  | 'readwrite'
+  | 'readwrite-primary';
+
 /**
  * A base class representing a persistence transaction, encapsulating both the
  * transaction's sequence numbers as well as a list of onCommitted listeners.

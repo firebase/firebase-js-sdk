@@ -61,8 +61,6 @@ import {
 } from './lru_garbage_collector_impl';
 import {
   Persistence,
-  PersistenceTransactionMode,
-  PRIMARY_LEASE_LOST_ERROR_MSG,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
@@ -76,7 +74,11 @@ import {
   SimpleDbTransaction
 } from './simple_db';
 import { DocumentLike, WindowLike } from '../util/types';
-import { PersistenceTransaction } from './persistence_transaction';
+import {
+  PersistenceTransaction,
+  PersistenceTransactionMode,
+  PRIMARY_LEASE_LOST_ERROR_MSG
+} from './persistence_transaction';
 import {
   ActiveTargets,
   LruParams,

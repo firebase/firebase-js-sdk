@@ -23,8 +23,7 @@ import {
 } from '../../../src/core/component_provider';
 import {
   GarbageCollectionScheduler,
-  Persistence,
-  PersistenceTransactionMode
+  Persistence
 } from '../../../src/local/persistence';
 import {
   indexedDbStoragePrefix,
@@ -62,7 +61,10 @@ import { WindowLike } from '../../../src/util/types';
 import { newSerializer } from '../../../src/platform/serializer';
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
-import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
+import {
+  PersistenceTransaction,
+  PersistenceTransactionMode
+} from '../../../src/local/persistence_transaction';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 
 /**
