@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,4 @@
  * limitations under the License.
  */
 
-export { increment } from '../../lite/src/api/field_value_helpers';
-export { arrayRemove } from '../../lite/src/api/field_value_helpers';
-export { arrayUnion } from '../../lite/src/api/field_value_helpers';
-export { serverTimestamp } from '../../lite/src/api/field_value_helpers';
-export { deleteField } from '../../lite/src/api/field_value_helpers';
+export { FieldPath, documentId } from '../../../lite/src/api/field_path';

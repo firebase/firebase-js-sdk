@@ -19,7 +19,7 @@ import { registerFirestore } from './register';
 
 registerFirestore();
 
-export { FieldPath, documentId } from '../lite/src/api/field_path';
+export { FieldPath, documentId } from './src/api/field_path';
 
 export {
   FirebaseFirestore,
@@ -33,7 +33,8 @@ export {
   enableNetwork,
   terminate,
   Settings,
-  PersistenceSettings
+  PersistenceSettings,
+  SnapshotMetadata
 } from './src/api/database';
 
 export {
@@ -97,16 +98,17 @@ export {
 } from './src/api/query';
 
 export {
+  FieldValue,
   deleteField,
   increment,
   arrayRemove,
   arrayUnion,
   serverTimestamp
-} from '../lite/src/api/field_value';
+} from './src/api/field_value';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
-export { Bytes } from '../lite/src/api/bytes';
+export { Bytes } from './src/api/bytes';
 
 export { WriteBatch, writeBatch } from './src/api/write_batch';
 
@@ -114,12 +116,8 @@ export { GeoPoint } from '../src/api/geo_point';
 
 export { Timestamp } from '../src/api/timestamp';
 
-export {} from '../lite/src/api/reference';
-
 export { SnapshotListenOptions } from './src/api/crud';
 
-export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
-export { FieldValue } from '../src/api/field_value';
-
 export { CACHE_SIZE_UNLIMITED } from './src/api/database';
-export { SnapshotMetadata } from './src/api/database';
+
+export { FirestoreErrorCode, FirestoreError } from '../src/util/error';

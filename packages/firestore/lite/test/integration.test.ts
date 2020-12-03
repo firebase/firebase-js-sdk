@@ -48,13 +48,7 @@ import {
   UpdateData,
   DocumentData
 } from '../src/api/reference';
-import {
-  deleteField,
-  increment,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove
-} from '../src/api/field_value';
+import { FieldValue } from '../src/api/field_value';
 import { FieldPath } from '../src/api/field_path';
 import { writeBatch } from '../src/api/write_batch';
 import { runTransaction } from '../src/api/transaction';
@@ -66,7 +60,6 @@ import {
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { Timestamp } from '../../src/api/timestamp';
 import { Bytes } from '../src/api/bytes';
-import { FieldValue } from '../../src/api/field_value';
 import {
   endAt,
   endBefore,
@@ -86,6 +79,13 @@ import {
   setDoc,
   updateDoc
 } from '../src/api/crud';
+import {
+  arrayRemove,
+  arrayUnion,
+  deleteField,
+  increment,
+  serverTimestamp
+} from '../src/api/field_value_helpers';
 
 use(chaiAsPromised);
 

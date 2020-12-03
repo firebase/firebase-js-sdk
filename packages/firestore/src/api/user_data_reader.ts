@@ -51,7 +51,6 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
 import { Bytes } from '../../lite/src/api/bytes';
@@ -66,6 +65,7 @@ import {
   ServerTimestampTransform
 } from '../model/transform_operation';
 import { ParseContext } from './parse_context';
+import { FieldValue } from '../../lite/src/api/field_value';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 

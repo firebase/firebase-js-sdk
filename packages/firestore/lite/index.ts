@@ -18,6 +18,8 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
+export { Settings } from './src/api/components';
+
 export {
   FirebaseFirestore,
   initializeFirestore,
@@ -68,13 +70,7 @@ export {
 export { FieldPath, documentId } from './src/api/field_path';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
-export {
-  deleteField,
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp
-} from './src/api/field_value';
+export { FieldValue } from './src/api/field_value';
 
 export {
   FirestoreDataConverter,
@@ -97,5 +93,9 @@ export { GeoPoint } from '../src/api/geo_point';
 export { Timestamp } from '../src/api/timestamp';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
-export { FieldValue } from '../src/api/field_value';
-export { Settings } from './src/api/components';
+
+export { increment } from './src/api/field_value_helpers';
+export { arrayRemove } from './src/api/field_value_helpers';
+export { arrayUnion } from './src/api/field_value_helpers';
+export { serverTimestamp } from './src/api/field_value_helpers';
+export { deleteField } from './src/api/field_value_helpers';
