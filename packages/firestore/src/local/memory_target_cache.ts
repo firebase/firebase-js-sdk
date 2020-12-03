@@ -21,8 +21,6 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
-
-import { MemoryPersistence } from './memory_persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetCache } from './target_cache';
@@ -31,6 +29,7 @@ import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { PersistenceTransaction } from './persistence_transaction';
 import { ActiveTargets } from './lru_garbage_collector';
 import { DocumentKey } from '../model/path';
+import { Persistence } from './persistence';
 
 export class MemoryTargetCache implements TargetCache {
   /**
@@ -57,7 +56,7 @@ export class MemoryTargetCache implements TargetCache {
 
   private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
-  constructor(private readonly persistence: MemoryPersistence) {}
+  constructor(private readonly persistence: Persistence) {}
 
   forEachTarget(
     txn: PersistenceTransaction,
