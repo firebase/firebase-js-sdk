@@ -70,6 +70,7 @@ import {
   DocumentReference as ExpDocumentReference,
   endAt,
   endBefore,
+  executeWrite,
   getDoc,
   getDocFromCache,
   getDocFromServer,
@@ -88,8 +89,7 @@ import {
   startAfter,
   startAt,
   updateDoc,
-  where,
-  executeWrite
+  where
 } from '../../exp/src/api/reference';
 import { Compat } from '../compat/compat';
 import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
@@ -1287,34 +1287,4 @@ function castReference<T>(
     documentRef = documentRef._delegate;
   }
   return cast<ExpDocumentReference<T>>(documentRef, ExpDocumentReference);
-}
-
-/**
- * Converts custom model object of type T into DocumentData by applying the
- * converter if it exists.
- *
- * This function is used when converting user objects to DocumentData
- * because we want to provide the user with a more specific error message if
- * their set() or fails due to invalid data originating from a toFirestore()
- * call.
- */
-export function applyFirestoreDataConverter<T>(
-  converter: UntypedFirestoreDataConverter<T> | null,
-  value: T,
-  options?: PublicSetOptions
-): PublicDocumentData {
-  let convertedValue;
-  if (converter) {
-    if (options && (options.merge || options.mergeFields)) {
-      // Cast to `any` in order to satisfy the union type constraint on
-      // toFirestore().
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      convertedValue = (converter as any).toFirestore(value, options);
-    } else {
-      convertedValue = converter.toFirestore(value);
-    }
-  } else {
-    convertedValue = value as PublicDocumentData;
-  }
-  return convertedValue;
 }

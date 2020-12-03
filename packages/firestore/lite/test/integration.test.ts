@@ -41,24 +41,9 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  getDoc,
-  deleteDoc,
-  setDoc,
-  addDoc,
-  updateDoc,
   refEqual,
   queryEqual,
   collectionGroup,
-  getDocs,
-  orderBy,
-  startAfter,
-  query,
-  limit,
-  endAt,
-  endBefore,
-  startAt,
-  limitToLast,
-  where,
   SetOptions,
   UpdateData,
   DocumentData
@@ -82,6 +67,23 @@ import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { Timestamp } from '../../src/api/timestamp';
 import { Bytes } from '../src/api/bytes';
 import { FieldValue } from '../../src/api/field_value';
+import {
+  addDoc,
+  deleteDoc,
+  endAt,
+  endBefore,
+  getDoc,
+  getDocs,
+  limit,
+  limitToLast,
+  orderBy,
+  query,
+  setDoc,
+  startAfter,
+  startAt,
+  updateDoc,
+  where
+} from '../src/api/query';
 
 use(chaiAsPromised);
 

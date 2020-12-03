@@ -26,7 +26,6 @@ import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../src/util/input_validation';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
-  applyFirestoreDataConverter,
   ensureFirestoreConfigured,
   SnapshotMetadata
 } from '../../../src/api/database';
@@ -35,11 +34,9 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  newUserDataReader,
   Query,
   SetOptions,
-  UpdateData,
-  validateHasExplicitOrderByForLimitToLast
+  UpdateData
 } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
 import {
@@ -74,6 +71,11 @@ import { Compat } from '../../../src/compat/compat';
 import { ByteString } from '../../../src/util/byte_string';
 import { Bytes } from '../../../lite/src/api/bytes';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
+import {
+  applyFirestoreDataConverter,
+  newUserDataReader,
+  validateHasExplicitOrderByForLimitToLast
+} from '../../../lite/src/api/query';
 
 export {
   DocumentReference,
@@ -82,15 +84,6 @@ export {
   collection,
   collectionGroup,
   doc,
-  query,
-  where,
-  limit,
-  limitToLast,
-  orderBy,
-  startAt,
-  startAfter,
-  endAt,
-  endBefore,
   queryEqual
 } from '../../../lite/src/api/reference';
 
@@ -823,3 +816,12 @@ function convertToDocSnapshot<T>(
     ref._converter
   );
 }
+export { endAt } from '../../../lite/src/api/query';
+export { endBefore } from '../../../lite/src/api/query';
+export { startAfter } from '../../../lite/src/api/query';
+export { startAt } from '../../../lite/src/api/query';
+export { limitToLast } from '../../../lite/src/api/query';
+export { limit } from '../../../lite/src/api/query';
+export { orderBy } from '../../../lite/src/api/query';
+export { where } from '../../../lite/src/api/query';
+export { query } from '../../../lite/src/api/query';

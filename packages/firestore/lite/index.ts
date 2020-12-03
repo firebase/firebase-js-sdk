@@ -32,31 +32,12 @@ export {
   UpdateData,
   DocumentReference,
   Query,
-  QueryConstraint,
-  QueryConstraintType,
   CollectionReference,
-  OrderByDirection,
-  WhereFilterOp,
   collection,
   collectionGroup,
   doc,
-  getDoc,
-  getDocs,
-  deleteDoc,
-  setDoc,
-  updateDoc,
-  addDoc,
   refEqual,
-  queryEqual,
-  startAt,
-  startAfter,
-  endAt,
-  endBefore,
-  query,
-  limit,
-  limitToLast,
-  where,
-  orderBy
+  queryEqual
 } from './src/api/reference';
 
 // TOOD(firestorelite): Add tests when Queries are usable
@@ -94,3 +75,22 @@ export { Timestamp } from '../src/api/timestamp';
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
 export { FieldValue } from '../src/api/field_value';
 export { Settings } from './src/api/components';
+export { addDoc } from './src/api/query';
+export { deleteDoc } from './src/api/query';
+export { updateDoc } from './src/api/query';
+export { setDoc } from './src/api/query';
+export { getDocs } from './src/api/query';
+export { getDoc } from './src/api/query';
+export { endAt } from './src/api/query';
+export { endBefore } from './src/api/query';
+export { startAfter } from './src/api/query';
+export { startAt } from './src/api/query';
+export { limitToLast } from './src/api/query';
+export { limit } from './src/api/query';
+export { orderBy } from './src/api/query';
+export { OrderByDirection } from './src/api/query';
+export { where } from './src/api/query';
+export { WhereFilterOp } from './src/api/query';
+export { query } from './src/api/query';
+export { QueryConstraint } from './src/api/query';
+export { QueryConstraintType } from './src/api/query';

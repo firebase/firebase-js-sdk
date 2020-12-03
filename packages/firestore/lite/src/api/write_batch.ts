@@ -21,25 +21,20 @@ import {
   Precondition
 } from '../../../src/model/mutation';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { applyFirestoreDataConverter } from '../../../src/api/database';
 import {
   parseSetData,
   parseUpdateData,
   parseUpdateVarargs,
   UserDataReader
 } from '../../../src/api/user_data_reader';
-import {
-  DocumentReference,
-  newUserDataReader,
-  SetOptions,
-  UpdateData
-} from './reference';
+import { DocumentReference, SetOptions, UpdateData } from './reference';
 import { FirebaseFirestore } from './database';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
 import { cast } from '../../../src/util/input_validation';
 import { Compat } from '../../../src/compat/compat';
+import { applyFirestoreDataConverter, newUserDataReader } from './query';
 
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.
