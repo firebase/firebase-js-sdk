@@ -16,7 +16,7 @@ credential(params: OAuthCredentialOptions): externs.OAuthCredential;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  params | OAuthCredentialOptions |  |
+|  params | [OAuthCredentialOptions](./auth.oauthcredentialoptions.md) | Either the options object containing the ID token, access token and raw nonce or the ID token string. |
 
 <b>Returns:</b>
 
