@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-const alias = require('@rollup/plugin-alias');
 const util = require('./rollup.shared');
 
 export default [
+  // Create a temporary build that includes the mangled classes for all exports
   {
     input: 'export.ts',
     output: {
-      file: 'dist/prebuild.rn.js',
+      file: 'dist/prebuilt.rn.js',
       format: 'es',
       sourcemap: true
     },
@@ -32,10 +32,10 @@ export default [
       moduleSideEffects: false
     }
   },
+  // Create main build
   {
     input: {
       index: 'index.ts',
-      memory: 'index.memory.ts',
       bundle: 'index.bundle.ts'
     },
     output: {
@@ -44,14 +44,27 @@ export default [
       sourcemap: true
     },
     plugins: [
-      alias({
-        entries: [
-          {
-            find: /^(.*)\/export$/,
-            replacement: `$1\/dist/prebuild.rn.js`
-          }
-        ]
-      }),
+      util.applyPrebuilt('prebuilt.rn.js'),
+      ...util.es2017Plugins('rn', /* mangled= */ false)
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Create memory build
+  {
+    input: {
+      index: 'index.memory.ts',
+      bundle: 'index.bundle.ts'
+    },
+    output: {
+      dir: 'dist/rn',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      util.applyPrebuilt('prebuilt.rn.js'),
       ...util.es2017Plugins('rn', /* mangled= */ true)
     ],
     external: util.resolveBrowserExterns,
