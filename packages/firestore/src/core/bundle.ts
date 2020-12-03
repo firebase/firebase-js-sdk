@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from './query';
+import { LoadBundleTaskProgress } from '@firebase/firestore-types';
 import { SnapshotVersion } from './snapshot_version';
 import {
   fromDocument,
@@ -24,9 +24,9 @@ import {
   JsonProtoSerializer
 } from '../remote/serializer';
 import {
-  NamedQuery as ProtoNamedQuery,
+  BundledDocumentMetadata as ProtoBundledDocumentMetadata,
   BundleMetadata as ProtoBundleMetadata,
-  BundledDocumentMetadata as ProtoBundledDocumentMetadata
+  NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
@@ -43,30 +43,6 @@ import {
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import { ApiLoadBundleTaskProgress } from '../api/bundle';
-
-/**
- * Represents a Firestore bundle saved by the SDK in its local storage.
- */
-export interface Bundle {
-  readonly id: string;
-  readonly version: number;
-  /**
-   * Set to the snapshot version of the bundle if created by the Server SDKs.
-   * Otherwise set to SnapshotVersion.MIN.
-   */
-  readonly createTime: SnapshotVersion;
-}
-
-/**
- * Represents a Query saved by the SDK in its local storage.
- */
-export interface NamedQuery {
-  readonly name: string;
-  readonly query: Query;
-  /** The time at which the results for this query were read. */
-  readonly readTime: SnapshotVersion;
-}
 
 /**
  * Represents a bundled document, including the metadata and the document
@@ -121,7 +97,7 @@ export class BundleConverter {
  */
 export function bundleInitialProgress(
   metadata: ProtoBundleMetadata
-): ApiLoadBundleTaskProgress {
+): LoadBundleTaskProgress {
   return {
     taskState: 'Running',
     documentsLoaded: 0,
@@ -137,7 +113,7 @@ export function bundleInitialProgress(
  */
 export function bundleSuccessProgress(
   metadata: ProtoBundleMetadata
-): ApiLoadBundleTaskProgress {
+): LoadBundleTaskProgress {
   return {
     taskState: 'Success',
     documentsLoaded: metadata.totalDocuments!,
@@ -149,7 +125,7 @@ export function bundleSuccessProgress(
 
 export class BundleLoadResult {
   constructor(
-    readonly progress: ApiLoadBundleTaskProgress,
+    readonly progress: LoadBundleTaskProgress,
     readonly changedDocs: MaybeDocumentMap
   ) {}
 }
@@ -160,7 +136,7 @@ export class BundleLoadResult {
  */
 export class BundleLoader {
   /** The current progress of loading */
-  private progress: ApiLoadBundleTaskProgress;
+  private progress: LoadBundleTaskProgress;
   /** Batched queries to be saved into storage */
   private queries: ProtoNamedQuery[] = [];
   /** Batched documents to be saved into storage */
@@ -180,9 +156,7 @@ export class BundleLoader {
    * Returns a new progress if adding the element leads to a new progress,
    * otherwise returns null.
    */
-  addSizedElement(
-    element: SizedBundleElement
-  ): ApiLoadBundleTaskProgress | null {
+  addSizedElement(element: SizedBundleElement): LoadBundleTaskProgress | null {
     debugAssert(!element.isBundleMetadata(), 'Unexpected bundle metadata.');
 
     this.progress.bytesLoaded += element.byteLength;

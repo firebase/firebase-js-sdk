@@ -17,25 +17,25 @@
 
 import { User } from '../auth/user';
 import {
-  hasNewerBundle,
+  acknowledgeBatch,
+  allocateTarget,
   applyRemoteEventToLocalCache,
-  getNewDocumentChanges,
+  executeQuery,
+  getActiveClientsFromPersistence,
   getCachedTarget,
+  getHighestUnacknowledgedBatchId,
+  getNewDocumentChanges,
+  handleUserChange,
+  hasNewerBundle,
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
-  saveBundle,
-  getActiveClientsFromPersistence,
-  lookupMutationDocuments,
-  removeCachedMutationBatchMetadata,
-  allocateTarget,
-  executeQuery,
-  releaseTarget,
-  rejectBatch,
-  handleUserChange,
   localWrite,
-  acknowledgeBatch,
-  getHighestUnacknowledgedBatchId,
-  notifyLocalViewChanges
+  lookupMutationDocuments,
+  notifyLocalViewChanges,
+  rejectBatch,
+  releaseTarget,
+  removeCachedMutationBatchMetadata,
+  saveBundle
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
@@ -98,19 +98,19 @@ import {
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { BundleReader } from '../util/bundle_reader';
-import {
-  BundleLoader,
-  bundleInitialProgress,
-  bundleSuccessProgress
-} from './bundle';
-import { LoadBundleTask } from '../api/bundle';
 import {
   EventManager,
   eventManagerOnOnlineStateChange,
   eventManagerOnWatchChange,
   eventManagerOnWatchError
 } from './event_manager';
+import { BundleReader } from '../util/bundle_reader';
+import { LoadBundleTask } from '../api/bundle';
+import {
+  bundleInitialProgress,
+  bundleSuccessProgress,
+  BundleLoader
+} from './bundle';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -1537,8 +1537,8 @@ export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
  * Loads a Firestore bundle into the SDK. The returned promise resolves when
  * the bundle finished loading.
  *
- * @param bundleReader - Bundle to load into the SDK.
- * @param task - LoadBundleTask used to update the loading progress to public API.
+ * @param bundleReader Bundle to load into the SDK.
+ * @param task LoadBundleTask used to update the loading progress to public API.
  */
 export function syncEngineLoadBundle(
   syncEngine: SyncEngine,

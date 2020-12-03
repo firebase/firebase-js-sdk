@@ -15,46 +15,27 @@
  * limitations under the License.
  */
 
+import {
+  LoadBundleTask as ApiLoadBundleTask,
+  LoadBundleTaskProgress
+} from '@firebase/firestore-types';
 import { Deferred } from '../util/promise';
 import { PartialObserver } from './observer';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-
-export interface ApiLoadBundleTask {
-  onProgress(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    next?: (progress: ApiLoadBundleTaskProgress) => any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    error?: (error: Error) => any,
-    complete?: () => void
-  ): void;
-
-  then<T, R>(
-    onFulfilled?: (a: ApiLoadBundleTaskProgress) => T | PromiseLike<T>,
-    onRejected?: (a: Error) => R | PromiseLike<R>
-  ): Promise<T | R>;
-
-  catch<R>(
-    onRejected: (a: Error) => R | PromiseLike<R>
-  ): Promise<R | ApiLoadBundleTaskProgress>;
-}
-
-export interface ApiLoadBundleTaskProgress {
-  documentsLoaded: number;
-  totalDocuments: number;
-  bytesLoaded: number;
-  totalBytes: number;
-  taskState: TaskState;
-}
-
-export type TaskState = 'Error' | 'Running' | 'Success';
+import { ensureFirestoreConfigured, Query, Firestore } from './database';
+import { Query as ExpQuery } from '../../exp/src/api/reference';
+import {
+  firestoreClientGetNamedQuery,
+  firestoreClientLoadBundle
+} from '../core/firestore_client';
 
 export class LoadBundleTask
-  implements ApiLoadBundleTask, PromiseLike<ApiLoadBundleTaskProgress> {
-  private _progressObserver: PartialObserver<ApiLoadBundleTaskProgress> = {};
-  private _taskCompletionResolver = new Deferred<ApiLoadBundleTaskProgress>();
+  implements ApiLoadBundleTask, PromiseLike<LoadBundleTaskProgress> {
+  private _progressObserver: PartialObserver<LoadBundleTaskProgress> = {};
+  private _taskCompletionResolver = new Deferred<LoadBundleTaskProgress>();
 
-  private _lastProgress: ApiLoadBundleTaskProgress = {
+  private _lastProgress: LoadBundleTaskProgress = {
     taskState: 'Running',
     totalBytes: 0,
     totalDocuments: 0,
@@ -63,7 +44,7 @@ export class LoadBundleTask
   };
 
   onProgress(
-    next?: (progress: ApiLoadBundleTaskProgress) => unknown,
+    next?: (progress: LoadBundleTaskProgress) => unknown,
     error?: (err: Error) => unknown,
     complete?: () => void
   ): void {
@@ -76,12 +57,12 @@ export class LoadBundleTask
 
   catch<R>(
     onRejected: (a: Error) => R | PromiseLike<R>
-  ): Promise<R | ApiLoadBundleTaskProgress> {
+  ): Promise<R | LoadBundleTaskProgress> {
     return this._taskCompletionResolver.promise.catch(onRejected);
   }
 
   then<T, R>(
-    onFulfilled?: (a: ApiLoadBundleTaskProgress) => T | PromiseLike<T>,
+    onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
     onRejected?: (a: Error) => R | PromiseLike<R>
   ): Promise<T | R> {
     return this._taskCompletionResolver.promise.then(onFulfilled, onRejected);
@@ -91,7 +72,7 @@ export class LoadBundleTask
    * Notifies all observers that bundle loading has completed, with a provided
    * `LoadBundleTaskProgress` object.
    */
-  _completeWith(progress: ApiLoadBundleTaskProgress): void {
+  _completeWith(progress: LoadBundleTaskProgress): void {
     debugAssert(
       progress.taskState === 'Success',
       'Task is not completed with Success.'
@@ -126,7 +107,7 @@ export class LoadBundleTask
    * Notifies a progress update of loading a bundle.
    * @param progress - The new progress.
    */
-  _updateProgress(progress: ApiLoadBundleTaskProgress): void {
+  _updateProgress(progress: LoadBundleTaskProgress): void {
     debugAssert(
       this._lastProgress.taskState === 'Running',
       'Cannot update progress on a completed or failed task'
@@ -137,4 +118,31 @@ export class LoadBundleTask
       this._progressObserver.next(progress);
     }
   }
+}
+
+export function loadBundle(
+  db: Firestore,
+  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+): LoadBundleTask {
+  const resultTask = new LoadBundleTask();
+  firestoreClientLoadBundle(
+    ensureFirestoreConfigured(db._delegate),
+    db._databaseId,
+    bundleData,
+    resultTask
+  );
+  return resultTask;
+}
+
+export function namedQuery(db: Firestore, name: string): Promise<Query | null> {
+  return firestoreClientGetNamedQuery(
+    ensureFirestoreConfigured(db._delegate),
+    name
+  ).then(namedQuery => {
+    if (!namedQuery) {
+      return null;
+    }
+
+    return new Query(db, new ExpQuery(db._delegate, null, namedQuery.query));
+  });
 }

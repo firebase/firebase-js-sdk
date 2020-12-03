@@ -76,15 +76,16 @@ import {
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
-import {
-  NamedQuery as ProtoNamedQuery,
-  BundleMetadata as ProtoBundleMetadata
-} from '../protos/firestore_bundle_proto';
-import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import { BundleCache } from './bundle_cache';
 import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
+import {
+  BundleMetadata,
+  NamedQuery as ProtoNamedQuery
+} from '../protos/firestore_bundle_proto';
+import { NamedQuery } from '../core/bundle_types';
 import { fromBundledQuery } from './local_serializer';
 import { ByteString } from '../util/byte_string';
+import { BundleConverter, BundledDocuments } from '../core/bundle';
 import { ResourcePath } from '../model/path';
 
 const LOG_TAG = 'LocalStore';
@@ -1373,7 +1374,7 @@ export async function applyBundleDocuments(
  */
 export function hasNewerBundle(
   localStore: LocalStore,
-  bundleMetadata: ProtoBundleMetadata
+  bundleMetadata: BundleMetadata
 ): Promise<boolean> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const bundleConverter = new BundleConverter(localStoreImpl.serializer);
@@ -1394,10 +1395,11 @@ export function hasNewerBundle(
 
 /**
  * Saves the given `BundleMetadata` to local persistence.
+ * @param bundleMetadata
  */
 export function saveBundle(
   localStore: LocalStore,
-  bundleMetadata: ProtoBundleMetadata
+  bundleMetadata: BundleMetadata
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(

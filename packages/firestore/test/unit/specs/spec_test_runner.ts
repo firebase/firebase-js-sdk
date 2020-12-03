@@ -42,12 +42,12 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
-  syncEngineLoadBundle,
   activeLimboDocumentResolutions,
   enqueuedLimboDocumentResolutions,
   registerPendingWritesCallback,
   SyncEngine,
   syncEngineListen,
+  syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
 } from '../../../src/core/sync_engine';
