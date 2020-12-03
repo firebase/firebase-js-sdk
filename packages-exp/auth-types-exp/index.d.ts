@@ -316,8 +316,9 @@ export interface Auth {
    * traffic is not encrypted.
    *
    * @param url - The URL at which the emulator is running (eg, 'http://localhost:9099').
+   * @param disableBanner - (Optional: default false) Disable the warning banner attached to the DOM
    */
-  useEmulator(url: string): void;
+  useEmulator(url: string, options?: { disableWarnings: boolean }): void;
   /**
    * Signs out the current user.
    */
