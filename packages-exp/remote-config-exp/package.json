@@ -21,7 +21,7 @@
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
-    "prepare": "yarn build",
+    "prepare": "yarn build:release",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
