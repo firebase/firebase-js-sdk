@@ -79,11 +79,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
-import {
-  BundleLoader,
-  bundleInitialProgress,
-  bundleSuccessProgress
-} from './bundle';
+import { bundleInitialProgress, bundleSuccessProgress } from './bundle';
 import { LoadBundleTask } from '../api/bundle';
 import {
   EventManager,
@@ -95,6 +91,7 @@ import {
   acknowledgeBatch,
   allocateTarget,
   applyRemoteEventToLocalCache,
+  BundleLoader,
   executeQuery,
   getActiveClientsFromPersistence,
   getCachedTarget,
