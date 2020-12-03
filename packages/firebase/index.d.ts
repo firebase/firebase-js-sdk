@@ -8341,7 +8341,7 @@ declare namespace firebase.firestore {
     ): void;
 
     /**
-     * Implements a `Promise<LoadBundleTaskProgress>` interface.
+     * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
      *
      * @param onFulfilled It is called with the compeltion `LoadBundleTaskProgress` when the
      *        loading task completes.
