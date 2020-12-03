@@ -41,16 +41,16 @@ import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
 import {
-  CACHE_SIZE_UNLIMITED,
-  configureFirestore,
-  ensureFirestoreConfigured
-} from '../../../src/api/database';
-import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
 import { cast } from '../../../src/util/input_validation';
-import { Settings as LiteSettings } from '../../../lite/src/api/components';
+import {
+  makeDatabaseInfo,
+  Settings as LiteSettings
+} from '../../../lite/src/api/components';
+import { LRU_COLLECTION_DISABLED } from '../../../src/local/lru_garbage_collector';
+import { debugAssert } from '../../../src/util/assert';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -64,6 +64,13 @@ export interface PersistenceSettings {
 export interface Settings extends LiteSettings {
   cacheSizeBytes?: number;
 }
+
+/**
+ * Constant used to indicate the LRU garbage collection should be disabled.
+ * Set this value as the `cacheSizeBytes` on the settings passed to the
+ * `Firestore` instance.
+ */
+export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
 
 /**
  * The Cloud Firestore service interface.
@@ -142,6 +149,36 @@ export function initializeFirestore(
  */
 export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   return _getProvider(app, 'firestore-exp').getImmediate() as FirebaseFirestore;
+}
+
+export function ensureFirestoreConfigured(
+  firestore: FirebaseFirestore
+): FirestoreClient {
+  if (!firestore._firestoreClient) {
+    configureFirestore(firestore);
+  }
+  firestore._firestoreClient!.verifyNotTerminated();
+  return firestore._firestoreClient as FirestoreClient;
+}
+
+export function configureFirestore(firestore: FirebaseFirestore): void {
+  const settings = firestore._freezeSettings();
+  debugAssert(!!settings.host, 'FirestoreSettings.host is not set');
+  debugAssert(
+    !firestore._firestoreClient,
+    'configureFirestore() called multiple times'
+  );
+
+  const databaseInfo = makeDatabaseInfo(
+    firestore._databaseId,
+    firestore._persistenceKey,
+    settings
+  );
+  firestore._firestoreClient = new FirestoreClient(
+    firestore._credentials,
+    firestore._queue,
+    databaseInfo
+  );
 }
 
 /**

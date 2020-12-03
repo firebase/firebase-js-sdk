@@ -104,8 +104,6 @@ export { refEqual, queryEqual } from '../lite/src/api/reference';
 
 export { SnapshotListenOptions } from './src/api/reference';
 
-export { CACHE_SIZE_UNLIMITED } from '../src/api/database';
-
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
 export { FieldValue } from '../src/api/field_value';
 export { endAt } from '../lite/src/api/query';
@@ -121,3 +119,4 @@ export { WhereFilterOp } from '../lite/src/api/query';
 export { query } from '../lite/src/api/query';
 export { QueryConstraint } from '../lite/src/api/query';
 export { QueryConstraintType } from '../lite/src/api/query';
+export { CACHE_SIZE_UNLIMITED } from './src/api/database';

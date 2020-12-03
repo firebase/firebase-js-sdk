@@ -22,7 +22,6 @@ import {
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
-  ensureFirestoreConfigured,
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
@@ -42,7 +41,10 @@ import { JsonObject } from '../../src/model/object_value';
 import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
-import { FirebaseFirestore } from '../../exp/src/api/database';
+import {
+  ensureFirestoreConfigured,
+  FirebaseFirestore
+} from '../../exp/src/api/database';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   QuerySnapshot as ExpQuerySnapshot,

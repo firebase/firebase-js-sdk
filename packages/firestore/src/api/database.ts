@@ -19,7 +19,6 @@ import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId } from '../core/database_info';
 import {
-  FirestoreClient,
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle
 } from '../core/firestore_client';
@@ -49,7 +48,7 @@ import {
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence,
   enableNetwork,
-  FirebaseFirestore,
+  ensureFirestoreConfigured,
   FirebaseFirestore as ExpFirebaseFirestore,
   waitForPendingWrites
 } from '../../exp/src/api/database';
@@ -126,15 +125,7 @@ import {
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
-import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
-import { DEFAULT_HOST, makeDatabaseInfo } from '../../lite/src/api/components';
-
-/**
- * Constant used to indicate the LRU garbage collection should be disabled.
- * Set this value as the `cacheSizeBytes` on the settings passed to the
- * `Firestore` instance.
- */
-export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
+import { DEFAULT_HOST } from '../../lite/src/api/components';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
@@ -366,36 +357,6 @@ export class Firestore
       )
     );
   }
-}
-
-export function ensureFirestoreConfigured(
-  firestore: FirebaseFirestore
-): FirestoreClient {
-  if (!firestore._firestoreClient) {
-    configureFirestore(firestore);
-  }
-  firestore._firestoreClient!.verifyNotTerminated();
-  return firestore._firestoreClient as FirestoreClient;
-}
-
-export function configureFirestore(firestore: FirebaseFirestore): void {
-  const settings = firestore._freezeSettings();
-  debugAssert(!!settings.host, 'FirestoreSettings.host is not set');
-  debugAssert(
-    !firestore._firestoreClient,
-    'configureFirestore() called multiple times'
-  );
-
-  const databaseInfo = makeDatabaseInfo(
-    firestore._databaseId,
-    firestore._persistenceKey,
-    settings
-  );
-  firestore._firestoreClient = new FirestoreClient(
-    firestore._credentials,
-    firestore._queue,
-    databaseInfo
-  );
 }
 
 export function setLogLevel(level: PublicLogLevel): void {
