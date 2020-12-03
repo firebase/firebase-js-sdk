@@ -22,14 +22,13 @@ import {
   FirestoreDataConverter as LiteFirestoreDataConverter,
   fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
-import { FirebaseFirestore } from './database';
+import { FirebaseFirestore, SnapshotMetadata } from './database';
 import {
   DocumentData,
   Query,
   queryEqual,
   SetOptions
 } from '../../../lite/src/api/reference';
-import { SnapshotMetadata } from '../../../src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { FieldPath } from '../../../lite/src/api/field_path';

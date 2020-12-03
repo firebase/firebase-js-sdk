@@ -47,8 +47,6 @@ export {
   DocumentChangeType
 } from './src/api/snapshot';
 
-export { SnapshotMetadata } from '../src/api/database';
-
 export {
   DocumentReference,
   CollectionReference,
@@ -120,3 +118,4 @@ export { query } from '../lite/src/api/query';
 export { QueryConstraint } from '../lite/src/api/query';
 export { QueryConstraintType } from '../lite/src/api/query';
 export { CACHE_SIZE_UNLIMITED } from './src/api/database';
+export { SnapshotMetadata } from './src/api/database';

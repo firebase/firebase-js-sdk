@@ -25,8 +25,7 @@ import {
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
-  QuerySnapshot,
-  SnapshotMetadata
+  QuerySnapshot
 } from '../../src/api/database';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -43,7 +42,8 @@ import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 import {
   ensureFirestoreConfigured,
-  FirebaseFirestore
+  FirebaseFirestore,
+  SnapshotMetadata
 } from '../../exp/src/api/database';
 import { DatabaseId } from '../../src/core/database_info';
 import {

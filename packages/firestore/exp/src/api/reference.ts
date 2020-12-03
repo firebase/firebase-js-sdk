@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
+import {
+  ensureFirestoreConfigured,
+  FirebaseFirestore,
+  SnapshotMetadata
+} from './database';
 import {
   ParsedUpdateData,
   parseSetData,
@@ -25,7 +29,6 @@ import {
 import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../src/util/input_validation';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
-import { SnapshotMetadata } from '../../../src/api/database';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
   CollectionReference,
