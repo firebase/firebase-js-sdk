@@ -18,20 +18,23 @@
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
   LimitType,
   newQuery,
   newQueryForPath,
-  Operator,
-  OrderBy,
   Query,
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { isDocumentTarget, Target } from '../core/target';
+import {
+  Bound,
+  Direction,
+  FieldFilter,
+  Filter,
+  isDocumentTarget,
+  Operator,
+  OrderBy,
+  Target
+} from '../core/target';
 import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';

@@ -20,8 +20,6 @@ import { Blob } from '../../../src/api/blob';
 import { Timestamp } from '../../../src/api/timestamp';
 import { GeoPoint } from '../../../src/api/geo_point';
 import {
-  Bound,
-  boundEquals,
   canonifyQuery,
   LimitType,
   newQueryComparator,
@@ -37,7 +35,6 @@ import {
   queryToTarget,
   QueryImpl,
   queryEquals,
-  OrderBy,
   matchesAllDocuments
 } from '../../../src/core/query';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
@@ -53,7 +50,12 @@ import {
   ref,
   wrap
 } from '../../util/helpers';
-import { canonifyTarget } from '../../../src/core/target';
+import {
+  Bound,
+  boundEquals,
+  canonifyTarget,
+  OrderBy
+} from '../../../src/core/target';
 
 describe('Bound', () => {
   function makeBound(values: unknown[], before: boolean): Bound {

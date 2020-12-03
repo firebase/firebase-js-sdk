@@ -29,13 +29,7 @@ import {
 } from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
   newQueryForPath,
-  Operator,
-  OrderBy,
   Query,
   queryToTarget,
   queryWithAddedFilter,
@@ -117,6 +111,14 @@ import {
   BundleMetadata as ProtoBundleMetadata,
   LimitType as ProtoLimitType
 } from '../../src/protos/firestore_bundle_proto';
+import {
+  Bound,
+  Direction,
+  FieldFilter,
+  Filter,
+  Operator,
+  OrderBy
+} from '../../src/core/target';
 
 /* eslint-disable no-restricted-globals */
 

@@ -29,10 +29,6 @@ import {
   UserDataReader
 } from '../../../src/api/user_data_reader';
 import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
   findFilterOperator,
   getFirstOrderByField,
   getInequalityFilterField,
@@ -41,8 +37,6 @@ import {
   LimitType,
   newQueryForCollectionGroup,
   newQueryForPath,
-  Operator,
-  OrderBy,
   Query as InternalQuery,
   queryEquals,
   queryOrderBy,
@@ -92,6 +86,14 @@ import { DatabaseId } from '../../../src/core/database_info';
 import { refValue } from '../../../src/model/values';
 import { DocumentReference as ExpDocumentReference } from '../../../exp/src/api/reference';
 import { isServerTimestamp } from '../../../src/model/server_timestamps';
+import {
+  Bound,
+  Direction,
+  FieldFilter,
+  Filter,
+  Operator,
+  OrderBy
+} from '../../../src/core/target';
 
 /**
  * Document data (for use with {@link setDoc}) consists of fields mapped to

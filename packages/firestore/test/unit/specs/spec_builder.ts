@@ -16,16 +16,20 @@
  */
 
 import {
-  FieldFilter,
   Query,
   queryEquals,
-  Filter,
   newQueryForPath,
   queryToTarget,
   hasLimitToLast,
   hasLimitToFirst
 } from '../../../src/core/query';
-import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
+import {
+  canonifyTarget,
+  FieldFilter,
+  Filter,
+  Target,
+  targetEquals
+} from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -1042,9 +1046,9 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
-        value: userDataWriter.convertValue(
-          doc.toProto()
-        ) as JsonObject<unknown>,
+        value: userDataWriter.convertValue(doc.toProto()) as JsonObject<
+          unknown
+        >,
         options: {
           hasLocalMutations: doc.hasLocalMutations,
           hasCommittedMutations: doc.hasCommittedMutations

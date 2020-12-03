@@ -24,6 +24,14 @@ import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
+  LimitType,
+  queryToTarget,
+  queryWithEndAt,
+  queryWithLimit,
+  queryWithStartAt
+} from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import {
   ArrayContainsAnyFilter,
   ArrayContainsFilter,
   Direction,
@@ -31,17 +39,13 @@ import {
   filterEquals,
   InFilter,
   KeyFieldFilter,
-  LimitType,
   NotInFilter,
   Operator,
   OrderBy,
-  queryToTarget,
-  queryWithEndAt,
-  queryWithLimit,
-  queryWithStartAt
-} from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
+  Target,
+  targetEquals,
+  TargetImpl
+} from '../../../src/core/target';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import {
   DeleteMutation,
