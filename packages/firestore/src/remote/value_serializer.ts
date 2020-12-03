@@ -17,7 +17,6 @@
 
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { isNegativeZero, isSafeInteger } from '../util/types';
-import { JsonProtoSerializer } from './serializer';
 
 /** Base interface for the Serializer implementation. */
 export interface Serializer {
@@ -53,9 +52,6 @@ export function toInteger(value: number): ProtoValue {
  * The return value is an IntegerValue if it can safely represent the value,
  * otherwise a DoubleValue is returned.
  */
-export function toNumber(
-  serializer: JsonProtoSerializer,
-  value: number
-): ProtoValue {
+export function toNumber(serializer: Serializer, value: number): ProtoValue {
   return isSafeInteger(value) ? toInteger(value) : toDouble(serializer, value);
 }
