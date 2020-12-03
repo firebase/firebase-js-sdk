@@ -24,8 +24,22 @@ import {
 } from '../model/transform_operation';
 import { ParseContext, parseData, UserDataSource } from './user_data_reader';
 import { debugAssert } from '../util/assert';
-import { FieldValue } from '../../lite/src/api/field_value';
 import { toNumber } from '../remote/value_serializer';
+
+/**
+ * Sentinel values that can be used when writing document fields with `set()`
+ * or `update()`.
+ */
+export abstract class FieldValue {
+  /**
+   * @param _methodName - The public API endpoint that returns this class.
+   */
+  constructor(public _methodName: string) {}
+
+  abstract isEqual(other: FieldValue): boolean;
+
+  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
+}
 
 export class DeleteFieldValueImpl extends FieldValue {
   _toFieldTransform(context: ParseContext): null {

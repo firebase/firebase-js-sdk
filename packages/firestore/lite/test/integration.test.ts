@@ -64,7 +64,6 @@ import {
   DocumentData
 } from '../src/api/reference';
 import {
-  FieldValue,
   deleteField,
   increment,
   serverTimestamp,
@@ -82,6 +81,7 @@ import {
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { Timestamp } from '../../src/api/timestamp';
 import { Bytes } from '../src/api/bytes';
+import { FieldValue } from '../../src/api/field_value';
 
 use(chaiAsPromised);
 

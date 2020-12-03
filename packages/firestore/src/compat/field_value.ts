@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-import * as exp from '../../exp/index';
 import {
-  deleteField,
-  serverTimestamp,
-  arrayUnion,
   arrayRemove,
-  increment
+  arrayUnion,
+  deleteField,
+  FieldValue as FieldValue1,
+  increment,
+  serverTimestamp
 } from '../../exp/index';
 import * as legacy from '@firebase/firestore-types';
 import { Compat } from './compat';
 
 export class FieldValue
-  extends Compat<exp.FieldValue>
+  extends Compat<FieldValue1>
   implements legacy.FieldValue {
   static serverTimestamp(): FieldValue {
     const delegate = serverTimestamp();

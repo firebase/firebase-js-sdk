@@ -94,7 +94,6 @@ export {
 } from './src/api/reference';
 
 export {
-  FieldValue,
   deleteField,
   increment,
   arrayRemove,
@@ -121,3 +120,4 @@ export { SnapshotListenOptions } from './src/api/reference';
 export { CACHE_SIZE_UNLIMITED } from '../src/api/database';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+export { FieldValue } from '../src/api/field_value';

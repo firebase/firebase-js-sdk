@@ -65,7 +65,6 @@ export { FieldPath, documentId } from './src/api/field_path';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
 export {
-  FieldValue,
   deleteField,
   increment,
   arrayRemove,
@@ -94,3 +93,4 @@ export { GeoPoint } from '../src/api/geo_point';
 export { Timestamp } from '../src/api/timestamp';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+export { FieldValue } from '../src/api/field_value';

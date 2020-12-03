@@ -51,12 +51,11 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { DeleteFieldValueImpl } from './field_value';
+import { DeleteFieldValueImpl, FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
 import { Bytes } from '../../lite/src/api/bytes';
 import { Compat } from '../compat/compat';
-import { FieldValue } from '../../lite/src/api/field_value';
 import { DocumentReference } from '../../lite/src/api/reference';
 import { FieldPath } from '../../lite/src/api/field_path';
 import { toNumber } from '../remote/value_serializer';
