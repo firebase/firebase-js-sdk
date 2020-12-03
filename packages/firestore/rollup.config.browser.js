@@ -31,15 +31,21 @@ export default [
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
+    },
+    onwarn: (warning, defaultWarn) => {
+      if (warning.code === 'CIRCULAR_DEPENDENCY') {
+        throw new Error(warning);
+      }
+      defaultWarn(warning);
+    }
+  },
+  {
+    input: pkg.esm2017,
+    output: { file: pkg.module, format: 'es', sourcemap: true },
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
     }
   }
-  // {
-  //   input: pkg.esm2017,
-  //   output: { file: pkg.module, format: 'es', sourcemap: true },
-  //   plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-  //   external: util.resolveBrowserExterns,
-  //   treeshake: {
-  //     moduleSideEffects: false
-  //   }
-  // }
 ];
