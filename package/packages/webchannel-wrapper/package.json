@@ -1,0 +1,38 @@
+{
+  "name": "@firebase/webchannel-wrapper",
+  "version": "0.4.1",
+  "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "files": ["dist"],
+  "scripts": {
+    "dev": "watch 'yarn build' src",
+    "build": "gulp",
+    "prepare": "yarn build",
+    "test": "echo 'No test suite for webchannel-wrapper'",
+    "test:ci": "echo 'No test suite for webchannel-wrapper'"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "google-closure-compiler": "20201102.0.1",
+    "google-closure-library": "20201006.0.0",
+    "gulp": "4.0.2",
+    "gulp-sourcemaps": "2.6.5",
+    "rollup": "2.33.2",
+    "@rollup/plugin-commonjs": "15.1.0",
+    "rollup-plugin-sourcemaps": "0.6.3",
+    "rollup-plugin-typescript2": "0.29.0",
+    "typescript": "4.0.5"
+  },
+  "repository": {
+    "directory": "packages/webchannel-wrapper",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "typings": "src/index.d.ts",
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  }
+}

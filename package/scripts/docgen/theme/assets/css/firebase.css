@@ -1,0 +1,63 @@
+.firebase-docs .project-name {
+    color: #333;
+    display: inline-block;
+    font-size: 20px;
+    font-weight: normal;
+    margin-left: 130px;
+}
+
+.firebase-docs aside.tsd-sources {
+    padding: 8px;
+}
+
+.firebase-docs .tsd-panel li {
+    margin: 0;
+}
+
+.firebase-docs aside.tsd-sources:before {
+    content: unset;
+}
+
+.firebase-docs dl.tsd-comment-tags dt.tag-example {
+    float: none;
+    text-transform: capitalize;
+    color: #000;
+    font-size: 1.1em;
+    padding: 5px;
+    border: none;
+}
+
+.firebase-docs dl.tsd-comment-tags dd.tag-body-example {
+    padding-left: 0;
+}
+
+.firebase-docs .tsd-breadcrumb .breadcrumb-name a {
+    color: #039be5;
+}
+
+.firebase-docs .tsd-breadcrumb .model-name {
+    color: #333;
+}
+
+.firebase-docs .tsd-signature {
+    border-bottom: 1px solid #eee;
+}
+
+.firebase-docs .tsd-description {
+    display: block;
+    padding-left: 20px;
+}
+
+.firebase-docs li.tsd-description:not(:last-child) {
+    margin-bottom: 20px;
+}
+
+.firebase-docs .deprecated-tag-section {
+    border-bottom: 1px solid #eee;
+}
+
+.firebase-docs dt.tag-deprecated {
+    background-color: #dd2c00;
+    border-color: transparent;
+    color: white;
+}

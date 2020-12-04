@@ -1,0 +1,71 @@
+{
+  "name": "firebase-exp",
+  "version": "0.900.0",
+  "private": true,
+  "description": "Firebase JavaScript library for web and Node.js",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "license": "Apache-2.0",
+  "homepage": "https://firebase.google.com/",
+  "keywords": [
+    "authentication",
+    "database",
+    "Firebase",
+    "firebase",
+    "realtime",
+    "storage",
+    "performance",
+    "remote-config"
+  ],
+  "files": [
+    "**/dist/",
+    "**/package.json",
+    "/firebase*.js",
+    "/firebase*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "scripts": {
+    "build": "rollup -c && gulp firebase-js && yarn build:compat",
+    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && yarn build:compat:release",
+    "build:compat": "rollup -c compat/rollup.config.js",
+    "build:compat:release": "rollup -c compat/rollup.config.release.js",
+    "dev": "rollup -c -w",
+    "prepare": "yarn build:release",
+    "test": "echo 'No test suite for firebase wrapper'",
+    "test:ci": "echo 'No test suite for firebase wrapper'"
+  },
+  "dependencies": {
+    "@firebase/app-exp": "0.0.900",
+    "@firebase/app-compat": "0.0.900",
+    "@firebase/auth-exp": "0.0.900",
+    "@firebase/functions-exp": "0.0.900",
+    "@firebase/firestore": "2.0.4",
+    "@firebase/performance-exp": "0.0.900",
+    "@firebase/remote-config-exp": "0.0.900"
+  },
+  "devDependencies": {
+    "rollup": "2.33.2",
+    "@rollup/plugin-commonjs": "15.1.0",
+    "rollup-plugin-license": "2.2.0",
+    "@rollup/plugin-node-resolve": "9.0.0",
+    "rollup-plugin-sourcemaps": "0.6.3",
+    "rollup-plugin-terser": "7.0.2",
+    "rollup-plugin-typescript2": "0.29.0",
+    "rollup-plugin-uglify": "6.0.4",
+    "gulp": "4.0.2",
+    "gulp-sourcemaps": "2.6.5",
+    "gulp-concat": "2.6.1",
+    "typescript": "4.0.5"
+  },
+  "components": [
+    "app",
+    "auth",
+    "functions",
+    "firestore",
+    "firestore/lite",
+    "performance",
+    "remote-config"
+  ]
+}

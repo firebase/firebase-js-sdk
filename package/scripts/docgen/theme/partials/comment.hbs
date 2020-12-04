@@ -1,0 +1,38 @@
+{{#with comment}}
+    {{#if hasVisibleComponent}}
+        <div class="tsd-comment tsd-typography">
+            {{#if tags}}
+                {{#each tags}}
+                    {{#ifCond tagName '==' "deprecated"}}
+                    <dl class="tsd-comment-tags deprecated-tag-section">
+                        <dt class="tag-{{tagName}}">{{tagName}}</dt>
+                        <dd class="tag-body-{{tagName}}">{{#markdown}}{{{text}}}{{/markdown}}</dd>
+                    </dl>
+                    {{/ifCond}}
+                {{/each}}
+            {{/if}}
+            {{#if shortText}}
+                <div class="lead">
+                    {{#markdown}}{{{shortText}}}{{/markdown}}
+                </div>
+            {{/if}}
+            {{#if text}}
+                {{#markdown}}{{{text}}}{{/markdown}}
+            {{/if}}
+            {{#if tags}}
+                <dl class="tsd-comment-tags">
+                    {{#each tags}}
+                        {{#ifCond tagName '==' "webonly"}}
+                        {{else}}
+                            {{#ifCond tagName '==' "deprecated"}}
+                            {{else}}
+                            <dt class="tag-{{tagName}}">{{tagName}}</dt>
+                            <dd class="tag-body-{{tagName}}">{{#markdown}}{{{text}}}{{/markdown}}</dd>
+                            {{/ifCond}}
+                        {{/ifCond}}
+                    {{/each}}
+                </dl>
+            {{/if}}
+        </div>
+    {{/if}}
+{{/with}}

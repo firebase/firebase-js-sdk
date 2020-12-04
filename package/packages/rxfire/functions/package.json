@@ -1,0 +1,6 @@
+{
+  "name": "rxfire/functions",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/functions/index.d.ts"
+}

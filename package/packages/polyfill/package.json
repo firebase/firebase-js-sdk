@@ -1,0 +1,37 @@
+{
+  "name": "@firebase/polyfill",
+  "version": "0.3.36",
+  "description": "",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "echo 'No test suite for polyfills'",
+    "test:ci": "echo 'No test suite for polyfills'",
+    "prepare": "yarn build"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "core-js": "3.7.0",
+    "promise-polyfill": "8.2.0",
+    "whatwg-fetch": "2.0.4"
+  },
+  "devDependencies": {
+    "rollup": "2.33.2",
+    "rollup-plugin-typescript2": "0.29.0"
+  },
+  "repository": {
+    "directory": "packages/polyfill",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts"
+}

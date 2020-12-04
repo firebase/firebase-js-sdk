@@ -1,0 +1,11 @@
+{
+  "version": "independent",
+  "npmClient": "yarn",
+  "packages": [
+    "packages/*",
+    "packages-exp/*",
+    "integration/*",
+    "repo-scripts/*"
+  ],
+  "useWorkspaces": true
+}

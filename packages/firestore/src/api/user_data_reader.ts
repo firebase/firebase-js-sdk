@@ -39,11 +39,7 @@ import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
-import {
-  FieldMask,
-  ObjectValue,
-  ObjectValueBuilder
-} from '../model/object_value';
+import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
 import {
   JsonProtoSerializer,
   toBytes,
@@ -66,6 +62,7 @@ import {
 import { ParseContext } from './parse_context';
 import { FieldValue } from '../../lite/src/api/field_value';
 import { FirebaseFirestore } from '../../lite/src/api/database';
+import { FieldMask } from '../model/field_mask';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 

@@ -64,11 +64,7 @@ import {
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentSet } from '../../src/model/document_set';
-import {
-  FieldMask,
-  JsonObject,
-  ObjectValue
-} from '../../src/model/object_value';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
   DeleteMutation,
   MutationResult,
@@ -121,6 +117,7 @@ import {
   Operator,
   OrderBy
 } from '../../src/core/target';
+import { FieldMask } from '../../src/model/field_mask';
 
 /* eslint-disable no-restricted-globals */
 

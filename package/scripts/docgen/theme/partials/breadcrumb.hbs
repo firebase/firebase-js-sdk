@@ -1,0 +1,11 @@
+
+{{#if parent}}
+    {{#with parent}}{{> breadcrumb}}{{/with}}
+    <li class="breadcrumb-name">
+        {{#if url}}
+            <small><a href="{{relativeURL url}}">{{name}}</a>.</small>
+        {{else}}
+            <span><small>{{name}}</small></span>
+        {{/if}}
+    </li>
+{{/if}}

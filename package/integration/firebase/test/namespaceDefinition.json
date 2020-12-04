@@ -1,0 +1,240 @@
+{
+  "initializeApp": {
+    "__type": "function",
+    "__args": 2
+  },
+  "app": {
+    "__type": "function",
+    "__args": 1,
+    "App": {
+      "__type": "function"
+    },
+    "__return": {
+      "name": {
+        "__type": "string"
+      },
+      "options": {
+        "__type": "object"
+      },
+      "delete": {
+        "__type": "function"
+      },
+      "INTERNAL": {
+        "getToken": {
+          "__type": "function"
+        },
+        "addAuthTokenListener": {
+          "__type": "function"
+        },
+        "removeAuthTokenListener": {
+          "__type": "function"
+        }
+      }
+    }
+  },
+  "SDK_VERSION": {
+    "__type": "string"
+  },
+  "apps": {
+    "__type": "array"
+  },
+  "INTERNAL": {
+    "__type": "object",
+    "registerComponent": {
+      "__type": "function"
+    },
+    "extendNamespace": {
+      "__type": "function"
+    },
+    "createFirebaseNamespace": {
+      "__type": "function"
+    },
+    "createSubscribe": {
+      "__type": "function"
+    },
+    "removeApp": {
+      "__type": "function"
+    },
+    "components": {
+      "__type": "Map"
+    },
+    "ErrorFactory": {
+      "__type": "function"
+    },
+    "deepExtend": {
+      "__type": "function"
+    }
+  },
+  "auth": {
+    "__type": "function",
+    "Auth": {
+      "__type": "function"
+    },
+    "Error": {
+      "__type": "function"
+    },
+    "EmailAuthProvider": {
+      "__type": "function"
+    },
+    "FacebookAuthProvider": {
+      "__type": "function"
+    },
+    "GithubAuthProvider": {
+      "__type": "function"
+    },
+    "GoogleAuthProvider": {
+      "__type": "function"
+    },
+    "TwitterAuthProvider": {
+      "__type": "function"
+    },
+    "__return": {
+      "app": {
+        "__type": "object"
+      },
+      "INTERNAL": {
+        "delete": {
+          "__type": "function"
+        }
+      }
+    }
+  },
+  "database": {
+    "__type": "function",
+    "Database": {
+      "__type": "function"
+    },
+    "Query": {
+      "__type": "function"
+    },
+    "Reference": {
+      "__type": "function"
+    },
+    "enableLogging": {
+      "__type": "function"
+    },
+    "ServerValue": {
+      "__type": "object",
+      "TIMESTAMP": {
+        "__type": "object"
+      }
+    },
+    "__return": {
+      "app": {
+        "__type": "object"
+      },
+      "INTERNAL": {
+        "delete": {
+          "__type": "function"
+        }
+      },
+      "ref": {
+        "__type": "function"
+      },
+      "refFromURL": {
+        "__type": "function"
+      },
+      "goOnline": {
+        "__type": "function"
+      },
+      "goOffline": {
+        "__type": "function"
+      }
+    }
+  },
+  "storage": {
+    "__type": "function",
+    "Storage": {
+      "__type": "function"
+    },
+    "Reference": {
+      "__type": "function"
+    },
+    "TaskEvent": {
+      "__type": "object",
+      "STATE_CHANGED": {
+        "__type": "string"
+      }
+    },
+    "TaskState": {
+      "__type": "object",
+      "RUNNING": {
+        "__type": "string"
+      },
+      "PAUSED": {
+        "__type": "string"
+      },
+      "SUCCESS": {
+        "__type": "string"
+      },
+      "CANCELED": {
+        "__type": "string"
+      },
+      "ERROR": {
+        "__type": "string"
+      }
+    },
+    "StringFormat": {
+      "__type": "object",
+      "RAW": {
+        "__type": "string"
+      },
+      "BASE64": {
+        "__type": "string"
+      },
+      "BASE64URL": {
+        "__type": "string"
+      },
+      "DATA_URL": {
+        "__type": "string"
+      }
+    },
+    "__return": {
+      "app": {
+        "__type": "object"
+      },
+      "INTERNAL": {
+        "delete": {
+          "__type": "function"
+        }
+      },
+      "ref": {
+        "__type": "function"
+      },
+      "refFromURL": {
+        "__type": "function"
+      }
+    }
+  },
+  "messaging": {
+    "__type": "function",
+    "__return": {
+      "app": {
+        "__type": "object"
+      },
+      "INTERNAL": {
+        "delete": {
+          "__type": "function"
+        }
+      }, 
+      "getToken": {
+        "__type": "function"
+      },
+      "onMessage": {
+        "__type": "function"
+      },
+      "onTokenRefresh": {
+        "__type": "function"
+      },
+      "requestPermission": {
+        "__type": "function"
+      },
+      "deleteToken": {
+        "__type": "function"
+      },
+      "setBackgroundMessageHandler": {
+        "__type": "function"
+      }
+    }
+  }
+}

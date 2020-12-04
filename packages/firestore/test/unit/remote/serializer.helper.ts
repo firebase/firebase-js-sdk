@@ -116,7 +116,7 @@ import {
 import { ByteString } from '../../../src/util/byte_string';
 import { parseQueryValue } from '../../../src/api/user_data_reader';
 import { firestore } from '../../util/api_helpers';
-import { FieldMask } from '../../../src/model/object_value';
+import { FieldMask } from '../../../src/model/field_mask';
 
 const userDataWriter = new UserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);

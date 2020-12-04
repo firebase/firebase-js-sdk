@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html devsite class="default no-js">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="hide_page_heading" value="true" />
+    <meta name="project_path" value="/_project.yaml" />
+    <meta name="book_path" value="/docs/reference/_book.yaml" />
+    <meta name="translation" value="disabled" />
+    <meta name="page_type" value="reference" />
+    <title>{{#ifCond model.name '==' project.name}}{{project.name}}{{else}}{{model.name}} | {{project.name}}{{/ifCond}}</title>
+    <meta name="description" content="Reference for {{model.name}}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{relativeURL "assets/css/main.css"}}">
+    <link rel="stylesheet" href="{{relativeURL "assets/css/firebase.css"}}">
+</head>
+<body>
+
+{{> header}}
+
+<div class="container container-main firebase-docs">
+    <div class="row">
+        <div class="col-12 col-content">
+            {{{contents}}}
+        </div>
+    </div>
+</div>
+
+<div class="overlay"></div>
+
+{{> analytics}}
+
+</body>
+</html>

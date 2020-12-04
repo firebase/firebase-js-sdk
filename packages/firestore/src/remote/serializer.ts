@@ -38,7 +38,7 @@ import {
 import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { FieldMask, ObjectValue } from '../model/object_value';
+import { ObjectValue } from '../model/object_value';
 import {
   DeleteMutation,
   FieldTransform,
@@ -97,6 +97,7 @@ import {
 import { isNanValue, isNullValue } from '../model/values';
 import { normalizeTimestamp } from '../model/normalize';
 import { Serializer } from './value_serializer';
+import { FieldMask } from '../model/field_mask';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};

@@ -1,0 +1,53 @@
+{
+  "name": "@firebase/installations",
+  "version": "0.4.19",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "types": "dist/src/index.d.ts",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "license": "Apache-2.0",
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
+    "build": "rollup -c",
+    "build:deps": "lerna run --scope @firebase/installations --include-dependencies build",
+    "test": "run-p lint test:karma",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:karma",
+    "test:karma": "karma start --single-run",
+    "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "serve": "yarn serve:build && yarn serve:host",
+    "serve:build": "rollup -c test-app/rollup.config.js",
+    "serve:host": "http-server -c-1 test-app",
+    "prepare": "yarn build"
+  },
+  "repository": {
+    "directory": "packages/installations",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "devDependencies": {
+    "@firebase/app": "0.6.13",
+    "rollup": "2.33.2",
+    "@rollup/plugin-commonjs": "15.1.0",
+    "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-node-resolve": "9.0.0",
+    "rollup-plugin-typescript2": "0.29.0",
+    "rollup-plugin-uglify": "6.0.4",
+    "typescript": "4.0.5"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "dependencies": {
+    "@firebase/installations-types": "0.3.4",
+    "@firebase/util": "0.3.4",
+    "@firebase/component": "0.1.21",
+    "idb": "3.0.2",
+    "tslib": "^1.11.1"
+  }
+}
