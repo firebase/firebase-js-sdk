@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import tmp from 'tmp';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
@@ -29,51 +30,55 @@ import pkg from './exp/package.json';
 
 const util = require('./rollup.shared');
 
-const nodePlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
-    clean: true,
-    abortOnError: false,
-    transformers: [util.removeAssertTransformer, importPathTransformer]
-  }),
-  json({ preferConst: true }),
-  // Needed as we also use the *.proto files
-  copy({
-    targets: [
-      {
-        src: 'src/protos',
-        dest: 'dist/exp/src'
-      }
-    ]
-  }),
-  replace({
-    'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../src/protos')
-  })
-];
+const nodePlugins = function () {
+  return [
+    typescriptPlugin({
+      typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'es2017'
+        }
+      },
+      cacheDir: tmp.dirSync(),
+      abortOnError: false,
+      transformers: [util.removeAssertTransformer, importPathTransformer]
+    }),
+    json({ preferConst: true }),
+    // Needed as we also use the *.proto files
+    copy({
+      targets: [
+        {
+          src: 'src/protos',
+          dest: 'dist/exp/src'
+        }
+      ]
+    }),
+    replace({
+      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../src/protos')
+    })
+  ];
+};
 
-const browserPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
-    clean: true,
-    abortOnError: false,
-    transformers: [
-      util.removeAssertAndPrefixInternalTransformer,
-      importPathTransformer
-    ]
-  }),
-  json({ preferConst: true }),
-  terser(util.manglePrivatePropertiesOptions)
-];
+const browserPlugins = function () {
+  return [
+    typescriptPlugin({
+      typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'es2017'
+        }
+      },
+      cacheDir: tmp.dirSync(),
+      abortOnError: false,
+      transformers: [
+        util.removeAssertAndPrefixInternalTransformer,
+        importPathTransformer
+      ]
+    }),
+    json({ preferConst: true }),
+    terser(util.manglePrivatePropertiesOptions)
+  ];
+};
 
 const allBuilds = [
   // Node ESM build
@@ -84,7 +89,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins],
+    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins()],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -113,7 +118,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins()],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -127,7 +132,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('rn')), ...browserPlugins],
+    plugins: [alias(util.generateAliasConfig('rn')), ...browserPlugins()],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
