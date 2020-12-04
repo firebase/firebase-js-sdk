@@ -22,7 +22,6 @@ import {
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { fail } from '../util/assert';
-
 import { ObjectValue } from './object_value';
 import { DocumentKey, FieldPath } from './path';
 import { valueCompare } from './values';

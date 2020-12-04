@@ -54,7 +54,7 @@ import {
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
 import { Bytes } from '../../lite/src/api/bytes';
-import { Compat } from '../compat/compat';
+import { Compat } from './compat';
 import { DocumentReference } from '../../lite/src/api/reference';
 import { FieldPath } from '../../lite/src/api/field_path';
 import { toNumber } from '../remote/value_serializer';
@@ -66,6 +66,7 @@ import {
 } from '../model/transform_operation';
 import { ParseContext } from './parse_context';
 import { FieldValue } from '../../lite/src/api/field_value';
+import { FirebaseFirestore } from '../../lite/src/api/database';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -340,6 +341,18 @@ export class UserDataReader {
       this.ignoreUndefinedProperties
     );
   }
+}
+
+export function newUserDataReader(
+  firestore: FirebaseFirestore
+): UserDataReader {
+  const settings = firestore._freezeSettings();
+  const serializer = newSerializer(firestore._databaseId);
+  return new UserDataReader(
+    firestore._databaseId,
+    !!settings.ignoreUndefinedProperties,
+    serializer
+  );
 }
 
 /** Parse document data from a set() call. */

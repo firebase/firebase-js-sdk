@@ -31,11 +31,10 @@ export {
   waitForPendingWrites,
   disableNetwork,
   enableNetwork,
-  terminate,
-  Settings,
-  PersistenceSettings,
-  SnapshotMetadata
+  terminate
 } from './src/api/database';
+
+export { Settings, PersistenceSettings } from './src/api/settings';
 
 export {
   DocumentChange,
@@ -45,7 +44,8 @@ export {
   snapshotEqual,
   SnapshotOptions,
   FirestoreDataConverter,
-  DocumentChangeType
+  DocumentChangeType,
+  SnapshotMetadata
 } from './src/api/snapshot';
 
 export {
@@ -62,11 +62,28 @@ export {
   queryEqual
 } from './src/api/reference';
 
+export {
+  endAt,
+  endBefore,
+  startAt,
+  startAfter,
+  limit,
+  limitToLast,
+  where,
+  orderBy,
+  query,
+  QueryConstraint,
+  QueryConstraintType,
+  OrderByDirection,
+  WhereFilterOp
+} from './src/api/query';
+
 export { Unsubscribe } from '../src/api/observer';
 
 export { runTransaction, Transaction } from './src/api/transaction';
 
 export {
+  SnapshotListenOptions,
   getDoc,
   getDocFromCache,
   getDocFromServer,
@@ -79,23 +96,7 @@ export {
   updateDoc,
   deleteDoc,
   addDoc
-} from './src/api/crud';
-
-export {
-  endAt,
-  endBefore,
-  startAfter,
-  startAt,
-  limitToLast,
-  limit,
-  orderBy,
-  OrderByDirection,
-  where,
-  WhereFilterOp,
-  query,
-  QueryConstraint,
-  QueryConstraintType
-} from './src/api/query';
+} from './src/api/reference_methods';
 
 export { FieldValue } from './src/api/field_value';
 
@@ -105,7 +106,7 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from './src/api/field_value_helpers';
+} from './src/api/field_value_methods';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
@@ -116,8 +117,6 @@ export { WriteBatch, writeBatch } from './src/api/write_batch';
 export { GeoPoint } from '../src/api/geo_point';
 
 export { Timestamp } from '../src/api/timestamp';
-
-export { SnapshotListenOptions } from './src/api/crud';
 
 export { CACHE_SIZE_UNLIMITED } from './src/api/database';
 

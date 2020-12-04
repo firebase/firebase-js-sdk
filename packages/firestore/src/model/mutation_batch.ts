@@ -28,6 +28,7 @@ import {
   MaybeDocumentMap
 } from './collections';
 import { MaybeDocument } from './document';
+import { DocumentKey } from './path';
 import {
   applyMutationToLocalView,
   applyMutationToRemoteDocument,
@@ -35,7 +36,6 @@ import {
   mutationEquals,
   MutationResult
 } from './mutation';
-import { DocumentKey } from './path';
 
 export const BATCHID_UNKNOWN = -1;
 

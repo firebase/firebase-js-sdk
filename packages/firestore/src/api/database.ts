@@ -49,21 +49,19 @@ import {
   enableNetwork,
   ensureFirestoreConfigured,
   FirebaseFirestore as ExpFirebaseFirestore,
-  SnapshotMetadata,
   waitForPendingWrites
 } from '../../exp/src/api/database';
 import {
   DocumentChange as ExpDocumentChange,
   DocumentSnapshot as ExpDocumentSnapshot,
   QuerySnapshot as ExpQuerySnapshot,
-  snapshotEqual
+  snapshotEqual,
+  SnapshotMetadata
 } from '../../exp/src/api/snapshot';
 import { refEqual } from '../../lite/src/api/reference';
 import {
   addDoc,
   deleteDoc,
-  endAt,
-  endBefore,
   executeWrite,
   getDoc,
   getDocFromCache,
@@ -71,18 +69,22 @@ import {
   getDocs,
   getDocsFromCache,
   getDocsFromServer,
-  limit,
-  limitToLast,
   onSnapshot,
   onSnapshotsInSync,
-  orderBy,
-  query,
   setDoc,
+  updateDoc
+} from '../../exp/src/api/reference_methods';
+import {
+  limit,
+  limitToLast,
+  where,
+  orderBy,
   startAfter,
   startAt,
-  updateDoc,
-  where
-} from '../../exp/src/api/crud';
+  query,
+  endBefore,
+  endAt
+} from '../../exp/src/api/query';
 import {
   doc,
   collection,
@@ -92,7 +94,7 @@ import {
   CollectionReference as ExpCollectionReference,
   DocumentReference as ExpDocumentReference
 } from '../../exp/src/api/reference';
-import { Compat } from '../compat/compat';
+import { Compat } from './compat';
 import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
 import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
 import {
@@ -126,11 +128,11 @@ import {
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
-import { DEFAULT_HOST } from '../../lite/src/api/components';
 import { ByteString } from '../util/byte_string';
 import { Blob } from './blob';
 import { Bytes } from '../../lite/src/api/bytes';
 import { AbstractUserDataWriter } from './user_data_writer';
+import { DEFAULT_HOST } from '../../lite/src/api/settings';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.

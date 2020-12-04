@@ -19,7 +19,7 @@ import { expect } from 'chai';
 
 import { Blob } from '../../../src/api/blob';
 import { DocumentReference, UserDataWriter } from '../../../src/api/database';
-import { FieldValue } from '../../../src/compat/field_value';
+import { FieldValue } from '../../../src/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import { DatabaseId } from '../../../src/core/database_info';

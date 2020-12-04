@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import {
   NamedQuery as ProtoNamedQuery,
@@ -27,7 +28,6 @@ import {
   fromProtoNamedQuery,
   LocalSerializer
 } from './local_serializer';
-import { PersistenceTransaction } from './persistence_transaction';
 
 export class MemoryBundleCache implements BundleCache {
   private bundles = new Map<string, Bundle>();

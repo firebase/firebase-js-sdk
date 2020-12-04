@@ -20,8 +20,9 @@ import {
   validatePositiveNumber,
   valueDescription
 } from '../../../src/util/input_validation';
-import { Compat } from '../../../src/compat/compat';
+import { Compat } from '../../../src/api/compat';
 import {
+  newUserDataReader,
   parseQueryValue,
   UserDataReader
 } from '../../../src/api/user_data_reader';
@@ -41,11 +42,6 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
-import { FirebaseFirestore } from './database';
-import { newSerializer } from '../../../src/platform/serializer';
-import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
-import { ByteString } from '../../../src/util/byte_string';
-import { Bytes } from './bytes';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { debugAssert } from '../../../src/util/assert';
 import { Document } from '../../../src/model/document';
@@ -68,21 +64,6 @@ import { Value as ProtoValue } from '../../../src/protos/firestore_proto_api';
 import { refValue } from '../../../src/model/values';
 import { isServerTimestamp } from '../../../src/model/server_timestamps';
 
-export class LiteUserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: FirebaseFirestore) {
-    super();
-  }
-
-  protected convertBytes(bytes: ByteString): Bytes {
-    return new Bytes(bytes);
-  }
-
-  protected convertReference(name: string): DocumentReference {
-    const key = this.convertDocumentKey(name, this.firestore._databaseId);
-    return new DocumentReference(this.firestore, /* converter= */ null, key);
-  }
-}
-
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery
 ): void {
@@ -92,18 +73,6 @@ export function validateHasExplicitOrderByForLimitToLast(
       'limitToLast() queries require specifying at least one orderBy() clause'
     );
   }
-}
-
-export function newUserDataReader(
-  firestore: FirebaseFirestore
-): UserDataReader {
-  const settings = firestore._freezeSettings();
-  const serializer = newSerializer(firestore._databaseId);
-  return new UserDataReader(
-    firestore._databaseId,
-    !!settings.ignoreUndefinedProperties,
-    serializer
-  );
 }
 
 /** Describes the different query constraints available in this SDK. */

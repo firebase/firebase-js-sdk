@@ -25,6 +25,7 @@ import {
   maybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -35,7 +36,6 @@ import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
 import { ByteString } from '../util/byte_string';
 import { isDocumentTarget } from '../core/target';
-import { DocumentKey } from '../model/path';
 
 /**
  * Internal representation of the watcher API protocol buffers.

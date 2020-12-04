@@ -15,8 +15,52 @@
  * limitations under the License.
  */
 
-export { increment } from '../../lite/src/api/field_value_helpers';
-export { arrayRemove } from '../../lite/src/api/field_value_helpers';
-export { arrayUnion } from '../../lite/src/api/field_value_helpers';
-export { serverTimestamp } from '../../lite/src/api/field_value_helpers';
-export { deleteField } from '../../lite/src/api/field_value_helpers';
+import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
+
+import {
+  arrayRemove,
+  arrayUnion,
+  deleteField,
+  FieldValue as FieldValue1,
+  increment,
+  serverTimestamp
+} from '../../exp/index';
+import { Compat } from './compat';
+
+export class FieldValue
+  extends Compat<FieldValue1>
+  implements PublicFieldValue {
+  static serverTimestamp(): FieldValue {
+    const delegate = serverTimestamp();
+    delegate._methodName = 'FieldValue.serverTimestamp';
+    return new FieldValue(delegate);
+  }
+
+  static delete(): FieldValue {
+    const delegate = deleteField();
+    delegate._methodName = 'FieldValue.delete';
+    return new FieldValue(delegate);
+  }
+
+  static arrayUnion(...elements: unknown[]): FieldValue {
+    const delegate = arrayUnion(...elements);
+    delegate._methodName = 'FieldValue.arrayUnion';
+    return new FieldValue(delegate);
+  }
+
+  static arrayRemove(...elements: unknown[]): FieldValue {
+    const delegate = arrayRemove(...elements);
+    delegate._methodName = 'FieldValue.arrayRemove';
+    return new FieldValue(delegate);
+  }
+
+  static increment(n: number): FieldValue {
+    const delegate = increment(n);
+    delegate._methodName = 'FieldValue.increment';
+    return new FieldValue(delegate);
+  }
+
+  isEqual(other: FieldValue): boolean {
+    return this._delegate.isEqual(other._delegate);
+  }
+}

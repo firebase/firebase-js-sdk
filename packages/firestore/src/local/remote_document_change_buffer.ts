@@ -19,7 +19,6 @@ import { DocumentKeySet, NullableMaybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
-
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { PersistenceTransaction } from './persistence_transaction';

@@ -35,13 +35,13 @@ import {
   DbTargetKey
 } from './indexeddb_schema';
 import { fromDbTarget, LocalSerializer, toDbTarget } from './local_serializer';
+import { ActiveTargets } from './lru_garbage_collector';
+import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 import { SimpleDbStore } from './simple_db';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
-import { PersistenceTransaction } from './persistence_transaction';
-import { ActiveTargets } from './lru_garbage_collector';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
 import { DocumentKey } from '../model/path';
 

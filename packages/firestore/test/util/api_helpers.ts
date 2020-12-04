@@ -43,15 +43,15 @@ import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 import {
   ensureFirestoreConfigured,
-  FirebaseFirestore,
-  SnapshotMetadata
+  FirebaseFirestore
 } from '../../exp/src/api/database';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   QuerySnapshot as ExpQuerySnapshot,
-  DocumentSnapshot as ExpDocumentSnapshot
+  DocumentSnapshot as ExpDocumentSnapshot,
+  SnapshotMetadata
 } from '../../exp/src/api/snapshot';
-import { ExpUserDataWriter } from '../../exp/src/api/crud';
+import { ExpUserDataWriter } from '../../exp/src/api/reference_methods';
 import {
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference

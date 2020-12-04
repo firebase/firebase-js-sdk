@@ -45,25 +45,15 @@ import {
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
 import { cast } from '../../../src/util/input_validation';
-import {
-  makeDatabaseInfo,
-  Settings as LiteSettings
-} from '../../../lite/src/api/components';
+import { makeDatabaseInfo } from '../../../lite/src/api/components';
 import { LRU_COLLECTION_DISABLED } from '../../../src/local/lru_garbage_collector';
 import { debugAssert } from '../../../src/util/assert';
+import { PersistenceSettings, Settings } from './settings';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
-
-export interface PersistenceSettings {
-  forceOwnership?: boolean;
-}
-
-export interface Settings extends LiteSettings {
-  cacheSizeBytes?: number;
-}
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -472,49 +462,6 @@ function verifyNotInitialized(firestore: FirebaseFirestore): void {
       'Firestore has already been started and persistence can no longer be ' +
         'enabled. You can only enable persistence before calling any other ' +
         'methods on a Firestore object.'
-    );
-  }
-}
-
-/**
- * Metadata about a snapshot, describing the state of the snapshot.
- */
-export class SnapshotMetadata {
-  /**
-   * True if the snapshot contains the result of local writes (for example
-   * `set()` or `update()` calls) that have not yet been committed to the
-   * backend. If your listener has opted into metadata updates (via
-   * `SnapshotListenOptions`) you will receive another snapshot with
-   * `hasPendingWrites` equal to false once the writes have been committed to
-   * the backend.
-   */
-  readonly hasPendingWrites: boolean;
-
-  /**
-   * True if the snapshot was created from cached data rather than guaranteed
-   * up-to-date server data. If your listener has opted into metadata updates
-   * (via `SnapshotListenOptions`) you will receive another snapshot with
-   * `fromCache` set to false once the client has received up-to-date data from
-   * the backend.
-   */
-  readonly fromCache: boolean;
-
-  /** @hideconstructor */
-  constructor(hasPendingWrites: boolean, fromCache: boolean) {
-    this.hasPendingWrites = hasPendingWrites;
-    this.fromCache = fromCache;
-  }
-
-  /**
-   * Returns true if this `SnapshotMetadata` is equal to the provided one.
-   *
-   * @param other - The `SnapshotMetadata` to compare against.
-   * @returns true if this `SnapshotMetadata` is equal to the provided one.
-   */
-  isEqual(other: SnapshotMetadata): boolean {
-    return (
-      this.hasPendingWrites === other.hasPendingWrites &&
-      this.fromCache === other.fromCache
     );
   }
 }

@@ -35,7 +35,7 @@ import { Blob } from './api/blob';
 import { FieldPath } from './api/field_path';
 import { GeoPoint } from './api/geo_point';
 import { Timestamp } from './api/timestamp';
-import { FieldValue } from './compat/field_value';
+import { FieldValue } from './api/field_value';
 import { CACHE_SIZE_UNLIMITED } from '../exp/src/api/database';
 
 const firestoreNamespace = {

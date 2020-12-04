@@ -33,7 +33,7 @@ export {
 export { Blob } from './src/api/blob';
 export { GeoPoint } from './src/api/geo_point';
 export { FieldPath } from './src/api/field_path';
-export { FieldValue } from './src/compat/field_value';
+export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
 
 export interface FirestoreDatabase {

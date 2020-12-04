@@ -97,6 +97,7 @@ import { ApiLoadBundleTaskProgress } from '../api/bundle';
 import { SizedBundleElement } from '../util/bundle_reader';
 
 export const LOG_TAG = 'LocalStore';
+
 /**
  * The maximum time to leave a resume token buffered without writing it out.
  * This value is arbitrary: it's long enough to avoid several writes

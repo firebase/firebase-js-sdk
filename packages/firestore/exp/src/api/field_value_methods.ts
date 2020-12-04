@@ -21,4 +21,4 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from '../../../lite/src/api/field_value_helpers';
+} from '../../../lite/src/api/field_value_methods';

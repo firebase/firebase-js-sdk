@@ -18,7 +18,7 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
-export { Settings } from './src/api/components';
+export { Settings } from './src/api/settings';
 
 export {
   FirebaseFirestore,
@@ -64,7 +64,7 @@ export {
   setDoc,
   getDoc,
   getDocs
-} from './src/api/crud';
+} from './src/api/reference_methods';
 
 // TOOD(firestorelite): Add tests when Queries are usable
 export { FieldPath, documentId } from './src/api/field_path';
@@ -78,7 +78,7 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from './src/api/field_value_helpers';
+} from './src/api/field_value_methods';
 
 export {
   FirestoreDataConverter,

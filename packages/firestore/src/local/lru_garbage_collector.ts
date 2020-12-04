@@ -1,12 +1,6 @@
-import { PersistenceTransaction } from './persistence_transaction';
-import { PersistencePromise } from './persistence_promise';
-import { SortedMap } from '../util/sorted_map';
-import { ListenSequenceNumber, TargetId } from '../core/types';
-import { TargetData } from './target_data';
-
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +14,12 @@ import { TargetData } from './target_data';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { PersistenceTransaction } from './persistence_transaction';
+import { PersistencePromise } from './persistence_promise';
+import { SortedMap } from '../util/sorted_map';
+import { ListenSequenceNumber, TargetId } from '../core/types';
+import { TargetData } from './target_data';
 
 /**
  * Describes a map whose keys are active target ids. We do not care about the type of the
@@ -94,8 +94,8 @@ export interface LruGarbageCollector {
   ): PersistencePromise<number>;
 
   /**
-   * Removes documents that have a sequence number equal to or less than the upper bound and are not
-   * otherwise pinned.
+   * Removes documents that have a sequence number equal to or less than the
+   * upper bound and are not otherwise pinned.
    */
   removeOrphanedDocuments(
     txn: PersistenceTransaction,
@@ -105,8 +105,8 @@ export interface LruGarbageCollector {
   getCacheSize(txn: PersistenceTransaction): PersistencePromise<number>;
 
   /**
-   * Removes targets with a sequence number equal to or less than the given upper bound, and removes
-   * document associations with those targets.
+   * Removes targets with a sequence number equal to or less than the given
+   * upper bound, and removes document associations with those targets.
    */
   removeTargets(
     txn: PersistenceTransaction,
@@ -129,9 +129,9 @@ export interface LruResults {
 }
 
 /**
- * Persistence layers intending to use LRU Garbage collection should have reference delegates that
- * implement this interface. This interface defines the operations that the LRU garbage collector
- * needs from the persistence layer.
+ * Persistence layers intending to use LRU Garbage collection should have
+ * reference delegates that implement this interface. This interface defines the
+ * operations that the LRU garbage collector needs from the persistence layer.
  */
 export interface LruDelegate {
   readonly garbageCollector: LruGarbageCollector;
@@ -156,8 +156,8 @@ export interface LruDelegate {
   ): PersistencePromise<void>;
 
   /**
-   * Removes all targets that have a sequence number less than or equal to `upperBound`, and are not
-   * present in the `activeTargetIds` set.
+   * Removes all targets that have a sequence number less than or equal to
+   * `upperBound`, and are not present in the `activeTargetIds` set.
    *
    * @returns the number of targets removed.
    */
@@ -168,8 +168,8 @@ export interface LruDelegate {
   ): PersistencePromise<number>;
 
   /**
-   * Removes all unreferenced documents from the cache that have a sequence number less than or
-   * equal to the given `upperBound`.
+   * Removes all unreferenced documents from the cache that have a sequence
+   * number less than or equal to the given `upperBound`.
    *
    * @returns the number of documents removed.
    */

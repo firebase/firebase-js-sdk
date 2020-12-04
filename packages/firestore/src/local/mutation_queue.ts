@@ -21,7 +21,6 @@ import { BatchId } from '../core/types';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
 import { SortedMap } from '../util/sorted_map';
-
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { DocumentKey } from '../model/path';

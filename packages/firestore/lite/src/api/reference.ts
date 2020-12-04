@@ -33,7 +33,7 @@ import {
   validateNonEmptyArgument
 } from '../../../src/util/input_validation';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { Compat } from '../../../src/compat/compat';
+import { Compat } from '../../../src/api/compat';
 
 /**
  * Document data (for use with {@link setDoc}) consists of fields mapped to

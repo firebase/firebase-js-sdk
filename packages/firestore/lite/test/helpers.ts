@@ -33,8 +33,8 @@ import {
 import { AutoId } from '../../src/util/misc';
 import { expect } from 'chai';
 import { QueryDocumentSnapshot } from '../src/api/snapshot';
-import { Settings } from '../../exp/src/api/database';
-import { setDoc } from '../src/api/crud';
+import { Settings } from '../../exp/src/api/settings';
+import { setDoc } from '../src/api/reference_methods';
 
 let appCount = 0;
 

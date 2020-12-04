@@ -48,12 +48,12 @@ import {
   toDbRemoteDocument,
   toDbTimestampKey
 } from './local_serializer';
+import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
-import { PersistenceTransaction } from './persistence_transaction';
 import { dbDocumentSize } from './indexeddb_schema_converter';
 
 export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {

@@ -15,19 +15,12 @@
  * limitations under the License.
  */
 
-import { ParseContext } from '../../../src/api/parse_context';
-import { FieldTransform } from '../../../src/model/mutation';
+import { Settings as LiteSettings } from '../../../lite/src/api/settings';
 
-/**
- * Sentinel values that can be used when writing document fields with `set()`
- * or `update()`.
- */
-export abstract class FieldValue {
-  /**
-   * @param _methodName - The public API endpoint that returns this class.
-   */
-  constructor(public _methodName: string) {}
+export interface PersistenceSettings {
+  forceOwnership?: boolean;
+}
 
-  abstract isEqual(other: FieldValue): boolean;
-  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
+export interface Settings extends LiteSettings {
+  cacheSizeBytes?: number;
 }

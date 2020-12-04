@@ -25,7 +25,6 @@ import {
   nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument } from '../model/document';
-
 import { SnapshotVersion } from '../core/snapshot_version';
 import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';

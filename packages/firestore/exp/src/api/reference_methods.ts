@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
+import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
 import {
-  ensureFirestoreConfigured,
-  FirebaseFirestore,
-  SnapshotMetadata
-} from './database';
-import {
+  newUserDataReader,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
@@ -28,7 +25,7 @@ import {
 } from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../src/util/input_validation';
-import { DocumentSnapshot, QuerySnapshot } from './snapshot';
+import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
   CollectionReference,
@@ -67,15 +64,12 @@ import {
   Query as InternalQuery
 } from '../../../src/core/query';
 import { FirestoreError } from '../../../src/util/error';
-import { Compat } from '../../../src/compat/compat';
+import { Compat } from '../../../src/api/compat';
 import { ByteString } from '../../../src/util/byte_string';
 import { Bytes } from '../../../lite/src/api/bytes';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
-import {
-  newUserDataReader,
-  validateHasExplicitOrderByForLimitToLast
-} from '../../../lite/src/api/query';
-import { applyFirestoreDataConverter } from '../../../lite/src/api/crud';
+import { validateHasExplicitOrderByForLimitToLast } from '../../../lite/src/api/query';
+import { applyFirestoreDataConverter } from '../../../lite/src/api/reference_methods';
 
 /**
  * An options object that can be passed to {@link onSnapshot} and {@link
@@ -806,12 +800,3 @@ function convertToDocSnapshot<T>(
     ref._converter
   );
 }
-export { endAt } from '../../../lite/src/api/query';
-export { endBefore } from '../../../lite/src/api/query';
-export { startAfter } from '../../../lite/src/api/query';
-export { startAt } from '../../../lite/src/api/query';
-export { limitToLast } from '../../../lite/src/api/query';
-export { limit } from '../../../lite/src/api/query';
-export { orderBy } from '../../../lite/src/api/query';
-export { where } from '../../../lite/src/api/query';
-export { query } from '../../../lite/src/api/query';

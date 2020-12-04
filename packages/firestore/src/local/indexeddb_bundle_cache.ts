@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import {
   BundleMetadata as ProtoBundleMetadata,
@@ -35,7 +36,6 @@ import {
   toDbNamedQuery
 } from './local_serializer';
 import { Bundle, NamedQuery } from '../core/bundle';
-import { PersistenceTransaction } from './persistence_transaction';
 
 export class IndexedDbBundleCache implements BundleCache {
   getBundleMetadata(

@@ -16,13 +16,13 @@
  */
 
 import { Document } from '../model/document';
+import { DocumentKey } from '../model/path';
 import { DocumentSet } from '../model/document_set';
 import { fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { DocumentKeySet } from '../model/collections';
 import { Query, queryEquals } from './query';
-import { DocumentKey } from '../model/path';
 
 export const enum ChangeType {
   Added,

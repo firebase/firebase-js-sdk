@@ -44,6 +44,7 @@ import {
 } from './snapshot';
 import { hasLimitToLast } from '../../../src/core/query';
 import {
+  newUserDataReader,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
@@ -52,12 +53,12 @@ import {
 } from '../../../src/api/user_data_reader';
 import { hardAssert } from '../../../src/util/assert';
 import { Document } from '../../../src/model/document';
-import { Compat } from '../../../src/compat/compat';
-import {
-  LiteUserDataWriter,
-  newUserDataReader,
-  validateHasExplicitOrderByForLimitToLast
-} from './query';
+import { Compat } from '../../../src/api/compat';
+import { validateHasExplicitOrderByForLimitToLast } from './query';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
+import { FirebaseFirestore } from './database';
+import { ByteString } from '../../../src/util/byte_string';
+import { Bytes } from './bytes';
 
 /**
  * Converts custom model object of type T into DocumentData by applying the
@@ -87,6 +88,21 @@ export function applyFirestoreDataConverter<T>(
     convertedValue = value as PublicDocumentData;
   }
   return convertedValue;
+}
+
+export class LiteUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: FirebaseFirestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new DocumentReference(this.firestore, /* converter= */ null, key);
+  }
 }
 
 /**

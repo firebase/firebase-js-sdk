@@ -19,7 +19,6 @@ import {
   MapValue as ProtoMapValue,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
-
 import { debugAssert } from '../util/assert';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';

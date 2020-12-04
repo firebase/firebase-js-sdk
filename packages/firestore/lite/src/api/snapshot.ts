@@ -35,7 +35,7 @@ import {
   UntypedFirestoreDataConverter
 } from '../../../src/api/user_data_reader';
 import { arrayEquals } from '../../../src/util/misc';
-import { Compat } from '../../../src/compat/compat';
+import { Compat } from '../../../src/api/compat';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type `T`

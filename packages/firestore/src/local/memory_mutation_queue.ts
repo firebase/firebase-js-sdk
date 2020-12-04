@@ -18,6 +18,7 @@
 import { Timestamp } from '../api/timestamp';
 import { isCollectionGroupQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
+import { DocumentKey } from '../model/path';
 import { Mutation } from '../model/mutation';
 import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { debugAssert, hardAssert } from '../util/assert';
@@ -31,7 +32,6 @@ import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
 import { PersistenceTransaction } from './persistence_transaction';
-import { DocumentKey } from '../model/path';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**

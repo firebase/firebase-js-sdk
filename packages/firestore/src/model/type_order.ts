@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+/** Order of types supported by Firestore. */
 export const enum TypeOrder {
   // This order is based on the backend's ordering, but modified to support
   // server timestamps.

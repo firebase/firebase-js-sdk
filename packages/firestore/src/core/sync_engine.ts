@@ -17,6 +17,26 @@
 
 import { User } from '../auth/user';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import {
+  acknowledgeBatch,
+  allocateTarget,
+  applyRemoteEventToLocalCache,
+  BundleLoader,
+  executeQuery,
+  getActiveClientsFromPersistence,
+  getCachedTarget,
+  getHighestUnacknowledgedBatchId,
+  getNewDocumentChanges,
+  handleUserChange,
+  hasNewerBundle,
+  localWrite,
+  lookupMutationDocuments,
+  notifyLocalViewChanges,
+  rejectBatch,
+  releaseTarget,
+  removeCachedMutationBatchMetadata,
+  saveBundle
+} from '../local/local_store_impl';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -86,26 +106,6 @@ import {
   eventManagerOnWatchChange,
   eventManagerOnWatchError
 } from './event_manager';
-import {
-  acknowledgeBatch,
-  allocateTarget,
-  applyRemoteEventToLocalCache,
-  BundleLoader,
-  executeQuery,
-  getActiveClientsFromPersistence,
-  getCachedTarget,
-  getHighestUnacknowledgedBatchId,
-  getNewDocumentChanges,
-  handleUserChange,
-  hasNewerBundle,
-  localWrite,
-  lookupMutationDocuments,
-  notifyLocalViewChanges,
-  rejectBatch,
-  releaseTarget,
-  removeCachedMutationBatchMetadata,
-  saveBundle
-} from '../local/local_store_impl';
 import { DocumentKey } from '../model/path';
 
 const LOG_TAG = 'SyncEngine';

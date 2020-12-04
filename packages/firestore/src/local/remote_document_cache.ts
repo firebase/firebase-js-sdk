@@ -22,7 +22,6 @@ import {
   NullableMaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
-
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SnapshotVersion } from '../core/snapshot_version';

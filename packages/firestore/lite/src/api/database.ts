@@ -28,14 +28,9 @@ import {
   FirebaseCredentialsProvider,
   makeCredentialsProvider
 } from '../../../src/api/credentials';
-import {
-  FirestoreService,
-  FirestoreSettings,
-  PrivateSettings,
-  removeComponents,
-  Settings
-} from './components';
+import { FirestoreService, removeComponents } from './components';
 import { cast } from '../../../src/util/input_validation';
+import { FirestoreSettings, PrivateSettings, Settings } from './settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

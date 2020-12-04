@@ -36,6 +36,15 @@ const TRANSACTION_RETRY_COUNT = 3;
 // The different modes supported by `SimpleDb.runTransaction()`
 type SimpleDbTransactionMode = 'readonly' | 'readwrite';
 
+export interface SimpleDbSchemaConverter {
+  createOrUpgrade(
+    db: IDBDatabase,
+    txn: IDBTransaction,
+    fromVersion: number,
+    toVersion: number
+  ): PersistencePromise<void>;
+}
+
 /**
  * Wraps an IDBTransaction and exposes a store() method to get a handle to a
  * specific object store.
@@ -126,15 +135,6 @@ export class SimpleDbTransaction {
     debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
     return new SimpleDbStore<KeyType, ValueType>(store);
   }
-}
-
-export interface SimpleDbSchemaConverter {
-  createOrUpgrade(
-    db: IDBDatabase,
-    txn: IDBTransaction,
-    fromVersion: number,
-    toVersion: number
-  ): PersistencePromise<void>;
 }
 
 /**
