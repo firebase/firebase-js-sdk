@@ -8293,11 +8293,11 @@ declare namespace firebase.firestore {
      * Loads a Firestore bundle into the local cache.
      *
      * @param bundleData
-     *   An object representing the bundle to be load. Valid objects are `ArrayBuffer`,
+     *   An object representing the bundle to be loaded. Valid objects are `ArrayBuffer`,
      *   `ReadableStream<Uint8Array>` or `string`.
      *
      * @return
-     *   A `LoadBundleTask` object, which notifies callers with progress update, and completion
+     *   A `LoadBundleTask` object, which notifies callers with progress updates, and completion
      *   or error events. It can be used as a `Promise<LoadBundleTaskProgress>`.
      */
     loadBundle(
@@ -8305,9 +8305,9 @@ declare namespace firebase.firestore {
     ): LoadBundleTask;
 
     /**
-     * Reads a Firestore `Query` from local cache that is associated to a given name.
+     * Reads a Firestore `Query` from local cache, identified by the given name.
      *
-     * The named queries are from bundles. They are packaged into bundles on the server side (along
+     * The named queries are packaged  into bundles on the server side (along
      * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
      * cache, use this method to extract a `Query` by name.
      */
@@ -8329,7 +8329,7 @@ declare namespace firebase.firestore {
     /**
      * Registers functions to listen to bundle loading progress events.
      * @param next
-     *   Called when there is a progress update from bundle loading, typically `next` calls occur
+     *   Called when there is a progress update from bundle loading. Typically `next` calls occur
      *   each time a Firestore document is loaded from the bundle.
      * @param error
      *   Called when an error occurs during bundle loading. The task aborts after reporting the
@@ -8347,8 +8347,8 @@ declare namespace firebase.firestore {
      * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
      *
      * @param onFulfilled
-     *   Called on the completion with a `LoadBundleTaskProgress` update when the
-     *   loading task completes. The update will have its `taskState` set to `"Success"`.
+     *   Called on the completion of the loading task with a final `LoadBundleTaskProgress` update.
+     *   The update will always have its `taskState` set to `"Success"`.
      * @param onRejected
      *   Called when an error occurs during bundle loading.
      */
