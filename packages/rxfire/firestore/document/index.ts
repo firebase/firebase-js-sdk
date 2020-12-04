@@ -24,7 +24,7 @@ type DocumentReference = firebase.firestore.DocumentReference;
 type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
 
 export function doc(ref: DocumentReference): Observable<DocumentSnapshot> {
-  return fromDocRef(ref);
+  return fromDocRef(ref, { includeMetadataChanges: true });
 }
 
 /**
