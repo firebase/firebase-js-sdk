@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-const tmp = require('tmp');
 const json = require('@rollup/plugin-json');
 const alias = require('@rollup/plugin-alias');
 const typescriptPlugin = require('rollup-plugin-typescript2');
@@ -214,7 +213,7 @@ exports.es2017Plugins = function (platform, mangled = false) {
             target: 'es2017'
           }
         },
-        cacheDir: tmp.dirSync(),
+        clean: true,
         transformers: [removeAssertAndPrefixInternalTransformer]
       }),
       json({ preferConst: true }),
@@ -230,7 +229,7 @@ exports.es2017Plugins = function (platform, mangled = false) {
             target: 'es2017'
           }
         },
-        cacheDir: tmp.dirSync(),
+        clean: true,
         transformers: [removeAssertTransformer]
       }),
       json({ preferConst: true })
@@ -248,7 +247,8 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/*.js', 'dist/exp/*.js']
+        include: ['dist/*.js', 'dist/exp/*.js'],
+        clean: true
       }),
       terser({
         output: {
@@ -268,7 +268,8 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/*.js', 'dist/exp/*.js']
+        include: ['dist/*.js', 'dist/exp/*.js'],
+        clean: true
       }),
       sourcemaps()
     ];
