@@ -4,10 +4,14 @@
 
 ## FirebaseFirestore class
 
+The Cloud Firestore service interface.
+
+Do not call this constructor directly. Instead, use [getFirestore()](./firestore_.getfirestore.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export class FirebaseFirestore 
+export declare class FirebaseFirestore 
 ```
 
 ## Properties

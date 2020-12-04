@@ -4,23 +4,26 @@
 
 ## setDoc() function
 
+Writes to the document referred to by the specified `DocumentReference`<!-- -->. If the document does not yet exist, it will be created.
+
+The result of this write will only be reflected in document reads that occur after the returned Promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK.
+
 <b>Signature:</b>
 
 ```typescript
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: T
-): Promise<void>;
+export declare function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; |  |
-|  data | T |  |
+|  reference | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; | A reference to the document to write. |
+|  data | T | A map of the fields and values for the document. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A Promise resolved once the data has been successfully written to the backend.
 

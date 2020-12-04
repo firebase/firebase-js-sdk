@@ -413,6 +413,33 @@ function testIndexedDb_setGetRemove_connectionClosed() {
 }
 
 
+function testIndexedDb_failingOnDbOpen() {
+  manager = getDefaultFireauthManager();
+  manager.addStorageListener(() => {
+    fail('Storage should not be triggered for local changes!');
+  });
+  let errorThrown = false;
+  indexedDBMock.open = () => {
+    throw new Error('InvalidStateError: A mutation operation was attempted ' +
+                    'on a database that did not allow mutations.');
+  };
+  return goog.Promise.resolve()
+      .then(() => {
+        return manager.get('key1');
+      })
+      .thenCatch((error) => {
+        assertEquals(
+            error.message,
+            'InvalidStateError: A mutation operation was attempted on a ' +
+            'database that did not allow mutations.');
+        errorThrown = true;
+      })
+      .then(() => {
+        assertTrue(errorThrown);
+      });
+}
+
+
 function testStartListeners() {
   manager = getDefaultFireauthManager();
   var listener1 = goog.testing.recordFunction();

@@ -4,25 +4,29 @@
 
 ## doc() function
 
+Gets a `DocumentReference` instance that refers to the document at the specified abosulute path.
+
 <b>Signature:</b>
 
 ```typescript
-export function doc(
-  firestore: FirebaseFirestore,
-  path: string,
-  ...pathComponents: string[]
-): DocumentReference<DocumentData>;
+export declare function doc(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  firestore | [FirebaseFirestore](./firestore_lite.firebasefirestore.md) |  |
-|  path | string |  |
-|  pathComponents | string\[\] |  |
+|  firestore | [FirebaseFirestore](./firestore_lite.firebasefirestore.md) | A reference to the root Firestore instance. |
+|  path | string | A slash-separated path to a document. |
+|  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
 [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;[DocumentData](./firestore_lite.documentdata.md)<!-- -->&gt;
+
+The `DocumentReference` instance.
+
+## Exceptions
+
+If the final path has an odd number of segments and does not point to a document.
 

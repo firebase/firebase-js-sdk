@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export interface PersistenceSettings 
+export declare interface PersistenceSettings 
 ```
 
 ## Properties

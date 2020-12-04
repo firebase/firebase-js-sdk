@@ -57,6 +57,20 @@ function customDeepEqual(
       return customMatcher.equalsFn(left, right);
     }
   }
+  if (left && typeof left === 'object' && right && typeof right === 'object') {
+    // The `isEqual` check below returns true if firestore-exp types are
+    // compared with API types from Firestore classic. We do want to
+    // differentiate between these types in our tests to ensure that the we do
+    // not return firestore-exp types in the classic SDK.
+    const leftObj = left as Record<string, unknown>;
+    const rightObj = right as Record<string, unknown>;
+    if (
+      leftObj.constructor.name === rightObj.constructor.name &&
+      leftObj.constructor !== rightObj.constructor
+    ) {
+      return false;
+    }
+  }
   if (typeof left === 'object' && left && 'isEqual' in left) {
     return (left as Equatable<unknown>).isEqual(right);
   }

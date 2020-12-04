@@ -4,6 +4,8 @@
 
 ## DocumentChange.doc property
 
+The document affected by this change.
+
 <b>Signature:</b>
 
 ```typescript

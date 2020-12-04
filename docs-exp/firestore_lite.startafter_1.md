@@ -4,19 +4,23 @@
 
 ## startAfter() function
 
+Creates a `QueryConstraint` that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
+
 <b>Signature:</b>
 
 ```typescript
-export function startAfter(...fieldValues: any[]): QueryConstraint;
+export declare function startAfter(...fieldValues: unknown[]): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldValues | any\[\] |  |
+|  fieldValues | unknown\[\] | The field values to start this query after, in order of the query's order by. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_lite.queryconstraint.md)
+
+A `QueryConstraint` to pass to `query()`
 

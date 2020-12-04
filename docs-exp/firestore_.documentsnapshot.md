@@ -4,10 +4,14 @@
 
 ## DocumentSnapshot class
 
+A `DocumentSnapshot` contains data read from a document in your Firestore database. The data can be extracted with `.data()` or `.get(<field>)` to get a specific field.
+
+For a `DocumentSnapshot` that points to a non-existing document, any data access will return 'undefined'. You can use the `exists()` method to explicitly verify a document's existence.
+
 <b>Signature:</b>
 
 ```typescript
-export class DocumentSnapshot<T = DocumentData> 
+export declare class DocumentSnapshot<T = DocumentData> 
 ```
 
 ## Constructors
@@ -21,14 +25,14 @@ export class DocumentSnapshot<T = DocumentData>
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [id](./firestore_.documentsnapshot.id.md) |  | string |  |
-|  [metadata](./firestore_.documentsnapshot.metadata.md) |  | [SnapshotMetadata](./firestore_.snapshotmetadata.md) |  |
+|  [metadata](./firestore_.documentsnapshot.metadata.md) |  | [SnapshotMetadata](./firestore_.snapshotmetadata.md) | Metadata about the <code>DocumentSnapshot</code>, including information about its source and local modifications. |
 |  [ref](./firestore_.documentsnapshot.ref.md) |  | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; |  |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [data(options)](./firestore_.documentsnapshot.data.md) |  |  |
-|  [exists()](./firestore_.documentsnapshot.exists.md) |  |  |
-|  [get(fieldPath, options)](./firestore_.documentsnapshot.get.md) |  |  |
+|  [data(options)](./firestore_.documentsnapshot.data.md) |  | Retrieves all fields in the document as an <code>Object</code>. Returns <code>undefined</code> if the document doesn't exist.<!-- -->By default, <code>FieldValue.serverTimestamp()</code> values that have not yet been set to their final value will be returned as <code>null</code>. You can override this by passing an options object. |
+|  [exists()](./firestore_.documentsnapshot.exists.md) |  | Property of the <code>DocumentSnapshot</code> that signals whether or not the data exists. True if the document exists. |
+|  [get(fieldPath, options)](./firestore_.documentsnapshot.get.md) |  | Retrieves the field specified by <code>fieldPath</code>. Returns <code>undefined</code> if the document or field doesn't exist.<!-- -->By default, a <code>FieldValue.serverTimestamp()</code> that has not yet been set to its final value will be returned as <code>null</code>. You can override this by passing an options object. |
 

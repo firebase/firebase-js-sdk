@@ -55,7 +55,7 @@ import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
-import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
+import { QueryEngine } from '../local/query_engine';
 import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
@@ -127,7 +127,7 @@ export class MemoryOfflineComponentProvider
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
     return newLocalStore(
       this.persistence,
-      new IndexFreeQueryEngine(),
+      new QueryEngine(),
       cfg.initialUser,
       this.serializer
     );
@@ -182,7 +182,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
     return newLocalStore(
       this.persistence,
-      new IndexFreeQueryEngine(),
+      new QueryEngine(),
       cfg.initialUser,
       this.serializer
     );

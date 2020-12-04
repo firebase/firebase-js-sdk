@@ -4,20 +4,24 @@
 
 ## Transaction class
 
+A reference to a transaction.
+
+The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.runtransaction.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export class Transaction 
+export declare class Transaction 
 ```
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [delete(documentRef)](./firestore_lite.transaction.delete.md) |  |  |
-|  [get(documentRef)](./firestore_lite.transaction.get.md) |  |  |
-|  [set(documentRef, data)](./firestore_lite.transaction.set.md) |  |  |
-|  [set(documentRef, data, options)](./firestore_lite.transaction.set_1.md) |  |  |
-|  [update(documentRef, data)](./firestore_lite.transaction.update.md) |  |  |
-|  [update(documentRef, field, value, moreFieldsAndValues)](./firestore_lite.transaction.update_1.md) |  |  |
+|  [delete(documentRef)](./firestore_lite.transaction.delete.md) |  | Deletes the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. |
+|  [get(documentRef)](./firestore_lite.transaction.get.md) |  | Reads the document referenced by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. |
+|  [set(documentRef, data)](./firestore_lite.transaction.set.md) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. If the document does not exist yet, it will be created. |
+|  [set(documentRef, data, options)](./firestore_lite.transaction.set_1.md) |  | Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. If the document does not exist yet, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
+|  [update(documentRef, data)](./firestore_lite.transaction.update.md) |  | Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. The update will fail if applied to a document that does not exist. |
+|  [update(documentRef, field, value, moreFieldsAndValues)](./firestore_lite.transaction.update_1.md) |  | Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
 

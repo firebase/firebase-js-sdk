@@ -22,7 +22,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import path from 'path';
 import replace from 'rollup-plugin-replace';
-import copy from 'rollup-plugin-copy-assets';
+import copy from 'rollup-plugin-copy';
 import { terser } from 'rollup-plugin-terser';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
@@ -45,7 +45,12 @@ const nodePlugins = [
   json({ preferConst: true }),
   // Needed as we also use the *.proto files
   copy({
-    assets: ['./src/protos']
+    targets: [
+      {
+        src: 'src/protos',
+        dest: 'dist/exp/src'
+      }
+    ]
   }),
   replace({
     'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../src/protos')

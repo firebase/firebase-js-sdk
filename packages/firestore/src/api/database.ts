@@ -951,8 +951,11 @@ export class QueryDocumentSnapshot<T = PublicDocumentData>
 export class Query<T = PublicDocumentData>
   extends Compat<ExpQuery<T>>
   implements PublicQuery<T> {
+  private readonly _userDataWriter: UserDataWriter;
+
   constructor(readonly firestore: Firestore, delegate: ExpQuery<T>) {
     super(delegate);
+    this._userDataWriter = new UserDataWriter(firestore);
   }
 
   where(
@@ -1060,7 +1063,18 @@ export class Query<T = PublicDocumentData>
     } else {
       query = getDocs(this._delegate);
     }
-    return query.then(result => new QuerySnapshot(this.firestore, result));
+    return query.then(
+      result =>
+        new QuerySnapshot(
+          this.firestore,
+          new ExpQuerySnapshot<T>(
+            this.firestore._delegate,
+            this._userDataWriter,
+            this._delegate,
+            result._snapshot
+          )
+        )
+    );
   }
 
   onSnapshot(observer: PartialObserver<PublicQuerySnapshot<T>>): Unsubscribe;
@@ -1084,7 +1098,16 @@ export class Query<T = PublicDocumentData>
     const options = extractSnapshotOptions(args);
     const observer = wrapObserver<QuerySnapshot<T>, ExpQuerySnapshot<T>>(
       args,
-      snap => new QuerySnapshot(this.firestore, snap)
+      snap =>
+        new QuerySnapshot(
+          this.firestore,
+          new ExpQuerySnapshot<T>(
+            this.firestore._delegate,
+            this._userDataWriter,
+            this._delegate,
+            snap._snapshot
+          )
+        )
     );
     return onSnapshot(this._delegate, options, observer);
   }

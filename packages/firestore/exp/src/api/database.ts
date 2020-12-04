@@ -70,7 +70,7 @@ export interface Settings extends LiteSettings {
 /**
  * The Cloud Firestore service interface.
  *
- * Do not call this constructor directly. Instead, use {@link getFirestore()}.
+ * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
 export class FirebaseFirestore extends LiteFirestore {
   readonly _queue = new AsyncQueue();

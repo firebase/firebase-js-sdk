@@ -4,25 +4,25 @@
 
 ## where() function
 
+Creates a `QueryConstraint` that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided.
+
 <b>Signature:</b>
 
 ```typescript
-export function where(
-  fieldPath: string | FieldPath,
-  opStr: WhereFilterOp,
-  value: any
-): QueryConstraint;
+export declare function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldPath | string \| [FieldPath](./firestore_.fieldpath.md) |  |
-|  opStr | [WhereFilterOp](./firestore_.wherefilterop.md) |  |
-|  value | any |  |
+|  fieldPath | string \| [FieldPath](./firestore_.fieldpath.md) | The path to compare |
+|  opStr | [WhereFilterOp](./firestore_.wherefilterop.md) | The operation string (e.g "&amp;lt;", "&amp;lt;=", "==", "&amp;lt;", "&amp;lt;=", "!="). |
+|  value | unknown | The value for comparison |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_.queryconstraint.md)
+
+The created `Query`<!-- -->.
 

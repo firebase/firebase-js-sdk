@@ -74,7 +74,7 @@ export function arrayUnion(...elements: unknown[]): FieldValue {
 }
 
 /**
- * Returns a special value that can be used with {@link setDoc} or {@link
+ * Returns a special value that can be used with {@link (setDoc:1)} or {@link
  * updateDoc} that tells the server to remove the given elements from any
  * array value that already exists on the server. All instances of each element
  * specified will be removed from the array. If the field being modified is not

@@ -4,8 +4,10 @@
 
 ## QuerySnapshot.empty property
 
+True if there are no documents in the `QuerySnapshot`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-readonly empty: boolean;
+get empty(): boolean;
 ```

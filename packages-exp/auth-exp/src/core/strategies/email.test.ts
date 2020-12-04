@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { Operation, ProviderId } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError, isNode } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -121,7 +121,7 @@ describe('core/strategies/sendEmailVerification', () => {
 
   it('should send the email verification', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-      requestType: Operation.VERIFY_EMAIL,
+      requestType: ActionCodeOperation.VERIFY_EMAIL,
       email
     });
 
@@ -129,14 +129,14 @@ describe('core/strategies/sendEmailVerification', () => {
 
     expect(reloadStub).to.not.have.been.called;
     expect(mock.calls[0].request).to.eql({
-      requestType: Operation.VERIFY_EMAIL,
+      requestType: ActionCodeOperation.VERIFY_EMAIL,
       idToken
     });
   });
 
   it('should reload the user if the API returns a different email', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-      requestType: Operation.VERIFY_EMAIL,
+      requestType: ActionCodeOperation.VERIFY_EMAIL,
       email: 'other@email.com'
     });
 
@@ -144,7 +144,7 @@ describe('core/strategies/sendEmailVerification', () => {
 
     expect(reloadStub).to.have.been.calledOnce;
     expect(mock.calls[0].request).to.eql({
-      requestType: Operation.VERIFY_EMAIL,
+      requestType: ActionCodeOperation.VERIFY_EMAIL,
       idToken
     });
   });
@@ -152,7 +152,7 @@ describe('core/strategies/sendEmailVerification', () => {
   context('on iOS', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        requestType: Operation.VERIFY_EMAIL,
+        requestType: ActionCodeOperation.VERIFY_EMAIL,
         email
       });
       await sendEmailVerification(user, {
@@ -165,7 +165,7 @@ describe('core/strategies/sendEmailVerification', () => {
       });
 
       expect(mock.calls[0].request).to.eql({
-        requestType: Operation.VERIFY_EMAIL,
+        requestType: ActionCodeOperation.VERIFY_EMAIL,
         idToken,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -178,7 +178,7 @@ describe('core/strategies/sendEmailVerification', () => {
   context('on Android', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        requestType: Operation.VERIFY_EMAIL,
+        requestType: ActionCodeOperation.VERIFY_EMAIL,
         email
       });
       await sendEmailVerification(user, {
@@ -192,7 +192,7 @@ describe('core/strategies/sendEmailVerification', () => {
         dynamicLinkDomain: 'fdl-domain'
       });
       expect(mock.calls[0].request).to.eql({
-        requestType: Operation.VERIFY_EMAIL,
+        requestType: ActionCodeOperation.VERIFY_EMAIL,
         idToken,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -227,7 +227,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
 
   it('should send the email verification', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-      requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+      requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
       email
     });
 
@@ -235,7 +235,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
 
     expect(reloadStub).to.not.have.been.called;
     expect(mock.calls[0].request).to.eql({
-      requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+      requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
       idToken,
       newEmail
     });
@@ -243,7 +243,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
 
   it('should reload the user if the API returns a different email', async () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-      requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+      requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
       email: 'other@email.com'
     });
 
@@ -251,7 +251,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
 
     expect(reloadStub).to.have.been.calledOnce;
     expect(mock.calls[0].request).to.eql({
-      requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+      requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
       idToken,
       newEmail
     });
@@ -260,7 +260,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
   context('on iOS', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+        requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
         email
       });
       await verifyBeforeUpdateEmail(user, newEmail, {
@@ -273,7 +273,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
       });
 
       expect(mock.calls[0].request).to.eql({
-        requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+        requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
         idToken,
         newEmail,
         continueUrl: 'my-url',
@@ -287,7 +287,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
   context('on Android', () => {
     it('should pass action code parameters', async () => {
       const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
-        requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+        requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
         email
       });
       await verifyBeforeUpdateEmail(user, newEmail, {
@@ -301,7 +301,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
         dynamicLinkDomain: 'fdl-domain'
       });
       expect(mock.calls[0].request).to.eql({
-        requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+        requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
         idToken,
         newEmail,
         continueUrl: 'my-url',

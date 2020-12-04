@@ -18,40 +18,7 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
-import pkg from './package.json';
-
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-export const es5BuildsNoPlugin = [
-  /**
-   * Browser Builds
-   */
-  {
-    input: 'src/index.ts',
-    output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.browser, format: 'es', sourcemap: true }
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
-
-export const es2017BuildsNoPlugin = [
-  /**
-   *  Browser Builds
-   */
-  {
-    input: 'src/index.ts',
-    output: {
-      file: pkg.esm2017,
-      format: 'es',
-      sourcemap: true
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
+import { es5BuildsNoPlugin, es2017BuildsNoPlugin } from './rollup.shared.js';
 
 /**
  * ES5 Builds

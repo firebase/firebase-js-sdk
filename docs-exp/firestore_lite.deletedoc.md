@@ -4,19 +4,25 @@
 
 ## deleteDoc() function
 
+Deletes the document referred to by the specified `DocumentReference`<!-- -->.
+
+The deletion will only be reflected in document reads that occur after the returned Promise resolves. If the client is offline, the delete fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK.
+
 <b>Signature:</b>
 
 ```typescript
-export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
+export declare function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;unknown&gt; |  |
+|  reference | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;unknown&gt; | A reference to the document to delete. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A Promise resolved once the document has been successfully deleted from the backend.
 

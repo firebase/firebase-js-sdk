@@ -4,8 +4,10 @@
 
 ## DocumentReference.id property
 
+The document's identifier within its collection.
+
 <b>Signature:</b>
 
 ```typescript
-readonly id: string;
+get id(): string;
 ```

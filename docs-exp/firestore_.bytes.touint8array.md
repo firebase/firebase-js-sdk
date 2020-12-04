@@ -4,6 +4,8 @@
 
 ## Bytes.toUint8Array() method
 
+Returns the underlying bytes in a new `Uint8Array`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ toUint8Array(): Uint8Array;
 <b>Returns:</b>
 
 Uint8Array
+
+The Uint8Array created from the `Bytes` object.
 

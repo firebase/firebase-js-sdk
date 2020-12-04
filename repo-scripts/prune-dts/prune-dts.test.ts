@@ -21,7 +21,6 @@ import * as path from 'path';
 import { format, resolveConfig } from 'prettier';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-
 import { pruneDts } from './prune-dts';
 
 const testCasesDir = path.resolve(__dirname, 'tests');
