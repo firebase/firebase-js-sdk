@@ -17,7 +17,7 @@
 
 import firebase from 'firebase/app';
 import { Observable, from } from 'rxjs';
-import { debounceTime, map } from 'rxjs/operators';
+import { debounceTime, map, shareReplay } from 'rxjs/operators';
 
 type UploadTaskSnapshot = firebase.storage.UploadTaskSnapshot;
 type Reference = firebase.storage.Reference;
@@ -76,10 +76,10 @@ export function put(
   data: any,
   metadata?: UploadMetadata
 ): Observable<UploadTaskSnapshot> {
-  return new Observable(subscriber => {
+  return new Observable<UploadTaskSnapshot>(subscriber => {
     const task = ref.put(data, metadata);
     return fromTask(task).subscribe(subscriber).add(task.cancel);
-  });
+  }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
 }
 
 export function putString(
@@ -88,10 +88,10 @@ export function putString(
   format?: StringFormat,
   metadata?: UploadMetadata
 ): Observable<UploadTaskSnapshot> {
-  return new Observable(subscriber => {
+  return new Observable<UploadTaskSnapshot>(subscriber => {
     const task = ref.putString(data, format, metadata);
     return fromTask(task).subscribe(subscriber).add(task.cancel);
-  });
+  }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
 }
 
 export function percentage(
