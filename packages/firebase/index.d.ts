@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { DocumentData, LoadBundleTask, Query } from '@firebase/firestore-types';
-
 /**
  * <code>firebase</code> is a global namespace from which all Firebase
  * services are accessed.
@@ -8295,23 +8293,23 @@ declare namespace firebase.firestore {
      * Loads a Firestore bundle into the local cache.
      *
      * @param bundleData
-     *   An object representing the bundle to be load, could be a `ArrayBuffer`,
-     *   a `ReadableStream<Uint8Array>` or a `string`.
+     *   An object representing the bundle to be load. Valid objects are `ArrayBuffer`,
+     *   `ReadableStream<Uint8Array>` or `string`.
      *
      * @return
-     *   A `LoadBundleTask` object, which notifies callers with progress update, completion
-     *   or error event. It can be used as a `Promise<LoadBundleTaskProgress>`.
+     *   A `LoadBundleTask` object, which notifies callers with progress update, and completion
+     *   or error events. It can be used as a `Promise<LoadBundleTaskProgress>`.
      */
     loadBundle(
       bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
     ): LoadBundleTask;
 
     /**
-     * Reads a Firestore query from local cache that is associated to a given name.
+     * Reads a Firestore `Query` from local cache that is associated to a given name.
      *
-     * The named queries are from bundles, and saved as a result of `loadBundle`. `namedQuery`
-     * retrieves the queries used to built the bundles, saving the need to manually construct
-     * those queries.
+     * The named queries are from bundles. They are packaged into bundles on the server side (along
+     * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
+     * cache, use this method to extract a `Query` by name.
      */
     namedQuery(name: string): Promise<Query<DocumentData> | null>;
 
@@ -8322,20 +8320,20 @@ declare namespace firebase.firestore {
   }
 
   /**
-   * Represents the task of loading a Firestore bundle. It provides progress of the bundle
-   * loading, task completion and error events should they be any.
+   * Represents the task of loading a Firestore bundle. It provides progress of bundle
+   * loading, as well as task completion and error events.
    *
    * The API is compatible with `Promise<LoadBundleTaskProgress>`.
    */
   export interface LoadBundleTask extends PromiseLike<LoadBundleTaskProgress> {
     /**
-     * Registers functions to listen to bundle loading progresses.
+     * Registers functions to listen to bundle loading progress events.
      * @param next
-     *   Called there is a progress update from bundle loading, typically whenever
-     *   a Firestore document is loaded it will generate a progress update.
+     *   Called when there is a progress update from bundle loading, typically `next` calls occur
+     *   each time a Firestore document is loaded from the bundle.
      * @param error
-     *   Called when there is an error occurred from loading the bundle. The task
-     *   aborts after reporting the error, and there should be no more updates after this.
+     *   Called when an error occurs during bundle loading. The task aborts after reporting the
+     *   error, and there should be no more updates after this.
      * @param complete
      *   Called when the loading task is complete.
      */
@@ -8349,10 +8347,10 @@ declare namespace firebase.firestore {
      * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
      *
      * @param onFulfilled
-     *   It is called with the compeltion `LoadBundleTaskProgress` when the
-     *   loading task completes.
+     *   Called on the completion with a `LoadBundleTaskProgress` update when the
+     *   loading task completes. The update will have its `taskState` set to `"Success"`.
      * @param onRejected
-     *   It is called when there is an error occurred from loading the bundle.
+     *   Called when an error occurs during bundle loading.
      */
     then<T, R>(
       onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
@@ -8363,7 +8361,7 @@ declare namespace firebase.firestore {
      * Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
      *
      * @param onRejected
-     *   It is called when there is an error occurred from loading the bundle.
+     *   Called when an error occurs during bundle loading.
      */
     catch<R>(
       onRejected: (a: Error) => R | PromiseLike<R>
