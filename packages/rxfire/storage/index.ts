@@ -35,7 +35,7 @@ export function fromTask(
     // emit the current state of the task
     progress(task.snapshot);
     // emit progression of the task
-    const unsubscribe = task.on('state_changed', progress);
+    const unsubscribeFromOnStateChanged = task.on('state_changed', progress);
     // use the promise form of task, to get the last success snapshot
     task.then(
       snapshot => {
@@ -50,7 +50,7 @@ export function fromTask(
     // the unsubscribe method returns by storage isn't typed in the
     // way rxjs expects, Function vs () => void, so wrap it
     return function unsubscribe() {
-      unsubscribe();
+      unsubscribeFromOnStateChanged();
     };
   }).pipe(
     // since we're emitting first the current snapshot and then progression
