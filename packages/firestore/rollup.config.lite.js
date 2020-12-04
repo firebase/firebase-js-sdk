@@ -31,50 +31,54 @@ import pkg from './lite/package.json';
 
 const util = require('./rollup.shared');
 
-const nodePlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
-    cacheDir: tmp.dirSync(),
-    abortOnError: false,
-    transformers: [util.removeAssertTransformer, importPathTransformer]
-  }),
-  json({ preferConst: true }),
-  copy({
-    targets: [
-      {
-        src: 'src/protos',
-        dest: 'dist/lite/src'
-      }
-    ]
-  }),
-  replace({
-    'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
-  })
-];
+const nodePlugins = function () {
+  return [
+    typescriptPlugin({
+      typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'es2017'
+        }
+      },
+      cacheDir: tmp.dirSync(),
+      abortOnError: false,
+      transformers: [util.removeAssertTransformer, importPathTransformer]
+    }),
+    json({ preferConst: true }),
+    copy({
+      targets: [
+        {
+          src: 'src/protos',
+          dest: 'dist/lite/src'
+        }
+      ]
+    }),
+    replace({
+      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
+    })
+  ];
+};
 
-const browserPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
-    cacheDir: tmp.dirSync(),
-    abortOnError: false,
-    transformers: [
-      util.removeAssertAndPrefixInternalTransformer,
-      importPathTransformer
-    ]
-  }),
-  json({ preferConst: true }),
-  terser(util.manglePrivatePropertiesOptions)
-];
+const browserPlugins = function () {
+  return [
+    typescriptPlugin({
+      typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'es2017'
+        }
+      },
+      cacheDir: tmp.dirSync(),
+      abortOnError: false,
+      transformers: [
+        util.removeAssertAndPrefixInternalTransformer,
+        importPathTransformer
+      ]
+    }),
+    json({ preferConst: true }),
+    terser(util.manglePrivatePropertiesOptions)
+  ];
+};
 
 const allBuilds = [
   // Node ESM build
@@ -85,7 +89,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins],
+    plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins()],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -127,7 +131,7 @@ const allBuilds = [
     },
     plugins: [
       alias(util.generateAliasConfig('browser_lite')),
-      ...browserPlugins
+      ...browserPlugins()
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -142,7 +146,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins],
+    plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins()],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
