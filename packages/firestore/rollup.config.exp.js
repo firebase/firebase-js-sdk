@@ -23,7 +23,6 @@ import typescript from 'typescript';
 import path from 'path';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy';
-import { terser } from 'rollup-plugin-terser';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 import pkg from './exp/package.json';
@@ -75,8 +74,7 @@ const browserPlugins = function () {
         importPathTransformer
       ]
     }),
-    json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
+    json({ preferConst: true })
   ];
 };
 
