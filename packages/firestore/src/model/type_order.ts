@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-/** Order of types supported by Firestore. */
+/**
+ * All the different kinds of values that can be stored in fields in
+ * a document. The types of the same comparison order should be defined
+ * together as a group. The order of each group is defined by the Firestore
+ * backend and is available at:
+ *     https://firebase.google.com/docs/firestore/manage-data/data-types
+ */
 export const enum TypeOrder {
   // This order is based on the backend's ordering, but modified to support
   // server timestamps.
