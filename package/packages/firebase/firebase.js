@@ -45048,14 +45048,12 @@
               );
             case 1:
               return (
-                t
-                  .sent()
-                  .logEvent(e, {
-                    message_id: r[hO],
-                    message_name: r['google.c.a.c_l'],
-                    message_time: r['google.c.a.ts'],
-                    message_device_time: Math.floor(Date.now() / 1e3)
-                  }),
+                t.sent().logEvent(e, {
+                  message_id: r[hO],
+                  message_name: r['google.c.a.c_l'],
+                  message_time: r['google.c.a.ts'],
+                  message_device_time: Math.floor(Date.now() / 1e3)
+                }),
                 [2]
               );
           }

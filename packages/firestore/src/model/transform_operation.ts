@@ -23,7 +23,7 @@ import { isArray, isInteger, isNumber, valueEquals } from './values';
 import { serverTimestamp } from './server_timestamps';
 import { arrayEquals } from '../util/misc';
 import { normalizeNumber } from './normalize';
-import { Serializer, toDouble, toInteger } from '../remote/value_serializer';
+import { Serializer, toDouble, toInteger } from '../remote/number_serializer';
 
 /** Represents a transform within a TransformMutation. */
 export class TransformOperation {

@@ -2560,14 +2560,12 @@
                   );
                 case 1:
                   return (
-                    e
-                      .sent()
-                      .logEvent(t, {
-                        message_id: r[Oe],
-                        message_name: r['google.c.a.c_l'],
-                        message_time: r['google.c.a.ts'],
-                        message_device_time: Math.floor(Date.now() / 1e3)
-                      }),
+                    e.sent().logEvent(t, {
+                      message_id: r[Oe],
+                      message_name: r['google.c.a.c_l'],
+                      message_time: r['google.c.a.ts'],
+                      message_device_time: Math.floor(Date.now() / 1e3)
+                    }),
                     [2]
                   );
               }

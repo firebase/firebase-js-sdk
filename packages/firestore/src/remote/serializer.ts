@@ -96,7 +96,7 @@ import {
 } from './watch_change';
 import { isNanValue, isNullValue } from '../model/values';
 import { normalizeTimestamp } from '../model/normalize';
-import { Serializer } from './value_serializer';
+import { Serializer } from './number_serializer';
 import { FieldMask } from '../model/field_mask';
 
 const DIRECTIONS = (() => {

@@ -52,7 +52,7 @@ import { Bytes } from '../../lite/src/api/bytes';
 import { Compat } from './compat';
 import { DocumentReference } from '../../lite/src/api/reference';
 import { FieldPath } from '../../lite/src/api/field_path';
-import { toNumber } from '../remote/value_serializer';
+import { toNumber } from '../remote/number_serializer';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
