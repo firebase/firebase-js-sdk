@@ -97,7 +97,7 @@ export class FirebaseFirestore {
   terminate(): Promise<void>;
 
   loadBundle(
-    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): LoadBundleTask;
 
   namedQuery(name: string): Promise<Query<DocumentData> | null>;
@@ -105,7 +105,7 @@ export class FirebaseFirestore {
   INTERNAL: { delete: () => Promise<void> };
 }
 
-export interface LoadBundleTask {
+export interface LoadBundleTask extends PromiseLike<LoadBundleTaskProgress> {
   onProgress(
     next?: (progress: LoadBundleTaskProgress) => any,
     error?: (error: Error) => any,

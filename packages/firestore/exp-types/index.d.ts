@@ -516,7 +516,7 @@ export function snapshotEqual<T>(
   right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean;
 
-export interface LoadBundleTask {
+export interface LoadBundleTask extends PromiseLike<LoadBundleTaskProgress> {
   onProgress(
     next?: (progress: LoadBundleTaskProgress) => any,
     error?: (error: Error) => any,
