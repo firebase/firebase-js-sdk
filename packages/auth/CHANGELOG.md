@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.15.3
+
+### Patch Changes
+
+- [`11563b227`](https://github.com/firebase/firebase-js-sdk/commit/11563b227f30c9282c45e4a8128d5679954dcfd1) [#4146](https://github.com/firebase/firebase-js-sdk/pull/4146) - Fix issue with IndexedDB retry logic causing uncaught errors
+
 ## 0.15.2
 
 ### Patch Changes
