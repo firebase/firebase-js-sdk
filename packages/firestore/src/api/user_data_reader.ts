@@ -102,6 +102,7 @@ export class ParsedSetData {
 export class ParsedUpdateData {
   constructor(
     readonly data: ObjectValue,
+    // The fieldMask does not include document transforms.
     readonly fieldMask: FieldMask,
     readonly fieldTransforms: FieldTransform[]
   ) {}

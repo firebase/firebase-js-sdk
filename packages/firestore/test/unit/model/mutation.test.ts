@@ -247,16 +247,15 @@ describe('Mutation', () => {
       foo: FieldValue.arrayUnion('tag'),
       'bar.baz': FieldValue.arrayUnion(true, { nested: { a: [1, 2] } })
     });
-    expect(transform.fieldTransforms).to.not.be.undefined;
     expect(transform.fieldTransforms).to.have.lengthOf(2);
 
-    const first = transform.fieldTransforms![0];
+    const first = transform.fieldTransforms[0];
     expect(first.field).to.deep.equal(field('foo'));
     expect(first.transform).to.deep.equal(
       new ArrayUnionTransformOperation([wrap('tag')])
     );
 
-    const second = transform.fieldTransforms![1];
+    const second = transform.fieldTransforms[1];
     expect(second.field).to.deep.equal(field('bar.baz'));
     expect(second.transform).to.deep.equal(
       new ArrayUnionTransformOperation([
@@ -273,10 +272,9 @@ describe('Mutation', () => {
     const transform = patchMutation('collection/key', {
       foo: FieldValue.arrayRemove('tag')
     });
-    expect(transform.fieldTransforms).to.not.be.undefined;
     expect(transform.fieldTransforms).to.have.lengthOf(1);
 
-    const first = transform.fieldTransforms![0];
+    const first = transform.fieldTransforms[0];
     expect(first.field).to.deep.equal(field('foo'));
     expect(first.transform).to.deep.equal(
       new ArrayRemoveTransformOperation([wrap('tag')])

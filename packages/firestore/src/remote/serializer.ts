@@ -634,7 +634,7 @@ export function toMutation(
     return fail('Unknown mutation type ' + mutation.type);
   }
 
-  if (mutation.fieldTransforms && mutation.fieldTransforms.length > 0) {
+  if (mutation.fieldTransforms.length > 0) {
     result.updateTransforms = mutation.fieldTransforms.map(transform =>
       toFieldTransform(serializer, transform)
     );
@@ -659,7 +659,7 @@ export function fromMutation(
     ? proto.updateTransforms.map(transform =>
         fromFieldTransform(serializer, transform)
       )
-    : undefined;
+    : [];
 
   if (proto.update) {
     assertPresent(proto.update.name, 'name');

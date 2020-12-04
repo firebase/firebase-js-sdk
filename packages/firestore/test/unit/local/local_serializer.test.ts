@@ -69,7 +69,7 @@ describe('Local Serializer', () => {
     currentDocument: { exists: true }
   };
   // Updated transform proto representation.
-  const updateTransformWrite = {
+  const updateTransforms = {
     updateTransforms: [
       { fieldPath: 'integer', increment: { integerValue: '42' } },
       { fieldPath: 'double', increment: { doubleValue: 13.37 } }
@@ -90,7 +90,7 @@ describe('Local Serializer', () => {
     const serialized = toMutation(s, mutationBatch.mutations[0]);
     expect(serialized).to.deep.equal({
       ...setMutationWrite,
-      ...updateTransformWrite
+      ...updateTransforms
     });
   });
 
@@ -108,7 +108,7 @@ describe('Local Serializer', () => {
     const serialized = toMutation(s, mutationBatch.mutations[0]);
     expect(serialized).to.deep.equal({
       ...patchMutationWrite,
-      ...updateTransformWrite
+      ...updateTransforms
     });
   });
 
@@ -180,9 +180,9 @@ describe('Local Serializer', () => {
     );
     const expected = [
       setMutationWrite,
-      { ...setMutationWrite, ...updateTransformWrite },
+      { ...setMutationWrite, ...updateTransforms },
       deleteMutationWrite,
-      { ...patchMutationWrite, ...updateTransformWrite },
+      { ...patchMutationWrite, ...updateTransforms },
       patchMutationWrite
     ];
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);

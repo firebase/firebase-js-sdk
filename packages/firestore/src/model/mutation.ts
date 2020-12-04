@@ -428,11 +428,12 @@ export function mutationEquals(left: Mutation, right: Mutation): boolean {
     return false;
   }
 
+  if (!fieldTransformsAreEqual(left.fieldTransforms, right.fieldTransforms)) {
+    return false;
+  }
+
   if (left.type === MutationType.Set) {
-    return (
-      (left as SetMutation).value.isEqual((right as SetMutation).value) &&
-      fieldTransformsAreEqual(left.fieldTransforms, right.fieldTransforms)
-    );
+    return (left as SetMutation).value.isEqual((right as SetMutation).value);
   }
 
   if (left.type === MutationType.Patch) {
@@ -440,8 +441,7 @@ export function mutationEquals(left: Mutation, right: Mutation): boolean {
       (left as PatchMutation).data.isEqual((right as PatchMutation).data) &&
       (left as PatchMutation).fieldMask.isEqual(
         (right as PatchMutation).fieldMask
-      ) &&
-      fieldTransformsAreEqual(left.fieldTransforms, right.fieldTransforms)
+      )
     );
   }
 
@@ -502,7 +502,7 @@ function applySetMutationToRemoteDocument(
   // remote document the server has accepted the mutation so the precondition
   // must have held.
   let newData = mutation.value;
-  if (mutation.fieldTransforms && mutationResult.transformResults) {
+  if (mutationResult.transformResults) {
     const transformResults = serverTransformResults(
       mutation.fieldTransforms,
       maybeDoc,
@@ -635,7 +635,7 @@ function applyPatchMutationToLocalView(
 function patchDocument(
   mutation: PatchMutation,
   maybeDoc: MaybeDocument | null,
-  transformResults?: ProtoValue[]
+  transformResults: ProtoValue[]
 ): ObjectValue {
   let data: ObjectValue;
   if (maybeDoc instanceof Document) {
@@ -644,9 +644,7 @@ function patchDocument(
     data = ObjectValue.empty();
   }
   data = patchObject(mutation, data);
-  if (transformResults) {
-    data = transformObject(mutation.fieldTransforms, data, transformResults);
-  }
+  data = transformObject(mutation.fieldTransforms, data, transformResults);
   return data;
 }
 
