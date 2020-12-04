@@ -242,10 +242,9 @@ export function setDoc<T>(
   );
 
   const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(
-    datastore,
-    parsed.toMutations(reference._key, Precondition.none())
-  );
+  return invokeCommitRpc(datastore, [
+    parsed.toMutation(reference._key, Precondition.none())
+  ]);
 }
 
 /**
@@ -333,10 +332,9 @@ export function updateDoc(
   }
 
   const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(
-    datastore,
-    parsed.toMutations(reference._key, Precondition.exists(true))
-  );
+  return invokeCommitRpc(datastore, [
+    parsed.toMutation(reference._key, Precondition.exists(true))
+  ]);
 }
 
 /**
@@ -398,8 +396,7 @@ export function addDoc<T>(
   );
 
   const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(
-    datastore,
-    parsed.toMutations(docRef._key, Precondition.exists(false))
-  ).then(() => docRef);
+  return invokeCommitRpc(datastore, [
+    parsed.toMutation(docRef._key, Precondition.exists(false))
+  ]).then(() => docRef);
 }

@@ -47,7 +47,6 @@ import {
   PatchMutation,
   Precondition,
   SetMutation,
-  TransformMutation,
   VerifyMutation
 } from '../model/mutation';
 import { DocumentKey, FieldPath, ResourcePath } from '../model/path';
@@ -587,21 +586,18 @@ export function toMutation(
       update: toMutationDocument(serializer, mutation.key, mutation.data),
       updateMask: toDocumentMask(mutation.fieldMask)
     };
-  } else if (mutation instanceof TransformMutation) {
-    result = {
-      transform: {
-        document: toName(serializer, mutation.key),
-        fieldTransforms: mutation.fieldTransforms.map(transform =>
-          toFieldTransform(serializer, transform)
-        )
-      }
-    };
   } else if (mutation instanceof VerifyMutation) {
     result = {
       verify: toName(serializer, mutation.key)
     };
   } else {
     return fail('Unknown mutation type ' + mutation.type);
+  }
+
+  if (mutation.fieldTransforms.length > 0) {
+    result.updateTransforms = mutation.fieldTransforms.map(transform =>
+      toFieldTransform(serializer, transform)
+    );
   }
 
   if (!mutation.precondition.isNone) {
@@ -619,31 +615,34 @@ export function fromMutation(
     ? fromPrecondition(proto.currentDocument)
     : Precondition.none();
 
+  const fieldTransforms = proto.updateTransforms
+    ? proto.updateTransforms.map(transform =>
+        fromFieldTransform(serializer, transform)
+      )
+    : [];
+
   if (proto.update) {
     assertPresent(proto.update.name, 'name');
     const key = fromName(serializer, proto.update.name);
     const value = new ObjectValue({
       mapValue: { fields: proto.update.fields }
     });
+
     if (proto.updateMask) {
       const fieldMask = fromDocumentMask(proto.updateMask);
-      return new PatchMutation(key, value, fieldMask, precondition);
+      return new PatchMutation(
+        key,
+        value,
+        fieldMask,
+        precondition,
+        fieldTransforms
+      );
     } else {
-      return new SetMutation(key, value, precondition);
+      return new SetMutation(key, value, precondition, fieldTransforms);
     }
   } else if (proto.delete) {
     const key = fromName(serializer, proto.delete);
     return new DeleteMutation(key, precondition);
-  } else if (proto.transform) {
-    const key = fromName(serializer, proto.transform.document!);
-    const fieldTransforms = proto.transform.fieldTransforms!.map(transform =>
-      fromFieldTransform(serializer, transform)
-    );
-    hardAssert(
-      precondition.exists === true,
-      'Transforms only support precondition "exists == true"'
-    );
-    return new TransformMutation(key, fieldTransforms);
   } else if (proto.verify) {
     const key = fromName(serializer, proto.verify);
     return new VerifyMutation(key, precondition);

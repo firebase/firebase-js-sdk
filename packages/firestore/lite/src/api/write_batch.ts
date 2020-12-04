@@ -107,9 +107,7 @@ export class WriteBatch {
       ref._converter !== null,
       options
     );
-    this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.none())
-    );
+    this._mutations.push(parsed.toMutation(ref._key, Precondition.none()));
     return this;
   }
 
@@ -182,8 +180,8 @@ export class WriteBatch {
       );
     }
 
-    this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.exists(true))
+    this._mutations.push(
+      parsed.toMutation(ref._key, Precondition.exists(true))
     );
     return this;
   }

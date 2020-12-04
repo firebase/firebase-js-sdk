@@ -66,9 +66,6 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       `${projectRoot}/packages-exp/*`
     ]);
 
-    // exclude auth packages until we are ready to release
-    packagePaths = packagePaths.filter(path => !path.includes('auth'));
-
     packagePaths.push(`${projectRoot}/packages/firestore`);
 
     /**

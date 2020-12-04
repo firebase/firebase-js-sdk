@@ -423,7 +423,7 @@ export interface ActionCodeInfo {
   /**
    * The type of operation that generated the action code.
    */
-  operation: Operation;
+  operation: ActionCodeOperation;
 }
 
 /**
@@ -431,7 +431,7 @@ export interface ActionCodeInfo {
  *
  * @public
  */
-export const enum Operation {
+export const enum ActionCodeOperation {
   /** The email link sign-in action. */
   EMAIL_SIGNIN = 'EMAIL_SIGNIN',
   /** The password reset action. */
@@ -539,7 +539,7 @@ export abstract class ActionCodeURL {
    * The action performed by the email action link. It returns from one of the types from
    * {@link @firebase/auth-types#ActionCodeInfo}
    */
-  readonly operation: Operation;
+  readonly operation: ActionCodeOperation;
   /**
    * The tenant ID of the email action link. Null if the email action is from the parent project.
    */
@@ -915,6 +915,16 @@ export class PhoneAuthProvider implements AuthProvider {
 }
 
 /**
+ * An enum of factors that may be used for multifactor authentication.
+ *
+ * @public
+ */
+export const enum FactorId {
+  /** Phone as second factor */
+  PHONE = 'phone'
+}
+
+/**
  * A result from a phone number sign-in, link, or reauthenticate call.
  *
  * @public
@@ -954,7 +964,7 @@ export interface ConfirmationResult {
  */
 export interface MultiFactorAssertion {
   /** The identifier of the second factor. */
-  readonly factorId: string;
+  readonly factorId: FactorId;
 }
 
 /**
@@ -990,10 +1000,6 @@ export interface MultiFactorAssertion {
  */
 export interface MultiFactorError extends AuthError {
   /**
-   * The original credential used as a first factor.
-   */
-  readonly credential: AuthCredential;
-  /**
    * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.
    */
   readonly operationType: OperationType;
@@ -1012,7 +1018,7 @@ export interface MultiFactorInfo {
   /** The enrollment date of the second factor formatted as a UTC string. */
   readonly enrollmentTime: string;
   /** The identifier of the second factor. */
-  readonly factorId: ProviderId;
+  readonly factorId: FactorId;
 }
 
 /**
@@ -1066,12 +1072,12 @@ export abstract class MultiFactorResolver {
    * The list of hints for the second factors needed to complete the sign-in for the current
    * session.
    */
-  hints: MultiFactorInfo[];
+  readonly hints: MultiFactorInfo[];
   /**
    * The session identifier for the current sign-in flow, which can be used to complete the second
    * factor sign-in.
    */
-  session: MultiFactorSession;
+  readonly session: MultiFactorSession;
   /**
    * A helper function to help users complete sign in with a second factor using an
    * {@link @firebase/auth-types#MultiFactorAssertion} confirming the user successfully completed the second factor
@@ -1417,7 +1423,7 @@ export interface UserCredential {
   /**
    * The provider which was used to authenticate the user.
    */
-  providerId: ProviderId | null;
+  providerId: string | null;
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
@@ -1485,11 +1491,11 @@ export interface AdditionalUserInfo {
   /**
    * Map containing IDP-specific user data.
    */
-  readonly profile: UserProfile | null;
+  readonly profile: Record<string, unknown> | null;
   /**
    * Identifier for the provider used to authenticate this user.
    */
-  readonly providerId: ProviderId | null;
+  readonly providerId: string | null;
   /**
    * The username if the provider is GitHub or Twitter.
    */

@@ -95,7 +95,7 @@ export async function sendEmailVerification(
   const userInternal = user as User;
   const idToken = await user.getIdToken();
   const request: api.VerifyEmailRequest = {
-    requestType: externs.Operation.VERIFY_EMAIL,
+    requestType: externs.ActionCodeOperation.VERIFY_EMAIL,
     idToken
   };
   if (actionCodeSettings) {
@@ -155,7 +155,7 @@ export async function verifyBeforeUpdateEmail(
   const userInternal = user as User;
   const idToken = await user.getIdToken();
   const request: api.VerifyAndChangeEmailRequest = {
-    requestType: externs.Operation.VERIFY_AND_CHANGE_EMAIL,
+    requestType: externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
     idToken,
     newEmail
   };
