@@ -81,13 +81,13 @@ export class Transaction {
   }
 
   set(key: DocumentKey, data: ParsedSetData): void {
-    this.write(data.toMutations(key, this.precondition(key)));
+    this.write(data.toMutation(key, this.precondition(key)));
     this.writtenDocs.add(key.toString());
   }
 
   update(key: DocumentKey, data: ParsedUpdateData): void {
     try {
-      this.write(data.toMutations(key, this.preconditionForUpdate(key)));
+      this.write(data.toMutation(key, this.preconditionForUpdate(key)));
     } catch (e) {
       this.lastWriteError = e;
     }
@@ -95,7 +95,7 @@ export class Transaction {
   }
 
   delete(key: DocumentKey): void {
-    this.write([new DeleteMutation(key, this.precondition(key))]);
+    this.write(new DeleteMutation(key, this.precondition(key)));
     this.writtenDocs.add(key.toString());
   }
 
@@ -193,9 +193,9 @@ export class Transaction {
     }
   }
 
-  private write(mutations: Mutation[]): void {
+  private write(mutation: Mutation): void {
     this.ensureCommitNotCalled();
-    this.mutations = this.mutations.concat(mutations);
+    this.mutations.push(mutation);
   }
 
   private ensureCommitNotCalled(): void {

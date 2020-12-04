@@ -1042,9 +1042,9 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
-        value: userDataWriter.convertValue(
-          doc.toProto()
-        ) as JsonObject<unknown>,
+        value: userDataWriter.convertValue(doc.toProto()) as JsonObject<
+          unknown
+        >,
         options: {
           hasLocalMutations: doc.hasLocalMutations,
           hasCommittedMutations: doc.hasCommittedMutations

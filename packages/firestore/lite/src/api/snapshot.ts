@@ -211,9 +211,9 @@ export class DocumentSnapshot<T = DocumentData> {
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
+  T
+> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
