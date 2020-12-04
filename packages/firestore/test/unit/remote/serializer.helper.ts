@@ -661,18 +661,16 @@ export function serializerTest(
       });
 
       it('ServerTimestamp transform', () => {
-        const mutation = patchMutation('baz/quux', {
+        const mutation = setMutation('baz/quux', {
           a: FieldValue.serverTimestamp(),
-          'bar.baz': FieldValue.serverTimestamp()
+          'bar': FieldValue.serverTimestamp()
         });
         const proto = {
-          update: toMutationDocument(s, mutation.key, mutation.data),
-          updateMask: toDocumentMask(mutation.fieldMask),
+          update: toMutationDocument(s, mutation.key, mutation.value),
           updateTransforms: [
             { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
-            { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
-          ],
-          currentDocument: { exists: true }
+            { fieldPath: 'bar', setToServerValue: 'REQUEST_TIME' }
+          ]
         };
         verifyMutation(mutation, proto);
 
@@ -689,18 +687,16 @@ export function serializerTest(
       });
 
       it('Numeric Add transform', () => {
-        const mutation = patchMutation('baz/quux', {
+        const mutation = setMutation('baz/quux', {
           integer: FieldValue.increment(42),
           double: FieldValue.increment(13.37)
         });
         const proto = {
-          update: toMutationDocument(s, mutation.key, mutation.data),
-          updateMask: toDocumentMask(mutation.fieldMask),
+          update: toMutationDocument(s, mutation.key, mutation.value),
           updateTransforms: [
             { fieldPath: 'integer', increment: { integerValue: '42' } },
             { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ],
-          currentDocument: { exists: true }
+          ]
         };
         verifyMutation(mutation, proto);
 

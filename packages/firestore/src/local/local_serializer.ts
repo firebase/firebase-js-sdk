@@ -200,8 +200,7 @@ export function fromDbMutationBatch(
   // on the SDK means that old `transform` mutations stored in IndexedDB need
   // to be updated to `update_transforms`.
   // TODO(b/174608374): Remove this code once we perform a schema migration.
-  let i = dbBatch.mutations.length - 1;
-  while (i >= 0) {
+  for (let i = dbBatch.mutations.length - 1; i >= 0; --i) {
     const mutationProto = dbBatch.mutations[i];
     if (mutationProto?.transform !== undefined) {
       debugAssert(
@@ -215,7 +214,6 @@ export function fromDbMutationBatch(
       dbBatch.mutations.splice(i, 1);
       --i;
     }
-    --i;
   }
 
   const mutations = dbBatch.mutations.map(m =>

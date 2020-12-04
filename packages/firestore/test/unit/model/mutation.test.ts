@@ -248,7 +248,7 @@ describe('Mutation', () => {
       'bar.baz': FieldValue.arrayUnion(true, { nested: { a: [1, 2] } })
     });
     expect(transform.fieldTransforms).to.not.be.undefined;
-    expect(transform.fieldTransforms!.length).to.equal(2);
+    expect(transform.fieldTransforms).to.have.lengthOf(2);
 
     const first = transform.fieldTransforms![0];
     expect(first.field).to.deep.equal(field('foo'));
@@ -274,7 +274,7 @@ describe('Mutation', () => {
       foo: FieldValue.arrayRemove('tag')
     });
     expect(transform.fieldTransforms).to.not.be.undefined;
-    expect(transform.fieldTransforms!.length).to.equal(1);
+    expect(transform.fieldTransforms).to.have.lengthOf(1);
 
     const first = transform.fieldTransforms![0];
     expect(first.field).to.deep.equal(field('foo'));

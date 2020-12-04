@@ -242,7 +242,7 @@ export function setMutation(
     setKey,
     parsed.data,
     Precondition.none(),
-    parsed.fieldTransforms.length > 0 ? parsed.fieldTransforms : undefined
+    parsed.fieldTransforms
   );
 }
 
@@ -272,7 +272,7 @@ export function patchMutation(
     parsed.data,
     parsed.fieldMask,
     precondition,
-    parsed.fieldTransforms.length > 0 ? parsed.fieldTransforms : undefined
+    parsed.fieldTransforms
   );
 }
 

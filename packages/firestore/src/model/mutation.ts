@@ -107,7 +107,7 @@ export function fieldTransformsAreEqual(
     return true;
   }
 
-  if (!!left && !!right) {
+  if (left && right) {
     return arrayEquals(left, right, (l, r) => fieldTransformEquals(l, r));
   }
 
@@ -266,16 +266,7 @@ export abstract class Mutation {
   abstract readonly type: MutationType;
   abstract readonly key: DocumentKey;
   abstract readonly precondition: Precondition;
-}
-
-/**
- * Used to represent Mutation classes that have a `fieldTransforms` field,
- * namely SetMutation and PatchMutation. This intermediate class makes it
- * easier to access the `fieldTransforms` field directly from a Mutation
- * object.
- */
-export abstract class MutationWithTransforms extends Mutation {
-  abstract readonly fieldTransforms?: FieldTransform[];
+  abstract readonly fieldTransforms: FieldTransform[];
 }
 
 /**
@@ -386,12 +377,9 @@ export function extractMutationBaseValue(
   mutation: Mutation,
   maybeDoc: MaybeDocument | null
 ): ObjectValue | null {
-  if (
-    mutation instanceof MutationWithTransforms &&
-    (mutation as MutationWithTransforms).fieldTransforms !== undefined
-  ) {
+  if (mutation.fieldTransforms !== undefined) {
     return extractTransformMutationBaseValue(
-      (mutation as MutationWithTransforms).fieldTransforms!,
+      mutation.fieldTransforms,
       maybeDoc
     );
   }
@@ -441,24 +429,19 @@ export function mutationEquals(left: Mutation, right: Mutation): boolean {
   }
 
   if (left.type === MutationType.Set) {
-    const setLeft: SetMutation = left as SetMutation;
-    const setRight: SetMutation = right as SetMutation;
     return (
-      setLeft.value.isEqual(setRight.value) &&
-      fieldTransformsAreEqual(setLeft.fieldTransforms, setRight.fieldTransforms)
+      (left as SetMutation).value.isEqual((right as SetMutation).value) &&
+      fieldTransformsAreEqual(left.fieldTransforms, right.fieldTransforms)
     );
   }
 
   if (left.type === MutationType.Patch) {
-    const patchLeft: PatchMutation = left as PatchMutation;
-    const patchRight: PatchMutation = right as PatchMutation;
     return (
-      patchLeft.data.isEqual(patchRight.data) &&
-      patchLeft.fieldMask.isEqual(patchRight.fieldMask) &&
-      fieldTransformsAreEqual(
-        patchLeft.fieldTransforms,
-        patchRight.fieldTransforms
-      )
+      (left as PatchMutation).data.isEqual((right as PatchMutation).data) &&
+      (left as PatchMutation).fieldMask.isEqual(
+        (right as PatchMutation).fieldMask
+      ) &&
+      fieldTransformsAreEqual(left.fieldTransforms, right.fieldTransforms)
     );
   }
 
@@ -497,12 +480,12 @@ function getPostMutationVersion(
  * A mutation that creates or replaces the document at the given key with the
  * object value contents.
  */
-export class SetMutation extends MutationWithTransforms {
+export class SetMutation extends Mutation {
   constructor(
     readonly key: DocumentKey,
     readonly value: ObjectValue,
     readonly precondition: Precondition,
-    readonly fieldTransforms?: FieldTransform[]
+    readonly fieldTransforms: FieldTransform[] = []
   ) {
     super();
   }
@@ -581,13 +564,13 @@ function applySetMutationToLocalView(
  *  * When a field is not in the mask but is in the values, the values map is
  *    ignored.
  */
-export class PatchMutation extends MutationWithTransforms {
+export class PatchMutation extends Mutation {
   constructor(
     readonly key: DocumentKey,
     readonly data: ObjectValue,
     readonly fieldMask: FieldMask,
     readonly precondition: Precondition,
-    readonly fieldTransforms?: FieldTransform[]
+    readonly fieldTransforms: FieldTransform[] = []
   ) {
     super();
   }
@@ -608,19 +591,14 @@ function applyPatchMutationToRemoteDocument(
     return new UnknownDocument(mutation.key, mutationResult.version);
   }
 
-  let newData = patchDocument(mutation, maybeDoc);
-  if (mutation.fieldTransforms && mutationResult.transformResults) {
-    const transformResults = serverTransformResults(
-      mutation.fieldTransforms,
-      maybeDoc,
-      mutationResult.transformResults
-    );
-    newData = transformObject(
-      mutation.fieldTransforms,
-      newData,
-      transformResults
-    );
-  }
+  const transformResults = mutationResult.transformResults
+    ? serverTransformResults(
+        mutation.fieldTransforms,
+        maybeDoc,
+        mutationResult.transformResults
+      )
+    : [];
+  const newData = patchDocument(mutation, maybeDoc, transformResults);
   return new Document(mutation.key, mutationResult.version, newData, {
     hasCommittedMutations: true
   });
@@ -637,20 +615,13 @@ function applyPatchMutationToLocalView(
   }
 
   const version = getPostMutationVersion(maybeDoc);
-  let newData = patchDocument(mutation, maybeDoc);
-  if (mutation.fieldTransforms) {
-    const transformResults = localTransformResults(
-      mutation.fieldTransforms,
-      localWriteTime,
-      maybeDoc,
-      baseDoc
-    );
-    newData = transformObject(
-      mutation.fieldTransforms,
-      newData,
-      transformResults
-    );
-  }
+  const transformResults = localTransformResults(
+    mutation.fieldTransforms,
+    localWriteTime,
+    maybeDoc,
+    baseDoc
+  );
+  const newData = patchDocument(mutation, maybeDoc, transformResults);
   return new Document(mutation.key, version, newData, {
     hasLocalMutations: true
   });
@@ -663,7 +634,8 @@ function applyPatchMutationToLocalView(
  */
 function patchDocument(
   mutation: PatchMutation,
-  maybeDoc: MaybeDocument | null
+  maybeDoc: MaybeDocument | null,
+  transformResults?: ProtoValue[]
 ): ObjectValue {
   let data: ObjectValue;
   if (maybeDoc instanceof Document) {
@@ -671,7 +643,11 @@ function patchDocument(
   } else {
     data = ObjectValue.empty();
   }
-  return patchObject(mutation, data);
+  data = patchObject(mutation, data);
+  if (transformResults) {
+    data = transformObject(mutation.fieldTransforms, data, transformResults);
+  }
+  return data;
 }
 
 function patchObject(mutation: PatchMutation, data: ObjectValue): ObjectValue {
@@ -801,6 +777,7 @@ export class DeleteMutation extends Mutation {
   }
 
   readonly type: MutationType = MutationType.Delete;
+  readonly fieldTransforms: FieldTransform[] = [];
 }
 
 function applyDeleteMutationToRemoteDocument(
@@ -852,4 +829,5 @@ export class VerifyMutation extends Mutation {
   }
 
   readonly type: MutationType = MutationType.Verify;
+  readonly fieldTransforms: FieldTransform[] = [];
 }

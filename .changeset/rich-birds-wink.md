@@ -1,5 +1,4 @@
 ---
 '@firebase/firestore': minor
 ---
-
-Field tranforms performed within a write no longer count as additional operations. However, a field transform on its own still counts as an operation.
+A write to a document that contains field transforms is no longer split into separate operations. This reduces the number of writes that the backend performs.

@@ -39,127 +39,87 @@ describe('Local Serializer', () => {
   const userId = 'user';
   const batchId = 1;
 
+  const mutationSet = setMutation('foo/bar', {
+    a: 'b'
+  });
+  const mutationPatch = patchMutation('foo/bar', {
+    a: 'b'
+  });
+  const mutationDelete = deleteMutation('foo/bar');
+
+  const setMutationWrite: Write = {
+    update: toMutationDocument(s, mutationSet.key, mutationSet.value)
+  };
+  const patchMutationWrite: Write = {
+    update: toMutationDocument(s, mutationPatch.key, mutationPatch.data),
+    updateMask: toDocumentMask(mutationPatch.fieldMask)
+  };
+  const deleteMutationWrite: Write = {
+    delete: toName(s, mutationDelete.key)
+  };
+  // Legacy transform proto.
+  const transformMutationWrite: Write = {
+    transform: {
+      document: toName(s, mutationSet.key),
+      fieldTransforms: [
+        { fieldPath: 'integer', increment: { integerValue: '42' } },
+        { fieldPath: 'double', increment: { doubleValue: 13.37 } }
+      ]
+    },
+    currentDocument: { exists: true }
+  };
+  // Updated transform proto representation.
+  const updateTransformWrite = {
+    updateTransforms: [
+      { fieldPath: 'integer', increment: { integerValue: '42' } },
+      { fieldPath: 'double', increment: { doubleValue: 13.37 } }
+    ]
+  };
+
   it('SetMutation + TransformMutation (legacy) are squashed', () => {
-    const mutationSet = setMutation('foo/bar', {
-      a: 'b'
-    });
-    const mutations: Write[] = [
-      {
-        update: toMutationDocument(s, mutationSet.key, mutationSet.value)
-      },
-      // Legacy transform proto.
-      {
-        transform: {
-          document: toName(s, mutationSet.key),
-          fieldTransforms: [
-            { fieldPath: 'integer', increment: { integerValue: '42' } },
-            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ]
-        },
-        currentDocument: { exists: true }
-      }
-    ];
     const dbMutationBatch = new DbMutationBatch(
       userId,
       batchId,
       1000,
       [],
-      mutations
+      [setMutationWrite, transformMutationWrite]
     );
-
-    const expected = {
-      update: toMutationDocument(s, mutationSet.key, mutationSet.value),
-      updateTransforms: [
-        { fieldPath: 'integer', increment: { integerValue: '42' } },
-        { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-      ]
-    };
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);
-    expect(mutationBatch.mutations.length).to.equal(1);
+    expect(mutationBatch.mutations).to.have.lengthOf(1);
     expect(mutationBatch.mutations[0] instanceof SetMutation).to.be.true;
     const serialized = toMutation(s, mutationBatch.mutations[0]);
-    expect(serialized).to.deep.equal(expected);
+    expect(serialized).to.deep.equal({
+      ...setMutationWrite,
+      ...updateTransformWrite
+    });
   });
 
   it('PatchMutation + TransformMutation (legacy) are squashed', () => {
-    const mutationPatch = patchMutation('foo/bar', {
-      a: 'b'
-    });
-    const mutations: Write[] = [
-      {
-        update: toMutationDocument(s, mutationPatch.key, mutationPatch.data),
-        updateMask: toDocumentMask(mutationPatch.fieldMask)
-      },
-      // Legacy transform proto.
-      {
-        transform: {
-          document: toName(s, mutationPatch.key),
-          fieldTransforms: [
-            { fieldPath: 'integer', increment: { integerValue: '42' } },
-            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ]
-        },
-        currentDocument: { exists: true }
-      }
-    ];
     const dbMutationBatch = new DbMutationBatch(
       userId,
       batchId,
       1000,
       [],
-      mutations
+      [patchMutationWrite, transformMutationWrite]
     );
-
-    const expected = {
-      update: toMutationDocument(s, mutationPatch.key, mutationPatch.data),
-      updateMask: toDocumentMask(mutationPatch.fieldMask),
-      updateTransforms: [
-        { fieldPath: 'integer', increment: { integerValue: '42' } },
-        { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-      ]
-    };
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);
-    expect(mutationBatch.mutations.length).to.equal(1);
+    expect(mutationBatch.mutations).to.have.lengthOf(1);
     expect(mutationBatch.mutations[0] instanceof PatchMutation).to.be.true;
     const serialized = toMutation(s, mutationBatch.mutations[0]);
-    expect(serialized).to.deep.equal(expected);
+    expect(serialized).to.deep.equal({
+      ...patchMutationWrite,
+      ...updateTransformWrite
+    });
   });
 
   it('TransformMutation (legacy) + TransformMutation (legacy) throw assertion', () => {
-    const mutationPatch = patchMutation('foo/bar', {
-      a: 'b'
-    });
-    const mutations: Write[] = [
-      {
-        transform: {
-          document: toName(s, mutationPatch.key),
-          fieldTransforms: [
-            { fieldPath: 'integer', increment: { integerValue: '43' } },
-            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ]
-        },
-        currentDocument: { exists: true }
-      },
-      // Legacy transform proto.
-      {
-        transform: {
-          document: toName(s, mutationPatch.key),
-          fieldTransforms: [
-            { fieldPath: 'integer', increment: { integerValue: '43' } },
-            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ]
-        },
-        currentDocument: { exists: true }
-      }
-    ];
     const dbMutationBatch = new DbMutationBatch(
       userId,
       batchId,
       1000,
       [],
-      mutations
+      [transformMutationWrite, transformMutationWrite]
     );
-
     expect(() =>
       fromDbMutationBatch(localSerializer, dbMutationBatch)
     ).to.throw(
@@ -168,29 +128,13 @@ describe('Local Serializer', () => {
   });
 
   it('TransformMutation (legacy) on its own throws assertion', () => {
-    const mutationPatch = patchMutation('foo/bar', {
-      a: 'b'
-    });
-    const mutations: Write[] = [
-      {
-        transform: {
-          document: toName(s, mutationPatch.key),
-          fieldTransforms: [
-            { fieldPath: 'integer', increment: { integerValue: '42' } },
-            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ]
-        },
-        currentDocument: { exists: true }
-      }
-    ];
     const dbMutationBatch = new DbMutationBatch(
       userId,
       batchId,
       1000,
       [],
-      mutations
+      [transformMutationWrite]
     );
-
     expect(() =>
       fromDbMutationBatch(localSerializer, dbMutationBatch)
     ).to.throw(
@@ -199,30 +143,13 @@ describe('Local Serializer', () => {
   });
 
   it('DeleteMutation + TransformMutation (legacy) on its own throws assertion', () => {
-    const mutation = deleteMutation('foo/bar');
-    const mutations: Write[] = [
-      {
-        delete: toName(s, mutation.key)
-      },
-      {
-        transform: {
-          document: toName(s, mutation.key),
-          fieldTransforms: [
-            { fieldPath: 'integer', increment: { integerValue: '42' } },
-            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ]
-        },
-        currentDocument: { exists: true }
-      }
-    ];
     const dbMutationBatch = new DbMutationBatch(
       userId,
       batchId,
       1000,
       [],
-      mutations
+      [deleteMutationWrite, transformMutationWrite]
     );
-
     expect(() =>
       fromDbMutationBatch(localSerializer, dbMutationBatch)
     ).to.throw(
@@ -231,95 +158,35 @@ describe('Local Serializer', () => {
   });
 
   it('multiple mutations are squashed', () => {
-    const mutationPatch = patchMutation('foo/bar', {
-      a: 'b'
-    });
-    const mutationSet = setMutation('foo/bar', {
-      a: 'b'
-    });
-    const mutationDelete = deleteMutation('foo/baz');
-
     // INPUT:
     // SetMutation -> SetMutation -> TransformMutation ->
     // DeleteMutation -> PatchMutation -> TransformMutation -> PatchMutation
     // OUTPUT (squashed):
     // SetMutation -> SetMutation -> DeleteMutation -> PatchMutation -> PatchMutation
-    const mutations: Write[] = [
-      {
-        update: toMutationDocument(s, mutationSet.key, mutationSet.value)
-      },
-      {
-        update: toMutationDocument(s, mutationSet.key, mutationSet.value)
-      },
-      {
-        transform: {
-          document: toName(s, mutationSet.key),
-          fieldTransforms: [
-            { fieldPath: 'integer', increment: { integerValue: '43' } },
-            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ]
-        },
-        currentDocument: { exists: true }
-      },
-      {
-        delete: toName(s, mutationDelete.key)
-      },
-      {
-        update: toMutationDocument(s, mutationPatch.key, mutationPatch.data),
-        updateMask: toDocumentMask(mutationPatch.fieldMask)
-      },
-      {
-        transform: {
-          document: toName(s, mutationPatch.key),
-          fieldTransforms: [
-            { fieldPath: 'integer', increment: { integerValue: '42' } },
-            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-          ]
-        },
-        currentDocument: { exists: true }
-      },
-      {
-        update: toMutationDocument(s, mutationPatch.key, mutationPatch.data),
-        updateMask: toDocumentMask(mutationPatch.fieldMask)
-      }
-    ];
     const dbMutationBatch = new DbMutationBatch(
       userId,
       batchId,
       1000,
       [],
-      mutations
+      [
+        setMutationWrite,
+        setMutationWrite,
+        transformMutationWrite,
+        deleteMutationWrite,
+        patchMutationWrite,
+        transformMutationWrite,
+        patchMutationWrite
+      ]
     );
-
     const expected = [
-      {
-        update: toMutationDocument(s, mutationSet.key, mutationSet.value)
-      },
-      {
-        update: toMutationDocument(s, mutationSet.key, mutationSet.value),
-        updateTransforms: [
-          { fieldPath: 'integer', increment: { integerValue: '43' } },
-          { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-        ]
-      },
-      {
-        delete: toName(s, mutationDelete.key)
-      },
-      {
-        update: toMutationDocument(s, mutationPatch.key, mutationPatch.data),
-        updateMask: toDocumentMask(mutationPatch.fieldMask),
-        updateTransforms: [
-          { fieldPath: 'integer', increment: { integerValue: '42' } },
-          { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-        ]
-      },
-      {
-        update: toMutationDocument(s, mutationPatch.key, mutationPatch.data),
-        updateMask: toDocumentMask(mutationPatch.fieldMask)
-      }
+      setMutationWrite,
+      { ...setMutationWrite, ...updateTransformWrite },
+      deleteMutationWrite,
+      { ...patchMutationWrite, ...updateTransformWrite },
+      patchMutationWrite
     ];
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);
-    expect(mutationBatch.mutations.length).to.equal(5);
+    expect(mutationBatch.mutations).to.have.lengthOf(5);
     mutationBatch.mutations.forEach((mutation, index) => {
       const serialized = toMutation(s, mutationBatch.mutations[index]);
       expect(serialized).to.deep.equal(expected[index]);

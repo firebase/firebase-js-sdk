@@ -43,7 +43,6 @@ import {
   FieldTransform,
   Mutation,
   MutationResult,
-  MutationWithTransforms,
   PatchMutation,
   Precondition,
   SetMutation,
@@ -635,11 +634,7 @@ export function toMutation(
     return fail('Unknown mutation type ' + mutation.type);
   }
 
-  if (
-    mutation instanceof MutationWithTransforms &&
-    mutation.fieldTransforms &&
-    mutation.fieldTransforms.length > 0
-  ) {
+  if (mutation.fieldTransforms && mutation.fieldTransforms.length > 0) {
     result.updateTransforms = mutation.fieldTransforms.map(transform =>
       toFieldTransform(serializer, transform)
     );
