@@ -9,7 +9,7 @@
     "test": "yarn build:memory; karma start --single-run; yarn build:persistence; karma start --single-run;",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "test:persistence": " yarn build:persistence; karma start --single-run",
-    "test:persistence:debug:": "yarn build:persistence; karma start --auto-watch --browsers Chrome",
+    "test:persistence:debug": "yarn build:persistence; karma start --auto-watch --browsers Chrome",
     "test:memory": "yarn build:memory; karma start --single-run",
     "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
   },

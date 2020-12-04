@@ -16,8 +16,7 @@
  */
 
 // This is a separate file because rollup (or typescript) treat it as circular
-// dependency when it was in `./bundle.ts`, which breaks the bundle's module
-// build.
+// dependency when it was in `./bundle.ts`, which breaks bundles module build.
 
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';

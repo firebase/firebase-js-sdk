@@ -203,6 +203,17 @@ const manglePrivatePropertiesOptions = {
 };
 exports.manglePrivatePropertiesOptions = manglePrivatePropertiesOptions;
 
+exports.applyPrebuilt = function (name = 'prebuilt.js') {
+  return alias({
+    entries: [
+      {
+        find: /^(.*)\/export$/,
+        replacement: `$1\/dist/${name}`
+      }
+    ]
+  });
+};
+
 exports.es2017Plugins = function (platform, mangled = false) {
   if (mangled) {
     return [
@@ -248,7 +259,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/*.js', 'dist/exp/*.js']
+        include: ['dist/**/*.js']
       }),
       terser({
         output: {
@@ -268,7 +279,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/*.js', 'dist/exp/*.js']
+        include: ['dist/**/*.js']
       }),
       sourcemaps()
     ];

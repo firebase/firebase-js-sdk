@@ -15,20 +15,61 @@
  * limitations under the License.
  */
 
-import pkg from './package.json';
-
 const util = require('./rollup.shared');
 
-export default {
-  input: 'index.rn.ts',
-  output: {
-    file: pkg['react-native'],
-    format: 'es',
-    sourcemap: true
+export default [
+  // Create a temporary build that includes the mangled classes for all exports
+  {
+    input: 'export.ts',
+    output: {
+      file: 'dist/prebuilt.rn.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: util.es2017Plugins('rn', /* mangled= */ true),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
-  plugins: util.es2017Plugins('rn', /* mangled= */ true),
-  external: util.resolveBrowserExterns,
-  treeshake: {
-    moduleSideEffects: false
+  // Create main build
+  {
+    input: {
+      index: 'index.ts',
+      bundle: 'index.bundle.ts'
+    },
+    output: {
+      dir: 'dist/rn',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      util.applyPrebuilt('prebuilt.rn.js'),
+      ...util.es2017Plugins('rn', /* mangled= */ false)
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Create memory build
+  {
+    input: {
+      index: 'index.memory.ts',
+      bundle: 'index.bundle.ts'
+    },
+    output: {
+      dir: 'dist/rn',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      util.applyPrebuilt('prebuilt.rn.js'),
+      ...util.es2017Plugins('rn', /* mangled= */ false)
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
-};
+];

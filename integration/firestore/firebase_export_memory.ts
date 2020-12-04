@@ -17,6 +17,7 @@
 
 import firebase from '@firebase/app';
 import '@firebase/firestore/memory';
+import '@firebase/firestore/memory-bundle';
 import { FirebaseApp } from '@firebase/app-types';
 import { Settings, FirebaseFirestore } from '@firebase/firestore-types';
 

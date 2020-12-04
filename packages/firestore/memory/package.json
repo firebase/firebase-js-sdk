@@ -1,11 +1,11 @@
 {
   "name": "@firebase/firestore/memory",
   "description": "A memory-only build of the Cloud Firestore JS SDK.",
-  "main": "../dist/index.memory.node.cjs.js",
-  "main-esm2017": "../dist/index.memory.node.esm2017.js",
-  "react-native": "../dist/index.memory.rn.esm2017.js",
-  "browser": "../dist/index.memory.esm.js",
-  "module": "../dist/index.memory.esm.js",
-  "esm2017": "../dist/index.memory.esm2017.js",
+  "main": "../dist/memory/node-cjs/index.js",
+  "main-esm2017": "../dist/memory/node-esm2017/index.js",
+  "react-native": "../dist/memory/rn/index.js",
+  "browser": "../dist/memory/esm5/index.js",
+  "module": "../dist/memory/esm5/index.js",
+  "esm2017": "../dist/memory/esm2017/index.js",
   "typings": "../dist/index.d.ts"
 }

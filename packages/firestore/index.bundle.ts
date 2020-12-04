@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { Firestore } from './src/api/database';
-import { loadBundle, namedQuery } from './src/api/bundle';
+import { Firestore, loadBundle, namedQuery } from './export';
 
 /**
- * Registers Firestore bundle loading features with the components framework.
+ * Prototype patches bundle loading to Firestore.
  */
 export function registerBundle(instance: typeof Firestore): void {
   instance.prototype.loadBundle = function (
