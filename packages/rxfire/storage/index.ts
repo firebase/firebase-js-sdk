@@ -76,7 +76,10 @@ export function put(
   data: any,
   metadata?: UploadMetadata
 ): Observable<UploadTaskSnapshot> {
-  return fromTask(ref.put(data, metadata));
+  return new Observable(subscriber => {
+    const task = ref.put(data, metadata);
+    return fromTask(task).subscribe(subscriber).add(task.cancel);
+  });
 }
 
 export function putString(
@@ -85,7 +88,10 @@ export function putString(
   format?: StringFormat,
   metadata?: UploadMetadata
 ): Observable<UploadTaskSnapshot> {
-  return fromTask(ref.putString(data, format, metadata));
+  return new Observable(subscriber => {
+    const task = ref.putString(data, format, metadata);
+    return fromTask(task).subscribe(subscriber).add(task.cancel);
+  });
 }
 
 export function percentage(
