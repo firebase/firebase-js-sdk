@@ -31,6 +31,12 @@ export const LOG_TAG = 'ComponentProvider';
 // client. Dependencies can be lazily constructed and only one exists per
 // Firestore instance.
 
+/**
+ * An interface implemented by FirebaseFirestore that provides compatibility
+ * with the usage in this file.
+ *
+ * This interface mainly exists to remove a cyclic dependency.
+ */
 export interface FirestoreService extends _FirebaseService {
   _credentials: CredentialsProvider;
   _persistenceKey: string;
