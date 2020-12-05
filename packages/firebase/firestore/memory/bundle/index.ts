@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,4 +15,9 @@
  * limitations under the License.
  */
 
-import '@firebase/firestore';
+/**
+ * This file serves as the public entrypoint for users that import
+ * `firebase/firestore/memory`.
+ */
+
+import '@firebase/firestore/memory-bundle';

@@ -111,7 +111,7 @@ const appBuilds = [
 
 const componentBuilds = pkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
-  .filter(component => component !== 'app')
+  .filter(component => component !== 'app' && component !== 'firestore')
   .map(component => {
     const pkg = require(`./${component}/package.json`);
     return [
@@ -149,6 +149,56 @@ const componentBuilds = pkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
+const firestoreBuilds = [
+  {
+    input: `firestore/index.ts`,
+    output: [
+      {
+        file: resolve('firestore', pkg.main),
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: resolve('firestore', pkg.module),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins,
+    external
+  },
+  {
+    input: `firestore/bundle/index.ts`,
+    output: [
+      {
+        file: resolve('firestore/bundle', pkg.main),
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: resolve('firestore/bundle', pkg.module),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins,
+    external
+  },
+  {
+    input: `firestore/index.cdn.ts`,
+    output: createUmdOutputConfig(`firebase-firestore.js`),
+    plugins: [
+      ...plugins,
+      uglify({
+        output: {
+          ascii_only: true // escape unicode chars
+        }
+      })
+    ],
+    external: ['@firebase/app']
+  }
+];
+
 const firestoreMemoryBuilds = [
   {
     input: `firestore/memory/index.ts`,
@@ -168,7 +218,24 @@ const firestoreMemoryBuilds = [
     external
   },
   {
-    input: `firestore/memory/index.ts`,
+    input: `firestore/memory/bundle/index.ts`,
+    output: [
+      {
+        file: resolve('firestore/memory/bundle', pkg.main),
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: resolve('firestore/memory/bundle', pkg.module),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins,
+    external
+  },
+  {
+    input: `firestore/memory/index.cdn.ts`,
     output: createUmdOutputConfig(`firebase-firestore.memory.js`),
     plugins: [...plugins, uglify()],
     external: ['@firebase/app']
@@ -276,6 +343,7 @@ const completeBuilds = [
 export default [
   ...appBuilds,
   ...componentBuilds,
+  ...firestoreBuilds,
   ...firestoreMemoryBuilds,
   ...completeBuilds
 ];

@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-import '@firebase/firestore';
+import '@firebase/firestore/bundle';

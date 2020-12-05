@@ -21,4 +21,3 @@
  */
 
 import '@firebase/firestore/memory';
-import '@firebase/firestore/memory-bundle';
