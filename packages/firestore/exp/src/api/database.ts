@@ -28,7 +28,6 @@ import {
   setOfflineComponentProvider,
   setOnlineComponentProvider
 } from '../../../src/core/firestore_client';
-import { AsyncQueue } from '../../../src/util/async_queue';
 import {
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
@@ -49,6 +48,7 @@ import { makeDatabaseInfo } from '../../../lite/src/api/components';
 import { LRU_COLLECTION_DISABLED } from '../../../src/local/lru_garbage_collector';
 import { debugAssert } from '../../../src/util/assert';
 import { PersistenceSettings, Settings } from './settings';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -68,7 +68,7 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
  * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
 export class FirebaseFirestore extends LiteFirestore {
-  readonly _queue = new AsyncQueue();
+  readonly _queue = newAsyncQueue();
   readonly _persistenceKey: string;
 
   _firestoreClient: FirestoreClient | undefined;

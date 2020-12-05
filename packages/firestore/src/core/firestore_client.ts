@@ -31,7 +31,6 @@ import {
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
-import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { Deferred } from '../util/promise';
 import {
@@ -84,6 +83,7 @@ import {
 } from '../local/local_store_impl';
 import { newBundleReader } from '../util/bundle_reader_impl';
 import { DocumentKey } from '../model/path';
+import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

@@ -20,7 +20,6 @@ import { DatabaseId } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
-import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
@@ -60,6 +59,7 @@ import { IndexedDbTransaction } from './indexeddb_transaction';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
 import { SchemaConverter } from './indexeddb_schema_converter';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 
 const LOG_TAG = 'IndexedDbPersistence';
 

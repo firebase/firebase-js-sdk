@@ -30,7 +30,6 @@ import {
   ExistenceFilterChange,
   WatchTargetChange
 } from '../../../src/remote/watch_change';
-import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { setMutation } from '../../util/helpers';
@@ -39,6 +38,11 @@ import {
   newPersistentWatchStream,
   newPersistentWriteStream
 } from '../../../src/remote/datastore';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
+import { TimerId } from '../../../src/util/async_queue';
 
 /**
  * StreamEventType combines the events that can be observed by the
@@ -273,12 +277,12 @@ export async function withTestWriteStream(
   fn: (
     writeStream: PersistentWriteStream,
     streamListener: StreamStatusListener,
-    queue: AsyncQueue
+    queue: AsyncQueueImpl
   ) => Promise<void>,
   credentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   await withTestDatastore(async datastore => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const streamListener = new StreamStatusListener();
     const writeStream = newPersistentWriteStream(
       datastore,
@@ -298,7 +302,7 @@ export async function withTestWatchStream(
   ) => Promise<void>
 ): Promise<void> {
   await withTestDatastore(async datastore => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue();
     const streamListener = new StreamStatusListener();
     const watchStream = newPersistentWatchStream(
       datastore,

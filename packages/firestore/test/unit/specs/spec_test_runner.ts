@@ -97,7 +97,7 @@ import {
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
 import { debugAssert, fail } from '../../../src/util/assert';
-import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
@@ -156,6 +156,10 @@ import { newTextEncoder } from '../../../src/platform/serializer';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
 import { DocumentKey } from '../../../src/model/path';
 import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -190,7 +194,7 @@ export function parseQuery(querySpec: string | SpecQuery): Query {
 }
 
 abstract class TestRunner {
-  protected queue: AsyncQueue;
+  protected queue: AsyncQueueImpl;
 
   // Initialized asynchronously via start().
   private connection!: MockConnection;
@@ -251,7 +255,7 @@ abstract class TestRunner {
     // TODO(mrschmidt): During client startup in `firestore_client`, we block
     // the AsyncQueue from executing any operation. We should mimic this in the
     // setup of the spec tests.
-    this.queue = new AsyncQueue();
+    this.queue = newAsyncQueue() as AsyncQueueImpl;
     this.queue.skipDelaysForTimerId(TimerId.ListenStreamConnectionBackoff);
 
     this.serializer = new JsonProtoSerializer(

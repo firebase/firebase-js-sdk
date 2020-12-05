@@ -26,7 +26,6 @@ import {
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
-import { AsyncQueue } from '../../../src/util/async_queue';
 import { withTestDbsSettings } from './helpers';
 import { User } from '../../../src/auth/user';
 import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
@@ -35,10 +34,10 @@ import { newSerializer } from '../../../src/platform/serializer';
 import { key } from '../../util/helpers';
 import { TestBundleBuilder } from '../../unit/util/bundle_data';
 import { collectionReference } from '../../util/api_helpers';
+import { AsyncQueueImpl } from '../../../src/util/async_queue_impl';
 
-/** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
-export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
-  return (db as Firestore)._delegate._queue;
+export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueueImpl {
+  return (db as Firestore)._delegate._queue as AsyncQueueImpl;
 }
 
 export function getDefaultDatabaseInfo(): DatabaseInfo {

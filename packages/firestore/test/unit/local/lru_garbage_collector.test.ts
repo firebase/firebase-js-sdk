@@ -24,7 +24,6 @@ import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
-
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { TargetCache } from '../../../src/local/target_cache';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -49,6 +48,7 @@ import {
   LruParams
 } from '../../../src/local/lru_garbage_collector';
 import { DocumentKey } from '../../../src/model/path';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 
 describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {
@@ -70,7 +70,7 @@ describe('MemoryLruDelegate', () => {
 function genericLruGarbageCollectorTests(
   newPersistence: (params: LruParams, queue: AsyncQueue) => Promise<Persistence>
 ): void {
-  const queue = new AsyncQueue();
+  const queue = newAsyncQueue();
 
   // We need to initialize a few counters so that we can use them when we
   // auto-generate things like targets and documents. Pick arbitrary values

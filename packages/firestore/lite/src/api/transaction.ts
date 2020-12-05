@@ -32,7 +32,6 @@ import { fail } from '../../../src/util/assert';
 import { DocumentSnapshot } from './snapshot';
 import { FirebaseFirestore } from './database';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
-import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { validateReference } from './write_batch';
 import { DocumentReference, SetOptions, UpdateData } from './reference';
@@ -44,6 +43,7 @@ import {
   applyFirestoreDataConverter,
   LiteUserDataWriter
 } from './reference_methods';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.
@@ -269,7 +269,7 @@ export function runTransaction<T>(
   const datastore = getDatastore(firestore);
   const deferred = new Deferred<T>();
   new TransactionRunner<T>(
-    new AsyncQueue(),
+    newAsyncQueue(),
     datastore,
     internalTransaction =>
       updateFunction(new Transaction(firestore, internalTransaction)),

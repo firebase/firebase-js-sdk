@@ -70,6 +70,7 @@ import {
   synchronizeLastDocumentChangeReadTime
 } from '../local/local_store_impl';
 import { LruParams } from '../local/lru_garbage_collector';
+
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;

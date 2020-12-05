@@ -27,12 +27,6 @@ import {
   WriteResponse as ProtoWriteResponse
 } from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
-import {
-  AsyncQueue,
-  DelayedOperation,
-  ExponentialBackoff,
-  TimerId
-} from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { isNullOrUndefined } from '../util/types';
@@ -49,6 +43,8 @@ import {
   versionFromListenResponse
 } from './serializer';
 import { WatchChange } from './watch_change';
+import { ExponentialBackoff } from './backoff';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 
 const LOG_TAG = 'PersistentStream';
 
