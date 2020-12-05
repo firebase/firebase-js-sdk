@@ -48,8 +48,8 @@ import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore } from './simple_db';
 import { PersistenceTransaction } from './persistence_transaction';
 import { IndexedDbTransaction, getStore } from './indexeddb_transaction';
-import { removeMutationBatch } from './indexeddb_schema_converter';
 import { BATCHID_UNKNOWN } from '../util/types';
+import { removeMutationBatch } from './indexeddb_mutation_batch_impl';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {

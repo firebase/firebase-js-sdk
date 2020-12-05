@@ -54,8 +54,8 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
-import { dbDocumentSize } from './indexeddb_schema_converter';
 import { getStore } from './indexeddb_transaction';
+import { dbDocumentSize } from './indexeddb_mutation_batch_impl';
 
 export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
   // The IndexedDbRemoteDocumentCache doesn't implement any methods on top
