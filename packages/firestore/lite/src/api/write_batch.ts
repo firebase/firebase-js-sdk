@@ -35,7 +35,7 @@ import { FieldPath } from './field_path';
 import { getDatastore } from './components';
 import { cast } from '../../../src/util/input_validation';
 import { Compat } from '../../../src/api/compat';
-import { applyFirestoreDataConverter } from './reference_methods';
+import { applyFirestoreDataConverter } from './reference_impl';
 
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.

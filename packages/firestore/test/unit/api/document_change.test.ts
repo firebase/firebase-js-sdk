@@ -31,7 +31,7 @@ import {
   query
 } from '../../util/helpers';
 import { firestore } from '../../util/api_helpers';
-import { ExpUserDataWriter } from '../../../exp/src/api/reference_methods';
+import { ExpUserDataWriter } from '../../../exp/src/api/reference_impl';
 import { Query } from '../../../exp/src/api/reference';
 
 describe('DocumentChange:', () => {

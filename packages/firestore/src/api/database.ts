@@ -73,7 +73,7 @@ import {
   onSnapshotsInSync,
   setDoc,
   updateDoc
-} from '../../exp/src/api/reference_methods';
+} from '../../exp/src/api/reference_impl';
 import {
   limit,
   limitToLast,

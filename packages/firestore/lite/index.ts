@@ -64,7 +64,7 @@ export {
   setDoc,
   getDoc,
   getDocs
-} from './src/api/reference_methods';
+} from './src/api/reference_impl';
 
 // TOOD(firestorelite): Add tests when Queries are usable
 export { FieldPath, documentId } from './src/api/field_path';
@@ -78,7 +78,7 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from './src/api/field_value_methods';
+} from './src/api/field_value_impl';
 
 export {
   FirestoreDataConverter,

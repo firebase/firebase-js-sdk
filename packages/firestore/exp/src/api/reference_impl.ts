@@ -69,7 +69,7 @@ import { ByteString } from '../../../src/util/byte_string';
 import { Bytes } from '../../../lite/src/api/bytes';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import { validateHasExplicitOrderByForLimitToLast } from '../../../lite/src/api/query';
-import { applyFirestoreDataConverter } from '../../../lite/src/api/reference_methods';
+import { applyFirestoreDataConverter } from '../../../lite/src/api/reference_impl';
 
 /**
  * An options object that can be passed to {@link onSnapshot} and {@link

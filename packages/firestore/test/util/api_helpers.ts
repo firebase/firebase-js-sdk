@@ -51,7 +51,7 @@ import {
   DocumentSnapshot as ExpDocumentSnapshot,
   SnapshotMetadata
 } from '../../exp/src/api/snapshot';
-import { ExpUserDataWriter } from '../../exp/src/api/reference_methods';
+import { ExpUserDataWriter } from '../../exp/src/api/reference_impl';
 import {
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference

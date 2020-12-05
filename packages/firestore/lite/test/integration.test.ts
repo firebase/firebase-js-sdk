@@ -78,14 +78,14 @@ import {
   getDocs,
   setDoc,
   updateDoc
-} from '../src/api/reference_methods';
+} from '../src/api/reference_impl';
 import {
   arrayRemove,
   arrayUnion,
   deleteField,
   increment,
   serverTimestamp
-} from '../src/api/field_value_methods';
+} from '../src/api/field_value_impl';
 
 use(chaiAsPromised);
 

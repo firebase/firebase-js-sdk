@@ -96,7 +96,7 @@ export {
   updateDoc,
   deleteDoc,
   addDoc
-} from './src/api/reference_methods';
+} from './src/api/reference_impl';
 
 export { FieldValue } from './src/api/field_value';
 
@@ -106,7 +106,7 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from './src/api/field_value_methods';
+} from './src/api/field_value_impl';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 

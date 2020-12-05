@@ -42,7 +42,7 @@ import { Compat } from '../../../src/api/compat';
 import {
   applyFirestoreDataConverter,
   LiteUserDataWriter
-} from './reference_methods';
+} from './reference_impl';
 import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
