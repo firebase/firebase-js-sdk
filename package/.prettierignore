@@ -1,5 +1,0 @@
-# This file is pre-built and need not be formatted
-packages/auth
-packages/firebase/firebase*
-packages/firestore/scripts
-dist
