@@ -45,11 +45,7 @@ import {
   JsonProtoSerializer
 } from '../remote/serializer';
 import { ByteString } from '../util/byte_string';
-import {
-  BATCHID_UNKNOWN,
-  MutationBatch,
-  MutationBatchResult
-} from '../model/mutation_batch';
+import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId, TargetId } from '../core/types';
 import { MutationQueue } from './mutation_queue';
@@ -95,6 +91,7 @@ import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import * as api from '../protos/firestore_proto_api';
 import { ApiLoadBundleTaskProgress } from '../api/bundle';
 import { SizedBundleElement } from '../util/bundle_reader';
+import { BATCHID_UNKNOWN } from '../util/types';
 
 export const LOG_TAG = 'LocalStore';
 

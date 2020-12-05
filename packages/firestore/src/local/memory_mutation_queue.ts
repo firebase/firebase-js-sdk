@@ -20,7 +20,7 @@ import { isCollectionGroupQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
 import { DocumentKey } from '../model/path';
 import { Mutation } from '../model/mutation';
-import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { MutationBatch } from '../model/mutation_batch';
 import { debugAssert, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
@@ -32,6 +32,7 @@ import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
 import { PersistenceTransaction } from './persistence_transaction';
+import { BATCHID_UNKNOWN } from '../util/types';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**

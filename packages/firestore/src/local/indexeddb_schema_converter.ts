@@ -56,6 +56,7 @@ import {
   DbTargetKey,
   SCHEMA_VERSION
 } from './indexeddb_schema';
+import { BATCHID_UNKNOWN } from '../util/types';
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -198,7 +199,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     return queuesStore.loadAll().next(queues => {
       return PersistencePromise.forEach(queues, (queue: DbMutationQueue) => {
         const range = IDBKeyRange.bound(
-          [queue.userId, Number.MIN_SAFE_INTEGER],
+          [queue.userId, BATCHID_UNKNOWN],
           [queue.userId, queue.lastAcknowledgedBatchId]
         );
 

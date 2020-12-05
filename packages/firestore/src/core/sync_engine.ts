@@ -47,7 +47,7 @@ import {
 } from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { Mutation } from '../model/mutation';
-import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
+import { MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
@@ -107,6 +107,7 @@ import {
   eventManagerOnWatchError
 } from './event_manager';
 import { DocumentKey } from '../model/path';
+import { BATCHID_UNKNOWN } from '../util/types';
 
 const LOG_TAG = 'SyncEngine';
 

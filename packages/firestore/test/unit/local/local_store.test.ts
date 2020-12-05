@@ -47,7 +47,6 @@ import {
   Precondition
 } from '../../../src/model/mutation';
 import {
-  BATCHID_UNKNOWN,
   MutationBatch,
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
@@ -113,6 +112,7 @@ import {
   saveNamedQuery,
   synchronizeLastDocumentChangeReadTime
 } from '../../../src/local/local_store_impl';
+import { BATCHID_UNKNOWN } from '../../../src/util/types';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;

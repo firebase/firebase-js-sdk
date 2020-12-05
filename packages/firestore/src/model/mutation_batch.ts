@@ -37,8 +37,6 @@ import {
   MutationResult
 } from './mutation';
 
-export const BATCHID_UNKNOWN = -1;
-
 /**
  * A batch of mutations that will be sent as one unit to the backend.
  */

@@ -21,7 +21,7 @@ import { isCollectionGroupQuery, isDocumentQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { Mutation } from '../model/mutation';
-import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
+import { MutationBatch } from '../model/mutation_batch';
 import { DocumentKey, ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
@@ -49,6 +49,7 @@ import { SimpleDbStore } from './simple_db';
 import { PersistenceTransaction } from './persistence_transaction';
 import { IndexedDbTransaction, getStore } from './indexeddb_transaction';
 import { removeMutationBatch } from './indexeddb_schema_converter';
+import { BATCHID_UNKNOWN } from '../util/types';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
