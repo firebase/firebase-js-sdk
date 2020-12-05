@@ -29,7 +29,7 @@ import {
   NullableMaybeDocumentMap
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/path';
+import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a

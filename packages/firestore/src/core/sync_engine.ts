@@ -106,8 +106,8 @@ import {
   eventManagerOnWatchChange,
   eventManagerOnWatchError
 } from './event_manager';
-import { DocumentKey } from '../model/path';
 import { BATCHID_UNKNOWN } from '../util/types';
+import { DocumentKey } from '../model/document_key';
 
 const LOG_TAG = 'SyncEngine';
 

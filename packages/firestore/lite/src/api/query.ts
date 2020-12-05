@@ -56,13 +56,13 @@ import {
 } from '../../../src/core/target';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
-  DocumentKey,
   FieldPath as InternalFieldPath,
   ResourcePath
 } from '../../../src/model/path';
 import { Value as ProtoValue } from '../../../src/protos/firestore_proto_api';
 import { refValue } from '../../../src/model/values';
 import { isServerTimestamp } from '../../../src/model/server_timestamps';
+import { DocumentKey } from '../../../src/model/document_key';
 
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery

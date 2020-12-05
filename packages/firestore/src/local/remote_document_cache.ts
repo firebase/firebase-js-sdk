@@ -26,7 +26,7 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { PersistenceTransaction } from './persistence_transaction';
-import { DocumentKey } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Represents cached documents received from the remote backend.

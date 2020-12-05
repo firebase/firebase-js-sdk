@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DocumentKey, FieldPath, ResourcePath } from '../model/path';
+import { FieldPath, ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
 import { debugAssert, debugCast, fail } from '../util/assert';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
@@ -29,6 +29,7 @@ import {
   valueEquals
 } from '../model/values';
 import { Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used

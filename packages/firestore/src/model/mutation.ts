@@ -28,7 +28,7 @@ import {
   UnknownDocument
 } from './document';
 import { ObjectValue, ObjectValueBuilder } from './object_value';
-import { DocumentKey, FieldPath } from './path';
+import { FieldPath } from './path';
 import {
   applyTransformOperationToLocalView,
   applyTransformOperationToRemoteDocument,
@@ -38,6 +38,7 @@ import {
 } from './transform_operation';
 import { arrayEquals } from '../util/misc';
 import { FieldMask } from './field_mask';
+import { DocumentKey } from './document_key';
 
 /** A field path and the TransformOperation to perform upon it. */
 export class FieldTransform {

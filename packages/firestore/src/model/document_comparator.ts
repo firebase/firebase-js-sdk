@@ -16,7 +16,7 @@
  */
 
 import { Document } from './document';
-import { DocumentKey } from './path';
+import { DocumentKey } from './document_key';
 
 export type DocumentComparator = (doc1: Document, doc2: Document) => number;
 

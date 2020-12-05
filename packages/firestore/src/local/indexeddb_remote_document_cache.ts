@@ -28,7 +28,7 @@ import {
   NullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { DocumentKey, ResourcePath } from '../model/path';
+import { ResourcePath } from '../model/path';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
@@ -56,6 +56,7 @@ import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
 import { getStore } from './indexeddb_transaction';
 import { dbDocumentSize } from './indexeddb_mutation_batch_impl';
+import { DocumentKey } from '../model/document_key';
 
 export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
   // The IndexedDbRemoteDocumentCache doesn't implement any methods on top

@@ -43,8 +43,8 @@ import { TargetData } from './target_data';
 import { SimpleDbStore } from './simple_db';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
-import { DocumentKey } from '../model/path';
 import { getStore } from './indexeddb_transaction';
+import { DocumentKey } from '../model/document_key';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(

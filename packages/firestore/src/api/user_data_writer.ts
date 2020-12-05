@@ -34,7 +34,7 @@ import {
 } from '../model/server_timestamps';
 import { fail, hardAssert } from '../util/assert';
 import { forEach } from '../util/obj';
-import { DocumentKey, ResourcePath } from '../model/path';
+import { ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
 import { ByteString } from '../util/byte_string';
@@ -44,6 +44,7 @@ import {
   normalizeTimestamp
 } from '../model/normalize';
 import { TypeOrder } from '../model/type_order';
+import { DocumentKey } from '../model/document_key';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 

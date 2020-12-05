@@ -82,8 +82,8 @@ import {
   readLocalDocument
 } from '../local/local_store_impl';
 import { newBundleReader } from '../util/bundle_reader_impl';
-import { DocumentKey } from '../model/path';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { DocumentKey } from '../model/document_key';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

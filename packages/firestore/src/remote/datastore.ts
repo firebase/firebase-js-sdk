@@ -43,8 +43,8 @@ import {
   WriteStreamListener
 } from './persistent_stream';
 import { Query, queryToTarget } from '../core/query';
-import { DocumentKey } from '../model/path';
 import { AsyncQueue } from '../util/async_queue';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google

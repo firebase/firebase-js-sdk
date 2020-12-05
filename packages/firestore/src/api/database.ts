@@ -22,7 +22,7 @@ import {
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle
 } from '../core/firestore_client';
-import { DocumentKey, FieldPath, ResourcePath } from '../model/path';
+import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import {
@@ -133,6 +133,7 @@ import { Blob } from './blob';
 import { Bytes } from '../../lite/src/api/bytes';
 import { AbstractUserDataWriter } from './user_data_writer';
 import { DEFAULT_HOST } from '../../lite/src/api/settings';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.

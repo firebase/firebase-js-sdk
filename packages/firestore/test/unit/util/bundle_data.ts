@@ -36,7 +36,7 @@ import {
   queryToTarget,
   queryWithLimit
 } from '../../../src/core/query';
-import { DocumentKey } from '../../../src/model/path';
+import { DocumentKey } from '../../../src/model/document_key';
 
 export const encoder = newTextEncoder();
 

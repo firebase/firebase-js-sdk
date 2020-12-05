@@ -47,8 +47,8 @@ import {
   LruGarbageCollector,
   LruParams
 } from '../../../src/local/lru_garbage_collector';
-import { DocumentKey } from '../../../src/model/path';
 import { newAsyncQueue } from '../../../src/util/async_queue_impl';
+import { DocumentKey } from '../../../src/model/document_key';
 
 describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {

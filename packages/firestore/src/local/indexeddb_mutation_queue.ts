@@ -22,7 +22,7 @@ import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
-import { DocumentKey, ResourcePath } from '../model/path';
+import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
@@ -50,6 +50,7 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { IndexedDbTransaction, getStore } from './indexeddb_transaction';
 import { BATCHID_UNKNOWN } from '../util/types';
 import { removeMutationBatch } from './indexeddb_mutation_batch_impl';
+import { DocumentKey } from '../model/document_key';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {

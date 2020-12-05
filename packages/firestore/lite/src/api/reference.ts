@@ -22,7 +22,7 @@ import {
   Query as InternalQuery,
   queryEquals
 } from '../../../src/core/query';
-import { DocumentKey, ResourcePath } from '../../../src/model/path';
+import { ResourcePath } from '../../../src/model/path';
 import { AutoId } from '../../../src/util/misc';
 import { FirestoreDataConverter } from './snapshot';
 import { FieldPath } from './field_path';
@@ -34,6 +34,7 @@ import {
 } from '../../../src/util/input_validation';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Compat } from '../../../src/api/compat';
+import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * Document data (for use with {@link setDoc}) consists of fields mapped to

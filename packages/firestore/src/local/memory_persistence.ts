@@ -50,7 +50,7 @@ import {
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
-import { DocumentKey } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 const LOG_TAG = 'MemoryPersistence';
 /**

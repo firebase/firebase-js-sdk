@@ -23,7 +23,7 @@ import { MutationBatch } from '../model/mutation_batch';
 import { SortedMap } from '../util/sorted_map';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { DocumentKey } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue {

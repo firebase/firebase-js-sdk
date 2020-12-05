@@ -24,8 +24,8 @@ import {
 } from './indexeddb_schema';
 import { fail, hardAssert } from '../util/assert';
 import { SimpleDbTransaction } from './simple_db';
-import { DocumentKey } from '../model/path';
 import { PersistencePromise } from './persistence_promise';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Delete a mutation batch and the associated document mutations.

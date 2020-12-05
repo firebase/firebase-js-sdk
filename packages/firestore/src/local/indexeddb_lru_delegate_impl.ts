@@ -39,7 +39,7 @@ import { TargetData } from './target_data';
 import { mutationQueuesContainKey } from './indexeddb_mutation_queue';
 import { ListenSequence } from '../core/listen_sequence';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
-import { DocumentKey } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export class IndexedDbLruDelegateImpl implements IndexedDbLruDelegate {

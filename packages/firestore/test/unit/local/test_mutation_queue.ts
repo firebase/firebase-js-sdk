@@ -24,7 +24,7 @@ import { DocumentKeySet } from '../../../src/model/collections';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { SortedMap } from '../../../src/util/sorted_map';
-import { DocumentKey } from '../../../src/model/path';
+import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a

@@ -22,7 +22,7 @@ import { ObjectMap } from '../util/obj_map';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { PersistenceTransaction } from './persistence_transaction';
-import { DocumentKey } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Represents a document change to be applied to remote document cache.

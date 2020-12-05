@@ -72,7 +72,7 @@ import {
   Precondition,
   SetMutation
 } from '../../src/model/mutation';
-import { DocumentKey, FieldPath, ResourcePath } from '../../src/model/path';
+import { FieldPath, ResourcePath } from '../../src/model/path';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
@@ -118,6 +118,7 @@ import {
   OrderBy
 } from '../../src/core/target';
 import { FieldMask } from '../../src/model/field_mask';
+import { DocumentKey } from '../../src/model/document_key';
 
 /* eslint-disable no-restricted-globals */
 

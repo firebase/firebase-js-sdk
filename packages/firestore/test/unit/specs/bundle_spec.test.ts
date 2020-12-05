@@ -35,7 +35,7 @@ import {
 import { toVersion } from '../../../src/remote/serializer';
 import { JsonObject } from '../../../src/model/object_value';
 import { LimitType } from '../../../src/protos/firestore_bundle_proto';
-import { DocumentKey } from '../../../src/model/path';
+import { DocumentKey } from '../../../src/model/document_key';
 
 interface TestBundleDocument {
   key: DocumentKey;

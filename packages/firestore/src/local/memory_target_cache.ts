@@ -28,8 +28,8 @@ import { TargetData } from './target_data';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { PersistenceTransaction } from './persistence_transaction';
 import { ActiveTargets } from './lru_garbage_collector';
-import { DocumentKey } from '../model/path';
 import { Persistence } from './persistence';
+import { DocumentKey } from '../model/document_key';
 
 export class MemoryTargetCache implements TargetCache {
   /**

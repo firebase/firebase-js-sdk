@@ -36,7 +36,7 @@ import { SnapshotListenOptions } from './reference_impl';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
 import { debugAssert, fail } from '../../../src/util/assert';
 import { newQueryComparator } from '../../../src/core/query';
-import { DocumentKey } from '../../../src/model/path';
+import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type `T`

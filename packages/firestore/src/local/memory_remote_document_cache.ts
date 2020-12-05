@@ -33,7 +33,7 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { PersistenceTransaction } from './persistence_transaction';
-import { DocumentKey } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
 

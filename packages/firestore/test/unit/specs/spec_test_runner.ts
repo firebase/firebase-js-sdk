@@ -154,12 +154,12 @@ import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { logWarn } from '../../../src/util/log';
 import { newTextEncoder } from '../../../src/platform/serializer';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
-import { DocumentKey } from '../../../src/model/path';
 import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
 import {
   AsyncQueueImpl,
   newAsyncQueue
 } from '../../../src/util/async_queue_impl';
+import { DocumentKey } from '../../../src/model/document_key';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 

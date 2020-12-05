@@ -71,7 +71,7 @@ import {
   remoteDocumentCacheGetLastReadTime,
   remoteDocumentCacheGetNewDocumentChanges
 } from './indexeddb_remote_document_cache';
-import { DocumentKey, ResourcePath } from '../model/path';
+import { ResourcePath } from '../model/path';
 import {
   extractMutationBaseValue,
   Mutation,
@@ -92,6 +92,7 @@ import * as api from '../protos/firestore_proto_api';
 import { ApiLoadBundleTaskProgress } from '../api/bundle';
 import { SizedBundleElement } from '../util/bundle_reader';
 import { BATCHID_UNKNOWN } from '../util/types';
+import { DocumentKey } from '../model/document_key';
 
 export const LOG_TAG = 'LocalStore';
 

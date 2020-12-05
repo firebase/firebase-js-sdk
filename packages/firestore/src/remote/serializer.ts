@@ -49,7 +49,7 @@ import {
   SetMutation,
   VerifyMutation
 } from '../model/mutation';
-import { DocumentKey, FieldPath, ResourcePath } from '../model/path';
+import { FieldPath, ResourcePath } from '../model/path';
 import {
   ApiClientObjectMap as ProtoApiClientObjectMap,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
@@ -98,6 +98,7 @@ import { isNanValue, isNullValue } from '../model/values';
 import { normalizeTimestamp } from '../model/normalize';
 import { Serializer } from './number_serializer';
 import { FieldMask } from '../model/field_mask';
+import { DocumentKey } from '../model/document_key';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};

@@ -20,7 +20,7 @@ import { SortedMap } from '../util/sorted_map';
 import { documentMap } from './collections';
 import { Document } from './document';
 import { DocumentComparator } from './document_comparator';
-import { DocumentKey } from './path';
+import { DocumentKey } from './document_key';
 
 /**
  * DocumentSet is an immutable (copy-on-write) collection that holds documents

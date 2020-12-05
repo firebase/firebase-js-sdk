@@ -22,7 +22,7 @@ import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
 import { Target } from '../core/target';
 import { PersistenceTransaction } from './persistence_transaction';
-import { DocumentKey } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Represents cached targets received from the remote backend.

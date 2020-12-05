@@ -39,7 +39,7 @@ import {
   normalizeTimestamp
 } from './normalize';
 import { TypeOrder } from './type_order';
-import { DocumentKey } from './path';
+import { DocumentKey } from './document_key';
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {

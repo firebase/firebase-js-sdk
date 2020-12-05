@@ -34,7 +34,7 @@ import { debugAssert } from '../../../src/util/assert';
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
 import { doc, filter, key, orderBy, query, version } from '../../util/helpers';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
-import { DocumentKey } from '../../../src/model/path';
+import { DocumentKey } from '../../../src/model/document_key';
 
 const TEST_TARGET_ID = 1;
 

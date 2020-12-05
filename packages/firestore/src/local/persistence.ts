@@ -29,7 +29,7 @@ import {
   PersistenceTransaction,
   PersistenceTransactionMode
 } from './persistence_transaction';
-import { DocumentKey } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Callback type for primary state notifications. This callback can be

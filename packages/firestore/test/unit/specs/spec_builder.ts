@@ -66,8 +66,9 @@ import {
   SpecWriteFailure
 } from './spec_test_runner';
 import { firestore } from '../../util/api_helpers';
-import { DocumentKey, ResourcePath } from '../../../src/model/path';
+import { ResourcePath } from '../../../src/model/path';
 import { UserDataWriter } from '../../../src/api/database';
+import { DocumentKey } from '../../../src/model/document_key';
 
 const userDataWriter = new UserDataWriter(firestore());
 
