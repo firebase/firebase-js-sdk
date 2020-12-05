@@ -47,7 +47,7 @@ import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore } from './simple_db';
 import { PersistenceTransaction } from './persistence_transaction';
-import { IndexedDbTransaction } from './indexeddb_transaction';
+import { IndexedDbTransaction, getStore } from './indexeddb_transaction';
 import { removeMutationBatch } from './indexeddb_schema_converter';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
@@ -619,7 +619,8 @@ export function mutationQueuesContainKey(
 function mutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
-  return txn.getStore<DbMutationBatchKey, DbMutationBatch>(
+  return getStore<DbMutationBatchKey, DbMutationBatch>(
+    txn,
     DbMutationBatch.store
   );
 }
@@ -630,7 +631,8 @@ function mutationsStore(
 function documentMutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
-  return txn.getStore<DbDocumentMutationKey, DbDocumentMutation>(
+  return getStore<DbDocumentMutationKey, DbDocumentMutation>(
+    txn,
     DbDocumentMutation.store
   );
 }
@@ -641,7 +643,8 @@ function documentMutationsStore(
 function mutationQueuesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
-  return txn.getStore<DbMutationQueueKey, DbMutationQueue>(
+  return getStore<DbMutationQueueKey, DbMutationQueue>(
+    txn,
     DbMutationQueue.store
   );
 }

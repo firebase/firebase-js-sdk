@@ -22,6 +22,7 @@ import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { DbTarget, DbTargetKey } from '../../../src/local/indexeddb_schema';
 import { TargetId } from '../../../src/core/types';
+import { getStore } from '../../../src/local/indexeddb_transaction';
 
 let persistence: Persistence;
 
@@ -55,7 +56,8 @@ describe('IndexedDbTransaction', () => {
     let runCount = 0;
     let commitCount = 0;
     await persistence.runTransaction('onCommitted', 'readwrite', txn => {
-      const targetsStore = txn.getStore<DbTargetKey, { targetId: TargetId }>(
+      const targetsStore = getStore<DbTargetKey, { targetId: TargetId }>(
+        txn,
         DbTarget.store
       );
 

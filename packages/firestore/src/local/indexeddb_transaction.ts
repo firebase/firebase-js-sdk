@@ -18,6 +18,7 @@
 import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { ListenSequenceNumber } from '../core/types';
+import { debugCast } from '../util/assert';
 
 export class IndexedDbTransaction extends PersistenceTransaction {
   constructor(
@@ -26,10 +27,15 @@ export class IndexedDbTransaction extends PersistenceTransaction {
   ) {
     super();
   }
+}
 
-  getStore<Key extends IDBValidKey, Value>(
-    store: string
-  ): SimpleDbStore<Key, Value> {
-    return SimpleDb.getStore<Key, Value>(this.simpleDbTransaction, store);
-  }
+export function getStore<Key extends IDBValidKey, Value>(
+  txn: PersistenceTransaction,
+  store: string
+): SimpleDbStore<Key, Value> {
+  const indexedDbTransaction = debugCast(txn, IndexedDbTransaction);
+  return SimpleDb.getStore<Key, Value>(
+    indexedDbTransaction.simpleDbTransaction,
+    store
+  );
 }

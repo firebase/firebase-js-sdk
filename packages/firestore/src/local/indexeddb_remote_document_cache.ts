@@ -55,6 +55,7 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
 import { dbDocumentSize } from './indexeddb_schema_converter';
+import { getStore } from './indexeddb_transaction';
 
 export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
   // The IndexedDbRemoteDocumentCache doesn't implement any methods on top
@@ -581,7 +582,8 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
 function documentGlobalStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal> {
-  return txn.getStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
+  return getStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
+    txn,
     DbRemoteDocumentGlobal.store
   );
 }
@@ -592,7 +594,8 @@ function documentGlobalStore(
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
-  return txn.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+  return getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+    txn,
     DbRemoteDocument.store
   );
 }

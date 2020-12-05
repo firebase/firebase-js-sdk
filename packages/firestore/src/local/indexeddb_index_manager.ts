@@ -28,6 +28,7 @@ import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore } from './simple_db';
+import { getStore } from './indexeddb_transaction';
 
 /**
  * A persisted implementation of IndexManager.
@@ -109,7 +110,8 @@ export class IndexedDbIndexManager implements IndexManager {
 function collectionParentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbCollectionParentKey, DbCollectionParent> {
-  return txn.getStore<DbCollectionParentKey, DbCollectionParent>(
+  return getStore<DbCollectionParentKey, DbCollectionParent>(
+    txn,
     DbCollectionParent.store
   );
 }

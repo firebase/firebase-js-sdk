@@ -44,6 +44,7 @@ import { SimpleDbStore } from './simple_db';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
 import { DocumentKey } from '../model/path';
+import { getStore } from './indexeddb_transaction';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -403,7 +404,7 @@ export class IndexedDbTargetCache implements TargetCache {
 function targetsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
-  return txn.getStore<DbTargetKey, DbTarget>(DbTarget.store);
+  return getStore<DbTargetKey, DbTarget>(txn, DbTarget.store);
 }
 
 /**
@@ -412,7 +413,7 @@ function targetsStore(
 function globalTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
-  return txn.getStore<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store);
+  return getStore<DbTargetGlobalKey, DbTargetGlobal>(txn, DbTargetGlobal.store);
 }
 
 /**
@@ -421,7 +422,8 @@ function globalTargetStore(
 export function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
-  return txn.getStore<DbTargetDocumentKey, DbTargetDocument>(
+  return getStore<DbTargetDocumentKey, DbTargetDocument>(
+    txn,
     DbTargetDocument.store
   );
 }

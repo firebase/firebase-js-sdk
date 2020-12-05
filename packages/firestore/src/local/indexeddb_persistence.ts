@@ -55,7 +55,7 @@ import { LruParams } from './lru_garbage_collector';
 import { BundleCache } from './bundle_cache';
 import { IndexManager } from './index_manager';
 import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
-import { IndexedDbTransaction } from './indexeddb_transaction';
+import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
 import { SchemaConverter } from './indexeddb_schema_converter';
@@ -456,10 +456,10 @@ export class IndexedDbPersistence implements Persistence {
         'maybeGarbageCollectMultiClientState',
         'readwrite-primary',
         txn => {
-          const metadataStore = txn.getStore<
-            DbClientMetadataKey,
-            DbClientMetadata
-          >(DbClientMetadata.store);
+          const metadataStore = getStore<DbClientMetadataKey, DbClientMetadata>(
+            txn,
+            DbClientMetadata.store
+          );
 
           return metadataStore.loadAll().next(existingClients => {
             const active = this.filterActiveClients(
@@ -1049,7 +1049,10 @@ export class IndexedDbPersistence implements Persistence {
 function primaryClientStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbPrimaryClientKey, DbPrimaryClient> {
-  return txn.getStore(DbPrimaryClient.store);
+  return getStore<DbPrimaryClientKey, DbPrimaryClient>(
+    txn,
+    DbPrimaryClient.store
+  );
 }
 
 /**
@@ -1058,7 +1061,10 @@ function primaryClientStore(
 function clientMetadataStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbClientMetadataKey, DbClientMetadata> {
-  return txn.getStore(DbClientMetadata.store);
+  return getStore<DbClientMetadataKey, DbClientMetadata>(
+    txn,
+    DbClientMetadata.store
+  );
 }
 
 /**

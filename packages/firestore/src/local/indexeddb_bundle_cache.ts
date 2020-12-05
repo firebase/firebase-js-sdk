@@ -36,6 +36,7 @@ import {
   toDbNamedQuery
 } from './local_serializer';
 import { Bundle, NamedQuery } from '../core/bundle';
+import { getStore } from './indexeddb_transaction';
 
 export class IndexedDbBundleCache implements BundleCache {
   getBundleMetadata(
@@ -87,7 +88,7 @@ export class IndexedDbBundleCache implements BundleCache {
 function bundlesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbBundlesKey, DbBundle> {
-  return txn.getStore<DbBundlesKey, DbBundle>(DbBundle.store);
+  return getStore<DbBundlesKey, DbBundle>(txn, DbBundle.store);
 }
 
 /**
@@ -96,5 +97,5 @@ function bundlesStore(
 function namedQueriesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbNamedQueriesKey, DbNamedQuery> {
-  return txn.getStore(DbNamedQuery.store);
+  return getStore<DbNamedQueriesKey, DbNamedQuery>(txn, DbNamedQuery.store);
 }
