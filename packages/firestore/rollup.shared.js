@@ -259,7 +259,8 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/**/*.js']
+        include: ['dist/**/*.js'],
+        cacheDir: tmp.dirSync()
       }),
       terser({
         output: {
@@ -279,7 +280,8 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/**/*.js']
+        include: ['dist/**/*.js'],
+        cacheDir: tmp.dirSync()
       }),
       sourcemaps()
     ];

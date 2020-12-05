@@ -24,6 +24,7 @@ import { expect } from 'chai';
 import { Blob } from '../../src/api/blob';
 import {
   parseQueryValue,
+  parseSetData,
   parseUpdateData,
   UserDataReader
 } from '../../src/api/user_data_reader';
@@ -76,8 +77,7 @@ import {
   MutationResult,
   PatchMutation,
   Precondition,
-  SetMutation,
-  TransformMutation
+  SetMutation
 } from '../../src/model/mutation';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
@@ -230,7 +230,20 @@ export function setMutation(
   keyStr: string,
   json: JsonObject<unknown>
 ): SetMutation {
-  return new SetMutation(key(keyStr), wrapObject(json), Precondition.none());
+  const setKey = key(keyStr);
+  const parsed = parseSetData(
+    testUserDataReader(),
+    'setMutation',
+    setKey,
+    json,
+    false
+  );
+  return new SetMutation(
+    setKey,
+    parsed.data,
+    Precondition.none(),
+    parsed.fieldTransforms
+  );
 }
 
 export function patchMutation(
@@ -258,32 +271,13 @@ export function patchMutation(
     patchKey,
     parsed.data,
     parsed.fieldMask,
-    precondition
+    precondition,
+    parsed.fieldTransforms
   );
 }
 
 export function deleteMutation(keyStr: string): DeleteMutation {
   return new DeleteMutation(key(keyStr), Precondition.none());
-}
-
-/**
- * Creates a TransformMutation by parsing any FieldValue sentinels in the
- * provided data. The data is expected to use dotted-notation for nested fields
- * (i.e. { "foo.bar": FieldValue.foo() } and must not contain any non-sentinel
- * data.
- */
-export function transformMutation(
-  keyStr: string,
-  data: Dict<unknown>
-): TransformMutation {
-  const transformKey = key(keyStr);
-  const result = parseUpdateData(
-    testUserDataReader(),
-    'transformMutation()',
-    transformKey,
-    data
-  );
-  return new TransformMutation(transformKey, result.fieldTransforms);
 }
 
 export function mutationResult(

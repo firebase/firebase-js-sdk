@@ -314,8 +314,8 @@ export function setDoc<T>(
     options
   );
 
-  const mutations = parsed.toMutations(reference._key, Precondition.none());
-  return executeWrite(firestore, mutations);
+  const mutation = parsed.toMutation(reference._key, Precondition.none());
+  return executeWrite(firestore, [mutation]);
 }
 
 /**
@@ -394,11 +394,8 @@ export function updateDoc(
     );
   }
 
-  const mutations = parsed.toMutations(
-    reference._key,
-    Precondition.exists(true)
-  );
-  return executeWrite(firestore, mutations);
+  const mutation = parsed.toMutation(reference._key, Precondition.exists(true));
+  return executeWrite(firestore, [mutation]);
 }
 
 /**
@@ -448,8 +445,8 @@ export function addDoc<T>(
     {}
   );
 
-  const mutations = parsed.toMutations(docRef._key, Precondition.exists(false));
-  return executeWrite(firestore, mutations).then(() => docRef);
+  const mutation = parsed.toMutation(docRef._key, Precondition.exists(false));
+  return executeWrite(firestore, [mutation]).then(() => docRef);
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
