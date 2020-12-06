@@ -28,6 +28,12 @@ import pkg from './package.json';
 
 import appPkg from './app/package.json';
 
+import firestorePkg from './firestore/package.json';
+import firestoreBundlePkg from './firestore/bundle/package.json';
+
+import firestoreMemoryPkg from './firestore/memory/package.json';
+import firestoreMemoryBundlePkg from './firestore/memory/bundle/package.json';
+
 function createUmdOutputConfig(output) {
   return {
     file: output,
@@ -154,12 +160,12 @@ const firestoreBuilds = [
     input: `firestore/index.ts`,
     output: [
       {
-        file: resolve('firestore', pkg.main),
+        file: resolve('firestore', firestorePkg.main),
         format: 'cjs',
         sourcemap: true
       },
       {
-        file: resolve('firestore', pkg.module),
+        file: resolve('firestore', firestorePkg.module),
         format: 'es',
         sourcemap: true
       }
@@ -171,12 +177,12 @@ const firestoreBuilds = [
     input: `firestore/bundle/index.ts`,
     output: [
       {
-        file: resolve('firestore/bundle', pkg.main),
+        file: resolve('firestore/bundle', firestoreBundlePkg.main),
         format: 'cjs',
         sourcemap: true
       },
       {
-        file: resolve('firestore/bundle', pkg.module),
+        file: resolve('firestore/bundle', firestoreBundlePkg.module),
         format: 'es',
         sourcemap: true
       }
@@ -204,12 +210,12 @@ const firestoreMemoryBuilds = [
     input: `firestore/memory/index.ts`,
     output: [
       {
-        file: resolve('firestore/memory', pkg.main),
+        file: resolve('firestore/memory', firestoreMemoryPkg.main),
         format: 'cjs',
         sourcemap: true
       },
       {
-        file: resolve('firestore/memory', pkg.module),
+        file: resolve('firestore/memory', firestoreMemoryPkg.module),
         format: 'es',
         sourcemap: true
       }
@@ -221,12 +227,15 @@ const firestoreMemoryBuilds = [
     input: `firestore/memory/bundle/index.ts`,
     output: [
       {
-        file: resolve('firestore/memory/bundle', pkg.main),
+        file: resolve('firestore/memory/bundle', firestoreMemoryBundlePkg.main),
         format: 'cjs',
         sourcemap: true
       },
       {
-        file: resolve('firestore/memory/bundle', pkg.module),
+        file: resolve(
+          'firestore/memory/bundle',
+          firestoreMemoryBundlePkg.module
+        ),
         format: 'es',
         sourcemap: true
       }
