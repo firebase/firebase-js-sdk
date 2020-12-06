@@ -82,6 +82,9 @@ export default [
       ...util.es2017Plugins('node'),
       replace({
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../protos')
+      }),
+      copy({
+        targets: [{ src: 'src/protos', dest: 'dist/memory' }]
       })
     ],
     external: util.resolveNodeExterns,
