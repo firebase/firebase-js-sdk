@@ -20,6 +20,7 @@ jobs:
           with:
             # Canary release script requires git history and tags.
             fetch-depth: 0
+            ref: wuandy/FixActualBuildsForBundles
         - name: Set up Node (10)
           uses: actions/setup-node@v1
           with:
@@ -63,4 +64,3 @@ jobs:
             NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
             NPM_TOKEN_RXFIRE: ${{secrets.NPM_TOKEN_RXFIRE}}
             CI: true
-    
