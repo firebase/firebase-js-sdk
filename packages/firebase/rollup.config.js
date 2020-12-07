@@ -117,6 +117,8 @@ const appBuilds = [
 
 const componentBuilds = pkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
+  // The "firestore" component is treated differently because it contains multiple
+  // sub components for different builds.
   .filter(component => component !== 'app' && component !== 'firestore')
   .map(component => {
     const pkg = require(`./${component}/package.json`);
