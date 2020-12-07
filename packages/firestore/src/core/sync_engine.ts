@@ -1537,8 +1537,8 @@ export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
  * Loads a Firestore bundle into the SDK. The returned promise resolves when
  * the bundle finished loading.
  *
- * @param bundleReader Bundle to load into the SDK.
- * @param task LoadBundleTask used to update the loading progress to public API.
+ * @param bundleReader - Bundle to load into the SDK.
+ * @param task - LoadBundleTask used to update the loading progress to public API.
  */
 export function syncEngineLoadBundle(
   syncEngine: SyncEngine,

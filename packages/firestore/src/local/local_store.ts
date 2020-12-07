@@ -1395,7 +1395,6 @@ export function hasNewerBundle(
 
 /**
  * Saves the given `BundleMetadata` to local persistence.
- * @param bundleMetadata
  */
 export function saveBundle(
   localStore: LocalStore,
