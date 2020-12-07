@@ -4,6 +4,6 @@
 "@firebase/firestore": minor
 ---
 
-Release Firestore Bundles (pre-packaged Firestore data). For ESM usage, this can
+Release Firestore Bundles (pre-packaged Firestore data). For NPM users, this can
 be enabled via additional import: 'firebase/firestore/bundle'. For CDN usage,
 it is enabled by default.
