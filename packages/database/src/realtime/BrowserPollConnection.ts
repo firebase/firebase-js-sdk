@@ -28,7 +28,7 @@ import { StatsManager } from '../core/stats/StatsManager';
 import { PacketReceiver } from './polling/PacketReceiver';
 import {
   APPLICATION_ID_PARAM,
-  FORGE_DOMAIN,
+  FORGE_DOMAIN_RE,
   FORGE_REF,
   LAST_SESSION_PARAM,
   LONG_POLLING,
@@ -222,8 +222,8 @@ export class BrowserPollConnection implements Transport {
       }
       if (
         typeof location !== 'undefined' &&
-        location.href &&
-        location.href.indexOf(FORGE_DOMAIN) !== -1
+        location.hostname &&
+        FORGE_DOMAIN_RE.test(location.hostname)
       ) {
         urlParams[REFERER_PARAM] = FORGE_REF;
       }
