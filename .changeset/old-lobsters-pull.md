@@ -5,5 +5,5 @@
 ---
 
 Release Firestore Bundles (pre-packaged Firestore data). For NPM users, this can
-be enabled via additional import: 'firebase/firestore/bundle'. For CDN usage,
+be enabled via an additional import: 'firebase/firestore/bundle'. For CDN usage,
 it is enabled by default.
