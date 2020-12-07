@@ -37,7 +37,7 @@ module.exports = {
           options: {
             compilerOptions: {
               module: 'commonjs',
-              target: 'es5',
+              target: 'es2015',
               downlevelIteration: true,
               resolveJsonModule: true
             }
@@ -95,7 +95,7 @@ module.exports = {
   },
   resolve: {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
-    mainFields: ['browser', 'module', 'main'],
+    mainFields: ['esm2017', 'browser', 'module', 'main'],
     extensions: ['.js', '.ts'],
     symlinks: false
   },
