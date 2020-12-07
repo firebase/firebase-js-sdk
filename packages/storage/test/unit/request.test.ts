@@ -16,16 +16,17 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import firebase from '@firebase/app';
 import { makeRequest } from '../../src/implementation/request';
 import { RequestInfo } from '../../src/implementation/requestinfo';
 import { XhrIo } from '../../src/implementation/xhrio';
 import { makePool } from './testshared';
 import { TestingXhrIo } from './xhrio';
 
+const TEST_VERSION = '1.2.3';
+
 describe('Firebase Storage > Request', () => {
   const versionHeaderName = 'X-Firebase-Storage-Version';
-  const versionHeaderValue = 'webjs/' + firebase.SDK_VERSION;
+  const versionHeaderValue = 'webjs/' + TEST_VERSION;
   const timeout = 60 * 1000;
 
   it('Simple success request works', () => {
@@ -58,7 +59,13 @@ describe('Firebase Storage > Request', () => {
     requestInfo.headers[requestHeader] = requestValue;
     requestInfo.successCodes = [200, 234];
 
-    return makeRequest(requestInfo, null, null, makePool(spiedSend))
+    return makeRequest(
+      requestInfo,
+      null,
+      null,
+      makePool(spiedSend),
+      TEST_VERSION
+    )
       .getPromise()
       .then(
         result => {
@@ -196,7 +203,8 @@ describe('Firebase Storage > Request', () => {
       requestInfo,
       /* appId= */ null,
       authToken,
-      makePool(spiedSend)
+      makePool(spiedSend),
+      TEST_VERSION
     );
     return request.getPromise().then(
       () => {
@@ -231,7 +239,13 @@ describe('Firebase Storage > Request', () => {
       handler,
       timeout
     );
-    const request = makeRequest(requestInfo, appId, null, makePool(spiedSend));
+    const request = makeRequest(
+      requestInfo,
+      appId,
+      null,
+      makePool(spiedSend),
+      TEST_VERSION
+    );
     return request.getPromise().then(
       () => {
         assert.isTrue(spiedSend.calledOnce);

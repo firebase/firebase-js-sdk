@@ -16,16 +16,27 @@
  */
 import { TaskState } from './implementation/taskenums';
 import { Metadata } from './metadata';
-import { Reference } from './reference';
+import { StorageReference } from './reference';
 import { UploadTask } from './task';
 
-export class UploadTaskSnapshot {
-  constructor(
-    readonly bytesTransferred: number,
-    readonly totalBytes: number,
-    readonly state: TaskState,
-    readonly metadata: Metadata,
-    readonly task: UploadTask,
-    readonly ref: Reference
-  ) {}
+/**
+ * Result returned from a non-resumable upload.
+ * @public
+ */
+export interface UploadResult {
+  readonly metadata: Metadata;
+  readonly ref: StorageReference;
+}
+
+/**
+ * Holds data about the current state of the upload task.
+ * @public
+ */
+export interface UploadTaskSnapshot {
+  readonly bytesTransferred: number;
+  readonly totalBytes: number;
+  readonly state: TaskState;
+  readonly metadata: Metadata;
+  readonly task: UploadTask;
+  readonly ref: StorageReference;
 }

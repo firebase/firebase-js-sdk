@@ -46,7 +46,7 @@ export async function withTestInstance(
   return fn(storage);
 }
 
-describe('FirebaseStorage', () => {
+describe('FirebaseStorage Compat', () => {
   it('can upload bytes', () => {
     return withTestInstance(async storage => {
       const ref = storage.ref('public/bytes');

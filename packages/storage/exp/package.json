@@ -4,6 +4,6 @@
   "main": "./dist/index.browser.cjs.js",
   "module": "./dist/index.browser.esm2017.js",
   "browser": "./dist/index.browser.esm2017.js",
-  "typings": "./dist/index.d.ts",
+  "typings": "./dist/storage.d.ts",
   "private": true
 }
