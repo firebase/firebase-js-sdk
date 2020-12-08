@@ -23,6 +23,12 @@ import {
 } from '../api/credentials';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
+import {
+  executeQuery,
+  getNamedQuery,
+  handleUserChange,
+  readLocalDocument
+} from '../local/local_store_impl';
 import { Document, NoDocument } from '../model/document';
 import { Mutation } from '../model/mutation';
 import {
@@ -52,7 +58,7 @@ import {
   syncEngineWrite
 } from './sync_engine';
 import { View } from './view';
-import { DatabaseInfo } from './database_info';
+import { DatabaseId, DatabaseInfo } from './database_info';
 import { newQueryForPath, Query } from './query';
 import { Transaction } from './transaction';
 import { ViewSnapshot } from './view_snapshot';
@@ -69,21 +75,15 @@ import { logDebug } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Persistence } from '../local/persistence';
 import { Datastore } from '../remote/datastore';
-import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { NamedQuery } from './bundle';
 import { JsonProtoSerializer } from '../remote/serializer';
-import {
-  executeQuery,
-  getNamedQuery,
-  handleUserChange,
-  readLocalDocument
-} from '../local/local_store_impl';
 import { newBundleReader } from '../util/bundle_reader_impl';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { DocumentKey } from '../model/document_key';
+import { BundleReader } from '../util/bundle_reader';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
+import { NamedQuery } from './bundle_types';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -277,7 +277,7 @@ function getRemoteStore(client: FirestoreClient): Promise<RemoteStore> {
   return ensureOnlineComponents(client).then(c => c.remoteStore);
 }
 
-function getSyncEngine(client: FirestoreClient): Promise<SyncEngine> {
+export function getSyncEngine(client: FirestoreClient): Promise<SyncEngine> {
   return ensureOnlineComponents(client).then(c => c.syncEngine);
 }
 
@@ -658,15 +658,13 @@ function executeQueryViaSnapshotListener(
   return eventManagerListen(eventManager, listener);
 }
 
-export async function firestoreClientLoadBundle(
+export function firestoreClientLoadBundle(
   client: FirestoreClient,
+  databaseId: DatabaseId,
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   resultTask: LoadBundleTask
-): Promise<void> {
-  const reader = createBundleReader(
-    data,
-    newSerializer((await client.getConfiguration()).databaseInfo.databaseId)
-  );
+): void {
+  const reader = createBundleReader(data, newSerializer(databaseId));
   client.asyncQueue.enqueueAndForget(async () => {
     syncEngineLoadBundle(await getSyncEngine(client), reader, resultTask);
   });

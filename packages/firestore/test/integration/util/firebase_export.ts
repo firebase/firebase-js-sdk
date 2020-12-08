@@ -31,6 +31,8 @@ import { Blob } from '../../../src/api/blob';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { FirebaseApp } from '@firebase/app-types';
 import { Firestore } from '../../../src/api/database';
+// Import to trigger prototype patching of bundle loading.
+import '../../../index.bundle';
 
 // TODO(dimond): Right now we create a new app and Firestore instance for
 // every test and never clean them up. We may need to revisit.

@@ -16,6 +16,7 @@
  */
 
 import {
+  BundleMetadata,
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
@@ -24,8 +25,7 @@ import {
   BundledDocument,
   BundledDocuments,
   bundleInitialProgress,
-  BundleLoadResult,
-  NamedQuery
+  BundleLoadResult
 } from '../core/bundle';
 import {
   documentKeySet,
@@ -93,6 +93,7 @@ import { ApiLoadBundleTaskProgress } from '../api/bundle';
 import { SizedBundleElement } from '../util/bundle_reader';
 import { BATCHID_UNKNOWN } from '../util/types';
 import { DocumentKey } from '../model/document_key';
+import { NamedQuery } from '../core/bundle_types';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -1332,7 +1333,7 @@ export async function applyBundleDocuments(
  */
 export function hasNewerBundle(
   localStore: LocalStore,
-  bundleMetadata: ProtoBundleMetadata
+  bundleMetadata: BundleMetadata
 ): Promise<boolean> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const bundleConverter = new BundleConverter(localStoreImpl.serializer);
@@ -1356,7 +1357,7 @@ export function hasNewerBundle(
  */
 export function saveBundle(
   localStore: LocalStore,
-  bundleMetadata: ProtoBundleMetadata
+  bundleMetadata: BundleMetadata
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(

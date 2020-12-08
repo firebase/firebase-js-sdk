@@ -21,6 +21,7 @@ import { name, version } from '../package.json';
 import '../auth';
 import '../database';
 import '../firestore';
+import '../firestore/bundle';
 import '../functions';
 
 firebase.registerVersion(name, version, 'node');

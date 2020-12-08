@@ -21,7 +21,6 @@ import {
   acknowledgeBatch,
   allocateTarget,
   applyRemoteEventToLocalCache,
-  BundleLoader,
   executeQuery,
   getActiveClientsFromPersistence,
   getCachedTarget,
@@ -97,9 +96,6 @@ import {
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { BundleReader } from '../util/bundle_reader';
-import { bundleInitialProgress, bundleSuccessProgress } from './bundle';
-import { LoadBundleTask } from '../api/bundle';
 import {
   EventManager,
   eventManagerOnOnlineStateChange,
@@ -108,6 +104,13 @@ import {
 } from './event_manager';
 import { BATCHID_UNKNOWN } from '../util/types';
 import { DocumentKey } from '../model/document_key';
+import { BundleReader } from '../util/bundle_reader';
+import { LoadBundleTask } from '../api/bundle';
+import {
+  bundleInitialProgress,
+  bundleSuccessProgress,
+  BundleLoader
+} from './bundle';
 
 const LOG_TAG = 'SyncEngine';
 

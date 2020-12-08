@@ -25,7 +25,9 @@ export const REFERER_PARAM = 'r';
 
 export const FORGE_REF = 'f';
 
-export const FORGE_DOMAIN = 'firebaseio.com';
+// Matches console.firebase.google.com, firebase-console-*.corp.google.com and
+// firebase.corp.google.com
+export const FORGE_DOMAIN_RE = /(console\.firebase|firebase-console-\w+\.corp|firebase\.corp)\.google\.com/;
 
 export const LAST_SESSION_PARAM = 'ls';
 

@@ -33,11 +33,16 @@ import {
   unknown
 } from './error';
 import { Location } from './location';
-import * as MetadataUtils from './metadata';
-import * as ListResultUtils from './list';
+import {
+  Mappings,
+  fromResourceString,
+  downloadUrlFromResourceString,
+  toResourceString
+} from './metadata';
+import { fromResponseString } from './list';
 import { RequestInfo, UrlParams } from './requestinfo';
-import * as type from './type';
-import * as UrlUtils from './url';
+import { isString } from './type';
+import { makeUrl } from './url';
 import { XhrIo } from './xhrio';
 import { StorageService } from '../service';
 
@@ -52,10 +57,10 @@ export function handlerCheck(cndn: boolean): void {
 
 export function metadataHandler(
   service: StorageService,
-  mappings: MetadataUtils.Mappings
+  mappings: Mappings
 ): (p1: XhrIo, p2: string) => Metadata {
   function handler(xhr: XhrIo, text: string): Metadata {
-    const metadata = MetadataUtils.fromResourceString(service, text, mappings);
+    const metadata = fromResourceString(service, text, mappings);
     handlerCheck(metadata !== null);
     return metadata as Metadata;
   }
@@ -67,11 +72,7 @@ export function listHandler(
   bucket: string
 ): (p1: XhrIo, p2: string) => ListResult {
   function handler(xhr: XhrIo, text: string): ListResult {
-    const listResult = ListResultUtils.fromResponseString(
-      service,
-      bucket,
-      text
-    );
+    const listResult = fromResponseString(service, bucket, text);
     handlerCheck(listResult !== null);
     return listResult as ListResult;
   }
@@ -80,15 +81,12 @@ export function listHandler(
 
 export function downloadUrlHandler(
   service: StorageService,
-  mappings: MetadataUtils.Mappings
+  mappings: Mappings
 ): (p1: XhrIo, p2: string) => string | null {
   function handler(xhr: XhrIo, text: string): string | null {
-    const metadata = MetadataUtils.fromResourceString(service, text, mappings);
+    const metadata = fromResourceString(service, text, mappings);
     handlerCheck(metadata !== null);
-    return MetadataUtils.downloadUrlFromResourceString(
-      metadata as Metadata,
-      text
-    );
+    return downloadUrlFromResourceString(metadata as Metadata, text);
   }
   return handler;
 }
@@ -142,10 +140,10 @@ export function objectErrorHandler(
 export function getMetadata(
   service: StorageService,
   location: Location,
-  mappings: MetadataUtils.Mappings
+  mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
-  const url = UrlUtils.makeUrl(urlPart);
+  const url = makeUrl(urlPart);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -181,7 +179,7 @@ export function list(
     urlParams['maxResults'] = maxResults;
   }
   const urlPart = location.bucketOnlyServerUrl();
-  const url = UrlUtils.makeUrl(urlPart);
+  const url = makeUrl(urlPart);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -198,10 +196,10 @@ export function list(
 export function getDownloadUrl(
   service: StorageService,
   location: Location,
-  mappings: MetadataUtils.Mappings
+  mappings: Mappings
 ): RequestInfo<string | null> {
   const urlPart = location.fullServerUrl();
-  const url = UrlUtils.makeUrl(urlPart);
+  const url = makeUrl(urlPart);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -217,13 +215,13 @@ export function getDownloadUrl(
 export function updateMetadata(
   service: StorageService,
   location: Location,
-  metadata: Metadata,
-  mappings: MetadataUtils.Mappings
+  metadata: Partial<Metadata>,
+  mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
-  const url = UrlUtils.makeUrl(urlPart);
+  const url = makeUrl(urlPart);
   const method = 'PATCH';
-  const body = MetadataUtils.toResourceString(metadata, mappings);
+  const body = toResourceString(metadata, mappings);
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -243,7 +241,7 @@ export function deleteObject(
   location: Location
 ): RequestInfo<void> {
   const urlPart = location.fullServerUrl();
-  const url = UrlUtils.makeUrl(urlPart);
+  const url = makeUrl(urlPart);
   const method = 'DELETE';
   const timeout = service.maxOperationRetryTime;
 
@@ -279,10 +277,13 @@ export function metadataForUpload_(
   return metadataClone;
 }
 
+/**
+ * Prepare RequestInfo for uploads as Content-Type: multipart.
+ */
 export function multipartUpload(
   service: StorageService,
   location: Location,
-  mappings: MetadataUtils.Mappings,
+  mappings: Mappings,
   blob: FbsBlob,
   metadata?: Metadata | null
 ): RequestInfo<Metadata> {
@@ -301,7 +302,7 @@ export function multipartUpload(
   const boundary = genBoundary();
   headers['Content-Type'] = 'multipart/related; boundary=' + boundary;
   const metadata_ = metadataForUpload_(location, blob, metadata);
-  const metadataString = MetadataUtils.toResourceString(metadata_, mappings);
+  const metadataString = toResourceString(metadata_, mappings);
   const preBlobPart =
     '--' +
     boundary +
@@ -320,7 +321,7 @@ export function multipartUpload(
     throw cannotSliceBlob();
   }
   const urlParams: UrlParams = { name: metadata_['fullPath']! };
-  const url = UrlUtils.makeUrl(urlPart);
+  const url = makeUrl(urlPart);
   const method = 'POST';
   const timeout = service.maxUploadRetryTime;
   const requestInfo = new RequestInfo(
@@ -373,14 +374,14 @@ export function checkResumeHeader_(xhr: XhrIo, allowed?: string[]): string {
 export function createResumableUpload(
   service: StorageService,
   location: Location,
-  mappings: MetadataUtils.Mappings,
+  mappings: Mappings,
   blob: FbsBlob,
   metadata?: Metadata | null
 ): RequestInfo<string> {
   const urlPart = location.bucketOnlyServerUrl();
   const metadataForUpload = metadataForUpload_(location, blob, metadata);
   const urlParams: UrlParams = { name: metadataForUpload['fullPath']! };
-  const url = UrlUtils.makeUrl(urlPart);
+  const url = makeUrl(urlPart);
   const method = 'POST';
   const headers = {
     'X-Goog-Upload-Protocol': 'resumable',
@@ -389,7 +390,7 @@ export function createResumableUpload(
     'X-Goog-Upload-Header-Content-Type': metadataForUpload['contentType']!,
     'Content-Type': 'application/json; charset=utf-8'
   };
-  const body = MetadataUtils.toResourceString(metadataForUpload, mappings);
+  const body = toResourceString(metadataForUpload, mappings);
   const timeout = service.maxUploadRetryTime;
 
   function handler(xhr: XhrIo): string {
@@ -400,7 +401,7 @@ export function createResumableUpload(
     } catch (e) {
       handlerCheck(false);
     }
-    handlerCheck(type.isString(url));
+    handlerCheck(isString(url));
     return url as string;
   }
   const requestInfo = new RequestInfo(url, method, handler, timeout);
@@ -452,7 +453,7 @@ export function getResumableUploadStatus(
  * Any uploads via the resumable upload API must transfer a number of bytes
  * that is a multiple of this number.
  */
-export const resumableUploadChunkSize: number = 256 * 1024;
+export const RESUMABLE_UPLOAD_CHUNK_SIZE: number = 256 * 1024;
 
 /**
  * @param url From a call to fbs.requests.createResumableUpload.
@@ -469,7 +470,7 @@ export function continueResumableUpload(
   url: string,
   blob: FbsBlob,
   chunkSize: number,
-  mappings: MetadataUtils.Mappings,
+  mappings: Mappings,
   status?: ResumableUploadStatus | null,
   progressCallback?: ((p1: number, p2: number) => void) | null
 ): RequestInfo<ResumableUploadStatus> {

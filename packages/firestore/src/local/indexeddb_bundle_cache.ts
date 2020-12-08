@@ -35,8 +35,8 @@ import {
   toDbBundle,
   toDbNamedQuery
 } from './local_serializer';
-import { Bundle, NamedQuery } from '../core/bundle';
 import { getStore } from './indexeddb_transaction';
+import { Bundle, NamedQuery } from '../core/bundle_types';
 
 export class IndexedDbBundleCache implements BundleCache {
   getBundleMetadata(

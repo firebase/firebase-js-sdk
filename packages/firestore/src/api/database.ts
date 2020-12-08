@@ -18,10 +18,6 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId } from '../core/database_info';
-import {
-  firestoreClientGetNamedQuery,
-  firestoreClientLoadBundle
-} from '../core/firestore_client';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -95,7 +91,6 @@ import {
   DocumentReference as ExpDocumentReference
 } from '../../exp/src/api/reference';
 import { Compat } from './compat';
-import { ApiLoadBundleTask, LoadBundleTask } from './bundle';
 import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
 import {
   runTransaction,
@@ -106,6 +101,7 @@ import {
   CollectionReference as PublicCollectionReference,
   DocumentChange as PublicDocumentChange,
   DocumentChangeType as PublicDocumentChangeType,
+  DocumentData,
   DocumentData as PublicDocumentData,
   DocumentReference as PublicDocumentReference,
   DocumentSnapshot as PublicDocumentSnapshot,
@@ -134,6 +130,7 @@ import { Bytes } from '../../lite/src/api/bytes';
 import { AbstractUserDataWriter } from './user_data_writer';
 import { DEFAULT_HOST } from '../../lite/src/api/settings';
 import { DocumentKey } from '../model/document_key';
+import { LoadBundleTask } from './bundle';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
@@ -365,6 +362,22 @@ export class Firestore
       )
     );
   }
+
+  loadBundle(
+    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+  ): LoadBundleTask {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      '"loadBundle()" does not exist, have you imported "firebase/firestore/bundle"?'
+    );
+  }
+
+  namedQuery(name: string): Promise<PublicQuery<DocumentData> | null> {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      '"namedQuery()" does not exist, have you imported "firebase/firestore/bundle"?'
+    );
+  }
 }
 
 export class UserDataWriter extends AbstractUserDataWriter {
@@ -384,35 +397,6 @@ export class UserDataWriter extends AbstractUserDataWriter {
 
 export function setLogLevel(level: PublicLogLevel): void {
   setClientLogLevel(level);
-}
-
-export function loadBundle(
-  db: Firestore,
-  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-): ApiLoadBundleTask {
-  const resultTask = new LoadBundleTask();
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClientLoadBundle(
-    ensureFirestoreConfigured(db._delegate),
-    bundleData,
-    resultTask
-  );
-  return resultTask;
-}
-
-export function namedQuery(
-  db: Firestore,
-  name: string
-): Promise<PublicQuery | null> {
-  return firestoreClientGetNamedQuery(
-    ensureFirestoreConfigured(db._delegate),
-    name
-  ).then(namedQuery => {
-    if (!namedQuery) {
-      return null;
-    }
-    return new Query(db, new ExpQuery(db._delegate, null, namedQuery.query));
-  });
 }
 
 /**

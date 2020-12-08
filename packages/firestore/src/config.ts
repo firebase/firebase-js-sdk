@@ -20,6 +20,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType, Provider } from '@firebase/component';
 import {
+  CACHE_SIZE_UNLIMITED,
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
@@ -29,14 +30,13 @@ import {
   QuerySnapshot,
   Transaction,
   WriteBatch,
-  setLogLevel
-} from './api/database';
-import { Blob } from './api/blob';
-import { FieldPath } from './api/field_path';
-import { GeoPoint } from './api/geo_point';
-import { Timestamp } from './api/timestamp';
-import { FieldValue } from './api/field_value';
-import { CACHE_SIZE_UNLIMITED } from '../exp/src/api/database';
+  setLogLevel,
+  Blob,
+  FieldPath,
+  GeoPoint,
+  Timestamp,
+  FieldValue
+} from '../export';
 
 const firestoreNamespace = {
   Firestore,
