@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { logDebug } from '../util/log';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
+import { logDebug } from '../util/log';
 
 const LOG_TAG = 'ExponentialBackoff';
 
