@@ -35,7 +35,7 @@ describe('core/providers/oauth', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = new OAuthProvider('google.com').credential({
       idToken: 'id-token',
-      accessToken: 'access-token',
+      accessToken: 'access-token'
     });
     expect(cred.accessToken).to.eq('access-token');
     expect(cred.idToken).to.eq('id-token');
@@ -52,7 +52,7 @@ describe('core/providers/oauth', () => {
         ...TEST_ID_TOKEN_RESPONSE,
         oauthAccessToken: 'access-token',
         oauthIdToken: 'id-token',
-        providerId: ProviderId.FACEBOOK,
+        providerId: ProviderId.FACEBOOK
       },
       operationType: OperationType.SIGN_IN
     });
@@ -71,7 +71,7 @@ describe('core/providers/oauth', () => {
       _tokenResponse: {
         ...TEST_ID_TOKEN_RESPONSE,
         oauthAccessToken: 'access-token',
-        oauthIdToken: 'id-token',
+        oauthIdToken: 'id-token'
       },
       operationType: OperationType.SIGN_IN
     });
