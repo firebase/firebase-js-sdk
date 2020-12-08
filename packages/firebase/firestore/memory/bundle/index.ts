@@ -15,21 +15,9 @@
  * limitations under the License.
  */
 
-import * as path from 'path';
-import memoryPkg from './memory/package.json';
+/**
+ * This file serves as the public entrypoint for users that import
+ * `firebase/firestore/memory`.
+ */
 
-const util = require('./rollup.shared');
-
-export default {
-  input: 'index.rn.memory.ts',
-  output: {
-    file: path.resolve('./memory', memoryPkg['react-native']),
-    format: 'es',
-    sourcemap: true
-  },
-  plugins: util.es2017Plugins('rn', /* mangled= */ true),
-  external: util.resolveBrowserExterns,
-  treeshake: {
-    moduleSideEffects: false
-  }
-};
+import '@firebase/firestore/memory-bundle';

@@ -1,3 +1,9 @@
+import pkg from './package.json';
+import path from 'path';
+import memoryPkg from './memory/package.json';
+import bundlePkg from './bundle/package.json';
+import memoryBundlePkg from './memory-bundle/package.json';
+
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -15,15 +21,14 @@
  * limitations under the License.
  */
 
-import pkg from './package.json';
-
 const util = require('./rollup.shared');
 
 export default [
+  // Create a temporary build that includes the mangled classes for all exports
   {
-    input: 'index.ts',
+    input: 'export.ts',
     output: {
-      file: pkg.esm2017,
+      file: 'dist/prebuilt.js',
       format: 'es',
       sourcemap: true
     },
@@ -33,9 +38,78 @@ export default [
       moduleSideEffects: false
     }
   },
+  // Create main build
   {
-    input: pkg.esm2017,
-    output: { file: pkg.module, format: 'es', sourcemap: true },
+    input: {
+      index: 'index.ts',
+      bundle: 'index.bundle.ts'
+    },
+    output: {
+      dir: 'dist/esm2017',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      util.applyPrebuilt(),
+      ...util.es2017Plugins('browser', /* mangled= */ false)
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Convert main build to ES5
+  {
+    input: {
+      index: pkg['esm2017'],
+      bundle: path.resolve('./bundle', bundlePkg['esm2017'])
+    },
+    output: [
+      {
+        dir: 'dist/esm5',
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Create memory build
+  {
+    input: {
+      index: 'index.memory.ts',
+      bundle: 'index.bundle.ts'
+    },
+    output: {
+      dir: 'dist/memory/esm2017',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      util.applyPrebuilt(),
+      ...util.es2017Plugins('browser', /* mangled= */ false)
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Convert memory build to ES5
+  {
+    input: {
+      index: path.resolve('./memory', memoryPkg['esm2017']),
+      bundle: path.resolve('./bundle', memoryBundlePkg['esm2017'])
+    },
+    output: [
+      {
+        dir: 'dist/memory/esm5',
+        format: 'es',
+        sourcemap: true
+      }
+    ],
     plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns,
     treeshake: {

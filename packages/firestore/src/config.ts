@@ -30,13 +30,13 @@ import {
   QuerySnapshot,
   Transaction,
   WriteBatch,
-  setLogLevel
-} from './api/database';
-import { Blob } from './api/blob';
-import { FieldPath } from './api/field_path';
-import { GeoPoint } from './api/geo_point';
-import { Timestamp } from './api/timestamp';
-import { FieldValue } from './compat/field_value';
+  setLogLevel,
+  Blob,
+  FieldPath,
+  GeoPoint,
+  Timestamp,
+  FieldValue
+} from '../export';
 
 const firestoreNamespace = {
   Firestore,

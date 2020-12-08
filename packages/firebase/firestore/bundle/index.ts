@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,4 @@
  * limitations under the License.
  */
 
-import firebase from '../app';
-import { name, version } from '../package.json';
-
-import '../auth';
-import '../database';
-// TODO(b/158625454): Storage doesn't actually work by default in RN (it uses
-//  `atob`). We should provide a RN build that works out of the box.
-import '../storage';
-import '../firestore';
-import '../firestore/bundle';
-
-firebase.registerVersion(name, version, 'rn');
-
-export default firebase;
+import '@firebase/firestore/bundle';
