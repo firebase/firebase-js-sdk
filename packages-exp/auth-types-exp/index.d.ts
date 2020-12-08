@@ -215,7 +215,7 @@ export interface Auth {
    *
    * @param persistence - The {@link Persistence} to use.
    */
-  setPersistence(persistence: Persistence): void;
+  setPersistence(persistence: Persistence): Promise<void>;
   /**
    * The Auth instance's language code.
    *
