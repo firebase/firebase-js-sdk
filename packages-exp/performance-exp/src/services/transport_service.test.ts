@@ -57,7 +57,7 @@ describe('Firebase Performance > transport_service', () => {
     }).to.throw;
   });
 
-  it('does not attempt to log an event to cc after INITIAL_SEND_TIME_DELAY_MS if queue is empty', () => {
+  it('does not attempt to log an event after INITIAL_SEND_TIME_DELAY_MS if queue is empty', () => {
     fetchStub.resolves(
       new Response('', {
         status: 200,
@@ -68,7 +68,8 @@ describe('Firebase Performance > transport_service', () => {
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
     expect(fetchStub).to.not.have.been.called;
   });
-  it('attempts to log an event to cc after DEFAULT_SEND_INTERVAL_MS if queue not empty', async () => {
+
+  it('attempts to log an event after DEFAULT_SEND_INTERVAL_MS if queue not empty', async () => {
     fetchStub.resolves(
       new Response('', {
         status: 200,
@@ -104,8 +105,8 @@ describe('Firebase Performance > transport_service', () => {
 
     // Returns successful response from fl for logRequests.
     const response = generateSuccessResponse();
-    fetchStub.resolves(response);
     stub(response, 'json').resolves(JSON.parse(generateSuccessResponseBody()));
+    fetchStub.resolves(response);
 
     // Act
     // Generate 1020 events, which should be dispatched in two batches (1000 events and 20 events).
@@ -114,6 +115,7 @@ describe('Firebase Performance > transport_service', () => {
     }
     // Wait for first and second event dispatch to happen.
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
+    // This is to resolve the floating promise chain in transport service.
     await Promise.resolve().then().then().then();
     clock.tick(DEFAULT_SEND_INTERVAL_MS);
 
