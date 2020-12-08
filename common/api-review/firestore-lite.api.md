@@ -168,10 +168,8 @@ export abstract class FieldValue {
     abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 }
 
-// Warning: (ae-forgotten-export) The symbol "FirestoreService" needs to be exported by the entry point index.d.ts
-//
 // @public
-export class FirebaseFirestore implements FirestoreService {
+export class FirebaseFirestore implements _FirebaseService {
     constructor(databaseIdOrApp: DatabaseId | FirebaseApp, authProvider: Provider<FirebaseAuthInternalName>);
     get app(): FirebaseApp;
     // Warning: (ae-forgotten-export) The symbol "CredentialsProvider" needs to be exported by the entry point index.d.ts

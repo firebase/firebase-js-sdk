@@ -11,6 +11,7 @@ import { _FirebaseService } from '@firebase/app-types-exp';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
+import { SnapshotMetadata as SnapshotMetadata_2 } from '@firebase/firestore-types';
 
 // @public
 export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
@@ -439,11 +440,11 @@ export interface SnapshotListenOptions {
 }
 
 // @public
-export class SnapshotMetadata {
+export class SnapshotMetadata implements SnapshotMetadata_2 {
     constructor(hasPendingWrites: boolean, fromCache: boolean);
     readonly fromCache: boolean;
     readonly hasPendingWrites: boolean;
-    isEqual(other: SnapshotMetadata): boolean;
+    isEqual(other: SnapshotMetadata_2): boolean;
 }
 
 // @public
