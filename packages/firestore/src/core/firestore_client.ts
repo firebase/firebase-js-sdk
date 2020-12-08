@@ -83,7 +83,7 @@ import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { DocumentKey } from '../model/document_key';
 import { BundleReader } from '../util/bundle_reader';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { NamedQuery } from './bundle_types';
+import { NamedQuery } from './bundle';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

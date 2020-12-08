@@ -89,7 +89,7 @@ import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
-import { BundledDocuments } from '../../../src/core/bundle';
+import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
 import {
   acknowledgeBatch,
@@ -113,7 +113,7 @@ import {
   synchronizeLastDocumentChangeReadTime
 } from '../../../src/local/local_store_impl';
 import { BATCHID_UNKNOWN } from '../../../src/util/types';
-import { NamedQuery } from '../../../src/core/bundle_types';
+import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -126,12 +126,15 @@ class LocalStoreTester {
   private lastChanges: MaybeDocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
+  private bundleConverter: BundleConverterImpl;
 
   constructor(
     public localStore: LocalStore,
     private readonly queryEngine: CountingQueryEngine,
     readonly gcIsEager: boolean
-  ) {}
+  ) {
+    this.bundleConverter = new BundleConverterImpl(JSON_SERIALIZER);
+  }
 
   private prepareNextStep(): void {
     this.promiseChain = this.promiseChain.then(() => {
@@ -198,7 +201,12 @@ class LocalStoreTester {
 
     this.promiseChain = this.promiseChain
       .then(() =>
-        applyBundleDocuments(this.localStore, documents, bundleName || '')
+        applyBundleDocuments(
+          this.localStore,
+          this.bundleConverter,
+          documents,
+          bundleName || ''
+        )
       )
       .then(result => {
         this.lastChanges = result;

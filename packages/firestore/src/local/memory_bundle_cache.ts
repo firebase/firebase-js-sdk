@@ -27,7 +27,7 @@ import {
   fromProtoNamedQuery,
   LocalSerializer
 } from './local_serializer';
-import { Bundle, NamedQuery } from '../core/bundle_types';
+import { Bundle, NamedQuery } from '../core/bundle';
 
 export class MemoryBundleCache implements BundleCache {
   private bundles = new Map<string, Bundle>();

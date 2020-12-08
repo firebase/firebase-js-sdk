@@ -108,9 +108,9 @@ import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
 import {
   bundleInitialProgress,
-  bundleSuccessProgress,
-  BundleLoader
-} from './bundle';
+  BundleLoader,
+  bundleSuccessProgress
+} from './bundle_impl';
 
 const LOG_TAG = 'SyncEngine';
 
