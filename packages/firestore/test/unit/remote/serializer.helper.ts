@@ -22,6 +22,7 @@ import { DocumentReference, UserDataWriter } from '../../../src/api/database';
 import { FieldValue } from '../../../src/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
+import { parseQueryValue } from '../../../src/api/user_data_reader';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
   LimitType,
@@ -47,6 +48,7 @@ import {
   TargetImpl
 } from '../../../src/core/target';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import { FieldMask } from '../../../src/model/field_mask';
 import {
   DeleteMutation,
   Mutation,
@@ -92,7 +94,9 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
+import { ByteString } from '../../../src/util/byte_string';
 import { Code, FirestoreError } from '../../../src/util/error';
+import { firestore } from '../../util/api_helpers';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
@@ -113,10 +117,6 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
-import { ByteString } from '../../../src/util/byte_string';
-import { parseQueryValue } from '../../../src/api/user_data_reader';
-import { firestore } from '../../util/api_helpers';
-import { FieldMask } from '../../../src/model/field_mask';
 
 const userDataWriter = new UserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);

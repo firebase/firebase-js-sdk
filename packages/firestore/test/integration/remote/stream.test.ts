@@ -16,9 +16,14 @@
  */
 
 import { expect } from 'chai';
+
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';
+import {
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from '../../../src/remote/datastore';
 import {
   PersistentListenStream,
   PersistentWriteStream,
@@ -30,19 +35,15 @@ import {
   ExistenceFilterChange,
   WatchTargetChange
 } from '../../../src/remote/watch_change';
-import { Code, FirestoreError } from '../../../src/util/error';
-import { Deferred } from '../../../src/util/promise';
-import { setMutation } from '../../util/helpers';
-import { withTestDatastore } from '../util/internal_helpers';
-import {
-  newPersistentWatchStream,
-  newPersistentWriteStream
-} from '../../../src/remote/datastore';
+import { TimerId } from '../../../src/util/async_queue';
 import {
   AsyncQueueImpl,
   newAsyncQueue
 } from '../../../src/util/async_queue_impl';
-import { TimerId } from '../../../src/util/async_queue';
+import { Code, FirestoreError } from '../../../src/util/error';
+import { Deferred } from '../../../src/util/promise';
+import { setMutation } from '../../util/helpers';
+import { withTestDatastore } from '../util/internal_helpers';
 
 /**
  * StreamEventType combines the events that can be observed by the

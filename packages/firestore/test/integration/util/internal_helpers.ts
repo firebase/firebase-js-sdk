@@ -17,24 +17,24 @@
 
 import * as firestore from '@firebase/firestore-types';
 
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { newDatastore, Datastore } from '../../../src/remote/datastore';
-
 import {
   CredentialChangeListener,
   CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
-import { withTestDbsSettings } from './helpers';
 import { User } from '../../../src/auth/user';
-import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
-import { key } from '../../util/helpers';
+import { newDatastore, Datastore } from '../../../src/remote/datastore';
+import { AsyncQueueImpl } from '../../../src/util/async_queue_impl';
 import { TestBundleBuilder } from '../../unit/util/bundle_data';
 import { collectionReference } from '../../util/api_helpers';
-import { AsyncQueueImpl } from '../../../src/util/async_queue_impl';
+import { key } from '../../util/helpers';
+
+import { withTestDbsSettings } from './helpers';
+import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
 
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueueImpl {
   return (db as Firestore)._delegate._queue as AsyncQueueImpl;

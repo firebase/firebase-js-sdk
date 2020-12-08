@@ -16,12 +16,11 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-
-import * as api from '../../src/protos/firestore_proto_api';
-
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
+import { DocumentReference } from '../../src/api/database';
+import { Timestamp } from '../../src/api/timestamp';
 import {
   DeleteFieldValueImpl,
   parseQueryValue,
@@ -29,6 +28,7 @@ import {
   parseUpdateData,
   UserDataReader
 } from '../../src/api/user_data_reader';
+import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   newQueryForPath,
@@ -38,6 +38,14 @@ import {
   queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
+import {
+  Bound,
+  Direction,
+  FieldFilter,
+  Filter,
+  Operator,
+  OrderBy
+} from '../../src/core/target';
 import { TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
@@ -63,8 +71,9 @@ import {
   UnknownDocument
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
+import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject, ObjectValue } from '../../src/model/object_value';
+import { FieldMask } from '../../src/model/field_mask';
 import {
   DeleteMutation,
   MutationResult,
@@ -72,22 +81,16 @@ import {
   Precondition,
   SetMutation
 } from '../../src/model/mutation';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
-import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
-import {
-  DocumentWatchChange,
-  WatchChangeAggregator,
-  WatchTargetChange,
-  WatchTargetChangeState
-} from '../../src/remote/watch_change';
-import { debugAssert, fail } from '../../src/util/assert';
-import { primitiveComparator } from '../../src/util/misc';
-import { Dict, forEach } from '../../src/util/obj';
-import { SortedMap } from '../../src/util/sorted_map';
-import { SortedSet } from '../../src/util/sorted_set';
-import { FIRESTORE } from './api_helpers';
-import { ByteString } from '../../src/util/byte_string';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata,
+  LimitType as ProtoLimitType
+} from '../../src/protos/firestore_bundle_proto';
+import * as api from '../../src/protos/firestore_proto_api';
+import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   JsonProtoSerializer,
   toDocument,
@@ -96,29 +99,25 @@ import {
   toTimestamp,
   toVersion
 } from '../../src/remote/serializer';
-import { Timestamp } from '../../src/api/timestamp';
-import { DocumentReference } from '../../src/api/database';
+import {
+  DocumentWatchChange,
+  WatchChangeAggregator,
+  WatchTargetChange,
+  WatchTargetChangeState
+} from '../../src/remote/watch_change';
+import { debugAssert, fail } from '../../src/util/assert';
+import { ByteString } from '../../src/util/byte_string';
 import { Code, FirestoreError } from '../../src/util/error';
+import { primitiveComparator } from '../../src/util/misc';
+import { Dict, forEach } from '../../src/util/obj';
+import { SortedMap } from '../../src/util/sorted_map';
+import { SortedSet } from '../../src/util/sorted_set';
 import {
   JSON_SERIALIZER,
   TEST_DATABASE_ID
 } from '../unit/local/persistence_test_helpers';
-import { BundledDocuments } from '../../src/core/bundle';
-import {
-  NamedQuery as ProtoNamedQuery,
-  BundleMetadata as ProtoBundleMetadata,
-  LimitType as ProtoLimitType
-} from '../../src/protos/firestore_bundle_proto';
-import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
-  Operator,
-  OrderBy
-} from '../../src/core/target';
-import { FieldMask } from '../../src/model/field_mask';
-import { DocumentKey } from '../../src/model/document_key';
+
+import { FIRESTORE } from './api_helpers';
 
 /* eslint-disable no-restricted-globals */
 

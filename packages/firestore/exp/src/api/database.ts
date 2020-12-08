@@ -17,9 +17,18 @@
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { makeDatabaseInfo } from '../../../lite/src/api/components';
+import { FirebaseFirestore as LiteFirestore } from '../../../lite/src/api/database';
+import {
+  IndexedDbOfflineComponentProvider,
+  MultiTabOfflineComponentProvider,
+  OfflineComponentProvider,
+  OnlineComponentProvider
+} from '../../../src/core/component_provider';
+import { DatabaseId } from '../../../src/core/database_info';
 import {
   FirestoreClient,
   firestoreClientDisableNetwork,
@@ -29,27 +38,19 @@ import {
   setOnlineComponentProvider
 } from '../../../src/core/firestore_client';
 import {
-  IndexedDbOfflineComponentProvider,
-  MultiTabOfflineComponentProvider,
-  OfflineComponentProvider,
-  OnlineComponentProvider
-} from '../../../src/core/component_provider';
-import { FirebaseFirestore as LiteFirestore } from '../../../lite/src/api/database';
-import { DatabaseId } from '../../../src/core/database_info';
-import { Code, FirestoreError } from '../../../src/util/error';
-import { Deferred } from '../../../src/util/promise';
-import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
-import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
-import { cast } from '../../../src/util/input_validation';
-import { makeDatabaseInfo } from '../../../lite/src/api/components';
 import { LRU_COLLECTION_DISABLED } from '../../../src/local/lru_garbage_collector';
+import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
 import { debugAssert } from '../../../src/util/assert';
-import { PersistenceSettings, Settings } from './settings';
-import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
+import { Code, FirestoreError } from '../../../src/util/error';
+import { cast } from '../../../src/util/input_validation';
+import { Deferred } from '../../../src/util/promise';
+
+import { PersistenceSettings, Settings } from './settings';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;

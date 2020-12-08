@@ -15,13 +15,48 @@
  * limitations under the License.
  */
 
+import { CredentialsProvider } from '../api/credentials';
+import { User } from '../auth/user';
+import {
+  indexedDbStoragePrefix,
+  IndexedDbPersistence
+} from '../local/indexeddb_persistence';
+import { LocalStore } from '../local/local_store';
+import {
+  newLocalStore,
+  synchronizeLastDocumentChangeReadTime
+} from '../local/local_store_impl';
+import { LruParams } from '../local/lru_garbage_collector';
+import { LruScheduler } from '../local/lru_garbage_collector_impl';
+import {
+  MemoryEagerDelegate,
+  MemoryPersistence
+} from '../local/memory_persistence';
+import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
+import { QueryEngine } from '../local/query_engine';
 import {
   ClientId,
   MemorySharedClientState,
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import { LocalStore } from '../local/local_store';
+import { newConnection, newConnectivityMonitor } from '../platform/connection';
+import { getDocument, getWindow } from '../platform/dom';
+import { newSerializer } from '../platform/serializer';
+import { Datastore, newDatastore } from '../remote/datastore';
+import {
+  fillWritePipeline,
+  newRemoteStore,
+  RemoteStore,
+  remoteStoreApplyPrimaryState,
+  remoteStoreShutdown
+} from '../remote/remote_store';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { AsyncQueue } from '../util/async_queue';
+import { Code, FirestoreError } from '../util/error';
+
+import { DatabaseInfo } from './database_info';
+import { EventManager, newEventManager } from './event_manager';
 import {
   applyActiveTargetsChange,
   applyBatchState,
@@ -35,41 +70,7 @@ import {
   ensureWriteCallbacks,
   synchronizeWithChangedDocuments
 } from './sync_engine';
-import {
-  fillWritePipeline,
-  newRemoteStore,
-  RemoteStore,
-  remoteStoreApplyPrimaryState,
-  remoteStoreShutdown
-} from '../remote/remote_store';
-import { EventManager, newEventManager } from './event_manager';
-import { AsyncQueue } from '../util/async_queue';
-import { DatabaseInfo } from './database_info';
-import { Datastore, newDatastore } from '../remote/datastore';
-import { User } from '../auth/user';
-import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
-import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
-import { LruScheduler } from '../local/lru_garbage_collector_impl';
-import { QueryEngine } from '../local/query_engine';
-import {
-  indexedDbStoragePrefix,
-  IndexedDbPersistence
-} from '../local/indexeddb_persistence';
-import {
-  MemoryEagerDelegate,
-  MemoryPersistence
-} from '../local/memory_persistence';
-import { newConnection, newConnectivityMonitor } from '../platform/connection';
-import { newSerializer } from '../platform/serializer';
-import { getDocument, getWindow } from '../platform/dom';
-import { CredentialsProvider } from '../api/credentials';
-import { JsonProtoSerializer } from '../remote/serializer';
-import {
-  newLocalStore,
-  synchronizeLastDocumentChangeReadTime
-} from '../local/local_store_impl';
-import { LruParams } from '../local/lru_garbage_collector';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;

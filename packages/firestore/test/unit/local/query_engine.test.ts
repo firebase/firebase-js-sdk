@@ -16,25 +16,27 @@
  */
 
 import { expect } from 'chai';
+
 import { User } from '../../../src/auth/user';
 import { LimitType, Query, queryWithLimit } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { View } from '../../../src/core/view';
-import { Persistence } from '../../../src/local/persistence';
-import { TargetCache } from '../../../src/local/target_cache';
-import { QueryEngine } from '../../../src/local/query_engine';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
+import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
+import { QueryEngine } from '../../../src/local/query_engine';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { TargetCache } from '../../../src/local/target_cache';
 import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
 import { debugAssert } from '../../../src/util/assert';
-import { testMemoryEagerPersistence } from './persistence_test_helpers';
 import { doc, filter, key, orderBy, query, version } from '../../util/helpers';
-import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
-import { DocumentKey } from '../../../src/model/document_key';
+
+import { testMemoryEagerPersistence } from './persistence_test_helpers';
 
 const TEST_TARGET_ID = 1;
 

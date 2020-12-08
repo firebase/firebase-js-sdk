@@ -25,6 +25,7 @@ import {
   increment,
   serverTimestamp
 } from '../../exp/index';
+
 import { Compat } from './compat';
 
 export class FieldValue

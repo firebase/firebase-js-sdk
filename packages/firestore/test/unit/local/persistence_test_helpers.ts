@@ -23,7 +23,6 @@ import {
   TargetId,
   ListenSequenceNumber
 } from '../../../src/core/types';
-
 import {
   indexedDbStoragePrefix,
   indexedDbClearPersistence,
@@ -31,6 +30,7 @@ import {
   MAIN_DATABASE
 } from '../../../src/local/indexeddb_persistence';
 import { LocalSerializer } from '../../../src/local/local_serializer';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   MemoryEagerDelegate,
   MemoryLruDelegate,
@@ -41,13 +41,12 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
+import { getDocument, getWindow } from '../../../src/platform/dom';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 import { AutoId } from '../../../src/util/misc';
 import { WindowLike } from '../../../src/util/types';
-import { getDocument, getWindow } from '../../../src/platform/dom';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { newAsyncQueue } from '../../../src/util/async_queue_impl';
-import { AsyncQueue } from '../../../src/util/async_queue';
 export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
   sequenceNumberHandler: null,
   writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}

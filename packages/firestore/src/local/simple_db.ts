@@ -16,10 +16,12 @@
  */
 
 import { getUA } from '@firebase/util';
+
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
+
 import { PersistencePromise } from './persistence_promise';
 
 // References to `window` are guarded by SimpleDb.isAvailable()

@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
-
 import { Timestamp } from '../api/timestamp';
-import { debugAssert } from '../util/assert';
-import { isArray, isInteger, isNumber, valueEquals } from './values';
-import { serverTimestamp } from './server_timestamps';
-import { arrayEquals } from '../util/misc';
-import { normalizeNumber } from './normalize';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { Serializer, toDouble, toInteger } from '../remote/number_serializer';
+import { debugAssert } from '../util/assert';
+import { arrayEquals } from '../util/misc';
+
+import { normalizeNumber } from './normalize';
+import { serverTimestamp } from './server_timestamps';
+import { isArray, isInteger, isNumber, valueEquals } from './values';
 
 /** Represents a transform within a TransformMutation. */
 export class TransformOperation {

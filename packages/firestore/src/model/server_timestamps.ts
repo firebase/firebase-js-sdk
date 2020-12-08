@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
 import {
   Value as ProtoValue,
   MapValue as ProtoMapValue
 } from '../protos/firestore_proto_api';
-import { Timestamp } from '../api/timestamp';
+
 import { normalizeTimestamp } from './normalize';
 
 /**

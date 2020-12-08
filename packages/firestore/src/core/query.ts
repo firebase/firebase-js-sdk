@@ -16,9 +16,11 @@
  */
 
 import { compareDocumentsByField, Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
 import { isNullOrUndefined } from '../util/types';
+
 import {
   Bound,
   canonifyTarget,
@@ -33,7 +35,6 @@ import {
   Target,
   targetEquals
 } from './target';
-import { DocumentKey } from '../model/document_key';
 
 export const enum LimitType {
   First = 'F',

@@ -20,29 +20,7 @@ import {
   SetOptions as PublicSetOptions
 } from '@firebase/firestore-types';
 
-import {
-  CollectionReference,
-  doc,
-  DocumentReference,
-  Query,
-  SetOptions,
-  UpdateData
-} from './reference';
-import { FieldPath } from './field_path';
-import { cast } from '../../../src/util/input_validation';
-import { getDatastore } from './components';
-import {
-  invokeBatchGetDocumentsRpc,
-  invokeCommitRpc,
-  invokeRunQueryRpc
-} from '../../../src/remote/datastore';
-import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import {
-  DocumentSnapshot,
-  QueryDocumentSnapshot,
-  QuerySnapshot
-} from './snapshot';
-import { hasLimitToLast } from '../../../src/core/query';
+import { Compat } from '../../../src/api/compat';
 import {
   newUserDataReader,
   ParsedUpdateData,
@@ -51,14 +29,37 @@ import {
   parseUpdateVarargs,
   UntypedFirestoreDataConverter
 } from '../../../src/api/user_data_reader';
-import { hardAssert } from '../../../src/util/assert';
-import { Document } from '../../../src/model/document';
-import { Compat } from '../../../src/api/compat';
-import { validateHasExplicitOrderByForLimitToLast } from './query';
 import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
-import { FirebaseFirestore } from './database';
+import { hasLimitToLast } from '../../../src/core/query';
+import { Document } from '../../../src/model/document';
+import { DeleteMutation, Precondition } from '../../../src/model/mutation';
+import {
+  invokeBatchGetDocumentsRpc,
+  invokeCommitRpc,
+  invokeRunQueryRpc
+} from '../../../src/remote/datastore';
+import { hardAssert } from '../../../src/util/assert';
 import { ByteString } from '../../../src/util/byte_string';
+import { cast } from '../../../src/util/input_validation';
+
 import { Bytes } from './bytes';
+import { getDatastore } from './components';
+import { FirebaseFirestore } from './database';
+import { FieldPath } from './field_path';
+import { validateHasExplicitOrderByForLimitToLast } from './query';
+import {
+  CollectionReference,
+  doc,
+  DocumentReference,
+  Query,
+  SetOptions,
+  UpdateData
+} from './reference';
+import {
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  QuerySnapshot
+} from './snapshot';
 
 /**
  * Converts custom model object of type T into DocumentData by applying the

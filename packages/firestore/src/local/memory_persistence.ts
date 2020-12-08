@@ -16,15 +16,26 @@
  */
 
 import { User } from '../auth/user';
+import { ListenSequence } from '../core/listen_sequence';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Document, MaybeDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { estimateByteSize } from '../model/values';
+import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
+
 import { encodeResourcePath } from './encoded_resource_path';
+import { LocalSerializer } from './local_serializer';
+import {
+  ActiveTargets,
+  LruDelegate,
+  LruGarbageCollector,
+  LruParams
+} from './lru_garbage_collector';
 import { newLruGarbageCollector } from './lru_garbage_collector_impl';
-import { ListenSequence } from '../core/listen_sequence';
-import { ListenSequenceNumber, TargetId } from '../core/types';
-import { estimateByteSize } from '../model/values';
+import { MemoryBundleCache } from './memory_bundle_cache';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import {
@@ -35,22 +46,12 @@ import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import { Persistence, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { ReferenceSet } from './reference_set';
-import { TargetData } from './target_data';
-import { MemoryBundleCache } from './memory_bundle_cache';
-import { JsonProtoSerializer } from '../remote/serializer';
-import { LocalSerializer } from './local_serializer';
 import {
   PersistenceTransaction,
   PersistenceTransactionMode
 } from './persistence_transaction';
-import {
-  ActiveTargets,
-  LruDelegate,
-  LruGarbageCollector,
-  LruParams
-} from './lru_garbage_collector';
-import { DocumentKey } from '../model/document_key';
+import { ReferenceSet } from './reference_set';
+import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
 /**

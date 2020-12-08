@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence_transaction';
-import { PersistencePromise } from './persistence_promise';
-import { SortedMap } from '../util/sorted_map';
 import { ListenSequenceNumber, TargetId } from '../core/types';
+import { SortedMap } from '../util/sorted_map';
+
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 import { TargetData } from './target_data';
 
 /**

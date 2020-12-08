@@ -18,17 +18,18 @@
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
+
 import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
-import { MemoryCollectionParentIndex } from './memory_index_manager';
-import { PersistenceTransaction } from './persistence_transaction';
-import { PersistencePromise } from './persistence_promise';
-import { SimpleDbStore } from './simple_db';
 import { getStore } from './indexeddb_transaction';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { SimpleDbStore } from './simple_db';
 
 /**
  * A persisted implementation of IndexManager.

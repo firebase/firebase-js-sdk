@@ -14,22 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  BundleElement,
-  LimitType as BundleLimitType
-} from '../../../src/protos/firestore_bundle_proto';
 import { DatabaseId } from '../../../src/core/database_info';
-import * as api from '../../../src/protos/firestore_proto_api';
-import { Value } from '../../../src/protos/firestore_proto_api';
-import {
-  JsonProtoSerializer,
-  toName,
-  toQueryTarget
-} from '../../../src/remote/serializer';
-import {
-  newSerializer,
-  newTextEncoder
-} from '../../../src/platform/serializer';
 import {
   LimitType,
   Query,
@@ -37,6 +22,21 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { DocumentKey } from '../../../src/model/document_key';
+import {
+  newSerializer,
+  newTextEncoder
+} from '../../../src/platform/serializer';
+import {
+  BundleElement,
+  LimitType as BundleLimitType
+} from '../../../src/protos/firestore_bundle_proto';
+import * as api from '../../../src/protos/firestore_proto_api';
+import { Value } from '../../../src/protos/firestore_proto_api';
+import {
+  JsonProtoSerializer,
+  toName,
+  toQueryTarget
+} from '../../../src/remote/serializer';
 
 export const encoder = newTextEncoder();
 

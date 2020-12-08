@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { ReferenceDelegate } from './persistence';
 import { LruDelegate, LruGarbageCollector } from './lru_garbage_collector';
+import { ReferenceDelegate } from './persistence';
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export interface IndexedDbLruDelegate extends ReferenceDelegate, LruDelegate {

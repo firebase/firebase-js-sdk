@@ -17,15 +17,19 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { canonifyTarget, Target, targetEquals } from '../core/target';
+import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
+import { DocumentKey } from '../model/document_key';
 import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
-import { TargetIdGenerator } from '../core/target_id_generator';
+
 import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
 import {
   DbTarget,
   DbTargetDocument,
@@ -34,17 +38,14 @@ import {
   DbTargetGlobalKey,
   DbTargetKey
 } from './indexeddb_schema';
+import { getStore } from './indexeddb_transaction';
 import { fromDbTarget, LocalSerializer, toDbTarget } from './local_serializer';
 import { ActiveTargets } from './lru_garbage_collector';
-import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { SimpleDbStore } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { SimpleDbStore } from './simple_db';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
-import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
-import { getStore } from './indexeddb_transaction';
-import { DocumentKey } from '../model/document_key';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(

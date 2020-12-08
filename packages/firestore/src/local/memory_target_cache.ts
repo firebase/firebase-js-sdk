@@ -16,20 +16,21 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
+import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
+import { DocumentKey } from '../model/document_key';
 import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
+
+import { ActiveTargets } from './lru_garbage_collector';
+import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
-import { PersistenceTransaction } from './persistence_transaction';
-import { ActiveTargets } from './lru_garbage_collector';
-import { Persistence } from './persistence';
-import { DocumentKey } from '../model/document_key';
 
 export class MemoryTargetCache implements TargetCache {
   /**

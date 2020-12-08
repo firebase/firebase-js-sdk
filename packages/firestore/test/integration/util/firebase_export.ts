@@ -20,17 +20,16 @@
 // reference to the minified sources. If you change any exports in this file,
 // you need to also adjust "integration/firestore/firebase_export.ts".
 
+import firebase from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import * as firestore from '@firebase/firestore-types';
 
-import firebase from '@firebase/app';
-
-import { FieldValue } from '../../../src/api/field_value';
-import { FieldPath } from '../../../src/api/field_path';
-import { Timestamp } from '../../../src/api/timestamp';
 import { Blob } from '../../../src/api/blob';
-import { GeoPoint } from '../../../src/api/geo_point';
-import { FirebaseApp } from '@firebase/app-types';
 import { Firestore } from '../../../src/api/database';
+import { FieldPath } from '../../../src/api/field_path';
+import { FieldValue } from '../../../src/api/field_value';
+import { GeoPoint } from '../../../src/api/geo_point';
+import { Timestamp } from '../../../src/api/timestamp';
 // Import to trigger prototype patching of bundle loading.
 import '../../../index.bundle';
 

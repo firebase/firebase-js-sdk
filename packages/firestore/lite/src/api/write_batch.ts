@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  DeleteMutation,
-  Mutation,
-  Precondition
-} from '../../../src/model/mutation';
-import { Code, FirestoreError } from '../../../src/util/error';
+import { Compat } from '../../../src/api/compat';
 import {
   newUserDataReader,
   parseSetData,
@@ -28,13 +23,19 @@ import {
   parseUpdateVarargs,
   UserDataReader
 } from '../../../src/api/user_data_reader';
-import { DocumentReference, SetOptions, UpdateData } from './reference';
-import { FirebaseFirestore } from './database';
+import {
+  DeleteMutation,
+  Mutation,
+  Precondition
+} from '../../../src/model/mutation';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
-import { FieldPath } from './field_path';
-import { getDatastore } from './components';
+import { Code, FirestoreError } from '../../../src/util/error';
 import { cast } from '../../../src/util/input_validation';
-import { Compat } from '../../../src/api/compat';
+
+import { getDatastore } from './components';
+import { FirebaseFirestore } from './database';
+import { FieldPath } from './field_path';
+import { DocumentReference, SetOptions, UpdateData } from './reference';
 import { applyFirestoreDataConverter } from './reference_impl';
 
 /**

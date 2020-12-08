@@ -16,11 +16,13 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
+
 import { DatabaseId } from '../core/database_info';
 import { JsonProtoSerializer } from '../remote/serializer';
+
+import * as browser from './browser/serializer';
 import * as node from './node/serializer';
 import * as rn from './rn/serializer';
-import * as browser from './browser/serializer';
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports

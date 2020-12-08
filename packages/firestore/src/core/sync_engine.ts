@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
@@ -38,6 +39,8 @@ import {
 } from '../local/local_store_impl';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
+import { ClientId, SharedClientState } from '../local/shared_client_state';
+import { QueryTargetState } from '../local/shared_client_state_syncer';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
@@ -45,6 +48,7 @@ import {
   MaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
@@ -57,15 +61,28 @@ import {
   remoteStoreUnlisten
 } from '../remote/remote_store';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { BundleReader } from '../util/bundle_reader';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-import { ClientId, SharedClientState } from '../local/shared_client_state';
-import { QueryTargetState } from '../local/shared_client_state_syncer';
 import { SortedSet } from '../util/sorted_set';
+import { BATCHID_UNKNOWN } from '../util/types';
+
+import {
+  bundleInitialProgress,
+  BundleLoader,
+  bundleSuccessProgress
+} from './bundle_impl';
+import {
+  EventManager,
+  eventManagerOnOnlineStateChange,
+  eventManagerOnWatchChange,
+  eventManagerOnWatchError
+} from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
   canonifyQuery,
@@ -95,22 +112,6 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import {
-  EventManager,
-  eventManagerOnOnlineStateChange,
-  eventManagerOnWatchChange,
-  eventManagerOnWatchError
-} from './event_manager';
-import { BATCHID_UNKNOWN } from '../util/types';
-import { DocumentKey } from '../model/document_key';
-import { BundleReader } from '../util/bundle_reader';
-import { LoadBundleTask } from '../api/bundle';
-import {
-  bundleInitialProgress,
-  BundleLoader,
-  bundleSuccessProgress
-} from './bundle_impl';
 
 const LOG_TAG = 'SyncEngine';
 

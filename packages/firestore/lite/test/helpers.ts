@@ -16,7 +16,14 @@
  */
 
 import { initializeApp } from '@firebase/app-exp';
+import { expect } from 'chai';
 
+import { Settings } from '../../exp/src/api/settings';
+import { AutoId } from '../../src/util/misc';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
 import { initializeFirestore, FirebaseFirestore } from '../src/api/database';
 import {
   doc,
@@ -26,15 +33,8 @@ import {
   DocumentReference,
   SetOptions
 } from '../src/api/reference';
-import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
-} from '../../test/integration/util/settings';
-import { AutoId } from '../../src/util/misc';
-import { expect } from 'chai';
-import { QueryDocumentSnapshot } from '../src/api/snapshot';
-import { Settings } from '../../exp/src/api/settings';
 import { setDoc } from '../src/api/reference_impl';
+import { QueryDocumentSnapshot } from '../src/api/snapshot';
 
 let appCount = 0;
 

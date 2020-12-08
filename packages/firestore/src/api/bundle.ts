@@ -19,17 +19,19 @@ import {
   LoadBundleTask as ApiLoadBundleTask,
   LoadBundleTaskProgress
 } from '@firebase/firestore-types';
-import { Deferred } from '../util/promise';
-import { PartialObserver } from './observer';
-import { debugAssert } from '../util/assert';
-import { FirestoreError } from '../util/error';
-import { Query, Firestore } from './database';
+
 import { ensureFirestoreConfigured } from '../../exp/src/api/database';
 import { Query as ExpQuery } from '../../exp/src/api/reference';
 import {
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle
 } from '../core/firestore_client';
+import { debugAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
+import { Deferred } from '../util/promise';
+
+import { Query, Firestore } from './database';
+import { PartialObserver } from './observer';
 
 export class LoadBundleTask
   implements ApiLoadBundleTask, PromiseLike<LoadBundleTaskProgress> {

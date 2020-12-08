@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { FieldPath } from './path';
 import { debugAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
+
+import { FieldPath } from './path';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.

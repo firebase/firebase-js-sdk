@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence_transaction';
-import { PersistencePromise } from './persistence_promise';
+import { Bundle, NamedQuery } from '../core/bundle';
 import {
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
+
 import { BundleCache } from './bundle_cache';
 import {
   DbBundle,
@@ -28,15 +28,16 @@ import {
   DbNamedQueriesKey,
   DbNamedQuery
 } from './indexeddb_schema';
-import { SimpleDbStore } from './simple_db';
+import { getStore } from './indexeddb_transaction';
 import {
   fromDbBundle,
   fromDbNamedQuery,
   toDbBundle,
   toDbNamedQuery
 } from './local_serializer';
-import { getStore } from './indexeddb_transaction';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { SimpleDbStore } from './simple_db';
 
 export class IndexedDbBundleCache implements BundleCache {
   getBundleMetadata(

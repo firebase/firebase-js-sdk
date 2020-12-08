@@ -21,12 +21,14 @@ import {
   SetOptions
 } from '@firebase/firestore-types';
 
-import {
-  MapValue as ProtoMapValue,
-  Value as ProtoValue
-} from '../protos/firestore_proto_api';
-import { Timestamp } from './timestamp';
+import { Bytes } from '../../lite/src/api/bytes';
+import { FirebaseFirestore } from '../../lite/src/api/database';
+import { FieldPath } from '../../lite/src/api/field_path';
+import { FieldValue } from '../../lite/src/api/field_value';
+import { DocumentReference } from '../../lite/src/api/reference';
 import { DatabaseId } from '../core/database_info';
+import { DocumentKey } from '../model/document_key';
+import { FieldMask } from '../model/field_mask';
 import {
   FieldTransform,
   Mutation,
@@ -34,36 +36,35 @@ import {
   Precondition,
   SetMutation
 } from '../model/mutation';
-import { FieldPath as InternalFieldPath } from '../model/path';
-import { debugAssert, fail } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
-import { isPlainObject, valueDescription } from '../util/input_validation';
-import { Dict, forEach, isEmpty } from '../util/obj';
 import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
-import {
-  JsonProtoSerializer,
-  toBytes,
-  toResourceName,
-  toTimestamp
-} from '../remote/serializer';
-import { GeoPoint } from './geo_point';
-import { newSerializer } from '../platform/serializer';
-import { Bytes } from '../../lite/src/api/bytes';
-import { Compat } from './compat';
-import { DocumentReference } from '../../lite/src/api/reference';
-import { FieldPath } from '../../lite/src/api/field_path';
-import { toNumber } from '../remote/number_serializer';
+import { FieldPath as InternalFieldPath } from '../model/path';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
   NumericIncrementTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
+import { newSerializer } from '../platform/serializer';
+import {
+  MapValue as ProtoMapValue,
+  Value as ProtoValue
+} from '../protos/firestore_proto_api';
+import { toNumber } from '../remote/number_serializer';
+import {
+  JsonProtoSerializer,
+  toBytes,
+  toResourceName,
+  toTimestamp
+} from '../remote/serializer';
+import { debugAssert, fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { isPlainObject, valueDescription } from '../util/input_validation';
+import { Dict, forEach, isEmpty } from '../util/obj';
+
+import { Compat } from './compat';
+import { GeoPoint } from './geo_point';
 import { ParseContext } from './parse_context';
-import { FieldValue } from '../../lite/src/api/field_value';
-import { FirebaseFirestore } from '../../lite/src/api/database';
-import { FieldMask } from '../model/field_mask';
-import { DocumentKey } from '../model/document_key';
+import { Timestamp } from './timestamp';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 

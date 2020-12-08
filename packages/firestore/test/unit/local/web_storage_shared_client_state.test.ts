@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { User } from '../../../src/auth/user';
 import {
   BatchId,
@@ -36,20 +37,21 @@ import {
   SharedClientStateSyncer
 } from '../../../src/local/shared_client_state_syncer';
 import { targetIdSet } from '../../../src/model/collections';
-import { FirestoreError } from '../../../src/util/error';
-import { AutoId } from '../../../src/util/misc';
-import { objectSize } from '../../../src/util/obj';
-import { SortedSet } from '../../../src/util/sorted_set';
-import {
-  TEST_PERSISTENCE_PREFIX,
-  populateWebStorage
-} from './persistence_test_helpers';
-import { testWindow } from '../../util/test_platform';
-import { WindowLike } from '../../../src/util/types';
 import {
   AsyncQueueImpl,
   newAsyncQueue
 } from '../../../src/util/async_queue_impl';
+import { FirestoreError } from '../../../src/util/error';
+import { AutoId } from '../../../src/util/misc';
+import { objectSize } from '../../../src/util/obj';
+import { SortedSet } from '../../../src/util/sorted_set';
+import { WindowLike } from '../../../src/util/types';
+import { testWindow } from '../../util/test_platform';
+
+import {
+  TEST_PERSISTENCE_PREFIX,
+  populateWebStorage
+} from './persistence_test_helpers';
 
 /* eslint-disable no-restricted-globals */
 

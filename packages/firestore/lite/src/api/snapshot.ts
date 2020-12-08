@@ -15,7 +15,19 @@
  * limitations under the License.
  */
 
+import { Compat } from '../../../src/api/compat';
+import {
+  fieldPathFromDotSeparatedString,
+  UntypedFirestoreDataConverter
+} from '../../../src/api/user_data_reader';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
+import { Document } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
+import { FieldPath as InternalFieldPath } from '../../../src/model/path';
+import { arrayEquals } from '../../../src/util/misc';
+
 import { FirebaseFirestore } from './database';
+import { FieldPath } from './field_path';
 import {
   DocumentData,
   DocumentReference,
@@ -23,17 +35,6 @@ import {
   queryEqual,
   SetOptions
 } from './reference';
-import { FieldPath } from './field_path';
-import { Document } from '../../../src/model/document';
-import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
-import { FieldPath as InternalFieldPath } from '../../../src/model/path';
-import {
-  fieldPathFromDotSeparatedString,
-  UntypedFirestoreDataConverter
-} from '../../../src/api/user_data_reader';
-import { arrayEquals } from '../../../src/util/misc';
-import { Compat } from '../../../src/api/compat';
-import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type `T`

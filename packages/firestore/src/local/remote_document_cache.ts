@@ -16,17 +16,18 @@
  */
 
 import { Query } from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentMap,
   NullableMaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
-import { PersistencePromise } from './persistence_promise';
-import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { SnapshotVersion } from '../core/snapshot_version';
-import { PersistenceTransaction } from './persistence_transaction';
 import { DocumentKey } from '../model/document_key';
+
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
 /**
  * Represents cached documents received from the remote backend.

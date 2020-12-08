@@ -22,6 +22,7 @@ import {
   NumericIncrementFieldValueImpl,
   ServerTimestampFieldValueImpl
 } from '../../../src/api/user_data_reader';
+
 import { FieldValue } from './field_value';
 
 /**

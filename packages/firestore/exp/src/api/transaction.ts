@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
-import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
-import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
-import { Transaction as InternalTransaction } from '../../../src/core/transaction';
-import { validateReference } from '../../../lite/src/api/write_batch';
 import { DocumentReference } from '../../../lite/src/api/reference';
-import { ExpUserDataWriter } from './reference_impl';
+import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
+import { validateReference } from '../../../lite/src/api/write_batch';
 import { firestoreClientTransaction } from '../../../src/core/firestore_client';
+import { Transaction as InternalTransaction } from '../../../src/core/transaction';
+
+import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
+import { ExpUserDataWriter } from './reference_impl';
+import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
 
 /**
  * A reference to a transaction.

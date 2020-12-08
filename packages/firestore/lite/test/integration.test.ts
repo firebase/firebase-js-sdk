@@ -19,47 +19,28 @@ import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
+import { Timestamp } from '../../src/api/timestamp';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
+import { Bytes } from '../src/api/bytes';
 import {
   FirebaseFirestore,
   getFirestore,
   initializeFirestore,
   terminate
 } from '../src/api/database';
-import {
-  Post,
-  postConverter,
-  postConverterMerge,
-  withTestCollection,
-  withTestCollectionAndInitialData,
-  withTestDb,
-  withTestDbSettings,
-  withTestDoc,
-  withTestDocAndInitialData
-} from './helpers';
-import {
-  collection,
-  CollectionReference,
-  doc,
-  DocumentReference,
-  refEqual,
-  queryEqual,
-  collectionGroup,
-  SetOptions,
-  UpdateData,
-  DocumentData
-} from '../src/api/reference';
-import { FieldValue } from '../src/api/field_value';
 import { FieldPath } from '../src/api/field_path';
-import { writeBatch } from '../src/api/write_batch';
-import { runTransaction } from '../src/api/transaction';
-import { snapshotEqual, QuerySnapshot } from '../src/api/snapshot';
+import { FieldValue } from '../src/api/field_value';
 import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
-} from '../../test/integration/util/settings';
-import { expectEqual, expectNotEqual } from '../../test/util/helpers';
-import { Timestamp } from '../../src/api/timestamp';
-import { Bytes } from '../src/api/bytes';
+  arrayRemove,
+  arrayUnion,
+  deleteField,
+  increment,
+  serverTimestamp
+} from '../src/api/field_value_impl';
 import {
   endAt,
   endBefore,
@@ -72,6 +53,18 @@ import {
   where
 } from '../src/api/query';
 import {
+  collection,
+  CollectionReference,
+  doc,
+  DocumentReference,
+  refEqual,
+  queryEqual,
+  collectionGroup,
+  SetOptions,
+  UpdateData,
+  DocumentData
+} from '../src/api/reference';
+import {
   addDoc,
   deleteDoc,
   getDoc,
@@ -79,13 +72,21 @@ import {
   setDoc,
   updateDoc
 } from '../src/api/reference_impl';
+import { snapshotEqual, QuerySnapshot } from '../src/api/snapshot';
+import { runTransaction } from '../src/api/transaction';
+import { writeBatch } from '../src/api/write_batch';
+
 import {
-  arrayRemove,
-  arrayUnion,
-  deleteField,
-  increment,
-  serverTimestamp
-} from '../src/api/field_value_impl';
+  Post,
+  postConverter,
+  postConverterMerge,
+  withTestCollection,
+  withTestCollectionAndInitialData,
+  withTestDb,
+  withTestDbSettings,
+  withTestDoc,
+  withTestDocAndInitialData
+} from './helpers';
 
 use(chaiAsPromised);
 

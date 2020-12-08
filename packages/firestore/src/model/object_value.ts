@@ -20,12 +20,13 @@ import {
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
+import { forEach } from '../util/obj';
+
+import { FieldMask } from './field_mask';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
-import { isMapValue, typeOrder, valueEquals } from './values';
-import { forEach } from '../util/obj';
 import { TypeOrder } from './type_order';
-import { FieldMask } from './field_mask';
+import { isMapValue, typeOrder, valueEquals } from './values';
 
 export interface JsonObject<T> {
   [name: string]: T;

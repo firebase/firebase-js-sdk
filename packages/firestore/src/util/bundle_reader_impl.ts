@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { Deferred } from './promise';
+import { newTextDecoder } from '../platform/serializer';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { newTextDecoder } from '../platform/serializer';
+
 import { debugAssert } from './assert';
 import { BundleReader, SizedBundleElement } from './bundle_reader';
+import { Deferred } from './promise';
 
 /**
  * A class representing a bundle.

@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { User } from '../auth/user';
-import { hardAssert, debugAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
 import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+
+import { User } from '../auth/user';
+import { hardAssert, debugAssert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 
 // TODO(mikelehen): This should be split into multiple files and probably

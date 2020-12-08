@@ -16,10 +16,10 @@
  */
 
 import { expect } from 'chai';
+
 import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
-import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   applyMutationToLocalView,
   applyMutationToRemoteDocument,
@@ -28,6 +28,8 @@ import {
   MutationResult,
   Precondition
 } from '../../../src/model/mutation';
+import { ObjectValueBuilder } from '../../../src/model/object_value';
+import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation
@@ -48,7 +50,6 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
-import { ObjectValueBuilder } from '../../../src/model/object_value';
 
 describe('Mutation', () => {
   addEqualityMatcher();

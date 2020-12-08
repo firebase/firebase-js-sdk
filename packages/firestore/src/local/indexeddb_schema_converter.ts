@@ -15,22 +15,19 @@
  * limitations under the License.
  */
 
+import { SnapshotVersion } from '../core/snapshot_version';
 import { ResourcePath } from '../model/path';
+import { debugAssert, hardAssert } from '../util/assert';
+import { BATCHID_UNKNOWN } from '../util/types';
+
 import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 import {
-  fromDbMutationBatch,
-  fromDbTarget,
-  LocalSerializer,
-  toDbTarget
-} from './local_serializer';
-import { PersistencePromise } from './persistence_promise';
-import { debugAssert, hardAssert } from '../util/assert';
-import { MemoryCollectionParentIndex } from './memory_index_manager';
-import { SnapshotVersion } from '../core/snapshot_version';
+  dbDocumentSize,
+  removeMutationBatch
+} from './indexeddb_mutation_batch_impl';
 import {
   DbBundle,
   DbClientMetadata,
@@ -56,11 +53,15 @@ import {
   DbTargetKey,
   SCHEMA_VERSION
 } from './indexeddb_schema';
-import { BATCHID_UNKNOWN } from '../util/types';
 import {
-  dbDocumentSize,
-  removeMutationBatch
-} from './indexeddb_mutation_batch_impl';
+  fromDbMutationBatch,
+  fromDbTarget,
+  LocalSerializer,
+  toDbTarget
+} from './local_serializer';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
+import { PersistencePromise } from './persistence_promise';
+import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {

@@ -16,6 +16,8 @@
  */
 
 import { expect } from 'chai';
+
+import { LoadBundleTask } from '../../../src/api/bundle';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
@@ -56,11 +58,13 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
   DbPrimaryClientKey,
   SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
+import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
 import { LocalStore } from '../../../src/local/local_store';
 import {
   ClientId,
@@ -69,8 +73,12 @@ import {
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
-import { JsonObject } from '../../../src/model/object_value';
+import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
+import { JsonObject } from '../../../src/model/object_value';
+import { encodeBase64 } from '../../../src/platform/base64';
+import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+import { newTextEncoder } from '../../../src/platform/serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
@@ -98,11 +106,19 @@ import {
 } from '../../../src/remote/watch_change';
 import { debugAssert, fail } from '../../../src/util/assert';
 import { TimerId } from '../../../src/util/async_queue';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
+import { newBundleReader } from '../../../src/util/bundle_reader_impl';
+import { ByteString } from '../../../src/util/byte_string';
 import { FirestoreError } from '../../../src/util/error';
+import { logWarn } from '../../../src/util/log';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
+import { SortedSet } from '../../../src/util/sorted_set';
 import {
   byteStringFromString,
   deletedDoc,
@@ -121,15 +137,19 @@ import {
 } from '../../util/helpers';
 import { encodeWatchChange } from '../../util/spec_test_helpers';
 import {
+  FakeDocument,
+  SharedFakeWebStorage,
+  testWindow
+} from '../../util/test_platform';
+import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
   TEST_DATABASE_ID,
   TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
+
 import { MULTI_CLIENT_TAG } from './describe_spec';
-import { ByteString } from '../../../src/util/byte_string';
-import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 import {
   EventAggregator,
@@ -142,24 +162,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { LoadBundleTask } from '../../../src/api/bundle';
-import { encodeBase64 } from '../../../src/platform/base64';
-import {
-  FakeDocument,
-  SharedFakeWebStorage,
-  testWindow
-} from '../../util/test_platform';
-import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
-import { logWarn } from '../../../src/util/log';
-import { newTextEncoder } from '../../../src/platform/serializer';
-import { newBundleReader } from '../../../src/util/bundle_reader_impl';
-import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
-import {
-  AsyncQueueImpl,
-  newAsyncQueue
-} from '../../../src/util/async_queue_impl';
-import { DocumentKey } from '../../../src/model/document_key';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 

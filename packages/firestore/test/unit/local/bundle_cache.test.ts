@@ -16,11 +16,9 @@
  */
 
 import { expect } from 'chai';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { filter, orderBy, query } from '../../util/helpers';
-import { TestBundleCache } from './test_bundle_cache';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
+
 import { Timestamp } from '../../../src/api/timestamp';
+import { NamedQuery } from '../../../src/core/bundle';
 import {
   LimitType,
   newQueryForCollectionGroup,
@@ -29,14 +27,18 @@ import {
   queryToTarget,
   queryWithLimit
 } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { toQueryTarget } from '../../../src/remote/serializer';
+import { filter, orderBy, query } from '../../util/helpers';
+
 import {
   clearTestPersistence,
   JSON_SERIALIZER,
   testIndexedDbPersistence,
   testMemoryEagerPersistence
 } from './persistence_test_helpers';
-import { toQueryTarget } from '../../../src/remote/serializer';
-import { NamedQuery } from '../../../src/core/bundle';
+import { TestBundleCache } from './test_bundle_cache';
 
 describe('MemoryBundleCache', () => {
   let cache: TestBundleCache;

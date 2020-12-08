@@ -15,31 +15,32 @@
  * limitations under the License.
  */
 
+import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
-import { DbTargetDocument } from './indexeddb_schema';
+import { DocumentKey } from '../model/document_key';
+
 import {
   decodeResourcePath,
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { PersistenceTransaction } from './persistence_transaction';
-import { PersistencePromise } from './persistence_promise';
+import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
+import { mutationQueuesContainKey } from './indexeddb_mutation_queue';
+import { DbTargetDocument } from './indexeddb_schema';
 import {
   documentTargetStore,
   IndexedDbTargetCache
 } from './indexeddb_target_cache';
-import { Persistence } from './persistence';
-import { newLruGarbageCollector } from './lru_garbage_collector_impl';
 import {
   ActiveTargets,
   LruGarbageCollector,
   LruParams
 } from './lru_garbage_collector';
+import { newLruGarbageCollector } from './lru_garbage_collector_impl';
+import { Persistence } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 import { TargetData } from './target_data';
-import { mutationQueuesContainKey } from './indexeddb_mutation_queue';
-import { ListenSequence } from '../core/listen_sequence';
-import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
-import { DocumentKey } from '../model/document_key';
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export class IndexedDbLruDelegateImpl implements IndexedDbLruDelegate {

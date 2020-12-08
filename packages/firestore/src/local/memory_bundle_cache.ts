@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence_transaction';
-import { PersistencePromise } from './persistence_promise';
+import { Bundle, NamedQuery } from '../core/bundle';
 import {
   NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata
 } from '../protos/firestore_bundle_proto';
+
 import { BundleCache } from './bundle_cache';
 import {
   fromBundleMetadata,
   fromProtoNamedQuery,
   LocalSerializer
 } from './local_serializer';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 export class MemoryBundleCache implements BundleCache {
   private bundles = new Map<string, Bundle>();

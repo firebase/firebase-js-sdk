@@ -15,12 +15,11 @@
  * limitations under the License.
  */
 
-import * as api from '../../../src/protos/firestore_proto_api';
-
 import { expect } from 'chai';
 
-import { Timestamp } from '../../../src/api/timestamp';
 import { GeoPoint } from '../../../src/api/geo_point';
+import { Timestamp } from '../../../src/api/timestamp';
+import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   canonicalId,
   valueCompare,
@@ -28,7 +27,7 @@ import {
   estimateByteSize,
   refValue
 } from '../../../src/model/values';
-import { serverTimestamp } from '../../../src/model/server_timestamps';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
 import {
   blob,

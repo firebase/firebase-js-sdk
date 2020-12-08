@@ -17,19 +17,20 @@
 
 import { User } from '../auth/user';
 import { TargetId } from '../core/types';
+import { DocumentKey } from '../model/document_key';
+
+import { BundleCache } from './bundle_cache';
 import { IndexManager } from './index_manager';
 import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
-import { TargetCache } from './target_cache';
-import { RemoteDocumentCache } from './remote_document_cache';
-import { TargetData } from './target_data';
-import { BundleCache } from './bundle_cache';
 import {
   PersistenceTransaction,
   PersistenceTransactionMode
 } from './persistence_transaction';
-import { DocumentKey } from '../model/document_key';
+import { RemoteDocumentCache } from './remote_document_cache';
+import { TargetCache } from './target_cache';
+import { TargetData } from './target_data';
 
 /**
  * Callback type for primary state notifications. This callback can be

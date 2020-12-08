@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence_transaction';
-import { PersistencePromise } from './persistence_promise';
+import { Bundle, NamedQuery } from '../core/bundle';
 import {
   NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata
 } from '../protos/firestore_bundle_proto';
-import { Bundle, NamedQuery } from '../core/bundle';
+
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * Provides interfaces to save and read Firestore bundles.

@@ -38,7 +38,8 @@ import {
 import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { ObjectValue } from '../model/object_value';
+import { DocumentKey } from '../model/document_key';
+import { FieldMask } from '../model/field_mask';
 import {
   DeleteMutation,
   FieldTransform,
@@ -49,7 +50,17 @@ import {
   SetMutation,
   VerifyMutation
 } from '../model/mutation';
+import { normalizeTimestamp } from '../model/normalize';
+import { ObjectValue } from '../model/object_value';
 import { FieldPath, ResourcePath } from '../model/path';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
+  ServerTimestampTransform,
+  TransformOperation
+} from '../model/transform_operation';
+import { isNanValue, isNullValue } from '../model/values';
 import {
   ApiClientObjectMap as ProtoApiClientObjectMap,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
@@ -75,17 +86,12 @@ import {
   WriteResult as ProtoWriteResult
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
 import { ByteString } from '../util/byte_string';
+import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
-import {
-  ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation,
-  NumericIncrementTransformOperation,
-  ServerTimestampTransform,
-  TransformOperation
-} from '../model/transform_operation';
+
 import { ExistenceFilter } from './existence_filter';
+import { Serializer } from './number_serializer';
 import { mapCodeFromRpcCode } from './rpc_error';
 import {
   DocumentWatchChange,
@@ -94,11 +100,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { isNanValue, isNullValue } from '../model/values';
-import { normalizeTimestamp } from '../model/normalize';
-import { Serializer } from './number_serializer';
-import { FieldMask } from '../model/field_mask';
-import { DocumentKey } from '../model/document_key';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
