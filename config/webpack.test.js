@@ -95,7 +95,7 @@ module.exports = {
   },
   resolve: {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
-    mainFields: ['esm2017', 'browser', 'module', 'main'],
+    mainFields: ['browser', 'module', 'main'],
     extensions: ['.js', '.ts'],
     symlinks: false
   },
