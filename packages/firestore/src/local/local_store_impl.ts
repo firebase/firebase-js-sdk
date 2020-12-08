@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import {
-  BundleMetadata,
-  NamedQuery as ProtoNamedQuery
-} from '../protos/firestore_bundle_proto';
-import { debugAssert, debugCast, hardAssert } from '../util/assert';
+import { Timestamp } from '../api/timestamp';
+import { User } from '../auth/user';
 import { BundledDocuments, NamedQuery, BundleConverter } from '../core/bundle';
+import { newQueryForPath, Query, queryToTarget } from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { canonifyTarget, Target, targetEquals } from '../core/target';
+import { BatchId, TargetId } from '../core/types';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -30,55 +31,55 @@ import {
   maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { newQueryForPath, Query, queryToTarget } from '../core/query';
-import { fromBundledQuery } from './local_serializer';
-import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
-import { ByteString } from '../util/byte_string';
-import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
-import { SnapshotVersion } from '../core/snapshot_version';
-import { BatchId, TargetId } from '../core/types';
-import { MutationQueue } from './mutation_queue';
-import { RemoteDocumentCache } from './remote_document_cache';
-import { LocalDocumentsView } from './local_documents_view';
-import { BundleCache } from './bundle_cache';
-import { TargetCache } from './target_cache';
-import { SortedMap } from '../util/sorted_map';
-import { TargetData, TargetPurpose } from './target_data';
-import { primitiveComparator } from '../util/misc';
-import { ObjectMap } from '../util/obj_map';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
-import { Persistence } from './persistence';
-import { QueryEngine } from './query_engine';
-import { User } from '../auth/user';
-import { ClientId } from './shared_client_state';
-import { IndexedDbPersistence } from './indexeddb_persistence';
-import { IndexedDbTargetCache } from './indexeddb_target_cache';
-import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
-import { PersistencePromise } from './persistence_promise';
 import { MaybeDocument, NoDocument } from '../model/document';
-import {
-  remoteDocumentCacheGetLastReadTime,
-  remoteDocumentCacheGetNewDocumentChanges
-} from './indexeddb_remote_document_cache';
-import { ResourcePath } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 import {
   extractMutationBaseValue,
   Mutation,
   PatchMutation,
   Precondition
 } from '../model/mutation';
-import { Timestamp } from '../api/timestamp';
+import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { extractFieldMask } from '../model/object_value';
+import { ResourcePath } from '../model/path';
+import {
+  BundleMetadata,
+  NamedQuery as ProtoNamedQuery
+} from '../protos/firestore_bundle_proto';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
-import { PersistenceTransaction } from './persistence_transaction';
-import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { LocalViewChanges } from './local_view_changes';
-import { isIndexedDbTransactionError } from './simple_db';
+import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
+import { debugAssert, debugCast, hardAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { logDebug } from '../util/log';
-import { LocalStore } from './local_store';
-import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
+import { primitiveComparator } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
+import { SortedMap } from '../util/sorted_map';
 import { BATCHID_UNKNOWN } from '../util/types';
-import { DocumentKey } from '../model/document_key';
+
+import { BundleCache } from './bundle_cache';
+import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import { IndexedDbPersistence } from './indexeddb_persistence';
+import {
+  remoteDocumentCacheGetLastReadTime,
+  remoteDocumentCacheGetNewDocumentChanges
+} from './indexeddb_remote_document_cache';
+import { IndexedDbTargetCache } from './indexeddb_target_cache';
+import { LocalDocumentsView } from './local_documents_view';
+import { fromBundledQuery } from './local_serializer';
+import { LocalStore } from './local_store';
+import { LocalViewChanges } from './local_view_changes';
+import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
+import { MutationQueue } from './mutation_queue';
+import { Persistence } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { QueryEngine } from './query_engine';
+import { RemoteDocumentCache } from './remote_document_cache';
+import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { ClientId } from './shared_client_state';
+import { isIndexedDbTransactionError } from './simple_db';
+import { TargetCache } from './target_cache';
+import { TargetData, TargetPurpose } from './target_data';
 
 export const LOG_TAG = 'LocalStore';
 

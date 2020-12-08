@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Code, FirestoreError } from '../../../src/util/error';
 import { ByteString } from '../../../src/util/byte_string';
+import { Code, FirestoreError } from '../../../src/util/error';
 
 /**
  * An immutable object representing an array of bytes.

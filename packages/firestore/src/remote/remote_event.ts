@@ -24,8 +24,8 @@ import {
   MaybeDocumentMap,
   targetIdSet
 } from '../model/collections';
-import { SortedSet } from '../util/sorted_set';
 import { ByteString } from '../util/byte_string';
+import { SortedSet } from '../util/sorted_set';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the

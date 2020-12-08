@@ -17,86 +17,6 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
-import { DatabaseId } from '../core/database_info';
-import { FieldPath, ResourcePath } from '../model/path';
-import { debugAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
-import {
-  cast,
-  validateIsNotUsedTogether,
-  validateSetOptions
-} from '../util/input_validation';
-import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
-import { FieldPath as ExpFieldPath } from '../../lite/src/api/field_path';
-import {
-  CompleteFn,
-  ErrorFn,
-  isPartialObserver,
-  NextFn,
-  PartialObserver,
-  Unsubscribe
-} from './observer';
-import { UntypedFirestoreDataConverter } from './user_data_reader';
-import {
-  clearIndexedDbPersistence,
-  disableNetwork,
-  enableIndexedDbPersistence,
-  enableMultiTabIndexedDbPersistence,
-  enableNetwork,
-  ensureFirestoreConfigured,
-  FirebaseFirestore as ExpFirebaseFirestore,
-  waitForPendingWrites
-} from '../../exp/src/api/database';
-import {
-  DocumentChange as ExpDocumentChange,
-  DocumentSnapshot as ExpDocumentSnapshot,
-  QuerySnapshot as ExpQuerySnapshot,
-  snapshotEqual,
-  SnapshotMetadata
-} from '../../exp/src/api/snapshot';
-import { refEqual } from '../../lite/src/api/reference';
-import {
-  addDoc,
-  deleteDoc,
-  executeWrite,
-  getDoc,
-  getDocFromCache,
-  getDocFromServer,
-  getDocs,
-  getDocsFromCache,
-  getDocsFromServer,
-  onSnapshot,
-  onSnapshotsInSync,
-  setDoc,
-  updateDoc
-} from '../../exp/src/api/reference_impl';
-import {
-  limit,
-  limitToLast,
-  where,
-  orderBy,
-  startAfter,
-  startAt,
-  query,
-  endBefore,
-  endAt
-} from '../../exp/src/api/query';
-import {
-  doc,
-  collection,
-  collectionGroup,
-  queryEqual,
-  Query as ExpQuery,
-  CollectionReference as ExpCollectionReference,
-  DocumentReference as ExpDocumentReference
-} from '../../exp/src/api/reference';
-import { Compat } from './compat';
-import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
-import {
-  runTransaction,
-  Transaction as ExpTransaction
-} from '../../exp/src/api/transaction';
-
 import {
   CollectionReference as PublicCollectionReference,
   DocumentChange as PublicDocumentChange,
@@ -124,13 +44,94 @@ import {
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
-import { ByteString } from '../util/byte_string';
-import { Blob } from './blob';
+
+import {
+  clearIndexedDbPersistence,
+  disableNetwork,
+  enableIndexedDbPersistence,
+  enableMultiTabIndexedDbPersistence,
+  enableNetwork,
+  ensureFirestoreConfigured,
+  FirebaseFirestore as ExpFirebaseFirestore,
+  waitForPendingWrites
+} from '../../exp/src/api/database';
+import {
+  limit,
+  limitToLast,
+  where,
+  orderBy,
+  startAfter,
+  startAt,
+  query,
+  endBefore,
+  endAt
+} from '../../exp/src/api/query';
+import {
+  doc,
+  collection,
+  collectionGroup,
+  queryEqual,
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference,
+  DocumentReference as ExpDocumentReference
+} from '../../exp/src/api/reference';
+import {
+  addDoc,
+  deleteDoc,
+  executeWrite,
+  getDoc,
+  getDocFromCache,
+  getDocFromServer,
+  getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
+  onSnapshot,
+  onSnapshotsInSync,
+  setDoc,
+  updateDoc
+} from '../../exp/src/api/reference_impl';
+import {
+  DocumentChange as ExpDocumentChange,
+  DocumentSnapshot as ExpDocumentSnapshot,
+  QuerySnapshot as ExpQuerySnapshot,
+  snapshotEqual,
+  SnapshotMetadata
+} from '../../exp/src/api/snapshot';
+import {
+  runTransaction,
+  Transaction as ExpTransaction
+} from '../../exp/src/api/transaction';
+import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
 import { Bytes } from '../../lite/src/api/bytes';
-import { AbstractUserDataWriter } from './user_data_writer';
+import { FieldPath as ExpFieldPath } from '../../lite/src/api/field_path';
+import { refEqual } from '../../lite/src/api/reference';
 import { DEFAULT_HOST } from '../../lite/src/api/settings';
+import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
+import { FieldPath, ResourcePath } from '../model/path';
+import { debugAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
+import { Code, FirestoreError } from '../util/error';
+import {
+  cast,
+  validateIsNotUsedTogether,
+  validateSetOptions
+} from '../util/input_validation';
+import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
+
+import { Blob } from './blob';
 import { LoadBundleTask } from './bundle';
+import { Compat } from './compat';
+import {
+  CompleteFn,
+  ErrorFn,
+  isPartialObserver,
+  NextFn,
+  PartialObserver,
+  Unsubscribe
+} from './observer';
+import { UntypedFirestoreDataConverter } from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.

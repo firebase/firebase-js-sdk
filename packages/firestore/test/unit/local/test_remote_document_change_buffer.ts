@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import { MaybeDocument } from '../../../src/model/document';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { LocalDocumentsView } from './local_documents_view';
-import { PersistencePromise } from './persistence_promise';
 import {
   hasLimitToFirst,
   hasLimitToLast,
@@ -37,6 +35,9 @@ import { Document } from '../model/document';
 import { debugAssert } from '../util/assert';
 import { getLogLevel, LogLevel, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
+
+import { LocalDocumentsView } from './local_documents_view';
+import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 
 /**

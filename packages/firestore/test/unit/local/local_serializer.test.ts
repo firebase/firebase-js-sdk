@@ -16,11 +16,12 @@
  */
 
 import { expect } from 'chai';
-import { fromDbMutationBatch } from '../../../src/local/local_serializer';
-import { TEST_SERIALIZER } from './persistence_test_helpers';
+
+import { DatabaseId } from '../../../src/core/database_info';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
+import { fromDbMutationBatch } from '../../../src/local/local_serializer';
+import { PatchMutation, SetMutation } from '../../../src/model/mutation';
 import { Write } from '../../../src/protos/firestore_proto_api';
-import { deleteMutation, patchMutation, setMutation } from '../../util/helpers';
 import {
   JsonProtoSerializer,
   toDocumentMask,
@@ -28,8 +29,9 @@ import {
   toMutationDocument,
   toName
 } from '../../../src/remote/serializer';
-import { DatabaseId } from '../../../src/core/database_info';
-import { PatchMutation, SetMutation } from '../../../src/model/mutation';
+import { deleteMutation, patchMutation, setMutation } from '../../util/helpers';
+
+import { TEST_SERIALIZER } from './persistence_test_helpers';
 
 // TODO(b/174608374): Remove these tests once we perform a schema migration.
 describe('Local Serializer', () => {

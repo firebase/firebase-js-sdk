@@ -16,11 +16,16 @@
  */
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+
+import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+import { newTextEncoder } from '../../../src/platform/serializer';
 import {
   BundleReader,
   SizedBundleElement
 } from '../../../src/util/bundle_reader';
-import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+import { newBundleReader } from '../../../src/util/bundle_reader_impl';
+import { JSON_SERIALIZER } from '../local/persistence_test_helpers';
+
 import {
   doc1String,
   doc1MetaString,
@@ -39,9 +44,6 @@ import {
   doc1,
   doc2
 } from './bundle_data';
-import { newTextEncoder } from '../../../src/platform/serializer';
-import { JSON_SERIALIZER } from '../local/persistence_test_helpers';
-import { newBundleReader } from '../../../src/util/bundle_reader_impl';
 
 use(chaiAsPromised);
 

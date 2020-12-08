@@ -15,18 +15,9 @@
  * limitations under the License.
  */
 
-import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
-import {
-  newUserDataReader,
-  ParsedUpdateData,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs
-} from '../../../src/api/user_data_reader';
-import { debugAssert } from '../../../src/util/assert';
-import { cast } from '../../../src/util/input_validation';
-import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import { Bytes } from '../../../lite/src/api/bytes';
+import { FieldPath } from '../../../lite/src/api/field_path';
+import { validateHasExplicitOrderByForLimitToLast } from '../../../lite/src/api/query';
 import {
   CollectionReference,
   doc,
@@ -35,13 +26,8 @@ import {
   SetOptions,
   UpdateData
 } from '../../../lite/src/api/reference';
-import { Document } from '../../../src/model/document';
-import {
-  DeleteMutation,
-  Mutation,
-  Precondition
-} from '../../../src/model/mutation';
-import { FieldPath } from '../../../lite/src/api/field_path';
+import { applyFirestoreDataConverter } from '../../../lite/src/api/reference_impl';
+import { Compat } from '../../../src/api/compat';
 import {
   CompleteFn,
   ErrorFn,
@@ -50,6 +36,14 @@ import {
   PartialObserver,
   Unsubscribe
 } from '../../../src/api/observer';
+import {
+  newUserDataReader,
+  ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs
+} from '../../../src/api/user_data_reader';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import {
   firestoreClientAddSnapshotsInSyncListener,
   firestoreClientGetDocumentFromLocalCache,
@@ -63,13 +57,20 @@ import {
   newQueryForPath,
   Query as InternalQuery
 } from '../../../src/core/query';
-import { FirestoreError } from '../../../src/util/error';
-import { Compat } from '../../../src/api/compat';
+import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import { Document } from '../../../src/model/document';
+import {
+  DeleteMutation,
+  Mutation,
+  Precondition
+} from '../../../src/model/mutation';
+import { debugAssert } from '../../../src/util/assert';
 import { ByteString } from '../../../src/util/byte_string';
-import { Bytes } from '../../../lite/src/api/bytes';
-import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
-import { validateHasExplicitOrderByForLimitToLast } from '../../../lite/src/api/query';
-import { applyFirestoreDataConverter } from '../../../lite/src/api/reference_impl';
+import { FirestoreError } from '../../../src/util/error';
+import { cast } from '../../../src/util/input_validation';
+
+import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
+import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
 
 /**
  * An options object that can be passed to {@link onSnapshot} and {@link

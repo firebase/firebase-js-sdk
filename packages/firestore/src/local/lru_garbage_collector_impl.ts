@@ -22,11 +22,8 @@ import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
+
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
-import { GarbageCollectionScheduler } from './persistence';
-import { PersistencePromise } from './persistence_promise';
-import { isIndexedDbTransactionError } from './simple_db';
-import { PersistenceTransaction } from './persistence_transaction';
 import {
   ActiveTargets,
   GC_DID_NOT_RUN,
@@ -36,6 +33,10 @@ import {
   LruParams,
   LruResults
 } from './lru_garbage_collector';
+import { GarbageCollectionScheduler } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { isIndexedDbTransactionError } from './simple_db';
 
 const LOG_TAG = 'LruGarbageCollector';
 

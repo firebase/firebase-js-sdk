@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
+import { Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
-import { isNullOrUndefined } from '../util/types';
-import { debugAssert, debugCast, fail } from '../util/assert';
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import {
   arrayValueContains,
   canonicalId,
@@ -28,8 +27,9 @@ import {
   valueCompare,
   valueEquals
 } from '../model/values';
-import { Document } from '../model/document';
-import { DocumentKey } from '../model/document_key';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
+import { debugAssert, debugCast, fail } from '../util/assert';
+import { isNullOrUndefined } from '../util/types';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used

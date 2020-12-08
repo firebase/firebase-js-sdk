@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { DocumentKey } from '../model/document_key';
+import { fail, hardAssert } from '../util/assert';
+
 import {
   DbDocumentMutation,
   DbDocumentMutationKey,
@@ -22,10 +25,8 @@ import {
   DbMutationBatchKey,
   DbRemoteDocument
 } from './indexeddb_schema';
-import { fail, hardAssert } from '../util/assert';
-import { SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
-import { DocumentKey } from '../model/document_key';
+import { SimpleDbTransaction } from './simple_db';
 
 /**
  * Delete a mutation batch and the associated document mutations.

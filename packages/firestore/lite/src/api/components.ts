@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
-import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import { _FirebaseService } from '@firebase/app-types-exp';
+
+import { CredentialsProvider } from '../../../src/api/credentials';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
-import { logDebug } from '../../../src/util/log';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { _FirebaseService } from '@firebase/app-types-exp';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { CredentialsProvider } from '../../../src/api/credentials';
+import { logDebug } from '../../../src/util/log';
+
 import { FirestoreSettings } from './settings';
 
 export const LOG_TAG = 'ComponentProvider';

@@ -17,19 +17,20 @@
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { Code, FirestoreError } from '../../../src/util/error';
-import { DatabaseId } from '../../../src/core/database_info';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   CredentialsProvider,
   EmptyCredentialsProvider,
   FirebaseCredentialsProvider,
   makeCredentialsProvider
 } from '../../../src/api/credentials';
-import { FirestoreService, removeComponents } from './components';
+import { DatabaseId } from '../../../src/core/database_info';
+import { Code, FirestoreError } from '../../../src/util/error';
 import { cast } from '../../../src/util/input_validation';
+
+import { FirestoreService, removeComponents } from './components';
 import { FirestoreSettings, PrivateSettings, Settings } from './settings';
 
 declare module '@firebase/component' {

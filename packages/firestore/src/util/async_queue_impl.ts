@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import { FirestoreError } from './error';
-import { logDebug, logError } from './log';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { getDocument } from '../platform/dom';
-import { debugAssert, fail } from './assert';
 import { ExponentialBackoff } from '../remote/backoff';
+
+import { debugAssert, fail } from './assert';
 import { AsyncQueue, DelayedOperation, TimerId } from './async_queue';
+import { FirestoreError } from './error';
+import { logDebug, logError } from './log';
 
 const LOG_TAG = 'AsyncQueue';
 

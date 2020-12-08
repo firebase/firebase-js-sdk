@@ -25,6 +25,7 @@ import {
   Write as ProtoWrite
 } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
+
 import {
   EncodedResourcePath,
   encodeResourcePath

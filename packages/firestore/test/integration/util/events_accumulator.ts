@@ -16,8 +16,9 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import { Deferred } from '../../util/promise';
 import { expect } from 'chai';
+
+import { Deferred } from '../../util/promise';
 
 /**
  * A helper object that can accumulate an arbitrary amount of events and resolve

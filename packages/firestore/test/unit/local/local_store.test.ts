@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import * as api from '../../../src/protos/firestore_proto_api';
-
 import { expect } from 'chai';
+
 import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
+import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
+import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 import {
   LimitType,
   Query,
@@ -28,11 +29,32 @@ import {
   queryToTarget,
   queryWithLimit
 } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
+import {
+  acknowledgeBatch,
+  allocateTarget,
+  applyBundleDocuments,
+  applyRemoteEventToLocalCache,
+  executeQuery,
+  getHighestUnacknowledgedBatchId,
+  getLocalTargetData,
+  getNamedQuery,
+  hasNewerBundle,
+  localWrite,
+  LocalWriteResult,
+  newLocalStore,
+  notifyLocalViewChanges,
+  readLocalDocument,
+  rejectBatch,
+  releaseTarget,
+  saveBundle,
+  saveNamedQuery,
+  synchronizeLastDocumentChangeReadTime
+} from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
 import {
@@ -50,6 +72,8 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
+import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { RemoteEvent } from '../../../src/remote/remote_event';
 import {
   WatchChangeAggregator,
@@ -57,6 +81,8 @@ import {
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
 import { debugAssert } from '../../../src/util/assert';
+import { ByteString } from '../../../src/util/byte_string';
+import { BATCHID_UNKNOWN } from '../../../src/util/types';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bundledDocuments,
@@ -88,32 +114,6 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { ByteString } from '../../../src/util/byte_string';
-import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
-import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
-import {
-  acknowledgeBatch,
-  allocateTarget,
-  applyBundleDocuments,
-  applyRemoteEventToLocalCache,
-  executeQuery,
-  getHighestUnacknowledgedBatchId,
-  getLocalTargetData,
-  getNamedQuery,
-  hasNewerBundle,
-  localWrite,
-  LocalWriteResult,
-  newLocalStore,
-  notifyLocalViewChanges,
-  readLocalDocument,
-  rejectBatch,
-  releaseTarget,
-  saveBundle,
-  saveNamedQuery,
-  synchronizeLastDocumentChangeReadTime
-} from '../../../src/local/local_store_impl';
-import { BATCHID_UNKNOWN } from '../../../src/util/types';
-import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;

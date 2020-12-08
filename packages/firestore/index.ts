@@ -23,8 +23,8 @@ import {
   IndexedDbPersistenceProvider,
   ExpFirebaseFirestore
 } from './export';
-import { configureForFirebase } from './src/config';
 import { name, version } from './package.json';
+import { configureForFirebase } from './src/config';
 
 import './register-module';
 

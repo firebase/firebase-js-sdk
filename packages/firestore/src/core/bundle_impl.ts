@@ -15,35 +15,37 @@
  * limitations under the License.
  */
 
+import { LoadBundleTaskProgress } from '@firebase/firestore-types';
+
+import { LocalStore } from '../local/local_store';
+import {
+  applyBundleDocuments,
+  saveNamedQuery
+} from '../local/local_store_impl';
+import { documentKeySet, DocumentKeySet } from '../model/collections';
+import { MaybeDocument, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import {
+  BundleMetadata as ProtoBundleMetadata,
+  NamedQuery as ProtoNamedQuery
+} from '../protos/firestore_bundle_proto';
+import { Timestamp as ApiTimestamp } from '../protos/firestore_proto_api';
 import {
   fromDocument,
   fromName,
   fromVersion,
   JsonProtoSerializer
 } from '../remote/serializer';
-import { DocumentKey } from '../model/document_key';
-import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert } from '../util/assert';
-import { SnapshotVersion } from './snapshot_version';
-import {
-  BundleMetadata as ProtoBundleMetadata,
-  NamedQuery as ProtoNamedQuery
-} from '../protos/firestore_bundle_proto';
-import { Timestamp as ApiTimestamp } from '../protos/firestore_proto_api';
-import { LocalStore } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
-import { documentKeySet, DocumentKeySet } from '../model/collections';
-import {
-  applyBundleDocuments,
-  saveNamedQuery
-} from '../local/local_store_impl';
+
 import {
   BundleConverter,
   BundledDocument,
   BundledDocuments,
   BundleLoadResult
 } from './bundle';
-import { LoadBundleTaskProgress } from '@firebase/firestore-types';
+import { SnapshotVersion } from './snapshot_version';
 
 /**
  * Helper to convert objects from bundles to model objects in the SDK.

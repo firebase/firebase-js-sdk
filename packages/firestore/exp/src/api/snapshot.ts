@@ -15,28 +15,29 @@
  * limitations under the License.
  */
 
-import { Document } from '../../../src/model/document';
-import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
-import {
-  DocumentSnapshot as LiteDocumentSnapshot,
-  fieldPathFromArgument,
-  FirestoreDataConverter as LiteFirestoreDataConverter
-} from '../../../lite/src/api/snapshot';
-import { FirebaseFirestore } from './database';
+import { FieldPath } from '../../../lite/src/api/field_path';
 import {
   DocumentData,
   Query,
   queryEqual,
   SetOptions
 } from '../../../lite/src/api/reference';
-import { Code, FirestoreError } from '../../../src/util/error';
-import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
-import { FieldPath } from '../../../lite/src/api/field_path';
-import { SnapshotListenOptions } from './reference_impl';
+import {
+  DocumentSnapshot as LiteDocumentSnapshot,
+  fieldPathFromArgument,
+  FirestoreDataConverter as LiteFirestoreDataConverter
+} from '../../../lite/src/api/snapshot';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
-import { debugAssert, fail } from '../../../src/util/assert';
+import { AbstractUserDataWriter } from '../../../src/api/user_data_writer';
 import { newQueryComparator } from '../../../src/core/query';
+import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
+import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { debugAssert, fail } from '../../../src/util/assert';
+import { Code, FirestoreError } from '../../../src/util/error';
+
+import { FirebaseFirestore } from './database';
+import { SnapshotListenOptions } from './reference_impl';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type `T`

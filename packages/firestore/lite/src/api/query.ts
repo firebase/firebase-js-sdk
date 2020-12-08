@@ -15,18 +15,13 @@
  * limitations under the License.
  */
 
-import { FieldPath } from './field_path';
-import {
-  validatePositiveNumber,
-  valueDescription
-} from '../../../src/util/input_validation';
 import { Compat } from '../../../src/api/compat';
 import {
   newUserDataReader,
   parseQueryValue,
   UserDataReader
 } from '../../../src/api/user_data_reader';
-import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
+import { DatabaseId } from '../../../src/core/database_info';
 import {
   findFilterOperator,
   getFirstOrderByField,
@@ -42,10 +37,6 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
-import { Code, FirestoreError } from '../../../src/util/error';
-import { debugAssert } from '../../../src/util/assert';
-import { Document } from '../../../src/model/document';
-import { DocumentReference, Query } from './reference';
 import {
   Bound,
   Direction,
@@ -54,15 +45,25 @@ import {
   Operator,
   OrderBy
 } from '../../../src/core/target';
-import { DatabaseId } from '../../../src/core/database_info';
+import { Document } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 import {
   FieldPath as InternalFieldPath,
   ResourcePath
 } from '../../../src/model/path';
-import { Value as ProtoValue } from '../../../src/protos/firestore_proto_api';
-import { refValue } from '../../../src/model/values';
 import { isServerTimestamp } from '../../../src/model/server_timestamps';
-import { DocumentKey } from '../../../src/model/document_key';
+import { refValue } from '../../../src/model/values';
+import { Value as ProtoValue } from '../../../src/protos/firestore_proto_api';
+import { debugAssert } from '../../../src/util/assert';
+import { Code, FirestoreError } from '../../../src/util/error';
+import {
+  validatePositiveNumber,
+  valueDescription
+} from '../../../src/util/input_validation';
+
+import { FieldPath } from './field_path';
+import { DocumentReference, Query } from './reference';
+import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
 
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery

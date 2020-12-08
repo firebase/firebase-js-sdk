@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { Persistence } from '../../../src/local/persistence';
+import { Bundle, NamedQuery } from '../../../src/core/bundle';
 import { BundleCache } from '../../../src/local/bundle_cache';
+import { Persistence } from '../../../src/local/persistence';
 import {
   NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata
 } from '../../../src/protos/firestore_bundle_proto';
-import { Bundle, NamedQuery } from '../../../src/core/bundle';
 
 /**
  * A wrapper around a BundleCache that automatically creates a

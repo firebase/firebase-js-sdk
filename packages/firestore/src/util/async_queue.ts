@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { Deferred } from './promise';
+import { isIndexedDbTransactionError } from '../local/simple_db';
+
 import { Code, FirestoreError } from './error';
 import { logError } from './log';
-import { isIndexedDbTransactionError } from '../local/simple_db';
+import { Deferred } from './promise';
 
 const LOG_TAG = 'AsyncQueue';
 

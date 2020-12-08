@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { UserDataWriter } from '../../../src/api/database';
 import {
   Query,
   queryEquals,
@@ -37,20 +38,24 @@ import {
   MaybeDocument,
   NoDocument
 } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
+import { ResourcePath } from '../../../src/model/path';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
 import { debugAssert, fail } from '../../../src/util/assert';
+import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { forEach } from '../../../src/util/obj';
-import { isNullOrUndefined } from '../../../src/util/types';
-import { TestSnapshotVersion } from '../../util/helpers';
-import { TimerId } from '../../../src/util/async_queue';
-import { RpcError } from './spec_rpc_error';
 import { ObjectMap } from '../../../src/util/obj_map';
+import { isNullOrUndefined } from '../../../src/util/types';
+import { firestore } from '../../util/api_helpers';
+import { TestSnapshotVersion } from '../../util/helpers';
+
+import { RpcError } from './spec_rpc_error';
 import {
   parseQuery,
   PersistenceAction,
@@ -65,10 +70,6 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { firestore } from '../../util/api_helpers';
-import { ResourcePath } from '../../../src/model/path';
-import { UserDataWriter } from '../../../src/api/database';
-import { DocumentKey } from '../../../src/model/document_key';
 
 const userDataWriter = new UserDataWriter(firestore());
 

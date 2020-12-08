@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
-
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
+import { arrayEquals } from '../util/misc';
 
 import {
   Document,
@@ -27,6 +27,8 @@ import {
   NoDocument,
   UnknownDocument
 } from './document';
+import { DocumentKey } from './document_key';
+import { FieldMask } from './field_mask';
 import { ObjectValue, ObjectValueBuilder } from './object_value';
 import { FieldPath } from './path';
 import {
@@ -36,9 +38,6 @@ import {
   TransformOperation,
   transformOperationEquals
 } from './transform_operation';
-import { arrayEquals } from '../util/misc';
-import { FieldMask } from './field_mask';
-import { DocumentKey } from './document_key';
 
 /** A field path and the TransformOperation to perform upon it. */
 export class FieldTransform {

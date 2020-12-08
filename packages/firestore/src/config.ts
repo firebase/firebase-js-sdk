@@ -16,9 +16,10 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Component, ComponentType, Provider } from '@firebase/component';
+
 import {
   CACHE_SIZE_UNLIMITED,
   CollectionReference,

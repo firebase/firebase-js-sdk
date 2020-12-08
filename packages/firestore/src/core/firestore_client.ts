@@ -17,6 +17,7 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
+import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
@@ -29,16 +30,38 @@ import {
   handleUserChange,
   readLocalDocument
 } from '../local/local_store_impl';
+import { Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
+import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { Datastore } from '../remote/datastore';
 import {
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { debugAssert } from '../util/assert';
+import { AsyncObserver } from '../util/async_observer';
+import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { BundleReader } from '../util/bundle_reader';
+import { newBundleReader } from '../util/bundle_reader_impl';
 import { Code, FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
+import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
+
+import { NamedQuery } from './bundle';
+import {
+  ComponentConfiguration,
+  MemoryOfflineComponentProvider,
+  OfflineComponentProvider,
+  OnlineComponentProvider
+} from './component_provider';
+import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
   EventManager,
@@ -49,6 +72,7 @@ import {
   QueryListener,
   removeSnapshotsInSyncListener
 } from './event_manager';
+import { newQueryForPath, Query } from './query';
 import {
   registerPendingWritesCallback,
   SyncEngine,
@@ -57,33 +81,10 @@ import {
   syncEngineUnlisten,
   syncEngineWrite
 } from './sync_engine';
-import { View } from './view';
-import { DatabaseId, DatabaseInfo } from './database_info';
-import { newQueryForPath, Query } from './query';
 import { Transaction } from './transaction';
-import { ViewSnapshot } from './view_snapshot';
-import {
-  ComponentConfiguration,
-  MemoryOfflineComponentProvider,
-  OfflineComponentProvider,
-  OnlineComponentProvider
-} from './component_provider';
-import { AsyncObserver } from '../util/async_observer';
-import { debugAssert } from '../util/assert';
 import { TransactionRunner } from './transaction_runner';
-import { logDebug } from '../util/log';
-import { AutoId } from '../util/misc';
-import { Persistence } from '../local/persistence';
-import { Datastore } from '../remote/datastore';
-import { LoadBundleTask } from '../api/bundle';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { JsonProtoSerializer } from '../remote/serializer';
-import { newBundleReader } from '../util/bundle_reader_impl';
-import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { DocumentKey } from '../model/document_key';
-import { BundleReader } from '../util/bundle_reader';
-import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { NamedQuery } from './bundle';
+import { View } from './view';
+import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

@@ -23,11 +23,10 @@ import {
   MemoryPersistenceProvider,
   ExpFirebaseFirestore
 } from './export';
+import { name, version } from './package.json';
 import { configureForFirebase } from './src/config';
 
 import './register-module';
-
-import { name, version } from './package.json';
 
 /**
  * Registers the memory-only Firestore build with the components framework.

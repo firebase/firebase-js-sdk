@@ -16,6 +16,10 @@
  */
 
 import { newQueryForPath, Query } from '../../../src/core/query';
+import { DocumentKey } from '../../../src/model/document_key';
+import { JsonObject } from '../../../src/model/object_value';
+import { LimitType } from '../../../src/protos/firestore_bundle_proto';
+import { toVersion } from '../../../src/remote/serializer';
 import {
   doc,
   query,
@@ -24,18 +28,14 @@ import {
   version,
   wrapObject
 } from '../../util/helpers';
-
-import { describeSpec, specTest } from './describe_spec';
-import { client, spec } from './spec_builder';
-import { TestBundleBuilder } from '../util/bundle_data';
 import {
   JSON_SERIALIZER,
   TEST_DATABASE_ID
 } from '../local/persistence_test_helpers';
-import { toVersion } from '../../../src/remote/serializer';
-import { JsonObject } from '../../../src/model/object_value';
-import { LimitType } from '../../../src/protos/firestore_bundle_proto';
-import { DocumentKey } from '../../../src/model/document_key';
+import { TestBundleBuilder } from '../util/bundle_data';
+
+import { describeSpec, specTest } from './describe_spec';
+import { client, spec } from './spec_builder';
 
 interface TestBundleDocument {
   key: DocumentKey;

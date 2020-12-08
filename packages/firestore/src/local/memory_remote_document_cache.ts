@@ -16,6 +16,7 @@
  */
 
 import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -25,15 +26,15 @@ import {
   nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument } from '../model/document';
-import { SnapshotVersion } from '../core/snapshot_version';
+import { DocumentKey } from '../model/document_key';
 import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
+
 import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { PersistenceTransaction } from './persistence_transaction';
-import { DocumentKey } from '../model/document_key';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
 

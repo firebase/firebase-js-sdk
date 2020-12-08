@@ -16,12 +16,12 @@
  */
 
 import { CredentialsSettings } from '../../../src/api/credentials';
-import { Code, FirestoreError } from '../../../src/util/error';
 import {
   LRU_COLLECTION_DISABLED,
   LRU_DEFAULT_CACHE_SIZE_BYTES
 } from '../../../src/local/lru_garbage_collector';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
+import { Code, FirestoreError } from '../../../src/util/error';
 import { validateIsNotUsedTogether } from '../../../src/util/input_validation';
 
 // settings() defaults:

@@ -16,9 +16,10 @@
  */
 
 import { WriteBatch } from '../../../lite/src/api/write_batch';
+import { cast } from '../../../src/util/input_validation';
+
 import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
 import { executeWrite } from './reference_impl';
-import { cast } from '../../../src/util/input_validation';
 
 export { WriteBatch };
 

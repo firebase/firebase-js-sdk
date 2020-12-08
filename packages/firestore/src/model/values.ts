@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DatabaseId } from '../core/database_info';
 import {
   ArrayValue,
   LatLng,
@@ -22,24 +23,23 @@ import {
   Timestamp,
   Value
 } from '../protos/firestore_proto_api';
-
 import { fail } from '../util/assert';
+import { arrayEquals, primitiveComparator } from '../util/misc';
 import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
-import { arrayEquals, primitiveComparator } from '../util/misc';
-import { DatabaseId } from '../core/database_info';
-import {
-  getLocalWriteTime,
-  getPreviousValue,
-  isServerTimestamp
-} from './server_timestamps';
+
+import { DocumentKey } from './document_key';
 import {
   normalizeByteString,
   normalizeNumber,
   normalizeTimestamp
 } from './normalize';
+import {
+  getLocalWriteTime,
+  getPreviousValue,
+  isServerTimestamp
+} from './server_timestamps';
 import { TypeOrder } from './type_order';
-import { DocumentKey } from './document_key';
 
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {

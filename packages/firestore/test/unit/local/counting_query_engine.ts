@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
+import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
-import { Query } from '../../../src/core/query';
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { MutationQueue } from '../../../src/local/mutation_queue';
-import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { QueryEngine } from '../../../src/local/query_engine';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 
 /**
  * A test-only query engine that forwards all API calls and exposes the number

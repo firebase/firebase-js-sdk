@@ -16,8 +16,9 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { PersistenceTransaction } from './persistence_transaction';
+
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * Represents a set of indexes that are used to execute queries efficiently.

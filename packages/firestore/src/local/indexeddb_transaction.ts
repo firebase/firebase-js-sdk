@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence_transaction';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { ListenSequenceNumber } from '../core/types';
 import { debugCast } from '../util/assert';
+
+import { PersistenceTransaction } from './persistence_transaction';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 export class IndexedDbTransaction extends PersistenceTransaction {
   constructor(

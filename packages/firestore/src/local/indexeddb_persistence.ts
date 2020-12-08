@@ -20,8 +20,16 @@ import { DatabaseId } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
+import { DocumentLike, WindowLike } from '../util/types';
+
+import { BundleCache } from './bundle_cache';
+import { IndexManager } from './index_manager';
+import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
+import { IndexedDbIndexManager } from './indexeddb_index_manager';
+import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import {
   IndexedDbRemoteDocumentCache,
@@ -35,31 +43,24 @@ import {
   DbPrimaryClientKey,
   SCHEMA_VERSION
 } from './indexeddb_schema';
+import { SchemaConverter } from './indexeddb_schema_converter';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
+import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
 import { LocalSerializer } from './local_serializer';
+import { LruParams } from './lru_garbage_collector';
 import { Persistence, PrimaryStateListener } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import {
+  PersistenceTransaction,
+  PersistenceTransactionMode,
+  PRIMARY_LEASE_LOST_ERROR_MSG
+} from './persistence_transaction';
 import { ClientId } from './shared_client_state';
 import {
   isIndexedDbTransactionError,
   SimpleDb,
   SimpleDbStore
 } from './simple_db';
-import { DocumentLike, WindowLike } from '../util/types';
-import {
-  PersistenceTransaction,
-  PersistenceTransactionMode,
-  PRIMARY_LEASE_LOST_ERROR_MSG
-} from './persistence_transaction';
-import { LruParams } from './lru_garbage_collector';
-import { BundleCache } from './bundle_cache';
-import { IndexManager } from './index_manager';
-import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
-import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
-import { IndexedDbIndexManager } from './indexeddb_index_manager';
-import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
-import { SchemaConverter } from './indexeddb_schema_converter';
-import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 
 const LOG_TAG = 'IndexedDbPersistence';
 

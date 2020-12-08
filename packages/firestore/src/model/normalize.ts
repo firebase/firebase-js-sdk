@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { ByteString } from '../util/byte_string';
 import { Timestamp } from '../protos/firestore_proto_api';
 import { hardAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_TIMESTAMP_REG_EXP = new RegExp(

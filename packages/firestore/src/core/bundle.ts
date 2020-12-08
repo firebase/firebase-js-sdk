@@ -16,16 +16,18 @@
  */
 
 import { LoadBundleTaskProgress } from '@firebase/firestore-types';
+
+import { MaybeDocumentMap } from '../model/collections';
+import { MaybeDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import { BundledDocumentMetadata as ProtoBundledDocumentMetadata } from '../protos/firestore_bundle_proto';
 import {
   Document as ApiDocument,
   Timestamp as ApiTimestamp
 } from '../protos/firestore_proto_api';
-import { MaybeDocumentMap } from '../model/collections';
-import { SnapshotVersion } from './snapshot_version';
+
 import { Query } from './query';
-import { DocumentKey } from '../model/document_key';
-import { MaybeDocument } from '../model/document';
+import { SnapshotVersion } from './snapshot_version';
 
 /**
  * Represents a bundled document, including the metadata and the document

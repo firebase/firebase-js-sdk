@@ -18,6 +18,22 @@
 // Helpers here mock Firestore in order to unit-test API types. Do NOT use
 // these in any integration test, where we expect working Firestore object.
 
+import { Provider, ComponentContainer } from '@firebase/component';
+
+import {
+  ensureFirestoreConfigured,
+  FirebaseFirestore
+} from '../../exp/src/api/database';
+import {
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference
+} from '../../exp/src/api/reference';
+import { ExpUserDataWriter } from '../../exp/src/api/reference_impl';
+import {
+  QuerySnapshot as ExpQuerySnapshot,
+  DocumentSnapshot as ExpDocumentSnapshot,
+  SnapshotMetadata
+} from '../../exp/src/api/snapshot';
 import {
   CollectionReference,
   DocumentReference,
@@ -28,6 +44,7 @@ import {
   QuerySnapshot,
   UserDataWriter
 } from '../../src/api/database';
+import { DatabaseId } from '../../src/core/database_info';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -38,24 +55,9 @@ import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
-import { doc, key, path as pathFrom } from './helpers';
-import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
-import {
-  ensureFirestoreConfigured,
-  FirebaseFirestore
-} from '../../exp/src/api/database';
-import { DatabaseId } from '../../src/core/database_info';
-import {
-  QuerySnapshot as ExpQuerySnapshot,
-  DocumentSnapshot as ExpDocumentSnapshot,
-  SnapshotMetadata
-} from '../../exp/src/api/snapshot';
-import { ExpUserDataWriter } from '../../exp/src/api/reference_impl';
-import {
-  Query as ExpQuery,
-  CollectionReference as ExpCollectionReference
-} from '../../exp/src/api/reference';
+
+import { doc, key, path as pathFrom } from './helpers';
 
 /**
  * A mock Firestore. Will not work for integration test.
