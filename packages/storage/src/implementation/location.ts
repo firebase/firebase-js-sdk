@@ -25,6 +25,7 @@ import { DEFAULT_HOST } from './constants';
 
 /**
  * Firebase Storage location data.
+ * @internal
  */
 export class Location {
   private path_: string;

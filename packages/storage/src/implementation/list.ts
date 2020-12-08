@@ -19,7 +19,7 @@
  * @fileoverview Documentation for the listOptions and listResult format
  */
 import { Location } from './location';
-import * as json from './json';
+import { jsonObjectOrNull } from './json';
 import { ListResult } from '../list';
 import { StorageService } from '../service';
 
@@ -81,7 +81,7 @@ export function fromResponseString(
   bucket: string,
   resourceString: string
 ): ListResult | null {
-  const obj = json.jsonObjectOrNull(resourceString);
+  const obj = jsonObjectOrNull(resourceString);
   if (obj === null) {
     return null;
   }

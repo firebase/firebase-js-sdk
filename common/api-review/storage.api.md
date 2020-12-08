@@ -12,7 +12,52 @@ import { Provider } from '@firebase/component';
 import * as types from '@firebase/storage-types';
 
 // @public
+export type CompleteFn = () => void;
+
+// @public
 export function deleteObject(ref: StorageReference): Promise<void>;
+
+// @internal
+export enum _ErrorCode {
+    // (undocumented)
+    ABORT = 2,
+    // (undocumented)
+    NETWORK_ERROR = 1,
+    // (undocumented)
+    NO_ERROR = 0
+}
+
+// @public
+export type ErrorFn = (error: FirebaseStorageError) => void;
+
+// @internal (undocumented)
+export class _FbsBlob {
+    constructor(data: Blob | Uint8Array | ArrayBuffer, elideCopy?: boolean);
+    // (undocumented)
+    static getBlob(...args: Array<string | _FbsBlob>): _FbsBlob | null;
+    // (undocumented)
+    size(): number;
+    // (undocumented)
+    slice(startByte: number, endByte: number): _FbsBlob | null;
+    // (undocumented)
+    type(): string;
+    // (undocumented)
+    uploadData(): Blob | Uint8Array;
+}
+
+// @public
+export class FirebaseStorageError extends FirebaseError {
+    // @internal
+    constructor(code: StorageErrorCode, message: string);
+    // @internal
+    codeEquals(code: StorageErrorCode): boolean;
+    customData: {
+        serverResponse: string | null;
+    };
+    get message(): string;
+    get serverResponse(): null | string;
+    set serverResponse(serverResponse: string | null);
+}
 
 // @public
 export function getDownloadURL(ref: StorageReference): Promise<string>;
@@ -22,6 +67,26 @@ export function getMetadata(ref: StorageReference): Promise<Metadata>;
 
 // @public
 export function getStorage(app: FirebaseApp): StorageService;
+
+// @internal
+export interface _Headers {
+    // (undocumented)
+    [name: string]: string | number;
+}
+
+// @internal
+export type _InternalTaskState = string;
+
+// @internal
+export const _InternalTaskState: {
+    RUNNING: string;
+    PAUSING: string;
+    PAUSED: string;
+    SUCCESS: string;
+    CANCELING: string;
+    CANCELED: string;
+    ERROR: string;
+};
 
 // @public
 export function list(ref: StorageReference, options?: ListOptions | null): Promise<ListResult>;
@@ -35,41 +100,51 @@ export interface ListOptions extends types.ListOptions {
 
 // @public
 export interface ListResult {
-    // (undocumented)
     items: StorageReference[];
-    // (undocumented)
     nextPageToken?: string;
-    // (undocumented)
     prefixes: StorageReference[];
 }
+
+// @internal
+export class _Location {
+    constructor(bucket: string, path: string);
+    // (undocumented)
+    readonly bucket: string;
+    // (undocumented)
+    bucketOnlyServerUrl(): string;
+    // (undocumented)
+    fullServerUrl(): string;
+    // (undocumented)
+    get isRoot(): boolean;
+    // (undocumented)
+    static makeFromBucketSpec(bucketString: string): _Location;
+    // (undocumented)
+    static makeFromUrl(url: string): _Location;
+    // (undocumented)
+    get path(): string;
+    }
 
 // @public
 export interface Metadata extends types.FullMetadata {
     // (undocumented)
     [prop: string]: unknown;
-    // (undocumented)
     cacheControl: string | undefined;
-    // (undocumented)
     contentDisposition: string | undefined;
-    // (undocumented)
     contentEncoding: string | undefined;
-    // (undocumented)
     contentLanguage: string | undefined;
-    // (undocumented)
     contentType: string | undefined;
-    // (undocumented)
     customMetadata: {
         [key: string]: string;
     } | undefined;
-    // (undocumented)
     downloadTokens: string[] | undefined;
-    // (undocumented)
     md5Hash: string | undefined;
-    // (undocumented)
     ref: StorageReference | undefined;
-    // (undocumented)
+    // @internal (undocumented)
     type: string | undefined;
 }
+
+// @public
+export type NextFn<T> = (value: T) => void;
 
 // @public
 export function ref(storage: StorageService, url?: string): StorageReference;
@@ -77,70 +152,129 @@ export function ref(storage: StorageService, url?: string): StorageReference;
 // @public
 export function ref(storageOrRef: StorageService | StorageReference, path?: string): StorageReference;
 
+// @internal (undocumented)
+export interface _Request<T> {
+    cancel(appDelete?: boolean): void;
+    // (undocumented)
+    getPromise(): Promise<T>;
+}
+
+// @internal (undocumented)
+export class _RequestInfo<T> {
+    constructor(url: string, method: string,
+    handler: (p1: _XhrIo, p2: string) => T, timeout: number);
+    // (undocumented)
+    additionalRetryCodes: number[];
+    // (undocumented)
+    body: Blob | string | Uint8Array | null;
+    // (undocumented)
+    errorHandler: ((p1: _XhrIo, p2: FirebaseStorageError) => FirebaseStorageError) | null;
+    handler: (p1: _XhrIo, p2: string) => T;
+    // (undocumented)
+    headers: _Headers;
+    // (undocumented)
+    method: string;
+    progressCallback: ((p1: number, p2: number) => void) | null;
+    // (undocumented)
+    successCodes: number[];
+    // (undocumented)
+    timeout: number;
+    // (undocumented)
+    url: string;
+    // (undocumented)
+    urlParams: _UrlParams;
+}
+
+// @public
+export type StorageErrorCode = string;
+
+// @public
+export const StorageErrorCode: {
+    UNKNOWN: string;
+    OBJECT_NOT_FOUND: string;
+    BUCKET_NOT_FOUND: string;
+    PROJECT_NOT_FOUND: string;
+    QUOTA_EXCEEDED: string;
+    UNAUTHENTICATED: string;
+    UNAUTHORIZED: string;
+    RETRY_LIMIT_EXCEEDED: string;
+    INVALID_CHECKSUM: string;
+    CANCELED: string;
+    INVALID_EVENT_NAME: string;
+    INVALID_URL: string;
+    INVALID_DEFAULT_BUCKET: string;
+    NO_DEFAULT_BUCKET: string;
+    CANNOT_SLICE_BLOB: string;
+    SERVER_FILE_WRONG_SIZE: string;
+    NO_DOWNLOAD_URL: string;
+    INVALID_ARGUMENT: string;
+    INVALID_ARGUMENT_COUNT: string;
+    APP_DELETED: string;
+    INVALID_ROOT_OPERATION: string;
+    INVALID_FORMAT: string;
+    INTERNAL_ERROR: string;
+    UNSUPPORTED_ENVIRONMENT: string;
+};
+
+// @public
+export interface StorageObserver<T> {
+    complete?: CompleteFn;
+    error?: ErrorFn;
+    next?: NextFn<T>;
+}
+
 // @public
 export class StorageReference {
-    constructor(_service: StorageService, location: string | Location_2);
-    // (undocumented)
+    // @internal
+    constructor(_service: StorageService, location: string | _Location);
     get bucket(): string;
-    // (undocumented)
     get fullPath(): string;
-    // Warning: (ae-forgotten-export) The symbol "Location" needs to be exported by the entry point index.d.ts
-    //
     // @internal (undocumented)
-    _location: Location_2;
-    // (undocumented)
+    _location: _Location;
     get name(): string;
-    // (undocumented)
-    protected newRef(service: StorageService, location: Location_2): StorageReference;
-    // (undocumented)
+    // @internal (undocumented)
+    protected newRef(service: StorageService, location: _Location): StorageReference;
     get parent(): StorageReference | null;
-    // (undocumented)
     get root(): StorageReference;
-    // (undocumented)
     get storage(): StorageService;
-    // (undocumented)
+    // @internal
     _throwIfRoot(name: string): void;
-    // @override (undocumented)
+    // @override
     toString(): string;
 }
 
 // @public
 export class StorageService implements _FirebaseService {
-    constructor(app: FirebaseApp,
+    // @internal
+    constructor(
+    app: FirebaseApp,
     _authProvider: Provider<FirebaseAuthInternalName>,
-    _pool: XhrIoPool,
+    _pool: _XhrIoPool,
     _url?: string | undefined,
     _firebaseVersion?: string | undefined);
-    // (undocumented)
     readonly app: FirebaseApp;
-    // (undocumented)
+    // @internal (undocumented)
     protected readonly _appId: string | null;
     // @internal (undocumented)
     readonly _authProvider: Provider<FirebaseAuthInternalName>;
     // @internal (undocumented)
-    readonly _bucket: Location_2 | null;
+    readonly _bucket: _Location | null;
     // @internal
     _delete(): Promise<void>;
     // @internal (undocumented)
     readonly _firebaseVersion?: string | undefined;
-    // (undocumented)
-    getAuthToken(): Promise<string | null>;
-    // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
-    //
     // @internal (undocumented)
-    makeRequest<T>(requestInfo: RequestInfo_2<T>, authToken: string | null): Request_2<T>;
-    makeStorageReference(loc: Location_2): StorageReference;
-    // (undocumented)
+    getAuthToken(): Promise<string | null>;
+    // @internal (undocumented)
+    makeRequest<T>(requestInfo: _RequestInfo<T>, authToken: string | null): _Request<T>;
+    // @internal
+    makeStorageReference(loc: _Location): StorageReference;
     get maxOperationRetryTime(): number;
     set maxOperationRetryTime(time: number);
-    // (undocumented)
     get maxUploadRetryTime(): number;
     set maxUploadRetryTime(time: number);
-    // Warning: (ae-forgotten-export) The symbol "XhrIoPool" needs to be exported by the entry point index.d.ts
-    //
     // @internal (undocumented)
-    readonly _pool: XhrIoPool;
+    readonly _pool: _XhrIoPool;
     // @internal (undocumented)
     readonly _url?: string | undefined;
 }
@@ -157,7 +291,33 @@ export const StringFormat: {
 };
 
 // @public
-export function updateMetadata(ref: StorageReference, metadata: Record<string, unknown>): Promise<Metadata>;
+export type Subscribe<T> = (next?: NextFn<T> | StorageObserver<T>, error?: ErrorFn, complete?: CompleteFn) => Unsubscribe;
+
+// @public
+export type TaskEvent = string;
+
+// @public
+export const TaskEvent: {
+    STATE_CHANGED: string;
+};
+
+// @public
+export type TaskState = string;
+
+// @public
+export const TaskState: {
+    RUNNING: string;
+    PAUSED: string;
+    SUCCESS: string;
+    CANCELED: string;
+    ERROR: string;
+};
+
+// @public
+export type Unsubscribe = () => void;
+
+// @public
+export function updateMetadata(ref: StorageReference, metadata: Partial<Metadata>): Promise<Metadata>;
 
 // @public
 export function uploadBytes(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: Metadata): Promise<UploadResult>;
@@ -167,9 +327,7 @@ export function uploadBytesResumable(ref: StorageReference, data: Blob | Uint8Ar
 
 // @public
 export interface UploadResult {
-    // (undocumented)
     readonly metadata: Metadata;
-    // (undocumented)
     readonly ref: StorageReference;
 }
 
@@ -178,52 +336,64 @@ export function uploadString(ref: StorageReference, value: string, format?: Stri
 
 // @public
 export class UploadTask {
-    constructor(ref: StorageReference, blob: FbsBlob, metadata?: Metadata | null);
-    // Warning: (ae-forgotten-export) The symbol "FbsBlob" needs to be exported by the entry point index.d.ts
-    //
-    // @internal (undocumented)
-    _blob: FbsBlob;
+    // @internal
+    constructor(ref: StorageReference, blob: _FbsBlob, metadata?: Metadata | null);
+    // @internal
+    _blob: _FbsBlob;
     cancel(): boolean;
     catch<T>(onRejected: (p1: FirebaseStorageError) => T | Promise<T>): Promise<T>;
-    // @internal (undocumented)
+    // @internal
     _metadata: Metadata | null;
-    // Warning: (ae-forgotten-export) The symbol "TaskEvent" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "StorageObserver" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "ErrorFn" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "CompleteFn" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Unsubscribe" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Subscribe" needs to be exported by the entry point index.d.ts
     on(type: TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | ((a: UploadTaskSnapshot) => unknown), error?: ErrorFn, completed?: CompleteFn): Unsubscribe | Subscribe<UploadTaskSnapshot>;
     pause(): boolean;
     resume(): boolean;
-    // (undocumented)
     get snapshot(): UploadTaskSnapshot;
-    // Warning: (ae-forgotten-export) The symbol "InternalTaskState" needs to be exported by the entry point index.d.ts
-    //
-    // @internal (undocumented)
-    _state: InternalTaskState;
-    // Warning: (ae-forgotten-export) The symbol "FirebaseStorageError" needs to be exported by the entry point index.d.ts
+    // @internal
+    _state: _InternalTaskState;
     then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null, onRejected?: ((error: FirebaseStorageError) => U | Promise<U>) | null): Promise<U>;
-    // @internal (undocumented)
+    // @internal
     _transferred: number;
     }
 
 // @public
 export interface UploadTaskSnapshot {
-    // (undocumented)
     readonly bytesTransferred: number;
-    // (undocumented)
     readonly metadata: Metadata;
-    // (undocumented)
     readonly ref: StorageReference;
-    // Warning: (ae-forgotten-export) The symbol "TaskState" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     readonly state: TaskState;
-    // (undocumented)
     readonly task: UploadTask;
-    // (undocumented)
     readonly totalBytes: number;
+}
+
+// @internal
+export interface _UrlParams {
+    // (undocumented)
+    [name: string]: string | number;
+}
+
+// @internal
+export interface _XhrIo {
+    abort(): void;
+    // (undocumented)
+    addUploadProgressListener(listener: (p1: ProgressEvent) => void): void;
+    // (undocumented)
+    getErrorCode(): _ErrorCode;
+    // (undocumented)
+    getResponseHeader(header: string): string | null;
+    // (undocumented)
+    getResponseText(): string;
+    // (undocumented)
+    getStatus(): number;
+    // (undocumented)
+    removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void;
+    // (undocumented)
+    send(url: string, method: string, body?: ArrayBufferView | Blob | string | null, headers?: _Headers): Promise<_XhrIo>;
+}
+
+// @internal
+export class _XhrIoPool {
+    // (undocumented)
+    createXhrIo(): _XhrIo;
 }
 
 

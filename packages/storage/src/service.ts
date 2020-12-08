@@ -28,7 +28,11 @@ import {
   FirebaseOptions,
   _FirebaseService
 } from '@firebase/app-types-exp';
-import * as constants from '../src/implementation/constants';
+import {
+  CONFIG_STORAGE_BUCKET_KEY,
+  DEFAULT_MAX_OPERATION_RETRY_TIME,
+  DEFAULT_MAX_UPLOAD_RETRY_TIME
+} from '../src/implementation/constants';
 import {
   invalidArgument,
   appDeleted,
@@ -116,7 +120,7 @@ export function ref(
 }
 
 function extractBucket(config?: FirebaseOptions): Location | null {
-  const bucketString = config?.[constants.CONFIG_STORAGE_BUCKET_KEY];
+  const bucketString = config?.[CONFIG_STORAGE_BUCKET_KEY];
   if (bucketString == null) {
     return null;
   }
@@ -133,13 +137,22 @@ export class StorageService implements _FirebaseService {
    * @internal
    */
   readonly _bucket: Location | null = null;
+  /**
+   * @internal
+   */
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
   private _maxOperationRetryTime: number;
   private _maxUploadRetryTime: number;
 
+  /**
+   * @internal
+   */
   constructor(
+    /**
+     * FirebaseApp associated with this StorageService instance.
+     */
     readonly app: FirebaseApp,
     /**
      * @internal
@@ -158,8 +171,8 @@ export class StorageService implements _FirebaseService {
      */
     readonly _firebaseVersion?: string
   ) {
-    this._maxOperationRetryTime = constants.DEFAULT_MAX_OPERATION_RETRY_TIME;
-    this._maxUploadRetryTime = constants.DEFAULT_MAX_UPLOAD_RETRY_TIME;
+    this._maxOperationRetryTime = DEFAULT_MAX_OPERATION_RETRY_TIME;
+    this._maxUploadRetryTime = DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this._requests = new Set();
     if (_url != null) {
       this._bucket = Location.makeFromBucketSpec(_url);
@@ -168,6 +181,9 @@ export class StorageService implements _FirebaseService {
     }
   }
 
+  /**
+   * The maximum time to retry uploads in milliseconds.
+   */
   get maxUploadRetryTime(): number {
     return this._maxUploadRetryTime;
   }
@@ -182,6 +198,10 @@ export class StorageService implements _FirebaseService {
     this._maxUploadRetryTime = time;
   }
 
+  /**
+   * The maximum time to retry operations other than uploads or downloads in
+   * milliseconds.
+   */
   get maxOperationRetryTime(): number {
     return this._maxOperationRetryTime;
   }
@@ -196,6 +216,9 @@ export class StorageService implements _FirebaseService {
     this._maxOperationRetryTime = time;
   }
 
+  /**
+   * @internal
+   */
   async getAuthToken(): Promise<string | null> {
     const auth = this._authProvider.getImmediate({ optional: true });
     if (auth) {
@@ -221,6 +244,7 @@ export class StorageService implements _FirebaseService {
   /**
    * Returns a new firebaseStorage.Reference object referencing this StorageService
    * at the given Location.
+   * @internal
    */
   makeStorageReference(loc: Location): StorageReference {
     return new StorageReference(this, loc);

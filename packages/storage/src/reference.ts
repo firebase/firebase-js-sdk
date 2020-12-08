@@ -58,6 +58,9 @@ export class StorageReference {
    */
   _location: Location;
 
+  /**
+   * @internal
+   */
   constructor(private _service: StorageService, location: string | Location) {
     if (location instanceof Location) {
       this._location = location;
@@ -67,7 +70,7 @@ export class StorageReference {
   }
 
   /**
-   * @returns The URL for the bucket and path this object references,
+   * Returns the URL for the bucket and path this object references,
    *     in the form gs://<bucket>/<object-path>
    * @override
    */
@@ -75,6 +78,9 @@ export class StorageReference {
     return 'gs://' + this._location.bucket + '/' + this._location.path;
   }
 
+  /**
+   * @internal
+   */
   protected newRef(
     service: StorageService,
     location: Location
@@ -83,30 +89,46 @@ export class StorageReference {
   }
 
   /**
-   * @returns An reference to the root of this
-   *     object's bucket.
+   * A reference to the root of this object's bucket.
    */
   get root(): StorageReference {
     const location = new Location(this._location.bucket, '');
     return this.newRef(this._service, location);
   }
 
+  /**
+   * The name of the bucket containing this reference's object.
+   */
   get bucket(): string {
     return this._location.bucket;
   }
 
+  /**
+   * The full path of this object.
+   */
   get fullPath(): string {
     return this._location.path;
   }
 
+  /**
+   * The short name of this object, which is the last component of the full path.
+   * For example, if fullPath is 'full/path/image.png', name is 'image.png'.
+   */
   get name(): string {
     return lastComponent(this._location.path);
   }
 
+  /**
+   * The `StorageService` instance this `StorageReference` is associated with.
+   */
   get storage(): StorageService {
     return this._service;
   }
 
+  /**
+   * A `StorageReference` pointing to the parent location of this `StorageReference`, or null if
+   * this reference is the root.
+   */
   get parent(): StorageReference | null {
     const newPath = parent(this._location.path);
     if (newPath === null) {
@@ -116,6 +138,10 @@ export class StorageReference {
     return new StorageReference(this._service, location);
   }
 
+  /**
+   * @internal
+   * Utility function to throw an error in methods that do not accept a root reference.
+   */
   _throwIfRoot(name: string): void {
     if (this._location.path === '') {
       throw invalidRootOperation(name);

@@ -20,8 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 use(chaiAsPromised);
 
 import { FirebaseApp } from '@firebase/app-types';
-import * as constants from '../../src/implementation/constants';
-import { Code, FirebaseStorageError } from '../../src/implementation/error';
+import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
+import {
+  StorageErrorCode,
+  FirebaseStorageError
+} from '../../src/implementation/error';
 import { Headers, XhrIo } from '../../src/implementation/xhrio';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
@@ -50,9 +53,9 @@ export function makeFakeApp(bucketArg?: string): FirebaseApp {
   const app: any = {};
   app.options = {};
   if (bucketArg != null) {
-    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucketArg;
+    app.options[CONFIG_STORAGE_BUCKET_KEY] = bucketArg;
   } else {
-    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket;
+    app.options[CONFIG_STORAGE_BUCKET_KEY] = bucket;
   }
   return app as FirebaseApp;
 }
@@ -125,7 +128,10 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
   };
 }
 
-export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
+export function assertThrows(
+  f: () => void,
+  code: StorageErrorCode
+): FirebaseStorageError {
   let captured: FirebaseStorageError | null = null;
   expect(() => {
     try {

@@ -16,17 +16,18 @@
  */
 
 /**
- * @fileoverview A lightweight wrapper around XMLHttpRequest with a
- * goog.net.XhrIo-like interface.
- */
-
-/**
+ * @internal
  * XHR headers
  */
 export interface Headers {
   [name: string]: string | number;
 }
 
+/**
+ * @internal
+ * A lightweight wrapper around XMLHttpRequest with a
+ * goog.net.XhrIo-like interface.
+ */
 export interface XhrIo {
   send(
     url: string,
@@ -53,6 +54,10 @@ export interface XhrIo {
   removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void;
 }
 
+/**
+ * @internal
+ * Error codes for requests made by the the XhrIo wrapper.
+ */
 export enum ErrorCode {
   NO_ERROR = 0,
   NETWORK_ERROR = 1,
