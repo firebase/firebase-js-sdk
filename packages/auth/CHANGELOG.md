@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.16.0
+
+### Minor Changes
+
+- [`c9f379cf7`](https://github.com/firebase/firebase-js-sdk/commit/c9f379cf7ef2c5938512a45b63008bbb135926ed) [#4112](https://github.com/firebase/firebase-js-sdk/pull/4112) - Add option to hide banner in auth when using the emulator
+
 ## 0.15.3
 
 ### Patch Changes
