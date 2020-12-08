@@ -21,7 +21,6 @@ import { Query as InternalQuery } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import {
   applyDocChanges,
   doc,
@@ -31,7 +30,9 @@ import {
   query
 } from '../../util/helpers';
 import { firestore } from '../../util/api_helpers';
-import { ExpUserDataWriter, Query } from '../../../exp/src/api/reference';
+import { ExpUserDataWriter } from '../../../exp/src/api/reference_impl';
+import { Query } from '../../../exp/src/api/reference';
+import { DocumentKey } from '../../../src/model/document_key';
 
 describe('DocumentChange:', () => {
   function expectPositions(

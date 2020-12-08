@@ -23,7 +23,6 @@ import {
   NoDocument,
   UnknownDocument
 } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
 import {
@@ -61,7 +60,8 @@ import {
   NamedQuery as ProtoNamedQuery,
   BundledQuery as ProtoBundledQuery
 } from '../protos/firestore_bundle_proto';
-import { Bundle, NamedQuery } from '../core/bundle_types';
+import { DocumentKey } from '../model/document_key';
+import { Bundle, NamedQuery } from '../core/bundle';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

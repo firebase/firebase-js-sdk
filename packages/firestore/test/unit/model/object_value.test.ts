@@ -21,11 +21,11 @@ import { expect } from 'chai';
 import {
   extractFieldMask,
   ObjectValue,
-  ObjectValueBuilder,
-  TypeOrder
+  ObjectValueBuilder
 } from '../../../src/model/object_value';
 import { typeOrder } from '../../../src/model/values';
 import { wrap, wrapObject, field, mask } from '../../util/helpers';
+import { TypeOrder } from '../../../src/model/type_order';
 
 describe('ObjectValue', () => {
   it('can extract fields', () => {

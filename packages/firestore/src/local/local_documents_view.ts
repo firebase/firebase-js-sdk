@@ -34,17 +34,16 @@ import {
   nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
-
 import { debugAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { applyMutationToLocalView, PatchMutation } from '../model/mutation';
-import { PersistenceTransaction } from './persistence';
+import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we

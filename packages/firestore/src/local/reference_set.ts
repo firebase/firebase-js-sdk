@@ -17,10 +17,10 @@
 
 import { BatchId, TargetId } from '../core/types';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
-import { DocumentKey } from '../model/document_key';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 import { ResourcePath } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * A collection of references to a document from some kind of numbered entity

@@ -22,15 +22,14 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import { LocalStore } from '../local/local_store';
 import {
   executeQuery,
   getNamedQuery,
   handleUserChange,
-  LocalStore,
   readLocalDocument
-} from '../local/local_store';
+} from '../local/local_store_impl';
 import { Document, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
   RemoteStore,
@@ -38,7 +37,6 @@ import {
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
-import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { Deferred } from '../util/promise';
 import {
@@ -80,9 +78,12 @@ import { Datastore } from '../remote/datastore';
 import { LoadBundleTask } from '../api/bundle';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { newBundleReader } from '../util/bundle_reader_impl';
+import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { DocumentKey } from '../model/document_key';
 import { BundleReader } from '../util/bundle_reader';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { NamedQuery } from './bundle_types';
+import { NamedQuery } from './bundle';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -688,5 +689,5 @@ function createBundleReader(
   } else {
     content = data;
   }
-  return new BundleReader(toByteStreamReader(content), serializer);
+  return newBundleReader(toByteStreamReader(content), serializer);
 }

@@ -23,9 +23,7 @@ import {
 } from '../../../src/core/component_provider';
 import {
   GarbageCollectionScheduler,
-  Persistence,
-  PersistenceTransaction,
-  PersistenceTransactionMode
+  Persistence
 } from '../../../src/local/persistence';
 import {
   indexedDbStoragePrefix,
@@ -39,7 +37,6 @@ import {
   MemoryLruDelegate,
   MemoryPersistence
 } from '../../../src/local/memory_persistence';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistenceAction } from './spec_test_runner';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { StreamBridge } from '../../../src/remote/stream_bridge';
@@ -64,6 +61,11 @@ import { WindowLike } from '../../../src/util/types';
 import { newSerializer } from '../../../src/platform/serializer';
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import {
+  PersistenceTransaction,
+  PersistenceTransactionMode
+} from '../../../src/local/persistence_transaction';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject

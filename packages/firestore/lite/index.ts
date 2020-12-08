@@ -16,11 +16,11 @@
  */
 
 import { registerFirestore } from './register';
-
 registerFirestore();
 
+export { Settings } from './src/api/settings';
+
 export {
-  Settings,
   FirebaseFirestore,
   initializeFirestore,
   getFirestore,
@@ -33,45 +33,52 @@ export {
   UpdateData,
   DocumentReference,
   Query,
-  QueryConstraint,
-  QueryConstraintType,
   CollectionReference,
-  OrderByDirection,
-  WhereFilterOp,
   collection,
   collectionGroup,
   doc,
-  getDoc,
-  getDocs,
-  deleteDoc,
-  setDoc,
-  updateDoc,
-  addDoc,
   refEqual,
-  queryEqual,
-  startAt,
-  startAfter,
+  queryEqual
+} from './src/api/reference';
+
+export {
   endAt,
   endBefore,
-  query,
+  startAt,
+  startAfter,
   limit,
   limitToLast,
+  orderBy,
+  OrderByDirection,
   where,
-  orderBy
-} from './src/api/reference';
+  WhereFilterOp,
+  query,
+  QueryConstraint,
+  QueryConstraintType
+} from './src/api/query';
+
+export {
+  addDoc,
+  deleteDoc,
+  updateDoc,
+  setDoc,
+  getDoc,
+  getDocs
+} from './src/api/reference_impl';
 
 // TOOD(firestorelite): Add tests when Queries are usable
 export { FieldPath, documentId } from './src/api/field_path';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
+export { FieldValue } from './src/api/field_value';
+
 export {
-  FieldValue,
-  deleteField,
   increment,
   arrayRemove,
   arrayUnion,
-  serverTimestamp
-} from './src/api/field_value';
+  serverTimestamp,
+  deleteField
+} from './src/api/field_value_impl';
 
 export {
   FirestoreDataConverter,

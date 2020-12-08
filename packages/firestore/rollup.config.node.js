@@ -48,7 +48,8 @@ export default [
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   {
     input: {

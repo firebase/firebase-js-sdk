@@ -21,7 +21,6 @@ import { initializeFirestore, FirebaseFirestore } from '../src/api/database';
 import {
   doc,
   collection,
-  setDoc,
   DocumentData,
   CollectionReference,
   DocumentReference,
@@ -34,7 +33,8 @@ import {
 import { AutoId } from '../../src/util/misc';
 import { expect } from 'chai';
 import { QueryDocumentSnapshot } from '../src/api/snapshot';
-import { Settings } from '../../exp/src/api/database';
+import { Settings } from '../../exp/src/api/settings';
+import { setDoc } from '../src/api/reference_impl';
 
 let appCount = 0;
 

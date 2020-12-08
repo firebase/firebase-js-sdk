@@ -19,7 +19,6 @@ import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
-import { DocumentKey } from '../model/document_key';
 import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 import { TargetIdGenerator } from '../core/target_id_generator';
@@ -27,10 +26,6 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import {
-  IndexedDbLruDelegate,
-  IndexedDbPersistence
-} from './indexeddb_persistence';
 import {
   DbTarget,
   DbTargetDocument,
@@ -41,12 +36,15 @@ import {
 } from './indexeddb_schema';
 import { fromDbTarget, LocalSerializer, toDbTarget } from './local_serializer';
 import { ActiveTargets } from './lru_garbage_collector';
-import { PersistenceTransaction } from './persistence';
+import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 import { SimpleDbStore } from './simple_db';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
+import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
+import { getStore } from './indexeddb_transaction';
+import { DocumentKey } from '../model/document_key';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -406,10 +404,7 @@ export class IndexedDbTargetCache implements TargetCache {
 function targetsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
-  return IndexedDbPersistence.getStore<DbTargetKey, DbTarget>(
-    txn,
-    DbTarget.store
-  );
+  return getStore<DbTargetKey, DbTarget>(txn, DbTarget.store);
 }
 
 /**
@@ -418,10 +413,7 @@ function targetsStore(
 function globalTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
-  return IndexedDbPersistence.getStore<DbTargetGlobalKey, DbTargetGlobal>(
-    txn,
-    DbTargetGlobal.store
-  );
+  return getStore<DbTargetGlobalKey, DbTargetGlobal>(txn, DbTargetGlobal.store);
 }
 
 /**
@@ -430,7 +422,7 @@ function globalTargetStore(
 export function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
-  return IndexedDbPersistence.getStore<DbTargetDocumentKey, DbTargetDocument>(
+  return getStore<DbTargetDocumentKey, DbTargetDocument>(
     txn,
     DbTargetDocument.store
   );

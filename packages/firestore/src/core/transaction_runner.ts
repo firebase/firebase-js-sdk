@@ -16,8 +16,8 @@
  */
 
 import { Deferred } from '../util/promise';
-import { TimerId, AsyncQueue } from '../util/async_queue';
 import { ExponentialBackoff } from '../remote/backoff';
+import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Transaction } from './transaction';
 import { Datastore } from '../remote/datastore';
 import { isNullOrUndefined } from '../util/types';

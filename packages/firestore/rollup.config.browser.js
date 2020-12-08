@@ -36,7 +36,8 @@ export default [
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // Create main build
   {

@@ -22,25 +22,14 @@ import { ListenSequence } from '../../../src/core/listen_sequence';
 import { queryToTarget } from '../../../src/core/query';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import {
-  ActiveTargets,
-  LruDelegate,
-  LruGarbageCollector,
-  LruParams
-} from '../../../src/local/lru_garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
-
+import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { TargetCache } from '../../../src/local/target_cache';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document, MaybeDocument } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import {
   Mutation,
   Precondition,
@@ -51,6 +40,15 @@ import { key, query, version, wrapObject } from '../../util/helpers';
 import { SortedMap } from '../../../src/util/sorted_map';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { primitiveComparator } from '../../../src/util/misc';
+import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
+import {
+  ActiveTargets,
+  LruDelegate,
+  LruGarbageCollector,
+  LruParams
+} from '../../../src/local/lru_garbage_collector';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
+import { DocumentKey } from '../../../src/model/document_key';
 
 describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {
@@ -72,7 +70,7 @@ describe('MemoryLruDelegate', () => {
 function genericLruGarbageCollectorTests(
   newPersistence: (params: LruParams, queue: AsyncQueue) => Promise<Persistence>
 ): void {
-  const queue = new AsyncQueue();
+  const queue = newAsyncQueue();
 
   // We need to initialize a few counters so that we can use them when we
   // auto-generate things like targets and documents. Pick arbitrary values

@@ -28,7 +28,6 @@ import {
   MaybeDocumentMap
 } from './collections';
 import { MaybeDocument } from './document';
-import { DocumentKey } from './document_key';
 import {
   applyMutationToLocalView,
   applyMutationToRemoteDocument,
@@ -36,8 +35,7 @@ import {
   mutationEquals,
   MutationResult
 } from './mutation';
-
-export const BATCHID_UNKNOWN = -1;
+import { DocumentKey } from './document_key';
 
 /**
  * A batch of mutations that will be sent as one unit to the backend.

@@ -16,16 +16,12 @@
  */
 
 import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
-import { DocumentSnapshot } from './snapshot';
-import { FirebaseFirestore } from './database';
-import {
-  ensureFirestoreConfigured,
-  SnapshotMetadata
-} from '../../../src/api/database';
+import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
+import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
 import { validateReference } from '../../../lite/src/api/write_batch';
 import { DocumentReference } from '../../../lite/src/api/reference';
-import { ExpUserDataWriter } from './reference';
+import { ExpUserDataWriter } from './reference_impl';
 import { firestoreClientTransaction } from '../../../src/core/firestore_client';
 
 /**

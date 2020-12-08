@@ -28,16 +28,13 @@ import {
   NullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-
 import { SnapshotVersion } from '../core/snapshot_version';
-import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
+import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
-import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
@@ -51,12 +48,15 @@ import {
   toDbRemoteDocument,
   toDbTimestampKey
 } from './local_serializer';
-import { PersistenceTransaction } from './persistence';
+import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
+import { getStore } from './indexeddb_transaction';
+import { dbDocumentSize } from './indexeddb_mutation_batch_impl';
+import { DocumentKey } from '../model/document_key';
 
 export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
   // The IndexedDbRemoteDocumentCache doesn't implement any methods on top
@@ -583,10 +583,10 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
 function documentGlobalStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal> {
-  return IndexedDbPersistence.getStore<
-    DbRemoteDocumentGlobalKey,
-    DbRemoteDocumentGlobal
-  >(txn, DbRemoteDocumentGlobal.store);
+  return getStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
+    txn,
+    DbRemoteDocumentGlobal.store
+  );
 }
 
 /**
@@ -595,7 +595,7 @@ function documentGlobalStore(
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
-  return IndexedDbPersistence.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+  return getStore<DbRemoteDocumentKey, DbRemoteDocument>(
     txn,
     DbRemoteDocument.store
   );
@@ -603,21 +603,4 @@ function remoteDocumentsStore(
 
 function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
   return docKey.path.toArray();
-}
-
-/**
- * Retrusn an approximate size for the given document.
- */
-export function dbDocumentSize(doc: DbRemoteDocument): number {
-  let value: unknown;
-  if (doc.document) {
-    value = doc.document;
-  } else if (doc.unknownDocument) {
-    value = doc.unknownDocument;
-  } else if (doc.noDocument) {
-    value = doc.noDocument;
-  } else {
-    throw fail('Unknown remote document type');
-  }
-  return JSON.stringify(value).length;
 }

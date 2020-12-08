@@ -15,156 +15,52 @@
  * limitations under the License.
  */
 
-import { FieldTransform } from '../model/mutation';
+import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
+
 import {
-  ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation,
-  NumericIncrementTransformOperation,
-  ServerTimestampTransform
-} from '../model/transform_operation';
-import { ParseContext, parseData, UserDataSource } from './user_data_reader';
-import { debugAssert } from '../util/assert';
-import { toNumber } from '../remote/serializer';
-import { FieldValue } from '../../lite/src/api/field_value';
+  arrayRemove,
+  arrayUnion,
+  deleteField,
+  FieldValue as FieldValue1,
+  increment,
+  serverTimestamp
+} from '../../exp/index';
+import { Compat } from './compat';
 
-export class DeleteFieldValueImpl extends FieldValue {
-  _toFieldTransform(context: ParseContext): null {
-    if (context.dataSource === UserDataSource.MergeSet) {
-      // No transform to add for a delete, but we need to add it to our
-      // fieldMask so it gets deleted.
-      context.fieldMask.push(context.path!);
-    } else if (context.dataSource === UserDataSource.Update) {
-      debugAssert(
-        context.path!.length > 0,
-        `${this._methodName}() at the top level should have already ` +
-          'been handled.'
-      );
-      throw context.createError(
-        `${this._methodName}() can only appear at the top level ` +
-          'of your update data'
-      );
-    } else {
-      // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
-      throw context.createError(
-        `${this._methodName}() cannot be used with set() unless you pass ` +
-          '{merge:true}'
-      );
-    }
-    return null;
+export class FieldValue
+  extends Compat<FieldValue1>
+  implements PublicFieldValue {
+  static serverTimestamp(): FieldValue {
+    const delegate = serverTimestamp();
+    delegate._methodName = 'FieldValue.serverTimestamp';
+    return new FieldValue(delegate);
+  }
+
+  static delete(): FieldValue {
+    const delegate = deleteField();
+    delegate._methodName = 'FieldValue.delete';
+    return new FieldValue(delegate);
+  }
+
+  static arrayUnion(...elements: unknown[]): FieldValue {
+    const delegate = arrayUnion(...elements);
+    delegate._methodName = 'FieldValue.arrayUnion';
+    return new FieldValue(delegate);
+  }
+
+  static arrayRemove(...elements: unknown[]): FieldValue {
+    const delegate = arrayRemove(...elements);
+    delegate._methodName = 'FieldValue.arrayRemove';
+    return new FieldValue(delegate);
+  }
+
+  static increment(n: number): FieldValue {
+    const delegate = increment(n);
+    delegate._methodName = 'FieldValue.increment';
+    return new FieldValue(delegate);
   }
 
   isEqual(other: FieldValue): boolean {
-    return other instanceof DeleteFieldValueImpl;
-  }
-}
-
-/**
- * Creates a child context for parsing SerializableFieldValues.
- *
- * This is different than calling `ParseContext.contextWith` because it keeps
- * the fieldTransforms and fieldMask separate.
- *
- * The created context has its `dataSource` set to `UserDataSource.Argument`.
- * Although these values are used with writes, any elements in these FieldValues
- * are not considered writes since they cannot contain any FieldValue sentinels,
- * etc.
- *
- * @param fieldValue - The sentinel FieldValue for which to create a child
- *     context.
- * @param context - The parent context.
- * @param arrayElement - Whether or not the FieldValue has an array.
- */
-function createSentinelChildContext(
-  fieldValue: FieldValue,
-  context: ParseContext,
-  arrayElement: boolean
-): ParseContext {
-  return new ParseContext(
-    {
-      dataSource: UserDataSource.Argument,
-      targetDoc: context.settings.targetDoc,
-      methodName: fieldValue._methodName,
-      arrayElement
-    },
-    context.databaseId,
-    context.serializer,
-    context.ignoreUndefinedProperties
-  );
-}
-
-export class ServerTimestampFieldValueImpl extends FieldValue {
-  _toFieldTransform(context: ParseContext): FieldTransform {
-    return new FieldTransform(context.path!, new ServerTimestampTransform());
-  }
-
-  isEqual(other: FieldValue): boolean {
-    return other instanceof ServerTimestampFieldValueImpl;
-  }
-}
-
-export class ArrayUnionFieldValueImpl extends FieldValue {
-  constructor(methodName: string, private readonly _elements: unknown[]) {
-    super(methodName);
-  }
-
-  _toFieldTransform(context: ParseContext): FieldTransform {
-    const parseContext = createSentinelChildContext(
-      this,
-      context,
-      /*array=*/ true
-    );
-    const parsedElements = this._elements.map(
-      element => parseData(element, parseContext)!
-    );
-    const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
-    return new FieldTransform(context.path!, arrayUnion);
-  }
-
-  isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
-  }
-}
-
-export class ArrayRemoveFieldValueImpl extends FieldValue {
-  constructor(methodName: string, readonly _elements: unknown[]) {
-    super(methodName);
-  }
-
-  _toFieldTransform(context: ParseContext): FieldTransform {
-    const parseContext = createSentinelChildContext(
-      this,
-      context,
-      /*array=*/ true
-    );
-    const parsedElements = this._elements.map(
-      element => parseData(element, parseContext)!
-    );
-    const arrayUnion = new ArrayRemoveTransformOperation(parsedElements);
-    return new FieldTransform(context.path!, arrayUnion);
-  }
-
-  isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
-  }
-}
-
-export class NumericIncrementFieldValueImpl extends FieldValue {
-  constructor(methodName: string, private readonly _operand: number) {
-    super(methodName);
-  }
-
-  _toFieldTransform(context: ParseContext): FieldTransform {
-    const numericIncrement = new NumericIncrementTransformOperation(
-      context.serializer,
-      toNumber(context.serializer, this._operand)
-    );
-    return new FieldTransform(context.path!, numericIncrement);
-  }
-
-  isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return this._delegate.isEqual(other._delegate);
   }
 }

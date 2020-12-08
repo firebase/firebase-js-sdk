@@ -24,7 +24,7 @@ import * as firestore from '@firebase/firestore-types';
 
 import firebase from '@firebase/app';
 
-import { FieldValue } from '../../../src/compat/field_value';
+import { FieldValue } from '../../../src/api/field_value';
 import { FieldPath } from '../../../src/api/field_path';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Blob } from '../../../src/api/blob';

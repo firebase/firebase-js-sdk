@@ -22,12 +22,11 @@ import {
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
-  ensureFirestoreConfigured,
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
   QuerySnapshot,
-  SnapshotMetadata
+  UserDataWriter
 } from '../../src/api/database';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -42,15 +41,18 @@ import { JsonObject } from '../../src/model/object_value';
 import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
-import { FirebaseFirestore } from '../../exp/src/api/database';
+import {
+  ensureFirestoreConfigured,
+  FirebaseFirestore
+} from '../../exp/src/api/database';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   QuerySnapshot as ExpQuerySnapshot,
-  DocumentSnapshot as ExpDocumentSnapshot
+  DocumentSnapshot as ExpDocumentSnapshot,
+  SnapshotMetadata
 } from '../../exp/src/api/snapshot';
-import { UserDataWriter } from '../../src/api/user_data_writer';
+import { ExpUserDataWriter } from '../../exp/src/api/reference_impl';
 import {
-  ExpUserDataWriter,
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference
 } from '../../exp/src/api/reference';

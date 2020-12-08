@@ -90,6 +90,14 @@ exports.resolveNodeExterns = function (id) {
   return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
 };
 
+/** Breaks the build if there is a circular dependency. */
+exports.onwarn = function (warning, defaultWarn) {
+  if (warning.code === 'CIRCULAR_DEPENDENCY') {
+    throw new Error(warning);
+  }
+  defaultWarn(warning);
+};
+
 const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 

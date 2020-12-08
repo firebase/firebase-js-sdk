@@ -16,7 +16,6 @@
  */
 
 import { LocalDocumentsView } from './local_documents_view';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
   hasLimitToFirst,
@@ -38,6 +37,7 @@ import { Document } from '../model/document';
 import { debugAssert } from '../util/assert';
 import { getLogLevel, LogLevel, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * A query engine that takes advantage of the target document mapping in the

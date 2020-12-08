@@ -18,8 +18,8 @@
 import { SetOptions } from '@firebase/firestore-types';
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
-import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
+import { DocumentKey } from '../model/document_key';
 
 /** Types accepted by validateType() and related methods for validation. */
 export type ValidationType =

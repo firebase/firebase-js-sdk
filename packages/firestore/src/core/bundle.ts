@@ -16,112 +16,30 @@
  */
 
 import { LoadBundleTaskProgress } from '@firebase/firestore-types';
+import { BundledDocumentMetadata as ProtoBundledDocumentMetadata } from '../protos/firestore_bundle_proto';
+import {
+  Document as ApiDocument,
+  Timestamp as ApiTimestamp
+} from '../protos/firestore_proto_api';
+import { MaybeDocumentMap } from '../model/collections';
 import { SnapshotVersion } from './snapshot_version';
-import {
-  fromDocument,
-  fromName,
-  fromVersion,
-  JsonProtoSerializer
-} from '../remote/serializer';
-import {
-  BundledDocumentMetadata as ProtoBundledDocumentMetadata,
-  BundleMetadata as ProtoBundleMetadata,
-  NamedQuery as ProtoNamedQuery
-} from '../protos/firestore_bundle_proto';
-import * as api from '../protos/firestore_proto_api';
+import { Query } from './query';
 import { DocumentKey } from '../model/document_key';
-import { MaybeDocument, NoDocument } from '../model/document';
-import { debugAssert } from '../util/assert';
-import {
-  applyBundleDocuments,
-  LocalStore,
-  saveNamedQuery
-} from '../local/local_store';
-import { SizedBundleElement } from '../util/bundle_reader';
-import {
-  documentKeySet,
-  DocumentKeySet,
-  MaybeDocumentMap
-} from '../model/collections';
+import { MaybeDocument } from '../model/document';
 
 /**
  * Represents a bundled document, including the metadata and the document
  * itself, if it exists.
  */
-interface BundledDocument {
+export interface BundledDocument {
   metadata: ProtoBundledDocumentMetadata;
-  document?: api.Document;
+  document?: ApiDocument;
 }
 
 /**
  * An array of `BundledDocument`.
  */
 export type BundledDocuments = BundledDocument[];
-
-/**
- * Helper to convert objects from bundles to model objects in the SDK.
- */
-export class BundleConverter {
-  constructor(private readonly serializer: JsonProtoSerializer) {}
-
-  toDocumentKey(name: string): DocumentKey {
-    return fromName(this.serializer, name);
-  }
-
-  /**
-   * Converts a BundleDocument to a MaybeDocument.
-   */
-  toMaybeDocument(bundledDoc: BundledDocument): MaybeDocument {
-    if (bundledDoc.metadata.exists) {
-      debugAssert(
-        !!bundledDoc.document,
-        'Document is undefined when metadata.exist is true.'
-      );
-      return fromDocument(this.serializer, bundledDoc.document!, false);
-    } else {
-      return new NoDocument(
-        this.toDocumentKey(bundledDoc.metadata.name!),
-        this.toSnapshotVersion(bundledDoc.metadata.readTime!)
-      );
-    }
-  }
-
-  toSnapshotVersion(time: api.Timestamp): SnapshotVersion {
-    return fromVersion(time);
-  }
-}
-
-/**
- * Returns a `LoadBundleTaskProgress` representing the initial progress of
- * loading a bundle.
- */
-export function bundleInitialProgress(
-  metadata: ProtoBundleMetadata
-): LoadBundleTaskProgress {
-  return {
-    taskState: 'Running',
-    documentsLoaded: 0,
-    bytesLoaded: 0,
-    totalDocuments: metadata.totalDocuments!,
-    totalBytes: metadata.totalBytes!
-  };
-}
-
-/**
- * Returns a `LoadBundleTaskProgress` representing the progress that the loading
- * has succeeded.
- */
-export function bundleSuccessProgress(
-  metadata: ProtoBundleMetadata
-): LoadBundleTaskProgress {
-  return {
-    taskState: 'Success',
-    documentsLoaded: metadata.totalDocuments!,
-    bytesLoaded: metadata.totalBytes!,
-    totalDocuments: metadata.totalDocuments!,
-    totalBytes: metadata.totalBytes!
-  };
-}
 
 export class BundleLoadResult {
   constructor(
@@ -131,111 +49,47 @@ export class BundleLoadResult {
 }
 
 /**
- * A class to process the elements from a bundle, load them into local
- * storage and provide progress update while loading.
+ * Represents a Firestore bundle saved by the SDK in its local storage.
  */
-export class BundleLoader {
-  /** The current progress of loading */
-  private progress: LoadBundleTaskProgress;
-  /** Batched queries to be saved into storage */
-  private queries: ProtoNamedQuery[] = [];
-  /** Batched documents to be saved into storage */
-  private documents: BundledDocuments = [];
+export interface Bundle {
+  /**
+   * Id of the bundle. It is used together with `createTime` to determine if a
+   * bundle has been loaded by the SDK.
+   */
+  readonly id: string;
 
-  constructor(
-    private bundleMetadata: ProtoBundleMetadata,
-    private localStore: LocalStore,
-    private serializer: JsonProtoSerializer
-  ) {
-    this.progress = bundleInitialProgress(bundleMetadata);
-  }
+  /** Schema version of the bundle. */
+  readonly version: number;
 
   /**
-   * Adds an element from the bundle to the loader.
-   *
-   * Returns a new progress if adding the element leads to a new progress,
-   * otherwise returns null.
+   * Set to the snapshot version of the bundle if created by the Server SDKs.
+   * Otherwise set to SnapshotVersion.MIN.
    */
-  addSizedElement(element: SizedBundleElement): LoadBundleTaskProgress | null {
-    debugAssert(!element.isBundleMetadata(), 'Unexpected bundle metadata.');
+  readonly createTime: SnapshotVersion;
+}
 
-    this.progress.bytesLoaded += element.byteLength;
+/**
+ * Represents a Query saved by the SDK in its local storage.
+ */
+export interface NamedQuery {
+  /** The name of the query. */
+  readonly name: string;
+  /** The underlying query associated with `name`. */
+  readonly query: Query;
+  /** The time at which the results for this query were read. */
+  readonly readTime: SnapshotVersion;
+}
 
-    let documentsLoaded = this.progress.documentsLoaded;
-
-    if (element.payload.namedQuery) {
-      this.queries.push(element.payload.namedQuery);
-    } else if (element.payload.documentMetadata) {
-      this.documents.push({ metadata: element.payload.documentMetadata });
-      if (!element.payload.documentMetadata.exists) {
-        ++documentsLoaded;
-      }
-    } else if (element.payload.document) {
-      debugAssert(
-        this.documents.length > 0 &&
-          this.documents[this.documents.length - 1].metadata.name ===
-            element.payload.document.name,
-        'The document being added does not match the stored metadata.'
-      );
-      this.documents[this.documents.length - 1].document =
-        element.payload.document;
-      ++documentsLoaded;
-    }
-
-    if (documentsLoaded !== this.progress.documentsLoaded) {
-      this.progress.documentsLoaded = documentsLoaded;
-      return { ...this.progress };
-    }
-
-    return null;
-  }
-
-  private getQueryDocumentMapping(
-    documents: BundledDocuments
-  ): Map<string, DocumentKeySet> {
-    const queryDocumentMap = new Map<string, DocumentKeySet>();
-    const bundleConverter = new BundleConverter(this.serializer);
-    for (const bundleDoc of documents) {
-      if (bundleDoc.metadata.queries) {
-        const documentKey = bundleConverter.toDocumentKey(
-          bundleDoc.metadata.name!
-        );
-        for (const queryName of bundleDoc.metadata.queries) {
-          const documentKeys = (
-            queryDocumentMap.get(queryName) || documentKeySet()
-          ).add(documentKey);
-          queryDocumentMap.set(queryName, documentKeys);
-        }
-      }
-    }
-
-    return queryDocumentMap;
-  }
+/**
+ * Helper to convert objects from bundles to model objects in the SDK.
+ */
+export interface BundleConverter {
+  toDocumentKey(name: string): DocumentKey;
 
   /**
-   * Update the progress to 'Success' and return the updated progress.
+   * Converts a BundleDocument to a MaybeDocument.
    */
-  async complete(): Promise<BundleLoadResult> {
-    debugAssert(
-      this.documents[this.documents.length - 1]?.metadata.exists !== true ||
-        !!this.documents[this.documents.length - 1].document,
-      'Bundled documents ends with a document metadata and missing document.'
-    );
-    debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');
+  toMaybeDocument(bundledDoc: BundledDocument): MaybeDocument;
 
-    const changedDocuments = await applyBundleDocuments(
-      this.localStore,
-      this.documents,
-      this.bundleMetadata.id!
-    );
-
-    const queryDocumentMap = this.getQueryDocumentMapping(this.documents);
-
-    for (const q of this.queries) {
-      await saveNamedQuery(this.localStore, q, queryDocumentMap.get(q.name!));
-    }
-
-    this.progress.taskState = 'Success';
-    return new BundleLoadResult({ ...this.progress }, changedDocuments);
-  }
+  toSnapshotVersion(time: ApiTimestamp): SnapshotVersion;
 }

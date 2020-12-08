@@ -17,13 +17,12 @@
 
 import { DocumentKeySet, NullableMaybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
-
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { PersistenceTransaction } from './persistence_transaction';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Represents a document change to be applied to remote document cache.

@@ -41,6 +41,7 @@ import {
 } from './bundle_data';
 import { newTextEncoder } from '../../../src/platform/serializer';
 import { JSON_SERIALIZER } from '../local/persistence_test_helpers';
+import { newBundleReader } from '../../../src/util/bundle_reader_impl';
 
 use(chaiAsPromised);
 
@@ -93,7 +94,7 @@ describe('Bundle ', () => {
 
 function genericBundleReadingTests(bytesPerRead: number): void {
   function bundleFromString(s: string): BundleReader {
-    return new BundleReader(
+    return newBundleReader(
       byteStreamReaderFromString(s, bytesPerRead),
       JSON_SERIALIZER
     );

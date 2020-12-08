@@ -59,8 +59,7 @@ import {
 import {
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION,
-  SchemaConverter
+  SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import {
@@ -70,7 +69,6 @@ import {
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import * as api from '../../../src/protos/firestore_proto_api';
@@ -99,7 +97,7 @@ import {
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
 import { debugAssert, fail } from '../../../src/util/assert';
-import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
@@ -145,7 +143,6 @@ import {
   SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { BundleReader } from '../../../src/util/bundle_reader';
 import { LoadBundleTask } from '../../../src/api/bundle';
 import { encodeBase64 } from '../../../src/platform/base64';
 import {
@@ -156,6 +153,13 @@ import {
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { logWarn } from '../../../src/util/log';
 import { newTextEncoder } from '../../../src/platform/serializer';
+import { newBundleReader } from '../../../src/util/bundle_reader_impl';
+import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
+import { DocumentKey } from '../../../src/model/document_key';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -190,7 +194,7 @@ export function parseQuery(querySpec: string | SpecQuery): Query {
 }
 
 abstract class TestRunner {
-  protected queue: AsyncQueue;
+  protected queue: AsyncQueueImpl;
 
   // Initialized asynchronously via start().
   private connection!: MockConnection;
@@ -251,7 +255,7 @@ abstract class TestRunner {
     // TODO(mrschmidt): During client startup in `firestore_client`, we block
     // the AsyncQueue from executing any operation. We should mimic this in the
     // setup of the spec tests.
-    this.queue = new AsyncQueue();
+    this.queue = newAsyncQueue() as AsyncQueueImpl;
     this.queue.skipDelaysForTimerId(TimerId.ListenStreamConnectionBackoff);
 
     this.serializer = new JsonProtoSerializer(
@@ -517,7 +521,7 @@ abstract class TestRunner {
   }
 
   private async doLoadBundle(bundle: string): Promise<void> {
-    const reader = new BundleReader(
+    const reader = newBundleReader(
       toByteStreamReader(newTextEncoder().encode(bundle)),
       this.serializer
     );

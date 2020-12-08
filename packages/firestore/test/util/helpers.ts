@@ -23,6 +23,7 @@ import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
 import {
+  DeleteFieldValueImpl,
   parseQueryValue,
   parseSetData,
   parseUpdateData,
@@ -30,13 +31,7 @@ import {
 } from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
   newQueryForPath,
-  Operator,
-  OrderBy,
   Query,
   queryToTarget,
   queryWithAddedFilter,
@@ -68,12 +63,10 @@ import {
   UnknownDocument
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
-import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
   DeleteMutation,
-  FieldMask,
   MutationResult,
   PatchMutation,
   Precondition,
@@ -105,7 +98,6 @@ import {
 } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
-import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
 import {
   JSON_SERIALIZER,
@@ -117,6 +109,16 @@ import {
   BundleMetadata as ProtoBundleMetadata,
   LimitType as ProtoLimitType
 } from '../../src/protos/firestore_bundle_proto';
+import {
+  Bound,
+  Direction,
+  FieldFilter,
+  Filter,
+  Operator,
+  OrderBy
+} from '../../src/core/target';
+import { FieldMask } from '../../src/model/field_mask';
+import { DocumentKey } from '../../src/model/document_key';
 
 /* eslint-disable no-restricted-globals */
 

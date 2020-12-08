@@ -41,36 +41,14 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  getDoc,
-  deleteDoc,
-  setDoc,
-  addDoc,
-  updateDoc,
   refEqual,
   queryEqual,
   collectionGroup,
-  getDocs,
-  orderBy,
-  startAfter,
-  query,
-  limit,
-  endAt,
-  endBefore,
-  startAt,
-  limitToLast,
-  where,
   SetOptions,
   UpdateData,
   DocumentData
 } from '../src/api/reference';
-import {
-  FieldValue,
-  deleteField,
-  increment,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove
-} from '../src/api/field_value';
+import { FieldValue } from '../src/api/field_value';
 import { FieldPath } from '../src/api/field_path';
 import { writeBatch } from '../src/api/write_batch';
 import { runTransaction } from '../src/api/transaction';
@@ -82,6 +60,32 @@ import {
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { Timestamp } from '../../src/api/timestamp';
 import { Bytes } from '../src/api/bytes';
+import {
+  endAt,
+  endBefore,
+  limit,
+  limitToLast,
+  orderBy,
+  query,
+  startAfter,
+  startAt,
+  where
+} from '../src/api/query';
+import {
+  addDoc,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc
+} from '../src/api/reference_impl';
+import {
+  arrayRemove,
+  arrayUnion,
+  deleteField,
+  increment,
+  serverTimestamp
+} from '../src/api/field_value_impl';
 
 use(chaiAsPromised);
 

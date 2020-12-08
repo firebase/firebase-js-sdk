@@ -17,18 +17,10 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { OnlineState, TargetId } from '../core/types';
-import {
-  LocalStore,
-  getLastRemoteSnapshotVersion,
-  nextMutationBatch
-} from '../local/local_store';
+import { LocalStore } from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
-import {
-  BATCHID_UNKNOWN,
-  MutationBatch,
-  MutationBatchResult
-} from '../model/mutation_batch';
+import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { debugAssert, debugCast } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -57,6 +49,11 @@ import {
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { User } from '../auth/user';
+import {
+  getLastRemoteSnapshotVersion,
+  nextMutationBatch
+} from '../local/local_store_impl';
+import { BATCHID_UNKNOWN } from '../util/types';
 
 const LOG_TAG = 'RemoteStore';
 

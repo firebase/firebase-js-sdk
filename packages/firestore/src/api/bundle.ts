@@ -23,7 +23,8 @@ import { Deferred } from '../util/promise';
 import { PartialObserver } from './observer';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { ensureFirestoreConfigured, Query, Firestore } from './database';
+import { Query, Firestore } from './database';
+import { ensureFirestoreConfigured } from '../../exp/src/api/database';
 import { Query as ExpQuery } from '../../exp/src/api/reference';
 import {
   firestoreClientGetNamedQuery,

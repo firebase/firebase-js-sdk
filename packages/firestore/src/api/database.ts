@@ -18,8 +18,6 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId } from '../core/database_info';
-import { FirestoreClient } from '../core/firestore_client';
-import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -39,14 +37,13 @@ import {
   Unsubscribe
 } from './observer';
 import { UntypedFirestoreDataConverter } from './user_data_reader';
-import { UserDataWriter } from './user_data_writer';
 import {
   clearIndexedDbPersistence,
   disableNetwork,
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence,
   enableNetwork,
-  FirebaseFirestore,
+  ensureFirestoreConfigured,
   FirebaseFirestore as ExpFirebaseFirestore,
   waitForPendingWrites
 } from '../../exp/src/api/database';
@@ -54,45 +51,46 @@ import {
   DocumentChange as ExpDocumentChange,
   DocumentSnapshot as ExpDocumentSnapshot,
   QuerySnapshot as ExpQuerySnapshot,
-  snapshotEqual
+  snapshotEqual,
+  SnapshotMetadata
 } from '../../exp/src/api/snapshot';
 import { refEqual } from '../../lite/src/api/reference';
 import {
   addDoc,
-  collection,
-  collectionGroup,
-  CollectionReference as ExpCollectionReference,
   deleteDoc,
-  doc,
-  DocumentReference as ExpDocumentReference,
-  endAt,
-  endBefore,
+  executeWrite,
   getDoc,
   getDocFromCache,
   getDocFromServer,
   getDocs,
   getDocsFromCache,
   getDocsFromServer,
-  limit,
-  limitToLast,
   onSnapshot,
   onSnapshotsInSync,
-  orderBy,
-  query,
-  Query as ExpQuery,
-  queryEqual,
   setDoc,
+  updateDoc
+} from '../../exp/src/api/reference_impl';
+import {
+  limit,
+  limitToLast,
+  where,
+  orderBy,
   startAfter,
   startAt,
-  updateDoc,
-  where,
-  executeWrite
+  query,
+  endBefore,
+  endAt
+} from '../../exp/src/api/query';
+import {
+  doc,
+  collection,
+  collectionGroup,
+  queryEqual,
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference,
+  DocumentReference as ExpDocumentReference
 } from '../../exp/src/api/reference';
-import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
-import { Compat } from '../compat/compat';
-import { LoadBundleTask } from './bundle';
-import { makeDatabaseInfo } from '../../lite/src/api/database';
-import { DEFAULT_HOST } from '../../lite/src/api/components';
+import { Compat } from './compat';
 import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
 import {
   runTransaction,
@@ -120,20 +118,19 @@ import {
   SetOptions as PublicSetOptions,
   Settings as PublicSettings,
   SnapshotListenOptions as PublicSnapshotListenOptions,
-  SnapshotMetadata as PublicSnapshotMetadata,
   SnapshotOptions as PublicSnapshotOptions,
   Transaction as PublicTransaction,
   UpdateData as PublicUpdateData,
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
-
-/**
- * Constant used to indicate the LRU garbage collection should be disabled.
- * Set this value as the `cacheSizeBytes` on the settings passed to the
- * `Firestore` instance.
- */
-export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
+import { ByteString } from '../util/byte_string';
+import { Blob } from './blob';
+import { Bytes } from '../../lite/src/api/bytes';
+import { AbstractUserDataWriter } from './user_data_writer';
+import { DEFAULT_HOST } from '../../lite/src/api/settings';
+import { DocumentKey } from '../model/document_key';
+import { LoadBundleTask } from './bundle';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
@@ -383,34 +380,19 @@ export class Firestore
   }
 }
 
-export function ensureFirestoreConfigured(
-  firestore: FirebaseFirestore
-): FirestoreClient {
-  if (!firestore._firestoreClient) {
-    configureFirestore(firestore);
+export class UserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: Firestore) {
+    super();
   }
-  firestore._firestoreClient!.verifyNotTerminated();
-  return firestore._firestoreClient as FirestoreClient;
-}
 
-export function configureFirestore(firestore: FirebaseFirestore): void {
-  const settings = firestore._freezeSettings();
-  debugAssert(!!settings.host, 'FirestoreSettings.host is not set');
-  debugAssert(
-    !firestore._firestoreClient,
-    'configureFirestore() called multiple times'
-  );
+  protected convertBytes(bytes: ByteString): Blob {
+    return new Blob(new Bytes(bytes));
+  }
 
-  const databaseInfo = makeDatabaseInfo(
-    firestore._databaseId,
-    firestore._persistenceKey,
-    settings
-  );
-  firestore._firestoreClient = new FirestoreClient(
-    firestore._credentials,
-    firestore._queue,
-    databaseInfo
-  );
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return DocumentReference.forKey(key, this.firestore, /* converter= */ null);
+  }
 }
 
 export function setLogLevel(level: PublicLogLevel): void {
@@ -843,49 +825,6 @@ export function wrapObserver<CompatType, ExpType>(
 }
 
 /**
- * Metadata about a snapshot, describing the state of the snapshot.
- */
-export class SnapshotMetadata implements PublicSnapshotMetadata {
-  /**
-   * True if the snapshot contains the result of local writes (for example
-   * `set()` or `update()` calls) that have not yet been committed to the
-   * backend. If your listener has opted into metadata updates (via
-   * `SnapshotListenOptions`) you will receive another snapshot with
-   * `hasPendingWrites` equal to false once the writes have been committed to
-   * the backend.
-   */
-  readonly hasPendingWrites: boolean;
-
-  /**
-   * True if the snapshot was created from cached data rather than guaranteed
-   * up-to-date server data. If your listener has opted into metadata updates
-   * (via `SnapshotListenOptions`) you will receive another snapshot with
-   * `fromCache` set to false once the client has received up-to-date data from
-   * the backend.
-   */
-  readonly fromCache: boolean;
-
-  /** @hideconstructor */
-  constructor(hasPendingWrites: boolean, fromCache: boolean) {
-    this.hasPendingWrites = hasPendingWrites;
-    this.fromCache = fromCache;
-  }
-
-  /**
-   * Returns true if this `SnapshotMetadata` is equal to the provided one.
-   *
-   * @param other - The `SnapshotMetadata` to compare against.
-   * @returns true if this `SnapshotMetadata` is equal to the provided one.
-   */
-  isEqual(other: PublicSnapshotMetadata): boolean {
-    return (
-      this.hasPendingWrites === other.hasPendingWrites &&
-      this.fromCache === other.fromCache
-    );
-  }
-}
-
-/**
  * Options interface that can be provided to configure the deserialization of
  * DocumentSnapshots.
  */
@@ -1273,34 +1212,4 @@ function castReference<T>(
     documentRef = documentRef._delegate;
   }
   return cast<ExpDocumentReference<T>>(documentRef, ExpDocumentReference);
-}
-
-/**
- * Converts custom model object of type T into DocumentData by applying the
- * converter if it exists.
- *
- * This function is used when converting user objects to DocumentData
- * because we want to provide the user with a more specific error message if
- * their set() or fails due to invalid data originating from a toFirestore()
- * call.
- */
-export function applyFirestoreDataConverter<T>(
-  converter: UntypedFirestoreDataConverter<T> | null,
-  value: T,
-  options?: PublicSetOptions
-): PublicDocumentData {
-  let convertedValue;
-  if (converter) {
-    if (options && (options.merge || options.mergeFields)) {
-      // Cast to `any` in order to satisfy the union type constraint on
-      // toFirestore().
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      convertedValue = (converter as any).toFirestore(value, options);
-    } else {
-      convertedValue = converter.toFirestore(value);
-    }
-  } else {
-    convertedValue = value as PublicDocumentData;
-  }
-  return convertedValue;
 }

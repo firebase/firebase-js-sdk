@@ -16,16 +16,20 @@
  */
 
 import {
-  FieldFilter,
   Query,
   queryEquals,
-  Filter,
   newQueryForPath,
   queryToTarget,
   hasLimitToLast,
   hasLimitToFirst
 } from '../../../src/core/query';
-import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
+import {
+  canonifyTarget,
+  FieldFilter,
+  Filter,
+  Target,
+  targetEquals
+} from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -33,7 +37,6 @@ import {
   MaybeDocument,
   NoDocument
 } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import {
   isPermanentWriteError,
@@ -62,9 +65,10 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
 import { firestore } from '../../util/api_helpers';
 import { ResourcePath } from '../../../src/model/path';
+import { UserDataWriter } from '../../../src/api/database';
+import { DocumentKey } from '../../../src/model/document_key';
 
 const userDataWriter = new UserDataWriter(firestore());
 

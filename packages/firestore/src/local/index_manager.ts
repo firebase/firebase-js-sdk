@@ -16,7 +16,7 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { PersistenceTransaction } from './persistence';
+import { PersistenceTransaction } from './persistence_transaction';
 import { PersistencePromise } from './persistence_promise';
 
 /**

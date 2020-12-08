@@ -18,7 +18,7 @@
 import * as api from '../../../src/protos/firestore_proto_api';
 
 import { expect } from 'chai';
-import { FieldValue } from '../../../src/compat/field_value';
+import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import {
@@ -32,28 +32,7 @@ import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import {
-  applyRemoteEventToLocalCache,
-  LocalStore,
-  LocalWriteResult,
-  newLocalStore,
-  synchronizeLastDocumentChangeReadTime,
-  notifyLocalViewChanges,
-  acknowledgeBatch,
-  readLocalDocument,
-  localWrite,
-  executeQuery,
-  allocateTarget,
-  releaseTarget,
-  getLocalTargetData,
-  getHighestUnacknowledgedBatchId,
-  rejectBatch,
-  saveNamedQuery,
-  getNamedQuery,
-  saveBundle,
-  hasNewerBundle,
-  applyBundleDocuments
-} from '../../../src/local/local_store';
+import { LocalStore } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
 import {
@@ -68,7 +47,6 @@ import {
   Precondition
 } from '../../../src/model/mutation';
 import {
-  BATCHID_UNKNOWN,
   MutationBatch,
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
@@ -111,9 +89,31 @@ import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
-import { BundledDocuments } from '../../../src/core/bundle';
+import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
-import { NamedQuery } from '../../../src/core/bundle_types';
+import {
+  acknowledgeBatch,
+  allocateTarget,
+  applyBundleDocuments,
+  applyRemoteEventToLocalCache,
+  executeQuery,
+  getHighestUnacknowledgedBatchId,
+  getLocalTargetData,
+  getNamedQuery,
+  hasNewerBundle,
+  localWrite,
+  LocalWriteResult,
+  newLocalStore,
+  notifyLocalViewChanges,
+  readLocalDocument,
+  rejectBatch,
+  releaseTarget,
+  saveBundle,
+  saveNamedQuery,
+  synchronizeLastDocumentChangeReadTime
+} from '../../../src/local/local_store_impl';
+import { BATCHID_UNKNOWN } from '../../../src/util/types';
+import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -126,12 +126,15 @@ class LocalStoreTester {
   private lastChanges: MaybeDocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
+  private bundleConverter: BundleConverterImpl;
 
   constructor(
     public localStore: LocalStore,
     private readonly queryEngine: CountingQueryEngine,
     readonly gcIsEager: boolean
-  ) {}
+  ) {
+    this.bundleConverter = new BundleConverterImpl(JSON_SERIALIZER);
+  }
 
   private prepareNextStep(): void {
     this.promiseChain = this.promiseChain.then(() => {
@@ -198,7 +201,12 @@ class LocalStoreTester {
 
     this.promiseChain = this.promiseChain
       .then(() =>
-        applyBundleDocuments(this.localStore, documents, bundleName || '')
+        applyBundleDocuments(
+          this.localStore,
+          this.bundleConverter,
+          documents,
+          bundleName || ''
+        )
       )
       .then(result => {
         this.lastChanges = result;

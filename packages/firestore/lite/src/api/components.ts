@@ -18,32 +18,45 @@
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
-import { FirebaseFirestore, makeDatabaseInfo } from './database';
 import { logDebug } from '../../../src/util/log';
 import { Code, FirestoreError } from '../../../src/util/error';
+import { _FirebaseService } from '@firebase/app-types-exp';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { CredentialsProvider } from '../../../src/api/credentials';
+import { FirestoreSettings } from './settings';
 
 export const LOG_TAG = 'ComponentProvider';
-
-// settings() defaults:
-export const DEFAULT_HOST = 'firestore.googleapis.com';
-export const DEFAULT_SSL = true;
 
 // The components module manages the lifetime of dependencies of the Firestore
 // client. Dependencies can be lazily constructed and only one exists per
 // Firestore instance.
 
 /**
+ * An interface implemented by FirebaseFirestore that provides compatibility
+ * with the usage in this file.
+ *
+ * This interface mainly exists to remove a cyclic dependency.
+ */
+export interface FirestoreService extends _FirebaseService {
+  _credentials: CredentialsProvider;
+  _persistenceKey: string;
+  _databaseId: DatabaseId;
+  _terminated: boolean;
+
+  _freezeSettings(): FirestoreSettings;
+}
+/**
  * An instance map that ensures only one Datastore exists per Firestore
  * instance.
  */
-const datastoreInstances = new Map<FirebaseFirestore, Datastore>();
+const datastoreInstances = new Map<FirestoreService, Datastore>();
 
 /**
  * Returns an initialized and started Datastore for the given Firestore
  * instance. Callers must invoke removeComponents() when the Firestore
  * instance is terminated.
  */
-export function getDatastore(firestore: FirebaseFirestore): Datastore {
+export function getDatastore(firestore: FirestoreService): Datastore {
   if (firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
@@ -74,11 +87,26 @@ export function getDatastore(firestore: FirebaseFirestore): Datastore {
  * Removes all components associated with the provided instance. Must be called
  * when the `Firestore` instance is terminated.
  */
-export function removeComponents(firestore: FirebaseFirestore): void {
+export function removeComponents(firestore: FirestoreService): void {
   const datastore = datastoreInstances.get(firestore);
   if (datastore) {
     logDebug(LOG_TAG, 'Removing Datastore');
     datastoreInstances.delete(firestore);
     datastore.terminate();
   }
+}
+
+export function makeDatabaseInfo(
+  databaseId: DatabaseId,
+  persistenceKey: string,
+  settings: FirestoreSettings
+): DatabaseInfo {
+  return new DatabaseInfo(
+    databaseId,
+    persistenceKey,
+    settings.host,
+    settings.ssl,
+    settings.experimentalForceLongPolling,
+    settings.experimentalAutoDetectLongPolling
+  );
 }

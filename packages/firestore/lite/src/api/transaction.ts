@@ -16,6 +16,7 @@
  */
 
 import {
+  newUserDataReader,
   parseSetData,
   parseUpdateData,
   parseUpdateVarargs,
@@ -28,24 +29,21 @@ import {
   NoDocument
 } from '../../../src/model/document';
 import { fail } from '../../../src/util/assert';
-import { applyFirestoreDataConverter } from '../../../src/api/database';
 import { DocumentSnapshot } from './snapshot';
 import { FirebaseFirestore } from './database';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
-import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { validateReference } from './write_batch';
-import {
-  DocumentReference,
-  LiteUserDataWriter,
-  newUserDataReader,
-  SetOptions,
-  UpdateData
-} from './reference';
+import { DocumentReference, SetOptions, UpdateData } from './reference';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
 import { cast } from '../../../src/util/input_validation';
-import { Compat } from '../../../src/compat/compat';
+import { Compat } from '../../../src/api/compat';
+import {
+  applyFirestoreDataConverter,
+  LiteUserDataWriter
+} from './reference_impl';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.
@@ -271,7 +269,7 @@ export function runTransaction<T>(
   const datastore = getDatastore(firestore);
   const deferred = new Deferred<T>();
   new TransactionRunner<T>(
-    new AsyncQueue(),
+    newAsyncQueue(),
     datastore,
     internalTransaction =>
       updateFunction(new Transaction(firestore, internalTransaction)),

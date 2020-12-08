@@ -17,17 +17,11 @@
 
 import { User } from '../auth/user';
 import { Document, MaybeDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 import { encodeResourcePath } from './encoded_resource_path';
-import {
-  ActiveTargets,
-  LruDelegate,
-  LruGarbageCollector,
-  LruParams
-} from './lru_garbage_collector';
+import { newLruGarbageCollector } from './lru_garbage_collector_impl';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { estimateByteSize } from '../model/values';
@@ -39,18 +33,24 @@ import {
 } from './memory_remote_document_cache';
 import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
-import {
-  Persistence,
-  PersistenceTransaction,
-  PersistenceTransactionMode,
-  ReferenceDelegate
-} from './persistence';
+import { Persistence, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
 import { MemoryBundleCache } from './memory_bundle_cache';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { LocalSerializer } from './local_serializer';
+import {
+  PersistenceTransaction,
+  PersistenceTransactionMode
+} from './persistence_transaction';
+import {
+  ActiveTargets,
+  LruDelegate,
+  LruGarbageCollector,
+  LruParams
+} from './lru_garbage_collector';
+import { DocumentKey } from '../model/document_key';
 
 const LOG_TAG = 'MemoryPersistence';
 /**
@@ -339,7 +339,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     private readonly persistence: MemoryPersistence,
     lruParams: LruParams
   ) {
-    this.garbageCollector = new LruGarbageCollector(this, lruParams);
+    this.garbageCollector = newLruGarbageCollector(this, lruParams);
   }
 
   // No-ops, present so memory persistence doesn't have to care which delegate

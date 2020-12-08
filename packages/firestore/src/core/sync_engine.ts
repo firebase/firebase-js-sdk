@@ -16,6 +16,7 @@
  */
 
 import { User } from '../auth/user';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   acknowledgeBatch,
   allocateTarget,
@@ -27,8 +28,6 @@ import {
   getNewDocumentChanges,
   handleUserChange,
   hasNewerBundle,
-  ignoreIfPrimaryLeaseLoss,
-  LocalStore,
   localWrite,
   lookupMutationDocuments,
   notifyLocalViewChanges,
@@ -36,7 +35,7 @@ import {
   releaseTarget,
   removeCachedMutationBatchMetadata,
   saveBundle
-} from '../local/local_store';
+} from '../local/local_store_impl';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -46,9 +45,8 @@ import {
   MaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
-import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
+import { MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
@@ -104,13 +102,15 @@ import {
   eventManagerOnWatchChange,
   eventManagerOnWatchError
 } from './event_manager';
+import { BATCHID_UNKNOWN } from '../util/types';
+import { DocumentKey } from '../model/document_key';
 import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
 import {
   bundleInitialProgress,
-  bundleSuccessProgress,
-  BundleLoader
-} from './bundle';
+  BundleLoader,
+  bundleSuccessProgress
+} from './bundle_impl';
 
 const LOG_TAG = 'SyncEngine';
 

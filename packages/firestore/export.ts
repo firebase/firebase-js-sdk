@@ -28,12 +28,12 @@ export {
   MemoryPersistenceProvider,
   Transaction,
   WriteBatch,
-  setLogLevel,
-  CACHE_SIZE_UNLIMITED
+  setLogLevel
 } from './src/api/database';
+export { CACHE_SIZE_UNLIMITED } from './exp/src/api/database';
 export { GeoPoint } from './src/api/geo_point';
 export { FieldPath } from './src/api/field_path';
-export { FieldValue } from './src/compat/field_value';
+export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
 export { FirebaseFirestore as ExpFirebaseFirestore } from './exp/src/api/database';
 export { loadBundle, namedQuery } from './src/api/bundle';

@@ -17,7 +17,7 @@
 
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { PersistenceTransaction } from '../../../src/local/persistence';
+import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { Query } from '../../../src/core/query';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
