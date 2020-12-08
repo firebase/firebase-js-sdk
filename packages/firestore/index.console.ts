@@ -18,12 +18,12 @@
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { FirebaseFirestore as FirestoreExp } from './exp/src/api/database';
 import {
   Firestore as FirestoreCompat,
   MemoryPersistenceProvider
 } from './src/api/database';
 import { DatabaseId } from './src/core/database_info';
+import { FirebaseFirestore as FirestoreExp } from './src/exp/database';
 import { Code, FirestoreError } from './src/util/error';
 export {
   CollectionReference,

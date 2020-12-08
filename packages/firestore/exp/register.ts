@@ -19,8 +19,7 @@ import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../package.json';
-
-import { FirebaseFirestore } from './src/api/database';
+import { FirebaseFirestore } from '../src/exp/database';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

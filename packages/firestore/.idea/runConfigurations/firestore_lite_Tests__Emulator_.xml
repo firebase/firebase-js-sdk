@@ -14,7 +14,7 @@
     <ui>bdd</ui>
     <extra-mocha-options>--require ts-node/register/type-check --require lite/index.ts --timeout 5000</extra-mocha-options>
     <test-kind>PATTERN</test-kind>
-    <test-pattern>lite/{,!(browser)/**/}*.test.ts</test-pattern>
+    <test-pattern>test/lite/{,!(browser)/**/}*.test.ts</test-pattern>
     <method v="2" />
   </configuration>
 </component>

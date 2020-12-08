@@ -30,10 +30,10 @@ export {
   WriteBatch,
   setLogLevel
 } from './src/api/database';
-export { CACHE_SIZE_UNLIMITED } from './exp/src/api/database';
+export { CACHE_SIZE_UNLIMITED } from './src/exp/database';
 export { GeoPoint } from './src/api/geo_point';
 export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
-export { FirebaseFirestore as ExpFirebaseFirestore } from './exp/src/api/database';
+export { FirebaseFirestore as ExpFirebaseFirestore } from './src/exp/database';
 export { loadBundle, namedQuery } from './src/api/bundle';
