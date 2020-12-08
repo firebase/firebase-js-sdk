@@ -26,7 +26,7 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: Set start timestamp env var
-      run: echo "::set-env name=FIREBASE_CI_TEST_START_TIME::$(date +%s)"
+      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
         xvfb-run yarn test:ci
