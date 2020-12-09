@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider, getApp } from '@firebase/app-exp';
+import { _getProvider } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { Auth } from '@firebase/auth-types-exp';
 
