@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Headless App</title>
+    <link rel="manifest" href="manifest.json">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+            integrity="sha256-KXn5puMvxCw+dAYznun+drMdG1IFl3agK0p/pqT9KAo= sha512-2e8qq0ETcfWRI4HJBzQiA3UoyFk6tbNyG+qSaIBZLyW9Xf3sWZHN/lxe9fTh1U45DpPf07yj94KsUHHWe4Yk1A=="
+            crossorigin="anonymous"></script>
+    <script src="index.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha256-7s5uDGW3AHqw6xtJmNNtr+OBRJUlgkNJEo78P4b0yRw= sha512-nNo+yCHEyn0smMxSswnf/OnX6/KwJuZTlNZBjauKhTK0c+zT+q5JOCx0UFhXQ6rJR9jg6Es8gPuD2uZcYDLqSw=="
+          crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
+          rel="stylesheet"
+          integrity="sha384-XdYbMnZ/QjLh6iI4ogqCTaIjrFk87ip+ekIjefZch0Y+PvJ8CDYtEs1ipDmPorQ+"
+          crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div id="recaptcha-container"></div>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed"
+                  data-toggle="collapse" data-target="#menu">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">
+            Firebase Auth Test App
+          </a>
+        </div>
+        <div class="collapse navbar-collapse" id="menu">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                 role="button" aria-haspopup="true" aria-expanded="false">
+                reCAPTCHA Config <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li class="dropdown-header">reCAPTCHA Mode</li>
+                <li class="active toggleRecaptcha">
+                  <a href="#">Normal</a>
+                </li>
+                <li class="toggleRecaptcha">
+                  <a href="#">Invisible</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Placeholder to not confuse the user -->
+    <div class="container-fluid" id="toggle-user-placeholder">
+      <div class="btn-group btn-group-justified btn-group-sm">
+        <a href="javascript:void();" class="btn btn-default current-user">
+          auth.currentUser
+        </a>
+        <a href="javascript:void();" class="btn btn-default disabled">
+          Last User
+        </a>
+      </div>
+    </div>
+
+    <!-- Toggle currentUser, lastUser -->
+    <div class="container-fluid" id="toggle-user">
+      <div class="btn-group radio-block" id="toggle-user-selection" data-toggle="buttons">
+        <label class="btn btn-sm btn-default current-user active">
+          <input type="radio" name="toggle-user-selection" value="currentUser"
+                 autocomplete="off" checked>auth.currentUser
+        </label>
+        <label class="btn btn-sm btn-default last-user">
+          <input type="radio" name="toggle-user-selection" value="lastUser"
+                 autocomplete="off"> Last User
+        </label>
+      </div>
+    </div>
+
+    <!-- Signed in user info -->
+    <div id="user-info" class="profile">
+      <div class="pull-left">
+        <img class="profile-image" />
+        <span class="profile-name profile-data"></span>
+        <span class="profile-anonymous">[anonymous]</span> /
+        uid:
+        <span class="profile-uid profile-data"></span>
+      </div>
+      <div class="pull-right">
+        <span class="profile-providers"></span>
+        <span class="profile-phone profile-data"></span> /
+        <span class="profile-email profile-data"></span>
+        <span class="profile-email-verified" data-toggle="tooltip"
+              title="Email Verified" data-placement="bottom">
+          <i class="fa fa-check"></i>
+        </span>
+        <span class="profile-email-not-verified" data-toggle="tooltip"
+              title="Email Not Verified" data-placement="bottom">
+          <i class="fa fa-times"></i>
+        </span>
+        <div class="btn-group" id="enrolled-factors-drop-down">
+          <button type="button" class="btn btn-default btn-sm dropdown-toggle"
+                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-key" title="User multi-factor enrolled"
+               data-toggle="tooltip" data-placement="bottom"></i>
+            <span class="caret"></span>
+          </button>
+          <!-- List of enrolled second factors. -->
+          <div class="dropdown-menu enrolled-second-factors"></div>
+        </div>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+
+    <!-- Overlaying alert box -->
+    <div id="alert-messages" class="container-fluid overlaying-alert"></div>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-6 actions">
+          <ul id="tab-menu" class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active">
+              <a href="#auth-section" aria-controls="auth-section"
+                 data-toggle="tab" role="tab">
+                Auth methods
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#user-section" aria-controls="user-section"
+                 data-toggle="tab" role="tab">
+                User methods
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#popup-redirect-section"
+                 aria-controls="popup-redirect-section"
+                 data-toggle="tab" role="tab">
+                Popup/Redirect methods
+              </a>
+            </li>
+            <li role="presentation">
+              <a href="#action-code-settings-section"
+                 aria-controls="action-code-settings-section"
+                 data-toggle="tab" role="tab">
+                Action Code Settings
+              </a>
+            </li>
+            <li role="presentation" class="visible-xs">
+              <a href="#logs-section"
+                 aria-controls="logs-section"
+                 data-toggle="tab" role="tab">
+                Logs
+              </a>
+            </li>
+          </ul>
+
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="auth-section">
+              <!-- Development mode APIs -->
+              <div class="group">Development mode APIs</div>
+              <form class="form form-bordered no-submit">
+                <div class="btn-group radio-block" id="enable-app-verification-selection"
+                     data-toggle="buttons">
+                  <label class="btn btn-primary active">
+                    <input type="radio" name="enable-app-verification" value="Yes"
+                           autocomplete="off" checked> Enable App Verification
+                  </label>
+                  <label class="btn btn-primary">
+                    <input type="radio" name="enable-app-verification" value="No"
+                           autocomplete="off"> Disable App Verification
+                  </label>
+                </div>
+                <button class="btn btn-block btn-primary"
+                        id="apply-auth-settings-change">Apply settings change</button>
+              </form>
+              
+              <!-- Worker tests -->
+              <div class="group">Web Worker Testing</div>
+              <form class="form form-bordered no-submit">
+                <button class="btn btn-block btn-primary"
+                        id="run-web-worker-tests">
+                  Run Tests
+                </button>
+              </form>
+
+              <div class="group">Service Worker Testing</div>
+              <form class="form form-bordered no-submit">
+                <button class="btn btn-block btn-primary"
+                        id="run-service-worker-tests">
+                  Run Tests
+                </button>
+              </form>
+
+              <!-- Persistence-->
+              <div class="group">Auth State Persistence</div>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="persistence-type"
+                       class="form-control" list="persistence-type-options"
+                       placeholder="Persistence" />
+                <button class="btn btn-block btn-primary"
+                        id="set-persistence">
+                  Set Persistence
+                </button>
+              </form>
+
+              <!-- Language code -->
+              <div class="group">Language code</div>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="language-code"
+                       class="form-control"
+                       placeholder="Language code" />
+                <button class="btn btn-block btn-primary"
+                        id="set-language-code">
+                  Set Language Code
+                </button>
+                <button class="btn btn-block btn-primary"
+                        id="use-device-language">
+                  Use Device Language
+                </button>
+              </form>
+
+              <!-- Sign up -->
+              <div class="group">Sign Up</div>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="signup-email"
+                       class="form-control" placeholder="Email" />
+                <input type="password" name="password" id="signup-password"
+                       class="form-control" placeholder="Password" />
+                <button class="btn btn-block btn-primary"
+                        id="sign-up-with-email-and-password">Sign Up</button>
+              </form>
+
+
+              <!-- Sign In -->
+              <div class="group">Sign In</div>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="signin-email"
+                       class="form-control" placeholder="Email" />
+                <input type="password" name="password" id="signin-password"
+                       class="form-control" placeholder="Password" />
+                <button class="btn btn-block btn-primary"
+                        id="sign-in-with-email-and-password">
+                  Sign In with Email and Password
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="user-custom-token" class="form-control"
+                       placeholder="Custom Authentication Token" />
+                <button class="btn btn-block btn-primary sign-in-with-custom-token"
+                        data-expired=false>
+                  Sign In with Custom Token
+                </button>
+              </form>
+              <button class="btn btn-block btn-primary"
+                      id="sign-in-anonymously">
+                Sign In Anonymously
+              </button>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="signin-generic-idp-provider-id"
+                       class="form-control" list="federated-provider-id-options"
+                       placeholder="Provider ID" />
+                <input type="text" id="signin-generic-idp-id-token"
+                       class="form-control" placeholder="ID Token" />
+                <input type="text" id="signin-generic-idp-raw-nonce"
+                       class="form-control" placeholder="Raw Nonce" />
+                <input type="text" id="signin-generic-idp-access-token"
+                       class="form-control" placeholder="Access Token" />
+                <button class="btn btn-block btn-primary"
+                        id="sign-in-with-generic-idp-credential">
+                  Sign In with Generic IdP Credential
+                </button>
+              </form>
+
+              <form class="form form-bordered no-submit">
+                <input type="tel" id="signin-phone-number"
+                       class="form-control" placeholder="Phone Number" />
+                <button class="btn btn-block btn-primary" id="signin-verify-phone-number">
+                  Verify Phone Number
+                </button>
+                <input type="text" id="signin-phone-verification-id"
+                       class="form-control" placeholder="Phone Verification ID" />
+                <input type="text" id="signin-phone-verification-code"
+                       class="form-control" placeholder="Phone Verification Code" />
+                <button class="btn btn-block btn-primary" id="signin-confirm-phone-verification">
+                  Sign in by Confirming Phone Verification
+                </button>
+              </form>
+
+              <!-- Sign in with email link -->
+              <div class="group">Sign In with Email Link</div>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="sign-in-with-email-link-email"
+                       class="form-control" placeholder="Email" />
+                <button class="btn btn-block btn-primary"
+                        id="send-sign-in-link-to-email">
+                  Send Sign In With Email Link
+                </button>
+                <button class="btn btn-block btn-primary"
+                        id="send-sign-in-link-to-email-current-url">
+                  Send Sign In With Email Link Current URL
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <input type="text" name="emailLink" id="sign-in-with-email-link-link"
+                       class="form-control" placeholder="Link" />
+                <button class="btn btn-block btn-primary"
+                        id="sign-in-with-email-link">
+                  Sign In With Email Link
+                </button>
+              </form>
+
+              <!-- Password Reset Process -->
+              <div class="group">Password Reset</div>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="password-reset-email"
+                       class="form-control" placeholder="Email" />
+                <button class="btn btn-block btn-primary"
+                        id="send-password-reset-email">
+                  Send Password Reset Email
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="password-reset-code"
+                       placeholder="Password Reset Code"
+                       class="form-control" />
+                <input type="password" id="password-reset-password"
+                       placeholder="New Password"
+                       class="form-control" />
+                <button class="btn btn-block btn-default"
+                        id="verify-password-reset-code">
+                  Verify Password Reset Code
+                </button>
+                <button class="btn btn-block btn-primary"
+                        id="confirm-password-reset">
+                  Confirm Password Change
+                </button>
+              </form>
+              <!-- Fetch Sign In Methods -->
+              <div class="group">Fetch Sign In Methods</div>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="fetch-sign-in-methods-email"
+                       class="form-control" placeholder="Email" />
+                 <button class="btn btn-block btn-primary"
+                        id="fetch-sign-in-methods-for-email">
+                  Fetch Sign In Methods For Email
+                </button>
+              </form>
+
+              <!-- Update Current User -->
+              <div class="group">Update Current User</div>
+              <form class="form form-bordered no-submit">
+                <button class="btn btn-block btn-primary"
+                        id="copy-active-user">
+                  Copy Active User to Temp Auth
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <button class="btn btn-block btn-primary"
+                        id="copy-last-user">
+                  Copy Last User to Auth
+                </button>
+              </form>
+            </div>
+            <div class="tab-pane" id="user-section">
+              <!-- Profile updates -->
+              <div class="group">Update Profile</div>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="changed-email"
+                       class="form-control" placeholder="New email" />
+                <button class="btn btn-block btn-primary" id="change-email">
+                  Change Email
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <input type="password" name="password" id="changed-password"
+                       class="form-control" placeholder="New password" />
+                <button class="btn btn-block btn-primary" id="change-password">
+                  Change Password
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="display-name" placeholder="Name"
+                       class="form-control profile-name profile-data" />
+                <input type="text" id="photo-url" placeholder="Photo URL"
+                       class="form-control photo-url profile-data" />
+                <button class="btn btn-block btn-primary" id="update-profile">
+                  Update Profile
+                </button>
+              </form>
+
+
+              <!-- Linking/Unlinking -->
+              <div class="group">Linking/Unlinking</div>
+              <button class="btn btn-block btn-default" id="get-provider-data">
+                Get Providers Data
+              </button>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="link-email"
+                       class="form-control" placeholder="Email" />
+                <input type="password" name="password" id="link-password"
+                       class="form-control" placeholder="Password" />
+                <button class="btn btn-block btn-primary"
+                        id="link-with-email-and-password">
+                  Link with Email and Password
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="link-generic-idp-provider-id"
+                       class="form-control" list="federated-provider-id-options"
+                       placeholder="Provider ID" />
+                <input type="text" id="link-generic-idp-id-token"
+                       class="form-control" placeholder="ID Token" />
+                <input type="text" id="link-generic-idp-raw-nonce"
+                       class="form-control" placeholder="Raw Nonce" />
+                <input type="text" id="link-generic-idp-access-token"
+                       class="form-control" placeholder="Access Token" />
+                <button class="btn btn-block btn-primary"
+                        id="link-with-generic-idp-credential">
+                  Link with Generic IdP Credential
+                </button>
+              </form>
+
+              <form class="form form-bordered no-submit">
+                <input type="tel" id="link-reauth-phone-number"
+                       class="form-control" placeholder="Phone Number" />
+                <button class="btn btn-block btn-primary" id="link-reauth-verify-phone-number">
+                  Verify Phone Number
+                </button>
+                <input type="text" id="link-reauth-phone-verification-id"
+                       class="form-control" placeholder="Phone Verification ID" />
+                <input type="text" id="link-reauth-phone-verification-code"
+                       class="form-control" placeholder="Phone Verification Code" />
+                <button class="btn btn-block btn-primary" id="update-confirm-phone-verification">
+                  Update Phone Number by Confirming Phone Verification
+                </button>
+                <button class="btn btn-block btn-primary" id="link-confirm-phone-verification">
+                  Link by Confirming Phone Verification
+                </button>
+                <button class="btn btn-block btn-primary" id="reauth-confirm-phone-verification">
+                  Reauthenticate by Confirming Phone Verification
+                </button>
+              </form>
+
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="link-with-email-link-email"
+                       class="form-control" placeholder="Email" />
+                <button class="btn btn-block btn-primary"
+                        id="send-link-email-link">
+                  Send Email Link To Link Or Reauthenticate User
+                </button>
+                <input type="text" name="emailLink" id="link-with-email-link-link"
+                       class="form-control" placeholder="Link" />
+                <button class="btn btn-block btn-primary"
+                        id="link-with-email-link">Link With Email Link</button>
+                <button class="btn btn-block btn-primary"
+                        id="reauth-with-email-link">Reauthenticate With Email Link</button>
+              </form>
+
+              <form class="form form-bordered no-submit">
+                <input type="text" id="unlinked-provider-id" class="form-control"
+                       placeholder="Provider ID" list="provider-id-options" />
+                <button class="btn btn-block btn-primary" id="unlink-provider">
+                  Unlink Provider
+                </button>
+              </form>
+
+              <!-- Enroll MFA-->
+              <div class="group">Enroll Second Factor</div>
+              <ul id="mfa-tab-menu" class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active">
+                  <a href="#mfa-phone-section" aria-controls="mfa-phone-section"
+                     data-toggle="tab" role="tab">
+                    Phone
+                  </a>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane active" id="mfa-phone-section">
+                  <form class="form form-bordered no-submit">
+                    <input type="tel" id="enroll-mfa-phone-number"
+                           class="form-control" placeholder="Phone Number" />
+                    <button class="btn btn-block btn-primary" id="enroll-mfa-verify-phone-number">
+                      Verify Phone Number
+                    </button>
+                    <input type="text" id="enroll-mfa-phone-verification-id"
+                           class="form-control" placeholder="Phone Verification ID" />
+                    <input type="text" id="enroll-mfa-phone-verification-code"
+                           class="form-control" placeholder="Phone Verification Code" />
+                    <input type="text" id="enroll-mfa-phone-display-name"
+                           class="form-control" placeholder="Display Name" />
+                    <button class="btn btn-block btn-primary"
+                            id="enroll-mfa-confirm-phone-verification">
+                      Complete Enrollment
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Other Actions -->
+              <div class="group">Other Actions</div>
+              <button class="btn btn-block btn-default"
+                      id="send-email-verification">
+                Send Email Verification
+              </button>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="email-verification-code"
+                       placeholder="Email Verification Code"
+                       class="form-control" />
+                <button class="btn btn-block btn-primary"
+                        id="confirm-email-verification">
+                  Confirm Email Verification
+                </button>
+              </form>
+              <button class="btn btn-block btn-default" id="get-token-result">
+                Get ID Token Result (no refresh)
+              </button>
+              <button class="btn btn-block btn-default" id="refresh-token-result">
+                Refresh ID Token Result
+              </button>
+              <button class="btn btn-block btn-default" id="get-token">
+                Get ID Token (no refresh)
+              </button>
+              <button class="btn btn-block btn-default" id="refresh-token">
+                Refresh ID Token
+              </button>
+              <button class="btn btn-block btn-default" id="get-token-worker">
+                Get ID Token from Web Worker
+              </button>
+              <button class="btn btn-block btn-danger" id="sign-out">
+                Sign Out
+              </button>
+              <!-- Other Actions -->
+              <div class="group">Delete account</div>
+              <button class="btn btn-block btn-sm btn-danger" id="delete">
+                Delete Account
+              </button>
+            </div>
+            <div class="tab-pane" id="popup-redirect-section">
+              <div class="btn-group radio-block btn-group-justified"
+                   id="popup-redirect-action-selection" data-toggle="buttons">
+                <label class="btn btn-primary active">
+                  <input type="radio" name="popup-redirect-action" value="sign-in"
+                         autocomplete="off" checked> Sign in
+                </label>
+                <label class="btn btn-primary">
+                  <input type="radio" name="popup-redirect-action" value="link"
+                         autocomplete="off"> Link
+                </label>
+                <label class="btn btn-primary">
+                  <input type="radio" name="popup-redirect-action" value="reauthenticate"
+                         autocomplete="off"> Reauthenticate
+                </label>
+              </div>
+              <div class="btn-group radio-block" id="popup-redirect-type-selection"
+                   data-toggle="buttons">
+                <label class="btn btn-primary active">
+                  <input type="radio" name="popup-redirect-type" value="redirect"
+                         autocomplete="off" checked> With Redirect
+                </label>
+                <label class="btn btn-primary">
+                  <input type="radio" name="popup-redirect-type" value="popup"
+                         autocomplete="off"> With Popup
+                </label>
+              </div>
+              <div class="form-group">
+                <label for="scopes">Scopes (separated by commas)</label>
+                <input type="email" class="form-control" id="scopes" placeholder="scope1,scope2...)">
+              </div>
+              <!-- OAuth Custom Parameters Block-->
+              <div class="form-group">
+                <label for="scopes">OAuth Custom Parameters</label>
+                <!-- Container of key/value custom parameter pairs -->
+                <div id="popup-redirect-custom-parameters"></div>
+                <!-- Button to add a new key/value pair -->
+                <button class="btn btn-block btn-primary"
+                      id="popup-redirect-add-custom-parameter">
+                  Add OAuth Custom Parameter
+                </button>
+              </div>
+              <!-- End of OAuth Custom Parameters Block-->
+
+              <!-- OAuth Providers Block-->
+              <div class="form-group">
+                <label for="scopes">OAuth Providers</label>
+                <button class="btn btn-block btn-primary popup-redirect-provider"
+                        id="popup-redirect-google" data-provider="google.com">
+                  Google
+                </button>
+                <button class="btn btn-block btn-primary popup-redirect-provider"
+                        id="popup-redirect-facebook" data-provider="facebook.com">
+                  Facebook
+                </button>
+                <button class="btn btn-block btn-primary popup-redirect-provider"
+                        id="popup-redirect-twitter" data-provider="twitter.com">
+                  Twitter
+                </button>
+                <button class="btn btn-block btn-primary popup-redirect-provider"
+                        id="popup-redirect-github" data-provider="github.com">
+                  Github
+                </button>
+                <form class="form form-bordered no-submit">
+                  <input type="text" name="popup-redirect-generic-providerid"
+                         id="popup-redirect-generic-providerid"
+                         list="federated-provider-id-options"
+                         class="form-control" placeholder="Federated Provider ID" />
+                  <button class="btn btn-block btn-primary" id="popup-redirect-generic">
+                    Generic IdP
+                  </button>
+                </form>
+                <form class="form form-bordered no-submit">
+                  <input type="text" name="popup-redirect-saml-providerid"
+                         id="popup-redirect-saml-providerid"
+                         class="form-control" placeholder="SAML Provider ID" />
+                  <button class="btn btn-block btn-primary" id="popup-redirect-saml">
+                    SAML IdP
+                  </button>
+                </form>
+              </div>
+              <!-- End of OAuth Providers Block-->
+
+              <button class="btn btn-block btn-default"
+                      id="popup-redirect-get-redirect-result">
+                Get Redirect Result
+              </button>
+            </div>
+            <div class="tab-pane" id="action-code-settings-section">
+              <div class="group">Web</div>
+              <div class="form-group">
+                <input type="text" class="form-control" id="continueUrl"
+                       placeholder="Continue URL"/>
+              </div>
+              <div class="group">Android</div>
+              <form class="form form-bordered no-submit">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="apn"
+                         placeholder="Android Package Name"/>
+                  <div class="btn-group radio-block" id="install-app-selection"
+                       data-toggle="buttons">
+                    <label class="btn btn-primary">
+                      <input type="radio" name="install-app" value="Yes"
+                             autocomplete="off"> Install app
+                    </label>
+                    <label class="btn btn-primary active">
+                      <input type="radio" name="install-app" value="No"
+                             autocomplete="off" checked> Do not install app
+                    </label>
+                  </div>
+                  <input type="text" class="form-control" id="amv"
+                         placeholder="Android Minimum Version"/>
+                </div>
+              </form>
+              <div class="group">iOS</div>
+              <form class="form form-bordered no-submit">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="ibi" placeholder="iOS Bundle ID"/>
+                </div>
+              </form>
+              <form class="form form-bordered no-submit">
+                <div class="btn-group radio-block" id="handle-in-app-selection"
+                     data-toggle="buttons">
+                  <label class="btn btn-primary">
+                    <input type="radio" name="handle-in-app" value="Yes"
+                           autocomplete="off"> Handle code in app
+                  </label>
+                  <label class="btn btn-primary active">
+                    <input type="radio" name="handle-in-app" value="No"
+                           autocomplete="off" checked> Do not handle code in app
+                  </label>
+                </div>
+                <button class="btn btn-block btn-primary"
+                        id="action-code-settings-reset">Reset</button>
+              </form>
+            </div>
+            <div class="tab-pane" id="logs-section">
+              <pre class="well logs"></pre>
+              <button class="btn btn-xs btn-default pull-right clear-logs">
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 hidden-xs">
+          <pre class="well logs"></pre>
+          <button class="btn btn-xs btn-default pull-right clear-logs">
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- The multi-factor sign-in dialog. -->
+    <div class="modal" id="multiFactorModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title">Select a second factor to sign in with</h4>
+          </div>
+          <div class="modal-body">
+            <!-- List of 2nd factor options. -->
+            <div class="list-group enrolled-second-factors"></div>
+            <!-- For handling sign-in with phone 2nd factor. -->
+            <form class="form form-bordered no-submit hidden" id="multi-factor-phone">
+              <div class="form">
+              <button class="btn btn-block btn-primary" id="send-2fa-phone-code">
+                Send code
+              </button>
+              </div>
+              <div class="form">
+              <input type="text" id="multi-factor-sign-in-verification-id"
+                     class="form-control" placeholder="Phone Verification ID" />
+              <input type="text" id="multi-factor-sign-in-verification-code"
+                     class="form-control" placeholder="Phone Verification code" />
+              <button class="btn btn-block btn-primary"
+                      id="sign-in-with-phone-multi-factor">
+                Complete sign In
+              </button>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- List of provider ID suggestions. -->
+    <datalist id="provider-id-options">
+      <option value="google.com"></option>
+      <option value="facebook.com"></option>
+      <option value="twitter.com"></option>
+      <option value="github.com"></option>
+      <option value="password"></option>
+      <option value="phone"></option>
+    </datalist>
+    <datalist id="federated-provider-id-options">
+      <option value="google.com"></option>
+      <option value="facebook.com"></option>
+      <option value="twitter.com"></option>
+      <option value="github.com"></option>
+    </datalist>
+    <!-- List of persistence type suggestions. -->
+    <datalist id="persistence-type-options">
+      <option value="local"></option>
+      <option value="session"></option>
+      <option value="indexedDB"></option>
+      <option value="none"></option>
+    </datalist>
+  </body>
+</html>

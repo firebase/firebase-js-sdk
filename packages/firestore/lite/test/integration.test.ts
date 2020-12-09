@@ -19,12 +19,63 @@ import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
+import { Timestamp } from '../../src/api/timestamp';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
+import { Bytes } from '../src/api/bytes';
 import {
   FirebaseFirestore,
   getFirestore,
   initializeFirestore,
   terminate
 } from '../src/api/database';
+import { FieldPath } from '../src/api/field_path';
+import { FieldValue } from '../src/api/field_value';
+import {
+  arrayRemove,
+  arrayUnion,
+  deleteField,
+  increment,
+  serverTimestamp
+} from '../src/api/field_value_impl';
+import {
+  endAt,
+  endBefore,
+  limit,
+  limitToLast,
+  orderBy,
+  query,
+  startAfter,
+  startAt,
+  where
+} from '../src/api/query';
+import {
+  collection,
+  CollectionReference,
+  doc,
+  DocumentReference,
+  refEqual,
+  queryEqual,
+  collectionGroup,
+  SetOptions,
+  UpdateData,
+  DocumentData
+} from '../src/api/reference';
+import {
+  addDoc,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc
+} from '../src/api/reference_impl';
+import { snapshotEqual, QuerySnapshot } from '../src/api/snapshot';
+import { runTransaction } from '../src/api/transaction';
+import { writeBatch } from '../src/api/write_batch';
+
 import {
   Post,
   postConverter,
@@ -36,52 +87,6 @@ import {
   withTestDoc,
   withTestDocAndInitialData
 } from './helpers';
-import {
-  collection,
-  CollectionReference,
-  doc,
-  DocumentReference,
-  getDoc,
-  deleteDoc,
-  setDoc,
-  addDoc,
-  updateDoc,
-  refEqual,
-  queryEqual,
-  collectionGroup,
-  getDocs,
-  orderBy,
-  startAfter,
-  query,
-  limit,
-  endAt,
-  endBefore,
-  startAt,
-  limitToLast,
-  where,
-  SetOptions,
-  UpdateData,
-  DocumentData
-} from '../src/api/reference';
-import {
-  FieldValue,
-  deleteField,
-  increment,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove
-} from '../src/api/field_value';
-import { FieldPath } from '../src/api/field_path';
-import { writeBatch } from '../src/api/write_batch';
-import { runTransaction } from '../src/api/transaction';
-import { snapshotEqual, QuerySnapshot } from '../src/api/snapshot';
-import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
-} from '../../test/integration/util/settings';
-import { expectEqual, expectNotEqual } from '../../test/util/helpers';
-import { Timestamp } from '../../src/api/timestamp';
-import { Bytes } from '../src/api/bytes';
 
 use(chaiAsPromised);
 
@@ -179,9 +184,18 @@ describe('doc', () => {
     });
   });
 
-  it('can be used relative to collection (via CollectionReference.doc())', () => {
+  it('can be used with multiple arguments', () => {
     return withTestDb(db => {
-      const result = collection(db, 'coll').doc('doc');
+      const result = doc(db, 'coll1/doc1', 'coll2', 'doc2');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('doc2');
+      expect(result.path).to.equal('coll1/doc1/coll2/doc2');
+    });
+  });
+
+  it('strips leading and trailing slashes', () => {
+    return withTestDb(db => {
+      const result = doc(db, '/coll', 'doc/');
       expect(result).to.be.an.instanceOf(DocumentReference);
       expect(result.id).to.equal('doc');
       expect(result.path).to.equal('coll/doc');
@@ -211,7 +225,7 @@ describe('doc', () => {
           'number of segments, but coll/doc/coll has 3.'
       );
       expect(() => doc(db, 'coll//doc')).to.throw(
-        'Invalid path (coll//doc). Paths must not contain // in them.'
+        'Invalid segment (coll//doc). Paths must not contain // in them.'
       );
     });
   });
@@ -220,14 +234,6 @@ describe('doc', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll');
       const ref = doc(coll);
-      expect(ref.id.length).to.equal(20);
-    });
-  });
-
-  it('supports AutoId (via CollectionReference.doc())', () => {
-    return withTestDb(db => {
-      const coll = collection(db, 'coll');
-      const ref = coll.doc();
       expect(ref.id.length).to.equal(20);
     });
   });
@@ -261,12 +267,12 @@ describe('collection', () => {
     });
   });
 
-  it('can be used relative to doc (via DocumentReference.collection())', () => {
+  it('can be used with multiple arguments', () => {
     return withTestDb(db => {
-      const result = doc(db, 'coll/doc').collection('subcoll');
+      const result = collection(db, 'coll1/doc1', 'coll2');
       expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.id).to.equal('subcoll');
-      expect(result.path).to.equal('coll/doc/subcoll');
+      expect(result.id).to.equal('coll2');
+      expect(result.path).to.equal('coll1/doc1/coll2');
     });
   });
 

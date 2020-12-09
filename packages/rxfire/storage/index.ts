@@ -15,16 +15,21 @@
  * limitations under the License.
  */
 
-import { storage } from 'firebase/app';
+import firebase from 'firebase/app';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+type UploadTaskSnapshot = firebase.storage.UploadTaskSnapshot;
+type Reference = firebase.storage.Reference;
+type UploadMetadata = firebase.storage.UploadMetadata;
+type StringFormat = firebase.storage.StringFormat;
+type UploadTask = firebase.storage.UploadTask;
+
 export function fromTask(
-  task: storage.UploadTask
-): Observable<storage.UploadTaskSnapshot> {
-  return new Observable<storage.UploadTaskSnapshot>(subscriber => {
-    const progress = (snap: storage.UploadTaskSnapshot): void =>
-      subscriber.next(snap);
+  task: firebase.storage.UploadTask
+): Observable<UploadTaskSnapshot> {
+  return new Observable<UploadTaskSnapshot>(subscriber => {
+    const progress = (snap: UploadTaskSnapshot): void => subscriber.next(snap);
     const error = (e: Error): void => subscriber.error(e);
     const complete = (): void => subscriber.complete();
     task.on('state_changed', progress, error, complete);
@@ -32,39 +37,39 @@ export function fromTask(
   });
 }
 
-export function getDownloadURL(ref: storage.Reference): Observable<string> {
+export function getDownloadURL(ref: Reference): Observable<string> {
   return from(ref.getDownloadURL());
 }
 
 // TODO: fix storage typing in firebase, then apply the same fix here
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getMetadata(ref: storage.Reference): Observable<any> {
+export function getMetadata(ref: Reference): Observable<any> {
   return from(ref.getMetadata());
 }
 
 export function put(
-  ref: storage.Reference,
+  ref: Reference,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
-  metadata?: storage.UploadMetadata
-): Observable<storage.UploadTaskSnapshot> {
+  metadata?: UploadMetadata
+): Observable<UploadTaskSnapshot> {
   return fromTask(ref.put(data, metadata));
 }
 
 export function putString(
-  ref: storage.Reference,
+  ref: Reference,
   data: string,
-  format?: storage.StringFormat,
-  metadata?: storage.UploadMetadata
-): Observable<storage.UploadTaskSnapshot> {
+  format?: StringFormat,
+  metadata?: UploadMetadata
+): Observable<UploadTaskSnapshot> {
   return fromTask(ref.putString(data, format, metadata));
 }
 
 export function percentage(
-  task: storage.UploadTask
+  task: UploadTask
 ): Observable<{
   progress: number;
-  snapshot: storage.UploadTaskSnapshot;
+  snapshot: UploadTaskSnapshot;
 }> {
   return fromTask(task).pipe(
     map(s => ({

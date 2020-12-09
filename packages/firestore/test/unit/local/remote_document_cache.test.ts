@@ -16,8 +16,14 @@
  */
 
 import { expect } from 'chai';
+
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { remoteDocumentCacheGetLastReadTime } from '../../../src/local/indexeddb_remote_document_cache';
+import {
+  documentKeySet,
+  MaybeDocumentMap
+} from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import {
   deletedDoc,
@@ -28,10 +34,7 @@ import {
   removedDoc,
   version
 } from '../../util/helpers';
-import {
-  documentKeySet,
-  MaybeDocumentMap
-} from '../../../src/model/collections';
+
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
 
@@ -91,8 +94,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
 
   function getLastReadTime(): Promise<SnapshotVersion> {
     return persistence.runTransaction('getLastReadTime', 'readonly', txn => {
-      const remoteDocuments = persistence.getRemoteDocumentCache();
-      return remoteDocuments.getLastReadTime(txn);
+      return remoteDocumentCacheGetLastReadTime(txn);
     });
   }
 

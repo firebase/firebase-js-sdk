@@ -36,7 +36,7 @@ export interface Unsubscribe {
   (): void;
 }
 
-export function isPartialObserver(obj: unknown): boolean {
+export function isPartialObserver<T>(obj: unknown): obj is PartialObserver<T> {
   return implementsAnyMethods(obj, ['next', 'error', 'complete']);
 }
 

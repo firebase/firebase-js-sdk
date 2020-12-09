@@ -16,7 +16,6 @@
  */
 
 import { _registerComponent, _getProvider } from '@firebase/app-exp';
-import { _FirebaseService } from '@firebase/app-types-exp';
 import {
   Component,
   ComponentType,

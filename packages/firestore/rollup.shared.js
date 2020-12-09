@@ -16,7 +16,7 @@
  */
 
 const tmp = require('tmp');
-const json = require('rollup-plugin-json');
+const json = require('@rollup/plugin-json');
 const alias = require('@rollup/plugin-alias');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
@@ -90,6 +90,14 @@ exports.resolveNodeExterns = function (id) {
   return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
 };
 
+/** Breaks the build if there is a circular dependency. */
+exports.onwarn = function (warning, defaultWarn) {
+  if (warning.code === 'CIRCULAR_DEPENDENCY') {
+    throw new Error(warning);
+  }
+  defaultWarn(warning);
+};
+
 const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 
@@ -129,11 +137,90 @@ const manglePrivatePropertiesOptions = {
   },
   mangle: {
     properties: {
-      regex: /^__PRIVATE_/
+      regex: /^__PRIVATE_/,
+      // All JS Keywords are reserved. Although this should be taken cared of by
+      // Terser, we have seen issues with `do`, hence the extra caution.
+      reserved: [
+        'abstract',
+        'arguments',
+        'await',
+        'boolean',
+        'break',
+        'byte',
+        'case',
+        'catch',
+        'char',
+        'class',
+        'const',
+        'continue',
+        'debugger',
+        'default',
+        'delete',
+        'do',
+        'double',
+        'else',
+        'enum',
+        'eval',
+        'export',
+        'extends',
+        'false',
+        'final',
+        'finally',
+        'float',
+        'for',
+        'function',
+        'goto',
+        'if',
+        'implements',
+        'import',
+        'in',
+        'instanceof',
+        'int',
+        'interface',
+        'let',
+        'long',
+        'native',
+        'new',
+        'null',
+        'package',
+        'private',
+        'protected',
+        'public',
+        'return',
+        'short',
+        'static',
+        'super',
+        'switch',
+        'synchronized',
+        'this',
+        'throw',
+        'throws',
+        'transient',
+        'true',
+        'try',
+        'typeof',
+        'var',
+        'void',
+        'volatile',
+        'while',
+        'with',
+        'yield'
+      ]
     }
   }
 };
 exports.manglePrivatePropertiesOptions = manglePrivatePropertiesOptions;
+
+exports.applyPrebuilt = function (name = 'prebuilt.js') {
+  return alias({
+    entries: [
+      {
+        find: /^(.*)\/export$/,
+        replacement: `$1\/dist/${name}`
+      }
+    ]
+  });
+};
 
 exports.es2017Plugins = function (platform, mangled = false) {
   if (mangled) {
@@ -175,10 +262,13 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
     return [
       typescriptPlugin({
         typescript,
-        compilerOptions: {
-          allowJs: true
+        tsconfigOverride: {
+          compilerOptions: {
+            allowJs: true
+          }
         },
-        include: ['dist/*.js', 'dist/exp/*.js']
+        include: ['dist/**/*.js'],
+        cacheDir: tmp.dirSync()
       }),
       terser({
         output: {
@@ -193,10 +283,13 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
     return [
       typescriptPlugin({
         typescript,
-        compilerOptions: {
-          allowJs: true
+        tsconfigOverride: {
+          compilerOptions: {
+            allowJs: true
+          }
         },
-        include: ['dist/*.js', 'dist/exp/*.js']
+        include: ['dist/**/*.js'],
+        cacheDir: tmp.dirSync()
       }),
       sourcemaps()
     ];

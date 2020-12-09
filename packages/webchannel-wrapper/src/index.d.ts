@@ -31,6 +31,15 @@ export namespace WebChannel {
   };
 }
 
+export var Event: {
+  STAT_EVENT: string;
+};
+
+export var Stat: {
+  PROXY: number;
+  NOPROXY: number;
+};
+
 export var ErrorCode: {
   NO_ERROR: number;
   HTTP_ERROR: number;
@@ -89,6 +98,7 @@ export interface WebChannelOptions {
   httpSessionIdParam?: string;
   httpHeadersOverwriteParam?: string;
   forceLongPolling?: boolean;
+  detectBufferingProxy?: boolean;
   fastHandshake?: boolean;
   disableRedac?: boolean;
   clientProfile?: string;
@@ -99,11 +109,18 @@ export interface WebChannelOptions {
   requestRefreshThresholds?: { [key: string]: number };
 }
 
-export interface WebChannel {
+export interface EventTarget {
+  listen(type: string | number, cb: (param: unknown) => void): void;
+}
+
+export interface WebChannel extends EventTarget {
   open(): void;
   close(): void;
-  listen(type: string, cb: (param: unknown) => void): void;
   send(msg: unknown): void;
+}
+
+export interface StatEvent {
+  stat: number;
 }
 
 export interface WebChannelTransport {
@@ -111,3 +128,5 @@ export interface WebChannelTransport {
 }
 
 export function createWebChannelTransport(): WebChannelTransport;
+
+export function getStatEventTarget(): EventTarget;

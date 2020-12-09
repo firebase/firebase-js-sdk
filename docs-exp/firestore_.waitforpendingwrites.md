@@ -4,12 +4,16 @@
 
 ## waitForPendingWrites() function
 
+Waits until all currently pending writes for the active user have been acknowledged by the backend.
+
+The returned Promise resolves immediately if there are no outstanding writes. Otherwise, the Promise waits for all previously issued writes (including those written in a previous app session), but it does not wait for writes that were added after the function is called. If you want to wait for additional writes, call `waitForPendingWrites()` again.
+
+Any outstanding `waitForPendingWrites()` Promises are rejected during user changes.
+
 <b>Signature:</b>
 
 ```typescript
-export function waitForPendingWrites(
-  firestore: FirebaseFirestore
-): Promise<void>;
+export declare function waitForPendingWrites(firestore: FirebaseFirestore): Promise<void>;
 ```
 
 ## Parameters
@@ -21,4 +25,6 @@ export function waitForPendingWrites(
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A Promise which resolves when all currently pending writes have been acknowledged by the backend.
 

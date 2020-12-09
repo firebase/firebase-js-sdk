@@ -49,9 +49,9 @@
  *   fs.stat(path, callback);
  * });
  *
- * @param action a function that takes a node-style callback as an argument and
- *     then uses that callback to invoke some node-style API.
- * @return a new Promise which will be rejected if the callback is given the
+ * @param action - a function that takes a node-style callback as an argument
+ *     and then uses that callback to invoke some node-style API.
+ * @returns a new Promise which will be rejected if the callback is given the
  *     first Error parameter or will resolve to the value given otherwise.
  */
 export function nodePromise<R>(

@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
+import * as stringify from 'json-stable-stringify';
 import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
 
+import { queryEquals, QueryImpl } from '../../../src/core/query';
+import { targetEquals, TargetImpl } from '../../../src/core/target';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { debugAssert } from '../../../src/util/assert';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -24,10 +27,6 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 
 import { SpecBuilder } from './spec_builder';
 import { SpecStep } from './spec_test_runner';
-
-import * as stringify from 'json-stable-stringify';
-import { targetEquals, TargetImpl } from '../../../src/core/target';
-import { queryEquals, QueryImpl } from '../../../src/core/query';
 
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
@@ -130,10 +129,10 @@ function getTestTimeout(tags: string[]): number | undefined {
 
 /**
  * Like it(), but for spec tests.
- * @param name A name to give the test.
- * @param tags Tags to apply to the test (e.g. 'exclusive' to only run
+ * @param name - A name to give the test.
+ * @param tags - Tags to apply to the test (e.g. 'exclusive' to only run
  *             individual tests)
- * @param builder A function that returns a spec.
+ * @param builder - A function that returns a spec.
  * If writeToJSONFile has been called, the spec will be stored in
  * `specsInThisTest`. Otherwise, it will be run, just as it() would run it.
  */
@@ -224,10 +223,10 @@ export function specTest(
 
 /**
  * Like describe, but for spec tests.
- * @param name A name to give the test.
- * @param tags Tags to apply to all tests in the spec (e.g. 'exclusive' to
+ * @param name - A name to give the test.
+ * @param tags - Tags to apply to all tests in the spec (e.g. 'exclusive' to
  *             only run individual tests)
- * @param builder A function that calls specTest for each test case.
+ * @param builder - A function that calls specTest for each test case.
  * If writeToJSONFile has been called, the specs will be stored in
  * that file. Otherwise, they will be run, just as describe would run.
  */

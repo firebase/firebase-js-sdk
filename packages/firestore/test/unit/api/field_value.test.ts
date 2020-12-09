@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { FieldValue } from '../../../src/api/field_value';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
@@ -32,5 +33,13 @@ describe('FieldValue', () => {
     expect(FieldValue.increment(1)).to.be.an.instanceOf(FieldValue);
     expect(FieldValue.arrayUnion('a')).to.be.an.instanceOf(FieldValue);
     expect(FieldValue.arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+  });
+
+  it('JSON.stringify() does not throw', () => {
+    JSON.stringify(FieldValue.delete());
+    JSON.stringify(FieldValue.serverTimestamp());
+    JSON.stringify(FieldValue.increment(1));
+    JSON.stringify(FieldValue.arrayUnion(2));
+    JSON.stringify(FieldValue.arrayRemove(3));
   });
 });

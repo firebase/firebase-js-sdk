@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { GeoPoint } from '../../../src/api/geo_point';
 import {
   expectCorrectComparisons,

@@ -54,6 +54,12 @@ export interface Functions {
    * Default is `us-central-1`.
    */
   region: string;
+
+  /**
+   * A custom domain hosting the callable Cloud Functions.
+   * ex: https://mydomain.com
+   */
+  customDomain: string | null;
 }
 
 /**

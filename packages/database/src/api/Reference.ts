@@ -37,7 +37,6 @@ import { validateArgCount, validateCallback, Deferred } from '@firebase/util';
 import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
-import * as types from '@firebase/database-types';
 
 export interface ReferenceConstructor {
   new (repo: Repo, path: Path): Reference;

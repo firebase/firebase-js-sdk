@@ -16,10 +16,12 @@
  */
 
 import { getUA } from '@firebase/util';
+
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { Deferred } from '../util/promise';
+
 import { PersistencePromise } from './persistence_promise';
 
 // References to `window` are guarded by SimpleDb.isAvailable()
@@ -43,6 +45,98 @@ export interface SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void>;
+}
+
+/**
+ * Wraps an IDBTransaction and exposes a store() method to get a handle to a
+ * specific object store.
+ */
+export class SimpleDbTransaction {
+  private aborted = false;
+
+  /**
+   * A promise that resolves with the result of the IndexedDb transaction.
+   */
+  private readonly completionDeferred = new Deferred<void>();
+
+  static open(
+    db: IDBDatabase,
+    action: string,
+    mode: IDBTransactionMode,
+    objectStoreNames: string[]
+  ): SimpleDbTransaction {
+    try {
+      return new SimpleDbTransaction(
+        action,
+        db.transaction(objectStoreNames, mode)
+      );
+    } catch (e) {
+      throw new IndexedDbTransactionError(action, e);
+    }
+  }
+
+  constructor(
+    private readonly action: string,
+    private readonly transaction: IDBTransaction
+  ) {
+    this.transaction.oncomplete = () => {
+      this.completionDeferred.resolve();
+    };
+    this.transaction.onabort = () => {
+      if (transaction.error) {
+        this.completionDeferred.reject(
+          new IndexedDbTransactionError(action, transaction.error)
+        );
+      } else {
+        this.completionDeferred.resolve();
+      }
+    };
+    this.transaction.onerror = (event: Event) => {
+      const error = checkForAndReportiOSError(
+        (event.target as IDBRequest).error!
+      );
+      this.completionDeferred.reject(
+        new IndexedDbTransactionError(action, error)
+      );
+    };
+  }
+
+  get completionPromise(): Promise<void> {
+    return this.completionDeferred.promise;
+  }
+
+  abort(error?: Error): void {
+    if (error) {
+      this.completionDeferred.reject(error);
+    }
+
+    if (!this.aborted) {
+      logDebug(
+        LOG_TAG,
+        'Aborting transaction:',
+        error ? error.message : 'Client-initiated abort'
+      );
+      this.aborted = true;
+      this.transaction.abort();
+    }
+  }
+
+  /**
+   * Returns a SimpleDbStore<KeyType, ValueType> for the specified store. All
+   * operations performed on the SimpleDbStore happen within the context of this
+   * transaction and it cannot be used anymore once the transaction is
+   * completed.
+   *
+   * Note that we can't actually enforce that the KeyType and ValueType are
+   * correct, but they allow type safety through the rest of the consuming code.
+   */
+  store<KeyType extends IDBValidKey, ValueType extends unknown>(
+    storeName: string
+  ): SimpleDbStore<KeyType, ValueType> {
+    const store = this.transaction.objectStore(storeName);
+    debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
+    return new SimpleDbStore<KeyType, ValueType>(store);
+  }
 }
 
 /**
@@ -189,7 +283,7 @@ export class SimpleDb {
   /**
    * Opens the specified database, creating or upgrading it if necessary.
    */
-  async ensureDb(): Promise<IDBDatabase> {
+  async ensureDb(action: string): Promise<IDBDatabase> {
     if (!this.db) {
       logDebug(LOG_TAG, 'Opening database:', this.name);
       this.db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -208,6 +302,7 @@ export class SimpleDb {
         request.onblocked = () => {
           reject(
             new IndexedDbTransactionError(
+              action,
               'Cannot upgrade IndexedDB schema while another tab is open. ' +
                 'Close all tabs that access Firestore and reload this page to proceed.'
             )
@@ -228,7 +323,7 @@ export class SimpleDb {
               )
             );
           } else {
-            reject(new IndexedDbTransactionError(error));
+            reject(new IndexedDbTransactionError(action, error));
           }
         };
 
@@ -274,6 +369,7 @@ export class SimpleDb {
   }
 
   async runTransaction<T>(
+    action: string,
     mode: SimpleDbTransactionMode,
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
@@ -285,10 +381,11 @@ export class SimpleDb {
       ++attemptNumber;
 
       try {
-        this.db = await this.ensureDb();
+        this.db = await this.ensureDb(action);
 
         const transaction = SimpleDbTransaction.open(
           this.db,
+          action,
           readonly ? 'readonly' : 'readwrite',
           objectStores
         );
@@ -424,8 +521,11 @@ export interface IterateOptions {
 export class IndexedDbTransactionError extends FirestoreError {
   name = 'IndexedDbTransactionError';
 
-  constructor(cause: Error | string) {
-    super(Code.UNAVAILABLE, 'IndexedDB transaction failed: ' + cause);
+  constructor(actionName: string, cause: Error | string) {
+    super(
+      Code.UNAVAILABLE,
+      `IndexedDB transaction '${actionName}' failed: ${cause}`
+    );
   }
 }
 
@@ -434,89 +534,6 @@ export function isIndexedDbTransactionError(e: Error): boolean {
   // Use name equality, as instanceof checks on errors don't work with errors
   // that wrap other errors.
   return e.name === 'IndexedDbTransactionError';
-}
-
-/**
- * Wraps an IDBTransaction and exposes a store() method to get a handle to a
- * specific object store.
- */
-export class SimpleDbTransaction {
-  private aborted = false;
-
-  /**
-   * A promise that resolves with the result of the IndexedDb transaction.
-   */
-  private readonly completionDeferred = new Deferred<void>();
-
-  static open(
-    db: IDBDatabase,
-    mode: IDBTransactionMode,
-    objectStoreNames: string[]
-  ): SimpleDbTransaction {
-    try {
-      return new SimpleDbTransaction(db.transaction(objectStoreNames, mode));
-    } catch (e) {
-      throw new IndexedDbTransactionError(e);
-    }
-  }
-
-  constructor(private readonly transaction: IDBTransaction) {
-    this.transaction.oncomplete = () => {
-      this.completionDeferred.resolve();
-    };
-    this.transaction.onabort = () => {
-      if (transaction.error) {
-        this.completionDeferred.reject(
-          new IndexedDbTransactionError(transaction.error)
-        );
-      } else {
-        this.completionDeferred.resolve();
-      }
-    };
-    this.transaction.onerror = (event: Event) => {
-      const error = checkForAndReportiOSError(
-        (event.target as IDBRequest).error!
-      );
-      this.completionDeferred.reject(new IndexedDbTransactionError(error));
-    };
-  }
-
-  get completionPromise(): Promise<void> {
-    return this.completionDeferred.promise;
-  }
-
-  abort(error?: Error): void {
-    if (error) {
-      this.completionDeferred.reject(error);
-    }
-
-    if (!this.aborted) {
-      logDebug(
-        LOG_TAG,
-        'Aborting transaction:',
-        error ? error.message : 'Client-initiated abort'
-      );
-      this.aborted = true;
-      this.transaction.abort();
-    }
-  }
-
-  /**
-   * Returns a SimpleDbStore<KeyType, ValueType> for the specified store. All
-   * operations performed on the SimpleDbStore happen within the context of this
-   * transaction and it cannot be used anymore once the transaction is
-   * completed.
-   *
-   * Note that we can't actually enforce that the KeyType and ValueType are
-   * correct, but they allow type safety through the rest of the consuming code.
-   */
-  store<KeyType extends IDBValidKey, ValueType extends unknown>(
-    storeName: string
-  ): SimpleDbStore<KeyType, ValueType> {
-    const store = this.transaction.objectStore(storeName);
-    debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
-    return new SimpleDbStore<KeyType, ValueType>(store);
-  }
 }
 
 /**
@@ -538,9 +555,9 @@ export class SimpleDbStore<
   /**
    * Writes a value into the Object Store.
    *
-   * @param key Optional explicit key to use when writing the object, else the
+   * @param key - Optional explicit key to use when writing the object, else the
    * key will be auto-assigned (e.g. via the defined keyPath for the store).
-   * @param value The object to write.
+   * @param value - The object to write.
    */
   put(value: ValueType): PersistencePromise<void>;
   put(key: KeyType, value: ValueType): PersistencePromise<void>;
@@ -563,8 +580,8 @@ export class SimpleDbStore<
    * Adds a new value into an Object Store and returns the new key. Similar to
    * IndexedDb's `add()`, this method will fail on primary key collisions.
    *
-   * @param value The object to write.
-   * @return The key of the value to add.
+   * @param value - The object to write.
+   * @returns The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
     logDebug(LOG_TAG, 'ADD', this.store.name, value, value);
@@ -577,7 +594,7 @@ export class SimpleDbStore<
    * if no object exists with the specified key.
    *
    * @key The key of the object to get.
-   * @return The object with the specified key or null if no object exists.
+   * @returns The object with the specified key or null if no object exists.
    */
   get(key: KeyType): PersistencePromise<ValueType | null> {
     const request = this.store.get(key);
@@ -652,8 +669,9 @@ export class SimpleDbStore<
   /**
    * Iterates over keys and values in an object store.
    *
-   * @param options Options specifying how to iterate the objects in the store.
-   * @param callback will be called for each iterated object. Iteration can be
+   * @param options - Options specifying how to iterate the objects in the
+   * store.
+   * @param callback - will be called for each iterated object. Iteration can be
    * canceled at any point by calling the doneFn passed to the callback.
    * The callback can return a PersistencePromise if it performs async
    * operations but note that iteration will continue without waiting for them

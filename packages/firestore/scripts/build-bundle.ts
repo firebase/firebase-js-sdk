@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as yargs from 'yargs';
 import { rollup } from 'rollup';
+import * as yargs from 'yargs';
 
-const typescriptPlugin = require('rollup-plugin-typescript2');
 const alias = require('@rollup/plugin-alias');
-const json = require('rollup-plugin-json');
+const json = require('@rollup/plugin-json');
+const typescriptPlugin = require('rollup-plugin-typescript2');
 
 const util = require('../rollup.shared');
 

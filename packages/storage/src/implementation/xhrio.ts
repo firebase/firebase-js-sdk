@@ -20,6 +20,9 @@
  * goog.net.XhrIo-like interface.
  */
 
+/**
+ * XHR headers
+ */
 export interface Headers {
   [name: string]: string | number;
 }
@@ -50,9 +53,6 @@ export interface XhrIo {
   removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void;
 }
 
-/**
- * @enum{number}
- */
 export enum ErrorCode {
   NO_ERROR = 0,
   NETWORK_ERROR = 1,

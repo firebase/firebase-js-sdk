@@ -4,19 +4,23 @@
 
 ## startAt() function
 
+Creates a `QueryConstraint` that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
+
 <b>Signature:</b>
 
 ```typescript
-export function startAt(...fieldValues: any[]): QueryConstraint;
+export declare function startAt(...fieldValues: unknown[]): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldValues | any\[\] |  |
+|  fieldValues | unknown\[\] | The field values to start this query at, in order of the query's order by. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_.queryconstraint.md)
+
+A `QueryConstraint` to pass to `query()`<!-- -->.
 

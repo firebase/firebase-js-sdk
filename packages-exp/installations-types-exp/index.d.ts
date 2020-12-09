@@ -16,6 +16,8 @@
  */
 
 /**
+ * Public interface of the FirebaseInstallations SDK.
+ *
  * @public
  */
 export interface FirebaseInstallations {}

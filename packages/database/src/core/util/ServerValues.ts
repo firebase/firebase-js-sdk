@@ -17,7 +17,6 @@
 
 import { assert } from '@firebase/util';
 import { Path } from './Path';
-import { SparseSnapshotTree } from '../SparseSnapshotTree';
 import { LeafNode } from '../snap/LeafNode';
 import { nodeFromJSON } from '../snap/nodeFromJSON';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';

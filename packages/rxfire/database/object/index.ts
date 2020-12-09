@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 
-import { database } from 'firebase';
+import firebase from 'firebase';
 import { QueryChange, ListenEvent } from '../interfaces';
 import { fromRef } from '../fromRef';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+type Query = firebase.database.Query;
 /**
  * Get the snapshot changes of an object
  * @param query
  */
-export function object(query: database.Query): Observable<QueryChange> {
+export function object(query: Query): Observable<QueryChange> {
   return fromRef(query, ListenEvent.value);
 }
 
@@ -34,10 +35,7 @@ export function object(query: database.Query): Observable<QueryChange> {
  * @param query object ref or query
  * @param keyField map the object key to a specific field
  */
-export function objectVal<T>(
-  query: database.Query,
-  keyField?: string
-): Observable<T> {
+export function objectVal<T>(query: Query, keyField?: string): Observable<T> {
   return fromRef(query, ListenEvent.value).pipe(
     map(change => changeToData(change, keyField) as T)
   );

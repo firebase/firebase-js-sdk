@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { safeGet, CONSTANTS } from '@firebase/util';
+import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal, log } from './util/util';
 import { parseRepoInfo } from './util/libs/parser';
@@ -84,6 +84,25 @@ export class RepoManager {
       for (const dbUrl of Object.keys(this.repos_[appName])) {
         this.repos_[appName][dbUrl].resume();
       }
+    }
+  }
+
+  /**
+   * Update an existing repo in place to point to a new host/port.
+   */
+  applyEmulatorSettings(repo: Repo, host: string, port: number): void {
+    repo.repoInfo_ = new RepoInfo(
+      `${host}:${port}`,
+      /* secure= */ false,
+      repo.repoInfo_.namespace,
+      repo.repoInfo_.webSocketOnly,
+      repo.repoInfo_.nodeAdmin,
+      repo.repoInfo_.persistenceKey,
+      repo.repoInfo_.includeNamespaceInQueryParams
+    );
+
+    if (repo.repoInfo_.nodeAdmin) {
+      repo.authTokenProvider_ = new EmulatorAdminTokenProvider();
     }
   }
 
@@ -157,13 +176,13 @@ export class RepoManager {
   deleteRepo(repo: Repo) {
     const appRepos = safeGet(this.repos_, repo.app.name);
     // This should never happen...
-    if (!appRepos || safeGet(appRepos, repo.repoInfo_.toURLString()) !== repo) {
+    if (!appRepos || safeGet(appRepos, repo.key) !== repo) {
       fatal(
         `Database ${repo.app.name}(${repo.repoInfo_}) has already been deleted.`
       );
     }
     repo.interrupt();
-    delete appRepos[repo.repoInfo_.toURLString()];
+    delete appRepos[repo.key];
   }
 
   /**

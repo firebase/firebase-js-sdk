@@ -150,7 +150,10 @@ async function fetchAuthTokenFromServer(
     await set(installations.appConfig, updatedInstallationEntry);
     return authToken;
   } catch (e) {
-    if (isServerError(e) && (e.serverCode === 401 || e.serverCode === 404)) {
+    if (
+      isServerError(e) &&
+      (e.customData.serverCode === 401 || e.customData.serverCode === 404)
+    ) {
       // Server returned a "FID not found" or a "Invalid authentication" error.
       // Generate a new ID next time.
       await remove(installations.appConfig);

@@ -18,37 +18,49 @@
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
+  LimitType,
+  newQuery,
+  newQueryForPath,
+  Query,
+  queryToTarget
+} from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
+import {
   Bound,
   Direction,
   FieldFilter,
   Filter,
-  LimitType,
-  newQuery,
-  newQueryForPath,
+  isDocumentTarget,
   Operator,
   OrderBy,
-  queryToTarget
-} from '../core/query';
-import { SnapshotVersion } from '../core/snapshot_version';
-import { isDocumentTarget, Target } from '../core/target';
+  Target
+} from '../core/target';
 import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { ObjectValue } from '../model/object_value';
+import { FieldMask } from '../model/field_mask';
 import {
   DeleteMutation,
-  FieldMask,
   FieldTransform,
   Mutation,
   MutationResult,
   PatchMutation,
   Precondition,
   SetMutation,
-  TransformMutation,
   VerifyMutation
 } from '../model/mutation';
+import { normalizeTimestamp } from '../model/normalize';
+import { ObjectValue } from '../model/object_value';
 import { FieldPath, ResourcePath } from '../model/path';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
+  ServerTimestampTransform,
+  TransformOperation
+} from '../model/transform_operation';
+import { isNanValue, isNullValue } from '../model/values';
 import {
   ApiClientObjectMap as ProtoApiClientObjectMap,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
@@ -67,28 +79,19 @@ import {
   QueryTarget as ProtoQueryTarget,
   Status as ProtoStatus,
   Target as ProtoTarget,
+  TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
   Value as ProtoValue,
   Write as ProtoWrite,
-  TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   WriteResult as ProtoWriteResult
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
 import { ByteString } from '../util/byte_string';
-import {
-  isNegativeZero,
-  isNullOrUndefined,
-  isSafeInteger
-} from '../util/types';
-import {
-  ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation,
-  NumericIncrementTransformOperation,
-  ServerTimestampTransform,
-  TransformOperation
-} from '../model/transform_operation';
+import { Code, FirestoreError } from '../util/error';
+import { isNullOrUndefined } from '../util/types';
+
 import { ExistenceFilter } from './existence_filter';
+import { Serializer } from './number_serializer';
 import { mapCodeFromRpcCode } from './rpc_error';
 import {
   DocumentWatchChange,
@@ -97,7 +100,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -139,7 +141,7 @@ function assertPresent(value: unknown, description: string): asserts value {
  * TODO(klimt): We can remove the databaseId argument if we keep the full
  * resource name in documents.
  */
-export class JsonProtoSerializer {
+export class JsonProtoSerializer implements Serializer {
   constructor(
     readonly databaseId: DatabaseId,
     readonly useProto3Json: boolean
@@ -184,45 +186,6 @@ function fromInt32Proto(
     result = val;
   }
   return isNullOrUndefined(result) ? null : result;
-}
-
-/**
- * Returns an IntegerValue for `value`.
- */
-export function toInteger(value: number): ProtoValue {
-  return { integerValue: '' + value };
-}
-
-/**
- * Returns an DoubleValue for `value` that is encoded based the serializer's
- * `useProto3Json` setting.
- */
-export function toDouble(
-  serializer: JsonProtoSerializer,
-  value: number
-): ProtoValue {
-  if (serializer.useProto3Json) {
-    if (isNaN(value)) {
-      return { doubleValue: 'NaN' };
-    } else if (value === Infinity) {
-      return { doubleValue: 'Infinity' };
-    } else if (value === -Infinity) {
-      return { doubleValue: '-Infinity' };
-    }
-  }
-  return { doubleValue: isNegativeZero(value) ? '-0' : value };
-}
-
-/**
- * Returns a value for a number that's appropriate to put into a proto.
- * The return value is an IntegerValue if it can safely represent the value,
- * otherwise a DoubleValue is returned.
- */
-export function toNumber(
-  serializer: JsonProtoSerializer,
-  value: number
-): ProtoValue {
-  return isSafeInteger(value) ? toInteger(value) : toDouble(serializer, value);
 }
 
 /**
@@ -338,21 +301,26 @@ export function fromName(
   name: string
 ): DocumentKey {
   const resource = fromResourceName(name);
-  hardAssert(
-    resource.get(1) === serializer.databaseId.projectId,
-    'Tried to deserialize key from different project: ' +
-      resource.get(1) +
-      ' vs ' +
-      serializer.databaseId.projectId
-  );
-  hardAssert(
-    (!resource.get(3) && !serializer.databaseId.database) ||
-      resource.get(3) === serializer.databaseId.database,
-    'Tried to deserialize key from different database: ' +
-      resource.get(3) +
-      ' vs ' +
-      serializer.databaseId.database
-  );
+
+  if (resource.get(1) !== serializer.databaseId.projectId) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Tried to deserialize key from different project: ' +
+        resource.get(1) +
+        ' vs ' +
+        serializer.databaseId.projectId
+    );
+  }
+
+  if (resource.get(3) !== serializer.databaseId.database) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Tried to deserialize key from different database: ' +
+        resource.get(3) +
+        ' vs ' +
+        serializer.databaseId.database
+    );
+  }
   return new DocumentKey(extractLocalPathFromResourceName(resource));
 }
 
@@ -621,21 +589,18 @@ export function toMutation(
       update: toMutationDocument(serializer, mutation.key, mutation.data),
       updateMask: toDocumentMask(mutation.fieldMask)
     };
-  } else if (mutation instanceof TransformMutation) {
-    result = {
-      transform: {
-        document: toName(serializer, mutation.key),
-        fieldTransforms: mutation.fieldTransforms.map(transform =>
-          toFieldTransform(serializer, transform)
-        )
-      }
-    };
   } else if (mutation instanceof VerifyMutation) {
     result = {
       verify: toName(serializer, mutation.key)
     };
   } else {
     return fail('Unknown mutation type ' + mutation.type);
+  }
+
+  if (mutation.fieldTransforms.length > 0) {
+    result.updateTransforms = mutation.fieldTransforms.map(transform =>
+      toFieldTransform(serializer, transform)
+    );
   }
 
   if (!mutation.precondition.isNone) {
@@ -653,31 +618,34 @@ export function fromMutation(
     ? fromPrecondition(proto.currentDocument)
     : Precondition.none();
 
+  const fieldTransforms = proto.updateTransforms
+    ? proto.updateTransforms.map(transform =>
+        fromFieldTransform(serializer, transform)
+      )
+    : [];
+
   if (proto.update) {
     assertPresent(proto.update.name, 'name');
     const key = fromName(serializer, proto.update.name);
     const value = new ObjectValue({
       mapValue: { fields: proto.update.fields }
     });
+
     if (proto.updateMask) {
       const fieldMask = fromDocumentMask(proto.updateMask);
-      return new PatchMutation(key, value, fieldMask, precondition);
+      return new PatchMutation(
+        key,
+        value,
+        fieldMask,
+        precondition,
+        fieldTransforms
+      );
     } else {
-      return new SetMutation(key, value, precondition);
+      return new SetMutation(key, value, precondition, fieldTransforms);
     }
   } else if (proto.delete) {
     const key = fromName(serializer, proto.delete);
     return new DeleteMutation(key, precondition);
-  } else if (proto.transform) {
-    const key = fromName(serializer, proto.transform.document!);
-    const fieldTransforms = proto.transform.fieldTransforms!.map(transform =>
-      fromFieldTransform(serializer, transform)
-    );
-    hardAssert(
-      precondition.exists === true,
-      'Transforms only support precondition "exists == true"'
-    );
-    return new TransformMutation(key, fieldTransforms);
   } else if (proto.verify) {
     const key = fromName(serializer, proto.verify);
     return new VerifyMutation(key, precondition);
@@ -887,7 +855,7 @@ export function toQueryTarget(
   return result;
 }
 
-export function fromQueryTarget(target: ProtoQueryTarget): Target {
+export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
   let path = fromQueryPath(target.parent!);
 
   const query = target.structuredQuery!;
@@ -931,18 +899,20 @@ export function fromQueryTarget(target: ProtoQueryTarget): Target {
     endAt = fromCursor(query.endAt);
   }
 
-  return queryToTarget(
-    newQuery(
-      path,
-      collectionGroup,
-      orderBy,
-      filterBy,
-      limit,
-      LimitType.First,
-      startAt,
-      endAt
-    )
+  return newQuery(
+    path,
+    collectionGroup,
+    orderBy,
+    filterBy,
+    limit,
+    LimitType.First,
+    startAt,
+    endAt
   );
+}
+
+export function fromQueryTarget(target: ProtoQueryTarget): Target {
+  return queryToTarget(convertQueryTargetToQuery(target));
 }
 
 export function toListenRequestLabels(
@@ -992,6 +962,14 @@ export function toTarget(
 
   if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
+  } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0) {
+    // TODO(wuandy): Consider removing above check because it is most likely true.
+    // Right now, many tests depend on this behaviour though (leaving min() out
+    // of serialization).
+    result.readTime = toTimestamp(
+      serializer,
+      targetData.snapshotVersion.toTimestamp()
+    );
   }
 
   return result;

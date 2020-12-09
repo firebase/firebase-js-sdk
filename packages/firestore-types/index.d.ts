@@ -26,9 +26,9 @@ export const CACHE_SIZE_UNLIMITED: number;
 export interface Settings {
   host?: string;
   ssl?: boolean;
-  timestampsInSnapshots?: boolean;
   cacheSizeBytes?: number;
   experimentalForceLongPolling?: boolean;
+  experimentalAutoDetectLongPolling?: boolean;
   ignoreUndefinedProperties?: boolean;
   merge?: boolean;
 }
@@ -60,6 +60,8 @@ export class FirebaseFirestore {
   private constructor();
 
   settings(settings: Settings): void;
+
+  useEmulator(host: string, port: number): void;
 
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
@@ -94,8 +96,41 @@ export class FirebaseFirestore {
 
   terminate(): Promise<void>;
 
+  loadBundle(
+    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+  ): LoadBundleTask;
+
+  namedQuery(name: string): Promise<Query<DocumentData> | null>;
+
   INTERNAL: { delete: () => Promise<void> };
 }
+
+export interface LoadBundleTask extends PromiseLike<LoadBundleTaskProgress> {
+  onProgress(
+    next?: (progress: LoadBundleTaskProgress) => any,
+    error?: (error: Error) => any,
+    complete?: () => void
+  ): void;
+
+  then<T, R>(
+    onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
+    onRejected?: (a: Error) => R | PromiseLike<R>
+  ): Promise<T | R>;
+
+  catch<R>(
+    onRejected: (a: Error) => R | PromiseLike<R>
+  ): Promise<R | LoadBundleTaskProgress>;
+}
+
+export interface LoadBundleTaskProgress {
+  documentsLoaded: number;
+  totalDocuments: number;
+  bytesLoaded: number;
+  totalBytes: number;
+  taskState: TaskState;
+}
+
+export type TaskState = 'Error' | 'Running' | 'Success';
 
 export class GeoPoint {
   constructor(latitude: number, longitude: number);
@@ -294,11 +329,13 @@ export type WhereFilterOp =
   | '<'
   | '<='
   | '=='
+  | '!='
   | '>='
   | '>'
   | 'array-contains'
   | 'in'
-  | 'array-contains-any';
+  | 'array-contains-any'
+  | 'not-in';
 
 export class Query<T = DocumentData> {
   protected constructor();

@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import * as yargs from 'yargs';
 import { resolve } from 'path';
+
 import { spawn } from 'child-process-promise';
+import * as yargs from 'yargs';
 
 const argv = yargs.options({
   main: {

@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { FieldPath, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { path } from '../../util/helpers';
@@ -158,6 +159,11 @@ describe('Path', () => {
     expect(abc.isPrefixOf(empty)).to.equal(false);
     expect(abc.isPrefixOf(b)).to.equal(false);
     expect(abc.isPrefixOf(ba)).to.equal(false);
+  });
+
+  it('escapes FieldPath with segments', () => {
+    const path = new FieldPath(['\\foo\\.`bar`']);
+    expect(path.canonicalString()).to.equal('`\\\\foo\\\\.\\`bar\\``');
   });
 
   it('can be constructed from field path.', () => {

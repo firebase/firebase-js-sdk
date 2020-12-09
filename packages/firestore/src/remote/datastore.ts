@@ -16,6 +16,7 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
+import { Query, queryToTarget } from '../core/query';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -26,8 +27,16 @@ import {
   RunQueryResponse as ProtoRunQueryResponse
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
+
 import { Connection } from './connection';
+import {
+  PersistentListenStream,
+  PersistentWriteStream,
+  WatchStreamListener,
+  WriteStreamListener
+} from './persistent_stream';
 import {
   fromDocument,
   fromMaybeDocument,
@@ -37,14 +46,6 @@ import {
   toName,
   toQueryTarget
 } from './serializer';
-import {
-  PersistentListenStream,
-  PersistentWriteStream,
-  WatchStreamListener,
-  WriteStreamListener
-} from './persistent_stream';
-import { AsyncQueue } from '../util/async_queue';
-import { Query, queryToTarget } from '../core/query';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google

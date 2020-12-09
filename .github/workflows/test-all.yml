@@ -17,6 +17,8 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install google-chrome-stable
+    - name: Bump Node memory limit
+      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -24,7 +26,7 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: Set start timestamp env var
-      run: echo "::set-env name=FIREBASE_CI_TEST_START_TIME::$(date +%s)"
+      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
         xvfb-run yarn test:ci

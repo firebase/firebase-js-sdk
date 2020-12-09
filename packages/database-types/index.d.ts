@@ -34,6 +34,7 @@ export interface DataSnapshot {
 
 export interface Database {
   app: FirebaseApp;
+  useEmulator(host: string, port: number): void;
   goOffline(): void;
   goOnline(): void;
   ref(path?: string | Reference): Reference;
@@ -43,6 +44,7 @@ export interface Database {
 export class FirebaseDatabase implements Database {
   private constructor();
   app: FirebaseApp;
+  useEmulator(host: string, port: number): void;
   goOffline(): void;
   goOnline(): void;
   ref(path?: string | Reference): Reference;
@@ -79,6 +81,7 @@ export interface Query {
     callback?: (a: DataSnapshot, b?: string | null) => any,
     context?: Object | null
   ): void;
+  get(): Promise<DataSnapshot>;
   on(
     eventType: EventType,
     callback: (a: DataSnapshot, b?: string | null) => any,
@@ -106,7 +109,7 @@ export interface Reference extends Query {
   key: string | null;
   onDisconnect(): OnDisconnect;
   parent: Reference | null;
-  push(value?: any, onComplete?: (a: Error | null) => any): Reference;
+  push(value?: any, onComplete?: (a: Error | null) => any): ThenableReference;
   remove(onComplete?: (a: Error | null) => any): Promise<any>;
   root: Reference;
   set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
@@ -132,7 +135,9 @@ export interface ServerValue {
   increment(delta: number): Object;
 }
 
-export interface ThenableReference extends Reference, Promise<Reference> {}
+export interface ThenableReference
+  extends Reference,
+    Pick<Promise<Reference>, 'then' | 'catch'> {}
 
 export function enableLogging(
   logger?: boolean | ((a: string) => any),

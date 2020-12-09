@@ -4,8 +4,10 @@
 
 ## QuerySnapshot.size property
 
+The number of documents in the `QuerySnapshot`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-readonly size: number;
+get size(): number;
 ```

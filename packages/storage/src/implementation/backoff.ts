@@ -50,9 +50,6 @@ export function start(
   }
   let triggeredCallback = false;
 
-  // TODO: This disable can be removed and the 'ignoreRestArgs' option added to
-  // the no-explicit-any rule when ESlint releases it.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function triggerCallback(...args: any[]): void {
     if (!triggeredCallback) {
       triggeredCallback = true;
@@ -67,9 +64,6 @@ export function start(
     }, millis);
   }
 
-  // TODO: This disable can be removed and the 'ignoreRestArgs' option added to
-  // the no-explicit-any rule when ESlint releases it.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handler(success: boolean, ...args: any[]): void {
     if (triggeredCallback) {
       return;

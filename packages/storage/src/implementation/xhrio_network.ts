@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as errorsExports from './error';
-import * as type from './type';
 import { Headers, XhrIo, ErrorCode } from './xhrio';
+import { internalError } from './error';
 
 /**
  * We use this instead of goog.net.XhrIo because goog.net.XhrIo is hyuuuuge and
@@ -52,22 +51,22 @@ export class NetworkXhrIo implements XhrIo {
   send(
     url: string,
     method: string,
-    body?: ArrayBufferView | Blob | string | null,
+    body?: ArrayBufferView | Blob | string,
     headers?: Headers
   ): Promise<XhrIo> {
     if (this.sent_) {
-      throw errorsExports.internalError('cannot .send() more than once');
+      throw internalError('cannot .send() more than once');
     }
     this.sent_ = true;
     this.xhr_.open(method, url, true);
-    if (type.isDef(headers)) {
+    if (headers !== undefined) {
       for (const key in headers) {
         if (headers.hasOwnProperty(key)) {
           this.xhr_.setRequestHeader(key, headers[key].toString());
         }
       }
     }
-    if (type.isDef(body)) {
+    if (body !== undefined) {
       this.xhr_.send(body);
     } else {
       this.xhr_.send();
@@ -80,9 +79,7 @@ export class NetworkXhrIo implements XhrIo {
    */
   getErrorCode(): ErrorCode {
     if (!this.sent_) {
-      throw errorsExports.internalError(
-        'cannot .getErrorCode() before sending'
-      );
+      throw internalError('cannot .getErrorCode() before sending');
     }
     return this.errorCode_;
   }
@@ -92,7 +89,7 @@ export class NetworkXhrIo implements XhrIo {
    */
   getStatus(): number {
     if (!this.sent_) {
-      throw errorsExports.internalError('cannot .getStatus() before sending');
+      throw internalError('cannot .getStatus() before sending');
     }
     try {
       return this.xhr_.status;
@@ -106,9 +103,7 @@ export class NetworkXhrIo implements XhrIo {
    */
   getResponseText(): string {
     if (!this.sent_) {
-      throw errorsExports.internalError(
-        'cannot .getResponseText() before sending'
-      );
+      throw internalError('cannot .getResponseText() before sending');
     }
     return this.xhr_.responseText;
   }
@@ -132,7 +127,7 @@ export class NetworkXhrIo implements XhrIo {
    * @override
    */
   addUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
-    if (type.isDef(this.xhr_.upload)) {
+    if (this.xhr_.upload != null) {
       this.xhr_.upload.addEventListener('progress', listener);
     }
   }
@@ -141,7 +136,7 @@ export class NetworkXhrIo implements XhrIo {
    * @override
    */
   removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
-    if (type.isDef(this.xhr_.upload)) {
+    if (this.xhr_.upload != null) {
       this.xhr_.upload.removeEventListener('progress', listener);
     }
   }

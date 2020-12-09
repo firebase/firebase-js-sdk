@@ -20,7 +20,6 @@
  */
 import { Location } from './location';
 import * as json from './json';
-import * as type from './type';
 import { ListResult } from '../list';
 import { StorageService } from '../service';
 
@@ -43,9 +42,6 @@ interface ListResultResponse {
   nextPageToken?: string;
 }
 
-const MAX_RESULTS_KEY = 'maxResults';
-const MAX_MAX_RESULTS = 1000;
-const PAGE_TOKEN_KEY = 'pageToken';
 const PREFIXES_KEY = 'prefixes';
 const ITEMS_KEY = 'items';
 
@@ -91,29 +87,4 @@ export function fromResponseString(
   }
   const resource = (obj as unknown) as ListResultResponse;
   return fromBackendResponse(service, bucket, resource);
-}
-
-export function listOptionsValidator(p: unknown): void {
-  if (!type.isObject(p) || !p) {
-    throw 'Expected ListOptions object.';
-  }
-  for (const key in p) {
-    if (key === MAX_RESULTS_KEY) {
-      if (
-        !type.isInteger(p[MAX_RESULTS_KEY]) ||
-        (p[MAX_RESULTS_KEY] as number) <= 0
-      ) {
-        throw 'Expected maxResults to be a positive number.';
-      }
-      if ((p[MAX_RESULTS_KEY] as number) > 1000) {
-        throw `Expected maxResults to be less than or equal to ${MAX_MAX_RESULTS}.`;
-      }
-    } else if (key === PAGE_TOKEN_KEY) {
-      if (p[PAGE_TOKEN_KEY] && !type.isString(p[PAGE_TOKEN_KEY])) {
-        throw 'Expected pageToken to be string.';
-      }
-    } else {
-      throw 'Unknown option: ' + key;
-    }
-  }
 }

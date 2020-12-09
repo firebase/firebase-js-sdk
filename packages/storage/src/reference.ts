@@ -16,35 +16,34 @@
  */
 
 /**
- * @fileoverview Defines the Firebase Storage Reference class.
+ * @fileoverview Defines the Firebase StorageReference class.
  */
+
 import { FbsBlob } from './implementation/blob';
-import * as errorsExports from './implementation/error';
 import { Location } from './implementation/location';
-import * as metadata from './implementation/metadata';
-import * as path from './implementation/path';
-import * as requests from './implementation/requests';
+import { getMappings } from './implementation/metadata';
+import { child, parent, lastComponent } from './implementation/path';
 import {
-  StringFormat,
-  formatValidator,
-  dataFromString
-} from './implementation/string';
-import * as type from './implementation/type';
+  list as requestsList,
+  getMetadata as requestsGetMetadata,
+  updateMetadata as requestsUpdateMetadata,
+  getDownloadUrl as requestsGetDownloadUrl,
+  deleteObject as requestsDeleteObject,
+  multipartUpload
+} from './implementation/requests';
+import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
 import { StorageService } from './service';
-import { UploadTask } from './task';
 import { ListOptions, ListResult } from './list';
-import {
-  listOptionSpec,
-  stringSpec,
-  validate,
-  metadataSpec,
-  uploadDataSpec
-} from './implementation/args';
+import { UploadTask } from './task';
+import { invalidRootOperation, noDownloadURL } from './implementation/error';
+import { validateNumber } from './implementation/type';
+import { UploadResult } from './tasksnapshot';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
- * @param location An fbs.location, or the URL at
+ * @public
+ * @param location - An fbs.location, or the URL at
  *     which to base this object, in one of the following forms:
  *         gs://<bucket>/<object-path>
  *         http[s]://firebasestorage.googleapis.com/
@@ -53,303 +52,352 @@ import {
  *     format. If no value is passed, the storage object will use a URL based on
  *     the project ID of the base firebase.App instance.
  */
-export class Reference {
-  protected location: Location;
+export class StorageReference {
+  /**
+   * @internal
+   */
+  _location: Location;
 
-  constructor(protected service: StorageService, location: string | Location) {
+  constructor(private _service: StorageService, location: string | Location) {
     if (location instanceof Location) {
-      this.location = location;
+      this._location = location;
     } else {
-      this.location = Location.makeFromUrl(location);
+      this._location = Location.makeFromUrl(location);
     }
   }
 
   /**
-   * @return The URL for the bucket and path this object references,
+   * @returns The URL for the bucket and path this object references,
    *     in the form gs://<bucket>/<object-path>
    * @override
    */
   toString(): string {
-    validate('toString', [], arguments);
-    return 'gs://' + this.location.bucket + '/' + this.location.path;
+    return 'gs://' + this._location.bucket + '/' + this._location.path;
   }
 
-  protected newRef(service: StorageService, location: Location): Reference {
-    return new Reference(service, location);
-  }
-
-  protected mappings(): metadata.Mappings {
-    return metadata.getMappings();
-  }
-
-  /**
-   * @return A reference to the object obtained by
-   *     appending childPath, removing any duplicate, beginning, or trailing
-   *     slashes.
-   */
-  child(childPath: string): Reference {
-    validate('child', [stringSpec()], arguments);
-    const newPath = path.child(this.location.path, childPath);
-    const location = new Location(this.location.bucket, newPath);
-    return this.newRef(this.service, location);
+  protected newRef(
+    service: StorageService,
+    location: Location
+  ): StorageReference {
+    return new StorageReference(service, location);
   }
 
   /**
-   * @return A reference to the parent of the
-   *     current object, or null if the current object is the root.
-   */
-  get parent(): Reference | null {
-    const newPath = path.parent(this.location.path);
-    if (newPath === null) {
-      return null;
-    }
-    const location = new Location(this.location.bucket, newPath);
-    return this.newRef(this.service, location);
-  }
-
-  /**
-   * @return An reference to the root of this
+   * @returns An reference to the root of this
    *     object's bucket.
    */
-  get root(): Reference {
-    const location = new Location(this.location.bucket, '');
-    return this.newRef(this.service, location);
+  get root(): StorageReference {
+    const location = new Location(this._location.bucket, '');
+    return this.newRef(this._service, location);
   }
 
   get bucket(): string {
-    return this.location.bucket;
+    return this._location.bucket;
   }
 
   get fullPath(): string {
-    return this.location.path;
+    return this._location.path;
   }
 
   get name(): string {
-    return path.lastComponent(this.location.path);
+    return lastComponent(this._location.path);
   }
 
   get storage(): StorageService {
-    return this.service;
+    return this._service;
   }
 
-  /**
-   * Uploads a blob to this object's location.
-   * @param data The blob to upload.
-   * @return An UploadTask that lets you control and
-   *     observe the upload.
-   */
-  put(
-    data: Blob | Uint8Array | ArrayBuffer,
-    metadata: Metadata | null = null
-  ): UploadTask {
-    validate('put', [uploadDataSpec(), metadataSpec(true)], arguments);
-    this.throwIfRoot_('put');
-    return new UploadTask(
-      this,
-      this.service,
-      this.location,
-      this.mappings(),
-      new FbsBlob(data),
-      metadata
-    );
-  }
-
-  /**
-   * Uploads a string to this object's location.
-   * @param value The string to upload.
-   * @param format The format of the string to upload.
-   * @return An UploadTask that lets you control and
-   *     observe the upload.
-   */
-  putString(
-    value: string,
-    format: StringFormat = StringFormat.RAW,
-    metadata?: Metadata
-  ): UploadTask {
-    validate(
-      'putString',
-      [stringSpec(), stringSpec(formatValidator, true), metadataSpec(true)],
-      arguments
-    );
-    this.throwIfRoot_('putString');
-    const data = dataFromString(format, value);
-    const metadataClone = Object.assign({}, metadata);
-    if (
-      !type.isDef(metadataClone['contentType']) &&
-      type.isDef(data.contentType)
-    ) {
-      metadataClone['contentType'] = data.contentType!;
+  get parent(): StorageReference | null {
+    const newPath = parent(this._location.path);
+    if (newPath === null) {
+      return null;
     }
-    return new UploadTask(
-      this,
-      this.service,
-      this.location,
-      this.mappings(),
-      new FbsBlob(data.data, true),
-      metadataClone
-    );
+    const location = new Location(this._location.bucket, newPath);
+    return new StorageReference(this._service, location);
   }
 
-  /**
-   * Deletes the object at this location.
-   * @return A promise that resolves if the deletion succeeds.
-   */
-  delete(): Promise<void> {
-    validate('delete', [], arguments);
-    this.throwIfRoot_('delete');
-    return this.service.getAuthToken().then(authToken => {
-      const requestInfo = requests.deleteObject(this.service, this.location);
-      return this.service.makeRequest(requestInfo, authToken).getPromise();
-    });
-  }
-
-  /**
-   * List all items (files) and prefixes (folders) under this storage reference.
-   *
-   * This is a helper method for calling list() repeatedly until there are
-   * no more results. The default pagination size is 1000.
-   *
-   * Note: The results may not be consistent if objects are changed while this
-   * operation is running.
-   *
-   * Warning: listAll may potentially consume too many resources if there are
-   * too many results.
-   *
-   * @return A Promise that resolves with all the items and prefixes under
-   *      the current storage reference. `prefixes` contains references to
-   *      sub-directories and `items` contains references to objects in this
-   *      folder. `nextPageToken` is never returned.
-   */
-  listAll(): Promise<ListResult> {
-    validate('listAll', [], arguments);
-    const accumulator = {
-      prefixes: [],
-      items: []
-    };
-    return this.listAllHelper(accumulator).then(() => accumulator);
-  }
-
-  private async listAllHelper(
-    accumulator: ListResult,
-    pageToken?: string
-  ): Promise<void> {
-    const opt: ListOptions = {
-      // maxResults is 1000 by default.
-      pageToken
-    };
-    const nextPage = await this.list(opt);
-    accumulator.prefixes.push(...nextPage.prefixes);
-    accumulator.items.push(...nextPage.items);
-    if (nextPage.nextPageToken != null) {
-      await this.listAllHelper(accumulator, nextPage.nextPageToken);
+  _throwIfRoot(name: string): void {
+    if (this._location.path === '') {
+      throw invalidRootOperation(name);
     }
   }
+}
 
-  /**
-   * List items (files) and prefixes (folders) under this storage reference.
-   *
-   * List API is only available for Firebase Rules Version 2.
-   *
-   * GCS is a key-blob store. Firebase Storage imposes the semantic of '/'
-   * delimited folder structure.
-   * Refer to GCS's List API if you want to learn more.
-   *
-   * To adhere to Firebase Rules's Semantics, Firebase Storage does not
-   * support objects whose paths end with "/" or contain two consecutive
-   * "/"s. Firebase Storage List API will filter these unsupported objects.
-   * list() may fail if there are too many unsupported objects in the bucket.
-   *
-   * @param options See ListOptions for details.
-   * @return A Promise that resolves with the items and prefixes.
-   *      `prefixes` contains references to sub-folders and `items`
-   *      contains references to objects in this folder. `nextPageToken`
-   *      can be used to get the rest of the results.
-   */
-  list(options?: ListOptions | null): Promise<ListResult> {
-    validate('list', [listOptionSpec(true)], arguments);
-    const self = this;
-    return this.service.getAuthToken().then(authToken => {
-      const op = options || {};
-      const requestInfo = requests.list(
-        self.service,
-        self.location,
-        /*delimiter= */ '/',
-        op.pageToken,
-        op.maxResults
+/**
+ * Uploads data to this object's location.
+ * The upload is not resumable.
+ * @public
+ * @param ref - StorageReference where data should be uploaded.
+ * @param data - The data to upload.
+ * @param metadata - Metadata for the newly uploaded data.
+ * @returns A Promise containing an UploadResult
+ */
+export function uploadBytes(
+  ref: StorageReference,
+  data: Blob | Uint8Array | ArrayBuffer,
+  metadata?: Metadata
+): Promise<UploadResult> {
+  ref._throwIfRoot('uploadBytes');
+  return ref.storage
+    .getAuthToken()
+    .then(authToken => {
+      const requestInfo = multipartUpload(
+        ref.storage,
+        ref._location,
+        getMappings(),
+        new FbsBlob(data, true),
+        metadata
       );
-      return self.service.makeRequest(requestInfo, authToken).getPromise();
+      const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
+      return multipartRequest.getPromise();
+    })
+    .then(finalMetadata => {
+      return {
+        metadata: finalMetadata,
+        ref
+      };
     });
-  }
+}
 
-  /**
-   *     A promise that resolves with the metadata for this object. If this
-   *     object doesn't exist or metadata cannot be retreived, the promise is
-   *     rejected.
-   */
-  getMetadata(): Promise<Metadata> {
-    validate('getMetadata', [], arguments);
-    this.throwIfRoot_('getMetadata');
-    return this.service.getAuthToken().then(authToken => {
-      const requestInfo = requests.getMetadata(
-        this.service,
-        this.location,
-        this.mappings()
+/**
+ * Uploads data to this object's location.
+ * The upload can be paused and resumed, and exposes progress updates.
+ * @public
+ * @param ref - StorageReference where data should be uploaded.
+ * @param data - The data to upload.
+ * @param metadata - Metadata for the newly uploaded data.
+ * @returns An UploadTask
+ */
+export function uploadBytesResumable(
+  ref: StorageReference,
+  data: Blob | Uint8Array | ArrayBuffer,
+  metadata?: Metadata
+): UploadTask {
+  ref._throwIfRoot('uploadBytesResumable');
+  return new UploadTask(ref, new FbsBlob(data), metadata);
+}
+
+/**
+ * Uploads a string to this object's location.
+ * The upload is not resumable.
+ * @public
+ * @param ref - StorageReference where string should be uploaded.
+ * @param value - The string to upload.
+ * @param format - The format of the string to upload.
+ * @param metadata - Metadata for the newly uploaded string.
+ * @returns A Promise containing an UploadResult
+ */
+export function uploadString(
+  ref: StorageReference,
+  value: string,
+  format: StringFormat = StringFormat.RAW,
+  metadata?: Metadata
+): Promise<UploadResult> {
+  ref._throwIfRoot('uploadString');
+  const data = dataFromString(format, value);
+  const metadataClone = { ...metadata } as Metadata;
+  if (metadataClone['contentType'] == null && data.contentType != null) {
+    metadataClone['contentType'] = data.contentType!;
+  }
+  return uploadBytes(ref, data.data, metadataClone);
+}
+
+/**
+ * List all items (files) and prefixes (folders) under this storage reference.
+ *
+ * This is a helper method for calling list() repeatedly until there are
+ * no more results. The default pagination size is 1000.
+ *
+ * Note: The results may not be consistent if objects are changed while this
+ * operation is running.
+ *
+ * Warning: listAll may potentially consume too many resources if there are
+ * too many results.
+ * @public
+ * @param ref - StorageReference to get list from.
+ *
+ * @returns A Promise that resolves with all the items and prefixes under
+ *      the current storage reference. `prefixes` contains references to
+ *      sub-directories and `items` contains references to objects in this
+ *      folder. `nextPageToken` is never returned.
+ */
+export function listAll(ref: StorageReference): Promise<ListResult> {
+  const accumulator: ListResult = {
+    prefixes: [],
+    items: []
+  };
+  return listAllHelper(ref, accumulator).then(() => accumulator);
+}
+
+/**
+ * Separated from listAll because async functions can't use "arguments".
+ * @internal
+ * @param ref
+ * @param accumulator
+ * @param pageToken
+ */
+async function listAllHelper(
+  ref: StorageReference,
+  accumulator: ListResult,
+  pageToken?: string
+): Promise<void> {
+  const opt: ListOptions = {
+    // maxResults is 1000 by default.
+    pageToken
+  };
+  const nextPage = await list(ref, opt);
+  accumulator.prefixes.push(...nextPage.prefixes);
+  accumulator.items.push(...nextPage.items);
+  if (nextPage.nextPageToken != null) {
+    await listAllHelper(ref, accumulator, nextPage.nextPageToken);
+  }
+}
+
+/**
+ * List items (files) and prefixes (folders) under this storage reference.
+ *
+ * List API is only available for Firebase Rules Version 2.
+ *
+ * GCS is a key-blob store. Firebase Storage imposes the semantic of '/'
+ * delimited folder structure.
+ * Refer to GCS's List API if you want to learn more.
+ *
+ * To adhere to Firebase Rules's Semantics, Firebase Storage does not
+ * support objects whose paths end with "/" or contain two consecutive
+ * "/"s. Firebase Storage List API will filter these unsupported objects.
+ * list() may fail if there are too many unsupported objects in the bucket.
+ * @public
+ *
+ * @param ref - StorageReference to get list from.
+ * @param options - See ListOptions for details.
+ * @returns A Promise that resolves with the items and prefixes.
+ *      `prefixes` contains references to sub-folders and `items`
+ *      contains references to objects in this folder. `nextPageToken`
+ *      can be used to get the rest of the results.
+ */
+export async function list(
+  ref: StorageReference,
+  options?: ListOptions | null
+): Promise<ListResult> {
+  if (options != null) {
+    if (typeof options.maxResults === 'number') {
+      validateNumber(
+        'options.maxResults',
+        /* minValue= */ 1,
+        /* maxValue= */ 1000,
+        options.maxResults
       );
-      return this.service.makeRequest(requestInfo, authToken).getPromise();
-    });
-  }
-
-  /**
-   * Updates the metadata for this object.
-   * @param metadata The new metadata for the object.
-   *     Only values that have been explicitly set will be changed. Explicitly
-   *     setting a value to null will remove the metadata.
-   * @return A promise that resolves
-   *     with the new metadata for this object.
-   *     @see firebaseStorage.Reference.prototype.getMetadata
-   */
-  updateMetadata(metadata: Metadata): Promise<Metadata> {
-    validate('updateMetadata', [metadataSpec()], arguments);
-    this.throwIfRoot_('updateMetadata');
-    return this.service.getAuthToken().then(authToken => {
-      const requestInfo = requests.updateMetadata(
-        this.service,
-        this.location,
-        metadata,
-        this.mappings()
-      );
-      return this.service.makeRequest(requestInfo, authToken).getPromise();
-    });
-  }
-
-  /**
-   * @return A promise that resolves with the download
-   *     URL for this object.
-   */
-  getDownloadURL(): Promise<string> {
-    validate('getDownloadURL', [], arguments);
-    this.throwIfRoot_('getDownloadURL');
-    return this.service.getAuthToken().then(authToken => {
-      const requestInfo = requests.getDownloadUrl(
-        this.service,
-        this.location,
-        this.mappings()
-      );
-      return this.service
-        .makeRequest(requestInfo, authToken)
-        .getPromise()
-        .then(url => {
-          if (url === null) {
-            throw errorsExports.noDownloadURL();
-          }
-          return url;
-        });
-    });
-  }
-
-  private throwIfRoot_(name: string): void {
-    if (this.location.path === '') {
-      throw errorsExports.invalidRootOperation(name);
     }
   }
+  const authToken = await ref.storage.getAuthToken();
+  const op = options || {};
+  const requestInfo = requestsList(
+    ref.storage,
+    ref._location,
+    /*delimiter= */ '/',
+    op.pageToken,
+    op.maxResults
+  );
+  return ref.storage.makeRequest(requestInfo, authToken).getPromise();
+}
+
+/**
+ * A promise that resolves with the metadata for this object. If this
+ * object doesn't exist or metadata cannot be retreived, the promise is
+ * rejected.
+ * @public
+ * @param ref - StorageReference to get metadata from.
+ */
+export async function getMetadata(ref: StorageReference): Promise<Metadata> {
+  ref._throwIfRoot('getMetadata');
+  const authToken = await ref.storage.getAuthToken();
+  const requestInfo = requestsGetMetadata(
+    ref.storage,
+    ref._location,
+    getMappings()
+  );
+  return ref.storage.makeRequest(requestInfo, authToken).getPromise();
+}
+
+/**
+ * Updates the metadata for this object.
+ * @public
+ * @param ref - StorageReference to update metadata for.
+ * @param metadata - The new metadata for the object.
+ *     Only values that have been explicitly set will be changed. Explicitly
+ *     setting a value to null will remove the metadata.
+ * @returns A promise that resolves
+ *     with the new metadata for this object.
+ *     See `firebaseStorage.Reference.prototype.getMetadata`
+ */
+export async function updateMetadata(
+  ref: StorageReference,
+  metadata: Partial<Metadata>
+): Promise<Metadata> {
+  ref._throwIfRoot('updateMetadata');
+  const authToken = await ref.storage.getAuthToken();
+  const requestInfo = requestsUpdateMetadata(
+    ref.storage,
+    ref._location,
+    metadata,
+    getMappings()
+  );
+  return ref.storage.makeRequest(requestInfo, authToken).getPromise();
+}
+
+/**
+ * Returns the download URL for the given Reference.
+ * @public
+ * @returns A promise that resolves with the download
+ *     URL for this object.
+ */
+export async function getDownloadURL(ref: StorageReference): Promise<string> {
+  ref._throwIfRoot('getDownloadURL');
+  const authToken = await ref.storage.getAuthToken();
+  const requestInfo = requestsGetDownloadUrl(
+    ref.storage,
+    ref._location,
+    getMappings()
+  );
+  return ref.storage
+    .makeRequest(requestInfo, authToken)
+    .getPromise()
+    .then(url => {
+      if (url === null) {
+        throw noDownloadURL();
+      }
+      return url;
+    });
+}
+
+/**
+ * Deletes the object at this location.
+ * @public
+ * @param ref - StorageReference for object to delete.
+ * @returns A promise that resolves if the deletion succeeds.
+ */
+export async function deleteObject(ref: StorageReference): Promise<void> {
+  ref._throwIfRoot('deleteObject');
+  const authToken = await ref.storage.getAuthToken();
+  const requestInfo = requestsDeleteObject(ref.storage, ref._location);
+  return ref.storage.makeRequest(requestInfo, authToken).getPromise();
+}
+
+/**
+ * Returns reference for object obtained by appending `childPath` to `ref`.
+ * @internal
+ *
+ * @param ref - StorageReference to get child of.
+ * @param childPath - Child path from provided ref.
+ * @returns A reference to the object obtained by
+ * appending childPath, removing any duplicate, beginning, or trailing
+ * slashes.
+ */
+export function getChild(
+  ref: StorageReference,
+  childPath: string
+): StorageReference {
+  const newPath = child(ref._location.path, childPath);
+  const location = new Location(ref._location.bucket, newPath);
+  return new StorageReference(ref.storage, location);
 }

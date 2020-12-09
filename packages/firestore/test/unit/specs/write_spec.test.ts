@@ -1068,7 +1068,7 @@ describeSpec('Writes:', [], () => {
         // Start a new client. DocV1 still has pending writes.
         .client(1)
         .stealPrimaryLease()
-        .expectListen(query1, 'resume-token-1000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000' })
         .userListens(query2)
         .expectEvents(query2, {
           added: [docV1Committed],
@@ -1488,6 +1488,119 @@ describeSpec('Writes:', [], () => {
         .writeAcks('collection/b', 2000)
         .userListens(query1)
         .expectEvents(query1, { added: [docA, docB], fromCache: true });
+    }
+  );
+
+  specTest(
+    'Wait for pending writes resolves after write acknowledgment',
+    [],
+    () => {
+      return spec()
+        .userSets('collection/a', { k: 'a' })
+        .userSets('collection/b', { k: 'b' })
+        .waitForPendingWrites()
+        .writeAcks('collection/a', 1001)
+        .failWrite(
+          'collection/b',
+          new RpcError(Code.FAILED_PRECONDITION, 'Write error')
+        )
+        .expectWaitForPendingWritesEvent();
+    }
+  );
+
+  specTest('Wait for pending writes resolves with no writes', [], () => {
+    return spec().waitForPendingWrites().expectWaitForPendingWritesEvent();
+  });
+
+  specTest('Wait for pending writes resolves multiple times', [], () => {
+    return spec()
+      .userSets('collection/a', { k: 'a' })
+      .waitForPendingWrites()
+      .waitForPendingWrites()
+      .writeAcks('collection/a', 1001)
+      .expectWaitForPendingWritesEvent(2);
+  });
+
+  specTest(
+    'Wait for pending writes resolves if another write is issued',
+    [],
+    () => {
+      return spec()
+        .userSets('collection/a', { k: 'a' })
+        .waitForPendingWrites()
+        .userSets('collection/b', { k: 'b' })
+        .writeAcks('collection/a', 1001)
+        .expectWaitForPendingWritesEvent()
+        .writeAcks('collection/b', 1002);
+    }
+  );
+
+  specTest(
+    'Wait for pending writes waits after restart',
+    ['durable-persistence'],
+    () => {
+      return spec()
+        .userSets('collection/a', { k: 'a' })
+        .restart()
+        .waitForPendingWrites()
+        .writeAcks('collection/a', 1001, { expectUserCallback: false })
+        .expectWaitForPendingWritesEvent();
+    }
+  );
+
+  specTest(
+    'Wait for pending writes resolves for write in secondary tab',
+    ['multi-client'],
+    () => {
+      return client(0)
+        .expectPrimaryState(true)
+        .client(1)
+        .userSets('collection/a', { k: 'a' })
+        .waitForPendingWrites()
+        .client(0)
+        .writeAcks('collection/a', 1001, { expectUserCallback: false })
+        .client(1)
+        .expectUserCallbacks({ acknowledged: ['collection/a'] })
+        .expectWaitForPendingWritesEvent();
+    }
+  );
+
+  specTest(
+    'Wait for pending writes resolves independently for different tabs',
+    ['multi-client'],
+    () => {
+      return client(0)
+        .userSets('collection/a', { k: 'a' })
+        .waitForPendingWrites()
+        .client(1)
+        .userSets('collection/b', { k: 'b' })
+        .waitForPendingWrites()
+        .client(2)
+        .userSets('collection/c', { k: 'c' })
+        .waitForPendingWrites()
+        .client(0)
+        .writeAcks('collection/a', 1001)
+        .expectWaitForPendingWritesEvent(/* count= */ 1)
+        .client(1)
+        .expectWaitForPendingWritesEvent(/* count= */ 0)
+        .client(2)
+        .expectWaitForPendingWritesEvent(/* count= */ 0)
+        .client(0)
+        .writeAcks('collection/b', 1002, { expectUserCallback: false })
+        .expectWaitForPendingWritesEvent(/* count= */ 0)
+        .client(1)
+        .expectUserCallbacks({ acknowledged: ['collection/b'] })
+        .expectWaitForPendingWritesEvent(/* count= */ 1)
+        .client(2)
+        .expectWaitForPendingWritesEvent(/* count= */ 0)
+        .client(0)
+        .writeAcks('collection/c', 1003, { expectUserCallback: false })
+        .expectWaitForPendingWritesEvent(/* count= */ 0)
+        .client(1)
+        .expectWaitForPendingWritesEvent(/* count= */ 0)
+        .client(2)
+        .expectUserCallbacks({ acknowledged: ['collection/c'] })
+        .expectWaitForPendingWritesEvent(/* count= */ 1);
     }
   );
 });

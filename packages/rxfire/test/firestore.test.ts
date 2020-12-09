@@ -20,7 +20,7 @@
 import { expect } from 'chai';
 // app is used as namespaces to access types
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { initializeApp, firestore, app } from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/firestore';
 import {
   collection,
@@ -42,13 +42,13 @@ const createId = (): string => Math.random().toString(36).substring(5);
  * makes sure tests don't interfere with each other as they run.
  */
 const createRandomCol = (
-  firestore: firestore.Firestore
-): firestore.CollectionReference => firestore.collection(createId());
+  firestore: firebase.firestore.Firestore
+): firebase.firestore.CollectionReference => firestore.collection(createId());
 
 /**
  * Unwrap a snapshot but add the type property to the data object.
  */
-const unwrapChange = map((changes: firestore.DocumentChange[]) => {
+const unwrapChange = map((changes: firebase.firestore.DocumentChange[]) => {
   return changes.map(c => ({ type: c.type, ...c.doc.data() }));
 });
 
@@ -56,7 +56,7 @@ const unwrapChange = map((changes: firestore.DocumentChange[]) => {
  * Create an environment for the tests to run in. The information is returned
  * from the function for use within the test.
  */
-const seedTest = (firestore: firestore.Firestore): any => {
+const seedTest = (firestore: firebase.firestore.Firestore): any => {
   const colRef = createRandomCol(firestore);
   const davidDoc = colRef.doc('david');
   davidDoc.set({ name: 'David' });
@@ -71,8 +71,8 @@ const seedTest = (firestore: firestore.Firestore): any => {
 };
 
 describe('RxFire Firestore', () => {
-  let app: app.App;
-  let firestore: firestore.Firestore;
+  let app: firebase.app.App;
+  let firestore: firebase.firestore.Firestore;
 
   /**
    * Each test runs inside it's own app instance and the app
@@ -86,7 +86,7 @@ describe('RxFire Firestore', () => {
    * offline.
    */
   beforeEach(() => {
-    app = initializeApp({ projectId: TEST_PROJECT.projectId });
+    app = firebase.initializeApp({ projectId: TEST_PROJECT.projectId });
     firestore = app.firestore();
     firestore.disableNetwork();
   });

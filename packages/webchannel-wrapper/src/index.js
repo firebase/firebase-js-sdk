@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ goog.provide('firebase.webchannel.wrapper');
 
 // goog.net.WebChannelTransport
 goog.require('goog.net.createWebChannelTransport');
+goog.require('goog.labs.net.webChannel.requestStats');
 goog.require('goog.labs.net.webChannel.WebChannelBaseTransport');
+
 /**
  * NOTE: The `createWebChannel` function takes an options object as a second param
  * whose properties are typically mangled. We override these in externs/overrides.js
@@ -60,7 +62,6 @@ goog.net.WebChannel.EventType['MESSAGE'] =
 goog.events.EventTarget.prototype['listen'] =
   goog.events.EventTarget.prototype.listen;
 
-// goog.net.XhrIo
 goog.require('goog.net.XhrIo');
 goog.net.XhrIo.prototype['listenOnce'] = goog.net.XhrIo.prototype.listenOnce;
 goog.net.XhrIo.prototype['getLastError'] =
@@ -74,15 +75,13 @@ goog.net.XhrIo.prototype['getResponseText'] =
   goog.net.XhrIo.prototype.getResponseText;
 goog.net.XhrIo.prototype['send'] = goog.net.XhrIo.prototype.send;
 
-/**
- * This ignore statement is required as closure will minify these properties
- * if done in the typical prettier format
- */
-// prettier-ignore
-module['exports'] = {
-  'createWebChannelTransport': goog.net.createWebChannelTransport,
-  'ErrorCode': goog.net.ErrorCode,
-  'EventType': goog.net.EventType,
-  'WebChannel': goog.net.WebChannel,
-  'XhrIo': goog.net.XhrIo
-};
+module['exports']['createWebChannelTransport'] =
+  goog.net.createWebChannelTransport;
+module['exports']['getStatEventTarget'] =
+  goog.labs.net.webChannel.requestStats.getStatEventTarget;
+module['exports']['ErrorCode'] = goog.net.ErrorCode;
+module['exports']['EventType'] = goog.net.EventType;
+module['exports']['Event'] = goog.labs.net.webChannel.requestStats.Event;
+module['exports']['Stat'] = goog.labs.net.webChannel.requestStats.Stat;
+module['exports']['WebChannel'] = goog.net.WebChannel;
+module['exports']['XhrIo'] = goog.net.XhrIo;

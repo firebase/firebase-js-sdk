@@ -135,7 +135,7 @@ export type ActionCodeSettings = {
 export type AdditionalUserInfo = {
   isNewUser: boolean;
   profile: Object | null;
-  providerId: string;
+  providerId: string | null;
   username?: string | null;
 };
 
@@ -173,7 +173,9 @@ export class EmailAuthProvider_Instance implements AuthProvider {
 
 export interface Error {
   code: string;
+  name: string;
   message: string;
+  stack?: string;
 }
 
 export interface AuthError extends Error {

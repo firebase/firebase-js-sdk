@@ -29,10 +29,10 @@ const packagePath = `${projectRoot}/packages/firestore`;
  * Transform package.json in @firebase/firestore so that we can use scripts/exp/release.ts to release Firestore exp.
  * It does following things:
  * 1. Update package.json to point to exp binaries
- * 2. Update version to '0.0.800', the version number we choose for releasing exp packages
- *    (8 stands for v8, 800 to avoid conflict with official versions).
+ * 2. Update version to '0.0.900', the version number we choose for releasing exp packages
+ *    (9 stands for v9, 900 to avoid conflict with official versions).
  *    The release script will append commit hash to it and release the package with that version.
- *    e.g. 0.0.800-exp.fe85035e1
+ *    e.g. 0.0.900-exp.fe85035e1
  * 3. Replace peerDependencies with the exp version, so the release script can match and update them to the correct version.
  * 4. Replace imports with imports from exp packages in typing files.
  */
@@ -41,7 +41,7 @@ export async function prepare() {
   const packageJson = await readPackageJson(packagePath);
   const expPackageJson = await readPackageJson(`${packagePath}/exp`);
   const litePackageJson = await readPackageJson(`${packagePath}/lite`);
-  packageJson.version = '0.0.800';
+  packageJson.version = '0.0.900';
 
   packageJson.peerDependencies = {
     '@firebase/app-exp': '0.x',

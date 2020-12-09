@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-types-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "private": true,
   "description": "@firebase/app Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -26,6 +26,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "4.0.2"
+    "typescript": "4.0.5"
   }
 }

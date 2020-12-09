@@ -15,15 +15,11 @@
  * limitations under the License.
  */
 
+import { Bytes } from '../../lite/src/api/bytes';
 import { isBase64Available } from '../platform/base64';
 import { Code, FirestoreError } from '../util/error';
-import {
-  invalidClassError,
-  validateArgType,
-  validateExactNumberOfArgs
-} from '../util/input_validation';
-import { ByteString } from '../util/byte_string';
-import { Bytes } from '../../lite/src/api/bytes';
+
+import { Compat } from './compat';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
@@ -45,50 +41,30 @@ function assertBase64Available(): void {
   }
 }
 
-/**
- * Immutable class holding a blob (binary data).
- *
- * This class is directly exposed in the public API. It extends the Bytes class
- * of the firestore-exp API to support `instanceof Bytes` checks during user
- * data conversion.
- *
- * Note that while you can't hide the constructor in JavaScript code, we are
- * using the hack above to make sure no-one outside this module can call it.
- */
-export class Blob extends Bytes {
+/** Immutable class holding a blob (binary data) */
+export class Blob extends Compat<Bytes> {
   static fromBase64String(base64: string): Blob {
-    validateExactNumberOfArgs('Blob.fromBase64String', arguments, 1);
-    validateArgType('Blob.fromBase64String', 'string', 1, base64);
     assertBase64Available();
-    try {
-      return new Blob(ByteString.fromBase64String(base64));
-    } catch (e) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Failed to construct Blob from Base64 string: ' + e
-      );
-    }
+    return new Blob(Bytes.fromBase64String(base64));
   }
 
   static fromUint8Array(array: Uint8Array): Blob {
-    validateExactNumberOfArgs('Blob.fromUint8Array', arguments, 1);
     assertUint8ArrayAvailable();
-    if (!(array instanceof Uint8Array)) {
-      throw invalidClassError('Blob.fromUint8Array', 'Uint8Array', 1, array);
-    }
-    return new Blob(ByteString.fromUint8Array(array));
+    return new Blob(Bytes.fromUint8Array(array));
   }
 
   toBase64(): string {
-    validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
     assertBase64Available();
-    return super.toBase64();
+    return this._delegate.toBase64();
   }
 
   toUint8Array(): Uint8Array {
-    validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
-    return super.toUint8Array();
+    return this._delegate.toUint8Array();
+  }
+
+  isEqual(other: Blob): boolean {
+    return this._delegate.isEqual(other._delegate);
   }
 
   toString(): string {

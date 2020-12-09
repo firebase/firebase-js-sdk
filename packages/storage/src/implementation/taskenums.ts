@@ -21,7 +21,6 @@
 
 /**
  * Enum for task events.
- * @enum {string}
  */
 export type TaskEvent = string;
 export const TaskEvent = {
@@ -31,7 +30,6 @@ export const TaskEvent = {
 
 /**
  * Internal enum for task state.
- * @enum {string}
  */
 export type InternalTaskState = string;
 export const InternalTaskState = {
@@ -46,7 +44,6 @@ export const InternalTaskState = {
 
 /**
  * External (API-surfaced) enum for task state.
- * @enum {string}
  */
 export type TaskState = string;
 export const TaskState = {

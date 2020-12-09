@@ -18,11 +18,20 @@
 import { expect } from 'chai';
 
 import { Blob } from '../../../src/api/blob';
-import { DocumentReference } from '../../../src/api/database';
+import { DocumentReference, UserDataWriter } from '../../../src/api/database';
 import { FieldValue } from '../../../src/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
+import { parseQueryValue } from '../../../src/api/user_data_reader';
 import { DatabaseId } from '../../../src/core/database_info';
+import {
+  LimitType,
+  queryToTarget,
+  queryWithEndAt,
+  queryWithLimit,
+  queryWithStartAt
+} from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   ArrayContainsAnyFilter,
   ArrayContainsFilter,
@@ -31,21 +40,17 @@ import {
   filterEquals,
   InFilter,
   KeyFieldFilter,
-  LimitType,
   NotInFilter,
   Operator,
   OrderBy,
-  queryToTarget,
-  queryWithEndAt,
-  queryWithLimit,
-  queryWithStartAt
-} from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
+  Target,
+  targetEquals,
+  TargetImpl
+} from '../../../src/core/target';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import { FieldMask } from '../../../src/model/field_mask';
 import {
   DeleteMutation,
-  FieldMask,
   Mutation,
   mutationEquals,
   Precondition,
@@ -89,7 +94,9 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
+import { ByteString } from '../../../src/util/byte_string';
 import { Code, FirestoreError } from '../../../src/util/error';
+import { firestore } from '../../util/api_helpers';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
@@ -106,17 +113,12 @@ import {
   ref,
   setMutation,
   testUserDataReader,
-  testUserDataWriter,
-  transformMutation,
   version,
   wrap,
   wrapObject
 } from '../../util/helpers';
 
-import { ByteString } from '../../../src/util/byte_string';
-import { parseQueryValue } from '../../../src/api/user_data_reader';
-
-const userDataWriter = testUserDataWriter();
+const userDataWriter = new UserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 
@@ -310,8 +312,8 @@ export function serializerTest(
 
       it('converts TimestampValue from proto', () => {
         const examples = [
-          new Date(Date.UTC(2016, 0, 2, 10, 20, 50, 850)),
-          new Date(Date.UTC(2016, 5, 17, 10, 50, 15, 0))
+          new Timestamp(1451730050, 850000000),
+          new Timestamp(1466160615, 0)
         ];
 
         const expectedJson = [
@@ -339,25 +341,25 @@ export function serializerTest(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916123456Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916123456).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916123456));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916123Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916123000).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916123000));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916000000).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916000000));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 0).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 0));
       });
 
       it('converts TimestampValue to string (useProto3Json=true)', () => {
@@ -661,66 +663,104 @@ export function serializerTest(
         verifyMutation(mutation, proto);
       });
 
-      it('TransformMutation (ServerTimestamp transform)', () => {
-        const mutation = transformMutation('baz/quux', {
+      it('ServerTimestamp transform', () => {
+        const mutation = setMutation('baz/quux', {
           a: FieldValue.serverTimestamp(),
-          'bar.baz': FieldValue.serverTimestamp()
+          'bar': FieldValue.serverTimestamp()
         });
         const proto = {
-          transform: {
-            document: toName(s, mutation.key),
-            fieldTransforms: [
-              { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
-              { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
-            ]
-          },
-          currentDocument: { exists: true }
+          update: toMutationDocument(s, mutation.key, mutation.value),
+          updateTransforms: [
+            { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
+            { fieldPath: 'bar', setToServerValue: 'REQUEST_TIME' }
+          ]
         };
         verifyMutation(mutation, proto);
+
+        const mutation2 = setMutation('baz/quux', {
+          a: FieldValue.serverTimestamp()
+        });
+        const proto2 = {
+          update: toMutationDocument(s, mutation2.key, mutation2.value),
+          updateTransforms: [
+            { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' }
+          ]
+        };
+        verifyMutation(mutation2, proto2);
       });
 
-      it('TransformMutation (Numeric Add transform)', () => {
-        const mutation = transformMutation('baz/quux', {
+      it('Numeric Add transform', () => {
+        const mutation = setMutation('baz/quux', {
           integer: FieldValue.increment(42),
           double: FieldValue.increment(13.37)
         });
         const proto = {
-          transform: {
-            document: toName(s, mutation.key),
-            fieldTransforms: [
-              { fieldPath: 'integer', increment: { integerValue: '42' } },
-              { fieldPath: 'double', increment: { doubleValue: 13.37 } }
-            ]
-          },
-          currentDocument: { exists: true }
+          update: toMutationDocument(s, mutation.key, mutation.value),
+          updateTransforms: [
+            { fieldPath: 'integer', increment: { integerValue: '42' } },
+            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
+          ]
         };
         verifyMutation(mutation, proto);
+
+        const mutation2 = setMutation('baz/quux', {
+          integer: FieldValue.increment(42),
+          double: FieldValue.increment(13.37)
+        });
+        const proto2 = {
+          update: toMutationDocument(s, mutation2.key, mutation2.value),
+          updateTransforms: [
+            { fieldPath: 'integer', increment: { integerValue: '42' } },
+            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
+          ]
+        };
+        verifyMutation(mutation2, proto2);
       });
 
-      it('TransformMutation (Array transforms)', () => {
-        const mutation = transformMutation('docs/1', {
+      it('Array transforms', () => {
+        const mutation = patchMutation('docs/1', {
           a: FieldValue.arrayUnion('a', 2),
           'bar.baz': FieldValue.arrayRemove({ x: 1 })
         });
-        const proto: api.Write = {
-          transform: {
-            document: toName(s, mutation.key),
-            fieldTransforms: [
-              {
-                fieldPath: 'a',
-                appendMissingElements: {
-                  values: [wrap('a'), wrap(2)]
-                }
-              },
-              {
-                fieldPath: 'bar.baz',
-                removeAllFromArray: { values: [wrap({ x: 1 })] }
+        const proto = {
+          update: toMutationDocument(s, mutation.key, mutation.data),
+          updateMask: toDocumentMask(mutation.fieldMask),
+          updateTransforms: [
+            {
+              fieldPath: 'a',
+              appendMissingElements: {
+                values: [wrap('a'), wrap(2)]
               }
-            ]
-          },
+            },
+            {
+              fieldPath: 'bar.baz',
+              removeAllFromArray: { values: [wrap({ x: 1 })] }
+            }
+          ],
           currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
+
+        const mutation2 = setMutation('docs/1', {
+          a: FieldValue.arrayUnion('a', 2),
+          bar: FieldValue.arrayRemove({ x: 1 })
+        });
+        const proto2 = {
+          update: toMutationDocument(s, mutation2.key, mutation2.value),
+          updateTransforms: [
+            {
+              fieldPath: 'a',
+              appendMissingElements: {
+                values: [wrap('a'), wrap(2)]
+              }
+            },
+            {
+              fieldPath: 'bar',
+              removeAllFromArray: { values: [wrap({ x: 1 })] }
+            }
+          ]
+        };
+        verifyMutation(mutation2, proto2);
       });
 
       it('SetMutation with precondition', () => {

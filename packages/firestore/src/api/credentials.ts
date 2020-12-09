@@ -15,28 +15,31 @@
  * limitations under the License.
  */
 
-import { User } from '../auth/user';
-import { hardAssert, debugAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
 import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+
+import { User } from '../auth/user';
+import { hardAssert, debugAssert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
 
 export interface FirstPartyCredentialsSettings {
-  type: 'gapi';
-  client: unknown;
-  sessionIndex: string;
+  // These are external types. Prevent minification.
+  ['type']: 'gapi';
+  ['client']: unknown;
+  ['sessionIndex']: string;
 }
 
 export interface ProviderCredentialsSettings {
-  type: 'provider';
-  client: CredentialsProvider;
+  // These are external types. Prevent minification.
+  ['type']: 'provider';
+  ['client']: CredentialsProvider;
 }
 
 /** Settings for private credentials */
@@ -295,7 +298,8 @@ export class FirstPartyToken implements Token {
     const headers: { [header: string]: string } = {
       'X-Goog-AuthUser': this.sessionIndex
     };
-    const authHeader = this.gapi.auth.getAuthHeaderValueForFirstParty([]);
+    // Use array notation to prevent minification
+    const authHeader = this.gapi['auth']['getAuthHeaderValueForFirstParty']([]);
     if (authHeader) {
       headers['Authorization'] = authHeader;
     }
@@ -336,9 +340,9 @@ export function makeCredentialsProvider(
     return new EmptyCredentialsProvider();
   }
 
-  switch (credentials.type) {
+  switch (credentials['type']) {
     case 'gapi':
-      const client = credentials.client as Gapi;
+      const client = credentials['client'] as Gapi;
       // Make sure this really is a Gapi client.
       hardAssert(
         !!(
@@ -351,11 +355,11 @@ export function makeCredentialsProvider(
       );
       return new FirstPartyCredentialsProvider(
         client,
-        credentials.sessionIndex || '0'
+        credentials['sessionIndex'] || '0'
       );
 
     case 'provider':
-      return credentials.client;
+      return credentials['client'];
 
     default:
       throw new FirestoreError(

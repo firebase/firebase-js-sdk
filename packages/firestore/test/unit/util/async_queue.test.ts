@@ -15,16 +15,24 @@
  * limitations under the License.
  */
 
+import { isSafari } from '@firebase/util';
+import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { expect, use } from 'chai';
-import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
-import { Code } from '../../../src/util/error';
-import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
-import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
-import { fail } from '../../../src/util/assert';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
-import { isSafari } from '@firebase/util';
+import { fail } from '../../../src/util/assert';
+import { TimerId } from '../../../src/util/async_queue';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
+import { Code } from '../../../src/util/error';
+import {
+  getLogLevel,
+  setLogLevel,
+  LogLevelString
+} from '../../../src/util/log';
+import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 
 use(chaiAsPromised);
 
@@ -35,7 +43,7 @@ describe('AsyncQueue', () => {
   const timerId3 = TimerId.WriteStreamConnectionBackoff;
 
   it('schedules ops in right order', () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue();
     const results: string[] = [];
 
     function pushResult(result: string): void {
@@ -78,12 +86,12 @@ describe('AsyncQueue', () => {
   });
 
   it('handles failures', () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const expected = new Error('Firit cestore Test Simulated Error');
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();
-    setLogLevel(LogLevel.SILENT);
+    setLogLevel('silent');
 
     // Schedule a failing operation and make sure it's handled correctly.
     const op1Promise = queue
@@ -134,14 +142,14 @@ describe('AsyncQueue', () => {
       }).to.throw(/already failed:.*Simulated Error/);
 
       // Finally, restore log level.
-      setLogLevel(oldLogLevel);
+      setLogLevel((oldLogLevel as unknown) as LogLevelString);
     });
   });
 
   // Flaky on Safari.
   // eslint-disable-next-line no-restricted-properties
   (isSafari() ? it.skip : it)('can schedule ops in the future', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
@@ -156,7 +164,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Can cancel delayed operations', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
@@ -179,7 +187,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Can run all delayed operations early', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
@@ -195,7 +203,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Can run some delayed operations early', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
@@ -213,7 +221,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Retries retryable operations', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const completedSteps: number[] = [];
     const doStep = (n: number): void => {
       completedSteps.push(n);
@@ -222,6 +230,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
+          'Simulated error',
           new Error('Simulated retryable error')
         );
       }
@@ -231,7 +240,7 @@ describe('AsyncQueue', () => {
   });
 
   it("Doesn't retry internal exceptions", async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue();
     // We use a deferred Promise as retryable operations are scheduled only
     // when Promise chains are resolved, which can happen after the
     // `queue.enqueue()` call below.
@@ -247,7 +256,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Schedules first retryable attempt with no delay', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const completedSteps: number[] = [];
     const doStep = (n: number): void => {
       completedSteps.push(n);
@@ -263,7 +272,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Retries retryable operations with backoff', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const completedSteps: number[] = [];
     const doStep = (n: number): void => {
       completedSteps.push(n);
@@ -272,6 +281,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
+          'Simulated error',
           new Error('Simulated retryable error')
         );
       }
@@ -287,7 +297,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Retries retryable operations in order', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): void => {
       completedSteps.push(n);
@@ -299,6 +309,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
+          'Simulated error',
           new Error('Simulated retryable error')
         );
       }
@@ -313,7 +324,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Does not delay retryable operations that succeed', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): void => {
       completedSteps.push(n);
@@ -333,7 +344,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Catches up when retryable operation fails', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): void => {
       completedSteps.push(n);
@@ -345,6 +356,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
+          'Simulated error',
           new Error('Simulated retryable error')
         );
       }
@@ -372,7 +384,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Can drain (non-delayed) operations', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
@@ -386,7 +398,7 @@ describe('AsyncQueue', () => {
   });
 
   it('Schedules operations with respect to shut down', async () => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<void> =>
       defer(() => {

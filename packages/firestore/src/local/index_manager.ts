@@ -16,13 +16,14 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { PersistenceTransaction } from './persistence';
+
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * Represents a set of indexes that are used to execute queries efficiently.
  *
- * Currently the only index is a [collection id] => [parent path] index, used
+ * Currently the only index is a [collection id] =&gt; [parent path] index, used
  * to execute Collection Group queries.
  */
 export interface IndexManager {

@@ -11,6 +11,8 @@ import { FirebaseError } from '@firebase/util';
 export interface Functions {
   app: FirebaseApp;
 
+  customDomain: string | null;
+
   region: string;
 }
 

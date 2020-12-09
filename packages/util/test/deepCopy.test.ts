@@ -14,78 +14,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
+import { expect } from 'chai';
 import { deepCopy, deepExtend } from '../src/deepCopy';
 
 describe('deepCopy()', () => {
   it('Scalars', () => {
-    assert.strictEqual(deepCopy(true), true);
-    assert.strictEqual(deepCopy(123), 123);
-    assert.strictEqual(deepCopy('abc'), 'abc');
+    expect(deepCopy(true)).to.equal(true);
+    expect(deepCopy(123)).to.equal(123);
+    expect(deepCopy('abc')).to.equal('abc');
   });
 
   it('Date', () => {
     const d = new Date();
-    assert.deepEqual(deepCopy(d), d);
+    expect(deepCopy(d)).to.deep.equal(d);
   });
 
   it('Object', () => {
-    assert.deepEqual(deepCopy({}), {});
-    assert.deepEqual(deepCopy({ a: 123 }), { a: 123 });
-    assert.deepEqual(deepCopy({ a: { b: 123 } }), { a: { b: 123 } });
+    expect(deepCopy({})).to.deep.equal({});
+    expect(deepCopy({ a: 123 })).to.deep.equal({ a: 123 });
+    expect(deepCopy({ a: { b: 123 } })).to.deep.equal({ a: { b: 123 } });
   });
 
   it('Array', () => {
-    assert.deepEqual(deepCopy([]), []);
-    assert.deepEqual(deepCopy([123, 456]), [123, 456]);
-    assert.deepEqual(deepCopy([123, [456]]), [123, [456]]);
+    expect(deepCopy([])).to.deep.equal([]);
+    expect(deepCopy([123, 456])).to.deep.equal([123, 456]);
+    expect(deepCopy([123, [456]])).to.deep.equal([123, [456]]);
   });
 });
 
 describe('deepExtend', () => {
   it('Scalars', () => {
-    assert.strictEqual(deepExtend(1, true), true);
-    assert.strictEqual(deepExtend(undefined, 123), 123);
-    assert.strictEqual(deepExtend('was', 'abc'), 'abc');
+    expect(deepExtend(1, true)).to.equal(true);
+    expect(deepExtend(undefined, 123)).to.equal(123);
+    expect(deepExtend('was', 'abc')).to.equal('abc');
   });
 
   it('Date', () => {
     const d = new Date();
-    assert.deepEqual(deepExtend(new Date(), d), d);
+    expect(deepExtend(new Date(), d)).to.deep.equal(d);
   });
 
   it('Object', () => {
-    assert.deepEqual(deepExtend({ old: 123 }, {}), { old: 123 });
-    assert.deepEqual(deepExtend({ old: 123 }, { s: 'hello' }), {
+    expect(deepExtend({ old: 123 }, {})).to.deep.equal({ old: 123 });
+    expect(deepExtend({ old: 123 }, { s: 'hello' })).to.deep.equal({
       old: 123,
       s: 'hello'
     });
-    assert.deepEqual(
-      deepExtend({ old: 123, a: { c: 'in-old' } }, { a: { b: 123 } }),
-      { old: 123, a: { b: 123, c: 'in-old' } }
-    );
+    expect(
+      deepExtend({ old: 123, a: { c: 'in-old' } }, { a: { b: 123 } })
+    ).to.deep.equal({ old: 123, a: { b: 123, c: 'in-old' } });
   });
 
   it('Array', () => {
-    assert.deepEqual(deepExtend([1], []), []);
-    assert.deepEqual(deepExtend([1], [123, 456]), [123, 456]);
-    assert.deepEqual(deepExtend([1], [123, [456]]), [123, [456]]);
+    expect(deepExtend([1], [])).to.deep.equal([]);
+    expect(deepExtend([1], [123, 456])).to.deep.equal([123, 456]);
+    expect(deepExtend([1], [123, [456]])).to.deep.equal([123, [456]]);
   });
 
   it('Array is copied - not referenced', () => {
     const o1 = { a: [1] };
     const o2 = { a: [2] };
 
-    assert.deepEqual(deepExtend(o1, o2), { a: [2] });
+    expect(deepExtend(o1, o2)).to.deep.equal({ a: [2] });
     o2.a.push(3);
-    assert.deepEqual(o1, { a: [2] });
+    expect(o1).to.deep.equal({ a: [2] });
   });
 
   it('Array with undefined elements', () => {
     const a: any = [];
     a[3] = '3';
     const b = deepExtend(undefined, a);
-    assert.deepEqual(b, [, , , '3']);
+    expect(b).to.deep.equal([, , , '3']);
   });
 
   it('Function', () => {
@@ -100,7 +99,16 @@ describe('deepExtend', () => {
       },
       { a: source }
     );
-    assert.deepEqual({ a: source }, target);
-    assert.strictEqual(source, target.a);
+    expect({ a: source }).to.deep.equal(target);
+    expect(source).to.equal(target.a);
+  });
+
+  it('does not extend property __proto__', () => {
+    const src = JSON.parse('{ "__proto__": { "polluted": "polluted" } }');
+    const a: Record<string, unknown> = {};
+    deepExtend(a, src);
+
+    expect(a.__proto__).to.equal(Object.prototype);
+    expect(a.polluted).to.be.undefined;
   });
 });

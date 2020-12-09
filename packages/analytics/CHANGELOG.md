@@ -1,5 +1,29 @@
 # @firebase/analytics
 
+## 0.6.2
+
+### Patch Changes
+
+- Updated dependencies [[`9cf727fcc`](https://github.com/firebase/firebase-js-sdk/commit/9cf727fcc3d049551b16ae0698ac33dc2fe45ada)]:
+  - @firebase/util@0.3.4
+  - @firebase/component@0.1.21
+  - @firebase/installations@0.4.19
+
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies [[`a5768b0aa`](https://github.com/firebase/firebase-js-sdk/commit/a5768b0aa7d7ce732279931aa436e988c9f36487), [`7d916d905`](https://github.com/firebase/firebase-js-sdk/commit/7d916d905ba16816ac8ac7c8748c83831ff614ce)]:
+  - @firebase/component@0.1.20
+  - @firebase/util@0.3.3
+  - @firebase/installations@0.4.18
+
+## 0.6.0
+
+### Minor Changes
+
+- [`d4db75ff8`](https://github.com/firebase/firebase-js-sdk/commit/d4db75ff81388430489bd561ac2247fe9e0b6eb5) [#3836](https://github.com/firebase/firebase-js-sdk/pull/3836) (fixes [#3573](https://github.com/firebase/firebase-js-sdk/issues/3573)) - Analytics now warns instead of throwing if it detects a browser environment where analytics does not work.
+
 ## 0.5.0
 
 ### Minor Changes

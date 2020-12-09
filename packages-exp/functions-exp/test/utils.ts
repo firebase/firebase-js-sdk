@@ -21,6 +21,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
 import { FunctionsService } from '../src/service';
 import { useFunctionsEmulator } from '../src/api';
+import nodeFetch from 'node-fetch';
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
   options = {
@@ -52,17 +53,22 @@ export function createTestService(
     new ComponentContainer('test')
   )
 ): FunctionsService {
+  const fetchImpl: typeof fetch =
+    typeof window !== 'undefined' ? fetch.bind(window) : (nodeFetch as any);
   const functions = new FunctionsService(
     app,
     authProvider,
     messagingProvider,
-    region
+    region,
+    fetchImpl
   );
   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
   if (useEmulator) {
+    const url = new URL(process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!);
     useFunctionsEmulator(
       functions,
-      process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!
+      url.hostname,
+      Number.parseInt(url.port, 10)
     );
   }
   return functions;

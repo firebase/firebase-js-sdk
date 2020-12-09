@@ -10,13 +10,13 @@ import { HttpsCallable } from '@firebase/functions-types-exp';
 import { HttpsCallableOptions } from '@firebase/functions-types-exp';
 
 // @public
-export function getFunctions(app: FirebaseApp, region?: string): Functions;
+export function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;
 
 // @public
 export function httpsCallable(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
 
 // @public
-export function useFunctionsEmulator(functionsInstance: Functions, origin: string): void;
+export function useFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
 
 
 // (No @packageDocumentation comment for this package)

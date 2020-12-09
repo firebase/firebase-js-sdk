@@ -4,10 +4,14 @@
 
 ## writeBatch() function
 
+Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single WriteBatch is 500.
+
+Unlike transactions, write batches are persisted offline and therefore are preferable when you don't need to condition your writes on read data.
+
 <b>Signature:</b>
 
 ```typescript
-export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
+export declare function writeBatch(firestore: FirebaseFirestore): WriteBatch;
 ```
 
 ## Parameters
@@ -19,4 +23,6 @@ export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
 <b>Returns:</b>
 
 [WriteBatch](./firestore_.writebatch.md)
+
+A `WriteBatch` that can be used to atomically execute multiple writes.
 

@@ -25,6 +25,34 @@ import { FirebaseInstallations } from '@firebase/installations-types';
 import { fetchDynamicConfigWithRetry } from './get-config';
 import { logger } from './logger';
 import { FirebaseApp } from '@firebase/app-types';
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable
+} from '@firebase/util';
+import { ERROR_FACTORY, AnalyticsError } from './errors';
+
+async function validateIndexedDB(): Promise<boolean> {
+  if (!isIndexedDBAvailable()) {
+    logger.warn(
+      ERROR_FACTORY.create(AnalyticsError.INDEXEDDB_UNAVAILABLE, {
+        errorInfo: 'IndexedDB is not available in this environment.'
+      }).message
+    );
+    return false;
+  } else {
+    try {
+      await validateIndexedDBOpenable();
+    } catch (e) {
+      logger.warn(
+        ERROR_FACTORY.create(AnalyticsError.INDEXEDDB_UNAVAILABLE, {
+          errorInfo: e
+        }).message
+      );
+      return false;
+    }
+  }
+  return true;
+}
 
 /**
  * Initialize the analytics instance in gtag.js by calling config command with fid.
@@ -70,9 +98,19 @@ export async function initializeIds(
   // Add to list to track state of all dynamic config promises.
   dynamicConfigPromisesList.push(dynamicConfigPromise);
 
+  const fidPromise: Promise<string | undefined> = validateIndexedDB().then(
+    envIsValid => {
+      if (envIsValid) {
+        return installations.getId();
+      } else {
+        return undefined;
+      }
+    }
+  );
+
   const [dynamicConfig, fid] = await Promise.all([
     dynamicConfigPromise,
-    installations.getId()
+    fidPromise
   ]);
 
   // This command initializes gtag.js and only needs to be called once for the entire web app,
@@ -81,13 +119,18 @@ export async function initializeIds(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   gtagCore('js' as any, new Date());
 
-  // It should be the first config command called on this GA-ID
-  // Initialize this GA-ID and set FID on it using the gtag config API.
-  gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, {
-    [GA_FID_KEY]: fid,
+  const configProperties: { [key: string]: string | boolean } = {
     // guard against developers accidentally setting properties with prefix `firebase_`
     [ORIGIN_KEY]: 'firebase',
     update: true
-  });
+  };
+
+  if (fid != null) {
+    configProperties[GA_FID_KEY] = fid;
+  }
+
+  // It should be the first config command called on this GA-ID
+  // Initialize this GA-ID and set FID on it using the gtag config API.
+  gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, configProperties);
   return dynamicConfig.measurementId;
 }

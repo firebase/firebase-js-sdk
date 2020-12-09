@@ -16,7 +16,7 @@
  */
 
 import { Node, NamedNode } from '../Node';
-import { MIN_NAME, MAX_NAME } from '../../util/util';
+import { MIN_NAME } from '../../util/util';
 import { Comparator } from '../../util/SortedMap';
 
 /**

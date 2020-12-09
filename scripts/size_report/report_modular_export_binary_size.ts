@@ -53,8 +53,13 @@ async function generateReport(): Promise<ModularExportBinarySizeRequestBody> {
 }
 
 async function main(): Promise<void> {
-  const reports: ModularExportBinarySizeRequestBody = await generateReport();
-  console.log(JSON.stringify(reports, null, 4));
-  upload(reports, RequestEndpoint.MODULAR_EXPORT_BINARY_SIZE);
+  try {
+    const reports: ModularExportBinarySizeRequestBody = await generateReport();
+    console.log(JSON.stringify(reports, null, 4));
+    upload(reports, RequestEndpoint.MODULAR_EXPORT_BINARY_SIZE);
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
 }
 main();

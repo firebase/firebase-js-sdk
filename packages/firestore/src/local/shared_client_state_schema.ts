@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import { BatchId, MutationBatchState, TargetId } from '../core/types';
-import { QueryTargetState } from './shared_client_state_syncer';
-import { debugAssert } from '../util/assert';
-import { ClientId } from './shared_client_state';
 import { User } from '../auth/user';
+import { BatchId, MutationBatchState, TargetId } from '../core/types';
+import { debugAssert } from '../util/assert';
+
+import { ClientId } from './shared_client_state';
+import { QueryTargetState } from './shared_client_state_syncer';
 
 // The format of the LocalStorage key that stores the client state is:
 //     firestore_clients_<persistence_prefix>_<instance_key>
@@ -113,6 +114,15 @@ export const ONLINE_STATE_KEY_PREFIX = 'firestore_online_state';
 /** Assembles the key for the online state of the primary tab. */
 export function createWebStorageOnlineStateKey(persistenceKey: string): string {
   return `${ONLINE_STATE_KEY_PREFIX}_${persistenceKey}`;
+}
+
+// The WebStorage prefix that plays as a event to indicate the remote documents
+// might have changed due to some secondary tabs loading a bundle.
+// format of the key is:
+//     firestore_bundle_loaded_<persistenceKey>
+export const BUNDLE_LOADED_KEY_PREFIX = 'firestore_bundle_loaded';
+export function createBundleLoadedKey(persistenceKey: string): string {
+  return `${BUNDLE_LOADED_KEY_PREFIX}_${persistenceKey}`;
 }
 
 /**

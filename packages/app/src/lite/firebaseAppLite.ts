@@ -21,7 +21,6 @@ import {
   FirebaseAppConfig
 } from '@firebase/app-types';
 import {
-  _FirebaseApp,
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
@@ -34,12 +33,6 @@ import {
   ComponentType,
   Name
 } from '@firebase/component';
-
-interface ServicesCache {
-  [name: string]: {
-    [serviceName: string]: FirebaseService;
-  };
-}
 
 /**
  * Global context object for a collection of services using

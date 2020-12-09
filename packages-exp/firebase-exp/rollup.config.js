@@ -16,13 +16,13 @@
  */
 
 import { resolve } from 'path';
-import resolveModule from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
+import resolveModule from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import pkg from './package.json';
 import appPkg from './app/package.json';
 
@@ -39,7 +39,7 @@ function createUmdOutputConfig(output, componentName) {
     format: 'umd',
     sourcemap: true,
     extend: true,
-    name: `${GLOBAL_NAME}.${componentName}`,
+    name: `${GLOBAL_NAME}.${camelize(componentName)}`,
     globals: {
       '@firebase/app-exp': `${GLOBAL_NAME}.app`
     },
@@ -63,6 +63,16 @@ function createUmdOutputConfig(output, componentName) {
             );
           }`
   };
+}
+
+function camelize(str) {
+  const arr = str.split('-');
+  const capital = arr.map((item, index) =>
+    index > 0
+      ? item.charAt(0).toUpperCase() + item.slice(1).toLowerCase()
+      : item.toLowerCase()
+  );
+  return capital.join('');
 }
 
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];

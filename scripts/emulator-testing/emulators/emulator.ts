@@ -19,6 +19,7 @@
 import { spawn } from 'child-process-promise';
 import { ChildProcess } from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as request from 'request';
 // @ts-ignore
@@ -28,13 +29,25 @@ export abstract class Emulator {
   binaryPath: string | null = null;
   emulator: ChildProcess | null = null;
 
+  cacheDirectory: string;
+  cacheBinaryPath: string;
+
   constructor(
     private binaryName: string,
     private binaryUrl: string,
     public port: number
-  ) {}
+  ) {
+    this.cacheDirectory = path.join(os.homedir(), `.cache/firebase-js-sdk`);
+    this.cacheBinaryPath = path.join(this.cacheDirectory, binaryName);
+  }
 
   download(): Promise<void> {
+    if (fs.existsSync(this.cacheBinaryPath)) {
+      console.log(`Emulator found in cache: ${this.cacheBinaryPath}`);
+      this.binaryPath = this.cacheBinaryPath;
+      return Promise.resolve();
+    }
+
     return new Promise<void>((resolve, reject) => {
       tmp.dir((err: Error | null, dir: string) => {
         if (err) reject(err);
@@ -55,6 +68,10 @@ export abstract class Emulator {
               if (err) reject(err);
               console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
               this.binaryPath = filepath;
+
+              if (this.copyToCache()) {
+                console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+              }
               resolve();
             });
           })
@@ -128,5 +145,24 @@ export abstract class Emulator {
       console.log(`Deleting the emulator jar at ${this.binaryPath}`);
       fs.unlinkSync(this.binaryPath);
     }
+  }
+
+  private copyToCache(): boolean {
+    if (!this.binaryPath) {
+      return false;
+    }
+
+    try {
+      if (!fs.existsSync(this.cacheDirectory)) {
+        fs.mkdirSync(this.cacheDirectory, { recursive: true });
+      }
+      fs.copyFileSync(this.binaryPath, this.cacheBinaryPath);
+
+      return true;
+    } catch (e) {
+      console.warn(`Unable to cache ${this.binaryName}`, e);
+    }
+
+    return false;
   }
 }

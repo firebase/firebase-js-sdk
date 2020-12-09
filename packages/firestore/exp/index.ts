@@ -19,7 +19,7 @@ import { registerFirestore } from './register';
 
 registerFirestore();
 
-export { FieldPath, documentId } from '../lite/src/api/field_path';
+export { FieldPath, documentId } from './src/api/field_path';
 
 export {
   FirebaseFirestore,
@@ -31,9 +31,10 @@ export {
   waitForPendingWrites,
   disableNetwork,
   enableNetwork,
-  terminate,
-  Settings
+  terminate
 } from './src/api/database';
+
+export { Settings, PersistenceSettings } from './src/api/settings';
 
 export {
   DocumentChange,
@@ -43,38 +44,46 @@ export {
   snapshotEqual,
   SnapshotOptions,
   FirestoreDataConverter,
-  DocumentChangeType
+  DocumentChangeType,
+  SnapshotMetadata
 } from './src/api/snapshot';
-
-export { SnapshotMetadata } from '../src/api/database';
 
 export {
   DocumentReference,
   CollectionReference,
-  QueryConstraint,
   Query,
   doc,
   collection,
   collectionGroup,
-  startAt,
-  startAfter,
+  SetOptions,
+  DocumentData,
+  UpdateData,
+  refEqual,
+  queryEqual
+} from './src/api/reference';
+
+export {
   endAt,
   endBefore,
-  query,
+  startAt,
+  startAfter,
   limit,
   limitToLast,
   where,
   orderBy,
-  SetOptions,
+  query,
+  QueryConstraint,
   QueryConstraintType,
-  DocumentData,
-  UpdateData,
-  OrderByDirection
-} from '../lite/src/api/reference';
+  OrderByDirection,
+  WhereFilterOp
+} from './src/api/query';
+
+export { Unsubscribe } from '../src/api/observer';
 
 export { runTransaction, Transaction } from './src/api/transaction';
 
 export {
+  SnapshotListenOptions,
   getDoc,
   getDocFromCache,
   getDocFromServer,
@@ -87,33 +96,28 @@ export {
   updateDoc,
   deleteDoc,
   addDoc
-} from './src/api/reference';
+} from './src/api/reference_impl';
+
+export { FieldValue } from './src/api/field_value';
 
 export {
-  FieldValue,
-  deleteField,
   increment,
   arrayRemove,
   arrayUnion,
-  serverTimestamp
-} from '../lite/src/api/field_value';
+  serverTimestamp,
+  deleteField
+} from './src/api/field_value_impl';
 
-export { setLogLevel, LogLevel } from '../src/util/log';
+export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
-export { Bytes } from '../lite/src/api/bytes';
+export { Bytes } from './src/api/bytes';
 
-export { writeBatch } from './src/api/write_batch';
-
-export { WriteBatch } from '../lite/src/api/write_batch';
+export { WriteBatch, writeBatch } from './src/api/write_batch';
 
 export { GeoPoint } from '../src/api/geo_point';
 
 export { Timestamp } from '../src/api/timestamp';
 
-export { refEqual, queryEqual } from '../lite/src/api/reference';
-
-export { SnapshotListenOptions } from './src/api/reference';
-
-export { CACHE_SIZE_UNLIMITED } from '../src/api/database';
+export { CACHE_SIZE_UNLIMITED } from './src/api/database';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';

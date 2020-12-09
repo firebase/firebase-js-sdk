@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as type from '../../src/implementation/type';
 import { ErrorCode, Headers, XhrIo } from '../../src/implementation/xhrio';
+import { FirebaseStorageError, Code } from '../../src/implementation/error';
 
 export type SendHook = (
   xhrio: TestingXhrIo,
@@ -64,7 +64,7 @@ export class TestingXhrIo implements XhrIo {
     headers?: Headers
   ): Promise<XhrIo> {
     if (this.state !== State.START) {
-      throw new Error("Can't send again");
+      throw new FirebaseStorageError(Code.UNKNOWN, "Can't send again");
     }
 
     this.state = State.SENT;
@@ -81,7 +81,10 @@ export class TestingXhrIo implements XhrIo {
     headers: { [key: string]: string }
   ): void {
     if (this.state !== State.SENT) {
-      throw new Error("Can't simulate response before send/more than once");
+      throw new FirebaseStorageError(
+        Code.UNKNOWN,
+        "Can't simulate response before send/more than once"
+      );
     }
 
     this.status = status;
@@ -116,7 +119,7 @@ export class TestingXhrIo implements XhrIo {
 
   getResponseHeader(header: string): string | null {
     const headerValue = this.headers[header.toLowerCase()];
-    if (type.isDef(headerValue)) {
+    if (headerValue != null) {
       return headerValue;
     } else {
       return null;

@@ -24,16 +24,13 @@ import {
   apiDescribe,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb,
-  notInOp,
-  notEqualOp
+  withTestDb
 } from '../util/helpers';
 import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
 const newTestFirestore = firebaseExport.newTestFirestore;
-const usesFunctionalApi = firebaseExport.usesFunctionalApi;
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -105,13 +102,6 @@ class TestClass {
   constructor(readonly property: string) {}
 }
 
-// NOTE: The JS SDK does extensive validation of argument counts, types, etc.
-// since it is an untyped language. These tests are not exhaustive as that would
-// be extremely tedious, but we do try to hit every error template at least
-// once. Where applicable, some tests are ignored for the modular API, as we
-// assume that most users will use TypeScript to catch invalid input.
-const validatesJsInput = !usesFunctionalApi();
-
 apiDescribe('Validation:', (persistence: boolean) => {
   describe('FirestoreSettings', () => {
     // Enabling persistence counts as a use of the firestore instance, meaning
@@ -122,53 +112,18 @@ apiDescribe('Validation:', (persistence: boolean) => {
       return;
     }
 
-    (validatesJsInput ? validationIt : validationIt.skip)(
-      persistence,
-      'validates options',
-      db => {
-        // NOTE: 'credentials' is an undocumented API so ideally we wouldn't
-        // show it in the error, but I don't think it's worth the trouble of
-        // hiding it.
-        expect(() => db.settings({ invalid: true } as any)).to.throw(
-          "Unknown option 'invalid' passed to function settings(). " +
-            'Available options: host, ssl, credentials'
-        );
-
-        expect(() =>
-          db.settings({
-            ssl: true
-          })
-        ).to.throw("Can't provide ssl option if host option is not set");
-
-        expect(() => db.settings({ host: null as any })).to.throw(
-          'Function settings() requires its host option to be of type ' +
-            'non-empty string, but it was: null'
-        );
-      }
-    );
-
     validationIt(
       persistence,
       'disallows changing settings after use',
       async db => {
-        let errorMsg =
-          'Firestore has already been started and its settings can no ' +
-          'longer be changed. ';
-
-        if (usesFunctionalApi()) {
-          errorMsg +=
-            'initializeFirestore() cannot be called after calling ' +
-            'getFirestore()';
-        } else {
-          errorMsg +=
-            'You can only call settings() before calling any other ' +
-            'methods on a Firestore object.';
-        }
-
         await db.doc('foo/bar').set({});
         expect(() =>
           db.settings({ host: 'something-else.example.com' })
-        ).to.throw(errorMsg);
+        ).to.throw(
+          'Firestore has already been started and its settings can no ' +
+            'longer be changed. You can only modify settings before calling any other ' +
+            'methods on a Firestore object.'
+        );
       }
     );
 
@@ -184,6 +139,24 @@ apiDescribe('Validation:', (persistence: boolean) => {
       // Verify that this doesn't throw.
       db.settings({ cacheSizeBytes: /* CACHE_SIZE_UNLIMITED= */ -1 });
     });
+
+    validationIt(persistence, 'useEmulator can set host and port', () => {
+      const db = newTestFirestore('test-project');
+      // Verify that this doesn't throw.
+      db.useEmulator('localhost', 9000);
+    });
+
+    validationIt(
+      persistence,
+      'disallows calling useEmulator after use',
+      async db => {
+        const errorMsg =
+          'Firestore has already been started and its settings can no longer be changed.';
+
+        await db.doc('foo/bar').set({});
+        expect(() => db.useEmulator('localhost', 9000)).to.throw(errorMsg);
+      }
+    );
   });
 
   describe('Firestore', () => {
@@ -198,23 +171,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         }
         expect(() => db.enablePersistence()).to.throw(
           'Firestore has already been started and persistence can no ' +
-            `longer be enabled. You can only ${
-              usesFunctionalApi()
-                ? 'enable persistence'
-                : 'call enablePersistence()'
-            } ` +
-            'before calling any other methods on a Firestore object.'
-        );
-      }
-    );
-
-    (validatesJsInput ? validationIt : validationIt.skip)(
-      persistence,
-      'throws for invalid transaction functions.',
-      db => {
-        expect(() => db.runTransaction(null as any)).to.throw(
-          'Function Firestore.runTransaction() requires its first ' +
-            'argument to be of type function, but it was: null'
+            'longer be enabled. You can only enable persistence before ' +
+            'calling any other methods on a Firestore object.'
         );
       }
     );
@@ -238,36 +196,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Collection paths', () => {
     validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
-
-      if (usesFunctionalApi()) {
-        expect(() => db.collection('')).to.throw(
-          'Function collection() cannot be called with an empty path.'
-        );
-        expect(() => baseDocRef.collection('')).to.throw(
-          'Function DocumentReference.collection() cannot be called with an empty path.'
-        );
-      } else {
-        expect(() => db.collection('')).to.throw(
-          'Function Firestore.collection() requires its first ' +
-            'argument to be of type non-empty string, but it was: ""'
-        );
-        expect(() => baseDocRef.collection('')).to.throw(
-          'Function DocumentReference.collection() requires its first ' +
-            'argument to be of type non-empty string, but it was: ""'
-        );
-        expect(() => db.collection(null as any)).to.throw(
-          'Function Firestore.collection() requires its first argument ' +
-            'to be of type non-empty string, but it was: null'
-        );
-        expect(() => baseDocRef.collection(null as any)).to.throw(
-          'Function DocumentReference.collection() requires its first ' +
-            'argument to be of type non-empty string, but it was: null'
-        );
-        expect(() => (baseDocRef.collection as any)('foo', 'bar')).to.throw(
-          'Function DocumentReference.collection() requires 1 argument, ' +
-            'but was called with 2 arguments.'
-        );
-      }
+      expect(() => db.collection('')).to.throw(
+        'Function Firestore.collection() cannot be called with an empty path.'
+      );
+      expect(() => baseDocRef.collection('')).to.throw(
+        'Function DocumentReference.collection() cannot be called with an ' +
+          'empty path.'
+      );
     });
 
     validationIt(persistence, 'must be odd-length', db => {
@@ -298,7 +233,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test-collection');
       const doc = collection.doc('test-document');
       for (const path of badPaths) {
-        const reason = `Invalid path (${path}). Paths must not contain // in them.`;
+        const reason = `Invalid segment (${path}). Paths must not contain // in them.`;
         expect(() => db.collection(path)).to.throw(reason);
         expect(() => db.doc(path)).to.throw(reason);
         expect(() => collection.doc(path)).to.throw(reason);
@@ -311,39 +246,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'must be strings', db => {
       const baseCollectionRef = db.collection('foo');
 
-      if (usesFunctionalApi()) {
-        expect(() => db.doc('')).to.throw(
-          'Function doc() cannot be called with an empty path.'
-        );
-        expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function CollectionReference.doc() cannot be called with an empty path.'
-        );
-      } else {
-        expect(() => db.doc('')).to.throw(
-          'Function Firestore.doc() requires its first ' +
-            'argument to be of type non-empty string, but it was: ""'
-        );
-        expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function CollectionReference.doc() requires its first ' +
-            'argument to be of type non-empty string, but it was: ""'
-        );
-        expect(() => db.doc(null as any)).to.throw(
-          'Function Firestore.doc() requires its first argument to be ' +
-            'of type non-empty string, but it was: null'
-        );
-        expect(() => baseCollectionRef.doc(null as any)).to.throw(
-          'Function CollectionReference.doc() requires its first ' +
-            'argument to be of type non-empty string, but it was: null'
-        );
-        expect(() => baseCollectionRef.doc(undefined as any)).to.throw(
-          'Function CollectionReference.doc() requires its first ' +
-            'argument to be of type non-empty string, but it was: undefined'
-        );
-        expect(() => (baseCollectionRef.doc as any)('foo', 'bar')).to.throw(
-          'Function CollectionReference.doc() requires between 0 and ' +
-            '1 arguments, but was called with 2 arguments.'
-        );
-      }
+      expect(() => db.doc('')).to.throw(
+        'Function Firestore.doc() cannot be called with an empty path.'
+      );
+      expect(() => baseCollectionRef.doc('')).to.throw(
+        'Function CollectionReference.doc() cannot be called with an empty ' +
+          'path.'
+      );
     });
 
     validationIt(persistence, 'must be even-length', db => {
@@ -365,115 +274,18 @@ apiDescribe('Validation:', (persistence: boolean) => {
     });
   });
 
-  (validatesJsInput ? validationIt : validationIt.skip)(
-    persistence,
-    'Listen options are validated',
-    db => {
-      const collection = db.collection('test');
-      const fn = (): void => {};
+  validationIt(persistence, 'Merge options are validated', db => {
+    const docRef = db.collection('test').doc();
 
-      const doc = collection.doc();
-      expect(() => doc.onSnapshot({ bad: true } as any, fn)).to.throw(
-        `Unknown option 'bad' passed to function ` +
-          `DocumentReference.onSnapshot(). Available options: ` +
-          `includeMetadataChanges`
-      );
-
-      expect(() => collection.onSnapshot({ bad: true } as any, fn)).to.throw(
-        `Unknown option 'bad' passed to function ` +
-          `Query.onSnapshot(). Available options: includeMetadataChanges`
-      );
-
-      expect(() => db.onSnapshotsInSync('bad' as any)).to.throw(
-        `Function Firestore.onSnapshotsInSync() requires its first ` +
-          `argument to be of type function, but it was: "bad"`
-      );
-    }
-  );
-
-  (validatesJsInput ? validationIt : validationIt.skip)(
-    persistence,
-    'get options are validated',
-    db => {
-      const collection = db.collection('test');
-      const doc = collection.doc();
-      const fn = (): void => {};
-
-      expect(() => doc.get(fn as any)).to.throw(
-        'Function DocumentReference.get() requires its first argument to be of type object, ' +
-          'but it was: a function'
-      );
-      expect(() => doc.get({ abc: 'cache' } as any)).to.throw(
-        `Unknown option 'abc' passed to function DocumentReference.get(). Available options: source`
-      );
-
-      expect(() => collection.get(fn as any)).to.throw(
-        'Function Query.get() requires its first argument to be of type object, but it was: ' +
-          'a function'
-      );
-      expect(() => collection.get({ abc: 'cache' } as any)).to.throw(
-        `Unknown option 'abc' passed to function Query.get(). Available options: source`
-      );
-    }
-  );
-
-  (validatesJsInput ? validationIt : validationIt.skip)(
-    persistence,
-    'Snapshot options are validated',
-    db => {
-      const docRef = db.collection('test').doc();
-
-      return docRef
-        .set({ test: 1 })
-        .then(() => {
-          return docRef.get();
-        })
-        .then(snapshot => {
-          expect(() => snapshot.get('test', { bad: true } as any)).to.throw(
-            `Unknown option 'bad' passed to function ` +
-              `DocumentSnapshot.get(). Available options: ` +
-              `serverTimestamps`
-          );
-          expect(() =>
-            snapshot.data({ serverTimestamps: 'foo' } as any)
-          ).to.throw(
-            `Invalid value "foo" provided to function DocumentSnapshot.data() for option ` +
-              `"serverTimestamps". Acceptable values: "estimate", "previous", "none"`
-          );
-        });
-    }
-  );
-
-  (validatesJsInput ? validationIt : validationIt.skip)(
-    persistence,
-    'Merge options are validated',
-    db => {
-      const docRef = db.collection('test').doc();
-
-      expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
-        'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
-          '"merge" and "mergeFields".'
-      );
-      expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
-        'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
-          '"merge" and "mergeFields".'
-      );
-      expect(() => docRef.set({}, { merge: 'foo' as any })).to.throw(
-        'Function DocumentReference.set() requires its merge option to be of type boolean, but it ' +
-          'was: "foo"'
-      );
-      expect(() => docRef.set({}, { mergeFields: 'foo' as any })).to.throw(
-        'Function DocumentReference.set() requires its mergeFields option to be an array, but it ' +
-          'was: "foo"'
-      );
-      expect(() =>
-        docRef.set({}, { mergeFields: ['foo', false as any] })
-      ).to.throw(
-        'Function DocumentReference.set() requires all mergeFields elements to be a string or a ' +
-          'FieldPath, but the value at index 1 was: false'
-      );
-    }
-  );
+    expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
+        '"merge" and "mergeFields".'
+    );
+    expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
+        '"merge" and "mergeFields".'
+    );
+  });
 
   describe('Writes', () => {
     validationIt(persistence, 'must be objects.', db => {
@@ -542,11 +354,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         return expectWriteToFail(
           db,
           { 'array': [FieldValue.serverTimestamp()] },
-          `${
-            usesFunctionalApi()
-              ? 'serverTimestamp'
-              : 'FieldValue.serverTimestamp'
-          }() is not currently supported inside arrays`
+          'FieldValue.serverTimestamp() is not currently supported inside arrays'
         );
       }
     );
@@ -668,9 +476,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         return expectSetToFail(
           db,
           { foo: FieldValue.delete() },
-          `${
-            usesFunctionalApi() ? 'deleteField' : 'FieldValue.delete'
-          }() cannot be used with set() unless you pass ` +
+          'FieldValue.delete() cannot be used with set() unless you pass ' +
             '{merge:true} (found in field foo)'
         );
       }
@@ -683,9 +489,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         return expectUpdateToFail(
           db,
           { foo: { bar: FieldValue.delete() } },
-          `${
-            usesFunctionalApi() ? 'deleteField' : 'FieldValue.delete'
-          }() can only appear at the top level of your ` +
+          'FieldValue.delete() can only appear at the top level of your ' +
             'update data (found in field foo.bar)'
         );
       }
@@ -785,23 +589,17 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayUnion(1) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'where' : 'Query.where'
-        }() called with invalid data. ` +
-          `${
-            usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
-          }() can only be used with update() and set() (found in field test)`
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.arrayUnion() can only be used with update() and set() ' +
+          '(found in field test)'
       );
 
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayRemove(1) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'where' : 'Query.where'
-        }() called with invalid data. ` +
-          `${
-            usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
-          }() can only be used with update() and set() (found in field test)`
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.arrayRemove() can only be used with update() and set() ' +
+          '(found in field test)'
       );
     });
 
@@ -810,25 +608,20 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         doc.set({ x: FieldValue.arrayUnion(1, new TestClass('foo')) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
-        }() called with invalid data. Unsupported field value: a custom ` +
-          'TestClass object'
+        'Function FieldValue.arrayUnion() called with invalid data. ' +
+          'Unsupported field value: a custom TestClass object'
       );
 
       expect(() =>
         doc.set({ x: FieldValue.arrayRemove(1, new TestClass('foo')) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
-        }() called with invalid data. Unsupported field value: a custom ` +
-          'TestClass object'
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Unsupported field value: a custom TestClass object'
       );
 
       expect(() => doc.set({ x: FieldValue.arrayRemove(undefined) })).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
-        }() called with invalid data. Unsupported field value: undefined`
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Unsupported field value: undefined'
       );
     });
 
@@ -838,35 +631,17 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         doc.set({ x: FieldValue.arrayUnion(1, ['nested']) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
-        }() called with invalid data. Nested arrays are not supported`
+        'Function FieldValue.arrayUnion() called with invalid data. ' +
+          'Nested arrays are not supported'
       );
 
       expect(() =>
         doc.set({ x: FieldValue.arrayRemove(1, ['nested']) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
-        }() called with invalid data. Nested arrays are not supported`
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Nested arrays are not supported'
       );
     });
-  });
-
-  describe('Server timestamps transforms', () => {
-    (validatesJsInput ? validationIt : validationIt.skip)(
-      persistence,
-      'reject any arguments',
-      db => {
-        const doc = db.collection('test').doc();
-        expect(() =>
-          doc.set({ x: (FieldValue as any).serverTimestamp('foo') })
-        ).to.throw(
-          'Function FieldValue.serverTimestamp() does not support ' +
-            'arguments, but was called with 1 argument.'
-        );
-      }
-    );
   });
 
   describe('Numeric transforms', () => {
@@ -875,119 +650,23 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.increment(1) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'where' : 'Query.where'
-        }() called with invalid data. ` +
-          `${
-            usesFunctionalApi() ? 'increment' : 'FieldValue.increment'
-          }() can only be used with update() and set() (found in field test)`
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.increment() can only be used with update() and set() ' +
+          '(found in field test)'
       );
     });
-
-    (validatesJsInput ? validationIt : validationIt.skip)(
-      persistence,
-      'reject invalid operands',
-      db => {
-        const doc = db.collection('test').doc();
-        expect(() =>
-          doc.set({ x: FieldValue.increment('foo' as any) })
-        ).to.throw(
-          'Function FieldValue.increment() requires its first argument to ' +
-            'be of type number, but it was: "foo"'
-        );
-        expect(() =>
-          doc.set({ x: FieldValue.increment(undefined as any) })
-        ).to.throw(
-          'Function FieldValue.increment() requires its first argument to ' +
-            'be of type number, but it was: undefined'
-        );
-      }
-    );
-
-    (validatesJsInput ? validationIt : validationIt.skip)(
-      persistence,
-      'reject more than one argument',
-      db => {
-        const doc = db.collection('test').doc();
-        expect(() =>
-          doc.set({ x: (FieldValue as any).increment(1337, 'leet') })
-        ).to.throw(
-          'Function FieldValue.increment() requires 1 argument, but was ' +
-            'called with 2 arguments.'
-        );
-      }
-    );
   });
 
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
       expect(() => collection.limit(0)).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'limit' : 'Query.limit'
-        }() requires its first argument to be a positive number, but it was: 0.`
+        `Function Query.limit() requires a positive number, but it was: 0.`
       );
       expect(() => collection.limitToLast(-1)).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'limitToLast' : 'Query.limitToLast'
-        }() requires its first argument to be a positive number, but it was: -1.`
+        `Function Query.limitToLast() requires a positive number, but it was: -1.`
       );
     });
-
-    (validatesJsInput ? validationIt : validationIt.skip)(
-      persistence,
-      'enum',
-      db => {
-        const collection = db.collection('test') as any;
-        expect(() => collection.where('a', 'foo' as any, 'b')).to.throw(
-          'Invalid value "foo" provided to function Query.where() for its second argument. ' +
-            'Acceptable values: <, <=, ==, >=, >, array-contains, in, array-contains-any'
-        );
-      }
-    );
-
-    validationIt(
-      persistence,
-      'with null or NaN non-equality filters fail',
-      db => {
-        const collection = db.collection('test');
-        expect(() => collection.where('a', '>', null)).to.throw(
-          'Invalid query. Null supports only equality comparisons.'
-        );
-        expect(() => collection.where('a', 'array-contains', null)).to.throw(
-          'Invalid query. Null supports only equality comparisons.'
-        );
-        expect(() => collection.where('a', 'in', null)).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' filters."
-        );
-        expect(() => collection.where('a', notInOp, null)).to.throw(
-          "Invalid Query. A non-empty array is required for 'not-in' filters."
-        );
-        expect(() =>
-          collection.where('a', 'array-contains-any', null)
-        ).to.throw(
-          "Invalid Query. A non-empty array is required for 'array-contains-any' filters."
-        );
-
-        expect(() => collection.where('a', '>', Number.NaN)).to.throw(
-          'Invalid query. NaN supports only equality comparisons.'
-        );
-        expect(() =>
-          collection.where('a', 'array-contains', Number.NaN)
-        ).to.throw('Invalid query. NaN supports only equality comparisons.');
-        expect(() => collection.where('a', 'in', Number.NaN)).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' filters."
-        );
-        expect(() => collection.where('a', notInOp, Number.NaN)).to.throw(
-          "Invalid Query. A non-empty array is required for 'not-in' filters."
-        );
-        expect(() =>
-          collection.where('a', 'array-contains-any', Number.NaN)
-        ).to.throw(
-          "Invalid Query. A non-empty array is required for 'array-contains-any' filters."
-        );
-      }
-    );
 
     it('cannot be created from documents missing sort values', () => {
       const testDocs = {
@@ -1076,10 +755,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('collection');
         const query = collection.orderBy('foo');
         const reason =
-          `Too many arguments provided to ${
-            usesFunctionalApi() ? 'startAt' : 'Query.startAt'
-          }(). The number of arguments must be less than or equal to the ` +
-          `number of orderBy() clauses`;
+          'Too many arguments provided to Query.startAt(). The number of ' +
+          'arguments must be less than or equal to the number of orderBy() ' +
+          'clauses';
         expect(() => query.startAt(1, 2)).to.throw(reason);
         expect(() => query.orderBy('bar').startAt(1, 2, 3)).to.throw(reason);
       }
@@ -1097,22 +775,18 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .orderBy(FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
-            `${
-              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
-            }(), but got a number`
+            'Query.startAt(), but got a number'
         );
         expect(() => query.startAt('foo/bar')).to.throw(
-          `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-            `the value passed to ${
-              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
-            }() must be a plain document ID, but 'foo/bar' contains a slash.`
+          'Invalid query. When querying a collection and ordering by ' +
+            'FieldPath.documentId(), the value passed to Query.startAt() ' +
+            "must be a plain document ID, but 'foo/bar' contains a slash."
         );
         expect(() => cgQuery.startAt('foo')).to.throw(
-          `Invalid query. When querying a collection group and ordering by ` +
-            `FieldPath.documentId(), the value passed to ${
-              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
-            }() must result in a valid document path, but 'foo' is not because ` +
-            `it contains an odd number of segments.`
+          'Invalid query. When querying a collection group and ordering by ' +
+            'FieldPath.documentId(), the value passed to Query.startAt() ' +
+            "must result in a valid document path, but 'foo' is not because " +
+            'it contains an odd number of segments.'
         );
       }
     );
@@ -1131,7 +805,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'with more than one != query fail', db => {
       const collection = db.collection('test');
       expect(() =>
-        collection.where('x', notEqualOp, 32).where('x', notEqualOp, 33)
+        collection.where('x', '!=', 32).where('x', '!=', 33)
       ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
     });
 
@@ -1141,7 +815,22 @@ apiDescribe('Validation:', (persistence: boolean) => {
       db => {
         const collection = db.collection('test');
         expect(() =>
-          collection.where('y', '>', 32).where('x', notEqualOp, 33)
+          collection.where('y', '>', 32).where('x', '!=', 33)
+        ).to.throw(
+          'Invalid query. All where filters with an ' +
+            'inequality (<, <=, >, or >=) must be on the same field.' +
+            ` But you have inequality filters on 'y' and 'x`
+        );
+      }
+    );
+
+    validationIt(
+      persistence,
+      'with != and inequality queries on different fields fail',
+      db => {
+        const collection = db.collection('test');
+        expect(() =>
+          collection.where('y', '>', 32).where('x', 'not-in', [33])
         ).to.throw(
           'Invalid query. All where filters with an ' +
             'inequality (<, <=, >, or >=) must be on the same field.' +
@@ -1158,8 +847,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const reason =
           `Invalid query. You have a where filter with an ` +
           `inequality (<, <=, >, or >=) on field 'x' and so you must also ` +
-          `use 'x' as your first orderBy(), but your first orderBy() is on ` +
-          `field 'y' instead.`;
+          `use 'x' as your first argument to Query.orderBy(), but your first ` +
+          `orderBy() is on field 'y' instead.`;
         expect(() => collection.where('x', '>', 32).orderBy('y')).to.throw(
           reason
         );
@@ -1172,9 +861,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           collection.orderBy('y').orderBy('x').where('x', '>', 32)
         ).to.throw(reason);
-        expect(() =>
-          collection.where('x', notEqualOp, 32).orderBy('y')
-        ).to.throw(reason);
+        expect(() => collection.where('x', '!=', 32).orderBy('y')).to.throw(
+          reason
+        );
       }
     );
 
@@ -1211,7 +900,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', notInOp, [2, 3])
+          .where('foo', 'not-in', [2, 3])
           .where('foo', 'array-contains', 1)
       ).to.throw(
         "Invalid query. You cannot use 'array-contains' filters with " +
@@ -1223,8 +912,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', notInOp, [2, 3])
-          .where('foo', notEqualOp, 4)
+          .where('foo', 'not-in', [2, 3])
+          .where('foo', '!=', 4)
       ).to.throw(
         "Invalid query. You cannot use '!=' filters with 'not-in' filters."
       );
@@ -1232,8 +921,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', notEqualOp, 4)
-          .where('foo', notInOp, [2, 3])
+          .where('foo', '!=', 4)
+          .where('foo', 'not-in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with '!=' filters."
       );
@@ -1250,8 +939,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', notInOp, [1, 2])
-          .where('foo', notInOp, [2, 3])
+          .where('foo', 'not-in', [1, 2])
+          .where('foo', 'not-in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use more than one 'not-in' filter."
       );
@@ -1289,7 +978,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', notInOp, [2, 3])
+          .where('foo', 'not-in', [2, 3])
           .where('foo', 'array-contains-any', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'array-contains-any' filters with " +
@@ -1300,7 +989,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         db
           .collection('test')
           .where('foo', 'array-contains-any', [2, 3])
-          .where('foo', notInOp, [2, 3])
+          .where('foo', 'not-in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with " +
           "'array-contains-any' filters."
@@ -1309,7 +998,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', notInOp, [2, 3])
+          .where('foo', 'not-in', [2, 3])
           .where('foo', 'in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'in' filters with 'not-in' filters."
@@ -1319,7 +1008,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         db
           .collection('test')
           .where('foo', 'in', [2, 3])
-          .where('foo', notInOp, [2, 3])
+          .where('foo', 'not-in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
@@ -1350,7 +1039,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', notInOp, [2, 3])
+          .where('foo', 'not-in', [2, 3])
           .where('foo', 'array-contains', 2)
           .where('foo', 'array-contains-any', [2])
       ).to.throw(
@@ -1363,7 +1052,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .collection('test')
           .where('foo', 'array-contains', 2)
           .where('foo', 'in', [2])
-          .where('foo', notInOp, [2, 3])
+          .where('foo', 'not-in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with " +
           "'array-contains' filters."
@@ -1464,34 +1153,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
         );
-
-        expect(() =>
-          db.collection('test').where('foo', 'in', [3, null])
-        ).to.throw(
-          "Invalid Query. 'in' filters cannot contain 'null' in the value array."
-        );
-
-        expect(() =>
-          db.collection('test').where('foo', 'array-contains-any', [3, null])
-        ).to.throw(
-          "Invalid Query. 'array-contains-any' filters cannot contain 'null' " +
-            'in the value array.'
-        );
-
-        expect(() =>
-          db.collection('test').where('foo', 'in', [2, Number.NaN])
-        ).to.throw(
-          "Invalid Query. 'in' filters cannot contain 'NaN' in the value array."
-        );
-
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', 'array-contains-any', [2, Number.NaN])
-        ).to.throw(
-          "Invalid Query. 'array-contains-any' filters cannot contain 'NaN' " +
-            'in the value array.'
-        );
       }
     );
 
@@ -1502,12 +1163,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('collection');
         const query = collection.orderBy('foo');
         let reason =
-          'Invalid query. You must not call startAt() or startAfter() before calling orderBy().';
+          'Invalid query. You must not call startAt() or startAfter() before calling Query.orderBy().';
         expect(() => query.startAt(1).orderBy('bar')).to.throw(reason);
         expect(() => query.startAfter(1).orderBy('bar')).to.throw(reason);
 
         reason =
-          'Invalid query. You must not call endAt() or endBefore() before calling orderBy().';
+          'Invalid query. You must not call endAt() or endBefore() before calling Query.orderBy().';
         expect(() => query.endAt(1).orderBy('bar')).to.throw(reason);
         expect(() => query.endBefore(1).orderBy('bar')).to.throw(reason);
       }
@@ -1605,21 +1266,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'cannot pass undefined as a field value', db => {
       const collection = db.collection('test');
-      if (usesFunctionalApi()) {
-        expect(() => collection.where('foo', '==', undefined)).to.throw(
-          'Function where() called with invalid data. Unsupported field value: undefined'
-        );
-        expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
-          'Function startAt() called with invalid data. Unsupported field value: undefined'
-        );
-      } else {
-        expect(() => collection.where('foo', '==', undefined)).to.throw(
-          'Function Query.where() requires a valid third argument, but it was undefined.'
-        );
-        expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
-          'Function Query.startAt() requires a valid first argument, but it was undefined.'
-        );
-      }
+      expect(() => collection.where('foo', '==', undefined)).to.throw(
+        'Function Query.where() called with invalid data. Unsupported field value: undefined'
+      );
+      expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
+        'Function Query.startAt() called with invalid data. Unsupported field value: undefined'
+      );
     });
   });
 });
@@ -1682,9 +1334,7 @@ function expectWriteToFail(
     `Function ${fnName}() called with invalid data. ${reason}`;
 
   if (includeSets) {
-    expect(() => docRef.set(data)).to.throw(
-      error(usesFunctionalApi() ? 'setDoc' : 'DocumentReference.set')
-    );
+    expect(() => docRef.set(data)).to.throw(error('DocumentReference.set'));
     expect(() => docRef.firestore.batch().set(docRef, data)).to.throw(
       error('WriteBatch.set')
     );
@@ -1692,7 +1342,7 @@ function expectWriteToFail(
 
   if (includeUpdates) {
     expect(() => docRef.update(data)).to.throw(
-      error(usesFunctionalApi() ? 'updateDoc' : 'DocumentReference.update')
+      error('DocumentReference.update')
     );
     expect(() => docRef.firestore.batch().update(docRef, data)).to.throw(
       error('WriteBatch.update')
@@ -1735,14 +1385,10 @@ function expectFieldPathToFail(
     // <=, etc omitted for brevity since the code path is trivially
     // shared.
     expect(() => coll.where(path, '==', 1)).to.throw(
-      `Function ${
-        usesFunctionalApi() ? 'where' : 'Query.where'
-      }() called with invalid data. ` + reason
+      `Function Query.where() called with invalid data. ` + reason
     );
     expect(() => coll.orderBy(path)).to.throw(
-      `Function ${
-        usesFunctionalApi() ? 'orderBy' : 'Query.orderBy'
-      }() called with invalid data. ` + reason
+      `Function Query.orderBy() called with invalid data. ` + reason
     );
 
     // Update paths.

@@ -16,9 +16,9 @@
  */
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
-import json from 'rollup-plugin-json';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
 import { uglify } from 'rollup-plugin-uglify';
 import typescript from 'typescript';
 

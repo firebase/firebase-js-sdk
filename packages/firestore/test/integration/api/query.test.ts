@@ -24,8 +24,6 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
-  notEqualOp,
-  notInOp,
   toChangesArray,
   toDataArray,
   withTestCollection,
@@ -334,6 +332,43 @@ apiDescribe('Queries', (persistence: boolean) => {
         .then(() => {
           unlisten!();
         });
+    });
+  });
+
+  it('maintains correct DocumentChange indices', async () => {
+    const testDocs = {
+      'a': { order: 1 },
+      'b': { order: 2 },
+      'c': { 'order': 3 }
+    };
+    await withTestCollection(persistence, testDocs, async coll => {
+      const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
+      const unlisten = coll.orderBy('order').onSnapshot(accumulator.storeEvent);
+      await accumulator
+        .awaitEvent()
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(3);
+          verifyDocumentChange(changes[0], 'a', -1, 0, 'added');
+          verifyDocumentChange(changes[1], 'b', -1, 1, 'added');
+          verifyDocumentChange(changes[2], 'c', -1, 2, 'added');
+        })
+        .then(() => coll.doc('b').set({ order: 4 }))
+        .then(() => accumulator.awaitEvent())
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(1);
+          verifyDocumentChange(changes[0], 'b', 1, 2, 'modified');
+        })
+        .then(() => coll.doc('c').delete())
+        .then(() => accumulator.awaitEvent())
+        .then(querySnapshot => {
+          const changes = querySnapshot.docChanges();
+          expect(changes.length).to.equal(1);
+          verifyDocumentChange(changes[0], 'c', 1, -1, 'removed');
+        });
+
+      unlisten();
     });
   });
 
@@ -687,60 +722,52 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   it('can use != filters', async () => {
+    // These documents are ordered by value in "zip" since the '!=' filter is
+    // an inequality, which results in documents being sorted by value.
     const testDocs = {
-      a: { zip: 98101 },
+      a: { zip: Number.NaN },
       b: { zip: 91102 },
-      c: { zip: '98101' },
-      d: { zip: [98101] },
-      e: { zip: ['98101', { zip: 98101 }] },
-      f: { zip: { code: 500 } },
-      g: { zip: [98101, 98102] },
-      h: { code: 500 },
-      i: { zip: null },
-      j: { zip: Number.NaN }
+      c: { zip: 98101 },
+      d: { zip: '98101' },
+      e: { zip: [98101] },
+      f: { zip: [98101, 98102] },
+      g: { zip: ['98101', { zip: 98101 }] },
+      h: { zip: { code: 500 } },
+      i: { code: 500 },
+      j: { zip: null }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let expected: { [name: string]: any } = { ...testDocs };
-      delete expected.a;
-      delete expected.h;
+      delete expected.c;
       delete expected.i;
-      const snapshot = await coll.where('zip', notEqualOp, 98101).get();
-      expect(toDataArray(snapshot)).to.have.deep.members(
-        Object.values(expected)
-      );
+      delete expected.j;
+      const snapshot = await coll.where('zip', '!=', 98101).get();
+      expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
 
       // With objects.
-      const snapshot2 = await coll
-        .where('zip', notEqualOp, { code: 500 })
-        .get();
-      expected = { ...testDocs };
-      delete expected.f;
-      delete expected.h;
-      delete expected.i;
-      expect(toDataArray(snapshot2)).to.have.deep.members(
-        Object.values(expected)
-      );
-
-      // With null.
-      const snapshot3 = await coll.where('zip', notEqualOp, null).get();
-      expected = { ...testDocs };
-      delete expected.h;
-      delete expected.i;
-      expect(toDataArray(snapshot3)).to.have.deep.members(
-        Object.values(expected)
-      );
-
-      // With NaN.
-      const snapshot4 = await coll.where('zip', notEqualOp, Number.NaN).get();
+      const snapshot2 = await coll.where('zip', '!=', { code: 500 }).get();
       expected = { ...testDocs };
       delete expected.h;
       delete expected.i;
       delete expected.j;
-      expect(toDataArray(snapshot4)).to.have.deep.members(
-        Object.values(expected)
-      );
+      expect(toDataArray(snapshot2)).to.deep.equal(Object.values(expected));
+
+      // With null.
+      const snapshot3 = await coll.where('zip', '!=', null).get();
+      expected = { ...testDocs };
+      delete expected.i;
+      delete expected.j;
+      expect(toDataArray(snapshot3)).to.deep.equal(Object.values(expected));
+
+      // With NaN.
+      const snapshot4 = await coll.where('zip', '!=', Number.NaN).get();
+      expected = { ...testDocs };
+      delete expected.a;
+      delete expected.i;
+      delete expected.j;
+      expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
     });
   });
 
@@ -753,7 +780,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await coll
-        .where(FieldPath.documentId(), notEqualOp, 'aa')
+        .where(FieldPath.documentId(), '!=', 'aa')
         .get();
 
       expect(toDataArray(snapshot)).to.deep.equal([
@@ -769,7 +796,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       a: { array: [42] },
       b: { array: ['a', 42, 'c'] },
       c: { array: [41.999, '42', { a: [42] }] },
-      d: { array: [42], array2: ['bingo'] }
+      d: { array: [42], array2: ['bingo'] },
+      e: { array: [null] },
+      f: { array: [Number.NaN] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -783,6 +812,15 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // NOTE: The backend doesn't currently support null, NaN, objects, or
       // arrays, so there isn't much of anything else interesting to test.
+      // With null.
+      const snapshot3 = await coll.where('zip', 'array-contains', null).get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With NaN.
+      const snapshot4 = await coll
+        .where('zip', 'array-contains', Number.NaN)
+        .get();
+      expect(toDataArray(snapshot4)).to.deep.equal([]);
     });
   });
 
@@ -794,7 +832,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       d: { zip: [98101] },
       e: { zip: ['98101', { zip: 98101 }] },
       f: { zip: { code: 500 } },
-      g: { zip: [98101, 98102] }
+      g: { zip: [98101, 98102] },
+      h: { zip: null },
+      i: { zip: Number.NaN }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -810,6 +850,24 @@ apiDescribe('Queries', (persistence: boolean) => {
       // With objects.
       const snapshot2 = await coll.where('zip', 'in', [{ code: 500 }]).get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
+
+      // With null.
+      const snapshot3 = await coll.where('zip', 'in', [null]).get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With null and a value.
+      const snapshot4 = await coll.where('zip', 'in', [98101, null]).get();
+      expect(toDataArray(snapshot4)).to.deep.equal([{ zip: 98101 }]);
+
+      // With NaN.
+      const snapshot5 = await coll.where('zip', 'in', [Number.NaN]).get();
+      expect(toDataArray(snapshot5)).to.deep.equal([]);
+
+      // With NaN and a value.
+      const snapshot6 = await coll
+        .where('zip', 'in', [98101, Number.NaN])
+        .get();
+      expect(toDataArray(snapshot6)).to.deep.equal([{ zip: 98101 }]);
     });
   });
 
@@ -832,59 +890,65 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // TODO(ne-queries): re-enable in next PR to make public.
-  // eslint-disable-next-line no-restricted-properties
-  it.skip('can use NOT_IN filters', async () => {
+  it('can use NOT_IN filters', async () => {
+    // These documents are ordered by value in "zip" since the 'not-in' filter is
+    // an inequality, which results in documents being sorted by value.
     const testDocs = {
-      a: { zip: 98101 },
+      a: { zip: Number.NaN },
       b: { zip: 91102 },
-      c: { zip: 98103 },
-      d: { zip: [98101] },
-      e: { zip: ['98101', { zip: 98101 }] },
-      f: { zip: { code: 500 } },
-      g: { zip: [98101, 98102] },
-      h: { code: 500 },
-      i: { zip: null },
-      j: { zip: Number.NaN }
+      c: { zip: 98101 },
+      d: { zip: 98103 },
+      e: { zip: [98101] },
+      f: { zip: [98101, 98102] },
+      g: { zip: ['98101', { zip: 98101 }] },
+      h: { zip: { code: 500 } },
+      i: { code: 500 },
+      j: { zip: null }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let expected: { [name: string]: any } = { ...testDocs };
-      delete expected.a;
       delete expected.c;
-      delete expected.g;
-      delete expected.h;
+      delete expected.d;
+      delete expected.f;
+      delete expected.i;
+      delete expected.j;
       const snapshot = await coll
-        .where('zip', notInOp, [98101, 98103, [98101, 98102]])
+        .where('zip', 'not-in', [98101, 98103, [98101, 98102]])
         .get();
       expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
 
       // With objects.
-      const snapshot2 = await coll.where('zip', notInOp, [{ code: 500 }]).get();
+      const snapshot2 = await coll
+        .where('zip', 'not-in', [{ code: 500 }])
+        .get();
       expected = { ...testDocs };
-      delete expected.f;
       delete expected.h;
+      delete expected.i;
+      delete expected.j;
       expect(toDataArray(snapshot2)).to.deep.equal(Object.values(expected));
 
       // With null.
-      const snapshot3 = await coll.where('zip', notInOp, [null]).get();
+      const snapshot3 = await coll.where('zip', 'not-in', [null]).get();
       expect(toDataArray(snapshot3)).to.deep.equal([]);
 
       // With NaN.
-      const snapshot4 = await coll.where('zip', notInOp, [Number.NaN]).get();
+      const snapshot4 = await coll.where('zip', 'not-in', [Number.NaN]).get();
       expected = { ...testDocs };
-      delete expected.h;
+      delete expected.a;
+      delete expected.i;
       delete expected.j;
       expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
 
       // With NaN and a number.
       const snapshot5 = await coll
-        .where('zip', notInOp, [Number.NaN, 98101])
+        .where('zip', 'not-in', [Number.NaN, 98101])
         .get();
       expected = { ...testDocs };
       delete expected.a;
-      delete expected.h;
+      delete expected.c;
+      delete expected.i;
       delete expected.j;
       expect(toDataArray(snapshot5)).to.deep.equal(Object.values(expected));
     });
@@ -899,7 +963,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await coll
-        .where(FieldPath.documentId(), notInOp, ['aa', 'ab'])
+        .where(FieldPath.documentId(), 'not-in', ['aa', 'ab'])
         .get();
 
       expect(toDataArray(snapshot)).to.deep.equal([
@@ -917,7 +981,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       d: { array: [42], array2: ['bingo'] },
       e: { array: [43] },
       f: { array: [{ a: 42 }] },
-      g: { array: 42 }
+      g: { array: 42 },
+      h: { array: [null] },
+      i: { array: [Number.NaN] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -936,6 +1002,30 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where('array', 'array-contains-any', [{ a: 42 }])
         .get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
+
+      // With null.
+      const snapshot3 = await coll
+        .where('array', 'array-contains-any', [null])
+        .get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With null and a value.
+      const snapshot4 = await coll
+        .where('array', 'array-contains-any', [43, null])
+        .get();
+      expect(toDataArray(snapshot4)).to.deep.equal([{ array: [43] }]);
+
+      // With NaN.
+      const snapshot5 = await coll
+        .where('array', 'array-contains-any', [Number.NaN])
+        .get();
+      expect(toDataArray(snapshot5)).to.deep.equal([]);
+
+      // With NaN and a value.
+      const snapshot6 = await coll
+        .where('array', 'array-contains-any', [43, Number.NaN])
+        .get();
+      expect(toDataArray(snapshot6)).to.deep.equal([{ array: [43] }]);
     });
   });
 
@@ -1112,3 +1202,16 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 });
+
+function verifyDocumentChange<T>(
+  change: firestore.DocumentChange<T>,
+  id: string,
+  oldIndex: number,
+  newIndex: number,
+  type: firestore.DocumentChangeType
+): void {
+  expect(change.doc.id).to.equal(id);
+  expect(change.type).to.equal(type);
+  expect(change.oldIndex).to.equal(oldIndex);
+  expect(change.newIndex).to.equal(newIndex);
+}

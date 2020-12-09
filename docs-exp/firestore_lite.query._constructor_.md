@@ -4,6 +4,8 @@
 
 ## Query.(constructor)
 
+Constructs a new instance of the `Query` class
+
 <b>Signature:</b>
 
 ```typescript

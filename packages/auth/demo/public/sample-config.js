@@ -1,6 +1,6 @@
 /*
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,3 +21,6 @@ var config = {
   storageBucket: "your-app.appspot.com",
   messagingSenderId: "MESSAGING_SENDER_ID"
 };
+
+// Uncomment the following line to use with emulator
+// var emulatorUrl = 'http://localhost:9099';

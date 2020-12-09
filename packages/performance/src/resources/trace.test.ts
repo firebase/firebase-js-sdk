@@ -71,10 +71,14 @@ describe('Firebase Performance > trace', () => {
   });
 
   describe('#record', () => {
-    it('logs a trace without metrics or custom attributes', () => {
-      trace.record(1, 20);
+    it('logs a custom trace with non-positive start time value', () => {
+      expect(() => trace.record(0, 20)).to.throw();
+      expect(() => trace.record(-100, 20)).to.throw();
+    });
 
-      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
+    it('logs a custom trace with non-positive duration value', () => {
+      expect(() => trace.record(1000, 0)).to.throw();
+      expect(() => trace.record(1000, -200)).to.throw();
     });
 
     it('logs a trace with metrics', () => {

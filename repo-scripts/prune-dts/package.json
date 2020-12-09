@@ -1,0 +1,39 @@
+{
+  "name": "firebase-repo-scripts-prune-dts",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "^8.13.0 || >=10.10.0"
+  },
+  "description": "A script to prune non-exported types from a d.ts.",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "scripts": {
+    "prettier": "prettier --write '**/*.ts'",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --require ts-node/register --timeout 5000 *.test.ts"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "eslint": "7.14.0",
+    "eslint-plugin-unused-imports": "1.0.0",
+    "prettier": "2.2.0"
+  },
+  "repository": {
+    "directory": "repo-scripts/prune-dts",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  },
+  "devDependencies": {
+    "@types/eslint": "7.2.5",
+    "@types/prettier": "2.1.5",
+    "mocha": "8.2.1"
+  }
+}

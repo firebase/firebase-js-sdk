@@ -26,12 +26,26 @@ module.exports = {
   plugins: ['import'],
   rules: {
     'no-console': ['error', { allow: ['warn', 'error'] }],
-    'import/no-default-export': 'error',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
         varsIgnorePattern: '^_',
         args: 'none'
+      }
+    ],
+    'import/order': [
+      'error',
+      {
+        'groups': [
+          'builtin',
+          'external',
+          'internal',
+          'parent',
+          'sibling',
+          'index'
+        ],
+        'newlines-between': 'always',
+        'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
       }
     ],
     'no-restricted-globals': [
@@ -47,6 +61,15 @@ module.exports = {
     ]
   },
   overrides: [
+    {
+      files: ['**/*.d.ts'],
+      rules: {
+        'camelcase': 'off',
+        'import/no-duplicates': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unused-vars': 'off'
+      }
+    },
     {
       files: ['**/*.test.ts', '**/test/**/*.ts'],
       rules: {

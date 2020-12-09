@@ -4,6 +4,8 @@
 
 ## FieldPath.isEqual() method
 
+Returns true if this `FieldPath` is equal to the provided one.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ isEqual(other: FieldPath): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [FieldPath](./firestore_.fieldpath.md) |  |
+|  other | [FieldPath](./firestore_.fieldpath.md) | The <code>FieldPath</code> to compare against. |
 
 <b>Returns:</b>
 
 boolean
+
+true if this `FieldPath` is equal to the provided one.
 

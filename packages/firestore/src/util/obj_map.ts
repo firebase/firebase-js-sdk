@@ -27,10 +27,10 @@ type Entry<K, V> = [K, V];
  */
 export class ObjectMap<KeyType, ValueType> {
   /**
-   * The inner map for a key -> value pair. Due to the possibility of
-   * collisions we keep a list of entries that we do a linear search through
-   * to find an actual match. Note that collisions should be rare, so we still
-   * expect near constant time lookups in practice.
+   * The inner map for a key/value pair. Due to the possibility of collisions we
+   * keep a list of entries that we do a linear search through to find an actual
+   * match. Note that collisions should be rare, so we still expect near
+   * constant time lookups in practice.
    */
   private inner: {
     [canonicalId: string]: Array<Entry<KeyType, ValueType>>;

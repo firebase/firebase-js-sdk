@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';

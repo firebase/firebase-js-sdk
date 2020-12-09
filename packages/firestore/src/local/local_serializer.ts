@@ -16,7 +16,10 @@
  */
 
 import { Timestamp } from '../api/timestamp';
+import { Bundle, NamedQuery } from '../core/bundle';
+import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
 import {
   Document,
   MaybeDocument,
@@ -25,12 +28,19 @@ import {
 } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
+import {
+  BundleMetadata as ProtoBundleMetadata,
+  NamedQuery as ProtoNamedQuery,
+  BundledQuery as ProtoBundledQuery
+} from '../protos/firestore_bundle_proto';
 import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
 import {
+  convertQueryTargetToQuery,
   fromDocument,
   fromDocumentsTarget,
   fromMutation,
   fromQueryTarget,
+  fromVersion,
   JsonProtoSerializer,
   toDocument,
   toDocumentsTarget,
@@ -39,9 +49,11 @@ import {
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
+
 import {
+  DbBundle,
   DbMutationBatch,
+  DbNamedQuery,
   DbNoDocument,
   DbQuery,
   DbRemoteDocument,
@@ -183,6 +195,28 @@ export function fromDbMutationBatch(
   const baseMutations = (dbBatch.baseMutations || []).map(m =>
     fromMutation(localSerializer.remoteSerializer, m)
   );
+
+  // Squash old transform mutations into existing patch or set mutations.
+  // The replacement of representing `transforms` with `update_transforms`
+  // on the SDK means that old `transform` mutations stored in IndexedDB need
+  // to be updated to `update_transforms`.
+  // TODO(b/174608374): Remove this code once we perform a schema migration.
+  for (let i = dbBatch.mutations.length - 1; i >= 0; --i) {
+    const mutationProto = dbBatch.mutations[i];
+    if (mutationProto?.transform !== undefined) {
+      debugAssert(
+        i >= 1 &&
+          dbBatch.mutations[i - 1].transform === undefined &&
+          dbBatch.mutations[i - 1].update !== undefined,
+        'TransformMutation should be preceded by a patch or set mutation'
+      );
+      const mutationToJoin = dbBatch.mutations[i - 1];
+      mutationToJoin.updateTransforms = mutationProto.transform.fieldTransforms;
+      dbBatch.mutations.splice(i, 1);
+      --i;
+    }
+  }
+
   const mutations = dbBatch.mutations.map(m =>
     fromMutation(localSerializer.remoteSerializer, m)
   );
@@ -270,4 +304,79 @@ export function toDbTarget(
  */
 function isDocumentQuery(dbQuery: DbQuery): dbQuery is PublicDocumentsTarget {
   return (dbQuery as PublicDocumentsTarget).documents !== undefined;
+}
+
+/** Encodes a DbBundle to a Bundle. */
+export function fromDbBundle(dbBundle: DbBundle): Bundle {
+  return {
+    id: dbBundle.bundleId,
+    createTime: fromDbTimestamp(dbBundle.createTime),
+    version: dbBundle.version
+  };
+}
+
+/** Encodes a BundleMetadata to a DbBundle. */
+export function toDbBundle(metadata: ProtoBundleMetadata): DbBundle {
+  return {
+    bundleId: metadata.id!,
+    createTime: toDbTimestamp(fromVersion(metadata.createTime!)),
+    version: metadata.version!
+  };
+}
+
+/** Encodes a DbNamedQuery to a NamedQuery. */
+export function fromDbNamedQuery(dbNamedQuery: DbNamedQuery): NamedQuery {
+  return {
+    name: dbNamedQuery.name,
+    query: fromBundledQuery(dbNamedQuery.bundledQuery),
+    readTime: fromDbTimestamp(dbNamedQuery.readTime)
+  };
+}
+
+/** Encodes a NamedQuery from a bundle proto to a DbNamedQuery. */
+export function toDbNamedQuery(query: ProtoNamedQuery): DbNamedQuery {
+  return {
+    name: query.name!,
+    readTime: toDbTimestamp(fromVersion(query.readTime!)),
+    bundledQuery: query.bundledQuery!
+  };
+}
+
+/**
+ * Encodes a `BundledQuery` from bundle proto to a Query object.
+ *
+ * This reconstructs the original query used to build the bundle being loaded,
+ * including features exists only in SDKs (for example: limit-to-last).
+ */
+export function fromBundledQuery(bundledQuery: ProtoBundledQuery): Query {
+  const query = convertQueryTargetToQuery({
+    parent: bundledQuery.parent!,
+    structuredQuery: bundledQuery.structuredQuery!
+  });
+  if (bundledQuery.limitType === 'LAST') {
+    debugAssert(
+      !!query.limit,
+      'Bundled query has limitType LAST, but limit is null'
+    );
+    return queryWithLimit(query, query.limit, LimitType.Last);
+  }
+  return query;
+}
+
+/** Encodes a NamedQuery proto object to a NamedQuery model object. */
+export function fromProtoNamedQuery(namedQuery: ProtoNamedQuery): NamedQuery {
+  return {
+    name: namedQuery.name!,
+    query: fromBundledQuery(namedQuery.bundledQuery!),
+    readTime: fromVersion(namedQuery.readTime!)
+  };
+}
+
+/** Encodes a BundleMetadata proto object to a Bundle model object. */
+export function fromBundleMetadata(metadata: ProtoBundleMetadata): Bundle {
+  return {
+    id: metadata.id!,
+    version: metadata.version!,
+    createTime: fromVersion(metadata.createTime!)
+  };
 }

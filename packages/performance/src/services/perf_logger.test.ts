@@ -75,7 +75,6 @@ describe('Performance Monitoring > perf_logger', () => {
     stub(transportService, 'transportHandler').callsFake(mockTransportHandler);
     stub(Api.prototype, 'getUrl').returns(PAGE_URL);
     stub(Api.prototype, 'getTimeOrigin').returns(TIME_ORIGIN);
-    stub(initializationService, 'isPerfInitialized').returns(true);
     stub(attributeUtils, 'getEffectiveConnectionType').returns(
       EFFECTIVE_CONNECTION_TYPE
     );
@@ -89,6 +88,29 @@ describe('Performance Monitoring > perf_logger', () => {
   });
 
   describe('logTrace', () => {
+    it('will not drop custom events sent before initialization finishes', async () => {
+      getIidStub.returns(IID);
+      stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
+      stub(initializationService, 'isPerfInitialized').returns(false);
+
+      // Simulates logging being enabled after initialization completes.
+      const initializationPromise = Promise.resolve().then(() => {
+        SettingsService.getInstance().loggingEnabled = true;
+        SettingsService.getInstance().logTraceAfterSampling = true;
+      });
+      stub(initializationService, 'getInitializationPromise').returns(
+        initializationPromise
+      );
+
+      const trace = new Trace(TRACE_NAME);
+      trace.record(START_TIME, DURATION);
+      await initializationPromise.then(() => {
+        clock.tick(1);
+      });
+
+      expect(addToQueueStub).to.be.called;
+    });
+
     it('creates, serializes and sends a trace to transport service', () => {
       const EXPECTED_TRACE_MESSAGE =
         `{` +
@@ -98,6 +120,7 @@ describe('Performance Monitoring > perf_logger', () => {
 "counters":{"counter1":3},"custom_attributes":{"attr":"val"}}}`;
       getIidStub.returns(IID);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
+      stub(initializationService, 'isPerfInitialized').returns(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
       const trace = new Trace(TRACE_NAME);
@@ -115,6 +138,7 @@ describe('Performance Monitoring > perf_logger', () => {
     it('does not log an event if cookies are disabled in the browser', () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(false);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
+      stub(initializationService, 'isPerfInitialized').returns(true);
       const trace = new Trace(TRACE_NAME);
       trace.record(START_TIME, DURATION);
       clock.tick(1);
@@ -136,6 +160,7 @@ describe('Performance Monitoring > perf_logger', () => {
 "counter31":31,"counter32":32}}}`;
       getIidStub.returns(IID);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
+      stub(initializationService, 'isPerfInitialized').returns(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
       const trace = new Trace(TRACE_NAME);
@@ -160,6 +185,7 @@ describe('Performance Monitoring > perf_logger', () => {
 "custom_attributes":{"attr1":"val1","attr2":"val2","attr3":"val3","attr4":"val4","attr5":"val5"}}}`;
       getIidStub.returns(IID);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
+      stub(initializationService, 'isPerfInitialized').returns(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
       const trace = new Trace(TRACE_NAME);
@@ -189,6 +215,7 @@ describe('Performance Monitoring > perf_logger', () => {
 "client_start_time_us":${flooredStartTime},"duration_us":${DURATION * 1000},\
 "counters":{"domInteractive":10000,"domContentLoadedEventEnd":20000,"loadEventEnd":10000,\
 "_fp":40000,"_fcp":50000,"_fid":90000}}}`;
+      stub(initializationService, 'isPerfInitialized').returns(true);
       getIidStub.returns(IID);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
@@ -289,6 +316,7 @@ describe('Performance Monitoring > perf_logger', () => {
 "response_payload_bytes":${RESOURCE_PERFORMANCE_ENTRY.transferSize},\
 "client_start_time_us":${START_TIME},\
 "time_to_response_completed_us":${TIME_TO_RESPONSE_COMPLETED}}}`;
+      stub(initializationService, 'isPerfInitialized').returns(true);
       getIidStub.returns(IID);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
       SettingsService.getInstance().loggingEnabled = true;
@@ -330,6 +358,7 @@ describe('Performance Monitoring > perf_logger', () => {
         workerStart: 0,
         toJSON: () => {}
       };
+      stub(initializationService, 'isPerfInitialized').returns(true);
       getIidStub.returns(IID);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
@@ -370,6 +399,7 @@ describe('Performance Monitoring > perf_logger', () => {
         workerStart: 0,
         toJSON: () => {}
       };
+      stub(initializationService, 'isPerfInitialized').returns(true);
       getIidStub.returns(IID);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;

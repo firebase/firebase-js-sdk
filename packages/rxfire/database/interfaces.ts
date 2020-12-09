@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { database } from 'firebase';
+import firebase from 'firebase';
 
 export enum ListenEvent {
   added = 'child_added',
@@ -26,7 +26,7 @@ export enum ListenEvent {
 }
 
 export interface QueryChange {
-  snapshot: database.DataSnapshot;
+  snapshot: firebase.database.DataSnapshot;
   prevKey: string | null | undefined;
   event: ListenEvent;
 }

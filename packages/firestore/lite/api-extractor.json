@@ -1,0 +1,23 @@
+{
+  "extends": "../../../config/api-extractor.json",
+  "mainEntryPointFilePath": "../dist/firestore/lite/index.d.ts",
+  "dtsRollup": {
+    "enabled": true,
+    "publicTrimmedFilePath": "../dist/lite/private.d.ts"
+  },
+  "messages": {
+    "extractorMessageReporting": {
+      "ae-missing-release-tag": {
+        "logLevel": "none"
+      },
+      "ae-unresolved-link": {
+        "logLevel": "none"
+      }
+    },
+    "tsdocMessageReporting": {
+      "tsdoc-undefined-tag": {
+        "logLevel": "none"
+      }
+    }
+  }
+}

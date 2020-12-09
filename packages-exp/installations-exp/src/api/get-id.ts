@@ -21,6 +21,9 @@ import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 /**
+ * Creates a Firebase Installation if there isn't one for the app and
+ * returns the Installation ID.
+ *
  * @public
  */
 export async function getId(

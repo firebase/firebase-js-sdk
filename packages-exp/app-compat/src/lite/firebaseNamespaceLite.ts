@@ -17,7 +17,6 @@
 
 import { FirebaseNamespace } from '@firebase/app-types';
 import {
-  _FirebaseApp,
   _FirebaseNamespace,
   FirebaseServiceNamespace,
   FirebaseService

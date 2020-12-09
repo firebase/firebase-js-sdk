@@ -20,10 +20,10 @@ import {
   newQueryForPath,
   queryWithLimit
 } from '../../../src/core/query';
-import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
-
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
+import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
+
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
@@ -444,7 +444,7 @@ describeSpec('Limbo Documents:', [], () => {
         .expectEvents(query1, { fromCache: true })
         .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(true)
-        .expectListen(query1, 'resume-token-1000000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000000' })
         .watchAcksFull(query1, 3 * 1e6)
         .expectLimboDocs(docB.key)
         .ackLimbo(4 * 1e6, deletedDocB)
@@ -476,7 +476,7 @@ describeSpec('Limbo Documents:', [], () => {
         .expectLimboDocs(docB.key, docC.key)
         .client(1)
         .stealPrimaryLease()
-        .expectListen(query1, 'resume-token-1000000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000000' })
         .client(0)
         .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(false)
@@ -489,7 +489,7 @@ describeSpec('Limbo Documents:', [], () => {
         .client(0)
         .expectEvents(query1, { removed: [docB], fromCache: true })
         .stealPrimaryLease()
-        .expectListen(query1, 'resume-token-1000000')
+        .expectListen(query1, { resumeToken: 'resume-token-1000000' })
         .watchAcksFull(query1, 5 * 1e6)
         .expectLimboDocs(docC.key)
         .ackLimbo(6 * 1e6, deletedDocC)
@@ -545,7 +545,7 @@ describeSpec('Limbo Documents:', [], () => {
         // document `docBCommitted`, since we haven't received the resolved
         // document from Watch. Until we do, we return the version from cache
         // even though the backend told it does not match.
-        .userListens(originalQuery, 'resume-token-2000')
+        .userListens(originalQuery, { resumeToken: 'resume-token-2000' })
         .expectEvents(originalQuery, {
           added: [docA, docBDirty],
           fromCache: true
@@ -644,9 +644,7 @@ describeSpec('Limbo Documents:', [], () => {
 
   specTest(
     'Limbo resolution throttling with all results at once from watch',
-    // TODO(dconeybe) Remove the 'no-*' tags as these platforms implement limbo
-    //  resolution throttling.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const doc1 = doc('collection/a', 1000, { key: 'a' });
@@ -721,9 +719,7 @@ describeSpec('Limbo Documents:', [], () => {
 
   specTest(
     'Limbo resolution throttling with results one at a time from watch',
-    // TODO(dconeybe) Remove the 'no-*' tags as these platforms implement limbo
-    //  resolution throttling.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const doc1 = doc('collection/a', 1000, { key: 'a' });
@@ -801,9 +797,7 @@ describeSpec('Limbo Documents:', [], () => {
 
   specTest(
     'Limbo resolution throttling when a limbo listen is rejected.',
-    // TODO(dconeybe) Remove the 'no-*' tags as these platforms implement limbo
-    //  resolution throttling.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const doc1 = doc('collection/a', 1000, { key: 'a' });
@@ -854,9 +848,7 @@ describeSpec('Limbo Documents:', [], () => {
 
   specTest(
     'Limbo resolution throttling with existence filter mismatch',
-    // TODO(dconeybe) Remove the 'no-*' tags as these platforms implement limbo
-    //  resolution throttling.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA1 = doc('collection/a1', 1000, { key: 'a1' });

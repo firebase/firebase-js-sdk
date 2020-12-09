@@ -17,34 +17,27 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import { Firestore } from './src/api/database';
-import {
-  MultiTabOfflineComponentProvider,
-  OnlineComponentProvider
-} from './src/core/component_provider';
+import { FirebaseFirestore as ExpFirebaseFirestore } from './exp/src/api/database';
+import { name, version } from './package.json';
+import { Firestore, IndexedDbPersistenceProvider } from './src/api/database';
 import { configureForFirebase } from './src/config';
 
 import './register-module';
-
-import { name, version } from './package.json';
 
 /**
  * Registers the main Firestore Node build with the components framework.
  * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  configureForFirebase(instance, (app, auth) => {
-    const onlineComponentProvider = new OnlineComponentProvider();
-    const offlineComponentProvider = new MultiTabOfflineComponentProvider(
-      onlineComponentProvider
-    );
-    return new Firestore(
-      app,
-      auth,
-      offlineComponentProvider,
-      onlineComponentProvider
-    );
-  });
+  configureForFirebase(
+    instance,
+    (app, auth) =>
+      new Firestore(
+        app,
+        new ExpFirebaseFirestore(app, auth),
+        new IndexedDbPersistenceProvider()
+      )
+  );
   instance.registerVersion(name, version, 'node');
 }
 

@@ -1,5 +1,25 @@
 # @firebase/messaging
 
+## 0.7.3
+
+### Patch Changes
+
+- [`54a46f89c`](https://github.com/firebase/firebase-js-sdk/commit/54a46f89c1c45435c76412fa2ed296e986c2f6ab) [#3780](https://github.com/firebase/firebase-js-sdk/pull/3780) - Adds a timeout for `onBackgroundMessage` hook so that silent-push warnings won't show if `showNotification` is called inside the hook within 1s.
+  This fixes the issue where the silent-push warning is displayed along with the message shown with [ServiceWorkerRegistration.showNotification](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification).
+- Updated dependencies [[`9cf727fcc`](https://github.com/firebase/firebase-js-sdk/commit/9cf727fcc3d049551b16ae0698ac33dc2fe45ada)]:
+  - @firebase/util@0.3.4
+  - @firebase/component@0.1.21
+  - @firebase/installations@0.4.19
+
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies [[`a5768b0aa`](https://github.com/firebase/firebase-js-sdk/commit/a5768b0aa7d7ce732279931aa436e988c9f36487), [`7d916d905`](https://github.com/firebase/firebase-js-sdk/commit/7d916d905ba16816ac8ac7c8748c83831ff614ce)]:
+  - @firebase/component@0.1.20
+  - @firebase/util@0.3.3
+  - @firebase/installations@0.4.18
+
 ## 0.7.1
 
 ### Patch Changes

@@ -4,6 +4,8 @@
 
 ## DocumentSnapshot.exists() method
 
+Property of the `DocumentSnapshot` that signals whether or not the data exists. True if the document exists.
+
 <b>Signature:</b>
 
 ```typescript

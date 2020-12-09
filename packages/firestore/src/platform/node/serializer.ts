@@ -16,9 +16,25 @@
  */
 
 /** Return the Platform-specific serializer monitor. */
-import { JsonProtoSerializer } from '../../remote/serializer';
+import { TextDecoder, TextEncoder } from 'util';
+
 import { DatabaseId } from '../../core/database_info';
+import { JsonProtoSerializer } from '../../remote/serializer';
 
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
   return new JsonProtoSerializer(databaseId, /* useProto3Json= */ false);
+}
+
+/**
+ * An instance of the Platform's 'TextEncoder' implementation.
+ */
+export function newTextEncoder(): TextEncoder {
+  return new TextEncoder();
+}
+
+/**
+ * An instance of the Platform's 'TextDecoder' implementation.
+ */
+export function newTextDecoder(): TextDecoder {
+  return new TextDecoder('utf-8');
 }

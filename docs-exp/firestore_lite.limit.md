@@ -4,19 +4,23 @@
 
 ## limit() function
 
+Creates a `QueryConstraint` that only returns the first matching documents.
+
 <b>Signature:</b>
 
 ```typescript
-export function limit(limit: number): QueryConstraint;
+export declare function limit(limit: number): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  limit | number |  |
+|  limit | number | The maximum number of items to return. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_lite.queryconstraint.md)
+
+The created `Query`<!-- -->.
 

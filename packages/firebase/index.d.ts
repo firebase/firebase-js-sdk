@@ -485,7 +485,7 @@ declare namespace firebase {
     linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
     metadata: firebase.auth.UserMetadata;
     /**
-     * The {@link firebase.User.MultiFactor} object corresponding to the current user.
+     * The {@link firebase.User.MultiFactorUser} object corresponding to the current user.
      * This is used to access all multi-factor properties and operations related to the
      * current user.
      */
@@ -1799,10 +1799,22 @@ declare namespace firebase.functions {
    */
   export class Functions {
     private constructor();
+
+    /**
+     * Modify this instance to communicate with the Cloud Functions emulator.
+     *
+     * Note: this must be called before this instance has been used to do any operations.
+     *
+     * @param host The emulator host (ex: localhost)
+     * @param port The emulator port (ex: 5001)
+     */
+    useEmulator(host: string, port: number): void;
+
     /**
      * Changes this instance to point to a Cloud Functions emulator running
      * locally. See https://firebase.google.com/docs/functions/local-emulator
      *
+     * @deprecated Prefer the useEmulator(host, port) method.
      * @param origin The origin of the local emulator, such as
      * "http://localhost:5005".
      */
@@ -1952,7 +1964,7 @@ declare namespace firebase.auth {
      * For the REVERT_SECOND_FACTOR_ADDITION action, which allows a user to unenroll
      * a newly added second factor, this object contains a `multiFactorInfo` field with
      * the information about the second factor. For phone second factor, the
-     * `multiFactorInfo` is a {@link firebase.auth.Auth.PhoneMultiFactorInfo} object,
+     * `multiFactorInfo` is a {@link firebase.auth.PhoneMultiFactorInfo} object,
      * which contains the phone number.
      */
     data: {
@@ -3120,6 +3132,14 @@ declare namespace firebase.auth {
      */
     useDeviceLanguage(): void;
     /**
+     * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be
+     * called synchronously immediately following the first call to `firebase.auth()`.  Do not use
+     * with production credentials as emulator traffic is not encrypted.
+     *
+     * @param url The URL at which the emulator is running (eg, 'http://localhost:9099')
+     */
+    useEmulator(url: string): void;
+    /**
      * Checks a password reset code sent to the user by email or other out-of-band
      * mechanism.
      *
@@ -3303,8 +3323,8 @@ declare namespace firebase.auth {
   /**
    * An authentication error.
    * For method-specific error codes, refer to the specific methods in the
-   * documentation. For common error codes, check the reference below. Use {@link
-   * firebase.auth.Error#code} to get the specific error code. For a detailed
+   * documentation. For common error codes, check the reference below. Use{@link
+   * firebase.auth.Error.code} to get the specific error code. For a detailed
    * message, use {@link firebase.auth.Error.message}.
    * Errors with the code <strong>auth/account-exists-with-different-credential
    * </strong> will have the additional fields <strong>email</strong> and <strong>
@@ -3432,7 +3452,7 @@ declare namespace firebase.auth {
     phoneNumber?: string;
     /**
      * The tenant ID being used for sign-in/linking. If you use
-     * {@link firebase.auth.signInWithRedirect} to sign in, you have to
+     * {@link firebase.auth.Auth.signInWithRedirect} to sign in, you have to
      * set the tenant ID on Auth instanace again as the tenant ID is not
      * persisted after redirection.
      */
@@ -5648,6 +5668,15 @@ declare namespace firebase.database {
      */
     app: firebase.app.App;
     /**
+     * Modify this instance to communicate with the Realtime Database emulator.
+     *
+     * <p>Note: This method must be called before performing any other operation.
+     *
+     * @param host the emulator host (ex: localhost)
+     * @param port the emulator port (ex: 8080)
+     */
+    useEmulator(host: string, port: number): void;
+    /**
      * Disconnects from the server (all Database operations will be completed
      * offline).
      *
@@ -6141,6 +6170,16 @@ declare namespace firebase.database {
       callback?: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       context?: Object | null
     ): void;
+
+    /**
+     * Gets the most up-to-date result for this query.
+     *
+     * @return A promise which resolves to the resulting DataSnapshot if
+     * a value is available, or rejects if the client is unable to return
+     * a value (e.g., if the server is unreachable and there is nothing
+     * cached).
+     */
+    get(): Promise<DataSnapshot>;
 
     /**
      * Listens for data changes at a particular location.
@@ -6873,7 +6912,7 @@ declare namespace firebase.database {
 
   interface ThenableReference
     extends firebase.database.Reference,
-      Promise<Reference> {}
+      Pick<Promise<Reference>, 'then' | 'catch'> {}
 
   /**
    * Logs debugging information to the console.
@@ -7396,7 +7435,7 @@ declare namespace firebase.storage {
     prefixes: Reference[];
     /**
      * Objects in this directory.
-     * You can call getMetadate() and getDownloadUrl() on them.
+     * You can call getMetadata() and getDownloadUrl() on them.
      */
     items: Reference[];
     /**
@@ -7495,18 +7534,18 @@ declare namespace firebase.storage {
      * @param url A URL in the form: <br />
      *     1) a gs:// URL, for example `gs://bucket/files/image.png` <br />
      *     2) a download URL taken from object metadata. <br />
-     *     @see {@link firebase.storage.FullMetadata.prototype.downloadURLs}
+     *     @see {@link firebase.storage.FullMetadata.downloadURLs}
      * @return A reference for the given URL.
      */
     refFromURL(url: string): firebase.storage.Reference;
     /**
      * @param time The new maximum operation retry time in milliseconds.
-     * @see {@link firebase.storage.Storage.prototype.maxOperationRetryTime}
+     * @see {@link firebase.storage.Storage.maxOperationRetryTime}
      */
     setMaxOperationRetryTime(time: number): any;
     /**
      * @param time The new maximum upload retry time in milliseconds.
-     * @see {@link firebase.storage.Storage.prototype.maxUploadRetryTime}
+     * @see {@link firebase.storage.Storage.maxUploadRetryTime}
      */
     setMaxUploadRetryTime(time: number): any;
   }
@@ -7554,7 +7593,7 @@ declare namespace firebase.storage {
   /**
    * An event that is triggered on a task.
    * @enum {string}
-   * @see {@link firebase.storage.UploadTask.prototype.on}
+   * @see {@link firebase.storage.UploadTask.on}
    */
   type TaskEvent = string;
   var TaskEvent: {
@@ -7598,6 +7637,19 @@ declare namespace firebase.storage {
   }
 
   /**
+   * An error returned by the Firebase Storage SDK.
+   */
+  interface FirebaseStorageError extends FirebaseError {
+    serverResponse: string | null;
+  }
+
+  interface StorageObserver<T> {
+    next?: NextFn<T> | null;
+    error?: (error: FirebaseStorageError) => void | null;
+    complete?: CompleteFn | null;
+  }
+
+  /**
    * Represents the process of uploading an object. Allows you to monitor and
    * manage the upload.
    */
@@ -7610,7 +7662,7 @@ declare namespace firebase.storage {
     /**
      * Equivalent to calling `then(null, onRejected)`.
      */
-    catch(onRejected: (a: Error) => any): Promise<any>;
+    catch(onRejected: (error: FirebaseStorageError) => any): Promise<any>;
     /**
      * Listens for events on this task.
      *
@@ -7710,7 +7762,7 @@ declare namespace firebase.storage {
      *     The `next` function, which gets called for each item in
      *     the event stream, or an observer object with some or all of these three
      *     properties (`next`, `error`, `complete`).
-     * @param error A function that gets called with an Error
+     * @param error A function that gets called with a `FirebaseStorageError`
      *     if the event stream ends due to an error.
      * @param complete A function that gets called if the
      *     event stream ends normally.
@@ -7723,10 +7775,10 @@ declare namespace firebase.storage {
     on(
       event: firebase.storage.TaskEvent,
       nextOrObserver?:
-        | Partial<firebase.Observer<UploadTaskSnapshot>>
+        | StorageObserver<UploadTaskSnapshot>
         | null
-        | ((a: UploadTaskSnapshot) => any),
-      error?: ((a: Error) => any) | null,
+        | ((snapshot: UploadTaskSnapshot) => any),
+      error?: ((error: FirebaseStorageError) => any) | null,
       complete?: firebase.Unsubscribe | null
     ): Function;
     /**
@@ -7751,8 +7803,10 @@ declare namespace firebase.storage {
      * @param onRejected The rejection callback.
      */
     then(
-      onFulfilled?: ((a: firebase.storage.UploadTaskSnapshot) => any) | null,
-      onRejected?: ((a: Error) => any) | null
+      onFulfilled?:
+        | ((snapshot: firebase.storage.UploadTaskSnapshot) => any)
+        | null,
+      onRejected?: ((error: FirebaseStorageError) => any) | null
     ): Promise<any>;
   }
 
@@ -7826,40 +7880,6 @@ declare namespace firebase.firestore {
     ssl?: boolean;
 
     /**
-     * Specifies whether to use `Timestamp` objects for timestamp fields in
-     * `DocumentSnapshot`s. This is enabled by default and should not be
-     * disabled.
-     *
-     * Previously, Firestore returned timestamp fields as `Date` but `Date`
-     * only supports millisecond precision, which leads to truncation and
-     * causes unexpected behavior when using a timestamp from a snapshot as a
-     * part of a subsequent query.
-     *
-     * Now, Firestore returns `Timestamp` values for all timestamp values stored
-     * in Cloud Firestore instead of system `Date` objects, avoiding this kind
-     * of problem. Consequently, you must update your code to handle `Timestamp`
-     * objects instead of `Date` objects.
-     *
-     * If you want to **temporarily** opt into the old behavior of returning
-     * `Date` objects, you may **temporarily** set `timestampsInSnapshots` to
-     * false. Opting into this behavior will no longer be possible in the next
-     * major release of Firestore, after which code that expects Date objects
-     * **will break**.
-     *
-     * @example **Using Date objects in Firestore.**
-     * // With deprecated setting `timestampsInSnapshot: true`:
-     * const date : Date = snapshot.get('created_at');
-     * // With new default behavior:
-     * const timestamp : Timestamp = snapshot.get('created_at');
-     * const date : Date = timestamp.toDate();
-     *
-     * @deprecated This setting will be removed in a future release. You should
-     * update your code to expect `Timestamp` objects and stop using the
-     * `timestampsInSnapshots` setting.
-     */
-    timestampsInSnapshots?: boolean;
-
-    /**
      * An approximate cache size threshold for the on-disk data. If the cache grows beyond this
      * size, Firestore will start removing data that hasn't been recently used. The size is not a
      * guarantee that the cache will stay below that size, only that if the cache exceeds the given
@@ -7879,14 +7899,26 @@ declare namespace firebase.firestore {
      * buffer traffic indefinitely. Use of this option will cause some
      * performance degradation though.
      *
-     * This setting may be removed in a future release. If you find yourself
-     * using it to work around a specific network reliability issue, please
-     * tell us about it in
-     * https://github.com/firebase/firebase-js-sdk/issues/1674.
+     * This setting cannot be used with `experimentalAutoDetectLongPolling` and
+     * may be removed in a future release. If you find yourself using it to
+     * work around a specific network reliability issue, please tell us about
+     * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
      *
      * @webonly
      */
     experimentalForceLongPolling?: boolean;
+
+    /**
+     * Configures the SDK's underlying transport (WebChannel) to automatically detect if
+     * long-polling should be used. This is very similar to `experimentalForceLongPolling`,
+     * but only uses long-polling if required.
+     *
+     * This setting will likely be enabled by default in future releases and cannot be
+     * combined with `experimentalForceLongPolling`.
+     *
+     * @webonly
+     */
+    experimentalAutoDetectLongPolling?: boolean;
 
     /**
      * Whether to skip nested properties that are set to `undefined` during
@@ -7921,17 +7953,6 @@ declare namespace firebase.firestore {
      * in all but the first tab.
      */
     synchronizeTabs?: boolean;
-
-    /**
-     * Whether to synchronize the in-memory state of multiple tabs. Setting this
-     * to `true` in all open tabs enables shared access to local persistence,
-     * shared execution of queries and latency-compensated local document updates
-     * across all connected instances.
-     *
-     * @deprecated This setting is deprecated. To enable synchronization between
-     * multiple tabs, please use `synchronizeTabs: true` instead.
-     */
-    experimentalTabSynchronization?: boolean;
 
     /**
      * Whether to force enable persistence for the client. This cannot be used
@@ -8042,6 +8063,16 @@ declare namespace firebase.firestore {
      * @param settings The settings to use.
      */
     settings(settings: Settings): void;
+
+    /**
+     * Modify this instance to communicate with the Cloud Firestore emulator.
+     *
+     * <p>Note: this must be called before this instance has been used to do any operations.
+     *
+     * @param host the emulator host (ex: localhost).
+     * @param port the emulator port (ex: 9000).
+     */
+    useEmulator(host: string, port: number): void;
 
     /**
      * Attempts to enable persistent storage, if possible.
@@ -8259,10 +8290,107 @@ declare namespace firebase.firestore {
     terminate(): Promise<void>;
 
     /**
+     * Loads a Firestore bundle into the local cache.
+     *
+     * @param bundleData
+     *   An object representing the bundle to be loaded. Valid objects are `ArrayBuffer`,
+     *   `ReadableStream<Uint8Array>` or `string`.
+     *
+     * @return
+     *   A `LoadBundleTask` object, which notifies callers with progress updates, and completion
+     *   or error events. It can be used as a `Promise<LoadBundleTaskProgress>`.
+     */
+    loadBundle(
+      bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+    ): LoadBundleTask;
+
+    /**
+     * Reads a Firestore `Query` from local cache, identified by the given name.
+     *
+     * The named queries are packaged  into bundles on the server side (along
+     * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
+     * cache, use this method to extract a `Query` by name.
+     */
+    namedQuery(name: string): Promise<Query<DocumentData> | null>;
+
+    /**
      * @hidden
      */
     INTERNAL: { delete: () => Promise<void> };
   }
+
+  /**
+   * Represents the task of loading a Firestore bundle. It provides progress of bundle
+   * loading, as well as task completion and error events.
+   *
+   * The API is compatible with `Promise<LoadBundleTaskProgress>`.
+   */
+  export interface LoadBundleTask extends PromiseLike<LoadBundleTaskProgress> {
+    /**
+     * Registers functions to listen to bundle loading progress events.
+     * @param next
+     *   Called when there is a progress update from bundle loading. Typically `next` calls occur
+     *   each time a Firestore document is loaded from the bundle.
+     * @param error
+     *   Called when an error occurs during bundle loading. The task aborts after reporting the
+     *   error, and there should be no more updates after this.
+     * @param complete
+     *   Called when the loading task is complete.
+     */
+    onProgress(
+      next?: (progress: LoadBundleTaskProgress) => any,
+      error?: (error: Error) => any,
+      complete?: () => void
+    ): void;
+
+    /**
+     * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
+     *
+     * @param onFulfilled
+     *   Called on the completion of the loading task with a final `LoadBundleTaskProgress` update.
+     *   The update will always have its `taskState` set to `"Success"`.
+     * @param onRejected
+     *   Called when an error occurs during bundle loading.
+     */
+    then<T, R>(
+      onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
+      onRejected?: (a: Error) => R | PromiseLike<R>
+    ): Promise<T | R>;
+
+    /**
+     * Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
+     *
+     * @param onRejected
+     *   Called when an error occurs during bundle loading.
+     */
+    catch<R>(
+      onRejected: (a: Error) => R | PromiseLike<R>
+    ): Promise<R | LoadBundleTaskProgress>;
+  }
+
+  /**
+   * Represents a progress update or a final state from loading bundles.
+   */
+  export interface LoadBundleTaskProgress {
+    /** How many documents have been loaded. */
+    documentsLoaded: number;
+    /** How many documents are in the bundle being loaded. */
+    totalDocuments: number;
+    /** How many bytes have been loaded. */
+    bytesLoaded: number;
+    /** How many bytes are in the bundle being loaded. */
+    totalBytes: number;
+    /** Current task state. */
+    taskState: TaskState;
+  }
+
+  /**
+   * Represents the state of bundle loading tasks.
+   *
+   * Both 'Error' and 'Success' are sinking state: task will abort or complete and there will
+   * be no more updates after they are reported.
+   */
+  export type TaskState = 'Error' | 'Running' | 'Success';
 
   /**
    * An immutable object representing a geo point in Firestore. The geo point
@@ -9073,17 +9201,20 @@ declare namespace firebase.firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and 'array-contains-any'.
+   * strings '<', '<=', '==', '!=', '>=', '>', 'array-contains', 'in',
+   * 'array-contains-any', and 'not-in'.
    */
   export type WhereFilterOp =
     | '<'
     | '<='
     | '=='
+    | '!='
     | '>='
     | '>'
     | 'array-contains'
     | 'in'
-    | 'array-contains-any';
+    | 'array-contains-any'
+    | 'not-in';
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
@@ -9684,5 +9815,5 @@ declare namespace firebase.firestore {
   }
 }
 
-export = firebase;
+export default firebase;
 export as namespace firebase;

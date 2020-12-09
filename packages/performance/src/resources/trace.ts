@@ -131,6 +131,17 @@ export class Trace implements PerformanceTrace {
       attributes?: { [key: string]: string };
     }
   ): void {
+    if (startTime <= 0) {
+      throw ERROR_FACTORY.create(ErrorCode.NONPOSITIVE_TRACE_START_TIME, {
+        traceName: this.name
+      });
+    }
+    if (duration <= 0) {
+      throw ERROR_FACTORY.create(ErrorCode.NONPOSITIVE_TRACE_DURATION, {
+        traceName: this.name
+      });
+    }
+
     this.durationUs = Math.floor(duration * 1000);
     this.startTimeUs = Math.floor(startTime * 1000);
     if (options && options.attributes) {

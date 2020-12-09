@@ -15,24 +15,25 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { OnlineState, TargetId } from '../core/types';
+import { LocalStore } from '../local/local_store';
 import {
-  LocalStore,
   getLastRemoteSnapshotVersion,
   nextMutationBatch
-} from '../local/local_store';
+} from '../local/local_store_impl';
+import { isIndexedDbTransactionError } from '../local/simple_db';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
-import {
-  BATCHID_UNKNOWN,
-  MutationBatch,
-  MutationBatchResult
-} from '../model/mutation_batch';
+import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { debugAssert, debugCast } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
+import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
-import { AsyncQueue } from '../util/async_queue';
+import { BATCHID_UNKNOWN } from '../util/types';
+
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
 import {
   Datastore,
@@ -54,9 +55,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ByteString } from '../util/byte_string';
-import { isIndexedDbTransactionError } from '../local/simple_db';
-import { User } from '../auth/user';
 
 const LOG_TAG = 'RemoteStore';
 

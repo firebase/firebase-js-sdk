@@ -16,7 +16,6 @@
  */
 
 export enum ReleaseType {
-  Canary = 'Canary',
   Staging = 'Staging',
   Production = 'Production'
 }

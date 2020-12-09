@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { firestore } from 'firebase/app';
+import firebase from 'firebase/app';
 import { fromDocRef } from '../fromRef';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-export function doc(
-  ref: firestore.DocumentReference
-): Observable<firestore.DocumentSnapshot> {
+type DocumentReference = firebase.firestore.DocumentReference;
+type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
+
+export function doc(ref: DocumentReference): Observable<DocumentSnapshot> {
   return fromDocRef(ref);
 }
 
@@ -31,16 +32,13 @@ export function doc(
  * @param query
  */
 export function docData<T>(
-  ref: firestore.DocumentReference,
+  ref: DocumentReference,
   idField?: string
 ): Observable<T> {
   return doc(ref).pipe(map(snap => snapToData(snap, idField) as T));
 }
 
-export function snapToData(
-  snapshot: firestore.DocumentSnapshot,
-  idField?: string
-): {} {
+export function snapToData(snapshot: DocumentSnapshot, idField?: string): {} {
   return {
     ...snapshot.data(),
     ...(idField ? { [idField]: snapshot.id } : null)

@@ -7,22 +7,22 @@
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
-// @public (undocumented)
+// @public
 export function deleteInstallations(installations: FirebaseInstallations): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function getId(installations: FirebaseInstallations): Promise<string>;
 
-// @public (undocumented)
+// @public
 export function getInstallations(app: FirebaseApp): FirebaseInstallations;
 
-// @public (undocumented)
+// @public
 export function getToken(installations: FirebaseInstallations, forceRefresh?: boolean): Promise<string>;
 
-// @public (undocumented)
+// @public
 export type IdChangeCallbackFn = (installationId: string) => void;
 
-// @public (undocumented)
+// @public
 export type IdChangeUnsubscribeFn = () => void;
 
 // @public

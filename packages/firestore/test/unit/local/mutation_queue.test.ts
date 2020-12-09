@@ -16,11 +16,13 @@
  */
 
 import { expect } from 'chai';
+
 import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { documentKeySet } from '../../../src/model/collections';
 import { MutationBatch } from '../../../src/model/mutation_batch';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   expectEqualArrays,
   key,
@@ -29,7 +31,6 @@ import {
   setMutation
 } from '../../util/helpers';
 
-import { addEqualityMatcher } from '../../util/equality_matcher';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
 
@@ -108,9 +109,9 @@ function genericMutationQueueTests(): void {
   /**
    * Removes the first n entries from the given batches and returns them.
    *
-   * @param n The number of batches to remove.
-   * @param batches The array to mutate, removing entries from it.
-   * @return A new array containing all the entries that were removed from
+   * @param n - The number of batches to remove.
+   * @param batches - The array to mutate, removing entries from it.
+   * @returns A new array containing all the entries that were removed from
    * batches.
    */
   async function removeFirstBatches(

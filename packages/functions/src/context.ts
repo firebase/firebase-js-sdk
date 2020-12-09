@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { _FirebaseApp } from '@firebase/app-types/private';
 import {
   FirebaseMessaging,
   FirebaseMessagingName

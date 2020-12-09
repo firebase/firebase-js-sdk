@@ -20,7 +20,7 @@
 import { expect } from 'chai';
 // app/database is used as namespaces to access types
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { initializeApp, database, app } from 'firebase';
+import firebase from 'firebase';
 import { fromRef } from '../database/fromRef';
 import {
   list,
@@ -50,9 +50,9 @@ const batch = (
 };
 
 describe('RxFire Database', () => {
-  let app: app.App;
-  let database: database.Database;
-  const ref = (path: string): database.Reference => {
+  let app: firebase.app.App;
+  let database: firebase.database.Database;
+  const ref = (path: string): firebase.database.Reference => {
     app!.database().goOffline();
     return app!.database().ref(path);
   };
@@ -61,7 +61,7 @@ describe('RxFire Database', () => {
     opts: { events?: ListenEvent[]; skipnumber: number } = { skipnumber: 0 }
   ): {
     snapChanges: Observable<QueryChange[]>;
-    ref: database.Reference;
+    ref: firebase.database.Reference;
   } {
     const { events, skipnumber } = opts;
     const aref = ref(rando());
@@ -88,7 +88,7 @@ describe('RxFire Database', () => {
    * account for this.
    */
   beforeEach(() => {
-    app = initializeApp({
+    app = firebase.initializeApp({
       apiKey: TEST_PROJECT.apiKey,
       projectId: TEST_PROJECT.projectId,
       databaseURL: TEST_PROJECT.databaseURL
@@ -610,7 +610,7 @@ describe('RxFire Database', () => {
       opts: { events?: ListenEvent[]; skipnumber: number } = { skipnumber: 0 }
     ): {
       changes: Observable<QueryChange[]>;
-      ref: database.Reference;
+      ref: firebase.database.Reference;
     } {
       const { events, skipnumber } = opts;
       const aref = ref(rando());

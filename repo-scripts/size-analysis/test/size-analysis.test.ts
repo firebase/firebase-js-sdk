@@ -454,7 +454,7 @@ describe('test writeReportToDirectory helper function', () => {
     fs.mkdirSync(aDir, { recursive: true });
     const aFile = `a-file`;
     const aPathToFile = `${aDir}/${aFile}`;
-    fs.writeFileSync(aPathToFile, fileContent);
+    fs.writeFileSync(aPathToFile, JSON.stringify(fileContent));
     expect(() =>
       writeReportToDirectory(fileContent, aFile, aPathToFile)
     ).to.throw(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);

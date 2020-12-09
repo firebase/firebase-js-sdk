@@ -4,10 +4,12 @@
 
 ## getDocsFromCache() function
 
+Executes the query and returns the results as a `QuerySnapshot` from cache. Returns an error if the document is not currently cached.
+
 <b>Signature:</b>
 
 ```typescript
-export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 ```
 
 ## Parameters
@@ -19,4 +21,6 @@ export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 <b>Returns:</b>
 
 Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->&lt;T&gt;&gt;
+
+A Promise that will be resolved with the results of the query.
 

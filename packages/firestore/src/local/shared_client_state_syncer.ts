@@ -17,6 +17,7 @@
 
 import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { FirestoreError } from '../util/error';
+
 import { ClientId } from './shared_client_state';
 
 /** The different states of a watch target. */
@@ -49,4 +50,10 @@ export interface SharedClientStateSyncer {
 
   /** Returns the IDs of the clients that are currently active. */
   getActiveClients(): Promise<ClientId[]>;
+
+  /**
+   * Retrieves newly changed documents from remote document cache and raises
+   * snapshots if needed.
+   */
+  synchronizeWithChangedDocuments(): Promise<void>;
 }

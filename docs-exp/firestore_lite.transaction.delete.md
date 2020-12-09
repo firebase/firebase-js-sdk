@@ -4,19 +4,23 @@
 
 ## Transaction.delete() method
 
+Deletes the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-delete(documentRef: DocumentReference<any>): Transaction;
+delete(documentRef: DocumentReference<unknown>): this;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;any&gt; |  |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;unknown&gt; | A reference to the document to be deleted. |
 
 <b>Returns:</b>
 
-[Transaction](./firestore_lite.transaction.md)
+this
+
+This `Transaction` instance. Used for chaining method calls.
 

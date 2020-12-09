@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
+import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { expect, use } from 'chai';
-
-import { apiDescribe, withTestDoc } from '../util/helpers';
-import { SimpleDb } from '../../../src/local/simple_db';
 import { User } from '../../../src/auth/user';
+import { SimpleDb } from '../../../src/local/simple_db';
+import { apiDescribe, withTestDoc } from '../util/helpers';
 import { withMockCredentialProviderTestDb } from '../util/internal_helpers';
 
 use(chaiAsPromised);
@@ -75,7 +74,7 @@ apiDescribe('Database (with internal API)', (persistence: boolean) => {
       await app.delete();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((docRef.firestore as any)._isTerminated).to.be.true;
+      expect((docRef.firestore as any)._delegate._terminated).to.be.true;
     });
   });
 });

@@ -29,12 +29,17 @@ const argv = yargs.options({
     type: 'boolean',
     desc:
       'whether or not build @firebase/app-exp first. It is a hack required to build Firestore'
+  },
+  buildAppCompat: {
+    type: 'boolean',
+    desc:
+      'whether or not build @firebase/app-compat first. It is a hack required to build Firestore'
   }
 }).argv;
 
 const allTestConfigNames = Object.keys(testConfig);
 const inputTestConfigName = argv._[0];
-const buildAppExp = argv.buildAppExp;
+const { buildAppExp, buildAppCompat } = argv;
 
 if (!inputTestConfigName) {
   throw Error(`
@@ -54,9 +59,13 @@ if (!allTestConfigNames.includes(inputTestConfigName)) {
 
 const config = testConfig[inputTestConfigName]!;
 
-buildForTests(config, buildAppExp);
+buildForTests(config, buildAppExp, buildAppCompat);
 
-async function buildForTests(config: TestConfig, buildAppExp = false) {
+async function buildForTests(
+  config: TestConfig,
+  buildAppExp = false,
+  buildAppCompat = false
+) {
   try {
     const testTasks = filterTasks(await getTestTasks(), config);
 
@@ -76,6 +85,40 @@ async function buildForTests(config: TestConfig, buildAppExp = false) {
           'run',
           '--scope',
           '@firebase/app-exp',
+          '--include-dependencies',
+          'build'
+        ],
+        { stdio: 'inherit', cwd: root }
+      );
+    }
+    // hack to build Firestore which depends on @firebase/app-compat (because of firestore exp),
+    // but doesn't list it as a dependency in its package.json
+    // TODO: remove once modular SDKs become official
+    if (buildAppCompat) {
+      await spawn(
+        'npx',
+        [
+          'lerna',
+          'run',
+          '--scope',
+          '@firebase/app-compat',
+          '--include-dependencies',
+          'build'
+        ],
+        { stdio: 'inherit', cwd: root }
+      );
+    }
+    // hack to build Storage which depends on @firebase/auth-exp (because of integration test),
+    // but doesn't list it as a dependency in its package.json
+    // TODO: remove once modular SDKs become official
+    if (testTasks.some(task => task.pkgName.includes('storage'))) {
+      await spawn(
+        'npx',
+        [
+          'lerna',
+          'run',
+          '--scope',
+          '@firebase/auth-exp',
           '--include-dependencies',
           'build'
         ],

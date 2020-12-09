@@ -4,6 +4,8 @@
 
 ## FieldPath.(constructor)
 
+Creates a FieldPath from the provided field names. If more than one field name is provided, the path will point to a nested field in a document.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,5 +16,5 @@ constructor(...fieldNames: string[]);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldNames | string\[\] |  |
+|  fieldNames | string\[\] | A list of field names. |
 

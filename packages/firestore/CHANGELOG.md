@@ -1,5 +1,141 @@
 # @firebase/firestore
 
+## 2.0.5
+
+### Patch Changes
+
+- [`1849b0d0f`](https://github.com/firebase/firebase-js-sdk/commit/1849b0d0f0bbca56e50bea01979d20ada58040dc) [#4148](https://github.com/firebase/firebase-js-sdk/pull/4148) - Fixed a bug that prevented usage of FieldPaths with multiple special characters.
+
+* [`8993f16b8`](https://github.com/firebase/firebase-js-sdk/commit/8993f16b81b4b386f2ac5195950235a6a43ed9bc) [#4136](https://github.com/firebase/firebase-js-sdk/pull/4136) (fixes [#4125](https://github.com/firebase/firebase-js-sdk/issues/4125)) - Fixes an issue that returned invalid `DocumentReference`s in `QuerySnapshot`s.
+
+## 2.0.4
+
+### Patch Changes
+
+- [`9822e125c`](https://github.com/firebase/firebase-js-sdk/commit/9822e125c399ae7271d4a9077f82b184a44526e4) [#4078](https://github.com/firebase/firebase-js-sdk/pull/4078) - Fix an issue that prevented `experimentalAutoDetectLongPolling` from working correctly.
+
+- Updated dependencies [[`9822e125c`](https://github.com/firebase/firebase-js-sdk/commit/9822e125c399ae7271d4a9077f82b184a44526e4)]:
+  - @firebase/webchannel-wrapper@0.4.1
+
+## 2.0.3
+
+### Patch Changes
+
+- [`6c6c49ad6`](https://github.com/firebase/firebase-js-sdk/commit/6c6c49ad6b3c3d66e9ecb8397c4ac39bea256e80) [#4053](https://github.com/firebase/firebase-js-sdk/pull/4053) - Internal changes for the upcoming modular API.
+
+* [`e0bf3f70b`](https://github.com/firebase/firebase-js-sdk/commit/e0bf3f70bf82f3587e60ab4484fe37d01cea0051) [#4080](https://github.com/firebase/firebase-js-sdk/pull/4080) (fixes [#4071](https://github.com/firebase/firebase-js-sdk/issues/4071)) - Fixes a regression introduced in v8.0.2 that returned invalid values for `DocumentChange.newIndex`.
+
+## 2.0.2
+
+### Patch Changes
+
+- [`d2adf4e3e`](https://github.com/firebase/firebase-js-sdk/commit/d2adf4e3e69da3a4312828137f9721ea84b87fe2) [#4051](https://github.com/firebase/firebase-js-sdk/pull/4051) - Fixed an issue that caused `DocumentReference`s in `DocumentSnapshot`s to be returned with the custom converter of the original `DocumentReference`.
+
+* [`6dffdf2eb`](https://github.com/firebase/firebase-js-sdk/commit/6dffdf2eb1323ec9047af4ed78302a68f7dacce3) [#3594](https://github.com/firebase/firebase-js-sdk/pull/3594) - Merge bundle loading implementation without exposing public API
+
+- [`484e90a1d`](https://github.com/firebase/firebase-js-sdk/commit/484e90a1d8f63e04268ff5bce4e3e0873c56c8e1) [#4043](https://github.com/firebase/firebase-js-sdk/pull/4043) - Internal changes to support upcoming modular API.
+
+## 2.0.1
+
+### Patch Changes
+
+- [`007ddd1eb`](https://github.com/firebase/firebase-js-sdk/commit/007ddd1eb6be0a66df7b1c3264d8dff8857d8399) [#4030](https://github.com/firebase/firebase-js-sdk/pull/4030) - Internal changes to support upcoming modular API.
+
+- Updated dependencies [[`9cf727fcc`](https://github.com/firebase/firebase-js-sdk/commit/9cf727fcc3d049551b16ae0698ac33dc2fe45ada)]:
+  - @firebase/util@0.3.4
+  - @firebase/component@0.1.21
+
+## 2.0.0
+
+### Major Changes
+
+- [`8939aeca0`](https://github.com/firebase/firebase-js-sdk/commit/8939aeca02921f9eacf1badb1068de22f670293e) [#3944](https://github.com/firebase/firebase-js-sdk/pull/3944) - Removed the undocumented `Firestore.logLevel` property.
+
+* [`344bd8856`](https://github.com/firebase/firebase-js-sdk/commit/344bd88566e2c42fd7ee92f28bb0f784629b48ee) [#3943](https://github.com/firebase/firebase-js-sdk/pull/3943) - Removed depreacted `experimentalTabSynchronization` settings. To enable multi-tab sychronization, use `synchronizeTabs` instead.
+
+- [`4b540f91d`](https://github.com/firebase/firebase-js-sdk/commit/4b540f91dbad217e8ec04b382b4c724308cb3df1) [#3939](https://github.com/firebase/firebase-js-sdk/pull/3939) - This releases removes all input validation. Please use our TypeScript types to validate API usage.
+
+* [`ffef32e38`](https://github.com/firebase/firebase-js-sdk/commit/ffef32e3837d3ee1098129b237e7a6e2e738182d) [#3897](https://github.com/firebase/firebase-js-sdk/pull/3897) (fixes [#3879](https://github.com/firebase/firebase-js-sdk/issues/3879)) - Removed the `timestampsInSnapshots` option from `FirestoreSettings`. Now, Firestore always returns `Timestamp` values for all timestamp values.
+
+### Minor Changes
+
+- [`79b049375`](https://github.com/firebase/firebase-js-sdk/commit/79b04937537b90422e051086112f6b43c2880cdb) [#3909](https://github.com/firebase/firebase-js-sdk/pull/3909) - Add a useEmulator(host, port) method to Firestore
+
+* [`9719635fe`](https://github.com/firebase/firebase-js-sdk/commit/9719635fe2ecbb5b981076ce4807d0df775b8332) [#3960](https://github.com/firebase/firebase-js-sdk/pull/3960) - Removed excess validation of null and NaN values in query filters. This more closely aligns the SDK with the Firestore backend, which has always accepted null and NaN for all operators, even though this isn't necessarily useful.
+
+### Patch Changes
+
+- [`a5768b0aa`](https://github.com/firebase/firebase-js-sdk/commit/a5768b0aa7d7ce732279931aa436e988c9f36487) [#3932](https://github.com/firebase/firebase-js-sdk/pull/3932) - Point browser field to esm build. Now you need to use default import instead of namespace import to import firebase.
+
+  Before this change
+
+  ```
+  import * as firebase from 'firebase/app';
+  ```
+
+  After this change
+
+  ```
+  import firebase from 'firebase/app';
+  ```
+
+- Updated dependencies [[`a5768b0aa`](https://github.com/firebase/firebase-js-sdk/commit/a5768b0aa7d7ce732279931aa436e988c9f36487), [`79b049375`](https://github.com/firebase/firebase-js-sdk/commit/79b04937537b90422e051086112f6b43c2880cdb), [`ffef32e38`](https://github.com/firebase/firebase-js-sdk/commit/ffef32e3837d3ee1098129b237e7a6e2e738182d), [`7d916d905`](https://github.com/firebase/firebase-js-sdk/commit/7d916d905ba16816ac8ac7c8748c83831ff614ce)]:
+  - @firebase/component@0.1.20
+  - @firebase/util@0.3.3
+  - @firebase/firestore-types@2.0.0
+
+## 1.18.0
+
+### Minor Changes
+
+- [`4f997bce1`](https://github.com/firebase/firebase-js-sdk/commit/4f997bce102be272b76836b6bcba96ea7de857bc) [#3724](https://github.com/firebase/firebase-js-sdk/pull/3724) - Adds a new `experimentalAutoDetectLongPolling` to FirestoreSettings. When
+  enabled, the SDK's underlying transport (WebChannel) automatically detects if
+  long-polling should be used. This is very similar to
+  `experimentalForceLongPolling`, but only uses long-polling if required.
+
+### Patch Changes
+
+- [`2bea0a367`](https://github.com/firebase/firebase-js-sdk/commit/2bea0a367da8de06bae29e1459b7cbe3cdfde540) [#3919](https://github.com/firebase/firebase-js-sdk/pull/3919) - Fixed a potential issue in our internal queue that could have allowed API calls to be executed out of order.
+
+- Updated dependencies [[`4f997bce1`](https://github.com/firebase/firebase-js-sdk/commit/4f997bce102be272b76836b6bcba96ea7de857bc)]:
+  - @firebase/firestore-types@1.14.0
+  - @firebase/webchannel-wrapper@0.4.0
+
+## 1.17.3
+
+### Patch Changes
+
+- [`a10c18f89`](https://github.com/firebase/firebase-js-sdk/commit/a10c18f8996fc35942779f5fea5690ae5d102bb0) [#3871](https://github.com/firebase/firebase-js-sdk/pull/3871) - The SDK now include more information in the error message for failed IndexedDB transactions.
+
+## 1.17.2
+
+### Patch Changes
+
+- [`2be43eadf`](https://github.com/firebase/firebase-js-sdk/commit/2be43eadf756e45da7ad3ae7ba104ac5f0e557fa) [#3864](https://github.com/firebase/firebase-js-sdk/pull/3864) - Internal changes to support upcoming modular API.
+
+## 1.17.1
+
+### Patch Changes
+
+- [`4dc8817c3`](https://github.com/firebase/firebase-js-sdk/commit/4dc8817c3faf172152a5b1e7778d0ce844510f97) [#3821](https://github.com/firebase/firebase-js-sdk/pull/3821) - Fixes an issue that prevents `waitForPendingWrites()` from resolving in background tabs when multi-tab is used (https://github.com/firebase/firebase-js-sdk/issues/3816).
+
+* [`16c6ba979`](https://github.com/firebase/firebase-js-sdk/commit/16c6ba9793681f1695f855f22a19a618ceface5f) [#3820](https://github.com/firebase/firebase-js-sdk/pull/3820) (fixes [#3814](https://github.com/firebase/firebase-js-sdk/issues/3814)) - Fixes a "Comparison with -0" lint warning for customers that build from source.
+
+## 1.17.0
+
+### Minor Changes
+
+- [`f9004177e`](https://github.com/firebase/firebase-js-sdk/commit/f9004177e76f00fc484d30c0c0e7b1bc2da033f9) [#3772](https://github.com/firebase/firebase-js-sdk/pull/3772) - [feature] Added `not-in` and `!=` query operators for use with `.where()`. `not-in` finds documents where a specified field’s value is not in a specified array. `!=` finds documents where a specified field's value does not equal the specified value. Neither query operator will match documents where the specified field is not present.
+
+* [`a8ff3dbaa`](https://github.com/firebase/firebase-js-sdk/commit/a8ff3dbaacd06371e6652a6d639ef2d9bead612b) [#3418](https://github.com/firebase/firebase-js-sdk/pull/3418) - Use FirestoreError instead of Error in onSnapshot\*() error callbacks.
+
+### Patch Changes
+
+- [`e81c429ae`](https://github.com/firebase/firebase-js-sdk/commit/e81c429aec43cd4467089bfed68eafafba6e8ee2) [#3755](https://github.com/firebase/firebase-js-sdk/pull/3755) (fixes [#3742](https://github.com/firebase/firebase-js-sdk/issues/3742)) - Fixed a bug where CollectionReference.add() called FirestoreDataConverter.toFirestore() twice intead of once (#3742).
+
+- Updated dependencies [[`f9004177e`](https://github.com/firebase/firebase-js-sdk/commit/f9004177e76f00fc484d30c0c0e7b1bc2da033f9), [`a8ff3dbaa`](https://github.com/firebase/firebase-js-sdk/commit/a8ff3dbaacd06371e6652a6d639ef2d9bead612b)]:
+  - @firebase/firestore-types@1.13.0
+
 ## 1.16.7
 
 ### Patch Changes

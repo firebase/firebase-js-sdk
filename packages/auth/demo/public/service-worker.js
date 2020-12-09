@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ self.addEventListener('install', function(event) {
 });
 
 // As this is a test app, let's only return cached data when offline.
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', function (event) {
   var fetchEvent = event;
   var requestProcessor = function(idToken) {
     var req = event.request;
@@ -154,7 +154,10 @@ self.addEventListener('fetch', function(event) {
   event.respondWith(getIdToken().then(requestProcessor, requestProcessor));
 });
 
-self.addEventListener('activate', function(event) {
+self.addEventListener('activate', function (event) {
+  if (window.emulatorUrl) {
+    firebase.auth().useEmulator(emulatorUrl);
+  }
   // Update this list with all caches that need to remain cached.
   var cacheWhitelist = ['cache-v1'];
   event.waitUntil(caches.keys().then(function(cacheNames) {

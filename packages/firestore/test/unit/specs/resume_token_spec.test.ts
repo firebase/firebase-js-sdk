@@ -51,7 +51,7 @@ describeSpec('Resume tokens:', [], () => {
       .watchSnapshots(1000)
       .expectEvents(query1, { added: [doc1] })
       .userUnlistens(query1)
-      .userListens(query1, 'custom-query-resume-token')
+      .userListens(query1, { resumeToken: 'custom-query-resume-token' })
       .expectEvents(query1, { fromCache: true, added: [doc1] })
       .watchAcks(query1)
       .watchSnapshots(1001);

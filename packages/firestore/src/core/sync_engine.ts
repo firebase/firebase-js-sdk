@@ -15,28 +15,32 @@
  * limitations under the License.
  */
 
+import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
-  getNewDocumentChanges,
-  getCachedTarget,
-  ignoreIfPrimaryLeaseLoss,
-  LocalStore,
-  getActiveClientsFromPersistence,
-  lookupMutationDocuments,
-  removeCachedMutationBatchMetadata,
-  allocateTarget,
-  executeQuery,
-  releaseTarget,
-  applyRemoteEventToLocalCache,
-  rejectBatch,
-  handleUserChange,
-  localWrite,
   acknowledgeBatch,
+  allocateTarget,
+  applyRemoteEventToLocalCache,
+  executeQuery,
+  getActiveClientsFromPersistence,
+  getCachedTarget,
   getHighestUnacknowledgedBatchId,
-  notifyLocalViewChanges
-} from '../local/local_store';
+  getNewDocumentChanges,
+  handleUserChange,
+  hasNewerBundle,
+  localWrite,
+  lookupMutationDocuments,
+  notifyLocalViewChanges,
+  rejectBatch,
+  releaseTarget,
+  removeCachedMutationBatchMetadata,
+  saveBundle
+} from '../local/local_store_impl';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
+import { ClientId, SharedClientState } from '../local/shared_client_state';
+import { QueryTargetState } from '../local/shared_client_state_syncer';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
@@ -46,7 +50,7 @@ import {
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
+import { MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
@@ -57,15 +61,28 @@ import {
   remoteStoreUnlisten
 } from '../remote/remote_store';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { BundleReader } from '../util/bundle_reader';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-import { ClientId, SharedClientState } from '../local/shared_client_state';
-import { QueryTargetState } from '../local/shared_client_state_syncer';
 import { SortedSet } from '../util/sorted_set';
+import { BATCHID_UNKNOWN } from '../util/types';
+
+import {
+  bundleInitialProgress,
+  BundleLoader,
+  bundleSuccessProgress
+} from './bundle_impl';
+import {
+  EventManager,
+  eventManagerOnOnlineStateChange,
+  eventManagerOnWatchChange,
+  eventManagerOnWatchError
+} from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
   canonifyQuery,
@@ -95,13 +112,6 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import {
-  EventManager,
-  eventManagerOnOnlineStateChange,
-  eventManagerOnWatchChange,
-  eventManagerOnWatchError
-} from './event_manager';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -584,10 +594,10 @@ export function applyOnlineStateChange(
  * Rejects the listen for the given targetID. This can be triggered by the
  * backend for any active target.
  *
- * @param syncEngine The sync engine implementation.
- * @param targetId The targetID corresponds to one previously initiated by the
+ * @param syncEngine - The sync engine implementation.
+ * @param targetId - The targetID corresponds to one previously initiated by the
  * user as part of TargetData passed to listen() on RemoteStore.
- * @param err A description of the condition that has forced the rejection.
+ * @param err - A description of the condition that has forced the rejection.
  * Nearly always this will be an indication that the user is no longer
  * authorized to see the data matching the target.
  */
@@ -1150,6 +1160,21 @@ async function synchronizeViewAndComputeSnapshot(
   return viewSnapshot;
 }
 
+/**
+ * Retrieves newly changed documents from remote document cache and raises
+ * snapshots if needed.
+ */
+// PORTING NOTE: Multi-Tab only.
+export async function synchronizeWithChangedDocuments(
+  syncEngine: SyncEngine
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+
+  return getNewDocumentChanges(syncEngineImpl.localStore).then(changes =>
+    emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
+  );
+}
+
 /** Applies a mutation state to an existing batch.  */
 // PORTING NOTE: Multi-Tab only.
 export async function applyBatchState(
@@ -1185,6 +1210,7 @@ export async function applyBatchState(
     // NOTE: Both these methods are no-ops for batches that originated from
     // other clients.
     processUserCallback(syncEngineImpl, batchId, error ? error : null);
+    triggerPendingWritesCallbacks(syncEngineImpl, batchId);
     removeCachedMutationBatchMetadata(syncEngineImpl.localStore, batchId);
   } else {
     fail(`Unknown batchState: ${batchState}`);
@@ -1273,9 +1299,9 @@ function resetLimboDocuments(syncEngine: SyncEngine): void {
  * persistence. Raises snapshots for any changes that affect the local
  * client and returns the updated state of all target's query data.
  *
- * @param syncEngine The sync engine implementation
- * @param targets the list of targets with views that need to be recomputed
- * @param transitionToPrimary `true` iff the tab transitions from a secondary
+ * @param syncEngine - The sync engine implementation
+ * @param targets - the list of targets with views that need to be recomputed
+ * @param transitionToPrimary - `true` iff the tab transitions from a secondary
  * tab to a primary tab
  */
 // PORTING NOTE: Multi-Tab only.
@@ -1506,4 +1532,78 @@ export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     syncEngineImpl
   );
   return syncEngineImpl;
+}
+
+/**
+ * Loads a Firestore bundle into the SDK. The returned promise resolves when
+ * the bundle finished loading.
+ *
+ * @param bundleReader - Bundle to load into the SDK.
+ * @param task - LoadBundleTask used to update the loading progress to public API.
+ */
+export function syncEngineLoadBundle(
+  syncEngine: SyncEngine,
+  bundleReader: BundleReader,
+  task: LoadBundleTask
+): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
+    syncEngineImpl.sharedClientState.notifyBundleLoaded();
+  });
+}
+
+async function loadBundleImpl(
+  syncEngine: SyncEngineImpl,
+  reader: BundleReader,
+  task: LoadBundleTask
+): Promise<void> {
+  try {
+    const metadata = await reader.getMetadata();
+    const skip = await hasNewerBundle(syncEngine.localStore, metadata);
+    if (skip) {
+      await reader.close();
+      task._completeWith(bundleSuccessProgress(metadata));
+      return;
+    }
+
+    task._updateProgress(bundleInitialProgress(metadata));
+
+    const loader = new BundleLoader(
+      metadata,
+      syncEngine.localStore,
+      reader.serializer
+    );
+    let element = await reader.nextElement();
+    while (element) {
+      debugAssert(
+        !element.payload.metadata,
+        'Unexpected BundleMetadata element.'
+      );
+      const progress = await loader.addSizedElement(element);
+      if (progress) {
+        task._updateProgress(progress);
+      }
+
+      element = await reader.nextElement();
+    }
+
+    const result = await loader.complete();
+    // TODO(b/160876443): This currently raises snapshots with
+    // `fromCache=false` if users already listen to some queries and bundles
+    // has newer version.
+    await emitNewSnapsAndNotifyLocalStore(
+      syncEngine,
+      result.changedDocs,
+      /* remoteEvent */ undefined
+    );
+
+    // Save metadata, so loading the same bundle will skip.
+    await saveBundle(syncEngine.localStore, metadata);
+    task._completeWith(result.progress);
+  } catch (e) {
+    logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
+    task._failWith(e);
+  }
 }

@@ -14,18 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Reference } from './reference';
+
+import * as types from '@firebase/storage-types';
+import { StorageReference } from './reference';
 
 /**
  * @fileoverview Documentation for ListOptions and ListResult format.
  */
-export interface ListOptions {
-  maxResults?: number | null;
-  pageToken?: string | null;
-}
 
+/**
+ * The options `list()` accepts.
+ * @public
+ */
+export interface ListOptions extends types.ListOptions {}
+
+/**
+ * Result returned by `list()`.
+ * @public
+ */
 export interface ListResult {
-  prefixes: Reference[];
-  items: Reference[];
-  nextPageToken?: string | null;
+  prefixes: StorageReference[];
+  items: StorageReference[];
+  nextPageToken?: string;
 }

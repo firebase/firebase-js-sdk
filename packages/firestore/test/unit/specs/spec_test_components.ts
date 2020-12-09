@@ -15,55 +15,59 @@
  * limitations under the License.
  */
 
+import { expect } from 'chai';
+
+import { Token } from '../../../src/api/credentials';
 import {
   ComponentConfiguration,
   MemoryOfflineComponentProvider,
   OnlineComponentProvider,
   MultiTabOfflineComponentProvider
 } from '../../../src/core/component_provider';
-import {
-  GarbageCollectionScheduler,
-  Persistence,
-  PersistenceTransaction,
-  PersistenceTransactionMode
-} from '../../../src/local/persistence';
+import { Observer } from '../../../src/core/event_manager';
+import { Query } from '../../../src/core/query';
+import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
 } from '../../../src/local/indexeddb_persistence';
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { IndexedDbTransactionError } from '../../../src/local/simple_db';
-import { debugAssert, fail } from '../../../src/util/assert';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   MemoryEagerDelegate,
   MemoryLruDelegate,
   MemoryPersistence
 } from '../../../src/local/memory_persistence';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { PersistenceAction } from './spec_test_runner';
-import { Connection, Stream } from '../../../src/remote/connection';
-import { StreamBridge } from '../../../src/remote/stream_bridge';
-import * as api from '../../../src/protos/firestore_proto_api';
-import { Deferred } from '../../../src/util/promise';
-import { AsyncQueue } from '../../../src/util/async_queue';
-import { WriteRequest } from '../../../src/remote/persistent_stream';
-import { encodeBase64 } from '../../../src/platform/base64';
-import { FirestoreError } from '../../../src/util/error';
-import { Token } from '../../../src/api/credentials';
-import { Observer } from '../../../src/core/event_manager';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
-import { Query } from '../../../src/core/query';
-import { Mutation } from '../../../src/model/mutation';
-import { expect } from 'chai';
-import { FakeDocument } from '../../util/test_platform';
+import {
+  GarbageCollectionScheduler,
+  Persistence
+} from '../../../src/local/persistence';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+import {
+  PersistenceTransaction,
+  PersistenceTransactionMode
+} from '../../../src/local/persistence_transaction';
 import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
-import { WindowLike } from '../../../src/util/types';
+import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+import { Mutation } from '../../../src/model/mutation';
+import { encodeBase64 } from '../../../src/platform/base64';
 import { newSerializer } from '../../../src/platform/serializer';
+import * as api from '../../../src/protos/firestore_proto_api';
+import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import { WriteRequest } from '../../../src/remote/persistent_stream';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { StreamBridge } from '../../../src/remote/stream_bridge';
+import { debugAssert, fail } from '../../../src/util/assert';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { FirestoreError } from '../../../src/util/error';
+import { Deferred } from '../../../src/util/promise';
+import { WindowLike } from '../../../src/util/types';
+import { FakeDocument } from '../../util/test_platform';
+
+import { PersistenceAction } from './spec_test_runner';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject
@@ -115,6 +119,7 @@ function failTransactionIfNeeded(
     failActions.indexOf(actionName as PersistenceAction) !== -1;
   if (shouldFail) {
     throw new IndexedDbTransactionError(
+      'Simulated error',
       new Error('Simulated retryable error: ' + actionName)
     );
   }
@@ -142,7 +147,7 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
     private readonly document: FakeDocument,
     onlineComponentProvider: OnlineComponentProvider
   ) {
-    super(onlineComponentProvider);
+    super(onlineComponentProvider, /* cacheSizeBytes= */ undefined);
   }
 
   createGarbageCollectionScheduler(
@@ -166,11 +171,6 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
   }
 
   createPersistence(cfg: ComponentConfiguration): MockIndexedDbPersistence {
-    debugAssert(
-      cfg.persistenceSettings.durable,
-      'Can only start durable persistence'
-    );
-
     const persistenceKey = indexedDbStoragePrefix(
       cfg.databaseInfo.databaseId,
       cfg.databaseInfo.persistenceKey
@@ -181,13 +181,13 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
       /* allowTabSynchronization= */ true,
       persistenceKey,
       cfg.clientId,
-      LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
+      LruParams.DEFAULT,
       cfg.asyncQueue,
       this.window,
       this.document,
       serializer,
       this.sharedClientState,
-      cfg.persistenceSettings.forceOwningTab
+      /* forceOwningTab= */ false
     );
   }
 }
@@ -207,14 +207,11 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
   }
 
   createPersistence(cfg: ComponentConfiguration): Persistence {
-    debugAssert(
-      !cfg.persistenceSettings.durable,
-      'Can only start memory persistence'
-    );
     return new MockMemoryPersistence(
       this.gcEnabled
         ? MemoryEagerDelegate.factory
-        : p => new MemoryLruDelegate(p, LruParams.DEFAULT)
+        : p => new MemoryLruDelegate(p, LruParams.DEFAULT),
+      newSerializer(cfg.databaseInfo.databaseId)
     );
   }
 }

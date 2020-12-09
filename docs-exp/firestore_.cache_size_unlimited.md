@@ -4,8 +4,10 @@
 
 ## CACHE\_SIZE\_UNLIMITED variable
 
+Constant used to indicate the LRU garbage collection should be disabled. Set this value as the `cacheSizeBytes` on the settings passed to the `Firestore` instance.
+
 <b>Signature:</b>
 
 ```typescript
-CACHE_SIZE_UNLIMITED: number
+CACHE_SIZE_UNLIMITED = -1
 ```

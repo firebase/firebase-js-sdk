@@ -26,7 +26,7 @@ Make sure to install Firebase and RxJS individually as they are peer dependencie
 ## Example use:
 
 ```ts
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/firestore';
 import { collectionData } from 'rxfire/firestore';
 import { tap } from 'rxjs/operators';
@@ -49,7 +49,7 @@ RxJS provides multiple operators and creation methods for combining observable s
 The example below streams a list of "cities" from Firestore and then retrieves their image from a Cloud Storage bucket. Both tasks are asynchronous but RxJS makes it easy to combine these tasks together.
 
 ```ts
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/storage';
 import { collectionData } from 'rxfire/firestore';
@@ -79,7 +79,7 @@ collectionData(citiesRef, 'id')
 RxFire is a complementary library to Firebase. It is not meant to wrap the entire Firebase SDK. RxFire's purpose is to simplify async streams from Firebase. You need to import the Firebase SDK and initialize an app before using RxFire.
 
 ```ts
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/storage'; // import only the features needed
 import { getDownloadURL } from 'rxfire/storage';
 
@@ -104,7 +104,7 @@ import { } from 'rxfire/functions';
 RxFire is a set of functions. Most functions create observables and from there you can use regular RxJS operators. Some functions are custom operators. But at the end of the day, it's all just functions. This is important for **tree shaking**. Any unused functions are stripped from your final build if you use a module bundler like Webpack or Rollup.
 
 ```ts
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/storage';
 import { getDownloadURL, put /* not used! */ } 'rxfire/storage';
 

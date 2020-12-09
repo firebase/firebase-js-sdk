@@ -67,14 +67,14 @@ describe('Starting Integration Test > Sending and Receiving ', function () {
     }
 
     TEST_DOMAINS.forEach(domain => {
-      describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${domain}`, function() {
-        before(async function() {
+      describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${domain}`, function () {
+        before(async function () {
           globalWebDriver = createPermittedWebDriver(
             /* browser= */ assistantBrowser.getId()
           );
         });
 
-        it('Background app can receive a {} empty message from sw', async function() {
+        it('Background app can receive a {} empty message from sw', async function () {
           this.timeout(TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
           // Clearing the cache and db data by killing the previously instantiated driver. Note that
@@ -107,7 +107,7 @@ describe('Starting Integration Test > Sending and Receiving ', function () {
           );
         });
 
-        it('Background app can receive a {"data"} message frow sw', async function() {
+        it('Background app can receive a {"data"} message frow sw', async function () {
           this.timeout(TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
           await seleniumAssistant.killWebDriver(globalWebDriver);
@@ -135,7 +135,6 @@ describe('Starting Integration Test > Sending and Receiving ', function () {
             /* expectedDataPayload= */ getTestDataPayload()
           );
         });
-
       });
 
       it('Foreground app can receive a {} empty message in onMessage', async function () {

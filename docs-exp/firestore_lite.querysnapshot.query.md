@@ -4,6 +4,8 @@
 
 ## QuerySnapshot.query property
 
+The query on which you called [getDocs()](./firestore_.getdocs.md) in order to get this `QuerySnapshot`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

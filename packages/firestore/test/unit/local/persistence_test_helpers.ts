@@ -23,7 +23,6 @@ import {
   TargetId,
   ListenSequenceNumber
 } from '../../../src/core/types';
-
 import {
   indexedDbStoragePrefix,
   indexedDbClearPersistence,
@@ -42,14 +41,12 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
+import { getDocument, getWindow } from '../../../src/platform/dom';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 import { AutoId } from '../../../src/util/misc';
 import { WindowLike } from '../../../src/util/types';
-import { getDocument, getWindow } from '../../../src/platform/dom';
-
-/* eslint-disable no-restricted-globals */
-
 export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
   sequenceNumberHandler: null,
   writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
@@ -75,7 +72,7 @@ export const INDEXEDDB_TEST_DATABASE_NAME =
   indexedDbStoragePrefix(TEST_DATABASE_ID, TEST_PERSISTENCE_KEY) +
   MAIN_DATABASE;
 
-const JSON_SERIALIZER = new JsonProtoSerializer(
+export const JSON_SERIALIZER = new JsonProtoSerializer(
   TEST_DATABASE_ID,
   /* useProto3Json= */ true
 );
@@ -98,7 +95,7 @@ export async function testIndexedDbPersistence(
   } = {},
   lruParams: LruParams = LruParams.DEFAULT
 ): Promise<IndexedDbPersistence> {
-  const queue = options.queue || new AsyncQueue();
+  const queue = options.queue || newAsyncQueue();
   const clientId = AutoId.newId();
   const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
   if (!options.dontPurgeData) {
@@ -122,13 +119,16 @@ export async function testIndexedDbPersistence(
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return new MemoryPersistence(MemoryEagerDelegate.factory);
+  return new MemoryPersistence(MemoryEagerDelegate.factory, JSON_SERIALIZER);
 }
 
 export async function testMemoryLruPersistence(
   params: LruParams = LruParams.DEFAULT
 ): Promise<MemoryPersistence> {
-  return new MemoryPersistence(p => new MemoryLruDelegate(p, params));
+  return new MemoryPersistence(
+    p => new MemoryLruDelegate(p, params),
+    JSON_SERIALIZER
+  );
 }
 
 /** Clears the persistence in tests */
@@ -150,7 +150,7 @@ export async function populateWebStorage(
   // NOTE: We don't call shutdown() on it because that would delete the data.
   const secondaryClientState = new WebStorageSharedClientState(
     window,
-    new AsyncQueue(),
+    newAsyncQueue(),
     TEST_PERSISTENCE_PREFIX,
     existingClientId,
     user

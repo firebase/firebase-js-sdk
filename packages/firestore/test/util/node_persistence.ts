@@ -16,9 +16,10 @@
  */
 
 import * as fs from 'fs';
+import * as os from 'os';
+
 // @ts-ignore: There are no types for indexeddbshim.
 import * as registerIndexedDBShim from 'indexeddbshim';
-import * as os from 'os';
 
 import { FakeWindow, SharedFakeWebStorage } from './test_platform';
 
@@ -30,7 +31,7 @@ import { FakeWindow, SharedFakeWebStorage } from './test_platform';
 // To use this code to run persistence-based tests in Node, include this module
 // and set the environment variable `USE_MOCK_PERSISTENCE` to `YES`.
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
 
 const dbDir = fs.mkdtempSync(os.tmpdir() + '/firestore_tests');

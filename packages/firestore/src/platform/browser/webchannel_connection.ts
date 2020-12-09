@@ -16,16 +16,6 @@
  */
 
 import {
-  createWebChannelTransport,
-  ErrorCode,
-  EventType,
-  WebChannel,
-  WebChannelError,
-  WebChannelOptions,
-  XhrIo
-} from '@firebase/webchannel-wrapper';
-
-import {
   isBrowserExtension,
   isElectron,
   isIE,
@@ -33,10 +23,25 @@ import {
   isReactNative,
   isUWP
 } from '@firebase/util';
+import {
+  createWebChannelTransport,
+  ErrorCode,
+  EventType,
+  WebChannel,
+  WebChannelError,
+  WebChannelOptions,
+  XhrIo,
+  getStatEventTarget,
+  EventTarget,
+  StatEvent,
+  Event,
+  Stat
+} from '@firebase/webchannel-wrapper';
 
 import { Token } from '../../api/credentials';
 import { DatabaseInfo } from '../../core/database_info';
 import { Stream } from '../../remote/connection';
+import { RestConnection } from '../../remote/rest_connection';
 import {
   mapCodeFromRpcStatus,
   mapCodeFromHttpResponseErrorStatus
@@ -47,7 +52,6 @@ import { Code, FirestoreError } from '../../util/error';
 import { logDebug, logWarn } from '../../util/log';
 import { Rejecter, Resolver } from '../../util/promise';
 import { StringMap } from '../../util/types';
-import { RestConnection } from '../../remote/rest_connection';
 
 const LOG_TAG = 'Connection';
 
@@ -57,10 +61,12 @@ const XHR_TIMEOUT_SECS = 15;
 
 export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
+  private readonly autoDetectLongPolling: boolean;
 
   constructor(info: DatabaseInfo) {
     super(info);
     this.forceLongPolling = info.forceLongPolling;
+    this.autoDetectLongPolling = info.autoDetectLongPolling;
   }
 
   protected performRPCRequest<Req, Resp>(
@@ -162,6 +168,7 @@ export class WebChannelConnection extends RestConnection {
       '/channel'
     ];
     const webchannelTransport = createWebChannelTransport();
+    const requestStats = getStatEventTarget();
     const request: WebChannelOptions = {
       // Required for backend stickiness, routing behavior is based on this
       // parameter.
@@ -183,7 +190,8 @@ export class WebChannelConnection extends RestConnection {
         // timeouts to kick in if the request isn't working.
         forwardChannelRequestTimeoutMs: 10 * 60 * 1000
       },
-      forceLongPolling: this.forceLongPolling
+      forceLongPolling: this.forceLongPolling,
+      detectBufferingProxy: this.autoDetectLongPolling
     };
 
     this.modifyHeadersForRequest(request.initMessageHeaders!, token);
@@ -254,12 +262,13 @@ export class WebChannelConnection extends RestConnection {
     // Note that eventually this function could go away if we are confident
     // enough the code is exception free.
     const unguardedEventListen = <T>(
-      type: string,
-      fn: (param?: T) => void
+      target: EventTarget,
+      type: string | number,
+      fn: (param: T) => void
     ): void => {
       // TODO(dimond): closure typing seems broken because WebChannel does
       // not implement goog.events.Listenable
-      channel.listen(type, (param: unknown) => {
+      target.listen(type, (param: unknown) => {
         try {
           fn(param as T);
         } catch (e) {
@@ -270,13 +279,13 @@ export class WebChannelConnection extends RestConnection {
       });
     };
 
-    unguardedEventListen(WebChannel.EventType.OPEN, () => {
+    unguardedEventListen(channel, WebChannel.EventType.OPEN, () => {
       if (!closed) {
         logDebug(LOG_TAG, 'WebChannel transport opened.');
       }
     });
 
-    unguardedEventListen(WebChannel.EventType.CLOSE, () => {
+    unguardedEventListen(channel, WebChannel.EventType.CLOSE, () => {
       if (!closed) {
         closed = true;
         logDebug(LOG_TAG, 'WebChannel transport closed');
@@ -284,7 +293,7 @@ export class WebChannelConnection extends RestConnection {
       }
     });
 
-    unguardedEventListen<Error>(WebChannel.EventType.ERROR, err => {
+    unguardedEventListen<Error>(channel, WebChannel.EventType.ERROR, err => {
       if (!closed) {
         closed = true;
         logWarn(LOG_TAG, 'WebChannel transport errored:', err);
@@ -305,10 +314,11 @@ export class WebChannelConnection extends RestConnection {
     }
 
     unguardedEventListen<WebChannelResponse>(
+      channel,
       WebChannel.EventType.MESSAGE,
       msg => {
         if (!closed) {
-          const msgData = msg!.data[0];
+          const msgData = msg.data[0];
           hardAssert(!!msgData, 'Got a webchannel message without data.');
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
@@ -344,6 +354,14 @@ export class WebChannelConnection extends RestConnection {
         }
       }
     );
+
+    unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
+      if (event.stat === Stat.PROXY) {
+        logDebug(LOG_TAG, 'Detected buffering proxy');
+      } else if (event.stat === Stat.NOPROXY) {
+        logDebug(LOG_TAG, 'Detected no buffering proxy');
+      }
+    });
 
     setTimeout(() => {
       // Technically we could/should wait for the WebChannel opened event,

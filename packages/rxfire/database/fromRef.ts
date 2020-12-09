@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { database } from 'firebase';
+import firebase from 'firebase';
 import { Observable } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { ListenEvent, QueryChange } from './interfaces';
@@ -26,7 +26,7 @@ import { ListenEvent, QueryChange } from './interfaces';
  * @param event Listen event type ('value', 'added', 'changed', 'removed', 'moved')
  */
 export function fromRef(
-  ref: database.Query,
+  ref: firebase.database.Query,
   event: ListenEvent
 ): Observable<QueryChange> {
   return new Observable<QueryChange>(subscriber => {

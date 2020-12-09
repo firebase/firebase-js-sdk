@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { Blob } from '../../../src/api/blob';
 import { blob, expectEqual, expectNotEqual } from '../../util/helpers';
 
@@ -48,7 +49,7 @@ describe('Blob', () => {
 
   it('Blob throws on invalid Base64 strings', () => {
     expect(() => Blob.fromBase64String('not-base64!')).to.throw(
-      /Failed to construct Blob from Base64 string:/
+      /Failed to construct data from Base64 string:/
     );
   });
 

@@ -16,15 +16,14 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
-import {
-  validateArgType,
-  validateExactNumberOfArgs
-} from '../util/input_validation';
 import { primitiveComparator } from '../util/misc';
 
 /**
- * Immutable class representing a geo point as latitude-longitude pair.
- * This class is directly exposed in the public API, including its constructor.
+ * An immutable object representing a geographic location in Firestore. The
+ * location is represented as latitude/longitude pair.
+ *
+ * Latitude values are in the range of [-90, 90].
+ * Longitude values are in the range of [-180, 180].
  */
 export class GeoPoint {
   // Prefix with underscore to signal this is a private variable in JS and
@@ -32,10 +31,13 @@ export class GeoPoint {
   private _lat: number;
   private _long: number;
 
+  /**
+   * Creates a new immutable `GeoPoint` object with the provided latitude and
+   * longitude values.
+   * @param latitude - The latitude as number between -90 and 90.
+   * @param longitude - The longitude as number between -180 and 180.
+   */
   constructor(latitude: number, longitude: number) {
-    validateExactNumberOfArgs('GeoPoint', arguments, 2);
-    validateArgType('GeoPoint', 'number', 1, latitude);
-    validateArgType('GeoPoint', 'number', 2, longitude);
     if (!isFinite(latitude) || latitude < -90 || latitude > 90) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -54,19 +56,25 @@ export class GeoPoint {
   }
 
   /**
-   * Returns the latitude of this geo point, a number between -90 and 90.
+   * The latitude of this `GeoPoint` instance.
    */
   get latitude(): number {
     return this._lat;
   }
 
   /**
-   * Returns the longitude of this geo point, a number between -180 and 180.
+   * The longitude of this `GeoPoint` instance.
    */
   get longitude(): number {
     return this._long;
   }
 
+  /**
+   * Returns true if this `GeoPoint` is equal to the provided one.
+   *
+   * @param other - The `GeoPoint` to compare against.
+   * @returns true if this `GeoPoint` is equal to the provided one.
+   */
   isEqual(other: GeoPoint): boolean {
     return this._lat === other._lat && this._long === other._long;
   }

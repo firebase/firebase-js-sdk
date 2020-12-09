@@ -15,20 +15,15 @@
  * limitations under the License.
  */
 
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
-
 import { Timestamp } from '../api/timestamp';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
+import { Serializer, toDouble, toInteger } from '../remote/number_serializer';
 import { debugAssert } from '../util/assert';
-import { JsonProtoSerializer, toDouble, toInteger } from '../remote/serializer';
-import {
-  isArray,
-  isInteger,
-  isNumber,
-  normalizeNumber,
-  valueEquals
-} from './values';
-import { serverTimestamp } from './server_timestamps';
 import { arrayEquals } from '../util/misc';
+
+import { normalizeNumber } from './normalize';
+import { serverTimestamp } from './server_timestamps';
+import { isArray, isInteger, isNumber, valueEquals } from './values';
 
 /** Represents a transform within a TransformMutation. */
 export class TransformOperation {
@@ -101,7 +96,7 @@ export function applyTransformOperationToRemoteDocument(
  * idempotent transforms, as they can be re-played even if the backend has
  * already applied them.
  *
- * @return a base value to store along with the mutation, or null for
+ * @returns a base value to store along with the mutation, or null for
  * idempotent transforms.
  */
 export function computeTransformOperationBaseValue(
@@ -189,10 +184,7 @@ function applyArrayRemoveTransformOperation(
  * arithmetic is used and precision loss can occur for values greater than 2^53.
  */
 export class NumericIncrementTransformOperation extends TransformOperation {
-  constructor(
-    readonly serializer: JsonProtoSerializer,
-    readonly operand: ProtoValue
-  ) {
+  constructor(readonly serializer: Serializer, readonly operand: ProtoValue) {
     super();
     debugAssert(
       isNumber(operand),

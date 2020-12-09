@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
 import { BatchId, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { MutationBatchResult } from '../model/mutation_batch';
 import { FirestoreError } from '../util/error';
+
 import { RemoteEvent } from './remote_event';
-import { User } from '../auth/user';
 
 /**
  * An interface that describes the actions the RemoteStore needs to perform on
@@ -38,9 +39,9 @@ export interface RemoteSyncer {
    * Rejects the listen for the given targetID. This can be triggered by the
    * backend for any active target.
    *
-   * @param targetId The targetID corresponds to one previously initiated by the
-   * user as part of TargetData passed to listen() on RemoteStore.
-   * @param error A description of the condition that has forced the rejection.
+   * @param targetId - The targetID corresponds to one previously initiated by
+   * the user as part of TargetData passed to listen() on RemoteStore.
+   * @param error - A description of the condition that has forced the rejection.
    * Nearly always this will be an indication that the user is no longer
    * authorized to see the data matching the target.
    */

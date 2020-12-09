@@ -16,9 +16,10 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Component, ComponentType, Provider } from '@firebase/component';
+
 import {
   CACHE_SIZE_UNLIMITED,
   CollectionReference,
@@ -29,13 +30,14 @@ import {
   QueryDocumentSnapshot,
   QuerySnapshot,
   Transaction,
-  WriteBatch
-} from './api/database';
-import { Blob } from './api/blob';
-import { FieldPath } from './api/field_path';
-import { GeoPoint } from './api/geo_point';
-import { Timestamp } from './api/timestamp';
-import { FieldValue } from './api/field_value';
+  WriteBatch,
+  setLogLevel,
+  Blob,
+  FieldPath,
+  GeoPoint,
+  Timestamp,
+  FieldValue
+} from '../export';
 
 const firestoreNamespace = {
   Firestore,
@@ -52,15 +54,15 @@ const firestoreNamespace = {
   CollectionReference,
   FieldPath,
   FieldValue,
-  setLogLevel: Firestore.setLogLevel,
+  setLogLevel,
   CACHE_SIZE_UNLIMITED
 };
 
 /**
  * Configures Firestore as part of the Firebase SDK by calling registerService.
  *
- * @param firebase The FirebaseNamespace to register Firestore with
- * @param firestoreFactory A factory function that returns a new Firestore
+ * @param firebase - The FirebaseNamespace to register Firestore with
+ * @param firestoreFactory - A factory function that returns a new Firestore
  *    instance.
  */
 export function configureForFirebase(

@@ -18,15 +18,12 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import { Firestore } from './src/api/database';
-import {
-  MemoryOfflineComponentProvider,
-  OnlineComponentProvider
-} from './src/core/component_provider';
-import { configureForFirebase } from './src/config';
-import './register-module';
-
+import { FirebaseFirestore } from './exp/src/api/database';
 import { name, version } from './package.json';
+import { Firestore, MemoryPersistenceProvider } from './src/api/database';
+import { configureForFirebase } from './src/config';
+
+import './register-module';
 
 /**
  * Registers the memory-only Firestore build for Node with the components
@@ -38,9 +35,8 @@ export function registerFirestore(instance: FirebaseNamespace): void {
     (app, auth) =>
       new Firestore(
         app,
-        auth,
-        new MemoryOfflineComponentProvider(),
-        new OnlineComponentProvider()
+        new FirebaseFirestore(app, auth),
+        new MemoryPersistenceProvider()
       )
   );
   instance.registerVersion(name, version, 'node');

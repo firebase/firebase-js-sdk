@@ -16,34 +16,36 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-
-import * as api from '../../src/protos/firestore_proto_api';
-
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
-import { fromDotSeparatedString } from '../../src/api/field_path';
-import { UserDataWriter } from '../../src/api/user_data_writer';
+import { DocumentReference } from '../../src/api/database';
+import { Timestamp } from '../../src/api/timestamp';
 import {
+  DeleteFieldValueImpl,
   parseQueryValue,
+  parseSetData,
   parseUpdateData,
   UserDataReader
 } from '../../src/api/user_data_reader';
+import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
   newQueryForPath,
-  Operator,
-  OrderBy,
   Query,
   queryToTarget,
   queryWithAddedFilter,
   queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
+import {
+  Bound,
+  Direction,
+  FieldFilter,
+  Filter,
+  Operator,
+  OrderBy
+} from '../../src/core/target';
 import { TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
@@ -71,18 +73,32 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
-import { JsonObject, ObjectValue } from '../../src/model/object_value';
+import { FieldMask } from '../../src/model/field_mask';
 import {
   DeleteMutation,
-  FieldMask,
   MutationResult,
   PatchMutation,
   Precondition,
-  SetMutation,
-  TransformMutation
+  SetMutation
 } from '../../src/model/mutation';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
+import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
+import {
+  NamedQuery as ProtoNamedQuery,
+  BundleMetadata as ProtoBundleMetadata,
+  LimitType as ProtoLimitType
+} from '../../src/protos/firestore_bundle_proto';
+import * as api from '../../src/protos/firestore_proto_api';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
+import {
+  JsonProtoSerializer,
+  toDocument,
+  toName,
+  toQueryTarget,
+  toTimestamp,
+  toVersion
+} from '../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchChangeAggregator,
@@ -90,33 +106,22 @@ import {
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
 import { debugAssert, fail } from '../../src/util/assert';
+import { ByteString } from '../../src/util/byte_string';
+import { Code, FirestoreError } from '../../src/util/error';
 import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
+import {
+  JSON_SERIALIZER,
+  TEST_DATABASE_ID
+} from '../unit/local/persistence_test_helpers';
+
 import { FIRESTORE } from './api_helpers';
-import { ByteString } from '../../src/util/byte_string';
-import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
-import { Timestamp } from '../../src/api/timestamp';
-import { DocumentReference } from '../../src/api/database';
-import { DeleteFieldValueImpl } from '../../src/api/field_value';
-import { Code, FirestoreError } from '../../src/util/error';
-import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 
 /* eslint-disable no-restricted-globals */
 
 export type TestSnapshotVersion = number;
-
-export function testUserDataWriter(): UserDataWriter {
-  return new UserDataWriter(
-    TEST_DATABASE_ID,
-    /* timestampsInSnapshots= */ false,
-    'none',
-    key => new DocumentReference(key, FIRESTORE, /* converter= */ null),
-    bytes => new Blob(bytes)
-  );
-}
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
   return new UserDataReader(
@@ -135,8 +140,8 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 }
 
 export function ref(key: string, offset?: number): DocumentReference {
-  return new DocumentReference(
-    new DocumentKey(path(key, offset)),
+  return DocumentReference.forPath(
+    path(key, offset),
     FIRESTORE,
     /* converter= */ null
   );
@@ -204,7 +209,7 @@ export function path(path: string, offset?: number): ResourcePath {
 }
 
 export function field(path: string): FieldPath {
-  return fromDotSeparatedString(path)._internalPath;
+  return new FieldPath(path.split('.'));
 }
 
 export function mask(...paths: string[]): FieldMask {
@@ -226,7 +231,20 @@ export function setMutation(
   keyStr: string,
   json: JsonObject<unknown>
 ): SetMutation {
-  return new SetMutation(key(keyStr), wrapObject(json), Precondition.none());
+  const setKey = key(keyStr);
+  const parsed = parseSetData(
+    testUserDataReader(),
+    'setMutation',
+    setKey,
+    json,
+    false
+  );
+  return new SetMutation(
+    setKey,
+    parsed.data,
+    Precondition.none(),
+    parsed.fieldTransforms
+  );
 }
 
 export function patchMutation(
@@ -254,32 +272,13 @@ export function patchMutation(
     patchKey,
     parsed.data,
     parsed.fieldMask,
-    precondition
+    precondition,
+    parsed.fieldTransforms
   );
 }
 
 export function deleteMutation(keyStr: string): DeleteMutation {
   return new DeleteMutation(key(keyStr), Precondition.none());
-}
-
-/**
- * Creates a TransformMutation by parsing any FieldValue sentinels in the
- * provided data. The data is expected to use dotted-notation for nested fields
- * (i.e. { "foo.bar": FieldValue.foo() } and must not contain any non-sentinel
- * data.
- */
-export function transformMutation(
-  keyStr: string,
-  data: Dict<unknown>
-): TransformMutation {
-  const transformKey = key(keyStr);
-  const result = parseUpdateData(
-    testUserDataReader(),
-    'transformMutation()',
-    transformKey,
-    data
-  );
-  return new TransformMutation(transformKey, result.fieldTransforms);
 }
 
 export function mutationResult(
@@ -427,6 +426,76 @@ export function docUpdateRemoteEvent(
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
+}
+
+export class TestBundledDocuments {
+  constructor(public documents: BundledDocuments, public bundleName: string) {}
+}
+
+export function bundledDocuments(
+  documents: MaybeDocument[],
+  queryNames?: string[][],
+  bundleName?: string
+): TestBundledDocuments {
+  const result = documents.map((d, index) => {
+    return {
+      metadata: {
+        name: toName(JSON_SERIALIZER, d.key),
+        readTime: toVersion(JSON_SERIALIZER, d.version),
+        exists: d instanceof Document,
+        queries: queryNames ? queryNames[index] : undefined
+      },
+      document:
+        d instanceof Document ? toDocument(JSON_SERIALIZER, d) : undefined
+    };
+  });
+
+  return new TestBundledDocuments(result, bundleName || '');
+}
+
+export class TestNamedQuery {
+  constructor(
+    public namedQuery: ProtoNamedQuery,
+    public matchingDocuments: DocumentKeySet
+  ) {}
+}
+
+export function namedQuery(
+  name: string,
+  query: Query,
+  limitType: ProtoLimitType,
+  readTime: SnapshotVersion,
+  matchingDocuments: DocumentKeySet = documentKeySet()
+): TestNamedQuery {
+  return {
+    namedQuery: {
+      name,
+      readTime: toTimestamp(JSON_SERIALIZER, readTime.toTimestamp()),
+      bundledQuery: {
+        parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).parent,
+        limitType,
+        structuredQuery: toQueryTarget(JSON_SERIALIZER, queryToTarget(query))
+          .structuredQuery
+      }
+    },
+    matchingDocuments
+  };
+}
+
+export function bundleMetadata(
+  id: string,
+  createTime: TestSnapshotVersion,
+  version = 1,
+  totalDocuments = 1,
+  totalBytes = 1000
+): ProtoBundleMetadata {
+  return {
+    id,
+    createTime: { seconds: createTime, nanos: 0 },
+    version,
+    totalDocuments,
+    totalBytes
+  };
 }
 
 export function updateMapping(

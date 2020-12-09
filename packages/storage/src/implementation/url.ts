@@ -30,7 +30,6 @@ export function makeQueryString(params: UrlParams): string {
   let queryPart = '?';
   for (const key in params) {
     if (params.hasOwnProperty(key)) {
-      // @ts-ignore TODO: remove once typescript is upgraded to 3.5.x
       const nextPart = encode(key) + '=' + encode(params[key]);
       queryPart = queryPart + nextPart + '&';
     }

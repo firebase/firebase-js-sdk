@@ -22,8 +22,10 @@ jobs:
     - name: Run changeset script
       run: yarn ts-node-script scripts/check_changeset.ts
       id: check-changeset
-    - name: Read output
-      run: echo "${{steps.check-changeset.outputs.MISSING_PACKAGES}}"
+    - name: Print changeset checker output
+      run: echo "${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}"
+    - name: Print blocking failure status
+      run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
     - name: Find Comment
       uses: peter-evans/find-comment@v1
       id: fc
@@ -31,34 +33,33 @@ jobs:
         issue-number: ${{github.event.number}}
         body-includes: Changeset File Check
     - name: Create comment (missing packages)
-      if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.MISSING_PACKAGES}}
+      if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       uses: peter-evans/create-or-update-comment@v1
       with:
         issue-number: ${{github.event.number}}
         body: |
           ### Changeset File Check :warning:
-          Warning: This PR modifies files in the following packages but they have not been included in the changeset file:
-          ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
-          
-          Make sure this was intentional.
+          ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Update comment (missing packages)
       if: ${{steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@v1
       with:
-        comment-id: ${{steps.fc.outputs.comment-id}} && steps.check-changeset.outputs.MISSING_PACKAGES}}
+        comment-id: ${{steps.fc.outputs.comment-id}} && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
         edit-mode: replace
         body: |
           ### Changeset File Check :warning:
-          Warning: This PR modifies files in the following packages but they have not been included in the changeset file:
-          ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
-
-          Make sure this was intentional.
+          ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Update comment (no missing packages)
-      if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.MISSING_PACKAGES}}
+      if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       uses: peter-evans/create-or-update-comment@v1
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
         body: |
           ### Changeset File Check :white_check_mark:
-          No modified packages are missing from the changeset file.
+          - No modified packages are missing from the changeset file.
+          - No changeset formatting errors detected.
+    # Don't want it to throw before editing the comment.
+    - name: Fail if checker script logged a blocking failure
+      if: ${{steps.check-changeset.outputs.BLOCKING_FAILURE == 'true'}}
+      run: exit 1

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -718,6 +718,41 @@ function testUser() {
 }
 
 
+/**
+ * Asserts that a user initiated with an emulator config will propagate
+ * the config to the RPC handler.
+ */
+function tesUser_initWithEmulator() {
+  // Listen to emulator config calls on RpcHandler.
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'updateEmulatorConfig',
+    goog.testing.recordFunction());
+
+  // Initialize a user.
+  user = new fireauth.AuthUser(
+    {
+      appName: config1.appName,
+      apiKey: config1.apiKey,
+      emulatorConfig: {
+        url: 'http://emulator.test.domain:1234'
+      }
+    }
+  );
+
+  // Should notify the RPC handler.
+  assertEquals(
+    1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+  assertObjectEquals(
+    {
+      url: 'http://emulator.test.domain:1234',
+    },
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+      .getArgument(0)
+  );
+}
+
+
 function testUser_multiFactor() {
   user = new fireauth.AuthUser(
       config1, tokenResponse, accountInfoWithEnrolledFactors);
@@ -768,7 +803,7 @@ function testUser_copyUser() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -2156,7 +2191,7 @@ function testUser_getIdToken_expiredToken_reauthWithPopupAfterInvalidation() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -2469,7 +2504,7 @@ function testUser_getIdToken_expiredToken_reauthWithPopupBeforeInvalidation() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -4404,7 +4439,7 @@ function testDestroy() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   mockControl.$replayAll();
   // Confirm a user is subscribed to Auth event manager.
   stubs.replace(
@@ -5793,7 +5828,7 @@ function testUser_linkWithRedirect_success_unloadsOnRedirect() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -5881,7 +5916,7 @@ function testUser_reauthenticateWithRedirect_success_unloadsOnRedirect() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -5963,7 +5998,7 @@ function testUser_linkWithRedirect_success_unloadsOnRedirect_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6061,7 +6096,7 @@ function testUser_reauthWithRedirect_success_unloadsOnRedirect_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6146,7 +6181,7 @@ function testUser_linkWithRedirect_success_doesNotUnloadOnRedirect() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6230,7 +6265,7 @@ function testUser_reauthenticateWithRedirect_success_doesNotUnloadOnRedirect() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6307,7 +6342,7 @@ function testUser_linkWithRedirect_success_doesNotUnloadOnRedirect_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6400,7 +6435,7 @@ function testUser_reauthWithRedirect_success_doesNotUnload_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6479,7 +6514,7 @@ function testUser_linkWithRedirect_success_noStorageManager() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6561,7 +6596,7 @@ function testUser_reauthenticateWithRedirect_success_noStorageManager() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6704,7 +6739,7 @@ function testUser_linkWithRedirect_invalidProvider() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
@@ -6828,7 +6863,7 @@ function testUser_linkWithPopup_success_slowIframeEmbed() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -6983,7 +7018,7 @@ function testUser_reauthenticateWithPopup_success_slowIframeEmbed() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -7136,7 +7171,7 @@ function testUser_linkWithPopup_error_popupClosed() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -7269,7 +7304,7 @@ function testUser_reauthenticateWithPopup_error_popupClosed() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -7390,7 +7425,7 @@ function testUser_linkWithPopup_error_iframeWebStorageNotSupported() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -7516,7 +7551,7 @@ function testUser_reauthWithPopup_error_iframeWebStorageNotSupported() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -7635,7 +7670,7 @@ function testUser_linkWithPopup_success_withoutPostBody() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -7784,7 +7819,7 @@ function testUser_linkWithPopup_success_withPostBody() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -7939,7 +7974,7 @@ function testUser_linkWithPopup_success_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -8098,7 +8133,7 @@ function testUser_reauthenticateWithPopup_success_withoutPostBody() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -8251,7 +8286,7 @@ function testUser_reauthenticateWithPopup_success_withPostBody() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -8407,7 +8442,7 @@ function testUser_linkWithPopup_emailCredentialError() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -8549,7 +8584,7 @@ function testUser_reauthenticateWithPopup_userMismatchError() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -8776,7 +8811,7 @@ function testUser_linkWithPopup_success_cannotRunInBackground() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -8957,7 +8992,7 @@ function testUser_linkWithPopup_success_cannotRunInBackground_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -9151,7 +9186,7 @@ function testUser_reauthenticateWithPopup_success_cannotRunInBackground() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -9322,7 +9357,7 @@ function testUser_reauthenticateWithPopup_success_cannotRunInBkg_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -9506,7 +9541,7 @@ function testUser_linkWithPopup_success_iframeCanRunInBackground() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -9699,7 +9734,7 @@ function testUser_reauthenticateWithPopup_success_iframeCanRunInBackground() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -9880,7 +9915,7 @@ function testUser_linkWithPopup_webStorageUnsupported_cannotRunInBackground() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -10037,7 +10072,7 @@ function testUser_reauthWithPopup_webStorageUnsupported_cantRunInBackground() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -10188,7 +10223,7 @@ function testUser_linkWithPopup_multipleUsers_success() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
@@ -10406,7 +10441,7 @@ function testUser_reauthenticateWithPopup_multipleUsers_success() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -10615,7 +10650,7 @@ function testUser_linkWithPopup_timeout() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -10802,7 +10837,7 @@ function testUser_reauthenticateWithPopup_timeout() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -10979,7 +11014,7 @@ function testUser_linkWithPopup_error() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
@@ -11112,7 +11147,7 @@ function testUser_reauthenticateWithPopup_error() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -11261,7 +11296,7 @@ function testUser_returnFromLinkWithRedirect_success_withoutPostBody() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -11336,7 +11371,7 @@ function testUser_returnFromLinkWithRedirect_success_withPostBody() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -11414,7 +11449,7 @@ function testUser_returnFromLinkWithRedirect_success_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -11493,7 +11528,7 @@ function testUser_returnFromReauthenticateWithRedirect_success_noPostBody() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -11568,7 +11603,7 @@ function testUser_returnFromReauthenticateWithRedirect_success_postBody() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -11646,7 +11681,7 @@ function testUser_returnFromReauthenticateWithRedirect_success_tenantId() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -11725,7 +11760,7 @@ function testUser_returnFromLinkWithRedirect_success_multipleUsers() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Both users should be subscribed.
@@ -11818,7 +11853,7 @@ function testUser_returnFromReauthenticateWithRedirect_success_multipleUsers() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Both users should be subscribed.
@@ -11907,7 +11942,7 @@ function testUser_returnFromLinkWithRedirect_invalidUser() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -11969,7 +12004,7 @@ function testUser_returnFromReauthenticateWithRedirect_invalidUser() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -12032,7 +12067,7 @@ function testUser_returnFromLinkWithRedirect_error() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -12096,7 +12131,7 @@ function testUser_returnFromReauthenticateWithRedirect_error() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -13172,6 +13207,56 @@ function testUser_customLocaleChanges() {
 }
 
 
+function testUser_emulatorConfigChanges() {
+  // Listen to all custom emulator config change calls on RpcHandler.
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'updateEmulatorConfig',
+    goog.testing.recordFunction());
+  // Dummy event dispatchers.
+  var dispatcher1 = createEventDispatcher();
+  var dispatcher2 = createEventDispatcher();
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  var emulatorConfig = {
+    url: 'http://emulator.test.domain:1234',
+  };
+
+  var otherEmulatorConfig = {
+    url: 'http://other.emulator.host:9876'
+  };
+
+  // Set emulator config.
+  user.setEmulatorConfig(emulatorConfig);
+  // Rpc handler emulator config should be updated.
+  assertEquals(
+    1,
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount()
+  );
+  assertObjectEquals(
+    emulatorConfig,
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+      .getArgument(0)
+  );
+
+  // Set dispatcher1 as emulator config change dispatcher.
+  user.setEmulatorConfigChangeDispatcher(dispatcher1);
+  dispatcher1.dispatchEvent(
+    new fireauth.Auth.EmulatorConfigChangeEvent(emulatorConfig));
+  dispatcher2.dispatchEvent(
+    new fireauth.Auth.EmulatorConfigChangeEvent(otherEmulatorConfig));
+  // Only first dispatcher should be detected.
+  assertEquals(
+    2,
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount()
+  );
+  assertObjectEquals(
+    emulatorConfig,
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+      .getArgument(0)
+  );
+}
+
+
 function testUser_frameworkLoggingChanges() {
   // Helper function to get the client version for the test.
   var getVersion = function(frameworks) {
@@ -13891,7 +13976,7 @@ function testReauthenticateWithPopup_multiFactor_success() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -14120,7 +14205,7 @@ function testReauthenticateWithPopup_multiFactor_mismatchError() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
       ignoreArgument,
       ignoreArgument,
@@ -14272,7 +14357,7 @@ function testReturnFromReauthenticateWithRedirect_multiFactor_success() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from
@@ -14429,7 +14514,7 @@ function testReturnFromReauthenticateWithRedirect_multiFactor_mismatchError() {
       fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
   instantiateOAuthSignInHandler(
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
-      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+      ignoreArgument, ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
       .$does(function(handler) {
         // Dispatch expected Auth event immediately to simulate return from

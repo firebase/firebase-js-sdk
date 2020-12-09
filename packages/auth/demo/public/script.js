@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1623,12 +1623,18 @@ function initApp(){
   log('Initializing app...');
   app = firebase.initializeApp(config);
   auth = app.auth();
+  if (window.emulatorUrl) {
+    auth.useEmulator(emulatorUrl);
+  }
 
   tempApp = firebase.initializeApp({
     'apiKey': config['apiKey'],
     'authDomain': config['authDomain']
   }, auth['app']['name'] + '-temp');
   tempAuth = tempApp.auth();
+  if (window.emulatorUrl) {
+    tempAuth.useEmulator(emulatorUrl);
+  }
 
   // Listen to reCAPTCHA config togglers.
   initRecaptchaToggle(function(size) {

@@ -229,8 +229,8 @@ describe('Database Tests', () => {
   });
 
   it('ref() validates project', () => {
-    const db1 = defaultApp.database('http://bar.foo.com');
-    const db2 = defaultApp.database('http://foo.bar.com');
+    const db1 = defaultApp.database('http://bar.firebaseio.com');
+    const db2 = defaultApp.database('http://foo.firebaseio.com');
 
     const ref1 = db1.ref('child');
 
@@ -259,5 +259,31 @@ describe('Database Tests', () => {
     expect(() => {
       const ref = (db as any).refFromURL();
     }).to.throw(/Expects at least 1/);
+  });
+
+  it('can call useEmulator before use', () => {
+    const db = (firebase as any).database();
+    db.useEmulator('localhost', 1234);
+    expect(db.ref().toString()).to.equal('http://localhost:1234/');
+  });
+
+  it('cannot call useEmulator after use', () => {
+    const db = (firebase as any).database();
+
+    db.ref().set({
+      hello: 'world'
+    });
+
+    expect(() => {
+      db.useEmulator('localhost', 1234);
+    }).to.throw(/Cannot call useEmulator/);
+  });
+
+  it('refFromURL returns an emulated ref with useEmulator', () => {
+    const db = (firebase as any).database();
+    db.useEmulator('localhost', 1234);
+
+    const ref = db.refFromURL(DATABASE_ADDRESS + '/path/to/data');
+    expect(ref.toString()).to.equal(`http://localhost:1234/path/to/data`);
   });
 });

@@ -21,7 +21,7 @@ export interface Dict<V> {
   [stringKey: string]: V;
 }
 
-export function objectSize<V>(obj: object): number {
+export function objectSize(obj: object): number {
   let count = 0;
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {

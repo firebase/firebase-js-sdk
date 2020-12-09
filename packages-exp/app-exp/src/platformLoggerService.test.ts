@@ -16,7 +16,6 @@
  */
 
 import { VersionService } from '@firebase/app-types';
-import { _FirebaseApp, _FirebaseNamespace } from '@firebase/app-types/private';
 import { expect } from 'chai';
 import '../test/setup';
 import { PlatformLoggerService } from './platformLoggerService';

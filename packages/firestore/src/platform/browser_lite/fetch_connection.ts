@@ -16,12 +16,12 @@
  */
 
 import { Token } from '../../api/credentials';
+import { DatabaseInfo } from '../../core/database_info';
 import { Stream } from '../../remote/connection';
+import { RestConnection } from '../../remote/rest_connection';
 import { mapCodeFromHttpStatus } from '../../remote/rpc_error';
 import { FirestoreError } from '../../util/error';
 import { StringMap } from '../../util/types';
-import { RestConnection } from '../../remote/rest_connection';
-import { DatabaseInfo } from '../../core/database_info';
 
 /**
  * A Rest-based connection that relies on the native HTTP stack
@@ -29,8 +29,8 @@ import { DatabaseInfo } from '../../core/database_info';
  */
 export class FetchConnection extends RestConnection {
   /**
-   * @param databaseInfo The connection info.
-   * @param fetchImpl `fetch` or a Polyfill that implements the fetch API.
+   * @param databaseInfo - The connection info.
+   * @param fetchImpl - `fetch` or a Polyfill that implements the fetch API.
    */
   constructor(
     databaseInfo: DatabaseInfo,
