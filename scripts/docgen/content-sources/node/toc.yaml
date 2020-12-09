@@ -135,9 +135,9 @@ toc:
   - title: "GetOptions"
     path: /docs/reference/node/firebase.firestore.GetOptions
   - title: "LoadBundleTask"
-    path: /docs/reference/js/firebase.firestore.LoadBundleTask
+    path: /docs/reference/node/firebase.firestore.LoadBundleTask
   - title: "LoadBundleTaskProgress"
-    path: /docs/reference/js/firebase.firestore.LoadBundleTaskProgress
+    path: /docs/reference/node/firebase.firestore.LoadBundleTaskProgress
   - title: "PersistenceSettings"
     path: /docs/reference/node/firebase.firestore.PersistenceSettings
   - title: "Query"
