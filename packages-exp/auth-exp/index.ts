@@ -70,7 +70,7 @@ export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions
  *
  * @public
  */
-export function getAuth(app?: FirebaseApp): Auth {
+export function getAuth(app: FirebaseApp): Auth {
   return initializeAuth(app, {
     popupRedirectResolver: browserPopupRedirectResolver,
     persistence: [indexedDBLocalPersistence, browserLocalPersistence]

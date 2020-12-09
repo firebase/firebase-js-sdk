@@ -146,7 +146,7 @@ export function fetchSignInMethodsForEmail(auth: externs.Auth, email: string): P
 export function getAdditionalUserInfo(userCredential: externs.UserCredential): externs.AdditionalUserInfo | null;
 
 // @public
-export function getAuth(app?: FirebaseApp): Auth;
+export function getAuth(app: FirebaseApp): Auth;
 
 // @public
 export function getIdToken(user: externs.User, forceRefresh?: boolean): Promise<string>;
@@ -186,7 +186,7 @@ export const indexedDBLocalPersistence: externs.Persistence;
 // Warning: (ae-forgotten-export) The symbol "Dependencies" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function initializeAuth(app?: FirebaseApp, deps?: Dependencies): externs.Auth;
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): externs.Auth;
 
 // @public
 export const inMemoryPersistence: externs.Persistence;

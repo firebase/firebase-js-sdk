@@ -26,7 +26,7 @@ import { AuthImpl } from './auth_impl';
 
 /** @public */
 export function initializeAuth(
-  app: FirebaseApp = getApp(),
+  app: FirebaseApp,
   deps?: Dependencies
 ): externs.Auth {
   const auth = _getProvider(app, 'auth-exp').getImmediate() as AuthImpl;
