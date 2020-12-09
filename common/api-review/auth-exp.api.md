@@ -146,7 +146,7 @@ export function fetchSignInMethodsForEmail(auth: externs.Auth, email: string): P
 export function getAdditionalUserInfo(userCredential: externs.UserCredential): externs.AdditionalUserInfo | null;
 
 // @public
-export function getAuth(app?: FirebaseApp): Auth;
+export function getAuth(app: FirebaseApp): Auth;
 
 // @public
 export function getIdToken(user: externs.User, forceRefresh?: boolean): Promise<string>;
@@ -186,7 +186,7 @@ export const indexedDBLocalPersistence: externs.Persistence;
 // Warning: (ae-forgotten-export) The symbol "Dependencies" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function initializeAuth(app?: FirebaseApp, deps?: Dependencies): externs.Auth;
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): externs.Auth;
 
 // @public
 export const inMemoryPersistence: externs.Persistence;
@@ -247,8 +247,10 @@ export class OAuthProvider implements externs.AuthProvider {
     constructor(providerId: string);
     addScope(scope: string): externs.AuthProvider;
     credential(params: OAuthCredentialOptions): externs.OAuthCredential;
+    static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
     // (undocumented)
     static credentialFromJSON(json: object | string): externs.OAuthCredential;
+    static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
     // @internal (undocumented)
     defaultLanguageCode: string | null;
     getCustomParameters(): CustomParameters;
@@ -363,7 +365,7 @@ export function sendPasswordResetEmail(auth: externs.Auth, email: string, action
 export function sendSignInLinkToEmail(auth: externs.Auth, email: string, actionCodeSettings?: externs.ActionCodeSettings): Promise<void>;
 
 // @public
-export function setPersistence(auth: externs.Auth, persistence: externs.Persistence): void;
+export function setPersistence(auth: externs.Auth, persistence: externs.Persistence): Promise<void>;
 
 // @public
 export function signInAnonymously(auth: externs.Auth): Promise<externs.UserCredential>;
