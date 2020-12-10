@@ -20,8 +20,8 @@ import {
   LoadBundleTaskProgress
 } from '@firebase/firestore-types';
 
-import { ensureFirestoreConfigured } from '../../exp/src/api/database';
-import { Query as ExpQuery } from '../../exp/src/api/reference';
+import { ensureFirestoreConfigured } from '../../src/exp/database';
+import { Query as ExpQuery } from '../../src/exp/reference';
 import {
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle

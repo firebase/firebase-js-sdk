@@ -19,7 +19,7 @@ import { registerFirestore } from './register';
 
 registerFirestore();
 
-export { FieldPath, documentId } from './src/api/field_path';
+export { FieldPath, documentId } from '../src/exp/field_path';
 
 export {
   FirebaseFirestore,
@@ -32,9 +32,9 @@ export {
   disableNetwork,
   enableNetwork,
   terminate
-} from './src/api/database';
+} from '../src/exp/database';
 
-export { Settings, PersistenceSettings } from './src/api/settings';
+export { Settings, PersistenceSettings } from '../src/exp/settings';
 
 export {
   DocumentChange,
@@ -46,7 +46,7 @@ export {
   FirestoreDataConverter,
   DocumentChangeType,
   SnapshotMetadata
-} from './src/api/snapshot';
+} from '../src/exp/snapshot';
 
 export {
   DocumentReference,
@@ -60,7 +60,7 @@ export {
   UpdateData,
   refEqual,
   queryEqual
-} from './src/api/reference';
+} from '../src/exp/reference';
 
 export {
   endAt,
@@ -76,11 +76,11 @@ export {
   QueryConstraintType,
   OrderByDirection,
   WhereFilterOp
-} from './src/api/query';
+} from '../src/exp/query';
 
-export { Unsubscribe } from '../src/api/observer';
+export { Unsubscribe } from '../src/exp/reference_impl';
 
-export { runTransaction, Transaction } from './src/api/transaction';
+export { runTransaction, Transaction } from '../src/exp/transaction';
 
 export {
   SnapshotListenOptions,
@@ -96,9 +96,9 @@ export {
   updateDoc,
   deleteDoc,
   addDoc
-} from './src/api/reference_impl';
+} from '../src/exp/reference_impl';
 
-export { FieldValue } from './src/api/field_value';
+export { FieldValue } from '../src/exp/field_value';
 
 export {
   increment,
@@ -106,18 +106,18 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from './src/api/field_value_impl';
+} from '../src/exp/field_value_impl';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
-export { Bytes } from './src/api/bytes';
+export { Bytes } from '../src/exp/bytes';
 
-export { WriteBatch, writeBatch } from './src/api/write_batch';
+export { WriteBatch, writeBatch } from '../src/exp/write_batch';
 
-export { GeoPoint } from '../src/api/geo_point';
+export { GeoPoint } from '../src/exp/geo_point';
 
-export { Timestamp } from '../src/api/timestamp';
+export { Timestamp } from '../src/exp/timestamp';
 
-export { CACHE_SIZE_UNLIMITED } from './src/api/database';
+export { CACHE_SIZE_UNLIMITED } from '../src/exp/database';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';

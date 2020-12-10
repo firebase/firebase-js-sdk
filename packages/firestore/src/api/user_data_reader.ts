@@ -21,12 +21,12 @@ import {
   SetOptions
 } from '@firebase/firestore-types';
 
-import { Bytes } from '../../lite/src/api/bytes';
-import { FirebaseFirestore } from '../../lite/src/api/database';
-import { FieldPath } from '../../lite/src/api/field_path';
-import { FieldValue } from '../../lite/src/api/field_value';
-import { DocumentReference } from '../../lite/src/api/reference';
 import { DatabaseId } from '../core/database_info';
+import { Bytes } from '../lite/bytes';
+import { FirebaseFirestore } from '../lite/database';
+import { FieldPath } from '../lite/field_path';
+import { FieldValue } from '../lite/field_value';
+import { DocumentReference } from '../lite/reference';
 import { DocumentKey } from '../model/document_key';
 import { FieldMask } from '../model/field_mask';
 import {

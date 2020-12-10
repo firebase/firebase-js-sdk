@@ -21,20 +21,6 @@
 import { Provider, ComponentContainer } from '@firebase/component';
 
 import {
-  ensureFirestoreConfigured,
-  FirebaseFirestore
-} from '../../exp/src/api/database';
-import {
-  Query as ExpQuery,
-  CollectionReference as ExpCollectionReference
-} from '../../exp/src/api/reference';
-import { ExpUserDataWriter } from '../../exp/src/api/reference_impl';
-import {
-  QuerySnapshot as ExpQuerySnapshot,
-  DocumentSnapshot as ExpDocumentSnapshot,
-  SnapshotMetadata
-} from '../../exp/src/api/snapshot';
-import {
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
@@ -51,6 +37,20 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../src/core/view_snapshot';
+import {
+  ensureFirestoreConfigured,
+  FirebaseFirestore
+} from '../../src/exp/database';
+import {
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference
+} from '../../src/exp/reference';
+import { ExpUserDataWriter } from '../../src/exp/reference_impl';
+import {
+  QuerySnapshot as ExpQuerySnapshot,
+  DocumentSnapshot as ExpDocumentSnapshot,
+  SnapshotMetadata
+} from '../../src/exp/snapshot';
 import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';

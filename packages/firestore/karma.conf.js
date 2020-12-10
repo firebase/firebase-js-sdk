@@ -24,8 +24,6 @@ module.exports = function (config) {
     files: getTestFiles(argv),
 
     preprocessors: {
-      'exp/test/**/*.ts': ['webpack', 'sourcemap'],
-      'lite/test/**/*.ts': ['webpack', 'sourcemap'],
       'test/**/*.ts': ['webpack', 'sourcemap']
     },
 
@@ -48,8 +46,7 @@ module.exports = function (config) {
 function getTestFiles(argv) {
   const unitTests = 'test/unit/bootstrap.ts';
   const legcayIntegrationTests = 'test/integration/bootstrap.ts';
-  const liteIntegrationTests = 'lite/test/bootstrap.ts';
-  const expIntegrationTests = 'exp/test/bootstrap.ts';
+  const liteIntegrationTests = 'test/lite/bootstrap.ts';
   if (argv.unit) {
     return [unitTests];
   } else if (argv.integration) {
@@ -57,8 +54,6 @@ function getTestFiles(argv) {
   } else if (argv.lite) {
     process.env.TEST_PLATFORM = 'browser_lite';
     return [liteIntegrationTests];
-  } else if (argv.exp) {
-    return [expIntegrationTests];
   } else {
     // Note that we cannot include both the firestore-exp and the legacy SDK
     // as the test runners modify the global namespace cannot be both included
