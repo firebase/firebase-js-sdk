@@ -46,14 +46,14 @@ import {
   localStoreHasNewerBundle,
   localStoreWriteLocally,
   LocalWriteResult,
-  newLocalStore,
   localStoreNotifyLocalViewChanges,
   localStoreReadDocument,
   localStoreRejectBatch,
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  localStoreSynchronizeLastDocumentChangeReadTime
+  localStoreSynchronizeLastDocumentChangeReadTime,
+  newLocalStore
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
