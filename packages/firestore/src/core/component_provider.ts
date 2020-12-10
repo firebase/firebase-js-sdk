@@ -24,7 +24,7 @@ import {
 import { LocalStore } from '../local/local_store';
 import {
   newLocalStore,
-  synchronizeLastDocumentChangeReadTime
+  localStoreSynchronizeLastDocumentChangeReadTime
 } from '../local/local_store_impl';
 import { LruParams } from '../local/lru_garbage_collector';
 import { LruScheduler } from '../local/lru_garbage_collector_impl';
@@ -172,7 +172,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
-    await synchronizeLastDocumentChangeReadTime(this.localStore);
+    await localStoreSynchronizeLastDocumentChangeReadTime(this.localStore);
 
     await this.onlineComponentProvider.initialize(this, cfg);
 

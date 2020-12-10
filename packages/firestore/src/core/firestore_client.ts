@@ -25,10 +25,10 @@ import {
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import {
-  executeQuery,
-  getNamedQuery,
-  handleUserChange,
-  readLocalDocument
+  localStoreExecuteQuery,
+  localStoreGetNamedQuery,
+  localStoreHandleUserChange,
+  localStoreReadDocument
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
@@ -201,7 +201,10 @@ export async function setOfflineComponentProvider(
 
   client.setCredentialChangeListener(user =>
     client.asyncQueue.enqueueRetryable(async () => {
-      await handleUserChange(offlineComponentProvider.localStore, user);
+      await localStoreHandleUserChange(
+        offlineComponentProvider.localStore,
+        user
+      );
     })
   );
 
@@ -493,7 +496,7 @@ async function readDocumentFromCache(
   result: Deferred<Document | null>
 ): Promise<void> {
   try {
-    const maybeDoc = await readLocalDocument(localStore, docKey);
+    const maybeDoc = await localStoreReadDocument(localStore, docKey);
     if (maybeDoc instanceof Document) {
       result.resolve(maybeDoc);
     } else if (maybeDoc instanceof NoDocument) {
@@ -595,7 +598,7 @@ async function executeQueryFromCache(
   result: Deferred<ViewSnapshot>
 ): Promise<void> {
   try {
-    const queryResult = await executeQuery(
+    const queryResult = await localStoreExecuteQuery(
       localStore,
       query,
       /* usePreviousResults= */ true
@@ -676,7 +679,7 @@ export function firestoreClientGetNamedQuery(
   queryName: string
 ): Promise<NamedQuery | undefined> {
   return client.asyncQueue.enqueue(async () =>
-    getNamedQuery(await getLocalStore(client), queryName)
+    localStoreGetNamedQuery(await getLocalStore(client), queryName)
   );
 }
 
