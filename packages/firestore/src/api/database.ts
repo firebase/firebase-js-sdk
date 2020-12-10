@@ -45,6 +45,8 @@ import {
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
 
+import { DatabaseId } from '../core/database_info';
+import { Bytes } from '../exp/bytes';
 import {
   clearIndexedDbPersistence,
   disableNetwork,
@@ -54,7 +56,8 @@ import {
   ensureFirestoreConfigured,
   FirebaseFirestore as ExpFirebaseFirestore,
   waitForPendingWrites
-} from '../../exp/src/api/database';
+} from '../exp/database';
+import { FieldPath as ExpFieldPath } from '../exp/field_path';
 import {
   limit,
   limitToLast,
@@ -65,7 +68,7 @@ import {
   query,
   endBefore,
   endAt
-} from '../../exp/src/api/query';
+} from '../exp/query';
 import {
   doc,
   collection,
@@ -73,8 +76,9 @@ import {
   queryEqual,
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference,
-  DocumentReference as ExpDocumentReference
-} from '../../exp/src/api/reference';
+  DocumentReference as ExpDocumentReference,
+  refEqual
+} from '../exp/reference';
 import {
   addDoc,
   deleteDoc,
@@ -88,25 +92,22 @@ import {
   onSnapshot,
   onSnapshotsInSync,
   setDoc,
-  updateDoc
-} from '../../exp/src/api/reference_impl';
+  updateDoc,
+  Unsubscribe
+} from '../exp/reference_impl';
+import { DEFAULT_HOST } from '../exp/settings';
 import {
   DocumentChange as ExpDocumentChange,
   DocumentSnapshot as ExpDocumentSnapshot,
   QuerySnapshot as ExpQuerySnapshot,
   snapshotEqual,
   SnapshotMetadata
-} from '../../exp/src/api/snapshot';
+} from '../exp/snapshot';
 import {
   runTransaction,
   Transaction as ExpTransaction
-} from '../../exp/src/api/transaction';
-import { WriteBatch as ExpWriteBatch } from '../../exp/src/api/write_batch';
-import { Bytes } from '../../lite/src/api/bytes';
-import { FieldPath as ExpFieldPath } from '../../lite/src/api/field_path';
-import { refEqual } from '../../lite/src/api/reference';
-import { DEFAULT_HOST } from '../../lite/src/api/settings';
-import { DatabaseId } from '../core/database_info';
+} from '../exp/transaction';
+import { WriteBatch as ExpWriteBatch } from '../exp/write_batch';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
@@ -127,8 +128,7 @@ import {
   ErrorFn,
   isPartialObserver,
   NextFn,
-  PartialObserver,
-  Unsubscribe
+  PartialObserver
 } from './observer';
 import { UntypedFirestoreDataConverter } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';

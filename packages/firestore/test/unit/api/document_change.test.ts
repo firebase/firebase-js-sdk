@@ -17,11 +17,11 @@
 
 import { expect } from 'chai';
 
-import { Query } from '../../../exp/src/api/reference';
-import { ExpUserDataWriter } from '../../../exp/src/api/reference_impl';
-import { QuerySnapshot } from '../../../exp/src/api/snapshot';
 import { Query as InternalQuery } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
+import { Query } from '../../../src/exp/reference';
+import { ExpUserDataWriter } from '../../../src/exp/reference_impl';
+import { QuerySnapshot } from '../../../src/exp/snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';

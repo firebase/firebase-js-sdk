@@ -18,14 +18,14 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
-export { Settings } from './src/api/settings';
+export { Settings } from '../src/lite/settings';
 
 export {
   FirebaseFirestore,
   initializeFirestore,
   getFirestore,
   terminate
-} from './src/api/database';
+} from '../src/lite/database';
 
 export {
   SetOptions,
@@ -39,7 +39,7 @@ export {
   doc,
   refEqual,
   queryEqual
-} from './src/api/reference';
+} from '../src/lite/reference';
 
 export {
   endAt,
@@ -55,7 +55,7 @@ export {
   query,
   QueryConstraint,
   QueryConstraintType
-} from './src/api/query';
+} from '../src/lite/query';
 
 export {
   addDoc,
@@ -64,13 +64,13 @@ export {
   setDoc,
   getDoc,
   getDocs
-} from './src/api/reference_impl';
+} from '../src/lite/reference_impl';
 
 // TOOD(firestorelite): Add tests when Queries are usable
-export { FieldPath, documentId } from './src/api/field_path';
+export { FieldPath, documentId } from '../src/lite/field_path';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
-export { FieldValue } from './src/api/field_value';
+export { FieldValue } from '../src/lite/field_value';
 
 export {
   increment,
@@ -78,7 +78,7 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from './src/api/field_value_impl';
+} from '../src/lite/field_value_impl';
 
 export {
   FirestoreDataConverter,
@@ -86,18 +86,18 @@ export {
   QueryDocumentSnapshot,
   QuerySnapshot,
   snapshotEqual
-} from './src/api/snapshot';
+} from '../src/lite/snapshot';
 
-export { WriteBatch, writeBatch } from './src/api/write_batch';
+export { WriteBatch, writeBatch } from '../src/lite/write_batch';
 
-export { Transaction, runTransaction } from './src/api/transaction';
+export { Transaction, runTransaction } from '../src/lite/transaction';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
-export { Bytes } from './src/api/bytes';
+export { Bytes } from '../src/lite/bytes';
 
-export { GeoPoint } from '../src/api/geo_point';
+export { GeoPoint } from '../src/lite/geo_point';
 
-export { Timestamp } from '../src/api/timestamp';
+export { Timestamp } from '../src/lite/timestamp';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
