@@ -118,10 +118,8 @@ export class FirestoreClient {
   ) {
     this.credentials.setChangeListener(user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
-      if (!this.user.isEqual(user)) {
-        this.user = user;
-        this.credentialListener(user);
-      }
+      this.user = user;
+      this.credentialListener(user);
       this.receivedInitialUser.resolve();
     });
   }
@@ -199,11 +197,15 @@ export async function setOfflineComponentProvider(
   const configuration = await client.getConfiguration();
   await offlineComponentProvider.initialize(configuration);
 
-  client.setCredentialChangeListener(user =>
-    client.asyncQueue.enqueueRetryable(async () => {
-      await handleUserChange(offlineComponentProvider.localStore, user);
-    })
-  );
+  let currentUser = configuration.initialUser;
+  client.setCredentialChangeListener(user => {
+    if (!currentUser.isEqual(user)) {
+      currentUser = user;
+      client.asyncQueue.enqueueRetryable(async () => {
+        await handleUserChange(offlineComponentProvider.localStore, user);
+      });
+    }
+  });
 
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
