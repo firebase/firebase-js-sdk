@@ -1099,6 +1099,30 @@ declare namespace firebase {
   function database(app?: firebase.app.App): firebase.database.Database;
 
   /**
+   * Gets the {@link firebase.database.Database `Database`} service for the
+   * specified app and URL.
+   *
+   * @param app App whose Database service to return.
+   * @param url The URL to the Firebase Database instance you want to access.
+   * @return The default Database service if no app
+   *   is provided or the Database service associated with the provided app.
+   */
+  function database(
+    app: firebase.app.App,
+    url: string
+  ): firebase.database.Database;
+
+  /**
+   * Gets the {@link firebase.database.Database `Database`} service for the
+   * default app and the specified database URL.
+   *
+   * @param url The URL to the Firebase Database instance you want to access.
+   * @return The default Database service if no app
+   *   is provided or the Database service associated with the provided app.
+   */
+  function database(url: string): firebase.database.Database;
+
+  /**
    * Creates and initializes a Firebase {@link firebase.app.App app} instance.
    *
    * See
@@ -1210,6 +1234,26 @@ declare namespace firebase {
    *     If not passed, uses the default app.
    */
   function storage(app?: firebase.app.App): firebase.storage.Storage;
+
+  /**
+   * Gets the {@link firebase.storage.Storage `Storage`} service for the
+   * specified app and storage bucket.
+   *
+   * @param app The app to create a storage service for.
+   * @param url The gs:// url to your Firebase Storage Bucket.
+   */
+  function storage(
+    app: firebase.app.App,
+    url: string
+  ): firebase.storage.Storage;
+
+  /**
+   * Gets the {@link firebase.storage.Storage `Storage`} service for the
+   * default app and the specified storage bucket.
+   *
+   * @param url The gs:// url to your Firebase Storage Bucket.
+   */
+  function storage(url: string): firebase.storage.Storage;
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
