@@ -13,9 +13,9 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "eslint": "7.14.0",
-    "eslint-plugin-unused-imports": "1.0.0",
-    "prettier": "2.2.0"
+    "eslint": "7.15.0",
+    "eslint-plugin-unused-imports": "1.0.1",
+    "prettier": "2.2.1"
   },
   "repository": {
     "directory": "repo-scripts/prune-dts",
@@ -32,7 +32,7 @@
     "reportDir": "./coverage/node"
   },
   "devDependencies": {
-    "@types/eslint": "7.2.5",
+    "@types/eslint": "7.2.6",
     "@types/prettier": "2.1.5",
     "mocha": "8.2.1"
   }
