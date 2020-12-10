@@ -35,10 +35,6 @@ export class FirebaseDatabase implements _FirebaseService {
 
   constructor(private _app: FirebaseApp, private _delegate: Database) {}
 
-  _delete(): Promise<void> {
-    return this._delegate.INTERNAL.delete();
-  }
-
   get app(): FirebaseApp {
     return this._app;
   }
@@ -68,14 +64,9 @@ export class FirebaseDatabase implements _FirebaseService {
   ref(path?: string): Reference;
   ref(path?: Reference): Reference;
   ref(path?: string | Reference): Reference {
-    this.checkDeleted_('ref');
-    validateArgCount('database.ref', 0, 1, arguments.length);
-
-    if (path instanceof Reference) {
-      return this.refFromURL(path.toString());
-    }
-
-    return path !== undefined ? this.root_.child(path) : this.root_;
+    return typeof path === 'string'
+      ? this._delegate.ref(path)
+      : this._delegate.ref(path);
   }
 
   /**
@@ -86,52 +77,20 @@ export class FirebaseDatabase implements _FirebaseService {
    * @return {!Reference} Firebase reference.
    */
   refFromURL(url: string): Reference {
-    /** @const {string} */
-    const apiName = 'database.refFromURL';
-    this.checkDeleted_(apiName);
-    validateArgCount(apiName, 1, 1, arguments.length);
-    const parsedURL = parseRepoInfo(url, this.repo_.repoInfo_.nodeAdmin);
-    validateUrl(apiName, 1, parsedURL);
-
-    const repoInfo = parsedURL.repoInfo;
-    if (
-      !repoInfo.isCustomHost() &&
-      repoInfo.host !== this.repo_.repoInfo_.host
-    ) {
-      fatal(
-        apiName +
-          ': Host name does not match the current database: ' +
-          '(found ' +
-          repoInfo.host +
-          ' but expected ' +
-          this.repo_.repoInfo_.host +
-          ')'
-      );
-    }
-
-    return this.ref(parsedURL.path.toString());
-  }
-
-  /**
-   * @param {string} apiName
-   */
-  private checkDeleted_(apiName: string) {
-    if (this.repoInternal_ === null) {
-      fatal('Cannot call ' + apiName + ' on a deleted database.');
-    }
+    return this._delegate.refFromURL(url);
   }
 
   // Make individual repo go offline.
-  goOffline() {
-    validateArgCount('database.goOffline', 0, 0, arguments.length);
-    this.checkDeleted_('goOffline');
-    this.repo_.interrupt();
+  goOffline(): void {
+    this._delegate.goOffline();
   }
 
-  goOnline() {
-    validateArgCount('database.goOnline', 0, 0, arguments.length);
-    this.checkDeleted_('goOnline');
-    this.repo_.resume();
+  goOnline(): void {
+    this._delegate.goOnline();
+  }
+
+  _delete(): Promise<void> {
+    return this._delegate.INTERNAL.delete();
   }
 }
 
@@ -144,8 +103,8 @@ export class FirebaseDatabase implements _FirebaseService {
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp): FirebaseDatate {
-  return _getProvider(app, 'firestore-exp').getImmediate() as FirebaseFirestore;
+export function getFirestore(app: FirebaseApp): FirebaseDatabase {
+  return _getProvider(app, 'firebase-exp').getImmediate() as FirebaseDatabase;
 }
 
 /**
@@ -161,7 +120,7 @@ export function getFirestore(app: FirebaseApp): FirebaseDatate {
  */
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: Settings
+  databaseUrl: string
 ): FirebaseFirestore {
   const firestore = _getProvider(
     app,
