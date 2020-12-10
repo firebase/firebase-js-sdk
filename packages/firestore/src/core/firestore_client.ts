@@ -201,10 +201,12 @@ export async function setOfflineComponentProvider(
   client.setCredentialChangeListener(user => {
     if (!currentUser.isEqual(user)) {
       currentUser = user;
-      await localStoreHandleUserChange(
-        offlineComponentProvider.localStore,
-        user
-      );
+      client.asyncQueue.enqueueRetryable(async () => {
+        await localStoreHandleUserChange(
+          offlineComponentProvider.localStore,
+          user
+        );
+      });
     }
   });
 
