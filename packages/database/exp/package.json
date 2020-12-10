@@ -1,0 +1,10 @@
+{
+  "name": "@firebase/database-exp",
+  "description": "A tree-shakeable version of the Realtime Database SDK",
+  "main": "dist/exp/index.node.cjs.js",
+  "browser": "dist/exp/index.esm.js",
+  "module": "dist/exp/index.esm.js",
+  "esm2017": "dist/exp/index.esm2017.js",
+  "typings": "../dist/exp/index.d.ts",
+  "private": true
+}
