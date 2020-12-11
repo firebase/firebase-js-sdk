@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app-exp';
 import { expect } from 'chai';
 import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
@@ -33,7 +34,9 @@ describe('Database Tests', () => {
   });
 
   afterEach(async () => {
-    if (defaultApp) return deleteApp(defaultApp);
+    if (defaultApp) {
+      return deleteApp(defaultApp);
+    }
   });
 
   it('Can get database', () => {

@@ -30,7 +30,7 @@ export interface DataSnapshot {
   key: string | null;
   numChildren(): number;
   ref: Reference;
-  toJSON(): Object | null;
+  toJSON(): object | null;
   val(): any;
 }
 
@@ -62,7 +62,7 @@ export interface OnDisconnect {
     priority: number | string | null,
     onComplete?: (a: Error | null) => any
   ): Promise<any>;
-  update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
+  update(values: object, onComplete?: (a: Error | null) => any): Promise<any>;
 }
 
 type EventType =
@@ -81,20 +81,20 @@ export interface Query {
   off(
     eventType?: EventType,
     callback?: (a: DataSnapshot, b?: string | null) => any,
-    context?: Object | null
+    context?: object | null
   ): void;
   get(): Promise<DataSnapshot>;
   on(
     eventType: EventType,
     callback: (a: DataSnapshot, b?: string | null) => any,
-    cancelCallbackOrContext?: ((a: Error) => any) | Object | null,
-    context?: Object | null
+    cancelCallbackOrContext?: ((a: Error) => any) | object | null,
+    context?: object | null
   ): (a: DataSnapshot, b?: string | null) => any;
   once(
     eventType: EventType,
     successCallback?: (a: DataSnapshot, b?: string | null) => any,
-    failureCallbackOrContext?: ((a: Error) => void) | Object | null,
-    context?: Object | null
+    failureCallbackOrContext?: ((a: Error) => void) | object | null,
+    context?: object | null
   ): Promise<DataSnapshot>;
   orderByChild(path: string): Query;
   orderByKey(): Query;
@@ -102,7 +102,7 @@ export interface Query {
   orderByValue(): Query;
   ref: Reference;
   startAt(value: number | string | boolean | null, key?: string): Query;
-  toJSON(): Object;
+  toJSON(): object;
   toString(): string;
 }
 
@@ -129,12 +129,12 @@ export interface Reference extends Query {
     onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => any,
     applyLocally?: boolean
   ): Promise<any>;
-  update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
+  update(values: object, onComplete?: (a: Error | null) => any): Promise<any>;
 }
 
 export interface ServerValue {
-  TIMESTAMP: Object;
-  increment(delta: number): Object;
+  TIMESTAMP: object;
+  increment(delta: number): object;
 }
 
 export interface ThenableReference
