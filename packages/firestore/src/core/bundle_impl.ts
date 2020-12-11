@@ -19,8 +19,8 @@ import { LoadBundleTaskProgress } from '@firebase/firestore-types';
 
 import { LocalStore } from '../local/local_store';
 import {
-  applyBundleDocuments,
-  saveNamedQuery
+  localStoreApplyBundledDocuments,
+  localStoreSaveNamedQuery
 } from '../local/local_store_impl';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
@@ -173,7 +173,7 @@ export class BundleLoader {
     );
     debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');
 
-    const changedDocuments = await applyBundleDocuments(
+    const changedDocuments = await localStoreApplyBundledDocuments(
       this.localStore,
       new BundleConverterImpl(this.serializer),
       this.documents,
@@ -183,7 +183,11 @@ export class BundleLoader {
     const queryDocumentMap = this.getQueryDocumentMapping(this.documents);
 
     for (const q of this.queries) {
-      await saveNamedQuery(this.localStore, q, queryDocumentMap.get(q.name!));
+      await localStoreSaveNamedQuery(
+        this.localStore,
+        q,
+        queryDocumentMap.get(q.name!)
+      );
     }
 
     this.progress.taskState = 'Success';

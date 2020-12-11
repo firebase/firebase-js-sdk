@@ -20,8 +20,8 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
 import {
-  getLastRemoteSnapshotVersion,
-  nextMutationBatch
+  localStoreGetLastRemoteSnapshotVersion,
+  localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -470,7 +470,7 @@ async function onWatchStreamChange(
 
   if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
     try {
-      const lastRemoteSnapshotVersion = await getLastRemoteSnapshotVersion(
+      const lastRemoteSnapshotVersion = await localStoreGetLastRemoteSnapshotVersion(
         remoteStoreImpl.localStore
       );
       if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
@@ -514,7 +514,8 @@ async function disableNetworkUntilRecovery(
       // Use a simple read operation to determine if IndexedDB recovered.
       // Ideally, we would expose a health check directly on SimpleDb, but
       // RemoteStore only has access to persistence through LocalStore.
-      op = () => getLastRemoteSnapshotVersion(remoteStoreImpl.localStore);
+      op = () =>
+        localStoreGetLastRemoteSnapshotVersion(remoteStoreImpl.localStore);
     }
 
     // Probe IndexedDB periodically and re-enable network
@@ -659,7 +660,7 @@ export async function fillWritePipeline(
 
   while (canAddToWritePipeline(remoteStoreImpl)) {
     try {
-      const batch = await nextMutationBatch(
+      const batch = await localStoreGetNextMutationBatch(
         remoteStoreImpl.localStore,
         lastBatchIdRetrieved
       );

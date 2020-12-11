@@ -213,7 +213,7 @@ export function newLocalStore(
  */
 // PORTING NOTE: Android and iOS only return the documents affected by the
 // change.
-export async function handleUserChange(
+export async function localStoreHandleUserChange(
   localStore: LocalStore,
   user: User
 ): Promise<UserChangeResult> {
@@ -290,7 +290,7 @@ export async function handleUserChange(
 }
 
 /* Accepts locally generated Mutations and commit them to storage. */
-export function localWrite(
+export function localStoreWriteLocally(
   localStore: LocalStore,
   mutations: Mutation[]
 ): Promise<LocalWriteResult> {
@@ -365,7 +365,7 @@ export function localWrite(
  *
  * @returns The resulting (modified) documents.
  */
-export function acknowledgeBatch(
+export function localStoreAcknowledgeBatch(
   localStore: LocalStore,
   batchResult: MutationBatchResult
 ): Promise<MaybeDocumentMap> {
@@ -397,7 +397,7 @@ export function acknowledgeBatch(
  *
  * @returns The resulting modified documents.
  */
-export function rejectBatch(
+export function localStoreRejectBatch(
   localStore: LocalStore,
   batchId: BatchId
 ): Promise<MaybeDocumentMap> {
@@ -428,7 +428,7 @@ export function rejectBatch(
  *
  * Returns `BATCHID_UNKNOWN` if the queue is empty.
  */
-export function getHighestUnacknowledgedBatchId(
+export function localStoreGetHighestUnacknowledgedBatchId(
   localStore: LocalStore
 ): Promise<BatchId> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
@@ -443,7 +443,7 @@ export function getHighestUnacknowledgedBatchId(
  * Returns the last consistent snapshot processed (used by the RemoteStore to
  * determine whether to buffer incoming snapshots from the backend).
  */
-export function getLastRemoteSnapshotVersion(
+export function localStoreGetLastRemoteSnapshotVersion(
   localStore: LocalStore
 ): Promise<SnapshotVersion> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
@@ -462,7 +462,7 @@ export function getLastRemoteSnapshotVersion(
  * LocalDocuments are re-calculated if there are remaining mutations in the
  * queue.
  */
-export function applyRemoteEventToLocalCache(
+export function localStoreApplyRemoteEventToLocalCache(
   localStore: LocalStore,
   remoteEvent: RemoteEvent
 ): Promise<MaybeDocumentMap> {
@@ -714,7 +714,7 @@ function shouldPersistTargetData(
 /**
  * Notifies local store of the changed views to locally pin documents.
  */
-export async function notifyLocalViewChanges(
+export async function localStoreNotifyLocalViewChanges(
   localStore: LocalStore,
   viewChanges: LocalViewChanges[]
 ): Promise<void> {
@@ -791,7 +791,7 @@ export async function notifyLocalViewChanges(
  * @param afterBatchId - If provided, the batch to search after.
  * @returns The next mutation or null if there wasn't one.
  */
-export function nextMutationBatch(
+export function localStoreGetNextMutationBatch(
   localStore: LocalStore,
   afterBatchId?: BatchId
 ): Promise<MutationBatch | null> {
@@ -815,7 +815,7 @@ export function nextMutationBatch(
  * Reads the current value of a Document with a given key or null if not
  * found - used for testing.
  */
-export function readLocalDocument(
+export function localStoreReadDocument(
   localStore: LocalStore,
   key: DocumentKey
 ): Promise<MaybeDocument | null> {
@@ -835,7 +835,7 @@ export function readLocalDocument(
  * Allocating an already allocated `Target` will return the existing `TargetData`
  * for that `Target`.
  */
-export function allocateTarget(
+export function localStoreAllocateTarget(
   localStore: LocalStore,
   target: Target
 ): Promise<TargetData> {
@@ -895,7 +895,7 @@ export function allocateTarget(
  * have not yet been persisted to the TargetCache.
  */
 // Visible for testing.
-export function getLocalTargetData(
+export function localStoreGetTargetData(
   localStore: LocalStore,
   transaction: PersistenceTransaction,
   target: Target
@@ -919,7 +919,7 @@ export function getLocalTargetData(
  * Releasing a non-existing `Target` is a no-op.
  */
 // PORTING NOTE: `keepPersistedTargetData` is multi-tab only.
-export async function releaseTarget(
+export async function localStoreReleaseTarget(
   localStore: LocalStore,
   targetId: number,
   keepPersistedTargetData: boolean
@@ -976,7 +976,7 @@ export async function releaseTarget(
  * @param usePreviousResults - Whether results from previous executions can
  * be used to optimize this query execution.
  */
-export function executeQuery(
+export function localStoreExecuteQuery(
   localStore: LocalStore,
   query: Query,
   usePreviousResults: boolean
@@ -989,7 +989,7 @@ export function executeQuery(
     'Execute query',
     'readonly',
     txn => {
-      return getLocalTargetData(localStoreImpl, txn, queryToTarget(query))
+      return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
         .next(targetData => {
           if (targetData) {
             lastLimboFreeSnapshotVersion =
@@ -1066,7 +1066,7 @@ function applyWriteToRemoteDocuments(
 
 /** Returns the local view of the documents affected by a mutation batch. */
 // PORTING NOTE: Multi-Tab only.
-export function lookupMutationDocuments(
+export function localStoreLookupMutationDocuments(
   localStore: LocalStore,
   batchId: BatchId
 ): Promise<MaybeDocumentMap | null> {
@@ -1094,7 +1094,7 @@ export function lookupMutationDocuments(
 }
 
 // PORTING NOTE: Multi-Tab only.
-export function removeCachedMutationBatchMetadata(
+export function localStoreRemoveCachedMutationBatchMetadata(
   localStore: LocalStore,
   batchId: BatchId
 ): void {
@@ -1106,7 +1106,7 @@ export function removeCachedMutationBatchMetadata(
 }
 
 // PORTING NOTE: Multi-Tab only.
-export function getActiveClientsFromPersistence(
+export function localStoreGetActiveClients(
   localStore: LocalStore
 ): Promise<ClientId[]> {
   const persistenceImpl = debugCast(
@@ -1117,7 +1117,7 @@ export function getActiveClientsFromPersistence(
 }
 
 // PORTING NOTE: Multi-Tab only.
-export function getCachedTarget(
+export function localStoreGetCachedTarget(
   localStore: LocalStore,
   targetId: TargetId
 ): Promise<Target | null> {
@@ -1149,7 +1149,7 @@ export function getCachedTarget(
  * since the prior call.
  */
 // PORTING NOTE: Multi-Tab only.
-export function getNewDocumentChanges(
+export function localStoreGetNewDocumentChanges(
   localStore: LocalStore
 ): Promise<MaybeDocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
@@ -1173,7 +1173,7 @@ export function getNewDocumentChanges(
  * only return changes that happened after client initialization.
  */
 // PORTING NOTE: Multi-Tab only.
-export async function synchronizeLastDocumentChangeReadTime(
+export async function localStoreSynchronizeLastDocumentChangeReadTime(
   localStore: LocalStore
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
@@ -1209,7 +1209,7 @@ function umbrellaTarget(bundleName: string): Target {
  * LocalDocuments are re-calculated if there are remaining mutations in the
  * queue.
  */
-export async function applyBundleDocuments(
+export async function localStoreApplyBundledDocuments(
   localStore: LocalStore,
   bundleConverter: BundleConverter,
   documents: BundledDocuments,
@@ -1240,7 +1240,7 @@ export async function applyBundleDocuments(
 
   // Allocates a target to hold all document keys from the bundle, such that
   // they will not get garbage collected right away.
-  const umbrellaTargetData = await allocateTarget(
+  const umbrellaTargetData = await localStoreAllocateTarget(
     localStoreImpl,
     umbrellaTarget(bundleName)
   );
@@ -1284,7 +1284,7 @@ export async function applyBundleDocuments(
  * Returns a promise of a boolean to indicate if the given bundle has already
  * been loaded and the create time is newer than the current loading bundle.
  */
-export function hasNewerBundle(
+export function localStoreHasNewerBundle(
   localStore: LocalStore,
   bundleMetadata: BundleMetadata
 ): Promise<boolean> {
@@ -1305,7 +1305,7 @@ export function hasNewerBundle(
 /**
  * Saves the given `BundleMetadata` to local persistence.
  */
-export function saveBundle(
+export function localStoreSaveBundle(
   localStore: LocalStore,
   bundleMetadata: BundleMetadata
 ): Promise<void> {
@@ -1326,7 +1326,7 @@ export function saveBundle(
  * Returns a promise of a `NamedQuery` associated with given query name. Promise
  * resolves to undefined if no persisted data can be found.
  */
-export function getNamedQuery(
+export function localStoreGetNamedQuery(
   localStore: LocalStore,
   queryName: string
 ): Promise<NamedQuery | undefined> {
@@ -1342,7 +1342,7 @@ export function getNamedQuery(
 /**
  * Saves the given `NamedQuery` to local persistence.
  */
-export async function saveNamedQuery(
+export async function localStoreSaveNamedQuery(
   localStore: LocalStore,
   query: ProtoNamedQuery,
   documents: DocumentKeySet = documentKeySet()
@@ -1352,7 +1352,7 @@ export async function saveNamedQuery(
   // NOTE: this also means if no corresponding target exists, the new target
   // will remain active and will not get collected, unless users happen to
   // unlisten the query somehow.
-  const allocated = await allocateTarget(
+  const allocated = await localStoreAllocateTarget(
     localStore,
     queryToTarget(fromBundledQuery(query.bundledQuery!))
   );
