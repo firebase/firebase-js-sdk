@@ -24,6 +24,7 @@
  * @public
  */
 export type TaskEvent = string;
+
 /**
  * An event that is triggered on a task.
  * @public
@@ -33,8 +34,7 @@ export const TaskEvent = {
    * For this event,
    * <ul>
    *   <li>The `next` function is triggered on progress updates and when the
-   *       task is paused/resumed with a
-   *       `UploadTaskSnapshot` as the first
+   *       task is paused/resumed with an `UploadTaskSnapshot` as the first
    *       argument.</li>
    *   <li>The `error` function is triggered if the upload is canceled or fails
    *       for another reason.</li>
@@ -50,6 +50,7 @@ export const TaskEvent = {
  * @internal
  */
 export type InternalTaskState = string;
+
 /**
  * Internal enum for task state.
  * @internal
@@ -69,6 +70,7 @@ export const InternalTaskState = {
  * @public
  */
 export type TaskState = string;
+
 /**
  * Represents the current state of a running upload.
  * @public
@@ -76,12 +78,16 @@ export type TaskState = string;
 export const TaskState = {
   /** The task is currently transferring data. */
   RUNNING: 'running',
+
   /** The task was paused by the user. */
   PAUSED: 'paused',
+
   /** The task completed successfully. */
   SUCCESS: 'success',
+
   /** The task was canceled. */
   CANCELED: 'canceled',
+
   /** The task failed with an error. */
   ERROR: 'error'
 };

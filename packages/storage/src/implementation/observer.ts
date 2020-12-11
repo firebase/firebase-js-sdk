@@ -19,25 +19,26 @@ import { FirebaseStorageError } from './error';
 
 /**
  * @public
- * Called once for each value in a stream of values.
+ * Function that is called once for each value in a stream of values.
  */
 export type NextFn<T> = (value: T) => void;
 
 /**
  * @public
- * A stream terminates by a single call to EITHER error() or complete().
+ * A function that is called with a `FirebaseStorageError`
+ * if the event stream ends due to an error.
  */
 export type ErrorFn = (error: FirebaseStorageError) => void;
 
 /**
  * @public
- * No events will be sent to next() once complete() is called.
+ * A function that is called if the event stream ends normally.
  */
 export type CompleteFn = () => void;
 
 /**
  * @public
- * Unsubscribes to a stream.
+ * Unsubscribes from a stream.
  */
 export type Unsubscribe = () => void;
 
@@ -47,16 +48,16 @@ export type Unsubscribe = () => void;
  */
 export interface StorageObserver<T> {
   /**
-   * Called once for each value in the event stream.
+   * Function that is called once for each value in the event stream.
    */
   next?: NextFn<T>;
   /**
-   * A function that gets called with a `FirebaseStorageError`
+   * A function that is called with a `FirebaseStorageError`
    * if the event stream ends due to an error.
    */
   error?: ErrorFn;
   /**
-   * A function that gets called if the event stream ends normally.
+   * A function that is called if the event stream ends normally.
    */
   complete?: CompleteFn;
 }

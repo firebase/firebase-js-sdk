@@ -58,7 +58,7 @@ function fromBackendResponse(
   if (resource[PREFIXES_KEY]) {
     for (const path of resource[PREFIXES_KEY]) {
       const pathWithoutTrailingSlash = path.replace(/\/$/, '');
-      const reference = service.makeStorageReference(
+      const reference = service._makeStorageReference(
         new Location(bucket, pathWithoutTrailingSlash)
       );
       listResult.prefixes.push(reference);
@@ -67,7 +67,7 @@ function fromBackendResponse(
 
   if (resource[ITEMS_KEY]) {
     for (const item of resource[ITEMS_KEY]) {
-      const reference = service.makeStorageReference(
+      const reference = service._makeStorageReference(
         new Location(bucket, item['name'])
       );
       listResult.items.push(reference);

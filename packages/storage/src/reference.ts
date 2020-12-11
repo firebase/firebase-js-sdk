@@ -81,7 +81,7 @@ export class StorageReference {
   /**
    * @internal
    */
-  protected newRef(
+  protected _newRef(
     service: StorageService,
     location: Location
   ): StorageReference {
@@ -93,7 +93,7 @@ export class StorageReference {
    */
   get root(): StorageReference {
     const location = new Location(this._location.bucket, '');
-    return this.newRef(this._service, location);
+    return this._newRef(this._service, location);
   }
 
   /**
@@ -165,7 +165,7 @@ export function uploadBytes(
 ): Promise<UploadResult> {
   ref._throwIfRoot('uploadBytes');
   return ref.storage
-    .getAuthToken()
+    ._getAuthToken()
     .then(authToken => {
       const requestInfo = multipartUpload(
         ref.storage,
@@ -174,7 +174,7 @@ export function uploadBytes(
         new FbsBlob(data, true),
         metadata
       );
-      const multipartRequest = ref.storage.makeRequest(requestInfo, authToken);
+      const multipartRequest = ref.storage._makeRequest(requestInfo, authToken);
       return multipartRequest.getPromise();
     })
     .then(finalMetadata => {
@@ -315,7 +315,7 @@ export async function list(
       );
     }
   }
-  const authToken = await ref.storage.getAuthToken();
+  const authToken = await ref.storage._getAuthToken();
   const op = options || {};
   const requestInfo = requestsList(
     ref.storage,
@@ -324,7 +324,7 @@ export async function list(
     op.pageToken,
     op.maxResults
   );
-  return ref.storage.makeRequest(requestInfo, authToken).getPromise();
+  return ref.storage._makeRequest(requestInfo, authToken).getPromise();
 }
 
 /**
@@ -336,13 +336,13 @@ export async function list(
  */
 export async function getMetadata(ref: StorageReference): Promise<Metadata> {
   ref._throwIfRoot('getMetadata');
-  const authToken = await ref.storage.getAuthToken();
+  const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsGetMetadata(
     ref.storage,
     ref._location,
     getMappings()
   );
-  return ref.storage.makeRequest(requestInfo, authToken).getPromise();
+  return ref.storage._makeRequest(requestInfo, authToken).getPromise();
 }
 
 /**
@@ -361,14 +361,14 @@ export async function updateMetadata(
   metadata: Partial<Metadata>
 ): Promise<Metadata> {
   ref._throwIfRoot('updateMetadata');
-  const authToken = await ref.storage.getAuthToken();
+  const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsUpdateMetadata(
     ref.storage,
     ref._location,
     metadata,
     getMappings()
   );
-  return ref.storage.makeRequest(requestInfo, authToken).getPromise();
+  return ref.storage._makeRequest(requestInfo, authToken).getPromise();
 }
 
 /**
@@ -379,14 +379,14 @@ export async function updateMetadata(
  */
 export async function getDownloadURL(ref: StorageReference): Promise<string> {
   ref._throwIfRoot('getDownloadURL');
-  const authToken = await ref.storage.getAuthToken();
+  const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsGetDownloadUrl(
     ref.storage,
     ref._location,
     getMappings()
   );
   return ref.storage
-    .makeRequest(requestInfo, authToken)
+    ._makeRequest(requestInfo, authToken)
     .getPromise()
     .then(url => {
       if (url === null) {
@@ -404,9 +404,9 @@ export async function getDownloadURL(ref: StorageReference): Promise<string> {
  */
 export async function deleteObject(ref: StorageReference): Promise<void> {
   ref._throwIfRoot('deleteObject');
-  const authToken = await ref.storage.getAuthToken();
+  const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsDeleteObject(ref.storage, ref._location);
-  return ref.storage.makeRequest(requestInfo, authToken).getPromise();
+  return ref.storage._makeRequest(requestInfo, authToken).getPromise();
 }
 
 /**
@@ -419,7 +419,7 @@ export async function deleteObject(ref: StorageReference): Promise<void> {
  * appending childPath, removing any duplicate, beginning, or trailing
  * slashes.
  */
-export function getChild(
+export function _getChild(
   ref: StorageReference,
   childPath: string
 ): StorageReference {

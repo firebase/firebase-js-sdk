@@ -20,7 +20,7 @@ import { FailRequest } from './implementation/failrequest';
 import { Request, makeRequest } from './implementation/request';
 import { RequestInfo } from './implementation/requestinfo';
 import { XhrIoPool } from './implementation/xhriopool';
-import { StorageReference, getChild } from './reference';
+import { StorageReference, _getChild } from './reference';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
@@ -76,7 +76,7 @@ function refFromPath(
       if (path.includes('..')) {
         throw invalidArgument('`path` param cannot contain ".."');
       }
-      return getChild(ref, path);
+      return _getChild(ref, path);
     } else {
       return ref;
     }
@@ -219,7 +219,7 @@ export class StorageService implements _FirebaseService {
   /**
    * @internal
    */
-  async getAuthToken(): Promise<string | null> {
+  async _getAuthToken(): Promise<string | null> {
     const auth = this._authProvider.getImmediate({ optional: true });
     if (auth) {
       const tokenData = await auth.getToken();
@@ -246,7 +246,7 @@ export class StorageService implements _FirebaseService {
    * at the given Location.
    * @internal
    */
-  makeStorageReference(loc: Location): StorageReference {
+  _makeStorageReference(loc: Location): StorageReference {
     return new StorageReference(this, loc);
   }
 
@@ -255,7 +255,7 @@ export class StorageService implements _FirebaseService {
    * @param requestInfo - HTTP RequestInfo object
    * @param authToken - Firebase auth token
    */
-  makeRequest<T>(
+  _makeRequest<T>(
     requestInfo: RequestInfo<T>,
     authToken: string | null
   ): Request<T> {

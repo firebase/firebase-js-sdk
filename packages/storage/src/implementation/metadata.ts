@@ -116,7 +116,7 @@ export function addRef(metadata: Metadata, service: StorageService): void {
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
     const loc = new Location(bucket, path);
-    return service.makeStorageReference(loc);
+    return service._makeStorageReference(loc);
   }
   Object.defineProperty(metadata, 'ref', { get: generateRef });
 }

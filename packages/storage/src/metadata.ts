@@ -31,38 +31,47 @@ interface Metadata extends types.FullMetadata {
    * @internal
    */
   type: string | undefined;
+
   /**
    * A Base64-encoded MD5 hash of the object being uploaded.
    */
   md5Hash: string | undefined;
+
   /**
    * Served as the 'Cache-Control' header on object download.
    */
   cacheControl: string | undefined;
+
   /**
    * Served as the 'Content-Disposition' header on object download.
    */
   contentDisposition: string | undefined;
+
   /**
    * Served as the 'Content-Encoding' header on object download.
    */
   contentEncoding: string | undefined;
+
   /**
    * Served as the 'Content-Language' header on object download.
    */
   contentLanguage: string | undefined;
+
   /**
    * Served as the 'Content-Type' header on object download.
    */
   contentType: string | undefined;
+
   /**
    * Tokens to allow access to the downloatd URL.
    */
   downloadTokens: string[] | undefined;
+
   /**
    * Additional user-defined custom metadata.
    */
   customMetadata: { [key: string]: string } | undefined;
+
   /**
    * `StorageReference` associated with this upload.
    */

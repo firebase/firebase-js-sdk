@@ -25,7 +25,7 @@ export class FirebaseStorageError extends FirebaseError {
     // @internal
     constructor(code: StorageErrorCode, message: string);
     // @internal
-    codeEquals(code: StorageErrorCode): boolean;
+    _codeEquals(code: StorageErrorCode): boolean;
     customData: {
         serverResponse: string | null;
     };
@@ -138,7 +138,7 @@ export class StorageReference {
     _location: Location_2;
     get name(): string;
     // @internal (undocumented)
-    protected newRef(service: StorageService, location: Location_2): StorageReference;
+    protected _newRef(service: StorageService, location: Location_2): StorageReference;
     get parent(): StorageReference | null;
     get root(): StorageReference;
     get storage(): StorageService;
@@ -169,14 +169,14 @@ export class StorageService implements _FirebaseService {
     // @internal (undocumented)
     readonly _firebaseVersion?: string | undefined;
     // @internal (undocumented)
-    getAuthToken(): Promise<string | null>;
+    _getAuthToken(): Promise<string | null>;
     // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
-    makeRequest<T>(requestInfo: RequestInfo_2<T>, authToken: string | null): Request_2<T>;
+    _makeRequest<T>(requestInfo: RequestInfo_2<T>, authToken: string | null): Request_2<T>;
     // @internal
-    makeStorageReference(loc: Location_2): StorageReference;
+    _makeStorageReference(loc: Location_2): StorageReference;
     get maxOperationRetryTime(): number;
     set maxOperationRetryTime(time: number);
     get maxUploadRetryTime(): number;

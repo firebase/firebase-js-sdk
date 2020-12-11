@@ -116,7 +116,7 @@ export class UploadTask {
     this._errorHandler = error => {
       this._request = undefined;
       this._chunkMultiplier = 1;
-      if (error.codeEquals(StorageErrorCode.CANCELED)) {
+      if (error._codeEquals(StorageErrorCode.CANCELED)) {
         this._needToFetchStatus = true;
         this.completeTransitions_();
       } else {
@@ -126,7 +126,7 @@ export class UploadTask {
     };
     this._metadataErrorHandler = error => {
       this._request = undefined;
-      if (error.codeEquals(StorageErrorCode.CANCELED)) {
+      if (error._codeEquals(StorageErrorCode.CANCELED)) {
         this.completeTransitions_();
       } else {
         this._error = error;
@@ -183,7 +183,7 @@ export class UploadTask {
 
   private _resolveToken(callback: (p1: string | null) => void): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._ref.storage.getAuthToken().then(authToken => {
+    this._ref.storage._getAuthToken().then(authToken => {
       switch (this._state) {
         case InternalTaskState.RUNNING:
           callback(authToken);
@@ -210,7 +210,7 @@ export class UploadTask {
         this._blob,
         this._metadata
       );
-      const createRequest = this._ref.storage.makeRequest(
+      const createRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -234,7 +234,7 @@ export class UploadTask {
         url,
         this._blob
       );
-      const statusRequest = this._ref.storage.makeRequest(
+      const statusRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -279,7 +279,7 @@ export class UploadTask {
         this._transition(InternalTaskState.ERROR);
         return;
       }
-      const uploadRequest = this._ref.storage.makeRequest(
+      const uploadRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -314,7 +314,7 @@ export class UploadTask {
         this._ref._location,
         this._mappings
       );
-      const metadataRequest = this._ref.storage.makeRequest(
+      const metadataRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -336,7 +336,7 @@ export class UploadTask {
         this._blob,
         this._metadata
       );
-      const multipartRequest = this._ref.storage.makeRequest(
+      const multipartRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );

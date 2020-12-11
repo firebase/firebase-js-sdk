@@ -669,12 +669,12 @@ describe('Firebase Storage > Requests', () => {
     const requestInfo = getMetadata(storageService, locationNormal, mappings);
     const error = unknown();
     const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 404), error);
-    assert.isTrue(resultError.codeEquals(StorageErrorCode.OBJECT_NOT_FOUND));
+    assert.isTrue(resultError._codeEquals(StorageErrorCode.OBJECT_NOT_FOUND));
   });
   it('error handler converts 402 to quota exceeded', () => {
     const requestInfo = getMetadata(storageService, locationNormal, mappings);
     const error = unknown();
     const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 402), error);
-    assert.isTrue(resultError.codeEquals(StorageErrorCode.QUOTA_EXCEEDED));
+    assert.isTrue(resultError._codeEquals(StorageErrorCode.QUOTA_EXCEEDED));
   });
 });

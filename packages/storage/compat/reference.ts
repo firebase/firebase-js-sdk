@@ -17,7 +17,7 @@
 
 import {
   StorageReference,
-  getChild,
+  _getChild,
   uploadBytesResumable,
   list,
   listAll,
@@ -65,7 +65,7 @@ export class ReferenceCompat implements types.Reference {
    * slashes.
    */
   child(childPath: string): types.Reference {
-    const reference = getChild(this._delegate, childPath);
+    const reference = _getChild(this._delegate, childPath);
     return new ReferenceCompat(reference, this.storage);
   }
 

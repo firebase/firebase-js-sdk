@@ -47,7 +47,7 @@ export class FirebaseStorageError extends FirebaseError {
    * @internal
    * Compares a StorageErrorCode against this error's code, filtering out the prefix.
    */
-  codeEquals(code: StorageErrorCode): boolean {
+  _codeEquals(code: StorageErrorCode): boolean {
     return prependCode(code) === this.code;
   }
 
@@ -63,7 +63,7 @@ export class FirebaseStorageError extends FirebaseError {
   }
 
   /**
-   * Optional serverResponse string that can be added to a server error.
+   * Optional response message that was added by the server.
    */
   get serverResponse(): null | string {
     return this.customData.serverResponse;
