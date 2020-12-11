@@ -57,20 +57,20 @@ import { Code, FirestoreError } from '../util/error';
 
 import { DatabaseInfo } from './database_info';
 import { EventManager, newEventManager } from './event_manager';
+import { SyncEngine } from './sync_engine';
+import { OnlineStateSource } from './types';
 import {
   applyActiveTargetsChange,
   applyBatchState,
   applyOnlineStateChange,
   applyPrimaryState,
   applyTargetState,
-  getActiveClients,
-  syncEngineHandleCredentialChange,
-  newSyncEngine,
-  SyncEngine,
   ensureWriteCallbacks,
+  getActiveClients,
+  newSyncEngine,
+  syncEngineHandleCredentialChange,
   synchronizeWithChangedDocuments
-} from './sync_engine';
-import { OnlineStateSource } from './types';
+} from './sync_engine_impl';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;

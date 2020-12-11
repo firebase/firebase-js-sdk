@@ -73,18 +73,18 @@ import {
   removeSnapshotsInSyncListener
 } from './event_manager';
 import { newQueryForPath, Query } from './query';
-import {
-  registerPendingWritesCallback,
-  SyncEngine,
-  syncEngineListen,
-  syncEngineLoadBundle,
-  syncEngineUnlisten,
-  syncEngineWrite
-} from './sync_engine';
+import { SyncEngine } from './sync_engine';
 import { Transaction } from './transaction';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import {
+  registerPendingWritesCallback,
+  syncEngineListen,
+  syncEngineLoadBundle,
+  syncEngineUnlisten,
+  syncEngineWrite
+} from './sync_engine_impl';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

@@ -43,16 +43,7 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import {
-  activeLimboDocumentResolutions,
-  enqueuedLimboDocumentResolutions,
-  registerPendingWritesCallback,
-  SyncEngine,
-  syncEngineListen,
-  syncEngineLoadBundle,
-  syncEngineUnlisten,
-  syncEngineWrite
-} from '../../../src/core/sync_engine';
+import { SyncEngine } from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
@@ -162,6 +153,15 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
+import {
+  activeLimboDocumentResolutions,
+  enqueuedLimboDocumentResolutions,
+  registerPendingWritesCallback,
+  syncEngineListen,
+  syncEngineLoadBundle,
+  syncEngineUnlisten,
+  syncEngineWrite
+} from '../../../src/core/sync_engine_impl';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
