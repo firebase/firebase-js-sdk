@@ -82,8 +82,9 @@ export class AuthImpl implements Auth, _FirebaseService {
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
-  // repeated calls to the callbacks
-  private lastNotifiedUid: string | undefined = undefined;
+  // repeated calls to the callbacks. Undefined means it's never been
+  // called, whereas null means it's been called with a signed out user
+  private lastNotifiedUid: string | null | undefined = undefined;
 
   languageCode: string | null = null;
   tenantId: string | null = null;
@@ -474,8 +475,9 @@ export class AuthImpl implements Auth, _FirebaseService {
 
     this.idTokenSubscription.next(this.currentUser);
 
-    if (this.lastNotifiedUid !== this.currentUser?.uid) {
-      this.lastNotifiedUid = this.currentUser?.uid;
+    const currentUid = this.currentUser?.uid ?? null;
+    if (this.lastNotifiedUid !== currentUid) {
+      this.lastNotifiedUid = currentUid;
       this.authStateSubscription.next(this.currentUser);
     }
   }

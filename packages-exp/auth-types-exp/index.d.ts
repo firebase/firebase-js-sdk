@@ -267,7 +267,7 @@ export interface Auth {
    * @param completed - callback triggered when observer is removed.
    */
   onAuthStateChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
@@ -282,7 +282,7 @@ export interface Auth {
    * @param completed - callback triggered when observer is removed.
    */
   onIdTokenChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
