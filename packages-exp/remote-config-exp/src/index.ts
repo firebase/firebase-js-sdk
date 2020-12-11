@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import '@firebase/installations-exp';
 import { registerRemoteConfig } from './register';
 
 // Facilitates debugging by enabling settings changes without rebuilding asset.
