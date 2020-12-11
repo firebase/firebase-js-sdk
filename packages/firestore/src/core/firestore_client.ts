@@ -74,17 +74,17 @@ import {
 } from './event_manager';
 import { newQueryForPath, Query } from './query';
 import { SyncEngine } from './sync_engine';
-import { Transaction } from './transaction';
-import { TransactionRunner } from './transaction_runner';
-import { View } from './view';
-import { ViewSnapshot } from './view_snapshot';
 import {
-  registerPendingWritesCallback,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
 } from './sync_engine_impl';
+import { Transaction } from './transaction';
+import { TransactionRunner } from './transaction_runner';
+import { View } from './view';
+import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -342,7 +342,7 @@ export function firestoreClientWaitForPendingWrites(
   const deferred = new Deferred<void>();
   client.asyncQueue.enqueueAndForget(async () => {
     const syncEngine = await getSyncEngine(client);
-    return registerPendingWritesCallback(syncEngine, deferred);
+    return syncEngineRegisterPendingWritesCallback(syncEngine, deferred);
   });
   return deferred.promise;
 }

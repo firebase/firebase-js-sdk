@@ -15,17 +15,9 @@
  * limitations under the License.
  */
 
-import {
-  canonifyQuery,
-  LimitType,
-  newQuery,
-  newQueryForPath,
-  Query,
-  queryEquals,
-  queryToTarget,
-  stringifyQuery
-} from './query';
-import { ViewSnapshot } from './view_snapshot';
+import { LoadBundleTask } from '../api/bundle';
+import { User } from '../auth/user';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   localStoreAcknowledgeBatch,
   localStoreAllocateTarget,
@@ -45,6 +37,21 @@ import {
   localStoreSaveBundle,
   localStoreWriteLocally
 } from '../local/local_store_impl';
+import { LocalViewChanges } from '../local/local_view_changes';
+import { ReferenceSet } from '../local/reference_set';
+import { ClientId, SharedClientState } from '../local/shared_client_state';
+import { QueryTargetState } from '../local/shared_client_state_syncer';
+import { TargetData, TargetPurpose } from '../local/target_data';
+import {
+  DocumentKeySet,
+  documentKeySet,
+  MaybeDocumentMap
+} from '../model/collections';
+import { MaybeDocument, NoDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { Mutation } from '../model/mutation';
+import { MutationBatchResult } from '../model/mutation_batch';
+import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
   fillWritePipeline,
@@ -54,6 +61,43 @@ import {
   remoteStoreUnlisten
 } from '../remote/remote_store';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { BundleReader } from '../util/bundle_reader';
+import { Code, FirestoreError } from '../util/error';
+import { logDebug, logWarn } from '../util/log';
+import { primitiveComparator } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
+import { Deferred } from '../util/promise';
+import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
+import { BATCHID_UNKNOWN } from '../util/types';
+
+import {
+  bundleInitialProgress,
+  BundleLoader,
+  bundleSuccessProgress
+} from './bundle_impl';
+import {
+  EventManager,
+  eventManagerOnOnlineStateChange,
+  eventManagerOnWatchChange,
+  eventManagerOnWatchError
+} from './event_manager';
+import { ListenSequence } from './listen_sequence';
+import {
+  canonifyQuery,
+  LimitType,
+  newQuery,
+  newQueryForPath,
+  Query,
+  queryEquals,
+  queryToTarget,
+  stringifyQuery
+} from './query';
+import { SnapshotVersion } from './snapshot_version';
+import { SyncEngine } from './sync_engine';
+import { Target } from './target';
+import { TargetIdGenerator } from './target_id_generator';
 import {
   BatchId,
   MutationBatchState,
@@ -61,10 +105,6 @@ import {
   OnlineStateSource,
   TargetId
 } from './types';
-import { SortedMap } from '../util/sorted_map';
-import { DocumentKey } from '../model/document_key';
-import { RemoteEvent, TargetChange } from '../remote/remote_event';
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -72,46 +112,7 @@ import {
   View,
   ViewChange
 } from './view';
-import { logDebug, logWarn } from '../util/log';
-import { ObjectMap } from '../util/obj_map';
-import { ReferenceSet } from '../local/reference_set';
-import { Deferred } from '../util/promise';
-import { TargetIdGenerator } from './target_id_generator';
-import {
-  EventManager,
-  eventManagerOnOnlineStateChange,
-  eventManagerOnWatchChange,
-  eventManagerOnWatchError
-} from './event_manager';
-import { ClientId, SharedClientState } from '../local/shared_client_state';
-import { User } from '../auth/user';
-import { TargetData, TargetPurpose } from '../local/target_data';
-import { ListenSequence } from './listen_sequence';
-import { Code, FirestoreError } from '../util/error';
-import { Target } from './target';
-import { MaybeDocument, NoDocument } from '../model/document';
-import { SnapshotVersion } from './snapshot_version';
-import {
-  DocumentKeySet,
-  documentKeySet,
-  MaybeDocumentMap
-} from '../model/collections';
-import { SortedSet } from '../util/sorted_set';
-import { primitiveComparator } from '../util/misc';
-import { BundleReader } from '../util/bundle_reader';
-import { LoadBundleTask } from '../api/bundle';
-import {
-  bundleInitialProgress,
-  BundleLoader,
-  bundleSuccessProgress
-} from './bundle_impl';
-import { Mutation } from '../model/mutation';
-import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { MutationBatchResult } from '../model/mutation_batch';
-import { QueryTargetState } from '../local/shared_client_state_syncer';
-import { BATCHID_UNKNOWN } from '../util/types';
-import { LocalViewChanges } from '../local/local_view_changes';
-import { SyncEngine } from './sync_engine';
+import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -448,7 +449,7 @@ export async function syncEngineWrite(
   batch: Mutation[],
   userCallback: Deferred<void>
 ): Promise<void> {
-  const syncEngineImpl = ensureWriteCallbacks(syncEngine);
+  const syncEngineImpl = syncEngineEnsureWriteCallbacks(syncEngine);
 
   try {
     const result = await localStoreWriteLocally(
@@ -457,7 +458,10 @@ export async function syncEngineWrite(
     );
     syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
     addMutationCallback(syncEngineImpl, result.batchId, userCallback);
-    await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, result.changes);
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(
+      syncEngineImpl,
+      result.changes
+    );
     await fillWritePipeline(syncEngineImpl.remoteStore);
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
@@ -472,7 +476,7 @@ export async function syncEngineWrite(
  * changes, and releasing any pending mutation batches that would become
  * visible because of the snapshot version the remote event contains.
  */
-export async function applyRemoteEvent(
+export async function syncEngineApplyRemoteEvent(
   syncEngine: SyncEngine,
   remoteEvent: RemoteEvent
 ): Promise<void> {
@@ -516,7 +520,11 @@ export async function applyRemoteEvent(
         }
       }
     });
-    await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes, remoteEvent);
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(
+      syncEngineImpl,
+      changes,
+      remoteEvent
+    );
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error);
   }
@@ -526,7 +534,7 @@ export async function applyRemoteEvent(
  * Applies an OnlineState change to the sync engine and notifies any views of
  * the change.
  */
-export function applyOnlineStateChange(
+export function syncEngineApplyOnlineStateChange(
   syncEngine: SyncEngine,
   onlineState: OnlineState,
   source: OnlineStateSource
@@ -582,7 +590,7 @@ export function applyOnlineStateChange(
  * Nearly always this will be an indication that the user is no longer
  * authorized to see the data matching the target.
  */
-export async function rejectListen(
+export async function syncEngineRejectListen(
   syncEngine: SyncEngine,
   targetId: TargetId,
   err: FirestoreError
@@ -620,7 +628,7 @@ export async function rejectListen(
       resolvedLimboDocuments
     );
 
-    await applyRemoteEvent(syncEngineImpl, event);
+    await syncEngineApplyRemoteEvent(syncEngineImpl, event);
 
     // Since this query failed, we won't want to manually unlisten to it.
     // We only remove it from bookkeeping after we successfully applied the
@@ -643,7 +651,7 @@ export async function rejectListen(
   }
 }
 
-export async function applySuccessfulWrite(
+export async function syncEngineApplySuccessfulWrite(
   syncEngine: SyncEngine,
   mutationBatchResult: MutationBatchResult
 ): Promise<void> {
@@ -667,13 +675,13 @@ export async function applySuccessfulWrite(
       batchId,
       'acknowledged'
     );
-    await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error);
   }
 }
 
-export async function rejectFailedWrite(
+export async function syncEngineRejectFailedWrite(
   syncEngine: SyncEngine,
   batchId: BatchId,
   error: FirestoreError
@@ -698,7 +706,7 @@ export async function rejectFailedWrite(
       'rejected',
       error
     );
-    await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error);
   }
@@ -708,7 +716,7 @@ export async function rejectFailedWrite(
  * Registers a user callback that resolves when all pending mutations at the moment of calling
  * are acknowledged .
  */
-export async function registerPendingWritesCallback(
+export async function syncEngineRegisterPendingWritesCallback(
   syncEngine: SyncEngine,
   callback: Deferred<void>
 ): Promise<void> {
@@ -795,7 +803,7 @@ function addMutationCallback(
  * Resolves or rejects the user callback for the given batch and then discards
  * it.
  */
-export function processUserCallback(
+function processUserCallback(
   syncEngine: SyncEngine,
   batchId: BatchId,
   error: FirestoreError | null
@@ -961,7 +969,7 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
 }
 
 // Visible for testing
-export function activeLimboDocumentResolutions(
+export function syncEngineGetActiveLimboDocumentResolutions(
   syncEngine: SyncEngine
 ): SortedMap<DocumentKey, TargetId> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
@@ -969,14 +977,14 @@ export function activeLimboDocumentResolutions(
 }
 
 // Visible for testing
-export function enqueuedLimboDocumentResolutions(
+export function syncEngineGetEnqueuedLimboDocumentResolutions(
   syncEngine: SyncEngine
 ): DocumentKey[] {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   return syncEngineImpl.enqueuedLimboResolutions;
 }
 
-export async function emitNewSnapsAndNotifyLocalStore(
+export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   syncEngine: SyncEngine,
   changes: MaybeDocumentMap,
   remoteEvent?: RemoteEvent
@@ -1088,14 +1096,14 @@ export async function syncEngineHandleCredentialChange(
       result.removedBatchIds,
       result.addedBatchIds
     );
-    await emitNewSnapsAndNotifyLocalStore(
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngineImpl,
       result.affectedDocuments
     );
   }
 }
 
-export function getRemoteKeysForTarget(
+export function syncEngineGetRemoteKeysForTarget(
   syncEngine: SyncEngine,
   targetId: TargetId
 ): DocumentKeySet {
@@ -1155,19 +1163,21 @@ async function synchronizeViewAndComputeSnapshot(
  * snapshots if needed.
  */
 // PORTING NOTE: Multi-Tab only.
-export async function synchronizeWithChangedDocuments(
+export async function syncEngineSynchronizeWithChangedDocuments(
   syncEngine: SyncEngine
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
 
   return localStoreGetNewDocumentChanges(
     syncEngineImpl.localStore
-  ).then(changes => emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes));
+  ).then(changes =>
+    syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
+  );
 }
 
 /** Applies a mutation state to an existing batch.  */
 // PORTING NOTE: Multi-Tab only.
-export async function applyBatchState(
+export async function syncEngineApplyBatchState(
   syncEngine: SyncEngine,
   batchId: BatchId,
   batchState: MutationBatchState,
@@ -1209,18 +1219,18 @@ export async function applyBatchState(
     fail(`Unknown batchState: ${batchState}`);
   }
 
-  await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, documents);
+  await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, documents);
 }
 
 /** Applies a query target change from a different tab. */
 // PORTING NOTE: Multi-Tab only.
-export async function applyPrimaryState(
+export async function syncEngineApplyPrimaryState(
   syncEngine: SyncEngine,
   isPrimary: boolean
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   ensureWatchCallbacks(syncEngineImpl);
-  ensureWriteCallbacks(syncEngineImpl);
+  syncEngineEnsureWriteCallbacks(syncEngineImpl);
   if (isPrimary === true && syncEngineImpl._isPrimaryClient !== true) {
     // Secondary tabs only maintain Views for their local listeners and the
     // Views internal state may not be 100% populated (in particular
@@ -1392,14 +1402,16 @@ function synthesizeTargetToQuery(target: Target): Query {
 
 /** Returns the IDs of the clients that are currently active. */
 // PORTING NOTE: Multi-Tab only.
-export function getActiveClients(syncEngine: SyncEngine): Promise<ClientId[]> {
+export function syncEngineGetActiveClients(
+  syncEngine: SyncEngine
+): Promise<ClientId[]> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   return localStoreGetActiveClients(syncEngineImpl.localStore);
 }
 
 /** Applies a query target change from a different tab. */
 // PORTING NOTE: Multi-Tab only.
-export async function applyTargetState(
+export async function syncEngineApplyTargetState(
   syncEngine: SyncEngine,
   targetId: TargetId,
   state: QueryTargetState,
@@ -1424,7 +1436,7 @@ export async function applyTargetState(
           targetId,
           state === 'current'
         );
-        await emitNewSnapsAndNotifyLocalStore(
+        await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,
           changes,
           synthesizedRemoteEvent
@@ -1447,7 +1459,7 @@ export async function applyTargetState(
 }
 
 /** Adds or removes Watch targets for queries from different tabs. */
-export async function applyActiveTargetsChange(
+export async function syncEngineApplyActiveTargetsChange(
   syncEngine: SyncEngine,
   added: TargetId[],
   removed: TargetId[]
@@ -1505,15 +1517,15 @@ export async function applyActiveTargetsChange(
 
 function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent = applyRemoteEvent.bind(
+  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent = syncEngineApplyRemoteEvent.bind(
     null,
     syncEngineImpl
   );
-  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget = getRemoteKeysForTarget.bind(
+  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget = syncEngineGetRemoteKeysForTarget.bind(
     null,
     syncEngineImpl
   );
-  syncEngineImpl.remoteStore.remoteSyncer.rejectListen = rejectListen.bind(
+  syncEngineImpl.remoteStore.remoteSyncer.rejectListen = syncEngineRejectListen.bind(
     null,
     syncEngineImpl
   );
@@ -1528,13 +1540,15 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
   return syncEngineImpl;
 }
 
-export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
+export function syncEngineEnsureWriteCallbacks(
+  syncEngine: SyncEngine
+): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite = applySuccessfulWrite.bind(
+  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite = syncEngineApplySuccessfulWrite.bind(
     null,
     syncEngineImpl
   );
-  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite = rejectFailedWrite.bind(
+  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite = syncEngineRejectFailedWrite.bind(
     null,
     syncEngineImpl
   );
@@ -1545,6 +1559,7 @@ export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
  * Loads a Firestore bundle into the SDK. The returned promise resolves when
  * the bundle finished loading.
  *
+ * @param syncEngine - SyncEngine to use.
  * @param bundleReader - Bundle to load into the SDK.
  * @param task - LoadBundleTask used to update the loading progress to public API.
  */
@@ -1603,7 +1618,7 @@ async function loadBundleImpl(
     // TODO(b/160876443): This currently raises snapshots with
     // `fromCache=false` if users already listen to some queries and bundles
     // has newer version.
-    await emitNewSnapsAndNotifyLocalStore(
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngine,
       result.changedDocs,
       /* remoteEvent */ undefined
