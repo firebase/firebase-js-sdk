@@ -17,33 +17,8 @@ export type CompleteFn = () => void;
 // @public
 export function deleteObject(ref: StorageReference): Promise<void>;
 
-// @internal
-export enum _ErrorCode {
-    // (undocumented)
-    ABORT = 2,
-    // (undocumented)
-    NETWORK_ERROR = 1,
-    // (undocumented)
-    NO_ERROR = 0
-}
-
 // @public
 export type ErrorFn = (error: FirebaseStorageError) => void;
-
-// @internal (undocumented)
-export class _FbsBlob {
-    constructor(data: Blob | Uint8Array | ArrayBuffer, elideCopy?: boolean);
-    // (undocumented)
-    static getBlob(...args: Array<string | _FbsBlob>): _FbsBlob | null;
-    // (undocumented)
-    size(): number;
-    // (undocumented)
-    slice(startByte: number, endByte: number): _FbsBlob | null;
-    // (undocumented)
-    type(): string;
-    // (undocumented)
-    uploadData(): Blob | Uint8Array;
-}
 
 // @public
 export class FirebaseStorageError extends FirebaseError {
@@ -68,26 +43,6 @@ export function getMetadata(ref: StorageReference): Promise<Metadata>;
 // @public
 export function getStorage(app: FirebaseApp): StorageService;
 
-// @internal
-export interface _Headers {
-    // (undocumented)
-    [name: string]: string | number;
-}
-
-// @internal
-export type _InternalTaskState = string;
-
-// @internal
-export const _InternalTaskState: {
-    RUNNING: string;
-    PAUSING: string;
-    PAUSED: string;
-    SUCCESS: string;
-    CANCELING: string;
-    CANCELED: string;
-    ERROR: string;
-};
-
 // @public
 export function list(ref: StorageReference, options?: ListOptions | null): Promise<ListResult>;
 
@@ -104,25 +59,6 @@ export interface ListResult {
     nextPageToken?: string;
     prefixes: StorageReference[];
 }
-
-// @internal
-export class _Location {
-    constructor(bucket: string, path: string);
-    // (undocumented)
-    readonly bucket: string;
-    // (undocumented)
-    bucketOnlyServerUrl(): string;
-    // (undocumented)
-    fullServerUrl(): string;
-    // (undocumented)
-    get isRoot(): boolean;
-    // (undocumented)
-    static makeFromBucketSpec(bucketString: string): _Location;
-    // (undocumented)
-    static makeFromUrl(url: string): _Location;
-    // (undocumented)
-    get path(): string;
-    }
 
 // @public
 export interface Metadata extends types.FullMetadata {
@@ -151,39 +87,6 @@ export function ref(storage: StorageService, url?: string): StorageReference;
 
 // @public
 export function ref(storageOrRef: StorageService | StorageReference, path?: string): StorageReference;
-
-// @internal (undocumented)
-export interface _Request<T> {
-    cancel(appDelete?: boolean): void;
-    // (undocumented)
-    getPromise(): Promise<T>;
-}
-
-// @internal (undocumented)
-export class _RequestInfo<T> {
-    constructor(url: string, method: string,
-    handler: (p1: _XhrIo, p2: string) => T, timeout: number);
-    // (undocumented)
-    additionalRetryCodes: number[];
-    // (undocumented)
-    body: Blob | string | Uint8Array | null;
-    // (undocumented)
-    errorHandler: ((p1: _XhrIo, p2: FirebaseStorageError) => FirebaseStorageError) | null;
-    handler: (p1: _XhrIo, p2: string) => T;
-    // (undocumented)
-    headers: _Headers;
-    // (undocumented)
-    method: string;
-    progressCallback: ((p1: number, p2: number) => void) | null;
-    // (undocumented)
-    successCodes: number[];
-    // (undocumented)
-    timeout: number;
-    // (undocumented)
-    url: string;
-    // (undocumented)
-    urlParams: _UrlParams;
-}
 
 // @public
 export type StorageErrorCode = string;
@@ -226,14 +129,16 @@ export interface StorageObserver<T> {
 // @public
 export class StorageReference {
     // @internal
-    constructor(_service: StorageService, location: string | _Location);
+    constructor(_service: StorageService, location: string | Location_2);
     get bucket(): string;
     get fullPath(): string;
+    // Warning: (ae-forgotten-export) The symbol "Location" needs to be exported by the entry point index.d.ts
+    //
     // @internal (undocumented)
-    _location: _Location;
+    _location: Location_2;
     get name(): string;
     // @internal (undocumented)
-    protected newRef(service: StorageService, location: _Location): StorageReference;
+    protected newRef(service: StorageService, location: Location_2): StorageReference;
     get parent(): StorageReference | null;
     get root(): StorageReference;
     get storage(): StorageService;
@@ -249,7 +154,7 @@ export class StorageService implements _FirebaseService {
     constructor(
     app: FirebaseApp,
     _authProvider: Provider<FirebaseAuthInternalName>,
-    _pool: _XhrIoPool,
+    _pool: XhrIoPool,
     _url?: string | undefined,
     _firebaseVersion?: string | undefined);
     readonly app: FirebaseApp;
@@ -258,23 +163,28 @@ export class StorageService implements _FirebaseService {
     // @internal (undocumented)
     readonly _authProvider: Provider<FirebaseAuthInternalName>;
     // @internal (undocumented)
-    readonly _bucket: _Location | null;
+    readonly _bucket: Location_2 | null;
     // @internal
     _delete(): Promise<void>;
     // @internal (undocumented)
     readonly _firebaseVersion?: string | undefined;
     // @internal (undocumented)
     getAuthToken(): Promise<string | null>;
+    // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
+    //
     // @internal (undocumented)
-    makeRequest<T>(requestInfo: _RequestInfo<T>, authToken: string | null): _Request<T>;
+    makeRequest<T>(requestInfo: RequestInfo_2<T>, authToken: string | null): Request_2<T>;
     // @internal
-    makeStorageReference(loc: _Location): StorageReference;
+    makeStorageReference(loc: Location_2): StorageReference;
     get maxOperationRetryTime(): number;
     set maxOperationRetryTime(time: number);
     get maxUploadRetryTime(): number;
     set maxUploadRetryTime(time: number);
+    // Warning: (ae-forgotten-export) The symbol "XhrIoPool" needs to be exported by the entry point index.d.ts
+    //
     // @internal (undocumented)
-    readonly _pool: _XhrIoPool;
+    readonly _pool: XhrIoPool;
     // @internal (undocumented)
     readonly _url?: string | undefined;
 }
@@ -337,9 +247,11 @@ export function uploadString(ref: StorageReference, value: string, format?: Stri
 // @public
 export class UploadTask {
     // @internal
-    constructor(ref: StorageReference, blob: _FbsBlob, metadata?: Metadata | null);
+    constructor(ref: StorageReference, blob: FbsBlob, metadata?: Metadata | null);
+    // Warning: (ae-forgotten-export) The symbol "FbsBlob" needs to be exported by the entry point index.d.ts
+    //
     // @internal
-    _blob: _FbsBlob;
+    _blob: FbsBlob;
     cancel(): boolean;
     catch<T>(onRejected: (p1: FirebaseStorageError) => T | Promise<T>): Promise<T>;
     // @internal
@@ -348,8 +260,10 @@ export class UploadTask {
     pause(): boolean;
     resume(): boolean;
     get snapshot(): UploadTaskSnapshot;
+    // Warning: (ae-forgotten-export) The symbol "InternalTaskState" needs to be exported by the entry point index.d.ts
+    //
     // @internal
-    _state: _InternalTaskState;
+    _state: InternalTaskState;
     then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null, onRejected?: ((error: FirebaseStorageError) => U | Promise<U>) | null): Promise<U>;
     // @internal
     _transferred: number;
@@ -363,37 +277,6 @@ export interface UploadTaskSnapshot {
     readonly state: TaskState;
     readonly task: UploadTask;
     readonly totalBytes: number;
-}
-
-// @internal
-export interface _UrlParams {
-    // (undocumented)
-    [name: string]: string | number;
-}
-
-// @internal
-export interface _XhrIo {
-    abort(): void;
-    // (undocumented)
-    addUploadProgressListener(listener: (p1: ProgressEvent) => void): void;
-    // (undocumented)
-    getErrorCode(): _ErrorCode;
-    // (undocumented)
-    getResponseHeader(header: string): string | null;
-    // (undocumented)
-    getResponseText(): string;
-    // (undocumented)
-    getStatus(): number;
-    // (undocumented)
-    removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void;
-    // (undocumented)
-    send(url: string, method: string, body?: ArrayBufferView | Blob | string | null, headers?: _Headers): Promise<_XhrIo>;
-}
-
-// @internal
-export class _XhrIoPool {
-    // (undocumented)
-    createXhrIo(): _XhrIo;
 }
 
 

@@ -53,18 +53,7 @@ export { ListOptions, ListResult } from '../src/list';
 export { UploadTask } from '../src/task';
 export { UploadResult, UploadTaskSnapshot } from '../src/tasksnapshot';
 export { StringFormat } from '../src/implementation/string';
-export {
-  RequestInfo as _RequestInfo,
-  UrlParams as _UrlParams
-} from '../src/implementation/requestinfo';
-export { Request as _Request } from '../src/implementation/request';
-export { Location as _Location } from '../src/implementation/location';
-export { XhrIoPool as _XhrIoPool } from '../src/implementation/xhriopool';
-export {
-  TaskEvent,
-  TaskState,
-  InternalTaskState as _InternalTaskState
-} from '../src/implementation/taskenums';
+export { TaskEvent, TaskState } from '../src/implementation/taskenums';
 export {
   StorageObserver,
   NextFn,
@@ -73,12 +62,6 @@ export {
   Unsubscribe,
   Subscribe
 } from '../src/implementation/observer';
-export { FbsBlob as _FbsBlob } from '../src/implementation/blob';
-export {
-  Headers as _Headers,
-  XhrIo as _XhrIo,
-  ErrorCode as _ErrorCode
-} from '../src/implementation/xhrio';
 export {
   FirebaseStorageError,
   StorageErrorCode
