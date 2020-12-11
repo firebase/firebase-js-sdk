@@ -88,7 +88,7 @@ export class Database implements FirebaseService {
   }
 
   get app(): FirebaseApp {
-    return this.repo_.app;
+    return this.repo_.app as FirebaseApp;
   }
 
   /**
@@ -183,13 +183,13 @@ export class Database implements FirebaseService {
   }
 
   // Make individual repo go offline.
-  goOffline() {
+  goOffline(): void {
     validateArgCount('database.goOffline', 0, 0, arguments.length);
     this.checkDeleted_('goOffline');
     this.repo_.interrupt();
   }
 
-  goOnline() {
+  goOnline(): void {
     validateArgCount('database.goOnline', 0, 0, arguments.length);
     this.checkDeleted_('goOnline');
     this.repo_.resume();

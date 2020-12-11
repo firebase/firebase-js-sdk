@@ -35,7 +35,6 @@ import { StatsListener } from './stats/StatsListener';
 import { EventQueue } from './view/EventQueue';
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
-import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
 import { Database } from '../api/Database';
 import { DataSnapshot } from '../api/DataSnapshot';
@@ -46,6 +45,7 @@ import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
 import { Node } from './snap/Node';
 import { Indexable } from './util/misc';
+import { FirebaseAppLike } from './RepoManager';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -84,7 +84,7 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     private forceRestClient_: boolean,
-    public app: FirebaseApp,
+    public app: FirebaseAppLike,
     public authTokenProvider_: AuthTokenProvider
   ) {
     // This key is intentionally not updated if RepoInfo is later changed or replaced
