@@ -59,6 +59,7 @@ import { DatabaseInfo } from './database_info';
 import { EventManager, newEventManager } from './event_manager';
 import { SyncEngine } from './sync_engine';
 import {
+  newSyncEngine,
   syncEngineApplyActiveTargetsChange,
   syncEngineApplyBatchState,
   syncEngineApplyOnlineStateChange,
@@ -66,7 +67,6 @@ import {
   syncEngineApplyTargetState,
   syncEngineEnsureWriteCallbacks,
   syncEngineGetActiveClients,
-  newSyncEngine,
   syncEngineHandleCredentialChange,
   syncEngineSynchronizeWithChangedDocuments
 } from './sync_engine_impl';
