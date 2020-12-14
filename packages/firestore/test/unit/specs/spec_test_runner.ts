@@ -43,16 +43,16 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { SyncEngine } from '../../../src/core/sync_engine';
 import {
-  activeLimboDocumentResolutions,
-  enqueuedLimboDocumentResolutions,
-  registerPendingWritesCallback,
-  SyncEngine,
+  syncEngineGetActiveLimboDocumentResolutions,
+  syncEngineGetEnqueuedLimboDocumentResolutions,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
-} from '../../../src/core/sync_engine';
+} from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
@@ -753,7 +753,7 @@ abstract class TestRunner {
     const deferred = new Deferred();
     void deferred.promise.then(() => ++this.waitForPendingWritesEvents);
     return this.queue.enqueue(() =>
-      registerPendingWritesCallback(this.syncEngine, deferred)
+      syncEngineRegisterPendingWritesCallback(this.syncEngine, deferred)
     );
   }
 
@@ -974,7 +974,9 @@ abstract class TestRunner {
   }
 
   private validateActiveLimboDocs(): void {
-    let actualLimboDocs = activeLimboDocumentResolutions(this.syncEngine);
+    let actualLimboDocs = syncEngineGetActiveLimboDocumentResolutions(
+      this.syncEngine
+    );
 
     if (this.connection.isWatchOpen) {
       // Validate that each active limbo doc has an expected active target
@@ -1007,9 +1009,11 @@ abstract class TestRunner {
 
   private validateEnqueuedLimboDocs(): void {
     let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    enqueuedLimboDocumentResolutions(this.syncEngine).forEach(key => {
-      actualLimboDocs = actualLimboDocs.add(key);
-    });
+    syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine).forEach(
+      key => {
+        actualLimboDocs = actualLimboDocs.add(key);
+      }
+    );
     let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
     this.expectedEnqueuedLimboDocs.forEach(key => {
       expectedLimboDocs = expectedLimboDocs.add(key);

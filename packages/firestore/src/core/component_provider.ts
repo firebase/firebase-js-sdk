@@ -57,19 +57,19 @@ import { Code, FirestoreError } from '../util/error';
 
 import { DatabaseInfo } from './database_info';
 import { EventManager, newEventManager } from './event_manager';
+import { SyncEngine } from './sync_engine';
 import {
-  applyActiveTargetsChange,
-  applyBatchState,
-  applyOnlineStateChange,
-  applyPrimaryState,
-  applyTargetState,
-  getActiveClients,
-  syncEngineHandleCredentialChange,
   newSyncEngine,
-  SyncEngine,
-  ensureWriteCallbacks,
-  synchronizeWithChangedDocuments
-} from './sync_engine';
+  syncEngineApplyActiveTargetsChange,
+  syncEngineApplyBatchState,
+  syncEngineApplyOnlineStateChange,
+  syncEngineApplyPrimaryState,
+  syncEngineApplyTargetState,
+  syncEngineEnsureWriteCallbacks,
+  syncEngineGetActiveClients,
+  syncEngineHandleCredentialChange,
+  syncEngineSynchronizeWithChangedDocuments
+} from './sync_engine_impl';
 import { OnlineStateSource } from './types';
 
 export interface ComponentConfiguration {
@@ -177,7 +177,9 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     await this.onlineComponentProvider.initialize(this, cfg);
 
     // Enqueue writes from a previous session
-    await ensureWriteCallbacks(this.onlineComponentProvider.syncEngine);
+    await syncEngineEnsureWriteCallbacks(
+      this.onlineComponentProvider.syncEngine
+    );
     await fillWritePipeline(this.onlineComponentProvider.remoteStore);
   }
 
@@ -252,14 +254,14 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
 
     if (this.sharedClientState instanceof WebStorageSharedClientState) {
       this.sharedClientState.syncEngine = {
-        applyBatchState: applyBatchState.bind(null, syncEngine),
-        applyTargetState: applyTargetState.bind(null, syncEngine),
-        applyActiveTargetsChange: applyActiveTargetsChange.bind(
+        applyBatchState: syncEngineApplyBatchState.bind(null, syncEngine),
+        applyTargetState: syncEngineApplyTargetState.bind(null, syncEngine),
+        applyActiveTargetsChange: syncEngineApplyActiveTargetsChange.bind(
           null,
           syncEngine
         ),
-        getActiveClients: getActiveClients.bind(null, syncEngine),
-        synchronizeWithChangedDocuments: synchronizeWithChangedDocuments.bind(
+        getActiveClients: syncEngineGetActiveClients.bind(null, syncEngine),
+        synchronizeWithChangedDocuments: syncEngineSynchronizeWithChangedDocuments.bind(
           null,
           syncEngine
         )
@@ -270,7 +272,7 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(async isPrimary => {
-      await applyPrimaryState(
+      await syncEngineApplyPrimaryState(
         this.onlineComponentProvider.syncEngine,
         isPrimary
       );
@@ -339,7 +341,7 @@ export class OnlineComponentProvider {
     );
 
     this.sharedClientState.onlineStateHandler = onlineState =>
-      applyOnlineStateChange(
+      syncEngineApplyOnlineStateChange(
         this.syncEngine,
         onlineState,
         OnlineStateSource.SharedClientState
@@ -372,7 +374,7 @@ export class OnlineComponentProvider {
       this.datastore,
       cfg.asyncQueue,
       onlineState =>
-        applyOnlineStateChange(
+        syncEngineApplyOnlineStateChange(
           this.syncEngine,
           onlineState,
           OnlineStateSource.RemoteStore

@@ -73,14 +73,14 @@ import {
   removeSnapshotsInSyncListener
 } from './event_manager';
 import { newQueryForPath, Query } from './query';
+import { SyncEngine } from './sync_engine';
 import {
-  registerPendingWritesCallback,
-  SyncEngine,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
-} from './sync_engine';
+} from './sync_engine_impl';
 import { Transaction } from './transaction';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
@@ -342,7 +342,7 @@ export function firestoreClientWaitForPendingWrites(
   const deferred = new Deferred<void>();
   client.asyncQueue.enqueueAndForget(async () => {
     const syncEngine = await getSyncEngine(client);
-    return registerPendingWritesCallback(syncEngine, deferred);
+    return syncEngineRegisterPendingWritesCallback(syncEngine, deferred);
   });
   return deferred.promise;
 }
