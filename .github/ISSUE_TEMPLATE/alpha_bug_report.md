@@ -1,16 +1,20 @@
+---
+name: 🧪 Alpha SDK bug report
+about: Have you found a bug in one of our pre-release or alpha SDKs? File it here.
+title: ""
+labels: "alpha"
+assignees: ""
+---
+
 <!-- Step 1 [READ THIS] -->
 <!--
 Are you in the right place?
   * For issues or feature requests related to __the code in this repository__
     file a Github issue.
-    * If this is a __feature request__ make sure the issue title starts with "FR:".
-  * For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/)
-    with the firebase tag.
-  * For general Firebase discussion, use the [firebase-talk](https://groups.google.com/forum/#!forum/firebase-talk)
-    google group.
-  * For help troubleshooting your application that does not fall under one
-    of the above categories, reach out to the personalized
-    [Firebase support channel](https://firebase.google.com/support/).
+  * If you are not yet participating in our Alpha and would like to join, use this form:
+    https://forms.gle/bKBEm48W8EMPLaUp9
+  * For general Alpha discussion, use the google group:
+    https://groups.google.com/g/firebase-js-sdk-testers
 -->
 
 <!-- Step 2 -->
