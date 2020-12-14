@@ -37,12 +37,6 @@ Are you in the right place?
 -->
 #### Relevant Code:
 
-<!--
-  Reproduce the issue on StackBlitz and provide your forked URL
-  or give us some sample code below
--->
-https://stackblitz.com/fork/firebase-issue-sandbox
-
 ```javascript
 // TODO(you): code here to reproduce the problem
 ```
