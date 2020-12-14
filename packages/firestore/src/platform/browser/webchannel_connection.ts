@@ -266,7 +266,6 @@ export class WebChannelConnection extends RestConnection {
       closeFn: () => channel.close()
     });
 
-
     // Closure events are guarded and exceptions are swallowed, so catch any
     // exception and rethrow using a setTimeout so they become visible again.
     // Note that eventually this function could go away if we are confident

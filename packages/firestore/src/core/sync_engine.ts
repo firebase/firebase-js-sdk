@@ -109,7 +109,7 @@ import {
   EventManager,
   eventManagerOnOnlineStateChange,
   eventManagerOnWatchChange,
-  eventManagerOnWatchError,
+  eventManagerOnWatchError
 } from './event_manager';
 import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 
