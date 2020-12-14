@@ -22,7 +22,12 @@ import { Stream } from './connection';
 
 export interface TimeToFirstByteArgs {
   type: number;
-  timeToFirstByte: number;
+  onOpen: number;
+  onMessage: number;
+  onTTFB: number;
+  startTime: number;
+  endTime: number;
+  timeToFirstByteMs: number;
 }
 
 export type TimeToFirstByteCallback = (data: TimeToFirstByteArgs) => void;
@@ -101,7 +106,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
     this.wrappedOnMessage(msg);
   }
 
-  callOnTimeToFirstByte(data: { type: number; timeToFirstByte: number }): void {
+  callOnTimeToFirstByte(data: TimeToFirstByteArgs): void {
     debugAssert(
       this.wrappedOnTimeToFirstByte !== undefined,
       'Cannot call callOnTimeToFirstByte because no callback was set'

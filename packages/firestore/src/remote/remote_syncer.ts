@@ -21,7 +21,7 @@ import { MutationBatchResult } from '../model/mutation_batch';
 import { FirestoreError } from '../util/error';
 import { RemoteEvent } from './remote_event';
 import { User } from '../auth/user';
-import { TimeToFirstByteArgs, TimeToFirstByteCallback } from './stream_bridge';
+import { TimeToFirstByteArgs } from './stream_bridge';
 
 /**
  * An interface that describes the actions the RemoteStore needs to perform on

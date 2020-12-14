@@ -110,7 +110,6 @@ import {
   eventManagerOnOnlineStateChange,
   eventManagerOnWatchChange,
   eventManagerOnWatchError,
-  onTimeToFirstByte
 } from './event_manager';
 import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 
@@ -213,6 +212,7 @@ export interface SyncEngine {
  */
 class SyncEngineImpl implements SyncEngine {
   syncEngineListener: SyncEngineListener = {};
+  timeToFirstByteRaised = false;
 
   /**
    * A callback that updates the QueryView based on the provided change.
@@ -262,7 +262,7 @@ class SyncEngineImpl implements SyncEngine {
   _isPrimaryClient: undefined | boolean = undefined;
 
   constructor(
-    readonly timeToFirstByte: TimeToFirstByteCallback,
+    readonly timeToFirstByte: TimeToFirstByteCallback|null,
     readonly localStore: LocalStore,
     readonly remoteStore: RemoteStore,
     readonly eventManager: EventManager,
@@ -278,7 +278,7 @@ class SyncEngineImpl implements SyncEngine {
 }
 
 export function newSyncEngine(
-  timeToFirstByte: TimeToFirstByteCallback,
+  timeToFirstByte: TimeToFirstByteCallback|null,
   localStore: LocalStore,
   remoteStore: RemoteStore,
   eventManager: EventManager,
@@ -1515,11 +1515,9 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     syncEngineImpl
   );
 
-  let timeToFirstByteRaised = false;
-
   syncEngineImpl.remoteStore.remoteSyncer.handleTimeToFirstByte = data => {
-    if (!timeToFirstByteRaised) {
-      timeToFirstByteRaised = true;
+    if (!syncEngineImpl.timeToFirstByteRaised && !!syncEngineImpl.timeToFirstByte) {
+      syncEngineImpl.timeToFirstByteRaised = true;
       syncEngineImpl.timeToFirstByte(data);
     }
   };

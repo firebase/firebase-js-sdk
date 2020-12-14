@@ -20,6 +20,7 @@ import { WebChannelConnection } from '../../../src/platform/browser/webchannel_c
 import * as api from '../../../src/protos/firestore_proto_api';
 import { DEFAULT_PROJECT_ID } from '../util/settings';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
+import { TimeToFirstByteArgs } from '../../../src/remote/stream_bridge';
 
 /* eslint-disable no-restricted-globals */
 
@@ -32,6 +33,54 @@ const describeFn =
       xdescribe;
 
 describeFn('WebChannel', () => {
+  it.only('receives error messages', done => {
+    const projectId = DEFAULT_PROJECT_ID;
+    const info = getDefaultDatabaseInfo();
+    const conn = new WebChannelConnection(info);
+    const stream = conn.openStream<api.ListenRequest, api.ListenResponse>(
+      'Listen',
+      null
+    );
+
+    // Test data
+    const payload = {
+      database: 'projects/' + projectId + '/databases/(default)',
+      addTarget: {
+        query: {
+          parent: 'projects/' + projectId + '/databases/(default)',
+          structuredQuery: {
+            from: [{ collectionId: 'foo' }]
+          }
+        }
+      }
+    };
+
+    // Once the stream is open, send an "add_target" request.
+    stream.onOpen(() => {
+      stream.send(payload);
+    });
+
+    stream.onMessage(() => {
+      // Shut down the stream since we don't care about processing any more messages
+      stream.close();
+    });
+
+    // Ensure Time to first byte was raised 
+    let timeToFirstByteReceived:TimeToFirstByteArgs|null = null;
+
+    stream.onTimeToFirstByte(data => {
+      console.log(JSON.stringify(data, null, 3));
+      timeToFirstByteReceived = data;
+    });
+
+    stream.onClose(err => {
+      expect(timeToFirstByteReceived).to.be.ok;
+      expect(timeToFirstByteReceived!.type).to.not.equal(0);
+      expect(timeToFirstByteReceived!.timeToFirstByteMs).to.be.greaterThan(0);
+      done();
+    });
+  });
+
   it('receives error messages', done => {
     const projectId = DEFAULT_PROJECT_ID;
     const info = getDefaultDatabaseInfo();
@@ -60,6 +109,12 @@ describeFn('WebChannel', () => {
       stream.send(payload);
     });
 
+
+    // Ensure Time to first byte was raised 
+    let timeToFirstByteReceived = false;
+
+    stream.onTimeToFirstByte(() => timeToFirstByteReceived = true);
+
     // Wait until we receive data, then send a bad "addTarget" request, causing
     // the stream to be closed with an error. In this case, bad means having a
     // different database ID.
@@ -74,6 +129,7 @@ describeFn('WebChannel', () => {
     // Expect to receive an error after the second request is sent
     stream.onClose(err => {
       expect(didSendBadPayload).to.equal(true);
+      expect(timeToFirstByteReceived).to.equal(true);
       expect(err).to.exist;
       expect(err!.code).to.equal('invalid-argument');
       expect(err!.message).to.be.ok;

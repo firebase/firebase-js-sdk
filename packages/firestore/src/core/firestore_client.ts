@@ -103,7 +103,6 @@ export class FirestoreClient {
   onlineComponents?: OnlineComponentProvider;
 
   constructor(
-    public readonly onTimeToFirstByte: TimeToFirstByteCallback,
     private credentials: CredentialsProvider,
     /**
      * Asynchronous queue responsible for all of our internal processing. When
@@ -114,7 +113,8 @@ export class FirestoreClient {
      * an async I/O to complete).
      */
     public asyncQueue: AsyncQueue,
-    private databaseInfo: DatabaseInfo
+    private databaseInfo: DatabaseInfo,
+    readonly onTimeToFirstByte?: TimeToFirstByteCallback|null,
   ) {
     this.credentials.setChangeListener(user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
@@ -225,7 +225,6 @@ export async function setOnlineComponentProvider(
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
   const configuration = await client.getConfiguration();
   await onlineComponentProvider.initialize(
-    client.onTimeToFirstByte,
     offlineComponentProvider,
     configuration
   );

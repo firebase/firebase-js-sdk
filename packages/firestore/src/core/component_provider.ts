@@ -78,6 +78,7 @@ export interface ComponentConfiguration {
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
+  timeToFirstByte?:TimeToFirstByteCallback|null,
 }
 
 /**
@@ -318,7 +319,6 @@ export class OnlineComponentProvider {
   syncEngine!: SyncEngine;
 
   async initialize(
-    timeToFirstByte: TimeToFirstByteCallback,
     offlineComponentProvider: OfflineComponentProvider,
     cfg: ComponentConfiguration
   ): Promise<void> {
@@ -334,7 +334,6 @@ export class OnlineComponentProvider {
     this.remoteStore = this.createRemoteStore(cfg);
     this.eventManager = this.createEventManager(cfg);
     this.syncEngine = this.createSyncEngine(
-      timeToFirstByte,
       cfg,
       /* startAsPrimary=*/ !offlineComponentProvider.synchronizeTabs
     );
@@ -383,12 +382,11 @@ export class OnlineComponentProvider {
   }
 
   createSyncEngine(
-    timeToFirstByte: TimeToFirstByteCallback,
     cfg: ComponentConfiguration,
     startAsPrimary: boolean
   ): SyncEngine {
     return newSyncEngine(
-      timeToFirstByte,
+      cfg.timeToFirstByte || null,
       this.localStore,
       this.remoteStore,
       this.eventManager,
