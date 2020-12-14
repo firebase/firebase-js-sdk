@@ -17,16 +17,16 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import * as tmp from 'tmp';
-import {
-  Extractor,
-  ExtractorConfig,
-  ExtractorResult
-} from '@microsoft/api-extractor';
+
 import {
   pruneDts,
   removeUnusedImports
 } from '../../../repo-scripts/prune-dts/prune-dts';
+
+/* eslint-disable no-console */
 
 const baseApiExtractorConfigFile: string = path.resolve(
   __dirname,
@@ -35,7 +35,7 @@ const baseApiExtractorConfigFile: string = path.resolve(
 const reportFolder = path.resolve(__dirname, '../../../common/api-review');
 const tmpDir = tmp.dirSync().name;
 
-function writeTypescriptConfig() {
+function writeTypescriptConfig(): void {
   const tsConfigJson = {
     extends: path.resolve(__dirname, '../tsconfig.json'),
     include: [path.resolve(__dirname, '../src')]
@@ -47,11 +47,11 @@ function writeTypescriptConfig() {
   );
 }
 
-function writePackageJson(sdkVariant: 'exp' | 'lite') {
+function writePackageJson(sdkVariant: 'exp' | 'lite'): void {
   const packageJson = {
     'name': `@firebase/firestore-${sdkVariant}`
   };
-  let packageJsonPath = path.resolve(tmpDir, 'package.json');
+  const packageJsonPath = path.resolve(tmpDir, 'package.json');
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson), {
     encoding: 'utf-8'
   });
@@ -62,7 +62,7 @@ function loadApiExtractorConfig(
   rollupDtsPath: string,
   dtsRollupEnabled: boolean,
   apiReportEnabled: boolean
-) {
+): ExtractorConfig {
   const apiExtractorJsonPath = path.resolve(tmpDir, 'api-extractor.json');
   const apiExtractorJson = {
     extends: baseApiExtractorConfigFile,
@@ -76,7 +76,7 @@ function loadApiExtractorConfig(
     },
     'apiReport': {
       'enabled': apiReportEnabled,
-      reportFolder: reportFolder
+      reportFolder
     },
     'messages': {
       'extractorMessageReporting': {
@@ -134,7 +134,7 @@ export async function generateApi(sdkVariant: 'exp' | 'lite'): Promise<void> {
     /* dtsRollupEnabled= */ true,
     /* apiReportEnabled= */ false
   );
-  let extractorResult: ExtractorResult = Extractor.invoke(extractorConfig, {
+  Extractor.invoke(extractorConfig, {
     localBuild: true
   });
 
@@ -150,10 +150,10 @@ export async function generateApi(sdkVariant: 'exp' | 'lite'): Promise<void> {
     /* dtsRollupEnabled= */ false,
     /* apiReportEnabled= */ true
   );
-  extractorResult = Extractor.invoke(extractorConfig, { localBuild: true });
+  Extractor.invoke(extractorConfig, { localBuild: true });
   console.log(
     `API report for firestore-${sdkVariant} written to ${reportFolder}`
   );
 }
 
-generateApi('lite').then(() => generateApi('exp'));
+void generateApi('lite').then(() => generateApi('exp'));
