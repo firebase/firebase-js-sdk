@@ -31,32 +31,18 @@ import { Provider } from '@firebase/component';
 export class FirebaseDatabase implements _FirebaseService {
   static readonly ServerValue = Database.ServerValue;
 
-  private _internalDb?: Database;
-  private _internalDbUrl?: string;
+  private _delegate: Database;
 
   constructor(
     readonly app: FirebaseApp,
-    private _authProvider: Provider<FirebaseAuthInternalName>
-  ) {}
-
-  set _databaseUrl(url: string) {
-    if (this._internalDb) {
-      fatal(
-        'Cannot change database URL after instance has already been initialized.'
-      );
-    }
-    this._internalDbUrl = url;
-  }
-
-  get _delegate() {
-    if (!this._internalDb) {
-      this._internalDb = RepoManager.getInstance().databaseFromApp(
-        this.app,
-        this._authProvider,
-        this._internalDbUrl
-      );
-    }
-    return this._internalDb;
+    authProvider: Provider<FirebaseAuthInternalName>,
+    databaseUrl?: string
+  ) {
+    this._delegate = RepoManager.getInstance().databaseFromApp(
+      this.app,
+      authProvider,
+      databaseUrl
+    );
   }
 
   /**
@@ -123,21 +109,20 @@ export { ServerValue };
  * is specified, the URL overrides the database URL provided by the Firebase
  * App.
  *
- * @param app - The {@link FirebaseApp} with which the `Firestore` instance will
- * be associated.
- * @param url - A settings object to configure the `Firestore` instance.
- * @returns A newly initialized `Firestore` instance.
+ * @param app - The {@link FirebaseApp} with which the Realtime Database
+ * instance will be associated with.
+ * @param url - The URL of the Realtime Database instance to connect to. If not
+ * provided, the SDK connects to the default instance of the Firebase App.
+ * @returns A newly initialized `FirebaseDatabase` instance.
  */
 export function initializeDatabase(
   app: FirebaseApp,
-  url: string
+  url?: string
 ): FirebaseDatabase {
-  const firestore = _getProvider(
-    app,
-    'database-exp'
-  ).getImmediate() as FirebaseDatabase;
-  firestore._databaseUrl = url;
-  return firestore;
+  const database = _getProvider(app, 'database-exp').getImmediate({
+    identifier: url
+  }) as FirebaseDatabase;
+  return database;
 }
 
 /**
@@ -146,10 +131,14 @@ export function initializeDatabase(
  * with default settings if no instance exists or if the existing instance uses
  * a custom database URL.
  *
- * @param app - The {@link FirebaseApp} instance that the returned Firestore
- * instance is associated with.
- * @returns The `Firestore` instance of the provided app.
+ * @param app - The {@link FirebaseApp} instance that the returned Realtime
+ * Database instance is associated with.
+ * @param url - The URL of the Realtime Database instance to connect to. If not
+ * provided, the SDK connects to the default instance of the Firebase App.
+ * @returns The `FirebaseDatabase` instance of the provided app.
  */
-export function getDatabase(app: FirebaseApp): FirebaseDatabase {
-  return _getProvider(app, 'database-exp').getImmediate() as FirebaseDatabase;
+export function getDatabase(app: FirebaseApp, url?: string): FirebaseDatabase {
+  return _getProvider(app, 'database-exp').getImmediate({
+    identifier: url
+  }) as FirebaseDatabase;
 }

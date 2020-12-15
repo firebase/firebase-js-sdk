@@ -45,15 +45,15 @@ function registerDatabase(): void {
   _registerComponent(
     new Component(
       'database-exp',
-      container => {
+      (container, url) => {
         const app = container.getProvider('app-exp').getImmediate()!;
-        return ((app, auth) => new FirebaseDatabase(app, auth))(
+        return ((app, auth) => new FirebaseDatabase(app, auth, url))(
           app,
           container.getProvider('auth-internal')
         );
       },
       ComponentType.PUBLIC
-    )
+    ).setMultipleInstances(true)
   );
   registerVersion('database-exp', version, 'node');
 }
