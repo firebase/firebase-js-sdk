@@ -22,7 +22,6 @@ import {
 
 import { CONSOLE_CAMPAIGN_ANALYTICS_ENABLED } from '../util/constants';
 import { MessagingService } from '../messaging-service';
-import { _FirebaseService } from '@firebase/app-types-exp';
 import { externalizePayload } from '../helpers/externalizePayload';
 import { isConsoleMessage } from '../helpers/is-console-message';
 import { logToScion } from '../helpers/logToScion';

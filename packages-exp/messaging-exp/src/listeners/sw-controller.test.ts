@@ -38,6 +38,12 @@ import {
   MessageType
 } from '../interfaces/internal-message-payload';
 import {
+  NotificationEvent,
+  ServiceWorkerGlobalScope,
+  ServiceWorkerGlobalScopeEventMap,
+  WindowClient
+} from '../util/sw-types';
+import {
   getFakeAnalyticsProvider,
   getFakeApp,
   getFakeInstallations

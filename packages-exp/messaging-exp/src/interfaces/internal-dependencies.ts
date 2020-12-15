@@ -18,12 +18,12 @@
 import { AppConfig } from './app-config';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { Provider } from '@firebase/component';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 
 export interface FirebaseInternalDependencies {
   app: FirebaseApp;
   appConfig: AppConfig;
-  installations: FirebaseInstallations;
+  installations: _FirebaseInstallationsInternal;
   analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 }

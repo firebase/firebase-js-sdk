@@ -15,6 +15,14 @@
  * limitations under the License.
  */
 
+import {
+  Client,
+  Clients,
+  ExtendableEvent,
+  ServiceWorkerGlobalScope,
+  WindowClient
+} from '../../util/sw-types';
+
 import { Writable } from 'ts-essentials';
 
 // Add fake SW types.

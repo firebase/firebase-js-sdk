@@ -17,6 +17,6 @@
 
 import { registerMessaging } from './helpers/register';
 
-export { getToken, deleteToken, onMessage, getMessaging } from './api';
+export { onBackgroundMessage, getMessaging } from './api';
 
 registerMessaging();

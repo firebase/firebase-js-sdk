@@ -10,10 +10,5 @@
     "**/node_modules": true
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "files.associations": {
-    "*.json": "jsonc"
-  },
-  "cSpell.words": [
-    "unregisters"
-  ]
+  "files.associations": { "*.json": "jsonc" }
 }

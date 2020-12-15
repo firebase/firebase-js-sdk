@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import {
   FirebaseMessaging,
   MessagePayload
 } from '@firebase/messaging-types-exp';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
 import { deleteToken as _deleteToken } from './api/deleteToken';

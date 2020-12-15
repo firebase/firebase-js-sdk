@@ -19,11 +19,11 @@ import {
   FirebaseAnalyticsInternal,
   FirebaseAnalyticsInternalName
 } from '@firebase/analytics-interop-types';
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types-exp';
 
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { FirebaseInternalDependencies } from '../../interfaces/internal-dependencies';
+import { FirebaseOptions } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { extractAppConfig } from '../../helpers/extract-app-config';
 
 export function getFakeFirebaseDependencies(
@@ -54,17 +54,15 @@ export function getFakeApp(options: FirebaseOptions = {}): any {
     options,
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    messaging: (() => null as unknown) as FirebaseApp['messaging'],
+    messaging: (() => null as unknown) as any,
     installations: () => getFakeInstallations()
   };
 }
 
-export function getFakeInstallations(): FirebaseInstallations {
+export function getFakeInstallations(): _FirebaseInstallationsInternal {
   return {
     getId: async () => 'FID',
-    getToken: async () => 'authToken',
-    delete: async () => undefined,
-    onIdChange: () => () => {}
+    getToken: async () => 'authToken'
   };
 }
 

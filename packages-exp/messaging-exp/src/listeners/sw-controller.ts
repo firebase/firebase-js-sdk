@@ -22,6 +22,13 @@ import {
   NotificationPayloadInternal
 } from '../interfaces/internal-message-payload';
 import {
+  NotificationEvent,
+  PushEvent,
+  PushSubscriptionChangeEvent,
+  ServiceWorkerGlobalScope,
+  WindowClient
+} from '../util/sw-types';
+import {
   deleteTokenInternal,
   getTokenInternal
 } from '../internals/token-manager';
