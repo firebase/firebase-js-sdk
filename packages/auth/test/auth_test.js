@@ -138,7 +138,7 @@ var expectedAdditionalUserInfo;
 var expectedGoogleCredential;
 var expectedSamlTokenResponseWithIdPData;
 var expectedSamlAdditionalUserInfo;
-var now = goog.now();
+var now = Date.now();
 
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 var mockControl;
@@ -205,7 +205,7 @@ function setUp() {
         return goog.Promise.resolve();
       });
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -244,15 +244,18 @@ function setUp() {
   };
   expectedTokenResponse = {
     'idToken': jwt1,
-    'refreshToken': 'REFRESH_TOKEN'
+    'refreshToken': 'REFRESH_TOKEN',
+    'expiresIn': '3600'
   };
   expectedTokenResponse2 = {
     'idToken': jwt2,
-    'refreshToken': 'REFRESH_TOKEN2'
+    'refreshToken': 'REFRESH_TOKEN2',
+    'expiresIn': '3600'
   };
   expectedTokenResponse3 = {
     'idToken': jwt3,
-    'refreshToken': 'REFRESH_TOKEN3'
+    'refreshToken': 'REFRESH_TOKEN3',
+    'expiresIn': '3600'
   };
   expectedTokenResponse4 = {
     // Sample ID token with provider password and email user@example.com.
@@ -275,11 +278,13 @@ function setUp() {
         'sign_in_provider': 'password'
       }
     }),
-    'refreshToken': 'REFRESH_TOKEN4'
+    'refreshToken': 'REFRESH_TOKEN4',
+    'expiresIn': '3600'
   };
   expectedTokenResponseWithIdPData = {
     'idToken': jwt1,
     'refreshToken': 'REFRESH_TOKEN',
+    'expiresIn': '3600',
     // Credential returned.
     'providerId': 'google.com',
     'oauthAccessToken': 'googleAccessToken',
@@ -306,6 +311,7 @@ function setUp() {
   expectedSamlTokenResponseWithIdPData = {
     'idToken': jwt1,
     'refreshToken': 'REFRESH_TOKEN',
+    'expiresIn': '3600',
     'providerId': 'saml.provider',
     // Additional user info data.
     'rawUserInfo': '{"kind":"plus#person","displayName":"John Doe","na' +
@@ -388,6 +394,7 @@ function setUp() {
   token = new fireauth.StsTokenManager(rpcHandler);
   token.setRefreshToken('refreshToken');
   token.setAccessToken(jwt1);
+  token.setExpiresIn(3600);
   ignoreArgument = goog.testing.mockmatchers.ignoreArgument;
   mockControl = new goog.testing.MockControl();
   mockControl.$resetAll();
@@ -576,7 +583,7 @@ function testToJson_withUser() {
         return goog.Promise.resolve();
       });
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -2510,7 +2517,7 @@ function testAuth_initState_signedInStatus() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -2612,7 +2619,7 @@ function testAuth_initState_signedInStatus_withEmulator() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-    goog,
+    Date,
     'now',
     function () {
       return now;
@@ -2735,7 +2742,7 @@ function testAuth_initState_signedInStatus_differentAuthDomain() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -2799,7 +2806,7 @@ function testAuth_initState_signedInStatus_withRedirectUser() {
   // Assume origin is a valid one.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -2929,7 +2936,7 @@ function testAuth_initState_signedInStatus_withRedirectUser_sameEventId() {
   // Assume origin is a valid one.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -3059,7 +3066,7 @@ function testAuth_initState_signedInStatus_deletedUser() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.TOKEN_EXPIRED);
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -3131,7 +3138,7 @@ function testAuth_initState_signedInStatus_offline() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.NETWORK_REQUEST_FAILED);
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -3221,7 +3228,7 @@ function testAuth_initState_signedOutStatus() {
         });
       });
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -3276,7 +3283,7 @@ function testAuth_syncAuthChanges_sameUser() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -3411,7 +3418,7 @@ function testAuth_syncAuthChanges_newSignIn() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -3537,7 +3544,7 @@ function testAuth_syncAuthChanges_newSignIn_differentAuthDomain() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -3605,7 +3612,7 @@ function testAuth_syncAuthChanges_newSignOut() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -4122,7 +4129,7 @@ function testAuth_signInWithIdTokenResponse_newUser() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -4211,7 +4218,7 @@ function testAuth_signInWithIdTokenResponse_sameUser() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -4344,7 +4351,7 @@ function testAuth_signInWithIdTokenResponse_newUserDifferentFromCurrent() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -4463,7 +4470,7 @@ function testAuth_signInWithIdTokenResponse_newUserDifferentFromCurrent() {
     // first.
     stubs.reset();
     stubs.replace(
-        goog,
+        Date,
         'now',
         function() {
           return now;
@@ -4497,7 +4504,7 @@ function testAuth_signInWithIdTokenResponse_withEmulator() {
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
   stubs.replace(
-    goog,
+    Date,
     'now',
     function () {
       return now;
@@ -9283,7 +9290,7 @@ function testAuth_redirectedLoggedOutUser_differentAuthDomain() {
   simulateWhitelistedOrigin();
   initializeMockStorage();
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -267,22 +267,22 @@ fireauth.common.testHelper.installMockStorages =
  * @return {string} The mock JWT.
  */
 fireauth.common.testHelper.createMockJwt =
-    function(opt_payload, opt_expirationTime) {
+    function(payload, expirationTime) {
   // JWT time units should not have decimals but to make testing easier,
   // we will allow it.
-  var now = goog.now() / 1000;
-  var basePayload = {
+  const now = Date.now() / 1000;
+  const basePayload = {
     'iss': 'https://securetoken.google.com/projectId',
     'aud': 'projectId',
     'sub': '12345678',
     'auth_time': now,
     'iat': now,
-    'exp': typeof opt_expirationTime === 'undefined' ?
-        now + 3600 : opt_expirationTime / 1000
+    'exp': typeof expirationTime === 'undefined' ?
+        now + 3600 : expirationTime / 1000
   };
   // Extend base payload.
-  goog.object.extend(basePayload, opt_payload || {});
-  var encodedPayload =
+  Object.assign(basePayload, payload || {});
+  const encodedPayload =
       goog.crypt.base64.encodeString(JSON.stringify(basePayload),
           goog.crypt.base64.Alphabet.WEBSAFE);
   // Remove any trailing or leading dots from the payload component.
