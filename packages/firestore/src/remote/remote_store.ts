@@ -171,8 +171,11 @@ class RemoteStoreImpl implements RemoteStore {
     connectivityMonitor: ConnectivityMonitor
   ) {
     this.connectivityMonitor = connectivityMonitor;
-    this.connectivityMonitor.addCallback((_: NetworkStatus) => {
+    this.connectivityMonitor.addCallback((state: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
+        // TODO: Only reconnect if offline (need to hook into OnlineStateTracker).
+        // Also consider only connecting if NetworkState is available
+
         // Porting Note: Unlike iOS, `restartNetwork()` is called even when the
         // network becomes unreachable as we don't have any other way to tear
         // down our streams.
@@ -843,6 +846,7 @@ async function restartNetwork(remoteStore: RemoteStore): Promise<void> {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
   remoteStoreImpl.offlineCauses.add(OfflineCause.ConnectivityChange);
   await disableNetworkInternal(remoteStoreImpl);
+  // TODO: Make sure that the connection backoff is cleared
   remoteStoreImpl.onlineStateTracker.set(OnlineState.Unknown);
   remoteStoreImpl.offlineCauses.delete(OfflineCause.ConnectivityChange);
   await enableNetworkInternal(remoteStoreImpl);

@@ -48,11 +48,25 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
   shutdown(): void {
     window.removeEventListener('online', this.networkAvailableListener);
     window.removeEventListener('offline', this.networkUnavailableListener);
+    window.addEventListener('visibility', this.visibilityChangeListener);
   }
 
   private configureNetworkMonitoring(): void {
     window.addEventListener('online', this.networkAvailableListener);
     window.addEventListener('offline', this.networkUnavailableListener);
+    window.addEventListener('visibility', this.visibilityChangeListener);
+  }
+
+  private visibilityChangeListener(): void {
+    logDebug(LOG_TAG, 'Visibility changed');
+    // TODO: Only fire if visible
+    for (const callback of this.callbacks) {
+      callback(
+        window.navigator.onLine
+          ? NetworkStatus.AVAILABLE
+          : NetworkStatus.UNAVAILABLE
+      );
+    }
   }
 
   private onNetworkAvailable(): void {
