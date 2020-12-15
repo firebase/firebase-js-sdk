@@ -104,7 +104,7 @@ var accountInfoWithTenantId = {
       'default_profile_3_normal.png',
   'emailVerified': true,
   'tenantId': '123456789012'
-};Date
+};
 // accountInfo in the format of a getAccountInfo response.
 var getAccountInfoResponse = {
   'users': [{
