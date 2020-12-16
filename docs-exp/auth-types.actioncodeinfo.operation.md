@@ -9,5 +9,5 @@ The type of operation that generated the action code.
 <b>Signature:</b>
 
 ```typescript
-operation: ActionCodeOperation;
+operation: Operation;
 ```

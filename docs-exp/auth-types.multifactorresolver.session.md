@@ -9,5 +9,5 @@ The session identifier for the current sign-in flow, which can be used to comple
 <b>Signature:</b>
 
 ```typescript
-readonly session: MultiFactorSession;
+session: MultiFactorSession;
 ```

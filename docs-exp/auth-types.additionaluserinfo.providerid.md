@@ -9,5 +9,5 @@ Identifier for the provider used to authenticate this user.
 <b>Signature:</b>
 
 ```typescript
-readonly providerId: string | null;
+readonly providerId: ProviderId | null;
 ```

@@ -9,7 +9,7 @@ Changes the type of persistence on the Auth instance.
 <b>Signature:</b>
 
 ```typescript
-setPersistence(persistence: Persistence): Promise<void>;
+setPersistence(persistence: Persistence): void;
 ```
 
 ## Parameters
@@ -20,7 +20,7 @@ setPersistence(persistence: Persistence): Promise<void>;
 
 <b>Returns:</b>
 
-Promise&lt;void&gt;
+void
 
 ## Remarks
 

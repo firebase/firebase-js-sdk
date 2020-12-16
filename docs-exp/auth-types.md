@@ -22,8 +22,7 @@
 
 |  Enumeration | Description |
 |  --- | --- |
-|  [ActionCodeOperation](./auth-types.actioncodeoperation.md) | An enumeration of the possible email action types. |
-|  [FactorId](./auth-types.factorid.md) | An enum of factors that may be used for multifactor authentication. |
+|  [Operation](./auth-types.operation.md) | An enumeration of the possible email action types. |
 |  [OperationType](./auth-types.operationtype.md) | Enumeration of supported operation types. |
 |  [ProviderId](./auth-types.providerid.md) | Enumeration of supported providers. |
 |  [SignInMethod](./auth-types.signinmethod.md) | Enumeration of supported sign-in methods. |
