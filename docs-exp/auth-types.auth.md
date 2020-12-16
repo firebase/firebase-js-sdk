@@ -37,5 +37,5 @@ See [Firebase Authentication](https://firebase.google.com/docs/auth/) for a full
 |  [signOut()](./auth-types.auth.signout.md) | Signs out the current user. |
 |  [updateCurrentUser(user)](./auth-types.auth.updatecurrentuser.md) | Asynchronously sets the provided user as [Auth.currentUser](./auth-types.auth.currentuser.md) on the [Auth](./auth-types.auth.md) instance. |
 |  [useDeviceLanguage()](./auth-types.auth.usedevicelanguage.md) | Sets the current language to the default device/browser preference. |
-|  [useEmulator(url)](./auth-types.auth.useemulator.md) | Modify this Auth instance to communicate with the Firebase Auth emulator. |
+|  [useEmulator(url, options)](./auth-types.auth.useemulator.md) | Modify this Auth instance to communicate with the Firebase Auth emulator. |
 

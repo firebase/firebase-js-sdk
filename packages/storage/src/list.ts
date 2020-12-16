@@ -15,18 +15,7 @@
  * limitations under the License.
  */
 
-import * as types from '@firebase/storage-types';
-import { StorageReference } from './reference';
-
-/**
- * @fileoverview Documentation for ListOptions and ListResult format.
- */
-
-/**
- * The options `list()` accepts.
- * @public
- */
-export interface ListOptions extends types.ListOptions {}
+import { Reference } from './reference';
 
 /**
  * Result returned by `list()`.
@@ -41,12 +30,12 @@ export interface ListResult {
    * For example, if a bucket has two objects '/a/b/1' and '/a/b/2', list('/a')
    * will return '/a/b' as a prefix.
    */
-  prefixes: StorageReference[];
+  prefixes: Reference[];
   /**
    * Objects in this directory.
    * You can call getMetadata() and getDownloadUrl() on them.
    */
-  items: StorageReference[];
+  items: Reference[];
   /**
    * If set, there might be more results for this list. Use this token to resume the list.
    */

@@ -9,7 +9,7 @@ Initializes an Auth instance with platform specific default dependencies.
 <b>Signature:</b>
 
 ```typescript
-export declare function getAuth(app?: FirebaseApp): Auth;
+export declare function getAuth(app: FirebaseApp): Auth;
 ```
 
 ## Parameters

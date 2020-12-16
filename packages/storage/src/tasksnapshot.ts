@@ -16,7 +16,7 @@
  */
 import { TaskState } from './implementation/taskenums';
 import { Metadata } from './metadata';
-import { StorageReference } from './reference';
+import { Reference } from './reference';
 import { UploadTask } from './task';
 
 /**
@@ -32,7 +32,7 @@ export interface UploadResult {
   /**
    * The reference that spawned this upload.
    */
-  readonly ref: StorageReference;
+  readonly ref: Reference;
 }
 
 /**
@@ -69,5 +69,5 @@ export interface UploadTaskSnapshot {
   /**
    * The reference that spawned this snapshot's upload task.
    */
-  readonly ref: StorageReference;
+  readonly ref: Reference;
 }

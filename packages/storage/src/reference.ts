@@ -31,10 +31,11 @@ import {
   deleteObject as requestsDeleteObject,
   multipartUpload
 } from './implementation/requests';
+import * as types from '@firebase/storage-types/exp';
 import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
 import { StorageService } from './service';
-import { ListOptions, ListResult } from './list';
+import { ListResult } from './list';
 import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
@@ -43,7 +44,7 @@ import { UploadResult } from './tasksnapshot';
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
  * @public
- * @param location - An fbs.location, or the URL at
+ * @param _location - An fbs.location, or the URL at
  *     which to base this object, in one of the following forms:
  *         gs://<bucket>/<object-path>
  *         http[s]://firebasestorage.googleapis.com/
@@ -52,7 +53,7 @@ import { UploadResult } from './tasksnapshot';
  *     format. If no value is passed, the storage object will use a URL based on
  *     the project ID of the base firebase.App instance.
  */
-export class StorageReference {
+export class Reference {
   /**
    * @internal
    */
@@ -81,17 +82,14 @@ export class StorageReference {
   /**
    * @internal
    */
-  protected _newRef(
-    service: StorageService,
-    location: Location
-  ): StorageReference {
-    return new StorageReference(service, location);
+  protected _newRef(service: StorageService, location: Location): Reference {
+    return new Reference(service, location);
   }
 
   /**
    * A reference to the root of this object's bucket.
    */
-  get root(): StorageReference {
+  get root(): Reference {
     const location = new Location(this._location.bucket, '');
     return this._newRef(this._service, location);
   }
@@ -129,13 +127,13 @@ export class StorageReference {
    * A `StorageReference` pointing to the parent location of this `StorageReference`, or null if
    * this reference is the root.
    */
-  get parent(): StorageReference | null {
+  get parent(): Reference | null {
     const newPath = parent(this._location.path);
     if (newPath === null) {
       return null;
     }
     const location = new Location(this._location.bucket, newPath);
-    return new StorageReference(this._service, location);
+    return new Reference(this._service, location);
   }
 
   /**
@@ -152,14 +150,14 @@ export class StorageReference {
 /**
  * Uploads data to this object's location.
  * The upload is not resumable.
- * @public
+ *
  * @param ref - StorageReference where data should be uploaded.
  * @param data - The data to upload.
  * @param metadata - Metadata for the newly uploaded data.
  * @returns A Promise containing an UploadResult
  */
 export function uploadBytes(
-  ref: StorageReference,
+  ref: Reference,
   data: Blob | Uint8Array | ArrayBuffer,
   metadata?: Metadata
 ): Promise<UploadResult> {
@@ -195,7 +193,7 @@ export function uploadBytes(
  * @returns An UploadTask
  */
 export function uploadBytesResumable(
-  ref: StorageReference,
+  ref: Reference,
   data: Blob | Uint8Array | ArrayBuffer,
   metadata?: Metadata
 ): UploadTask {
@@ -214,7 +212,7 @@ export function uploadBytesResumable(
  * @returns A Promise containing an UploadResult
  */
 export function uploadString(
-  ref: StorageReference,
+  ref: Reference,
   value: string,
   format: StringFormat = StringFormat.RAW,
   metadata?: Metadata
@@ -247,7 +245,7 @@ export function uploadString(
  *      sub-directories and `items` contains references to objects in this
  *      folder. `nextPageToken` is never returned.
  */
-export function listAll(ref: StorageReference): Promise<ListResult> {
+export function listAll(ref: Reference): Promise<ListResult> {
   const accumulator: ListResult = {
     prefixes: [],
     items: []
@@ -263,11 +261,11 @@ export function listAll(ref: StorageReference): Promise<ListResult> {
  * @param pageToken
  */
 async function listAllHelper(
-  ref: StorageReference,
+  ref: Reference,
   accumulator: ListResult,
   pageToken?: string
 ): Promise<void> {
-  const opt: ListOptions = {
+  const opt: types.ListOptions = {
     // maxResults is 1000 by default.
     pageToken
   };
@@ -302,8 +300,8 @@ async function listAllHelper(
  *      can be used to get the rest of the results.
  */
 export async function list(
-  ref: StorageReference,
-  options?: ListOptions | null
+  ref: Reference,
+  options?: types.ListOptions | null
 ): Promise<ListResult> {
   if (options != null) {
     if (typeof options.maxResults === 'number') {
@@ -334,7 +332,7 @@ export async function list(
  * @public
  * @param ref - StorageReference to get metadata from.
  */
-export async function getMetadata(ref: StorageReference): Promise<Metadata> {
+export async function getMetadata(ref: Reference): Promise<Metadata> {
   ref._throwIfRoot('getMetadata');
   const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsGetMetadata(
@@ -357,7 +355,7 @@ export async function getMetadata(ref: StorageReference): Promise<Metadata> {
  *     See `firebaseStorage.Reference.prototype.getMetadata`
  */
 export async function updateMetadata(
-  ref: StorageReference,
+  ref: Reference,
   metadata: Partial<Metadata>
 ): Promise<Metadata> {
   ref._throwIfRoot('updateMetadata');
@@ -377,7 +375,7 @@ export async function updateMetadata(
  * @returns A promise that resolves with the download
  *     URL for this object.
  */
-export async function getDownloadURL(ref: StorageReference): Promise<string> {
+export async function getDownloadURL(ref: Reference): Promise<string> {
   ref._throwIfRoot('getDownloadURL');
   const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsGetDownloadUrl(
@@ -402,7 +400,7 @@ export async function getDownloadURL(ref: StorageReference): Promise<string> {
  * @param ref - StorageReference for object to delete.
  * @returns A promise that resolves if the deletion succeeds.
  */
-export async function deleteObject(ref: StorageReference): Promise<void> {
+export async function deleteObject(ref: Reference): Promise<void> {
   ref._throwIfRoot('deleteObject');
   const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsDeleteObject(ref.storage, ref._location);
@@ -419,11 +417,8 @@ export async function deleteObject(ref: StorageReference): Promise<void> {
  * appending childPath, removing any duplicate, beginning, or trailing
  * slashes.
  */
-export function _getChild(
-  ref: StorageReference,
-  childPath: string
-): StorageReference {
+export function _getChild(ref: Reference, childPath: string): Reference {
   const newPath = child(ref._location.path, childPath);
   const location = new Location(ref._location.bucket, newPath);
-  return new StorageReference(ref.storage, location);
+  return new Reference(ref.storage, location);
 }

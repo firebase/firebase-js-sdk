@@ -21,4 +21,5 @@
 |  [@firebase/performance-types](./performance-types.md) |  |
 |  [@firebase/remote-config](./remote-config.md) |  |
 |  [@firebase/remote-config-types](./remote-config-types.md) |  |
+|  [@firebase/storage](./storage.md) |  |
 

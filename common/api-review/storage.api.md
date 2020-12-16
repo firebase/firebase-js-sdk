@@ -5,17 +5,14 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
-import { _FirebaseService } from '@firebase/app-types';
-import { Provider } from '@firebase/component';
-import * as types from '@firebase/storage-types';
+import * as types from '@firebase/storage-types/exp';
 
 // @public
 export type CompleteFn = () => void;
 
 // @public
-export function deleteObject(ref: StorageReference): Promise<void>;
+export function deleteObject(ref: types.StorageReference): Promise<void>;
 
 // @public
 export type ErrorFn = (error: FirebaseStorageError) => void;
@@ -35,58 +32,28 @@ export class FirebaseStorageError extends FirebaseError {
 }
 
 // @public
-export function getDownloadURL(ref: StorageReference): Promise<string>;
+export function getDownloadURL(ref: types.StorageReference): Promise<string>;
 
 // @public
-export function getMetadata(ref: StorageReference): Promise<Metadata>;
+export function getMetadata(ref: types.StorageReference): Promise<types.Metadata>;
 
 // @public
-export function getStorage(app: FirebaseApp): StorageService;
+export function getStorage(app: FirebaseApp): types.StorageService;
 
 // @public
-export function list(ref: StorageReference, options?: ListOptions | null): Promise<ListResult>;
+export function list(ref: types.StorageReference, options?: types.ListOptions): Promise<types.ListResult>;
 
 // @public
-export function listAll(ref: StorageReference): Promise<ListResult>;
-
-// @public
-export interface ListOptions extends types.ListOptions {
-}
-
-// @public
-export interface ListResult {
-    items: StorageReference[];
-    nextPageToken?: string;
-    prefixes: StorageReference[];
-}
-
-// @public
-export interface Metadata extends types.FullMetadata {
-    // (undocumented)
-    [prop: string]: unknown;
-    cacheControl: string | undefined;
-    contentDisposition: string | undefined;
-    contentEncoding: string | undefined;
-    contentLanguage: string | undefined;
-    contentType: string | undefined;
-    customMetadata: {
-        [key: string]: string;
-    } | undefined;
-    downloadTokens: string[] | undefined;
-    md5Hash: string | undefined;
-    ref: StorageReference | undefined;
-    // @internal (undocumented)
-    type: string | undefined;
-}
+export function listAll(ref: types.StorageReference): Promise<types.ListResult>;
 
 // @public
 export type NextFn<T> = (value: T) => void;
 
 // @public
-export function ref(storage: StorageService, url?: string): StorageReference;
+export function ref(storage: types.StorageService, url?: string): types.StorageReference;
 
 // @public
-export function ref(storageOrRef: StorageService | StorageReference, path?: string): StorageReference;
+export function ref(storageOrRef: types.StorageService | types.StorageReference, path?: string): types.StorageReference;
 
 // @public
 export type StorageErrorCode = string;
@@ -127,69 +94,6 @@ export interface StorageObserver<T> {
 }
 
 // @public
-export class StorageReference {
-    // @internal
-    constructor(_service: StorageService, location: string | Location_2);
-    get bucket(): string;
-    get fullPath(): string;
-    // Warning: (ae-forgotten-export) The symbol "Location" needs to be exported by the entry point index.d.ts
-    //
-    // @internal (undocumented)
-    _location: Location_2;
-    get name(): string;
-    // @internal (undocumented)
-    protected _newRef(service: StorageService, location: Location_2): StorageReference;
-    get parent(): StorageReference | null;
-    get root(): StorageReference;
-    get storage(): StorageService;
-    // @internal
-    _throwIfRoot(name: string): void;
-    // @override
-    toString(): string;
-}
-
-// @public
-export class StorageService implements _FirebaseService {
-    // @internal
-    constructor(
-    app: FirebaseApp,
-    _authProvider: Provider<FirebaseAuthInternalName>,
-    _pool: XhrIoPool,
-    _url?: string | undefined,
-    _firebaseVersion?: string | undefined);
-    readonly app: FirebaseApp;
-    // @internal (undocumented)
-    protected readonly _appId: string | null;
-    // @internal (undocumented)
-    readonly _authProvider: Provider<FirebaseAuthInternalName>;
-    // @internal (undocumented)
-    readonly _bucket: Location_2 | null;
-    // @internal
-    _delete(): Promise<void>;
-    // @internal (undocumented)
-    readonly _firebaseVersion?: string | undefined;
-    // @internal (undocumented)
-    _getAuthToken(): Promise<string | null>;
-    // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
-    //
-    // @internal (undocumented)
-    _makeRequest<T>(requestInfo: RequestInfo_2<T>, authToken: string | null): Request_2<T>;
-    // @internal
-    _makeStorageReference(loc: Location_2): StorageReference;
-    get maxOperationRetryTime(): number;
-    set maxOperationRetryTime(time: number);
-    get maxUploadRetryTime(): number;
-    set maxUploadRetryTime(time: number);
-    // Warning: (ae-forgotten-export) The symbol "XhrIoPool" needs to be exported by the entry point index.d.ts
-    //
-    // @internal (undocumented)
-    readonly _pool: XhrIoPool;
-    // @internal (undocumented)
-    readonly _url?: string | undefined;
-}
-
-// @public
 export type StringFormat = string;
 
 // @public
@@ -227,57 +131,16 @@ export const TaskState: {
 export type Unsubscribe = () => void;
 
 // @public
-export function updateMetadata(ref: StorageReference, metadata: Partial<Metadata>): Promise<Metadata>;
+export function updateMetadata(ref: types.StorageReference, metadata: Partial<types.Metadata>): Promise<types.Metadata>;
 
 // @public
-export function uploadBytes(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: Metadata): Promise<UploadResult>;
+export function uploadBytes(ref: types.StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: types.Metadata): Promise<types.UploadResult>;
 
 // @public
-export function uploadBytesResumable(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: Metadata): UploadTask;
+export function uploadBytesResumable(ref: types.StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: types.Metadata): types.UploadTask;
 
 // @public
-export interface UploadResult {
-    readonly metadata: Metadata;
-    readonly ref: StorageReference;
-}
-
-// @public
-export function uploadString(ref: StorageReference, value: string, format?: StringFormat, metadata?: Metadata): Promise<UploadResult>;
-
-// @public
-export class UploadTask {
-    // @internal
-    constructor(ref: StorageReference, blob: FbsBlob, metadata?: Metadata | null);
-    // Warning: (ae-forgotten-export) The symbol "FbsBlob" needs to be exported by the entry point index.d.ts
-    //
-    // @internal
-    _blob: FbsBlob;
-    cancel(): boolean;
-    catch<T>(onRejected: (p1: FirebaseStorageError) => T | Promise<T>): Promise<T>;
-    // @internal
-    _metadata: Metadata | null;
-    on(type: TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | ((a: UploadTaskSnapshot) => unknown), error?: ErrorFn, completed?: CompleteFn): Unsubscribe | Subscribe<UploadTaskSnapshot>;
-    pause(): boolean;
-    resume(): boolean;
-    get snapshot(): UploadTaskSnapshot;
-    // Warning: (ae-forgotten-export) The symbol "InternalTaskState" needs to be exported by the entry point index.d.ts
-    //
-    // @internal
-    _state: InternalTaskState;
-    then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null, onRejected?: ((error: FirebaseStorageError) => U | Promise<U>) | null): Promise<U>;
-    // @internal
-    _transferred: number;
-    }
-
-// @public
-export interface UploadTaskSnapshot {
-    readonly bytesTransferred: number;
-    readonly metadata: Metadata;
-    readonly ref: StorageReference;
-    readonly state: TaskState;
-    readonly task: UploadTask;
-    readonly totalBytes: number;
-}
+export function uploadString(ref: types.StorageReference, value: string, format?: string, metadata?: types.Metadata): Promise<types.UploadResult>;
 
 
 // (No @packageDocumentation comment for this package)

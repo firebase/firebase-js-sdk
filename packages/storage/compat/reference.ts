@@ -16,7 +16,7 @@
  */
 
 import {
-  StorageReference,
+  Reference,
   _getChild,
   uploadBytesResumable,
   list,
@@ -29,7 +29,6 @@ import {
 import * as types from '@firebase/storage-types';
 import { Metadata } from '../src/metadata';
 import { dataFromString, StringFormat } from '../src/implementation/string';
-import { ListOptions } from '../src/list';
 import { UploadTaskCompat } from './task';
 import { ListResultCompat } from './list';
 import { StorageServiceCompat } from './service';
@@ -39,7 +38,7 @@ import { FbsBlob } from '../src/implementation/blob';
 
 export class ReferenceCompat implements types.Reference {
   constructor(
-    private readonly _delegate: StorageReference,
+    private readonly _delegate: Reference,
     public storage: StorageServiceCompat
   ) {}
 
@@ -172,7 +171,7 @@ export class ReferenceCompat implements types.Reference {
    * contains references to objects in this folder. `nextPageToken`
    * can be used to get the rest of the results.
    */
-  list(options?: ListOptions | null): Promise<types.ListResult> {
+  list(options?: types.ListOptions | null): Promise<types.ListResult> {
     return list(this._delegate, options).then(
       r => new ListResultCompat(r, this.storage)
     );

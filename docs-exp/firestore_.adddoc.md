@@ -4,6 +4,8 @@
 
 ## addDoc() function
 
+Add a new document to specified `CollectionReference` with the given data, assigning it a document ID automatically.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,12 @@ export declare function addDoc<T>(reference: CollectionReference<T>, data: T): P
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; |  |
-|  data | T |  |
+|  reference | [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; | A reference to the collection to add this document to. |
+|  data | T | An Object containing the data for the new document. |
 
 <b>Returns:</b>
 
 Promise&lt;[DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt;&gt;
+
+A Promise resolved with a `DocumentReference` pointing to the newly created document after it has been written to the backend (Note that it won't resolve while you're offline).
 

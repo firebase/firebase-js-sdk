@@ -29,7 +29,7 @@
 
 |  Function | Description |
 |  --- | --- |
-|  [addDoc(reference, data)](./firestore_lite.adddoc.md) |  |
+|  [addDoc(reference, data)](./firestore_lite.adddoc.md) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically.<!-- -->The result of this write will only be reflected in document reads that occur after the returned Promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
 |  [arrayRemove(elements)](./firestore_lite.arrayremove.md) | Returns a special value that can be used with [setDoc()](./firestore_.setdoc.md) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
 |  [arrayUnion(elements)](./firestore_lite.arrayunion.md) | Returns a special value that can be used with  or  that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
 |  [collection(firestore, path, pathSegments)](./firestore_lite.collection.md) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
