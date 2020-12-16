@@ -1,3 +1,11 @@
+---
+name: 🐞 Bug report
+about: Found a bug in the JS SDK? File it here.
+title: ""
+labels: ""
+assignees: ""
+---
+
 <!-- Step 1 [READ THIS] -->
 <!--
 Are you in the right place?
@@ -32,12 +40,6 @@ Are you in the right place?
   This could be a description, log/console output, etc.
 -->
 #### Relevant Code:
-
-<!--
-  Reproduce the issue on StackBlitz and provide your forked URL
-  or give us some sample code below
--->
-https://stackblitz.com/fork/firebase-issue-sandbox
 
 ```javascript
 // TODO(you): code here to reproduce the problem
