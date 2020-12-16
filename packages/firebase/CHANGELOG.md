@@ -1,5 +1,13 @@
 # firebase
 
+## 8.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`9fd3f5233`](https://github.com/firebase/firebase-js-sdk/commit/9fd3f5233077b45c5101789c427db51835484ce0), [`44b5251d0`](https://github.com/firebase/firebase-js-sdk/commit/44b5251d0527d1aa768959765ff04093a04dd8ab)]:
+  - @firebase/auth@0.16.1
+  - @firebase/firestore@2.1.1
+
 ## 8.2.0
 
 ### Minor Changes
