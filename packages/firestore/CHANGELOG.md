@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 2.1.1
+
+### Patch Changes
+
+- [`44b5251d0`](https://github.com/firebase/firebase-js-sdk/commit/44b5251d0527d1aa768959765ff04093a04dd8ab) [#4189](https://github.com/firebase/firebase-js-sdk/pull/4189) (fixes [#4175](https://github.com/firebase/firebase-js-sdk/issues/4175)) - Fixes an issue that prevented the SDK from automatically retrieving custom User claims.
+
 ## 2.1.0
 
 ### Minor Changes
