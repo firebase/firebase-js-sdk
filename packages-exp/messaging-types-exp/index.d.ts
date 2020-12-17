@@ -15,14 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  Observer,
-  Unsubscribe,
-  NextFn,
-  ErrorFn,
-  CompleteFn
-} from '@firebase/util';
-
 // Currently supported fcm notification display parameters. Note that
 // {@link https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions}
 // defines a full list of display notification parameters. This interface we only include what the

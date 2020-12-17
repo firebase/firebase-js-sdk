@@ -10,7 +10,8 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js"
   },
   "files": [
-    "index.d.ts"
+    "index.d.ts",
+    "index.sw.d.ts"
   ],
   "peerDependencies": {
     "@firebase/app-types": "0.x"
