@@ -20,10 +20,10 @@ import { registerMessaging } from './helpers/register';
 
 export { onBackgroundMessage, getMessaging } from './api';
 
-registerMessaging();
-
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'messaging-exp': FirebaseMessaging;
   }
 }
+
+registerMessaging();
