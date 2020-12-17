@@ -15,8 +15,18 @@
  * limitations under the License.
  */
 
+import {
+  Component,
+  ComponentContainer,
+  ComponentType,
+  InstanceFactory
+} from '@firebase/component';
+import { ERROR_FACTORY, ErrorCode } from './util/errors';
+
 import { FirebaseMessaging } from '@firebase/messaging-types-exp';
-import { registerMessaging } from './helpers/register';
+import { MessagingService } from './messaging-service';
+import { _registerComponent } from '@firebase/app-exp';
+import { isSupported } from './helpers/isSupported';
 
 export { onBackgroundMessage, getMessaging } from './api';
 
@@ -26,4 +36,21 @@ declare module '@firebase/component' {
   }
 }
 
-registerMessaging();
+// registerMessaging();
+const messagingFactory: InstanceFactory<'messaging-exp'> = (
+  container: ComponentContainer
+) => {
+  if (!isSupported()) {
+    throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+  }
+
+  return new MessagingService(
+    container.getProvider('app-exp').getImmediate(),
+    container.getProvider('installations-exp-internal').getImmediate(),
+    container.getProvider('analytics-internal')
+  );
+};
+
+_registerComponent(
+  new Component('messaging-exp', messagingFactory, ComponentType.PUBLIC)
+);
