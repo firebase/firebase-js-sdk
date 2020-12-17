@@ -20,6 +20,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
+
 import {
   documentKeySet,
   DocumentKeySet,
@@ -36,8 +37,6 @@ import {
   mutationEquals,
   MutationResult
 } from './mutation';
-
-export const BATCHID_UNKNOWN = -1;
 
 /**
  * A batch of mutations that will be sent as one unit to the backend.

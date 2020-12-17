@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { expect } from 'chai';
+
 import {
   collectionReference,
   documentReference,
@@ -24,7 +26,6 @@ import {
   querySnapshot
 } from '../../util/api_helpers';
 import { expectEqual, expectNotEqual, keys } from '../../util/helpers';
-import { expect } from 'chai';
 
 describe('CollectionReference', () => {
   it('support equality checking with isEqual()', () => {

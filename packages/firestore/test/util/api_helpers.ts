@@ -18,42 +18,46 @@
 // Helpers here mock Firestore in order to unit-test API types. Do NOT use
 // these in any integration test, where we expect working Firestore object.
 
+import { Provider, ComponentContainer } from '@firebase/component';
+
 import {
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
-  ensureFirestoreConfigured,
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
   QuerySnapshot,
-  SnapshotMetadata
+  UserDataWriter
 } from '../../src/api/database';
+import { DatabaseId } from '../../src/core/database_info';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
   DocumentViewChange,
   ViewSnapshot
 } from '../../src/core/view_snapshot';
+import {
+  ensureFirestoreConfigured,
+  FirebaseFirestore
+} from '../../src/exp/database';
+import {
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference
+} from '../../src/exp/reference';
+import { ExpUserDataWriter } from '../../src/exp/reference_impl';
+import {
+  QuerySnapshot as ExpQuerySnapshot,
+  DocumentSnapshot as ExpDocumentSnapshot,
+  SnapshotMetadata
+} from '../../src/exp/snapshot';
 import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
-import { doc, key, path as pathFrom } from './helpers';
-import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
-import { FirebaseFirestore } from '../../exp/src/api/database';
-import { DatabaseId } from '../../src/core/database_info';
-import {
-  QuerySnapshot as ExpQuerySnapshot,
-  DocumentSnapshot as ExpDocumentSnapshot
-} from '../../exp/src/api/snapshot';
-import { UserDataWriter } from '../../src/api/user_data_writer';
-import {
-  ExpUserDataWriter,
-  Query as ExpQuery,
-  CollectionReference as ExpCollectionReference
-} from '../../exp/src/api/reference';
+
+import { doc, key, path as pathFrom } from './helpers';
 
 /**
  * A mock Firestore. Will not work for integration test.

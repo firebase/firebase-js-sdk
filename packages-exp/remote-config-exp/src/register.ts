@@ -36,6 +36,9 @@ import { ErrorCode, ERROR_FACTORY } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Storage } from './storage/storage';
 import { StorageCache } from './storage/storage_cache';
+// This needs to be in the same file that calls `getProvider()` on the component
+// or it will get tree-shaken out.
+import '@firebase/installations-exp';
 
 export function registerRemoteConfig(): void {
   _registerComponent(

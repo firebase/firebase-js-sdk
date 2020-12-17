@@ -16,9 +16,14 @@
  */
 
 import { expect } from 'chai';
+
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';
+import {
+  newPersistentWatchStream,
+  newPersistentWriteStream
+} from '../../../src/remote/datastore';
 import {
   PersistentListenStream,
   PersistentWriteStream,
@@ -30,15 +35,15 @@ import {
   ExistenceFilterChange,
   WatchTargetChange
 } from '../../../src/remote/watch_change';
-import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { TimerId } from '../../../src/util/async_queue';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/internal_helpers';
-import {
-  newPersistentWatchStream,
-  newPersistentWriteStream
-} from '../../../src/remote/datastore';
 
 /**
  * StreamEventType combines the events that can be observed by the
@@ -273,12 +278,12 @@ export async function withTestWriteStream(
   fn: (
     writeStream: PersistentWriteStream,
     streamListener: StreamStatusListener,
-    queue: AsyncQueue
+    queue: AsyncQueueImpl
   ) => Promise<void>,
   credentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   await withTestDatastore(async datastore => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue() as AsyncQueueImpl;
     const streamListener = new StreamStatusListener();
     const writeStream = newPersistentWriteStream(
       datastore,
@@ -298,7 +303,7 @@ export async function withTestWatchStream(
   ) => Promise<void>
 ): Promise<void> {
   await withTestDatastore(async datastore => {
-    const queue = new AsyncQueue();
+    const queue = newAsyncQueue();
     const streamListener = new StreamStatusListener();
     const watchStream = newPersistentWatchStream(
       datastore,

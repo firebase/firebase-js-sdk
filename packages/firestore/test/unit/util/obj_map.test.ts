@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { ObjectMap } from '../../../src/util/obj_map';
 
 class TestKey {

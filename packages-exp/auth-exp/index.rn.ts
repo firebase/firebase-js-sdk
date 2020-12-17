@@ -39,7 +39,7 @@ export const reactNativeLocalPersistence = getReactNativePersistence(
   AsyncStorage
 );
 
-export function getAuth(app?: FirebaseApp): Auth {
+export function getAuth(app: FirebaseApp): Auth {
   return initializeAuth(app, {
     persistence: reactNativeLocalPersistence
   });

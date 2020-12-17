@@ -24,6 +24,7 @@ import '../database';
 //  `atob`). We should provide a RN build that works out of the box.
 import '../storage';
 import '../firestore';
+import '../firestore/bundle';
 
 firebase.registerVersion(name, version, 'rn');
 

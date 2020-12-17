@@ -16,7 +16,10 @@
  */
 
 import { Timestamp } from '../api/timestamp';
+import { Bundle, NamedQuery } from '../core/bundle';
+import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
 import {
   Document,
   MaybeDocument,
@@ -25,6 +28,11 @@ import {
 } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
+import {
+  BundleMetadata as ProtoBundleMetadata,
+  NamedQuery as ProtoNamedQuery,
+  BundledQuery as ProtoBundledQuery
+} from '../protos/firestore_bundle_proto';
 import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
 import {
   convertQueryTargetToQuery,
@@ -41,7 +49,7 @@ import {
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
+
 import {
   DbBundle,
   DbMutationBatch,
@@ -55,13 +63,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { Bundle, NamedQuery } from '../core/bundle';
-import { LimitType, Query, queryWithLimit } from '../core/query';
-import {
-  BundleMetadata as ProtoBundleMetadata,
-  NamedQuery as ProtoNamedQuery,
-  BundledQuery as ProtoBundledQuery
-} from '../protos/firestore_bundle_proto';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

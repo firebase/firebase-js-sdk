@@ -17,6 +17,7 @@
 
 import { LimitType, queryWithLimit } from '../../../src/core/query';
 import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
+
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 

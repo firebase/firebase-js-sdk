@@ -215,7 +215,7 @@ export interface Auth {
    *
    * @param persistence - The {@link Persistence} to use.
    */
-  setPersistence(persistence: Persistence): void;
+  setPersistence(persistence: Persistence): Promise<void>;
   /**
    * The Auth instance's language code.
    *
@@ -267,7 +267,7 @@ export interface Auth {
    * @param completed - callback triggered when observer is removed.
    */
   onAuthStateChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
@@ -282,7 +282,7 @@ export interface Auth {
    * @param completed - callback triggered when observer is removed.
    */
   onIdTokenChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;

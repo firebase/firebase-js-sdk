@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import { TimerId } from '../../../src/util/async_queue';
 import { doc, query } from '../../util/helpers';
 
-import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 

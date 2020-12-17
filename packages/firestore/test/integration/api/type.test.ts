@@ -17,10 +17,11 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
+
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
-import { EventsAccumulator } from '../util/events_accumulator';
 
 const Blob = firebaseExport.Blob;
 const GeoPoint = firebaseExport.GeoPoint;

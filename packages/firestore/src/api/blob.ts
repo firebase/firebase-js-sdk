@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
+import { Bytes } from '../lite/bytes';
 import { isBase64Available } from '../platform/base64';
 import { Code, FirestoreError } from '../util/error';
-import { Bytes } from '../../lite/src/api/bytes';
-import { Compat } from '../compat/compat';
+
+import { Compat } from './compat';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {

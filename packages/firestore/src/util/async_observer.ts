@@ -16,8 +16,9 @@
  */
 
 import { Observer } from '../core/event_manager';
-import { EventHandler } from './misc';
+
 import { FirestoreError } from './error';
+import { EventHandler } from './misc';
 
 /*
  * A wrapper implementation of Observer<T> that will dispatch events

@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import * as ts from 'typescript';
 import * as fs from 'fs';
+
+import * as ts from 'typescript';
 
 function extractIdentifiersFromNodeAndChildren(
   node: ts.Node,

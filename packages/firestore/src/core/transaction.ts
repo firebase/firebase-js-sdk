@@ -17,7 +17,6 @@
 
 import { ParsedSetData, ParsedUpdateData } from '../api/user_data_reader';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-
 import { DocumentKey } from '../model/document_key';
 import {
   DeleteMutation,
@@ -32,6 +31,7 @@ import {
 } from '../remote/datastore';
 import { fail, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+
 import { SnapshotVersion } from './snapshot_version';
 
 /**

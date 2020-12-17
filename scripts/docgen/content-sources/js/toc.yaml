@@ -158,6 +158,10 @@ toc:
     path: /docs/reference/js/firebase.firestore.GeoPoint
   - title: "GetOptions"
     path: /docs/reference/js/firebase.firestore.GetOptions
+  - title: "LoadBundleTask"
+    path: /docs/reference/js/firebase.firestore.LoadBundleTask
+  - title: "LoadBundleTaskProgress"
+    path: /docs/reference/js/firebase.firestore.LoadBundleTaskProgress
   - title: "PersistenceSettings"
     path: /docs/reference/js/firebase.firestore.PersistenceSettings
   - title: "Query"

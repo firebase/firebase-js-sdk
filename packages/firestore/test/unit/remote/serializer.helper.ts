@@ -18,11 +18,20 @@
 import { expect } from 'chai';
 
 import { Blob } from '../../../src/api/blob';
-import { DocumentReference } from '../../../src/api/database';
-import { FieldValue } from '../../../src/compat/field_value';
+import { DocumentReference, UserDataWriter } from '../../../src/api/database';
+import { FieldValue } from '../../../src/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
+import { parseQueryValue } from '../../../src/api/user_data_reader';
 import { DatabaseId } from '../../../src/core/database_info';
+import {
+  LimitType,
+  queryToTarget,
+  queryWithEndAt,
+  queryWithLimit,
+  queryWithStartAt
+} from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   ArrayContainsAnyFilter,
   ArrayContainsFilter,
@@ -31,21 +40,17 @@ import {
   filterEquals,
   InFilter,
   KeyFieldFilter,
-  LimitType,
   NotInFilter,
   Operator,
   OrderBy,
-  queryToTarget,
-  queryWithEndAt,
-  queryWithLimit,
-  queryWithStartAt
-} from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
+  Target,
+  targetEquals,
+  TargetImpl
+} from '../../../src/core/target';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import { FieldMask } from '../../../src/model/field_mask';
 import {
   DeleteMutation,
-  FieldMask,
   Mutation,
   mutationEquals,
   Precondition,
@@ -89,7 +94,9 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
+import { ByteString } from '../../../src/util/byte_string';
 import { Code, FirestoreError } from '../../../src/util/error';
+import { firestore } from '../../util/api_helpers';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
@@ -110,10 +117,6 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
-import { ByteString } from '../../../src/util/byte_string';
-import { parseQueryValue } from '../../../src/api/user_data_reader';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
-import { firestore } from '../../util/api_helpers';
 
 const userDataWriter = new UserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);

@@ -93,7 +93,8 @@ const allBuilds = [
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    onwarn: util.onwarn
   },
   // Node UMD build
   {

@@ -17,6 +17,20 @@
 
 import { DocumentData } from '@firebase/firestore-types';
 
+import { DatabaseId } from '../core/database_info';
+import { DocumentKey } from '../model/document_key';
+import {
+  normalizeByteString,
+  normalizeNumber,
+  normalizeTimestamp
+} from '../model/normalize';
+import { ResourcePath } from '../model/path';
+import {
+  getLocalWriteTime,
+  getPreviousValue
+} from '../model/server_timestamps';
+import { TypeOrder } from '../model/type_order';
+import { typeOrder } from '../model/values';
 import {
   ArrayValue as ProtoArrayValue,
   LatLng as ProtoLatLng,
@@ -24,30 +38,14 @@ import {
   Timestamp as ProtoTimestamp,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
+import { isValidResourceName } from '../remote/serializer';
+import { fail, hardAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
+import { logError } from '../util/log';
+import { forEach } from '../util/obj';
+
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
-import { DatabaseId } from '../core/database_info';
-import { DocumentKey } from '../model/document_key';
-import {
-  normalizeByteString,
-  normalizeNumber,
-  normalizeTimestamp,
-  typeOrder
-} from '../model/values';
-import {
-  getLocalWriteTime,
-  getPreviousValue
-} from '../model/server_timestamps';
-import { fail, hardAssert } from '../util/assert';
-import { forEach } from '../util/obj';
-import { TypeOrder } from '../model/object_value';
-import { ResourcePath } from '../model/path';
-import { isValidResourceName } from '../remote/serializer';
-import { logError } from '../util/log';
-import { ByteString } from '../util/byte_string';
-import { Blob } from './blob';
-import { Bytes } from '../../lite/src/api/bytes';
-import { DocumentReference, Firestore } from './database';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -167,19 +165,4 @@ export abstract class AbstractUserDataWriter {
   protected abstract convertReference(name: string): unknown;
 
   protected abstract convertBytes(bytes: ByteString): unknown;
-}
-
-export class UserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: Firestore) {
-    super();
-  }
-
-  protected convertBytes(bytes: ByteString): Blob {
-    return new Blob(new Bytes(bytes));
-  }
-
-  protected convertReference(name: string): DocumentReference {
-    const key = this.convertDocumentKey(name, this.firestore._databaseId);
-    return DocumentReference.forKey(key, this.firestore, /* converter= */ null);
-  }
 }

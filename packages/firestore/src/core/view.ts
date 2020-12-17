@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { QueryResult } from '../local/local_store';
+import { QueryResult } from '../local/local_store_impl';
 import {
   documentKeySet,
   DocumentKeySet,
