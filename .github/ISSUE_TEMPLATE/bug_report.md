@@ -1,5 +1,5 @@
 ---
-name: "\U0001F41E Bug report"
+name: 🐞 Bug report
 about: Found a bug in the JS SDK? File it here.
 title: ''
 labels: ''
