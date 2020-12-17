@@ -1,5 +1,5 @@
 ---
-name: "\U0001F9EA Alpha SDK bug report"
+name: 🧪 Alpha SDK bug report
 about: Have you found a bug in one of our pre-release or alpha SDKs? File it here.
 title: ''
 labels: alpha
