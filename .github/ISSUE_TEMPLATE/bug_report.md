@@ -1,9 +1,10 @@
 ---
 name: 🐞 Bug report
 about: Found a bug in the JS SDK? File it here.
-title: ""
-labels: ""
-assignees: ""
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 <!-- Step 1 [READ THIS] -->
