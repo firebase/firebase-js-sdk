@@ -11,19 +11,19 @@ import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
-// @public (undocumented)
+// @public
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
 
-// @public (undocumented)
+// @public
 export function getMessaging(app: FirebaseApp): FirebaseMessaging;
 
-// @public (undocumented)
+// @public
 export function getToken(messaging: FirebaseMessaging, options?: {
     vapidKey?: string;
     swReg?: ServiceWorkerRegistration;
 }): Promise<string>;
 
-// @public (undocumented)
+// @public
 export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
 
 

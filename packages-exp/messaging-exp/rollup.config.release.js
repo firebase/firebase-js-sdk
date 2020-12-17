@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 import json from 'rollup-plugin-json';
 import pkg from './package.json';
 import typescript from 'typescript';
@@ -29,7 +30,10 @@ const deps = Object.keys(
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    clean: true,
+    abortOnError: false,
+    transformers: [importPathTransformer]
   }),
   json()
 ];
@@ -43,6 +47,9 @@ const es5Builds = [
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
+    treeshake: {
+      moduleSideEffects: false
+    },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
 
@@ -61,6 +68,9 @@ const es5Builds = [
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
+    abortOnError: false,
+    clean: true,
+    transformers: [importPathTransformer],
     tsconfigOverride: {
       compilerOptions: {
         target: 'es2017'
@@ -79,6 +89,9 @@ const es2017Builds = [
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
+    treeshake: {
+      moduleSideEffects: false
+    },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
