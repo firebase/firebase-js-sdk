@@ -16,9 +16,36 @@
  */
 
 import { firebase } from '@firebase/app-compat';
-import { registerInstallations } from './config';
 import { name, version } from '../package.json';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { Component, ComponentType } from '@firebase/component';
+import { FirebaseInstallations as FirebaseInstallationsCompat } from '@firebase/installations-types';
+import { FirebaseApp } from '@firebase/app-types';
+import { InstallationsCompat } from './installationsCompat';
 
-firebase.registerVersion(name, version);
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'app-compat': FirebaseApp;
+    'installations-compat': FirebaseInstallationsCompat;
+  }
+}
+
+function registerInstallations(instance: _FirebaseNamespace): void {
+  instance.INTERNAL.registerComponent(
+    new Component(
+      'installations-compat',
+      container => {
+        const app = container.getProvider('app-compat').getImmediate()!;
+        const installations = container
+          .getProvider('installations-exp')
+          .getImmediate()!;
+        return new InstallationsCompat(app, installations);
+      },
+      ComponentType.PUBLIC
+    )
+  );
+
+  instance.registerVersion(name, version);
+}
+
 registerInstallations(firebase as _FirebaseNamespace);
