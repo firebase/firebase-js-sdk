@@ -27,7 +27,6 @@ import {
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
-import { queryIdentifier } from '../src/api/test_access';
 
 use(chaiAsPromised);
 

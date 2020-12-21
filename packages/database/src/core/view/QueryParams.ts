@@ -307,7 +307,7 @@ export class QueryParams {
     } else {
       childKey = MAX_NAME;
     }
-    let params: QueryParams = this.startAt(indexValue, childKey);
+    const params: QueryParams = this.startAt(indexValue, childKey);
     params.startAfterSet_ = true;
     return params;
   }
