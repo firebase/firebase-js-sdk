@@ -204,7 +204,7 @@ export function preconditionIsValidForDocument(
  * locally, we return an `UnknownDocument` and rely on Watch to send us the
  * updated version.
  *
- * Field transforms are used only with Patcdh and Set Mutations. We use the
+ * Field transforms are used only with Patch and Set Mutations. We use the
  * `updateTransforms` message to store transforms, rather than the `transforms`s
  * messages.
  *
