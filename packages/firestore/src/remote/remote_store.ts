@@ -57,7 +57,6 @@ import {
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { User } from '../auth/user';
-import { TimeToFirstByteArgs } from './stream_bridge';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -747,9 +746,10 @@ async function onWriteStreamOpen(
 
 function onTimeToFirstByteAvailable(
   remoteStoreImpl: RemoteStoreImpl,
-  data: TimeToFirstByteArgs
+  type: number,
+  timeToFirstByteMs: number
 ): void {
-  remoteStoreImpl.remoteSyncer.handleTimeToFirstByte!(data);
+  remoteStoreImpl.remoteSyncer.handleTimeToFirstByte!(type, timeToFirstByteMs);
 }
 
 async function onWriteHandshakeComplete(

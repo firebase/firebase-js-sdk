@@ -20,17 +20,7 @@ import { FirestoreError } from '../util/error';
 
 import { Stream } from './connection';
 
-export interface TimeToFirstByteArgs {
-  type: number;
-  onOpen: number;
-  onMessage: number;
-  onTTFB: number;
-  startTime: number;
-  endTime: number;
-  timeToFirstByteMs: number;
-}
-
-export type TimeToFirstByteCallback = (data: TimeToFirstByteArgs) => void;
+export type TimeToFirstByteCallback = (type: number, timeToFirstByteMs: number) => void;
 
 /**
  * Provides a simple helper class that implements the Stream interface to
@@ -106,11 +96,11 @@ export class StreamBridge<I, O> implements Stream<I, O> {
     this.wrappedOnMessage(msg);
   }
 
-  callOnTimeToFirstByte(data: TimeToFirstByteArgs): void {
+  callOnTimeToFirstByte(type: number, timeToFirstByteMs: number): void {
     debugAssert(
       this.wrappedOnTimeToFirstByte !== undefined,
       'Cannot call callOnTimeToFirstByte because no callback was set'
     );
-    this.wrappedOnTimeToFirstByte(data);
+    this.wrappedOnTimeToFirstByte(type, timeToFirstByteMs);
   }
 }

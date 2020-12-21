@@ -241,19 +241,14 @@ export class WebChannelConnection extends RestConnection {
     // on a closed stream
     let closed = false;
 
-    let onOpen: number | null = null;
-    let onMessage: number | null = null;
-    let onTTFB: number | null = null;
-    let connectionStartTime: number | null = null;
-    let connectionStopTime: number | null = null;
-    let hasRaisedTimeToFirstByteEvent = false;
+    let onOpenCalled: number | null = null;
 
     const streamBridge = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
           if (!opened) {
             logDebug(LOG_TAG, 'Opening WebChannel transport.');
-            connectionStartTime = +new Date();
+            onOpenCalled = +new Date();
             channel.open();
             opened = true;
           }
@@ -289,9 +284,6 @@ export class WebChannelConnection extends RestConnection {
     };
 
     unguardedEventListen(channel, WebChannel.EventType.OPEN, () => {
-      onOpen = +new Date();
-      connectionStopTime = +new Date();
-
       if (!closed) {
         logDebug(LOG_TAG, 'WebChannel transport opened.');
       }
@@ -329,8 +321,6 @@ export class WebChannelConnection extends RestConnection {
       channel,
       WebChannel.EventType.MESSAGE,
       msg => {
-        onMessage = +new Date();
-        
         if (!closed) {
           const msgData = msg.data[0];
           hardAssert(!!msgData, 'Got a webchannel message without data.');
@@ -369,28 +359,28 @@ export class WebChannelConnection extends RestConnection {
       }
     );
 
+    let statEvent: StatEvent | null = null;
+    let hasRaisedTimeToFirstByteEvent = false;
+
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
       if (event.stat === Stat.PROXY) {
         logDebug(LOG_TAG, 'Detected buffering proxy');
+        statEvent = event;
       } else if (event.stat === Stat.NOPROXY) {
         logDebug(LOG_TAG, 'Detected no buffering proxy');
+        statEvent = event;
       }
-      onTTFB = +new Date();
 
-      if (!hasRaisedTimeToFirstByteEvent) {
+      if (statEvent !== null && !hasRaisedTimeToFirstByteEvent) {
         hasRaisedTimeToFirstByteEvent = true;
 
-        const elapsedMs = connectionStopTime! - connectionStartTime!;
+        const onStatEventRaised = +new Date();
+        const elapsedMs = onStatEventRaised! - onOpenCalled!;
  
-        streamBridge.callOnTimeToFirstByte({
-          type: event.stat,
-          onOpen: onOpen!,
-          onTTFB: onTTFB!,
-          onMessage: onMessage!,
-          startTime: connectionStartTime!,
-          endTime: connectionStopTime!,
-          timeToFirstByteMs: elapsedMs
-        });
+        streamBridge.callOnTimeToFirstByte(
+          statEvent.stat,
+          elapsedMs
+        );
       }
     });
 

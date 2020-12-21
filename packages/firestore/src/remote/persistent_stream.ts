@@ -45,7 +45,7 @@ import {
   toTarget,
   versionFromListenResponse
 } from './serializer';
-import { TimeToFirstByteArgs, TimeToFirstByteCallback } from './stream_bridge';
+import { TimeToFirstByteCallback } from './stream_bridge';
 import { WatchChange } from './watch_change';
 
 const LOG_TAG = 'PersistentStream';
@@ -397,8 +397,8 @@ export abstract class PersistentStream<
    */
   protected abstract onMessage(message: ReceiveType): Promise<void>;
 
-  public onTimeToFirstByte(data: TimeToFirstByteArgs): void {
-    this.listener.onTimeToFirstByte(data);
+  public onTimeToFirstByte(type: number, timeToFirstByteMs: number): void {
+    this.listener.onTimeToFirstByte(type, timeToFirstByteMs);
   }
 
   private auth(): void {
@@ -468,11 +468,11 @@ export abstract class PersistentStream<
         return this.onMessage(msg);
       });
     });
-    this.stream.onTimeToFirstByte(data => {
+    this.stream.onTimeToFirstByte((type: number, timeToFirstByteMs: number) => {
       dispatchIfNotClosed(
         () =>
           new Promise(resolve => {
-            this.onTimeToFirstByte(data);
+            this.onTimeToFirstByte(type, timeToFirstByteMs);
             resolve();
           })
       );

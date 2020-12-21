@@ -21,7 +21,6 @@ import { MutationBatchResult } from '../model/mutation_batch';
 import { FirestoreError } from '../util/error';
 import { RemoteEvent } from './remote_event';
 import { User } from '../auth/user';
-import { TimeToFirstByteArgs } from './stream_bridge';
 
 /**
  * An interface that describes the actions the RemoteStore needs to perform on
@@ -74,5 +73,5 @@ export interface RemoteSyncer {
    */
   handleCredentialChange?(user: User): Promise<void>;
 
-  handleTimeToFirstByte?(data: TimeToFirstByteArgs): void;
+  handleTimeToFirstByte?(type: number, timeToFirstByteMs: number): void;
 }

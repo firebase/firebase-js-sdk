@@ -129,13 +129,14 @@ export class FirestoreClient {
   async getConfiguration(): Promise<ComponentConfiguration> {
     await this.receivedInitialUser.promise;
 
-    return {
+    return <ComponentConfiguration> {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
       clientId: this.clientId,
       credentials: this.credentials,
       initialUser: this.user,
-      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
+      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
+      timeToFirstByte: this.onTimeToFirstByte
     };
   }
 

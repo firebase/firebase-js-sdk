@@ -1515,10 +1515,10 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     syncEngineImpl
   );
 
-  syncEngineImpl.remoteStore.remoteSyncer.handleTimeToFirstByte = data => {
+  syncEngineImpl.remoteStore.remoteSyncer.handleTimeToFirstByte = (type: number, timeToFirstByteMs: number) => {
     if (!syncEngineImpl.timeToFirstByteRaised && !!syncEngineImpl.timeToFirstByte) {
       syncEngineImpl.timeToFirstByteRaised = true;
-      syncEngineImpl.timeToFirstByte(data);
+      syncEngineImpl.timeToFirstByte(type, timeToFirstByteMs);
     }
   };
 
