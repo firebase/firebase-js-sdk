@@ -105,25 +105,6 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   }
 
   /**
-   * Verifies a snapshot containing setData but using the previous field value
-   * for the timestamps.
-   */
-  function verifyTimestampsUsePreviousValue(
-    current: firestore.DocumentSnapshot,
-    prev: firestore.DocumentSnapshot | null
-  ): void {
-    if (!prev) {
-      verifyTimestampsAreNull(current);
-    } else {
-      expect(current.exists).to.equal(true);
-      const when = prev.get('when');
-      expect(current.data({ serverTimestamps: 'previous' })).to.deep.equal(
-        expectedDataWithTimestamp(when)
-      );
-    }
-  }
-
-  /**
    * Wraps a test, getting a docRef and event accumulator, and cleaning them
    * up when done.
    */
