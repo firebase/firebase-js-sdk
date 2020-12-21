@@ -68,6 +68,7 @@
     "firestore",
     "firestore/lite",
     "performance",
-    "remote-config"
+    "remote-config",
+    "messaging"
   ]
 }

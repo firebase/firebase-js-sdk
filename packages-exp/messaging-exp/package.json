@@ -32,7 +32,7 @@
     "@firebase/app-types-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.1.19",
+    "@firebase/component": "0.1.21",
     "@firebase/installations-exp": "0.x",
     "@firebase/messaging-types-exp": "0.0.900",
     "@firebase/util": "0.3.2",
@@ -40,9 +40,9 @@
     "tslib": "^1.11.1"
   },
   "devDependencies": {
-    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-json": "4.0.0",
     "rollup-plugin-typescript2": "0.27.0",
-    "ts-essentials": "^6.0.7",
+    "ts-essentials": "7.0.1",
     "typescript": "3.8.3"
   },
   "repository": {
