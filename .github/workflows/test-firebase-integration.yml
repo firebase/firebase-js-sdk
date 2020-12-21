@@ -14,7 +14,7 @@ jobs:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
     - name: Set up Node (10)
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
         node-version: 10.x
     - name: install Chrome stable
