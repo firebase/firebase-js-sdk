@@ -566,6 +566,42 @@ export const tryParseInt = function (str: string): number | null {
   return null;
 };
 
+const MIN_PRINTABLE_CHAR: number = 0x20;
+const MAX_PRINTABLE_CHAR: number = 0x7e;
+
+const isPrintableString = function (str: string): boolean {
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    if (c < MIN_PRINTABLE_CHAR || c > MAX_PRINTABLE_CHAR) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/**
+ * If the string contains a 32-bit integer, return it.  Else return null.
+ * @param {!string} str
+ * @return {?number}
+ */
+export const lexicographicallyNext = function (str: string): string {
+  if (!isPrintableString(str)) {
+    throw new Error('lexicographicallyNext received non-printable string.');
+  }
+  let index: number = str.length - 1;
+  while (index >= 0 && str.charCodeAt(index) === MAX_PRINTABLE_CHAR) {
+    index--;
+  }
+  if (index === -1) {
+    return str + MIN_PRINTABLE_CHAR;
+  }
+  return (
+    str.slice(0, index) +
+    String.fromCharCode(str.charCodeAt(index) + 1) +
+    str.slice(index + 1)
+  );
+};
+
 /**
  * Helper to run some code but catch any exceptions and re-throw them later.
  * Useful for preventing user callbacks from breaking internal code.

@@ -352,14 +352,52 @@ describe('.orderBy tests', () => {
     expect(addedPrevNames).to.deep.equal(expectedPrevNames);
   });
 
+  it('startAfter works on value index', () => {
+    const ref = getRandomNode() as Reference;
+
+    const initial = {
+      alex: 60,
+      rob: 56,
+      vassili: 55.5,
+      tony: 52,
+      greg: 52
+    };
+
+    const expectedOrder = ['vassili', 'rob'];
+    const expectedPrevNames = [null, 'vassili'];
+
+    const valueOrder = [];
+    const addedOrder = [];
+    const addedPrevNames = [];
+
+    const orderedRef = ref.orderByValue().startAfter(52, 'tony').endAt(59);
+
+    orderedRef.on('value', snap => {
+      snap.forEach(childSnap => {
+        valueOrder.push(childSnap.key);
+      });
+    });
+
+    orderedRef.on('child_added', (snap, prevName) => {
+      addedOrder.push(snap.key);
+      addedPrevNames.push(prevName);
+    });
+
+    ref.set(initial);
+
+    expect(addedOrder).to.deep.equal(expectedOrder);
+    expect(valueOrder).to.deep.equal(expectedOrder);
+    expect(addedPrevNames).to.deep.equal(expectedPrevNames);
+  });
+
   it('Removing default listener removes non-default listener that loads all data', done => {
     const ref = getRandomNode() as Reference;
 
     const initial = { key: 'value' };
     ref.set(initial, err => {
       expect(err).to.be.null;
-      ref.orderByKey().on('value', () => {});
-      ref.on('value', () => {});
+      ref.orderByKey().on('value', () => { });
+      ref.on('value', () => { });
       // Should remove both listener and should remove the listen sent to the server
       ref.off();
 

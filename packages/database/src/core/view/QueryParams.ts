@@ -16,7 +16,12 @@
  */
 
 import { assert, stringify } from '@firebase/util';
-import { MIN_NAME, MAX_NAME } from '../util/util';
+import {
+  MIN_NAME,
+  MAX_NAME,
+  tryParseInt,
+  lexicographicallyNext
+} from '../util/util';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
@@ -37,6 +42,7 @@ export class QueryParams {
   private limitSet_ = false;
   private startSet_ = false;
   private startNameSet_ = false;
+  private startAfterSet_ = false;
   private endSet_ = false;
   private endNameSet_ = false;
 
@@ -96,6 +102,13 @@ export class QueryParams {
    */
   hasStart(): boolean {
     return this.startSet_;
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasStartAfter(): boolean {
+    return this.startAfterSet_;
   }
 
   /**
@@ -275,6 +288,28 @@ export class QueryParams {
       newParams.indexStartName_ = '';
     }
     return newParams;
+  }
+
+  /**
+   * @param {*} indexValue
+   * @param {?string=} key
+   * @return {!QueryParams}
+   */
+  startAfter(indexValue: unknown, key?: string | null): QueryParams {
+    let childKey: string;
+    if (key != null) {
+      const keyAsInt: number = tryParseInt(key);
+      if (keyAsInt != null) {
+        childKey = '' + (keyAsInt + 1);
+      } else {
+        childKey = lexicographicallyNext(key);
+      }
+    } else {
+      childKey = MAX_NAME;
+    }
+    let params: QueryParams = this.startAt(indexValue, childKey);
+    params.startAfterSet_ = true;
+    return params;
   }
 
   /**
