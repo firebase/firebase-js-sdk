@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import pkg from './package.json';
 import typescript from 'typescript';
 import typescriptPlugin from 'rollup-plugin-typescript2';
