@@ -469,13 +469,7 @@ export abstract class PersistentStream<
       });
     });
     this.stream.onTimeToFirstByte((isLongPollingConnection, timeToFirstByteMs) => {
-      dispatchIfNotClosed(
-        () =>
-          new Promise(resolve => {
-            this.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs);
-            resolve();
-          })
-      );
+      dispatchIfNotClosed(async () =>  this.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs));
     });
   }
 
