@@ -469,13 +469,7 @@ export abstract class PersistentStream<
       });
     });
     this.stream.onTimeToFirstByte((type: number, timeToFirstByteMs: number) => {
-      dispatchIfNotClosed(
-        () =>
-          new Promise(resolve => {
-            this.onTimeToFirstByte(type, timeToFirstByteMs);
-            resolve();
-          })
-      );
+      dispatchIfNotClosed(async () =>  this.onTimeToFirstByte(type, timeToFirstByteMs));
     });
   }
 
