@@ -249,7 +249,7 @@ export class WebChannelConnection extends RestConnection {
         if (!closed) {
           if (!opened) {
             logDebug(LOG_TAG, 'Opening WebChannel transport.');
-            onOpenTimestamp = new Date();  // Doesn't execute...
+            // onOpenTimestamp = new Date();  // This isn't working anymore. Hmm...
             channel.open();
             opened = true;
           }
