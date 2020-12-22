@@ -32,7 +32,7 @@ const describeFn =
       xdescribe;
 
 describeFn('WebChannel', () => {
-  it.only('receives error messages', done => {
+  it.only('can detect the connection type', done => {
     const projectId = DEFAULT_PROJECT_ID;
     const info = getDefaultDatabaseInfo();
     const conn = new WebChannelConnection(info);
@@ -56,7 +56,8 @@ describeFn('WebChannel', () => {
 
     // Once the stream is open, send an "add_target" request.
     stream.onOpen(() => {
-      stream.send(payload);
+      // No Op
+      // stream.send(payload);
     });
 
     stream.onMessage(() => {
@@ -65,16 +66,15 @@ describeFn('WebChannel', () => {
     });
 
     // Ensure Time to first byte was raised 
-    let timeToFirstByteData:{ type: number, timeToFirstByteMs: number } |null = null;
+    let timeToFirstByteData:{ isLongPollingConnection: boolean, timeToFirstByteMs: number } | null = null;
 
-    stream.onTimeToFirstByte((type: number, timeToFirstByteMs: number) => {
-      // console.log(JSON.stringify(data, null, 3));
-      timeToFirstByteData = { type, timeToFirstByteMs };
+    stream.onTimeToFirstByte((isLongPollingConnection, timeToFirstByteMs) => {
+      timeToFirstByteData = { isLongPollingConnection, timeToFirstByteMs };
     });
 
     stream.onClose(() => {
       expect(timeToFirstByteData).to.be.ok;
-      expect(timeToFirstByteData!.type).to.not.equal(0);
+      expect(timeToFirstByteData!.isLongPollingConnection).to.not.equal(0);
       expect(timeToFirstByteData!.timeToFirstByteMs).to.be.greaterThan(0);
       done();
     });

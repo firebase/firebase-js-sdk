@@ -78,7 +78,7 @@ export interface ComponentConfiguration {
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
-  timeToFirstByte?:TimeToFirstByteCallback|null,
+  timeToFirstByte?:TimeToFirstByteCallback,
 }
 
 /**
@@ -386,14 +386,14 @@ export class OnlineComponentProvider {
     startAsPrimary: boolean
   ): SyncEngine {
     return newSyncEngine(
-      cfg.timeToFirstByte || null,
       this.localStore,
       this.remoteStore,
       this.eventManager,
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions,
-      startAsPrimary
+      startAsPrimary,
+      cfg.timeToFirstByte
     );
   }
 

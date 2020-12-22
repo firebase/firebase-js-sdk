@@ -53,6 +53,7 @@ import { logDebug, logWarn } from '../../util/log';
 import { Rejecter, Resolver } from '../../util/promise';
 import { StringMap } from '../../util/types';
 import { RestConnection } from '../../remote/rest_connection';
+import { isLong } from 'long';
 
 const LOG_TAG = 'Connection';
 
@@ -241,14 +242,15 @@ export class WebChannelConnection extends RestConnection {
     // on a closed stream
     let closed = false;
 
-    let onOpenCalled: number | null = null;
+    let onOpenTimestamp: Date | null = null;
+    onOpenTimestamp = new Date();
 
     const streamBridge = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
           if (!opened) {
             logDebug(LOG_TAG, 'Opening WebChannel transport.');
-            onOpenCalled = +new Date();
+            onOpenTimestamp = new Date();  // Doesn't execute...
             channel.open();
             opened = true;
           }
@@ -359,27 +361,31 @@ export class WebChannelConnection extends RestConnection {
       }
     );
 
-    let statEvent: StatEvent | null = null;
+    let isLongPollingConnection:boolean|null = null;
     let hasRaisedTimeToFirstByteEvent = false;
 
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
       if (event.stat === Stat.PROXY) {
         logDebug(LOG_TAG, 'Detected buffering proxy');
-        statEvent = event;
+        isLongPollingConnection = true;
       } else if (event.stat === Stat.NOPROXY) {
         logDebug(LOG_TAG, 'Detected no buffering proxy');
-        statEvent = event;
+        isLongPollingConnection = false;
       }
 
-      if (statEvent !== null && !hasRaisedTimeToFirstByteEvent) {
+      if (isLongPollingConnection !== null && !hasRaisedTimeToFirstByteEvent) {
         hasRaisedTimeToFirstByteEvent = true;
 
-        const onStatEventRaised = +new Date();
-        const elapsedMs = onStatEventRaised! - onOpenCalled!;
+        if (onOpenTimestamp === null) {
+          throw new Error(`onOpenTimestamp isn't available`);
+        }
+
+        const onStatEventTimestamp = new Date();
+        const timeToFirstByteMs = +onStatEventTimestamp - +onOpenTimestamp!;
  
         streamBridge.callOnTimeToFirstByte(
-          statEvent.stat,
-          elapsedMs
+          isLongPollingConnection,
+          timeToFirstByteMs
         );
       }
     });

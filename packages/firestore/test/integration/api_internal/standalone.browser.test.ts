@@ -11,26 +11,33 @@ import { expect } from 'chai';
 
 // setLogLevel('debug');
 
-apiDescribe('Database', (persistence: boolean) => {
-    it.only('receives callbacks', async () => {
-        const deferred = new Deferred<{ type: number, timeToFirstByte: number }>();
-        const fs = new Firestore({ database: DEFAULT_DATABASE_NAME, projectId: `khanrafi-fb-sdk` },
-            new Provider('auth-internal', new ComponentContainer('default')), (type, timeToFirstByte) => deferred.resolve({ type, timeToFirstByte }));
+interface TimeToFirstByteResult { 
+    isLongPollingConnection: boolean,
+    timeToFirstByte: number
+}
+
+apiDescribe('Standalone', (persistence: boolean) => {
+    it.only('can auto detect the connection type', async () => {
+        const onTimeToFirstByte = new Deferred<TimeToFirstByteResult>();
+        const db = new Firestore({ database: DEFAULT_DATABASE_NAME, projectId: `khanrafi-fb-sdk` },
+                new Provider('auth-internal', new ComponentContainer('default')),
+                (isLongPollingConnection, timeToFirstByte) => onTimeToFirstByte.resolve({ isLongPollingConnection, timeToFirstByte }
+            ));
         
-        fs.settings({
+        db.settings({
             experimentalAutoDetectLongPolling: true
         });
 
         try
         {
-            await fs.collection('users').doc('foo@bar.com').get();
+            await db.collection('users').doc('foo@bar.com').get();
         }
         catch(e)
         {
             console.error(e);
         }
 
-        const stats = await deferred.promise;
+        const stats = await onTimeToFirstByte.promise;
 
         expect(stats).to.be.ok;
     });

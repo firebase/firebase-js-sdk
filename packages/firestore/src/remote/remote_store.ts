@@ -744,12 +744,12 @@ async function onWriteStreamOpen(
   ensureWriteStream(remoteStoreImpl).writeHandshake();
 }
 
-function onTimeToFirstByteAvailable(
+function onTimeToFirstByte(
   remoteStoreImpl: RemoteStoreImpl,
-  type: number,
+  isLongPollingConnection: boolean, 
   timeToFirstByteMs: number
 ): void {
-  remoteStoreImpl.remoteSyncer.handleTimeToFirstByte!(type, timeToFirstByteMs);
+  remoteStoreImpl.remoteSyncer.handleTimeToFirstByte!(isLongPollingConnection, timeToFirstByteMs);
 }
 
 async function onWriteHandshakeComplete(
@@ -923,7 +923,7 @@ function ensureWatchStream(
         onOpen: onWatchStreamOpen.bind(null, remoteStoreImpl),
         onClose: onWatchStreamClose.bind(null, remoteStoreImpl),
         onWatchChange: onWatchStreamChange.bind(null, remoteStoreImpl),
-        onTimeToFirstByte: onTimeToFirstByteAvailable.bind(
+        onTimeToFirstByte: onTimeToFirstByte.bind(
           null,
           remoteStoreImpl
         )
@@ -977,7 +977,7 @@ function ensureWriteStream(
           remoteStoreImpl
         ),
         onMutationResult: onMutationResult.bind(null, remoteStoreImpl),
-        onTimeToFirstByte: onTimeToFirstByteAvailable.bind(
+        onTimeToFirstByte: onTimeToFirstByte.bind(
           null,
           remoteStoreImpl
         )

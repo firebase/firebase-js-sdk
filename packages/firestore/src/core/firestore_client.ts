@@ -114,7 +114,7 @@ export class FirestoreClient {
      */
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo,
-    readonly onTimeToFirstByte?: TimeToFirstByteCallback|null,
+    readonly timeToFirstByte?: TimeToFirstByteCallback,
   ) {
     this.credentials.setChangeListener(user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
@@ -129,14 +129,14 @@ export class FirestoreClient {
   async getConfiguration(): Promise<ComponentConfiguration> {
     await this.receivedInitialUser.promise;
 
-    return <ComponentConfiguration> {
+    return {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
       clientId: this.clientId,
       credentials: this.credentials,
       initialUser: this.user,
       maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
-      timeToFirstByte: this.onTimeToFirstByte
+      timeToFirstByte: this.timeToFirstByte
     };
   }
 

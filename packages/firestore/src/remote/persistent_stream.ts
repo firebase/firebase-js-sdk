@@ -397,8 +397,8 @@ export abstract class PersistentStream<
    */
   protected abstract onMessage(message: ReceiveType): Promise<void>;
 
-  public onTimeToFirstByte(type: number, timeToFirstByteMs: number): void {
-    this.listener.onTimeToFirstByte(type, timeToFirstByteMs);
+  onTimeToFirstByte(isLongPollingConnection: boolean, timeToFirstByteMs: number): void {
+    this.listener.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs);
   }
 
   private auth(): void {
@@ -468,11 +468,11 @@ export abstract class PersistentStream<
         return this.onMessage(msg);
       });
     });
-    this.stream.onTimeToFirstByte((type: number, timeToFirstByteMs: number) => {
+    this.stream.onTimeToFirstByte((isLongPollingConnection, timeToFirstByteMs) => {
       dispatchIfNotClosed(
         () =>
           new Promise(resolve => {
-            this.onTimeToFirstByte(type, timeToFirstByteMs);
+            this.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs);
             resolve();
           })
       );

@@ -83,7 +83,7 @@ export class FirebaseFirestore extends LiteFirestore {
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    public onTimeToFirstByteCallback: TimeToFirstByteCallback | null = null
+    readonly _timeToFirstByte?: TimeToFirstByteCallback
   ) {
     super(databaseIdOrApp, authProvider);
     this._persistenceKey =
