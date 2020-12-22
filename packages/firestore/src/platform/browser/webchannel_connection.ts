@@ -53,7 +53,6 @@ import { logDebug, logWarn } from '../../util/log';
 import { Rejecter, Resolver } from '../../util/promise';
 import { StringMap } from '../../util/types';
 import { RestConnection } from '../../remote/rest_connection';
-import { isLong } from 'long';
 
 const LOG_TAG = 'Connection';
 
