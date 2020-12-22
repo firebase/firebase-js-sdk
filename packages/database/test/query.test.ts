@@ -3187,6 +3187,7 @@ describe('Query Tests', () => {
     expect(addedSecond).to.deep.equal(['a']);
 
     ref.child('a').setWithPriority('a', 10);
+    ref.child('a').setWithPriority('a', 0);
     expect(addedFirst).to.deep.equal(['a', 'a']);
     expect(removedSecond).to.deep.equal(['a']);
 
