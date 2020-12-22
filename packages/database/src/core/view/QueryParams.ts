@@ -16,12 +16,8 @@
  */
 
 import { assert, stringify } from '@firebase/util';
-import {
-  MIN_NAME,
-  MAX_NAME,
-  tryParseInt,
-  lexicographicallyNext
-} from '../util/util';
+import { MIN_NAME, MAX_NAME } from '../util/util';
+import { nextAfter } from '../util/NextPushId';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
@@ -297,15 +293,10 @@ export class QueryParams {
    */
   startAfter(indexValue: unknown, key?: string | null): QueryParams {
     let childKey: string;
-    if (key != null) {
-      const keyAsInt: number = tryParseInt(key);
-      if (keyAsInt != null) {
-        childKey = '' + (keyAsInt + 1);
-      } else {
-        childKey = lexicographicallyNext(key);
-      }
-    } else {
+    if (key == null) {
       childKey = MAX_NAME;
+    } else {
+      childKey = nextAfter(key);
     }
     const params: QueryParams = this.startAt(indexValue, childKey);
     params.startAfterSet_ = true;

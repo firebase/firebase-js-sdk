@@ -16,6 +16,11 @@
  */
 
 import { assert } from '@firebase/util';
+import { tryParseInt } from '../util/util';
+
+// Modeled after base64 web-safe chars, but ordered by ASCII.
+const PUSH_CHARS =
+  '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 
 /**
  * Fancy ID generator that creates 20-character string identifiers with the
@@ -32,10 +37,6 @@ import { assert } from '@firebase/util';
  *    in the case of a timestamp collision).
  */
 export const nextPushId = (function () {
-  // Modeled after base64 web-safe chars, but ordered by ASCII.
-  const PUSH_CHARS =
-    '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
-
   // Timestamp of last push, used to prevent local collisions if you push twice
   // in one ms.
   let lastPushTime = 0;
@@ -82,3 +83,29 @@ export const nextPushId = (function () {
     return id;
   };
 })();
+
+export const nextAfter = function (key: string) {
+  const keyAsInt: number = tryParseInt(key);
+  if (keyAsInt != null) {
+    return '' + (keyAsInt + 1);
+  }
+  let next = new Array(key.length);
+
+  let i;
+  for (
+    i = key.length - 1;
+    i >= 0 && key.charAt(i) == PUSH_CHARS.charAt(PUSH_CHARS.length - 1);
+    i--
+  ) {
+    next[i] = PUSH_CHARS.charAt(0);
+  }
+  if (i == -1) {
+    next.push(PUSH_CHARS.charAt(0));
+  } else {
+    next[i] = PUSH_CHARS.charAt(PUSH_CHARS.indexOf(key.charAt(i)) + 1);
+  }
+  while (--i >= 0) {
+    next[i] = key.charAt(i);
+  }
+  return next.join('');
+};
