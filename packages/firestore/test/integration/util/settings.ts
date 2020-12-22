@@ -39,8 +39,7 @@ const EMULATOR_FIRESTORE_SETTING = {
 
 const PROD_FIRESTORE_SETTING = {
   host: 'firestore.googleapis.com',
-  ssl: true,
-  experimentalAutoDetectLongPolling: true
+  ssl: true
 };
 
 export const DEFAULT_SETTINGS = getDefaultSettings();
