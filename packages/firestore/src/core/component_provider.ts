@@ -78,7 +78,7 @@ export interface ComponentConfiguration {
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
-  timeToFirstByte?:TimeToFirstByteCallback,
+  timeToFirstByte?: TimeToFirstByteCallback,
 }
 
 /**

@@ -20,6 +20,7 @@ import { WebChannelConnection } from '../../../src/platform/browser/webchannel_c
 import * as api from '../../../src/protos/firestore_proto_api';
 import { DEFAULT_PROJECT_ID } from '../util/settings';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
+import { setLogLevel } from '@firebase/logger';
 
 /* eslint-disable no-restricted-globals */
 
@@ -30,6 +31,8 @@ const describeFn =
     ? describe
     : // eslint-disable-next-line no-restricted-globals,
       xdescribe;
+
+setLogLevel('debug');
 
 describeFn('WebChannel', () => {
   it.only('can detect the connection type', done => {
@@ -57,7 +60,7 @@ describeFn('WebChannel', () => {
     // Once the stream is open, send an "add_target" request.
     stream.onOpen(() => {
       // No Op
-      // stream.send(payload);
+      stream.send(payload);
     });
 
     stream.onMessage(() => {

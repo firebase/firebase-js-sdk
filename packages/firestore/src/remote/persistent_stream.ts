@@ -128,7 +128,9 @@ export interface PersistentStreamListener {
    * FirestoreError will be set.
    */
   onClose: (err?: FirestoreError) => Promise<void>;
-
+  /**
+   * Called once the first byte over the stream has been received.
+   */
   onTimeToFirstByte: TimeToFirstByteCallback;
 }
 

@@ -241,15 +241,13 @@ export class WebChannelConnection extends RestConnection {
     // on a closed stream
     let closed = false;
 
-    let onOpenTimestamp: Date | null = null;
-    onOpenTimestamp = new Date();
+    let onOpenStreamTimestamp = new Date();
 
     const streamBridge = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
           if (!opened) {
             logDebug(LOG_TAG, 'Opening WebChannel transport.');
-            // onOpenTimestamp = new Date();  // This isn't working anymore. Hmm...
             channel.open();
             opened = true;
           }
@@ -375,12 +373,8 @@ export class WebChannelConnection extends RestConnection {
       if (isLongPollingConnection !== null && !hasRaisedTimeToFirstByteEvent) {
         hasRaisedTimeToFirstByteEvent = true;
 
-        if (onOpenTimestamp === null) {
-          throw new Error(`onOpenTimestamp isn't available`);
-        }
-
         const onStatEventTimestamp = new Date();
-        const timeToFirstByteMs = +onStatEventTimestamp - +onOpenTimestamp!;
+        const timeToFirstByteMs = +onStatEventTimestamp - +onOpenStreamTimestamp;
  
         streamBridge.callOnTimeToFirstByte(
           isLongPollingConnection,
