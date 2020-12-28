@@ -406,11 +406,14 @@ export function setLogLevel(level: PublicLogLevel): void {
 export class Transaction
   extends Compat<ExpTransaction>
   implements PublicTransaction {
+  private _userDataWriter: UserDataWriter;
+
   constructor(
     private readonly _firestore: Firestore,
     delegate: ExpTransaction
   ) {
     super(delegate);
+    this._userDataWriter = new UserDataWriter(_firestore);
   }
 
   get<T>(
@@ -419,7 +422,20 @@ export class Transaction
     const ref = castReference(documentRef);
     return this._delegate
       .get(ref)
-      .then(result => new DocumentSnapshot(this._firestore, result));
+      .then(
+        result =>
+          new DocumentSnapshot(
+            this._firestore,
+            new ExpDocumentSnapshot<T>(
+              this._firestore._delegate,
+              this._userDataWriter,
+              result._key,
+              result._document,
+              result.metadata,
+              ref._converter
+            )
+          )
+      );
   }
 
   set<T>(

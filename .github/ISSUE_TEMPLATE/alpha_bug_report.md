@@ -1,9 +1,10 @@
 ---
 name: 🧪 Alpha SDK bug report
 about: Have you found a bug in one of our pre-release or alpha SDKs? File it here.
-title: ""
-labels: "alpha"
-assignees: ""
+title: ''
+labels: alpha
+assignees: ''
+
 ---
 
 <!-- Step 1 [READ THIS] -->
