@@ -85,7 +85,7 @@
     "@types/sinon": "9.0.10",
     "@types/sinon-chai": "3.2.5",
     "@types/tmp": "0.2.0",
-    "@types/yargs": "15.0.9",
+    "@types/yargs": "15.0.12",
     "@typescript-eslint/eslint-plugin": "4.11.1",
     "@typescript-eslint/eslint-plugin-tslint": "4.11.1",
     "@typescript-eslint/parser": "4.11.1",
@@ -156,7 +156,7 @@
     "typescript": "4.0.5",
     "watch": "1.0.2",
     "webpack": "4.44.2",
-    "yargs": "16.1.1"
+    "yargs": "16.2.0"
   },
   "husky": {
     "hooks": {
