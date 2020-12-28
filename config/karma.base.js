@@ -20,33 +20,6 @@ const path = require('path');
 const webpackTestConfig = require('./webpack.test');
 const { argv } = require('yargs');
 
-/**
- * Custom SauceLabs Launchers
- */
-const sauceLabsBrowsers = {
-  desktop_Safari: {
-    base: 'SauceLabs',
-    browserName: 'safari',
-    platform: 'OS X 10.11',
-    version: '9.0'
-  },
-  iOS_Safari: {
-    appiumVersion: '1.6.5',
-    base: 'SauceLabs',
-    browserName: 'Safari',
-    deviceName: 'iPhone Simulator',
-    deviceOrientation: 'portrait',
-    platformName: 'iOS',
-    platformVersion: '9.0'
-  },
-  IE_11: {
-    base: 'SauceLabs',
-    browserName: 'internet explorer',
-    platform: 'Windows 8.1',
-    version: '11'
-  }
-};
-
 const config = {
   // disable watcher
   autoWatch: false,
@@ -84,8 +57,6 @@ const config = {
   // changes
   autoWatch: false,
 
-  customLaunchers: sauceLabsBrowsers,
-
   // start these browsers
   // available browser launchers:
   // https://npmjs.org/browse/keyword/karma-launcher
@@ -95,12 +66,12 @@ const config = {
 
   webpackMiddleware: { quiet: true, stats: { colors: true } },
 
-  sauceLabs: {
-    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
-    username: process.env.SAUCE_USERNAME,
-    accessKey: process.env.SAUCE_ACCESS_KEY,
-    startConnect: false
-  },
+  // sauceLabs: {
+  //   tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
+  //   username: process.env.SAUCE_USERNAME,
+  //   accessKey: process.env.SAUCE_ACCESS_KEY,
+  //   startConnect: false
+  // },
 
   singleRun: false,
 
