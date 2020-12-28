@@ -40,7 +40,7 @@ const config = {
   // test results reporter to use
   // possible values: 'dots', 'progress'
   // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-  reporters: ['mocha', 'coverage-istanbul' /*, 'saucelabs' */],
+  reporters: ['mocha', 'coverage-istanbul'],
 
   // web server port
   port: 8089,
@@ -66,13 +66,6 @@ const config = {
 
   webpackMiddleware: { quiet: true, stats: { colors: true } },
 
-  // sauceLabs: {
-  //   tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
-  //   username: process.env.SAUCE_USERNAME,
-  //   accessKey: process.env.SAUCE_ACCESS_KEY,
-  //   startConnect: false
-  // },
-
   singleRun: false,
 
   client: {
@@ -91,10 +84,6 @@ const config = {
   }
 };
 
-// In CI environment, use saucelabs to test
-if (false /* process.env.TRAVIS */) {
-  config.browsers = [...config.browsers, ...Object.keys(sauceLabsBrowsers)];
-}
 config.mochaReporter = {
   showDiff: true
 };
