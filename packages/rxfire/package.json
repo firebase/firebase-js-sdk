@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "firebase": "8.2.1",
-    "rollup": "2.33.2",
+    "rollup": "2.35.1",
     "@rollup/plugin-commonjs": "15.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",
     "rollup-plugin-typescript2": "0.29.0",
