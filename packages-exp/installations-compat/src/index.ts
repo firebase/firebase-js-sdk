@@ -25,7 +25,6 @@ import { InstallationsCompat } from './installationsCompat';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app-compat': FirebaseApp;
     'installations-compat': FirebaseInstallationsCompat;
   }
 }
