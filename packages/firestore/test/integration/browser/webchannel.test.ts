@@ -16,11 +16,12 @@
  */
 
 import { expect } from 'chai';
+
 import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { DEFAULT_PROJECT_ID } from '../util/settings';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 import { setLogLevel } from '@firebase/logger';
+import { DEFAULT_PROJECT_ID } from '../util/settings';
 
 /* eslint-disable no-restricted-globals */
 

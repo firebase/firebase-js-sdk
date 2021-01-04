@@ -17,12 +17,15 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import { Firestore, IndexedDbPersistenceProvider } from './src/api/database';
+import {
+  Firestore,
+  IndexedDbPersistenceProvider,
+  ExpFirebaseFirestore
+} from './export';
+import { name, version } from './package.json';
 import { configureForFirebase } from './src/config';
-import { FirebaseFirestore as ExpFirebaseFirestore } from './exp/src/api/database';
 
 import './register-module';
-import { name, version } from './package.json';
 
 /**
  * Registers the main Firestore ReactNative build with the components framework.

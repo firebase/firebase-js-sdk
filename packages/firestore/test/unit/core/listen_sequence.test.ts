@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { ListenSequence } from '../../../src/core/listen_sequence';
 import { ListenSequenceNumber } from '../../../src/core/types';
 

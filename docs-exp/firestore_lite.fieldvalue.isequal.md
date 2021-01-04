@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-isEqual(other: FieldValue): boolean;
+abstract isEqual(other: FieldValue): boolean;
 ```
 
 ## Parameters

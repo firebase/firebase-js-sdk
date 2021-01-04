@@ -4,6 +4,8 @@
 
 ## DocumentChange.oldIndex property
 
+The index of the changed document in the result set immediately prior to this `DocumentChange` (i.e. supposing that all prior `DocumentChange` objects have been applied). Is `-1` for 'added' events.
+
 <b>Signature:</b>
 
 ```typescript

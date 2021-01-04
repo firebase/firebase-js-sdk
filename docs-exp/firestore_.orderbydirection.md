@@ -4,8 +4,10 @@
 
 ## OrderByDirection type
 
+The direction of a [orderBy()](./firestore_.orderby.md) clause is specified as 'desc' or 'asc' (descending or ascending).
+
 <b>Signature:</b>
 
 ```typescript
-export type OrderByDirection = 'desc' | 'asc';
+export declare type OrderByDirection = 'desc' | 'asc';
 ```

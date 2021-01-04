@@ -22,7 +22,7 @@ import * as testShared from './testshared';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseStorageError } from '../../src/implementation/error';
 import {
-  Reference,
+  StorageReference,
   getMetadata,
   uploadBytesResumable
 } from '../../src/reference';
@@ -238,7 +238,7 @@ GOOG4-RSA-SHA256`
       testShared.fakeAuthProvider,
       xhrIoPool
     );
-    const reference = new Reference(service, testLocation);
+    const reference = new StorageReference(service, testLocation);
     it('Throws calling ref(reference, path) with a gs:// URL', () => {
       const error = testShared.assertThrows(() => {
         ref(reference, 'gs://bucket/object');

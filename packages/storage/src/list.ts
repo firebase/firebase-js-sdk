@@ -16,7 +16,7 @@
  */
 
 import * as types from '@firebase/storage-types';
-import { Reference } from './reference';
+import { StorageReference } from './reference';
 
 /**
  * @fileoverview Documentation for ListOptions and ListResult format.
@@ -24,14 +24,16 @@ import { Reference } from './reference';
 
 /**
  * The options `list()` accepts.
+ * @public
  */
 export interface ListOptions extends types.ListOptions {}
 
 /**
- * Result returned by list().
+ * Result returned by `list()`.
+ * @public
  */
 export interface ListResult {
-  prefixes: Reference[];
-  items: Reference[];
+  prefixes: StorageReference[];
+  items: StorageReference[];
   nextPageToken?: string;
 }

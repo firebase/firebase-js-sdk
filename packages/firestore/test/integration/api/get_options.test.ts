@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import {
   apiDescribe,
   toDataMap,

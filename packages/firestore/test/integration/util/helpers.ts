@@ -16,12 +16,13 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+
+import * as firebaseExport from './firebase_export';
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from './settings';
-import * as firebaseExport from './firebase_export';
 
 const newTestFirestore = firebaseExport.newTestFirestore;
 

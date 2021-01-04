@@ -38,14 +38,15 @@ export { debugErrorMap, prodErrorMap } from './errors';
  *
  * @param auth - The Auth instance.
  * @param persistence - The {@link @firebase/auth-types#Persistence} to use.
+ * @returns A promise that resolves once the persistence change has completed
  *
  * @public
  */
 export function setPersistence(
   auth: externs.Auth,
   persistence: externs.Persistence
-): void {
-  auth.setPersistence(persistence);
+): Promise<void> {
+  return auth.setPersistence(persistence);
 }
 /**
  * Adds an observer for changes to the signed-in user's ID token, which includes sign-in,

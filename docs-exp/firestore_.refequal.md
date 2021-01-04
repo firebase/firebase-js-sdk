@@ -4,23 +4,24 @@
 
 ## refEqual() function
 
+Returns true if the provided references are equal.
+
 <b>Signature:</b>
 
 ```typescript
-export function refEqual<T>(
-  left: DocumentReference<T> | CollectionReference<T>,
-  right: DocumentReference<T> | CollectionReference<T>
-): boolean;
+export declare function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; \| [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; |  |
-|  right | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; \| [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; |  |
+|  left | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; \| [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; | A reference to compare. |
+|  right | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; \| [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; | A reference to compare. |
 
 <b>Returns:</b>
 
 boolean
+
+true if the references point to the same location in the same Firestore database.
 

@@ -16,6 +16,14 @@
  */
 
 import {
+  isBrowserExtension,
+  isElectron,
+  isIE,
+  isMobileCordova,
+  isReactNative,
+  isUWP
+} from '@firebase/util';
+import {
   createWebChannelTransport,
   ErrorCode,
   EventType,
@@ -30,18 +38,10 @@ import {
   Stat
 } from '@firebase/webchannel-wrapper';
 
-import {
-  isBrowserExtension,
-  isElectron,
-  isIE,
-  isMobileCordova,
-  isReactNative,
-  isUWP
-} from '@firebase/util';
-
 import { Token } from '../../api/credentials';
 import { DatabaseInfo } from '../../core/database_info';
 import { Stream } from '../../remote/connection';
+import { RestConnection } from '../../remote/rest_connection';
 import {
   mapCodeFromRpcStatus,
   mapCodeFromHttpResponseErrorStatus
@@ -52,7 +52,6 @@ import { Code, FirestoreError } from '../../util/error';
 import { logDebug, logWarn } from '../../util/log';
 import { Rejecter, Resolver } from '../../util/promise';
 import { StringMap } from '../../util/types';
-import { RestConnection } from '../../remote/rest_connection';
 
 const LOG_TAG = 'Connection';
 

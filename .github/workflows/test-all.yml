@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Node (10)
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
         node-version: 10.x
     - name: install Chrome stable
@@ -26,7 +26,7 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: Set start timestamp env var
-      run: echo "::set-env name=FIREBASE_CI_TEST_START_TIME::$(date +%s)"
+      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
         xvfb-run yarn test:ci

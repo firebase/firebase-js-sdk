@@ -4,6 +4,8 @@
 
 ## SnapshotMetadata.isEqual() method
 
+Returns true if this `SnapshotMetadata` is equal to the provided one.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ isEqual(other: SnapshotMetadata): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [SnapshotMetadata](./firestore_.snapshotmetadata.md) |  |
+|  other | [SnapshotMetadata](./firestore_.snapshotmetadata.md) | The <code>SnapshotMetadata</code> to compare against. |
 
 <b>Returns:</b>
 
 boolean
+
+true if this `SnapshotMetadata` is equal to the provided one.
 

@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import * as persistenceHelpers from './persistence_test_helpers';
 import { expect } from 'chai';
+
+import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { DbTarget, DbTargetKey } from '../../../src/local/indexeddb_schema';
+import { getStore } from '../../../src/local/indexeddb_transaction';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { DbTarget, DbTargetKey } from '../../../src/local/indexeddb_schema';
-import { TargetId } from '../../../src/core/types';
+
+import * as persistenceHelpers from './persistence_test_helpers';
 
 let persistence: Persistence;
 
@@ -55,10 +58,10 @@ describe('IndexedDbTransaction', () => {
     let runCount = 0;
     let commitCount = 0;
     await persistence.runTransaction('onCommitted', 'readwrite', txn => {
-      const targetsStore = IndexedDbPersistence.getStore<
-        DbTargetKey,
-        { targetId: TargetId }
-      >(txn, DbTarget.store);
+      const targetsStore = getStore<DbTargetKey, { targetId: TargetId }>(
+        txn,
+        DbTarget.store
+      );
 
       txn.addOnCommittedListener(() => {
         ++commitCount;

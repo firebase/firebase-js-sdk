@@ -23,6 +23,7 @@ const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
 const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
 // If end point does not work, the call will be tried for these many times.
 const DEFAULT_REMAINING_TRIES = 3;
+const MAX_EVENT_COUNT_PER_REQUEST = 1000;
 let remainingTries = DEFAULT_REMAINING_TRIES;
 
 interface LogResponseDetails {
@@ -90,9 +91,10 @@ function processQueue(timeOffset: number): void {
 }
 
 function dispatchQueueEvents(): void {
-  // Capture a snapshot of the queue and empty the "official queue".
-  const staged = [...queue];
-  queue = [];
+  // Extract events up to the maximum cap of single logRequest from top of "official queue".
+  // The staged events will be used for current logRequest attempt, remaining events will be kept
+  // for next attempt.
+  const staged = queue.splice(0, MAX_EVENT_COUNT_PER_REQUEST);
 
   /* eslint-disable camelcase */
   // We will pass the JSON serialized event to the backend.

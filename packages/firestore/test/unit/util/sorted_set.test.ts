@@ -16,9 +16,9 @@
  */
 
 import { expect } from 'chai';
+
 import { primitiveComparator } from '../../../src/util/misc';
 import { SortedSet } from '../../../src/util/sorted_set';
-
 import { expectSetToEqual } from '../../util/helpers';
 
 describe('SortedSet', () => {

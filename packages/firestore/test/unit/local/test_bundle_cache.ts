@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Persistence } from '../../../src/local/persistence';
-import { BundleCache } from '../../../src/local/bundle_cache';
 import { Bundle, NamedQuery } from '../../../src/core/bundle';
+import { BundleCache } from '../../../src/local/bundle_cache';
+import { Persistence } from '../../../src/local/persistence';
 import {
   NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata

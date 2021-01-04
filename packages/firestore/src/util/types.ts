@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+/** Sentinel value that sorts before any Mutation Batch ID. */
+export const BATCHID_UNKNOWN = -1;
+
 // An Object whose keys and values are strings.
 export interface StringMap {
   [key: string]: string;

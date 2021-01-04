@@ -4,19 +4,23 @@
 
 ## arrayRemove() function
 
+Returns a special value that can be used with [setDoc()](./firestore_.setdoc.md) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array.
+
 <b>Signature:</b>
 
 ```typescript
-export function arrayRemove(...elements: any[]): FieldValue;
+export declare function arrayRemove(...elements: unknown[]): FieldValue;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  elements | any\[\] |  |
+|  elements | unknown\[\] | The elements to remove from the array. |
 
 <b>Returns:</b>
 
 [FieldValue](./firestore_lite.fieldvalue.md)
+
+The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 

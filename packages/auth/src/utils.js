@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1402,6 +1402,17 @@ fireauth.util.onAppVisible = function() {
 fireauth.util.consoleWarn = function(message) {
   if (typeof console !== 'undefined' && typeof console.warn === 'function') {
     console.warn(message);
+  }
+};
+
+
+/**
+ * Logs an info message to the console, if the console is available.
+ * @param {string} message
+ */
+fireauth.util.consoleInfo = function(message) {
+  if (typeof console !== 'undefined' && typeof console.info === 'function') {
+    console.info(message);
   }
 };
 

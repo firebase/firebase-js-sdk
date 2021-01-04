@@ -18,13 +18,15 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import { FirebaseFirestore as ExpFirebaseFirestore } from './exp/src/api/database';
-import { Firestore, MemoryPersistenceProvider } from './src/api/database';
+import {
+  Firestore,
+  MemoryPersistenceProvider,
+  ExpFirebaseFirestore
+} from './export';
+import { name, version } from './package.json';
 import { configureForFirebase } from './src/config';
 
 import './register-module';
-
-import { name, version } from './package.json';
 
 /**
  * Registers the memory-only Firestore build for ReactNative with the components

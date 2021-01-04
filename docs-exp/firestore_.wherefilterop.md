@@ -4,18 +4,10 @@
 
 ## WhereFilterOp type
 
+Filter conditions in a [where()](./firestore_.where.md) clause are specified using the strings '&amp;lt;', '&amp;lt;=', '==', '!=', '&amp;gt;=', '&amp;gt;', 'array-contains', 'in', 'array-contains-any', and 'not-in'.
+
 <b>Signature:</b>
 
 ```typescript
-export type WhereFilterOp =
-  | '<'
-  | '<='
-  | '=='
-  | '!='
-  | '>='
-  | '>'
-  | 'array-contains'
-  | 'in'
-  | 'array-contains-any'
-  | 'not-in';
+export declare type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 ```

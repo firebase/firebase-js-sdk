@@ -4,27 +4,30 @@
 
 ## updateDoc() function
 
+Updates fields in the document referred to by the specified `DocumentReference` The update will fail if applied to a document that does not exist.
+
+Nested fields can be updated by providing dot-separated field path strings or by providing `FieldPath` objects.
+
+The result of this update will only be reflected in document reads that occur after the returned Promise resolves. If the client is offline, the update fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK.
+
 <b>Signature:</b>
 
 ```typescript
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  field: string | FieldPath,
-  value: any,
-  ...moreFieldsAndValues: any[]
-): Promise<void>;
+export declare function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;unknown&gt; |  |
-|  field | string \| [FieldPath](./firestore_lite.fieldpath.md) |  |
-|  value | any |  |
-|  moreFieldsAndValues | any\[\] |  |
+|  reference | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;unknown&gt; | A reference to the document to update. |
+|  field | string \| [FieldPath](./firestore_lite.fieldpath.md) | The first field to update. |
+|  value | unknown | The first value. |
+|  moreFieldsAndValues | unknown\[\] | Additional key value pairs. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A Promise resolved once the data has been successfully written to the backend.
 

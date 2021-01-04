@@ -4,10 +4,12 @@
 
 ## documentId() function
 
+Returns a special sentinel `FieldPath` to refer to the ID of a document. It can be used in queries to sort or filter by the document ID.
+
 <b>Signature:</b>
 
 ```typescript
-export function documentId(): FieldPath;
+export declare function documentId(): FieldPath;
 ```
 <b>Returns:</b>
 

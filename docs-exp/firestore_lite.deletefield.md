@@ -4,10 +4,12 @@
 
 ## deleteField() function
 
+Returns a sentinel for use with  or  with `{merge: true}` to mark a field for deletion.
+
 <b>Signature:</b>
 
 ```typescript
-export function deleteField(): FieldValue;
+export declare function deleteField(): FieldValue;
 ```
 <b>Returns:</b>
 

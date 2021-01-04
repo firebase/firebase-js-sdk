@@ -21,6 +21,10 @@ import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
 
 import { OAuthCredential } from '../credentials/oauth';
+import { UserCredential } from '../../model/user';
+import { FirebaseError } from '@firebase/util';
+import { TaggedWithTokenResponse } from '../../model/id_token';
+import { SignInWithIdpResponse } from '../../../internal';
 
 /**
  * Map of OAuth Custom Parameters.
@@ -202,5 +206,72 @@ export class OAuthProvider implements externs.AuthProvider {
    */
   getScopes(): string[] {
     return [...this.scopes];
+  }
+
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   *
+   * @param userCredential - The user credential.
+   */
+  static credentialFromResult(
+    userCredential: externs.UserCredential
+  ): externs.OAuthCredential | null {
+    return OAuthProvider.oauthCredentialFromTaggedObject(
+      userCredential as UserCredential
+    );
+  }
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * thrown during a sign-in, link, or reauthenticate operation.
+   *
+   * @param userCredential - The user credential.
+   */
+  static credentialFromError(
+    error: FirebaseError
+  ): externs.OAuthCredential | null {
+    return OAuthProvider.oauthCredentialFromTaggedObject(
+      (error.customData || {}) as TaggedWithTokenResponse
+    );
+  }
+
+  // This needs to have a different name so it doesn't conflict with the
+  // subclasses
+  private static oauthCredentialFromTaggedObject({
+    _tokenResponse: tokenResponse
+  }: TaggedWithTokenResponse): externs.OAuthCredential | null {
+    if (!tokenResponse) {
+      return null;
+    }
+
+    const {
+      oauthIdToken,
+      oauthAccessToken,
+      oauthTokenSecret,
+      pendingToken,
+      nonce,
+      providerId
+    } = tokenResponse as SignInWithIdpResponse;
+    if (
+      !oauthAccessToken &&
+      !oauthTokenSecret &&
+      !oauthIdToken &&
+      !pendingToken
+    ) {
+      return null;
+    }
+
+    if (!providerId) {
+      return null;
+    }
+
+    try {
+      return new OAuthProvider(providerId).credential({
+        idToken: oauthIdToken,
+        accessToken: oauthAccessToken,
+        rawNonce: nonce
+      });
+    } catch (e) {
+      return null;
+    }
   }
 }

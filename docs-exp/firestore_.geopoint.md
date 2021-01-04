@@ -4,28 +4,33 @@
 
 ## GeoPoint class
 
+An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.
+
+Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\].
+
 <b>Signature:</b>
 
 ```typescript
-export class GeoPoint 
+export declare class GeoPoint 
 ```
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(latitude, longitude)](./firestore_.geopoint._constructor_.md) |  | Constructs a new instance of the <code>GeoPoint</code> class |
+|  [(constructor)(latitude, longitude)](./firestore_.geopoint._constructor_.md) |  | Creates a new immutable <code>GeoPoint</code> object with the provided latitude and longitude values. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [latitude](./firestore_.geopoint.latitude.md) |  | number |  |
-|  [longitude](./firestore_.geopoint.longitude.md) |  | number |  |
+|  [latitude](./firestore_.geopoint.latitude.md) |  | number | The latitude of this <code>GeoPoint</code> instance. |
+|  [longitude](./firestore_.geopoint.longitude.md) |  | number | The longitude of this <code>GeoPoint</code> instance. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [isEqual(other)](./firestore_.geopoint.isequal.md) |  |  |
+|  [isEqual(other)](./firestore_.geopoint.isequal.md) |  | Returns true if this <code>GeoPoint</code> is equal to the provided one. |
+|  [toJSON()](./firestore_.geopoint.tojson.md) |  |  |
 

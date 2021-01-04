@@ -7,10 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export function addDoc<T>(
-  reference: CollectionReference<T>,
-  data: T
-): Promise<DocumentReference<T>>;
+export declare function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
 ```
 
 ## Parameters

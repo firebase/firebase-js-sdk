@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { LimitType, queryWithLimit } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
 import { ChangeType } from '../../../src/core/view_snapshot';

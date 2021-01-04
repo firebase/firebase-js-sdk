@@ -4,14 +4,14 @@
 
 ## SetOptions type
 
+An options object that configures the behavior of ,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export type SetOptions =
-  | {
-      readonly merge?: boolean;
-    }
-  | {
-      readonly mergeFields?: Array<string | FieldPath>;
-    };
+export declare type SetOptions = {
+    readonly merge?: boolean;
+} | {
+    readonly mergeFields?: Array<string | FieldPath>;
+};
 ```

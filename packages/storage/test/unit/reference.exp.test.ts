@@ -20,14 +20,15 @@ import { StringFormat } from '../../src/implementation/string';
 import { Headers } from '../../src/implementation/xhrio';
 import { Metadata } from '../../src/metadata';
 import {
-  Reference,
+  StorageReference,
   uploadString,
   uploadBytesResumable,
   deleteObject,
   list,
   getMetadata,
   updateMetadata,
-  getDownloadURL
+  getDownloadURL,
+  uploadBytes
 } from '../../src/reference';
 import { StorageService, ref } from '../../src/service';
 import * as testShared from './testshared';
@@ -35,6 +36,7 @@ import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { fakeServerHandler, storageServiceWithHandler } from './testshared';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
@@ -45,13 +47,38 @@ function makeFakeService(
   return new StorageService(app, authProvider, testShared.makePool(sendHook));
 }
 
-function makeStorage(url: string): Reference {
+function makeStorage(url: string): StorageReference {
   const service = new StorageService(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
     testShared.makePool(null)
   );
-  return new Reference(service, url);
+  return new StorageReference(service, url);
+}
+
+function withFakeSend(
+  testFn: (text: string, headers?: Headers) => void,
+  resolveFn: () => void
+): StorageReference {
+  function newSend(
+    xhrio: TestingXhrIo,
+    url: string,
+    method: string,
+    body?: ArrayBufferView | Blob | string | null,
+    headers?: Headers
+  ): void {
+    (body as Blob).text().then(text => {
+      testFn(text, headers);
+      xhrio.abort();
+      resolveFn();
+    });
+  }
+  const service = makeFakeService(
+    testShared.fakeApp,
+    testShared.fakeAuthProvider,
+    newSend
+  );
+  return ref(service, 'gs://test-bucket');
 }
 
 describe('Firebase Storage > Reference', () => {
@@ -226,32 +253,55 @@ describe('Firebase Storage > Reference', () => {
   });
 
   describe('uploadString', () => {
-    it('Uses metadata.contentType for RAW format', () => {
+    it('Uses metadata.contentType for RAW format', done => {
       // Regression test for b/30989476
-      const task = uploadString(child, 'hello', StringFormat.RAW, {
+      const root = withFakeSend((text: string, headers?: Headers) => {
+        console.log(headers);
+        expect(text).to.include('"contentType":"lol/wut"');
+      }, done);
+      uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {
         contentType: 'lol/wut'
       } as Metadata);
-      expect(task.snapshot.metadata!.contentType).to.equal('lol/wut');
-      task.cancel();
     });
-    it('Uses embedded content type in DATA_URL format', () => {
-      const task = uploadString(
-        child,
+    it('Uses embedded content type in DATA_URL format', done => {
+      const root = withFakeSend((text: string) => {
+        expect(text).to.include('"contentType":"lol/wat"');
+      }, done);
+      uploadString(
+        ref(root, 'test'),
         'data:lol/wat;base64,aaaa',
         StringFormat.DATA_URL
       );
-      expect(task.snapshot.metadata!.contentType).to.equal('lol/wat');
-      task.cancel();
     });
-    it('Lets metadata.contentType override embedded content type in DATA_URL format', () => {
-      const task = uploadString(
-        child,
+    it('Lets metadata.contentType override embedded content type in DATA_URL format', done => {
+      const root = withFakeSend((text: string) => {
+        expect(text).to.include('"contentType":"tomato/soup"');
+      }, done);
+      uploadString(
+        ref(root, 'test'),
         'data:ignore/me;base64,aaaa',
         StringFormat.DATA_URL,
         { contentType: 'tomato/soup' } as Metadata
       );
-      expect(task.snapshot.metadata!.contentType).to.equal('tomato/soup');
-      task.cancel();
+    });
+  });
+
+  describe('uploadBytes', () => {
+    it('Uses metadata.contentType', done => {
+      const root = withFakeSend((text: string) => {
+        expect(text).to.include('"contentType":"lol/wut"');
+      }, done);
+      uploadBytes(ref(root, 'hello'), new Blob(), {
+        contentType: 'lol/wut'
+      } as Metadata);
+    });
+    it('uploads without error', async () => {
+      const storageService = storageServiceWithHandler(fakeServerHandler({}));
+      const root = ref(storageService, 'gs://test-bucket/');
+      const childRef = ref(root, 'child');
+      const blob = new Blob(['a']);
+      const result = await uploadBytes(childRef, blob);
+      expect(result.ref).to.equal(childRef);
     });
   });
 
@@ -279,6 +329,11 @@ describe('Firebase Storage > Reference', () => {
     });
     it('uploadString throws', () => {
       expect(() => uploadString(root, 'raw', StringFormat.RAW)).to.throw(
+        'storage/invalid-root-operation'
+      );
+    });
+    it('uploadBytes throws', () => {
+      expect(() => uploadBytes(root, new Blob(['a']))).to.throw(
         'storage/invalid-root-operation'
       );
     });

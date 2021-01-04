@@ -15,17 +15,22 @@
  * limitations under the License.
  */
 
+import { UserDataWriter } from '../../../src/api/database';
 import {
-  FieldFilter,
   Query,
   queryEquals,
-  Filter,
   newQueryForPath,
   queryToTarget,
   hasLimitToLast,
   hasLimitToFirst
 } from '../../../src/core/query';
-import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
+import {
+  canonifyTarget,
+  FieldFilter,
+  Filter,
+  Target,
+  targetEquals
+} from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -35,19 +40,22 @@ import {
 } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
+import { ResourcePath } from '../../../src/model/path';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
 import { debugAssert, fail } from '../../../src/util/assert';
+import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { forEach } from '../../../src/util/obj';
-import { isNullOrUndefined } from '../../../src/util/types';
-import { TestSnapshotVersion } from '../../util/helpers';
-import { TimerId } from '../../../src/util/async_queue';
-import { RpcError } from './spec_rpc_error';
 import { ObjectMap } from '../../../src/util/obj_map';
+import { isNullOrUndefined } from '../../../src/util/types';
+import { firestore } from '../../util/api_helpers';
+import { TestSnapshotVersion } from '../../util/helpers';
+
+import { RpcError } from './spec_rpc_error';
 import {
   parseQuery,
   PersistenceAction,
@@ -62,9 +70,6 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { UserDataWriter } from '../../../src/api/user_data_writer';
-import { firestore } from '../../util/api_helpers';
-import { ResourcePath } from '../../../src/model/path';
 
 const userDataWriter = new UserDataWriter(firestore());
 
@@ -1042,9 +1047,9 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
-        value: userDataWriter.convertValue(
-          doc.toProto()
-        ) as JsonObject<unknown>,
+        value: userDataWriter.convertValue(doc.toProto()) as JsonObject<
+          unknown
+        >,
         options: {
           hasLocalMutations: doc.hasLocalMutations,
           hasCommittedMutations: doc.hasCommittedMutations
