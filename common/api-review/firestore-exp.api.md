@@ -193,7 +193,7 @@ export abstract class FieldValue {
 // @public
 export class FirebaseFirestore extends FirebaseFirestore_2 {
     // Warning: (ae-forgotten-export) The symbol "DatabaseId" needs to be exported by the entry point index.d.ts
-    constructor(databaseIdOrApp: DatabaseId | FirebaseApp, authProvider: Provider<FirebaseAuthInternalName>);
+    constructor(databaseIdOrApp: DatabaseId | FirebaseApp, authProvider: Provider<FirebaseAuthInternalName>, _timeToFirstByte?: TimeToFirstByteCallback | undefined);
     // Warning: (ae-forgotten-export) The symbol "FirestoreClient" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -206,6 +206,10 @@ export class FirebaseFirestore extends FirebaseFirestore_2 {
     readonly _queue: AsyncQueue;
     // (undocumented)
     _terminate(): Promise<void>;
+    // Warning: (ae-forgotten-export) The symbol "TimeToFirstByteCallback" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly _timeToFirstByte?: TimeToFirstByteCallback | undefined;
 }
 
 // @public

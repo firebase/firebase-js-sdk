@@ -357,7 +357,7 @@ export class WebChannelConnection extends RestConnection {
       }
     );
 
-    let isLongPollingConnection:boolean|null = null;
+    let isLongPollingConnection: boolean | null = null;
     let hasRaisedTimeToFirstByteEvent = false;
 
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
@@ -373,8 +373,9 @@ export class WebChannelConnection extends RestConnection {
         hasRaisedTimeToFirstByteEvent = true;
 
         const onStatEventTimestamp = new Date();
-        const timeToFirstByteMs = +onStatEventTimestamp - +onOpenStreamTimestamp;
- 
+        const timeToFirstByteMs =
+          +onStatEventTimestamp - +onOpenStreamTimestamp;
+
         streamBridge.callOnTimeToFirstByte(
           isLongPollingConnection,
           timeToFirstByteMs

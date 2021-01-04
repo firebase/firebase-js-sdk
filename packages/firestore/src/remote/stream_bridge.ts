@@ -20,7 +20,10 @@ import { FirestoreError } from '../util/error';
 
 import { Stream } from './connection';
 
-export type TimeToFirstByteCallback = (isLongPollingConnection: boolean, timeToFirstByteMs: number) => void;
+export type TimeToFirstByteCallback = (
+  isLongPollingConnection: boolean,
+  timeToFirstByteMs: number
+) => void;
 
 /**
  * Provides a simple helper class that implements the Stream interface to
@@ -96,7 +99,10 @@ export class StreamBridge<I, O> implements Stream<I, O> {
     this.wrappedOnMessage(msg);
   }
 
-  callOnTimeToFirstByte(isLongPollingConnection: boolean, timeToFirstByteMs: number): void {
+  callOnTimeToFirstByte(
+    isLongPollingConnection: boolean,
+    timeToFirstByteMs: number
+  ): void {
     debugAssert(
       this.wrappedOnTimeToFirstByte !== undefined,
       'Cannot call callOnTimeToFirstByte because no callback was set'

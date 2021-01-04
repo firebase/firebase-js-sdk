@@ -33,7 +33,8 @@ const describeFn =
     : // eslint-disable-next-line no-restricted-globals,
       xdescribe;
 
-setLogLevel('debug');
+// Remove this before ship
+// setLogLevel('debug');
 
 describeFn('WebChannel', () => {
   it.only('can detect the connection type', done => {
@@ -69,8 +70,11 @@ describeFn('WebChannel', () => {
       stream.close();
     });
 
-    // Ensure Time to first byte was raised 
-    let timeToFirstByteData:{ isLongPollingConnection: boolean, timeToFirstByteMs: number } | null = null;
+    // Ensure Time to first byte was raised
+    let timeToFirstByteData: {
+      isLongPollingConnection: boolean;
+      timeToFirstByteMs: number;
+    } | null = null;
 
     stream.onTimeToFirstByte((isLongPollingConnection, timeToFirstByteMs) => {
       timeToFirstByteData = { isLongPollingConnection, timeToFirstByteMs };
@@ -111,7 +115,6 @@ describeFn('WebChannel', () => {
     stream.onOpen(() => {
       stream.send(payload);
     });
-
 
     // Wait until we receive data, then send a bad "addTarget" request, causing
     // the stream to be closed with an error. In this case, bad means having a

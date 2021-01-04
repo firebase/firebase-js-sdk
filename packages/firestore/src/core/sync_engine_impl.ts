@@ -249,7 +249,7 @@ class SyncEngineImpl implements SyncEngine {
     readonly sharedClientState: SharedClientState,
     public currentUser: User,
     readonly maxConcurrentLimboResolutions: number,
-    readonly timeToFirstByte: TimeToFirstByteCallback|undefined
+    readonly timeToFirstByte: TimeToFirstByteCallback | undefined
   ) {}
 
   get isPrimaryClient(): boolean {
@@ -266,7 +266,7 @@ export function newSyncEngine(
   currentUser: User,
   maxConcurrentLimboResolutions: number,
   isPrimary: boolean,
-  timeToFirstByte: TimeToFirstByteCallback|undefined,
+  timeToFirstByte: TimeToFirstByteCallback | undefined
 ): SyncEngine {
   const syncEngine = new SyncEngineImpl(
     localStore,
@@ -1534,10 +1534,19 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     null,
     syncEngineImpl
   );
-  syncEngineImpl.remoteStore.remoteSyncer.handleTimeToFirstByte = (isLongPollingConnection, timeToFirstByteMs) => {
-    if (!syncEngineImpl.timeToFirstByteRaised && !!syncEngineImpl.timeToFirstByte) {
+  syncEngineImpl.remoteStore.remoteSyncer.handleTimeToFirstByte = (
+    isLongPollingConnection,
+    timeToFirstByteMs
+  ) => {
+    if (
+      !syncEngineImpl.timeToFirstByteRaised &&
+      !!syncEngineImpl.timeToFirstByte
+    ) {
       syncEngineImpl.timeToFirstByteRaised = true;
-      syncEngineImpl.timeToFirstByte(isLongPollingConnection, timeToFirstByteMs);
+      syncEngineImpl.timeToFirstByte(
+        isLongPollingConnection,
+        timeToFirstByteMs
+      );
     }
   };
   syncEngineImpl.syncEngineListener.onWatchChange = eventManagerOnWatchChange.bind(

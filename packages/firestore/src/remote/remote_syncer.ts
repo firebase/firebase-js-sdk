@@ -78,5 +78,8 @@ export interface RemoteSyncer {
    * Invokes a callback that reports what connection type is being used and
    * how much time it took to get data from the server.
    */
-  handleTimeToFirstByte?(isLongPollingConnection: boolean, timeToFirstByteMs: number): void;
+  handleTimeToFirstByte?(
+    isLongPollingConnection: boolean,
+    timeToFirstByteMs: number
+  ): void;
 }

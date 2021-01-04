@@ -116,7 +116,7 @@ export class FirestoreClient {
      */
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo,
-    readonly timeToFirstByte?: TimeToFirstByteCallback,
+    readonly timeToFirstByte?: TimeToFirstByteCallback
   ) {
     this.credentials.setChangeListener(user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);

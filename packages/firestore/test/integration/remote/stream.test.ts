@@ -118,7 +118,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     return this.resolvePending('open');
   }
 
-  onTimeToFirstByte():void {
+  onTimeToFirstByte(): void {
     // No-Op
   }
 

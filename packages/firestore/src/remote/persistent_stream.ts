@@ -399,7 +399,10 @@ export abstract class PersistentStream<
    */
   protected abstract onMessage(message: ReceiveType): Promise<void>;
 
-  onTimeToFirstByte(isLongPollingConnection: boolean, timeToFirstByteMs: number): void {
+  onTimeToFirstByte(
+    isLongPollingConnection: boolean,
+    timeToFirstByteMs: number
+  ): void {
     this.listener.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs);
   }
 
@@ -470,9 +473,13 @@ export abstract class PersistentStream<
         return this.onMessage(msg);
       });
     });
-    this.stream.onTimeToFirstByte((isLongPollingConnection, timeToFirstByteMs) => {
-      dispatchIfNotClosed(async () =>  this.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs));
-    });
+    this.stream.onTimeToFirstByte(
+      (isLongPollingConnection, timeToFirstByteMs) => {
+        dispatchIfNotClosed(async () =>
+          this.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs)
+        );
+      }
+    );
   }
 
   private performBackoff(): void {

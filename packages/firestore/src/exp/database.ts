@@ -173,7 +173,7 @@ export function configureFirestore(firestore: FirebaseFirestore): void {
     firestore._credentials,
     firestore._queue,
     databaseInfo,
-    firestore._timeToFirstByte,
+    firestore._timeToFirstByte
   );
 }
 
