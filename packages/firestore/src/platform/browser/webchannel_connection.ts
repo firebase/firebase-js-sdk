@@ -240,7 +240,7 @@ export class WebChannelConnection extends RestConnection {
     // on a closed stream
     let closed = false;
 
-    let onOpenStreamTimestamp = new Date();
+    let onOpenStreamTimestamp = new Date().getTime();
 
     const streamBridge = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
@@ -372,9 +372,8 @@ export class WebChannelConnection extends RestConnection {
       if (isLongPollingConnection !== null && !hasRaisedTimeToFirstByteEvent) {
         hasRaisedTimeToFirstByteEvent = true;
 
-        const onStatEventTimestamp = new Date();
-        const timeToFirstByteMs =
-          +onStatEventTimestamp - +onOpenStreamTimestamp;
+        const onStatEventTimestamp = new Date().getTime();
+        const timeToFirstByteMs = onStatEventTimestamp - onOpenStreamTimestamp;
 
         streamBridge.callOnTimeToFirstByte(
           isLongPollingConnection,
