@@ -51,6 +51,7 @@ import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
+import { TimeToFirstByteCallback } from '../remote/connection';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
@@ -60,7 +61,6 @@ import {
   remoteStoreListen,
   remoteStoreUnlisten
 } from '../remote/remote_store';
-import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';

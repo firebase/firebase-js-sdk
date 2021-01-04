@@ -17,7 +17,11 @@
 
 import { Token } from '../api/credentials';
 import { FirestoreError } from '../util/error';
-import { TimeToFirstByteCallback } from './stream_bridge';
+
+export type TimeToFirstByteCallback = (
+  isLongPollingConnection: boolean,
+  timeToFirstByteMs: number
+) => void;
 
 /**
  * A connected RPC interface to a remote Datastore.

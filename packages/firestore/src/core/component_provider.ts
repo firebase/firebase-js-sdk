@@ -43,6 +43,7 @@ import {
 import { newConnection, newConnectivityMonitor } from '../platform/connection';
 import { getDocument, getWindow } from '../platform/dom';
 import { newSerializer } from '../platform/serializer';
+import { TimeToFirstByteCallback } from '../remote/connection';
 import { Datastore, newDatastore } from '../remote/datastore';
 import {
   fillWritePipeline,
@@ -52,7 +53,6 @@ import {
   remoteStoreShutdown
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 

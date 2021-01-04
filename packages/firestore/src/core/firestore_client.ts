@@ -36,6 +36,7 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { TimeToFirstByteCallback } from '../remote/connection';
 import { Datastore } from '../remote/datastore';
 import {
   RemoteStore,
@@ -44,7 +45,6 @@ import {
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 import { debugAssert } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';

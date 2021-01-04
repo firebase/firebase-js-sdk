@@ -18,12 +18,7 @@
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 
-import { Stream } from './connection';
-
-export type TimeToFirstByteCallback = (
-  isLongPollingConnection: boolean,
-  timeToFirstByteMs: number
-) => void;
+import { Stream, TimeToFirstByteCallback } from './connection';
 
 /**
  * Provides a simple helper class that implements the Stream interface to

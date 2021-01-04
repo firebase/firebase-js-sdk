@@ -33,7 +33,7 @@ import { logDebug, logError } from '../util/log';
 import { isNullOrUndefined } from '../util/types';
 
 import { ExponentialBackoff } from './backoff';
-import { Connection, Stream } from './connection';
+import { Connection, Stream, TimeToFirstByteCallback } from './connection';
 import {
   fromVersion,
   fromWatchChange,
@@ -45,7 +45,6 @@ import {
   toTarget,
   versionFromListenResponse
 } from './serializer';
-import { TimeToFirstByteCallback } from './stream_bridge';
 import { WatchChange } from './watch_change';
 
 const LOG_TAG = 'PersistentStream';

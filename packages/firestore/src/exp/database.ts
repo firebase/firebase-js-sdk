@@ -44,7 +44,7 @@ import {
 } from '../local/indexeddb_persistence';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../local/lru_garbage_collector_impl';
-import { TimeToFirstByteCallback } from '../remote/stream_bridge';
+import { TimeToFirstByteCallback } from '../remote/connection';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { newAsyncQueue } from '../util/async_queue_impl';
