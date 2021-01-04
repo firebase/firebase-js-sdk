@@ -24,8 +24,8 @@ import {
 } from './src/api/database';
 import { DatabaseId } from './src/core/database_info';
 import { FirebaseFirestore as FirestoreExp } from './src/exp/database';
-import { Code, FirestoreError } from './src/util/error';
 import { TimeToFirstByteCallback } from './src/remote/stream_bridge';
+import { Code, FirestoreError } from './src/util/error';
 export {
   CollectionReference,
   DocumentReference,

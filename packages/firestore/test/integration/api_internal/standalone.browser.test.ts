@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
+import { expect } from 'chai';
 import { apiDescribe } from '../util/helpers';
 import { TEST_PROJECT } from '../../unit/local/persistence_test_helpers';
-
 import { Firestore } from '../../../index.console';
 import { DEFAULT_DATABASE_NAME } from '../../../src/core/database_info';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { Deferred } from '../../../src/util/promise';
-import { expect } from 'chai';
 
 interface TimeToFirstByteResult {
   isLongPollingConnection: boolean;
@@ -35,7 +34,7 @@ apiDescribe('Standalone', (persistence: boolean) => {
     const db = new Firestore(
       {
         database: DEFAULT_DATABASE_NAME,
-        projectId: TEST_PROJECT /*`khanrafi-fb-sdk`*/
+        projectId: TEST_PROJECT /* REMOVE THIS COMMENT BEFORE SHIP `khanrafi-fb-sdk`*/
       },
       new Provider('auth-internal', new ComponentContainer('default')),
       (isLongPollingConnection, timeToFirstByte) =>

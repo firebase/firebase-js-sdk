@@ -240,7 +240,7 @@ export class WebChannelConnection extends RestConnection {
     // on a closed stream
     let closed = false;
 
-    let onOpenStreamTimestamp = new Date().getTime();
+    const onOpenStreamTimestamp = new Date().getTime();
 
     const streamBridge = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {

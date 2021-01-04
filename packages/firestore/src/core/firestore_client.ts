@@ -44,6 +44,7 @@ import {
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 import { debugAssert } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
@@ -83,7 +84,6 @@ import {
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
 import { TransactionRunner } from './transaction_runner';
-import { TimeToFirstByteCallback } from '../remote/stream_bridge';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
 
