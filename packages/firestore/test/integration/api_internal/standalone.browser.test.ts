@@ -18,10 +18,10 @@
 import { Provider, ComponentContainer } from '@firebase/component';
 import { expect } from 'chai';
 
-import { Deferred } from '../../../src/util/promise';
-import { TEST_PROJECT } from '../../unit/local/persistence_test_helpers';
 import { Firestore } from '../../../index.console';
 import { DEFAULT_DATABASE_NAME } from '../../../src/core/database_info';
+import { Deferred } from '../../../src/util/promise';
+import { TEST_PROJECT } from '../../unit/local/persistence_test_helpers';
 import { apiDescribe } from '../util/helpers';
 
 interface TimeToFirstByteResult {
