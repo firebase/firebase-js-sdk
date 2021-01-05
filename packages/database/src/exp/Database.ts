@@ -19,7 +19,6 @@
 import { _getProvider } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import { Reference } from '../api/Reference';
-import { fatal } from '../core/util/util';
 import { RepoManager } from '../core/RepoManager';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Database } from '../api/Database';
