@@ -6296,7 +6296,7 @@ declare namespace firebase.database {
     on(
       eventType: EventType,
       callback: (a: firebase.database.DataSnapshot, b?: string | null) => any,
-      cancelCallbackOrContext?: Object | null,
+      cancelCallbackOrContext?: ((a: Error) => any) | Object | null,
       context?: Object | null
     ): (a: firebase.database.DataSnapshot | null, b?: string | null) => any;
 
