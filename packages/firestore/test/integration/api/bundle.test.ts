@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { TextEncoder } from 'util';
+
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
