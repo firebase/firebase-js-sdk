@@ -80,9 +80,7 @@ describeFn('WebChannel', () => {
   });
 
   it('receives error messages', done => {
-    const projectId = DEFAULT_PROJECT_ID;
-    const info = getDefaultDatabaseInfo();
-    const conn = new WebChannelConnection(info);
+    const conn = new WebChannelConnection(getDefaultDatabaseInfo());
     const stream = conn.openStream<api.ListenRequest, api.ListenResponse>(
       'Listen',
       null
