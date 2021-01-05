@@ -14,4 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from '@firebase/messaging-exp/dist/index';
+export {
+  onBackgroundMessage,
+  getMessaging
+} from '@firebase/messaging-exp/dist/index.sw';

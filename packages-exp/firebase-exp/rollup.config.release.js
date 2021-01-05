@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
+import alias from '@rollup/plugin-alias';
+import appPkg from './app/package.json';
+import commonjs from '@rollup/plugin-commonjs';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
+import json from '@rollup/plugin-json';
+import pkg from './package.json';
 import { resolve } from 'path';
 import resolveModule from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import sourcemaps from 'rollup-plugin-sourcemaps';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
-import alias from '@rollup/plugin-alias';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
-import json from '@rollup/plugin-json';
-import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
-import pkg from './package.json';
-import appPkg from './app/package.json';
 
 // remove -exp from dependencies name
 const deps = Object.keys(pkg.dependencies || {}).map(name =>
@@ -117,6 +117,43 @@ const appBuilds = [
   }
 ];
 
+const messagingBuilds = [
+  /**
+   * Messaging Browser Builds
+   */
+  {
+    input: 'messaging/index.ts',
+    output: [
+      {
+        file: resolve('messaging', appPkg.main),
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: resolve('messaging', appPkg.module),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [...plugins, typescriptPlugin],
+    external
+  },
+
+  /**
+   * Messaging UMD Builds. Required for FM SDK to work but sw does yet support modules.
+   */
+  {
+    input: 'messaging/index.cdn.ts',
+    output: {
+      file: 'firebase-messaging.js',
+      sourcemap: true,
+      format: 'umd',
+      name: `${GLOBAL_NAME}.app`
+    },
+    plugins: [...plugins, typescriptPluginUMD, uglify()]
+  }
+];
+
 const componentBuilds = pkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
@@ -170,4 +207,4 @@ const componentBuilds = pkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
-export default [...appBuilds, ...componentBuilds];
+export default [...appBuilds, ...messagingBuilds, ...componentBuilds];

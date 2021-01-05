@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { registerVersion } from '@firebase/app-exp';
 import { name, version } from '../package.json';
+
+import { registerVersion } from '@firebase/app-exp';
 
 registerVersion(name, version, 'cdn');
 export * from '@firebase/app-exp';
