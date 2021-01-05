@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
+import { Provider, ComponentContainer } from '@firebase/component';
 import { expect } from 'chai';
-import { apiDescribe } from '../util/helpers';
 import { TEST_PROJECT } from '../../unit/local/persistence_test_helpers';
 import { Firestore } from '../../../index.console';
 import { DEFAULT_DATABASE_NAME } from '../../../src/core/database_info';
-import { Provider, ComponentContainer } from '@firebase/component';
 import { Deferred } from '../../../src/util/promise';
+import { apiDescribe } from '../util/helpers';
 
 interface TimeToFirstByteResult {
   isLongPollingConnection: boolean;
