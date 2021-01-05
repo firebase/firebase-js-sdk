@@ -1,5 +1,11 @@
 # @firebase/performance
 
+## 0.4.5
+
+### Patch Changes
+
+- [`6f2c7b7aa`](https://github.com/firebase/firebase-js-sdk/commit/6f2c7b7aae72d7be88c7a477f1a5d38bd5e8dfe4) [#3896](https://github.com/firebase/firebase-js-sdk/pull/3896) - Dispatch up to 1000 events for each network request when collecting performance events.
+
 ## 0.4.4
 
 ### Patch Changes

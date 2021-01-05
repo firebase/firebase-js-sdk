@@ -4,23 +4,32 @@
 
 ## enableIndexedDbPersistence() function
 
+Attempts to enable persistent storage, if possible.
+
+Must be called before any other functions (other than [initializeFirestore()](./firestore_.initializefirestore.md)<!-- -->, [getFirestore()](./firestore_.getfirestore.md) or [clearIndexedDbPersistence()](./firestore_.clearindexeddbpersistence.md)<!-- -->.
+
+If this fails, `enableIndexedDbPersistence()` will reject the promise it returns. Note that even after this failure, the `Firestore` instance will remain usable, however offline persistence will be disabled.
+
+There are several reasons why this can fail, which can be identified by the `code` on the error.
+
+\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.
+
 <b>Signature:</b>
 
 ```typescript
-export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore,
-  persistenceSettings?: PersistenceSettings
-): Promise<void>;
+export declare function enableIndexedDbPersistence(firestore: FirebaseFirestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
-|  persistenceSettings | [PersistenceSettings](./firestore_.persistencesettings.md) |  |
+|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) | The <code>Firestore</code> instance to enable persistence for. |
+|  persistenceSettings | [PersistenceSettings](./firestore_.persistencesettings.md) | Optional settings object to configure persistence. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A promise that represents successfully enabling persistent storage.
 

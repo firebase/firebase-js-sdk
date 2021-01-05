@@ -19,8 +19,13 @@ import { unknown, invalidFormat } from './error';
 
 /**
  * An enumeration of the possible string formats for upload.
+ * @public
  */
 export type StringFormat = string;
+/**
+ * An enumeration of the possible string formats for upload.
+ * @public
+ */
 export const StringFormat = {
   RAW: 'raw',
   BASE64: 'base64',

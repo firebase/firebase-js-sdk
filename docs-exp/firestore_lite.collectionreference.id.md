@@ -4,8 +4,10 @@
 
 ## CollectionReference.id property
 
+The collection's identifier.
+
 <b>Signature:</b>
 
 ```typescript
-readonly id: string;
+get id(): string;
 ```

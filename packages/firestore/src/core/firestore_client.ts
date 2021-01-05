@@ -17,30 +17,51 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
+import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import { LocalStore } from '../local/local_store';
 import {
-  getNamedQuery,
-  executeQuery,
-  handleUserChange,
-  LocalStore,
-  readLocalDocument
-} from '../local/local_store';
+  localStoreExecuteQuery,
+  localStoreGetNamedQuery,
+  localStoreHandleUserChange,
+  localStoreReadDocument
+} from '../local/local_store_impl';
+import { Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
+import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { Datastore } from '../remote/datastore';
 import {
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { debugAssert } from '../util/assert';
+import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import { BundleReader } from '../util/bundle_reader';
+import { newBundleReader } from '../util/bundle_reader_impl';
 import { Code, FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
+import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
+
+import { NamedQuery } from './bundle';
+import {
+  ComponentConfiguration,
+  MemoryOfflineComponentProvider,
+  OfflineComponentProvider,
+  OnlineComponentProvider
+} from './component_provider';
+import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
   EventManager,
@@ -51,38 +72,19 @@ import {
   QueryListener,
   removeSnapshotsInSyncListener
 } from './event_manager';
+import { newQueryForPath, Query } from './query';
+import { SyncEngine } from './sync_engine';
 import {
-  registerPendingWritesCallback,
-  SyncEngine,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
-} from './sync_engine';
-import { View } from './view';
-import { DatabaseInfo } from './database_info';
-import { newQueryForPath, Query } from './query';
+} from './sync_engine_impl';
 import { Transaction } from './transaction';
-import { ViewSnapshot } from './view_snapshot';
-import {
-  ComponentConfiguration,
-  MemoryOfflineComponentProvider,
-  OfflineComponentProvider,
-  OnlineComponentProvider
-} from './component_provider';
-import { AsyncObserver } from '../util/async_observer';
-import { debugAssert } from '../util/assert';
 import { TransactionRunner } from './transaction_runner';
-import { logDebug } from '../util/log';
-import { AutoId } from '../util/misc';
-import { Persistence } from '../local/persistence';
-import { Datastore } from '../remote/datastore';
-import { BundleReader } from '../util/bundle_reader';
-import { LoadBundleTask } from '../api/bundle';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { NamedQuery } from './bundle';
-import { JsonProtoSerializer } from '../remote/serializer';
+import { View } from './view';
+import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -116,10 +118,8 @@ export class FirestoreClient {
   ) {
     this.credentials.setChangeListener(user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
-      if (!this.user.isEqual(user)) {
-        this.user = user;
-        this.credentialListener(user);
-      }
+      this.user = user;
+      this.credentialListener(user);
       this.receivedInitialUser.resolve();
     });
   }
@@ -197,11 +197,18 @@ export async function setOfflineComponentProvider(
   const configuration = await client.getConfiguration();
   await offlineComponentProvider.initialize(configuration);
 
-  client.setCredentialChangeListener(user =>
-    client.asyncQueue.enqueueRetryable(async () => {
-      await handleUserChange(offlineComponentProvider.localStore, user);
-    })
-  );
+  let currentUser = configuration.initialUser;
+  client.setCredentialChangeListener(user => {
+    if (!currentUser.isEqual(user)) {
+      currentUser = user;
+      client.asyncQueue.enqueueRetryable(async () => {
+        await localStoreHandleUserChange(
+          offlineComponentProvider.localStore,
+          user
+        );
+      });
+    }
+  });
 
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
@@ -276,7 +283,7 @@ function getRemoteStore(client: FirestoreClient): Promise<RemoteStore> {
   return ensureOnlineComponents(client).then(c => c.remoteStore);
 }
 
-function getSyncEngine(client: FirestoreClient): Promise<SyncEngine> {
+export function getSyncEngine(client: FirestoreClient): Promise<SyncEngine> {
   return ensureOnlineComponents(client).then(c => c.syncEngine);
 }
 
@@ -335,7 +342,7 @@ export function firestoreClientWaitForPendingWrites(
   const deferred = new Deferred<void>();
   client.asyncQueue.enqueueAndForget(async () => {
     const syncEngine = await getSyncEngine(client);
-    return registerPendingWritesCallback(syncEngine, deferred);
+    return syncEngineRegisterPendingWritesCallback(syncEngine, deferred);
   });
   return deferred.promise;
 }
@@ -491,7 +498,7 @@ async function readDocumentFromCache(
   result: Deferred<Document | null>
 ): Promise<void> {
   try {
-    const maybeDoc = await readLocalDocument(localStore, docKey);
+    const maybeDoc = await localStoreReadDocument(localStore, docKey);
     if (maybeDoc instanceof Document) {
       result.resolve(maybeDoc);
     } else if (maybeDoc instanceof NoDocument) {
@@ -593,7 +600,7 @@ async function executeQueryFromCache(
   result: Deferred<ViewSnapshot>
 ): Promise<void> {
   try {
-    const queryResult = await executeQuery(
+    const queryResult = await localStoreExecuteQuery(
       localStore,
       query,
       /* usePreviousResults= */ true
@@ -657,15 +664,13 @@ function executeQueryViaSnapshotListener(
   return eventManagerListen(eventManager, listener);
 }
 
-export async function firestoreClientLoadBundle(
+export function firestoreClientLoadBundle(
   client: FirestoreClient,
+  databaseId: DatabaseId,
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   resultTask: LoadBundleTask
-): Promise<void> {
-  const reader = createBundleReader(
-    data,
-    newSerializer((await client.getConfiguration()).databaseInfo.databaseId)
-  );
+): void {
+  const reader = createBundleReader(data, newSerializer(databaseId));
   client.asyncQueue.enqueueAndForget(async () => {
     syncEngineLoadBundle(await getSyncEngine(client), reader, resultTask);
   });
@@ -676,7 +681,7 @@ export function firestoreClientGetNamedQuery(
   queryName: string
 ): Promise<NamedQuery | undefined> {
   return client.asyncQueue.enqueue(async () =>
-    getNamedQuery(await getLocalStore(client), queryName)
+    localStoreGetNamedQuery(await getLocalStore(client), queryName)
   );
 }
 
@@ -690,5 +695,5 @@ function createBundleReader(
   } else {
     content = data;
   }
-  return new BundleReader(toByteStreamReader(content), serializer);
+  return newBundleReader(toByteStreamReader(content), serializer);
 }

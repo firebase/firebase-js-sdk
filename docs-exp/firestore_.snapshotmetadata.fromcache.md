@@ -4,6 +4,8 @@
 
 ## SnapshotMetadata.fromCache property
 
+True if the snapshot was created from cached data rather than guaranteed up-to-date server data. If your listener has opted into metadata updates (via `SnapshotListenOptions`<!-- -->) you will receive another snapshot with `fromCache` set to false once the client has received up-to-date data from the backend.
+
 <b>Signature:</b>
 
 ```typescript

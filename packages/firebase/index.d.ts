@@ -485,7 +485,7 @@ declare namespace firebase {
     linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
     metadata: firebase.auth.UserMetadata;
     /**
-     * The {@link firebase.User.MultiFactor} object corresponding to the current user.
+     * The {@link firebase.User.MultiFactorUser} object corresponding to the current user.
      * This is used to access all multi-factor properties and operations related to the
      * current user.
      */
@@ -1964,7 +1964,7 @@ declare namespace firebase.auth {
      * For the REVERT_SECOND_FACTOR_ADDITION action, which allows a user to unenroll
      * a newly added second factor, this object contains a `multiFactorInfo` field with
      * the information about the second factor. For phone second factor, the
-     * `multiFactorInfo` is a {@link firebase.auth.Auth.PhoneMultiFactorInfo} object,
+     * `multiFactorInfo` is a {@link firebase.auth.PhoneMultiFactorInfo} object,
      * which contains the phone number.
      */
     data: {
@@ -3323,8 +3323,8 @@ declare namespace firebase.auth {
   /**
    * An authentication error.
    * For method-specific error codes, refer to the specific methods in the
-   * documentation. For common error codes, check the reference below. Use {@link
-   * firebase.auth.Error#code} to get the specific error code. For a detailed
+   * documentation. For common error codes, check the reference below. Use{@link
+   * firebase.auth.Error.code} to get the specific error code. For a detailed
    * message, use {@link firebase.auth.Error.message}.
    * Errors with the code <strong>auth/account-exists-with-different-credential
    * </strong> will have the additional fields <strong>email</strong> and <strong>
@@ -3452,7 +3452,7 @@ declare namespace firebase.auth {
     phoneNumber?: string;
     /**
      * The tenant ID being used for sign-in/linking. If you use
-     * {@link firebase.auth.signInWithRedirect} to sign in, you have to
+     * {@link firebase.auth.Auth.signInWithRedirect} to sign in, you have to
      * set the tenant ID on Auth instanace again as the tenant ID is not
      * persisted after redirection.
      */
@@ -7534,18 +7534,18 @@ declare namespace firebase.storage {
      * @param url A URL in the form: <br />
      *     1) a gs:// URL, for example `gs://bucket/files/image.png` <br />
      *     2) a download URL taken from object metadata. <br />
-     *     @see {@link firebase.storage.FullMetadata.prototype.downloadURLs}
+     *     @see {@link firebase.storage.FullMetadata.downloadURLs}
      * @return A reference for the given URL.
      */
     refFromURL(url: string): firebase.storage.Reference;
     /**
      * @param time The new maximum operation retry time in milliseconds.
-     * @see {@link firebase.storage.Storage.prototype.maxOperationRetryTime}
+     * @see {@link firebase.storage.Storage.maxOperationRetryTime}
      */
     setMaxOperationRetryTime(time: number): any;
     /**
      * @param time The new maximum upload retry time in milliseconds.
-     * @see {@link firebase.storage.Storage.prototype.maxUploadRetryTime}
+     * @see {@link firebase.storage.Storage.maxUploadRetryTime}
      */
     setMaxUploadRetryTime(time: number): any;
   }
@@ -7593,7 +7593,7 @@ declare namespace firebase.storage {
   /**
    * An event that is triggered on a task.
    * @enum {string}
-   * @see {@link firebase.storage.UploadTask.prototype.on}
+   * @see {@link firebase.storage.UploadTask.on}
    */
   type TaskEvent = string;
   var TaskEvent: {
@@ -8290,10 +8290,107 @@ declare namespace firebase.firestore {
     terminate(): Promise<void>;
 
     /**
+     * Loads a Firestore bundle into the local cache.
+     *
+     * @param bundleData
+     *   An object representing the bundle to be loaded. Valid objects are `ArrayBuffer`,
+     *   `ReadableStream<Uint8Array>` or `string`.
+     *
+     * @return
+     *   A `LoadBundleTask` object, which notifies callers with progress updates, and completion
+     *   or error events. It can be used as a `Promise<LoadBundleTaskProgress>`.
+     */
+    loadBundle(
+      bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+    ): LoadBundleTask;
+
+    /**
+     * Reads a Firestore `Query` from local cache, identified by the given name.
+     *
+     * The named queries are packaged  into bundles on the server side (along
+     * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
+     * cache, use this method to extract a `Query` by name.
+     */
+    namedQuery(name: string): Promise<Query<DocumentData> | null>;
+
+    /**
      * @hidden
      */
     INTERNAL: { delete: () => Promise<void> };
   }
+
+  /**
+   * Represents the task of loading a Firestore bundle. It provides progress of bundle
+   * loading, as well as task completion and error events.
+   *
+   * The API is compatible with `Promise<LoadBundleTaskProgress>`.
+   */
+  export interface LoadBundleTask extends PromiseLike<LoadBundleTaskProgress> {
+    /**
+     * Registers functions to listen to bundle loading progress events.
+     * @param next
+     *   Called when there is a progress update from bundle loading. Typically `next` calls occur
+     *   each time a Firestore document is loaded from the bundle.
+     * @param error
+     *   Called when an error occurs during bundle loading. The task aborts after reporting the
+     *   error, and there should be no more updates after this.
+     * @param complete
+     *   Called when the loading task is complete.
+     */
+    onProgress(
+      next?: (progress: LoadBundleTaskProgress) => any,
+      error?: (error: Error) => any,
+      complete?: () => void
+    ): void;
+
+    /**
+     * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
+     *
+     * @param onFulfilled
+     *   Called on the completion of the loading task with a final `LoadBundleTaskProgress` update.
+     *   The update will always have its `taskState` set to `"Success"`.
+     * @param onRejected
+     *   Called when an error occurs during bundle loading.
+     */
+    then<T, R>(
+      onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
+      onRejected?: (a: Error) => R | PromiseLike<R>
+    ): Promise<T | R>;
+
+    /**
+     * Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
+     *
+     * @param onRejected
+     *   Called when an error occurs during bundle loading.
+     */
+    catch<R>(
+      onRejected: (a: Error) => R | PromiseLike<R>
+    ): Promise<R | LoadBundleTaskProgress>;
+  }
+
+  /**
+   * Represents a progress update or a final state from loading bundles.
+   */
+  export interface LoadBundleTaskProgress {
+    /** How many documents have been loaded. */
+    documentsLoaded: number;
+    /** How many documents are in the bundle being loaded. */
+    totalDocuments: number;
+    /** How many bytes have been loaded. */
+    bytesLoaded: number;
+    /** How many bytes are in the bundle being loaded. */
+    totalBytes: number;
+    /** Current task state. */
+    taskState: TaskState;
+  }
+
+  /**
+   * Represents the state of bundle loading tasks.
+   *
+   * Both 'Error' and 'Success' are sinking state: task will abort or complete and there will
+   * be no more updates after they are reported.
+   */
+  export type TaskState = 'Error' | 'Running' | 'Success';
 
   /**
    * An immutable object representing a geo point in Firestore. The geo point

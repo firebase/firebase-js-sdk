@@ -17,11 +17,11 @@
 
 import { expect } from 'chai';
 
-import { field, wrap, wrapObject } from '../../util/helpers';
 import {
   ObjectValue,
   ObjectValueBuilder
 } from '../../../src/model/object_value';
+import { field, wrap, wrapObject } from '../../util/helpers';
 
 describe('ObjectValueBuilder', () => {
   it('supports empty builders', () => {

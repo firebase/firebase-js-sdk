@@ -16,12 +16,16 @@
  */
 
 import { expect } from 'chai';
-import { QuerySnapshot } from '../../../exp/src/api/snapshot';
+
 import { Query as InternalQuery } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
+import { Query } from '../../../src/exp/reference';
+import { ExpUserDataWriter } from '../../../src/exp/reference_impl';
+import { QuerySnapshot } from '../../../src/exp/snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { firestore } from '../../util/api_helpers';
 import {
   applyDocChanges,
   doc,
@@ -30,8 +34,6 @@ import {
   orderBy,
   query
 } from '../../util/helpers';
-import { firestore } from '../../util/api_helpers';
-import { ExpUserDataWriter, Query } from '../../../exp/src/api/reference';
 
 describe('DocumentChange:', () => {
   function expectPositions(

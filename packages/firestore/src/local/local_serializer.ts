@@ -16,7 +16,10 @@
  */
 
 import { Timestamp } from '../api/timestamp';
+import { Bundle, NamedQuery } from '../core/bundle';
+import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
 import {
   Document,
   MaybeDocument,
@@ -25,6 +28,11 @@ import {
 } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
+import {
+  BundleMetadata as ProtoBundleMetadata,
+  NamedQuery as ProtoNamedQuery,
+  BundledQuery as ProtoBundledQuery
+} from '../protos/firestore_bundle_proto';
 import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
 import {
   convertQueryTargetToQuery,
@@ -41,7 +49,7 @@ import {
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
+
 import {
   DbBundle,
   DbMutationBatch,
@@ -55,13 +63,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { Bundle, NamedQuery } from '../core/bundle';
-import { LimitType, Query, queryWithLimit } from '../core/query';
-import {
-  BundleMetadata as ProtoBundleMetadata,
-  NamedQuery as ProtoNamedQuery,
-  BundledQuery as ProtoBundledQuery
-} from '../protos/firestore_bundle_proto';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -194,6 +195,28 @@ export function fromDbMutationBatch(
   const baseMutations = (dbBatch.baseMutations || []).map(m =>
     fromMutation(localSerializer.remoteSerializer, m)
   );
+
+  // Squash old transform mutations into existing patch or set mutations.
+  // The replacement of representing `transforms` with `update_transforms`
+  // on the SDK means that old `transform` mutations stored in IndexedDB need
+  // to be updated to `update_transforms`.
+  // TODO(b/174608374): Remove this code once we perform a schema migration.
+  for (let i = dbBatch.mutations.length - 1; i >= 0; --i) {
+    const mutationProto = dbBatch.mutations[i];
+    if (mutationProto?.transform !== undefined) {
+      debugAssert(
+        i >= 1 &&
+          dbBatch.mutations[i - 1].transform === undefined &&
+          dbBatch.mutations[i - 1].update !== undefined,
+        'TransformMutation should be preceded by a patch or set mutation'
+      );
+      const mutationToJoin = dbBatch.mutations[i - 1];
+      mutationToJoin.updateTransforms = mutationProto.transform.fieldTransforms;
+      dbBatch.mutations.splice(i, 1);
+      --i;
+    }
+  }
+
   const mutations = dbBatch.mutations.map(m =>
     fromMutation(localSerializer.remoteSerializer, m)
   );

@@ -16,13 +16,14 @@
  */
 
 import { debugAssert, debugCast } from '../util/assert';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
+
 import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
-import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being

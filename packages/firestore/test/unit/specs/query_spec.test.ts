@@ -20,9 +20,9 @@ import {
   newQueryForPath,
   queryWithAddedFilter
 } from '../../../src/core/query';
+import { Document } from '../../../src/model/document';
 import { doc, filter, query } from '../../util/helpers';
 
-import { Document } from '../../../src/model/document';
 import { describeSpec, specTest } from './describe_spec';
 import { spec, SpecBuilder } from './spec_builder';
 

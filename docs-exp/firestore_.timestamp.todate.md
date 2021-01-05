@@ -4,6 +4,8 @@
 
 ## Timestamp.toDate() method
 
+Converts a `Timestamp` to a JavaScript `Date` object. This conversion causes a loss of precision since `Date` objects only support millisecond precision.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ toDate(): Date;
 <b>Returns:</b>
 
 Date
+
+JavaScript `Date` object representing the same point in time as this `Timestamp`<!-- -->, with millisecond precision.
 

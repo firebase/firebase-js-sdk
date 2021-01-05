@@ -4,25 +4,29 @@
 
 ## collection() function
 
+Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
+
 <b>Signature:</b>
 
 ```typescript
-export function collection(
-  reference: DocumentReference,
-  path: string,
-  ...pathComponents: string[]
-): CollectionReference<DocumentData>;
+export declare function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_lite.documentreference.md) |  |
-|  path | string |  |
-|  pathComponents | string\[\] |  |
+|  reference | [DocumentReference](./firestore_lite.documentreference.md) | A reference to a Firestore document. |
+|  path | string | A slash-separated path to a collection. |
+|  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
 [CollectionReference](./firestore_lite.collectionreference.md)<!-- -->&lt;[DocumentData](./firestore_lite.documentdata.md)<!-- -->&gt;
+
+The `CollectionReference` instance.
+
+## Exceptions
+
+If the final path has an even number of segments and does not point to a collection.
 

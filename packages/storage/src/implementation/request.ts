@@ -20,7 +20,6 @@
  * abstract representations.
  */
 
-import firebase from '@firebase/app';
 import * as backoff from './backoff';
 import {
   FirebaseStorageError,
@@ -267,10 +266,12 @@ export function addAuthHeader_(
   }
 }
 
-export function addVersionHeader_(headers: Headers): void {
-  const version =
-    typeof firebase !== 'undefined' ? firebase.SDK_VERSION : 'AppManager';
-  headers['X-Firebase-Storage-Version'] = 'webjs/' + version;
+export function addVersionHeader_(
+  headers: Headers,
+  firebaseVersion?: string
+): void {
+  headers['X-Firebase-Storage-Version'] =
+    'webjs/' + (firebaseVersion ?? 'AppManager');
 }
 
 export function addGmpidHeader_(headers: Headers, appId: string | null): void {
@@ -283,14 +284,15 @@ export function makeRequest<T>(
   requestInfo: RequestInfo<T>,
   appId: string | null,
   authToken: string | null,
-  pool: XhrIoPool
+  pool: XhrIoPool,
+  firebaseVersion?: string
 ): Request<T> {
   const queryPart = UrlUtils.makeQueryString(requestInfo.urlParams);
   const url = requestInfo.url + queryPart;
   const headers = Object.assign({}, requestInfo.headers);
   addGmpidHeader_(headers, appId);
   addAuthHeader_(headers, authToken);
-  addVersionHeader_(headers);
+  addVersionHeader_(headers, firebaseVersion);
   return new NetworkRequest<T>(
     url,
     requestInfo.method,

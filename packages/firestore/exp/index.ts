@@ -19,7 +19,7 @@ import { registerFirestore } from './register';
 
 registerFirestore();
 
-export { FieldPath, documentId } from '../lite/src/api/field_path';
+export { FieldPath, documentId } from '../src/exp/field_path';
 
 export {
   FirebaseFirestore,
@@ -32,10 +32,10 @@ export {
   disableNetwork,
   enableNetwork,
   terminate,
-  Settings,
-  PersistenceSettings,
   useFirestoreEmulator
-} from './src/api/database';
+} from '../src/exp/database';
+
+export { Settings, PersistenceSettings } from '../src/exp/settings';
 
 export {
   DocumentChange,
@@ -45,41 +45,46 @@ export {
   snapshotEqual,
   SnapshotOptions,
   FirestoreDataConverter,
-  DocumentChangeType
-} from './src/api/snapshot';
-
-export { SnapshotMetadata } from '../src/api/database';
+  DocumentChangeType,
+  SnapshotMetadata
+} from '../src/exp/snapshot';
 
 export {
   DocumentReference,
   CollectionReference,
-  QueryConstraint,
   Query,
   doc,
   collection,
   collectionGroup,
-  startAt,
-  startAfter,
+  SetOptions,
+  DocumentData,
+  UpdateData,
+  refEqual,
+  queryEqual
+} from '../src/exp/reference';
+
+export {
   endAt,
   endBefore,
-  query,
+  startAt,
+  startAfter,
   limit,
   limitToLast,
   where,
   orderBy,
-  SetOptions,
+  query,
+  QueryConstraint,
   QueryConstraintType,
-  DocumentData,
-  UpdateData,
   OrderByDirection,
   WhereFilterOp
-} from '../lite/src/api/reference';
+} from '../src/exp/query';
 
-export { Unsubscribe } from '../src/api/observer';
+export { Unsubscribe } from '../src/exp/reference_impl';
 
-export { runTransaction, Transaction } from './src/api/transaction';
+export { runTransaction, Transaction } from '../src/exp/transaction';
 
 export {
+  SnapshotListenOptions,
   getDoc,
   getDocFromCache,
   getDocFromServer,
@@ -92,33 +97,28 @@ export {
   updateDoc,
   deleteDoc,
   addDoc
-} from './src/api/reference';
+} from '../src/exp/reference_impl';
+
+export { FieldValue } from '../src/exp/field_value';
 
 export {
-  FieldValue,
-  deleteField,
   increment,
   arrayRemove,
   arrayUnion,
-  serverTimestamp
-} from '../lite/src/api/field_value';
+  serverTimestamp,
+  deleteField
+} from '../src/exp/field_value_impl';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
-export { Bytes } from '../lite/src/api/bytes';
+export { Bytes } from '../src/exp/bytes';
 
-export { writeBatch } from './src/api/write_batch';
+export { WriteBatch, writeBatch } from '../src/exp/write_batch';
 
-export { WriteBatch } from '../lite/src/api/write_batch';
+export { GeoPoint } from '../src/exp/geo_point';
 
-export { GeoPoint } from '../src/api/geo_point';
+export { Timestamp } from '../src/exp/timestamp';
 
-export { Timestamp } from '../src/api/timestamp';
-
-export { refEqual, queryEqual } from '../lite/src/api/reference';
-
-export { SnapshotListenOptions } from './src/api/reference';
-
-export { CACHE_SIZE_UNLIMITED } from '../src/api/database';
+export { CACHE_SIZE_UNLIMITED } from '../src/exp/database';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';

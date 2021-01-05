@@ -4,21 +4,25 @@
 
 ## FieldPath class
 
+A `FieldPath` refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).
+
+Create a `FieldPath` by providing field names. If more than one field name is provided, the path will point to a nested field in a document.
+
 <b>Signature:</b>
 
 ```typescript
-export class FieldPath 
+export declare class FieldPath 
 ```
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(fieldNames)](./firestore_.fieldpath._constructor_.md) |  | Constructs a new instance of the <code>FieldPath</code> class |
+|  [(constructor)(fieldNames)](./firestore_.fieldpath._constructor_.md) |  | Creates a FieldPath from the provided field names. If more than one field name is provided, the path will point to a nested field in a document. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [isEqual(other)](./firestore_.fieldpath.isequal.md) |  |  |
+|  [isEqual(other)](./firestore_.fieldpath.isequal.md) |  | Returns true if this <code>FieldPath</code> is equal to the provided one. |
 

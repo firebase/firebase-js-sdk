@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-readonly type: 'collection';
+readonly type = "collection";
 ```

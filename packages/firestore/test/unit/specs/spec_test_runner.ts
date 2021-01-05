@@ -16,6 +16,8 @@
  */
 
 import { expect } from 'chai';
+
+import { LoadBundleTask } from '../../../src/api/bundle';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
@@ -41,27 +43,28 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { SyncEngine } from '../../../src/core/sync_engine';
 import {
-  syncEngineLoadBundle,
-  activeLimboDocumentResolutions,
-  enqueuedLimboDocumentResolutions,
-  registerPendingWritesCallback,
-  SyncEngine,
+  syncEngineGetActiveLimboDocumentResolutions,
+  syncEngineGetEnqueuedLimboDocumentResolutions,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
+  syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
-} from '../../../src/core/sync_engine';
+} from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION,
-  SchemaConverter
+  SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
+import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
 import { LocalStore } from '../../../src/local/local_store';
 import {
   ClientId,
@@ -71,8 +74,11 @@ import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
+import { JsonObject } from '../../../src/model/object_value';
+import { encodeBase64 } from '../../../src/platform/base64';
+import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+import { newTextEncoder } from '../../../src/platform/serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
@@ -99,12 +105,20 @@ import {
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
 import { debugAssert, fail } from '../../../src/util/assert';
-import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { TimerId } from '../../../src/util/async_queue';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
+import { newBundleReader } from '../../../src/util/bundle_reader_impl';
+import { ByteString } from '../../../src/util/byte_string';
 import { FirestoreError } from '../../../src/util/error';
+import { logWarn } from '../../../src/util/log';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
+import { SortedSet } from '../../../src/util/sorted_set';
 import {
   byteStringFromString,
   deletedDoc,
@@ -123,15 +137,19 @@ import {
 } from '../../util/helpers';
 import { encodeWatchChange } from '../../util/spec_test_helpers';
 import {
+  FakeDocument,
+  SharedFakeWebStorage,
+  testWindow
+} from '../../util/test_platform';
+import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
   TEST_DATABASE_ID,
   TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
+
 import { MULTI_CLIENT_TAG } from './describe_spec';
-import { ByteString } from '../../../src/util/byte_string';
-import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 import {
   EventAggregator,
@@ -144,18 +162,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { BundleReader } from '../../../src/util/bundle_reader';
-import { LoadBundleTask } from '../../../src/api/bundle';
-import { encodeBase64 } from '../../../src/platform/base64';
-import {
-  FakeDocument,
-  SharedFakeWebStorage,
-  testWindow
-} from '../../util/test_platform';
-import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
-import { logWarn } from '../../../src/util/log';
-import { newTextEncoder } from '../../../src/platform/serializer';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -190,7 +196,7 @@ export function parseQuery(querySpec: string | SpecQuery): Query {
 }
 
 abstract class TestRunner {
-  protected queue: AsyncQueue;
+  protected queue: AsyncQueueImpl;
 
   // Initialized asynchronously via start().
   private connection!: MockConnection;
@@ -251,7 +257,7 @@ abstract class TestRunner {
     // TODO(mrschmidt): During client startup in `firestore_client`, we block
     // the AsyncQueue from executing any operation. We should mimic this in the
     // setup of the spec tests.
-    this.queue = new AsyncQueue();
+    this.queue = newAsyncQueue() as AsyncQueueImpl;
     this.queue.skipDelaysForTimerId(TimerId.ListenStreamConnectionBackoff);
 
     this.serializer = new JsonProtoSerializer(
@@ -517,7 +523,7 @@ abstract class TestRunner {
   }
 
   private async doLoadBundle(bundle: string): Promise<void> {
-    const reader = new BundleReader(
+    const reader = newBundleReader(
       toByteStreamReader(newTextEncoder().encode(bundle)),
       this.serializer
     );
@@ -747,7 +753,7 @@ abstract class TestRunner {
     const deferred = new Deferred();
     void deferred.promise.then(() => ++this.waitForPendingWritesEvents);
     return this.queue.enqueue(() =>
-      registerPendingWritesCallback(this.syncEngine, deferred)
+      syncEngineRegisterPendingWritesCallback(this.syncEngine, deferred)
     );
   }
 
@@ -968,7 +974,9 @@ abstract class TestRunner {
   }
 
   private validateActiveLimboDocs(): void {
-    let actualLimboDocs = activeLimboDocumentResolutions(this.syncEngine);
+    let actualLimboDocs = syncEngineGetActiveLimboDocumentResolutions(
+      this.syncEngine
+    );
 
     if (this.connection.isWatchOpen) {
       // Validate that each active limbo doc has an expected active target
@@ -1001,9 +1009,11 @@ abstract class TestRunner {
 
   private validateEnqueuedLimboDocs(): void {
     let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    enqueuedLimboDocumentResolutions(this.syncEngine).forEach(key => {
-      actualLimboDocs = actualLimboDocs.add(key);
-    });
+    syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine).forEach(
+      key => {
+        actualLimboDocs = actualLimboDocs.add(key);
+      }
+    );
     let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
     this.expectedEnqueuedLimboDocs.forEach(key => {
       expectedLimboDocs = expectedLimboDocs.add(key);

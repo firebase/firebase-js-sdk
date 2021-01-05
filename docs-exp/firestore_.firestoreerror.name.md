@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-name: string;
+readonly name: string;
 ```

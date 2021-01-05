@@ -42,7 +42,7 @@ FetchProvider.initialize(
 // Core functionality shared by all clients
 export * from './src';
 
-export function getAuth(app?: FirebaseApp): Auth {
+export function getAuth(app: FirebaseApp): Auth {
   return initializeAuth(app);
 }
 

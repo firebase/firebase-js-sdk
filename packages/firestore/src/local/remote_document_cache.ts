@@ -16,6 +16,7 @@
  */
 
 import { Query } from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -24,10 +25,9 @@ import {
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * Represents cached documents received from the remote backend.

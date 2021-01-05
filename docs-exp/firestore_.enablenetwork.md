@@ -4,10 +4,12 @@
 
 ## enableNetwork() function
 
+Re-enables use of the network for this Firestore instance after a prior call to [disableNetwork()](./firestore_.disablenetwork.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
+export declare function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
 ```
 
 ## Parameters
@@ -19,4 +21,6 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A promise that is resolved once the network has been enabled.
 

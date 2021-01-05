@@ -508,7 +508,7 @@ fireauth.AuthUser.prototype.initializeProactiveRefreshUtility_ = function() {
       function() {
         // Get time until expiration minus the refresh offset.
         var waitInterval =
-            self.stsTokenManager_.getExpirationTime() - goog.now() -
+            self.stsTokenManager_.getExpirationTime() - Date.now() -
             fireauth.TokenRefreshTime.OFFSET_DURATION;
         // Set to zero if wait interval is negative.
         return waitInterval > 0 ? waitInterval : 0;
@@ -2436,6 +2436,12 @@ fireauth.AuthUser.fromPlainObject = function(user) {
     // Refresh token could be expired.
     stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.REFRESH_TOKEN] =
         user['stsTokenManager']['refreshToken'] || null;
+    const expirationTime = user['stsTokenManager']['expirationTime'];
+    if (expirationTime) {
+      stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField
+                                  .EXPIRES_IN] =
+          (expirationTime - Date.now()) / 1000;
+    }
   } else {
     // Token response is a required field.
     return null;

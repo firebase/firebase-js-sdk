@@ -4,6 +4,10 @@
 
 ## DocumentSnapshot.get() method
 
+Retrieves the field specified by `fieldPath`<!-- -->. Returns `undefined` if the document or field doesn't exist.
+
+By default, a `FieldValue.serverTimestamp()` that has not yet been set to its final value will be returned as `null`<!-- -->. You can override this by passing an options object.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +18,12 @@ get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldPath | string \| [FieldPath](./firestore_.fieldpath.md) |  |
-|  options | [SnapshotOptions](./firestore_.snapshotoptions.md) |  |
+|  fieldPath | string \| [FieldPath](./firestore_.fieldpath.md) | The path (for example 'foo' or 'foo.bar') to a specific field. |
+|  options | [SnapshotOptions](./firestore_.snapshotoptions.md) | An options object to configure how the field is retrieved from the snapshot (for example the desired behavior for server timestamps that have not yet been set to their final value). |
 
 <b>Returns:</b>
 
 any
+
+The data at the specified field location or undefined if no such field exists in the document.
 

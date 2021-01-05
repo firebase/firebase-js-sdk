@@ -4,6 +4,8 @@
 
 ## QuerySnapshot.docChanges() method
 
+Returns an array of the documents changes since the last snapshot. If this is the first snapshot, all documents will be in the list as 'added' changes.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md) |  |
+|  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md) | <code>SnapshotListenOptions</code> that control whether metadata-only changes (i.e. only <code>DocumentSnapshot.metadata</code> changed) should trigger snapshot events. |
 
 <b>Returns:</b>
 

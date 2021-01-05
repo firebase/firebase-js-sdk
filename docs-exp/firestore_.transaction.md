@@ -4,10 +4,14 @@
 
 ## Transaction class
 
+A reference to a transaction.
+
+The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.runtransaction.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export class Transaction 
+export declare class Transaction 
 ```
 
 ## Methods
@@ -15,7 +19,7 @@ export class Transaction
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [delete(documentRef)](./firestore_.transaction.delete.md) |  |  |
-|  [get(documentRef)](./firestore_.transaction.get.md) |  |  |
+|  [get(documentRef)](./firestore_.transaction.get.md) |  | Reads the document referenced by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. |
 |  [set(documentRef, data)](./firestore_.transaction.set.md) |  |  |
 |  [set(documentRef, data, options)](./firestore_.transaction.set_1.md) |  |  |
 |  [update(documentRef, data)](./firestore_.transaction.update.md) |  |  |

@@ -15,33 +15,31 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence';
-import { PersistencePromise } from './persistence_promise';
+import { Bundle, NamedQuery } from '../core/bundle';
 import {
-  NamedQuery as ProtoNamedQuery,
-  BundleMetadata as ProtoBundleMetadata
+  BundleMetadata as ProtoBundleMetadata,
+  NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
+
 import { BundleCache } from './bundle_cache';
 import {
   DbBundle,
   DbBundlesKey,
-  DbNamedQuery,
-  DbNamedQueriesKey
+  DbNamedQueriesKey,
+  DbNamedQuery
 } from './indexeddb_schema';
-import { SimpleDbStore } from './simple_db';
-import { IndexedDbPersistence } from './indexeddb_persistence';
+import { getStore } from './indexeddb_transaction';
 import {
   fromDbBundle,
   fromDbNamedQuery,
-  LocalSerializer,
   toDbBundle,
   toDbNamedQuery
 } from './local_serializer';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { SimpleDbStore } from './simple_db';
 
 export class IndexedDbBundleCache implements BundleCache {
-  constructor(private serializer: LocalSerializer) {}
-
   getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
@@ -91,10 +89,7 @@ export class IndexedDbBundleCache implements BundleCache {
 function bundlesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbBundlesKey, DbBundle> {
-  return IndexedDbPersistence.getStore<DbBundlesKey, DbBundle>(
-    txn,
-    DbBundle.store
-  );
+  return getStore<DbBundlesKey, DbBundle>(txn, DbBundle.store);
 }
 
 /**
@@ -103,8 +98,5 @@ function bundlesStore(
 function namedQueriesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbNamedQueriesKey, DbNamedQuery> {
-  return IndexedDbPersistence.getStore<DbNamedQueriesKey, DbNamedQuery>(
-    txn,
-    DbNamedQuery.store
-  );
+  return getStore<DbNamedQueriesKey, DbNamedQuery>(txn, DbNamedQuery.store);
 }

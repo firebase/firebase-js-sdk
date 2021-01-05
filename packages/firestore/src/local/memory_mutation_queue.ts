@@ -20,16 +20,18 @@ import { isCollectionGroupQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { MutationBatch } from '../model/mutation_batch';
 import { debugAssert, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+import { BATCHID_UNKNOWN } from '../util/types';
 
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction, ReferenceDelegate } from './persistence';
+import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 import { DocReference } from './reference_set';
 
 export class MemoryMutationQueue implements MutationQueue {

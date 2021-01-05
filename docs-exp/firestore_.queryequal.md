@@ -4,20 +4,24 @@
 
 ## queryEqual() function
 
+Returns true if the provided queries point to the same collection and apply the same constraints.
+
 <b>Signature:</b>
 
 ```typescript
-export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+export declare function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; |  |
-|  right | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; |  |
+|  left | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; | A <code>Query</code> to compare. |
+|  right | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; | A <code>Query</code> to compare. |
 
 <b>Returns:</b>
 
 boolean
+
+true if the references point to the same location in the same Firestore database.
 

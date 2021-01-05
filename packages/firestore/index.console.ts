@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseFirestore as FirestoreExp } from './exp/src/api/database';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
+
 import {
   Firestore as FirestoreCompat,
   MemoryPersistenceProvider
 } from './src/api/database';
-import { Provider } from '@firebase/component';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { DatabaseId } from './src/core/database_info';
+import { FirebaseFirestore as FirestoreExp } from './src/exp/database';
 import { Code, FirestoreError } from './src/util/error';
 export {
   CollectionReference,
@@ -30,10 +31,11 @@ export {
   DocumentSnapshot,
   QuerySnapshot
 } from './src/api/database';
+
 export { Blob } from './src/api/blob';
 export { GeoPoint } from './src/api/geo_point';
 export { FieldPath } from './src/api/field_path';
-export { FieldValue } from './src/compat/field_value';
+export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
 
 export interface FirestoreDatabase {

@@ -4,6 +4,8 @@
 
 ## Query.firestore property
 
+The `FirebaseFirestore` for the Firestore database (useful for performing transactions, etc.).
+
 <b>Signature:</b>
 
 ```typescript

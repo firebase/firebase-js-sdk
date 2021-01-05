@@ -4,19 +4,23 @@
 
 ## startAt() function
 
+Creates a `QueryConstraint` that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the `orderBy` of this query.
+
 <b>Signature:</b>
 
 ```typescript
-export function startAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export declare function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_lite.documentsnapshot.md)<!-- -->&lt;any&gt; |  |
+|  snapshot | [DocumentSnapshot](./firestore_lite.documentsnapshot.md)<!-- -->&lt;unknown&gt; | The snapshot of the document to start at. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_lite.queryconstraint.md)
+
+A `QueryConstraint` to pass to `query()`<!-- -->.
 

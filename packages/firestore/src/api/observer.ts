@@ -32,10 +32,6 @@ export interface PartialObserver<T> {
   complete?: CompleteFn;
 }
 
-export interface Unsubscribe {
-  (): void;
-}
-
 export function isPartialObserver<T>(obj: unknown): obj is PartialObserver<T> {
   return implementsAnyMethods(obj, ['next', 'error', 'complete']);
 }

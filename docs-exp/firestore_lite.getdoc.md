@@ -4,21 +4,25 @@
 
 ## getDoc() function
 
+Reads the document referred to by the specified document reference.
+
+All documents are directly fetched from the server, even if the document was previously read or modified. Recent modifications are only reflected in the retrieved `DocumentSnapshot` if they have already been applied by the backend. If the client is offline, the read fails. If you like to use caching or see local modifications, please use the full Firestore SDK.
+
 <b>Signature:</b>
 
 ```typescript
-export function getDoc<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>>;
+export declare function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; |  |
+|  reference | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; | The reference of the document to fetch. |
 
 <b>Returns:</b>
 
 Promise&lt;[DocumentSnapshot](./firestore_lite.documentsnapshot.md)<!-- -->&lt;T&gt;&gt;
+
+A Promise resolved with a `DocumentSnapshot` containing the current document contents.
 

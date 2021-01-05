@@ -4,19 +4,23 @@
 
 ## endAt() function
 
+Creates a `QueryConstraint` that modifies the result set to end at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
+
 <b>Signature:</b>
 
 ```typescript
-export function endAt(...fieldValues: any[]): QueryConstraint;
+export declare function endAt(...fieldValues: unknown[]): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldValues | any\[\] |  |
+|  fieldValues | unknown\[\] | The field values to end this query at, in order of the query's order by. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_.queryconstraint.md)
+
+A `QueryConstraint` to pass to `query()`
 

@@ -4,25 +4,29 @@
 
 ## doc() function
 
+Gets a `DocumentReference` instance that refers to a document within `reference` at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned `DocumentReference`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export function doc<T>(
-  reference: CollectionReference<T>,
-  path?: string,
-  ...pathComponents: string[]
-): DocumentReference<T>;
+export declare function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [CollectionReference](./firestore_lite.collectionreference.md)<!-- -->&lt;T&gt; |  |
-|  path | string |  |
-|  pathComponents | string\[\] |  |
+|  reference | [CollectionReference](./firestore_lite.collectionreference.md)<!-- -->&lt;T&gt; | A reference to a collection. |
+|  path | string | A slash-separated path to a document. Has to be omitted to use auto-genrated IDs. |
+|  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
 [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt;
+
+The `DocumentReference` instance.
+
+## Exceptions
+
+If the final path has an odd number of segments and does not point to a document.
 

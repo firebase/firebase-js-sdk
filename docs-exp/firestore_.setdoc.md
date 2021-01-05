@@ -4,23 +4,24 @@
 
 ## setDoc() function
 
+Writes to the document referred to by this `DocumentReference`<!-- -->. If the document does not yet exist, it will be created.
+
 <b>Signature:</b>
 
 ```typescript
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: T
-): Promise<void>;
+export declare function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; |  |
-|  data | T |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; | A reference to the document to write. |
+|  data | T | A map of the fields and values for the document. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A Promise resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 

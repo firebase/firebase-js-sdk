@@ -4,8 +4,10 @@
 
 ## QueryConstraint.type property
 
+The type of this query constraints
+
 <b>Signature:</b>
 
 ```typescript
-readonly type: QueryConstraintType;
+abstract readonly type: QueryConstraintType;
 ```

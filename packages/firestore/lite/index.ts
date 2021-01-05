@@ -16,17 +16,17 @@
  */
 
 import { registerFirestore } from './register';
-
 registerFirestore();
 
+export { Settings } from '../src/lite/settings';
+
 export {
-  Settings,
   FirebaseFirestore,
   initializeFirestore,
   getFirestore,
   terminate,
   useFirestoreEmulator
-} from './src/api/database';
+} from '../src/lite/database';
 
 export {
   SetOptions,
@@ -34,45 +34,52 @@ export {
   UpdateData,
   DocumentReference,
   Query,
-  QueryConstraint,
-  QueryConstraintType,
   CollectionReference,
-  OrderByDirection,
-  WhereFilterOp,
   collection,
   collectionGroup,
   doc,
-  getDoc,
-  getDocs,
-  deleteDoc,
-  setDoc,
-  updateDoc,
-  addDoc,
   refEqual,
-  queryEqual,
-  startAt,
-  startAfter,
+  queryEqual
+} from '../src/lite/reference';
+
+export {
   endAt,
   endBefore,
-  query,
+  startAt,
+  startAfter,
   limit,
   limitToLast,
+  orderBy,
+  OrderByDirection,
   where,
-  orderBy
-} from './src/api/reference';
+  WhereFilterOp,
+  query,
+  QueryConstraint,
+  QueryConstraintType
+} from '../src/lite/query';
+
+export {
+  addDoc,
+  deleteDoc,
+  updateDoc,
+  setDoc,
+  getDoc,
+  getDocs
+} from '../src/lite/reference_impl';
 
 // TOOD(firestorelite): Add tests when Queries are usable
-export { FieldPath, documentId } from './src/api/field_path';
+export { FieldPath, documentId } from '../src/lite/field_path';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
+export { FieldValue } from '../src/lite/field_value';
+
 export {
-  FieldValue,
-  deleteField,
   increment,
   arrayRemove,
   arrayUnion,
-  serverTimestamp
-} from './src/api/field_value';
+  serverTimestamp,
+  deleteField
+} from '../src/lite/field_value_impl';
 
 export {
   FirestoreDataConverter,
@@ -80,18 +87,18 @@ export {
   QueryDocumentSnapshot,
   QuerySnapshot,
   snapshotEqual
-} from './src/api/snapshot';
+} from '../src/lite/snapshot';
 
-export { WriteBatch, writeBatch } from './src/api/write_batch';
+export { WriteBatch, writeBatch } from '../src/lite/write_batch';
 
-export { Transaction, runTransaction } from './src/api/transaction';
+export { Transaction, runTransaction } from '../src/lite/transaction';
 
-export { setLogLevel, LogLevel, LogLevelString } from '../src/util/log';
+export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
-export { Bytes } from './src/api/bytes';
+export { Bytes } from '../src/lite/bytes';
 
-export { GeoPoint } from '../src/api/geo_point';
+export { GeoPoint } from '../src/lite/geo_point';
 
-export { Timestamp } from '../src/api/timestamp';
+export { Timestamp } from '../src/lite/timestamp';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';

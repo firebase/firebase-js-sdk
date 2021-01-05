@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
-import * as chaiAsPromised from 'chai-as-promised';
-
 import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { Context } from 'mocha';
+
 import { queryToTarget } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { canonifyTarget } from '../../../src/core/target';
 import {
   decodeResourcePath,
   encodeResourcePath
@@ -48,24 +50,37 @@ import {
   DbTargetKey,
   DbTimestamp,
   SCHEMA_VERSION,
-  SchemaConverter,
   V1_STORES,
   V3_STORES,
   V4_STORES,
   V6_STORES,
   V8_STORES
 } from '../../../src/local/indexeddb_schema';
+import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
+import {
+  fromDbTarget,
+  toDbRemoteDocument,
+  toDbTarget,
+  toDbTimestampKey
+} from '../../../src/local/local_serializer';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import { getWindow } from '../../../src/platform/dom';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
 import { FirestoreError } from '../../../src/util/error';
 import { doc, filter, path, query, version } from '../../util/helpers';
+import { FakeDocument, testDocument } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
+
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
   MOCK_SEQUENCE_NUMBER_SYNCER,
@@ -73,16 +88,6 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
-import {
-  fromDbTarget,
-  toDbRemoteDocument,
-  toDbTarget,
-  toDbTimestampKey
-} from '../../../src/local/local_serializer';
-import { canonifyTarget } from '../../../src/core/target';
-import { FakeDocument, testDocument } from '../../util/test_platform';
-import { getWindow } from '../../../src/platform/dom';
-import { Context } from 'mocha';
 
 use(chaiAsPromised);
 
@@ -109,7 +114,7 @@ async function withUnstartedCustomPersistence(
   fn: (
     persistence: MockIndexedDbPersistence,
     document: FakeDocument,
-    queue: AsyncQueue
+    queue: AsyncQueueImpl
   ) => Promise<void>
 ): Promise<void> {
   const serializer = new JsonProtoSerializer(
@@ -117,7 +122,7 @@ async function withUnstartedCustomPersistence(
     /* useProto3Json= */ true
   );
 
-  const queue = new AsyncQueue();
+  const queue = newAsyncQueue() as AsyncQueueImpl;
   const document = testDocument();
   const persistence = new MockIndexedDbPersistence(
     multiClient,
@@ -142,7 +147,7 @@ function withCustomPersistence(
   fn: (
     persistence: MockIndexedDbPersistence,
     document: FakeDocument,
-    queue: AsyncQueue
+    queue: AsyncQueueImpl
   ) => Promise<void>
 ): Promise<void> {
   return withUnstartedCustomPersistence(
@@ -162,7 +167,7 @@ async function withPersistence(
   fn: (
     persistence: MockIndexedDbPersistence,
     document: FakeDocument,
-    queue: AsyncQueue
+    queue: AsyncQueueImpl
   ) => Promise<void>
 ): Promise<void> {
   return withCustomPersistence(
@@ -178,7 +183,7 @@ async function withMultiClientPersistence(
   fn: (
     persistence: MockIndexedDbPersistence,
     document: FakeDocument,
-    queue: AsyncQueue
+    queue: AsyncQueueImpl
   ) => Promise<void>
 ): Promise<void> {
   return withCustomPersistence(

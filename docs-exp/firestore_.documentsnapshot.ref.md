@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-readonly ref: DocumentReference<T>;
+get ref(): DocumentReference<T>;
 ```
