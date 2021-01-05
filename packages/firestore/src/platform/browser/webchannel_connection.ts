@@ -357,27 +357,20 @@ export class WebChannelConnection extends RestConnection {
       }
     );
 
-    let isLongPollingConnection: boolean | null = null;
-    let hasRaisedTimeToFirstByteEvent = false;
-
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
+      const statEventMs = new Date().getTime() - onOpenStreamTimestamp;
+
       if (event.stat === Stat.PROXY) {
         logDebug(LOG_TAG, 'Detected buffering proxy');
-        isLongPollingConnection = true;
+        streamBridge.callOnTimeToFirstByte(
+          /* isLongPollingConnection= */ true,
+          statEventMs
+        );
       } else if (event.stat === Stat.NOPROXY) {
         logDebug(LOG_TAG, 'Detected no buffering proxy');
-        isLongPollingConnection = false;
-      }
-
-      if (isLongPollingConnection !== null && !hasRaisedTimeToFirstByteEvent) {
-        hasRaisedTimeToFirstByteEvent = true;
-
-        const onStatEventTimestamp = new Date().getTime();
-        const timeToFirstByteMs = onStatEventTimestamp - onOpenStreamTimestamp;
-
         streamBridge.callOnTimeToFirstByte(
-          isLongPollingConnection,
-          timeToFirstByteMs
+          /* isLongPollingConnection= */ false,
+          statEventMs
         );
       }
     });
