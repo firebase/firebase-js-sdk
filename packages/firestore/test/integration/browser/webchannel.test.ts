@@ -20,7 +20,6 @@ import { expect } from 'chai';
 import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
-import { setLogLevel } from '@firebase/logger';
 import { DEFAULT_PROJECT_ID } from '../util/settings';
 
 /* eslint-disable no-restricted-globals */
@@ -33,11 +32,8 @@ const describeFn =
     : // eslint-disable-next-line no-restricted-globals,
       xdescribe;
 
-// Remove this before ship
-// setLogLevel('debug');
-
 describeFn('WebChannel', () => {
-  it.only('can detect the connection type', done => {
+  it('can detect the connection type', done => {
     const projectId = DEFAULT_PROJECT_ID;
     const info = getDefaultDatabaseInfo();
     const conn = new WebChannelConnection(info);
