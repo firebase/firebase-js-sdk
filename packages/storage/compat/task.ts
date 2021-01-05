@@ -31,20 +31,17 @@ import { ReferenceCompat } from './reference';
 import { FirebaseStorageError } from '../src/implementation/error';
 
 export class UploadTaskCompat implements types.UploadTask {
-  private readonly _snapshot: UploadTaskSnapshotCompat;
   constructor(
     private readonly _delegate: UploadTask,
     private readonly _ref: ReferenceCompat
-  ) {
-    this._snapshot = new UploadTaskSnapshotCompat(
+  ) {}
+
+  get snapshot(): UploadTaskSnapshotCompat {
+    return new UploadTaskSnapshotCompat(
       this._delegate.snapshot,
       this,
       this._ref
     );
-  }
-
-  get snapshot(): UploadTaskSnapshotCompat {
-    return this._snapshot;
   }
 
   cancel = this._delegate.cancel.bind(this._delegate);
