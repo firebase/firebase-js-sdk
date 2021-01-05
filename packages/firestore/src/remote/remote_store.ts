@@ -748,10 +748,12 @@ function onTimeToFirstByte(
   isLongPollingConnection: boolean,
   timeToFirstByteMs: number
 ): void {
-  remoteStoreImpl.remoteSyncer.handleTimeToFirstByte!(
-    isLongPollingConnection,
-    timeToFirstByteMs
-  );
+  if (remoteStoreImpl.remoteSyncer.handleTimeToFirstByte) {
+    remoteStoreImpl.remoteSyncer.handleTimeToFirstByte(
+      isLongPollingConnection,
+      timeToFirstByteMs
+    );
+  }
 }
 
 async function onWriteHandshakeComplete(
