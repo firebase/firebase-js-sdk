@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Bundle, NamedQuery } from '../core/bundle';
+import { BundleMetadata, NamedQuery } from '../core/bundle';
 import {
   NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata
@@ -35,7 +35,7 @@ export interface BundleCache {
   getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
-  ): PersistencePromise<Bundle | undefined>;
+  ): PersistencePromise<BundleMetadata | undefined>;
 
   /**
    * Saves a `BundleMetadata` from a bundle into local storage, using its id as
