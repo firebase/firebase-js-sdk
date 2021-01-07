@@ -21,8 +21,8 @@ import { expect } from 'chai';
 import { Firestore } from '../../../index.console';
 import { DEFAULT_DATABASE_NAME } from '../../../src/core/database_info';
 import { Deferred } from '../../../src/util/promise';
-import { TEST_PROJECT } from '../../unit/local/persistence_test_helpers';
 import { apiDescribe } from '../util/helpers';
+import { DEFAULT_PROJECT_ID } from '../util/settings';
 
 interface TimeToFirstByteResult {
   isLongPollingConnection: boolean;
@@ -35,7 +35,7 @@ apiDescribe('Standalone', (persistence: boolean) => {
     const db = new Firestore(
       {
         database: DEFAULT_DATABASE_NAME,
-        projectId: TEST_PROJECT /* REMOVE THIS COMMENT BEFORE SHIP `khanrafi-fb-sdk`*/
+        projectId: DEFAULT_PROJECT_ID
       },
       new Provider('auth-internal', new ComponentContainer('default')),
       (isLongPollingConnection, timeToFirstByte) =>
