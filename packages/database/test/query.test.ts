@@ -378,7 +378,7 @@ describe('Query Tests', () => {
       '{"sn":"name","sp":"pri"}'
     );
     expect(queryId(path.startAfter('pri', 'name'))).to.equal(
-      '{"sn":"namf","sp":"pri"}'
+      '{"sn":"name-","sp":"pri"}'
     );
     expect(queryId(path.startAt('spri').endAt('epri'))).to.equal(
       '{"ep":"epri","sp":"spri"}'
@@ -391,7 +391,7 @@ describe('Query Tests', () => {
     ).to.equal('{"en":"ename","ep":"epri","sn":"sname","sp":"spri"}');
     expect(
       queryId(path.startAfter('spri', 'sname').endAt('epri', 'ename'))
-    ).to.equal('{"en":"ename","ep":"epri","sn":"snamf","sp":"spri"}');
+    ).to.equal('{"en":"ename","ep":"epri","sn":"sname-","sp":"spri"}');
     expect(queryId(path.startAt('pri').limitToFirst(100))).to.equal(
       '{"l":100,"sp":"pri","vf":"l"}'
     );
@@ -1071,8 +1071,8 @@ describe('Query Tests', () => {
     expect(removed).to.equal('');
 
     added = '';
-    node.child('bb').set(4);
-    expect(added).to.equal('bb ');
+    node.child('aa').set(4);
+    expect(added).to.equal('aa ');
     expect(removed).to.equal('c ');
   });
 

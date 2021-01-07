@@ -396,8 +396,8 @@ describe('.orderBy tests', () => {
     const initial = { key: 'value' };
     ref.set(initial, err => {
       expect(err).to.be.null;
-      ref.orderByKey().on('value', () => { });
-      ref.on('value', () => { });
+      ref.orderByKey().on('value', () => {});
+      ref.on('value', () => {});
       // Should remove both listener and should remove the listen sent to the server
       ref.off();
 

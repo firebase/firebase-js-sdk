@@ -16,11 +16,17 @@
  */
 
 import { assert } from '@firebase/util';
-import { tryParseInt } from '../util/util';
+import { tryParseInt, MAX_NAME } from '../util/util';
 
 // Modeled after base64 web-safe chars, but ordered by ASCII.
 const PUSH_CHARS =
   '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+
+const MIN_PUSH_CHAR = '-';
+
+const MAX_PUSH_CHAR = 'z';
+
+const MAX_KEY_LEN = 786;
 
 /**
  * Fancy ID generator that creates 20-character string identifiers with the
@@ -108,4 +114,39 @@ export const nextAfter = function (key: string) {
     next[i] = key.charAt(i);
   }
   return next.join('');
+};
+
+export const nextAfterV2 = function (key: string) {
+  const keyAsInt: number = tryParseInt(key);
+  if (keyAsInt != null) {
+    return '' + (keyAsInt + 1);
+  }
+  let next = new Array(key.length);
+
+  for (let i = 0; i < next.length; i++) {
+    next[i] = key.charAt(i);
+  }
+
+  if (next.length < MAX_KEY_LEN) {
+    next.push(MIN_PUSH_CHAR);
+    return next.join('');
+  }
+
+  let i = next.length - 1;
+
+  while (i >= 0 && next[i] == MAX_PUSH_CHAR) {
+    i--;
+  }
+
+  // `nextAfter` was called on the largest possible key, so return the
+  // maxName, which sorts larger than all keys.
+  if (i == -1) {
+    return MAX_NAME;
+  }
+
+  let source = next[i];
+  let sourcePlusOne = PUSH_CHARS.charAt(PUSH_CHARS.indexOf(source) + 1);
+  next[i] = sourcePlusOne;
+
+  return next.toString();
 };
