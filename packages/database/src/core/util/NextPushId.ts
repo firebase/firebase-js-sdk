@@ -97,32 +97,6 @@ export const nextAfter = function (key: string) {
   }
   let next = new Array(key.length);
 
-  let i;
-  for (
-    i = key.length - 1;
-    i >= 0 && key.charAt(i) == PUSH_CHARS.charAt(PUSH_CHARS.length - 1);
-    i--
-  ) {
-    next[i] = PUSH_CHARS.charAt(0);
-  }
-  if (i == -1) {
-    next.push(PUSH_CHARS.charAt(0));
-  } else {
-    next[i] = PUSH_CHARS.charAt(PUSH_CHARS.indexOf(key.charAt(i)) + 1);
-  }
-  while (--i >= 0) {
-    next[i] = key.charAt(i);
-  }
-  return next.join('');
-};
-
-export const nextAfterV2 = function (key: string) {
-  const keyAsInt: number = tryParseInt(key);
-  if (keyAsInt != null) {
-    return '' + (keyAsInt + 1);
-  }
-  let next = new Array(key.length);
-
   for (let i = 0; i < next.length; i++) {
     next[i] = key.charAt(i);
   }
