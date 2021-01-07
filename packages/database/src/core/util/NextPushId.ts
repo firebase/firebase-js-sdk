@@ -124,3 +124,30 @@ export const nextAfter = function (key: string) {
 
   return next.toString();
 };
+
+// `key` is assumed to be non-empty.
+export const prevBefore = function (key: string) {
+  const keyAsInt: number = tryParseInt(key);
+  if (keyAsInt != null) {
+    return '' + (keyAsInt - 1);
+  }
+  let next = new Array(key.length);
+
+  for (let i = 0; i < next.length; i++) {
+    next[i] = key.charAt(i);
+  }
+  let pivot: number;
+  if (next[next.length - 1] == MIN_PUSH_CHAR) {
+    pivot = next.length - 1;
+  } else {
+    next[next.length - 1] = PUSH_CHARS.charAt(
+      PUSH_CHARS.indexOf(next[next.length - 1]) - 1
+    );
+    pivot = next.length;
+    next.length = MAX_KEY_LEN;
+  }
+  // This extends the array, allowing use of `Array.prototype.fill`.
+  next.length = MAX_KEY_LEN;
+  next.fill(MAX_PUSH_CHAR, pivot, MAX_KEY_LEN);
+  return next.toString();
+};

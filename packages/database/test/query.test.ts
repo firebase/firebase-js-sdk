@@ -54,6 +54,7 @@ describe('Query Tests', () => {
     path.startAt('199', 'test').limitToFirst(10);
     path.startAfter('199', 'test').limitToFirst(10);
     path.endAt('199').limitToLast(1);
+    path.endBefore('199').limitToLast(1);
     path.startAt('50', 'test').endAt('100', 'tree');
     path.startAfter('50', 'test').endAt('100', 'tree');
     path.startAt('4').endAt('10');
@@ -1404,14 +1405,71 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): test endBefore.
-  it('Ensure startAfter with priority works.', async () => {
+  it('Ensure startAfter / endAt with priority works.', async () => {
     const node = getRandomNode() as Reference;
 
     const tasks: TaskList = [
       [node.startAfter('w').endAt('y'), { b: 2, c: 3 }],
       [node.startAfter('w').endAt('x'), { c: 3 }],
       [node.startAfter('a').endAt('c'), null]
+    ];
+
+    await node.set({
+      a: { '.value': 1, '.priority': 'z' },
+      b: { '.value': 2, '.priority': 'y' },
+      c: { '.value': 3, '.priority': 'x' },
+      d: { '.value': 4, '.priority': 'w' }
+    });
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAt / endBefore with priority works.', async () => {
+    const node = getRandomNode() as Reference;
+
+    const tasks: TaskList = [
+      [node.startAt('w').endBefore('y'), { c: 3, d: 4 }],
+      [node.startAt('w').endBefore('x'), { d: 4 }],
+      [node.startAt('a').endBefore('c'), null]
+    ];
+
+    await node.set({
+      a: { '.value': 1, '.priority': 'z' },
+      b: { '.value': 2, '.priority': 'y' },
+      c: { '.value': 3, '.priority': 'x' },
+      d: { '.value': 4, '.priority': 'w' }
+    });
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAfter / endBefore with priority works.', async () => {
+    const node = getRandomNode() as Reference;
+
+    const tasks: TaskList = [
+      [node.startAfter('w').endBefore('z'), { b: 2, c: 3 }],
+      [node.startAfter('w').endBefore('y'), { c: 3 }],
+      [node.startAfter('w').endBefore('w'), null]
     ];
 
     await node.set({
@@ -1463,8 +1521,7 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): Test endBefore
-  it('Ensure startAfter with priority work with server data.', async () => {
+  it('Ensure startAfter / endAt with priority work with server data.', async () => {
     const node = getRandomNode() as Reference;
 
     await node.set({
@@ -1478,6 +1535,64 @@ describe('Query Tests', () => {
       [node.startAfter('w').endAt('y'), { b: 2, c: 3 }],
       [node.startAfter('w').endAt('x'), { c: 3 }],
       [node.startAfter('a').endAt('c'), null]
+    ];
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAt / endBefore with priority work with server data.', async () => {
+    const node = getRandomNode() as Reference;
+
+    await node.set({
+      a: { '.value': 1, '.priority': 'z' },
+      b: { '.value': 2, '.priority': 'y' },
+      c: { '.value': 3, '.priority': 'x' },
+      d: { '.value': 4, '.priority': 'w' }
+    });
+
+    const tasks: TaskList = [
+      [node.startAt('w').endBefore('y'), { c: 3, d: 4 }],
+      [node.startAt('w').endBefore('x'), { d: 4 }],
+      [node.startAt('a').endBefore('c'), null]
+    ];
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAfter / endBefore with priority work with server data.', async () => {
+    const node = getRandomNode() as Reference;
+
+    await node.set({
+      a: { '.value': 1, '.priority': 'z' },
+      b: { '.value': 2, '.priority': 'y' },
+      c: { '.value': 3, '.priority': 'x' },
+      d: { '.value': 4, '.priority': 'w' }
+    });
+
+    const tasks: TaskList = [
+      [node.startAfter('w').endBefore('z'), { b: 2, c: 3 }],
+      [node.startAfter('w').endBefore('y'), { c: 3 }],
+      [node.startAfter('w').endBefore('w'), null]
     ];
 
     return Promise.all(

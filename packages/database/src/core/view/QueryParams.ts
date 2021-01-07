@@ -17,7 +17,7 @@
 
 import { assert, stringify } from '@firebase/util';
 import { MIN_NAME, MAX_NAME } from '../util/util';
-import { nextAfter } from '../util/NextPushId';
+import { nextAfter, prevBefore } from '../util/NextPushId';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
@@ -41,6 +41,7 @@ export class QueryParams {
   private startAfterSet_ = false;
   private endSet_ = false;
   private endNameSet_ = false;
+  private endBeforeSet_ = false;
 
   private limit_ = 0;
   private viewFrom_ = '';
@@ -105,6 +106,13 @@ export class QueryParams {
    */
   hasStartAfter(): boolean {
     return this.startAfterSet_;
+  }
+
+  /**
+   * @return {boolean}
+   */
+  hasEndBefore(): boolean {
+    return this.endBeforeSet_;
   }
 
   /**
@@ -323,6 +331,23 @@ export class QueryParams {
       newParams.indexEndName_ = '';
     }
     return newParams;
+  }
+
+  /**
+   * @param {*} indexValue
+   * @param {?string=} key
+   * @return {!QueryParams}
+   */
+  endBefore(indexValue: unknown, key?: string | null): QueryParams {
+    let childKey: string;
+    if (key == null) {
+      childKey = MIN_NAME;
+    } else {
+      childKey = prevBefore(key);
+    }
+    const params: QueryParams = this.endAt(indexValue, childKey);
+    params.endBeforeSet_ = true;
+    return params;
   }
 
   /**
