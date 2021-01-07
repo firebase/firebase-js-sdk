@@ -29,8 +29,8 @@ import { PersistenceTransaction } from './persistence_transaction';
  */
 export interface BundleCache {
   /**
-   * Gets a saved `Bundle` for a given `bundleId`, returns undefined if
-   * no bundles are found under the given id.
+   * Gets the saved `BundleMetadata` for a given `bundleId`, returns undefined
+   * if no bundle metadata is found under the given id.
    */
   getBundleMetadata(
     transaction: PersistenceTransaction,

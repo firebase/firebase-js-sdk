@@ -306,7 +306,7 @@ function isDocumentQuery(dbQuery: DbQuery): dbQuery is PublicDocumentsTarget {
   return (dbQuery as PublicDocumentsTarget).documents !== undefined;
 }
 
-/** Encodes a DbBundle to a Bundle. */
+/** Encodes a DbBundle to a BundleMetadata object. */
 export function fromDbBundle(dbBundle: DbBundle): BundleMetadata {
   return {
     id: dbBundle.bundleId,
@@ -372,7 +372,7 @@ export function fromProtoNamedQuery(namedQuery: ProtoNamedQuery): NamedQuery {
   };
 }
 
-/** Encodes a BundleMetadata proto object to a Bundle model object. */
+/** Decodes a BundleMetadata proto into a BundleMetadata object. */
 export function fromBundleMetadata(
   metadata: ProtoBundleMetadata
 ): BundleMetadata {
