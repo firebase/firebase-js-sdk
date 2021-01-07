@@ -41,11 +41,10 @@
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/functions-exp": "0.0.900",
-    "@firebase/firestore": "2.1.1",
+    "@firebase/firestore": "2.1.2",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
     "@firebase/messaging-exp": "0.0.900"
-
   },
   "devDependencies": {
     "rollup": "2.33.2",
