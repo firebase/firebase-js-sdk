@@ -101,8 +101,7 @@ describeFn('WebChannel', () => {
       if (msg.targetChange) {
         didSendBadPayload = true;
         const payload = { ...ADD_TARGET };
-        payload.database =
-          ' projects/some-other-project-id/databases/(default)';
+        payload.database = 'projects/some-other-project-id/databases/(default)';
         stream.send(payload);
       }
     });
