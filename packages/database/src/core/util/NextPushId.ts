@@ -16,7 +16,7 @@
  */
 
 import { assert } from '@firebase/util';
-import { tryParseInt, MAX_NAME } from '../util/util';
+import { tryParseInt, MAX_NAME, MIN_NAME } from '../util/util';
 
 // Modeled after base64 web-safe chars, but ordered by ASCII.
 const PUSH_CHARS =
@@ -132,22 +132,29 @@ export const prevBefore = function (key: string) {
     return '' + (keyAsInt - 1);
   }
   let next = new Array(key.length);
-
   for (let i = 0; i < next.length; i++) {
     next[i] = key.charAt(i);
   }
-  let pivot: number;
   if (next[next.length - 1] == MIN_PUSH_CHAR) {
-    pivot = next.length - 1;
-  } else {
-    next[next.length - 1] = PUSH_CHARS.charAt(
-      PUSH_CHARS.indexOf(next[next.length - 1]) - 1
-    );
-    pivot = next.length;
-    next.length = MAX_KEY_LEN;
+    if (next.length == 1) {
+      // Empty keys are not allowed, but `MIN_NAME` sorts
+      // lower than any other key.
+      return MIN_NAME;
+    }
+    // If the last character is the smallest possible character,
+    // then the next smallest string is the prefix of `key` without
+    // it.
+    delete next[next.length - 1];
+    return next.toString();
   }
+  // Replace the last character with it's immediate predecessor, and
+  // fill the suffix of the key with MAX_PUSH_CHAR. This is the
+  // lexicographically largest possible key smaller than `key`.
+  next[next.length - 1] = PUSH_CHARS.charAt(
+    PUSH_CHARS.indexOf(next[next.length - 1]) - 1
+  );
   // This extends the array, allowing use of `Array.prototype.fill`.
   next.length = MAX_KEY_LEN;
-  next.fill(MAX_PUSH_CHAR, pivot, MAX_KEY_LEN);
+  next.fill(MAX_PUSH_CHAR, next.length, MAX_KEY_LEN);
   return next.toString();
 };
