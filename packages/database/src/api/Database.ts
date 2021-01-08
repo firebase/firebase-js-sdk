@@ -156,7 +156,7 @@ export class Database implements FirebaseService {
 
     const repoInfo = parsedURL.repoInfo;
     if (
-      !repoInfo.isCustomHost() &&
+      !this.repo_.repoInfo_.isCustomHost() &&
       repoInfo.host !== this.repo_.repoInfo_.host
     ) {
       fatal(

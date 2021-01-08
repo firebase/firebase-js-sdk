@@ -268,12 +268,12 @@ describe('Database Tests', () => {
   });
 
   it('refFromURL() validates domain', () => {
-    const db = (firebase as any).database();
-    expect(() => {
-      const ref = db.refFromURL(
-        'https://thisisnotarealfirebase.firebaseio.com/path/to/data'
-      );
-    }).to.throw(/does not match.*database/i);
+    const db = (firebase as any)
+      .app()
+      .database('https://thisisreal.firebaseio.com');
+    expect(() =>
+      db.refFromURL('https://thisisnotreal.firebaseio.com/path/to/data')
+    ).to.throw(/does not match.*database/i);
   });
 
   it('refFromURL() validates argument', () => {
