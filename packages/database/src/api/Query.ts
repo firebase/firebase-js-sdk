@@ -533,11 +533,6 @@ export class Query {
     return new Query(this.repo, this.path, newParams, this.orderByCalled_);
   }
 
-  /**
-   * @param {number|string|boolean|null} value
-   * @param {?string=} name
-   * @return {!Query}
-   */
   startAfter(
     value: number | string | boolean | null = null,
     name?: string | null
