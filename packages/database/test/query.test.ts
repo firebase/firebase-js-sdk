@@ -21,14 +21,13 @@ import { Reference } from '../src/api/Reference';
 import { DataSnapshot } from '../src/api/DataSnapshot';
 import { Query } from '../src/api/Query';
 import '../src/core/snap/ChildrenNode';
-import { INTEGER_32_MIN, INTEGER_32_MAX } from '../src/core/util/util';
 import { getRandomNode, getFreshRepo, getPath, pause } from './helpers/util';
 import {
   EventAccumulator,
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
-import { INTEGER_32_MAX } from '../src/core/util/util';
+import { INTEGER_32_MIN, INTEGER_32_MAX } from '../src/core/util/util';
 
 use(chaiAsPromised);
 
@@ -4185,13 +4184,10 @@ describe('Query Tests', () => {
         'a': true
       },
       () => {
-        ref
-          .startAfter(null, '' + INTEGER_32_MAX)
-          .endAt(null, '80')
-          .once('value', s => {
-            expect(s.val()).to.deep.equal({ 'a': true });
-            done();
-          });
+        ref.startAfter(null, '' + INTEGER_32_MAX).once('value', s => {
+          expect(s.val()).to.deep.equal({ 'a': true });
+          done();
+        });
       }
     );
   });

@@ -17,7 +17,7 @@
 
 import { assert, stringify } from '@firebase/util';
 import { MIN_NAME, MAX_NAME } from '../util/util';
-import { successor } from '../util/NextPushId';
+import { predecessor, successor } from '../util/NextPushId';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
