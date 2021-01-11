@@ -1933,7 +1933,7 @@ describe('Query Tests', () => {
 
   it('Ensure on() returns callback function.', () => {
     const node = getRandomNode() as Reference;
-    const callback = function () {};
+    const callback = function () { };
     const ret = node.on('value', callback);
     expect(ret).to.equal(callback);
   });
@@ -2099,10 +2099,10 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aOn = node.child('a').on('value', () => {});
+    const aOn = node.child('a').on('value', () => { });
     expect(dumpListens(node)).to.equal('/a:default');
 
-    const rootOn = node.on('value', () => {});
+    const rootOn = node.on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -2115,10 +2115,10 @@ describe('Query Tests', () => {
   it('Dedupe listens: listen on grandchild.', () => {
     const node = getRandomNode() as Reference;
 
-    const rootOn = node.on('value', () => {});
+    const rootOn = node.on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
-    const aaOn = node.child('a/aa').on('value', () => {});
+    const aaOn = node.child('a/aa').on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -2130,13 +2130,13 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aaOn = node.child('a/aa').on('value', () => {});
+    const aaOn = node.child('a/aa').on('value', () => { });
     expect(dumpListens(node)).to.equal('/a/aa:default');
 
-    const bbOn = node.child('a/bb').on('value', () => {});
+    const bbOn = node.child('a/bb').on('value', () => { });
     expect(dumpListens(node)).to.equal('/a/aa:default;/a/bb:default');
 
-    const rootOn = node.on('value', () => {});
+    const rootOn = node.on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -2156,16 +2156,16 @@ describe('Query Tests', () => {
     const aLim1On = node
       .child('a')
       .limitToLast(1)
-      .on('value', () => {});
+      .on('value', () => { });
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
-    const rootLim1On = node.limitToLast(1).on('value', () => {});
+    const rootLim1On = node.limitToLast(1).on('value', () => { });
     expect(dumpListens(node)).to.equal(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"}');
 
     const aLim5On = node
       .child('a')
       .limitToLast(5)
-      .on('value', () => {});
+      .on('value', () => { });
     expect(dumpListens(node)).to.equal(
       ':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}'
     );
@@ -2184,18 +2184,18 @@ describe('Query Tests', () => {
     const aLim1On = node
       .child('a')
       .limitToLast(1)
-      .on('value', () => {});
+      .on('value', () => { });
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
     const bLim1On = node
       .child('b')
       .limitToLast(1)
-      .on('value', () => {});
+      .on('value', () => { });
     expect(dumpListens(node)).to.equal(
       '/a:{"l":1,"vf":"r"};/b:{"l":1,"vf":"r"}'
     );
 
-    const rootOn = node.on('value', () => {});
+    const rootOn = node.on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
     // remove in slightly random order.
@@ -3760,7 +3760,6 @@ describe('Query Tests', () => {
       () => {
         ref
           .startAfter(null, '' + INTEGER_32_MAX)
-          .endAt(null, '80')
           .once('value', s => {
             expect(s.val()).to.deep.equal({ 'a': true });
             done();
