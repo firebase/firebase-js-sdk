@@ -16,7 +16,13 @@
  */
 
 import { assert } from '@firebase/util';
-import { tryParseInt, MAX_NAME, MIN_NAME } from '../util/util';
+import {
+  tryParseInt,
+  MAX_NAME,
+  MIN_NAME,
+  INTEGER_32_MIN,
+  INTEGER_32_MAX
+} from '../util/util';
 
 // Modeled after base64 web-safe chars, but ordered by ASCII.
 const PUSH_CHARS =
@@ -126,26 +132,36 @@ export const nextAfter = function (key: string) {
 };
 
 // `key` is assumed to be non-empty.
-export const prevBefore = function (key: string) {
+export const predecessor = function (key: string) {
+  if (key === '' + INTEGER_32_MIN) {
+    return MIN_NAME;
+  }
   const keyAsInt: number = tryParseInt(key);
   if (keyAsInt != null) {
     return '' + (keyAsInt - 1);
   }
-  let next = new Array(key.length);
+  const next = new Array(key.length);
   for (let i = 0; i < next.length; i++) {
     next[i] = key.charAt(i);
   }
-  if (next[next.length - 1] == MIN_PUSH_CHAR) {
-    if (next.length == 1) {
-      // Empty keys are not allowed, but `MIN_NAME` sorts
-      // lower than any other key.
-      return MIN_NAME;
+  // If `key` ends in `MIN_PUSH_CHAR`, the largest key lexicographically
+  // smaller than `key`, is `key[0:key.length - 1]`. The next key smaller
+  // than that, `predecessor(predecessor(key))`, is
+  //
+  // `key[0:key.length - 2] + (key[key.length - 1] - 1) + \
+  //   { MAX_PUSH_CHAR repeated MAX_KEY_LEN - (key.length - 1) times }
+  //
+  // analogous to increment/decrement for base-10 integers.
+  //
+  // This works because lexigographic comparison works character-by-character,
+  // using length as a tie-breaker if one key is a prefix of the other.
+  if (next[next.length - 1] === MIN_PUSH_CHAR) {
+    if (next.length === 1) {
+      // See https://firebase.google.com/docs/database/web/lists-of-data#orderbykey
+      return '' + INTEGER_32_MAX;
     }
-    // If the last character is the smallest possible character,
-    // then the next smallest string is the prefix of `key` without
-    // it.
     delete next[next.length - 1];
-    return next.toString();
+    return next.join('');
   }
   // Replace the last character with it's immediate predecessor, and
   // fill the suffix of the key with MAX_PUSH_CHAR. This is the
@@ -153,8 +169,5 @@ export const prevBefore = function (key: string) {
   next[next.length - 1] = PUSH_CHARS.charAt(
     PUSH_CHARS.indexOf(next[next.length - 1]) - 1
   );
-  // This extends the array, allowing use of `Array.prototype.fill`.
-  next.length = MAX_KEY_LEN;
-  next.fill(MAX_PUSH_CHAR, next.length, MAX_KEY_LEN);
-  return next.toString();
+  return next.join('') + MAX_PUSH_CHAR.repeat(MAX_KEY_LEN - next.length);
 };

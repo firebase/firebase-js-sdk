@@ -114,7 +114,7 @@ export class Query {
         const endName = params.getIndexEndName();
         if (
           endName !== MAX_NAME &&
-          !(params.hasEndBefore() && endName == MIN_NAME)
+          !(params.hasEndBefore() && endName === MIN_NAME)
         ) {
           throw new Error(tooManyArgsError);
         } else if (typeof endNode !== 'string') {
@@ -580,7 +580,7 @@ export class Query {
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasEnd()) {
       throw new Error(
-        'Query.endAt: Ending point was already set (by another call to endAt or ' +
+        'Query.endAt: Ending point was already set (by another call to endAt, endBefore, or ' +
           'equalTo).'
       );
     }
@@ -588,11 +588,6 @@ export class Query {
     return new Query(this.repo, this.path, newParams, this.orderByCalled_);
   }
 
-  /**
-   * @param {number|string|boolean|null} value
-   * @param {?string=} name
-   * @return {!Query}
-   */
   endBefore(
     value: number | string | boolean | null = null,
     name?: string | null
@@ -606,7 +601,7 @@ export class Query {
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasEnd()) {
       throw new Error(
-        'Query.endAt: Ending point was already set (by another call to endAt or ' +
+        'Query.endBefore: Ending point was already set (by another call to endAt, endBefore, or ' +
           'equalTo).'
       );
     }
