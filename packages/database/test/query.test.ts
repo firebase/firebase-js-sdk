@@ -21,6 +21,7 @@ import { Reference } from '../src/api/Reference';
 import { DataSnapshot } from '../src/api/DataSnapshot';
 import { Query } from '../src/api/Query';
 import '../src/core/snap/ChildrenNode';
+import { INTEGER_32_MIN, INTEGER_32_MAX } from '../src/core/util/util';
 import { getRandomNode, getFreshRepo, getPath, pause } from './helpers/util';
 import {
   EventAccumulator,
@@ -1637,7 +1638,6 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): Test endBefore.
   it('Ensure startAfter / endAt with priority and name works.', async () => {
     const node = getRandomNode() as Reference;
 
@@ -2362,7 +2362,7 @@ describe('Query Tests', () => {
     expect(val).to.deep.equal({ a: 0, b: 1, c: 2 });
   });
 
-  it('null priorities included in endBefore(2).', async () => {
+  it('null priorities included in endBefore.', async () => {
     const f = getRandomNode() as Reference;
 
     f.set({
@@ -4144,7 +4144,7 @@ describe('Query Tests', () => {
     );
   });
 
-  it('Integer keys behave numerically 4.', done => {
+  it('Integer keys behave numerically with endBefore.', done => {
     const ref = getRandomNode() as Reference;
     ref.set(
       {
@@ -4163,6 +4163,60 @@ describe('Query Tests', () => {
             1: true,
             6: true,
             8: true
+          });
+          done();
+        });
+      }
+    );
+  });
+
+  it('Integer keys behave numerically with endBefore with underflow.', done => {
+    const ref = getRandomNode() as Reference;
+    ref.set(
+      {
+        1: true,
+        50: true,
+        550: true,
+        6: true,
+        600: true,
+        70: true,
+        8: true,
+        80: true
+      },
+      () => {
+        ref.endBefore(null, '' + INTEGER_32_MIN).once('value', s => {
+          expect(s.val()).to.deep.equal(null);
+          done();
+        });
+      }
+    );
+  });
+
+  it('Integer keys behave numerically with endBefore at boundary.', done => {
+    const ref = getRandomNode() as Reference;
+    ref.set(
+      {
+        1: true,
+        50: true,
+        550: true,
+        6: true,
+        600: true,
+        70: true,
+        8: true,
+        80: true,
+        'a': true
+      },
+      () => {
+        ref.endBefore(null, '' + INTEGER_32_MAX).once('value', s => {
+          expect(s.val()).to.deep.equal({
+            1: true,
+            50: true,
+            550: true,
+            6: true,
+            600: true,
+            70: true,
+            8: true,
+            80: true
           });
           done();
         });
