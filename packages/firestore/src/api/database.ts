@@ -55,6 +55,7 @@ import {
   enableNetwork,
   ensureFirestoreConfigured,
   FirebaseFirestore as ExpFirebaseFirestore,
+  useFirestoreEmulator,
   waitForPendingWrites
 } from '../exp/database';
 import { FieldPath as ExpFieldPath } from '../exp/field_path';
@@ -95,7 +96,6 @@ import {
   updateDoc,
   Unsubscribe
 } from '../exp/reference_impl';
-import { DEFAULT_HOST } from '../exp/settings';
 import {
   DocumentChange as ExpDocumentChange,
   DocumentSnapshot as ExpDocumentSnapshot,
@@ -118,7 +118,7 @@ import {
   validateIsNotUsedTogether,
   validateSetOptions
 } from '../util/input_validation';
-import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
+import { setLogLevel as setClientLogLevel } from '../util/log';
 
 import { Blob } from './blob';
 import { LoadBundleTask } from './bundle';
@@ -236,17 +236,7 @@ export class Firestore
   }
 
   useEmulator(host: string, port: number): void {
-    if (this._delegate._getSettings().host !== DEFAULT_HOST) {
-      logWarn(
-        'Host has been set in both settings() and useEmulator(), emulator host will be used'
-      );
-    }
-
-    this.settings({
-      host: `${host}:${port}`,
-      ssl: false,
-      merge: true
-    });
+    useFirestoreEmulator(this._delegate, host, port);
   }
 
   enableNetwork(): Promise<void> {
@@ -406,11 +396,14 @@ export function setLogLevel(level: PublicLogLevel): void {
 export class Transaction
   extends Compat<ExpTransaction>
   implements PublicTransaction {
+  private _userDataWriter: UserDataWriter;
+
   constructor(
     private readonly _firestore: Firestore,
     delegate: ExpTransaction
   ) {
     super(delegate);
+    this._userDataWriter = new UserDataWriter(_firestore);
   }
 
   get<T>(
@@ -419,7 +412,20 @@ export class Transaction
     const ref = castReference(documentRef);
     return this._delegate
       .get(ref)
-      .then(result => new DocumentSnapshot(this._firestore, result));
+      .then(
+        result =>
+          new DocumentSnapshot(
+            this._firestore,
+            new ExpDocumentSnapshot<T>(
+              this._firestore._delegate,
+              this._userDataWriter,
+              result._key,
+              result._document,
+              result.metadata,
+              ref._converter
+            )
+          )
+      );
   }
 
   set<T>(

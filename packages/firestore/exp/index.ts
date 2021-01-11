@@ -31,7 +31,8 @@ export {
   waitForPendingWrites,
   disableNetwork,
   enableNetwork,
-  terminate
+  terminate,
+  useFirestoreEmulator
 } from '../src/exp/database';
 
 export { Settings, PersistenceSettings } from '../src/exp/settings';

@@ -1,5 +1,19 @@
 # @firebase/firestore
 
+## 2.1.2
+
+### Patch Changes
+
+- [`6069b1d6c`](https://github.com/firebase/firebase-js-sdk/commit/6069b1d6c521d05dde821f21bcc7e02913180ae5) [#4262](https://github.com/firebase/firebase-js-sdk/pull/4262) (fixes [#4253](https://github.com/firebase/firebase-js-sdk/issues/4253)) - Updated an outdated error message to include '!=' and 'not-in' as an inequalities.
+
+* [`ba59a0f90`](https://github.com/firebase/firebase-js-sdk/commit/ba59a0f909a1eb59d23b887bba30b6f86d63c931) [#4233](https://github.com/firebase/firebase-js-sdk/pull/4233) (fixes [#4226](https://github.com/firebase/firebase-js-sdk/issues/4226)) - Fixes an issue in the Transaction API that caused the SDK to return invalid DocumentReferences through `DocumentSnapshot.data()` calls.
+
+## 2.1.1
+
+### Patch Changes
+
+- [`44b5251d0`](https://github.com/firebase/firebase-js-sdk/commit/44b5251d0527d1aa768959765ff04093a04dd8ab) [#4189](https://github.com/firebase/firebase-js-sdk/pull/4189) (fixes [#4175](https://github.com/firebase/firebase-js-sdk/issues/4175)) - Fixes an issue that prevented the SDK from automatically retrieving custom User claims.
+
 ## 2.1.0
 
 ### Minor Changes

@@ -105,25 +105,6 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   }
 
   /**
-   * Verifies a snapshot containing setData but using the previous field value
-   * for the timestamps.
-   */
-  function verifyTimestampsUsePreviousValue(
-    current: firestore.DocumentSnapshot,
-    prev: firestore.DocumentSnapshot | null
-  ): void {
-    if (!prev) {
-      verifyTimestampsAreNull(current);
-    } else {
-      expect(current.exists).to.equal(true);
-      const when = prev.get('when');
-      expect(current.data({ serverTimestamps: 'previous' })).to.deep.equal(
-        expectedDataWithTimestamp(when)
-      );
-    }
-  }
-
-  /**
    * Wraps a test, getting a docRef and event accumulator, and cleaning them
    * up when done.
    */
@@ -204,34 +185,6 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
         .then(() => docRef.update(updateData))
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsAreEstimates(snapshot));
-    });
-  });
-
-  it('can return previous value', () => {
-    // The following test includes an update of the nested map "deep", which
-    // updates it to contain a single ServerTimestamp. This update is split
-    // into two mutations: One that sets "deep" to an empty map and overwrites
-    // the previous ServerTimestamp value and a second transform that writes
-    // the new ServerTimestamp. This step in the test verifies that we can
-    // still access the old ServerTimestamp value (from `previousSnapshot`) even
-    // though it was removed in an intermediate step.
-
-    let previousSnapshot: firestore.DocumentSnapshot;
-
-    return withTestSetup(() => {
-      return writeInitialData()
-        .then(() => docRef.update(updateData))
-        .then(() => accumulator.awaitLocalEvent())
-        .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
-        .then(() => accumulator.awaitRemoteEvent())
-        .then(snapshot => {
-          previousSnapshot = snapshot;
-        })
-        .then(() => docRef.update(updateData))
-        .then(() => accumulator.awaitLocalEvent())
-        .then(snapshot =>
-          verifyTimestampsUsePreviousValue(snapshot, previousSnapshot)
-        );
     });
   });
 

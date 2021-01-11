@@ -30,9 +30,15 @@ import {
 import { DatabaseId } from '../core/database_info';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
+import { logWarn } from '../util/log';
 
 import { FirestoreService, removeComponents } from './components';
-import { FirestoreSettings, PrivateSettings, Settings } from './settings';
+import {
+  DEFAULT_HOST,
+  FirestoreSettings,
+  PrivateSettings,
+  Settings
+} from './settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -192,6 +198,39 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
 }
 
 /**
+ * Modify this instance to communicate with the Cloud Firestore emulator.
+ *
+ * Note: This must be called before this instance has been used to do any
+ * operations.
+ *
+ * @param firestore - The Firestore instance to configure to connect to the
+ * emulator.
+ * @param host - the emulator host (ex: localhost).
+ * @param port - the emulator port (ex: 9000).
+ */
+export function useFirestoreEmulator(
+  firestore: FirebaseFirestore,
+  host: string,
+  port: number
+): void {
+  firestore = cast(firestore, FirebaseFirestore);
+  const settings = firestore._getSettings();
+
+  if (settings.host !== DEFAULT_HOST && settings.host !== host) {
+    logWarn(
+      'Host has been set in both settings() and useEmulator(), emulator host ' +
+        'will be used'
+    );
+  }
+
+  firestore._setSettings({
+    ...settings,
+    host: `${host}:${port}`,
+    ssl: false
+  });
+}
+
+/**
  * Terminates the provided Firestore instance.
  *
  * After calling `terminate()` only the `clearIndexedDbPersistence()` functions
@@ -207,6 +246,7 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * its resources or in combination with {@link clearIndexedDbPersistence} to
  * ensure that all local state is destroyed between test runs.
  *
+ * @param firestore - The Firestore instance to terminate.
  * @returns A promise that is resolved when the instance has been successfully
  * terminated.
  */

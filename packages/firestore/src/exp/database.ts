@@ -53,6 +53,8 @@ import { Deferred } from '../util/promise';
 
 import { PersistenceSettings, Settings } from './settings';
 
+export { useFirestoreEmulator } from '../lite/database';
+
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;

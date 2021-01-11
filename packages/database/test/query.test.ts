@@ -2272,7 +2272,7 @@ describe('Query Tests', () => {
 
   it('Ensure on() returns callback function.', () => {
     const node = getRandomNode() as Reference;
-    const callback = function () {};
+    const callback = function () { };
     const ret = node.on('value', callback);
     expect(ret).to.equal(callback);
   });
@@ -2457,10 +2457,10 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aOn = node.child('a').on('value', () => {});
+    const aOn = node.child('a').on('value', () => { });
     expect(dumpListens(node)).to.equal('/a:default');
 
-    const rootOn = node.on('value', () => {});
+    const rootOn = node.on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -2473,10 +2473,10 @@ describe('Query Tests', () => {
   it('Dedupe listens: listen on grandchild.', () => {
     const node = getRandomNode() as Reference;
 
-    const rootOn = node.on('value', () => {});
+    const rootOn = node.on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
-    const aaOn = node.child('a/aa').on('value', () => {});
+    const aaOn = node.child('a/aa').on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -2488,13 +2488,13 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aaOn = node.child('a/aa').on('value', () => {});
+    const aaOn = node.child('a/aa').on('value', () => { });
     expect(dumpListens(node)).to.equal('/a/aa:default');
 
-    const bbOn = node.child('a/bb').on('value', () => {});
+    const bbOn = node.child('a/bb').on('value', () => { });
     expect(dumpListens(node)).to.equal('/a/aa:default;/a/bb:default');
 
-    const rootOn = node.on('value', () => {});
+    const rootOn = node.on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -2514,16 +2514,16 @@ describe('Query Tests', () => {
     const aLim1On = node
       .child('a')
       .limitToLast(1)
-      .on('value', () => {});
+      .on('value', () => { });
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
-    const rootLim1On = node.limitToLast(1).on('value', () => {});
+    const rootLim1On = node.limitToLast(1).on('value', () => { });
     expect(dumpListens(node)).to.equal(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"}');
 
     const aLim5On = node
       .child('a')
       .limitToLast(5)
-      .on('value', () => {});
+      .on('value', () => { });
     expect(dumpListens(node)).to.equal(
       ':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}'
     );
@@ -2542,18 +2542,18 @@ describe('Query Tests', () => {
     const aLim1On = node
       .child('a')
       .limitToLast(1)
-      .on('value', () => {});
+      .on('value', () => { });
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
     const bLim1On = node
       .child('b')
       .limitToLast(1)
-      .on('value', () => {});
+      .on('value', () => { });
     expect(dumpListens(node)).to.equal(
       '/a:{"l":1,"vf":"r"};/b:{"l":1,"vf":"r"}'
     );
 
-    const rootOn = node.on('value', () => {});
+    const rootOn = node.on('value', () => { });
     expect(dumpListens(node)).to.equal(':default');
 
     // remove in slightly random order.
@@ -4265,188 +4265,193 @@ describe('Query Tests', () => {
             70: true,
             8: true,
             80: true
+        ref
+          .startAfter(null, '' + INTEGER_32_MAX)
+              .once('value', s => {
+                expect(s.val()).to.deep.equal({ 'a': true });
+                done();
+              });
+            done();
           });
+        }
+        );
+      });
+
+    it('.limitToLast() on node with priority.', done => {
+      const ref = getRandomNode() as Reference;
+      ref.set({ a: 'blah', '.priority': 'priority' }, () => {
+        ref.limitToLast(2).once('value', s => {
+          expect(s.exportVal()).to.deep.equal({ a: 'blah' });
           done();
         });
-      }
-    );
-  });
-
-  it('.limitToLast() on node with priority.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set({ a: 'blah', '.priority': 'priority' }, () => {
-      ref.limitToLast(2).once('value', s => {
-        expect(s.exportVal()).to.deep.equal({ a: 'blah' });
-        done();
       });
     });
-  });
 
-  it('.equalTo works', async () => {
-    const ref = getRandomNode() as Reference;
-    const done = false;
+    it('.equalTo works', async () => {
+      const ref = getRandomNode() as Reference;
+      const done = false;
 
-    await ref.set({
-      a: 1,
-      b: { '.priority': 2, '.value': 2 },
-      c: { '.priority': '3', '.value': 3 }
+      await ref.set({
+        a: 1,
+        b: { '.priority': 2, '.value': 2 },
+        c: { '.priority': '3', '.value': 3 }
+      });
+
+      const snap1 = await ref.equalTo(2).once('value');
+      const val1 = snap1.exportVal();
+      expect(val1).to.deep.equal({ b: { '.priority': 2, '.value': 2 } });
+
+      const snap2 = await ref.equalTo('3', 'c').once('value');
+
+      const val2 = snap2.exportVal();
+      expect(val2).to.deep.equal({ c: { '.priority': '3', '.value': 3 } });
+
+      const snap3 = await ref.equalTo(null, 'c').once('value');
+      const val3 = snap3.exportVal();
+      expect(val3).to.be.null;
     });
 
-    const snap1 = await ref.equalTo(2).once('value');
-    const val1 = snap1.exportVal();
-    expect(val1).to.deep.equal({ b: { '.priority': 2, '.value': 2 } });
+    it('Handles fallback for orderBy', async () => {
+      const ref = getRandomNode() as Reference;
 
-    const snap2 = await ref.equalTo('3', 'c').once('value');
+      const children = [];
 
-    const val2 = snap2.exportVal();
-    expect(val2).to.deep.equal({ c: { '.priority': '3', '.value': 3 } });
+      ref.orderByChild('foo').on('child_added', snap => {
+        children.push(snap.key);
+      });
 
-    const snap3 = await ref.equalTo(null, 'c').once('value');
-    const val3 = snap3.exportVal();
-    expect(val3).to.be.null;
-  });
+      // Set initial data
+      await ref.set({
+        a: { foo: 3 },
+        b: { foo: 1 },
+        c: { foo: 2 }
+      });
 
-  it('Handles fallback for orderBy', async () => {
-    const ref = getRandomNode() as Reference;
-
-    const children = [];
-
-    ref.orderByChild('foo').on('child_added', snap => {
-      children.push(snap.key);
+      expect(children).to.deep.equal(['b', 'c', 'a']);
     });
 
-    // Set initial data
-    await ref.set({
-      a: { foo: 3 },
-      b: { foo: 1 },
-      c: { foo: 2 }
+    it('Get notified of deletes that happen while offline.', async () => {
+      const refPair = getRandomNode(2);
+      const queryRef = refPair[0];
+      const writerRef = refPair[1];
+      let readSnapshot = null;
+
+      // Write 3 children and then start our limit query.
+      await writerRef.set({ a: 1, b: 2, c: 3 });
+
+      const ea = EventAccumulatorFactory.waitsForCount(1);
+      queryRef.limitToLast(3).on('value', s => {
+        readSnapshot = s;
+        if (readSnapshot) {
+          ea.addEvent();
+        }
+      });
+
+      // Wait for us to read the 3 children.
+      await ea.promise;
+
+      expect(readSnapshot.val()).to.deep.equal({ a: 1, b: 2, c: 3 });
+
+      queryRef.database.goOffline();
+
+      // Delete an item in the query and then bring our connection back up.
+      ea.reset();
+      await writerRef.child('b').remove();
+      queryRef.database.goOnline();
+
+      await ea.promise;
+      expect(readSnapshot.child('b').val()).to.be.null;
     });
 
-    expect(children).to.deep.equal(['b', 'c', 'a']);
-  });
+    it('Snapshot children respect default ordering', done => {
+      const refPair = getRandomNode(2);
+      const queryRef = refPair[0],
+        writerRef = refPair[1];
 
-  it('Get notified of deletes that happen while offline.', async () => {
-    const refPair = getRandomNode(2);
-    const queryRef = refPair[0];
-    const writerRef = refPair[1];
-    let readSnapshot = null;
+      const list = {
+        a: {
+          thisvaluefirst: { '.value': true, '.priority': 1 },
+          name: { '.value': 'Michael', '.priority': 2 },
+          thisvaluelast: { '.value': true, '.priority': 3 }
+        },
+        b: {
+          thisvaluefirst: { '.value': true, '.priority': null },
+          name: { '.value': 'Rob', '.priority': 2 },
+          thisvaluelast: { '.value': true, '.priority': 3 }
+        },
+        c: {
+          thisvaluefirst: { '.value': true, '.priority': 1 },
+          name: { '.value': 'Jonny', '.priority': 2 },
+          thisvaluelast: { '.value': true, '.priority': 'somestring' }
+        }
+      };
 
-    // Write 3 children and then start our limit query.
-    await writerRef.set({ a: 1, b: 2, c: 3 });
+      writerRef.set(list, () => {
+        queryRef.orderByChild('name').once('value', snap => {
+          const expectedKeys = ['thisvaluefirst', 'name', 'thisvaluelast'];
+          const expectedNames = ['Jonny', 'Michael', 'Rob'];
 
-    const ea = EventAccumulatorFactory.waitsForCount(1);
-    queryRef.limitToLast(3).on('value', s => {
-      readSnapshot = s;
-      if (readSnapshot) {
-        ea.addEvent();
-      }
-    });
-
-    // Wait for us to read the 3 children.
-    await ea.promise;
-
-    expect(readSnapshot.val()).to.deep.equal({ a: 1, b: 2, c: 3 });
-
-    queryRef.database.goOffline();
-
-    // Delete an item in the query and then bring our connection back up.
-    ea.reset();
-    await writerRef.child('b').remove();
-    queryRef.database.goOnline();
-
-    await ea.promise;
-    expect(readSnapshot.child('b').val()).to.be.null;
-  });
-
-  it('Snapshot children respect default ordering', done => {
-    const refPair = getRandomNode(2);
-    const queryRef = refPair[0],
-      writerRef = refPair[1];
-
-    const list = {
-      a: {
-        thisvaluefirst: { '.value': true, '.priority': 1 },
-        name: { '.value': 'Michael', '.priority': 2 },
-        thisvaluelast: { '.value': true, '.priority': 3 }
-      },
-      b: {
-        thisvaluefirst: { '.value': true, '.priority': null },
-        name: { '.value': 'Rob', '.priority': 2 },
-        thisvaluelast: { '.value': true, '.priority': 3 }
-      },
-      c: {
-        thisvaluefirst: { '.value': true, '.priority': 1 },
-        name: { '.value': 'Jonny', '.priority': 2 },
-        thisvaluelast: { '.value': true, '.priority': 'somestring' }
-      }
-    };
-
-    writerRef.set(list, () => {
-      queryRef.orderByChild('name').once('value', snap => {
-        const expectedKeys = ['thisvaluefirst', 'name', 'thisvaluelast'];
-        const expectedNames = ['Jonny', 'Michael', 'Rob'];
-
-        // Validate that snap.child() resets order to default for child snaps
-        const orderedKeys = [];
-        snap.child('b').forEach(childSnap => {
-          orderedKeys.push(childSnap.key);
-        });
-        expect(orderedKeys).to.deep.equal(expectedKeys);
-
-        // Validate that snap.forEach() resets ordering to default for child snaps
-        const orderedNames = [];
-        snap.forEach(childSnap => {
-          orderedNames.push(childSnap.child('name').val());
+          // Validate that snap.child() resets order to default for child snaps
           const orderedKeys = [];
-          childSnap.forEach(grandchildSnap => {
-            orderedKeys.push(grandchildSnap.key);
+          snap.child('b').forEach(childSnap => {
+            orderedKeys.push(childSnap.key);
           });
-          expect(orderedKeys).to.deep.equal([
-            'thisvaluefirst',
-            'name',
-            'thisvaluelast'
-          ]);
+          expect(orderedKeys).to.deep.equal(expectedKeys);
+
+          // Validate that snap.forEach() resets ordering to default for child snaps
+          const orderedNames = [];
+          snap.forEach(childSnap => {
+            orderedNames.push(childSnap.child('name').val());
+            const orderedKeys = [];
+            childSnap.forEach(grandchildSnap => {
+              orderedKeys.push(grandchildSnap.key);
+            });
+            expect(orderedKeys).to.deep.equal([
+              'thisvaluefirst',
+              'name',
+              'thisvaluelast'
+            ]);
+          });
+          expect(orderedNames).to.deep.equal(expectedNames);
+          done();
         });
-        expect(orderedNames).to.deep.equal(expectedNames);
-        done();
       });
     });
-  });
 
-  it('Adding listens for the same paths does not check fail', done => {
-    // This bug manifests itself if there's a hierarchy of query listener, default listener and one-time listener
-    // underneath. During one-time listener registration, sync-tree traversal stopped as soon as it found a complete
-    // server cache (this is the case for not indexed query view). The problem is that the same traversal was
-    // looking for a ancestor default view, and the early exit prevented from finding the default listener above the
-    // one-time listener. Event removal code path wasn't removing the listener because it stopped as soon as it
-    // found the default view. This left the zombie one-time listener and check failed on the second attempt to
-    // create a listener for the same path (asana#61028598952586).
-    const ref = getRandomNode(1)[0];
+    it('Adding listens for the same paths does not check fail', done => {
+      // This bug manifests itself if there's a hierarchy of query listener, default listener and one-time listener
+      // underneath. During one-time listener registration, sync-tree traversal stopped as soon as it found a complete
+      // server cache (this is the case for not indexed query view). The problem is that the same traversal was
+      // looking for a ancestor default view, and the early exit prevented from finding the default listener above the
+      // one-time listener. Event removal code path wasn't removing the listener because it stopped as soon as it
+      // found the default view. This left the zombie one-time listener and check failed on the second attempt to
+      // create a listener for the same path (asana#61028598952586).
+      const ref = getRandomNode(1)[0];
 
-    ref.child('child').set({ name: 'John' }, () => {
-      ref
-        .orderByChild('name')
-        .equalTo('John')
-        .on('value', snap => {
-          ref.child('child').on('value', snap => {
-            ref
-              .child('child')
-              .child('favoriteToy')
-              .once('value', snap => {
-                ref
-                  .child('child')
-                  .child('favoriteToy')
-                  .once('value', snap => {
-                    done();
-                  });
-              });
+      ref.child('child').set({ name: 'John' }, () => {
+        ref
+          .orderByChild('name')
+          .equalTo('John')
+          .on('value', snap => {
+            ref.child('child').on('value', snap => {
+              ref
+                .child('child')
+                .child('favoriteToy')
+                .once('value', snap => {
+                  ref
+                    .child('child')
+                    .child('favoriteToy')
+                    .once('value', snap => {
+                      done();
+                    });
+                });
+            });
           });
-        });
+      });
+    });
+
+    it('Can JSON serialize refs', () => {
+      const ref = getRandomNode() as Reference;
+      expect(JSON.stringify(ref)).to.equal('"' + ref.toString() + '"');
     });
   });
-
-  it('Can JSON serialize refs', () => {
-    const ref = getRandomNode() as Reference;
-    expect(JSON.stringify(ref)).to.equal('"' + ref.toString() + '"');
-  });
-});
