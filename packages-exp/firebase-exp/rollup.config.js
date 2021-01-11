@@ -121,43 +121,6 @@ const appBuilds = [
   }
 ];
 
-const messagingBuilds = [
-  /**
-   * Messaging Browser Builds
-   */
-  {
-    input: 'messaging/index.ts',
-    output: [
-      {
-        file: resolve('messaging', appPkg.main),
-        format: 'cjs',
-        sourcemap: true
-      },
-      {
-        file: resolve('messaging', appPkg.module),
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: [...plugins, typescriptPlugin],
-    external
-  },
-
-  /**
-   * Messaging UMD Builds. Required for FM SDK to work but sw does yet support modules.
-   */
-  {
-    input: 'messaging/index.cdn.ts',
-    output: {
-      file: 'firebase-messaging.js',
-      sourcemap: true,
-      format: 'umd',
-      name: `${GLOBAL_NAME}.app`
-    },
-    plugins: [...plugins, typescriptPluginUMD, uglify()]
-  }
-];
-
 const componentBuilds = pkg.components
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
@@ -166,6 +129,38 @@ const componentBuilds = pkg.components
     // It is needed for handling sub modules, for example firestore/lite which should produce firebase-firestore-lite.js
     // Otherwise, we will create a directory with '/' in the name.
     const componentName = component.replace('/', '-');
+
+    if (component === 'messaging') {
+      return [
+        {
+          input: `${component}/index.cdn.ts`,
+          output: [
+            {
+              file: resolve(component, pkg.main),
+              format: 'cjs',
+              sourcemap: true
+            },
+            {
+              file: resolve(component, pkg.module),
+              format: 'es',
+              sourcemap: true
+            }
+          ],
+          plugins: [...plugins, typescriptPlugin],
+          external
+        },
+        {
+          input: `${component}/index.cdn.ts`,
+          output: createUmdOutputConfig(
+            `firebase-${componentName}.js`,
+            componentName
+          ),
+          plugins: [...plugins, typescriptPluginUMD, uglify()],
+          external: ['@firebase/app-exp']
+        }
+      ];
+    }
+
     return [
       {
         input: `${component}/index.ts`,
@@ -197,4 +192,4 @@ const componentBuilds = pkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
-export default [...appBuilds, ...messagingBuilds, ...componentBuilds];
+export default [...appBuilds, ...componentBuilds];

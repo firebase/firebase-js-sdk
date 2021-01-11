@@ -39,7 +39,6 @@ const es5BuildPlugins = [
 ];
 
 const es5Builds = [
-  // window builds
   {
     input: 'src/index.ts',
     output: [
@@ -56,7 +55,10 @@ const es5Builds = [
   // sw builds
   {
     input: 'src/index.sw.ts',
-    output: [{ file: pkg.sw, format: 'es', sourcemap: true }],
+    output: [
+      { file: pkg.sw, format: 'cjs', sourcemap: true },
+      { file: pkg.sw, format: 'es', sourcemap: true }
+    ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -92,6 +94,14 @@ const es2017Builds = [
     treeshake: {
       moduleSideEffects: false
     },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+
+  // sw builds
+  {
+    input: 'src/index.sw.ts',
+    output: { file: pkg.sw, format: 'es', sourcemap: true },
+    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
