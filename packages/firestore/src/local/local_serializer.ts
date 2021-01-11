@@ -16,7 +16,7 @@
  */
 
 import { Timestamp } from '../api/timestamp';
-import { Bundle, NamedQuery } from '../core/bundle';
+import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
@@ -306,8 +306,8 @@ function isDocumentQuery(dbQuery: DbQuery): dbQuery is PublicDocumentsTarget {
   return (dbQuery as PublicDocumentsTarget).documents !== undefined;
 }
 
-/** Encodes a DbBundle to a Bundle. */
-export function fromDbBundle(dbBundle: DbBundle): Bundle {
+/** Encodes a DbBundle to a BundleMetadata object. */
+export function fromDbBundle(dbBundle: DbBundle): BundleMetadata {
   return {
     id: dbBundle.bundleId,
     createTime: fromDbTimestamp(dbBundle.createTime),
@@ -372,8 +372,10 @@ export function fromProtoNamedQuery(namedQuery: ProtoNamedQuery): NamedQuery {
   };
 }
 
-/** Encodes a BundleMetadata proto object to a Bundle model object. */
-export function fromBundleMetadata(metadata: ProtoBundleMetadata): Bundle {
+/** Decodes a BundleMetadata proto into a BundleMetadata object. */
+export function fromBundleMetadata(
+  metadata: ProtoBundleMetadata
+): BundleMetadata {
   return {
     id: metadata.id!,
     version: metadata.version!,

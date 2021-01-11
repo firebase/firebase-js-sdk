@@ -149,11 +149,33 @@ describe('Database Tests', () => {
     expect(db2.ref().toString()).to.equal('https://foo2.bar.com/');
   });
 
+  it('Different instances for different URLs (with FIREBASE_DATABASE_EMULATOR_HOST)', () => {
+    process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = 'localhost:9000';
+    const db1 = defaultApp.database('http://foo1.bar.com');
+    const db2 = defaultApp.database('http://foo2.bar.com');
+    expect(db1.repo_.repoInfo_.toURLString()).to.equal(
+      'http://localhost:9000/?ns=foo1'
+    );
+    expect(db2.repo_.repoInfo_.toURLString()).to.equal(
+      'http://localhost:9000/?ns=foo2'
+    );
+    delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
+  });
+
   it('Cannot use same URL twice', () => {
     defaultApp.database('http://foo.bar.com');
     expect(() => {
       defaultApp.database('http://foo.bar.com/');
     }).to.throw(/Database initialized multiple times/i);
+  });
+
+  it('Cannot use same URL twice (with FIREBASE_DATABASE_EMULATOR_HOST)', () => {
+    process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = 'localhost:9000';
+    defaultApp.database('http://foo.bar.com');
+    expect(() => {
+      defaultApp.database('http://foo.bar.com/');
+    }).to.throw(/Database initialized multiple times/i);
+    delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
   });
 
   it('Databases with legacy domain', () => {
@@ -246,12 +268,12 @@ describe('Database Tests', () => {
   });
 
   it('refFromURL() validates domain', () => {
-    const db = (firebase as any).database();
-    expect(() => {
-      const ref = db.refFromURL(
-        'https://thisisnotarealfirebase.firebaseio.com/path/to/data'
-      );
-    }).to.throw(/does not match.*database/i);
+    const db = (firebase as any)
+      .app()
+      .database('https://thisisreal.firebaseio.com');
+    expect(() =>
+      db.refFromURL('https://thisisnotreal.firebaseio.com/path/to/data')
+    ).to.throw(/does not match.*database/i);
   });
 
   it('refFromURL() validates argument', () => {
