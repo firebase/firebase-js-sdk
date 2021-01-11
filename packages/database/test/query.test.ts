@@ -28,6 +28,7 @@ import {
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
+import { INTEGER_32_MAX } from '../src/core/util/util';
 
 use(chaiAsPromised);
 
@@ -4138,6 +4139,57 @@ describe('Query Tests', () => {
           .endAt(null, '80')
           .once('value', s => {
             expect(s.val()).to.deep.equal({ 50: true, 70: true, 80: true });
+            done();
+          });
+      }
+    );
+  });
+
+  it('Integer keys behave numerically with startAfter.', done => {
+    const ref = getRandomNode() as Reference;
+    ref.set(
+      {
+        1: true,
+        50: true,
+        550: true,
+        6: true,
+        600: true,
+        70: true,
+        8: true,
+        80: true
+      },
+      () => {
+        ref
+          .startAfter(null, '50')
+          .endAt(null, '80')
+          .once('value', s => {
+            expect(s.val()).to.deep.equal({ 70: true, 80: true });
+            done();
+          });
+      }
+    );
+  });
+
+  it('Integer keys behave numerically with startAfter with overflow.', done => {
+    const ref = getRandomNode() as Reference;
+    ref.set(
+      {
+        1: true,
+        50: true,
+        550: true,
+        6: true,
+        600: true,
+        70: true,
+        8: true,
+        80: true,
+        'a': true
+      },
+      () => {
+        ref
+          .startAfter(null, '' + INTEGER_32_MAX)
+          .endAt(null, '80')
+          .once('value', s => {
+            expect(s.val()).to.deep.equal({ 'a': true });
             done();
           });
       }

@@ -16,11 +16,12 @@
  */
 
 import { expect } from 'chai';
-import { predecessor } from '../src/core/util/NextPushId';
+import { predecessor, successor } from '../src/core/util/NextPushId';
 import {
-  INTEGER_32_MAX,
   INTEGER_32_MIN,
-  MIN_NAME
+  INTEGER_32_MAX,
+  MIN_NAME,
+  MAX_NAME
 } from '../src/core/util/util';
 
 // Copied from src/core/util/NextPushId.ts
@@ -41,5 +42,20 @@ describe('Push ID tests', () => {
       'abb' + MAX_PUSH_CHAR.repeat(MAX_KEY_LEN - 'abc'.length)
     );
     expect(predecessor('abc' + MIN_PUSH_CHAR)).to.equal('abc');
+  });
+
+  it('successor special values', () => {
+    expect(successor('' + INTEGER_32_MAX)).to.equal(MIN_PUSH_CHAR);
+    expect(successor(MAX_PUSH_CHAR.repeat(MAX_KEY_LEN))).to.equal(MAX_NAME);
+  });
+
+  it('successor basic tests', () => {
+    expect(successor('abc')).to.equal('abc' + MIN_PUSH_CHAR);
+    expect(
+      successor('abc' + MAX_PUSH_CHAR.repeat(MAX_KEY_LEN - 'abc'.length))
+    ).to.equal('abd');
+    expect(successor('abc' + MIN_PUSH_CHAR)).to.equal(
+      'abc' + MIN_PUSH_CHAR.repeat(2)
+    );
   });
 });

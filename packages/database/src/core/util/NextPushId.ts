@@ -96,12 +96,16 @@ export const nextPushId = (function () {
   };
 })();
 
-export const nextAfter = function (key: string) {
+export const successor = function (key: string) {
+  if (key === '' + INTEGER_32_MAX) {
+    // See https://firebase.google.com/docs/database/web/lists-of-data#data-order
+    return MIN_PUSH_CHAR;
+  }
   const keyAsInt: number = tryParseInt(key);
   if (keyAsInt != null) {
     return '' + (keyAsInt + 1);
   }
-  let next = new Array(key.length);
+  const next = new Array(key.length);
 
   for (let i = 0; i < next.length; i++) {
     next[i] = key.charAt(i);
@@ -114,21 +118,21 @@ export const nextAfter = function (key: string) {
 
   let i = next.length - 1;
 
-  while (i >= 0 && next[i] == MAX_PUSH_CHAR) {
+  while (i >= 0 && next[i] === MAX_PUSH_CHAR) {
     i--;
   }
 
-  // `nextAfter` was called on the largest possible key, so return the
-  // maxName, which sorts larger than all keys.
-  if (i == -1) {
+  // `successor` was called on the largest possible key, so return the
+  // MAX_NAME, which sorts larger than all keys.
+  if (i === -1) {
     return MAX_NAME;
   }
 
-  let source = next[i];
-  let sourcePlusOne = PUSH_CHARS.charAt(PUSH_CHARS.indexOf(source) + 1);
+  const source = next[i];
+  const sourcePlusOne = PUSH_CHARS.charAt(PUSH_CHARS.indexOf(source) + 1);
   next[i] = sourcePlusOne;
 
-  return next.toString();
+  return next.slice(0, i + 1).join('');
 };
 
 // `key` is assumed to be non-empty.
