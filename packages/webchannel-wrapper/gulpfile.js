@@ -45,6 +45,7 @@ const closureLibRoot = path.dirname(
 const closureDefines = [
   // Avoid unsafe eval() calls (https://github.com/firebase/firebase-js-sdk/issues/798)
   'goog.json.USE_NATIVE_JSON=true',
+  'goog.debug.LOGGING_ENABLED=true',
   // Disable debug logging (saves 8780 bytes).
   'goog.DEBUG=false',
   // Disable fallbacks for running async code (saves 1472 bytes).
