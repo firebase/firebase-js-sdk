@@ -17,12 +17,7 @@
 
 import { expect } from 'chai';
 import { successor } from '../src/core/util/NextPushId';
-import {
-  INTEGER_32_MIN,
-  INTEGER_32_MAX,
-  MIN_NAME,
-  MAX_NAME
-} from '../src/core/util/util';
+import { INTEGER_32_MAX, MAX_NAME } from '../src/core/util/util';
 
 // Copied from src/core/util/NextPushId.ts
 const MIN_PUSH_CHAR = '-';
