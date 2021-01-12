@@ -1590,6 +1590,46 @@ apiDescribe('Database', (persistence: boolean) => {
         expect(docRef.isEqual(docRef2)).to.be.false;
       });
     });
+
+    it('https://github.com/firebase/firebase-js-sdk/issues/4278', () => {
+      return withTestDb(persistence, async db => {
+        class MyModel {
+          constructor(readonly ref: firestore.DocumentReference) {}
+        }
+
+        const omitSingle = (key: any, { [key]: _, ...obj }) => obj;
+
+        const modelConverter = {
+          toFirestore: function (model: MyModel) {
+            return omitSingle("ref", model);
+          },
+          fromFirestore: function (
+            snapshot: firestore.QueryDocumentSnapshot
+          ): MyModel {
+            return new MyModel(snapshot.ref);
+          },
+          denver: function() {
+            console.log("denver");
+          }
+        };
+
+        const docRef = db
+          .collection("/models")
+          .doc("some_id")
+          .withConverter(modelConverter);
+
+        await docRef.set(new MyModel(docRef));
+
+        const accumulator = new EventsAccumulator<firestore.DocumentSnapshot<MyModel>>();
+        const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
+
+        await accumulator
+          .awaitEvent()
+          .then(docSnapshot => docSnapshot.data()!.ref.collection("/sub"));
+
+        unsubscribe();
+      });
+    });
   });
 
   it('can set and get data with auto detect long polling enabled', () => {
