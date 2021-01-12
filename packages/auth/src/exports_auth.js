@@ -225,7 +225,9 @@ fireauth.exportlib.exportPrototypeProperties(
             fireauth.args.string(),
             fireauth.args.null(),
             'tenantId')
-      }
+      },
+      // emulatorConfig is omitted here as it is readonly and therefore does not
+      // need argument validation.
     });
 
 // Exports firebase.auth.Auth.Persistence.
