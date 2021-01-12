@@ -1,5 +1,12 @@
 # firebase
 
+## 8.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`50abe6c4d`](https://github.com/firebase/firebase-js-sdk/commit/50abe6c4d455693ef6a3a3c1bc8ef6ab5b8bd9ea)]:
+  - @firebase/database@0.8.3
+
 ## 8.2.2
 
 ### Patch Changes
