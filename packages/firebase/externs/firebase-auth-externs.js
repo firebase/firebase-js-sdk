@@ -1228,28 +1228,28 @@ firebase.auth.Auth.prototype.currentUser;
  * the emulator.</li>
  * </ul>
  * @typedef {{
-  *   protocol: string,
-  *   host: string,
-  *   port: (number|null),
-  *   options: {
-  *     disableWarnings: boolean,
-  *   }
-  * }}
-  */
- firebase.auth.EmulatorConfig;
+ *   protocol: string,
+ *   host: string,
+ *   port: (number|null),
+ *   options: {
+ *     disableWarnings: boolean,
+ *   }
+ * }}
+ */
+firebase.auth.EmulatorConfig;
 
- /**
-  * The current emulator configuration, or null if not set
-  * 
-  * @type {firebase.auth.EmulatorConfig|null}
-  */
- firebase.auth.Auth.prototype.emulatorConfig;
+/**
+ * The current emulator configuration, or null if not set
+ *
+ * @type {firebase.auth.EmulatorConfig|null}
+ */
+firebase.auth.Auth.prototype.emulatorConfig;
 
- /**
+/**
  * Configures the SDK to talke to the Firebase Auth emulator.
- * 
+ *
  * This must be called before any other Auth SDK actions are taken.
- * 
+ *
  * Options can include `disableWarnings`. When set to true, the SDK will not
  * display a warning banner at the bottom of the page.
  *
