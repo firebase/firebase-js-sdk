@@ -17,7 +17,12 @@
 
 import { initializeApp, deleteApp } from '@firebase/app-exp';
 import '@firebase/installations-exp';
-import { getAnalytics, logEvent, EventName } from '../../src/index';
+import {
+  getAnalytics,
+  logEvent,
+  EventName,
+  initializeAnalytics
+} from '../../src/index';
 import '../setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
@@ -35,26 +40,37 @@ try {
 
 const RETRY_INTERVAL = 1000;
 
+async function checkForEventCalls(): Promise<number> {
+  await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+  const resources = performance.getEntriesByType('resource');
+  const callsWithEvent = resources.filter(
+    resource =>
+      resource.name.includes('google-analytics.com') &&
+      resource.name.includes('en=login')
+  );
+  if (callsWithEvent.length === 0) {
+    return checkForEventCalls();
+  } else {
+    return callsWithEvent.length;
+  }
+}
+
 describe('FirebaseAnalytics Integration Smoke Tests', () => {
   let app: FirebaseApp;
   afterEach(() => deleteApp(app));
+  it('intializeAnalytics() sets options', async () => {
+    app = initializeApp(config);
+    const analyticsInstance = initializeAnalytics(app, {
+      dataLayerName: 'testname'
+    });
+    expect(window['testname']).to.exist;
+    logEvent(analyticsInstance, EventName.LOGIN, { method: 'email' });
+    await checkForEventCalls();
+    expect((window['testname'] as any[]).length).to.be.at.least(1);
+  });
   it('logEvent() sends correct network request.', async () => {
     app = initializeApp(config);
     logEvent(getAnalytics(app), EventName.LOGIN, { method: 'email' });
-    async function checkForEventCalls(): Promise<number> {
-      await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-      const resources = performance.getEntriesByType('resource');
-      const callsWithEvent = resources.filter(
-        resource =>
-          resource.name.includes('google-analytics.com') &&
-          resource.name.includes('en=login')
-      );
-      if (callsWithEvent.length === 0) {
-        return checkForEventCalls();
-      } else {
-        return callsWithEvent.length;
-      }
-    }
     const eventCallCount = await checkForEventCalls();
     expect(eventCallCount).to.equal(1);
   });

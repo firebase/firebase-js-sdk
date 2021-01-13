@@ -144,7 +144,7 @@ export function getGlobalVars(): {
  *
  * @param options - Custom gtag and dataLayer names.
  */
-export function analyticsSettings(options: SettingsOptions): void {
+export function settings(options: SettingsOptions): void {
   if (globalInitDone) {
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
   }
