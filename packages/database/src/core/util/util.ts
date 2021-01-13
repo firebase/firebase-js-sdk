@@ -194,7 +194,7 @@ export const warnIfPageIsSecure = function () {
   ) {
     warn(
       'Insecure Firebase access from a secure page. ' +
-      'Please use https in calls to new Firebase().'
+        'Please use https in calls to new Firebase().'
     );
   }
 };
@@ -205,8 +205,8 @@ export const warnIfPageIsSecure = function () {
 export const warnAboutUnsupportedMethod = function (methodName: string) {
   warn(
     methodName +
-    ' is unsupported and will likely change soon.  ' +
-    'Please do not use.'
+      ' is unsupported and will likely change soon.  ' +
+      'Please do not use.'
   );
 };
 
