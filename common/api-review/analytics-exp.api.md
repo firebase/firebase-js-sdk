@@ -17,9 +17,6 @@ import { MinimalDynamicConfig } from '@firebase/analytics-types-exp';
 import { SettingsOptions } from '@firebase/analytics-types-exp';
 
 // @public
-export function analyticsSettings(options: SettingsOptions): void;
-
-// @public
 export const enum EventName {
     // (undocumented)
     ADD_PAYMENT_INFO = "add_payment_info",
@@ -95,6 +92,9 @@ export function getGlobalVars(): {
     };
     dynamicConfigPromisesList: Array<Promise<DynamicConfig | MinimalDynamicConfig>>;
 };
+
+// @public
+export function initializeAnalytics(app: FirebaseApp, options: SettingsOptions): Analytics;
 
 // @public
 export function isSupported(): Promise<boolean>;
