@@ -952,15 +952,19 @@ function testUseEmulator() {
   auth1.useEmulator('http://emulator.test.domain:1234');
   assertObjectEquals(
     {
-      url: 'http://emulator.test.domain:1234',
+      protocol: 'http',
+      host: 'emulator.test.domain',
+      port: 1234,
+      options: {disableWarnings: false},
     },
-    auth1.getEmulatorConfig());
+    auth1.emulatorConfig);
   // Should notify the RPC handler.
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
   assertObjectEquals(
     {
       url: 'http://emulator.test.domain:1234',
+      disableWarnings: false,
     },
     fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
       .getArgument(0)
@@ -986,9 +990,12 @@ function testUseEmulator() {
   auth1.useEmulator('http://emulator.test.domain:1234');
   assertObjectEquals(
     {
-      url: 'http://emulator.test.domain:1234',
+      protocol: 'http',
+      host: 'emulator.test.domain',
+      port: 1234,
+      options: {disableWarnings: false},
     },
-    auth1.getEmulatorConfig());
+    auth1.emulatorConfig);
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
   assertEquals(1, fireauth.util.consoleInfo.getCallCount());
@@ -997,9 +1004,12 @@ function testUseEmulator() {
   auth1.useEmulator('http://emulator.other.domain:9876');
   assertObjectEquals(
     {
-      url: 'http://emulator.test.domain:1234',
+      protocol: 'http',
+      host: 'emulator.test.domain',
+      port: 1234,
+      options: {disableWarnings: false},
     },
-    auth1.getEmulatorConfig());
+    auth1.emulatorConfig);
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
 }
@@ -1030,16 +1040,20 @@ function testUseEmulator_withDisableWarnings() {
   auth1.useEmulator(
       'http://emulator.test.domain:1234', {disableWarnings: true});
   assertObjectEquals(
-      {
-        url: 'http://emulator.test.domain:1234',
-      },
-      auth1.getEmulatorConfig());
+    {
+      protocol: 'http',
+      host: 'emulator.test.domain',
+      port: 1234,
+      options: {disableWarnings: true},
+    },
+    auth1.emulatorConfig);
   // Should notify the RPC handler.
   assertEquals(
       1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
   assertObjectEquals(
       {
         url: 'http://emulator.test.domain:1234',
+        disableWarnings: true,
       },
       fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
           .getArgument(0));
@@ -1054,6 +1068,76 @@ function testUseEmulator_withDisableWarnings() {
       asyncTestCase.signal();
     });
   }
+}
+
+
+function testEmulatorConfig() {
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+
+  // Update the emulator config.
+  auth1.useEmulator(
+      'http://emulator.test.domain:1234', {disableWarnings: true});
+  assertObjectEquals(
+      {
+        protocol: 'http',
+        host: 'emulator.test.domain',
+        port: 1234,
+        options: {disableWarnings: true},
+      },
+      auth1.emulatorConfig);
+}
+
+
+/**
+ * Asserts that the port is correctly set to null if no port supplied.
+ */
+function testEmulatorConfig_noPortSpecified() {
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+
+  // Update the emulator config.
+  auth1.useEmulator('http://emulator.test.domain');
+  assertObjectEquals(
+      {
+        protocol: 'http',
+        host: 'emulator.test.domain',
+        port: null,
+        options: {disableWarnings: false},
+      },
+      auth1.emulatorConfig);
+}
+
+
+/**
+ * Asserts that the port is correctly assigned 0 if specifically set to 0 for
+ * some reason. Also checks https protocol.
+ */
+function testEmulatorConfig_portZeroAndHttpsSpecified() {
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+
+  // Update the emulator config.
+  auth1.useEmulator('https://emulator.test.domain:0');
+  assertObjectEquals(
+      {
+        protocol: 'https',
+        host: 'emulator.test.domain',
+        port: 0,
+        options: {disableWarnings: false},
+      },
+      auth1.emulatorConfig);
+}
+
+
+/**
+ * Asserts that the function returns null if useEmulator is not called.
+ */
+function testEmulatorConfig_nullIfNoEmulatorConfig() {
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+
+  assertNull(auth1.emulatorConfig);
 }
 
 
@@ -2317,59 +2401,6 @@ function testAuth_authEventManager() {
 }
 
 
-function testAuth_authEventManager_withEmulator() {
-  // Test Auth event manager.
-  fireauth.AuthEventManager.ENABLED = true;
-  stubs.reset();
-  initializeMockStorage();
-  var expectedManager = {
-    'subscribe': goog.testing.recordFunction(),
-    'unsubscribe': goog.testing.recordFunction(),
-    'clearRedirectResult': goog.testing.recordFunction()
-  };
-  // Return stub manager.
-  stubs.replace(
-    fireauth.AuthEventManager,
-    'getManager',
-    function (authDomain, apiKey, appName, emulatorConfig) {
-      assertEquals('subdomain.firebaseapp.com', authDomain);
-      assertEquals('API_KEY', apiKey);
-      assertEquals(appId1, appName);
-      assertObjectEquals(emulatorConfig, {
-        url: 'http://emulator.test.domain:1234'
-      });
-      return expectedManager;
-    });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  auth1.useEmulator('http://emulator.test.domain:1234');
-  // Test manager initialized and Auth subscribed.
-  auth1.onIdTokenChanged(function (user) {
-    var manager = fireauth.AuthEventManager.getManager(
-      config3['authDomain'], config3['apiKey'], app1.name, {
-      url: 'http://emulator.test.domain:1234',
-    });
-    assertEquals(expectedManager, manager);
-    assertEquals(0, expectedManager.unsubscribe.getCallCount());
-    assertEquals(1, expectedManager.subscribe.getCallCount());
-    assertEquals(
-      auth1, expectedManager.subscribe.getLastCall().getArgument(0));
-    assertEquals(0, expectedManager.clearRedirectResult.getCallCount());
-    // Delete should trigger unsubscribe and redirect result clearing.
-    auth1.delete();
-    // After destroy, Auth should be unsubscribed.
-    assertEquals(1, expectedManager.subscribe.getCallCount());
-    assertEquals(1, expectedManager.unsubscribe.getCallCount());
-    // Redirect result should also be cleared.
-    assertEquals(1, expectedManager.clearRedirectResult.getCallCount());
-    assertEquals(
-      auth1, expectedManager.unsubscribe.getLastCall().getArgument(0));
-    asyncTestCase.signal();
-  });
-}
-
-
 /** Asserts that AuthEventManager can pass through emulator settings. */
 function testAuth_authEventManager_withEmulator() {
   // Test Auth event manager.
@@ -2390,7 +2421,8 @@ function testAuth_authEventManager_withEmulator() {
       assertEquals('API_KEY', apiKey);
       assertEquals(appId1, appName);
       assertObjectEquals(emulatorConfig, {
-        url: 'http://emulator.host:1234'
+        url: 'http://emulator.host:1234',
+        disableWarnings: false,
       });
       return expectedManager;
     });
@@ -2402,7 +2434,8 @@ function testAuth_authEventManager_withEmulator() {
   auth1.onIdTokenChanged(function (user) {
     var manager = fireauth.AuthEventManager.getManager(
       config3['authDomain'], config3['apiKey'], app1.name, {
-      url: 'http://emulator.host:1234'
+      url: 'http://emulator.host:1234',
+      disableWarnings: false,
     });
     assertEquals(expectedManager, manager);
     assertEquals(0, expectedManager.unsubscribe.getCallCount());
@@ -2667,7 +2700,8 @@ function testAuth_initState_signedInStatus_withEmulator() {
           .getThis());
       assertObjectEquals(
         {
-          url: 'http://emulator.test.domain:1234'
+          url: 'http://emulator.test.domain:1234',
+          disableWarnings: false,
         },
         fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
           .getArgument(0));
@@ -4526,6 +4560,7 @@ function testAuth_signInWithIdTokenResponse_withEmulator() {
   var expectedOptions = Object.assign({}, config3);
   expectedOptions['emulatorConfig'] = {
     url: 'http://emulator.test.domain:1234',
+    disableWarnings: false,
   };
   // The newly signed in user.
   var user1 = new fireauth.AuthUser(
