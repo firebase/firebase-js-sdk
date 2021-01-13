@@ -1597,8 +1597,9 @@ fireauth.Auth.prototype.onAuthStateChanged = function(
 };
 
 /**
- * @return {Promise} The fireauth.AuthUser if a user successfully logged in.
- * Null if no user is logged in.
+ * Returns the user if successfully logged in.s
+ * Returns null if the user is logged out.
+ * @return {Promise<fireauth.AuthUser>}
  */
 fireauth.Auth.prototype.getSignedInUser = function() {
   return new Promise((resolve, reject) => {
