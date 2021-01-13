@@ -19,5 +19,6 @@ import firebase from '@firebase/app';
 import { name, version } from '../package.json';
 
 firebase.registerVersion(name, version, 'app');
+firebase.SDK_VERSION = version;
 
 export default firebase;
