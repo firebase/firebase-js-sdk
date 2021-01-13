@@ -80,31 +80,28 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     const versions = await updatePackageNamesAndVersions(packagePaths);
 
     /**
-     * Do not publish to npm and create tags if it's a dryrun
+     * Release packages to NPM
+     */
+    await publishToNpm(packagePaths, dryRun);
+
+    /**
+     * reset the working tree to recover package names with -exp in the package.json files,
+     * then bump patch version of firebase-exp (the umbrella package) only
+     */
+    const firebaseExpVersion = new Map<string, string>();
+    firebaseExpVersion.set(
+      FIREBASE_UMBRELLA_PACKAGE_NAME,
+      versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    );
+    const firebaseExpPath = packagePaths.filter(p =>
+      p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    );
+    await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
+
+    /**
+     * Do not push to remote if it's a dryrun
      */
     if (!dryRun) {
-      /**
-       * Release packages to NPM
-       */
-      await publishToNpm(packagePaths);
-
-      /**
-       * reset the working tree to recover package names with -exp in the package.json files,
-       * then bump patch version of firebase-exp (the umbrella package) only
-       */
-      const firebaseExpVersion = new Map<string, string>();
-      firebaseExpVersion.set(
-        FIREBASE_UMBRELLA_PACKAGE_NAME,
-        versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
-      );
-      const firebaseExpPath = packagePaths.filter(p =>
-        p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
-      );
-      await resetWorkingTreeAndBumpVersions(
-        firebaseExpPath,
-        firebaseExpVersion
-      );
-
       /**
        * push to github
        */
@@ -242,13 +239,13 @@ async function updatePackageNamesAndVersions(packagePaths: string[]) {
   return versions;
 }
 
-async function publishToNpm(packagePaths: string[]) {
+async function publishToNpm(packagePaths: string[], dryRun = false) {
   const taskArray = await Promise.all(
     packagePaths.map(async pp => {
       const { version, name } = await readPackageJson(pp);
       return {
         title: `📦  ${name}@${version}`,
-        task: () => publishPackage(pp)
+        task: () => publishPackage(pp, dryRun)
       };
     })
   );
@@ -262,8 +259,11 @@ async function publishToNpm(packagePaths: string[]) {
   return tasks.run();
 }
 
-async function publishPackage(packagePath: string) {
+async function publishPackage(packagePath: string, dryRun: boolean) {
   const args = ['publish', '--access', 'public', '--tag', 'exp'];
+  if (dryRun) {
+    args.push('--dry-run');
+  }
   await spawn('npm', args, { cwd: packagePath });
 }
 
