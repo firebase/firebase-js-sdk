@@ -10,51 +10,21 @@ import { FirebaseError } from '@firebase/util';
 import { NextFn } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
-// @public (undocumented)
-export class FirebaseStorage {
-  // (undocumented)
-  app: FirebaseApp;
-
-  // (undocumented)
-  maxOperationRetryTime: number;
-
-  // (undocumented)
-  maxUploadRetryTime: number;
-
-  // (undocumented)
-  ref(path?: string): StorageReference;
-
-  // (undocumented)
-  refFromURL(url: string): StorageReference;
-
-  // (undocumented)
-  setMaxOperationRetryTime(time: number): void;
-
-  // (undocumented)
-  setMaxUploadRetryTime(time: number): void;
-}
-
-// @public (undocumented)
+// @public
 export interface FirebaseStorageError extends FirebaseError {
-  // (undocumented)
   serverResponse: string | null;
 }
 
 // @public
 export interface ListOptions {
-  // (undocumented)
   maxResults?: number | null;
-  // (undocumented)
   pageToken?: string | null;
 }
 
 // @public
 export interface ListResult {
-  // (undocumented)
   items: StorageReference[];
-  // (undocumented)
   nextPageToken?: string;
-  // (undocumented)
   prefixes: StorageReference[];
 }
 
@@ -62,49 +32,47 @@ export interface ListResult {
 export interface Metadata {
   // (undocumented)
   [prop: string]: unknown;
-  // (undocumented)
+
   bucket: string;
-  // (undocumented)
+
   cacheControl: string | undefined;
-  // (undocumented)
+
   contentDisposition: string | undefined;
-  // (undocumented)
+
   contentEncoding: string | undefined;
-  // (undocumented)
+
   contentLanguage: string | undefined;
-  // (undocumented)
+
   contentType: string | undefined;
-  // (undocumented)
+
   customMetadata:
     | {
         [key: string]: string;
       }
     | undefined;
-  // (undocumented)
+
   downloadTokens: string[] | undefined;
-  // (undocumented)
+
   fullPath: string;
-  // (undocumented)
+
   generation: string;
-  // (undocumented)
+
   md5Hash: string | undefined;
-  // (undocumented)
+
   metageneration: string;
-  // (undocumented)
+
   name: string;
-  // (undocumented)
+
   ref: StorageReference | undefined;
-  // (undocumented)
+
   size: number;
-  // (undocumented)
+
   timeCreated: string;
-  // (undocumented)
-  type: string | undefined;
-  // (undocumented)
+
   updated: string;
 }
 
-// @public (undocumented)
+// @public
 export interface StorageObserver<T> {
   // (undocumented)
   complete?: CompleteFn | null;
@@ -114,58 +82,41 @@ export interface StorageObserver<T> {
   next?: NextFn<T> | null;
 }
 
-// @public (undocumented)
+// @public
 export interface StorageReference {
-  // (undocumented)
   bucket: string;
-  // (undocumented)
   fullPath: string;
-  // (undocumented)
   name: string;
-  // (undocumented)
   parent: StorageReference | null;
-  // (undocumented)
   root: StorageReference;
-  // (undocumented)
   storage: StorageService;
-  // @override (undocumented)
   toString(): string;
 }
 
-// @public (undocumented)
+// @public
 export interface StorageService {
-  // (undocumented)
   readonly app: FirebaseApp;
-  // (undocumented)
   maxOperationRetryTime: number;
-  // (undocumented)
   maxUploadRetryTime: number;
 }
 
-// @public (undocumented)
-export type StringFormat = string;
+// @public
+export type TaskEvent = 'state_changed';
 
-// @public (undocumented)
-export type TaskEvent = string;
+// @public
+export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
 
-// @public (undocumented)
-export type TaskState = string;
-
-// @public (undocumented)
+// @public
 export interface UploadResult {
-  // (undocumented)
   readonly metadata: Metadata;
-  // (undocumented)
+
   readonly ref: StorageReference;
 }
 
-// @public (undocumented)
+// @public
 export interface UploadTask {
-  // (undocumented)
   cancel(): boolean;
-  // (undocumented)
   catch(onRejected: (error: FirebaseStorageError) => any): Promise<any>;
-  // (undocumented)
   on(
     event: TaskEvent,
     nextOrObserver?:
@@ -175,32 +126,27 @@ export interface UploadTask {
     error?: ((a: FirebaseStorageError) => any) | null,
     complete?: Unsubscribe | null
   ): Function;
-  // (undocumented)
   pause(): boolean;
-  // (undocumented)
   resume(): boolean;
-  // (undocumented)
   snapshot: UploadTaskSnapshot;
-  // (undocumented)
   then(
     onFulfilled?: ((snapshot: UploadTaskSnapshot) => any) | null,
     onRejected?: ((error: FirebaseStorageError) => any) | null
   ): Promise<any>;
 }
 
-// @public (undocumented)
+// @public
 export interface UploadTaskSnapshot {
-  // (undocumented)
   bytesTransferred: number;
-  // (undocumented)
+
   metadata: Metadata;
-  // (undocumented)
+
   ref: StorageReference;
-  // (undocumented)
+
   state: TaskState;
-  // (undocumented)
+
   task: UploadTask;
-  // (undocumented)
+
   totalBytes: number;
 }
 
