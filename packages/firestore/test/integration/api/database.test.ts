@@ -1373,6 +1373,27 @@ apiDescribe('Database', (persistence: boolean) => {
       }
     };
 
+    class ModelWithRef {
+      constructor(readonly ref: firestore.DocumentReference<ModelWithRef>) {}
+    }
+
+    const omitSingle = (key: any, { [key]: _, ...obj }) => obj;
+
+    const modelWithRefConverter = {
+      toFirestore(model: ModelWithRef): firestore.DocumentData {
+        return omitSingle('ref', model);
+      },
+      fromFirestore(
+        snapshot: firestore.QueryDocumentSnapshot<ModelWithRef>,
+        options: firestore.SnapshotOptions
+      ): ModelWithRef {
+        return new ModelWithRef(snapshot.ref);
+      },
+      denver: function () {
+        console.log('denver');
+      }
+    };
+
     it('for DocumentReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
         const docRef = db
@@ -1591,45 +1612,36 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
-    it('https://github.com/firebase/firebase-js-sdk/issues/4278', () => {
+    it('github Correct snapshot specified to fromFirestore() when registered with DocumentReference', () => {
       return withTestDb(persistence, async db => {
-        class MyModel {
-          constructor(readonly ref: firestore.DocumentReference) {}
-        }
+        const docRef = db.collection('/models').doc().withConverter(modelWithRefConverter);
+        await docRef.set(new ModelWithRef(docRef));
+        const docSnapshot = await docRef.get();
+        expect(docRef.isEqual(docSnapshot.data()!.ref)).to.be.true;
+      });
+    });
 
-        const omitSingle = (key: any, { [key]: _, ...obj }) => obj;
+    it('github Correct snapshot specified to fromFirestore() when registered with CollectionReference', () => {
+      return withTestDb(persistence, async db => {
+        const collection = db.collection('/models').doc().collection("sub").withConverter(modelWithRefConverter);
+        const docRef = collection.doc();
+        await docRef.set(new ModelWithRef(docRef));
+        const querySnapshot = await collection.get();
+        expect(querySnapshot.size).to.equal(1);
+        expect(docRef.isEqual(querySnapshot.docs[0].data().ref)).to.be.true;
+      });
+    });
 
-        const modelConverter = {
-          toFirestore: function (model: MyModel) {
-            return omitSingle('ref', model);
-          },
-          fromFirestore: function (
-            snapshot: firestore.QueryDocumentSnapshot
-          ): MyModel {
-            return new MyModel(snapshot.ref);
-          },
-          denver: function () {
-            console.log('denver');
-          }
-        };
-
-        const docRef = db
-          .collection('/models')
-          .doc('some_id')
-          .withConverter(modelConverter);
-
-        await docRef.set(new MyModel(docRef));
-
-        const accumulator = new EventsAccumulator<
-          firestore.DocumentSnapshot<MyModel>
-        >();
-        const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
-
-        await accumulator
-          .awaitEvent()
-          .then(docSnapshot => docSnapshot.data()!.ref.collection('/sub'));
-
-        unsubscribe();
+    it('github Correct snapshot specified to fromFirestore() when registered with Query', () => {
+      return withTestDb(persistence, async db => {
+        const collection = db.collection('/models');
+        const docRef = collection.doc();
+        const docRefWithConverter = docRef.withConverter(modelWithRefConverter);
+        await docRefWithConverter.set(new ModelWithRef(docRefWithConverter));
+        const query = collection.where(FieldPath.documentId(), '==', docRef.id).withConverter(modelWithRefConverter);
+        const querySnapshot = await query.get();
+        expect(querySnapshot.size).to.equal(1);
+        expect(docRef.isEqual(querySnapshot.docs[0].data().ref)).to.be.true;
       });
     });
   });

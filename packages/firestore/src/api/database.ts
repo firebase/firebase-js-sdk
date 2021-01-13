@@ -553,7 +553,7 @@ export class WriteBatch
   }
 }
 
-class PublicFirestoreDataConverterAdapter<U>
+class UntypedFirestoreDataConverterAdapter<U>
   implements UntypedFirestoreDataConverter<U> {
   constructor(
     readonly firestore: Firestore,
@@ -561,10 +561,9 @@ class PublicFirestoreDataConverterAdapter<U>
   ) {}
 
   fromFirestore(snapshot: unknown, options?: unknown): U {
-    const expSnapshot = snapshot as ExpQueryDocumentSnapshot<U>;
     const querySnapshot = new QueryDocumentSnapshot<U>(
       this.firestore,
-      expSnapshot
+      snapshot as ExpQueryDocumentSnapshot<U>
     );
     return this.delegate.fromFirestore(
       querySnapshot,
@@ -790,7 +789,7 @@ export class DocumentReference<T = PublicDocumentData>
     return new DocumentReference<U>(
       this.firestore,
       this._delegate.withConverter(
-        new PublicFirestoreDataConverterAdapter(this.firestore, converter)
+        new UntypedFirestoreDataConverterAdapter(this.firestore, converter)
       )
     );
   }
@@ -1099,7 +1098,7 @@ export class Query<T = PublicDocumentData>
     return new Query<U>(
       this.firestore,
       this._delegate.withConverter(
-        new PublicFirestoreDataConverterAdapter(this.firestore, converter)
+        new UntypedFirestoreDataConverterAdapter(this.firestore, converter)
       )
     );
   }
@@ -1243,7 +1242,7 @@ export class CollectionReference<T = PublicDocumentData>
     return new CollectionReference<U>(
       this.firestore,
       this._delegate.withConverter(
-        new PublicFirestoreDataConverterAdapter(this.firestore, converter)
+        new UntypedFirestoreDataConverterAdapter(this.firestore, converter)
       )
     );
   }
