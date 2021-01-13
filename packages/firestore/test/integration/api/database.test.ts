@@ -1601,31 +1601,33 @@ apiDescribe('Database', (persistence: boolean) => {
 
         const modelConverter = {
           toFirestore: function (model: MyModel) {
-            return omitSingle("ref", model);
+            return omitSingle('ref', model);
           },
           fromFirestore: function (
             snapshot: firestore.QueryDocumentSnapshot
           ): MyModel {
             return new MyModel(snapshot.ref);
           },
-          denver: function() {
-            console.log("denver");
+          denver: function () {
+            console.log('denver');
           }
         };
 
         const docRef = db
-          .collection("/models")
-          .doc("some_id")
+          .collection('/models')
+          .doc('some_id')
           .withConverter(modelConverter);
 
         await docRef.set(new MyModel(docRef));
 
-        const accumulator = new EventsAccumulator<firestore.DocumentSnapshot<MyModel>>();
+        const accumulator = new EventsAccumulator<
+          firestore.DocumentSnapshot<MyModel>
+        >();
         const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
 
         await accumulator
           .awaitEvent()
-          .then(docSnapshot => docSnapshot.data()!.ref.collection("/sub"));
+          .then(docSnapshot => docSnapshot.data()!.ref.collection('/sub'));
 
         unsubscribe();
       });
