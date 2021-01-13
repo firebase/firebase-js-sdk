@@ -48,7 +48,7 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
   shutdown(): void {
     window.removeEventListener('online', this.networkAvailableListener);
     window.removeEventListener('offline', this.networkUnavailableListener);
-    window.addEventListener('visibility', this.visibilityChangeListener);
+    window.removeEventListener('visibility', this.visibilityChangeListener);
   }
 
   private configureNetworkMonitoring(): void {
