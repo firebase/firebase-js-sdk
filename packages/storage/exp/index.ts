@@ -19,12 +19,16 @@ import {
   _registerComponent,
   registerVersion,
   _getProvider,
-  SDK_VERSION
+  SDK_VERSION,
+  FirebaseApp
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 
 import { XhrIoPool } from '../src/implementation/xhriopool';
-import { ref as refInternal, StorageService } from '../src/service';
+import {
+  ref as refInternal,
+  StorageService as StorageServiceInternal
+} from '../src/service';
 import {
   Component,
   ComponentType,
@@ -33,10 +37,17 @@ import {
 } from '@firebase/component';
 
 import { name, version } from '../package.json';
-import { FirebaseApp } from '@firebase/app-types-exp';
 
-import * as types from '@firebase/storage-types/exp';
-import { Metadata } from '../src/metadata';
+import {
+  StorageReference,
+  StorageService,
+  Metadata,
+  UploadResult,
+  ListOptions,
+  ListResult,
+  UploadTask
+} from '@firebase/storage-types/exp';
+import { Metadata as MetadataInternal } from '../src/metadata';
 import {
   uploadBytes as uploadBytesInternal,
   uploadBytesResumable as uploadBytesResumableInternal,
@@ -60,11 +71,15 @@ import {
  * @returns A Promise containing an UploadResult
  */
 export function uploadBytes(
-  ref: types.StorageReference,
+  ref: StorageReference,
   data: Blob | Uint8Array | ArrayBuffer,
-  metadata?: types.Metadata
-): Promise<types.UploadResult> {
-  return uploadBytesInternal(ref as Reference, data, metadata as Metadata);
+  metadata?: Metadata
+): Promise<UploadResult> {
+  return uploadBytesInternal(
+    ref as Reference,
+    data,
+    metadata as MetadataInternal
+  );
 }
 
 /**
@@ -78,16 +93,16 @@ export function uploadBytes(
  * @returns A Promise containing an UploadResult
  */
 export function uploadString(
-  ref: types.StorageReference,
+  ref: StorageReference,
   value: string,
   format?: string,
-  metadata?: types.Metadata
-): Promise<types.UploadResult> {
+  metadata?: Metadata
+): Promise<UploadResult> {
   return uploadStringInternal(
     ref as Reference,
     value,
     format,
-    metadata as Metadata
+    metadata as MetadataInternal
   );
 }
 
@@ -101,15 +116,15 @@ export function uploadString(
  * @returns An UploadTask
  */
 export function uploadBytesResumable(
-  ref: types.StorageReference,
+  ref: StorageReference,
   data: Blob | Uint8Array | ArrayBuffer,
-  metadata?: types.Metadata
-): types.UploadTask {
+  metadata?: Metadata
+): UploadTask {
   return uploadBytesResumableInternal(
     ref as Reference,
     data,
-    metadata as Metadata
-  ) as types.UploadTask;
+    metadata as MetadataInternal
+  ) as UploadTask;
 }
 
 /**
@@ -119,10 +134,8 @@ export function uploadBytesResumable(
  * @public
  * @param ref - StorageReference to get metadata from.
  */
-export function getMetadata(
-  ref: types.StorageReference
-): Promise<types.Metadata> {
-  return getMetadataInternal(ref as Reference) as Promise<types.Metadata>;
+export function getMetadata(ref: StorageReference): Promise<Metadata> {
+  return getMetadataInternal(ref as Reference) as Promise<Metadata>;
 }
 
 /**
@@ -137,13 +150,13 @@ export function getMetadata(
  *     See `firebaseStorage.Reference.prototype.getMetadata`
  */
 export function updateMetadata(
-  ref: types.StorageReference,
-  metadata: Partial<types.Metadata>
-): Promise<types.Metadata> {
+  ref: StorageReference,
+  metadata: Partial<Metadata>
+): Promise<Metadata> {
   return updateMetadataInternal(
     ref as Reference,
-    metadata as Partial<Metadata>
-  ) as Promise<types.Metadata>;
+    metadata as Partial<MetadataInternal>
+  ) as Promise<Metadata>;
 }
 
 /**
@@ -169,9 +182,9 @@ export function updateMetadata(
  *      can be used to get the rest of the results.
  */
 export function list(
-  ref: types.StorageReference,
-  options?: types.ListOptions
-): Promise<types.ListResult> {
+  ref: StorageReference,
+  options?: ListOptions
+): Promise<ListResult> {
   return listInternal(ref as Reference, options);
 }
 
@@ -194,9 +207,7 @@ export function list(
  *      sub-directories and `items` contains references to objects in this
  *      folder. `nextPageToken` is never returned.
  */
-export function listAll(
-  ref: types.StorageReference
-): Promise<types.ListResult> {
+export function listAll(ref: StorageReference): Promise<ListResult> {
   return listAllInternal(ref as Reference);
 }
 
@@ -206,7 +217,7 @@ export function listAll(
  * @returns A promise that resolves with the download
  *     URL for this object.
  */
-export function getDownloadURL(ref: types.StorageReference): Promise<string> {
+export function getDownloadURL(ref: StorageReference): Promise<string> {
   return getDownloadURLInternal(ref as Reference);
 }
 
@@ -216,7 +227,7 @@ export function getDownloadURL(ref: types.StorageReference): Promise<string> {
  * @param ref - StorageReference for object to delete.
  * @returns A promise that resolves if the deletion succeeds.
  */
-export function deleteObject(ref: types.StorageReference): Promise<void> {
+export function deleteObject(ref: StorageReference): Promise<void> {
   return deleteObjectInternal(ref as Reference);
 }
 
@@ -226,10 +237,7 @@ export function deleteObject(ref: types.StorageReference): Promise<void> {
  * @param url - URL. If empty, returns root reference.
  * @public
  */
-export function ref(
-  storage: types.StorageService,
-  url?: string
-): types.StorageReference;
+export function ref(storage: StorageService, url?: string): StorageReference;
 /**
  * Returns a StorageReference for the given path in the
  * default bucket.
@@ -239,14 +247,17 @@ export function ref(
  * @public
  */
 export function ref(
-  storageOrRef: types.StorageService | types.StorageReference,
+  storageOrRef: StorageService | StorageReference,
   path?: string
-): types.StorageReference;
+): StorageReference;
 export function ref(
-  serviceOrRef: types.StorageService | types.StorageReference,
+  serviceOrRef: StorageService | StorageReference,
   pathOrUrl?: string
-): types.StorageReference | null {
-  return refInternal(serviceOrRef as StorageService | Reference, pathOrUrl);
+): StorageReference | null {
+  return refInternal(
+    serviceOrRef as StorageServiceInternal | Reference,
+    pathOrUrl
+  );
 }
 
 export { StringFormat } from '../src/implementation/string';
@@ -274,7 +285,7 @@ const STORAGE_TYPE = 'storage-exp';
  * @param app - Firebase app to get Storage instance for.
  * @returns A Firebase StorageService instance.
  */
-export function getStorage(app: FirebaseApp): types.StorageService {
+export function getStorage(app: FirebaseApp): StorageService {
   // Dependencies
   const storageProvider: Provider<'storage-exp'> = _getProvider(
     app,
@@ -288,7 +299,7 @@ function factory(container: ComponentContainer, url?: string): StorageService {
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
 
-  return new StorageService(
+  return new StorageServiceInternal(
     app,
     authProvider,
     new XhrIoPool(),
