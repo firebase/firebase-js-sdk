@@ -538,7 +538,7 @@ export class Query {
     name?: string | null
   ): Query {
     validateArgCount('Query.startAfter', 0, 2, arguments.length);
-    validateFirebaseDataArg('Query.startAfter', 1, value, this.path, true);
+    validateFirebaseDataArg('Query.startAfter', 1, value, this.path, false);
     validateKey('Query.startAfter', 2, name, true);
 
     const newParams = this.queryParams_.startAfter(value, name);
