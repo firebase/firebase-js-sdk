@@ -16,8 +16,13 @@
  */
 
 import { expect } from 'chai';
-import { successor } from '../src/core/util/NextPushId';
-import { INTEGER_32_MAX, MAX_NAME } from '../src/core/util/util';
+import { predecessor, successor } from '../src/core/util/NextPushId';
+import {
+  INTEGER_32_MIN,
+  INTEGER_32_MAX,
+  MIN_NAME,
+  MAX_NAME
+} from '../src/core/util/util';
 
 // Copied from src/core/util/NextPushId.ts
 const MIN_PUSH_CHAR = '-';
@@ -27,6 +32,18 @@ const MAX_PUSH_CHAR = 'z';
 const MAX_KEY_LEN = 786;
 
 describe('Push ID tests', () => {
+  it('predecessor special values', () => {
+    expect(predecessor('' + MIN_PUSH_CHAR)).to.equal('' + INTEGER_32_MAX);
+    expect(predecessor('' + INTEGER_32_MIN)).to.equal('' + MIN_NAME);
+  });
+
+  it('predecessor basic test', () => {
+    expect(predecessor('abc')).to.equal(
+      'abb' + MAX_PUSH_CHAR.repeat(MAX_KEY_LEN - 'abc'.length)
+    );
+    expect(predecessor('abc' + MIN_PUSH_CHAR)).to.equal('abc');
+  });
+
   it('successor special values', () => {
     expect(successor('' + INTEGER_32_MAX)).to.equal(MIN_PUSH_CHAR);
     expect(successor(MAX_PUSH_CHAR.repeat(MAX_KEY_LEN))).to.equal(MAX_NAME);

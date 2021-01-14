@@ -27,7 +27,7 @@ import {
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
-import { INTEGER_32_MAX } from '../src/core/util/util';
+import { INTEGER_32_MIN, INTEGER_32_MAX } from '../src/core/util/util';
 
 use(chaiAsPromised);
 
@@ -55,6 +55,7 @@ describe('Query Tests', () => {
     path.startAt('199', 'test').limitToFirst(10);
     path.startAfter('199', 'test').limitToFirst(10);
     path.endAt('199').limitToLast(1);
+    path.endBefore('199').limitToLast(1);
     path.startAt('50', 'test').endAt('100', 'tree');
     path.startAfter('50', 'test').endAt('100', 'tree');
     path.startAt('4').endAt('10');
@@ -1405,14 +1406,71 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): test endBefore.
-  it('Ensure startAfter with priority works.', async () => {
+  it('Ensure startAfter / endAt with priority works.', async () => {
     const node = getRandomNode() as Reference;
 
     const tasks: TaskList = [
       [node.startAfter('w').endAt('y'), { b: 2, c: 3 }],
       [node.startAfter('w').endAt('x'), { c: 3 }],
       [node.startAfter('a').endAt('c'), null]
+    ];
+
+    await node.set({
+      a: { '.value': 1, '.priority': 'z' },
+      b: { '.value': 2, '.priority': 'y' },
+      c: { '.value': 3, '.priority': 'x' },
+      d: { '.value': 4, '.priority': 'w' }
+    });
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAt / endBefore with priority works.', async () => {
+    const node = getRandomNode() as Reference;
+
+    const tasks: TaskList = [
+      [node.startAt('w').endBefore('y'), { c: 3, d: 4 }],
+      [node.startAt('w').endBefore('x'), { d: 4 }],
+      [node.startAt('a').endBefore('c'), null]
+    ];
+
+    await node.set({
+      a: { '.value': 1, '.priority': 'z' },
+      b: { '.value': 2, '.priority': 'y' },
+      c: { '.value': 3, '.priority': 'x' },
+      d: { '.value': 4, '.priority': 'w' }
+    });
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAfter / endBefore with priority works.', async () => {
+    const node = getRandomNode() as Reference;
+
+    const tasks: TaskList = [
+      [node.startAfter('w').endBefore('z'), { b: 2, c: 3 }],
+      [node.startAfter('w').endBefore('y'), { c: 3 }],
+      [node.startAfter('w').endBefore('w'), null]
     ];
 
     await node.set({
@@ -1464,8 +1522,7 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): Test endBefore
-  it('Ensure startAfter with priority work with server data.', async () => {
+  it('Ensure startAfter / endAt with priority work with server data.', async () => {
     const node = getRandomNode() as Reference;
 
     await node.set({
@@ -1479,6 +1536,64 @@ describe('Query Tests', () => {
       [node.startAfter('w').endAt('y'), { b: 2, c: 3 }],
       [node.startAfter('w').endAt('x'), { c: 3 }],
       [node.startAfter('a').endAt('c'), null]
+    ];
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAt / endBefore with priority work with server data.', async () => {
+    const node = getRandomNode() as Reference;
+
+    await node.set({
+      a: { '.value': 1, '.priority': 'z' },
+      b: { '.value': 2, '.priority': 'y' },
+      c: { '.value': 3, '.priority': 'x' },
+      d: { '.value': 4, '.priority': 'w' }
+    });
+
+    const tasks: TaskList = [
+      [node.startAt('w').endBefore('y'), { c: 3, d: 4 }],
+      [node.startAt('w').endBefore('x'), { d: 4 }],
+      [node.startAt('a').endBefore('c'), null]
+    ];
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAfter / endBefore with priority work with server data.', async () => {
+    const node = getRandomNode() as Reference;
+
+    await node.set({
+      a: { '.value': 1, '.priority': 'z' },
+      b: { '.value': 2, '.priority': 'y' },
+      c: { '.value': 3, '.priority': 'x' },
+      d: { '.value': 4, '.priority': 'w' }
+    });
+
+    const tasks: TaskList = [
+      [node.startAfter('w').endBefore('z'), { b: 2, c: 3 }],
+      [node.startAfter('w').endBefore('y'), { c: 3 }],
+      [node.startAfter('w').endBefore('w'), null]
     ];
 
     return Promise.all(
@@ -1523,8 +1638,7 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): Test endBefore.
-  it('Ensure startAfter with priority and name works.', async () => {
+  it('Ensure startAfter / endAt with priority and name works.', async () => {
     const node = getRandomNode() as Reference;
 
     await node.set({
@@ -1538,6 +1652,64 @@ describe('Query Tests', () => {
       [node.startAfter(1, 'a').endAt(2, 'd'), { b: 2, c: 3, d: 4 }],
       [node.startAfter(1, 'b').endAt(2, 'c'), { c: 3 }],
       [node.startAfter(1, 'c').endAt(2), { c: 3, d: 4 }]
+    ];
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAt / endBefore with priority and name works.', async () => {
+    const node = getRandomNode() as Reference;
+
+    await node.set({
+      a: { '.value': 1, '.priority': 1 },
+      b: { '.value': 2, '.priority': 1 },
+      c: { '.value': 3, '.priority': 2 },
+      d: { '.value': 4, '.priority': 2 }
+    });
+
+    const tasks: TaskList = [
+      [node.startAt(1, 'a').endBefore(2, 'd'), { a: 1, b: 2, c: 3 }],
+      [node.startAt(1, 'b').endBefore(2, 'c'), { b: 2 }],
+      [node.startAt(1, 'c').endBefore(2), null]
+    ];
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAfter / endBefore with priority and name works.', async () => {
+    const node = getRandomNode() as Reference;
+
+    await node.set({
+      a: { '.value': 1, '.priority': 1 },
+      b: { '.value': 2, '.priority': 1 },
+      c: { '.value': 3, '.priority': 2 },
+      d: { '.value': 4, '.priority': 2 }
+    });
+
+    const tasks: TaskList = [
+      [node.startAfter(1, 'a').endBefore(2, 'd'), { b: 2, c: 3 }],
+      [node.startAfter(1, 'b').endBefore(2, 'c'), null],
+      [node.startAfter(1, 'c').endBefore(2), null]
     ];
 
     return Promise.all(
@@ -1580,8 +1752,7 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): endBefore
-  it('Ensure startAfter with priority and name work with server data', async () => {
+  it('Ensure startAfter / endAt with priority and name work with server data', async () => {
     const node = getRandomNode() as Reference;
 
     await node.set({
@@ -1594,6 +1765,60 @@ describe('Query Tests', () => {
       [node.startAfter(1, 'a').endAt(2, 'd'), { b: 2, c: 3, d: 4 }],
       [node.startAfter(1, 'b').endAt(2, 'c'), { c: 3 }],
       [node.startAfter(1, 'c').endAt(2), { c: 3, d: 4 }]
+    ];
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAt / endBefore with priority and name work with server data', async () => {
+    const node = getRandomNode() as Reference;
+
+    await node.set({
+      a: { '.value': 1, '.priority': 1 },
+      b: { '.value': 2, '.priority': 1 },
+      c: { '.value': 3, '.priority': 2 },
+      d: { '.value': 4, '.priority': 2 }
+    });
+    const tasks: TaskList = [
+      [node.startAt(1, 'a').endBefore(2, 'd'), { a: 1, b: 2, c: 3 }],
+      [node.startAt(1, 'b').endBefore(2, 'c'), { b: 2 }],
+      [node.startAt(1, 'c').endBefore(2), null]
+    ];
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAfter / endBefore with priority and name work with server data', async () => {
+    const node = getRandomNode() as Reference;
+
+    await node.set({
+      a: { '.value': 1, '.priority': 1 },
+      b: { '.value': 2, '.priority': 1 },
+      c: { '.value': 3, '.priority': 2 },
+      d: { '.value': 4, '.priority': 2 }
+    });
+    const tasks: TaskList = [
+      [node.startAfter(1, 'a').endBefore(2, 'd'), { b: 2, c: 3 }],
+      [node.startAfter(1, 'b').endBefore(2, 'c'), null],
+      [node.startAfter(1, 'c').endBefore(2), null]
     ];
     return Promise.all(
       tasks.map(async task => {
@@ -1637,14 +1862,71 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): endBefore
-  it('Ensure startAfter with priority and name works (2).', () => {
+  it('Ensure startAfter / endAt with priority and name works (2).', () => {
     const node = getRandomNode() as Reference;
 
     const tasks: TaskList = [
       [node.startAfter(1, 'c').endAt(2, 'b'), { a: 1, b: 2, d: 4 }],
       [node.startAfter(1, 'd').endAt(2, 'a'), { a: 1 }],
       [node.startAfter(1, 'e').endAt(2), { a: 1, b: 2 }]
+    ];
+
+    node.set({
+      c: { '.value': 3, '.priority': 1 },
+      d: { '.value': 4, '.priority': 1 },
+      a: { '.value': 1, '.priority': 2 },
+      b: { '.value': 2, '.priority': 2 }
+    });
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAt / endBefore with priority and name works with queries before set.', () => {
+    const node = getRandomNode() as Reference;
+
+    const tasks: TaskList = [
+      [node.startAt(1, 'c').endBefore(2, 'b'), { a: 1, c: 3, d: 4 }],
+      [node.startAt(1, 'd').endBefore(2, 'a'), { d: 4 }],
+      [node.startAt(1, 'e').endBefore(2), null]
+    ];
+
+    node.set({
+      c: { '.value': 3, '.priority': 1 },
+      d: { '.value': 4, '.priority': 1 },
+      a: { '.value': 1, '.priority': 2 },
+      b: { '.value': 2, '.priority': 2 }
+    });
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAfter / endBefore with priority and name works (2).', () => {
+    const node = getRandomNode() as Reference;
+
+    const tasks: TaskList = [
+      [node.startAfter(1, 'c').endBefore(2, 'b'), { a: 1, d: 4 }],
+      [node.startAfter(1, 'd').endBefore(2, 'a'), null],
+      [node.startAfter(1, 'e').endBefore(2), null]
     ];
 
     node.set({
@@ -1696,8 +1978,7 @@ describe('Query Tests', () => {
     );
   });
 
-  // TODO(wyszynski): endBefore
-  it('Ensure startAfter with priority and name works (2). With server data', async () => {
+  it('Ensure startAfter / endAt with priority and name works (2). With server data', async () => {
     const node = getRandomNode() as Reference;
 
     await node.set({
@@ -1708,9 +1989,67 @@ describe('Query Tests', () => {
     });
 
     const tasks: TaskList = [
-      [node.startAt(1, 'c').endAt(2, 'b'), { a: 1, b: 2, c: 3, d: 4 }],
-      [node.startAt(1, 'd').endAt(2, 'a'), { d: 4, a: 1 }],
-      [node.startAt(1, 'e').endAt(2), { a: 1, b: 2 }]
+      [node.startAfter(1, 'c').endAt(2, 'b'), { a: 1, b: 2, d: 4 }],
+      [node.startAfter(1, 'd').endAt(2, 'a'), { a: 1 }],
+      [node.startAfter(1, 'e').endAt(2), { a: 1, b: 2 }]
+    ];
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAt / endBefore with priority and name works (2). With server data.', () => {
+    const node = getRandomNode() as Reference;
+
+    node.set({
+      c: { '.value': 3, '.priority': 1 },
+      d: { '.value': 4, '.priority': 1 },
+      a: { '.value': 1, '.priority': 2 },
+      b: { '.value': 2, '.priority': 2 }
+    });
+
+    const tasks: TaskList = [
+      [node.startAt(1, 'c').endBefore(2, 'b'), { a: 1, c: 3, d: 4 }],
+      [node.startAt(1, 'd').endBefore(2, 'a'), { d: 4 }],
+      [node.startAt(1, 'e').endBefore(2), null]
+    ];
+
+    return Promise.all(
+      tasks.map(async task => {
+        const [query, val] = task;
+        const ea = EventAccumulatorFactory.waitsForCount(1);
+        query.on('value', snap => {
+          ea.addEvent(snap.val());
+        });
+        const [newVal] = await ea.promise;
+        expect(newVal).to.deep.equal(val);
+      })
+    );
+  });
+
+  it('Ensure startAfter / endBefore with priority and name works (2). With server data.', () => {
+    const node = getRandomNode() as Reference;
+
+    node.set({
+      c: { '.value': 3, '.priority': 1 },
+      d: { '.value': 4, '.priority': 1 },
+      a: { '.value': 1, '.priority': 2 },
+      b: { '.value': 2, '.priority': 2 }
+    });
+
+    const tasks: TaskList = [
+      [node.startAfter(1, 'c').endBefore(2, 'b'), { a: 1, d: 4 }],
+      [node.startAfter(1, 'd').endBefore(2, 'a'), null],
+      [node.startAfter(1, 'e').endBefore(2), null]
     ];
 
     return Promise.all(
@@ -2003,7 +2342,6 @@ describe('Query Tests', () => {
     expect(val).to.deep.equal(null);
   });
 
-  // TODO(wyszynski): endBefore
   it('null priorities included in endAt(2).', async () => {
     const f = getRandomNode() as Reference;
 
@@ -2022,6 +2360,26 @@ describe('Query Tests', () => {
 
     const [val] = await ea.promise;
     expect(val).to.deep.equal({ a: 0, b: 1, c: 2 });
+  });
+
+  it('null priorities included in endBefore.', async () => {
+    const f = getRandomNode() as Reference;
+
+    f.set({
+      a: { '.priority': null, '.value': 0 },
+      b: { '.priority': null, '.value': 1 },
+      c: { '.priority': 2, '.value': 2 },
+      d: { '.priority': 3, '.value': 3 },
+      e: { '.priority': 'hi', '.value': 4 }
+    });
+
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    f.endBefore(2).on('value', snap => {
+      ea.addEvent(snap.val());
+    });
+
+    const [val] = await ea.promise;
+    expect(val).to.deep.equal({ a: 0, b: 1 });
   });
 
   it('null priorities not included in startAt(2).', async () => {
@@ -2642,6 +3000,28 @@ describe('Query Tests', () => {
     );
   });
 
+  it(".endBefore(null, 'f').limitToLast(5) returns the right set of children.", done => {
+    const ref = getRandomNode() as Reference;
+    ref.set(
+      { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' },
+      () => {
+        ref
+          .endBefore(null, 'f')
+          .limitToLast(5)
+          .on('value', s => {
+            expect(s.val()).to.deep.equal({
+              a: 'a',
+              b: 'b',
+              c: 'c',
+              d: 'd',
+              e: 'e'
+            });
+            done();
+          });
+      }
+    );
+  });
+
   it('complex update() at query root raises correct value event', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
@@ -3150,7 +3530,7 @@ describe('Query Tests', () => {
     expect(removedSecond).to.deep.equal(['a']);
   });
 
-  it('Case 2003: Correctly get events for startAtfter queries when priority changes.', () => {
+  it('Case 2003: Correctly get events for startAtfter/endAt queries when priority changes.', () => {
     const ref = getRandomNode() as Reference;
     const addedFirst = [],
       removedFirst = [],
@@ -3177,6 +3557,52 @@ describe('Query Tests', () => {
     ref
       .startAfter(10)
       .endAt(20)
+      .on('child_removed', snap => {
+        removedSecond.push(snap.key);
+      });
+
+    ref.child('a').setWithPriority('a', 5);
+    expect(addedFirst).to.deep.equal(['a']);
+    ref.child('a').setWithPriority('a', 15);
+    expect(removedFirst).to.deep.equal(['a']);
+    expect(addedSecond).to.deep.equal(['a']);
+
+    ref.child('a').setWithPriority('a', 10);
+    ref.child('a').setWithPriority('a', 0);
+    expect(addedFirst).to.deep.equal(['a', 'a']);
+    expect(removedSecond).to.deep.equal(['a']);
+
+    ref.child('a').setWithPriority('a', 5);
+    expect(removedSecond).to.deep.equal(['a']);
+  });
+
+  it('Correctly get events for startAt/endBefore queries when priority changes.', () => {
+    const ref = getRandomNode() as Reference;
+    const addedFirst = [],
+      removedFirst = [],
+      addedSecond = [],
+      removedSecond = [];
+    ref
+      .startAt(0)
+      .endBefore(10)
+      .on('child_added', snap => {
+        addedFirst.push(snap.key);
+      });
+    ref
+      .startAt(0)
+      .endBefore(10)
+      .on('child_removed', snap => {
+        removedFirst.push(snap.key);
+      });
+    ref
+      .startAt(10)
+      .endBefore(20)
+      .on('child_added', snap => {
+        addedSecond.push(snap.key);
+      });
+    ref
+      .startAt(10)
+      .endBefore(20)
       .on('child_removed', snap => {
         removedSecond.push(snap.key);
       });
@@ -3764,6 +4190,72 @@ describe('Query Tests', () => {
         });
       }
     );
+  });
+
+  it('Integer keys behave numerically with endBefore.', done => {
+    const ref = getRandomNode() as Reference;
+    ref.set(
+      {
+        1: true,
+        50: true,
+        550: true,
+        6: true,
+        600: true,
+        70: true,
+        8: true,
+        80: true
+      },
+      () => {
+        ref.endBefore(null, '50').once('value', s => {
+          expect(s.val()).to.deep.equal({
+            1: true,
+            6: true,
+            8: true
+          });
+          done();
+        });
+      }
+    );
+  });
+
+  it('Integer keys behave numerically with endBefore with underflow.', done => {
+    const ref = getRandomNode() as Reference;
+    ref.set(
+      {
+        1: true
+      },
+      () => {
+        ref.endBefore(null, '' + INTEGER_32_MIN).once('value', s => {
+          expect(s.val()).to.deep.equal(null);
+          done();
+        });
+      }
+    );
+  });
+
+  it('Integer keys behave numerically with endBefore at boundary.', done => {
+    const ref = getRandomNode() as Reference;
+    const integerData = {
+      1: true,
+      50: true,
+      550: true,
+      6: true,
+      600: true,
+      70: true,
+      8: true,
+      80: true
+    };
+    const data = Object.assign({}, integerData);
+    data['a'] = true;
+    ref.set(data, () => {
+      ref.endBefore(null, '' + INTEGER_32_MAX).once('value', s => {
+        expect(s.val()).to.deep.equal(integerData),
+          ref.startAfter(null, '' + INTEGER_32_MAX).once('value', s => {
+            expect(s.val()).to.deep.equal({ 'a': true });
+            done();
+          });
+      });
+    });
   });
 
   it('.limitToLast() on node with priority.', done => {
