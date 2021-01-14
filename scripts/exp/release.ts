@@ -17,6 +17,7 @@
 
 import { spawn, exec } from 'child-process-promise';
 import ora from 'ora';
+import { createPromptModule } from 'inquirer';
 import { projectRoot, readPackageJson } from '../utils';
 import simpleGit from 'simple-git/promise';
 
@@ -30,6 +31,7 @@ import Listr from 'listr';
 import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
 import * as yargs from 'yargs';
 
+const prompt = createPromptModule();
 const argv = yargs
   .options({
     dryRun: {
@@ -97,16 +99,44 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     const firebaseExpPath = packagePaths.filter(p =>
       p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
     );
-    await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
+
+    const reset = await prompt<boolean>([
+      {
+        type: 'confirm',
+        name: 'resetWorkingTree',
+        message: 'Do you want to reset the working tree?',
+        default: true
+      }
+    ]);
+
+    if (reset) {
+      await resetWorkingTreeAndBumpVersions(
+        firebaseExpPath,
+        firebaseExpVersion
+      );
+    } else {
+      process.exit(0);
+    }
 
     /**
      * Do not push to remote if it's a dryrun
      */
     if (!dryRun) {
+      const proceed = await prompt<boolean>([
+        {
+          type: 'confirm',
+          name: 'commitAndPush',
+          message:
+            'Do you want to commit and push the exp version update to remote?',
+          default: true
+        }
+      ]);
       /**
        * push to github
        */
-      await commitAndPush(versions);
+      if (proceed) {
+        await commitAndPush(versions);
+      }
     }
   } catch (err) {
     /**
