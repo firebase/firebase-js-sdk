@@ -25,7 +25,6 @@ import { StringFormat, dataFromString } from './string';
 import { isNativeBlob, isNativeBlobDefined, isString } from './type';
 
 /**
- * @internal
  * @param opt_elideCopy - If true, doesn't copy mutable input data
  *     (e.g. Uint8Arrays). Pass true only if you know the objects will not be
  *     modified after this blob's construction.

@@ -18,32 +18,27 @@ import { isFunction } from './type';
 import { FirebaseStorageError } from './error';
 
 /**
- * @public
  * Function that is called once for each value in a stream of values.
  */
 export type NextFn<T> = (value: T) => void;
 
 /**
- * @public
  * A function that is called with a `FirebaseStorageError`
  * if the event stream ends due to an error.
  */
 export type ErrorFn = (error: FirebaseStorageError) => void;
 
 /**
- * @public
  * A function that is called if the event stream ends normally.
  */
 export type CompleteFn = () => void;
 
 /**
- * @public
  * Unsubscribes from a stream.
  */
 export type Unsubscribe = () => void;
 
 /**
- * @public
  * An observer that wraps any errors in `FirebaseStorageError`.
  */
 export interface StorageObserver<T> {
@@ -63,7 +58,6 @@ export interface StorageObserver<T> {
 }
 
 /**
- * @public
  * Subscribes to an event stream.
  */
 export type Subscribe<T> = (
@@ -72,9 +66,6 @@ export type Subscribe<T> = (
   complete?: CompleteFn
 ) => Unsubscribe;
 
-/**
- * @internal
- */
 export class Observer<T> implements StorageObserver<T> {
   next?: NextFn<T>;
   error?: ErrorFn;

@@ -31,7 +31,7 @@ import {
   deleteObject as requestsDeleteObject,
   multipartUpload
 } from './implementation/requests';
-import * as types from '@firebase/storage-types/exp';
+import { ListOptions } from '@firebase/storage-types/exp';
 import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
 import { StorageService } from './service';
@@ -54,14 +54,8 @@ import { UploadResult } from './tasksnapshot';
  *     the project ID of the base firebase.App instance.
  */
 export class Reference {
-  /**
-   * @internal
-   */
   _location: Location;
 
-  /**
-   * @internal
-   */
   constructor(private _service: StorageService, location: string | Location) {
     if (location instanceof Location) {
       this._location = location;
@@ -79,9 +73,6 @@ export class Reference {
     return 'gs://' + this._location.bucket + '/' + this._location.path;
   }
 
-  /**
-   * @internal
-   */
   protected _newRef(service: StorageService, location: Location): Reference {
     return new Reference(service, location);
   }
@@ -137,7 +128,6 @@ export class Reference {
   }
 
   /**
-   * @internal
    * Utility function to throw an error in methods that do not accept a root reference.
    */
   _throwIfRoot(name: string): void {
@@ -255,7 +245,6 @@ export function listAll(ref: Reference): Promise<ListResult> {
 
 /**
  * Separated from listAll because async functions can't use "arguments".
- * @internal
  * @param ref
  * @param accumulator
  * @param pageToken
@@ -265,7 +254,7 @@ async function listAllHelper(
   accumulator: ListResult,
   pageToken?: string
 ): Promise<void> {
-  const opt: types.ListOptions = {
+  const opt: ListOptions = {
     // maxResults is 1000 by default.
     pageToken
   };
@@ -301,7 +290,7 @@ async function listAllHelper(
  */
 export async function list(
   ref: Reference,
-  options?: types.ListOptions | null
+  options?: ListOptions | null
 ): Promise<ListResult> {
   if (options != null) {
     if (typeof options.maxResults === 'number') {
@@ -409,7 +398,6 @@ export async function deleteObject(ref: Reference): Promise<void> {
 
 /**
  * Returns reference for object obtained by appending `childPath` to `ref`.
- * @internal
  *
  * @param ref - StorageReference to get child of.
  * @param childPath - Child path from provided ref.

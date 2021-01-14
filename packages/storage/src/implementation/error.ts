@@ -28,7 +28,6 @@ export class FirebaseStorageError extends FirebaseError {
   customData: { serverResponse: string | null } = { serverResponse: null };
 
   /**
-   * @internal
    * @param code - A StorageErrorCode string to be prefixed with 'storage/' and
    *  added to the end of the message.
    * @param message  - Error message.
@@ -44,7 +43,6 @@ export class FirebaseStorageError extends FirebaseError {
   }
 
   /**
-   * @internal
    * Compares a StorageErrorCode against this error's code, filtering out the prefix.
    */
   _codeEquals(code: StorageErrorCode): boolean {
@@ -77,7 +75,6 @@ export class FirebaseStorageError extends FirebaseError {
 export const errors = {};
 
 /**
- * @public
  * Error codes that can be attached to `FirebaseStorageError`s.
  */
 export type StorageErrorCode = string;
@@ -318,6 +315,16 @@ export function invalidFormat(
   return new FirebaseStorageError(
     StorageErrorCode.INVALID_FORMAT,
     "String does not match format '" + format + "': " + message
+  );
+}
+
+/**
+ * @param message - A message describing the internal error.
+ */
+export function unsupportedEnvironment(message: string): FirebaseStorageError {
+  throw new FirebaseStorageError(
+    StorageErrorCode.UNSUPPORTED_ENVIRONMENT,
+    message
   );
 }
 

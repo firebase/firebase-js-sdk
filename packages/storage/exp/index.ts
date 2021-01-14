@@ -45,7 +45,11 @@ import {
   UploadResult,
   ListOptions,
   ListResult,
-  UploadTask
+  UploadTask,
+  FirebaseStorageError,
+  TaskEvent,
+  TaskState,
+  StorageObserver
 } from '@firebase/storage-types/exp';
 import { Metadata as MetadataInternal } from '../src/metadata';
 import {
@@ -60,6 +64,23 @@ import {
   deleteObject as deleteObjectInternal,
   Reference
 } from '../src/reference';
+
+/**
+ * Public types.
+ */
+export {
+  StorageReference,
+  StorageService,
+  Metadata,
+  UploadResult,
+  ListOptions,
+  ListResult,
+  UploadTask,
+  FirebaseStorageError,
+  TaskEvent,
+  TaskState,
+  StorageObserver
+};
 
 /**
  * Uploads data to this object's location.
@@ -261,19 +282,7 @@ export function ref(
 }
 
 export { StringFormat } from '../src/implementation/string';
-export { TaskEvent, TaskState } from '../src/implementation/taskenums';
-export {
-  StorageObserver,
-  NextFn,
-  ErrorFn,
-  CompleteFn,
-  Unsubscribe,
-  Subscribe
-} from '../src/implementation/observer';
-export {
-  FirebaseStorageError,
-  StorageErrorCode
-} from '../src/implementation/error';
+
 /**
  * Type constant for Firebase Storage.
  */

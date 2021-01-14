@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as types from '@firebase/storage-types';
+import { FullMetadata } from '@firebase/storage-types';
 import { Reference } from './reference';
 
 /**
@@ -26,10 +26,7 @@ import { Reference } from './reference';
  * The full set of object metadata, including read-only properties.
  * @public
  */
-interface Metadata extends types.FullMetadata {
-  /**
-   * @internal
-   */
+interface Metadata extends FullMetadata {
   type: string | undefined;
 
   /**

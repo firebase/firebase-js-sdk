@@ -133,42 +133,21 @@ function extractBucket(config?: FirebaseOptions): Location | null {
  * @param opt_url - gs:// url to a custom Storage Bucket
  */
 export class StorageService implements _FirebaseService {
-  /**
-   * @internal
-   */
   readonly _bucket: Location | null = null;
-  /**
-   * @internal
-   */
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
   private _maxOperationRetryTime: number;
   private _maxUploadRetryTime: number;
 
-  /**
-   * @internal
-   */
   constructor(
     /**
      * FirebaseApp associated with this StorageService instance.
      */
     readonly app: FirebaseApp,
-    /**
-     * @internal
-     */
     readonly _authProvider: Provider<FirebaseAuthInternalName>,
-    /**
-     * @internal
-     */
     readonly _pool: XhrIoPool,
-    /**
-     * @internal
-     */
     readonly _url?: string,
-    /**
-     * @internal
-     */
     readonly _firebaseVersion?: string
   ) {
     this._maxOperationRetryTime = DEFAULT_MAX_OPERATION_RETRY_TIME;
@@ -216,9 +195,6 @@ export class StorageService implements _FirebaseService {
     this._maxOperationRetryTime = time;
   }
 
-  /**
-   * @internal
-   */
   async _getAuthToken(): Promise<string | null> {
     const auth = this._authProvider.getImmediate({ optional: true });
     if (auth) {
@@ -232,7 +208,6 @@ export class StorageService implements _FirebaseService {
 
   /**
    * Stop running requests and prevent more from being created.
-   * @internal
    */
   _delete(): Promise<void> {
     this._deleted = true;
@@ -244,14 +219,12 @@ export class StorageService implements _FirebaseService {
   /**
    * Returns a new firebaseStorage.Reference object referencing this StorageService
    * at the given Location.
-   * @internal
    */
   _makeStorageReference(loc: Location): Reference {
     return new Reference(this, loc);
   }
 
   /**
-   * @internal
    * @param requestInfo - HTTP RequestInfo object
    * @param authToken - Firebase auth token
    */

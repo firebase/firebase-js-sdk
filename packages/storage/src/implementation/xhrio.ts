@@ -16,7 +16,6 @@
  */
 
 /**
- * @internal
  * XHR headers
  */
 export interface Headers {
@@ -24,7 +23,6 @@ export interface Headers {
 }
 
 /**
- * @internal
  * A lightweight wrapper around XMLHttpRequest with a
  * goog.net.XhrIo-like interface.
  */
@@ -55,7 +53,6 @@ export interface XhrIo {
 }
 
 /**
- * @internal
  * Error codes for requests made by the the XhrIo wrapper.
  */
 export enum ErrorCode {

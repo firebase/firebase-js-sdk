@@ -34,9 +34,6 @@ import { makeQueryString } from './url';
 import { Headers, XhrIo, ErrorCode } from './xhrio';
 import { XhrIoPool } from './xhriopool';
 
-/**
- * @internal
- */
 export interface Request<T> {
   getPromise(): Promise<T>;
 
@@ -59,7 +56,7 @@ class NetworkRequest<T> implements Request<T> {
   private additionalRetryCodes_: number[];
   private pendingXhr_: XhrIo | null = null;
   private backoffId_: backoffId | null = null;
-  private resolve_!: (value?: T | PromiseLike<T> | undefined) => void;
+  private resolve_!: (value?: T | PromiseLike<T>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private reject_!: (reason?: any) => void;
   private canceled_: boolean = false;
@@ -100,7 +97,7 @@ class NetworkRequest<T> implements Request<T> {
     this.timeout_ = timeout;
     this.pool_ = pool;
     this.promise_ = new Promise((resolve, reject) => {
-      this.resolve_ = resolve;
+      this.resolve_ = resolve as (value?: T | PromiseLike<T>) => void;
       this.reject_ = reject;
       this.start_();
     });

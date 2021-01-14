@@ -62,18 +62,15 @@ import { Reference } from './reference';
 export class UploadTask {
   private _ref: Reference;
   /**
-   * @internal
    * The data to be uploaded.
    */
   _blob: FbsBlob;
   /**
-   * @internal
    * Metadata related to the upload.
    */
   _metadata: Metadata | null;
   private _mappings: Mappings;
   /**
-   * @internal
    * Number of bytes transferred so far.
    */
   _transferred: number = 0;
@@ -82,7 +79,6 @@ export class UploadTask {
   private _observers: Array<StorageObserver<UploadTaskSnapshot>> = [];
   private _resumable: boolean;
   /**
-   * @internal
    * Upload state.
    */
   _state: InternalTaskState;
@@ -97,7 +93,6 @@ export class UploadTask {
   private _promise: Promise<UploadTaskSnapshot>;
 
   /**
-   * @internal
    * @param ref - The firebaseStorage.Reference object this task came
    *     from, untyped to avoid cyclic dependencies.
    * @param blob - The blob to upload.

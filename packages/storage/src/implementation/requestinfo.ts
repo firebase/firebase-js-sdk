@@ -18,16 +18,12 @@ import { FirebaseStorageError } from './error';
 import { Headers, XhrIo } from './xhrio';
 
 /**
- * @internal
  * Type for url params stored in RequestInfo.
  */
 export interface UrlParams {
   [name: string]: string | number;
 }
 
-/**
- * @internal
- */
 export class RequestInfo<T> {
   urlParams: UrlParams = {};
   headers: Headers = {};

@@ -21,13 +21,11 @@
 
 /**
  * An event that is triggered on a task.
- * @public
  */
 export type TaskEvent = string;
 
 /**
  * An event that is triggered on a task.
- * @public
  */
 export const TaskEvent = {
   /**
@@ -47,13 +45,11 @@ export const TaskEvent = {
 
 /**
  * Internal enum for task state.
- * @internal
  */
 export type InternalTaskState = string;
 
 /**
  * Internal enum for task state.
- * @internal
  */
 export const InternalTaskState = {
   RUNNING: 'running',
@@ -67,13 +63,11 @@ export const InternalTaskState = {
 
 /**
  * Represents the current state of a running upload.
- * @public
  */
 export type TaskState = string;
 
 /**
  * Represents the current state of a running upload.
- * @public
  */
 export const TaskState = {
   /** The task is currently transferring data. */

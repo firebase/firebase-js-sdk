@@ -23,7 +23,6 @@ import { NetworkXhrIo } from './xhrio_network';
 
 /**
  * Factory-like class for creating XhrIo instances.
- * @internal
  */
 export class XhrIoPool {
   createXhrIo(): XhrIo {

@@ -5,37 +5,22 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseError } from '@firebase/util';
+import { FirebaseStorageError } from '@firebase/storage-types/exp';
 import { ListOptions } from '@firebase/storage-types/exp';
 import { ListResult } from '@firebase/storage-types/exp';
 import { Metadata } from '@firebase/storage-types/exp';
+import { StorageObserver } from '@firebase/storage-types/exp';
 import { StorageReference } from '@firebase/storage-types/exp';
 import { StorageService } from '@firebase/storage-types/exp';
+import { TaskEvent } from '@firebase/storage-types/exp';
+import { TaskState } from '@firebase/storage-types/exp';
 import { UploadResult } from '@firebase/storage-types/exp';
 import { UploadTask } from '@firebase/storage-types/exp';
 
 // @public
-export type CompleteFn = () => void;
-
-// @public
 export function deleteObject(ref: StorageReference): Promise<void>;
 
-// @public
-export type ErrorFn = (error: FirebaseStorageError) => void;
-
-// @public
-export class FirebaseStorageError extends FirebaseError {
-    // @internal
-    constructor(code: StorageErrorCode, message: string);
-    // @internal
-    _codeEquals(code: StorageErrorCode): boolean;
-    customData: {
-        serverResponse: string | null;
-    };
-    get message(): string;
-    get serverResponse(): null | string;
-    set serverResponse(serverResponse: string | null);
-}
+export { FirebaseStorageError }
 
 // @public
 export function getDownloadURL(ref: StorageReference): Promise<string>;
@@ -52,8 +37,11 @@ export function list(ref: StorageReference, options?: ListOptions): Promise<List
 // @public
 export function listAll(ref: StorageReference): Promise<ListResult>;
 
-// @public
-export type NextFn<T> = (value: T) => void;
+export { ListOptions }
+
+export { ListResult }
+
+export { Metadata }
 
 // @public
 export function ref(storage: StorageService, url?: string): StorageReference;
@@ -61,43 +49,11 @@ export function ref(storage: StorageService, url?: string): StorageReference;
 // @public
 export function ref(storageOrRef: StorageService | StorageReference, path?: string): StorageReference;
 
-// @public
-export type StorageErrorCode = string;
+export { StorageObserver }
 
-// @public
-export const StorageErrorCode: {
-    UNKNOWN: string;
-    OBJECT_NOT_FOUND: string;
-    BUCKET_NOT_FOUND: string;
-    PROJECT_NOT_FOUND: string;
-    QUOTA_EXCEEDED: string;
-    UNAUTHENTICATED: string;
-    UNAUTHORIZED: string;
-    RETRY_LIMIT_EXCEEDED: string;
-    INVALID_CHECKSUM: string;
-    CANCELED: string;
-    INVALID_EVENT_NAME: string;
-    INVALID_URL: string;
-    INVALID_DEFAULT_BUCKET: string;
-    NO_DEFAULT_BUCKET: string;
-    CANNOT_SLICE_BLOB: string;
-    SERVER_FILE_WRONG_SIZE: string;
-    NO_DOWNLOAD_URL: string;
-    INVALID_ARGUMENT: string;
-    INVALID_ARGUMENT_COUNT: string;
-    APP_DELETED: string;
-    INVALID_ROOT_OPERATION: string;
-    INVALID_FORMAT: string;
-    INTERNAL_ERROR: string;
-    UNSUPPORTED_ENVIRONMENT: string;
-};
+export { StorageReference }
 
-// @public
-export interface StorageObserver<T> {
-    complete?: CompleteFn;
-    error?: ErrorFn;
-    next?: NextFn<T>;
-}
+export { StorageService }
 
 // @public
 export type StringFormat = string;
@@ -110,31 +66,9 @@ export const StringFormat: {
     DATA_URL: string;
 };
 
-// @public
-export type Subscribe<T> = (next?: NextFn<T> | StorageObserver<T>, error?: ErrorFn, complete?: CompleteFn) => Unsubscribe;
+export { TaskEvent }
 
-// @public
-export type TaskEvent = string;
-
-// @public
-export const TaskEvent: {
-    STATE_CHANGED: string;
-};
-
-// @public
-export type TaskState = string;
-
-// @public
-export const TaskState: {
-    RUNNING: string;
-    PAUSED: string;
-    SUCCESS: string;
-    CANCELED: string;
-    ERROR: string;
-};
-
-// @public
-export type Unsubscribe = () => void;
+export { TaskState }
 
 // @public
 export function updateMetadata(ref: StorageReference, metadata: Partial<Metadata>): Promise<Metadata>;
@@ -145,8 +79,12 @@ export function uploadBytes(ref: StorageReference, data: Blob | Uint8Array | Arr
 // @public
 export function uploadBytesResumable(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: Metadata): UploadTask;
 
+export { UploadResult }
+
 // @public
 export function uploadString(ref: StorageReference, value: string, format?: string, metadata?: Metadata): Promise<UploadResult>;
+
+export { UploadTask }
 
 
 // (No @packageDocumentation comment for this package)
