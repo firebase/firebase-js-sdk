@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.8.2
+
+### Patch Changes
+
+- [`487f8e1d2`](https://github.com/firebase/firebase-js-sdk/commit/487f8e1d2c6bd1a54305f2b0f148b4985f3cea8e) [#4247](https://github.com/firebase/firebase-js-sdk/pull/4247) (fixes [#3681](https://github.com/firebase/firebase-js-sdk/issues/3681)) - Fix issue with multiple database instances when using Realtime Database emulator (#3681)
+
 ## 0.8.1
 
 ### Patch Changes

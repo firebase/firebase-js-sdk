@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@1.1.0/schema.json",
-  "changelog": ["../repo-scripts/changelog-generator", { "repo": "firebase/firebase-js-sdk"}],
+  "changelog": [
+    "../repo-scripts/changelog-generator",
+    { "repo": "firebase/firebase-js-sdk" }
+  ],
   "commit": false,
   "linked": [],
   "access": "public",
@@ -20,6 +23,7 @@
     "@firebase/functions-types-exp",
     "@firebase/installations-exp",
     "@firebase/installations-types-exp",
+    "@firebase/installations-compat",
     "@firebase/messaging-exp",
     "@firebase/messaging-types-exp",
     "@firebase/performance-exp",
