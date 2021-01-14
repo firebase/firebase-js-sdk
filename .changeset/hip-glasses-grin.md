@@ -2,4 +2,4 @@
 '@firebase/database': minor
 ---
 
-Add `startAfter` filter for paginating RTDB queries.
+Add `startAfter` and `endBefore` filters for paginating RTDB queries.
