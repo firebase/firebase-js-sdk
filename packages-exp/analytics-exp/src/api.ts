@@ -48,7 +48,7 @@ import {
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
 } from './functions';
 
-export { analyticsSettings } from './factory';
+export { settings } from './factory';
 export { EventName } from './constants';
 
 declare module '@firebase/component' {

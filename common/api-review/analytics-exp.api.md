@@ -94,9 +94,6 @@ export function getGlobalVars(): {
 };
 
 // @public
-export function initializeAnalytics(app: FirebaseApp, options: SettingsOptions): Analytics;
-
-// @public
 export function isSupported(): Promise<boolean>;
 
 // @public
@@ -293,6 +290,9 @@ export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enab
 
 // @public
 export function setCurrentScreen(analyticsInstance: Analytics, screenName: string, options?: AnalyticsCallOptions): void;
+
+// @public
+export function settings(options: SettingsOptions): void;
 
 // @public
 export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;
