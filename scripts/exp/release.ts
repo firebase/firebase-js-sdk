@@ -22,7 +22,8 @@ import simpleGit from 'simple-git/promise';
 
 import { mapWorkspaceToPackages } from '../release/utils/workspace';
 import { inc } from 'semver';
-import { writeFile as _writeFile } from 'fs';
+import { writeFile as _writeFile, rmdirSync, existsSync } from 'fs';
+import { resolve } from 'path';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
@@ -198,6 +199,13 @@ async function buildPackages() {
 
   // remove packages/installations/dist, otherwise packages that depend on packages-exp/installations-exp (e.g. Perf, FCM)
   // will incorrectly reference packages/installations.
+  const installationsDistDirPath = resolve(
+    projectRoot,
+    'packages/installations/dist'
+  );
+  if (existsSync(installationsDistDirPath)) {
+    rmdirSync(installationsDistDirPath, { recursive: true });
+  }
 
   // Build firebase-exp
   await spawn(
