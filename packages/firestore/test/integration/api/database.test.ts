@@ -1388,7 +1388,7 @@ apiDescribe('Database', (persistence: boolean) => {
         options: firestore.SnapshotOptions
       ): ModelWithRef {
         return new ModelWithRef(snapshot.ref);
-      },
+      }
     };
 
     it('for DocumentReference.withConverter()', () => {
@@ -1621,14 +1621,20 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('Correct snapshot specified to fromFirestore() when registered with CollectionReference', () => {
       return withTestDb(persistence, async db => {
-        const untypedCollection = db.collection('/models').doc().collection("sub");
-        const collection = untypedCollection.withConverter(modelWithRefConverter);
+        const untypedCollection = db
+          .collection('/models')
+          .doc()
+          .collection('sub');
+        const collection = untypedCollection.withConverter(
+          modelWithRefConverter
+        );
         const docRef = collection.doc();
         await docRef.set(new ModelWithRef(docRef));
         const querySnapshot = await collection.get();
         expect(querySnapshot.size).to.equal(1);
         const untypedDocRef = untypedCollection.doc(docRef.id);
-        expect(untypedDocRef.isEqual(querySnapshot.docs[0].data().ref)).to.be.true;
+        expect(untypedDocRef.isEqual(querySnapshot.docs[0].data().ref)).to.be
+          .true;
       });
     });
 
@@ -1638,10 +1644,13 @@ apiDescribe('Database', (persistence: boolean) => {
         const untypedDocRef = untypedCollection.doc();
         const docRef = untypedDocRef.withConverter(modelWithRefConverter);
         await docRef.set(new ModelWithRef(docRef));
-        const query = untypedCollection.where(FieldPath.documentId(), '==', docRef.id).withConverter(modelWithRefConverter);
+        const query = untypedCollection
+          .where(FieldPath.documentId(), '==', docRef.id)
+          .withConverter(modelWithRefConverter);
         const querySnapshot = await query.get();
         expect(querySnapshot.size).to.equal(1);
-        expect(untypedDocRef.isEqual(querySnapshot.docs[0].data().ref)).to.be.true;
+        expect(untypedDocRef.isEqual(querySnapshot.docs[0].data().ref)).to.be
+          .true;
       });
     });
   });

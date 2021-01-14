@@ -556,7 +556,6 @@ export class WriteBatch
 class UntypedFirestoreDataConverterAdapter<U>
   extends Compat<PublicFirestoreDataConverter<U>>
   implements UntypedFirestoreDataConverter<U> {
-
   private static readonly INSTANCES = new WeakMap();
 
   private constructor(
@@ -567,7 +566,13 @@ class UntypedFirestoreDataConverterAdapter<U>
   }
 
   fromFirestore(snapshot: unknown, options?: unknown): U {
-    return this._delegate.fromFirestore(new QueryDocumentSnapshot<U>(this.firestore, snapshot as ExpQueryDocumentSnapshot<U>), options as PublicSnapshotOptions);
+    return this._delegate.fromFirestore(
+      new QueryDocumentSnapshot<U>(
+        this.firestore,
+        snapshot as ExpQueryDocumentSnapshot<U>
+      ),
+      options as PublicSnapshotOptions
+    );
   }
 
   toFirestore(modelObject: U): PublicDocumentData;
@@ -586,18 +591,19 @@ class UntypedFirestoreDataConverterAdapter<U>
     }
   }
 
-  static getInstance<U>(firestore: Firestore, converter: PublicFirestoreDataConverter<U>): UntypedFirestoreDataConverterAdapter<U> {
+  static getInstance<U>(
+    firestore: Firestore,
+    converter: PublicFirestoreDataConverter<U>
+  ): UntypedFirestoreDataConverterAdapter<U> {
     const map = UntypedFirestoreDataConverterAdapter.INSTANCES;
     let instance = map.get(converter);
-    if (! instance) {
+    if (!instance) {
       instance = new UntypedFirestoreDataConverterAdapter(firestore, converter);
       map.set(converter, instance);
     }
     return instance;
   }
 }
-
-
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -797,7 +803,15 @@ export class DocumentReference<T = PublicDocumentData>
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
   ): PublicDocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, this._delegate.withConverter(UntypedFirestoreDataConverterAdapter.getInstance(this.firestore, converter)));
+    return new DocumentReference<U>(
+      this.firestore,
+      this._delegate.withConverter(
+        UntypedFirestoreDataConverterAdapter.getInstance(
+          this.firestore,
+          converter
+        )
+      )
+    );
   }
 }
 
@@ -1101,7 +1115,15 @@ export class Query<T = PublicDocumentData>
   }
 
   withConverter<U>(converter: PublicFirestoreDataConverter<U>): Query<U> {
-    return new Query<U>(this.firestore, this._delegate.withConverter(UntypedFirestoreDataConverterAdapter.getInstance(this.firestore, converter)));
+    return new Query<U>(
+      this.firestore,
+      this._delegate.withConverter(
+        UntypedFirestoreDataConverterAdapter.getInstance(
+          this.firestore,
+          converter
+        )
+      )
+    );
   }
 }
 
@@ -1240,7 +1262,15 @@ export class CollectionReference<T = PublicDocumentData>
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
   ): CollectionReference<U> {
-    return new CollectionReference<U>(this.firestore, this._delegate.withConverter(UntypedFirestoreDataConverterAdapter.getInstance(this.firestore, converter)));
+    return new CollectionReference<U>(
+      this.firestore,
+      this._delegate.withConverter(
+        UntypedFirestoreDataConverterAdapter.getInstance(
+          this.firestore,
+          converter
+        )
+      )
+    );
   }
 }
 
