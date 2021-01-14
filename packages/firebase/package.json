@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "8.2.2",
+  "version": "8.2.3",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -48,7 +48,7 @@
     "@firebase/app": "0.6.13",
     "@firebase/app-types": "0.6.1",
     "@firebase/auth": "0.16.1",
-    "@firebase/database": "0.8.2",
+    "@firebase/database": "0.8.3",
     "@firebase/firestore": "2.1.2",
     "@firebase/functions": "0.6.1",
     "@firebase/installations": "0.4.19",
