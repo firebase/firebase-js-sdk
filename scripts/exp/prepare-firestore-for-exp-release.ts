@@ -84,8 +84,8 @@ export async function prepare() {
   );
 
   // remove -exp in typings files
-  await replaceAppTypesExpInFile(expTypingPath);
-  await replaceAppTypesExpInFile(liteTypingPath);
+  // await replaceAppTypesExpInFile(expTypingPath);
+  // await replaceAppTypesExpInFile(liteTypingPath);
 }
 
 async function replaceAppTypesExpInFile(filePath: string): Promise<void> {
