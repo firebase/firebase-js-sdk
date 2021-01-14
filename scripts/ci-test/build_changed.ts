@@ -38,7 +38,7 @@ const argv = yargs.options({
 }).argv;
 
 const allTestConfigNames = Object.keys(testConfig);
-const inputTestConfigName = argv._[0];
+const inputTestConfigName = argv._[0].toString();
 const { buildAppExp, buildAppCompat } = argv;
 
 if (!inputTestConfigName) {
