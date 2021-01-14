@@ -24,8 +24,7 @@ import {
   AnalyticsCallOptions,
   CustomParams,
   EventNameString,
-  EventParams,
-  SettingsOptions
+  EventParams
 } from '@firebase/analytics-types-exp';
 import { Provider } from '@firebase/component';
 import {
@@ -38,8 +37,7 @@ import { ANALYTICS_TYPE } from './constants';
 import {
   AnalyticsService,
   initializationPromisesMap,
-  wrappedGtagFunction,
-  settings
+  wrappedGtagFunction
 } from './factory';
 import { logger } from './logger';
 import {
@@ -50,6 +48,7 @@ import {
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
 } from './functions';
 
+export { analyticsSettings } from './factory';
 export { EventName } from './constants';
 
 declare module '@firebase/component' {
@@ -59,37 +58,14 @@ declare module '@firebase/component' {
 }
 
 /**
- * Firebase Analytics initialization function that allows custom
- * settings. Can be called at most once. If no custom settings
- * are needed, `getAnalytics()` can be used to initialize instead.
- *
- * @public
- *
- * @param app - The FirebaseApp to use.
- * @param options - Custom gtag and dataLayer names.
- */
-export function initializeAnalytics(
-  app: FirebaseApp,
-  options: SettingsOptions
-): Analytics {
-  const analyticsProvider: Provider<'analytics-exp'> = _getProvider(
-    app,
-    ANALYTICS_TYPE
-  );
-  settings(options);
-  const analyticsInstance = analyticsProvider.getImmediate();
-  return analyticsInstance;
-}
-
-/**
  * Returns a Firebase Analytics instance for the given app.
- * Initializes Firebase Analytics if not already initialized.
  *
  * @public
  *
  * @param app - The FirebaseApp to use.
  */
 export function getAnalytics(app: FirebaseApp): Analytics {
+  // Dependencies
   const analyticsProvider: Provider<'analytics-exp'> = _getProvider(
     app,
     ANALYTICS_TYPE

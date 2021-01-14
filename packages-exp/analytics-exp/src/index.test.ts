@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
 import '../testing/setup';
 import {
+  analyticsSettings,
   factory as analyticsFactory,
   resetGlobalVars,
   getGlobalVars
@@ -34,7 +35,7 @@ import { removeGtagScript } from '../testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 import { AnalyticsError } from './errors';
 import { logEvent } from './api';
-import { AnalyticsService, settings } from './factory';
+import { AnalyticsService } from './factory';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 
 let analyticsInstance: AnalyticsService = {} as AnalyticsService;
@@ -287,7 +288,7 @@ describe('FirebaseAnalytics instance tests', () => {
       );
       window[customGtagName] = gtagStub;
       window[customDataLayerName] = [];
-      settings({
+      analyticsSettings({
         dataLayerName: customDataLayerName,
         gtagName: customGtagName
       });
