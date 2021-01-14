@@ -16,6 +16,23 @@
  */
 
 import { assert } from '@firebase/util';
+import {
+  tryParseInt,
+  MAX_NAME,
+  MIN_NAME,
+  INTEGER_32_MIN,
+  INTEGER_32_MAX
+} from '../util/util';
+
+// Modeled after base64 web-safe chars, but ordered by ASCII.
+const PUSH_CHARS =
+  '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+
+const MIN_PUSH_CHAR = '-';
+
+const MAX_PUSH_CHAR = 'z';
+
+const MAX_KEY_LEN = 786;
 
 /**
  * Fancy ID generator that creates 20-character string identifiers with the
@@ -32,10 +49,6 @@ import { assert } from '@firebase/util';
  *    in the case of a timestamp collision).
  */
 export const nextPushId = (function () {
-  // Modeled after base64 web-safe chars, but ordered by ASCII.
-  const PUSH_CHARS =
-    '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
-
   // Timestamp of last push, used to prevent local collisions if you push twice
   // in one ms.
   let lastPushTime = 0;
@@ -82,3 +95,83 @@ export const nextPushId = (function () {
     return id;
   };
 })();
+
+export const successor = function (key: string) {
+  if (key === '' + INTEGER_32_MAX) {
+    // See https://firebase.google.com/docs/database/web/lists-of-data#data-order
+    return MIN_PUSH_CHAR;
+  }
+  const keyAsInt: number = tryParseInt(key);
+  if (keyAsInt != null) {
+    return '' + (keyAsInt + 1);
+  }
+  const next = new Array(key.length);
+
+  for (let i = 0; i < next.length; i++) {
+    next[i] = key.charAt(i);
+  }
+
+  if (next.length < MAX_KEY_LEN) {
+    next.push(MIN_PUSH_CHAR);
+    return next.join('');
+  }
+
+  let i = next.length - 1;
+
+  while (i >= 0 && next[i] === MAX_PUSH_CHAR) {
+    i--;
+  }
+
+  // `successor` was called on the largest possible key, so return the
+  // MAX_NAME, which sorts larger than all keys.
+  if (i === -1) {
+    return MAX_NAME;
+  }
+
+  const source = next[i];
+  const sourcePlusOne = PUSH_CHARS.charAt(PUSH_CHARS.indexOf(source) + 1);
+  next[i] = sourcePlusOne;
+
+  return next.slice(0, i + 1).join('');
+};
+
+// `key` is assumed to be non-empty.
+export const predecessor = function (key: string) {
+  if (key === '' + INTEGER_32_MIN) {
+    return MIN_NAME;
+  }
+  const keyAsInt: number = tryParseInt(key);
+  if (keyAsInt != null) {
+    return '' + (keyAsInt - 1);
+  }
+  const next = new Array(key.length);
+  for (let i = 0; i < next.length; i++) {
+    next[i] = key.charAt(i);
+  }
+  // If `key` ends in `MIN_PUSH_CHAR`, the largest key lexicographically
+  // smaller than `key`, is `key[0:key.length - 1]`. The next key smaller
+  // than that, `predecessor(predecessor(key))`, is
+  //
+  // `key[0:key.length - 2] + (key[key.length - 1] - 1) + \
+  //   { MAX_PUSH_CHAR repeated MAX_KEY_LEN - (key.length - 1) times }
+  //
+  // analogous to increment/decrement for base-10 integers.
+  //
+  // This works because lexigographic comparison works character-by-character,
+  // using length as a tie-breaker if one key is a prefix of the other.
+  if (next[next.length - 1] === MIN_PUSH_CHAR) {
+    if (next.length === 1) {
+      // See https://firebase.google.com/docs/database/web/lists-of-data#orderbykey
+      return '' + INTEGER_32_MAX;
+    }
+    delete next[next.length - 1];
+    return next.join('');
+  }
+  // Replace the last character with it's immediate predecessor, and
+  // fill the suffix of the key with MAX_PUSH_CHAR. This is the
+  // lexicographically largest possible key smaller than `key`.
+  next[next.length - 1] = PUSH_CHARS.charAt(
+    PUSH_CHARS.indexOf(next[next.length - 1]) - 1
+  );
+  return next.join('') + MAX_PUSH_CHAR.repeat(MAX_KEY_LEN - next.length);
+};
