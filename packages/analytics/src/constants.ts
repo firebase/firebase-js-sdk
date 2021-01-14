@@ -26,7 +26,7 @@ export const DYNAMIC_CONFIG_URL =
 
 export const GTAG_URL = 'https://www.googletagmanager.com/gtag/js';
 
-export const enum GtagCommand {
+export enum GtagCommand {
   EVENT = 'event',
   SET = 'set',
   CONFIG = 'config'
@@ -38,7 +38,7 @@ export const enum GtagCommand {
  *
  * @public
  */
-export const enum EventName {
+export enum EventName {
   ADD_SHIPPING_INFO = 'add_shipping_info',
   ADD_PAYMENT_INFO = 'add_payment_info',
   ADD_TO_CART = 'add_to_cart',
