@@ -4,15 +4,21 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
-import * as types from '@firebase/storage-types/exp';
+import { ListOptions } from '@firebase/storage-types/exp';
+import { ListResult } from '@firebase/storage-types/exp';
+import { Metadata } from '@firebase/storage-types/exp';
+import { StorageReference } from '@firebase/storage-types/exp';
+import { StorageService } from '@firebase/storage-types/exp';
+import { UploadResult } from '@firebase/storage-types/exp';
+import { UploadTask } from '@firebase/storage-types/exp';
 
 // @public
 export type CompleteFn = () => void;
 
 // @public
-export function deleteObject(ref: types.StorageReference): Promise<void>;
+export function deleteObject(ref: StorageReference): Promise<void>;
 
 // @public
 export type ErrorFn = (error: FirebaseStorageError) => void;
@@ -32,28 +38,28 @@ export class FirebaseStorageError extends FirebaseError {
 }
 
 // @public
-export function getDownloadURL(ref: types.StorageReference): Promise<string>;
+export function getDownloadURL(ref: StorageReference): Promise<string>;
 
 // @public
-export function getMetadata(ref: types.StorageReference): Promise<types.Metadata>;
+export function getMetadata(ref: StorageReference): Promise<Metadata>;
 
 // @public
-export function getStorage(app: FirebaseApp): types.StorageService;
+export function getStorage(app: FirebaseApp): StorageService;
 
 // @public
-export function list(ref: types.StorageReference, options?: types.ListOptions): Promise<types.ListResult>;
+export function list(ref: StorageReference, options?: ListOptions): Promise<ListResult>;
 
 // @public
-export function listAll(ref: types.StorageReference): Promise<types.ListResult>;
+export function listAll(ref: StorageReference): Promise<ListResult>;
 
 // @public
 export type NextFn<T> = (value: T) => void;
 
 // @public
-export function ref(storage: types.StorageService, url?: string): types.StorageReference;
+export function ref(storage: StorageService, url?: string): StorageReference;
 
 // @public
-export function ref(storageOrRef: types.StorageService | types.StorageReference, path?: string): types.StorageReference;
+export function ref(storageOrRef: StorageService | StorageReference, path?: string): StorageReference;
 
 // @public
 export type StorageErrorCode = string;
@@ -131,16 +137,16 @@ export const TaskState: {
 export type Unsubscribe = () => void;
 
 // @public
-export function updateMetadata(ref: types.StorageReference, metadata: Partial<types.Metadata>): Promise<types.Metadata>;
+export function updateMetadata(ref: StorageReference, metadata: Partial<Metadata>): Promise<Metadata>;
 
 // @public
-export function uploadBytes(ref: types.StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: types.Metadata): Promise<types.UploadResult>;
+export function uploadBytes(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: Metadata): Promise<UploadResult>;
 
 // @public
-export function uploadBytesResumable(ref: types.StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: types.Metadata): types.UploadTask;
+export function uploadBytesResumable(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: Metadata): UploadTask;
 
 // @public
-export function uploadString(ref: types.StorageReference, value: string, format?: string, metadata?: types.Metadata): Promise<types.UploadResult>;
+export function uploadString(ref: StorageReference, value: string, format?: string, metadata?: Metadata): Promise<UploadResult>;
 
 
 // (No @packageDocumentation comment for this package)
