@@ -1661,7 +1661,7 @@ function testAuth_onAuthStateChanged() {
  * Test whether we can retrieve the signed-in user as a promise.
  * We also verify the behavior when user signs out.
  */
-function testAuth_getSignedInUser() {
+function testAuth_getSignedInUser_success() {
   stubs.reset();
   var expectedTokenResponse2 = {
     'idToken': jwt2,
@@ -1748,6 +1748,30 @@ function testAuth_getSignedInUser() {
   asyncTestCase.waitForSignals(1);
 }
 
+function testAuth_getSignedInUser_error() {
+  stubs.reset();
+  var expectedError = new fireauth.AuthError(
+    fireauth.authenum.Error.INTERNAL_ERROR);
+  // throw when onAuthStateChanged is called
+  stubs.replace(
+    fireauth.Auth.prototype,
+    'onAuthStateChanged',
+    function(tokenResponse) {
+      throw expectedError;
+    });
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  auth1.getSignedInUser()
+    .then((signedInUser) => {
+      fail('getSignedInUser should not resolve!');
+    })
+    .catch(function(error) {
+      fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+      asyncTestCase.signal();
+    });
+  mockControl.$replayAll();
+  asyncTestCase.waitForSignals(1);
+}
 
 function testFetchSignInMethodsForEmail() {
   var email = 'foo@bar.com';
