@@ -82,6 +82,24 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      */
     const versions = await updatePackageNamesAndVersions(packagePaths);
 
+    let versionCheckMessage =
+      '\r\nAre you sure these are the versions you want to publish?\r\n';
+    for (const [pkgName, version] of versions) {
+      versionCheckMessage += `${pkgName} : ${version}\n`;
+    }
+    const { versionCheck } = await prompt([
+      {
+        type: 'confirm',
+        name: 'versionCheck',
+        message: versionCheckMessage,
+        default: false
+      }
+    ]);
+
+    if (!versionCheck) {
+      throw new Error('Version check failed');
+    }
+
     /**
      * Release packages to NPM
      */
@@ -100,7 +118,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
     );
 
-    const reset = await prompt<boolean>([
+    const { resetWorkingTree } = await prompt([
       {
         type: 'confirm',
         name: 'resetWorkingTree',
@@ -109,7 +127,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       }
     ]);
 
-    if (reset) {
+    if (resetWorkingTree) {
       await resetWorkingTreeAndBumpVersions(
         firebaseExpPath,
         firebaseExpVersion
@@ -122,7 +140,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * Do not push to remote if it's a dryrun
      */
     if (!dryRun) {
-      const proceed = await prompt<boolean>([
+      const { commitAndPush } = await prompt([
         {
           type: 'confirm',
           name: 'commitAndPush',
@@ -134,7 +152,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       /**
        * push to github
        */
-      if (proceed) {
+      if (commitAndPush) {
         await commitAndPush(versions);
       }
     }
