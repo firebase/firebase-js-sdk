@@ -319,23 +319,11 @@ async function publishToNpm(packagePaths: string[], dryRun = false) {
 }
 
 async function publishPackage(packagePath: string, dryRun: boolean) {
-  console.log('publishing ', packagePath);
   const args = ['publish', '--access', 'public', '--tag', 'exp'];
   if (dryRun) {
     args.push('--dry-run');
   }
-  const prm = spawn('npm', args, { cwd: packagePath });
-
-  const childProcess = prm.childProcess;
-  console.log('[spawn] childProcess.pid: ', childProcess.pid);
-  childProcess.stdout?.on('data', function (data) {
-    console.log('[spawn] stdout: ', data.toString());
-  });
-  childProcess.stderr?.on('data', function (data) {
-    console.log('[spawn] stderr: ', data.toString());
-  });
-
-  await prm;
+  await spawn('npm', args, { cwd: packagePath });
 }
 
 async function resetWorkingTreeAndBumpVersions(
