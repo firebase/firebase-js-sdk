@@ -588,7 +588,7 @@ export class Query {
     name?: string | null
   ): Query {
     validateArgCount('Query.endBefore', 0, 2, arguments.length);
-    validateFirebaseDataArg('Query.endBefore', 1, value, this.path, true);
+    validateFirebaseDataArg('Query.endBefore', 1, value, this.path, false);
     validateKey('Query.endBefore', 2, name, true);
 
     const newParams = this.queryParams_.endBefore(value, name);

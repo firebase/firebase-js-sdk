@@ -1891,7 +1891,7 @@ describe('Query Tests', () => {
     );
   });
 
-  it('Ensure startAt / endBefore with priority and name works (2).', () => {
+  it('Ensure startAt / endBefore with priority and name works with queries before set.', () => {
     const node = getRandomNode() as Reference;
 
     const tasks: TaskList = [
@@ -4222,14 +4222,7 @@ describe('Query Tests', () => {
     const ref = getRandomNode() as Reference;
     ref.set(
       {
-        1: true,
-        50: true,
-        550: true,
-        6: true,
-        600: true,
-        70: true,
-        8: true,
-        80: true
+        1: true
       },
       () => {
         ref.endBefore(null, '' + INTEGER_32_MIN).once('value', s => {
@@ -4242,38 +4235,27 @@ describe('Query Tests', () => {
 
   it('Integer keys behave numerically with endBefore at boundary.', done => {
     const ref = getRandomNode() as Reference;
-    ref.set(
-      {
-        1: true,
-        50: true,
-        550: true,
-        6: true,
-        600: true,
-        70: true,
-        8: true,
-        80: true,
-        'a': true
-      },
-      () => {
-        ref.endBefore(null, '' + INTEGER_32_MAX).once('value', s => {
-          expect(s.val()).to.deep.equal({
-            1: true,
-            50: true,
-            550: true,
-            6: true,
-            600: true,
-            70: true,
-            8: true,
-            80: true
-          }),
-            ref.startAfter(null, '' + INTEGER_32_MAX).once('value', s => {
-              expect(s.val()).to.deep.equal({ 'a': true });
-              done();
-            });
-          done();
-        });
-      }
-    );
+    const integerData = {
+      1: true,
+      50: true,
+      550: true,
+      6: true,
+      600: true,
+      70: true,
+      8: true,
+      80: true
+    };
+    const data = Object.assign({}, integerData);
+    data['a'] = true;
+    ref.set(data, () => {
+      ref.endBefore(null, '' + INTEGER_32_MAX).once('value', s => {
+        expect(s.val()).to.deep.equal(integerData),
+          ref.startAfter(null, '' + INTEGER_32_MAX).once('value', s => {
+            expect(s.val()).to.deep.equal({ 'a': true });
+            done();
+          });
+      });
+    });
   });
 
   it('.limitToLast() on node with priority.', done => {
