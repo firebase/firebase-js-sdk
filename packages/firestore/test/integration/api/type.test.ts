@@ -53,9 +53,7 @@ apiDescribe('Firestore', (persistence: boolean) => {
       docSnapshot = querySnapshot.docs[0];
       expect(docSnapshot.data()).to.deep.equal(data);
 
-      const eventsAccumulator = new EventsAccumulator<
-        firestore.QuerySnapshot
-      >();
+      const eventsAccumulator = new EventsAccumulator<firestore.QuerySnapshot>();
       const unlisten = collection.onSnapshot(eventsAccumulator.storeEvent);
       querySnapshot = await eventsAccumulator.awaitEvent();
       docSnapshot = querySnapshot.docs[0];

@@ -295,15 +295,6 @@ export class AsyncQueueImpl implements AsyncQueue {
     debugAssert(index >= 0, 'Delayed operation not found.');
     this.delayedOperations.splice(index, 1);
   }
-
-  toJSON(): object {
-    return {
-      retryableOperationsCount: this.retryableOps.length,
-      delayedOperationsCount: this.delayedOperations.length,
-      operationsInProgress: this.operationInProgress,
-      backoff: this.backoff
-    };
-  }
 }
 
 export function newAsyncQueue(): AsyncQueue {
