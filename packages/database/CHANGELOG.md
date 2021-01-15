@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.8.3
+
+### Patch Changes
+
+- [`50abe6c4d`](https://github.com/firebase/firebase-js-sdk/commit/50abe6c4d455693ef6a3a3c1bc8ef6ab5b8bd9ea) [#4199](https://github.com/firebase/firebase-js-sdk/pull/4199) - Fixes an issue that caused `refFromUrl()` to reject production database URLs when `useEmulator()` was used.
+
 ## 0.8.2
 
 ### Patch Changes

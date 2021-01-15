@@ -60,8 +60,6 @@ export async function prepare() {
 
   packageJson.typings = expPackageJson.typings.replace('../', '');
 
-  delete packageJson.scripts.prepare;
-
   // include files to be published
   packageJson.files = [
     ...packageJson.files,
