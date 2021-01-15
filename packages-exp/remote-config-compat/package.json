@@ -20,8 +20,7 @@
     "test:all": "run-p test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
-    "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "prepare": "yarn build:release"
+    "test:browser:debug": "karma start --browsers Chrome --auto-watch"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
