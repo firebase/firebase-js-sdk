@@ -559,7 +559,7 @@ class UntypedFirestoreDataConverterAdapter<U>
   private static readonly INSTANCES = new WeakMap();
 
   private constructor(
-    private readonly firestore: Firestore,
+    private readonly _firestore: Firestore,
     delegate: PublicFirestoreDataConverter<U>
   ) {
     super(delegate);
@@ -568,7 +568,7 @@ class UntypedFirestoreDataConverterAdapter<U>
   fromFirestore(snapshot: unknown, options?: unknown): U {
     return this._delegate.fromFirestore(
       new QueryDocumentSnapshot<U>(
-        this.firestore,
+        this._firestore,
         snapshot as ExpQueryDocumentSnapshot<U>
       ),
       options as PublicSnapshotOptions
