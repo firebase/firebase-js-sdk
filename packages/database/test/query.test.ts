@@ -3128,6 +3128,12 @@ describe('Query Tests', () => {
     }
   });
 
+  it('get returns the latest value', async () => {
+    const node = getRandomNode() as Reference;
+    await node.set({ foo: 'bar' });
+    expect(node.get()).to.eventually.equal({ foo: 'bar' });
+  });
+
   it('get reads from cache if database is not connected', async () => {
     const node = getRandomNode() as Reference;
     const node2 = getFreshRepo(node.path);
