@@ -74,24 +74,4 @@ export async function prepare() {
     `${JSON.stringify(packageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
-
-  const expTypingPath = `${packagePath}/${packageJson.typings}`;
-  const liteTypingPath = path.resolve(
-    `${packagePath}/lite`,
-    litePackageJson.typings
-  );
-
-  // remove -exp in typings files
-  await replaceAppTypesExpInFile(expTypingPath);
-  await replaceAppTypesExpInFile(liteTypingPath);
-}
-
-async function replaceAppTypesExpInFile(filePath: string): Promise<void> {
-  const fileContent = await readFile(filePath, { encoding: 'utf-8' });
-  const newFileContent = fileContent.replace(
-    '@firebase/app-types-exp',
-    '@firebase/app-types'
-  );
-
-  await writeFile(filePath, newFileContent, { encoding: 'utf-8' });
 }

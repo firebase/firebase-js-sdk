@@ -30,6 +30,7 @@
     "stage:packages": "./scripts/prepublish.sh",
     "repl": "node tools/repl.js",
     "release": "ts-node-script scripts/release/cli.ts",
+    "release:exp": "ts-node-script scripts/exp/release.ts",
     "pretest": "node tools/pretest.js",
     "test": "lerna run --concurrency 4 --stream test",
     "test:ci": "lerna run --concurrency 4 test:ci",
