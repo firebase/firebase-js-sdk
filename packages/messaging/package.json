@@ -17,8 +17,7 @@
     "test:integration": "test:karma && cd ../../integration/messaging && npm run-script test",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:karma",
     "test:karma": "karma start --single-run",
-    "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "yarn build"
+    "test:debug": "karma start --browsers=Chrome --auto-watch"
   },
   "license": "Apache-2.0",
   "peerDependencies": {

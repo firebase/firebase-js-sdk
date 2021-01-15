@@ -14,8 +14,7 @@
     "dev": "rollup -c -w",
     "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
     "test": "firebase --project=foo --debug emulators:exec 'yarn test:nyc'",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
-    "prepare": "yarn build"
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
   },
   "license": "Apache-2.0",
   "dependencies": {

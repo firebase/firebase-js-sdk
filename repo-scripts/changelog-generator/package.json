@@ -13,8 +13,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "tsc",
     "build:dev": "tsc -w",
-    "test": "tsc -p . --noEmit",
-    "prepare": "yarn build"
+    "test": "tsc -p . --noEmit"
   },
   "dependencies": {
     "@changesets/types": "3.2.0",
