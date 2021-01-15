@@ -10,7 +10,6 @@
   "scripts": {
     "dev": "watch 'yarn build' src",
     "build": "gulp",
-    "prepare": "yarn build",
     "test": "echo 'No test suite for webchannel-wrapper'",
     "test:ci": "echo 'No test suite for webchannel-wrapper'"
   },

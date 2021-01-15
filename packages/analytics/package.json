@@ -17,8 +17,7 @@
     "test:all": "run-p test:browser test:integration",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run --nocache",
-    "test:integration": "karma start ./karma.integration.conf.js --single-run --nocache",
-    "prepare": "yarn build"
+    "test:integration": "karma start ./karma.integration.conf.js --single-run --nocache"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",

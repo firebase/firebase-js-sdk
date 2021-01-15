@@ -22,7 +22,6 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "yarn build",
     "api-report": "api-extractor run --local --verbose",
     "type-check": "tsc --noEmit"
   },

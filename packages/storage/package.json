@@ -26,7 +26,6 @@
     "test:browser:compat": "karma start --single-run --compat",
     "test:browser:exp": "karma start --single-run --exp",
     "test:browser": "karma start --single-run",
-    "prepare": "yarn build",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose"
   },

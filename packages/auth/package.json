@@ -15,7 +15,6 @@
     "build:deps": "lerna run --scope @firebase/auth --include-dependencies build",
     "demo": "./buildtools/run_demo.sh",
     "generate-test-files": "./buildtools/generate_test_files.sh",
-    "prepare": "yarn build",
     "serve": "yarn build && yarn generate-test-files && gulp serve",
     "test": "yarn generate-test-files && ./buildtools/run_tests.sh",
     "test:ci": "node ../../scripts/run_tests_in_ci.js"

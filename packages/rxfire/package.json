@@ -26,7 +26,6 @@
     "build": "rollup -c",
     "build:deps": "lerna run --scope rxfire --include-dependencies build",
     "dev": "rollup -c -w",
-    "prepare": "yarn build",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
