@@ -24,12 +24,12 @@ const LOG_TAG = 'ExponentialBackoff';
  * Initial backoff time in milliseconds after an error.
  * Set to 1s according to https://cloud.google.com/apis/design/errors.
  */
-const DEFAULT_BACKOFF_INITIAL_DELAY_MS = 1000;
+export const DEFAULT_BACKOFF_INITIAL_DELAY_MS = 1000;
 
-const DEFAULT_BACKOFF_FACTOR = 1.5;
+export const DEFAULT_BACKOFF_FACTOR = 1.5;
 
 /** Maximum backoff time in milliseconds */
-const DEFAULT_BACKOFF_MAX_DELAY_MS = 60 * 1000;
+export const DEFAULT_BACKOFF_MAX_DELAY_MS = 60 * 1000;
 
 /**
  * A helper for running delayed tasks following an exponential backoff curve
@@ -161,6 +161,15 @@ export class ExponentialBackoff {
       this.timerPromise.cancel();
       this.timerPromise = null;
     }
+  }
+
+  toJSON(): object {
+    return {
+      timerId: this.timerId,
+      initialDelayMs: this.initialDelayMs,
+      backoffFactor: this.backoffFactor,
+      maxDelayMs: this.maxDelayMs
+    };
   }
 
   /** Returns a random value in the range [-currentBaseMs/2, currentBaseMs/2] */

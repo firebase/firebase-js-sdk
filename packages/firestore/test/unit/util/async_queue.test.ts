@@ -20,6 +20,11 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+import {
+  DEFAULT_BACKOFF_FACTOR,
+  DEFAULT_BACKOFF_INITIAL_DELAY_MS,
+  DEFAULT_BACKOFF_MAX_DELAY_MS
+} from '../../../src/remote/backoff';
 import { fail } from '../../../src/util/assert';
 import { TimerId } from '../../../src/util/async_queue';
 import {
@@ -416,6 +421,27 @@ describe('AsyncQueue', () => {
 
     await queue.drain();
     expect(completedSteps).to.deep.equal([1, 2, 4]);
+  });
+
+  it('serializes to JSON', async () => {
+    const queue = newAsyncQueue() as AsyncQueueImpl;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    queue.enqueueAfterDelay(timerId1, 20000, () => Promise.resolve());
+    // toJSON() does not recursively call itself when serializing elements.
+    // We use JSON.stringify() here in order to check that `backoff` is
+    // serialized properly.
+    expect(JSON.parse(JSON.stringify(queue.toJSON()))).to.deep.equal({
+      delayedOperationsCount: 1,
+      operationsInProgress: false,
+      retryableOperationsCount: 0,
+      backoff: {
+        timerId: TimerId.AsyncQueueRetry,
+        initialDelayMs: DEFAULT_BACKOFF_INITIAL_DELAY_MS,
+        backoffFactor: DEFAULT_BACKOFF_FACTOR,
+        maxDelayMs: DEFAULT_BACKOFF_MAX_DELAY_MS
+      }
+    });
+    await queue.drain();
   });
 });
 
