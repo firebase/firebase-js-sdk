@@ -17,9 +17,6 @@ import { MinimalDynamicConfig } from '@firebase/analytics-types-exp';
 import { SettingsOptions } from '@firebase/analytics-types-exp';
 
 // @public
-export function analyticsSettings(options: SettingsOptions): void;
-
-// @public
 export const enum EventName {
     // (undocumented)
     ADD_PAYMENT_INFO = "add_payment_info",
@@ -293,6 +290,9 @@ export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enab
 
 // @public
 export function setCurrentScreen(analyticsInstance: Analytics, screenName: string, options?: AnalyticsCallOptions): void;
+
+// @public
+export function settings(options: SettingsOptions): void;
 
 // @public
 export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;

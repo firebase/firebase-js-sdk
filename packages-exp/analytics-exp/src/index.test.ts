@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
 import '../testing/setup';
 import {
-  analyticsSettings,
+  settings,
   factory as analyticsFactory,
   resetGlobalVars,
   getGlobalVars
@@ -288,7 +288,7 @@ describe('FirebaseAnalytics instance tests', () => {
       );
       window[customGtagName] = gtagStub;
       window[customDataLayerName] = [];
-      analyticsSettings({
+      settings({
         dataLayerName: customDataLayerName,
         gtagName: customGtagName
       });
