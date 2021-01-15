@@ -591,6 +591,9 @@ class UntypedFirestoreDataConverterAdapter<U>
     }
   }
 
+  // Use the same instance of UntypedFirestoreDataConverterAdapter for a given
+  // instance of PublicFirestoreDataConverter so that isEqual() will compare
+  // equal for two objects created with the same converter instance.
   static getInstance<U>(
     firestore: Firestore,
     converter: PublicFirestoreDataConverter<U>

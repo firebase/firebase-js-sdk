@@ -1377,11 +1377,12 @@ apiDescribe('Database', (persistence: boolean) => {
       constructor(readonly ref: firestore.DocumentReference<ModelWithRef>) {}
     }
 
-    const omitSingle = (key: any, { [key]: _, ...obj }) => obj;
-
     const modelWithRefConverter = {
       toFirestore(model: ModelWithRef): firestore.DocumentData {
-        return omitSingle('ref', model);
+        // Remove the "ref" attribute, since it's not meant to be stored in
+        // the Firestore database.
+        const { ['ref']: _, ...rest } = model;
+        return rest;
       },
       fromFirestore(
         snapshot: firestore.QueryDocumentSnapshot<ModelWithRef>,
