@@ -1326,7 +1326,7 @@ apiDescribe('Database', (persistence: boolean) => {
   // only to web.
   apiDescribe('withConverter() support', (persistence: boolean) => {
     class Post {
-      constructor(readonly title: string, readonly author: string) {}
+      constructor(readonly title: string, readonly author: string, readonly ref: firestore.DocumentReference | null = null) {}
       byline(): string {
         return this.title + ', by ' + this.author;
       }
@@ -1341,7 +1341,7 @@ apiDescribe('Database', (persistence: boolean) => {
         options: firestore.SnapshotOptions
       ): Post {
         const data = snapshot.data(options);
-        return new Post(data.title, data.author);
+        return new Post(data.title, data.author, snapshot.ref);
       }
     };
 
@@ -1369,26 +1369,7 @@ apiDescribe('Database', (persistence: boolean) => {
         options: firestore.SnapshotOptions
       ): Post {
         const data = snapshot.data();
-        return new Post(data.title, data.author);
-      }
-    };
-
-    class ModelWithRef {
-      constructor(readonly ref: firestore.DocumentReference<ModelWithRef>) {}
-    }
-
-    const modelWithRefConverter = {
-      toFirestore(model: ModelWithRef): firestore.DocumentData {
-        // Remove the "ref" attribute, since it's not meant to be stored in
-        // the Firestore database.
-        const { ['ref']: _, ...rest } = model;
-        return rest;
-      },
-      fromFirestore(
-        snapshot: firestore.QueryDocumentSnapshot<ModelWithRef>,
-        options: firestore.SnapshotOptions
-      ): ModelWithRef {
-        return new ModelWithRef(snapshot.ref);
+        return new Post(data.title, data.author, snapshot.ref);
       }
     };
 
@@ -1571,7 +1552,7 @@ apiDescribe('Database', (persistence: boolean) => {
             expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
 
             const data = snapshot.data(options);
-            return new Post(data.title, data.author);
+            return new Post(data.title, data.author, snapshot.ref);
           }
         });
 
@@ -1613,10 +1594,12 @@ apiDescribe('Database', (persistence: boolean) => {
     it('Correct snapshot specified to fromFirestore() when registered with DocumentReference', () => {
       return withTestDb(persistence, async db => {
         const untypedDocRef = db.collection('/models').doc();
-        const docRef = untypedDocRef.withConverter(modelWithRefConverter);
-        await docRef.set(new ModelWithRef(docRef));
+        const docRef = untypedDocRef.withConverter(postConverter);
+        await docRef.set(new Post('post', 'author'));
         const docSnapshot = await docRef.get();
-        expect(untypedDocRef.isEqual(docSnapshot.data()!.ref)).to.be.true;
+        const ref = docSnapshot.data()!.ref!;
+        //expect(ref).to.be.an.instanceof(firestore.DocumentReference);
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
       });
     });
 
@@ -1626,16 +1609,15 @@ apiDescribe('Database', (persistence: boolean) => {
           .collection('/models')
           .doc()
           .collection('sub');
-        const collection = untypedCollection.withConverter(
-          modelWithRefConverter
-        );
+        const collection = untypedCollection.withConverter(postConverter);
         const docRef = collection.doc();
-        await docRef.set(new ModelWithRef(docRef));
+        await docRef.set(new Post('post', 'author', docRef));
         const querySnapshot = await collection.get();
         expect(querySnapshot.size).to.equal(1);
+        const ref = querySnapshot.docs[0].data().ref!;
+        //expect(ref).to.be.an.instanceof(firestore.DocumentReference);
         const untypedDocRef = untypedCollection.doc(docRef.id);
-        expect(untypedDocRef.isEqual(querySnapshot.docs[0].data().ref)).to.be
-          .true;
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
       });
     });
 
@@ -1643,15 +1625,16 @@ apiDescribe('Database', (persistence: boolean) => {
       return withTestDb(persistence, async db => {
         const untypedCollection = db.collection('/models');
         const untypedDocRef = untypedCollection.doc();
-        const docRef = untypedDocRef.withConverter(modelWithRefConverter);
-        await docRef.set(new ModelWithRef(docRef));
+        const docRef = untypedDocRef.withConverter(postConverter);
+        await docRef.set(new Post('post', 'author', docRef));
         const query = untypedCollection
           .where(FieldPath.documentId(), '==', docRef.id)
-          .withConverter(modelWithRefConverter);
+          .withConverter(postConverter);
         const querySnapshot = await query.get();
         expect(querySnapshot.size).to.equal(1);
-        expect(untypedDocRef.isEqual(querySnapshot.docs[0].data().ref)).to.be
-          .true;
+        const ref = querySnapshot.docs[0].data().ref!;
+        //expect(ref).to.be.an.instanceof(firestore.DocumentReference);
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
       });
     });
   });
