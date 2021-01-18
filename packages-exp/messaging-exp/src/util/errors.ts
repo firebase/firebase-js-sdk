@@ -49,7 +49,7 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.PERMISSION_BLOCKED]:
     'The notification permission was not granted and blocked instead.',
   [ErrorCode.UNSUPPORTED_BROWSER]:
-    "This browser doesn't support the API's required to use the firebase SDK.",
+    "This browser doesn't support the API's required to use the Firebase SDK.",
   [ErrorCode.FAILED_DEFAULT_REGISTRATION]:
     'We are unable to register the default service worker. {$browserErrorMessage}',
   [ErrorCode.TOKEN_SUBSCRIBE_FAILED]:
