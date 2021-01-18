@@ -1326,7 +1326,11 @@ apiDescribe('Database', (persistence: boolean) => {
   // only to web.
   apiDescribe('withConverter() support', (persistence: boolean) => {
     class Post {
-      constructor(readonly title: string, readonly author: string, readonly ref: firestore.DocumentReference | null = null) {}
+      constructor(
+        readonly title: string,
+        readonly author: string,
+        readonly ref: firestore.DocumentReference | null = null
+      ) {}
       byline(): string {
         return this.title + ', by ' + this.author;
       }

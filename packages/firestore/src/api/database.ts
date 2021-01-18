@@ -558,8 +558,9 @@ export class WriteBatch
  * experimental SDK into corresponding types from the Classic SDK before passing
  * them to the wrapped converter.
  */
-class FirestoreDataConverter<U> extends Compat<PublicFirestoreDataConverter<U>> implements UntypedFirestoreDataConverter<U> {
-
+class FirestoreDataConverter<U>
+  extends Compat<PublicFirestoreDataConverter<U>>
+  implements UntypedFirestoreDataConverter<U> {
   private static readonly INSTANCES = new WeakMap();
 
   private constructor(
@@ -570,8 +571,24 @@ class FirestoreDataConverter<U> extends Compat<PublicFirestoreDataConverter<U>> 
     super(delegate);
   }
 
-  fromFirestore(snapshot: ExpQueryDocumentSnapshot, options?: PublicSnapshotOptions): U {
-    return this._delegate.fromFirestore(new QueryDocumentSnapshot<U>(this._firestore, new ExpQueryDocumentSnapshot<U>(this._firestore._delegate, this._userDataWriter, snapshot._key, snapshot._document, snapshot.metadata,/* converter= */ null)), options ?? {});
+  fromFirestore(
+    snapshot: ExpQueryDocumentSnapshot,
+    options?: PublicSnapshotOptions
+  ): U {
+    return this._delegate.fromFirestore(
+      new QueryDocumentSnapshot<U>(
+        this._firestore,
+        new ExpQueryDocumentSnapshot<U>(
+          this._firestore._delegate,
+          this._userDataWriter,
+          snapshot._key,
+          snapshot._document,
+          snapshot.metadata,
+          /* converter= */ null
+        )
+      ),
+      options ?? {}
+    );
   }
 
   toFirestore(modelObject: U): PublicDocumentData;
@@ -593,7 +610,10 @@ class FirestoreDataConverter<U> extends Compat<PublicFirestoreDataConverter<U>> 
   // Use the same instance of `FirestoreDataConverter` for the given instances
   // of `Firestore` and `PublicFirestoreDataConverter` so that isEqual() will
   // compare equal for two objects created with the same converter instance.
-  static getInstance<U>(firestore: Firestore, converter: PublicFirestoreDataConverter<U>): FirestoreDataConverter<U> {
+  static getInstance<U>(
+    firestore: Firestore,
+    converter: PublicFirestoreDataConverter<U>
+  ): FirestoreDataConverter<U> {
     const converterMapByFirestore = FirestoreDataConverter.INSTANCES;
     let untypedConverterByConverter = converterMapByFirestore.get(firestore);
     if (!untypedConverterByConverter) {
@@ -603,7 +623,11 @@ class FirestoreDataConverter<U> extends Compat<PublicFirestoreDataConverter<U>> 
 
     let instance = untypedConverterByConverter.get(converter);
     if (!instance) {
-      instance = new FirestoreDataConverter(firestore, new UserDataWriter(firestore), converter);
+      instance = new FirestoreDataConverter(
+        firestore,
+        new UserDataWriter(firestore),
+        converter
+      );
       untypedConverterByConverter.set(converter, instance);
     }
 
@@ -809,7 +833,12 @@ export class DocumentReference<T = PublicDocumentData>
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
   ): PublicDocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, this._delegate.withConverter(FirestoreDataConverter.getInstance(this.firestore, converter)));
+    return new DocumentReference<U>(
+      this.firestore,
+      this._delegate.withConverter(
+        FirestoreDataConverter.getInstance(this.firestore, converter)
+      )
+    );
   }
 }
 
@@ -1113,7 +1142,12 @@ export class Query<T = PublicDocumentData>
   }
 
   withConverter<U>(converter: PublicFirestoreDataConverter<U>): Query<U> {
-    return new Query<U>(this.firestore, this._delegate.withConverter(FirestoreDataConverter.getInstance(this.firestore, converter)));
+    return new Query<U>(
+      this.firestore,
+      this._delegate.withConverter(
+        FirestoreDataConverter.getInstance(this.firestore, converter)
+      )
+    );
   }
 }
 
@@ -1252,7 +1286,12 @@ export class CollectionReference<T = PublicDocumentData>
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
   ): CollectionReference<U> {
-    return new CollectionReference<U>(this.firestore, this._delegate.withConverter(FirestoreDataConverter.getInstance(this.firestore, converter)));
+    return new CollectionReference<U>(
+      this.firestore,
+      this._delegate.withConverter(
+        FirestoreDataConverter.getInstance(this.firestore, converter)
+      )
+    );
   }
 }
 
