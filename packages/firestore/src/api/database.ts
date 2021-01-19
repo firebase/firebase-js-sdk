@@ -575,18 +575,16 @@ class FirestoreDataConverter<U>
     snapshot: ExpQueryDocumentSnapshot,
     options?: PublicSnapshotOptions
   ): U {
+    const expSnapshot = new ExpQueryDocumentSnapshot(
+      this._firestore._delegate,
+      this._userDataWriter,
+      snapshot._key,
+      snapshot._document,
+      snapshot.metadata,
+      /* converter= */ null
+    );
     return this._delegate.fromFirestore(
-      new QueryDocumentSnapshot<U>(
-        this._firestore,
-        new ExpQueryDocumentSnapshot<U>(
-          this._firestore._delegate,
-          this._userDataWriter,
-          snapshot._key,
-          snapshot._document,
-          snapshot.metadata,
-          /* converter= */ null
-        )
-      ),
+      new QueryDocumentSnapshot(this._firestore, expSnapshot),
       options ?? {}
     );
   }
