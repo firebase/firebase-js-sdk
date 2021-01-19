@@ -1,5 +1,16 @@
 # firebase
 
+## 8.2.4
+
+### Patch Changes
+
+- [`92a7f4345`](https://github.com/firebase/firebase-js-sdk/commit/92a7f434536051bedd00bc1be7e774174378aa7d) [#4280](https://github.com/firebase/firebase-js-sdk/pull/4280) - Add the `useEmulator()` function and `emulatorConfig` to the `firebase` package externs
+
+- Updated dependencies [[`cb835e723`](https://github.com/firebase/firebase-js-sdk/commit/cb835e723fab2a85a4e073a3f09354e3e6520dd1), [`6ac66baa0`](https://github.com/firebase/firebase-js-sdk/commit/6ac66baa0e7ac8dd90a6d6136a020cdd54710df5), [`92a7f4345`](https://github.com/firebase/firebase-js-sdk/commit/92a7f434536051bedd00bc1be7e774174378aa7d)]:
+  - @firebase/database@0.9.0
+  - @firebase/firestore@2.1.3
+  - @firebase/auth@0.16.2
+
 ## 8.2.3
 
 ### Patch Changes

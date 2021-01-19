@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 2.1.3
+
+### Patch Changes
+
+- [`6ac66baa0`](https://github.com/firebase/firebase-js-sdk/commit/6ac66baa0e7ac8dd90a6d6136a020cdd54710df5) [#4284](https://github.com/firebase/firebase-js-sdk/pull/4284) (fixes [#4278](https://github.com/firebase/firebase-js-sdk/issues/4278)) - Fixes FirestoreDataConverter.fromFirestore() being called with an incorrect "snapshot" object.
+
 ## 2.1.2
 
 ### Patch Changes
