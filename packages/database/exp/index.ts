@@ -47,10 +47,8 @@ function registerDatabase(): void {
       'database-exp',
       (container, url) => {
         const app = container.getProvider('app-exp').getImmediate()!;
-        return ((app, auth) => new FirebaseDatabase(app, auth, url))(
-          app,
-          container.getProvider('auth-internal')
-        );
+        const authProvider = container.getProvider('auth-internal');
+        return new FirebaseDatabase(app, authProvider, url);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

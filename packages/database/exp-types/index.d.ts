@@ -43,16 +43,6 @@ export interface Database {
   refFromURL(url: string): Reference;
 }
 
-export class FirebaseDatabase implements Database {
-  private constructor();
-  app: FirebaseApp;
-  useEmulator(host: string, port: number): void;
-  goOffline(): void;
-  goOnline(): void;
-  ref(path?: string | Reference): Reference;
-  refFromURL(url: string): Reference;
-}
-
 export interface OnDisconnect {
   cancel(onComplete?: (a: Error | null) => any): Promise<void>;
   remove(onComplete?: (a: Error | null) => any): Promise<void>;
