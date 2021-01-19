@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Bundle, NamedQuery } from '../../../src/core/bundle';
+import { BundleMetadata, NamedQuery } from '../../../src/core/bundle';
 import { BundleCache } from '../../../src/local/bundle_cache';
 import { Persistence } from '../../../src/local/persistence';
 import {
@@ -34,9 +34,9 @@ export class TestBundleCache {
     this.cache = persistence.getBundleCache();
   }
 
-  getBundle(bundleId: string): Promise<Bundle | undefined> {
+  getBundleMetadata(bundleId: string): Promise<BundleMetadata | undefined> {
     return this.persistence.runTransaction(
-      'getBundle',
+      'getBundleMetadata',
       'readonly',
       transaction => {
         return this.cache.getBundleMetadata(transaction, bundleId);

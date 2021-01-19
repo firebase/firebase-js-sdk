@@ -42,6 +42,12 @@ apiDescribe('Firestore', (persistence: boolean) => {
     let docSnapshot = await doc.get();
     expect(docSnapshot.data()).to.deep.equal(data);
 
+    // Validate that the transaction API returns the same types
+    await db.runTransaction(async transaction => {
+      docSnapshot = await transaction.get(doc);
+      expect(docSnapshot.data()).to.deep.equal(data);
+    });
+
     if (validateSnapshots) {
       let querySnapshot = await collection.get();
       docSnapshot = querySnapshot.docs[0];

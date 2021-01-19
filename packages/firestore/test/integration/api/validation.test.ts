@@ -797,7 +797,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         collection.where('x', '>=', 32).where('y', '<', 'cat')
       ).to.throw(
         'Invalid query. All where filters with an ' +
-          'inequality (<, <=, >, or >=) must be on the same field.' +
+          'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
           ` But you have inequality filters on 'x' and 'y'`
       );
     });
@@ -818,7 +818,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           collection.where('y', '>', 32).where('x', '!=', 33)
         ).to.throw(
           'Invalid query. All where filters with an ' +
-            'inequality (<, <=, >, or >=) must be on the same field.' +
+            'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
             ` But you have inequality filters on 'y' and 'x`
         );
       }
@@ -833,7 +833,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           collection.where('y', '>', 32).where('x', 'not-in', [33])
         ).to.throw(
           'Invalid query. All where filters with an ' +
-            'inequality (<, <=, >, or >=) must be on the same field.' +
+            'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
             ` But you have inequality filters on 'y' and 'x`
         );
       }
@@ -846,7 +846,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('test');
         const reason =
           `Invalid query. You have a where filter with an ` +
-          `inequality (<, <=, >, or >=) on field 'x' and so you must also ` +
+          `inequality (<, <=, !=, not-in, >, or >=) on field 'x' and so you must also ` +
           `use 'x' as your first argument to Query.orderBy(), but your first ` +
           `orderBy() is on field 'y' instead.`;
         expect(() => collection.where('x', '>', 32).orderBy('y')).to.throw(

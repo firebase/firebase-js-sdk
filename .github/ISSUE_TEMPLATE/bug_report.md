@@ -1,5 +1,16 @@
+---
+name: 🐞 Bug report
+about: Found a bug in the JS SDK? File it here.
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+
 <!-- Step 1 [READ THIS] -->
 <!--
+
 Are you in the right place?
   * For issues or feature requests related to __the code in this repository__
     file a Github issue.
@@ -11,6 +22,7 @@ Are you in the right place?
   * For help troubleshooting your application that does not fall under one
     of the above categories, reach out to the personalized
     [Firebase support channel](https://firebase.google.com/support/).
+    
 -->
 
 <!-- Step 2 -->
@@ -32,12 +44,6 @@ Are you in the right place?
   This could be a description, log/console output, etc.
 -->
 #### Relevant Code:
-
-<!--
-  Reproduce the issue on StackBlitz and provide your forked URL
-  or give us some sample code below
--->
-https://stackblitz.com/fork/firebase-issue-sandbox
 
 ```javascript
 // TODO(you): code here to reproduce the problem

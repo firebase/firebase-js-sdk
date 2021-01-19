@@ -27,7 +27,6 @@
     "test:browser:debug": "karma start --auto-watch",
     "test:browser:unit:debug": "karma start --auto-watch --unit",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native)/**/*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
-    "prepare": "rollup -c rollup.config.release.js",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
@@ -48,7 +47,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/app-exp": "0.0.900",
-    "rollup": "2.33.2",
+    "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.29.0",

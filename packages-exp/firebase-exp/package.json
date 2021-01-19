@@ -32,7 +32,6 @@
     "build:compat": "rollup -c compat/rollup.config.js",
     "build:compat:release": "rollup -c compat/rollup.config.release.js",
     "dev": "rollup -c -w",
-    "prepare": "yarn build:release",
     "test": "echo 'No test suite for firebase wrapper'",
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
@@ -41,12 +40,13 @@
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/functions-exp": "0.0.900",
-    "@firebase/firestore": "2.1.0",
+    "@firebase/firestore": "2.1.2",
     "@firebase/performance-exp": "0.0.900",
-    "@firebase/remote-config-exp": "0.0.900"
+    "@firebase/remote-config-exp": "0.0.900",
+    "@firebase/messaging-exp": "0.0.900"
   },
   "devDependencies": {
-    "rollup": "2.33.2",
+    "rollup": "2.35.1",
     "@rollup/plugin-commonjs": "15.1.0",
     "rollup-plugin-license": "2.2.0",
     "@rollup/plugin-node-resolve": "9.0.0",
@@ -66,6 +66,7 @@
     "firestore",
     "firestore/lite",
     "performance",
-    "remote-config"
+    "remote-config",
+    "messaging"
   ]
 }

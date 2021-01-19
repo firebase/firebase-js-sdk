@@ -53,7 +53,7 @@ export class BundleLoadResult {
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
  */
-export interface Bundle {
+export interface BundleMetadata {
   /**
    * Id of the bundle. It is used together with `createTime` to determine if a
    * bundle has been loaded by the SDK.
