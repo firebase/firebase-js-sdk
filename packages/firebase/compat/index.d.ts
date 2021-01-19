@@ -8488,7 +8488,7 @@ declare namespace firebase.firestore {
      * @param collectionPath A slash-separated path to a collection.
      * @return The `CollectionReference` instance.
      */
-    collection(collectionPath: string): CollectionReference<DocumentData>;
+    collection<T extends DocumentData = DocumentData>(collectionPath: string): CollectionReference<T>;
 
     /**
      * Gets a `DocumentReference` instance that refers to the document at the
@@ -8497,7 +8497,7 @@ declare namespace firebase.firestore {
      * @param documentPath A slash-separated path to a document.
      * @return The `DocumentReference` instance.
      */
-    doc(documentPath: string): DocumentReference<DocumentData>;
+    doc<T extends DocumentData = DocumentData>(documentPath: string): DocumentReference<T>;
 
     /**
      * Creates and returns a new Query that includes all documents in the
@@ -9234,7 +9234,7 @@ declare namespace firebase.firestore {
      * @param collectionPath A slash-separated path to a collection.
      * @return The `CollectionReference` instance.
      */
-    collection(collectionPath: string): CollectionReference<DocumentData>;
+    collection<T extends DocumentData = DocumentData>(collectionPath: string): CollectionReference<T>;
 
     /**
      * Returns true if this `DocumentReference` is equal to the provided one.
@@ -10031,7 +10031,7 @@ declare namespace firebase.firestore {
      * @param documentPath A slash-separated path to a document.
      * @return The `DocumentReference` instance.
      */
-    doc(documentPath?: string): DocumentReference<T>;
+    doc<U extends T = T>(documentPath?: string): DocumentReference<U>;
 
     /**
      * Add a new document to this collection with the specified data, assigning
