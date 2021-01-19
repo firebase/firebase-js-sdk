@@ -112,8 +112,6 @@ export interface FirebaseNamespace {
   // Sets log handler for all Firebase components.
   onLog(logCallback: LogCallback, options?: LogOptions): void;
 
-  toJSON(): object;
-
   // The current SDK version.
   SDK_VERSION: string;
 }

@@ -136,6 +136,7 @@ export class FirebaseFirestore implements FirestoreService {
 
   toJSON(): object {
     return {
+      app: this.app.name,
       databaseId: this._databaseId,
       settings: this._settings
     };

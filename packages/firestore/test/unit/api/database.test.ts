@@ -83,9 +83,6 @@ describe('DocumentSnapshot', () => {
 
   it('JSON.stringify() does not throw', () => {
     JSON.stringify(documentSnapshot('foo/bar', { a: 1 }, true));
-    JSON.stringify(documentSnapshot('foo/bar', { a: 1 }, false));
-    JSON.stringify(documentSnapshot('foo/bar', null, true));
-    JSON.stringify(documentSnapshot('foo/bar', null, false));
   });
 });
 
