@@ -39,6 +39,8 @@ const newTestFirestore = firebaseExport.newTestFirestore;
 const Timestamp = firebaseExport.Timestamp;
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
+const DocumentReference = firebaseExport.DocumentReference;
+const QueryDocumentSnapshot = firebaseExport.QueryDocumentSnapshot;
 
 const MEMORY_ONLY_BUILD =
   typeof process !== 'undefined' &&
@@ -1344,6 +1346,7 @@ apiDescribe('Database', (persistence: boolean) => {
         snapshot: firestore.QueryDocumentSnapshot,
         options: firestore.SnapshotOptions
       ): Post {
+        expect(snapshot).to.be.an.instanceof(QueryDocumentSnapshot);
         const data = snapshot.data(options);
         return new Post(data.title, data.author, snapshot.ref);
       }
@@ -1602,7 +1605,7 @@ apiDescribe('Database', (persistence: boolean) => {
         await docRef.set(new Post('post', 'author'));
         const docSnapshot = await docRef.get();
         const ref = docSnapshot.data()!.ref!;
-        //expect(ref).to.be.an.instanceof(firestore.DocumentReference);
+        expect(ref).to.be.an.instanceof(DocumentReference);
         expect(untypedDocRef.isEqual(ref)).to.be.true;
       });
     });
@@ -1619,7 +1622,7 @@ apiDescribe('Database', (persistence: boolean) => {
         const querySnapshot = await collection.get();
         expect(querySnapshot.size).to.equal(1);
         const ref = querySnapshot.docs[0].data().ref!;
-        //expect(ref).to.be.an.instanceof(firestore.DocumentReference);
+        expect(ref).to.be.an.instanceof(DocumentReference);
         const untypedDocRef = untypedCollection.doc(docRef.id);
         expect(untypedDocRef.isEqual(ref)).to.be.true;
       });
@@ -1637,7 +1640,7 @@ apiDescribe('Database', (persistence: boolean) => {
         const querySnapshot = await query.get();
         expect(querySnapshot.size).to.equal(1);
         const ref = querySnapshot.docs[0].data().ref!;
-        //expect(ref).to.be.an.instanceof(firestore.DocumentReference);
+        expect(ref).to.be.an.instanceof(DocumentReference);
         expect(untypedDocRef.isEqual(ref)).to.be.true;
       });
     });

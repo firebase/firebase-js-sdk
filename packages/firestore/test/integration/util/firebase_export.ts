@@ -25,7 +25,11 @@ import { FirebaseApp } from '@firebase/app-types';
 import * as firestore from '@firebase/firestore-types';
 
 import { Blob } from '../../../src/api/blob';
-import { Firestore } from '../../../src/api/database';
+import {
+  Firestore,
+  DocumentReference,
+  QueryDocumentSnapshot
+} from '../../../src/api/database';
 import { FieldPath } from '../../../src/api/field_path';
 import { FieldValue } from '../../../src/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
@@ -68,4 +72,13 @@ export function newTestFirestore(
   return firestore;
 }
 
-export { Firestore, FieldValue, FieldPath, Timestamp, Blob, GeoPoint };
+export {
+  Firestore,
+  FieldValue,
+  FieldPath,
+  Timestamp,
+  Blob,
+  GeoPoint,
+  DocumentReference,
+  QueryDocumentSnapshot
+};
