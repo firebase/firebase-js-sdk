@@ -674,4 +674,9 @@ export function logEvent(
   ).catch(e => logger.error(e));
 }
 
-type CustomEventName<T> = T extends EventNameString ? never : T;
+/**
+ * Any custom event name string not in the standard list of recommended
+ * event names.
+ * @public
+ */
+export type CustomEventName<T> = T extends EventNameString ? never : T;

@@ -17,7 +17,7 @@
 
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
-import { factory, resetGlobalVars, getGlobalVars } from './factory';
+import { factory } from './factory';
 import { ANALYTICS_TYPE } from './constants';
 import {
   Component,
@@ -34,8 +34,6 @@ declare global {
     [key: string]: unknown;
   }
 }
-
-export * from './api';
 
 function registerAnalytics(): void {
   _registerComponent(
@@ -80,6 +78,18 @@ function registerAnalytics(): void {
   }
 }
 
-export { factory, resetGlobalVars, getGlobalVars };
-
 registerAnalytics();
+
+export * from './api';
+
+export {
+  DataLayer,
+  Analytics,
+  AnalyticsCallOptions,
+  SettingsOptions,
+  ControlParams,
+  EventParams,
+  CustomParams,
+  Item,
+  Promotion
+} from '@firebase/analytics-types-exp';

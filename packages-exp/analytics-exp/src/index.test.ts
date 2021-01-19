@@ -18,12 +18,7 @@
 import { expect } from 'chai';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
 import '../testing/setup';
-import {
-  settings,
-  factory as analyticsFactory,
-  resetGlobalVars,
-  getGlobalVars
-} from './index';
+import { settings } from './index';
 import {
   getFakeApp,
   getFakeInstallations
@@ -35,7 +30,12 @@ import { removeGtagScript } from '../testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 import { AnalyticsError } from './errors';
 import { logEvent } from './api';
-import { AnalyticsService } from './factory';
+import {
+  AnalyticsService,
+  getGlobalVars,
+  resetGlobalVars,
+  factory as analyticsFactory
+} from './factory';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 
 let analyticsInstance: AnalyticsService = {} as AnalyticsService;

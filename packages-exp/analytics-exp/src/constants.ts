@@ -43,7 +43,7 @@ export const enum GtagCommand {
  *
  * @public
  */
-export const enum EventName {
+export enum EventName {
   ADD_SHIPPING_INFO = 'add_shipping_info',
   ADD_PAYMENT_INFO = 'add_payment_info',
   ADD_TO_CART = 'add_to_cart',

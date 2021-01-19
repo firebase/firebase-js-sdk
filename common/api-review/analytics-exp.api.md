@@ -6,18 +6,31 @@
 
 import { Analytics } from '@firebase/analytics-types-exp';
 import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
+import { ControlParams } from '@firebase/analytics-types-exp';
 import { CustomParams } from '@firebase/analytics-types-exp';
-import { DynamicConfig } from '@firebase/analytics-types-exp';
+import { DataLayer } from '@firebase/analytics-types-exp';
 import { EventNameString } from '@firebase/analytics-types-exp';
 import { EventParams } from '@firebase/analytics-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
-import { _FirebaseService } from '@firebase/app-types-exp';
-import { MinimalDynamicConfig } from '@firebase/analytics-types-exp';
+import { Item } from '@firebase/analytics-types-exp';
+import { Promotion } from '@firebase/analytics-types-exp';
 import { SettingsOptions } from '@firebase/analytics-types-exp';
 
+export { Analytics }
+
+export { AnalyticsCallOptions }
+
+export { ControlParams }
+
 // @public
-export const enum EventName {
+export type CustomEventName<T> = T extends EventNameString ? never : T;
+
+export { CustomParams }
+
+export { DataLayer }
+
+// @public
+export enum EventName {
     // (undocumented)
     ADD_PAYMENT_INFO = "add_payment_info",
     // (undocumented)
@@ -74,27 +87,15 @@ export const enum EventName {
     VIEW_SEARCH_RESULTS = "view_search_results"
 }
 
-// Warning: (ae-forgotten-export) The symbol "AnalyticsService" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "factory" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function factory(app: FirebaseApp, installations: _FirebaseInstallationsInternal): AnalyticsService;
+export { EventParams }
 
 // @public
 export function getAnalytics(app: FirebaseApp): Analytics;
 
-// Warning: (ae-internal-missing-underscore) The name "getGlobalVars" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function getGlobalVars(): {
-    initializationPromisesMap: {
-        [appId: string]: Promise<string>;
-    };
-    dynamicConfigPromisesList: Array<Promise<DynamicConfig | MinimalDynamicConfig>>;
-};
-
 // @public
 export function isSupported(): Promise<boolean>;
+
+export { Item }
 
 // @public
 export function logEvent(analyticsInstance: Analytics, eventName: 'add_payment_info', eventParams?: {
@@ -273,17 +274,12 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'view_item_lis
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
-// Warning: (ae-forgotten-export) The symbol "CustomEventName" needs to be exported by the entry point index.d.ts
-//
 // @public
 export function logEvent<T extends string>(analyticsInstance: Analytics, eventName: CustomEventName<T>, eventParams?: {
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
-// Warning: (ae-internal-missing-underscore) The name "resetGlobalVars" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function resetGlobalVars(newGlobalInitDone?: boolean, newInitializationPromisesMap?: {}, newDynamicPromises?: never[]): void;
+export { Promotion }
 
 // @public
 export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enabled: boolean): void;
@@ -293,6 +289,8 @@ export function setCurrentScreen(analyticsInstance: Analytics, screenName: strin
 
 // @public
 export function settings(options: SettingsOptions): void;
+
+export { SettingsOptions }
 
 // @public
 export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;

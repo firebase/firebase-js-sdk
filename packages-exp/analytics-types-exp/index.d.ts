@@ -17,8 +17,6 @@
 
 import { FirebaseApp } from '@firebase/app-types-exp';
 
-export type GtagCommand = 'event' | 'set' | 'config';
-
 export type DataLayer = Array<IArguments>;
 
 /**
