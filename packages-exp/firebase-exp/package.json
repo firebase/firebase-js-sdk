@@ -65,6 +65,7 @@
     "functions",
     "firestore",
     "firestore/lite",
+    "storage",
     "performance",
     "remote-config",
     "messaging"
