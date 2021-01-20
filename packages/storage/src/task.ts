@@ -19,12 +19,16 @@
  */
 
 import { FbsBlob } from './implementation/blob';
-import { canceled, FirebaseStorageError } from './implementation/error';
-import { StorageErrorCode } from './implementation/constants';
+import {
+  canceled,
+  StorageErrorCode,
+  FirebaseStorageError
+} from './implementation/error';
 import {
   InternalTaskState,
   TaskEvent,
-  TaskState
+  TaskState,
+  taskStateFromInternalTaskState
 } from './implementation/taskenums';
 import { Metadata } from './metadata';
 import {
@@ -49,28 +53,6 @@ import {
   multipartUpload
 } from './implementation/requests';
 import { Reference } from './reference';
-
-export function taskStateFromInternalTaskState(
-  state: InternalTaskState
-): TaskState {
-  switch (state) {
-    case InternalTaskState.RUNNING:
-    case InternalTaskState.PAUSING:
-    case InternalTaskState.CANCELING:
-      return TaskState.RUNNING;
-    case InternalTaskState.PAUSED:
-      return TaskState.PAUSED;
-    case InternalTaskState.SUCCESS:
-      return TaskState.SUCCESS;
-    case InternalTaskState.CANCELED:
-      return TaskState.CANCELED;
-    case InternalTaskState.ERROR:
-      return TaskState.ERROR;
-    default:
-      // TODO(andysoto): assert(false);
-      return TaskState.ERROR;
-  }
-}
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the

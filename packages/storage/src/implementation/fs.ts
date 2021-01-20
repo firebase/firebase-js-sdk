@@ -20,8 +20,7 @@
  * bloats the size of the released binary.
  */
 import { isNativeBlobDefined } from './type';
-import { FirebaseStorageError } from './error';
-import { StorageErrorCode } from './constants';
+import { StorageErrorCode, FirebaseStorageError } from './error';
 
 function getBlobBuilder(): typeof IBlobBuilder | undefined {
   if (typeof BlobBuilder !== 'undefined') {

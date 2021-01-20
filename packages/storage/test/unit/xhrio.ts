@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 import { ErrorCode, Headers, XhrIo } from '../../src/implementation/xhrio';
-import { FirebaseStorageError } from '../../src/implementation/error';
-import { StorageErrorCode } from '../../src/implementation/constants';
+import {
+  FirebaseStorageError,
+  StorageErrorCode
+} from '../../src/implementation/error';
 
 export type SendHook = (
   xhrio: TestingXhrIo,
