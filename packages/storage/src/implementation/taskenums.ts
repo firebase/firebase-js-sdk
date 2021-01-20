@@ -21,11 +21,13 @@
 
 /**
  * An event that is triggered on a task.
+ * @public
  */
 export type TaskEvent = string;
 
 /**
  * An event that is triggered on a task.
+ * @public
  */
 export const TaskEvent = {
   /**
@@ -46,28 +48,25 @@ export const TaskEvent = {
 /**
  * Internal enum for task state.
  */
-export type InternalTaskState = string;
-
-/**
- * Internal enum for task state.
- */
-export const InternalTaskState = {
-  RUNNING: 'running',
-  PAUSING: 'pausing',
-  PAUSED: 'paused',
-  SUCCESS: 'success',
-  CANCELING: 'canceling',
-  CANCELED: 'canceled',
-  ERROR: 'error'
-};
+export const enum InternalTaskState {
+  RUNNING = 'running',
+  PAUSING = 'pausing',
+  PAUSED = 'paused',
+  SUCCESS = 'success',
+  CANCELING = 'canceling',
+  CANCELED = 'canceled',
+  ERROR = 'error'
+}
 
 /**
  * Represents the current state of a running upload.
+ * @public
  */
 export type TaskState = string;
 
 /**
  * Represents the current state of a running upload.
+ * @public
  */
 export const TaskState = {
   /** The task is currently transferring data. */
@@ -85,25 +84,3 @@ export const TaskState = {
   /** The task failed with an error. */
   ERROR: 'error'
 };
-
-export function taskStateFromInternalTaskState(
-  state: InternalTaskState
-): TaskState {
-  switch (state) {
-    case InternalTaskState.RUNNING:
-    case InternalTaskState.PAUSING:
-    case InternalTaskState.CANCELING:
-      return TaskState.RUNNING;
-    case InternalTaskState.PAUSED:
-      return TaskState.PAUSED;
-    case InternalTaskState.SUCCESS:
-      return TaskState.SUCCESS;
-    case InternalTaskState.CANCELED:
-      return TaskState.CANCELED;
-    case InternalTaskState.ERROR:
-      return TaskState.ERROR;
-    default:
-      // TODO(andysoto): assert(false);
-      return TaskState.ERROR;
-  }
-}

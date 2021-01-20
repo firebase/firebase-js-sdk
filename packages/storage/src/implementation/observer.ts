@@ -39,7 +39,8 @@ export type CompleteFn = () => void;
 export type Unsubscribe = () => void;
 
 /**
- * An observer that wraps any errors in `FirebaseStorageError`.
+ * An observer identical to the `Observer` defined in packages/util except the
+ * error passed into the ErrorFn is specifically a `FirebaseStorageError`.
  */
 export interface StorageObserver<T> {
   /**

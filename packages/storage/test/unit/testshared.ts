@@ -20,11 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 use(chaiAsPromised);
 
 import { FirebaseApp } from '@firebase/app-types';
-import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
 import {
-  StorageErrorCode,
-  FirebaseStorageError
-} from '../../src/implementation/error';
+  CONFIG_STORAGE_BUCKET_KEY,
+  StorageErrorCode
+} from '../../src/implementation/constants';
+import { FirebaseStorageError } from '../../src/implementation/error';
 import { Headers, XhrIo } from '../../src/implementation/xhrio';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';

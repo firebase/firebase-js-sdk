@@ -15,7 +15,7 @@ import { FirebaseError } from '@firebase/util';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
+import { CONFIG_STORAGE_BUCKET_KEY, StorageErrorCode } from './constants';
 
 /**
  * An error returned by the Firebase Storage SDK.
@@ -73,44 +73,6 @@ export class FirebaseStorageError extends FirebaseError {
 }
 
 export const errors = {};
-
-/**
- * Error codes that can be attached to `FirebaseStorageError`s.
- */
-export type StorageErrorCode = string;
-
-/**
- * @public
- * Error codes that can be attached to `FirebaseStorageError`s.
- */
-export const StorageErrorCode = {
-  // Shared between all platforms
-  UNKNOWN: 'unknown',
-  OBJECT_NOT_FOUND: 'object-not-found',
-  BUCKET_NOT_FOUND: 'bucket-not-found',
-  PROJECT_NOT_FOUND: 'project-not-found',
-  QUOTA_EXCEEDED: 'quota-exceeded',
-  UNAUTHENTICATED: 'unauthenticated',
-  UNAUTHORIZED: 'unauthorized',
-  RETRY_LIMIT_EXCEEDED: 'retry-limit-exceeded',
-  INVALID_CHECKSUM: 'invalid-checksum',
-  CANCELED: 'canceled',
-  // JS specific
-  INVALID_EVENT_NAME: 'invalid-event-name',
-  INVALID_URL: 'invalid-url',
-  INVALID_DEFAULT_BUCKET: 'invalid-default-bucket',
-  NO_DEFAULT_BUCKET: 'no-default-bucket',
-  CANNOT_SLICE_BLOB: 'cannot-slice-blob',
-  SERVER_FILE_WRONG_SIZE: 'server-file-wrong-size',
-  NO_DOWNLOAD_URL: 'no-download-url',
-  INVALID_ARGUMENT: 'invalid-argument',
-  INVALID_ARGUMENT_COUNT: 'invalid-argument-count',
-  APP_DELETED: 'app-deleted',
-  INVALID_ROOT_OPERATION: 'invalid-root-operation',
-  INVALID_FORMAT: 'invalid-format',
-  INTERNAL_ERROR: 'internal-error',
-  UNSUPPORTED_ENVIRONMENT: 'unsupported-environment'
-};
 
 export function prependCode(code: StorageErrorCode): string {
   return 'storage/' + code;

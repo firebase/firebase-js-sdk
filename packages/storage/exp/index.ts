@@ -47,8 +47,6 @@ import {
   ListResult,
   UploadTask,
   FirebaseStorageError,
-  TaskEvent,
-  TaskState,
   StorageObserver
 } from '@firebase/storage-types/exp';
 import { Metadata as MetadataInternal } from '../src/metadata';
@@ -77,10 +75,10 @@ export {
   ListResult,
   UploadTask,
   FirebaseStorageError,
-  TaskEvent,
-  TaskState,
   StorageObserver
 };
+
+export { TaskEvent, TaskState } from '../src/implementation/taskenums';
 
 /**
  * Uploads data to this object's location.

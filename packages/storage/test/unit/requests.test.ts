@@ -35,7 +35,7 @@ import {
   RESUMABLE_UPLOAD_CHUNK_SIZE
 } from '../../src/implementation/requests';
 import { makeUrl } from '../../src/implementation/url';
-import { unknown, StorageErrorCode } from '../../src/implementation/error';
+import { unknown } from '../../src/implementation/error';
 import { RequestInfo } from '../../src/implementation/requestinfo';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { Metadata } from '../../src/metadata';
@@ -47,7 +47,8 @@ import {
 } from './testshared';
 import {
   DEFAULT_HOST,
-  CONFIG_STORAGE_BUCKET_KEY
+  CONFIG_STORAGE_BUCKET_KEY,
+  StorageErrorCode
 } from '../../src/implementation/constants';
 import { FirebaseApp } from '@firebase/app-types';
 

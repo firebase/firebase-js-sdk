@@ -12,8 +12,6 @@ import { Metadata } from '@firebase/storage-types/exp';
 import { StorageObserver } from '@firebase/storage-types/exp';
 import { StorageReference } from '@firebase/storage-types/exp';
 import { StorageService } from '@firebase/storage-types/exp';
-import { TaskEvent } from '@firebase/storage-types/exp';
-import { TaskState } from '@firebase/storage-types/exp';
 import { UploadResult } from '@firebase/storage-types/exp';
 import { UploadTask } from '@firebase/storage-types/exp';
 
@@ -66,9 +64,25 @@ export const StringFormat: {
     DATA_URL: string;
 };
 
-export { TaskEvent }
+// @public
+export type TaskEvent = string;
 
-export { TaskState }
+// @public
+export const TaskEvent: {
+    STATE_CHANGED: string;
+};
+
+// @public
+export type TaskState = string;
+
+// @public
+export const TaskState: {
+    RUNNING: string;
+    PAUSED: string;
+    SUCCESS: string;
+    CANCELED: string;
+    ERROR: string;
+};
 
 // @public
 export function updateMetadata(ref: StorageReference, metadata: Partial<Metadata>): Promise<Metadata>;
