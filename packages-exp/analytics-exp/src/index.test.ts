@@ -18,24 +18,24 @@
 import { expect } from 'chai';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
 import '../testing/setup';
-import {
-  settings,
-  factory as analyticsFactory,
-  resetGlobalVars,
-  getGlobalVars
-} from './index';
+import { settings } from './index';
 import {
   getFakeApp,
   getFakeInstallations
 } from '../testing/get-fake-firebase-services';
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { GtagCommand, EventName } from './constants';
+import { GtagCommand } from './constants';
 import { findGtagScriptOnPage } from './helpers';
 import { removeGtagScript } from '../testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 import { AnalyticsError } from './errors';
 import { logEvent } from './api';
-import { AnalyticsService } from './factory';
+import {
+  AnalyticsService,
+  getGlobalVars,
+  resetGlobalVars,
+  factory as analyticsFactory
+} from './factory';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 
 let analyticsInstance: AnalyticsService = {} as AnalyticsService;
@@ -157,7 +157,7 @@ describe('FirebaseAnalytics instance tests', () => {
       expect(analyticsInstance.app).to.equal(app);
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      logEvent(analyticsInstance, EventName.ADD_PAYMENT_INFO, {
+      logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
       // Clear promise chain started by logEvent.
@@ -174,7 +174,7 @@ describe('FirebaseAnalytics instance tests', () => {
       );
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.EVENT,
-        EventName.ADD_PAYMENT_INFO,
+        'add_payment_info',
         {
           'send_to': 'abcd-efgh',
           currency: 'USD'
@@ -237,7 +237,7 @@ describe('FirebaseAnalytics instance tests', () => {
     it('Warns on logEvent if indexedDB API not available', async () => {
       const idbStub = stub(window, 'indexedDB').value(undefined);
       analyticsInstance = analyticsFactory(app, fakeInstallations);
-      logEvent(analyticsInstance, EventName.ADD_PAYMENT_INFO, {
+      logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
       // Clear promise chain started by logEvent.
@@ -257,7 +257,7 @@ describe('FirebaseAnalytics instance tests', () => {
       idbOpenStub.restore();
       idbOpenStub = stub(indexedDB, 'open').throws('idb open error test');
       analyticsInstance = analyticsFactory(app, fakeInstallations);
-      logEvent(analyticsInstance, EventName.ADD_PAYMENT_INFO, {
+      logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
       // Clear promise chain started by logEvent.
@@ -307,7 +307,7 @@ describe('FirebaseAnalytics instance tests', () => {
       idbOpenStub.restore();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      logEvent(analyticsInstance, EventName.ADD_PAYMENT_INFO, {
+      logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
       // Clear promise chain started by logEvent.
@@ -324,7 +324,7 @@ describe('FirebaseAnalytics instance tests', () => {
       );
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.EVENT,
-        EventName.ADD_PAYMENT_INFO,
+        'add_payment_info',
         {
           'send_to': 'abcd-efgh',
           currency: 'USD'

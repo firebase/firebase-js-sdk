@@ -25,7 +25,7 @@ import {
   setUserProperties,
   setAnalyticsCollectionEnabled
 } from './functions';
-import { GtagCommand, EventName } from './constants';
+import { GtagCommand } from './constants';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
@@ -38,57 +38,45 @@ describe('FirebaseAnalytics methods', () => {
   });
 
   it('logEvent() calls gtag function correctly', async () => {
-    await logEvent(gtagStub, fakeInitializationPromise, EventName.ADD_TO_CART, {
+    await logEvent(gtagStub, fakeInitializationPromise, 'add_to_cart', {
       currency: 'USD'
     });
 
-    expect(gtagStub).to.have.been.calledWith(
-      GtagCommand.EVENT,
-      EventName.ADD_TO_CART,
-      {
-        'send_to': fakeMeasurementId,
-        currency: 'USD'
-      }
-    );
+    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'add_to_cart', {
+      'send_to': fakeMeasurementId,
+      currency: 'USD'
+    });
   });
 
   it('logEvent() with no event params calls gtag function correctly', async () => {
-    await logEvent(gtagStub, fakeInitializationPromise, EventName.VIEW_ITEM);
+    await logEvent(gtagStub, fakeInitializationPromise, 'view_item');
 
-    expect(gtagStub).to.have.been.calledWith(
-      GtagCommand.EVENT,
-      EventName.VIEW_ITEM,
-      {
-        'send_to': fakeMeasurementId
-      }
-    );
+    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'view_item', {
+      'send_to': fakeMeasurementId
+    });
   });
 
   it('logEvent() globally calls gtag function correctly', async () => {
     await logEvent(
       gtagStub,
       fakeInitializationPromise,
-      EventName.ADD_TO_CART,
+      'add_to_cart',
       {
         currency: 'USD'
       },
       { global: true }
     );
 
-    expect(gtagStub).to.have.been.calledWith(
-      GtagCommand.EVENT,
-      EventName.ADD_TO_CART,
-      {
-        currency: 'USD'
-      }
-    );
+    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'add_to_cart', {
+      currency: 'USD'
+    });
   });
 
   it('logEvent() with no event params globally calls gtag function correctly', async () => {
     await logEvent(
       gtagStub,
       fakeInitializationPromise,
-      EventName.ADD_TO_CART,
+      'add_to_cart',
       undefined,
       {
         global: true
@@ -97,7 +85,7 @@ describe('FirebaseAnalytics methods', () => {
 
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.EVENT,
-      EventName.ADD_TO_CART,
+      'add_to_cart',
       undefined
     );
   });

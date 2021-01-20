@@ -6,95 +6,35 @@
 
 import { Analytics } from '@firebase/analytics-types-exp';
 import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
+import { ControlParams } from '@firebase/analytics-types-exp';
 import { CustomParams } from '@firebase/analytics-types-exp';
-import { DynamicConfig } from '@firebase/analytics-types-exp';
 import { EventNameString } from '@firebase/analytics-types-exp';
 import { EventParams } from '@firebase/analytics-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
-import { _FirebaseService } from '@firebase/app-types-exp';
-import { MinimalDynamicConfig } from '@firebase/analytics-types-exp';
+import { Item } from '@firebase/analytics-types-exp';
+import { Promotion } from '@firebase/analytics-types-exp';
 import { SettingsOptions } from '@firebase/analytics-types-exp';
 
-// @public
-export const enum EventName {
-    // (undocumented)
-    ADD_PAYMENT_INFO = "add_payment_info",
-    // (undocumented)
-    ADD_SHIPPING_INFO = "add_shipping_info",
-    // (undocumented)
-    ADD_TO_CART = "add_to_cart",
-    // (undocumented)
-    ADD_TO_WISHLIST = "add_to_wishlist",
-    // (undocumented)
-    BEGIN_CHECKOUT = "begin_checkout",
-    // @deprecated (undocumented)
-    CHECKOUT_PROGRESS = "checkout_progress",
-    // (undocumented)
-    EXCEPTION = "exception",
-    // (undocumented)
-    GENERATE_LEAD = "generate_lead",
-    // (undocumented)
-    LOGIN = "login",
-    // (undocumented)
-    PAGE_VIEW = "page_view",
-    // (undocumented)
-    PURCHASE = "purchase",
-    // (undocumented)
-    REFUND = "refund",
-    // (undocumented)
-    REMOVE_FROM_CART = "remove_from_cart",
-    // (undocumented)
-    SCREEN_VIEW = "screen_view",
-    // (undocumented)
-    SEARCH = "search",
-    // (undocumented)
-    SELECT_CONTENT = "select_content",
-    // (undocumented)
-    SELECT_ITEM = "select_item",
-    // (undocumented)
-    SELECT_PROMOTION = "select_promotion",
-    // @deprecated (undocumented)
-    SET_CHECKOUT_OPTION = "set_checkout_option",
-    // (undocumented)
-    SHARE = "share",
-    // (undocumented)
-    SIGN_UP = "sign_up",
-    // (undocumented)
-    TIMING_COMPLETE = "timing_complete",
-    // (undocumented)
-    VIEW_CART = "view_cart",
-    // (undocumented)
-    VIEW_ITEM = "view_item",
-    // (undocumented)
-    VIEW_ITEM_LIST = "view_item_list",
-    // (undocumented)
-    VIEW_PROMOTION = "view_promotion",
-    // (undocumented)
-    VIEW_SEARCH_RESULTS = "view_search_results"
-}
+export { Analytics }
 
-// Warning: (ae-forgotten-export) The symbol "AnalyticsService" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "factory" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function factory(app: FirebaseApp, installations: _FirebaseInstallationsInternal): AnalyticsService;
+export { AnalyticsCallOptions }
+
+export { ControlParams }
+
+// @public
+export type CustomEventName<T> = T extends EventNameString ? never : T;
+
+export { CustomParams }
+
+export { EventParams }
 
 // @public
 export function getAnalytics(app: FirebaseApp): Analytics;
 
-// Warning: (ae-internal-missing-underscore) The name "getGlobalVars" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function getGlobalVars(): {
-    initializationPromisesMap: {
-        [appId: string]: Promise<string>;
-    };
-    dynamicConfigPromisesList: Array<Promise<DynamicConfig | MinimalDynamicConfig>>;
-};
-
 // @public
 export function isSupported(): Promise<boolean>;
+
+export { Item }
 
 // @public
 export function logEvent(analyticsInstance: Analytics, eventName: 'add_payment_info', eventParams?: {
@@ -273,17 +213,12 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'view_item_lis
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
-// Warning: (ae-forgotten-export) The symbol "CustomEventName" needs to be exported by the entry point index.d.ts
-//
 // @public
 export function logEvent<T extends string>(analyticsInstance: Analytics, eventName: CustomEventName<T>, eventParams?: {
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
-// Warning: (ae-internal-missing-underscore) The name "resetGlobalVars" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function resetGlobalVars(newGlobalInitDone?: boolean, newInitializationPromisesMap?: {}, newDynamicPromises?: never[]): void;
+export { Promotion }
 
 // @public
 export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enabled: boolean): void;
@@ -293,6 +228,8 @@ export function setCurrentScreen(analyticsInstance: Analytics, screenName: strin
 
 // @public
 export function settings(options: SettingsOptions): void;
+
+export { SettingsOptions }
 
 // @public
 export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;
