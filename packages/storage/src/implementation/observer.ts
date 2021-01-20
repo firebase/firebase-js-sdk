@@ -14,20 +14,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as type from './type';
+import { isFunction } from './type';
 import { FirebaseStorageError } from './error';
 
+/**
+ * Function that is called once for each value in a stream of values.
+ */
 export type NextFn<T> = (value: T) => void;
+
+/**
+ * A function that is called with a `FirebaseStorageError`
+ * if the event stream ends due to an error.
+ */
 export type ErrorFn = (error: FirebaseStorageError) => void;
+
+/**
+ * A function that is called if the event stream ends normally.
+ */
 export type CompleteFn = () => void;
+
+/**
+ * Unsubscribes from a stream.
+ */
 export type Unsubscribe = () => void;
 
+/**
+ * An observer identical to the `Observer` defined in packages/util except the
+ * error passed into the ErrorFn is specifically a `FirebaseStorageError`.
+ */
 export interface StorageObserver<T> {
+  /**
+   * Function that is called once for each value in the event stream.
+   */
   next?: NextFn<T>;
+  /**
+   * A function that is called with a `FirebaseStorageError`
+   * if the event stream ends due to an error.
+   */
   error?: ErrorFn;
+  /**
+   * A function that is called if the event stream ends normally.
+   */
   complete?: CompleteFn;
 }
 
+/**
+ * Subscribes to an event stream.
+ */
 export type Subscribe<T> = (
   next?: NextFn<T> | StorageObserver<T>,
   error?: ErrorFn,
@@ -45,7 +78,7 @@ export class Observer<T> implements StorageObserver<T> {
     complete?: CompleteFn
   ) {
     const asFunctions =
-      type.isFunction(nextOrObserver) || error != null || complete != null;
+      isFunction(nextOrObserver) || error != null || complete != null;
     if (asFunctions) {
       this.next = nextOrObserver as NextFn<T>;
       this.error = error;

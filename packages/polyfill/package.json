@@ -12,17 +12,16 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "echo 'No test suite for polyfills'",
-    "test:ci": "echo 'No test suite for polyfills'",
-    "prepare": "yarn build"
+    "test:ci": "echo 'No test suite for polyfills'"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "core-js": "3.7.0",
+    "core-js": "3.8.1",
     "promise-polyfill": "8.2.0",
     "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
-    "rollup": "2.33.2",
+    "rollup": "2.35.1",
     "rollup-plugin-typescript2": "0.29.0"
   },
   "repository": {

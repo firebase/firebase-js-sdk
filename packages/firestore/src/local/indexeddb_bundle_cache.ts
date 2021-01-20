@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Bundle, NamedQuery } from '../core/bundle';
+import { BundleMetadata, NamedQuery } from '../core/bundle';
 import {
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery
@@ -43,7 +43,7 @@ export class IndexedDbBundleCache implements BundleCache {
   getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
-  ): PersistencePromise<Bundle | undefined> {
+  ): PersistencePromise<BundleMetadata | undefined> {
     return bundlesStore(transaction)
       .get(bundleId)
       .next(bundle => {

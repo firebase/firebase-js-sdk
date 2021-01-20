@@ -20,9 +20,9 @@
  * native Blob type). This makes it possible to upload types like ArrayBuffers,
  * making uploads possible in environments without the native Blob type.
  */
-import * as fs from './fs';
+import { sliceBlob, getBlob } from './fs';
 import { StringFormat, dataFromString } from './string';
-import * as type from './type';
+import { isNativeBlob, isNativeBlobDefined, isString } from './type';
 
 /**
  * @param opt_elideCopy - If true, doesn't copy mutable input data
@@ -37,7 +37,7 @@ export class FbsBlob {
   constructor(data: Blob | Uint8Array | ArrayBuffer, elideCopy?: boolean) {
     let size: number = 0;
     let blobType: string = '';
-    if (type.isNativeBlob(data)) {
+    if (isNativeBlob(data)) {
       this.data_ = data as Blob;
       size = (data as Blob).size;
       blobType = (data as Blob).type;
@@ -71,9 +71,9 @@ export class FbsBlob {
   }
 
   slice(startByte: number, endByte: number): FbsBlob | null {
-    if (type.isNativeBlob(this.data_)) {
+    if (isNativeBlob(this.data_)) {
       const realBlob = this.data_ as Blob;
-      const sliced = fs.sliceBlob(realBlob, startByte, endByte);
+      const sliced = sliceBlob(realBlob, startByte, endByte);
       if (sliced === null) {
         return null;
       }
@@ -89,7 +89,7 @@ export class FbsBlob {
   }
 
   static getBlob(...args: Array<string | FbsBlob>): FbsBlob | null {
-    if (type.isNativeBlobDefined()) {
+    if (isNativeBlobDefined()) {
       const blobby: Array<Blob | Uint8Array | string> = args.map(
         (val: string | FbsBlob): Blob | Uint8Array | string => {
           if (val instanceof FbsBlob) {
@@ -99,11 +99,11 @@ export class FbsBlob {
           }
         }
       );
-      return new FbsBlob(fs.getBlob.apply(null, blobby));
+      return new FbsBlob(getBlob.apply(null, blobby));
     } else {
       const uint8Arrays: Uint8Array[] = args.map(
         (val: string | FbsBlob): Uint8Array => {
-          if (type.isString(val)) {
+          if (isString(val)) {
             return dataFromString(StringFormat.RAW, val as string).data;
           } else {
             // Blobs don't exist, so this has to be a Uint8Array.

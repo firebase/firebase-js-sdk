@@ -25,7 +25,7 @@ import { normalizeNumber } from './normalize';
 import { serverTimestamp } from './server_timestamps';
 import { isArray, isInteger, isNumber, valueEquals } from './values';
 
-/** Represents a transform within a TransformMutation. */
+/** Used to represent a field transform on a mutation. */
 export class TransformOperation {
   // Make sure that the structural type of `TransformOperation` is unique.
   // See https://github.com/microsoft/TypeScript/issues/5451

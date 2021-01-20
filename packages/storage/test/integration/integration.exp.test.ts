@@ -35,7 +35,7 @@ import {
 import { use, expect } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { StorageService } from '../../src/service';
+import * as types from '@firebase/storage-types/exp';
 
 use(chaiAsPromised);
 
@@ -49,7 +49,7 @@ export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 
 describe('FirebaseStorage Exp', () => {
   let app: FirebaseApp;
-  let storage: StorageService;
+  let storage: types.StorageService;
 
   beforeEach(async () => {
     app = initializeApp({

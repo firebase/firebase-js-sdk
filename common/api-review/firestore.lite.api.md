@@ -7,7 +7,7 @@
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
-// @public (undocumented)
+// @public
 export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
 
 // @public

@@ -20,7 +20,7 @@
  * abstract representations.
  */
 
-import * as backoff from './backoff';
+import { start, stop, id as backoffId } from './backoff';
 import {
   FirebaseStorageError,
   unknown,
@@ -29,8 +29,8 @@ import {
   retryLimitExceeded
 } from './error';
 import { RequestInfo } from './requestinfo';
-import * as type from './type';
-import * as UrlUtils from './url';
+import { isJustDef } from './type';
+import { makeQueryString } from './url';
 import { Headers, XhrIo, ErrorCode } from './xhrio';
 import { XhrIoPool } from './xhriopool';
 
@@ -55,8 +55,8 @@ class NetworkRequest<T> implements Request<T> {
   private successCodes_: number[];
   private additionalRetryCodes_: number[];
   private pendingXhr_: XhrIo | null = null;
-  private backoffId_: backoff.id | null = null;
-  private resolve_!: (value?: T | PromiseLike<T> | undefined) => void;
+  private backoffId_: backoffId | null = null;
+  private resolve_!: (value?: T | PromiseLike<T>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private reject_!: (reason?: any) => void;
   private canceled_: boolean = false;
@@ -97,7 +97,7 @@ class NetworkRequest<T> implements Request<T> {
     this.timeout_ = timeout;
     this.pool_ = pool;
     this.promise_ = new Promise((resolve, reject) => {
-      this.resolve_ = resolve;
+      this.resolve_ = resolve as (value?: T | PromiseLike<T>) => void;
       this.reject_ = reject;
       this.start_();
     });
@@ -169,7 +169,7 @@ class NetworkRequest<T> implements Request<T> {
       if (status.wasSuccessCode) {
         try {
           const result = self.callback_(xhr, xhr.getResponseText());
-          if (type.isJustDef(result)) {
+          if (isJustDef(result)) {
             resolve(result);
           } else {
             resolve();
@@ -200,7 +200,7 @@ class NetworkRequest<T> implements Request<T> {
     if (this.canceled_) {
       backoffDone(false, new RequestEndStatus(false, null, true));
     } else {
-      this.backoffId_ = backoff.start(doTheRequest, backoffDone, this.timeout_);
+      this.backoffId_ = start(doTheRequest, backoffDone, this.timeout_);
     }
   }
 
@@ -214,7 +214,7 @@ class NetworkRequest<T> implements Request<T> {
     this.canceled_ = true;
     this.appDelete_ = appDelete || false;
     if (this.backoffId_ !== null) {
-      backoff.stop(this.backoffId_);
+      stop(this.backoffId_);
     }
     if (this.pendingXhr_ !== null) {
       this.pendingXhr_.abort();
@@ -287,7 +287,7 @@ export function makeRequest<T>(
   pool: XhrIoPool,
   firebaseVersion?: string
 ): Request<T> {
-  const queryPart = UrlUtils.makeQueryString(requestInfo.urlParams);
+  const queryPart = makeQueryString(requestInfo.urlParams);
   const url = requestInfo.url + queryPart;
   const headers = Object.assign({}, requestInfo.headers);
   addGmpidHeader_(headers, appId);

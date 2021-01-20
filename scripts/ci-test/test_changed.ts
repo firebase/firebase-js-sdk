@@ -23,7 +23,7 @@ import { argv } from 'yargs';
 import { TestConfig, testConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 
-const inputTestConfigName = argv._[0];
+const inputTestConfigName = argv._[0].toString();
 const testCommand = 'test:ci';
 
 const allTestConfigNames = Object.keys(testConfig);

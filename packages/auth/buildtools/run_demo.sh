@@ -23,7 +23,7 @@
 cd "$(dirname $(dirname "$0"))"
 # Go back to repo root and build all binaries needed for the demo app.
 cd ../..
-yarn prepare
+yarn build:release
 # Go back to Auth package.
 cd packages/auth
 # Make dist directory if not already there.
