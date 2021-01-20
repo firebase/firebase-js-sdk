@@ -19,8 +19,8 @@
  * We don't include goog.fs because it pulls in a bunch of Deferred code that
  * bloats the size of the released binary.
  */
-import * as type from './type';
-import { Code, FirebaseStorageError } from './error';
+import { isNativeBlobDefined } from './type';
+import { StorageErrorCode, FirebaseStorageError } from './error';
 
 function getBlobBuilder(): typeof IBlobBuilder | undefined {
   if (typeof BlobBuilder !== 'undefined') {
@@ -47,11 +47,11 @@ export function getBlob(...args: Array<string | Blob | ArrayBuffer>): Blob {
     }
     return bb.getBlob();
   } else {
-    if (type.isNativeBlobDefined()) {
+    if (isNativeBlobDefined()) {
       return new Blob(args);
     } else {
       throw new FirebaseStorageError(
-        Code.UNSUPPORTED_ENVIRONMENT,
+        StorageErrorCode.UNSUPPORTED_ENVIRONMENT,
         "This browser doesn't seem to support creating Blobs"
       );
     }

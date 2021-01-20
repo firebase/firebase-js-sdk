@@ -1,5 +1,13 @@
 # @firebase/firestore
 
+## 2.1.2
+
+### Patch Changes
+
+- [`6069b1d6c`](https://github.com/firebase/firebase-js-sdk/commit/6069b1d6c521d05dde821f21bcc7e02913180ae5) [#4262](https://github.com/firebase/firebase-js-sdk/pull/4262) (fixes [#4253](https://github.com/firebase/firebase-js-sdk/issues/4253)) - Updated an outdated error message to include '!=' and 'not-in' as an inequalities.
+
+* [`ba59a0f90`](https://github.com/firebase/firebase-js-sdk/commit/ba59a0f909a1eb59d23b887bba30b6f86d63c931) [#4233](https://github.com/firebase/firebase-js-sdk/pull/4233) (fixes [#4226](https://github.com/firebase/firebase-js-sdk/issues/4226)) - Fixes an issue in the Transaction API that caused the SDK to return invalid DocumentReferences through `DocumentSnapshot.data()` calls.
+
 ## 2.1.1
 
 ### Patch Changes

@@ -309,7 +309,7 @@ fireauth.Auth.prototype.useEmulator = function(url, options) {
     const disableBanner = options ? !!options['disableWarnings'] : false;
     this.emitEmulatorWarning_(disableBanner);
     // Persist the config.
-    this.emulatorConfig_ = { url };
+    this.emulatorConfig_ = {url, disableWarnings: disableBanner};
     // Disable app verification.
     this.settings_().setAppVerificationDisabledForTesting(true);
     // Update RPC handler endpoints.
@@ -353,10 +353,22 @@ fireauth.Auth.prototype.emitEmulatorWarning_ = function(disableBanner) {
 
 
 /**
- * @return {?fireauth.constants.EmulatorSettings}
+ * @return {?fireauth.constants.EmulatorConfig}
  */
 fireauth.Auth.prototype.getEmulatorConfig = function() {
-  return this.emulatorConfig_;
+  if (!this.emulatorConfig_) {
+    return null;
+  }
+  const uri = goog.Uri.parse(this.emulatorConfig_.url);
+  return /** @type {!fireauth.constants.EmulatorConfig} */ (
+      fireauth.object.makeReadonlyCopy({
+        'protocol': uri.getScheme(),
+        'host': uri.getDomain(),
+        'port': uri.getPort(),
+        'options': fireauth.object.makeReadonlyCopy({
+          'disableWarnings': this.emulatorConfig_.disableWarnings,
+        }),
+      }));
 }
 
 
@@ -470,6 +482,19 @@ fireauth.Auth.prototype.initializeReadableWritableProps_ = function() {
   // Initialize to null.
   /** @private {?string} The current Auth instance's tenant ID. */
   this.tenantId_ = null;
+
+  // Add the emulator configuration property (readonly).
+  Object.defineProperty(/** @type {!Object} */ (this), 'emulatorConfig', {
+    /**
+     * @this {!Object}
+     * @return {?fireauth.constants.EmulatorConfig} The emulator config if
+     * enabled.
+     */
+    get: function() {
+      return this.getEmulatorConfig();
+    },
+    enumerable: false
+  });
 };
 
 

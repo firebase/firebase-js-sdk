@@ -795,7 +795,7 @@ function validateNewFilter(query: InternalQuery, filter: Filter): void {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid query. All where filters with an inequality' +
-          ' (<, <=, >, or >=) must be on the same field. But you have' +
+          ' (<, <=, !=, not-in, >, or >=) must be on the same field. But you have' +
           ` inequality filters on '${existingField.toString()}'` +
           ` and '${filter.field.toString()}'`
       );
@@ -845,7 +845,7 @@ function validateOrderByAndInequalityMatch(
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `Invalid query. You have a where filter with an inequality ` +
-        `(<, <=, >, or >=) on field '${inequality.toString()}' ` +
+        `(<, <=, !=, not-in, >, or >=) on field '${inequality.toString()}' ` +
         `and so you must also use '${inequality.toString()}' ` +
         `as your first argument to orderBy(), but your first orderBy() ` +
         `is on field '${orderBy.toString()}' instead.`

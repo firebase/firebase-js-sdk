@@ -169,7 +169,7 @@ export class BundleLoader {
     debugAssert(
       this.documents[this.documents.length - 1]?.metadata.exists !== true ||
         !!this.documents[this.documents.length - 1].document,
-      'Bundled documents ends with a document metadata and missing document.'
+      'Bundled documents end with a document metadata element instead of a document.'
     );
     debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');
 
