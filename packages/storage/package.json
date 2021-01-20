@@ -14,7 +14,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c rollup.config.compat.js",
-    "build:exp": "rollup -c rollup.config.exp.js",
+    "build:exp": "rollup -c rollup.config.exp.js ; yarn api-report",
     "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p test:browser lint",
@@ -27,7 +27,7 @@
     "test:browser:exp": "karma start --single-run --exp",
     "test:browser": "karma start --single-run",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
-    "api-report": "api-extractor run --local --verbose"
+    "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input exp/dist/storage-public.d.ts --output exp/dist/storage-public.d.ts"
   },
   "license": "Apache-2.0",
   "dependencies": {

@@ -18,7 +18,17 @@ export interface ActionCodeInfo {
     multiFactorInfo?: MultiFactorInfo | null;
     previousEmail?: string | null;
   };
-  operation: Operation;
+  operation: ActionCodeOperation;
+}
+
+// @public
+export const enum ActionCodeOperation {
+  EMAIL_SIGNIN = 'EMAIL_SIGNIN',
+  PASSWORD_RESET = 'PASSWORD_RESET',
+  RECOVER_EMAIL = 'RECOVER_EMAIL',
+  REVERT_SECOND_FACTOR_ADDITION = 'REVERT_SECOND_FACTOR_ADDITION',
+  VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL',
+  VERIFY_EMAIL = 'VERIFY_EMAIL'
 }
 
 // @public
@@ -42,7 +52,7 @@ export abstract class ActionCodeURL {
   readonly code: string;
   readonly continueUrl: string | null;
   readonly languageCode: string | null;
-  readonly operation: Operation;
+  readonly operation: ActionCodeOperation;
   static parseLink(link: string): ActionCodeURL | null;
   readonly tenantId: string | null;
 }
@@ -50,8 +60,8 @@ export abstract class ActionCodeURL {
 // @public
 export interface AdditionalUserInfo {
   readonly isNewUser: boolean;
-  readonly profile: UserProfile | null;
-  readonly providerId: ProviderId | null;
+  readonly profile: Record<string, unknown> | null;
+  readonly providerId: string | null;
   readonly username?: string | null;
 }
 
@@ -77,13 +87,13 @@ export interface Auth {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
-  setPersistence(persistence: Persistence): void;
+  setPersistence(persistence: Persistence): Promise<void>;
   readonly settings: AuthSettings;
   signOut(): Promise<void>;
   tenantId: string | null;
   updateCurrentUser(user: User | null): Promise<void>;
   useDeviceLanguage(): void;
-  useEmulator(url: string): void;
+  useEmulator(url: string, options?: { disableWarnings: boolean }): void;
 }
 
 // @public
@@ -149,6 +159,11 @@ export abstract class EmailAuthProvider implements AuthProvider {
 }
 
 // @public
+export const enum FactorId {
+  PHONE = 'phone'
+}
+
+// @public
 export interface IdTokenResult {
   authTime: string;
   claims: ParsedToken;
@@ -161,12 +176,11 @@ export interface IdTokenResult {
 
 // @public
 export interface MultiFactorAssertion {
-  readonly factorId: string;
+  readonly factorId: FactorId;
 }
 
 // @public
 export interface MultiFactorError extends AuthError {
-  readonly credential: AuthCredential;
   readonly operationType: OperationType;
 }
 
@@ -174,15 +188,15 @@ export interface MultiFactorError extends AuthError {
 export interface MultiFactorInfo {
   readonly displayName?: string | null;
   readonly enrollmentTime: string;
-  readonly factorId: ProviderId;
+  readonly factorId: FactorId;
   readonly uid: string;
 }
 
 // @public
 export abstract class MultiFactorResolver {
-  hints: MultiFactorInfo[];
+  readonly hints: MultiFactorInfo[];
   resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
-  session: MultiFactorSession;
+  readonly session: MultiFactorSession;
 }
 
 // @public
@@ -211,16 +225,6 @@ export abstract class OAuthCredential extends AuthCredential {
   readonly idToken?: string;
 
   readonly secret?: string;
-}
-
-// @public
-export const enum Operation {
-  EMAIL_SIGNIN = 'EMAIL_SIGNIN',
-  PASSWORD_RESET = 'PASSWORD_RESET',
-  RECOVER_EMAIL = 'RECOVER_EMAIL',
-  REVERT_SECOND_FACTOR_ADDITION = 'REVERT_SECOND_FACTOR_ADDITION',
-  VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL',
-  VERIFY_EMAIL = 'VERIFY_EMAIL'
 }
 
 // @public
@@ -390,7 +394,7 @@ export interface User extends UserInfo {
 // @public
 export interface UserCredential {
   operationType: OperationType;
-  providerId: ProviderId | null;
+  providerId: string | null;
   user: User;
 }
 
