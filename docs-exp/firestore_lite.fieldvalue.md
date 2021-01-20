@@ -4,11 +4,19 @@
 
 ## FieldValue class
 
+Sentinel values that can be used when writing document fields with `set()` or `update()`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-export class FieldValue 
+export declare abstract class FieldValue 
 ```
+
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)(\_methodName)](./firestore_lite.fieldvalue._constructor_.md) |  | Constructs a new instance of the <code>FieldValue</code> class |
 
 ## Methods
 

@@ -4,6 +4,8 @@
 
 ## Timestamp.toMillis() method
 
+Converts a `Timestamp` to a numeric timestamp (in milliseconds since epoch). This operation causes a loss of precision.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ toMillis(): number;
 <b>Returns:</b>
 
 number
+
+The point in time corresponding to this timestamp, represented as the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
 

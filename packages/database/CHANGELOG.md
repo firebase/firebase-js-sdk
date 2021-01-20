@@ -1,5 +1,17 @@
 # Unreleased
 
+## 0.8.3
+
+### Patch Changes
+
+- [`50abe6c4d`](https://github.com/firebase/firebase-js-sdk/commit/50abe6c4d455693ef6a3a3c1bc8ef6ab5b8bd9ea) [#4199](https://github.com/firebase/firebase-js-sdk/pull/4199) - Fixes an issue that caused `refFromUrl()` to reject production database URLs when `useEmulator()` was used.
+
+## 0.8.2
+
+### Patch Changes
+
+- [`487f8e1d2`](https://github.com/firebase/firebase-js-sdk/commit/487f8e1d2c6bd1a54305f2b0f148b4985f3cea8e) [#4247](https://github.com/firebase/firebase-js-sdk/pull/4247) (fixes [#3681](https://github.com/firebase/firebase-js-sdk/issues/3681)) - Fix issue with multiple database instances when using Realtime Database emulator (#3681)
+
 ## 0.8.1
 
 ### Patch Changes

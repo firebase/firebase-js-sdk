@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider, getApp } from '@firebase/app-exp';
+import { _getProvider } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 
@@ -26,7 +26,7 @@ import { AuthImpl } from './auth_impl';
 
 /** @public */
 export function initializeAuth(
-  app: FirebaseApp = getApp(),
+  app: FirebaseApp,
   deps?: Dependencies
 ): externs.Auth {
   const auth = _getProvider(app, 'auth-exp').getImmediate() as AuthImpl;

@@ -374,6 +374,12 @@ fireauth.storage.IndexedDB.prototype.withRetry_ = function(transaction) {
           db.close();
           this.initPromise_ = undefined;
           return attempt(resolve, reject);
+        }).thenCatch((error) => {
+          // Make sure any errors caused by initializeDbAndRun_() or
+          // db.close() are caught as well and trigger a rejection. If at
+          // this point, we are probably in a private browsing context or
+          // environment that does not support indexedDB.
+          reject(error);
         });
       });
   };

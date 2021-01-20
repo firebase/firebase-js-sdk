@@ -4,21 +4,27 @@
 
 ## clearIndexedDbPersistence() function
 
+Clears the persistent storage. This includes pending writes and cached documents.
+
+Must be called while the `Firestore` instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.initializefirestore.md) or [getFirestore()](./firestore_.getfirestore.md)<!-- -->)). If the `Firestore` instance is still running, the promise will be rejected with the error code of `failed-precondition`<!-- -->.
+
+Note: `clearIndexedDbPersistence()` is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all.
+
 <b>Signature:</b>
 
 ```typescript
-export function clearIndexedDbPersistence(
-  firestore: FirebaseFirestore
-): Promise<void>;
+export declare function clearIndexedDbPersistence(firestore: FirebaseFirestore): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
+|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) | The <code>Firestore</code> instance to clear persistence for. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+A promise that is resolved when the persistent storage is cleared. Otherwise, the promise is rejected with an error.
 

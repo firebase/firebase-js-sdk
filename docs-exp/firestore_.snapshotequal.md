@@ -4,23 +4,24 @@
 
 ## snapshotEqual() function
 
+Returns true if the provided snapshots are equal.
+
 <b>Signature:</b>
 
 ```typescript
-export function snapshotEqual<T>(
-  left: DocumentSnapshot<T> | QuerySnapshot<T>,
-  right: DocumentSnapshot<T> | QuerySnapshot<T>
-): boolean;
+export declare function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->&lt;T&gt; |  |
-|  right | [DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->&lt;T&gt; |  |
+|  left | [DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->&lt;T&gt; | A snapshot to compare. |
+|  right | [DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;T&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md)<!-- -->&lt;T&gt; | A snapshot to compare. |
 
 <b>Returns:</b>
 
 boolean
+
+true if the snapshots are equal.
 

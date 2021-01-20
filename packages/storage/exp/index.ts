@@ -15,21 +15,29 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import {
+  _registerComponent,
+  registerVersion,
+  _getProvider,
+  SDK_VERSION
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 
 import { XhrIoPool } from '../src/implementation/xhriopool';
 import { StorageService } from '../src/service';
 import {
   Component,
   ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  Provider
 } from '@firebase/component';
 
 import { name, version } from '../package.json';
+import { FirebaseApp } from '@firebase/app-types-exp';
 
-export { ref } from '../src/service';
+export { ref, StorageService } from '../src/service';
 export {
+  uploadBytes,
   uploadBytesResumable,
   uploadString,
   getMetadata,
@@ -37,16 +45,37 @@ export {
   list,
   listAll,
   getDownloadURL,
-  deleteObject
+  deleteObject,
+  StorageReference
 } from '../src/reference';
+export { Metadata } from '../src/metadata';
+export { ListOptions, ListResult } from '../src/list';
+export { UploadTask } from '../src/task';
+export { UploadResult, UploadTaskSnapshot } from '../src/tasksnapshot';
+export { StringFormat } from '../src/implementation/string';
 
 /**
  * Type constant for Firebase Storage.
  */
 const STORAGE_TYPE = 'storage-exp';
 
-function factory(container: ComponentContainer, url?: string): StorageService {
+/**
+ * Gets a Firebase StorageService instance for the given Firebase app.
+ * @public
+ * @param app - Firebase app to get Storage instance for.
+ * @returns A Firebase StorageService instance.
+ */
+export function getStorage(app: FirebaseApp): StorageService {
   // Dependencies
+  const storageProvider: Provider<'storage-exp'> = _getProvider(
+    app,
+    STORAGE_TYPE
+  );
+  const storageInstance = storageProvider.getImmediate();
+  return storageInstance;
+}
+
+function factory(container: ComponentContainer, url?: string): StorageService {
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
 
@@ -54,7 +83,8 @@ function factory(container: ComponentContainer, url?: string): StorageService {
     app,
     authProvider,
     new XhrIoPool(),
-    url
+    url,
+    SDK_VERSION
   ) as unknown) as StorageService;
 }
 

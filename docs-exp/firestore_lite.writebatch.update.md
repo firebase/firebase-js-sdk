@@ -4,20 +4,24 @@
 
 ## WriteBatch.update() method
 
+Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. The update will fail if applied to a document that does not exist.
+
 <b>Signature:</b>
 
 ```typescript
-update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
+update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;any&gt; |  |
-|  data | [UpdateData](./firestore_lite.updatedata.md) |  |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;unknown&gt; | A reference to the document to be updated. |
+|  data | [UpdateData](./firestore_lite.updatedata.md) | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
 
 <b>Returns:</b>
 
 [WriteBatch](./firestore_lite.writebatch.md)
+
+This `WriteBatch` instance. Used for chaining method calls.
 

@@ -4,6 +4,8 @@
 
 ## GeoPoint.isEqual() method
 
+Returns true if this `GeoPoint` is equal to the provided one.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ isEqual(other: GeoPoint): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [GeoPoint](./firestore_.geopoint.md) |  |
+|  other | [GeoPoint](./firestore_.geopoint.md) | The <code>GeoPoint</code> to compare against. |
 
 <b>Returns:</b>
 
 boolean
+
+true if this `GeoPoint` is equal to the provided one.
 

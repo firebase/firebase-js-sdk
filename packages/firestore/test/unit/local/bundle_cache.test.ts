@@ -16,11 +16,9 @@
  */
 
 import { expect } from 'chai';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { filter, orderBy, query } from '../../util/helpers';
-import { TestBundleCache } from './test_bundle_cache';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
+
 import { Timestamp } from '../../../src/api/timestamp';
+import { NamedQuery } from '../../../src/core/bundle';
 import {
   LimitType,
   newQueryForCollectionGroup,
@@ -29,14 +27,18 @@ import {
   queryToTarget,
   queryWithLimit
 } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { toQueryTarget } from '../../../src/remote/serializer';
+import { filter, orderBy, query } from '../../util/helpers';
+
 import {
   clearTestPersistence,
   JSON_SERIALIZER,
   testIndexedDbPersistence,
   testMemoryEagerPersistence
 } from './persistence_test_helpers';
-import { NamedQuery } from '../../../src/core/bundle';
-import { toQueryTarget } from '../../../src/remote/serializer';
+import { TestBundleCache } from './test_bundle_cache';
 
 describe('MemoryBundleCache', () => {
   let cache: TestBundleCache;
@@ -100,7 +102,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
   }
 
   it('returns undefined when bundle id is not found', async () => {
-    expect(await cache.getBundle('bundle-1')).to.be.undefined;
+    expect(await cache.getBundleMetadata('bundle-1')).to.be.undefined;
   });
 
   it('returns saved bundle', async () => {
@@ -109,7 +111,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       version: 1,
       createTime: { seconds: 1, nanos: 9999 }
     });
-    expect(await cache.getBundle('bundle-1')).to.deep.equal({
+    expect(await cache.getBundleMetadata('bundle-1')).to.deep.equal({
       id: 'bundle-1',
       version: 1,
       createTime: SnapshotVersion.fromTimestamp(new Timestamp(1, 9999))
@@ -121,7 +123,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       version: 2,
       createTime: { seconds: 2, nanos: 1111 }
     });
-    expect(await cache.getBundle('bundle-1')).to.deep.equal({
+    expect(await cache.getBundleMetadata('bundle-1')).to.deep.equal({
       id: 'bundle-1',
       version: 2,
       createTime: SnapshotVersion.fromTimestamp(new Timestamp(2, 1111))

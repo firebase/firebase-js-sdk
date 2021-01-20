@@ -1,5 +1,13 @@
 # @firebase/firestore-types
 
+## 2.1.0
+
+### Minor Changes
+
+- [`b662f8c0a`](https://github.com/firebase/firebase-js-sdk/commit/b662f8c0a9890cbdcf53cce7fe01c2a8a52d3d2d) [#4168](https://github.com/firebase/firebase-js-sdk/pull/4168) - Release Firestore Bundles (pre-packaged Firestore data). For NPM users, this can
+  be enabled via an additional import: 'firebase/firestore/bundle'. For CDN usage,
+  it is enabled by default.
+
 ## 2.0.0
 
 ### Major Changes

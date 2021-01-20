@@ -4,6 +4,8 @@
 
 ## DocumentSnapshot.get() method
 
+Retrieves the field specified by `fieldPath`<!-- -->. Returns `undefined` if the document or field doesn't exist.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ get(fieldPath: string | FieldPath): any;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldPath | string \| [FieldPath](./firestore_lite.fieldpath.md) |  |
+|  fieldPath | string \| [FieldPath](./firestore_lite.fieldpath.md) | The path (for example 'foo' or 'foo.bar') to a specific field. |
 
 <b>Returns:</b>
 
 any
+
+The data at the specified field location or undefined if no such field exists in the document.
 

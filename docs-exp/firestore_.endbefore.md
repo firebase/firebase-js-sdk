@@ -4,19 +4,23 @@
 
 ## endBefore() function
 
+Creates a `QueryConstraint` that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
+
 <b>Signature:</b>
 
 ```typescript
-export function endBefore(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export declare function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;any&gt; |  |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md)<!-- -->&lt;unknown&gt; | The snapshot of the document to end before. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_.queryconstraint.md)
+
+A `QueryConstraint` to pass to `query()`
 

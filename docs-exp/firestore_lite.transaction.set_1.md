@@ -4,25 +4,25 @@
 
 ## Transaction.set() method
 
+Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. If the document does not exist yet, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
+
 <b>Signature:</b>
 
 ```typescript
-set<T>(
-    documentRef: DocumentReference<T>,
-    data: Partial<T>,
-    options: SetOptions
-  ): Transaction;
+set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): this;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; |  |
-|  data | Partial&lt;T&gt; |  |
-|  options | [SetOptions](./firestore_lite.setoptions.md) |  |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;T&gt; | A reference to the document to be set. |
+|  data | Partial&lt;T&gt; | An object of the fields and values for the document. |
+|  options | [SetOptions](./firestore_lite.setoptions.md) | An object to configure the set behavior. |
 
 <b>Returns:</b>
 
-[Transaction](./firestore_lite.transaction.md)
+this
+
+This `Transaction` instance. Used for chaining method calls.
 

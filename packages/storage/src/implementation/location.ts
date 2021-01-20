@@ -23,6 +23,9 @@
 import { invalidDefaultBucket, invalidUrl } from './error';
 import { DEFAULT_HOST } from './constants';
 
+/**
+ * Firebase Storage location data.
+ */
 export class Location {
   private path_: string;
 

@@ -15,22 +15,23 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence';
-import { PersistencePromise } from './persistence_promise';
+import { BundleMetadata, NamedQuery } from '../core/bundle';
 import {
   NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata
 } from '../protos/firestore_bundle_proto';
+
 import { BundleCache } from './bundle_cache';
-import { Bundle, NamedQuery } from '../core/bundle';
 import {
   fromBundleMetadata,
   fromProtoNamedQuery,
   LocalSerializer
 } from './local_serializer';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 export class MemoryBundleCache implements BundleCache {
-  private bundles = new Map<string, Bundle>();
+  private bundles = new Map<string, BundleMetadata>();
   private namedQueries = new Map<string, NamedQuery>();
 
   constructor(private serializer: LocalSerializer) {}
@@ -38,7 +39,7 @@ export class MemoryBundleCache implements BundleCache {
   getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
-  ): PersistencePromise<Bundle | undefined> {
+  ): PersistencePromise<BundleMetadata | undefined> {
     return PersistencePromise.resolve(this.bundles.get(bundleId));
   }
 

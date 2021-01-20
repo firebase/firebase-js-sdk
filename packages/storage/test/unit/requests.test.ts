@@ -595,7 +595,7 @@ describe('Firebase Storage > Requests', () => {
       storageService,
       url,
       smallBlob,
-      requests.resumableUploadChunkSize,
+      requests.RESUMABLE_UPLOAD_CHUNK_SIZE,
       mappings
     );
     assertObjectIncludes(
@@ -616,7 +616,7 @@ describe('Firebase Storage > Requests', () => {
   it('continueResumableUpload handler', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
-    const chunkSize = requests.resumableUploadChunkSize;
+    const chunkSize = requests.RESUMABLE_UPLOAD_CHUNK_SIZE;
 
     assert.isTrue(smallBlob.size() < chunkSize);
     let requestInfo = requests.continueResumableUpload(

@@ -16,10 +16,9 @@
  */
 
 import {
-  Reference,
+  StorageReference,
   getChild,
   uploadBytesResumable,
-  uploadString,
   list,
   listAll,
   getDownloadURL,
@@ -29,16 +28,18 @@ import {
 } from '../src/reference';
 import * as types from '@firebase/storage-types';
 import { Metadata } from '../src/metadata';
-import { StringFormat } from '../src/implementation/string';
+import { dataFromString, StringFormat } from '../src/implementation/string';
 import { ListOptions } from '../src/list';
 import { UploadTaskCompat } from './task';
 import { ListResultCompat } from './list';
 import { StorageServiceCompat } from './service';
 import { invalidRootOperation } from '../src/implementation/error';
+import { UploadTask } from '../src/task';
+import { FbsBlob } from '../src/implementation/blob';
 
 export class ReferenceCompat implements types.Reference {
   constructor(
-    private readonly _delegate: Reference,
+    private readonly _delegate: StorageReference,
     public storage: StorageServiceCompat
   ) {}
 
@@ -114,8 +115,17 @@ export class ReferenceCompat implements types.Reference {
     metadata?: Metadata
   ): types.UploadTask {
     this._throwIfRoot('putString');
+    const data = dataFromString(format, value);
+    const metadataClone = { ...metadata } as Metadata;
+    if (metadataClone['contentType'] == null && data.contentType != null) {
+      metadataClone['contentType'] = data.contentType;
+    }
     return new UploadTaskCompat(
-      uploadString(this._delegate, value, format, metadata),
+      new UploadTask(
+        this._delegate,
+        new FbsBlob(data.data, true),
+        metadataClone
+      ),
       this
     );
   }

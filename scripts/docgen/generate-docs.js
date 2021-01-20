@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,22 @@ function fixLinks(file) {
       const re = new RegExp(lower, 'g');
       caseFixedLinks = caseFixedLinks.replace(re, lowerToUpperLookup[lower]);
     }
-    return fs.writeFile(file, caseFixedLinks);
+    let badLinkCleanup = caseFixedLinks.replace(
+      /{@link (.+)}/g,
+      (all, text) => {
+        // It's expected to have some broken @link tags in Node docs
+        // since they could reference some pages only generated for JS.
+        // Just render as plain text. Warn if it's not a Node doc.
+        if (!file.includes('/node/')) {
+          console.log(
+            `Unable to generate link for "${all} in ${file}", ` +
+              `removing markup and rendering as plain text.`
+          );
+        }
+        return text;
+      }
+    );
+    return fs.writeFile(file, badLinkCleanup);
   });
 }
 

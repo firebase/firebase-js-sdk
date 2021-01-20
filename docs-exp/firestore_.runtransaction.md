@@ -4,23 +4,26 @@
 
 ## runTransaction() function
 
+Executes the given `updateFunction` and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the `updateFunction`<!-- -->. If it fails to commit after 5 attempts, the transaction fails.
+
+The maximum number of writes allowed in a single transaction is 500.
+
 <b>Signature:</b>
 
 ```typescript
-export function runTransaction<T>(
-  firestore: FirebaseFirestore,
-  updateFunction: (transaction: Transaction) => Promise<T>
-): Promise<T>;
+export declare function runTransaction<T>(firestore: FirebaseFirestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
-|  updateFunction | (transaction: [Transaction](./firestore_.transaction.md)<!-- -->) =&gt; Promise&lt;T&gt; |  |
+|  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) | A reference to the Firestore database to run this transaction against. |
+|  updateFunction | (transaction: [Transaction](./firestore_.transaction.md)<!-- -->) =&gt; Promise&lt;T&gt; | The function to execute within the transaction context. |
 
 <b>Returns:</b>
 
 Promise&lt;T&gt;
+
+If the transaction completed successfully or was explicitly aborted (the `updateFunction` returned a failed promise), the promise returned by the `updateFunction `<!-- -->is returned here. Otherwise, if the transaction failed, a rejected promise with the corresponding failure error is returned.
 

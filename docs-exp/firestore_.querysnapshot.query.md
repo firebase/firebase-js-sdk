@@ -4,6 +4,8 @@
 
 ## QuerySnapshot.query property
 
+The query on which you called `get` or `onSnapshot` in order to get this `QuerySnapshot`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

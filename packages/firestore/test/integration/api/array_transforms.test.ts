@@ -18,10 +18,10 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
-import { addEqualityMatcher } from '../../util/equality_matcher';
 
 addEqualityMatcher();
 

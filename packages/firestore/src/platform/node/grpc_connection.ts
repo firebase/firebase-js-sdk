@@ -22,8 +22,10 @@ import {
   ServiceError
 } from '@grpc/grpc-js';
 import { version as grpcVersion } from '@grpc/grpc-js/package.json';
+
 import { Token } from '../../api/credentials';
 import { DatabaseInfo } from '../../core/database_info';
+import { SDK_VERSION } from '../../core/version';
 import { Connection, Stream } from '../../remote/connection';
 import { mapCodeFromRpcCode } from '../../remote/rpc_error';
 import { StreamBridge } from '../../remote/stream_bridge';
@@ -32,7 +34,6 @@ import { FirestoreError } from '../../util/error';
 import { logError, logDebug, logWarn } from '../../util/log';
 import { NodeCallback, nodePromise } from '../../util/node_api';
 import { Deferred } from '../../util/promise';
-import { SDK_VERSION } from '../../core/version';
 
 const LOG_TAG = 'Connection';
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;

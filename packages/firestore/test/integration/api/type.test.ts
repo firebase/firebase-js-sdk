@@ -17,10 +17,11 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
+
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
-import { EventsAccumulator } from '../util/events_accumulator';
 
 const Blob = firebaseExport.Blob;
 const GeoPoint = firebaseExport.GeoPoint;
@@ -41,14 +42,18 @@ apiDescribe('Firestore', (persistence: boolean) => {
     let docSnapshot = await doc.get();
     expect(docSnapshot.data()).to.deep.equal(data);
 
+    // Validate that the transaction API returns the same types
+    await db.runTransaction(async transaction => {
+      docSnapshot = await transaction.get(doc);
+      expect(docSnapshot.data()).to.deep.equal(data);
+    });
+
     if (validateSnapshots) {
       let querySnapshot = await collection.get();
       docSnapshot = querySnapshot.docs[0];
       expect(docSnapshot.data()).to.deep.equal(data);
 
-      const eventsAccumulator = new EventsAccumulator<
-        firestore.QuerySnapshot
-      >();
+      const eventsAccumulator = new EventsAccumulator<firestore.QuerySnapshot>();
       const unlisten = collection.onSnapshot(eventsAccumulator.storeEvent);
       querySnapshot = await eventsAccumulator.awaitEvent();
       docSnapshot = querySnapshot.docs[0];

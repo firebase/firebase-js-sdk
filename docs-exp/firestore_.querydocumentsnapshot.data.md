@@ -4,9 +4,14 @@
 
 ## QueryDocumentSnapshot.data() method
 
+Retrieves all fields in the document as an `Object`<!-- -->.
+
+By default, `FieldValue.serverTimestamp()` values that have not yet been set to their final value will be returned as `null`<!-- -->. You can override this by passing an options object.
+
 <b>Signature:</b>
 
 ```typescript
+/** @override */
 data(options?: SnapshotOptions): T;
 ```
 
@@ -14,9 +19,11 @@ data(options?: SnapshotOptions): T;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [SnapshotOptions](./firestore_.snapshotoptions.md) |  |
+|  options | [SnapshotOptions](./firestore_.snapshotoptions.md) | An options object to configure how data is retrieved from the snapshot (for example the desired behavior for server timestamps that have not yet been set to their final value). |
 
 <b>Returns:</b>
 
 T
+
+An `Object` containing all fields in the document.
 

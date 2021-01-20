@@ -17,6 +17,7 @@
 
 import { assert, stringify } from '@firebase/util';
 import { MIN_NAME, MAX_NAME } from '../util/util';
+import { predecessor, successor } from '../util/NextPushId';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
@@ -37,8 +38,10 @@ export class QueryParams {
   private limitSet_ = false;
   private startSet_ = false;
   private startNameSet_ = false;
+  private startAfterSet_ = false;
   private endSet_ = false;
   private endNameSet_ = false;
+  private endBeforeSet_ = false;
 
   private limit_ = 0;
   private viewFrom_ = '';
@@ -96,6 +99,14 @@ export class QueryParams {
    */
   hasStart(): boolean {
     return this.startSet_;
+  }
+
+  hasStartAfter(): boolean {
+    return this.startAfterSet_;
+  }
+
+  hasEndBefore(): boolean {
+    return this.endBeforeSet_;
   }
 
   /**
@@ -277,6 +288,18 @@ export class QueryParams {
     return newParams;
   }
 
+  startAfter(indexValue: unknown, key?: string | null): QueryParams {
+    let childKey: string;
+    if (key == null) {
+      childKey = MAX_NAME;
+    } else {
+      childKey = successor(key);
+    }
+    const params: QueryParams = this.startAt(indexValue, childKey);
+    params.startAfterSet_ = true;
+    return params;
+  }
+
   /**
    * @param {*} indexValue
    * @param {?string=} key
@@ -297,6 +320,18 @@ export class QueryParams {
       newParams.indexEndName_ = '';
     }
     return newParams;
+  }
+
+  endBefore(indexValue: unknown, key?: string | null): QueryParams {
+    let childKey: string;
+    if (key == null) {
+      childKey = MIN_NAME;
+    } else {
+      childKey = predecessor(key);
+    }
+    const params: QueryParams = this.endAt(indexValue, childKey);
+    params.endBeforeSet_ = true;
+    return params;
   }
 
   /**

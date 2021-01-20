@@ -89,26 +89,30 @@ async function main() {
     await exec('yarn changeset status');
     console.log(`::set-output name=BLOCKING_FAILURE::false`);
   } catch (e) {
-    const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
-    let formattedStatusError =
-      '- Changeset formatting error in following file:%0A';
-    formattedStatusError += '    ```%0A';
-    formattedStatusError += messageLines
-      .filter(
-        (line: string) => !line.match(/^    at [\w\.]+ \(.+:[0-9]+:[0-9]+\)/)
-      )
-      .filter((line: string) => !line.includes('Command failed'))
-      .filter((line: string) => !line.includes('exited with error code 1'))
-      .map((line: string) => `    ${line}`)
-      .join('%0A');
-    formattedStatusError += '%0A    ```%0A';
-    errors.push(formattedStatusError);
-    /**
-     * Sets Github Actions output for a step. Pass changeset error message to next
-     * step. See:
-     * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
-     */
-    console.log(`::set-output name=BLOCKING_FAILURE::true`);
+    if (e.message.match('No changesets present')) {
+      console.log(`::set-output name=BLOCKING_FAILURE::false`);
+    } else {
+      const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
+      let formattedStatusError =
+        '- Changeset formatting error in following file:%0A';
+      formattedStatusError += '    ```%0A';
+      formattedStatusError += messageLines
+        .filter(
+          (line: string) => !line.match(/^    at [\w\.]+ \(.+:[0-9]+:[0-9]+\)/)
+        )
+        .filter((line: string) => !line.includes('Command failed'))
+        .filter((line: string) => !line.includes('exited with error code 1'))
+        .map((line: string) => `    ${line}`)
+        .join('%0A');
+      formattedStatusError += '%0A    ```%0A';
+      errors.push(formattedStatusError);
+      /**
+       * Sets Github Actions output for a step. Pass changeset error message to next
+       * step. See:
+       * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+       */
+      console.log(`::set-output name=BLOCKING_FAILURE::true`);
+    }
   }
   try {
     const diffData = await getDiffData();

@@ -1,5 +1,42 @@
 # @firebase/firestore
 
+## 2.1.2
+
+### Patch Changes
+
+- [`6069b1d6c`](https://github.com/firebase/firebase-js-sdk/commit/6069b1d6c521d05dde821f21bcc7e02913180ae5) [#4262](https://github.com/firebase/firebase-js-sdk/pull/4262) (fixes [#4253](https://github.com/firebase/firebase-js-sdk/issues/4253)) - Updated an outdated error message to include '!=' and 'not-in' as an inequalities.
+
+* [`ba59a0f90`](https://github.com/firebase/firebase-js-sdk/commit/ba59a0f909a1eb59d23b887bba30b6f86d63c931) [#4233](https://github.com/firebase/firebase-js-sdk/pull/4233) (fixes [#4226](https://github.com/firebase/firebase-js-sdk/issues/4226)) - Fixes an issue in the Transaction API that caused the SDK to return invalid DocumentReferences through `DocumentSnapshot.data()` calls.
+
+## 2.1.1
+
+### Patch Changes
+
+- [`44b5251d0`](https://github.com/firebase/firebase-js-sdk/commit/44b5251d0527d1aa768959765ff04093a04dd8ab) [#4189](https://github.com/firebase/firebase-js-sdk/pull/4189) (fixes [#4175](https://github.com/firebase/firebase-js-sdk/issues/4175)) - Fixes an issue that prevented the SDK from automatically retrieving custom User claims.
+
+## 2.1.0
+
+### Minor Changes
+
+- [`b662f8c0a`](https://github.com/firebase/firebase-js-sdk/commit/b662f8c0a9890cbdcf53cce7fe01c2a8a52d3d2d) [#4168](https://github.com/firebase/firebase-js-sdk/pull/4168) - Release Firestore Bundles (pre-packaged Firestore data). For NPM users, this can
+  be enabled via an additional import: 'firebase/firestore/bundle'. For CDN usage,
+  it is enabled by default.
+
+* [`1b5407372`](https://github.com/firebase/firebase-js-sdk/commit/1b54073726db8cefd994492d0cfba7c5f619f14b) [#4153](https://github.com/firebase/firebase-js-sdk/pull/4153) - A write to a document that contains FieldValue transforms is no longer split up into two separate operations. This reduces the number of writes the backend performs and allows each WriteBatch to hold 500 writes regardless of how many FieldValue transformations are attached.
+
+### Patch Changes
+
+- Updated dependencies [[`b662f8c0a`](https://github.com/firebase/firebase-js-sdk/commit/b662f8c0a9890cbdcf53cce7fe01c2a8a52d3d2d)]:
+  - @firebase/firestore-types@2.1.0
+
+## 2.0.5
+
+### Patch Changes
+
+- [`1849b0d0f`](https://github.com/firebase/firebase-js-sdk/commit/1849b0d0f0bbca56e50bea01979d20ada58040dc) [#4148](https://github.com/firebase/firebase-js-sdk/pull/4148) - Fixed a bug that prevented usage of FieldPaths with multiple special characters.
+
+* [`8993f16b8`](https://github.com/firebase/firebase-js-sdk/commit/8993f16b81b4b386f2ac5195950235a6a43ed9bc) [#4136](https://github.com/firebase/firebase-js-sdk/pull/4136) (fixes [#4125](https://github.com/firebase/firebase-js-sdk/issues/4125)) - Fixes an issue that returned invalid `DocumentReference`s in `QuerySnapshot`s.
+
 ## 2.0.4
 
 ### Patch Changes

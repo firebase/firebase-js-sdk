@@ -4,19 +4,23 @@
 
 ## Bytes.isEqual() method
 
+Returns true if this `Bytes` object is equal to the provided one.
+
 <b>Signature:</b>
 
 ```typescript
-isEqual(other: Blob): boolean;
+isEqual(other: Bytes): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | Blob |  |
+|  other | [Bytes](./firestore_lite.bytes.md) | The <code>Bytes</code> object to compare against. |
 
 <b>Returns:</b>
 
 boolean
+
+true if this `Bytes` object is equal to the provided one.
 

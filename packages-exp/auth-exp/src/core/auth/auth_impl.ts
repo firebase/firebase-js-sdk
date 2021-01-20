@@ -82,8 +82,9 @@ export class AuthImpl implements Auth, _FirebaseService {
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
-  // repeated calls to the callbacks
-  private lastNotifiedUid: string | undefined = undefined;
+  // repeated calls to the callbacks. Undefined means it's never been
+  // called, whereas null means it's been called with a signed out user
+  private lastNotifiedUid: string | null | undefined = undefined;
 
   languageCode: string | null = null;
   tenantId: string | null = null;
@@ -271,7 +272,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     this.languageCode = _getUserLanguage();
   }
 
-  useEmulator(url: string): void {
+  useEmulator(url: string, options?: { disableWarnings: boolean }): void {
     _assert(this._canInitEmulator, this, AuthErrorCode.EMULATOR_CONFIG_FAILED);
 
     _assert(
@@ -282,6 +283,7 @@ export class AuthImpl implements Auth, _FirebaseService {
 
     this.config.emulator = { url };
     this.settings.appVerificationDisabledForTesting = true;
+    emitEmulatorWarning(!!options?.disableWarnings);
   }
 
   async _delete(): Promise<void> {
@@ -473,8 +475,9 @@ export class AuthImpl implements Auth, _FirebaseService {
 
     this.idTokenSubscription.next(this.currentUser);
 
-    if (this.lastNotifiedUid !== this.currentUser?.uid) {
-      this.lastNotifiedUid = this.currentUser?.uid;
+    const currentUid = this.currentUser?.uid ?? null;
+    if (this.lastNotifiedUid !== currentUid) {
+      this.lastNotifiedUid = currentUid;
       this.authStateSubscription.next(this.currentUser);
     }
   }
@@ -565,5 +568,45 @@ class Subscription<T> {
   get next(): NextFn<T | null> {
     _assert(this.observer, this.auth, AuthErrorCode.INTERNAL_ERROR);
     return this.observer.next.bind(this.observer);
+  }
+}
+
+function emitEmulatorWarning(disableBanner: boolean): void {
+  function attachBanner(): void {
+    const el = document.createElement('p');
+    const sty = el.style;
+    el.innerText =
+      'Running in emulator mode. Do not use with production credentials.';
+    sty.position = 'fixed';
+    sty.width = '100%';
+    sty.backgroundColor = '#ffffff';
+    sty.border = '.1em solid #000000';
+    sty.color = '#ff0000';
+    sty.bottom = '0px';
+    sty.left = '0px';
+    sty.margin = '0px';
+    sty.zIndex = '10000';
+    sty.textAlign = 'center';
+    el.classList.add('firebase-emulator-warning');
+    document.body.appendChild(el);
+  }
+
+  if (typeof console !== 'undefined' && typeof console.info === 'function') {
+    console.info(
+      'WARNING: You are using the Auth Emulator,' +
+        ' which is intended for local testing only.  Do not use with' +
+        ' production credentials.'
+    );
+  }
+  if (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
+    !disableBanner
+  ) {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', attachBanner);
+    } else {
+      attachBanner();
+    }
   }
 }

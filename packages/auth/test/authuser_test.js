@@ -144,7 +144,7 @@ var expectedTokenResponseWithIdPData;
 var expectedAdditionalUserInfo;
 var expectedGoogleCredential;
 var expectedReauthenticateTokenResponse;
-var now = goog.now();
+var now = Date.now();
 
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 
@@ -232,7 +232,7 @@ function setUp() {
         return false;
       });
   stubs.replace(
-      goog,
+      Date,
       'now',
       function() {
         return now;
@@ -333,7 +333,8 @@ function setUp() {
   token.setAccessToken(jwt);
   tokenResponse = {
     'idToken': jwt,
-    'refreshToken': 'refreshToken'
+    'refreshToken': 'refreshToken',
+    'expiresIn': '4800'
   };
 
   // accountInfo in the format of a getAccountInfo response.
@@ -4618,7 +4619,7 @@ function testUser_toPlainObject() {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
           'accessToken': jwt,
-          'expirationTime': now + 3600 * 1000
+          'expirationTime': now + 4800 * 1000
         },
         'redirectEventId': '5678',
         'lastLoginAt': lastLoginAt,
@@ -4676,7 +4677,7 @@ function testUser_toPlainObject_noMetadata() {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
           'accessToken': jwt,
-          'expirationTime': now + 3600 * 1000
+          'expirationTime': now + 4800 * 1000
         },
         'redirectEventId': '5678',
         'tenantId': null,
@@ -4732,7 +4733,7 @@ function testUser_toPlainObject_enrolledFactors() {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
           'accessToken': jwt,
-          'expirationTime': now + 3600 * 1000
+          'expirationTime': now + 4800 * 1000
         },
         'redirectEventId': '5678',
         'tenantId': null,
@@ -4812,7 +4813,7 @@ function testUser_fromPlainObject() {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
           'accessToken': jwt,
-          'expirationTime': now + 3600 * 1000
+          'expirationTime': now + 4800 * 1000
         },
         'redirectEventId': '5678',
         'lastLoginAt': lastLoginAt,
@@ -4881,7 +4882,7 @@ function testUser_fromPlainObject_noMetadata() {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
           'accessToken': jwt,
-          'expirationTime': now + 3600 * 1000
+          'expirationTime': now + 4800 * 1000
         },
         'redirectEventId': '5678',
         'tenantId': null
@@ -4936,7 +4937,7 @@ function testUser_fromPlainObject_tokenExpired() {
       // Expired refresh token.
       'refreshToken': null,
       'accessToken': jwt,
-      'expirationTime': now + 3600 * 1000
+      'expirationTime': now + 4800 * 1000
     },
     'lastLoginAt': lastLoginAt,
     'createdAt': createdAt
@@ -5011,7 +5012,7 @@ function testUser_fromPlainObject_enrolledFactors() {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
           'accessToken': jwt,
-          'expirationTime': now + 3600 * 1000
+          'expirationTime': now + 4800 * 1000
         },
         'redirectEventId': '5678',
         'lastLoginAt': lastLoginAt,
@@ -12741,7 +12742,7 @@ function testUser_proactiveRefresh_startAndStop() {
                 fireauth.authenum.Error.USER_DISABLED)));
             // Confirm getWaitDuration returns expected value.
             assertEquals(
-                3600 * 1000 - fireauth.TokenRefreshTime.OFFSET_DURATION,
+                4800 * 1000 - fireauth.TokenRefreshTime.OFFSET_DURATION,
                 getWaitDuration());
             return proactiveRefreshInstance;
           }).$once();

@@ -4,23 +4,24 @@
 
 ## orderBy() function
 
+Creates a `QueryConstraint` that sorts the query result by the specified field, optionally in descending order instead of ascending.
+
 <b>Signature:</b>
 
 ```typescript
-export function orderBy(
-  fieldPath: string | FieldPath,
-  directionStr?: OrderByDirection
-): QueryConstraint;
+export declare function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldPath | string \| [FieldPath](./firestore_.fieldpath.md) |  |
-|  directionStr | [OrderByDirection](./firestore_.orderbydirection.md) |  |
+|  fieldPath | string \| [FieldPath](./firestore_.fieldpath.md) | The field to sort by. |
+|  directionStr | [OrderByDirection](./firestore_.orderbydirection.md) | Optional direction to sort by ('asc' or 'desc'). If not specified, order will be ascending. |
 
 <b>Returns:</b>
 
 [QueryConstraint](./firestore_.queryconstraint.md)
+
+The created `Query`<!-- -->.
 

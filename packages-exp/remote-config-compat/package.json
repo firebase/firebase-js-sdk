@@ -13,15 +13,14 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:release": "yarn build",
+    "build:release": "rollup -c rollup.config.release.js",
     "build:deps": "lerna run --scope @firebase/remote-config-compat --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
     "test:all": "run-p test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
-    "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "prepare": "yarn build:release"
+    "test:browser:debug": "karma start --browsers Chrome --auto-watch"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
@@ -37,7 +36,7 @@
     "tslib": "^1.11.1"
   },
   "devDependencies": {
-    "rollup": "2.33.2",
+    "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.29.0",

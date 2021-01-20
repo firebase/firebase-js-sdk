@@ -128,6 +128,10 @@ export class RepoInfo {
 
   /** @return {string} */
   toURLString(): string {
-    return (this.secure ? 'https://' : 'http://') + this.host;
+    const protocol = this.secure ? 'https://' : 'http://';
+    const query = this.includeNamespaceInQueryParams
+      ? `?ns=${this.namespace}`
+      : '';
+    return `${protocol}${this.host}/${query}`;
   }
 }

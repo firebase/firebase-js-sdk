@@ -15,13 +15,7 @@
  * limitations under the License.
  */
 import * as tmp from 'tmp';
-import {
-  existsSync,
-  lstatSync,
-  readFileSync,
-  writeFile,
-  writeFileSync
-} from 'fs';
+import { existsSync, lstatSync, readFileSync, writeFileSync } from 'fs';
 import { spawn } from 'child-process-promise';
 import { ordinal } from '@firebase/util';
 import { bundleWithRollup } from './bundle/rollup';

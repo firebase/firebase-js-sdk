@@ -552,6 +552,16 @@ export const errorForServerCode = function (code: string, query: Query): Error {
 export const INTEGER_REGEXP_ = new RegExp('^-?(0*)\\d{1,10}$');
 
 /**
+ * For use in keys, the minimum possible 32-bit integer.
+ */
+export const INTEGER_32_MIN = -2147483648;
+
+/**
+ * For use in kyes, the maximum possible 32-bit integer.
+ */
+export const INTEGER_32_MAX = 2147483647;
+
+/**
  * If the string contains a 32-bit integer, return it.  Else return null.
  * @param {!string} str
  * @return {?number}
@@ -559,7 +569,7 @@ export const INTEGER_REGEXP_ = new RegExp('^-?(0*)\\d{1,10}$');
 export const tryParseInt = function (str: string): number | null {
   if (INTEGER_REGEXP_.test(str)) {
     const intVal = Number(str);
-    if (intVal >= -2147483648 && intVal <= 2147483647) {
+    if (intVal >= INTEGER_32_MIN && intVal <= INTEGER_32_MAX) {
       return intVal;
     }
   }

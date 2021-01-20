@@ -106,6 +106,9 @@ export interface AuthError extends FirebaseError {
 }
 
 // @public
+export interface AuthErrorMap {}
+
+// @public
 export interface AuthProvider {
   readonly providerId: string;
 }

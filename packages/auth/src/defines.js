@@ -173,9 +173,33 @@ fireauth.constants.OIDC_PREFIX = 'oidc.';
  * The settings of an Auth emulator. The fields are:
  * <ul>
  * <li>url: defines the URL where the emulator is running.</li>
+ * <li>disableWarnings: if true, banner is not shown on the page.</li>
  * </ul>
  * @typedef {{
  *   url: string,
+ *   disableWarnings: boolean,
  * }}
  */
 fireauth.constants.EmulatorSettings;
+ 
+ 
+/**
+ * The (externally visible) emulator configuration, used for
+ * getEmulatorConfig(). The fields are:
+ * <ul>
+ * <li>protocol: the protocol used by the emulator (http or https).</li>
+ * <li>host: the host used to reach the emulator.</li>
+ * <li>port: the port used to reach the emulator.</li>
+ * <li>options: a list of options used to configure the SDK's interaction with
+ * the emulator.</li>
+ * </ul>
+ * @typedef {{
+ *   protocol: string,
+ *   host: string,
+ *   port: (number|null),
+ *   options: {
+ *     disableWarnings: boolean,
+ *   }
+ * }}
+ */
+fireauth.constants.EmulatorConfig;

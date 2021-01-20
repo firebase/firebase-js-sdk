@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-code: FirestoreErrorCode;
+readonly code: FirestoreErrorCode;
 ```

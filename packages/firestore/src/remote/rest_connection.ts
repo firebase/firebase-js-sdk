@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
+import { SDK_VERSION } from '../../src/core/version';
 import { Token } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { SDK_VERSION } from '../../src/core/version';
-import { Connection, Stream } from './connection';
-import { logDebug, logWarn } from '../util/log';
-import { FirestoreError } from '../util/error';
-import { StringMap } from '../util/types';
 import { debugAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
+import { logDebug, logWarn } from '../util/log';
+import { StringMap } from '../util/types';
+
+import { Connection, Stream } from './connection';
 
 const LOG_TAG = 'RestConnection';
 

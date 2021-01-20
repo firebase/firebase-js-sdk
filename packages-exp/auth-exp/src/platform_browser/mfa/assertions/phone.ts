@@ -34,7 +34,7 @@ export class PhoneMultiFactorAssertion
   extends MultiFactorAssertion
   implements externs.PhoneMultiFactorAssertion {
   private constructor(private readonly credential: PhoneAuthCredential) {
-    super(credential.providerId);
+    super(externs.FactorId.PHONE);
   }
 
   /** @internal */

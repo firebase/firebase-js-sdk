@@ -40,20 +40,20 @@ const enum QueryField {
  * @param mode
  * @internal
  */
-function parseMode(mode: string | null): externs.Operation | null {
+function parseMode(mode: string | null): externs.ActionCodeOperation | null {
   switch (mode) {
     case 'recoverEmail':
-      return externs.Operation.RECOVER_EMAIL;
+      return externs.ActionCodeOperation.RECOVER_EMAIL;
     case 'resetPassword':
-      return externs.Operation.PASSWORD_RESET;
+      return externs.ActionCodeOperation.PASSWORD_RESET;
     case 'signIn':
-      return externs.Operation.EMAIL_SIGNIN;
+      return externs.ActionCodeOperation.EMAIL_SIGNIN;
     case 'verifyEmail':
-      return externs.Operation.VERIFY_EMAIL;
+      return externs.ActionCodeOperation.VERIFY_EMAIL;
     case 'verifyAndChangeEmail':
-      return externs.Operation.VERIFY_AND_CHANGE_EMAIL;
+      return externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL;
     case 'revertSecondFactorAddition':
-      return externs.Operation.REVERT_SECOND_FACTOR_ADDITION;
+      return externs.ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION;
     default:
       return null;
   }
@@ -93,7 +93,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.languageCode} */
   readonly languageCode: string | null;
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.operation} */
-  readonly operation: externs.Operation;
+  readonly operation: externs.ActionCodeOperation;
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.tenantId} */
   readonly tenantId: string | null;
 

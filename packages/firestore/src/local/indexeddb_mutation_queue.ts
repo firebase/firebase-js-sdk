@@ -22,18 +22,17 @@ import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
+import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+import { BATCHID_UNKNOWN } from '../util/types';
+
 import { decodeResourcePath } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
-import {
-  IndexedDbPersistence,
-  IndexedDbTransaction
-} from './indexeddb_persistence';
+import { removeMutationBatch } from './indexeddb_mutation_batch_impl';
 import {
   DbDocumentMutation,
   DbDocumentMutationKey,
@@ -42,15 +41,17 @@ import {
   DbMutationQueue,
   DbMutationQueueKey
 } from './indexeddb_schema';
+import { IndexedDbTransaction, getStore } from './indexeddb_transaction';
 import {
   fromDbMutationBatch,
   LocalSerializer,
   toDbMutationBatch
 } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction, ReferenceDelegate } from './persistence';
+import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { PersistenceTransaction } from './persistence_transaction';
+import { SimpleDbStore } from './simple_db';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -616,60 +617,12 @@ export function mutationQueuesContainKey(
 }
 
 /**
- * Delete a mutation batch and the associated document mutations.
- * @returns A PersistencePromise of the document mutations that were removed.
- */
-export function removeMutationBatch(
-  txn: SimpleDbTransaction,
-  userId: string,
-  batch: MutationBatch
-): PersistencePromise<DocumentKey[]> {
-  const mutationStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-    DbMutationBatch.store
-  );
-  const indexTxn = txn.store<DbDocumentMutationKey, DbDocumentMutation>(
-    DbDocumentMutation.store
-  );
-  const promises: Array<PersistencePromise<void>> = [];
-
-  const range = IDBKeyRange.only(batch.batchId);
-  let numDeleted = 0;
-  const removePromise = mutationStore.iterate(
-    { range },
-    (key, value, control) => {
-      numDeleted++;
-      return control.delete();
-    }
-  );
-  promises.push(
-    removePromise.next(() => {
-      hardAssert(
-        numDeleted === 1,
-        'Dangling document-mutation reference found: Missing batch ' +
-          batch.batchId
-      );
-    })
-  );
-  const removedDocuments: DocumentKey[] = [];
-  for (const mutation of batch.mutations) {
-    const indexKey = DbDocumentMutation.key(
-      userId,
-      mutation.key.path,
-      batch.batchId
-    );
-    promises.push(indexTxn.delete(indexKey));
-    removedDocuments.push(mutation.key);
-  }
-  return PersistencePromise.waitFor(promises).next(() => removedDocuments);
-}
-
-/**
  * Helper to get a typed SimpleDbStore for the mutations object store.
  */
 function mutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
-  return IndexedDbPersistence.getStore<DbMutationBatchKey, DbMutationBatch>(
+  return getStore<DbMutationBatchKey, DbMutationBatch>(
     txn,
     DbMutationBatch.store
   );
@@ -681,10 +634,10 @@ function mutationsStore(
 function documentMutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
-  return IndexedDbPersistence.getStore<
-    DbDocumentMutationKey,
-    DbDocumentMutation
-  >(txn, DbDocumentMutation.store);
+  return getStore<DbDocumentMutationKey, DbDocumentMutation>(
+    txn,
+    DbDocumentMutation.store
+  );
 }
 
 /**
@@ -693,7 +646,7 @@ function documentMutationsStore(
 function mutationQueuesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
-  return IndexedDbPersistence.getStore<DbMutationQueueKey, DbMutationQueue>(
+  return getStore<DbMutationQueueKey, DbMutationQueue>(
     txn,
     DbMutationQueue.store
   );
