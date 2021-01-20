@@ -21,10 +21,7 @@ use(chaiAsPromised);
 
 import { FirebaseApp } from '@firebase/app-types';
 import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
-import {
-  StorageErrorCode,
-  FirebaseStorageError
-} from '../../src/implementation/error';
+import { FirebaseStorageError } from '../../src/implementation/error';
 import { Headers, XhrIo } from '../../src/implementation/xhrio';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
@@ -130,7 +127,7 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
 
 export function assertThrows(
   f: () => void,
-  code: StorageErrorCode
+  code: string
 ): FirebaseStorageError {
   let captured: FirebaseStorageError | null = null;
   expect(() => {
