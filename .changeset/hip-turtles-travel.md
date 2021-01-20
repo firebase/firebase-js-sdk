@@ -2,4 +2,4 @@
 '@firebase/database': patch
 ---
 
-RTDB query gets shouldn't send server requests for listened-to data
+get()s issued for queries that are being listened to no longer send backend requests.

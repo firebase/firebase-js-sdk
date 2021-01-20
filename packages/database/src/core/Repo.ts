@@ -319,6 +319,7 @@ export class Repo {
    * @param query - The query to surface a value for.
    */
   getValue(query: Query): Promise<DataSnapshot> {
+    // Only active queries are cached. There is no persisted cache.
     const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);
     if (!cached.isEmpty()) {
       return Promise.resolve(
