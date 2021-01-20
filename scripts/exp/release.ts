@@ -29,6 +29,7 @@ import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
 import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
+import { prepare as prepareStorageForRelease } from './prepare-storage-for-exp-release';
 import * as yargs from 'yargs';
 
 const prompt = createPromptModule();
@@ -58,6 +59,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * Update fields in package.json and stuff
      */
     await prepareFirestoreForRelease();
+    await prepareStorageForRelease();
 
     /**
      * build packages
@@ -70,6 +72,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     ]);
 
     packagePaths.push(`${projectRoot}/packages/firestore`);
+    packagePaths.push(`${projectRoot}/packages/storage`);
 
     /**
      * It does 2 things:
@@ -239,6 +242,16 @@ async function buildPackages() {
   await spawn(
     'yarn',
     ['lerna', 'run', '--scope', '@firebase/firestore', 'build:exp:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Storage
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
