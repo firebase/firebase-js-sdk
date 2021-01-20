@@ -83,7 +83,6 @@ registerAnalytics();
 export * from './api';
 
 export {
-  DataLayer,
   Analytics,
   AnalyticsCallOptions,
   SettingsOptions,

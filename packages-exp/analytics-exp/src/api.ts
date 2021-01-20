@@ -49,7 +49,6 @@ import {
 } from './functions';
 
 export { settings } from './factory';
-export { EventName } from './constants';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

@@ -8,7 +8,6 @@ import { Analytics } from '@firebase/analytics-types-exp';
 import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
 import { ControlParams } from '@firebase/analytics-types-exp';
 import { CustomParams } from '@firebase/analytics-types-exp';
-import { DataLayer } from '@firebase/analytics-types-exp';
 import { EventNameString } from '@firebase/analytics-types-exp';
 import { EventParams } from '@firebase/analytics-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
@@ -26,66 +25,6 @@ export { ControlParams }
 export type CustomEventName<T> = T extends EventNameString ? never : T;
 
 export { CustomParams }
-
-export { DataLayer }
-
-// @public
-export enum EventName {
-    // (undocumented)
-    ADD_PAYMENT_INFO = "add_payment_info",
-    // (undocumented)
-    ADD_SHIPPING_INFO = "add_shipping_info",
-    // (undocumented)
-    ADD_TO_CART = "add_to_cart",
-    // (undocumented)
-    ADD_TO_WISHLIST = "add_to_wishlist",
-    // (undocumented)
-    BEGIN_CHECKOUT = "begin_checkout",
-    // @deprecated (undocumented)
-    CHECKOUT_PROGRESS = "checkout_progress",
-    // (undocumented)
-    EXCEPTION = "exception",
-    // (undocumented)
-    GENERATE_LEAD = "generate_lead",
-    // (undocumented)
-    LOGIN = "login",
-    // (undocumented)
-    PAGE_VIEW = "page_view",
-    // (undocumented)
-    PURCHASE = "purchase",
-    // (undocumented)
-    REFUND = "refund",
-    // (undocumented)
-    REMOVE_FROM_CART = "remove_from_cart",
-    // (undocumented)
-    SCREEN_VIEW = "screen_view",
-    // (undocumented)
-    SEARCH = "search",
-    // (undocumented)
-    SELECT_CONTENT = "select_content",
-    // (undocumented)
-    SELECT_ITEM = "select_item",
-    // (undocumented)
-    SELECT_PROMOTION = "select_promotion",
-    // @deprecated (undocumented)
-    SET_CHECKOUT_OPTION = "set_checkout_option",
-    // (undocumented)
-    SHARE = "share",
-    // (undocumented)
-    SIGN_UP = "sign_up",
-    // (undocumented)
-    TIMING_COMPLETE = "timing_complete",
-    // (undocumented)
-    VIEW_CART = "view_cart",
-    // (undocumented)
-    VIEW_ITEM = "view_item",
-    // (undocumented)
-    VIEW_ITEM_LIST = "view_item_list",
-    // (undocumented)
-    VIEW_PROMOTION = "view_promotion",
-    // (undocumented)
-    VIEW_SEARCH_RESULTS = "view_search_results"
-}
 
 export { EventParams }
 
