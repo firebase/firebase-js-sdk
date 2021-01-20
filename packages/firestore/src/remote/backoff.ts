@@ -149,6 +149,10 @@ export class ExponentialBackoff {
     }
   }
 
+  /**
+   * If a backoff is scheduled, cancel it and run the retry logic
+   * immediately.
+   */
   skipBackoff(): void {
     if (this.timerPromise !== null) {
       this.timerPromise.skipDelay();

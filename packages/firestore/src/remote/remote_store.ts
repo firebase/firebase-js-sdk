@@ -173,8 +173,13 @@ class RemoteStoreImpl implements RemoteStore {
     this.connectivityMonitor = connectivityMonitor;
     this.connectivityMonitor.addCallback((state: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
-        // TODO: Only reconnect if offline (need to hook into OnlineStateTracker).
-        // Also consider only connecting if NetworkState is available
+        // If the browser tab was backgrounded any network requests in progress will
+        // likely be killed, new ones will not establish successfully, and the
+        // backoff logic is going to kick in. Once the browser is foreground and back
+        // online we will re-attempt a connection right away.
+        if (state === NetworkStatus.AVAILABLE) {
+          skipBackoffs(this);
+        }
 
         // Porting Note: Unlike iOS, `restartNetwork()` is called even when the
         // network becomes unreachable as we don't have any other way to tear
@@ -193,6 +198,18 @@ class RemoteStoreImpl implements RemoteStore {
       asyncQueue,
       onlineStateHandler
     );
+  }
+}
+
+function skipBackoffs(remoteStore: RemoteStoreImpl) {
+  const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
+
+  if (remoteStoreImpl.watchStream) {
+    remoteStoreImpl.watchStream.skipBackoff();
+  }
+
+  if (remoteStoreImpl.writeStream) {
+    remoteStoreImpl.writeStream.skipBackoff();
   }
 }
 

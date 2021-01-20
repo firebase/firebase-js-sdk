@@ -59,13 +59,15 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
 
   private visibilityChangeListener(): void {
     logDebug(LOG_TAG, 'Visibility changed');
-    // TODO: Only fire if visible
-    for (const callback of this.callbacks) {
-      callback(
-        window.navigator.onLine
-          ? NetworkStatus.AVAILABLE
-          : NetworkStatus.UNAVAILABLE
-      );
+
+    if (document.visibilityState === 'visible') {
+      for (const callback of this.callbacks) {
+        callback(
+          window.navigator.onLine
+            ? NetworkStatus.AVAILABLE
+            : NetworkStatus.UNAVAILABLE
+        );
+      }
     }
   }
 

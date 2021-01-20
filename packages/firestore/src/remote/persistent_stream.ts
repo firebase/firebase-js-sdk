@@ -267,6 +267,14 @@ export abstract class PersistentStream<
   }
 
   /**
+   * If the stream is currently doing a backoff this will accelerate the
+   * retry attempt to right now.
+   */
+  skipBackoff(): void {
+    this.backoff.skipBackoff();
+  }
+
+  /**
    * Marks this stream as idle. If no further actions are performed on the
    * stream for one minute, the stream will automatically close itself and
    * notify the stream's onClose() handler with Status.OK. The stream will then
