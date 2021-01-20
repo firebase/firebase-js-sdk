@@ -133,7 +133,7 @@ const componentBuilds = pkg.components
     if (component === 'messaging') {
       return [
         {
-          input: `${component}/index.cdn.ts`,
+          input: `${component}/index.ts`,
           output: [
             {
               file: resolve(component, pkg.main),
@@ -150,9 +150,18 @@ const componentBuilds = pkg.components
           external
         },
         {
-          input: `${component}/index.cdn.ts`,
+          input: `${component}/index.ts`,
           output: createUmdOutputConfig(
             `firebase-${componentName}.js`,
+            componentName
+          ),
+          plugins: [...plugins, typescriptPluginUMD, uglify()],
+          external: ['@firebase/app-exp']
+        },
+        {
+          input: `${component}/index.sw.ts`,
+          output: createUmdOutputConfig(
+            `firebase-${componentName}-sw.js`,
             componentName
           ),
           plugins: [...plugins, typescriptPluginUMD, uglify()],

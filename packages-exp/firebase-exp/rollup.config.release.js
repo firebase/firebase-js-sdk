@@ -129,7 +129,7 @@ const componentBuilds = pkg.components
     if (component === 'messaging') {
       return [
         {
-          input: `${component}/index.cdn.ts`,
+          input: `${component}/index.ts`,
           output: [
             {
               file: resolve(component, pkg.main),
@@ -147,9 +147,32 @@ const componentBuilds = pkg.components
             deps.some(dep => id === dep || id.startsWith(`${dep}/`))
         },
         {
-          input: `${component}/index.cdn.ts`,
+          input: `${component}/index.ts`,
           output: createUmdOutputConfig(
             `firebase-${componentName}.js`,
+            componentName
+          ),
+          plugins: [
+            ...plugins,
+            typescriptPluginUMD,
+            /**
+             * Hack to bundle @firebase/installations-exp
+             */
+            alias({
+              entries: [
+                {
+                  find: '@firebase/installations',
+                  replacement: '@firebase/installations-exp'
+                }
+              ]
+            })
+          ],
+          external: ['@firebase/app']
+        },
+        {
+          input: `${component}/index.cdn.ts`,
+          output: createUmdOutputConfig(
+            `firebase-${componentName}-sw.js`,
             componentName
           ),
           plugins: [

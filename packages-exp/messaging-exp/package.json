@@ -29,8 +29,8 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@firebase/app-exp": "0.0.900",
-    "@firebase/app-types-exp": "0.0.900"
+    "@firebase/app-exp": "0.x",
+    "@firebase/app-types-exp": "0.x"
   },
   "dependencies": {
     "@firebase/component": "0.1.21",
