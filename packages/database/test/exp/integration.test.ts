@@ -20,7 +20,7 @@ import { initializeApp, deleteApp } from '@firebase/app-exp';
 import { expect } from 'chai';
 import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 
-import { getDatabase, initializeDatabase } from '../../exp/index';
+import { getDatabase } from '../../exp/index';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -45,7 +45,7 @@ describe('Database Tests', () => {
   });
 
   it('Can get database with custom URL', () => {
-    const db = initializeDatabase(defaultApp, 'http://foo.bar.com');
+    const db = getDatabase(defaultApp, 'http://foo.bar.com');
     expect(db).to.be.ok;
     // The URL is assumed to be secure if no port is specified.
     expect(db.ref().toString()).to.equal('https://foo.bar.com/');

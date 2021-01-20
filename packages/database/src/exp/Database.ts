@@ -104,27 +104,6 @@ const ServerValue = Database.ServerValue;
 export { ServerValue };
 
 /**
- * Initializes a new instance of the Realtime Database. If a custom database URL
- * is specified, the URL overrides the database URL provided by the Firebase
- * App.
- *
- * @param app - The {@link FirebaseApp} with which the Realtime Database
- * instance will be associated with.
- * @param url - The URL of the Realtime Database instance to connect to. If not
- * provided, the SDK connects to the default instance of the Firebase App.
- * @returns A newly initialized `FirebaseDatabase` instance.
- */
-export function initializeDatabase(
-  app: FirebaseApp,
-  url?: string
-): FirebaseDatabase {
-  const database = _getProvider(app, 'database-exp').getImmediate({
-    identifier: url
-  }) as FirebaseDatabase;
-  return database;
-}
-
-/**
  * Returns the instance of the Realtime Database SDK that is associated
  * with the provided {@link FirebaseApp}. Initializes a new instance with
  * with default settings if no instance exists or if the existing instance uses

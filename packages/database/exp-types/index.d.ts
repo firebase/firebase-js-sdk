@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 
-export { initializeDatabase, getDatabase } from '../src/exp/Database';
+export { getDatabase } from '../src/exp/Database';
 
 export interface DataSnapshot {
   child(path: string): DataSnapshot;

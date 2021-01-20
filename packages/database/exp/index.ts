@@ -24,7 +24,6 @@ import { FirebaseDatabase } from '../src/exp/Database';
 
 export {
   getDatabase,
-  initializeDatabase,
   FirebaseDatabase,
   ServerValue
 } from '../src/exp/Database';
