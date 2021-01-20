@@ -45,15 +45,15 @@ export async function prepare() {
     '@firebase/app-types-exp': '0.x'
   };
 
-  packageJson.main = expPackageJson.main.replace('../', './exp');
-  packageJson.module = expPackageJson.module.replace('../', './exp');
-  packageJson.browser = expPackageJson.browser.replace('../', './exp');
+  packageJson.main = expPackageJson.main.replace('./', 'exp/');
+  packageJson.module = expPackageJson.module.replace('./', 'exp/');
+  packageJson.browser = expPackageJson.browser.replace('./', 'exp/');
   delete packageJson['esm2017'];
 
-  packageJson.typings = expPackageJson.typings.replace('../', './exp');
+  packageJson.typings = expPackageJson.typings.replace('./', 'exp/');
 
   // include files to be published
-  packageJson.files = [...packageJson.files, packageJson.typings];
+  packageJson.files = ['exp/dist'];
 
   // update package.json files
   await writeFile(
