@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 
-import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import pkg from './package.json';
+import json from '@rollup/plugin-json';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
-
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
 
 /**
  * ES5 Builds
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    clean: true,
+    abortOnError: false,
+    transformers: [importPathTransformer]
   }),
   json()
 ];
@@ -53,9 +52,14 @@ const es2017BuildPlugins = [
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    abortOnError: false,
+    clean: true,
+    transformers: [importPathTransformer]
   }),
-  json({ preferConst: true })
+  json({
+    preferConst: true
+  })
 ];
 
 const es2017Builds = es2017BuildsNoPlugin.map(build => ({
