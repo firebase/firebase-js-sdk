@@ -170,7 +170,7 @@ const componentBuilds = pkg.components
           external: ['@firebase/app']
         },
         {
-          input: `${component}/index.cdn.ts`,
+          input: `${component}/index.sw.ts`,
           output: createUmdOutputConfig(
             `firebase-${componentName}-sw.js`,
             componentName
