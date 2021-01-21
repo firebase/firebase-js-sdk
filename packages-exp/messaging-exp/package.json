@@ -7,7 +7,8 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "sw": "dist/index.sw.esm5.js",
+  "typings": "dist/index.d.ts",
+  "sw": "dist/index.sw.esm2017.js",
   "files": [
     "dist"
   ],
@@ -52,6 +53,5 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  },
-  "typings": "dist/index.d.ts"
+  }
 }

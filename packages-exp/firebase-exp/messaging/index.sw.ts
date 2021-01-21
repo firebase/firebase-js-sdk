@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '@firebase/messaging-exp';
+export { onBackgroundMessage, getMessaging } from '@firebase/messaging-exp/sw';

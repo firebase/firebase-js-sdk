@@ -17,6 +17,7 @@
 
 import { FirebaseMessaging } from '@firebase/messaging-types-exp';
 import { registerMessaging } from './helpers/register';
+import '@firebase/installations-exp';
 
 export { onBackgroundMessage, getMessaging } from './api';
 
