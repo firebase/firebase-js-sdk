@@ -36,9 +36,11 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
+    "@firebase/analytics-exp": "0.0.900",
     "@firebase/app-exp": "0.0.900",
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
+    "@firebase/database": "0.8.3",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/firestore": "2.1.2",
     "@firebase/storage": "0.4.2",
