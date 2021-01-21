@@ -70,6 +70,7 @@
     "storage",
     "performance",
     "remote-config",
-    "messaging"
+    "messaging",
+    "database"
   ]
 }
