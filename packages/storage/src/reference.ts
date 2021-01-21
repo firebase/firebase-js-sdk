@@ -60,7 +60,7 @@ export class Reference {
     if (location instanceof Location) {
       this._location = location;
     } else {
-      this._location = Location.makeFromUrl(location);
+      this._location = Location.makeFromUrl(location, _service.emulatorOrigin);
     }
   }
 

@@ -21,8 +21,8 @@
 import { DEFAULT_HOST } from './constants';
 import { UrlParams } from './requestinfo';
 
-export function makeUrl(urlPart: string): string {
-  return `https://${DEFAULT_HOST}/v0${urlPart}`;
+export function makeUrl(urlPart: string, customHost?: string): string {
+  return `https://${customHost ?? DEFAULT_HOST}/v0${urlPart}`;
 }
 
 export function makeQueryString(params: UrlParams): string {

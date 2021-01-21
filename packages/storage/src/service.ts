@@ -120,12 +120,23 @@ export function ref(
   }
 }
 
-function extractBucket(config?: FirebaseOptions): Location | null {
+function extractBucket(
+  config?: FirebaseOptions,
+  customHost?: string
+): Location | null {
   const bucketString = config?.[CONFIG_STORAGE_BUCKET_KEY];
   if (bucketString == null) {
     return null;
   }
-  return Location.makeFromBucketSpec(bucketString);
+  return Location.makeFromBucketSpec(bucketString, customHost);
+}
+
+export function useEmulator(
+  storage: StorageService,
+  host: string,
+  port: number
+): void {
+  storage.emulatorOrigin = `http://${host}:${port}`;
 }
 
 /**
@@ -135,6 +146,7 @@ function extractBucket(config?: FirebaseOptions): Location | null {
  */
 export class StorageService implements _FirebaseService {
   readonly _bucket: Location | null = null;
+  emulatorOrigin?: string;
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
@@ -155,9 +167,9 @@ export class StorageService implements _FirebaseService {
     this._maxUploadRetryTime = DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this._requests = new Set();
     if (_url != null) {
-      this._bucket = Location.makeFromBucketSpec(_url);
+      this._bucket = Location.makeFromBucketSpec(_url, this.emulatorOrigin);
     } else {
-      this._bucket = extractBucket(this.app.options);
+      this._bucket = extractBucket(this.app.options, this.emulatorOrigin);
     }
   }
 
