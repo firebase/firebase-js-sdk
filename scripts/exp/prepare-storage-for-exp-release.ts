@@ -22,7 +22,6 @@ import { promisify } from 'util';
 const writeFile = promisify(_writeFile);
 const packagePath = `${projectRoot}/packages/storage`;
 
-//
 /**
  * Transform package.json in @firebase/storage so that we can use scripts/exp/release.ts to release storage exp.
  * It does following things:

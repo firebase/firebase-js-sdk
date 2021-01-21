@@ -22,7 +22,6 @@ import { promisify } from 'util';
 const writeFile = promisify(_writeFile);
 const packagePath = `${projectRoot}/packages/firestore`;
 
-//
 /**
  * Transform package.json in @firebase/firestore so that we can use scripts/exp/release.ts to release Firestore exp.
  * It does following things:
