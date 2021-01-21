@@ -149,7 +149,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       const { shouldCommitAndPush } = await prompt([
         {
           type: 'confirm',
-          name: 'commitAndPush',
+          name: 'shouldCommitAndPush',
           message:
             'Do you want to commit and push the exp version update to remote?',
           default: true
@@ -438,7 +438,7 @@ async function updatePackageJsons(
 }
 
 async function commitAndPush(versions: Map<string, string>) {
-  await exec('git add */package.json yarn.lock');
+  await exec('git add packages-exp/firebase-exp/package.json yarn.lock');
 
   const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME);
   await exec(
