@@ -41,6 +41,7 @@
     "@firebase/auth-exp": "0.0.900",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/firestore": "2.1.2",
+    "@firebase/storage": "0.4.2",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
     "@firebase/messaging-exp": "0.0.900"
@@ -66,6 +67,7 @@
     "functions",
     "firestore",
     "firestore/lite",
+    "storage",
     "performance",
     "remote-config",
     "messaging"

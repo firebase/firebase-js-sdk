@@ -20,10 +20,10 @@ import { writeFile as _writeFile, readFile as _readFile } from 'fs';
 import { promisify } from 'util';
 
 const writeFile = promisify(_writeFile);
-const packagePath = `${projectRoot}/packages/firestore`;
+const packagePath = `${projectRoot}/packages/storage`;
 
 /**
- * Transform package.json in @firebase/firestore so that we can use scripts/exp/release.ts to release Firestore exp.
+ * Transform package.json in @firebase/storage so that we can use scripts/exp/release.ts to release storage exp.
  * It does following things:
  * 1. Update package.json to point to exp binaries
  * 2. Update version to '0.0.900', the version number we choose for releasing exp packages
@@ -37,7 +37,6 @@ export async function prepare() {
   // Update package.json
   const packageJson = await readPackageJson(packagePath);
   const expPackageJson = await readPackageJson(`${packagePath}/exp`);
-  const litePackageJson = await readPackageJson(`${packagePath}/lite`);
   packageJson.version = '0.0.900';
 
   packageJson.peerDependencies = {
@@ -45,25 +44,15 @@ export async function prepare() {
     '@firebase/app-types-exp': '0.x'
   };
 
-  packageJson.main = expPackageJson.main.replace('../', '');
-  packageJson.module = expPackageJson.module.replace('../', '');
-  packageJson.browser = expPackageJson.browser.replace('../', '');
-  packageJson['react-native'] = expPackageJson['react-native'].replace(
-    '../',
-    ''
-  );
-  delete packageJson['main-esm2017'];
+  packageJson.main = expPackageJson.main.replace('./', 'exp/');
+  packageJson.module = expPackageJson.module.replace('./', 'exp/');
+  packageJson.browser = expPackageJson.browser.replace('./', 'exp/');
   delete packageJson['esm2017'];
 
-  packageJson.typings = expPackageJson.typings.replace('../', '');
+  packageJson.typings = expPackageJson.typings.replace('./', 'exp/');
 
   // include files to be published
-  packageJson.files = [
-    ...packageJson.files,
-    packageJson.typings,
-    'lite/package.json',
-    litePackageJson.typings.replace('../', '')
-  ];
+  packageJson.files = ['exp/dist'];
 
   // update package.json files
   await writeFile(
