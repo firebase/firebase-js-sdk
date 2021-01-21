@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.900.4",
+  "version": "0.900.5",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
