@@ -51,10 +51,7 @@ export async function prepare() {
   packageJson.typings = expPackageJson.typings.replace('../', '');
 
   // include files to be published
-  packageJson.files = [
-    ...packageJson.files,
-    packageJson.typings
-  ];
+  packageJson.files = [...packageJson.files, packageJson.typings];
 
   // update package.json files
   await writeFile(

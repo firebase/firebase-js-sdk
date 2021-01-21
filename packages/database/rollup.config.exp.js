@@ -33,6 +33,7 @@ const deps = Object.keys(
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
+    abortOnError: false,
     transformers: [importPathTransformer]
   }),
   json()
@@ -74,6 +75,7 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     },
+    abortOnError: false,
     transformers: [importPathTransformer]
   }),
   json({ preferConst: true })
