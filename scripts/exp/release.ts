@@ -146,7 +146,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * Do not push to remote if it's a dryrun
      */
     if (!dryRun) {
-      const { commitAndPush } = await prompt([
+      const { shouldCommitAndPush } = await prompt([
         {
           type: 'confirm',
           name: 'commitAndPush',
@@ -158,7 +158,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       /**
        * push to github
        */
-      if (commitAndPush) {
+      if (shouldCommitAndPush) {
         await commitAndPush(versions);
       }
     }
