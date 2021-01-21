@@ -13,7 +13,9 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
+    "build": "run-p build:classic build:exp",
+    "build:classic": "rollup -c rollup.config.js",
+    "build:exp": "rollup -c rollup.config.exp.js",
     "build:deps": "lerna run --scope @firebase/'{app,database}' --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:emulator",

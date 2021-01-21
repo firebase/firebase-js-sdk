@@ -31,5 +31,13 @@ module.exports = {
     'no-restricted-globals': 'off',
     'no-throw-literal': 'off',
     'id-blacklist': 'off'
-  }
+  },
+  overrides: [
+    {
+      files: ['**/*.d.ts'],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off'
+      }
+    }
+  ]
 };

@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
 import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal, log } from './util/util';
@@ -43,6 +44,12 @@ import {
 const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
 
 let _staticInstance: RepoManager;
+
+/**
+ * Intersection type that allows the SDK to be used from firebase-exp and
+ * firebase v8.
+ */
+export type FirebaseAppLike = FirebaseApp | FirebaseAppExp;
 
 /**
  * Creates and caches Repo instances.
@@ -113,7 +120,7 @@ export class RepoManager {
    * @return {!Database}
    */
   databaseFromApp(
-    app: FirebaseApp,
+    app: FirebaseAppLike,
     authProvider: Provider<FirebaseAuthInternalName>,
     url?: string,
     nodeAdmin?: boolean
@@ -195,7 +202,7 @@ export class RepoManager {
    */
   createRepo(
     repoInfo: RepoInfo,
-    app: FirebaseApp,
+    app: FirebaseAppLike,
     authTokenProvider: AuthTokenProvider
   ): Repo {
     let appRepos = safeGet(this.repos_, app.name);
