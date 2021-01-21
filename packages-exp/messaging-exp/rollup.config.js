@@ -42,9 +42,6 @@ const es5Builds = [
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
-    treeshake: {
-      moduleSideEffects: false
-    },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -73,9 +70,6 @@ const es2017Builds = [
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
-    treeshake: {
-      moduleSideEffects: false
-    },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
 
