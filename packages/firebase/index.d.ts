@@ -7612,6 +7612,15 @@ declare namespace firebase.storage {
      * @see {@link firebase.storage.Storage.maxUploadRetryTime}
      */
     setMaxUploadRetryTime(time: number): any;
+    /**
+     * Modify this `Storage` instance to communicate with the Cloud Storage emulator.
+     *
+     * Note: this must be called before this instance has been used to do any operations.
+     *
+     * @param host - The emulator host (ex: localhost)
+     * @param port - The emulator port (ex: 5001)
+     */
+    useEmulator(host: string, port: string): void;
   }
 
   /**

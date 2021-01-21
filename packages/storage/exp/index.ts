@@ -27,7 +27,8 @@ import {
 import { XhrIoPool } from '../src/implementation/xhriopool';
 import {
   ref as refInternal,
-  StorageService as StorageServiceInternal
+  StorageService as StorageServiceInternal,
+  useEmulator as useEmulatorInternal
 } from '../src/service';
 import {
   Component,
@@ -281,6 +282,24 @@ export function ref(
     serviceOrRef as StorageServiceInternal | Reference,
     pathOrUrl
   );
+}
+
+/**
+ * Modify this `StorageService` instance to communicate with the Cloud Storage emulator.
+ *
+ * Note: this must be called before this instance has been used to do any operations.
+ *
+ * @param storage - The `StorageService` instance
+ * @param host - The emulator host (ex: localhost)
+ * @param port - The emulator port (ex: 5001)
+ * @public
+ */
+export function useEmulator(
+  storage: StorageService,
+  host: string,
+  port: number
+): void {
+  useEmulatorInternal(storage as StorageServiceInternal, host, port);
 }
 
 export { StringFormat } from '../src/implementation/string';
