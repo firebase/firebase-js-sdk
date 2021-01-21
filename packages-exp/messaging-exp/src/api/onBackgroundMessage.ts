@@ -26,7 +26,7 @@ export function onBackgroundMessage(
   messaging: MessagingService,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
-  if (!!navigator) {
+  if (self.document !== undefined) {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
   }
 

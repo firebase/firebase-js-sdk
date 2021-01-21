@@ -47,7 +47,7 @@ const es5Builds = [
     ],
     plugins: es5BuildPlugins,
     treeshake: {
-      moduleSideEffects: false
+      moduleSideEffects: (id, external) => id === '@firebase/installations'
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -81,7 +81,7 @@ const es2017Builds = [
     },
     plugins: es2017BuildPlugins,
     treeshake: {
-      moduleSideEffects: false
+      moduleSideEffects: (id, external) => id === '@firebase/installations'
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -91,7 +91,10 @@ const es2017Builds = [
     input: 'src/index.sw.ts',
     output: { file: pkg.sw, format: 'es', sourcemap: true },
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: (id, external) => id === '@firebase/installations'
+    }
   }
 ];
 
