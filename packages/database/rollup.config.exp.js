@@ -19,6 +19,7 @@ import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import path from 'path';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 import pkg from './exp/package.json';
 
@@ -31,7 +32,8 @@ const deps = Object.keys(
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    transformers: [importPathTransformer]
   }),
   json()
 ];
@@ -71,7 +73,8 @@ const es2017BuildPlugins = [
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    transformers: [importPathTransformer]
   }),
   json({ preferConst: true })
 ];
