@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.16.2
+
+### Patch Changes
+
+- [`92a7f4345`](https://github.com/firebase/firebase-js-sdk/commit/92a7f434536051bedd00bc1be7e774174378aa7d) [#4280](https://github.com/firebase/firebase-js-sdk/pull/4280) - Add the `useEmulator()` function and `emulatorConfig` to the `firebase` package externs
+
 ## 0.16.1
 
 ### Patch Changes
