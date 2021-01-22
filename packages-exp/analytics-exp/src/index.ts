@@ -27,7 +27,17 @@ import {
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { logEvent } from './api';
 import { name, version } from '../package.json';
-import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
+
+import {
+  Analytics,
+  AnalyticsCallOptions,
+  SettingsOptions,
+  ControlParams,
+  EventParams,
+  CustomParams,
+  Item,
+  Promotion
+} from '@firebase/analytics-types-exp';
 
 declare global {
   interface Window {
@@ -81,14 +91,15 @@ function registerAnalytics(): void {
 registerAnalytics();
 
 export * from './api';
-
-export type {
+/**
+ * Public types.
+ */
+export {
   Analytics,
-  AnalyticsCallOptions,
   SettingsOptions,
   ControlParams,
   EventParams,
   CustomParams,
   Item,
   Promotion
-} from '@firebase/analytics-types-exp';
+};
