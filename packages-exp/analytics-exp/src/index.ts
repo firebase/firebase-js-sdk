@@ -82,7 +82,7 @@ registerAnalytics();
 
 export * from './api';
 
-export {
+export type {
   Analytics,
   AnalyticsCallOptions,
   SettingsOptions,
