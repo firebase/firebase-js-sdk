@@ -74,4 +74,3 @@ export async function prepare() {
     { encoding: 'utf-8' }
   );
 }
-prepare();
