@@ -23,7 +23,7 @@ import {
   ControlParams,
   EventParams,
   MinimalDynamicConfig
-} from '@firebase/analytics-types';
+} from '@firebase/analytics-types-exp';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
 
