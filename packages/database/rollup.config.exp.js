@@ -49,6 +49,9 @@ const es5Builds = [
       { file: path.resolve('exp', pkg.main), format: 'cjs', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
+    treeshake: {
+      moduleSideEffects: false
+    },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
@@ -60,6 +63,9 @@ const es5Builds = [
       { file: path.resolve('exp', pkg.module), format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
+    treeshake: {
+      moduleSideEffects: false
+    },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -91,6 +97,9 @@ const es2017Builds = [
       { file: path.resolve('exp', pkg.esm2017), format: 'es', sourcemap: true }
     ],
     plugins: es2017BuildPlugins,
+    treeshake: {
+      moduleSideEffects: false
+    },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
