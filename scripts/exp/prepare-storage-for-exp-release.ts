@@ -47,6 +47,11 @@ export async function prepare() {
     '@firebase/app-types-exp': '0.x'
   };
 
+  packageJson.dependencies = {
+    ...packageJson.dependencies,
+    '@firebase/storage-types': '0.0.900'
+  };
+
   packageJson.main = expPackageJson.main.replace('./', 'exp/');
   packageJson.module = expPackageJson.module.replace('./', 'exp/');
   packageJson.browser = expPackageJson.browser.replace('./', 'exp/');
@@ -69,3 +74,4 @@ export async function prepare() {
     { encoding: 'utf-8' }
   );
 }
+prepare();
