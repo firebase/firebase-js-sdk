@@ -207,7 +207,7 @@ export function bundleInitialProgress(
     documentsLoaded: 0,
     bytesLoaded: 0,
     totalDocuments: metadata.totalDocuments!,
-    totalBytes: parseInt(metadata.totalBytes!.toString())
+    totalBytes: parseInt(metadata.totalBytes!.toString(), 10)
   };
 }
 
@@ -221,8 +221,8 @@ export function bundleSuccessProgress(
   return {
     taskState: 'Success',
     documentsLoaded: metadata.totalDocuments!,
-    bytesLoaded: parseInt(metadata.totalBytes!.toString()),
+    bytesLoaded: parseInt(metadata.totalBytes!.toString(), 10),
     totalDocuments: metadata.totalDocuments!,
-    totalBytes: parseInt(metadata.totalBytes!.toString())
+    totalBytes: parseInt(metadata.totalBytes!.toString(), 10)
   };
 }
