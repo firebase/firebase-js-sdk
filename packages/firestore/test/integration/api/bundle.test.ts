@@ -70,7 +70,7 @@ function bundleString(
   }
 
   // Update BundleMetadata with new totalBytes.
-  const totalBytes = encoder.encode(bundleContent).byteLength;
+  const totalBytes = encoder.encode(bundleContent).byteLength.toString();
   const metadata = JSON.parse(elements[0]);
   metadata.metadata.totalBytes = totalBytes;
   const metadataContent = JSON.stringify(metadata);
@@ -82,13 +82,13 @@ apiDescribe('Bundles', (persistence: boolean) => {
   // This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpsers.ts',
   // and manually copied here.
   const BUNDLE_TEMPLATE = [
-    '{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":1503}}',
-    '{"namedQuery":{"name":"limit","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/{0}/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"FIRST"}}}',
+    '{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":"1503"}}',
+    '{"namedQuery":{"name":"limit","readTime":{"seconds":"1000","nanos":9999},"bundledQuery":{"parent":"projects/{0}/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"FIRST"}}}',
     '{"namedQuery":{"name":"limit-to-last","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/{0}/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"LAST"}}}',
-    '{"documentMetadata":{"name":"projects/{0}/databases/(default)/documents/coll-1/a","readTime":{"seconds":1000,"nanos":9999},"exists":true}}',
-    '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/a","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"a"},"bar":{"integerValue":1}}}}',
+    '{"documentMetadata":{"name":"projects/{0}/databases/(default)/documents/coll-1/a","readTime":{"seconds":"1000","nanos":9999},"exists":true}}',
+    '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/a","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":"1","nanos":9},"fields":{"k":{"stringValue":"a"},"bar":{"integerValue":1}}}}',
     '{"documentMetadata":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","readTime":{"seconds":1000,"nanos":9999},"exists":true}}',
-    '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}'
+    '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","createTime":{"seconds":"1","nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}'
   ];
 
   function verifySnapEqualsTestDocs(snap: firestore.QuerySnapshot): void {
