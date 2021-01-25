@@ -265,6 +265,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
   });
 });
 
+// TODO(b/178418242): Move this to `api_internal` and generate testing bundle programmatically
+// instead of having hard coded bundle strings.
 apiDescribe('Bundles conformance', (persistence: boolean) => {
   const CONFORMANCE_DOC = {
     stringValue: 'a',
@@ -287,7 +289,8 @@ apiDescribe('Bundles conformance', (persistence: boolean) => {
     bytesValue: Blob.fromUint8Array(new Uint8Array([0x01, 0x02]))
   };
 
-  // This is built by Node(protobuf.js) with above document and one additional field of `pathValue: db.doc('col1/ref1')`.
+  // This is built by Node(protobuf.js) from above document with some mixing of int64 numbers
+  // represented as both number and string, and one additional field of `pathValue: db.doc('col1/ref1')`.
   const BUNDLES_PROTOBUFJS_CONFORMANCE_TEMPLATE = [
     '{"metadata":{"id":"test-bundle","createTime":{"seconds":"1611502887","nanos":707859000},"version":1,"totalDocuments":1,"totalBytes":"1405"}}',
     '{"documentMetadata":{"name":"projects/{0}/databases/(default)/documents/bundles/conformance-doc","readTime":{"seconds":"1611502887","nanos":707859000},"exists":true}}',
