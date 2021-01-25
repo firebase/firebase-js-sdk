@@ -38,6 +38,7 @@ import {
   Item,
   Promotion
 } from '@firebase/analytics-types-exp';
+import '@firebase/installations-exp';
 
 declare global {
   interface Window {
