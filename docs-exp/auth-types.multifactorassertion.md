@@ -20,5 +20,5 @@ This is used to facilitate enrollment of a second factor on an existing user or 
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [factorId](./auth-types.multifactorassertion.factorid.md) | string | The identifier of the second factor. |
+|  [factorId](./auth-types.multifactorassertion.factorid.md) | [FactorId](./auth-types.factorid.md) | The identifier of the second factor. |
 

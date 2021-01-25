@@ -17,5 +17,5 @@ export interface ActionCodeInfo
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [data](./auth-types.actioncodeinfo.data.md) | { email?: string \| null; multiFactorInfo?: [MultiFactorInfo](./auth-types.multifactorinfo.md) \| null; previousEmail?: string \| null; } | The data associated with the action code. |
-|  [operation](./auth-types.actioncodeinfo.operation.md) | [Operation](./auth-types.operation.md) | The type of operation that generated the action code. |
+|  [operation](./auth-types.actioncodeinfo.operation.md) | [ActionCodeOperation](./auth-types.actioncodeoperation.md) | The type of operation that generated the action code. |
 

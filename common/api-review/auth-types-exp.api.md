@@ -78,12 +78,12 @@ export interface Auth {
   languageCode: string | null;
   readonly name: string;
   onAuthStateChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
   onIdTokenChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;

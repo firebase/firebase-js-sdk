@@ -6,6 +6,11 @@
 
 import { FirebaseApp } from '@firebase/app-types-exp';
 
+// @public (undocumented)
+export interface Analytics {
+  app: FirebaseApp;
+}
+
 // @public
 export interface AnalyticsCallOptions {
   global: boolean;
@@ -122,6 +127,12 @@ export interface EventParams {
   // (undocumented)
   number?: string;
   // (undocumented)
+  page_location?: string;
+  // (undocumented)
+  page_path?: string;
+  // (undocumented)
+  page_title?: string;
+  // (undocumented)
   payment_type?: string;
   // (undocumented)
   promotion_id?: string;
@@ -145,12 +156,6 @@ export interface EventParams {
   value?: number;
 }
 
-// @public (undocumented)
-export interface FirebaseAnalytics {
-  // (undocumented)
-  app: FirebaseApp;
-}
-
 // @public
 export interface Gtag {
   // (undocumented)
@@ -168,9 +173,6 @@ export interface Gtag {
     eventParams?: ControlParams | EventParams | CustomParams
   ): void;
 }
-
-// @public (undocumented)
-export type GtagCommand = 'event' | 'set' | 'config';
 
 // @public (undocumented)
 export interface Item {

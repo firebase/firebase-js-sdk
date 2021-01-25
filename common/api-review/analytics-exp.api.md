@@ -17,8 +17,6 @@ import { SettingsOptions } from '@firebase/analytics-types-exp';
 
 export { Analytics }
 
-export { AnalyticsCallOptions }
-
 export { ControlParams }
 
 // @public
