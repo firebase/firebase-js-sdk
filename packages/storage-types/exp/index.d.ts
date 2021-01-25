@@ -121,102 +121,112 @@ export interface ListResult {
 }
 
 /**
+ * Object metadata that can be set at any time.
+ * @public
+ */
+export interface SettableMetadata {
+  /**
+   * Served as the 'Cache-Control' header on object download.
+   */
+  cacheControl?: string | undefined;
+
+  /**
+   * Served as the 'Content-Disposition' header on object download.
+   */
+  contentDisposition?: string | undefined;
+
+  /**
+   * Served as the 'Content-Encoding' header on object download.
+   */
+  contentEncoding?: string | undefined;
+
+  /**
+   * Served as the 'Content-Language' header on object download.
+   */
+  contentLanguage?: string | undefined;
+
+  /**
+   * Served as the 'Content-Type' header on object download.
+   */
+  contentType?: string | undefined;
+
+  /**
+   * Additional user-defined custom metadata.
+   */
+  customMetadata?:
+    | {
+        [key: string]: string;
+      }
+    | undefined;
+}
+/**
+ * Object metadata that can be set at upload.
+ * @public
+ */
+export interface UploadMetadata extends SettableMetadata {
+  /**
+   * A Base64-encoded MD5 hash of the object being uploaded.
+   */
+  md5Hash?: string | undefined;
+}
+
+/**
  * The full set of object metadata, including read-only properties.
  * @public
  */
-export interface Metadata {
+export interface FullMetadata extends UploadMetadata {
   /**
    * The bucket this object is contained in.
    */
-  bucket: string;
+  bucket?: string;
 
   /**
    * The full path of this object.
    */
-  fullPath: string;
+  fullPath?: string;
 
   /**
    * The object's generation.
    * {@link https://cloud.google.com/storage/docs/generations-preconditions}
    */
-  generation: string;
+  generation?: string;
 
   /**
    * The object's metageneration.
    * {@link https://cloud.google.com/storage/docs/generations-preconditions}
    */
-  metageneration: string;
+  metageneration?: string;
 
   /**
    * The short name of this object, which is the last component of the full path.
    * For example, if fullPath is 'full/path/image.png', name is 'image.png'.
    */
-  name: string;
+  name?: string;
 
   /**
    * The size of this object, in bytes.
    */
-  size: number;
+  size?: number;
 
   /**
    * A date string representing when this object was created.
    */
-  timeCreated: string;
+  timeCreated?: string;
 
   /**
    * A date string representing when this object was last updated.
    */
-  updated: string;
-
-  /**
-   * A Base64-encoded MD5 hash of the object being uploaded.
-   */
-  md5Hash: string | undefined;
-
-  /**
-   * Served as the 'Cache-Control' header on object download.
-   */
-  cacheControl: string | undefined;
-
-  /**
-   * Served as the 'Content-Disposition' header on object download.
-   */
-  contentDisposition: string | undefined;
-
-  /**
-   * Served as the 'Content-Encoding' header on object download.
-   */
-  contentEncoding: string | undefined;
-
-  /**
-   * Served as the 'Content-Language' header on object download.
-   */
-  contentLanguage: string | undefined;
-
-  /**
-   * Served as the 'Content-Type' header on object download.
-   */
-  contentType: string | undefined;
+  updated?: string;
 
   /**
    * Tokens to allow access to the downloatd URL.
    */
-  downloadTokens: string[] | undefined;
-
-  /**
-   * Additional user-defined custom metadata.
-   */
-  customMetadata:
-    | {
-        [key: string]: string;
-      }
-    | undefined;
+  downloadTokens?: string[] | undefined;
 
   /**
    * `StorageReference` associated with this upload.
    */
-  ref: StorageReference | undefined;
-  [prop: string]: unknown;
+  ref?: StorageReference | undefined;
 }
 
 /**
