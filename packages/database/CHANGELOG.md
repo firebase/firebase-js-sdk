@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.9.0
+
+### Minor Changes
+
+- [`cb835e723`](https://github.com/firebase/firebase-js-sdk/commit/cb835e723fab2a85a4e073a3f09354e3e6520dd1) [#4232](https://github.com/firebase/firebase-js-sdk/pull/4232) - Add `startAfter` and `endBefore` filters for paginating RTDB queries.
+
 ## 0.8.3
 
 ### Patch Changes
