@@ -92,11 +92,11 @@ export class ReferenceCompat implements types.Reference {
    */
   put(
     data: Blob | Uint8Array | ArrayBuffer,
-    metadata?: Metadata
+    metadata?: types.FullMetadata
   ): types.UploadTask {
     this._throwIfRoot('put');
     return new UploadTaskCompat(
-      uploadBytesResumable(this._delegate, data, metadata),
+      uploadBytesResumable(this._delegate, data, metadata as Metadata),
       this
     );
   }
@@ -182,8 +182,8 @@ export class ReferenceCompat implements types.Reference {
    * object doesn't exist or metadata cannot be retreived, the promise is
    * rejected.
    */
-  getMetadata(): Promise<Metadata> {
-    return getMetadata(this._delegate);
+  getMetadata(): Promise<types.FullMetadata> {
+    return getMetadata(this._delegate) as Promise<types.FullMetadata>;
   }
 
   /**
@@ -195,8 +195,13 @@ export class ReferenceCompat implements types.Reference {
    * with the new metadata for this object.
    * @see firebaseStorage.Reference.prototype.getMetadata
    */
-  updateMetadata(metadata: Metadata): Promise<Metadata> {
-    return updateMetadata(this._delegate, metadata);
+  updateMetadata(
+    metadata: types.SettableMetadata
+  ): Promise<types.FullMetadata> {
+    return updateMetadata(
+      this._delegate,
+      metadata as Metadata
+    ) as Promise<types.FullMetadata>;
   }
 
   /**

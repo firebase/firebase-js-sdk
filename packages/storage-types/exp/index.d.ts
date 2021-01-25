@@ -438,7 +438,7 @@ export interface UploadTaskSnapshot {
    * Before the upload completes, contains the metadata sent to the server.
    * After the upload completes, contains the metadata sent back from the server.
    */
-  metadata: Metadata;
+  metadata: FullMetadata;
 
   /**
    * The reference that spawned this snapshot's upload task.
@@ -469,7 +469,7 @@ export interface UploadResult {
   /**
    * Contains the metadata sent back from the server.
    */
-  readonly metadata: Metadata;
+  readonly metadata: FullMetadata;
 
   /**
    * The reference that spawned this upload.
