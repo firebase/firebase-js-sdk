@@ -9,7 +9,7 @@ Modify this Auth instance to communicate with the Firebase Auth emulator.
 <b>Signature:</b>
 
 ```typescript
-useEmulator(url: string): void;
+useEmulator(url: string, options?: { disableWarnings: boolean }): void;
 ```
 
 ## Parameters
@@ -17,6 +17,7 @@ useEmulator(url: string): void;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  url | string | The URL at which the emulator is running (eg, 'http://localhost:9099'). |
+|  options | { disableWarnings: boolean } |  |
 
 <b>Returns:</b>
 

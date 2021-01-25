@@ -187,7 +187,7 @@ export interface ServerValue {
 // @public (undocumented)
 export interface ThenableReference
   extends Reference,
-  Pick<Promise<Reference>, 'then' | 'catch'> { }
+    Pick<Promise<Reference>, 'then' | 'catch'> {}
 
 
 // (No @packageDocumentation comment for this package)

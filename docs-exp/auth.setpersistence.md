@@ -9,7 +9,7 @@ Changes the type of persistence on the Auth instance for the currently saved Aut
 <b>Signature:</b>
 
 ```typescript
-export declare function setPersistence(auth: externs.Auth, persistence: externs.Persistence): void;
+export declare function setPersistence(auth: externs.Auth, persistence: externs.Persistence): Promise<void>;
 ```
 
 ## Parameters
@@ -21,7 +21,9 @@ export declare function setPersistence(auth: externs.Auth, persistence: externs.
 
 <b>Returns:</b>
 
-void
+Promise&lt;void&gt;
+
+A promise that resolves once the persistence change has completed
 
 ## Remarks
 

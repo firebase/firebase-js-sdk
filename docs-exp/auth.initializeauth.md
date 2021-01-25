@@ -8,7 +8,7 @@
 <b>Signature:</b>
 
 ```typescript
-export declare function initializeAuth(app?: FirebaseApp, deps?: Dependencies): externs.Auth;
+export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): externs.Auth;
 ```
 
 ## Parameters

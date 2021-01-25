@@ -10,7 +10,7 @@ Adds an observer for changes to the user's sign-in state.
 
 ```typescript
 onAuthStateChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
@@ -20,7 +20,7 @@ onAuthStateChanged(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md)<!-- -->&gt; | callback triggered on change. |
+|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md) \| null&gt; | callback triggered on change. |
 |  error | ErrorFn | callback triggered on error. |
 |  completed | CompleteFn | callback triggered when observer is removed. |
 

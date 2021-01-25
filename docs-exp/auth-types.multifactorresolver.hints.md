@@ -9,5 +9,5 @@ The list of hints for the second factors needed to complete the sign-in for the 
 <b>Signature:</b>
 
 ```typescript
-hints: MultiFactorInfo[];
+readonly hints: MultiFactorInfo[];
 ```

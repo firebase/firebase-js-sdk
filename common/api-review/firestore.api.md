@@ -461,6 +461,9 @@ export function updateDoc(reference: DocumentReference<unknown>, data: UpdateDat
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
 // @public
+export function useFirestoreEmulator(firestore: FirebaseFirestore, host: string, port: number): void;
+
+// @public
 export function waitForPendingWrites(firestore: FirebaseFirestore): Promise<void>;
 
 // @public
