@@ -178,50 +178,50 @@ export interface FullMetadata extends UploadMetadata {
   /**
    * The bucket this object is contained in.
    */
-  bucket?: string;
+  bucket: string;
 
   /**
    * The full path of this object.
    */
-  fullPath?: string;
+  fullPath: string;
 
   /**
    * The object's generation.
    * {@link https://cloud.google.com/storage/docs/generations-preconditions}
    */
-  generation?: string;
+  generation: string;
 
   /**
    * The object's metageneration.
    * {@link https://cloud.google.com/storage/docs/generations-preconditions}
    */
-  metageneration?: string;
+  metageneration: string;
 
   /**
    * The short name of this object, which is the last component of the full path.
    * For example, if fullPath is 'full/path/image.png', name is 'image.png'.
    */
-  name?: string;
+  name: string;
 
   /**
    * The size of this object, in bytes.
    */
-  size?: number;
+  size: number;
 
   /**
    * A date string representing when this object was created.
    */
-  timeCreated?: string;
+  timeCreated: string;
 
   /**
    * A date string representing when this object was last updated.
    */
-  updated?: string;
+  updated: string;
 
   /**
    * Tokens to allow access to the downloatd URL.
    */
-  downloadTokens?: string[] | undefined;
+  downloadTokens: string[] | undefined;
 
   /**
    * `StorageReference` associated with this upload.
