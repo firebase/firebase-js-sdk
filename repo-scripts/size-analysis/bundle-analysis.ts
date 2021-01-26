@@ -432,22 +432,18 @@ function createImportExport(
   const contentArray = [];
 
   switch (symbol) {
-    case SpecialImport.Default:
-      contentArray.push(
-        `import ${createSymbolName(
-          'default_import',
-          symbolsCache
-        )} from '${modulePath}';`
-      );
+    case SpecialImport.Default: {
+      const nameToUse = createSymbolName('default_import', symbolsCache);
+      contentArray.push(`import ${nameToUse} from '${modulePath}';`);
+      contentArray.push(`console.log(${nameToUse})`); // prevent import from being tree shaken
       break;
-    case SpecialImport.Namespace:
-      contentArray.push(
-        `import * as ${createSymbolName(
-          'namespace',
-          symbolsCache
-        )} from '${modulePath}';`
-      );
+    }
+    case SpecialImport.Namespace: {
+      const nameToUse = createSymbolName('namespace', symbolsCache);
+      contentArray.push(`import * as ${nameToUse} from '${modulePath}';`);
+      contentArray.push(`console.log(${nameToUse})`); // prevent import from being tree shaken
       break;
+    }
     case SpecialImport.Sizeeffect:
       contentArray.push(`import '${modulePath}';`);
       break;

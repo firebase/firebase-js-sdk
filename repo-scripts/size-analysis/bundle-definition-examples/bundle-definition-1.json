@@ -40,25 +40,5 @@
                 ]
             }
         ]
-    },
-    {
-        "name": "test3",
-        "description": "symbols with the same name",
-        "dependencies": [
-            {
-                "packageName": "@firebase/firestore",
-                "versionOrTag": "exp",
-                "imports": [
-                    "ref"
-                ]
-            },
-            {
-                "packageName": "@firebase/storage",
-                "versionOrTag": "exp",
-                "imports": [
-                    "ref"
-                ]
-            }
-        ]
     }
 ]
