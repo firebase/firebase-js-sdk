@@ -141,4 +141,12 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
       throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this.name_ });
     }
   }
+
+  toJSON(): object {
+    return {
+      name: this.name,
+      automaticDataCollectionEnabled: this.automaticDataCollectionEnabled,
+      options: this.options
+    };
+  }
 }
