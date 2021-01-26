@@ -750,6 +750,7 @@ export class Repo {
 
           const error = new Error(message);
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (error as any).code = code;
           callback(error);
         }
@@ -853,6 +854,7 @@ export class Repo {
         newVal !== null &&
         contains(newVal, '.priority')
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         priorityForNode = safeGet(newVal as any, '.priority');
         assert(
           isValidPriority(priorityForNode),
@@ -865,7 +867,6 @@ export class Repo {
           ChildrenNode.EMPTY_NODE;
         priorityForNode = currentNode.getPriority().val();
       }
-      priorityForNode /** @type {null|number|string} */ = priorityForNode;
 
       const serverValues = this.generateServerValues();
       const newNodeUnresolved = nodeFromJSON(newVal, priorityForNode);
@@ -1109,7 +1110,7 @@ export class Repo {
           this.serverSyncTree_.ackUserWrite(transaction.currentWriteId, true)
         );
       } else if (transaction.status === TransactionStatus.RUN) {
-        if (transaction.retryCount >= MAX_TRANSACTION_RETRIES_) {
+        if (transaction.retryCount >= MAX_TRANSACTION_RETRIES) {
           abortTransaction = true;
           abortReason = 'maxretry';
           events = events.concat(
