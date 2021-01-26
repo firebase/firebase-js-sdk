@@ -1,7 +1,6 @@
 ---
 '@firebase/app-compat': patch
 '@firebase/app': patch
-'@firebase/app-types': patch
 '@firebase/firestore': patch
 ---
 
