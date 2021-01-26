@@ -287,8 +287,6 @@ export function ref(
 /**
  * Modify this `StorageService` instance to communicate with the Cloud Storage emulator.
  *
- * Note: this must be called before this instance has been used to do any operations.
- *
  * @param storage - The `StorageService` instance
  * @param host - The emulator host (ex: localhost)
  * @param port - The emulator port (ex: 5001)
