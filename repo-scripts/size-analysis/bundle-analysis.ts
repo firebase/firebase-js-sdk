@@ -46,6 +46,7 @@ interface DebugOptions {
 
 interface BundleDefinition {
   name: string;
+  description?: string;
   dependencies: BundleDependency[];
 }
 
@@ -253,7 +254,9 @@ async function analyzeBundle(
 ): Promise<BundleAnalysis> {
   const analysis: BundleAnalysis = {
     name: bundleDefinition.name,
-    results: []
+    description: bundleDefinition.description ?? '',
+    results: [],
+    dependencies: bundleDefinition.dependencies
   };
 
   let moduleDirectory: string | undefined;
@@ -480,6 +483,8 @@ function createSymbolName(symbol: string, symbolsCache: Set<string>): string {
 
 interface BundleAnalysis {
   name: string; // the bundle name defined in the bundle definition
+  description: string;
+  dependencies: BundleDependency[];
   results: BundleAnalysisResult[];
 }
 
