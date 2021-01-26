@@ -434,12 +434,18 @@ function createImportExport(
   switch (symbol) {
     case SpecialImport.Default:
       contentArray.push(
-        `import * as ${createSymbolName('default_import', symbolsCache)}`
+        `import ${createSymbolName(
+          'default_import',
+          symbolsCache
+        )} from '${modulePath}';`
       );
       break;
     case SpecialImport.Namespace:
       contentArray.push(
-        `import * as ${createSymbolName('namespace', symbolsCache)}`
+        `import * as ${createSymbolName(
+          'namespace',
+          symbolsCache
+        )} from '${modulePath}';`
       );
       break;
     case SpecialImport.Sizeeffect:
