@@ -28,7 +28,7 @@ import { XhrIoPool } from '../src/implementation/xhriopool';
 import {
   ref as refInternal,
   StorageService as StorageServiceInternal,
-  useEmulator as useEmulatorInternal
+  useStorageEmulator as useEmulatorInternal
 } from '../src/service';
 import {
   Component,
@@ -294,7 +294,7 @@ export function ref(
  * @param port - The emulator port (ex: 5001)
  * @public
  */
-export function useEmulator(
+export function useStorageEmulator(
   storage: StorageService,
   host: string,
   port: number

@@ -93,7 +93,7 @@ export function uploadString(ref: StorageReference, value: string, format?: stri
 export { UploadTask }
 
 // @public
-export function useEmulator(storage: StorageService, host: string, port: number): void;
+export function useStorageEmulator(storage: StorageService, host: string, port: number): void;
 
 
 // (No @packageDocumentation comment for this package)

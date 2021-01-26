@@ -20,7 +20,7 @@ import {
   StorageService,
   isUrl,
   ref,
-  useEmulator as internalUseEmulator
+  useStorageEmulator as internalUseEmulator
 } from '../src/service';
 import { Location } from '../src/implementation/location';
 import { ReferenceCompat } from './reference';

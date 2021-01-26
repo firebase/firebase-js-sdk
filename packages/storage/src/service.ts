@@ -131,7 +131,7 @@ function extractBucket(
   return Location.makeFromBucketSpec(bucketString, customHost);
 }
 
-export function useEmulator(
+export function useStorageEmulator(
   storage: StorageService,
   host: string,
   port: number
