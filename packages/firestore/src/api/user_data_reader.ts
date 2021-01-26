@@ -741,7 +741,11 @@ export function parseData(
   } else {
     // If context.path is null we are inside an array and we don't support
     // field mask paths more granular than the top-level array.
-    if (context.path) {
+    //
+    // If the input is undefined it can never participate in the fieldMask. With
+    // `ignoreUndefinedProperties` set to false, `parseScalarValue` will reject
+    // an undefined value.
+    if (context.path && input !== undefined) {
       context.fieldMask.push(context.path);
     }
 
