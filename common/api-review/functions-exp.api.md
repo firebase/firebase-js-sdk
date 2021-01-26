@@ -6,14 +6,29 @@
 
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { Functions } from '@firebase/functions-types-exp';
+import { FunctionsError } from '@firebase/functions-types-exp';
+import { FunctionsErrorCode } from '@firebase/functions-types-exp';
 import { HttpsCallable } from '@firebase/functions-types-exp';
 import { HttpsCallableOptions } from '@firebase/functions-types-exp';
+import { HttpsCallableResult } from '@firebase/functions-types-exp';
+
+export { Functions }
+
+export { FunctionsError }
+
+export { FunctionsErrorCode }
 
 // @public
 export function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;
 
+export { HttpsCallable }
+
 // @public
 export function httpsCallable(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
+
+export { HttpsCallableOptions }
+
+export { HttpsCallableResult }
 
 // @public
 export function useFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;

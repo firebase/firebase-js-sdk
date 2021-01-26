@@ -1408,7 +1408,7 @@ declare namespace firebase.app {
      */
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
-    functions(region?: string): firebase.functions.Functions;
+    functions(regionOrCustomDomain?: string): firebase.functions.Functions;
     /**
      * Gets the {@link firebase.performance.Performance `Performance`} service for the
      * current app. If the current app is not the default one, throws an error.
@@ -9172,9 +9172,9 @@ declare namespace firebase.firestore {
    * `exists` property will always be true and `data()` will never return
    * 'undefined'.
    */
-  export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
-    T
-  > {
+  export class QueryDocumentSnapshot<
+    T = DocumentData
+  > extends DocumentSnapshot<T> {
     private constructor();
 
     /**

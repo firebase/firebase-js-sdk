@@ -10,7 +10,7 @@ Adds an observer for changes to the signed-in user's ID token.
 
 ```typescript
 onIdTokenChanged(
-    nextOrObserver: NextOrObserver<User>,
+    nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
@@ -20,7 +20,7 @@ onIdTokenChanged(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md)<!-- -->&gt; | callback triggered on change. |
+|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md) \| null&gt; | callback triggered on change. |
 |  error | ErrorFn | callback triggered on error. |
 |  completed | CompleteFn | callback triggered when observer is removed. |
 

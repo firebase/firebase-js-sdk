@@ -1,19 +1,19 @@
 {
   "name": "@firebase/database",
-  "version": "0.8.3",
+  "version": "0.9.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
+    "build": "run-p build:classic build:exp && yarn api-report",
+    "build:classic": "rollup -c rollup.config.js",
+    "build:exp": "rollup -c rollup.config.exp.js && yarn api-report",
     "build:deps": "lerna run --scope @firebase/'{app,database}' --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:emulator",
@@ -21,7 +21,10 @@
     "test:all": "run-p lint test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
-    "test:emulator": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/database-test-runner.ts"
+    "test:emulator": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/database-test-runner.ts",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs"
   },
   "license": "Apache-2.0",
   "peerDependencies": {},

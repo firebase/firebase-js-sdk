@@ -49,7 +49,6 @@ import { StatsListener } from './stats/StatsListener';
 import { EventQueue } from './view/EventQueue';
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
-import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
 import { Database } from '../api/Database';
 import { DataSnapshot } from '../api/DataSnapshot';
@@ -65,6 +64,7 @@ import { isValidPriority, validateFirebaseData } from './util/validation';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { Reference } from '../api/Reference';
+import { FirebaseAppLike } from './RepoManager';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -148,7 +148,7 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     private forceRestClient_: boolean,
-    public app: FirebaseApp,
+    public app: FirebaseAppLike,
     public authTokenProvider_: AuthTokenProvider
   ) {
     // This key is intentionally not updated if RepoInfo is later changed or replaced
@@ -369,29 +369,29 @@ export class Repo {
    * The purpose of `getValue` is to return the latest known value
    * satisfying `query`.
    *
-   * If the client is connected, this method will send a request
-   * to the server. If the client is not connected, then either:
+   * This method will first check for in-memory cached values
+   * belonging to active listeners. If they are found, such values
+   * are considered to be the most up-to-date.
    *
-   * 1. The client was once connected, but not anymore.
-   * 2. The client has never connected, this is the first operation
-   *    this repo is handling.
-   *
-   * In case (1), it's possible that the client still has an active
-   * listener, with cached data. Since this is the latest known
-   * value satisfying the query, that's what getValue will return.
-   * If there is no cached data, `getValue` surfaces an "offline"
-   * error.
-   *
-   * In case (2), `getValue` will trigger a time-limited connection
-   * attempt. If the client is unable to connect to the server, it
-   * will surface an "offline" error because there cannot be any
-   * cached data. On the other hand, if the client is able to connect,
-   * `getValue` will return the server's value for the query, if one
-   * exists.
+   * If the client is not connected, this method will try to
+   * establish a connection and request the value for `query`. If
+   * the client is not able to retrieve the query result, it reports
+   * an error.
    *
    * @param query - The query to surface a value for.
    */
   getValue(query: Query): Promise<DataSnapshot> {
+    // Only active queries are cached. There is no persisted cache.
+    const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);
+    if (!cached.isEmpty()) {
+      return Promise.resolve(
+        new DataSnapshot(
+          cached,
+          query.getRef(),
+          query.getQueryParams().getIndex()
+        )
+      );
+    }
     return this.server_.get(query).then(
       payload => {
         const node = nodeFromJSON(payload as string);
@@ -409,22 +409,7 @@ export class Repo {
         );
       },
       err => {
-        this.log_(
-          'get for query ' +
-            stringify(query) +
-            ' falling back to cache after error: ' +
-            err
-        );
-        const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);
-        if (!cached.isEmpty()) {
-          return Promise.resolve(
-            new DataSnapshot(
-              cached,
-              query.getRef(),
-              query.getQueryParams().getIndex()
-            )
-          );
-        }
+        this.log_('get for query ' + stringify(query) + ' failed: ' + err);
         return Promise.reject(new Error(err as string));
       }
     );

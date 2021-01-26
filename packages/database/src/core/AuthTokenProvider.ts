@@ -22,7 +22,7 @@ import {
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { log, warn } from './util/util';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseAppLike } from './RepoManager';
 
 export interface AuthTokenProvider {
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;
@@ -37,7 +37,7 @@ export interface AuthTokenProvider {
 export class FirebaseAuthTokenProvider implements AuthTokenProvider {
   private auth_: FirebaseAuthInternal | null = null;
   constructor(
-    private app_: FirebaseApp,
+    private app_: FirebaseAppLike,
     private authProvider_: Provider<FirebaseAuthInternalName>
   ) {
     this.auth_ = authProvider_.getImmediate({ optional: true });
