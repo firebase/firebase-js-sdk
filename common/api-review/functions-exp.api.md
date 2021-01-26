@@ -19,6 +19,8 @@ export function httpsCallable(functionsInstance: Functions, name: string, option
 export function useFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
 
 
+export * from "@firebase/functions-types-exp";
+
 // (No @packageDocumentation comment for this package)
 
 ```

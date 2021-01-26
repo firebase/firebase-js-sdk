@@ -32,6 +32,8 @@ import {
   httpsCallable as _httpsCallable
 } from './service';
 
+export * from '@firebase/functions-types-exp';
+
 /**
  * Returns a Functions instance for the given app.
  * @param app - The FirebaseApp to use.
