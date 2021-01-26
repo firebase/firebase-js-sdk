@@ -22,7 +22,6 @@ import { Repo } from './Repo';
 import { fatal, log } from './util/util';
 import { parseRepoInfo } from './util/libs/parser';
 import { validateUrl } from './util/validation';
-import './Repo_transaction';
 import { Database } from '../api/Database';
 import { RepoInfo } from './RepoInfo';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
