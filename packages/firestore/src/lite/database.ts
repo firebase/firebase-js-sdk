@@ -134,6 +134,14 @@ export class FirebaseFirestore implements FirestoreService {
     return this._terminateTask;
   }
 
+  toJSON(): object {
+    return {
+      app: this._app,
+      databaseId: this._databaseId,
+      settings: this._settings
+    };
+  }
+
   /**
    * Terminates all components used by this client. Subclasses can override
    * this method to clean up their own dependencies, but must also call this

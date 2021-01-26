@@ -134,6 +134,14 @@ export class FirebaseAppImpl implements FirebaseApp {
   _addOrOverwriteComponent(component: Component): void {
     _addOrOverwriteComponent(this.app, component);
   }
+
+  toJSON(): object {
+    return {
+      name: this.name,
+      automaticDataCollectionEnabled: this.automaticDataCollectionEnabled,
+      options: this.options
+    };
+  }
 }
 
 // TODO: investigate why the following needs to be commented out

@@ -163,6 +163,14 @@ export class FirebaseAppImpl implements FirebaseApp {
     this.container.addOrOverwriteComponent(component);
   }
 
+  toJSON(): object {
+    return {
+      name: this.name,
+      automaticDataCollectionEnabled: this.automaticDataCollectionEnabled,
+      options: this.options
+    };
+  }
+
   /**
    * This function will throw an Error if the App has already been deleted -
    * use before performing API actions on the App.
