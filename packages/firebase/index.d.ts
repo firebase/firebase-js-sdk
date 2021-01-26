@@ -7615,8 +7615,6 @@ declare namespace firebase.storage {
     /**
      * Modify this `Storage` instance to communicate with the Cloud Storage emulator.
      *
-     * Note: this must be called before this instance has been used to do any operations.
-     *
      * @param host - The emulator host (ex: localhost)
      * @param port - The emulator port (ex: 5001)
      */
@@ -7919,15 +7917,6 @@ declare namespace firebase.storage {
      */
     totalBytes: number;
   }
-
-  /**
-   * Modify this `Storage` instance to communicate with the Cloud Storage emulator.
-   *
-   * @param storage - The `Storage` instance
-   * @param host - The emulator host (ex: localhost)
-   * @param port - The emulator port (ex: 5001)
-   */
-  function useEmulator(host: string, port: number): void;
 }
 
 declare namespace firebase.firestore {
