@@ -41,7 +41,6 @@ import { name, version } from '../package.json';
 import {
   StorageReference,
   StorageService,
-  Metadata,
   UploadResult,
   ListOptions,
   ListResult,
@@ -49,7 +48,10 @@ import {
   FirebaseStorageError,
   TaskEvent,
   TaskState,
-  StorageObserver
+  StorageObserver,
+  SettableMetadata,
+  UploadMetadata,
+  FullMetadata
 } from '@firebase/storage-types/exp';
 import { Metadata as MetadataInternal } from '../src/metadata';
 import {
@@ -71,7 +73,9 @@ import {
 export {
   StorageReference,
   StorageService,
-  Metadata,
+  UploadMetadata,
+  SettableMetadata,
+  FullMetadata,
   UploadResult,
   ListOptions,
   ListResult,
@@ -88,13 +92,13 @@ export {
  * @public
  * @param ref - StorageReference where data should be uploaded.
  * @param data - The data to upload.
- * @param metadata - Metadata for the newly uploaded data.
+ * @param metadata - Metadata for the data to upload.
  * @returns A Promise containing an UploadResult
  */
 export function uploadBytes(
   ref: StorageReference,
   data: Blob | Uint8Array | ArrayBuffer,
-  metadata?: Metadata
+  metadata?: UploadMetadata
 ): Promise<UploadResult> {
   return uploadBytesInternal(
     ref as Reference,
@@ -110,14 +114,14 @@ export function uploadBytes(
  * @param ref - StorageReference where string should be uploaded.
  * @param value - The string to upload.
  * @param format - The format of the string to upload.
- * @param metadata - Metadata for the newly uploaded string.
+ * @param metadata - Metadata for the string to upload.
  * @returns A Promise containing an UploadResult
  */
 export function uploadString(
   ref: StorageReference,
   value: string,
   format?: string,
-  metadata?: Metadata
+  metadata?: UploadMetadata
 ): Promise<UploadResult> {
   return uploadStringInternal(
     ref as Reference,
@@ -133,13 +137,13 @@ export function uploadString(
  * @public
  * @param ref - StorageReference where data should be uploaded.
  * @param data - The data to upload.
- * @param metadata - Metadata for the newly uploaded data.
+ * @param metadata - Metadata for the data to upload.
  * @returns An UploadTask
  */
 export function uploadBytesResumable(
   ref: StorageReference,
   data: Blob | Uint8Array | ArrayBuffer,
-  metadata?: Metadata
+  metadata?: UploadMetadata
 ): UploadTask {
   return uploadBytesResumableInternal(
     ref as Reference,
@@ -155,8 +159,8 @@ export function uploadBytesResumable(
  * @public
  * @param ref - StorageReference to get metadata from.
  */
-export function getMetadata(ref: StorageReference): Promise<Metadata> {
-  return getMetadataInternal(ref as Reference) as Promise<Metadata>;
+export function getMetadata(ref: StorageReference): Promise<FullMetadata> {
+  return getMetadataInternal(ref as Reference) as Promise<FullMetadata>;
 }
 
 /**
@@ -166,18 +170,16 @@ export function getMetadata(ref: StorageReference): Promise<Metadata> {
  * @param metadata - The new metadata for the object.
  *     Only values that have been explicitly set will be changed. Explicitly
  *     setting a value to null will remove the metadata.
- * @returns A promise that resolves
- *     with the new metadata for this object.
- *     See `firebaseStorage.Reference.prototype.getMetadata`
+ * @returns A promise that resolves with the new metadata for this object.
  */
 export function updateMetadata(
   ref: StorageReference,
-  metadata: Partial<Metadata>
-): Promise<Metadata> {
+  metadata: SettableMetadata
+): Promise<FullMetadata> {
   return updateMetadataInternal(
     ref as Reference,
     metadata as Partial<MetadataInternal>
-  ) as Promise<Metadata>;
+  ) as Promise<FullMetadata>;
 }
 
 /**
@@ -294,13 +296,13 @@ const STORAGE_TYPE = 'storage-exp';
  * @param app - Firebase app to get Storage instance for.
  * @returns A Firebase StorageService instance.
  */
-export function getStorage(app: FirebaseApp): StorageService {
+export function getStorage(app: FirebaseApp, url?: string): StorageService {
   // Dependencies
   const storageProvider: Provider<'storage-exp'> = _getProvider(
     app,
     STORAGE_TYPE
   );
-  const storageInstance = storageProvider.getImmediate();
+  const storageInstance = storageProvider.getImmediate({ identifier: url });
   return storageInstance;
 }
 

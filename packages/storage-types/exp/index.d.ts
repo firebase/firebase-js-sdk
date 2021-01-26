@@ -121,10 +121,60 @@ export interface ListResult {
 }
 
 /**
+ * Object metadata that can be set at any time.
+ * @public
+ */
+export interface SettableMetadata {
+  /**
+   * Served as the 'Cache-Control' header on object download.
+   */
+  cacheControl?: string | undefined;
+
+  /**
+   * Served as the 'Content-Disposition' header on object download.
+   */
+  contentDisposition?: string | undefined;
+
+  /**
+   * Served as the 'Content-Encoding' header on object download.
+   */
+  contentEncoding?: string | undefined;
+
+  /**
+   * Served as the 'Content-Language' header on object download.
+   */
+  contentLanguage?: string | undefined;
+
+  /**
+   * Served as the 'Content-Type' header on object download.
+   */
+  contentType?: string | undefined;
+
+  /**
+   * Additional user-defined custom metadata.
+   */
+  customMetadata?:
+    | {
+        [key: string]: string;
+      }
+    | undefined;
+}
+/**
+ * Object metadata that can be set at upload.
+ * @public
+ */
+export interface UploadMetadata extends SettableMetadata {
+  /**
+   * A Base64-encoded MD5 hash of the object being uploaded.
+   */
+  md5Hash?: string | undefined;
+}
+
+/**
  * The full set of object metadata, including read-only properties.
  * @public
  */
-export interface Metadata {
+export interface FullMetadata extends UploadMetadata {
   /**
    * The bucket this object is contained in.
    */
@@ -169,54 +219,14 @@ export interface Metadata {
   updated: string;
 
   /**
-   * A Base64-encoded MD5 hash of the object being uploaded.
-   */
-  md5Hash: string | undefined;
-
-  /**
-   * Served as the 'Cache-Control' header on object download.
-   */
-  cacheControl: string | undefined;
-
-  /**
-   * Served as the 'Content-Disposition' header on object download.
-   */
-  contentDisposition: string | undefined;
-
-  /**
-   * Served as the 'Content-Encoding' header on object download.
-   */
-  contentEncoding: string | undefined;
-
-  /**
-   * Served as the 'Content-Language' header on object download.
-   */
-  contentLanguage: string | undefined;
-
-  /**
-   * Served as the 'Content-Type' header on object download.
-   */
-  contentType: string | undefined;
-
-  /**
    * Tokens to allow access to the downloatd URL.
    */
   downloadTokens: string[] | undefined;
 
   /**
-   * Additional user-defined custom metadata.
-   */
-  customMetadata:
-    | {
-        [key: string]: string;
-      }
-    | undefined;
-
-  /**
    * `StorageReference` associated with this upload.
    */
-  ref: StorageReference | undefined;
-  [prop: string]: unknown;
+  ref?: StorageReference | undefined;
 }
 
 /**
@@ -428,7 +438,7 @@ export interface UploadTaskSnapshot {
    * Before the upload completes, contains the metadata sent to the server.
    * After the upload completes, contains the metadata sent back from the server.
    */
-  metadata: Metadata;
+  metadata: FullMetadata;
 
   /**
    * The reference that spawned this snapshot's upload task.
@@ -459,7 +469,7 @@ export interface UploadResult {
   /**
    * Contains the metadata sent back from the server.
    */
-  readonly metadata: Metadata;
+  readonly metadata: FullMetadata;
 
   /**
    * The reference that spawned this upload.
