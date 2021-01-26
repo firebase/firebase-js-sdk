@@ -145,8 +145,8 @@ export function useStorageEmulator(
  * @param opt_url - gs:// url to a custom Storage Bucket
  */
 export class StorageService implements _FirebaseService {
-  readonly _bucket: Location | null = null;
-  emulatorOrigin?: string;
+  _bucket: Location | null = null;
+  private _emulatorOrigin?: string;
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
@@ -167,9 +167,26 @@ export class StorageService implements _FirebaseService {
     this._maxUploadRetryTime = DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this._requests = new Set();
     if (_url != null) {
-      this._bucket = Location.makeFromBucketSpec(_url, this.emulatorOrigin);
+      this._bucket = Location.makeFromBucketSpec(_url);
     } else {
-      this._bucket = extractBucket(this.app.options, this.emulatorOrigin);
+      this._bucket = extractBucket(this.app.options);
+    }
+  }
+
+  get emulatorOrigin(): string | undefined {
+    return this._emulatorOrigin;
+  }
+
+  /**
+   * Set emulator origin string for this service.
+   * @param origin Origin string in the form of http://[host]:[port]
+   */
+  set emulatorOrigin(origin: string | undefined) {
+    this._emulatorOrigin = origin;
+    if (this._url != null) {
+      this._bucket = Location.makeFromBucketSpec(this._url, origin);
+    } else {
+      this._bucket = extractBucket(this.app.options, origin);
     }
   }
 

@@ -16,17 +16,20 @@
  */
 import { expect } from 'chai';
 import { TaskEvent } from '../../src/implementation/taskenums';
+import { Headers } from '../../src/implementation/xhrio';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
-import { StorageService, ref } from '../../src/service';
+import { StorageService, ref, useStorageEmulator } from '../../src/service';
 import * as testShared from './testshared';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseStorageError } from '../../src/implementation/error';
 import {
   Reference,
   getMetadata,
-  uploadBytesResumable
+  uploadBytesResumable,
+  getDownloadURL
 } from '../../src/reference';
 import { Location } from '../../src/implementation/location';
+import { TestingXhrIo } from './xhrio';
 
 const fakeAppGs = testShared.makeFakeApp('gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp('gs://mybucket/');
@@ -215,6 +218,30 @@ GOOG4-RSA-SHA256`
       expect(reference.toString()).to.equal(
         'gs://mybucket/path with space/image.png'
       );
+    });
+  });
+  describe('useStorageEmulator(service, host, port)', () => {
+    it('sets emulator host correctly', () => {
+      function newSend(
+        xhrio: TestingXhrIo,
+        url: string,
+        method: string,
+        body?: ArrayBufferView | Blob | string | null,
+        headers?: Headers
+      ): void {
+        // Expect emulator host to be in url of storage operations requests,
+        // in this case getDownloadURL.
+        expect(url).to.include('http://test.host.org:1234');
+        xhrio.abort();
+      }
+      const service = new StorageService(
+        testShared.fakeApp,
+        testShared.fakeAuthProvider,
+        testShared.makePool(newSend)
+      );
+      useStorageEmulator(service, 'test.host.org', 1234);
+      expect(service.emulatorOrigin).to.equal('http://test.host.org:1234');
+      void getDownloadURL(ref(service, 'test.png'));
     });
   });
   describe('ref(service, path)', () => {

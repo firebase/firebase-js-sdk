@@ -86,7 +86,11 @@ export function downloadUrlHandler(
   function handler(xhr: XhrIo, text: string): string | null {
     const metadata = fromResourceString(service, text, mappings);
     handlerCheck(metadata !== null);
-    return downloadUrlFromResourceString(metadata as Metadata, text);
+    return downloadUrlFromResourceString(
+      metadata as Metadata,
+      text,
+      service.emulatorOrigin
+    );
   }
   return handler;
 }
@@ -143,7 +147,7 @@ export function getMetadata(
   mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart);
+  const url = makeUrl(urlPart, service.emulatorOrigin);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -179,7 +183,7 @@ export function list(
     urlParams['maxResults'] = maxResults;
   }
   const urlPart = location.bucketOnlyServerUrl();
-  const url = makeUrl(urlPart);
+  const url = makeUrl(urlPart, service.emulatorOrigin);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -199,7 +203,7 @@ export function getDownloadUrl(
   mappings: Mappings
 ): RequestInfo<string | null> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart);
+  const url = makeUrl(urlPart, service.emulatorOrigin);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -219,7 +223,7 @@ export function updateMetadata(
   mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart);
+  const url = makeUrl(urlPart, service.emulatorOrigin);
   const method = 'PATCH';
   const body = toResourceString(metadata, mappings);
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
@@ -241,7 +245,7 @@ export function deleteObject(
   location: Location
 ): RequestInfo<void> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart);
+  const url = makeUrl(urlPart, service.emulatorOrigin);
   const method = 'DELETE';
   const timeout = service.maxOperationRetryTime;
 
@@ -321,7 +325,7 @@ export function multipartUpload(
     throw cannotSliceBlob();
   }
   const urlParams: UrlParams = { name: metadata_['fullPath']! };
-  const url = makeUrl(urlPart);
+  const url = makeUrl(urlPart, service.emulatorOrigin);
   const method = 'POST';
   const timeout = service.maxUploadRetryTime;
   const requestInfo = new RequestInfo(
@@ -381,7 +385,7 @@ export function createResumableUpload(
   const urlPart = location.bucketOnlyServerUrl();
   const metadataForUpload = metadataForUpload_(location, blob, metadata);
   const urlParams: UrlParams = { name: metadataForUpload['fullPath']! };
-  const url = makeUrl(urlPart);
+  const url = makeUrl(urlPart, service.emulatorOrigin);
   const method = 'POST';
   const headers = {
     'X-Goog-Upload-Protocol': 'resumable',

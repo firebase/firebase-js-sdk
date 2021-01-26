@@ -25,6 +25,8 @@ import { StorageService } from '../../src/service';
 import { FirebaseApp } from '@firebase/app-types';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { TestingXhrIo } from './xhrio';
+import { Headers } from '../../src/implementation/xhrio';
 
 const fakeAppGs = testShared.makeFakeApp('gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp('gs://mybucket/');
@@ -167,6 +169,32 @@ describe('Firebase Storage > Service', () => {
       testShared.assertThrows(() => {
         makeService(fakeAppInvalidGs, testShared.fakeAuthProvider, xhrIoPool);
       }, 'storage/invalid-default-bucket');
+    });
+  });
+  describe('useStorageEmulator(service, host, port)', () => {
+    it('sets emulator host correctly', () => {
+      function newSend(
+        xhrio: TestingXhrIo,
+        url: string,
+        method: string,
+        body?: ArrayBufferView | Blob | string | null,
+        headers?: Headers
+      ): void {
+        // Expect emulator host to be in url of storage operations requests,
+        // in this case getDownloadURL.
+        expect(url).to.include('http://test.host.org:1234');
+        xhrio.abort();
+      }
+      const service = makeService(
+        testShared.fakeApp,
+        testShared.fakeAuthProvider,
+        testShared.makePool(newSend)
+      );
+      service.useEmulator('test.host.org', 1234);
+      expect(service._delegate.emulatorOrigin).to.equal(
+        'http://test.host.org:1234'
+      );
+      void service.ref('test.png').getDownloadURL();
     });
   });
   describe('refFromURL', () => {
