@@ -1,5 +1,4 @@
 ---
-'@firebase/app-compat': patch
 '@firebase/app': patch
 '@firebase/firestore': patch
 ---
