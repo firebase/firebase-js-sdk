@@ -23,8 +23,14 @@
  */
 
 import { registerCoreComponents } from './registerCoreComponents';
+import {
+  FirebaseApp,
+  FirebaseAppConfig,
+  FirebaseOptions
+} from '@firebase/app-types-exp';
 
 export * from './api';
 export * from './internal';
+export { FirebaseApp, FirebaseAppConfig, FirebaseOptions };
 
 registerCoreComponents();

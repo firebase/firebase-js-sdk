@@ -5,9 +5,9 @@
 ```ts
 
 import { Component } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebaseAppConfig } from '@firebase/app-types-exp';
-import { FirebaseOptions } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseAppConfig } from '@firebase/app-types';
+import { FirebaseOptions } from '@firebase/app-types';
 import { LogCallback } from '@firebase/logger';
 import { LogLevelString } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
@@ -34,6 +34,12 @@ export const _DEFAULT_ENTRY_NAME = "[DEFAULT]";
 
 // @public
 export function deleteApp(app: FirebaseApp): Promise<void>;
+
+export { FirebaseApp }
+
+export { FirebaseAppConfig }
+
+export { FirebaseOptions }
 
 // @public
 export function getApp(name?: string): FirebaseApp;
