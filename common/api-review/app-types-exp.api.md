@@ -60,14 +60,14 @@ export interface _FirebaseService {
   _delete(): Promise<void>;
 }
 
-// @public (undocumented)
-export interface PlatformLoggerService {
+// @internal (undocumented)
+export interface _PlatformLoggerService {
   // (undocumented)
   getPlatformInfoString(): string;
 }
 
-// @public (undocumented)
-export interface VersionService {
+// @internal (undocumented)
+export interface _VersionService {
   // (undocumented)
   library: string;
   // (undocumented)

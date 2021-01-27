@@ -11,7 +11,8 @@
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn api-report && yarn doc"
+    "build:doc": "yarn api-report && yarn doc",
+    "build:release": "yarn api-report"
   },
   "files": [
     "index.d.ts",

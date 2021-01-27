@@ -25,8 +25,8 @@
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ./use_typings.js --public",
-    "typings:internal": "node ./use_typings.js"
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/app-exp-public.d.ts",
+    "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/app-exp.d.ts"
   },
   "dependencies": {
     "@firebase/app-types-exp": "0.0.900",
