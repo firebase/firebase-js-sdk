@@ -25,7 +25,11 @@ const path = require('path');
 const packageJsonPath = path.resolve(process.cwd(), './package.json');
 
 // point typings field to supplied path in package.json
-const TYPINGS_PATH = argv[0];
+const TYPINGS_PATH = argv._[0];
+
+if (!TYPINGS_PATH) {
+  throw Error('Please supply a file path');
+}
 const packageJson = require(packageJsonPath);
 packageJson.typings = TYPINGS_PATH;
 
