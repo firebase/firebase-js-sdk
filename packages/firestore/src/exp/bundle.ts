@@ -15,26 +15,30 @@
  * limitations under the License.
  */
 
-import {
-  LoadBundleTask as ApiLoadBundleTask,
-  LoadBundleTaskProgress
-} from '@firebase/firestore-types';
-
-import { ensureFirestoreConfigured } from '../../src/exp/database';
-import { Query as ExpQuery } from '../../src/exp/reference';
-import {
-  firestoreClientGetNamedQuery,
-  firestoreClientLoadBundle
-} from '../core/firestore_client';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { Deferred } from '../util/promise';
+import { PartialObserver } from '../api/observer';
 
-import { Query, Firestore } from './database';
-import { PartialObserver } from './observer';
+// I moved this filed to match the current pattern where api relies on exp.
+// I also added all interfaces here, since we want this file to be the source
+// of truth for the generated API (if you run yarn:build it should generate
+// a new API report with these changes)
 
-export class LoadBundleTask
-  implements ApiLoadBundleTask, PromiseLike<LoadBundleTaskProgress> {
+// Add comments
+export type TaskState = 'Error' | 'Running' | 'Success';
+
+// Add comments
+export interface LoadBundleTaskProgress {
+  documentsLoaded: number;
+  totalDocuments: number;
+  bytesLoaded: number;
+  totalBytes: number;
+  taskState: TaskState;
+}
+
+// Add comments
+export class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
   private _progressObserver: PartialObserver<LoadBundleTaskProgress> = {};
   private _taskCompletionResolver = new Deferred<LoadBundleTaskProgress>();
 
@@ -46,6 +50,7 @@ export class LoadBundleTask
     documentsLoaded: 0
   };
 
+  // Add comments
   onProgress(
     next?: (progress: LoadBundleTaskProgress) => unknown,
     error?: (err: Error) => unknown,
@@ -58,12 +63,14 @@ export class LoadBundleTask
     };
   }
 
+  // Add comments
   catch<R>(
     onRejected: (a: Error) => R | PromiseLike<R>
   ): Promise<R | LoadBundleTaskProgress> {
     return this._taskCompletionResolver.promise.catch(onRejected);
   }
 
+  // Add comments
   then<T, R>(
     onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
     onRejected?: (a: Error) => R | PromiseLike<R>
@@ -121,31 +128,4 @@ export class LoadBundleTask
       this._progressObserver.next(progress);
     }
   }
-}
-
-export function loadBundle(
-  db: Firestore,
-  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-): LoadBundleTask {
-  const resultTask = new LoadBundleTask();
-  firestoreClientLoadBundle(
-    ensureFirestoreConfigured(db._delegate),
-    db._databaseId,
-    bundleData,
-    resultTask
-  );
-  return resultTask;
-}
-
-export function namedQuery(db: Firestore, name: string): Promise<Query | null> {
-  return firestoreClientGetNamedQuery(
-    ensureFirestoreConfigured(db._delegate),
-    name
-  ).then(namedQuery => {
-    if (!namedQuery) {
-      return null;
-    }
-
-    return new Query(db, new ExpQuery(db._delegate, null, namedQuery.query));
-  });
 }

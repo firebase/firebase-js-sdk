@@ -36,4 +36,4 @@ export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
 export { FirebaseFirestore as ExpFirebaseFirestore } from './src/exp/database';
-export { loadBundle, namedQuery } from './src/api/bundle';
+export { loadBundle, namedQuery } from './src/exp/database';

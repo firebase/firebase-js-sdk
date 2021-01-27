@@ -122,7 +122,6 @@ import {
 import { setLogLevel as setClientLogLevel } from '../util/log';
 
 import { Blob } from './blob';
-import { LoadBundleTask } from './bundle';
 import { Compat } from './compat';
 import {
   CompleteFn,
@@ -133,6 +132,7 @@ import {
 } from './observer';
 import { UntypedFirestoreDataConverter } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
+import { LoadBundleTask } from '../exp/bundle';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
