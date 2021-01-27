@@ -257,3 +257,5 @@ export function setLogLevel(
 function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
   return Object.keys({ ...obj1, ...obj2 });
 }
+
+export { RemoteConfig, ValueType, RemoteConfigLogLevel };
