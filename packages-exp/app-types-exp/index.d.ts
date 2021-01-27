@@ -98,9 +98,9 @@ export interface FirebaseAppConfig {
 }
 
 /**
- * @public
+ * @internal
  */
-export interface PlatformLoggerService {
+export interface _PlatformLoggerService {
   getPlatformInfoString(): string;
 }
 
@@ -116,7 +116,10 @@ export interface _FirebaseService {
   _delete(): Promise<void>;
 }
 
-export interface VersionService {
+/**
+ * @internal
+ */
+export interface _VersionService {
   library: string;
   version: string;
 }
@@ -124,7 +127,7 @@ export interface VersionService {
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'app-exp': FirebaseApp;
-    'app-version': VersionService;
-    'platform-logger': PlatformLoggerService;
+    'app-version': _VersionService;
+    'platform-logger': _PlatformLoggerService;
   }
 }

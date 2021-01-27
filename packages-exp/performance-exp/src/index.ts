@@ -97,3 +97,5 @@ function registerPerformance(): void {
 
 registerPerformance();
 registerVersion(name, version);
+
+export { FirebasePerformance, PerformanceSettings, PerformanceTrace };

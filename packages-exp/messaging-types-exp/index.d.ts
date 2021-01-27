@@ -15,21 +15,29 @@
  * limitations under the License.
  */
 
-// Currently supported fcm notification display parameters. Note that
-// {@link https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions}
-// defines a full list of display notification parameters. This interface we only include what the
-// SEND API support for clarity.
+/**
+ * Currently supported fcm notification display parameters. Note that
+ * {@link https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions}
+ * defines a full list of display notification parameters. This interface we only include what the
+ * SEND API support for clarity.
+ */
 export interface NotificationPayload {
   title?: string;
   body?: string;
   image?: string;
 }
 
+/**
+ * @public
+ */
 export interface FcmOptions {
   link?: string;
   analyticsLabel?: string;
 }
 
+/**
+ * @public
+ */
 export interface MessagePayload {
   notification?: NotificationPayload;
   data?: { [key: string]: string };
@@ -38,9 +46,15 @@ export interface MessagePayload {
   collapseKey: string;
 }
 
+/**
+ * @public
+ */
 export interface FirebaseMessaging {}
 
-export type FirebaseMessagingName = 'messaging';
+/**
+ * @internal
+ */
+export type _FirebaseMessagingName = 'messaging';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

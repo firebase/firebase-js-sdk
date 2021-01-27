@@ -16,23 +16,26 @@
  * limitations under the License.
  */
 
+// NOTE: the script assumes it runs at the root of the package you want to update
+
 const { writeFileSync } = require('fs');
 const { argv } = require('yargs');
 
 const path = require('path');
-const packageJsonPath = path.resolve(__dirname, './package.json');
+const packageJsonPath = path.resolve(process.cwd(), './package.json');
 
-// point typings field to the public d.ts file in package.json
-const TYPINGS_PATH = argv.public
-  ? './dist/app-exp-public.d.ts'
-  : './dist/app-exp.d.ts';
-console.log(
-  `Updating the packages-exp/app-exp typings field to the ${
-    argv.public ? 'public' : 'internal'
-  } d.ts file ${TYPINGS_PATH}`
-);
+// point typings field to supplied path in package.json
+const TYPINGS_PATH = argv._[0];
+
+if (!TYPINGS_PATH) {
+  throw Error('Please supply a file path');
+}
 const packageJson = require(packageJsonPath);
 packageJson.typings = TYPINGS_PATH;
+
+console.log(
+  `Pointing the typings field in ${packageJson.name} to ${TYPINGS_PATH}`
+);
 
 writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, {
   encoding: 'utf-8'

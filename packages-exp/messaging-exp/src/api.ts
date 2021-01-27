@@ -126,3 +126,5 @@ export function onBackgroundMessage(
 ): Unsubscribe {
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
 }
+
+export { FirebaseMessaging, MessagePayload };

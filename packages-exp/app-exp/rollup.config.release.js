@@ -28,6 +28,7 @@ const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
     clean: true,
+    abortOnError: false,
     transformers: [importPathTransformer]
   }),
   json()
@@ -53,6 +54,7 @@ const es2017BuildPlugins = [
       }
     },
     clean: true,
+    abortOnError: false,
     transformers: [importPathTransformer]
   }),
   json({
