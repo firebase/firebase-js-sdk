@@ -398,6 +398,15 @@ apiDescribe('`undefined` properties', (persistence: boolean) => {
     });
   });
 
+  it('are ignored in set({ merge: true })', () => {
+    return withTestDocAndSettings(persistence, settings, async doc => {
+      await doc.set({ foo: 'foo', bar: 'unchanged' });
+      await doc.set({ foo: 'foo', bar: undefined }, { merge: true });
+      const docSnap = await doc.get();
+      expect(docSnap.data()).to.deep.equal({ foo: 'foo', bar: 'unchanged' });
+    });
+  });
+
   it('are ignored in update()', () => {
     return withTestDocAndSettings(persistence, settings, async doc => {
       await doc.set({});
