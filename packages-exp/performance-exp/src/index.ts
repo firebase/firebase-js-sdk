@@ -98,8 +98,4 @@ function registerPerformance(): void {
 registerPerformance();
 registerVersion(name, version);
 
-export {
-  FirebasePerformance,
-  PerformanceSettings,
-  PerformanceTrace
-} from '@firebase/performance-types-exp';
+export { FirebasePerformance, PerformanceSettings, PerformanceTrace };
