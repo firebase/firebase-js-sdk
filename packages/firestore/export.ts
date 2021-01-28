@@ -36,4 +36,30 @@ export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
 export { FirebaseFirestore as ExpFirebaseFirestore } from './src/exp/database';
-export { loadBundle, namedQuery } from './bundle.export';
+
+import { Firestore, Query } from './src/api/database';
+import {
+  loadBundle as expLoadBundle,
+  namedQuery as expNamedQuery
+} from './src/exp/database';
+
+export function loadBundle(
+  this: Firestore,
+  data: ArrayBuffer | ReadableStream<Uint8Array> | string
+) {
+  return expLoadBundle(this._delegate, data);
+}
+
+export function namedQuery(this: Firestore, queryName: string) {
+  return expNamedQuery(this._delegate, queryName).then(expQuery => {
+    if (!expQuery) {
+      return null;
+    }
+    return new Query(
+      this,
+      // We can pass the exp-query here directly since named queries don't have UserDataConverters
+      // Otherwise we would have to create a new ExpQuery and pass the old UserDataConverter
+      expQuery
+    );
+  });
+}

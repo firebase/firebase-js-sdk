@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { Firestore } from './export';
-import { loadBundle, namedQuery } from './bundle.export';
+import { Firestore, loadBundle, namedQuery } from './export';
 
 /**
  * Prototype patches bundle loading to Firestore.
