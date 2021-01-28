@@ -27,18 +27,21 @@ export function registerBundle(instance: typeof Firestore): void {
   ) {
     return loadBundle(this._delegate, data);
   };
-  instance.prototype.namedQuery = async function (
+  instance.prototype.namedQuery = function (
     this: Firestore,
     queryName: string
   ) {
-    const expQuery = await namedQuery(this._delegate, queryName);
-    if (!expQuery) return null;
-    return new Query(
-      this,
-      // We can pass the exp-query here directly since named queries don't have UserDataConverters
-      // Otherwise we would have to create a new ExpQuery and pass the old UserDataConverter
-      expQuery
-    );
+    return namedQuery(this._delegate, queryName).then(expQuery => {
+      if (!expQuery) {
+        return null;
+      }
+      return new Query(
+        this,
+        // We can pass the exp-query here directly since named queries don't have UserDataConverters
+        // Otherwise we would have to create a new ExpQuery and pass the old UserDataConverter
+        expQuery
+      );
+    });
   };
 }
 

@@ -46,6 +46,7 @@ import {
 } from '@firebase/firestore-types';
 
 import { DatabaseId } from '../core/database_info';
+import { LoadBundleTask } from '../exp/bundle';
 import { Bytes } from '../exp/bytes';
 import {
   clearIndexedDbPersistence,
@@ -132,7 +133,6 @@ import {
 } from './observer';
 import { UntypedFirestoreDataConverter } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
-import { LoadBundleTask } from '../exp/bundle';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.

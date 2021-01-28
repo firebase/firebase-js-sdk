@@ -40,6 +40,7 @@ import {
 } from '../core/firestore_client';
 import { makeDatabaseInfo } from '../lite/components';
 import { FirebaseFirestore as LiteFirestore } from '../lite/database';
+import { Query } from '../lite/reference';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
@@ -53,11 +54,8 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
+import { LoadBundleTask } from './bundle';
 import { PersistenceSettings, Settings } from './settings';
-// TODO(wuandy): This line does not seem right, and it is causing circular dep.
-import { LoadBundleTask } from '../api/bundle';
-import { Query } from '../lite/reference';
-
 export { useFirestoreEmulator } from '../lite/database';
 
 /** DOMException error code constants. */

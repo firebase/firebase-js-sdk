@@ -278,7 +278,32 @@ export function limit(limit: number): QueryConstraint;
 // @public
 export function limitToLast(limit: number): QueryConstraint;
 
+// @public
+export function loadBundle(firestore: FirebaseFirestore, bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string): LoadBundleTask;
+
+// @public
+export class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
+    catch<R>(onRejected: (a: Error) => R | PromiseLike<R>): Promise<R | LoadBundleTaskProgress>;
+    _completeWith(progress: LoadBundleTaskProgress): void;
+    _failWith(error: FirestoreError): void;
+    onProgress(next?: (progress: LoadBundleTaskProgress) => unknown, error?: (err: Error) => unknown, complete?: () => void): void;
+    then<T, R>(onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>, onRejected?: (a: Error) => R | PromiseLike<R>): Promise<T | R>;
+    _updateProgress(progress: LoadBundleTaskProgress): void;
+}
+
+// @public
+export interface LoadBundleTaskProgress {
+    bytesLoaded: number;
+    documentsLoaded: number;
+    taskState: TaskState;
+    totalBytes: number;
+    totalDocuments: number;
+}
+
 export { LogLevel }
+
+// @public
+export function namedQuery(firestore: FirebaseFirestore, name: string): Promise<Query | null>;
 
 // @public
 export function onSnapshot<T>(reference: DocumentReference<T>, observer: {
@@ -462,6 +487,9 @@ export function startAt(snapshot: DocumentSnapshot_2<unknown>): QueryConstraint;
 
 // @public
 export function startAt(...fieldValues: unknown[]): QueryConstraint;
+
+// @public
+export type TaskState = 'Error' | 'Running' | 'Success';
 
 // @public
 export function terminate(firestore: FirebaseFirestore): Promise<void>;

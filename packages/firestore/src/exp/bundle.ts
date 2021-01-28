@@ -15,29 +15,41 @@
  * limitations under the License.
  */
 
+import { PartialObserver } from '../api/observer';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { Deferred } from '../util/promise';
-import { PartialObserver } from '../api/observer';
 
-// I moved this filed to match the current pattern where api relies on exp.
-// I also added all interfaces here, since we want this file to be the source
-// of truth for the generated API (if you run yarn:build it should generate
-// a new API report with these changes)
-
-// Add comments
+/**
+ * Represents the state of bundle loading tasks.
+ *
+ * Both 'Error' and 'Success' are sinking state: task will abort or complete and there will
+ * be no more updates after they are reported.
+ */
 export type TaskState = 'Error' | 'Running' | 'Success';
 
-// Add comments
+/**
+ * Represents a progress update or a final state from loading bundles.
+ */
 export interface LoadBundleTaskProgress {
+  /** How many documents have been loaded. */
   documentsLoaded: number;
+  /** How many documents are in the bundle being loaded. */
   totalDocuments: number;
+  /** How many bytes have been loaded. */
   bytesLoaded: number;
+  /** How many bytes are in the bundle being loaded. */
   totalBytes: number;
+  /** Current task state. */
   taskState: TaskState;
 }
 
-// Add comments
+/**
+ * Represents the task of loading a Firestore bundle. It provides progress of bundle
+ * loading, as well as task completion and error events.
+ *
+ * The API is compatible with `Promise<LoadBundleTaskProgress>`.
+ */
 export class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
   private _progressObserver: PartialObserver<LoadBundleTaskProgress> = {};
   private _taskCompletionResolver = new Deferred<LoadBundleTaskProgress>();
@@ -50,7 +62,17 @@ export class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
     documentsLoaded: 0
   };
 
-  // Add comments
+  /**
+   * Registers functions to listen to bundle loading progress events.
+   * @param next
+   *   Called when there is a progress update from bundle loading. Typically `next` calls occur
+   *   each time a Firestore document is loaded from the bundle.
+   * @param error
+   *   Called when an error occurs during bundle loading. The task aborts after reporting the
+   *   error, and there should be no more updates after this.
+   * @param complete
+   *   Called when the loading task is complete.
+   */
   onProgress(
     next?: (progress: LoadBundleTaskProgress) => unknown,
     error?: (err: Error) => unknown,
@@ -63,14 +85,27 @@ export class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
     };
   }
 
-  // Add comments
+  /**
+   * Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
+   *
+   * @param onRejected
+   *   Called when an error occurs during bundle loading.
+   */
   catch<R>(
     onRejected: (a: Error) => R | PromiseLike<R>
   ): Promise<R | LoadBundleTaskProgress> {
     return this._taskCompletionResolver.promise.catch(onRejected);
   }
 
-  // Add comments
+  /**
+   * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
+   *
+   * @param onFulfilled
+   *   Called on the completion of the loading task with a final `LoadBundleTaskProgress` update.
+   *   The update will always have its `taskState` set to `"Success"`.
+   * @param onRejected
+   *   Called when an error occurs during bundle loading.
+   */
   then<T, R>(
     onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
     onRejected?: (a: Error) => R | PromiseLike<R>
