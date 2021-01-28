@@ -38,6 +38,7 @@ export { Timestamp } from './src/api/timestamp';
 export { FirebaseFirestore as ExpFirebaseFirestore } from './src/exp/database';
 
 import { Firestore, Query } from './src/api/database';
+import { LoadBundleTask } from './src/exp/bundle';
 import {
   loadBundle as expLoadBundle,
   namedQuery as expNamedQuery
@@ -46,11 +47,14 @@ import {
 export function loadBundle(
   this: Firestore,
   data: ArrayBuffer | ReadableStream<Uint8Array> | string
-) {
+): LoadBundleTask {
   return expLoadBundle(this._delegate, data);
 }
 
-export function namedQuery(this: Firestore, queryName: string) {
+export function namedQuery(
+  this: Firestore,
+  queryName: string
+): Promise<Query | null> {
   return expNamedQuery(this._delegate, queryName).then(expQuery => {
     if (!expQuery) {
       return null;
