@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Firestore, loadBundle, namedQuery } from './export';
+import { Firestore, loadBundle, namedQuery, Query } from './export';
 
 /**
  * Prototype patches bundle loading to Firestore.
@@ -25,13 +25,20 @@ export function registerBundle(instance: typeof Firestore): void {
     this: Firestore,
     data: ArrayBuffer | ReadableStream<Uint8Array> | string
   ) {
-    return loadBundle(this, data);
+    return loadBundle(this._delegate, data);
   };
-  instance.prototype.namedQuery = function (
+  instance.prototype.namedQuery = async function (
     this: Firestore,
     queryName: string
   ) {
-    return namedQuery(this, queryName);
+    const expQuery = await namedQuery(this._delegate, queryName);
+    if (!expQuery) return null;
+    return new Query(
+      this,
+      // We can pass the exp-query here directly since named queries don't have UserDataConverters
+      // Otherwise we would have to create a new ExpQuery and pass the old UserDataConverter
+      expQuery
+    );
   };
 }
 
