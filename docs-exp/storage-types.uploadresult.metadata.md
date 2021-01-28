@@ -9,5 +9,5 @@ Contains the metadata sent back from the server.
 <b>Signature:</b>
 
 ```typescript
-readonly metadata: Metadata;
+readonly metadata: FullMetadata;
 ```

@@ -9,7 +9,7 @@ Uploads data to this object's location. The upload is not resumable.
 <b>Signature:</b>
 
 ```typescript
-export declare function uploadBytes(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: Metadata): Promise<UploadResult>;
+export declare function uploadBytes(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: UploadMetadata): Promise<UploadResult>;
 ```
 
 ## Parameters
@@ -18,7 +18,7 @@ export declare function uploadBytes(ref: StorageReference, data: Blob | Uint8Arr
 |  --- | --- | --- |
 |  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference where data should be uploaded. |
 |  data | Blob \| Uint8Array \| ArrayBuffer | The data to upload. |
-|  metadata | [Metadata](./storage-types.metadata.md) | Metadata for the newly uploaded data. |
+|  metadata | [UploadMetadata](./storage-types.uploadmetadata.md) | Metadata for the data to upload. |
 
 <b>Returns:</b>
 

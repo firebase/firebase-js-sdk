@@ -9,7 +9,7 @@ Gets a Firebase StorageService instance for the given Firebase app.
 <b>Signature:</b>
 
 ```typescript
-export declare function getStorage(app: FirebaseApp): StorageService;
+export declare function getStorage(app: FirebaseApp, url?: string): StorageService;
 ```
 
 ## Parameters
@@ -17,6 +17,7 @@ export declare function getStorage(app: FirebaseApp): StorageService;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | FirebaseApp | Firebase app to get Storage instance for. |
+|  url | string |  |
 
 <b>Returns:</b>
 

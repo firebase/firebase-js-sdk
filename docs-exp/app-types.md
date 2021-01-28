@@ -11,6 +11,4 @@
 |  [FirebaseApp](./app-types.firebaseapp.md) | A FirebaseApp holds the initialization information for a collection of services.<!-- -->Do not call this constructor directly. Instead, use [initializeApp()](./app.initializeapp.md) to create an app. |
 |  [FirebaseAppConfig](./app-types.firebaseappconfig.md) |  |
 |  [FirebaseOptions](./app-types.firebaseoptions.md) |  |
-|  [PlatformLoggerService](./app-types.platformloggerservice.md) |  |
-|  [VersionService](./app-types.versionservice.md) |  |
 

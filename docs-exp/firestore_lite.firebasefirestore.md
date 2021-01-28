@@ -20,3 +20,9 @@ export declare class FirebaseFirestore
 |  --- | --- | --- | --- |
 |  [app](./firestore_lite.firebasefirestore.app.md) |  | [FirebaseApp](./app-types.firebaseapp.md) | The  associated with this <code>Firestore</code> service instance. |
 
+## Methods
+
+|  Method | Modifiers | Description |
+|  --- | --- | --- |
+|  [toJSON()](./firestore_lite.firebasefirestore.tojson.md) |  |  |
+

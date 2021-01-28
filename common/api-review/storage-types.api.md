@@ -16,6 +16,29 @@ export interface FirebaseStorageError extends FirebaseError {
 }
 
 // @public
+export interface FullMetadata extends UploadMetadata {
+  bucket: string;
+
+  downloadTokens: string[] | undefined;
+
+  fullPath: string;
+
+  generation: string;
+
+  metageneration: string;
+
+  name: string;
+
+  ref?: StorageReference | undefined;
+
+  size: number;
+
+  timeCreated: string;
+
+  updated: string;
+}
+
+// @public
 export interface ListOptions {
   maxResults?: number | null;
   pageToken?: string | null;
@@ -29,47 +52,22 @@ export interface ListResult {
 }
 
 // @public
-export interface Metadata {
-  // (undocumented)
-  [prop: string]: unknown;
+export interface SettableMetadata {
+  cacheControl?: string | undefined;
 
-  bucket: string;
+  contentDisposition?: string | undefined;
 
-  cacheControl: string | undefined;
+  contentEncoding?: string | undefined;
 
-  contentDisposition: string | undefined;
+  contentLanguage?: string | undefined;
 
-  contentEncoding: string | undefined;
+  contentType?: string | undefined;
 
-  contentLanguage: string | undefined;
-
-  contentType: string | undefined;
-
-  customMetadata:
+  customMetadata?:
     | {
         [key: string]: string;
       }
     | undefined;
-
-  downloadTokens: string[] | undefined;
-
-  fullPath: string;
-
-  generation: string;
-
-  md5Hash: string | undefined;
-
-  metageneration: string;
-
-  name: string;
-
-  ref: StorageReference | undefined;
-
-  size: number;
-
-  timeCreated: string;
-
-  updated: string;
 }
 
 // @public
@@ -107,8 +105,13 @@ export type TaskEvent = 'state_changed';
 export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
 
 // @public
+export interface UploadMetadata extends SettableMetadata {
+  md5Hash?: string | undefined;
+}
+
+// @public
 export interface UploadResult {
-  readonly metadata: Metadata;
+  readonly metadata: FullMetadata;
 
   readonly ref: StorageReference;
 }
@@ -139,7 +142,7 @@ export interface UploadTask {
 export interface UploadTaskSnapshot {
   bytesTransferred: number;
 
-  metadata: Metadata;
+  metadata: FullMetadata;
 
   ref: StorageReference;
 

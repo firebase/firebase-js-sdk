@@ -9,5 +9,5 @@ Before the upload completes, contains the metadata sent to the server. After the
 <b>Signature:</b>
 
 ```typescript
-metadata: Metadata;
+metadata: FullMetadata;
 ```

@@ -9,7 +9,7 @@ A promise that resolves with the metadata for this object. If this object doesn'
 <b>Signature:</b>
 
 ```typescript
-export declare function getMetadata(ref: StorageReference): Promise<Metadata>;
+export declare function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 ```
 
 ## Parameters
@@ -20,5 +20,5 @@ export declare function getMetadata(ref: StorageReference): Promise<Metadata>;
 
 <b>Returns:</b>
 
-Promise&lt;[Metadata](./storage-types.metadata.md)<!-- -->&gt;
+Promise&lt;[FullMetadata](./storage-types.fullmetadata.md)<!-- -->&gt;
 

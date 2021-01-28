@@ -9,12 +9,14 @@
 |  Interface | Description |
 |  --- | --- |
 |  [FirebaseStorageError](./storage-types.firebasestorageerror.md) | An error returned by the Firebase Storage SDK. |
+|  [FullMetadata](./storage-types.fullmetadata.md) | The full set of object metadata, including read-only properties. |
 |  [ListOptions](./storage-types.listoptions.md) | The options <code>list()</code> accepts. |
 |  [ListResult](./storage-types.listresult.md) | Result returned by list(). |
-|  [Metadata](./storage-types.metadata.md) | The full set of object metadata, including read-only properties. |
+|  [SettableMetadata](./storage-types.settablemetadata.md) | Object metadata that can be set at any time. |
 |  [StorageObserver](./storage-types.storageobserver.md) | A stream observer for Firebase Storage. |
 |  [StorageReference](./storage-types.storagereference.md) | Represents a reference to a Google Cloud Storage object. Developers can upload, download, and delete objects, as well as get/set object metadata. |
 |  [StorageService](./storage-types.storageservice.md) | A Firebase Storage instance. |
+|  [UploadMetadata](./storage-types.uploadmetadata.md) | Object metadata that can be set at upload. |
 |  [UploadResult](./storage-types.uploadresult.md) | Result returned from a non-resumable upload. |
 |  [UploadTask](./storage-types.uploadtask.md) | Represents the process of uploading an object. Allows you to monitor and manage the upload. |
 |  [UploadTaskSnapshot](./storage-types.uploadtasksnapshot.md) | Holds data about the current state of the upload task. |

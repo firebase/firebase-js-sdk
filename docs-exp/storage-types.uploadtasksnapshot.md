@@ -17,7 +17,7 @@ export interface UploadTaskSnapshot
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [bytesTransferred](./storage-types.uploadtasksnapshot.bytestransferred.md) | number | The number of bytes that have been successfully uploaded so far. |
-|  [metadata](./storage-types.uploadtasksnapshot.metadata.md) | [Metadata](./storage-types.metadata.md) | Before the upload completes, contains the metadata sent to the server. After the upload completes, contains the metadata sent back from the server. |
+|  [metadata](./storage-types.uploadtasksnapshot.metadata.md) | [FullMetadata](./storage-types.fullmetadata.md) | Before the upload completes, contains the metadata sent to the server. After the upload completes, contains the metadata sent back from the server. |
 |  [ref](./storage-types.uploadtasksnapshot.ref.md) | [StorageReference](./storage-types.storagereference.md) | The reference that spawned this snapshot's upload task. |
 |  [state](./storage-types.uploadtasksnapshot.state.md) | [TaskState](./storage-types.taskstate.md) | The current state of the task. |
 |  [task](./storage-types.uploadtasksnapshot.task.md) | [UploadTask](./storage-types.uploadtask.md) | The task of which this is a snapshot. |

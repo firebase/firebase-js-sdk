@@ -16,6 +16,6 @@ export interface UploadResult
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [metadata](./storage-types.uploadresult.metadata.md) | [Metadata](./storage-types.metadata.md) | Contains the metadata sent back from the server. |
+|  [metadata](./storage-types.uploadresult.metadata.md) | [FullMetadata](./storage-types.fullmetadata.md) | Contains the metadata sent back from the server. |
 |  [ref](./storage-types.uploadresult.ref.md) | [StorageReference](./storage-types.storagereference.md) | The reference that spawned this upload. |
 

@@ -4,6 +4,7 @@
 
 ## PerformanceTrace interface
 
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,7 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseStorageError } from '@firebase/storage-types/exp';
 import { FullMetadata } from '@firebase/storage-types/exp';
 import { ListOptions } from '@firebase/storage-types/exp';

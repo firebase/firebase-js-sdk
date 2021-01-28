@@ -20,3 +20,9 @@ export declare class FirebaseFirestore
 |  --- | --- | --- | --- |
 |  [app](./firestore_.firebasefirestore.app.md) |  | [FirebaseApp](./app-types.firebaseapp.md) |  |
 
+## Methods
+
+|  Method | Modifiers | Description |
+|  --- | --- | --- |
+|  [toJSON()](./firestore_.firebasefirestore.tojson.md) |  |  |
+

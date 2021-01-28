@@ -122,6 +122,8 @@ export abstract class FieldValue {
 // @public
 export class FirebaseFirestore {
     get app(): FirebaseApp;
+    // (undocumented)
+    toJSON(): object;
 }
 
 // @public
