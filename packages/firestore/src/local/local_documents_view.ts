@@ -268,7 +268,6 @@ export class LocalDocumentsView {
               const mutatedDoc = applyMutationToLocalView(
                 mutation,
                 baseDoc,
-                baseDoc,
                 batch.localWriteTime
               );
               if (mutatedDoc instanceof Document) {
