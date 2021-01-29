@@ -1439,6 +1439,19 @@
     unique-filename "^1.1.1"
     which "^1.3.1"
 
+"@firebase/database@0.8.3", "@firebase/database@^0.8.1":
+  version "0.8.3"
+  resolved "https://registry.npmjs.org/@firebase/database/-/database-0.8.3.tgz#4e5efa8fc8df00d6febfd9c8d6d6e409596659f7"
+  integrity sha512-i29rr3kcPltIkA8La9M1lgsSxx9bfu5lCQ0T+tbJptZ3UpqpcL1NzCcZa24cJjiLgq3HQNPyLvUvCtcPSFDlRg==
+  dependencies:
+    "@firebase/auth-interop-types" "0.1.5"
+    "@firebase/component" "0.1.21"
+    "@firebase/database-types" "0.6.1"
+    "@firebase/logger" "0.2.6"
+    "@firebase/util" "0.3.4"
+    faye-websocket "0.11.3"
+    tslib "^1.11.1"
+
 "@google-cloud/common@^3.3.0":
   version "3.4.0"
   resolved "https://registry.npmjs.org/@google-cloud/common/-/common-3.4.0.tgz#8951d0dc94c9dfd8af2b49ed125984dc71f1de6b"
@@ -4143,12 +4156,12 @@ aws4@^1.8.0:
   resolved "https://registry.npmjs.org/aws4/-/aws4-1.10.1.tgz#e1e82e4f3e999e2cfd61b161280d16a111f86428"
   integrity sha512-zg7Hz2k5lI8kb7U32998pRRFin7zJlkfezGJjUc2heaD4Pw2wObakCDVzkKztTm/Ln7eiVvYsjqak0Ed4LkMDA==
 
-axios@^0.19.2:
-  version "0.19.2"
-  resolved "https://registry.npmjs.org/axios/-/axios-0.19.2.tgz#3ea36c5d8818d0d5f8a8a97a6d36b86cdc00cb27"
-  integrity sha512-fjgm5MvRHLhx+osE2xoekY70AhARk3a6hkN+3Io1jc00jtquGvxYlKlsFUhmUET0V5te6CcZI7lcv2Ym61mjHA==
+axios@^0.21.1:
+  version "0.21.1"
+  resolved "https://registry.npmjs.org/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
+  integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
   dependencies:
-    follow-redirects "1.5.10"
+    follow-redirects "^1.10.0"
 
 babel-code-frame@^6.26.0:
   version "6.26.0"
@@ -5068,17 +5081,18 @@ chrome-trace-event@^1.0.2:
   dependencies:
     tslib "^1.9.0"
 
-chromedriver@86.0.0:
-  version "86.0.0"
-  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-86.0.0.tgz#4b9504d5bbbcd4c6bd6d6fd1dd8247ab8cdeca67"
-  integrity sha512-byLJWhAfuYOmzRYPDf4asJgGDbI4gJGHa+i8dnQZGuv+6WW1nW1Fg+8zbBMOfLvGn7sKL41kVdmCEVpQHn9oyg==
+chromedriver@88.0.0:
+  version "88.0.0"
+  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-88.0.0.tgz#6833fffd516db23c811eeafa1ee1069b5a12fd2f"
+  integrity sha512-EE8rXh7mikxk3VWKjUsz0KCUX8d3HkQ4HgMNJhWrWjzju12dKPPVHO9MY+YaAI5ryXrXGNf0Y4HcNKgW36P/CA==
   dependencies:
     "@testim/chrome-version" "^1.0.7"
-    axios "^0.19.2"
-    del "^5.1.0"
+    axios "^0.21.1"
+    del "^6.0.0"
     extract-zip "^2.0.1"
     https-proxy-agent "^5.0.0"
     mkdirp "^1.0.4"
+    proxy-from-env "^1.1.0"
     tcp-port-used "^1.0.1"
 
 ci-info@^2.0.0:
@@ -6026,7 +6040,7 @@ debug@2.6.9, debug@^2.2.0, debug@^2.3.3, debug@^2.6.8, debug@^2.6.9:
   dependencies:
     ms "2.0.0"
 
-debug@3.1.0, debug@=3.1.0, debug@~3.1.0:
+debug@3.1.0, debug@~3.1.0:
   version "3.1.0"
   resolved "https://registry.npmjs.org/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
   integrity sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
@@ -6202,7 +6216,7 @@ define-property@^2.0.2:
     is-descriptor "^1.0.2"
     isobject "^3.0.1"
 
-del@6.0.0:
+del@6.0.0, del@^6.0.0:
   version "6.0.0"
   resolved "https://registry.npmjs.org/del/-/del-6.0.0.tgz#0b40d0332cea743f1614f818be4feb717714c952"
   integrity sha512-1shh9DQ23L16oXSZKB2JxpL7iMy2E0S9d517ptA1P8iw0alkPtQcrKH7ru31rYtKwF499HkTu+DRzq3TCKDFRQ==
@@ -6228,20 +6242,6 @@ del@^2.2.0:
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
     rimraf "^2.2.8"
-
-del@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.npmjs.org/del/-/del-5.1.0.tgz#d9487c94e367410e6eff2925ee58c0c84a75b3a7"
-  integrity sha512-wH9xOVHnczo9jN2IW68BabcecVPxacIA3g/7z6vhSU/4stOKQzeCRK0yD0A24WiAAUJmmVpWqrERcTxnLo3AnA==
-  dependencies:
-    globby "^10.0.1"
-    graceful-fs "^4.2.2"
-    is-glob "^4.0.1"
-    is-path-cwd "^2.2.0"
-    is-path-inside "^3.0.1"
-    p-map "^3.0.0"
-    rimraf "^3.0.0"
-    slash "^3.0.0"
 
 delayed-stream@~1.0.0:
   version "1.0.0"
@@ -7740,17 +7740,15 @@ fn.name@1.x.x:
   resolved "https://registry.npmjs.org/fn.name/-/fn.name-1.1.0.tgz#26cad8017967aea8731bc42961d04a3d5988accc"
   integrity sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==
 
-follow-redirects@1.5.10:
-  version "1.5.10"
-  resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.5.10.tgz#7b7a9f9aea2fdff36786a94ff643ed07f4ff5e2a"
-  integrity sha512-0V5l4Cizzvqt5D44aTXbFZz+FtyXV1vrDN6qrelxtfYQKW0KO0W2T/hkE8xvGa/540LkZlkaUjO4ailYTFtHVQ==
-  dependencies:
-    debug "=3.1.0"
-
 follow-redirects@^1.0.0:
   version "1.13.0"
   resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.13.0.tgz#b42e8d93a2a7eea5ed88633676d6597bc8e384db"
   integrity sha512-aq6gF1BEKje4a9i9+5jimNFIpq4Q1WiwBToeRK5NvZBd/TRsmW8BsJfOEGkr76TbOyPVD3OVDN910EcUNtRYEA==
+
+follow-redirects@^1.10.0:
+  version "1.13.2"
+  resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.13.2.tgz#dd73c8effc12728ba5cf4259d760ea5fb83e3147"
+  integrity sha512-6mPTgLxYm3r6Bkkg0vNM0HTjfGrOEtsfbhagQvbxDEsEkpNhw582upBaoRZylzen6krEmxXJgt9Ju6HiI4O7BA==
 
 for-in@^1.0.1, for-in@^1.0.2:
   version "1.0.2"
@@ -8298,20 +8296,6 @@ globby@10.0.1:
   version "10.0.1"
   resolved "https://registry.npmjs.org/globby/-/globby-10.0.1.tgz#4782c34cb75dd683351335c5829cc3420e606b22"
   integrity sha512-sSs4inE1FB2YQiymcmTv6NWENryABjUNPeWhOvmn4SjtKybglsyPZxFB3U1/+L1bYi0rNZDqCLlHyLYDl1Pq5A==
-  dependencies:
-    "@types/glob" "^7.1.1"
-    array-union "^2.1.0"
-    dir-glob "^3.0.1"
-    fast-glob "^3.0.3"
-    glob "^7.1.3"
-    ignore "^5.1.1"
-    merge2 "^1.2.3"
-    slash "^3.0.0"
-
-globby@^10.0.1:
-  version "10.0.2"
-  resolved "https://registry.npmjs.org/globby/-/globby-10.0.2.tgz#277593e745acaa4646c3ab411289ec47a0392543"
-  integrity sha512-7dUi7RvCoT/xast/o/dLN53oqND4yk0nsHkhRgn9w65C4PofCLOoJ39iSOg+qVDdWQPIEj+eszMHQ+aLVwwQSg==
   dependencies:
     "@types/glob" "^7.1.1"
     array-union "^2.1.0"
@@ -13115,6 +13099,11 @@ proxy-addr@~2.0.5:
   dependencies:
     forwarded "~0.1.2"
     ipaddr.js "1.9.1"
+
+proxy-from-env@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/proxy-from-env/-/proxy-from-env-1.1.0.tgz#e102f16ca355424865755d2c9e8ea4f24d58c3e2"
+  integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
 
 prr@~1.0.1:
   version "1.0.1"
