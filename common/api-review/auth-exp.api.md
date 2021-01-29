@@ -4,56 +4,51 @@
 
 ```ts
 
-import { ActionCodeInfo } from '@firebase/auth-types';
-import { ActionCodeOperation } from '@firebase/auth-types';
-import { ActionCodeSettings } from '@firebase/auth-types';
-import { ActionCodeURL } from '@firebase/auth-types';
-import { AdditionalUserInfo } from '@firebase/auth-types';
-import { ApplicationVerifier } from '@firebase/auth-types';
-import { Auth } from '@firebase/auth-types';
-import { AuthCredential } from '@firebase/auth-types';
-import { AuthError } from '@firebase/auth-types';
-import { AuthErrorMap } from '@firebase/auth-types';
-import { AuthProvider } from '@firebase/auth-types';
-import { AuthSettings } from '@firebase/auth-types';
+import { ActionCodeInfo } from '@firebase/auth-types-exp';
+import { ActionCodeOperation } from '@firebase/auth-types-exp';
+import { ActionCodeSettings } from '@firebase/auth-types-exp';
+import { AdditionalUserInfo } from '@firebase/auth-types-exp';
+import { ApplicationVerifier } from '@firebase/auth-types-exp';
+import { Auth } from '@firebase/auth-types-exp';
+import { AuthError } from '@firebase/auth-types-exp';
+import { AuthErrorMap } from '@firebase/auth-types-exp';
+import { AuthProvider } from '@firebase/auth-types-exp';
+import { AuthSettings } from '@firebase/auth-types-exp';
 import { CompleteFn } from '@firebase/util';
-import { Config } from '@firebase/auth-types';
-import { ConfirmationResult } from '@firebase/auth-types';
-import { EmailAuthProvider } from '@firebase/auth-types';
+import { Config } from '@firebase/auth-types-exp';
+import { ConfirmationResult } from '@firebase/auth-types-exp';
 import { ErrorFactory } from '@firebase/util';
 import { ErrorFn } from '@firebase/util';
-import * as externs from '@firebase/auth-types';
-import { FactorId } from '@firebase/auth-types';
-import { FirebaseApp } from '@firebase/app-types';
+import * as externs from '@firebase/auth-types-exp';
+import { FactorId } from '@firebase/auth-types-exp';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';
-import { IdTokenResult } from '@firebase/auth-types';
-import { MultiFactorAssertion } from '@firebase/auth-types';
-import { MultiFactorError } from '@firebase/auth-types';
-import { MultiFactorInfo } from '@firebase/auth-types';
-import { MultiFactorResolver } from '@firebase/auth-types';
-import { MultiFactorSession } from '@firebase/auth-types';
-import { MultiFactorUser } from '@firebase/auth-types';
+import { IdTokenResult } from '@firebase/auth-types-exp';
+import { MultiFactorAssertion } from '@firebase/auth-types-exp';
+import { MultiFactorError } from '@firebase/auth-types-exp';
+import { MultiFactorInfo } from '@firebase/auth-types-exp';
+import { MultiFactorResolver } from '@firebase/auth-types-exp';
+import { MultiFactorSession } from '@firebase/auth-types-exp';
+import { MultiFactorUser } from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
-import { OAuthCredential } from '@firebase/auth-types';
-import { OperationType } from '@firebase/auth-types';
-import { ParsedToken } from '@firebase/auth-types';
-import { Persistence } from '@firebase/auth-types';
-import { PhoneAuthCredential } from '@firebase/auth-types';
-import { PhoneInfoOptions } from '@firebase/auth-types';
-import { PhoneMultiFactorAssertion } from '@firebase/auth-types';
-import { PhoneMultiFactorEnrollInfoOptions } from '@firebase/auth-types';
-import { PhoneMultiFactorSignInInfoOptions } from '@firebase/auth-types';
-import { PhoneSingleFactorInfoOptions } from '@firebase/auth-types';
-import { PopupRedirectResolver } from '@firebase/auth-types';
-import { ProviderId } from '@firebase/auth-types';
-import { ReactNativeAsyncStorage } from '@firebase/auth-types';
-import { SignInMethod } from '@firebase/auth-types';
+import { OperationType } from '@firebase/auth-types-exp';
+import { ParsedToken } from '@firebase/auth-types-exp';
+import { Persistence } from '@firebase/auth-types-exp';
+import { PhoneInfoOptions } from '@firebase/auth-types-exp';
+import { PhoneMultiFactorAssertion } from '@firebase/auth-types-exp';
+import { PhoneMultiFactorEnrollInfoOptions } from '@firebase/auth-types-exp';
+import { PhoneMultiFactorSignInInfoOptions } from '@firebase/auth-types-exp';
+import { PhoneSingleFactorInfoOptions } from '@firebase/auth-types-exp';
+import { PopupRedirectResolver } from '@firebase/auth-types-exp';
+import { ProviderId } from '@firebase/auth-types-exp';
+import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
+import { SignInMethod } from '@firebase/auth-types-exp';
 import { Unsubscribe } from '@firebase/util';
-import { User } from '@firebase/auth-types';
-import { UserCredential } from '@firebase/auth-types';
-import { UserInfo } from '@firebase/auth-types';
-import { UserMetadata } from '@firebase/auth-types';
-import { UserProfile } from '@firebase/auth-types';
+import { User } from '@firebase/auth-types-exp';
+import { UserCredential } from '@firebase/auth-types-exp';
+import { UserInfo } from '@firebase/auth-types-exp';
+import { UserMetadata } from '@firebase/auth-types-exp';
+import { UserProfile } from '@firebase/auth-types-exp';
 
 export { ActionCodeInfo }
 
@@ -61,7 +56,25 @@ export { ActionCodeOperation }
 
 export { ActionCodeSettings }
 
-export { ActionCodeURL }
+// @public (undocumented)
+export class ActionCodeURL implements externs.ActionCodeURL {
+    // @internal
+    constructor(actionLink: string);
+    // (undocumented)
+    readonly apiKey: string;
+    // (undocumented)
+    readonly code: string;
+    // (undocumented)
+    readonly continueUrl: string | null;
+    // (undocumented)
+    readonly languageCode: string | null;
+    // (undocumented)
+    readonly operation: externs.ActionCodeOperation;
+    // (undocumented)
+    static parseLink(link: string): externs.ActionCodeURL | null;
+    // (undocumented)
+    readonly tenantId: string | null;
+}
 
 export { AdditionalUserInfo }
 
@@ -72,7 +85,28 @@ export function applyActionCode(auth: externs.Auth, oobCode: string): Promise<vo
 
 export { Auth }
 
-export { AuthCredential }
+// @public (undocumented)
+export class AuthCredential {
+    // @internal
+    protected constructor(providerId: string, signInMethod: string);
+    // Warning: (ae-forgotten-export) The symbol "Auth" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "PhoneOrOauthTokenResponse" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    _getIdTokenResponse(_auth: Auth_2): Promise<PhoneOrOauthTokenResponse>;
+    // @internal (undocumented)
+    _getReauthenticationResolver(_auth: Auth_2): Promise<IdTokenResponse>;
+    // Warning: (ae-forgotten-export) The symbol "IdTokenResponse" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    _linkToIdToken(_auth: Auth_2, _idToken: string): Promise<IdTokenResponse>;
+    // (undocumented)
+    readonly providerId: string;
+    // (undocumented)
+    readonly signInMethod: string;
+    // (undocumented)
+    toJSON(): object;
+}
 
 export { AuthError }
 
@@ -113,10 +147,8 @@ export const debugErrorMap: externs.AuthErrorMap;
 // @public
 export function deleteUser(user: externs.User): Promise<void>;
 
-// Warning: (ae-forgotten-export) The symbol "AuthCredential" needs to be exported by the entry point index.d.ts
-//
 // @public
-export class EmailAuthCredential extends AuthCredential_2 implements externs.AuthCredential {
+export class EmailAuthCredential extends AuthCredential implements externs.AuthCredential {
     // (undocumented)
     readonly email: string;
     // @internal (undocumented)
@@ -125,9 +157,6 @@ export class EmailAuthCredential extends AuthCredential_2 implements externs.Aut
     static _fromEmailAndPassword(email: string, password: string): EmailAuthCredential;
     // (undocumented)
     static fromJSON(json: object | string): EmailAuthCredential | null;
-    // Warning: (ae-forgotten-export) The symbol "Auth" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "IdTokenResponse" needs to be exported by the entry point index.d.ts
-    //
     // @internal (undocumented)
     _getIdTokenResponse(auth: Auth_2): Promise<IdTokenResponse>;
     // @internal (undocumented)
@@ -142,7 +171,21 @@ export class EmailAuthCredential extends AuthCredential_2 implements externs.Aut
     toJSON(): object;
 }
 
-export { EmailAuthProvider }
+// @public (undocumented)
+export class EmailAuthProvider implements externs.EmailAuthProvider {
+    // (undocumented)
+    static credential(email: string, password: string): EmailAuthCredential;
+    // (undocumented)
+    static credentialWithLink(email: string, emailLink: string): EmailAuthCredential;
+    // (undocumented)
+    static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
+    // (undocumented)
+    static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_PASSWORD;
+    // (undocumented)
+    static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
+    // (undocumented)
+    readonly providerId = externs.ProviderId.PASSWORD;
+}
 
 // @public
 export class FacebookAuthProvider extends OAuthProvider {
@@ -240,7 +283,31 @@ export { MultiFactorSession }
 
 export { MultiFactorUser }
 
-export { OAuthCredential }
+// @public (undocumented)
+export class OAuthCredential extends AuthCredential implements externs.OAuthCredential {
+    // (undocumented)
+    accessToken?: string;
+    // (undocumented)
+    static fromJSON(json: string | object): OAuthCredential | null;
+    // Warning: (ae-forgotten-export) The symbol "OAuthCredentialParams" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    static _fromParams(params: OAuthCredentialParams): OAuthCredential;
+    // @internal (undocumented)
+    _getIdTokenResponse(auth: Auth_2): Promise<IdTokenResponse>;
+    // @internal (undocumented)
+    _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
+    // (undocumented)
+    idToken?: string;
+    // @internal (undocumented)
+    _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
+    // @internal (undocumented)
+    nonce?: string;
+    // (undocumented)
+    secret?: string;
+    // (undocumented)
+    toJSON(): object;
+}
 
 // @public
 export interface OAuthCredentialOptions {
@@ -283,15 +350,33 @@ export { ParsedToken }
 
 export { Persistence }
 
-export { PhoneAuthCredential }
+// @public (undocumented)
+export class PhoneAuthCredential extends AuthCredential implements externs.PhoneAuthCredential {
+    // (undocumented)
+    static fromJSON(json: object | string): PhoneAuthCredential | null;
+    // @internal (undocumented)
+    static _fromTokenResponse(phoneNumber: string, temporaryProof: string): PhoneAuthCredential;
+    // @internal (undocumented)
+    static _fromVerification(verificationId: string, verificationCode: string): PhoneAuthCredential;
+    // @internal (undocumented)
+    _getIdTokenResponse(auth: Auth_2): Promise<PhoneOrOauthTokenResponse>;
+    // @internal (undocumented)
+    _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
+    // @internal (undocumented)
+    _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
+    // Warning: (ae-forgotten-export) The symbol "SignInWithPhoneNumberRequest" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    _makeVerificationRequest(): SignInWithPhoneNumberRequest;
+    // (undocumented)
+    toJSON(): object;
+}
 
 // @public (undocumented)
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     constructor(auth: externs.Auth);
-    // Warning: (ae-forgotten-export) The symbol "PhoneAuthCredential" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    static credential(verificationId: string, verificationCode: string): PhoneAuthCredential_2;
+    static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
     // (undocumented)
     static credentialFromResult(userCredential: externs.UserCredential): externs.AuthCredential | null;
     // (undocumented)

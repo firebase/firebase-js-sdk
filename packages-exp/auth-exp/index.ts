@@ -25,13 +25,6 @@ import { indexedDBLocalPersistence } from './src/platform_browser/persistence/in
 import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
 
 import {
-  // Classes
-  ActionCodeURL,
-  AuthCredential,
-  EmailAuthProvider,
-  MultiFactorResolver,
-  OAuthCredential,
-  PhoneAuthCredential,
   // Enums
   ActionCodeOperation,
   FactorId,
@@ -54,6 +47,7 @@ import {
   MultiFactorAssertion,
   MultiFactorError,
   MultiFactorInfo,
+  MultiFactorResolver,
   MultiFactorSession,
   MultiFactorUser,
   ParsedToken,
@@ -74,13 +68,6 @@ import {
 
 // Public types
 export {
-  // Classes
-  ActionCodeURL,
-  AuthCredential,
-  EmailAuthProvider,
-  MultiFactorResolver,
-  OAuthCredential,
-  PhoneAuthCredential,
   // Enums
   ActionCodeOperation,
   FactorId,
@@ -103,6 +90,7 @@ export {
   MultiFactorAssertion,
   MultiFactorError,
   MultiFactorInfo,
+  MultiFactorResolver,
   MultiFactorSession,
   MultiFactorUser,
   ParsedToken,
