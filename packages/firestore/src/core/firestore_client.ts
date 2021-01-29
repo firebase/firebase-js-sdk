@@ -17,12 +17,12 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import { LoadBundleTask } from '../exp/bundle';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,

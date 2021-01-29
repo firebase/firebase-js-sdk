@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { LoadBundleTask } from '../../../src/api/bundle';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
@@ -58,6 +57,7 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import { LoadBundleTask } from '../../../src/exp/bundle';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
