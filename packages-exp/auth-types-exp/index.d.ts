@@ -1067,7 +1067,7 @@ export interface MultiFactorInfo {
  *
  * @public
  */
-export abstract class MultiFactorResolver {
+export interface MultiFactorResolver {
   /**
    * The list of hints for the second factors needed to complete the sign-in for the current
    * session.

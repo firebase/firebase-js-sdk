@@ -4,17 +4,57 @@
 
 ```ts
 
+import { ActionCodeInfo } from '@firebase/auth-types-exp';
+import { ActionCodeOperation } from '@firebase/auth-types-exp';
+import { ActionCodeSettings } from '@firebase/auth-types-exp';
+import { AdditionalUserInfo } from '@firebase/auth-types-exp';
+import { ApplicationVerifier } from '@firebase/auth-types-exp';
 import { Auth } from '@firebase/auth-types-exp';
+import { AuthError } from '@firebase/auth-types-exp';
+import { AuthErrorMap } from '@firebase/auth-types-exp';
+import { AuthProvider } from '@firebase/auth-types-exp';
+import { AuthSettings } from '@firebase/auth-types-exp';
 import { CompleteFn } from '@firebase/util';
+import { Config } from '@firebase/auth-types-exp';
+import { ConfirmationResult } from '@firebase/auth-types-exp';
 import { ErrorFactory } from '@firebase/util';
 import { ErrorFn } from '@firebase/util';
 import * as externs from '@firebase/auth-types-exp';
+import { FactorId } from '@firebase/auth-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';
+import { IdTokenResult } from '@firebase/auth-types-exp';
+import { MultiFactorAssertion } from '@firebase/auth-types-exp';
+import { MultiFactorError } from '@firebase/auth-types-exp';
+import { MultiFactorInfo } from '@firebase/auth-types-exp';
+import { MultiFactorResolver } from '@firebase/auth-types-exp';
+import { MultiFactorSession } from '@firebase/auth-types-exp';
+import { MultiFactorUser } from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
+import { OperationType } from '@firebase/auth-types-exp';
+import { ParsedToken } from '@firebase/auth-types-exp';
+import { Persistence } from '@firebase/auth-types-exp';
+import { PhoneInfoOptions } from '@firebase/auth-types-exp';
+import { PhoneMultiFactorAssertion } from '@firebase/auth-types-exp';
+import { PhoneMultiFactorEnrollInfoOptions } from '@firebase/auth-types-exp';
+import { PhoneMultiFactorSignInInfoOptions } from '@firebase/auth-types-exp';
+import { PhoneSingleFactorInfoOptions } from '@firebase/auth-types-exp';
+import { PopupRedirectResolver } from '@firebase/auth-types-exp';
 import { ProviderId } from '@firebase/auth-types-exp';
+import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
+import { SignInMethod } from '@firebase/auth-types-exp';
 import { Unsubscribe } from '@firebase/util';
+import { User } from '@firebase/auth-types-exp';
 import { UserCredential } from '@firebase/auth-types-exp';
+import { UserInfo } from '@firebase/auth-types-exp';
+import { UserMetadata } from '@firebase/auth-types-exp';
+import { UserProfile } from '@firebase/auth-types-exp';
+
+export { ActionCodeInfo }
+
+export { ActionCodeOperation }
+
+export { ActionCodeSettings }
 
 // @public (undocumented)
 export class ActionCodeURL implements externs.ActionCodeURL {
@@ -36,8 +76,14 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     readonly tenantId: string | null;
 }
 
+export { AdditionalUserInfo }
+
+export { ApplicationVerifier }
+
 // @public
 export function applyActionCode(auth: externs.Auth, oobCode: string): Promise<void>;
+
+export { Auth }
 
 // @public (undocumented)
 export class AuthCredential {
@@ -62,6 +108,14 @@ export class AuthCredential {
     toJSON(): object;
 }
 
+export { AuthError }
+
+export { AuthErrorMap }
+
+export { AuthProvider }
+
+export { AuthSettings }
+
 // @public
 export const browserLocalPersistence: externs.Persistence;
 
@@ -73,6 +127,10 @@ export const browserSessionPersistence: externs.Persistence;
 
 // @public
 export function checkActionCode(auth: externs.Auth, oobCode: string): Promise<externs.ActionCodeInfo>;
+
+export { Config }
+
+export { ConfirmationResult }
 
 // @public
 export function confirmPasswordReset(auth: externs.Auth, oobCode: string, newPassword: string): Promise<void>;
@@ -139,6 +197,8 @@ export class FacebookAuthProvider extends OAuthProvider {
     static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
 }
 
+export { FactorId }
+
 // @public
 export function fetchSignInMethodsForEmail(auth: externs.Auth, email: string): Promise<string[]>;
 
@@ -180,6 +240,8 @@ export class GoogleAuthProvider extends OAuthProvider {
     static readonly PROVIDER_ID = externs.ProviderId.GOOGLE;
 }
 
+export { IdTokenResult }
+
 // @public
 export const indexedDBLocalPersistence: externs.Persistence;
 
@@ -208,6 +270,18 @@ export function linkWithRedirect(user: externs.User, provider: externs.AuthProvi
 
 // @public
 export function multiFactor(user: externs.User): externs.MultiFactorUser;
+
+export { MultiFactorAssertion }
+
+export { MultiFactorError }
+
+export { MultiFactorInfo }
+
+export { MultiFactorResolver }
+
+export { MultiFactorSession }
+
+export { MultiFactorUser }
 
 // @public (undocumented)
 export class OAuthCredential extends AuthCredential implements externs.OAuthCredential {
@@ -267,8 +341,14 @@ export function onAuthStateChanged(auth: externs.Auth, nextOrObserver: externs.N
 // @public
 export function onIdTokenChanged(auth: externs.Auth, nextOrObserver: externs.NextOrObserver<externs.User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 
+export { OperationType }
+
 // @public (undocumented)
 export function parseActionCodeURL(link: string): externs.ActionCodeURL | null;
+
+export { ParsedToken }
+
+export { Persistence }
 
 // @public (undocumented)
 export class PhoneAuthCredential extends AuthCredential implements externs.PhoneAuthCredential {
@@ -309,14 +389,30 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     verifyPhoneNumber(phoneOptions: externs.PhoneInfoOptions | string, applicationVerifier: externs.ApplicationVerifier): Promise<string>;
 }
 
+export { PhoneInfoOptions }
+
+export { PhoneMultiFactorAssertion }
+
+export { PhoneMultiFactorEnrollInfoOptions }
+
 // @public (undocumented)
 export class PhoneMultiFactorGenerator implements externs.PhoneMultiFactorGenerator {
     // (undocumented)
     static assertion(credential: externs.PhoneAuthCredential): externs.PhoneMultiFactorAssertion;
 }
 
+export { PhoneMultiFactorSignInInfoOptions }
+
+export { PhoneSingleFactorInfoOptions }
+
+export { PopupRedirectResolver }
+
 // @public
 export const prodErrorMap: externs.AuthErrorMap;
+
+export { ProviderId }
+
+export { ReactNativeAsyncStorage }
 
 // @public
 export function reauthenticateWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<externs.UserCredential>;
@@ -333,7 +429,7 @@ export function reauthenticateWithRedirect(user: externs.User, provider: externs
 // Warning: (ae-forgotten-export) The symbol "ApplicationVerifier" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export class RecaptchaVerifier implements externs.RecaptchaVerifier, ApplicationVerifier {
+export class RecaptchaVerifier implements externs.RecaptchaVerifier, ApplicationVerifier_2 {
     // Warning: (ae-forgotten-export) The symbol "Parameters" needs to be exported by the entry point index.d.ts
     constructor(containerOrId: HTMLElement | string, parameters: Parameters_2, authExtern: externs.Auth);
     // (undocumented)
@@ -369,6 +465,8 @@ export function setPersistence(auth: externs.Auth, persistence: externs.Persiste
 
 // @public
 export function signInAnonymously(auth: externs.Auth): Promise<externs.UserCredential>;
+
+export { SignInMethod }
 
 // @public
 export function signInWithCredential(auth: externs.Auth, credential: externs.AuthCredential): Promise<externs.UserCredential>;
@@ -428,6 +526,16 @@ export function updateProfile(user: externs.User, { displayName, photoURL: photo
 
 // @public
 export function useDeviceLanguage(auth: externs.Auth): void;
+
+export { User }
+
+export { UserCredential }
+
+export { UserInfo }
+
+export { UserMetadata }
+
+export { UserProfile }
 
 // @public
 export function verifyBeforeUpdateEmail(user: externs.User, newEmail: string, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
