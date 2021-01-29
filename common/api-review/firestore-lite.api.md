@@ -201,9 +201,7 @@ export class FirebaseFirestore implements FirestoreService {
     protected _terminate(): Promise<void>;
     // (undocumented)
     get _terminated(): boolean;
-    // (undocumented)
-    toJSON(): object;
-}
+    }
 
 // @public
 export interface FirestoreDataConverter<T> {
