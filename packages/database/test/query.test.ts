@@ -3131,7 +3131,7 @@ describe('Query Tests', () => {
   it('get returns the latest value', async () => {
     const node = getRandomNode() as Reference;
     await node.set({ foo: 'bar' });
-    expect(node.get()).to.eventually.equal({ foo: 'bar' });
+    expect((await node.get()).val()).to.deep.equal({ foo: 'bar' });
   });
 
   it('get reads from cache if database is not connected', async () => {
