@@ -101,10 +101,7 @@ export class Query {
         'or equalTo() must be a string.';
       if (params.hasStart()) {
         const startName = params.getIndexStartName();
-        if (
-          startName !== MIN_NAME &&
-          !(params.hasStartAfter() && startName === MAX_NAME)
-        ) {
+        if (startName !== MIN_NAME) {
           throw new Error(tooManyArgsError);
         } else if (typeof startNode !== 'string') {
           throw new Error(wrongArgTypeError);
@@ -112,10 +109,7 @@ export class Query {
       }
       if (params.hasEnd()) {
         const endName = params.getIndexEndName();
-        if (
-          endName !== MAX_NAME &&
-          !(params.hasEndBefore() && endName === MIN_NAME)
-        ) {
+        if (endName !== MAX_NAME) {
           throw new Error(tooManyArgsError);
         } else if (typeof endNode !== 'string') {
           throw new Error(wrongArgTypeError);
