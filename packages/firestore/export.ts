@@ -15,6 +15,13 @@
  * limitations under the License.
  */
 
+import { Firestore, Query } from './src/api/database';
+import { LoadBundleTask } from './src/exp/bundle';
+import {
+  loadBundle as expLoadBundle,
+  namedQuery as expNamedQuery
+} from './src/exp/database';
+
 export { Blob } from './src/api/blob';
 export {
   CollectionReference,
@@ -36,13 +43,6 @@ export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
 export { FirebaseFirestore as ExpFirebaseFirestore } from './src/exp/database';
-
-import { Firestore, Query } from './src/api/database';
-import { LoadBundleTask } from './src/exp/bundle';
-import {
-  loadBundle as expLoadBundle,
-  namedQuery as expNamedQuery
-} from './src/exp/database';
 
 export function loadBundle(
   this: Firestore,

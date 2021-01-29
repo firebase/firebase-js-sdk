@@ -467,9 +467,8 @@ export function terminate(firestore: FirebaseFirestore): Promise<void> {
  * Loads a Firestore bundle into the local cache.
  *
  * @param firestore - The `Firestore` instance to load bundles for for.
- * @param bundleData
- *   An object representing the bundle to be loaded. Valid objects are `ArrayBuffer`,
- *   `ReadableStream<Uint8Array>` or `string`.
+ * @param bundleData - An object representing the bundle to be loaded. Valid objects are
+ *   `ArrayBuffer`, `ReadableStream<Uint8Array>` or `string`.
  *
  * @return
  *   A `LoadBundleTask` object, which notifies callers with progress updates, and completion
