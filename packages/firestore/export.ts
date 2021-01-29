@@ -61,8 +61,8 @@ export function namedQuery(
     }
     return new Query(
       this,
-      // We can pass the exp-query here directly since named queries don't have UserDataConverters
-      // Otherwise we would have to create a new ExpQuery and pass the old UserDataConverter
+      // We can pass `expQuery` here directly since named queries don't have a UserDataConverter.
+      // Otherwise, we would have to create a new ExpQuery and pass the old UserDataConverter.
       expQuery
     );
   });
