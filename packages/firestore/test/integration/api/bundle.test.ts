@@ -79,7 +79,7 @@ function bundleString(
 }
 
 apiDescribe('Bundles', (persistence: boolean) => {
-  // This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpsers.ts',
+  // This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpers.ts',
   // and manually copied here.
   const BUNDLE_TEMPLATE = [
     '{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":"1503"}}',
