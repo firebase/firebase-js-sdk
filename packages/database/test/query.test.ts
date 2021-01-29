@@ -1379,34 +1379,24 @@ describe('Query Tests', () => {
 
   it('Ensure startAfter on key index works', async () => {
     const node = getRandomNode() as Reference;
-    const keys = [];
-    const values = [];
-    for (var i = 0; i < 10; i++) {
-      const ref = node.push();
-      keys.push(ref.key);
-      const value = { index: i };
-      values.push(value);
-      await ref.set(value);
-    }
-    const snap = await node.orderByKey().startAfter(keys[0]).get();
-    expect(Object.keys(snap.val())).to.deep.equal(keys.slice(1));
-    expect(Object.values(snap.val())).to.deep.equal(values.slice(1));
+    const childOne = node.push();
+    const childTwo = node.push();
+    await childOne.set(1);
+    await childTwo.set(2);
+    const snap = await node.orderByKey().startAfter(childOne.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childTwo.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childTwo.key]]);
   });
 
   it('Ensure endBefore on key index works', async () => {
     const node = getRandomNode() as Reference;
-    const keys = [];
-    const values = [];
-    for (var i = 0; i < 10; i++) {
-      const ref = node.push();
-      keys.push(ref.key);
-      const value = { index: i };
-      values.push(value);
-      await ref.set(value);
-    }
-    const snap = await node.orderByKey().endBefore(keys[9]).get();
-    expect(Object.keys(snap.val())).to.deep.equal(keys.slice(0, 9));
-    expect(Object.values(snap.val())).to.deep.equal(values.slice(0, 9));
+    const childOne = node.push();
+    const childTwo = node.push();
+    await childOne.set(1);
+    await childTwo.set(2);
+    const snap = await node.orderByKey().endBefore(childTwo.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childOne.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childOne.key]]);
   });
 
   it('Ensure startAt / endAt with priority works.', async () => {
