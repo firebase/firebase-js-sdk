@@ -129,21 +129,6 @@ describe('Local Serializer', () => {
     );
   });
 
-  it('TransformMutation (legacy) on its own throws assertion', () => {
-    const dbMutationBatch = new DbMutationBatch(
-      userId,
-      batchId,
-      1000,
-      [],
-      [transformMutationWrite]
-    );
-    expect(() =>
-      fromDbMutationBatch(localSerializer, dbMutationBatch)
-    ).to.throw(
-      'TransformMutation should be preceded by a patch or set mutation'
-    );
-  });
-
   it('DeleteMutation + TransformMutation (legacy) on its own throws assertion', () => {
     const dbMutationBatch = new DbMutationBatch(
       userId,

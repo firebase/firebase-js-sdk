@@ -132,13 +132,10 @@ export class MutationBatch {
         maybeDoc = applyMutationToLocalView(
           mutation,
           maybeDoc,
-          maybeDoc,
           this.localWriteTime
         );
       }
     }
-
-    const baseDoc = maybeDoc;
 
     // Second, apply all user-provided mutations.
     for (const mutation of this.mutations) {
@@ -146,7 +143,6 @@ export class MutationBatch {
         maybeDoc = applyMutationToLocalView(
           mutation,
           maybeDoc,
-          baseDoc,
           this.localWriteTime
         );
       }
