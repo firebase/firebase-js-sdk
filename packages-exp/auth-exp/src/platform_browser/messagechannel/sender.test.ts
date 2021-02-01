@@ -89,6 +89,7 @@ describe('platform_browser/messagechannel/sender', () => {
 
     it('should timeout if it doesnt see an ACK', async () => {
       serviceWorker.addEventListener('message', (_event: Event) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         Promise.resolve().then(() => {
           pendingTimeouts[_TimeoutDuration.ACK]();
         });
@@ -110,6 +111,7 @@ describe('platform_browser/messagechannel/sender', () => {
         }
       ];
       serviceWorker.addEventListener('message', (event: Event) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         Promise.resolve().then(() => {
           pendingTimeouts[_TimeoutDuration.ACK]();
         });

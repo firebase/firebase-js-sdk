@@ -41,11 +41,8 @@ import {
   PopupRedirectResolver
 } from '../model/popup_redirect';
 import * as authWindow from './auth_window';
-import * as mockFetch from '../../test/helpers/mock_fetch';
 import * as gapiLoader from './iframe/gapi';
 import { browserPopupRedirectResolver } from './popup_redirect';
-import { mockEndpoint } from '../../test/helpers/api/helper';
-import { Endpoint } from '../api';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -57,7 +54,6 @@ describe('platform_browser/popup_redirect', () => {
   let iframeSendStub: sinon.SinonStub;
 
   beforeEach(async () => {
-    mockFetch.setUp();
     auth = await testAuth();
     resolver = new (browserPopupRedirectResolver as SingletonInstantiator<
       PopupRedirectResolver
@@ -88,7 +84,6 @@ describe('platform_browser/popup_redirect', () => {
 
   afterEach(() => {
     sinon.restore();
-    mockFetch.tearDown();
     delete authWindow._window().gapi;
   });
 
@@ -125,15 +120,11 @@ describe('platform_browser/popup_redirect', () => {
       );
     });
 
-    it('throws an error if authDomain is unspecified', async () => {
-       await resolver._initialize(auth);
-      
-      mockEndpoint(Endpoint.GET_PROJECT_CONFIG, {
-        authorizedDomains: []
-      });
+    it('validates the origin', async () => {
+      await resolver._initialize(auth);
 
-      expect(resolver._openPopup(auth, provider, event)
-      ).to.be.rejectedWith(FirebaseError, 'auth/auth-domain-config-required');
+      await resolver._openPopup(auth, provider, event);
+      expect(validateOrigin._validateOrigin).to.have.been.calledWith(auth);
     });
 
     it('throws an error if apiKey is unspecified', async () => {

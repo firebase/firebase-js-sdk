@@ -421,7 +421,7 @@ describe('platform_browser/strategies/phone', () => {
     let idToken: string;
 
     beforeEach(() => {
-      idToken = makeJWT({exp: '200', iat: '100'})
+      idToken = makeJWT({exp: '200', iat: '100'});
       reloadMock = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [{ uid: 'uid' }]
       });
