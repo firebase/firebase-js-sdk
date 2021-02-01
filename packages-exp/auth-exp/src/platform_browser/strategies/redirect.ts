@@ -30,7 +30,7 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
-import { _withDefaultResolver } from '../popup_redirect';
+import { _withDefaultResolver } from '../../core/util/resolver';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
 /**
