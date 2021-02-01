@@ -29,13 +29,14 @@ import {
   _Status,
   _TimeoutDuration
 } from '.';
-import { delay } from '../../../test/helpers/delay';
 import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
 import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { Sender } from './sender';
 
 use(sinonChai);
 use(chaiAsPromised);
+
+const oldSetTimeout = setTimeout;
 
 describe('platform_browser/messagechannel/sender', () => {
   describe('_send', () => {
@@ -88,7 +89,7 @@ describe('platform_browser/messagechannel/sender', () => {
 
     it('should timeout if it doesnt see an ACK', async () => {
       serviceWorker.addEventListener('message', (_event: Event) => {
-        delay(() => {
+        Promise.resolve().then(() => {
           pendingTimeouts[_TimeoutDuration.ACK]();
         });
       });
@@ -109,7 +110,7 @@ describe('platform_browser/messagechannel/sender', () => {
         }
       ];
       serviceWorker.addEventListener('message', (event: Event) => {
-        delay(() => {
+        Promise.resolve().then(() => {
           pendingTimeouts[_TimeoutDuration.ACK]();
         });
         const messageEvent = event as MessageEvent<
@@ -138,6 +139,9 @@ describe('platform_browser/messagechannel/sender', () => {
 
     it('it should timeout if it gets an ACK but not a DONE', async () => {
       serviceWorker.addEventListener('message', (event: Event) => {
+        oldSetTimeout(() => {
+          pendingTimeouts[_TimeoutDuration.COMPLETION]();
+        }, 5);
         const messageEvent = event as MessageEvent<
           SenderMessageEvent<PingRequest>
         >;
@@ -147,9 +151,6 @@ describe('platform_browser/messagechannel/sender', () => {
           eventType: messageEvent.data.eventType,
           response: null
         } as ReceiverMessageEvent<_PingResponse>);
-        delay(() => {
-          pendingTimeouts[_TimeoutDuration.COMPLETION]();
-        });
       });
       await expect(
         sender._send<_PingResponse, PingRequest>(

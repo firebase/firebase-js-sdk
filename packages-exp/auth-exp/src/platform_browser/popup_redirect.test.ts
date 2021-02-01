@@ -41,8 +41,11 @@ import {
   PopupRedirectResolver
 } from '../model/popup_redirect';
 import * as authWindow from './auth_window';
+import * as mockFetch from '../../test/helpers/mock_fetch';
 import * as gapiLoader from './iframe/gapi';
 import { browserPopupRedirectResolver } from './popup_redirect';
+import { mockEndpoint } from '../../test/helpers/api/helper';
+import { Endpoint } from '../api';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -54,6 +57,7 @@ describe('platform_browser/popup_redirect', () => {
   let iframeSendStub: sinon.SinonStub;
 
   beforeEach(async () => {
+    mockFetch.setUp();
     auth = await testAuth();
     resolver = new (browserPopupRedirectResolver as SingletonInstantiator<
       PopupRedirectResolver
@@ -74,10 +78,18 @@ describe('platform_browser/popup_redirect', () => {
           })
       } as unknown) as gapi.iframes.Context)
     );
+
+    authWindow._window().gapi = {
+      iframes: {
+        CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-iframes-filter',
+      }
+    } as unknown as typeof gapi;
   });
 
   afterEach(() => {
     sinon.restore();
+    mockFetch.tearDown();
+    delete authWindow._window().gapi;
   });
 
   context('#_openPopup', () => {
@@ -114,11 +126,13 @@ describe('platform_browser/popup_redirect', () => {
     });
 
     it('throws an error if authDomain is unspecified', async () => {
-      delete auth.config.authDomain;
-      await resolver._initialize(auth);
+       await resolver._initialize(auth);
+      
+      mockEndpoint(Endpoint.GET_PROJECT_CONFIG, {
+        authorizedDomains: []
+      });
 
-      await expect(
-        resolver._openPopup(auth, provider, event)
+      expect(resolver._openPopup(auth, provider, event)
       ).to.be.rejectedWith(FirebaseError, 'auth/auth-domain-config-required');
     });
 
@@ -312,7 +326,7 @@ describe('platform_browser/popup_redirect', () => {
       expect(args[1]).to.eql({
         type: 'webStorageSupport'
       });
-      expect(args[3]).to.eq(gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER);
+      expect(args[3]).to.eq('cross-origin-iframes-filter');
     });
 
     it('passes through true value from the response to the callback', done => {
