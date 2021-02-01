@@ -34,41 +34,64 @@ describe('platform_cordova/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<
-      PopupRedirectResolver
-    >)();
+    resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
   });
 
   describe('_openRedirect plugin checks', () => {
     // TODO: Rest of the tests go here
     it('does not reject if all plugins installed', () => {
       setExpectedPluginsButMissing([]);
-      expect(() => resolver._openRedirect(auth, new GoogleAuthProvider(), AuthEventType.SIGN_IN_VIA_REDIRECT))
-          .not.to.throw;
+      expect(() =>
+        resolver._openRedirect(
+          auth,
+          new GoogleAuthProvider(),
+          AuthEventType.SIGN_IN_VIA_REDIRECT
+        )
+      ).not.to.throw;
     });
 
     it('rejects if universal links is missing', () => {
       setExpectedPluginsButMissing(['universalLinks.subscribe']);
-      expect(() => resolver._openRedirect(auth, new GoogleAuthProvider(), AuthEventType.SIGN_IN_VIA_REDIRECT))
-          .to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
+      expect(() =>
+        resolver._openRedirect(
+          auth,
+          new GoogleAuthProvider(),
+          AuthEventType.SIGN_IN_VIA_REDIRECT
+        )
+      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
     });
 
     it('rejects if build info is missing', () => {
       setExpectedPluginsButMissing(['BuildInfo.packageName']);
-      expect(() => resolver._openRedirect(auth, new GoogleAuthProvider(), AuthEventType.SIGN_IN_VIA_REDIRECT))
-        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
+      expect(() =>
+        resolver._openRedirect(
+          auth,
+          new GoogleAuthProvider(),
+          AuthEventType.SIGN_IN_VIA_REDIRECT
+        )
+      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
     });
 
     it('rejects if browsertab openUrl', () => {
       setExpectedPluginsButMissing(['cordova.plugins.browsertab.openUrl']);
-      expect(() => resolver._openRedirect(auth, new GoogleAuthProvider(), AuthEventType.SIGN_IN_VIA_REDIRECT))
-          .to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
+      expect(() =>
+        resolver._openRedirect(
+          auth,
+          new GoogleAuthProvider(),
+          AuthEventType.SIGN_IN_VIA_REDIRECT
+        )
+      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
     });
 
     it('rejects if InAppBrowser is missing', () => {
       setExpectedPluginsButMissing(['cordova.InAppBrowser.open']);
-      expect(() => resolver._openRedirect(auth, new GoogleAuthProvider(), AuthEventType.SIGN_IN_VIA_REDIRECT))
-          .to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
+      expect(() =>
+        resolver._openRedirect(
+          auth,
+          new GoogleAuthProvider(),
+          AuthEventType.SIGN_IN_VIA_REDIRECT
+        )
+      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
     });
   });
 });
@@ -81,18 +104,18 @@ function setExpectedPluginsButMissing(missingPlugins: string[]): void {
     plugins: {
       browsertab: {
         isAvailable: () => {},
-        openUrl: () => {},
+        openUrl: () => {}
       }
     },
     InAppBrowser: {
-      open: () => {},
-    },
+      open: () => {}
+    }
   };
   win.universalLinks = {
-    subscribe: () => {},
+    subscribe: () => {}
   };
   win.BuildInfo = {
-    packageName: 'com.name.package',
+    packageName: 'com.name.package'
   };
 
   for (const missing of missingPlugins) {

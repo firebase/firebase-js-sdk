@@ -405,7 +405,7 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.INVALID_CORDOVA_CONFIGURATION]: {
     appName: AppName;
     missingPlugin?: string;
-  }
+  };
 }
 
 export const _DEFAULT_AUTH_ERROR_FACTORY = new ErrorFactory<

@@ -34,19 +34,19 @@ import { ClientPlatform } from './src/core/util/version';
 export * from './src';
 
 // Cordova also supports indexedDB / browserSession / browserLocal
-export {indexedDBLocalPersistence} from './src/platform_browser/persistence/indexed_db';
-export {browserLocalPersistence} from './src/platform_browser/persistence/local_storage';
-export {browserSessionPersistence} from './src/platform_browser/persistence/session_storage';
+export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
+export { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+export { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 
-export {cordovaPopupRedirectResolver} from './src/platform_cordova/popup_redirect';
-export {signInWithRedirect} from './src/platform_cordova/strategies/redirect';
+export { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect';
+export { signInWithRedirect } from './src/platform_cordova/strategies/redirect';
 
-import {cordovaPopupRedirectResolver} from './src/platform_cordova/popup_redirect';
+import { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect';
 
 export function getAuth(app: FirebaseApp): Auth {
   return initializeAuth(app, {
     persistence: indexedDBLocalPersistence,
-    popupRedirectResolver: cordovaPopupRedirectResolver,
+    popupRedirectResolver: cordovaPopupRedirectResolver
   });
 }
 

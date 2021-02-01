@@ -19,7 +19,11 @@ import './plugins';
 import * as externs from '@firebase/auth-types-exp';
 import { browserSessionPersistence } from '../platform_browser/persistence/session_storage';
 import { Auth } from '../model/auth';
-import { AuthEventType, EventManager, PopupRedirectResolver } from '../model/popup_redirect';
+import {
+  AuthEventType,
+  EventManager,
+  PopupRedirectResolver
+} from '../model/popup_redirect';
 import { AuthPopup } from '../platform_browser/util/popup';
 import { _fail } from '../core/util/assert';
 import { AuthErrorCode } from '../core/errors';
@@ -31,16 +35,23 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   _openPopup(auth: Auth): Promise<AuthPopup> {
     _fail(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED);
   }
-  _openRedirect(auth: Auth, _provider: externs.AuthProvider, _authType: AuthEventType, _eventId?: string): Promise<never> {
+  _openRedirect(
+    auth: Auth,
+    _provider: externs.AuthProvider,
+    _authType: AuthEventType,
+    _eventId?: string
+  ): Promise<never> {
     checkCordovaConfiguration(auth);
     return new Promise(() => {});
   }
-  _isIframeWebStorageSupported(_auth: Auth, _cb: (support: boolean) => unknown): void {
+  _isIframeWebStorageSupported(
+    _auth: Auth,
+    _cb: (support: boolean) => unknown
+  ): void {
     throw new Error('Method not implemented.');
   }
   readonly _redirectPersistence = browserSessionPersistence;
   _completeRedirectFn: () => Promise<null> = async () => null;
-
 }
 
 function checkCordovaConfiguration(auth: Auth): void {
@@ -51,7 +62,7 @@ function checkCordovaConfiguration(auth: Auth): void {
   // https://www.npmjs.com/package/cordova-universal-links-plugin-fix
   if (typeof window?.universalLinks?.subscribe !== 'function') {
     _fail(auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
-      missingPlugin: 'cordova-universal-links-plugin-fix',
+      missingPlugin: 'cordova-universal-links-plugin-fix'
     });
   }
 
