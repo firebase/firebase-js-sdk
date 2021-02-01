@@ -55,9 +55,7 @@ describe('platform_browser/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<
-      PopupRedirectResolver
-    >)();
+    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
 
     sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
     iframeSendStub = sinon.stub();
@@ -75,11 +73,11 @@ describe('platform_browser/popup_redirect', () => {
       } as unknown) as gapi.iframes.Context)
     );
 
-    authWindow._window().gapi = {
+    authWindow._window().gapi = ({
       iframes: {
-        CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-iframes-filter',
+        CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-iframes-filter'
       }
-    } as unknown as typeof gapi;
+    } as unknown) as typeof gapi;
   });
 
   afterEach(() => {
