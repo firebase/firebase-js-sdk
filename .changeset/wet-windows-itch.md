@@ -1,5 +1,4 @@
 ---
 '@firebase/database': patch
 ---
-
-Fix RTDB startAfter/endBefore for orderByKey queries
+Fixed an issue with startAfter/endBefore when used in orderByKey queries
