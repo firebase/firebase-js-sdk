@@ -298,7 +298,7 @@ apiDescribe('Bundles conformance', (persistence: boolean) => {
   ];
 
   // This is built by Java(proto3 json formatter) with above document and one additional field of `pathValue: db.doc('col1/ref1')`.
-  const BUNDLES_PROTOB3_CONFORMANCE_TEMPLATE = [
+  const BUNDLES_PROTO3_CONFORMANCE_TEMPLATE = [
     `{
   "metadata": {
     "id": "test-bundle",
@@ -427,7 +427,7 @@ apiDescribe('Bundles conformance', (persistence: boolean) => {
   it('loads bundle built by proto3 json output as expected', () => {
     return withTestDb(persistence, async db => {
       const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
-        bundleString(db, BUNDLES_PROTOB3_CONFORMANCE_TEMPLATE)
+        bundleString(db, BUNDLES_PROTO3_CONFORMANCE_TEMPLATE)
       );
 
       verifySuccessProgress(fulfillProgress!);
