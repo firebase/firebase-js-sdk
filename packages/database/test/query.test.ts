@@ -1377,6 +1377,28 @@ describe('Query Tests', () => {
     expect(removed).to.equal('b ');
   });
 
+  it('Ensure startAfter on key index works', async () => {
+    const node = getRandomNode() as Reference;
+    const childOne = node.push();
+    const childTwo = node.push();
+    await childOne.set(1);
+    await childTwo.set(2);
+    const snap = await node.orderByKey().startAfter(childOne.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childTwo.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childTwo.key]]);
+  });
+
+  it('Ensure endBefore on key index works', async () => {
+    const node = getRandomNode() as Reference;
+    const childOne = node.push();
+    const childTwo = node.push();
+    await childOne.set(1);
+    await childTwo.set(2);
+    const snap = await node.orderByKey().endBefore(childTwo.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childOne.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childOne.key]]);
+  });
+
   it('Ensure startAt / endAt with priority works.', async () => {
     const node = getRandomNode() as Reference;
 
