@@ -61,26 +61,44 @@ function checkCordovaConfiguration(auth: Auth): void {
   // Note that cordova-universal-links-plugin has been abandoned.
   // A fork with latest fixes is available at:
   // https://www.npmjs.com/package/cordova-universal-links-plugin-fix
-  _assert(typeof window?.universalLinks?.subscribe === 'function', auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
+  _assert(
+    typeof window?.universalLinks?.subscribe === 'function',
+    auth,
+    AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
+    {
       missingPlugin: 'cordova-universal-links-plugin-fix'
-    });
+    }
+  );
 
   // https://www.npmjs.com/package/cordova-plugin-buildinfo
-  _assert (typeof window?.BuildInfo?.packageName !== 'undefined', auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
+  _assert(
+    typeof window?.BuildInfo?.packageName !== 'undefined',
+    auth,
+    AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
+    {
       missingPlugin: 'cordova-plugin-buildInfo'
-    });
+    }
+  );
 
   // https://github.com/google/cordova-plugin-browsertab
-  _assert(typeof window?.cordova?.plugins?.browsertab?.openUrl === 'function',
-    auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
+  _assert(
+    typeof window?.cordova?.plugins?.browsertab?.openUrl === 'function',
+    auth,
+    AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
+    {
       missingPlugin: 'cordova-plugin-browsertab'
-    });
+    }
+  );
 
   // https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-inappbrowser/
-  _assert(typeof window?.cordova?.InAppBrowser?.open === 'function',
-    auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
+  _assert(
+    typeof window?.cordova?.InAppBrowser?.open === 'function',
+    auth,
+    AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
+    {
       missingPlugin: 'cordova-plugin-inappbrowser'
-    });
+    }
+  );
 }
 
 /**

@@ -58,8 +58,12 @@ describe('platform_cordova/popup_redirect', () => {
           new GoogleAuthProvider(),
           AuthEventType.SIGN_IN_VIA_REDIRECT
         )
-      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
-      .that.has.deep.property('customData', {appName: 'test-app', missingPlugin: 'cordova-universal-links-plugin-fix'});
+      )
+        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
+        .that.has.deep.property('customData', {
+          appName: 'test-app',
+          missingPlugin: 'cordova-universal-links-plugin-fix'
+        });
     });
 
     it('rejects if build info is missing', () => {
@@ -70,8 +74,12 @@ describe('platform_cordova/popup_redirect', () => {
           new GoogleAuthProvider(),
           AuthEventType.SIGN_IN_VIA_REDIRECT
         )
-      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
-      .that.has.deep.property('customData', {appName: 'test-app', missingPlugin: 'cordova-plugin-buildInfo'});
+      )
+        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
+        .that.has.deep.property('customData', {
+          appName: 'test-app',
+          missingPlugin: 'cordova-plugin-buildInfo'
+        });
     });
 
     it('rejects if browsertab openUrl is missing', () => {
@@ -82,8 +90,12 @@ describe('platform_cordova/popup_redirect', () => {
           new GoogleAuthProvider(),
           AuthEventType.SIGN_IN_VIA_REDIRECT
         )
-      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
-      .that.has.deep.property('customData', {appName: 'test-app', missingPlugin: 'cordova-plugin-browsertab'});
+      )
+        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
+        .that.has.deep.property('customData', {
+          appName: 'test-app',
+          missingPlugin: 'cordova-plugin-browsertab'
+        });
     });
 
     it('rejects if InAppBrowser is missing', () => {
@@ -94,15 +106,19 @@ describe('platform_cordova/popup_redirect', () => {
           new GoogleAuthProvider(),
           AuthEventType.SIGN_IN_VIA_REDIRECT
         )
-      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
-      .that.has.deep.property('customData', {appName: 'test-app', missingPlugin: 'cordova-plugin-inappbrowser'});
+      )
+        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
+        .that.has.deep.property('customData', {
+          appName: 'test-app',
+          missingPlugin: 'cordova-plugin-inappbrowser'
+        });
     });
   });
 });
 
 function attachExpectedPlugins(): void {
   // Eventually these will be replaced with full mocks
-  const win = window as unknown as Record<string, unknown>;
+  const win = (window as unknown) as Record<string, unknown>;
   win.cordova = {
     plugins: {
       browsertab: {
@@ -122,6 +138,6 @@ function attachExpectedPlugins(): void {
   };
 }
 
-function removeProp(obj: unknown, prop: string):void {
+function removeProp(obj: unknown, prop: string): void {
   delete (obj as Record<string, unknown>)[prop];
 }
