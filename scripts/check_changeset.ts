@@ -146,7 +146,6 @@ async function main() {
 
   try {
     const diffData = await getDiffData();
-    console.log(diffData);
     if (diffData != null) {
       const { changedPackages, changesetFile } = diffData;
       const changesetPackages = await parseChangesetFile(changesetFile);
@@ -168,7 +167,7 @@ async function main() {
       }
 
       // Check for packages with a minor or major bump where 'firebase' hasn't been
-      // included.
+      // bumped high enough or at all.
       const { highestBump, bumpText, bumpPackage } = getHighestBump(
         changesetPackages
       );
