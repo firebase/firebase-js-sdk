@@ -225,7 +225,10 @@ export function extractDeclarations(
     } else if (ts.isVariableDeclaration(node)) {
       declarations.variables.push(node.name!.getText());
     } else if (ts.isEnumDeclaration(node)) {
+      // `const enum`s should not be analyzed. They do not add to bundle size and
+      // creating a file that imports them causes an error during the rollup step.
       if (
+        // Identifies if this enum had a "const" modifier attached.
         !node.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ConstKeyword)
       ) {
         declarations.enums.push(node.name.escapedText.toString());
