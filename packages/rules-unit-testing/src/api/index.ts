@@ -22,7 +22,6 @@ import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
-import { option } from 'yargs';
 
 const { firestore, database } = firebase;
 export { firestore, database };
