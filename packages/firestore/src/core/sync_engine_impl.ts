@@ -929,9 +929,13 @@ function trackLimboChange(
   limboChange: AddedLimboDocument
 ): void {
   const key = limboChange.key;
-  if (!syncEngineImpl.activeLimboTargetsByKey.get(key)) {
+  const keyString = key.path.canonicalString();
+  if (
+    !syncEngineImpl.activeLimboTargetsByKey.get(key) &&
+    !syncEngineImpl.enqueuedLimboResolutions.has(keyString)
+  ) {
     logDebug(LOG_TAG, 'New document in limbo: ' + key);
-    syncEngineImpl.enqueuedLimboResolutions.add(key.path.canonicalString());
+    syncEngineImpl.enqueuedLimboResolutions.add(keyString);
     pumpEnqueuedLimboResolutions(syncEngineImpl);
   }
 }
