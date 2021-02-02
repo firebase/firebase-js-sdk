@@ -96,7 +96,8 @@ export async function extractDependenciesAndSize(
   });
   const externalDepsNotResolvedBundle = await rollup.rollup({
     input,
-    external: id => id.startsWith('@firebase') // exclude all firebase dependencies
+    // exclude all firebase dependencies and tslib
+    external: id => id.startsWith('@firebase') || id === 'tslib'
   });
   await externalDepsNotResolvedBundle.write({
     file: externalDepsNotResolvedOutput,
@@ -224,7 +225,11 @@ export function extractDeclarations(
     } else if (ts.isVariableDeclaration(node)) {
       declarations.variables.push(node.name!.getText());
     } else if (ts.isEnumDeclaration(node)) {
-      declarations.enums.push(node.name.escapedText.toString());
+      if (
+        !node.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ConstKeyword)
+      ) {
+        declarations.enums.push(node.name.escapedText.toString());
+      }
     } else if (ts.isVariableStatement(node)) {
       const variableDeclarations = node.declarationList.declarations;
 
@@ -238,9 +243,8 @@ export function extractDeclarations(
         }
         // Binding Pattern Example: export const {a, b} = {a: 1, b: 1};
         else {
-          const elements = variableDeclaration.name.elements as ts.NodeArray<
-            ts.BindingElement
-          >;
+          const elements = variableDeclaration.name
+            .elements as ts.NodeArray<ts.BindingElement>;
           elements.forEach((node: ts.BindingElement) => {
             declarations.variables.push(node.name.getText(sourceFile));
           });
