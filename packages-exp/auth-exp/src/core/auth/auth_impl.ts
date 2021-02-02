@@ -101,15 +101,15 @@ export class AuthImpl implements Auth, _FirebaseService {
     persistenceHierarchy: Persistence[],
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void> {
+    if (popupRedirectResolver) {
+      this._popupRedirectResolver = _getInstance(popupRedirectResolver);
+    }
+
     // Have to check for app deletion throughout initialization (after each
     // promise resolution)
     this._initializationPromise = this.queue(async () => {
       if (this._deleted) {
         return;
-      }
-
-      if (popupRedirectResolver) {
-        this._popupRedirectResolver = _getInstance(popupRedirectResolver);
       }
 
       this.persistenceManager = await PersistenceUserManager.create(

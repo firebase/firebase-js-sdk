@@ -402,6 +402,10 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
     appName: AppName;
     serverResponse: IdTokenMfaResponse;
   };
+  [AuthErrorCode.INVALID_CORDOVA_CONFIGURATION]: {
+    appName: AppName;
+    missingPlugin?: string;
+  };
 }
 
 export const _DEFAULT_AUTH_ERROR_FACTORY = new ErrorFactory<
