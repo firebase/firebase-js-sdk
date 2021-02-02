@@ -28,8 +28,6 @@ import { configureForFirebase } from './src/config';
 
 import './register-module';
 
-// abc
-
 /**
  * Registers the main Firestore build with the components framework.
  * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
