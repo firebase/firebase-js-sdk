@@ -997,7 +997,7 @@ describeSpec('Limbo Documents:', [], () => {
         spec()
           .withGCEnabled(false)
 
-          // Start a limbo resolution listen for a document.
+          // Start a limbo resolution listen for a document (doc1).
           .userListens(query1)
           .watchAcksFull(query1, 1000, doc1)
           .expectEvents(query1, { added: [doc1] })
@@ -1008,7 +1008,8 @@ describeSpec('Limbo Documents:', [], () => {
           .expectLimboDocs(doc1.key)
           .expectEnqueuedLimboDocs()
 
-          // Put the same document into limbo in a different query.
+          // Put doc1 into limbo in a different query; verify that another limbo
+          // resolution is neither started nor enqueued.
           .userListens(filteredQuery2)
           .expectEvents(filteredQuery2, { added: [doc1], fromCache: true })
           .watchAcksFull(filteredQuery2, 1002)
@@ -1045,7 +1046,7 @@ describeSpec('Limbo Documents:', [], () => {
           .watchAcksFull(filteredQuery1, 1001)
           .expectLimboDocs(doc1.key)
 
-          // Start a limbo resolution listen for a different document.
+          // Start a limbo resolution listen for a different document (doc2).
           .userListens(query2)
           .watchAcksFull(query2, 1002, doc2)
           .expectEvents(query2, { added: [doc2] })
@@ -1056,9 +1057,8 @@ describeSpec('Limbo Documents:', [], () => {
           .expectLimboDocs(doc1.key)
           .expectEnqueuedLimboDocs(doc2.key)
 
-          // Put the the "different" document into limbo in a different query
-          // and verify that it's not added to the limbo resolution queue a
-          // second time.
+          // Put doc2 into limbo in a different query and verify that it's not
+          // added to the limbo resolution queue again.
           .userListens(filteredQuery3)
           .expectEvents(filteredQuery3, { added: [doc2], fromCache: true })
           .watchAcksFull(filteredQuery3, 1004)
