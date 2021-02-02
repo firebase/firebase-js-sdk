@@ -72,7 +72,7 @@ class IdpCredential extends AuthCredential {
       tenantId: this.params.tenantId,
       pendingToken: this.params.pendingToken,
       returnSecureToken: true,
-      returnIdpCredential: true,
+      returnIdpCredential: true
     };
 
     if (idToken) {
