@@ -73,16 +73,15 @@ describe('platform_browser/popup_redirect', () => {
       } as unknown) as gapi.iframes.Context)
     );
 
-    authWindow._window().gapi = ({
+    sinon.stub(authWindow._window(), 'gapi').value({
       iframes: {
         CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-iframes-filter'
       }
-    } as unknown) as typeof gapi;
+    });
   });
 
   afterEach(() => {
     sinon.restore();
-    delete authWindow._window().gapi;
   });
 
   context('#_openPopup', () => {
