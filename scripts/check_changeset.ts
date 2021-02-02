@@ -34,11 +34,12 @@ const bumpRank: Record<string, number> = {
 
 /**
  * Get highest bump that isn't the main firebase package, return
-// numerical rank and bump text.
+// numerical rank, bump text, package name.
  */
 function getHighestBump(changesetPackages: Record<string, string>) {
   let highestBump = bumpRank.patch;
   let highestBumpText = 'patch';
+  let bumpPackage = '';
   for (const pkgName in changesetPackages) {
     if (
       pkgName !== 'firebase' &&
@@ -46,9 +47,10 @@ function getHighestBump(changesetPackages: Record<string, string>) {
     ) {
       highestBump = bumpRank[changesetPackages[pkgName]];
       highestBumpText = changesetPackages[pkgName];
+      bumpPackage = pkgName;
     }
   }
-  return { highestBump, bumpText: highestBumpText };
+  return { highestBump, bumpText: highestBumpText, bumpPackage };
 }
 
 /**
@@ -167,17 +169,18 @@ async function main() {
 
       // Check for packages with a minor or major bump where 'firebase' hasn't been
       // included.
-      const { highestBump, bumpText } = getHighestBump(changesetPackages);
-      console.log(highestBump, bumpText);
+      const { highestBump, bumpText, bumpPackage } = getHighestBump(
+        changesetPackages
+      );
       if (highestBump > bumpRank.patch) {
         if (changesetPackages['firebase'] == null) {
           errors.push(
-            `- There is a package with a ${bumpText} bump which requires an ` +
+            `- Package ${bumpPackage} has a ${bumpText} bump which requires an ` +
               `additional line to bump the main "firebase" package to ${bumpText}.`
           );
         } else if (bumpRank[changesetPackages['firebase']] < highestBump) {
           errors.push(
-            `- There is a package with a ${bumpText} bump. ` +
+            `- Package ${bumpPackage} has a ${bumpText} bump. ` +
               `Increase the bump for the main "firebase" package to ${bumpText}.`
           );
         }
