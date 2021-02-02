@@ -25,10 +25,13 @@ import {
   PopupRedirectResolver
 } from '../model/popup_redirect';
 import { AuthPopup } from '../platform_browser/util/popup';
-import { _fail } from '../core/util/assert';
+import { _assert, _fail } from '../core/util/assert';
 import { AuthErrorCode } from '../core/errors';
 
 class CordovaPopupRedirectResolver implements PopupRedirectResolver {
+  readonly _redirectPersistence = browserSessionPersistence;
+  _completeRedirectFn: () => Promise<null> = async () => null;
+
   _initialize(_auth: Auth): Promise<EventManager> {
     throw new Error('Method not implemented.');
   }
@@ -50,8 +53,6 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   ): void {
     throw new Error('Method not implemented.');
   }
-  readonly _redirectPersistence = browserSessionPersistence;
-  _completeRedirectFn: () => Promise<null> = async () => null;
 }
 
 function checkCordovaConfiguration(auth: Auth): void {
@@ -60,36 +61,30 @@ function checkCordovaConfiguration(auth: Auth): void {
   // Note that cordova-universal-links-plugin has been abandoned.
   // A fork with latest fixes is available at:
   // https://www.npmjs.com/package/cordova-universal-links-plugin-fix
-  if (typeof window?.universalLinks?.subscribe !== 'function') {
-    _fail(auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
+  _assert(typeof window?.universalLinks?.subscribe === 'function', auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
       missingPlugin: 'cordova-universal-links-plugin-fix'
     });
-  }
 
   // https://www.npmjs.com/package/cordova-plugin-buildinfo
-  if (typeof window?.BuildInfo?.packageName === 'undefined') {
-    _fail(auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
+  _assert (typeof window?.BuildInfo?.packageName !== 'undefined', auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
       missingPlugin: 'cordova-plugin-buildInfo'
     });
-  }
 
   // https://github.com/google/cordova-plugin-browsertab
-  if (typeof window?.cordova?.plugins?.browsertab?.openUrl !== 'function') {
-    _fail(auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
+  _assert(typeof window?.cordova?.plugins?.browsertab?.openUrl === 'function',
+    auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
       missingPlugin: 'cordova-plugin-browsertab'
     });
-  }
 
   // https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-inappbrowser/
-  if (typeof window?.cordova?.InAppBrowser?.open !== 'function') {
-    _fail(auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
+  _assert(typeof window?.cordova?.InAppBrowser?.open === 'function',
+    auth, AuthErrorCode.INVALID_CORDOVA_CONFIGURATION, {
       missingPlugin: 'cordova-plugin-inappbrowser'
     });
-  }
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for browser
+ * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for Cordova
  * based applications.
  *
  * @public

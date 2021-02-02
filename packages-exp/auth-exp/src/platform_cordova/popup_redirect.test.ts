@@ -34,13 +34,13 @@ describe('platform_cordova/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
+    attachExpectedPlugins();
     resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
   });
 
   describe('_openRedirect plugin checks', () => {
     // TODO: Rest of the tests go here
     it('does not reject if all plugins installed', () => {
-      setExpectedPluginsButMissing([]);
       expect(() =>
         resolver._openRedirect(
           auth,
@@ -51,55 +51,58 @@ describe('platform_cordova/popup_redirect', () => {
     });
 
     it('rejects if universal links is missing', () => {
-      setExpectedPluginsButMissing(['universalLinks.subscribe']);
+      removeProp(window, 'universalLinks');
       expect(() =>
         resolver._openRedirect(
           auth,
           new GoogleAuthProvider(),
           AuthEventType.SIGN_IN_VIA_REDIRECT
         )
-      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
+      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
+      .that.has.deep.property('customData', {appName: 'test-app', missingPlugin: 'cordova-universal-links-plugin-fix'});
     });
 
     it('rejects if build info is missing', () => {
-      setExpectedPluginsButMissing(['BuildInfo.packageName']);
+      removeProp(window.BuildInfo, 'packageName');
       expect(() =>
         resolver._openRedirect(
           auth,
           new GoogleAuthProvider(),
           AuthEventType.SIGN_IN_VIA_REDIRECT
         )
-      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
+      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
+      .that.has.deep.property('customData', {appName: 'test-app', missingPlugin: 'cordova-plugin-buildInfo'});
     });
 
-    it('rejects if browsertab openUrl', () => {
-      setExpectedPluginsButMissing(['cordova.plugins.browsertab.openUrl']);
+    it('rejects if browsertab openUrl is missing', () => {
+      removeProp(window.cordova.plugins.browsertab, 'openUrl');
       expect(() =>
         resolver._openRedirect(
           auth,
           new GoogleAuthProvider(),
           AuthEventType.SIGN_IN_VIA_REDIRECT
         )
-      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
+      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
+      .that.has.deep.property('customData', {appName: 'test-app', missingPlugin: 'cordova-plugin-browsertab'});
     });
 
     it('rejects if InAppBrowser is missing', () => {
-      setExpectedPluginsButMissing(['cordova.InAppBrowser.open']);
+      removeProp(window.cordova.InAppBrowser, 'open');
       expect(() =>
         resolver._openRedirect(
           auth,
           new GoogleAuthProvider(),
           AuthEventType.SIGN_IN_VIA_REDIRECT
         )
-      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration');
+      ).to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
+      .that.has.deep.property('customData', {appName: 'test-app', missingPlugin: 'cordova-plugin-inappbrowser'});
     });
   });
 });
 
-function setExpectedPluginsButMissing(missingPlugins: string[]): void {
-  // eslint-disable @typescript-eslint/no-any We don't want a strictly typed window
-  const win: any = window;
-  // Eventually these will be replaced with mocks
+function attachExpectedPlugins(): void {
+  // Eventually these will be replaced with full mocks
+  const win = window as unknown as Record<string, unknown>;
   win.cordova = {
     plugins: {
       browsertab: {
@@ -115,17 +118,10 @@ function setExpectedPluginsButMissing(missingPlugins: string[]): void {
     subscribe: () => {}
   };
   win.BuildInfo = {
-    packageName: 'com.name.package'
+    packageName: 'com.example.name.package'
   };
+}
 
-  for (const missing of missingPlugins) {
-    const parts = missing.split('.');
-    const last = parts.pop()!;
-    // eslint-disable @typescript-eslint/no-any We're just traversing an object map
-    let obj: any = win;
-    for (const p of parts) {
-      obj = obj[p];
-    }
-    delete obj[last];
-  }
+function removeProp(obj: unknown, prop: string):void {
+  delete (obj as Record<string, unknown>)[prop];
 }
