@@ -1008,31 +1008,13 @@ abstract class TestRunner {
   }
 
   private validateEnqueuedLimboDocs(): void {
-    let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine).forEach(
-      key => {
-        actualLimboDocs = actualLimboDocs.add(key);
-      }
-    );
-    let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    this.expectedEnqueuedLimboDocs.forEach(key => {
-      expectedLimboDocs = expectedLimboDocs.add(key);
-    });
-    actualLimboDocs.forEach(key => {
-      expect(expectedLimboDocs.has(key)).to.equal(
-        true,
-        `Found enqueued limbo doc ${key.toString()}, but it was not in ` +
-          `the set of expected enqueued limbo documents ` +
-          `(${expectedLimboDocs.toString()})`
-      );
-    });
-    expectedLimboDocs.forEach(key => {
-      expect(actualLimboDocs.has(key)).to.equal(
-        true,
-        `Expected doc ${key.toString()} to be enqueued for limbo resolution, ` +
-          `but it was not in the queue (${actualLimboDocs.toString()})`
-      );
-    });
+    const actualLimboDocs = Array.from(
+      syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine)
+    ).sort();
+    const expectedLimboDocs = Array.from(this.expectedEnqueuedLimboDocs, key =>
+      key.path.canonicalString()
+    ).sort();
+    expect(actualLimboDocs).to.deep.equal(expectedLimboDocs);
   }
 
   private async validateActiveTargets(): Promise<void> {

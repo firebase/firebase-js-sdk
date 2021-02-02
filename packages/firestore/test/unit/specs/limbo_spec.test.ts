@@ -922,4 +922,51 @@ describeSpec('Limbo Documents:', [], () => {
       );
     }
   );
+
+  specTest(
+    'Enqueued limbo resolutions should be removed when query listen stops',
+    [],
+    () => {
+      const doc1 = doc('collection1/doc', 1000, { key: 1 });
+      const query1 = query('collection1');
+      const filteredQuery1 = query('collection1', filter('key', '==', 1));
+
+      const doc2 = doc('collection2/doc', 1000, { key: 2 });
+      const query2 = query('collection2');
+      const filteredQuery2 = query('collection2', filter('key', '==', 2));
+
+      return (
+        spec()
+          .withGCEnabled(false)
+          .withMaxConcurrentLimboResolutions(1)
+
+          // Max out the number of active limbo resolutions.
+          .userListens(filteredQuery1)
+          .watchAcksFull(filteredQuery1, 1000, doc1)
+          .expectEvents(filteredQuery1, { added: [doc1] })
+          .userUnlistens(filteredQuery1)
+          .userListens(query1)
+          .expectEvents(query1, { added: [doc1], fromCache: true })
+          .watchAcksFull(query1, 1001)
+          .expectLimboDocs(doc1.key)
+
+          // Enqueue a limbo resolution from another query.
+          .userListens(filteredQuery2)
+          .watchAcksFull(filteredQuery2, 1002, doc2)
+          .expectEvents(filteredQuery2, { added: [doc2] })
+          .userUnlistens(filteredQuery2)
+          .userListens(query2)
+          .expectEvents(query2, { added: [doc2], fromCache: true })
+          .watchAcksFull(query2, 1003)
+          .expectLimboDocs(doc1.key)
+          .expectEnqueuedLimboDocs(doc2.key)
+
+          // Stop the other query and ensure that the enqueued limbo resolution
+          // is removed.
+          .userUnlistens(query2)
+          .expectLimboDocs(doc1.key)
+          .expectEnqueuedLimboDocs()
+      );
+    }
+  );
 });
