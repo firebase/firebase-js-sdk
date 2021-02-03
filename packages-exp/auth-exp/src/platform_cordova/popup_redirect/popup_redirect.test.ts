@@ -18,11 +18,11 @@
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 import { expect, use } from 'chai';
-import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
-import { SingletonInstantiator } from '../core/util/instantiator';
-import { AuthEventType, PopupRedirectResolver } from '../model/popup_redirect';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
+import { SingletonInstantiator } from '../../core/util/instantiator';
+import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
 import { cordovaPopupRedirectResolver } from './popup_redirect';
-import { GoogleAuthProvider } from '../core/providers/google';
+import { GoogleAuthProvider } from '../../core/providers/google';
 import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);

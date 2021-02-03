@@ -38,10 +38,10 @@ export { indexedDBLocalPersistence } from './src/platform_browser/persistence/in
 export { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
 export { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 
-export { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect';
+export { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect/popup_redirect';
 export { signInWithRedirect } from './src/platform_cordova/strategies/redirect';
 
-import { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect';
+import { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect/popup_redirect';
 
 export function getAuth(app: FirebaseApp): Auth {
   return initializeAuth(app, {
