@@ -23,7 +23,6 @@ import { UserCredential } from '../../model/user';
 /**
  * Parse the `AdditionalUserInfo` from the ID token response.
  *
- * @internal
  */
 export function _fromIdTokenResponse(
   idTokenResponse?: IdTokenResponse

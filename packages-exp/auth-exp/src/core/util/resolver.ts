@@ -26,8 +26,6 @@ import { _getInstance } from './instantiator';
  * Chooses a popup/redirect resolver to use. This prefers the override (which
  * is directly passed in), and falls back to the property set on the auth
  * object. If neither are available, this function errors w/ an argument error.
- *
- * @internal
  */
 export function _withDefaultResolver(
   auth: Auth,

@@ -44,21 +44,18 @@ import { _getRedirectResult } from './strategies/redirect';
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
  *
- * @internal
  */
 const WIDGET_PATH = '__/auth/handler';
 
 /**
  * URL for emulated environment
  *
- * @internal
  */
 const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
 
 /**
  * The special web storage event
  *
- * @internal
  */
 const WEB_STORAGE_SUPPORT_KEY = 'webStorageSupport';
 

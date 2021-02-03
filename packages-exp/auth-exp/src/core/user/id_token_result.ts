@@ -94,7 +94,6 @@ function secondsStringToMilliseconds(seconds: string): number {
   return Number(seconds) * 1000;
 }
 
-/** @internal */
 export function _parseToken(token: string): externs.ParsedToken | null {
   const [algorithm, payload, signature] = token.split('.');
   if (
@@ -121,8 +120,6 @@ export function _parseToken(token: string): externs.ParsedToken | null {
 
 /**
  * Extract expiresIn TTL from a token by subtracting the expiration from the issuance.
- *
- * @internal
  */
 export function _tokenExpiresIn(token: string): number {
   const parsedToken = _parseToken(token);

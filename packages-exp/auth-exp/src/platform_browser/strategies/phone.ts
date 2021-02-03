@@ -156,7 +156,6 @@ export async function reauthenticateWithPhoneNumber(
 /**
  * Returns a verification ID to be used in conjunction with the SMS code that is sent.
  *
- * @internal
  */
 export async function _verifyPhoneNumber(
   auth: Auth,

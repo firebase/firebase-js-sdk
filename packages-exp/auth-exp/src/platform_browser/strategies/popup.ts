@@ -35,7 +35,6 @@ import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operat
 
 /*
  * The event timeout is the same on mobile and desktop, no need for Delay.
- * @internal
  */
 export const enum _Timeout {
   AUTH_EVENT = 2000
@@ -193,7 +192,6 @@ export async function linkWithPopup(
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
  *
- * @internal
  */
 class PopupOperation extends AbstractPopupRedirectOperation {
   // Only one popup is ever shown at once. The lifecycle of the current popup
