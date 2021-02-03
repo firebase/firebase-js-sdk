@@ -284,10 +284,7 @@ export function onLog(
   options?: LogOptions
 ): void {
   if (logCallback !== null && typeof logCallback !== 'function') {
-    throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT, {
-      // appName isn't used in INVALID_LOG_ARGUMENT error but ErrorFactory requires it
-      appName: ''
-    });
+    throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT);
   }
   setUserLogHandler(logCallback, options);
 }
