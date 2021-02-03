@@ -40,7 +40,7 @@ function getHighestBump(changesetPackages: Record<string, string>) {
   let highestBump = bumpRank.patch;
   let highestBumpText = 'patch';
   let bumpPackage = '';
-  for (const pkgName in changesetPackages) {
+  for (const pkgName of  Object.keys(changesetPackages)) {
     if (
       pkgName !== 'firebase' &&
       bumpRank[changesetPackages[pkgName]] > highestBump
