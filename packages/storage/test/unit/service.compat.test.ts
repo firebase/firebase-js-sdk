@@ -191,9 +191,7 @@ describe('Firebase Storage > Service', () => {
         testShared.makePool(newSend)
       );
       service.useEmulator('test.host.org', 1234);
-      expect(service._delegate.emulatorOrigin).to.equal(
-        'http://test.host.org:1234'
-      );
+      expect(service._delegate.host).to.equal('http://test.host.org:1234');
       void service.ref('test.png').getDownloadURL();
     });
   });

@@ -156,7 +156,7 @@ export function fromResourceString(
 export function downloadUrlFromResourceString(
   metadata: Metadata,
   resourceString: string,
-  emulatorOrigin?: string
+  host?: string
 ): string | null {
   const obj = jsonObjectOrNull(resourceString);
   if (obj === null) {
@@ -177,7 +177,7 @@ export function downloadUrlFromResourceString(
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
     const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
-    const base = makeUrl(urlPart, emulatorOrigin);
+    const base = makeUrl(urlPart, host);
     const queryString = makeQueryString({
       alt: 'media',
       token

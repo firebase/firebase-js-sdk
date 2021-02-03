@@ -240,7 +240,7 @@ GOOG4-RSA-SHA256`
         testShared.makePool(newSend)
       );
       useStorageEmulator(service, 'test.host.org', 1234);
-      expect(service.emulatorOrigin).to.equal('http://test.host.org:1234');
+      expect(service.host).to.equal('http://test.host.org:1234');
       void getDownloadURL(ref(service, 'test.png'));
     });
   });

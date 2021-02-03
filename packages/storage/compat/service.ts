@@ -75,7 +75,7 @@ export class StorageServiceCompat implements types.FirebaseStorage {
       );
     }
     try {
-      Location.makeFromUrl(url, this._delegate.emulatorOrigin);
+      Location.makeFromUrl(url, this._delegate.host);
     } catch (e) {
       throw invalidArgument(
         'refFromUrl() expected a valid full URL but got an invalid one.'

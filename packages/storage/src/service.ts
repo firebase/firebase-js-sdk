@@ -31,6 +31,7 @@ import {
 } from '@firebase/app-exp';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
+  DEFAULT_HOST,
   DEFAULT_MAX_OPERATION_RETRY_TIME,
   DEFAULT_MAX_UPLOAD_RETRY_TIME
 } from '../src/implementation/constants';
@@ -42,6 +43,7 @@ import {
 import { validateNumber } from './implementation/type';
 
 export function isUrl(path?: string): boolean {
+  console.log(path);
   return /^[A-Za-z]+:\/\//.test(path as string);
 }
 
@@ -136,7 +138,7 @@ export function useStorageEmulator(
   host: string,
   port: number
 ): void {
-  storage.emulatorOrigin = `http://${host}:${port}`;
+  storage.host = `http://${host}:${port}`;
 }
 
 /**
@@ -146,7 +148,7 @@ export function useStorageEmulator(
  */
 export class StorageService implements _FirebaseService {
   _bucket: Location | null = null;
-  private _emulatorOrigin?: string;
+  private _host: string = DEFAULT_HOST;
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
@@ -173,16 +175,16 @@ export class StorageService implements _FirebaseService {
     }
   }
 
-  get emulatorOrigin(): string | undefined {
-    return this._emulatorOrigin;
+  get host(): string {
+    return this._host;
   }
 
   /**
-   * Set emulator origin string for this service.
-   * @param origin Origin string in the form of http://[host]:[port]
+   * Set host:port string for this service.
+   * @param origin - Origin string in the form of http://[host]:[port]
    */
-  set emulatorOrigin(origin: string | undefined) {
-    this._emulatorOrigin = origin;
+  set host(origin: string) {
+    this._host = origin;
     if (this._url != null) {
       this._bucket = Location.makeFromBucketSpec(this._url, origin);
     } else {
