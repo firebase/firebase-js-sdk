@@ -25,6 +25,34 @@ import fs from 'mz/fs';
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
+// Version bump text converted to rankable numbers.
+const bumpRank: Record<string, number> = {
+  'patch': 0,
+  'minor': 1,
+  'major': 2
+};
+
+/**
+ * Get highest bump that isn't the main firebase package, return
+// numerical rank, bump text, package name.
+ */
+function getHighestBump(changesetPackages: Record<string, string>) {
+  let highestBump = bumpRank.patch;
+  let highestBumpText = 'patch';
+  let bumpPackage = '';
+  for (const pkgName of  Object.keys(changesetPackages)) {
+    if (
+      pkgName !== 'firebase' &&
+      bumpRank[changesetPackages[pkgName]] > highestBump
+    ) {
+      highestBump = bumpRank[changesetPackages[pkgName]];
+      highestBumpText = changesetPackages[pkgName];
+      bumpPackage = pkgName;
+    }
+  }
+  return { highestBump, bumpText: highestBumpText, bumpPackage };
+}
+
 /**
  * Identify modified packages.
  */
@@ -74,11 +102,12 @@ async function parseChangesetFile(changesetFile: string) {
   const fileText: string = await fs.readFile(changesetFile, 'utf8');
   const fileParts = fileText.split('---\n');
   const packageLines = fileParts[1].split('\n');
-  const changesetPackages = packageLines
+  const changesetPackages: Record<string, string> = {};
+  packageLines
     .filter(line => line)
-    .map(line => {
-      const [packageName] = line.split(':');
-      return packageName.replace(/['"]/g, '');
+    .forEach(line => {
+      const [packageName, bumpType] = line.split(':');
+      changesetPackages[packageName.replace(/['"]/g, '')] = bumpType.trim();
     });
   return changesetPackages;
 }
@@ -114,13 +143,16 @@ async function main() {
       console.log(`::set-output name=BLOCKING_FAILURE::true`);
     }
   }
+
   try {
     const diffData = await getDiffData();
     if (diffData != null) {
       const { changedPackages, changesetFile } = diffData;
       const changesetPackages = await parseChangesetFile(changesetFile);
+
+      // Check for packages where files were modified but there's no changeset.
       const missingPackages = [...changedPackages].filter(
-        changedPkg => !changesetPackages.includes(changedPkg)
+        changedPkg => !Object.keys(changesetPackages).includes(changedPkg)
       );
       if (missingPackages.length > 0) {
         const missingPackagesLines = [
@@ -132,6 +164,26 @@ async function main() {
         missingPackagesLines.push('');
         missingPackagesLines.push('  Make sure this was intentional.');
         errors.push(missingPackagesLines.join('%0A'));
+      }
+
+      // Check for packages with a minor or major bump where 'firebase' hasn't been
+      // bumped high enough or at all.
+      const { highestBump, bumpText, bumpPackage } = getHighestBump(
+        changesetPackages
+      );
+      if (highestBump > bumpRank.patch) {
+        if (changesetPackages['firebase'] == null) {
+          errors.push(
+            `- Package ${bumpPackage} has a ${bumpText} bump which requires an ` +
+              `additional line to bump the main "firebase" package to ${bumpText}.`
+          );
+        } else if (bumpRank[changesetPackages['firebase']] < highestBump) {
+          errors.push(
+            `- Package ${bumpPackage} has a ${bumpText} bump. ` +
+              `Increase the bump for the main "firebase" package to ${bumpText}.`
+          );
+        }
+        console.log(`::set-output name=BLOCKING_FAILURE::true`);
       }
     }
   } catch (e) {
