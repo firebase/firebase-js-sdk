@@ -1399,6 +1399,38 @@ describe('Query Tests', () => {
     expect(Object.values(snap.val())).to.deep.equal([snap.val()[childOne.key]]);
   });
 
+  it('Ensure startAfter on key index works with overlapping listener', async () => {
+    const node = getRandomNode() as Reference;
+    const childOne = node.push();
+    const childTwo = node.push();
+    await childOne.set(1);
+    await childTwo.set(2);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    node.on('value', snap => {
+      ea.addEvent(snap.val());
+    });
+    await ea.promise;
+    const snap = await node.orderByKey().startAfter(childOne.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childTwo.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childTwo.key]]);
+  });
+
+  it('Ensure endBefore on key index works with overlapping listener', async () => {
+    const node = getRandomNode() as Reference;
+    const childOne = node.push();
+    const childTwo = node.push();
+    await childOne.set(1);
+    await childTwo.set(2);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    node.on('value', snap => {
+      ea.addEvent(snap.val());
+    });
+    await ea.promise;
+    const snap = await node.orderByKey().endBefore(childTwo.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childOne.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childOne.key]]);
+  });
+
   it('Ensure startAt / endAt with priority works.', async () => {
     const node = getRandomNode() as Reference;
 

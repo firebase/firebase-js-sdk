@@ -32,6 +32,7 @@ import { Node } from './snap/Node';
 import { Event } from './view/Event';
 import { EventRegistration } from './view/EventRegistration';
 import { View } from './view/View';
+import { CacheNode } from './view/CacheNode';
 
 /**
  * @typedef {{
@@ -503,6 +504,42 @@ export class SyncTree {
       writeIdsToExclude,
       includeHiddenSets
     );
+  }
+
+  getServerValue(query: Query): Node | null {
+    const path = query.path;
+    let serverCache: Node | null = null;
+    let foundAncestorDefaultView = false;
+    // Any covering writes will necessarily be at the root, so really all we need to find is the server cache.
+    // Consider optimizing this once there's a better understanding of what actual behavior will be.
+    this.syncPointTree_.foreachOnPath(path, (pathToSyncPoint, sp) => {
+      const relativePath = Path.relativePath(pathToSyncPoint, path);
+      serverCache = serverCache || sp.getCompleteServerCache(relativePath);
+      foundAncestorDefaultView =
+        foundAncestorDefaultView || sp.hasCompleteView();
+    });
+    let syncPoint = this.syncPointTree_.get(path);
+    if (!syncPoint) {
+      syncPoint = new SyncPoint();
+      this.syncPointTree_ = this.syncPointTree_.set(path, syncPoint);
+    } else {
+      foundAncestorDefaultView =
+        foundAncestorDefaultView || syncPoint.hasCompleteView();
+      serverCache = serverCache || syncPoint.getCompleteServerCache(Path.Empty);
+    }
+    if (serverCache != null) {
+      let serverCacheNode: CacheNode | null = new CacheNode(
+        serverCache,
+        true,
+        false
+      );
+      let writesCache: WriteTreeRef | null = this.pendingWriteTree_.childWrites(
+        query.path
+      );
+      let view: View = syncPoint.getView(query, writesCache, serverCache, true);
+      return view.getCompleteServerCache(query.path);
+    }
+    return null;
   }
 
   /**

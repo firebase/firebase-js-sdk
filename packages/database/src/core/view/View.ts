@@ -130,6 +130,7 @@ export class View {
         this.query_.getQueryParams().loadsAllData() ||
         (!path.isEmpty() && !cache.getImmediateChild(path.getFront()).isEmpty())
       ) {
+        console.log('Returning ' + cache.getChild(path));
         return cache.getChild(path);
       }
     }

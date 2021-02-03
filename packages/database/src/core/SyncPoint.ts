@@ -94,25 +94,15 @@ export class SyncPoint {
     }
   }
 
-  /**
-   * Add an event callback for the specified query.
-   *
-   * @param {!Query} query
-   * @param {!EventRegistration} eventRegistration
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} serverCache Complete server cache, if we have it.
-   * @param {boolean} serverCacheComplete
-   * @return {!Array.<!Event>} Events to raise.
-   */
-  addEventRegistration(
+  getView(
     query: Query,
-    eventRegistration: EventRegistration,
     writesCache: WriteTreeRef,
     serverCache: Node | null,
     serverCacheComplete: boolean
-  ): Event[] {
+  ): View {
     const queryId = query.queryIdentifier();
     let view = this.views.get(queryId);
+    console.log('We already have a view? ' + JSON.stringify(view));
     if (!view) {
       // TODO: make writesCache take flag for complete server node
       let eventCache = writesCache.calcCompleteEventCache(
@@ -140,10 +130,37 @@ export class SyncPoint {
           false
         )
       );
-      view = new View(query, viewCache);
-      this.views.set(queryId, view);
+      return new View(query, viewCache);
     }
+    return view;
+  }
 
+  /**
+   * Add an event callback for the specified query.
+   *
+   * @param {!Query} query
+   * @param {!EventRegistration} eventRegistration
+   * @param {!WriteTreeRef} writesCache
+   * @param {?Node} serverCache Complete server cache, if we have it.
+   * @param {boolean} serverCacheComplete
+   * @return {!Array.<!Event>} Events to raise.
+   */
+  addEventRegistration(
+    query: Query,
+    eventRegistration: EventRegistration,
+    writesCache: WriteTreeRef,
+    serverCache: Node | null,
+    serverCacheComplete: boolean
+  ): Event[] {
+    let view = this.getView(
+      query,
+      writesCache,
+      serverCache,
+      serverCacheComplete
+    );
+    if (!this.views.has(query.queryIdentifier())) {
+      this.views.set(query.queryIdentifier(), view);
+    }
     // This is guaranteed to exist now, we just created anything that was missing
     view.addEventRegistration(eventRegistration);
     return view.getInitialEvents(eventRegistration);
