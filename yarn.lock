@@ -4945,7 +4945,7 @@ chainsaw@~0.1.0:
   dependencies:
     traverse ">=0.3.0 <0.4"
 
-chalk@2.x, "chalk@^1.1.3 || 2.x", chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.0, chalk@^2.3.1, chalk@^2.4.1, chalk@^2.4.2:
+chalk@2.x, chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.0, chalk@^2.3.1, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://registry.npmjs.org/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
   integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
@@ -10300,12 +10300,12 @@ karma-spec-reporter@0.0.32:
   dependencies:
     colors "^1.1.2"
 
-karma-summary-reporter@1.9.0:
-  version "1.9.0"
-  resolved "https://registry.npmjs.org/karma-summary-reporter/-/karma-summary-reporter-1.9.0.tgz#e0c2f97bbd0af5faed7ff5e37cf5b2dd10ff8306"
-  integrity sha512-aQ+GcHsj7bYR00mJTC/jSrVYt9GdmWv9JN1MtLSICOnfPaVBHFcFMPDdCkvb/ZIB2pb+VYwtRH+DjQ0yrTqfvQ==
+karma-summary-reporter@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/karma-summary-reporter/-/karma-summary-reporter-2.0.0.tgz#50c26038d877e6f245bd4e3f80dbc5fcec5a7b97"
+  integrity sha512-m9MBLnlsm0wbGrFZF05U9EWZuLD5i14OiXQsWardujd0IadMEy3Te9nDkeJzWPp9vQAhbpv85ZynsNgXC6lNLQ==
   dependencies:
-    chalk "^1.1.3 || 2.x"
+    chalk "^4.0.0"
 
 karma-typescript@5.2.0:
   version "5.2.0"
