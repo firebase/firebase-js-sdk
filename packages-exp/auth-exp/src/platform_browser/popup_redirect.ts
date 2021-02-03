@@ -37,22 +37,7 @@ import { _openIframe } from './iframe/iframe';
 import { browserSessionPersistence } from './persistence/session_storage';
 import { _open, AuthPopup } from './util/popup';
 import { _getRedirectResult } from './strategies/redirect';
-<<<<<<< HEAD
-
-/**
- * URL for Authentication widget which will initiate the OAuth handshake
- *
- */
-const WIDGET_PATH = '__/auth/handler';
-
-/**
- * URL for emulated environment
- *
- */
-const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
-=======
 import { _getRedirectUrl } from '../core/util/handler';
->>>>>>> fb1074ebb (Further Cordova redirect support)
 
 /**
  * The special web storage event
