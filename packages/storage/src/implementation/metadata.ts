@@ -156,7 +156,7 @@ export function fromResourceString(
 export function downloadUrlFromResourceString(
   metadata: Metadata,
   resourceString: string,
-  host?: string
+  host: string
 ): string | null {
   const obj = jsonObjectOrNull(resourceString);
   if (obj === null) {

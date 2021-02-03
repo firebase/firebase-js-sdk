@@ -18,11 +18,10 @@
 /**
  * @fileoverview Functions to create and manipulate URLs for the server API.
  */
-import { DEFAULT_HOST } from './constants';
 import { UrlParams } from './requestinfo';
 
-export function makeUrl(urlPart: string, customHost?: string): string {
-  return `https://${customHost ?? DEFAULT_HOST}/v0${urlPart}`;
+export function makeUrl(urlPart: string, host: string): string {
+  return `https://${host}/v0${urlPart}`;
 }
 
 export function makeQueryString(params: UrlParams): string {
