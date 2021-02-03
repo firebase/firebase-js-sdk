@@ -1439,7 +1439,7 @@
     unique-filename "^1.1.1"
     which "^1.3.1"
 
-"@firebase/database@0.8.3", "@firebase/database@^0.8.1":
+"@firebase/database@^0.8.1":
   version "0.8.3"
   resolved "https://registry.npmjs.org/@firebase/database/-/database-0.8.3.tgz#4e5efa8fc8df00d6febfd9c8d6d6e409596659f7"
   integrity sha512-i29rr3kcPltIkA8La9M1lgsSxx9bfu5lCQ0T+tbJptZ3UpqpcL1NzCcZa24cJjiLgq3HQNPyLvUvCtcPSFDlRg==
@@ -3121,10 +3121,10 @@
   resolved "https://registry.npmjs.org/@types/yargs-parser/-/yargs-parser-15.0.0.tgz#cb3f9f741869e20cce330ffbeb9271590483882d"
   integrity sha512-FA/BWv8t8ZWJ+gEOnLLd8ygxH/2UFbAvgEonyfN6yWGLKc7zVjbpl2Y4CTjid9h2RfgPP6SEt6uHwEOply00yw==
 
-"@types/yargs@15.0.12":
-  version "15.0.12"
-  resolved "https://registry.npmjs.org/@types/yargs/-/yargs-15.0.12.tgz#6234ce3e3e3fa32c5db301a170f96a599c960d74"
-  integrity sha512-f+fD/fQAo3BCbCDlrUpznF1A5Zp9rB0noS5vnoormHSIPFKL0Z2DcUJ3Gxp5ytH4uLRNxy7AwYUC9exZzqGMAw==
+"@types/yargs@16.0.0":
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/@types/yargs/-/yargs-16.0.0.tgz#0e033b23452da5d61b6c44747612cb80ac528751"
+  integrity sha512-2nN6AGeMwe8+O6nO9ytQfbMQOJy65oi1yK2y/9oReR08DaXSGtMsrLyCM1ooKqfICpCx4oITaR4LkOmdzz41Ww==
   dependencies:
     "@types/yargs-parser" "*"
 
