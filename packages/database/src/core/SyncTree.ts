@@ -536,8 +536,13 @@ export class SyncTree {
       let writesCache: WriteTreeRef | null = this.pendingWriteTree_.childWrites(
         query.path
       );
-      let view: View = syncPoint.getView(query, writesCache, serverCache, true);
-      return view.getCompleteServerCache(query.path);
+      let view: View = syncPoint.getView(
+        query,
+        writesCache,
+        serverCacheNode.getNode(),
+        true
+      );
+      return view.getCompleteNode();
     }
     return null;
   }

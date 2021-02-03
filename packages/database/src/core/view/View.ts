@@ -117,6 +117,10 @@ export class View {
     return this.viewCache_.getServerCache().getNode();
   }
 
+  getCompleteNode(): Node | null {
+    return this.viewCache_.getCompleteEventSnap();
+  }
+
   /**
    * @param {!Path} path
    * @return {?Node}
@@ -130,7 +134,6 @@ export class View {
         this.query_.getQueryParams().loadsAllData() ||
         (!path.isEmpty() && !cache.getImmediateChild(path.getFront()).isEmpty())
       ) {
-        console.log('Returning ' + cache.getChild(path));
         return cache.getChild(path);
       }
     }

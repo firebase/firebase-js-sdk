@@ -102,7 +102,6 @@ export class SyncPoint {
   ): View {
     const queryId = query.queryIdentifier();
     let view = this.views.get(queryId);
-    console.log('We already have a view? ' + JSON.stringify(view));
     if (!view) {
       // TODO: make writesCache take flag for complete server node
       let eventCache = writesCache.calcCompleteEventCache(
