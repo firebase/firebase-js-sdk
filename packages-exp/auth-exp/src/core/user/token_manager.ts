@@ -27,8 +27,6 @@ import { _tokenExpiresIn } from './id_token_result';
 /**
  * The number of milliseconds before the official expiration time of a token
  * to refresh that token, to provide a buffer for RPCs to complete.
- *
- * @internal
  */
 export const enum Buffer {
   TOKEN_REFRESH = 30_000

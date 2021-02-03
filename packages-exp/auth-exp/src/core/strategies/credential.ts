@@ -27,7 +27,6 @@ import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 
-/** @internal */
 export async function _signInWithCredential(
   auth: Auth,
   credential: AuthCredential,
