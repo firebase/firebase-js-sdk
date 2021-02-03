@@ -43,7 +43,6 @@ import {
 import { validateNumber } from './implementation/type';
 
 export function isUrl(path?: string): boolean {
-  console.log(path);
   return /^[A-Za-z]+:\/\//.test(path as string);
 }
 
@@ -123,14 +122,14 @@ export function ref(
 }
 
 function extractBucket(
-  config?: FirebaseOptions,
-  customHost?: string
+  host: string,
+  config?: FirebaseOptions
 ): Location | null {
   const bucketString = config?.[CONFIG_STORAGE_BUCKET_KEY];
   if (bucketString == null) {
     return null;
   }
-  return Location.makeFromBucketSpec(bucketString, customHost);
+  return Location.makeFromBucketSpec(bucketString, host);
 }
 
 export function useStorageEmulator(
@@ -169,9 +168,9 @@ export class StorageService implements _FirebaseService {
     this._maxUploadRetryTime = DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this._requests = new Set();
     if (_url != null) {
-      this._bucket = Location.makeFromBucketSpec(_url);
+      this._bucket = Location.makeFromBucketSpec(_url, this._host);
     } else {
-      this._bucket = extractBucket(this.app.options);
+      this._bucket = extractBucket(this._host, this.app.options);
     }
   }
 
@@ -188,7 +187,7 @@ export class StorageService implements _FirebaseService {
     if (this._url != null) {
       this._bucket = Location.makeFromBucketSpec(this._url, origin);
     } else {
-      this._bucket = extractBucket(this.app.options, origin);
+      this._bucket = extractBucket(origin, this.app.options);
     }
   }
 
