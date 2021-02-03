@@ -71,7 +71,8 @@ class IdpCredential extends AuthCredential {
       postBody: this.params.postBody || null,
       tenantId: this.params.tenantId,
       pendingToken: this.params.pendingToken,
-      returnSecureToken: true
+      returnSecureToken: true,
+      returnIdpCredential: true
     };
 
     if (idToken) {

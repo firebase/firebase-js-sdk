@@ -82,7 +82,8 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        returnSecureToken: true
+        returnSecureToken: true,
+        returnIdpCredential: true
       });
     });
 
@@ -136,7 +137,8 @@ describe('core/strategies/idb', () => {
         postBody: 'post-body',
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
-        returnSecureToken: true
+        returnSecureToken: true,
+        returnIdpCredential: true
       });
     });
 
@@ -193,6 +195,7 @@ describe('core/strategies/idb', () => {
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
         returnSecureToken: true,
+        returnIdpCredential: true,
         idToken: idTokenBeforeLink
       });
     });
