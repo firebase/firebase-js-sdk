@@ -383,7 +383,7 @@ export class Repo {
   getValue(query: Query): Promise<DataSnapshot> {
     // Only active queries are cached. There is no persisted cache.
     const cached = this.serverSyncTree_.getServerValue(query);
-    if (cached != null /*&& !cached.isEmpty()*/) {
+    if (cached != null) {
       return Promise.resolve(
         new DataSnapshot(
           cached,
