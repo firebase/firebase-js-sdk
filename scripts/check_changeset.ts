@@ -40,7 +40,7 @@ function getHighestBump(changesetPackages: Record<string, string>) {
   let highestBump = bumpRank.patch;
   let highestBumpText = 'patch';
   let bumpPackage = '';
-  for (const pkgName of  Object.keys(changesetPackages)) {
+  for (const pkgName of Object.keys(changesetPackages)) {
     if (
       pkgName !== 'firebase' &&
       bumpRank[changesetPackages[pkgName]] > highestBump
@@ -177,13 +177,14 @@ async function main() {
             `- Package ${bumpPackage} has a ${bumpText} bump which requires an ` +
               `additional line to bump the main "firebase" package to ${bumpText}.`
           );
+          console.log(`::set-output name=BLOCKING_FAILURE::true`);
         } else if (bumpRank[changesetPackages['firebase']] < highestBump) {
           errors.push(
             `- Package ${bumpPackage} has a ${bumpText} bump. ` +
               `Increase the bump for the main "firebase" package to ${bumpText}.`
           );
+          console.log(`::set-output name=BLOCKING_FAILURE::true`);
         }
-        console.log(`::set-output name=BLOCKING_FAILURE::true`);
       }
     }
   } catch (e) {
