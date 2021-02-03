@@ -51,6 +51,7 @@ import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
+import { ResourcePath } from '../model/path';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
@@ -113,7 +114,6 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { ResourcePath } from '../model/path';
 
 const LOG_TAG = 'SyncEngine';
 

@@ -118,7 +118,6 @@ import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
-import { SortedSet } from '../../../src/util/sorted_set';
 import {
   byteStringFromString,
   deletedDoc,
