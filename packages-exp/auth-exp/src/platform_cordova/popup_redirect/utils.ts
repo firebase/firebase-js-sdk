@@ -184,15 +184,13 @@ function generateSessionId(): string {
 async function computeSha256(sessionId: string): Promise<string> {
   const encoder = new TextEncoder();
   const buf = await crypto.subtle.digest('SHA-256', encoder.encode(sessionId));
-
   const arr = new Uint8Array(buf);
-  let hexString = '';
 
+  let hexString = '';
   // Can't iterate over typed arrays using for...of
   for (let i = 0; i < arr.length; i++) {
     const hex = arr[i].toString(16);
     hexString += hex.length === 1 ? `0${hex}` : hex;
   }
-
   return hexString;
 }
