@@ -6,7 +6,6 @@ import { AuthErrorCode } from '../errors';
 import { OAuthProvider } from '../providers/oauth';
 import { _assert } from './assert';
 import { isEmpty, querystring } from '@firebase/util';
-import { _getCurrentUrl } from './location';
 import { _emulatorUrl } from './emulator';
 
 /**
@@ -28,7 +27,7 @@ type WidgetParams = {
   apiKey: ApiKey;
   appName: AppName;
   authType: AuthEventType;
-  redirectUrl: string;
+  redirectUrl?: string;
   v: string;
   providerId?: string;
   scopes?: string;
@@ -41,6 +40,7 @@ export function _getRedirectUrl(
   auth: Auth,
   provider: externs.AuthProvider,
   authType: AuthEventType,
+  redirectUrl?: string,
   eventId?: string,
   additionalParams?: Record<string, string>,
 ): string {
@@ -51,7 +51,7 @@ export function _getRedirectUrl(
     apiKey: auth.config.apiKey,
     appName: auth.name,
     authType,
-    redirectUrl: _getCurrentUrl(),
+    redirectUrl,
     v: SDK_VERSION,
     eventId
   };
@@ -67,7 +67,7 @@ export function _getRedirectUrl(
       params.scopes = scopes.join(',');
     }
     // TODO set additionalParams?
-    for (let [key, value] of Object.entries(additionalParams || {})) {
+    for (const [key, value] of Object.entries(additionalParams || {})) {
       params[key] = value;
     }
   }

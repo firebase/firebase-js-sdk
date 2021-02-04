@@ -20,7 +20,6 @@ import * as externs from '@firebase/auth-types-exp';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
 import { _assert, debugAssert, _fail } from '../core/util/assert';
-import { _emulatorUrl } from '../core/util/emulator';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
 import { _validateOrigin } from '../core/util/validate_origin';
@@ -75,7 +74,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     );
 
     await this.originValidation(auth);
-    const url = _getRedirectUrl(auth, provider, authType, eventId);
+    const url = _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId);
     return _open(auth, url, _generateEventId());
   }
 
@@ -86,7 +85,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     eventId?: string
   ): Promise<never> {
     await this.originValidation(auth);
-    _setWindowLocation(_getRedirectUrl(auth, provider, authType, eventId));
+    _setWindowLocation(_getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId));
     return new Promise(() => {});
   }
 

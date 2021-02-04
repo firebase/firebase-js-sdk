@@ -25,7 +25,7 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthPopup } from '../../platform_browser/util/popup';
-import { _assert, _fail } from '../../core/util/assert';
+import { _fail } from '../../core/util/assert';
 import { AuthErrorCode } from '../../core/errors';
 import { _checkCordovaConfiguration, _generateHandlerUrl, _generateNewEvent, _performRedirect } from './utils';
 
@@ -36,21 +36,23 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   _initialize(_auth: Auth): Promise<EventManager> {
     throw new Error('Method not implemented.');
   }
+
   _openPopup(auth: Auth): Promise<AuthPopup> {
     _fail(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED);
   }
+
   async _openRedirect(
     auth: Auth,
     provider: externs.AuthProvider,
     authType: AuthEventType,
     eventId?: string
-  ): Promise<never> {
+  ): Promise<void> {
     _checkCordovaConfiguration(auth);
-    const event = _generateNewEvent(auth, authType, eventId || '');
+    const event = _generateNewEvent(auth, authType, eventId);
     const url = await _generateHandlerUrl(auth, event, provider);
     await _performRedirect(url);
-    return new Promise(() => {});
   }
+
   _isIframeWebStorageSupported(
     _auth: Auth,
     _cb: (support: boolean) => unknown

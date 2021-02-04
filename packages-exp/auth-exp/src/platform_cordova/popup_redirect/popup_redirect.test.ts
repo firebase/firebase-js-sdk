@@ -15,129 +15,66 @@
  * limitations under the License.
  */
 
+import * as externs from '@firebase/auth-types-exp';
+import * as sinon from 'sinon';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 import { expect, use } from 'chai';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { SingletonInstantiator } from '../../core/util/instantiator';
-import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
 import { cordovaPopupRedirectResolver } from './popup_redirect';
 import { GoogleAuthProvider } from '../../core/providers/google';
+import * as utils from './utils';
 import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('platform_cordova/popup_redirect', () => {
+describe('platform_cordova/popup_redirect/popup_redirect', () => {
   let auth: TestAuth;
   let resolver: PopupRedirectResolver;
+  let provider: externs.AuthProvider;
+  let utilsStubs: {[F in keyof typeof utils]: sinon.SinonStub};
 
   beforeEach(async () => {
     auth = await testAuth();
-    attachExpectedPlugins();
     resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
+    provider = new GoogleAuthProvider();
+    utilsStubs = {
+      _generateNewEvent: sinon.stub(utils, '_generateNewEvent'),
+      _generateHandlerUrl: sinon.stub(utils, '_generateHandlerUrl'),
+      _checkCordovaConfiguration: sinon.stub(utils, '_checkCordovaConfiguration'),
+      _performRedirect: sinon.stub(utils, '_performRedirect')
+    };
   });
 
-  describe('_openRedirect plugin checks', () => {
-    // TODO: Rest of the tests go here
-    it('does not reject if all plugins installed', () => {
-      expect(() =>
-        resolver._openRedirect(
-          auth,
-          new GoogleAuthProvider(),
-          AuthEventType.SIGN_IN_VIA_REDIRECT
-        )
-      ).not.to.throw;
-    });
+  afterEach(() => {
+    sinon.restore();
+  });
 
-    it('rejects if universal links is missing', () => {
-      removeProp(window, 'universalLinks');
-      expect(() =>
-        resolver._openRedirect(
-          auth,
-          new GoogleAuthProvider(),
-          AuthEventType.SIGN_IN_VIA_REDIRECT
-        )
-      )
-        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
-        .that.has.deep.property('customData', {
-          appName: 'test-app',
-          missingPlugin: 'cordova-universal-links-plugin-fix'
-        });
-    });
+  describe('_openRedirect', () => {
+    // The heavy-duty testing of the underlying configuration is in
+    // platform_cordova/popup_redirect/utils.test.ts. These tests will check
+    // primarily for the correct behavior using the values provided by the
+    // utils.
+    it('performs the redirect with the correct url after checking config', async () => {
+      const event = {} as AuthEvent;
+      utilsStubs._generateHandlerUrl.returns(Promise.resolve('https://localhost/__/auth/handler'));
+      utilsStubs._performRedirect.returns(Promise.resolve());
+      utilsStubs._generateNewEvent.returns(event);
 
-    it('rejects if build info is missing', () => {
-      removeProp(window.BuildInfo, 'packageName');
-      expect(() =>
-        resolver._openRedirect(
-          auth,
-          new GoogleAuthProvider(),
-          AuthEventType.SIGN_IN_VIA_REDIRECT
-        )
-      )
-        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
-        .that.has.deep.property('customData', {
-          appName: 'test-app',
-          missingPlugin: 'cordova-plugin-buildInfo'
-        });
+      await resolver._openRedirect(auth, provider, AuthEventType.REAUTH_VIA_REDIRECT);
+      expect(utilsStubs._checkCordovaConfiguration).to.have.been.called;
+      expect(utilsStubs._generateHandlerUrl).to.have.been.calledWith(auth, event, provider);
+      expect(utilsStubs._performRedirect).to.have.been.calledWith('https://localhost/__/auth/handler');
     });
+  });
 
-    it('rejects if browsertab openUrl is missing', () => {
-      removeProp(window.cordova.plugins.browsertab, 'openUrl');
-      expect(() =>
-        resolver._openRedirect(
-          auth,
-          new GoogleAuthProvider(),
-          AuthEventType.SIGN_IN_VIA_REDIRECT
-        )
-      )
-        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
-        .that.has.deep.property('customData', {
-          appName: 'test-app',
-          missingPlugin: 'cordova-plugin-browsertab'
-        });
-    });
-
-    it('rejects if InAppBrowser is missing', () => {
-      removeProp(window.cordova.InAppBrowser, 'open');
-      expect(() =>
-        resolver._openRedirect(
-          auth,
-          new GoogleAuthProvider(),
-          AuthEventType.SIGN_IN_VIA_REDIRECT
-        )
-      )
-        .to.throw(FirebaseError, 'auth/invalid-cordova-configuration')
-        .that.has.deep.property('customData', {
-          appName: 'test-app',
-          missingPlugin: 'cordova-plugin-inappbrowser'
-        });
+  describe('_openPopup', () => {
+    it('throws an error', () => {
+      expect(() => resolver._openPopup(auth, provider, AuthEventType.LINK_VIA_POPUP)).to.throw(FirebaseError, 'auth/operation-not-supported-in-this-environment');
     });
   });
 });
 
-function attachExpectedPlugins(): void {
-  // Eventually these will be replaced with full mocks
-  const win = (window as unknown) as Record<string, unknown>;
-  win.cordova = {
-    plugins: {
-      browsertab: {
-        isAvailable: () => {},
-        openUrl: () => {}
-      }
-    },
-    InAppBrowser: {
-      open: () => {}
-    }
-  };
-  win.universalLinks = {
-    subscribe: () => {}
-  };
-  win.BuildInfo = {
-    packageName: 'com.example.name.package'
-  };
-}
-
-function removeProp(obj: unknown, prop: string): void {
-  delete (obj as Record<string, unknown>)[prop];
-}

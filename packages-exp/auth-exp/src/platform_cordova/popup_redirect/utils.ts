@@ -11,7 +11,7 @@ const SESSION_ID_LENGTH = 20;
 /**
  * Generates a (partial) {@link AuthEvent}.
  */
-export function _generateNewEvent(auth: Auth, type: AuthEventType, eventId: string): AuthEvent {
+export function _generateNewEvent(auth: Auth, type: AuthEventType, eventId: string|null = null): AuthEvent {
   return {
     type,
     eventId,
@@ -47,7 +47,7 @@ export async function _generateHandlerUrl(auth: Auth, event: AuthEvent, provider
 
   // Attached the hashed session ID
   additionalParams['sessionId'] = sessionDigest;
-  return _getRedirectUrl(auth, provider, event.type, event.eventId ?? undefined, additionalParams);
+  return _getRedirectUrl(auth, provider, event.type, undefined, event.eventId ?? undefined, additionalParams);
 }
 
 export function _performRedirect(handlerUrl: string): Promise<void> {
@@ -59,6 +59,7 @@ export function _performRedirect(handlerUrl: string): Promise<void> {
         // TODO: Return the inappbrowser ref that's returned from the open call
         cordova.InAppBrowser.open(handlerUrl, _isIOS7Or8() ? '_blank' : '_system', 'location=yes');
       }
+      resolve();
     });
   });
 }
