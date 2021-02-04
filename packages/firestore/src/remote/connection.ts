@@ -18,6 +18,11 @@
 import { Token } from '../api/credentials';
 import { FirestoreError } from '../util/error';
 
+export type TimeToFirstByteCallback = (
+  isLongPollingConnection: boolean,
+  timeToFirstByteMs: number
+) => void;
+
 /**
  * A connected RPC interface to a remote Datastore.
  *
@@ -94,6 +99,7 @@ export interface Stream<I, O> {
   onOpen(callback: () => void): void;
   onClose(callback: (err?: FirestoreError) => void): void;
   onMessage(callback: (msg: O) => void): void;
+  onTimeToFirstByte(callback: TimeToFirstByteCallback): void;
 
   send(msg: I): void;
   close(): void;

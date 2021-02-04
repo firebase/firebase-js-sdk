@@ -73,4 +73,13 @@ export interface RemoteSyncer {
    * May be called repeatedly for the same user.
    */
   handleCredentialChange?(user: User): Promise<void>;
+
+  /**
+   * Invokes a callback that reports what connection type is being used and
+   * how much time it took to get data from the server.
+   */
+  handleTimeToFirstByte?(
+    isLongPollingConnection: boolean,
+    timeToFirstByteMs: number
+  ): void;
 }

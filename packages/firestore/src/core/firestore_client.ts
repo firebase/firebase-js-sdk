@@ -36,6 +36,7 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { TimeToFirstByteCallback } from '../remote/connection';
 import { Datastore } from '../remote/datastore';
 import {
   RemoteStore,
@@ -114,7 +115,8 @@ export class FirestoreClient {
      * an async I/O to complete).
      */
     public asyncQueue: AsyncQueue,
-    private databaseInfo: DatabaseInfo
+    private databaseInfo: DatabaseInfo,
+    readonly timeToFirstByte?: TimeToFirstByteCallback
   ) {
     this.credentials.setChangeListener(user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
@@ -133,7 +135,8 @@ export class FirestoreClient {
       clientId: this.clientId,
       credentials: this.credentials,
       initialUser: this.user,
-      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
+      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
+      timeToFirstByte: this.timeToFirstByte
     };
   }
 

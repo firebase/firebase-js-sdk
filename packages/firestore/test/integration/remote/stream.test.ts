@@ -118,6 +118,10 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     return this.resolvePending('open');
   }
 
+  onTimeToFirstByte(): void {
+    // No-Op
+  }
+
   onClose(err?: FirestoreError): Promise<void> {
     return this.resolvePending('close');
   }

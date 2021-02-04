@@ -51,6 +51,7 @@ import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
+import { TimeToFirstByteCallback } from '../remote/connection';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
@@ -191,6 +192,7 @@ interface SyncEngineListener {
  */
 class SyncEngineImpl implements SyncEngine {
   syncEngineListener: SyncEngineListener = {};
+  timeToFirstByteRaised = false;
 
   /**
    * A callback that updates the QueryView based on the provided change.
@@ -246,7 +248,8 @@ class SyncEngineImpl implements SyncEngine {
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     readonly sharedClientState: SharedClientState,
     public currentUser: User,
-    readonly maxConcurrentLimboResolutions: number
+    readonly maxConcurrentLimboResolutions: number,
+    readonly timeToFirstByte: TimeToFirstByteCallback | undefined
   ) {}
 
   get isPrimaryClient(): boolean {
@@ -262,7 +265,8 @@ export function newSyncEngine(
   sharedClientState: SharedClientState,
   currentUser: User,
   maxConcurrentLimboResolutions: number,
-  isPrimary: boolean
+  isPrimary: boolean,
+  timeToFirstByte: TimeToFirstByteCallback | undefined
 ): SyncEngine {
   const syncEngine = new SyncEngineImpl(
     localStore,
@@ -270,7 +274,8 @@ export function newSyncEngine(
     eventManager,
     sharedClientState,
     currentUser,
-    maxConcurrentLimboResolutions
+    maxConcurrentLimboResolutions,
+    timeToFirstByte
   );
   if (isPrimary) {
     syncEngine._isPrimaryClient = true;
@@ -1529,6 +1534,21 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     null,
     syncEngineImpl
   );
+  syncEngineImpl.remoteStore.remoteSyncer.handleTimeToFirstByte = (
+    isLongPollingConnection,
+    timeToFirstByteMs
+  ) => {
+    if (
+      !syncEngineImpl.timeToFirstByteRaised &&
+      !!syncEngineImpl.timeToFirstByte
+    ) {
+      syncEngineImpl.timeToFirstByteRaised = true;
+      syncEngineImpl.timeToFirstByte(
+        isLongPollingConnection,
+        timeToFirstByteMs
+      );
+    }
+  };
   syncEngineImpl.syncEngineListener.onWatchChange = eventManagerOnWatchChange.bind(
     null,
     syncEngineImpl.eventManager

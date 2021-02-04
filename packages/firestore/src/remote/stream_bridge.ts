@@ -18,7 +18,7 @@
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 
-import { Stream } from './connection';
+import { Stream, TimeToFirstByteCallback } from './connection';
 
 /**
  * Provides a simple helper class that implements the Stream interface to
@@ -29,6 +29,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   private wrappedOnOpen: (() => void) | undefined;
   private wrappedOnClose: ((err?: FirestoreError) => void) | undefined;
   private wrappedOnMessage: ((msg: O) => void) | undefined;
+  private wrappedOnTimeToFirstByte: TimeToFirstByteCallback | undefined;
 
   private sendFn: (msg: I) => void;
   private closeFn: () => void;
@@ -51,6 +52,14 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   onMessage(callback: (msg: O) => void): void {
     debugAssert(!this.wrappedOnMessage, 'Called onMessage on stream twice!');
     this.wrappedOnMessage = callback;
+  }
+
+  onTimeToFirstByte(callback: TimeToFirstByteCallback): void {
+    debugAssert(
+      !this.wrappedOnTimeToFirstByte,
+      'Called onTimeToFirstByte on stream twice!'
+    );
+    this.wrappedOnTimeToFirstByte = callback;
   }
 
   close(): void {
@@ -83,5 +92,16 @@ export class StreamBridge<I, O> implements Stream<I, O> {
       'Cannot call onMessage because no callback was set'
     );
     this.wrappedOnMessage(msg);
+  }
+
+  callOnTimeToFirstByte(
+    isLongPollingConnection: boolean,
+    timeToFirstByteMs: number
+  ): void {
+    debugAssert(
+      this.wrappedOnTimeToFirstByte !== undefined,
+      'Cannot call callOnTimeToFirstByte because no callback was set'
+    );
+    this.wrappedOnTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs);
   }
 }

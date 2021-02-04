@@ -24,6 +24,18 @@ import { DEFAULT_PROJECT_ID } from '../util/settings';
 
 /* eslint-disable no-restricted-globals */
 
+const ADD_TARGET = {
+  database: 'projects/' + DEFAULT_PROJECT_ID + '/databases/(default)',
+  addTarget: {
+    query: {
+      parent: 'projects/' + DEFAULT_PROJECT_ID + '/databases/(default)',
+      structuredQuery: {
+        from: [{ collectionId: 'foo' }]
+      }
+    }
+  }
+};
+
 // We need to check both `window` and `window.navigator` to make sure we are
 // not running in Node with IndexedDBShim.
 const describeFn =
@@ -33,10 +45,42 @@ const describeFn =
       xdescribe;
 
 describeFn('WebChannel', () => {
+  it('can auto detect the connection type', done => {
+    const conn = new WebChannelConnection({
+      ...getDefaultDatabaseInfo(),
+      autoDetectLongPolling: true
+    });
+    const stream = conn.openStream<api.ListenRequest, api.ListenResponse>(
+      'Listen',
+      null
+    );
+
+    // Once the stream is open, send an "add_target" request.
+    stream.onOpen(() => stream.send(ADD_TARGET));
+
+    stream.onMessage(() => {});
+
+    // Ensure Time to first byte was raised
+    let timeToFirstByteData: {
+      isLongPollingConnection: boolean;
+      timeToFirstByteMs: number;
+    } | null = null;
+
+    stream.onTimeToFirstByte((isLongPollingConnection, timeToFirstByteMs) => {
+      timeToFirstByteData = { isLongPollingConnection, timeToFirstByteMs };
+      stream.close();
+    });
+
+    stream.onClose(() => {
+      expect(timeToFirstByteData).to.be.ok;
+      expect(timeToFirstByteData!.isLongPollingConnection).to.not.equal(0);
+      expect(timeToFirstByteData!.timeToFirstByteMs).to.be.greaterThan(0);
+      done();
+    });
+  });
+
   it('receives error messages', done => {
-    const projectId = DEFAULT_PROJECT_ID;
-    const info = getDefaultDatabaseInfo();
-    const conn = new WebChannelConnection(info);
+    const conn = new WebChannelConnection(getDefaultDatabaseInfo());
     const stream = conn.openStream<api.ListenRequest, api.ListenResponse>(
       'Listen',
       null
@@ -44,21 +88,10 @@ describeFn('WebChannel', () => {
 
     // Test data
     let didSendBadPayload = false;
-    const payload = {
-      database: 'projects/' + projectId + '/databases/(default)',
-      addTarget: {
-        query: {
-          parent: 'projects/' + projectId + '/databases/(default)',
-          structuredQuery: {
-            from: [{ collectionId: 'foo' }]
-          }
-        }
-      }
-    };
 
     // Once the stream is open, send an "add_target" request
     stream.onOpen(() => {
-      stream.send(payload);
+      stream.send(ADD_TARGET);
     });
 
     // Wait until we receive data, then send a bad "addTarget" request, causing
@@ -66,8 +99,9 @@ describeFn('WebChannel', () => {
     // different database ID.
     stream.onMessage(msg => {
       if (msg.targetChange) {
-        payload.database = 'projects/some-other-project-id/databases/(default)';
         didSendBadPayload = true;
+        const payload = { ...ADD_TARGET };
+        payload.database = 'projects/some-other-project-id/databases/(default)';
         stream.send(payload);
       }
     });

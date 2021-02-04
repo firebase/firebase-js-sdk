@@ -24,6 +24,7 @@ import {
 } from './src/api/database';
 import { DatabaseId } from './src/core/database_info';
 import { FirebaseFirestore as FirestoreExp } from './src/exp/database';
+import { TimeToFirstByteCallback } from './src/remote/connection';
 import { Code, FirestoreError } from './src/util/error';
 export {
   CollectionReference,
@@ -47,13 +48,15 @@ export interface FirestoreDatabase {
 export class Firestore extends FirestoreCompat {
   constructor(
     firestoreDatabase: FirestoreDatabase,
-    authProvider: Provider<FirebaseAuthInternalName>
+    authProvider: Provider<FirebaseAuthInternalName>,
+    timeToFirstByte: TimeToFirstByteCallback
   ) {
     super(
       databaseIdFromFirestoreDatabase(firestoreDatabase),
       new FirestoreExp(
         databaseIdFromFirestoreDatabase(firestoreDatabase),
-        authProvider
+        authProvider,
+        timeToFirstByte
       ),
       new MemoryPersistenceProvider()
     );

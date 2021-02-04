@@ -43,6 +43,7 @@ import {
 import { newConnection, newConnectivityMonitor } from '../platform/connection';
 import { getDocument, getWindow } from '../platform/dom';
 import { newSerializer } from '../platform/serializer';
+import { TimeToFirstByteCallback } from '../remote/connection';
 import { Datastore, newDatastore } from '../remote/datastore';
 import {
   fillWritePipeline,
@@ -79,6 +80,7 @@ export interface ComponentConfiguration {
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
+  timeToFirstByte?: TimeToFirstByteCallback;
 }
 
 /**
@@ -394,7 +396,8 @@ export class OnlineComponentProvider {
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions,
-      startAsPrimary
+      startAsPrimary,
+      cfg.timeToFirstByte
     );
   }
 

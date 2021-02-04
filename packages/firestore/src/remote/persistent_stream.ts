@@ -33,7 +33,7 @@ import { logDebug, logError } from '../util/log';
 import { isNullOrUndefined } from '../util/types';
 
 import { ExponentialBackoff } from './backoff';
-import { Connection, Stream } from './connection';
+import { Connection, Stream, TimeToFirstByteCallback } from './connection';
 import {
   fromVersion,
   fromWatchChange,
@@ -127,6 +127,10 @@ export interface PersistentStreamListener {
    * FirestoreError will be set.
    */
   onClose: (err?: FirestoreError) => Promise<void>;
+  /**
+   * Called once the first byte over the stream has been received.
+   */
+  onTimeToFirstByte: TimeToFirstByteCallback;
 }
 
 /** The time a stream stays open after it is marked idle. */
@@ -394,6 +398,13 @@ export abstract class PersistentStream<
    */
   protected abstract onMessage(message: ReceiveType): Promise<void>;
 
+  onTimeToFirstByte(
+    isLongPollingConnection: boolean,
+    timeToFirstByteMs: number
+  ): void {
+    this.listener.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs);
+  }
+
   private auth(): void {
     debugAssert(
       this.state === PersistentStreamState.Initial,
@@ -461,6 +472,13 @@ export abstract class PersistentStream<
         return this.onMessage(msg);
       });
     });
+    this.stream.onTimeToFirstByte(
+      (isLongPollingConnection, timeToFirstByteMs) => {
+        dispatchIfNotClosed(async () =>
+          this.onTimeToFirstByte(isLongPollingConnection, timeToFirstByteMs)
+        );
+      }
+    );
   }
 
   private performBackoff(): void {

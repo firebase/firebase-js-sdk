@@ -240,6 +240,8 @@ export class WebChannelConnection extends RestConnection {
     // on a closed stream
     let closed = false;
 
+    const onOpenStreamTimestamp = new Date().getTime();
+
     const streamBridge = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
@@ -356,10 +358,20 @@ export class WebChannelConnection extends RestConnection {
     );
 
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
+      const statEventMs = new Date().getTime() - onOpenStreamTimestamp;
+
       if (event.stat === Stat.PROXY) {
         logDebug(LOG_TAG, 'Detected buffering proxy');
+        streamBridge.callOnTimeToFirstByte(
+          /* isLongPollingConnection= */ true,
+          statEventMs
+        );
       } else if (event.stat === Stat.NOPROXY) {
         logDebug(LOG_TAG, 'Detected no buffering proxy');
+        streamBridge.callOnTimeToFirstByte(
+          /* isLongPollingConnection= */ false,
+          statEventMs
+        );
       }
     });
 

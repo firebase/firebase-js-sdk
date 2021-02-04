@@ -18,6 +18,8 @@
 /**
  * Bring in closure-library dependencies
  */
+goog.require('goog.debug.Console');
+goog.require('goog.log.Level');
 
 goog.provide('firebase.webchannel.wrapper');
 
@@ -85,3 +87,15 @@ module['exports']['Event'] = goog.labs.net.webChannel.requestStats.Event;
 module['exports']['Stat'] = goog.labs.net.webChannel.requestStats.Stat;
 module['exports']['WebChannel'] = goog.net.WebChannel;
 module['exports']['XhrIo'] = goog.net.XhrIo;
+
+const wc_logger = goog.log.getLogger(
+  'goog.labs.net.webChannel.WebChannelDebug'
+);
+goog.log.setLevel(wc_logger, goog.log.Level.FINE);
+
+// const elt = document.body.appendChild(document.createElement('div'));
+// const div_console = new goog.debug.DivConsole(elt);
+// div_console.setCapturing(true);
+
+const wc_console = new goog.debug.Console();
+wc_console.setCapturing(true);
