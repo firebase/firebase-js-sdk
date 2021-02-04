@@ -272,7 +272,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     this.languageCode = _getUserLanguage();
   }
 
-  useEmulator(url: string, options?: { disableWarnings: boolean }): void {
+  _useEmulator(url: string, options?: { disableWarnings: boolean }): void {
     _assert(this._canInitEmulator, this, AuthErrorCode.EMULATOR_CONFIG_FAILED);
 
     _assert(
