@@ -103,9 +103,7 @@ export function getConfig({ isReleaseBuild }) {
       output: [{ dir: 'dist/cordova', format: 'es', sourcemap: true }],
       plugins: es5BuildPlugins,
       external: id =>
-        [...deps, 'cordova'].some(
-          dep => id === dep || id.startsWith(`${dep}/`)
-        )
+        [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
     },
     /**
      * React Native Builds

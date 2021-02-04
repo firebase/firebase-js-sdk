@@ -27,7 +27,12 @@ import {
 import { AuthPopup } from '../../platform_browser/util/popup';
 import { _fail } from '../../core/util/assert';
 import { AuthErrorCode } from '../../core/errors';
-import { _checkCordovaConfiguration, _generateHandlerUrl, _generateNewEvent, _performRedirect } from './utils';
+import {
+  _checkCordovaConfiguration,
+  _generateHandlerUrl,
+  _generateNewEvent,
+  _performRedirect
+} from './utils';
 
 class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   readonly _redirectPersistence = browserSessionPersistence;

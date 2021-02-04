@@ -74,7 +74,13 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     );
 
     await this.originValidation(auth);
-    const url = _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId);
+    const url = _getRedirectUrl(
+      auth,
+      provider,
+      authType,
+      _getCurrentUrl(),
+      eventId
+    );
     return _open(auth, url, _generateEventId());
   }
 
@@ -85,7 +91,9 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     eventId?: string
   ): Promise<never> {
     await this.originValidation(auth);
-    _setWindowLocation(_getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId));
+    _setWindowLocation(
+      _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId)
+    );
     return new Promise(() => {});
   }
 

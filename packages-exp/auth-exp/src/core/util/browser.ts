@@ -127,8 +127,10 @@ export function _isIOS(ua = getUA()): boolean {
 }
 
 export function _isIOS7Or8(ua = getUA()): boolean {
-  return /(iPad|iPhone|iPod).*OS 7_\d/i.test(ua) ||
-         /(iPad|iPhone|iPod).*OS 8_\d/i.test(ua);
+  return (
+    /(iPad|iPhone|iPod).*OS 7_\d/i.test(ua) ||
+    /(iPad|iPhone|iPod).*OS 8_\d/i.test(ua)
+  );
 }
 
 export function _isIOSStandalone(ua = getUA()): boolean {

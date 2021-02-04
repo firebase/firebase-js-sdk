@@ -21,7 +21,12 @@ import * as sinon from 'sinon';
 import { expect, use } from 'chai';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fbUtils from '@firebase/util';
-import { _checkCordovaConfiguration, _generateHandlerUrl, _generateNewEvent, _performRedirect } from './utils';
+import {
+  _checkCordovaConfiguration,
+  _generateHandlerUrl,
+  _generateNewEvent,
+  _performRedirect
+} from './utils';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { GoogleAuthProvider } from '../../core/providers/google';
 import { AuthProvider } from '../../../internal';
@@ -59,16 +64,12 @@ describe('platform_cordova/popup_redirect/utils', () => {
   describe('_checkCordovaConfiguration', () => {
     // TODO: Rest of the tests go here
     it('does not reject if all plugins installed', () => {
-      expect(() =>
-        _checkCordovaConfiguration(auth)
-      ).not.to.throw;
+      expect(() => _checkCordovaConfiguration(auth)).not.to.throw;
     });
 
     it('rejects if universal links is missing', () => {
       removeProp(window, 'universalLinks');
-      expect(() =>
-        _checkCordovaConfiguration(auth)
-      )
+      expect(() => _checkCordovaConfiguration(auth))
         .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
@@ -78,9 +79,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('rejects if build info is missing', () => {
       removeProp(window.BuildInfo, 'packageName');
-      expect(() =>
-        _checkCordovaConfiguration(auth)
-      )
+      expect(() => _checkCordovaConfiguration(auth))
         .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
@@ -90,9 +89,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('rejects if browsertab openUrl is missing', () => {
       removeProp(window.cordova.plugins.browsertab, 'openUrl');
-      expect(() =>
-        _checkCordovaConfiguration(auth)
-      )
+      expect(() => _checkCordovaConfiguration(auth))
         .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
@@ -102,9 +99,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('rejects if InAppBrowser is missing', () => {
       removeProp(window.cordova.InAppBrowser, 'open');
-      expect(() =>
-        _checkCordovaConfiguration(auth)
-      )
+      expect(() => _checkCordovaConfiguration(auth))
         .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
           appName: 'test-app',
@@ -127,8 +122,13 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('sets the error field to be a "no auth event" error', () => {
-      const {error} = _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT);
-      expect(error).to.be.instanceOf(fbUtils.FirebaseError).with.property('code', 'auth/no-auth-event');
+      const { error } = _generateNewEvent(
+        auth,
+        AuthEventType.REAUTH_VIA_REDIRECT
+      );
+      expect(error)
+        .to.be.instanceOf(fbUtils.FirebaseError)
+        .with.property('code', 'auth/no-auth-event');
     });
   });
 
@@ -147,7 +147,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('hashes the sessionId and does not pass it through', async () => {
       setUA(UA.ANDROID);
-      const hashedSessionId = getParams(await _generateHandlerUrl(auth, event, provider)).get('sessionId');
+      const hashedSessionId = getParams(
+        await _generateHandlerUrl(auth, event, provider)
+      ).get('sessionId');
       expect(hashedSessionId).not.to.eq(event.sessionId);
       // SHA-256 hash as a hex string is 64 chars
       expect(hashedSessionId).to.have.length(64);
@@ -155,35 +157,46 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('sets the ibi and not apn for iOS devices', async () => {
       setUA(UA.IOS);
-      const params = getParams(await _generateHandlerUrl(auth, event, provider));
+      const params = getParams(
+        await _generateHandlerUrl(auth, event, provider)
+      );
       expect(params.get('ibi')).to.eq('com.example.name.package');
       expect(params.has('apn')).to.be.false;
     });
 
     it('sets the apn and not ibi for Android devices', async () => {
       setUA(UA.ANDROID);
-      const params = getParams(await _generateHandlerUrl(auth, event, provider));
+      const params = getParams(
+        await _generateHandlerUrl(auth, event, provider)
+      );
       expect(params.get('apn')).to.eq('com.example.name.package');
       expect(params.has('ibi')).to.be.false;
     });
 
     it('throws an error for any other user agent', async () => {
       setUA(UA.DESKTOP);
-      await expect(_generateHandlerUrl(auth, event, provider)).to.be.rejectedWith(
-        fbUtils.FirebaseError, 'auth/operation-not-supported-in-this-environment',
+      await expect(
+        _generateHandlerUrl(auth, event, provider)
+      ).to.be.rejectedWith(
+        fbUtils.FirebaseError,
+        'auth/operation-not-supported-in-this-environment'
       );
     });
 
     it('does not attach a display name if none is present', async () => {
       setUA(UA.ANDROID);
-      const params = getParams(await _generateHandlerUrl(auth, event, provider));
+      const params = getParams(
+        await _generateHandlerUrl(auth, event, provider)
+      );
       expect(params.has('appDisplayName')).to.be.false;
     });
 
     it('attaches the relevant display name', async () => {
       setUA(UA.IOS);
       (BuildInfo as Record<string, string>).displayName = 'This is my app';
-      const params = getParams(await _generateHandlerUrl(auth, event, provider));
+      const params = getParams(
+        await _generateHandlerUrl(auth, event, provider)
+      );
       expect(params.get('appDisplayName')).to.eq('This is my app');
     });
   });
@@ -192,7 +205,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
     let isBrowsertabAvailable: boolean;
     beforeEach(() => {
       isBrowsertabAvailable = false;
-      sinon.stub(cordova.plugins.browsertab, 'isAvailable').callsFake(cb => cb(isBrowsertabAvailable));
+      sinon
+        .stub(cordova.plugins.browsertab, 'isAvailable')
+        .callsFake(cb => cb(isBrowsertabAvailable));
       sinon.stub(cordova.plugins.browsertab, 'openUrl');
       sinon.stub(cordova.InAppBrowser, 'open');
     });
@@ -200,7 +215,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
     it('uses browserTab if that is available', async () => {
       isBrowsertabAvailable = true;
       await _performRedirect('https://localhost/__/auth/handler');
-      expect(cordova.plugins.browsertab.openUrl).to.have.been.calledWith('https://localhost/__/auth/handler');
+      expect(cordova.plugins.browsertab.openUrl).to.have.been.calledWith(
+        'https://localhost/__/auth/handler'
+      );
       expect(cordova.InAppBrowser.open).not.to.have.been.called;
     });
 
@@ -209,7 +226,11 @@ describe('platform_cordova/popup_redirect/utils', () => {
       setUA(UA.ANDROID);
       await _performRedirect('https://localhost/__/auth/handler');
       expect(cordova.plugins.browsertab.openUrl).not.to.have.been.called;
-      expect(cordova.InAppBrowser.open).to.have.been.calledWith('https://localhost/__/auth/handler', '_system', 'location=yes');
+      expect(cordova.InAppBrowser.open).to.have.been.calledWith(
+        'https://localhost/__/auth/handler',
+        '_system',
+        'location=yes'
+      );
     });
 
     it('uses _blank for iOS 8', async () => {
@@ -217,7 +238,11 @@ describe('platform_cordova/popup_redirect/utils', () => {
       setUA(UA.IOS_8);
       await _performRedirect('https://localhost/__/auth/handler');
       expect(cordova.plugins.browsertab.openUrl).not.to.have.been.called;
-      expect(cordova.InAppBrowser.open).to.have.been.calledWith('https://localhost/__/auth/handler', '_blank', 'location=yes');
+      expect(cordova.InAppBrowser.open).to.have.been.calledWith(
+        'https://localhost/__/auth/handler',
+        '_blank',
+        'location=yes'
+      );
     });
   });
 });

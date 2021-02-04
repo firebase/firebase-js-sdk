@@ -1,6 +1,28 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as externs from '@firebase/auth-types-exp';
 import { AuthErrorCode } from '../../core/errors';
-import { debugAssert, _assert, _createError, _fail } from '../../core/util/assert';
+import {
+  debugAssert,
+  _assert,
+  _createError,
+  _fail
+} from '../../core/util/assert';
 import { _isAndroid, _isIOS, _isIOS7Or8 } from '../../core/util/browser';
 import { _getRedirectUrl } from '../../core/util/handler';
 import { Auth } from '../../model/auth';
@@ -11,7 +33,11 @@ const SESSION_ID_LENGTH = 20;
 /**
  * Generates a (partial) {@link AuthEvent}.
  */
-export function _generateNewEvent(auth: Auth, type: AuthEventType, eventId: string|null = null): AuthEvent {
+export function _generateNewEvent(
+  auth: Auth,
+  type: AuthEventType,
+  eventId: string | null = null
+): AuthEvent {
   return {
     type,
     eventId,
@@ -19,14 +45,18 @@ export function _generateNewEvent(auth: Auth, type: AuthEventType, eventId: stri
     sessionId: generateSessionId(),
     postBody: null,
     tenantId: auth.tenantId,
-    error: _createError(auth, AuthErrorCode.NO_AUTH_EVENT),
+    error: _createError(auth, AuthErrorCode.NO_AUTH_EVENT)
   };
 }
 
 /**
  * Generates the URL for the OAuth handler.
  */
-export async function _generateHandlerUrl(auth: Auth, event: AuthEvent, provider: externs.AuthProvider): Promise<string> {
+export async function _generateHandlerUrl(
+  auth: Auth,
+  event: AuthEvent,
+  provider: externs.AuthProvider
+): Promise<string> {
   debugAssert(event.sessionId, 'AuthEvent did not contain a session ID');
   const sessionDigest = await computeSha256(event.sessionId);
 
@@ -41,13 +71,21 @@ export async function _generateHandlerUrl(auth: Auth, event: AuthEvent, provider
     _fail(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED);
   }
 
+  // Add the display name if available
   if (BuildInfo.displayName) {
     additionalParams['appDisplayName'] = BuildInfo.displayName;
   }
 
   // Attached the hashed session ID
   additionalParams['sessionId'] = sessionDigest;
-  return _getRedirectUrl(auth, provider, event.type, undefined, event.eventId ?? undefined, additionalParams);
+  return _getRedirectUrl(
+    auth,
+    provider,
+    event.type,
+    undefined,
+    event.eventId ?? undefined,
+    additionalParams
+  );
 }
 
 export function _performRedirect(handlerUrl: string): Promise<void> {
@@ -57,7 +95,11 @@ export function _performRedirect(handlerUrl: string): Promise<void> {
         cordova.plugins.browsertab.openUrl(handlerUrl);
       } else {
         // TODO: Return the inappbrowser ref that's returned from the open call
-        cordova.InAppBrowser.open(handlerUrl, _isIOS7Or8() ? '_blank' : '_system', 'location=yes');
+        cordova.InAppBrowser.open(
+          handlerUrl,
+          _isIOS7Or8() ? '_blank' : '_system',
+          'location=yes'
+        );
       }
       resolve();
     });
@@ -125,7 +167,8 @@ export function _checkCordovaConfiguration(auth: Auth): void {
 
 function generateSessionId(): string {
   const chars = [];
-  const allowedChars = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const allowedChars =
+    '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for (let i = 0; i < SESSION_ID_LENGTH; i++) {
     const idx = Math.floor(Math.random() * allowedChars.length);
     chars.push(allowedChars.charAt(idx));
@@ -133,9 +176,14 @@ function generateSessionId(): string {
   return chars.join('');
 }
 
-async function computeSha256(text: string): Promise<string> {
+/**
+ * Computes the SHA-256 of a session ID. The SubtleCrypto interface is only
+ * available in "secure" contexts, which covers Cordova (which is served on a file
+ * protocol).
+ */
+async function computeSha256(sessionId: string): Promise<string> {
   const encoder = new TextEncoder();
-  const buf = await crypto.subtle.digest('SHA-256', encoder.encode(text));
+  const buf = await crypto.subtle.digest('SHA-256', encoder.encode(sessionId));
 
   const arr = new Uint8Array(buf);
   let hexString = '';
