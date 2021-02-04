@@ -211,6 +211,10 @@ class SyncEngineImpl implements SyncEngine {
    * The keys of documents that are in limbo for which we haven't yet started a
    * limbo resolution query. The strings in this set are the result of calling
    * `key.path.canonicalString()` where `key` is a `DocumentKey` object.
+   *
+   * The `Set` type was chosen because it provides efficient lookup and removal
+   * of arbitrary elements and it also maintains insertion order, providing the
+   * desired queue-like FIFO semantics.
    */
   enqueuedLimboResolutions = new Set<string>();
   /**

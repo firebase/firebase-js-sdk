@@ -924,72 +924,11 @@ describeSpec('Limbo Documents:', [], () => {
   );
 
   specTest(
-    'A limbo resolution for a document should be removed from the queue when the last query listen stops',
-    [],
-    () => {
-      const doc1 = doc('collection1/doc', 1000, { key: 1 });
-      const query1 = query('collection1');
-      const filteredQuery1 = query('collection1', filter('key', '==', 1));
-
-      const doc2 = doc('collection2/doc', 1000, { key: 2 });
-      const query2 = query('collection2');
-      const filteredQuery2 = query('collection2', filter('key', '==', 2));
-      const filteredQuery3 = query('collection2', filter('key', '>=', 2));
-
-      return (
-        spec()
-          .withGCEnabled(false)
-          .withMaxConcurrentLimboResolutions(1)
-
-          // Max out the number of active limbo resolutions.
-          .userListens(query1)
-          .watchAcksFull(query1, 1000, doc1)
-          .expectEvents(query1, { added: [doc1] })
-          .userUnlistens(query1)
-          .userListens(filteredQuery1)
-          .expectEvents(filteredQuery1, { added: [doc1], fromCache: true })
-          .watchAcksFull(filteredQuery1, 1001)
-          .expectLimboDocs(doc1.key)
-
-          // Enqueue a limbo resolution for doc2.
-          .userListens(query2)
-          .watchAcksFull(query2, 1002, doc2)
-          .expectEvents(query2, { added: [doc2] })
-          .userUnlistens(query2)
-          .userListens(filteredQuery2)
-          .expectEvents(filteredQuery2, { added: [doc2], fromCache: true })
-          .watchAcksFull(filteredQuery2, 1003)
-          .expectLimboDocs(doc1.key)
-          .expectEnqueuedLimboDocs(doc2.key)
-
-          // Start another query that puts doc2 into limbo again.
-          .userListens(filteredQuery3)
-          .expectEvents(filteredQuery3, { added: [doc2], fromCache: true })
-          .watchAcksFull(filteredQuery3, 1004)
-          .expectLimboDocs(doc1.key)
-          .expectEnqueuedLimboDocs(doc2.key)
-
-          // Stop one of the queries that enqueued a limbo resolution for doc2;
-          // verify that doc2 is not removed from the limbo resolution queue.
-          .userUnlistens(filteredQuery3)
-          .expectLimboDocs(doc1.key)
-          .expectEnqueuedLimboDocs(doc2.key)
-
-          // Stop the other query that enqueued a limbo resolution for doc2;
-          // verify that doc2 *is* removed from the limbo resolution queue.
-          .userUnlistens(filteredQuery2)
-          .expectLimboDocs(doc1.key)
-          .expectEnqueuedLimboDocs()
-      );
-    }
-  );
-
-  specTest(
     'A limbo resolution for a document should not be started if one is already active',
     [],
     () => {
       const doc1 = doc('collection/doc', 1000, { key: 1 });
-      const query1 = query('collection');
+      const fullQuery = query('collection');
       const filteredQuery1 = query('collection', filter('key', '==', 1));
       const filteredQuery2 = query('collection', filter('key', '>=', 1));
 
@@ -998,10 +937,10 @@ describeSpec('Limbo Documents:', [], () => {
           .withGCEnabled(false)
 
           // Start a limbo resolution listen for a document (doc1).
-          .userListens(query1)
-          .watchAcksFull(query1, 1000, doc1)
-          .expectEvents(query1, { added: [doc1] })
-          .userUnlistens(query1)
+          .userListens(fullQuery)
+          .watchAcksFull(fullQuery, 1000, doc1)
+          .expectEvents(fullQuery, { added: [doc1] })
+          .userUnlistens(fullQuery)
           .userListens(filteredQuery1)
           .expectEvents(filteredQuery1, { added: [doc1], fromCache: true })
           .watchAcksFull(filteredQuery1, 1001)
@@ -1024,12 +963,12 @@ describeSpec('Limbo Documents:', [], () => {
     [],
     () => {
       const doc1 = doc('collection1/doc1', 1000, { key: 1 });
-      const query1 = query('collection1');
+      const fullQuery1 = query('collection1');
       const filteredQuery1 = query('collection1', filter('key', '==', 1));
       const doc2 = doc('collection2/doc2', 1000, { key: 2 });
-      const query2 = query('collection2');
-      const filteredQuery2 = query('collection2', filter('key', '==', 2));
-      const filteredQuery3 = query('collection2', filter('key', '>=', 2));
+      const fullQuery2 = query('collection2');
+      const filteredQuery2a = query('collection2', filter('key', '==', 2));
+      const filteredQuery2b = query('collection2', filter('key', '>=', 2));
 
       return (
         spec()
@@ -1037,33 +976,94 @@ describeSpec('Limbo Documents:', [], () => {
           .withMaxConcurrentLimboResolutions(1)
 
           // Max out the number of active limbo resolutions.
-          .userListens(query1)
-          .watchAcksFull(query1, 1000, doc1)
-          .expectEvents(query1, { added: [doc1] })
-          .userUnlistens(query1)
+          .userListens(fullQuery1)
+          .watchAcksFull(fullQuery1, 1000, doc1)
+          .expectEvents(fullQuery1, { added: [doc1] })
+          .userUnlistens(fullQuery1)
           .userListens(filteredQuery1)
           .expectEvents(filteredQuery1, { added: [doc1], fromCache: true })
           .watchAcksFull(filteredQuery1, 1001)
           .expectLimboDocs(doc1.key)
 
           // Start a limbo resolution listen for a different document (doc2).
-          .userListens(query2)
-          .watchAcksFull(query2, 1002, doc2)
-          .expectEvents(query2, { added: [doc2] })
-          .userUnlistens(query2)
-          .userListens(filteredQuery2)
-          .expectEvents(filteredQuery2, { added: [doc2], fromCache: true })
-          .watchAcksFull(filteredQuery2, 1003)
+          .userListens(fullQuery2)
+          .watchAcksFull(fullQuery2, 1002, doc2)
+          .expectEvents(fullQuery2, { added: [doc2] })
+          .userUnlistens(fullQuery2)
+          .userListens(filteredQuery2a)
+          .expectEvents(filteredQuery2a, { added: [doc2], fromCache: true })
+          .watchAcksFull(filteredQuery2a, 1003)
           .expectLimboDocs(doc1.key)
           .expectEnqueuedLimboDocs(doc2.key)
 
           // Put doc2 into limbo in a different query and verify that it's not
           // added to the limbo resolution queue again.
-          .userListens(filteredQuery3)
-          .expectEvents(filteredQuery3, { added: [doc2], fromCache: true })
-          .watchAcksFull(filteredQuery3, 1004)
+          .userListens(filteredQuery2b)
+          .expectEvents(filteredQuery2b, { added: [doc2], fromCache: true })
+          .watchAcksFull(filteredQuery2b, 1004)
           .expectLimboDocs(doc1.key)
           .expectEnqueuedLimboDocs(doc2.key)
+      );
+    }
+  );
+
+  specTest(
+    'A limbo resolution for a document should be removed from the queue when the last query listen stops',
+    [],
+    () => {
+      const doc1 = doc('collection1/doc', 1000, { key: 1 });
+      const fullQuery1 = query('collection1');
+      const filteredQuery1 = query('collection1', filter('key', '==', 1));
+
+      const doc2 = doc('collection2/doc', 1000, { key: 2 });
+      const fullQuery2 = query('collection2');
+      const filteredQuery2a = query('collection2', filter('key', '==', 2));
+      const filteredQuery2b = query('collection2', filter('key', '>=', 2));
+
+      return (
+        spec()
+          .withGCEnabled(false)
+          .withMaxConcurrentLimboResolutions(1)
+
+          // Max out the number of active limbo resolutions.
+          .userListens(fullQuery1)
+          .watchAcksFull(fullQuery1, 1000, doc1)
+          .expectEvents(fullQuery1, { added: [doc1] })
+          .userUnlistens(fullQuery1)
+          .userListens(filteredQuery1)
+          .expectEvents(filteredQuery1, { added: [doc1], fromCache: true })
+          .watchAcksFull(filteredQuery1, 1001)
+          .expectLimboDocs(doc1.key)
+
+          // Enqueue a limbo resolution for doc2.
+          .userListens(fullQuery2)
+          .watchAcksFull(fullQuery2, 1002, doc2)
+          .expectEvents(fullQuery2, { added: [doc2] })
+          .userUnlistens(fullQuery2)
+          .userListens(filteredQuery2a)
+          .expectEvents(filteredQuery2a, { added: [doc2], fromCache: true })
+          .watchAcksFull(filteredQuery2a, 1003)
+          .expectLimboDocs(doc1.key)
+          .expectEnqueuedLimboDocs(doc2.key)
+
+          // Start another query that puts doc2 into limbo again.
+          .userListens(filteredQuery2b)
+          .expectEvents(filteredQuery2b, { added: [doc2], fromCache: true })
+          .watchAcksFull(filteredQuery2b, 1004)
+          .expectLimboDocs(doc1.key)
+          .expectEnqueuedLimboDocs(doc2.key)
+
+          // Stop one of the queries that enqueued a limbo resolution for doc2;
+          // verify that doc2 is not removed from the limbo resolution queue.
+          .userUnlistens(filteredQuery2b)
+          .expectLimboDocs(doc1.key)
+          .expectEnqueuedLimboDocs(doc2.key)
+
+          // Stop the other query that enqueued a limbo resolution for doc2;
+          // verify that doc2 *is* removed from the limbo resolution queue.
+          .userUnlistens(filteredQuery2a)
+          .expectLimboDocs(doc1.key)
+          .expectEnqueuedLimboDocs()
       );
     }
   );

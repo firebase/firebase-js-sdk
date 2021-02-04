@@ -1009,11 +1009,14 @@ abstract class TestRunner {
   private validateEnqueuedLimboDocs(): void {
     const actualLimboDocs = Array.from(
       syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine)
-    ).sort();
+    );
     const expectedLimboDocs = Array.from(this.expectedEnqueuedLimboDocs, key =>
       key.path.canonicalString()
-    ).sort();
-    expect(actualLimboDocs).to.deep.equal(expectedLimboDocs);
+    );
+    expect(actualLimboDocs).to.have.members(
+      expectedLimboDocs,
+      'The set of enqueued limbo documents is incorrect'
+    );
   }
 
   private async validateActiveTargets(): Promise<void> {
