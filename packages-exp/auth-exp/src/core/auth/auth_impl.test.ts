@@ -23,10 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { endpointUrl, mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
-import * as fetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { Persistence } from '../persistence';
@@ -34,7 +31,7 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
-import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
+import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 
 use(sinonChai);
