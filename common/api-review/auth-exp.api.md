@@ -525,6 +525,11 @@ export function updatePhoneNumber(user: externs.User, credential: externs.PhoneA
 export function updateProfile(user: externs.User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
 
 // @public
+export function useAuthEmulator(auth: externs.Auth, url: string, options?: {
+    disableWarnings: boolean;
+}): void;
+
+// @public
 export function useDeviceLanguage(auth: externs.Auth): void;
 
 export { User }
