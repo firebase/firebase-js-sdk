@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.9.2
+
+### Patch Changes
+
+- [`0af2bdfc6`](https://github.com/firebase/firebase-js-sdk/commit/0af2bdfc6b8be3f362cd630e2a917c5a070c568e) [#4363](https://github.com/firebase/firebase-js-sdk/pull/4363) - Fixed an issue with startAfter/endBefore when used in orderByKey queries
+
 ## 0.9.1
 
 ### Patch Changes
