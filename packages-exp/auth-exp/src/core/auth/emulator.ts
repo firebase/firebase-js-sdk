@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 import * as externs from '@firebase/auth-types-exp';
+import { AuthErrorCode } from '../errors';
+import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
 
 /**
@@ -43,5 +45,60 @@ export function useAuthEmulator(
   url: string,
   options?: { disableWarnings: boolean }
 ): void {
-  _castAuth(auth)._useEmulator(url, options);
+  const authInternal = _castAuth(auth);
+  _assert(
+    authInternal._canInitEmulator,
+    authInternal,
+    AuthErrorCode.EMULATOR_CONFIG_FAILED
+  );
+
+  _assert(
+    /^https?:\/\//.test(url),
+    authInternal,
+    AuthErrorCode.INVALID_EMULATOR_SCHEME
+  );
+
+  authInternal.config.emulator = { url };
+  authInternal.settings.appVerificationDisabledForTesting = true;
+  emitEmulatorWarning(!!options?.disableWarnings);
+}
+
+function emitEmulatorWarning(disableBanner: boolean): void {
+  function attachBanner(): void {
+    const el = document.createElement('p');
+    const sty = el.style;
+    el.innerText =
+      'Running in emulator mode. Do not use with production credentials.';
+    sty.position = 'fixed';
+    sty.width = '100%';
+    sty.backgroundColor = '#ffffff';
+    sty.border = '.1em solid #000000';
+    sty.color = '#ff0000';
+    sty.bottom = '0px';
+    sty.left = '0px';
+    sty.margin = '0px';
+    sty.zIndex = '10000';
+    sty.textAlign = 'center';
+    el.classList.add('firebase-emulator-warning');
+    document.body.appendChild(el);
+  }
+
+  if (typeof console !== 'undefined' && typeof console.info === 'function') {
+    console.info(
+      'WARNING: You are using the Auth Emulator,' +
+        ' which is intended for local testing only.  Do not use with' +
+        ' production credentials.'
+    );
+  }
+  if (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined' &&
+    !disableBanner
+  ) {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', attachBanner);
+    } else {
+      attachBanner();
+    }
+  }
 }

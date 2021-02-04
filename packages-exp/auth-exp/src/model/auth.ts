@@ -56,7 +56,6 @@ export interface Auth extends externs.Auth {
   _startProactiveRefresh(): void;
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
-  _useEmulator(url: string, options?: { disableWarnings: boolean }): void;
 
   readonly name: AppName;
   readonly config: ConfigInternal;
