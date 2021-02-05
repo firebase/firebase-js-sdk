@@ -308,18 +308,6 @@ export interface Auth {
    */
   useDeviceLanguage(): void;
   /**
-   * Modify this Auth instance to communicate with the Firebase Auth emulator.
-   *
-   * @remarks
-   * This must be called synchronously immediately following the first call to
-   * {@link @firebase/auth#initializeAuth}.  Do not use with production credentials as emulator
-   * traffic is not encrypted.
-   *
-   * @param url - The URL at which the emulator is running (eg, 'http://localhost:9099').
-   * @param disableBanner - (Optional: default false) Disable the warning banner attached to the DOM
-   */
-  useEmulator(url: string, options?: { disableWarnings: boolean }): void;
-  /**
    * Signs out the current user.
    */
   signOut(): Promise<void>;
@@ -1067,7 +1055,7 @@ export interface MultiFactorInfo {
  *
  * @public
  */
-export abstract class MultiFactorResolver {
+export interface MultiFactorResolver {
   /**
    * The list of hints for the second factors needed to complete the sign-in for the current
    * session.

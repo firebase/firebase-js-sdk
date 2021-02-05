@@ -162,7 +162,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.EMULATOR_CONFIG_FAILED]:
       'Auth instance has already been used to make a network call. Auth can ' +
       'no longer be configured to use the emulator. Try calling ' +
-      '"useEmulator()" sooner.',
+      '"useAuthEmulator()" sooner.',
     [AuthErrorCode.EXPIRED_OOB_CODE]: 'The action code has expired.',
     [AuthErrorCode.EXPIRED_POPUP_REQUEST]:
       'This operation has been cancelled due to another conflicting popup being opened.',
@@ -401,6 +401,10 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.MFA_REQUIRED]: {
     appName: AppName;
     serverResponse: IdTokenMfaResponse;
+  };
+  [AuthErrorCode.INVALID_CORDOVA_CONFIGURATION]: {
+    appName: AppName;
+    missingPlugin?: string;
   };
 }
 

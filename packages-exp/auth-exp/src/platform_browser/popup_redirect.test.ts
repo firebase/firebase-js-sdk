@@ -55,9 +55,7 @@ describe('platform_browser/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<
-      PopupRedirectResolver
-    >)();
+    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
 
     sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
     iframeSendStub = sinon.stub();
@@ -74,6 +72,12 @@ describe('platform_browser/popup_redirect', () => {
           })
       } as unknown) as gapi.iframes.Context)
     );
+
+    sinon.stub(authWindow._window(), 'gapi').value({
+      iframes: {
+        CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-iframes-filter'
+      }
+    });
   });
 
   afterEach(() => {
@@ -113,13 +117,11 @@ describe('platform_browser/popup_redirect', () => {
       );
     });
 
-    it('throws an error if authDomain is unspecified', async () => {
-      delete auth.config.authDomain;
+    it('validates the origin', async () => {
       await resolver._initialize(auth);
 
-      await expect(
-        resolver._openPopup(auth, provider, event)
-      ).to.be.rejectedWith(FirebaseError, 'auth/auth-domain-config-required');
+      await resolver._openPopup(auth, provider, event);
+      expect(validateOrigin._validateOrigin).to.have.been.calledWith(auth);
     });
 
     it('throws an error if apiKey is unspecified', async () => {
@@ -312,7 +314,7 @@ describe('platform_browser/popup_redirect', () => {
       expect(args[1]).to.eql({
         type: 'webStorageSupport'
       });
-      expect(args[3]).to.eq(gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER);
+      expect(args[3]).to.eq('cross-origin-iframes-filter');
     });
 
     it('passes through true value from the response to the callback', done => {

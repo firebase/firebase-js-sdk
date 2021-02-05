@@ -39,7 +39,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/app": "0.6.13"
+    "@firebase/app": "0.6.14"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",

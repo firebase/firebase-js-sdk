@@ -97,14 +97,11 @@ export class Query {
         'Query: When ordering by key, you may only pass one argument to ' +
         'startAt(), endAt(), or equalTo().';
       const wrongArgTypeError =
-        'Query: When ordering by key, the argument passed to startAt(), endAt(),' +
-        'or equalTo() must be a string.';
+        'Query: When ordering by key, the argument passed to startAt(), startAfter(), ' +
+        'endAt(), endBefore(), or equalTo() must be a string.';
       if (params.hasStart()) {
         const startName = params.getIndexStartName();
-        if (
-          startName !== MIN_NAME &&
-          !(params.hasStartAfter() && startName === MAX_NAME)
-        ) {
+        if (startName !== MIN_NAME) {
           throw new Error(tooManyArgsError);
         } else if (typeof startNode !== 'string') {
           throw new Error(wrongArgTypeError);
@@ -112,10 +109,7 @@ export class Query {
       }
       if (params.hasEnd()) {
         const endName = params.getIndexEndName();
-        if (
-          endName !== MAX_NAME &&
-          !(params.hasEndBefore() && endName === MIN_NAME)
-        ) {
+        if (endName !== MAX_NAME) {
           throw new Error(tooManyArgsError);
         } else if (typeof endNode !== 'string') {
           throw new Error(wrongArgTypeError);
@@ -128,7 +122,8 @@ export class Query {
       ) {
         throw new Error(
           'Query: When ordering by priority, the first argument passed to startAt(), ' +
-            'endAt(), or equalTo() must be a valid priority value (null, a number, or a string).'
+            'startAfter() endAt(), endBefore(), or equalTo() must be a valid priority value ' +
+            '(null, a number, or a string).'
         );
       }
     } else {
@@ -142,8 +137,8 @@ export class Query {
         (endNode != null && typeof endNode === 'object')
       ) {
         throw new Error(
-          'Query: First argument passed to startAt(), endAt(), or equalTo() cannot be ' +
-            'an object.'
+          'Query: First argument passed to startAt(), startAfter(), endAt(), endBefore(), or ' +
+            'equalTo() cannot be an object.'
         );
       }
     }
@@ -162,7 +157,8 @@ export class Query {
       !params.hasAnchoredLimit()
     ) {
       throw new Error(
-        "Query: Can't combine startAt(), endAt(), and limit(). Use limitToFirst() or limitToLast() instead."
+        "Query: Can't combine startAt(), startAfter(), endAt(), endBefore(), and limit(). Use " +
+          'limitToFirst() or limitToLast() instead.'
       );
     }
   }
@@ -617,13 +613,13 @@ export class Query {
     validateKey('Query.equalTo', 2, name, true);
     if (this.queryParams_.hasStart()) {
       throw new Error(
-        'Query.equalTo: Starting point was already set (by another call to startAt or ' +
+        'Query.equalTo: Starting point was already set (by another call to startAt/startAfter or ' +
           'equalTo).'
       );
     }
     if (this.queryParams_.hasEnd()) {
       throw new Error(
-        'Query.equalTo: Ending point was already set (by another call to endAt or ' +
+        'Query.equalTo: Ending point was already set (by another call to endAt/endBefore or ' +
           'equalTo).'
       );
     }

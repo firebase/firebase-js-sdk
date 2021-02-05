@@ -30,7 +30,7 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
-import { _withDefaultResolver } from '../popup_redirect';
+import { _withDefaultResolver } from '../../core/util/resolver';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
 /**
@@ -259,7 +259,6 @@ export async function _getRedirectResult(
   return result;
 }
 
-/** @internal */
 async function prepareUserForRedirect(user: User): Promise<string> {
   const eventId = _generateEventId(`${user.uid}:::`);
   user._redirectEventId = eventId;
@@ -342,7 +341,6 @@ class RedirectAction extends AbstractPopupRedirectOperation {
   cleanUp(): void {}
 }
 
-/** @internal */
 export function _clearOutcomes(): void {
   redirectOutcomeMap.clear();
 }

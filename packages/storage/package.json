@@ -14,7 +14,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c rollup.config.compat.js",
+    "build": "rollup -c rollup.config.compat.js && yarn build:exp",
     "build:exp": "rollup -c rollup.config.exp.js ; yarn api-report",
     "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
@@ -42,8 +42,8 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.13",
-    "@firebase/auth": "0.16.2",
+    "@firebase/app": "0.6.14",
+    "@firebase/auth": "0.16.3",
     "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.29.0",

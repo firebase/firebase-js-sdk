@@ -46,6 +46,7 @@ import {
 } from '@firebase/firestore-types';
 
 import { DatabaseId } from '../core/database_info';
+import { LoadBundleTask } from '../exp/bundle';
 import { Bytes } from '../exp/bytes';
 import {
   clearIndexedDbPersistence,
@@ -122,7 +123,6 @@ import {
 import { setLogLevel as setClientLogLevel } from '../util/log';
 
 import { Blob } from './blob';
-import { LoadBundleTask } from './bundle';
 import { Compat } from './compat';
 import {
   CompleteFn,

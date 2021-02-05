@@ -418,13 +418,15 @@ describe('platform_browser/strategies/phone', () => {
     let reloadMock: fetch.Route;
     let signInMock: fetch.Route;
     let credential: PhoneAuthCredential;
+    let idToken: string;
 
     beforeEach(() => {
+      idToken = makeJWT({ exp: '200', iat: '100' });
       reloadMock = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [{ uid: 'uid' }]
       });
       signInMock = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, {
-        idToken: 'new-access-token',
+        idToken,
         refreshToken: 'refresh-token'
       });
       credential = PhoneAuthCredential._fromVerification(
@@ -447,7 +449,7 @@ describe('platform_browser/strategies/phone', () => {
     it('should update the access token', async () => {
       await updatePhoneNumber(user, credential);
       const idToken = await user.getIdToken();
-      expect(idToken).to.eq('new-access-token');
+      expect(idToken).to.eq(idToken);
     });
 
     it('should reload the user', async () => {

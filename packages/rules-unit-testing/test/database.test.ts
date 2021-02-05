@@ -128,6 +128,25 @@ describe('Testing Module Tests', function () {
       .catch(() => {});
   });
 
+  it('discoverEmulators() finds all running emulators', async () => {
+    const options = await firebase.discoverEmulators();
+
+    expect(options).to.deep.equal({
+      database: {
+        host: 'localhost',
+        port: 9002
+      },
+      firestore: {
+        host: 'localhost',
+        port: 9003
+      },
+      hub: {
+        host: 'localhost',
+        port: 4400
+      }
+    });
+  });
+
   it('initializeTestApp() with auth=null does not set access token', async function () {
     const app = firebase.initializeTestApp({
       projectId: 'foo',

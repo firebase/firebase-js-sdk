@@ -38,7 +38,7 @@ const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 
 /** Environment variable to locate the Emulator Hub */
 const HUB_HOST_ENV: string = 'FIREBASE_EMULATOR_HUB';
-/** The default address for the Emulator hub */
+/** The default address for the Emulator Hub */
 const HUB_HOST_DEFAULT: string = 'localhost:4400';
 
 /** The actual address for the database emulator */
@@ -46,6 +46,9 @@ let _databaseHost: string | undefined = undefined;
 
 /** The actual address for the Firestore emulator */
 let _firestoreHost: string | undefined = undefined;
+
+/** The actual address for the Emulator Hub */
+let _hubHost: string | undefined = undefined;
 
 export type Provider =
   | 'custom'
@@ -117,6 +120,24 @@ export type FirebaseIdToken = {
 // To avoid a breaking change, we accept the 'uid' option here, but
 // new users should prefer 'sub' instead.
 export type TokenOptions = Partial<FirebaseIdToken> & { uid?: string };
+
+/**
+ * Host/port configuration for applicable Firebase Emulators.
+ */
+export type FirebaseEmulatorOptions = {
+  firestore?: {
+    host: string;
+    port: number;
+  };
+  database?: {
+    host: string;
+    port: number;
+  };
+  hub?: {
+    host: string;
+    port: number;
+  };
+};
 
 function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
   // Unsecured JWTs use "none" as the algorithm.
@@ -206,6 +227,98 @@ export function initializeAdminApp(options: AdminAppOptions): firebase.app.App {
   return app;
 }
 
+/**
+ * Set the host and port configuration for applicable emulators. This will override any values
+ * found in environment variables. Must be called before initializeAdminApp or initializeTestApp.
+ *
+ * @param options options object.
+ */
+export function useEmulators(options: FirebaseEmulatorOptions): void {
+  if (!(options.database || options.firestore || options.hub)) {
+    throw new Error(
+      "Argument to useEmulators must contain at least one of 'database', 'firestore', or 'hub'."
+    );
+  }
+
+  if (options.database) {
+    _databaseHost = getAddress(options.database.host, options.database.port);
+  }
+
+  if (options.firestore) {
+    _firestoreHost = getAddress(options.firestore.host, options.firestore.port);
+  }
+
+  if (options.hub) {
+    _hubHost = getAddress(options.hub.host, options.hub.port);
+  }
+}
+
+/**
+ * Use the Firebase Emulator hub to discover other running emulators. Call useEmulators() with
+ * the result to configure the library to use the discovered emulators.
+ *
+ * @param hubHost the host where the Emulator Hub is running (ex: 'localhost')
+ * @param hubPort the port where the Emulator Hub is running (ex: 4400)
+ */
+export async function discoverEmulators(
+  hubHost?: string,
+  hubPort?: number
+): Promise<FirebaseEmulatorOptions> {
+  if ((hubHost && !hubPort) || (!hubHost && hubPort)) {
+    throw new Error(
+      `Invalid configuration hubHost=${hubHost} and hubPort=${hubPort}. If either parameter is supplied, both must be defined.`
+    );
+  }
+
+  const hubAddress =
+    hubHost && hubPort ? getAddress(hubHost, hubPort) : getHubHost();
+
+  const res = await requestPromise(request.get, {
+    method: 'GET',
+    uri: `http://${hubAddress}/emulators`
+  });
+  if (res.statusCode !== 200) {
+    throw new Error(
+      `HTTP Error ${res.statusCode} when attempting to reach Emulator Hub at ${hubAddress}, are you sure it is running?`
+    );
+  }
+
+  const options: FirebaseEmulatorOptions = {};
+
+  const data = JSON.parse(res.body);
+
+  if (data.database) {
+    options.database = {
+      host: data.database.host,
+      port: data.database.port
+    };
+  }
+
+  if (data.firestore) {
+    options.firestore = {
+      host: data.firestore.host,
+      port: data.firestore.port
+    };
+  }
+
+  if (data.hub) {
+    options.hub = {
+      host: data.hub.host,
+      port: data.hub.port
+    };
+  }
+
+  return options;
+}
+
+function getAddress(host: string, port: number) {
+  if (host.includes('::')) {
+    return `[${host}]:${port}`;
+  } else {
+    return `${host}:${port}`;
+  }
+}
+
 function getDatabaseHost() {
   if (!_databaseHost) {
     const fromEnv = process.env[DATABASE_ADDRESS_ENV];
@@ -236,6 +349,22 @@ function getFirestoreHost() {
   }
 
   return _firestoreHost;
+}
+
+function getHubHost() {
+  if (!_hubHost) {
+    const fromEnv = process.env[HUB_HOST_ENV];
+    if (fromEnv) {
+      _hubHost = fromEnv;
+    } else {
+      console.warn(
+        `Warning: ${HUB_HOST_ENV} not set, using default value ${HUB_HOST_DEFAULT}`
+      );
+      _hubHost = HUB_HOST_DEFAULT;
+    }
+  }
+
+  return _hubHost;
 }
 
 function getRandomAppName(): string {
@@ -406,13 +535,7 @@ export async function clearFirestoreData(
 export async function withFunctionTriggersDisabled<TResult>(
   fn: () => TResult | Promise<TResult>
 ): Promise<TResult> {
-  let hubHost = process.env[HUB_HOST_ENV];
-  if (!hubHost) {
-    console.warn(
-      `${HUB_HOST_ENV} is not set, assuming the Emulator hub is running at ${HUB_HOST_DEFAULT}`
-    );
-    hubHost = HUB_HOST_DEFAULT;
-  }
+  const hubHost = getHubHost();
 
   // Disable background triggers
   const disableRes = await requestPromise(request.put, {

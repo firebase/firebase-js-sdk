@@ -33,7 +33,7 @@ export function getDownloadURL(ref: StorageReference): Promise<string>;
 export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 
 // @public
-export function getStorage(app: FirebaseApp, url?: string): StorageService;
+export function getStorage(app: FirebaseApp, bucketUrl?: string): StorageService;
 
 // @public
 export function list(ref: StorageReference, options?: ListOptions): Promise<ListResult>;

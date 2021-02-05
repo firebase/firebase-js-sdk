@@ -132,10 +132,11 @@ export async function _performFetchWithErrorHandling<V>(
       throw makeTaggedError(auth, AuthErrorCode.NEED_CONFIRMATION, json);
     }
 
-    if (response.ok) {
+    if (response.ok && !('errorMessage' in json)) {
       return json;
     } else {
-      const serverErrorCode = json.error.message.split(' : ')[0] as ServerError;
+      const errorMessage = response.ok ? json.errorMessage : json.error.message;
+      const serverErrorCode = errorMessage.split(' : ')[0] as ServerError;
       if (serverErrorCode === ServerError.FEDERATED_USER_ID_ALREADY_LINKED) {
         throw makeTaggedError(
           auth,

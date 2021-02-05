@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 2.1.5
+
+### Patch Changes
+
+- [`9533688b1`](https://github.com/firebase/firebase-js-sdk/commit/9533688b1e39e58a550ec0527a0363270d73c5b5) [#4347](https://github.com/firebase/firebase-js-sdk/pull/4347) (fixes [#1392](https://github.com/firebase/firebase-js-sdk/issues/1392)) - handle `ignoreUndefinedProperties` in `set({ merge: true })`. Previously this would behave as if the undefined value were `FieldValue.delete()`, which wasn't intended.
+
+## 2.1.4
+
+### Patch Changes
+
+- [`749c7f3d9`](https://github.com/firebase/firebase-js-sdk/commit/749c7f3d985f978cd2a204cbc28c3fff09458b5b) [#4298](https://github.com/firebase/firebase-js-sdk/pull/4298) (fixes [#4258](https://github.com/firebase/firebase-js-sdk/issues/4258)) - Firestore classes like DocumentReference and Query can now be serialized to JSON (#4258)
+
 ## 2.1.3
 
 ### Patch Changes

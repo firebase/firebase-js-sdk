@@ -289,13 +289,21 @@ export class QueryParams {
   }
 
   startAfter(indexValue: unknown, key?: string | null): QueryParams {
-    let childKey: string;
-    if (key == null) {
-      childKey = MAX_NAME;
+    let params: QueryParams;
+    if (this.index_ === KEY_INDEX) {
+      if (typeof indexValue === 'string') {
+        indexValue = successor(indexValue as string);
+      }
+      params = this.startAt(indexValue, key);
     } else {
-      childKey = successor(key);
+      let childKey: string;
+      if (key == null) {
+        childKey = MAX_NAME;
+      } else {
+        childKey = successor(key);
+      }
+      params = this.startAt(indexValue, childKey);
     }
-    const params: QueryParams = this.startAt(indexValue, childKey);
     params.startAfterSet_ = true;
     return params;
   }
@@ -324,12 +332,20 @@ export class QueryParams {
 
   endBefore(indexValue: unknown, key?: string | null): QueryParams {
     let childKey: string;
-    if (key == null) {
-      childKey = MIN_NAME;
+    let params: QueryParams;
+    if (this.index_ === KEY_INDEX) {
+      if (typeof indexValue === 'string') {
+        indexValue = predecessor(indexValue as string);
+      }
+      params = this.endAt(indexValue, key);
     } else {
-      childKey = predecessor(key);
+      if (key == null) {
+        childKey = MIN_NAME;
+      } else {
+        childKey = predecessor(key);
+      }
+      params = this.endAt(indexValue, childKey);
     }
-    const params: QueryParams = this.endAt(indexValue, childKey);
     params.endBeforeSet_ = true;
     return params;
   }

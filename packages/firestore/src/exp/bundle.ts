@@ -15,26 +15,42 @@
  * limitations under the License.
  */
 
-import {
-  LoadBundleTask as ApiLoadBundleTask,
-  LoadBundleTaskProgress
-} from '@firebase/firestore-types';
-
-import { ensureFirestoreConfigured } from '../../src/exp/database';
-import { Query as ExpQuery } from '../../src/exp/reference';
-import {
-  firestoreClientGetNamedQuery,
-  firestoreClientLoadBundle
-} from '../core/firestore_client';
+import { PartialObserver } from '../api/observer';
 import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { Deferred } from '../util/promise';
 
-import { Query, Firestore } from './database';
-import { PartialObserver } from './observer';
+/**
+ * Represents the state of bundle loading tasks.
+ *
+ * Both 'Error' and 'Success' are sinking state: task will abort or complete and there will
+ * be no more updates after they are reported.
+ */
+export type TaskState = 'Error' | 'Running' | 'Success';
 
-export class LoadBundleTask
-  implements ApiLoadBundleTask, PromiseLike<LoadBundleTaskProgress> {
+/**
+ * Represents a progress update or a final state from loading bundles.
+ */
+export interface LoadBundleTaskProgress {
+  /** How many documents have been loaded. */
+  documentsLoaded: number;
+  /** How many documents are in the bundle being loaded. */
+  totalDocuments: number;
+  /** How many bytes have been loaded. */
+  bytesLoaded: number;
+  /** How many bytes are in the bundle being loaded. */
+  totalBytes: number;
+  /** Current task state. */
+  taskState: TaskState;
+}
+
+/**
+ * Represents the task of loading a Firestore bundle. It provides progress of bundle
+ * loading, as well as task completion and error events.
+ *
+ * The API is compatible with `Promise<LoadBundleTaskProgress>`.
+ */
+export class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
   private _progressObserver: PartialObserver<LoadBundleTaskProgress> = {};
   private _taskCompletionResolver = new Deferred<LoadBundleTaskProgress>();
 
@@ -46,6 +62,14 @@ export class LoadBundleTask
     documentsLoaded: 0
   };
 
+  /**
+   * Registers functions to listen to bundle loading progress events.
+   * @param next - Called when there is a progress update from bundle loading. Typically `next` calls occur
+   *   each time a Firestore document is loaded from the bundle.
+   * @param error - Called when an error occurs during bundle loading. The task aborts after reporting the
+   *   error, and there should be no more updates after this.
+   * @param complete - Called when the loading task is complete.
+   */
   onProgress(
     next?: (progress: LoadBundleTaskProgress) => unknown,
     error?: (err: Error) => unknown,
@@ -58,12 +82,24 @@ export class LoadBundleTask
     };
   }
 
+  /**
+   * Implements the `Promise<LoadBundleTaskProgress>.catch` interface.
+   *
+   * @param onRejected - Called when an error occurs during bundle loading.
+   */
   catch<R>(
     onRejected: (a: Error) => R | PromiseLike<R>
   ): Promise<R | LoadBundleTaskProgress> {
     return this._taskCompletionResolver.promise.catch(onRejected);
   }
 
+  /**
+   * Implements the `Promise<LoadBundleTaskProgress>.then` interface.
+   *
+   * @param onFulfilled - Called on the completion of the loading task with a final `LoadBundleTaskProgress` update.
+   *   The update will always have its `taskState` set to `"Success"`.
+   * @param onRejected - Called when an error occurs during bundle loading.
+   */
   then<T, R>(
     onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
     onRejected?: (a: Error) => R | PromiseLike<R>
@@ -74,6 +110,8 @@ export class LoadBundleTask
   /**
    * Notifies all observers that bundle loading has completed, with a provided
    * `LoadBundleTaskProgress` object.
+   *
+   * @private
    */
   _completeWith(progress: LoadBundleTaskProgress): void {
     debugAssert(
@@ -91,6 +129,8 @@ export class LoadBundleTask
   /**
    * Notifies all observers that bundle loading has failed, with a provided
    * `Error` as the reason.
+   *
+   * @private
    */
   _failWith(error: FirestoreError): void {
     this._lastProgress.taskState = 'Error';
@@ -109,6 +149,8 @@ export class LoadBundleTask
   /**
    * Notifies a progress update of loading a bundle.
    * @param progress - The new progress.
+   *
+   * @private
    */
   _updateProgress(progress: LoadBundleTaskProgress): void {
     debugAssert(
@@ -121,31 +163,4 @@ export class LoadBundleTask
       this._progressObserver.next(progress);
     }
   }
-}
-
-export function loadBundle(
-  db: Firestore,
-  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-): LoadBundleTask {
-  const resultTask = new LoadBundleTask();
-  firestoreClientLoadBundle(
-    ensureFirestoreConfigured(db._delegate),
-    db._databaseId,
-    bundleData,
-    resultTask
-  );
-  return resultTask;
-}
-
-export function namedQuery(db: Firestore, name: string): Promise<Query | null> {
-  return firestoreClientGetNamedQuery(
-    ensureFirestoreConfigured(db._delegate),
-    name
-  ).then(namedQuery => {
-    if (!namedQuery) {
-      return null;
-    }
-
-    return new Query(db, new ExpQuery(db._delegate, null, namedQuery.query));
-  });
 }

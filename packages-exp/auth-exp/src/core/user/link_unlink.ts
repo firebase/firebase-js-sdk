@@ -59,7 +59,6 @@ export async function unlink(
   return user;
 }
 
-/** @internal */
 export async function _link(
   user: User,
   credential: AuthCredential,
@@ -77,7 +76,6 @@ export async function _link(
   );
 }
 
-/** @internal */
 export async function _assertLinkedStatus(
   expected: boolean,
   user: User,

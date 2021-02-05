@@ -18,7 +18,6 @@
 import { SDK_VERSION } from '@firebase/app-exp';
 import * as externs from '@firebase/auth-types-exp';
 import { isEmpty, querystring } from '@firebase/util';
-import { _getInstance } from '../core/util/instantiator';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
@@ -45,21 +44,18 @@ import { _getRedirectResult } from './strategies/redirect';
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
  *
- * @internal
  */
 const WIDGET_PATH = '__/auth/handler';
 
 /**
  * URL for emulated environment
  *
- * @internal
  */
 const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
 
 /**
  * The special web storage event
  *
- * @internal
  */
 const WEB_STORAGE_SUPPORT_KEY = 'webStorageSupport';
 
@@ -70,26 +66,6 @@ interface WebStorageSupportMessage extends gapi.iframes.Message {
 interface ManagerOrPromise {
   manager?: EventManager;
   promise?: Promise<EventManager>;
-}
-
-/**
- * Chooses a popup/redirect resolver to use. This prefers the override (which
- * is directly passed in), and falls back to the property set on the auth
- * object. If neither are available, this function errors w/ an argument error.
- *
- * @internal
- */
-export function _withDefaultResolver(
-  auth: Auth,
-  resolverOverride: externs.PopupRedirectResolver | undefined
-): PopupRedirectResolver {
-  if (resolverOverride) {
-    return _getInstance(resolverOverride);
-  }
-
-  _assert(auth._popupRedirectResolver, auth, AuthErrorCode.ARGUMENT_ERROR);
-
-  return auth._popupRedirectResolver;
 }
 
 class BrowserPopupRedirectResolver implements PopupRedirectResolver {

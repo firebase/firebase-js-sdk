@@ -117,7 +117,6 @@ export function updatePassword(
   return updateEmailOrPassword(user as User, null, newPassword);
 }
 
-/** @internal */
 async function updateEmailOrPassword(
   user: User,
   email: string | null,
