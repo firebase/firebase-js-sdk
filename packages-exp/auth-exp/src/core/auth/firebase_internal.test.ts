@@ -51,8 +51,13 @@ describe('core/auth/firebase_internal', () => {
     });
 
     it('errors if Auth is not initialized', () => {
-      delete (auth as unknown as Record<string, unknown>)['_initializationPromise'];
-      expect(() => authInternal.getUid()).to.throw(FirebaseError, 'auth/dependent-sdk-initialized-before-auth');
+      delete ((auth as unknown) as Record<string, unknown>)[
+        '_initializationPromise'
+      ];
+      expect(() => authInternal.getUid()).to.throw(
+        FirebaseError,
+        'auth/dependent-sdk-initialized-before-auth'
+      );
     });
   });
 
@@ -73,8 +78,13 @@ describe('core/auth/firebase_internal', () => {
     });
 
     it('errors if Auth is not initialized', async () => {
-      delete (auth as unknown as Record<string, unknown>)['_initializationPromise'];
-      await expect(authInternal.getToken()).to.be.rejectedWith(FirebaseError, 'auth/dependent-sdk-initialized-before-auth');
+      delete ((auth as unknown) as Record<string, unknown>)[
+        '_initializationPromise'
+      ];
+      await expect(authInternal.getToken()).to.be.rejectedWith(
+        FirebaseError,
+        'auth/dependent-sdk-initialized-before-auth'
+      );
     });
   });
 
@@ -131,8 +141,13 @@ describe('core/auth/firebase_internal', () => {
       });
 
       it('errors if Auth is not initialized', () => {
-        delete (auth as unknown as Record<string, unknown>)['_initializationPromise'];
-        expect(() => authInternal.addAuthTokenListener(() => {})).to.throw(FirebaseError, 'auth/dependent-sdk-initialized-before-auth');
+        delete ((auth as unknown) as Record<string, unknown>)[
+          '_initializationPromise'
+        ];
+        expect(() => authInternal.addAuthTokenListener(() => {})).to.throw(
+          FirebaseError,
+          'auth/dependent-sdk-initialized-before-auth'
+        );
       });
     });
 
@@ -189,8 +204,13 @@ describe('core/auth/firebase_internal', () => {
       });
 
       it('errors if Auth is not initialized', () => {
-        delete (auth as unknown as Record<string, unknown>)['_initializationPromise'];
-        expect(() => authInternal.removeAuthTokenListener(() => {})).to.throw(FirebaseError, 'auth/dependent-sdk-initialized-before-auth');
+        delete ((auth as unknown) as Record<string, unknown>)[
+          '_initializationPromise'
+        ];
+        expect(() => authInternal.removeAuthTokenListener(() => {})).to.throw(
+          FirebaseError,
+          'auth/dependent-sdk-initialized-before-auth'
+        );
       });
     });
   });

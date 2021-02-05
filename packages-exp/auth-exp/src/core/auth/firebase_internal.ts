@@ -79,7 +79,10 @@ export class AuthInternal implements FirebaseAuthInternal {
   }
 
   private assertAuthConfigured(): void {
-    _assert(this.auth._initializationPromise, AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH);
+    _assert(
+      this.auth._initializationPromise,
+      AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
+    );
   }
 
   private updateProactiveRefresh(): void {

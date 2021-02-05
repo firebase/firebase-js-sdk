@@ -363,7 +363,7 @@ function _prodErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]:
       'Another Firebase SDK was initialized and is trying to use Auth before Auth is ' +
       'initialized. Please be sure to call `initializeAuth` or `getAuth` before ' +
-      'starting any other Firebase SDK.',
+      'starting any other Firebase SDK.'
   } as ErrorMap<AuthErrorCode>;
 }
 
