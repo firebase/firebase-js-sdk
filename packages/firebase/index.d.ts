@@ -5959,6 +5959,7 @@ declare namespace firebase.database {
      * @example
      * ```javascript
      * // Find all dinosaurs whose names come before Pterodactyl lexicographically.
+     * // Include Pterodactyl in the result.
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByKey().endAt("pterodactyl").on("child_added", function(snapshot) {
      *   console.log(snapshot.key);
@@ -5987,6 +5988,15 @@ declare namespace firebase.database {
      * with a value less than the specified value will be included in the query.
      * If a key is specified, then children must have a value lesss than or equal
      * to the specified value and a a key name less than the specified key.
+     *
+     * @example
+     * ```javascript
+     * // Find all dinosaurs whose names come before Pterodactyl lexicographically.
+     * // Do not include Pterodactyl in the result.
+     * var ref = firebase.database().ref("dinosaurs");
+     * ref.orderByKey().endBefore("pterodactyl").on("child_added", function(snapshot) {
+     *   console.log(snapshot.key);
+     * });
      *
      * @param value The value to end before. The argument
      *   type depends on which `orderBy*()` function was used in this query.
