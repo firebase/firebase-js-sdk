@@ -1,6 +1,6 @@
 # Firestore Spec Tests
 
-The Firestore Spec Tests are a suite of unit tests that fake out the external
+The Firestore Spec Tests are a suite of unit tests that fake out external
 sources of events so that they can be completely controlled from the tests
 themselves and verify the correct handling of these events.
 
