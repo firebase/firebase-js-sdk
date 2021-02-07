@@ -3137,8 +3137,10 @@ declare namespace firebase.auth {
      * with production credentials as emulator traffic is not encrypted.
      *
      * @param url The URL at which the emulator is running (eg, 'http://localhost:9099')
+     * @param options.disableWarnings (Optional: default false) Disable the warning banner attached
+     *     to the DOM
      */
-    useEmulator(url: string): void;
+    useEmulator(url: string, options?: { disableWarnings: boolean }): void;
     /**
      * Checks a password reset code sent to the user by email or other out-of-band
      * mechanism.
