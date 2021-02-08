@@ -1403,7 +1403,7 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     const childOne = node.push();
     const childTwo = node.push();
-    childOne.set(1);
+    await childOne.set(1);
     childTwo.set(2);
     const ea = EventAccumulatorFactory.waitsForCount(1);
     node.on('value', snap => {
@@ -1419,7 +1419,7 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     const childOne = node.push();
     const childTwo = node.push();
-    childOne.set(1);
+    await childOne.set(1);
     childTwo.set(2);
     const ea = EventAccumulatorFactory.waitsForCount(1);
     node.on('value', snap => {
