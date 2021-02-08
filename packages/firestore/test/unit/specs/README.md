@@ -9,7 +9,8 @@ the persistence layer, and input from the watch stream. The spec tests fake all
 of these. Since these external events are asynchronous in nature, in the real
 world there is some non-determinism in the ordering of events. The spec tests
 allow these orderings to be specified explicitly, enabling orderings that are
-difficult or impossible to force when connected to a real backend.
+difficult or impossible to force when connected to a real backend. In addition,
+when running under Node, the IndexedDb persistence layer is faked.
 
 The Firestore Spec Tests are portable and must be kept in sync between the Web
 SDK (this SDK), Android SDK, and iOS SDK. The Web SDK contains the authoritative
@@ -22,10 +23,19 @@ The spec tests are part of the unit test suite of each SDK. Therefore, to run
 the spec tests simply run the entire unit test suite and the spec tests will be
 executed as a part of it.
 
-For example, in the Web SDK (this SDK), the best way to run the spec tests is
-via the Intellij IDEA IDE. After following the instructions to set up IntelliJ
-in [CONTRIBUTING.md](../../../CONTRIBUTING.md), run the "Unit Tests" Run
-Configuration, which will include the spec tests.
+## Test Tags
+
+Each spec test can specify zero or many "tags" that influence the test's
+execution. Some of the commonly-used tags are documented here; see
+[describe_spec.ts](describe_spec.ts) for the full set of supported tags.
+
+- `exclusive` - Only run this spec test and skip all others. It can be useful
+  to apply this tag to a test while it is under active development or debugging.
+  Tests should never be checked into source control with this tag.
+
+- `no-android` and `no-ios` - Do not run this spec test on Android and/or iOS,
+  respectively. It may be useful to specify these tags if the functionality has
+  not been or never will be ported to these platforms.
 
 ## Exporting the Tests
 
