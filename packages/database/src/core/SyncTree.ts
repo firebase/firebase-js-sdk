@@ -177,7 +177,7 @@ export class SyncTree {
    */
   applyServerOverwrite(path: Path, newData: Node): Event[] {
     return this.applyOperationToSyncPoints_(
-      new Overwrite(OperationSource.Server, path, newData)
+      new Overwrite(OperationSource.server(), path, newData)
     );
   }
 
@@ -193,7 +193,7 @@ export class SyncTree {
     const changeTree = ImmutableTree.fromObject(changedChildren);
 
     return this.applyOperationToSyncPoints_(
-      new Merge(OperationSource.Server, path, changeTree)
+      new Merge(OperationSource.server(), path, changeTree)
     );
   }
 
@@ -204,7 +204,7 @@ export class SyncTree {
    */
   applyListenComplete(path: Path): Event[] {
     return this.applyOperationToSyncPoints_(
-      new ListenComplete(OperationSource.Server, path)
+      new ListenComplete(OperationSource.server(), path)
     );
   }
 
