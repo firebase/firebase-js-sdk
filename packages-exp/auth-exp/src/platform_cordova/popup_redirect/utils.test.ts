@@ -36,7 +36,6 @@ const IOS_UA = 'UserAgent/5.0 (iPhone; CPU iPhone 0.0.0)';
 const IOS_8_UA = 'UserAgent/5.0 (iPhone OS 8_2)';
 const DESKTOP_UA = 'UserAgent/5.0 (Linux; Ubuntu 0.0.0)';
 
-
 use(chaiAsPromised);
 use(sinonChai);
 
@@ -192,7 +191,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('attaches the relevant display name', async () => {
       setUA(IOS_UA);
-      (BuildInfo as {displayName: string}).displayName = 'This is my app';
+      (BuildInfo as { displayName: string }).displayName = 'This is my app';
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );

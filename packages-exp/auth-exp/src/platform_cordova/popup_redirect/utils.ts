@@ -196,7 +196,10 @@ async function computeSha256(sessionId: string): Promise<string> {
 function stringToArrayBuffer(str: string): Uint8Array {
   // This function is only meant to deal with an ASCII charset and makes
   // certain simplifying assumptions.
-  debugAssert(/[0-9a-zA-Z]+/.test(str), 'Can only convert alpha-numeric strings');
+  debugAssert(
+    /[0-9a-zA-Z]+/.test(str),
+    'Can only convert alpha-numeric strings'
+  );
   if (typeof TextEncoder !== 'undefined') {
     return new TextEncoder().encode(str);
   }
