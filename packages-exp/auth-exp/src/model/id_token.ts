@@ -22,14 +22,12 @@ import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
 /**
  * Raw encoded JWT
  *
- * @internal
  */
 export type IdToken = string;
 
 /**
  * Raw parsed JWT
  *
- * @internal
  */
 export interface ParsedIdToken {
   iss: string;
@@ -51,7 +49,6 @@ export interface ParsedIdToken {
 /**
  * IdToken as returned by the API
  *
- * @internal
  */
 export interface IdTokenResponse {
   localId: string;
@@ -72,7 +69,6 @@ export interface IdTokenResponse {
 /**
  * The possible types of the `IdTokenResponse`
  *
- * @internal
  */
 export const enum IdTokenResponseKind {
   CreateAuthUri = 'identitytoolkit#CreateAuthUriResponse',
@@ -91,9 +87,6 @@ export const enum IdTokenResponseKind {
   VerifyPassword = 'identitytoolkit#VerifyPasswordResponse'
 }
 
-/**
- * @internal
- */
 export interface TaggedWithTokenResponse {
   _tokenResponse?: PhoneOrOauthTokenResponse;
 }

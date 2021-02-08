@@ -30,9 +30,6 @@ import { AuthCredential } from './auth_credential';
 
 const IDP_REQUEST_URI = 'http://localhost';
 
-/**
- * @internal
- */
 export interface OAuthCredentialParams {
   // OAuth 2 uses either id token or access token
   idToken?: string | null;

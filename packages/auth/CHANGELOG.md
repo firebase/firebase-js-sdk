@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.16.3
+
+### Patch Changes
+
+- [`73bb561e1`](https://github.com/firebase/firebase-js-sdk/commit/73bb561e18ea42286a54d28648636bf1ac7fcfe0) [#4357](https://github.com/firebase/firebase-js-sdk/pull/4357) (fixes [#4174](https://github.com/firebase/firebase-js-sdk/issues/4174)) - Decode UTF-8 in ID Token. Fix #4174.
+
 ## 0.16.2
 
 ### Patch Changes

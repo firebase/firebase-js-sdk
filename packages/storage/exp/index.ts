@@ -294,15 +294,22 @@ const STORAGE_TYPE = 'storage-exp';
  * Gets a Firebase StorageService instance for the given Firebase app.
  * @public
  * @param app - Firebase app to get Storage instance for.
+ * @param bucketUrl - The gs:// url to your Firebase Storage Bucket.
+ * If not passed, uses the app's default Storage Bucket.
  * @returns A Firebase StorageService instance.
  */
-export function getStorage(app: FirebaseApp, url?: string): StorageService {
+export function getStorage(
+  app: FirebaseApp,
+  bucketUrl?: string
+): StorageService {
   // Dependencies
   const storageProvider: Provider<'storage-exp'> = _getProvider(
     app,
     STORAGE_TYPE
   );
-  const storageInstance = storageProvider.getImmediate({ identifier: url });
+  const storageInstance = storageProvider.getImmediate({
+    identifier: bucketUrl
+  });
   return storageInstance;
 }
 

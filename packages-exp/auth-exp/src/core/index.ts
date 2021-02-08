@@ -134,6 +134,7 @@ export function signOut(auth: externs.Auth): Promise<void> {
 }
 
 export { initializeAuth } from './auth/initialize';
+export { useAuthEmulator } from './auth/emulator';
 
 // credentials
 export { AuthCredential } from './credentials';

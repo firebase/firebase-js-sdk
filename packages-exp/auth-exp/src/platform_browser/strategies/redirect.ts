@@ -259,7 +259,6 @@ export async function _getRedirectResult(
   return result;
 }
 
-/** @internal */
 async function prepareUserForRedirect(user: User): Promise<string> {
   const eventId = _generateEventId(`${user.uid}:::`);
   user._redirectEventId = eventId;
@@ -342,7 +341,6 @@ class RedirectAction extends AbstractPopupRedirectOperation {
   cleanUp(): void {}
 }
 
-/** @internal */
 export function _clearOutcomes(): void {
   redirectOutcomeMap.clear();
 }

@@ -146,10 +146,10 @@ export interface Reference extends Query {
 /**
  * @public
  */
-export interface ServerValue {
+export declare const ServerValue: {
   TIMESTAMP: object;
   increment(delta: number): object;
-}
+};
 
 /**
  * @public

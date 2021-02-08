@@ -118,7 +118,6 @@ import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
-import { SortedSet } from '../../../src/util/sorted_set';
 import {
   byteStringFromString,
   deletedDoc,
@@ -1008,31 +1007,16 @@ abstract class TestRunner {
   }
 
   private validateEnqueuedLimboDocs(): void {
-    let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine).forEach(
-      key => {
-        actualLimboDocs = actualLimboDocs.add(key);
-      }
+    const actualLimboDocs = Array.from(
+      syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine)
     );
-    let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    this.expectedEnqueuedLimboDocs.forEach(key => {
-      expectedLimboDocs = expectedLimboDocs.add(key);
-    });
-    actualLimboDocs.forEach(key => {
-      expect(expectedLimboDocs.has(key)).to.equal(
-        true,
-        `Found enqueued limbo doc ${key.toString()}, but it was not in ` +
-          `the set of expected enqueued limbo documents ` +
-          `(${expectedLimboDocs.toString()})`
-      );
-    });
-    expectedLimboDocs.forEach(key => {
-      expect(actualLimboDocs.has(key)).to.equal(
-        true,
-        `Expected doc ${key.toString()} to be enqueued for limbo resolution, ` +
-          `but it was not in the queue (${actualLimboDocs.toString()})`
-      );
-    });
+    const expectedLimboDocs = Array.from(this.expectedEnqueuedLimboDocs, key =>
+      key.path.canonicalString()
+    );
+    expect(actualLimboDocs).to.have.members(
+      expectedLimboDocs,
+      'The set of enqueued limbo documents is incorrect'
+    );
   }
 
   private async validateActiveTargets(): Promise<void> {

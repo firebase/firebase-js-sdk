@@ -22,16 +22,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { version } from '../package.json';
 import { FirebaseDatabase } from '../src/exp/Database';
 
-export {
-  getDatabase,
-  FirebaseDatabase,
-  ServerValue
-} from '../src/exp/Database';
-export { EventType } from '../src/core/view/Event';
-export { DataSnapshot } from '../src/api/DataSnapshot';
-export { Query } from '../src/api/Query';
-export { Reference } from '../src/api/Reference';
-export { OnDisconnect } from '../src/api/onDisconnect';
+export { getDatabase, ServerValue } from '../src/exp/Database';
 export { enableLogging } from '../src/core/util/util';
 
 declare module '@firebase/component' {
