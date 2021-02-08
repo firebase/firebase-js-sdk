@@ -40,7 +40,6 @@ import { CancelEvent, Event } from './Event';
  *  - Maintains a cache of the data visible for this location/query.
  *  - Applies new operations (via applyOperation), updates the cache, and based on the event
  *    registrations returns the set of events to be raised.
- * @constructor
  */
 export class View {
   private processor_: ViewProcessor;
@@ -49,9 +48,7 @@ export class View {
   private eventGenerator_: EventGenerator;
 
   /**
-   *
-   * @param {!Query} query_
-   * @param {!ViewCache} initialViewCache
+   * @param query_
    */
   constructor(private query_: Query, initialViewCache: ViewCache) {
     const params = this.query_.getQueryParams();
@@ -59,10 +56,6 @@ export class View {
     const indexFilter = new IndexedFilter(params.getIndex());
     const filter = params.getNodeFilter();
 
-    /**
-     * @type {ViewProcessor}
-     * @private
-     */
     this.processor_ = new ViewProcessor(filter);
 
     const initialServerCache = initialViewCache.getServerCache();
@@ -90,37 +83,18 @@ export class View {
       filter.filtersNodes()
     );
 
-    /**
-     * @type {!ViewCache}
-     * @private
-     */
     this.viewCache_ = new ViewCache(newEventCache, newServerCache);
-
-    /**
-     * @type {!EventGenerator}
-     * @private
-     */
     this.eventGenerator_ = new EventGenerator(this.query_);
   }
 
-  /**
-   * @return {!Query}
-   */
   getQuery(): Query {
     return this.query_;
   }
 
-  /**
-   * @return {?Node}
-   */
   getServerCache(): Node | null {
     return this.viewCache_.getServerCache().getNode();
   }
 
-  /**
-   * @param {!Path} path
-   * @return {?Node}
-   */
   getCompleteServerCache(path: Path): Node | null {
     const cache = this.viewCache_.getCompleteServerSnap();
     if (cache) {
@@ -136,24 +110,18 @@ export class View {
     return null;
   }
 
-  /**
-   * @return {boolean}
-   */
   isEmpty(): boolean {
     return this.eventRegistrations_.length === 0;
   }
 
-  /**
-   * @param {!EventRegistration} eventRegistration
-   */
   addEventRegistration(eventRegistration: EventRegistration) {
     this.eventRegistrations_.push(eventRegistration);
   }
 
   /**
-   * @param {?EventRegistration} eventRegistration If null, remove all callbacks.
-   * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
-   * @return {!Array.<!Event>} Cancel events, if cancelError was provided.
+   * @param eventRegistration If null, remove all callbacks.
+   * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
+   * @return Cancel events, if cancelError was provided.
    */
   removeEventRegistration(
     eventRegistration: EventRegistration | null,
@@ -167,7 +135,6 @@ export class View {
       );
       const path = this.query_.path;
       this.eventRegistrations_.forEach(registration => {
-        cancelError /** @type {!Error} */ = cancelError;
         const maybeEvent = registration.createCancelEvent(cancelError, path);
         if (maybeEvent) {
           cancelEvents.push(maybeEvent);
@@ -196,11 +163,6 @@ export class View {
 
   /**
    * Applies the given Operation, updates our cache, and returns the appropriate events.
-   *
-   * @param {!Operation} operation
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} completeServerCache
-   * @return {!Array.<!Event>}
    */
   applyOperation(
     operation: Operation,
@@ -245,10 +207,6 @@ export class View {
     );
   }
 
-  /**
-   * @param {!EventRegistration} registration
-   * @return {!Array.<!Event>}
-   */
   getInitialEvents(registration: EventRegistration): Event[] {
     const eventSnap = this.viewCache_.getEventCache();
     const initialChanges: Change[] = [];
@@ -268,13 +226,6 @@ export class View {
     );
   }
 
-  /**
-   * @private
-   * @param {!Array.<!Change>} changes
-   * @param {!Node} eventCache
-   * @param {EventRegistration=} eventRegistration
-   * @return {!Array.<!Event>}
-   */
   generateEventsForChanges_(
     changes: Change[],
     eventCache: Node,

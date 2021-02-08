@@ -97,12 +97,8 @@ export class SyncPoint {
   /**
    * Add an event callback for the specified query.
    *
-   * @param {!Query} query
-   * @param {!EventRegistration} eventRegistration
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} serverCache Complete server cache, if we have it.
-   * @param {boolean} serverCacheComplete
-   * @return {!Array.<!Event>} Events to raise.
+   * @param serverCache Complete server cache, if we have it.
+   * @return Events to raise.
    */
   addEventRegistration(
     query: Query,
@@ -129,16 +125,8 @@ export class SyncPoint {
         eventCacheComplete = false;
       }
       const viewCache = new ViewCache(
-        new CacheNode(
-          /** @type {!Node} */ eventCache,
-          eventCacheComplete,
-          false
-        ),
-        new CacheNode(
-          /** @type {!Node} */ serverCache,
-          serverCacheComplete,
-          false
-        )
+        new CacheNode(eventCache, eventCacheComplete, false),
+        new CacheNode(serverCache, serverCacheComplete, false)
       );
       view = new View(query, viewCache);
       this.views.set(queryId, view);
@@ -155,10 +143,9 @@ export class SyncPoint {
    * If query is the default query, we'll check all views for the specified eventRegistration.
    * If eventRegistration is null, we'll remove all callbacks for the specified view(s).
    *
-   * @param {!Query} query
-   * @param {?EventRegistration} eventRegistration If null, remove all callbacks.
-   * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
-   * @return {{removed:!Array.<!Query>, events:!Array.<!Event>}} removed queries and any cancel events
+   * @param eventRegistration If null, remove all callbacks.
+   * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
+   * @return removed queries and any cancel events
    */
   removeEventRegistration(
     query: Query,

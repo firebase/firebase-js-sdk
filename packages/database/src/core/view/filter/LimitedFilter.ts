@@ -30,42 +30,16 @@ import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
 
 /**
  * Applies a limit and a range to a node and uses RangedFilter to do the heavy lifting where possible
- *
- * @constructor
- * @implements {NodeFilter}
  */
 export class LimitedFilter implements NodeFilter {
-  /**
-   * @const
-   * @type {RangedFilter}
-   * @private
-   */
   private readonly rangedFilter_: RangedFilter;
 
-  /**
-   * @const
-   * @type {!Index}
-   * @private
-   */
   private readonly index_: Index;
 
-  /**
-   * @const
-   * @type {number}
-   * @private
-   */
   private readonly limit_: number;
 
-  /**
-   * @const
-   * @type {boolean}
-   * @private
-   */
   private readonly reverse_: boolean;
 
-  /**
-   * @param {!QueryParams} params
-   */
   constructor(params: QueryParams) {
     this.rangedFilter_ = new RangedFilter(params);
     this.index_ = params.getIndex();
@@ -242,15 +216,6 @@ export class LimitedFilter implements NodeFilter {
     return this.index_;
   }
 
-  /**
-   * @param {!Node} snap
-   * @param {string} childKey
-   * @param {!Node} childSnap
-   * @param {!CompleteChildSource} source
-   * @param {?ChildChangeAccumulator} changeAccumulator
-   * @return {!Node}
-   * @private
-   */
   private fullLimitUpdateChild_(
     snap: Node,
     childKey: string,

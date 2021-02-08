@@ -28,40 +28,26 @@ import { RepoInfo } from '../RepoInfo';
 
 /**
  * True for invalid Firebase keys
- * @type {RegExp}
- * @private
  */
 export const INVALID_KEY_REGEX_ = /[\[\].#$\/\u0000-\u001F\u007F]/;
 
 /**
  * True for invalid Firebase paths.
  * Allows '/' in paths.
- * @type {RegExp}
- * @private
  */
 export const INVALID_PATH_REGEX_ = /[\[\].#$\u0000-\u001F\u007F]/;
 
 /**
  * Maximum number of characters to allow in leaf value
- * @type {number}
- * @private
  */
 export const MAX_LEAF_SIZE_ = 10 * 1024 * 1024;
 
-/**
- * @param {*} key
- * @return {boolean}
- */
 export const isValidKey = function (key: unknown): boolean {
   return (
     typeof key === 'string' && key.length !== 0 && !INVALID_KEY_REGEX_.test(key)
   );
 };
 
-/**
- * @param {string} pathString
- * @return {boolean}
- */
 export const isValidPathString = function (pathString: string): boolean {
   return (
     typeof pathString === 'string' &&
@@ -70,10 +56,6 @@ export const isValidPathString = function (pathString: string): boolean {
   );
 };
 
-/**
- * @param {string} pathString
- * @return {boolean}
- */
 export const isValidRootPathString = function (pathString: string): boolean {
   if (pathString) {
     // Allow '/.info/' at the beginning.
@@ -83,10 +65,6 @@ export const isValidRootPathString = function (pathString: string): boolean {
   return isValidPathString(pathString);
 };
 
-/**
- * @param {*} priority
- * @return {boolean}
- */
 export const isValidPriority = function (priority: unknown): boolean {
   return (
     priority === null ||
@@ -101,12 +79,6 @@ export const isValidPriority = function (priority: unknown): boolean {
 
 /**
  * Pre-validate a datum passed as an argument to Firebase function.
- *
- * @param {string} fnName
- * @param {number} argumentNumber
- * @param {*} data
- * @param {!Path} path
- * @param {boolean} optional
  */
 export const validateFirebaseDataArg = function (
   fnName: string,
@@ -128,10 +100,6 @@ export const validateFirebaseDataArg = function (
 
 /**
  * Validate a data object client-side before sending to server.
- *
- * @param {string} errorPrefix
- * @param {*} data
- * @param {!Path|!ValidationPath} path_
  */
 export const validateFirebaseData = function (
   errorPrefix: string,
@@ -218,9 +186,6 @@ export const validateFirebaseData = function (
 
 /**
  * Pre-validate paths passed in the firebase function.
- *
- * @param {string} errorPrefix
- * @param {Array<!Path>} mergePaths
  */
 export const validateFirebaseMergePaths = function (
   errorPrefix: string,
@@ -270,12 +235,6 @@ export const validateFirebaseMergePaths = function (
 /**
  * pre-validate an object passed as an argument to firebase function (
  * must be an object - e.g. for firebase.update()).
- *
- * @param {string} fnName
- * @param {number} argumentNumber
- * @param {*} data
- * @param {!Path} path
- * @param {boolean} optional
  */
 export const validateFirebaseMergeDataArg = function (
   fnName: string,

@@ -769,7 +769,7 @@ export class Repo {
    * @param path Path at which to do transaction.
    * @param transactionUpdate Update callback.
    * @param onComplete Completion callback.
-   * @param  applyLocally Whether or not to make intermediate results visible
+   * @param applyLocally Whether or not to make intermediate results visible
    */
   startTransaction(
     path: Path,

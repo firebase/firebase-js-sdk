@@ -46,10 +46,6 @@ export class FirebaseAuthTokenProvider implements AuthTokenProvider {
     }
   }
 
-  /**
-   * @param {boolean} forceRefresh
-   * @return {!Promise<FirebaseAuthTokenData>}
-   */
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
     if (!this.auth_) {
       return Promise.resolve(null);

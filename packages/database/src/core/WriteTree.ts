@@ -42,16 +42,11 @@ export interface WriteRecord {
  * WriteTree tracks all pending user-initiated writes and has methods to calculate the result of merging them
  * with underlying server data (to create "event cache" data).  Pending writes are added with addOverwrite()
  * and addMerge(), and removed with removeWrite().
- *
- * @constructor
  */
 export class WriteTree {
   /**
    * A tree tracking the result of applying all visible writes.  This does not include transactions with
    * applyLocally=false or writes that are completely shadowed by other writes.
-   *
-   * @type {!CompoundWrite}
-   * @private
    */
   private visibleWrites_: CompoundWrite = CompoundWrite.Empty;
 
@@ -59,9 +54,6 @@ export class WriteTree {
    * A list of all pending writes, regardless of visibility and shadowed-ness.  Used to calculate arbitrary
    * sets of the changed data, such as hidden writes (from transactions) or changes with certain writes excluded (also
    * used by transactions).
-   *
-   * @type {!Array.<!WriteRecord>}
-   * @private
    */
   private allWrites_: WriteRecord[] = [];
 
@@ -70,8 +62,6 @@ export class WriteTree {
   /**
    * Create a new WriteTreeRef for the given path. For use with a new sync point at the given path.
    *
-   * @param {!Path} path
-   * @return {!WriteTreeRef}
    */
   childWrites(path: Path): WriteTreeRef {
     return new WriteTreeRef(path, this);
@@ -80,10 +70,7 @@ export class WriteTree {
   /**
    * Record a new overwrite from user code.
    *
-   * @param {!Path} path
-   * @param {!Node} snap
-   * @param {!number} writeId
-   * @param {boolean=} visible This is set to false by some transactions. It should be excluded from event caches
+   * @param visible This is set to false by some transactions. It should be excluded from event caches
    */
   addOverwrite(path: Path, snap: Node, writeId: number, visible?: boolean) {
     assert(
@@ -108,10 +95,6 @@ export class WriteTree {
 
   /**
    * Record a new merge from user code.
-   *
-   * @param {!Path} path
-   * @param {!Object.<string, !Node>} changedChildren
-   * @param {!number} writeId
    */
   addMerge(
     path: Path,
@@ -133,10 +116,6 @@ export class WriteTree {
     this.lastWriteId_ = writeId;
   }
 
-  /**
-   * @param {!number} writeId
-   * @return {?WriteRecord}
-   */
   getWrite(writeId: number): WriteRecord | null {
     for (let i = 0; i < this.allWrites_.length; i++) {
       const record = this.allWrites_[i];
@@ -151,8 +130,7 @@ export class WriteTree {
    * Remove a write (either an overwrite or merge) that has been successfully acknowledge by the server. Recalculates
    * the tree if necessary.  We return true if it may have been visible, meaning views need to reevaluate.
    *
-   * @param {!number} writeId
-   * @return {boolean} true if the write may have been visible (meaning we'll need to reevaluate / raise
+   * @return true if the write may have been visible (meaning we'll need to reevaluate / raise
    * events as a result).
    */
   removeWrite(writeId: number): boolean {
@@ -218,8 +196,6 @@ export class WriteTree {
    * Return a complete snapshot for the given path if there's visible write data at that path, else null.
    * No server data is considered.
    *
-   * @param {!Path} path
-   * @return {?Node}
    */
   getCompleteWriteData(path: Path): Node | null {
     return this.visibleWrites_.getCompleteNode(path);
@@ -229,11 +205,8 @@ export class WriteTree {
    * Given optional, underlying server data, and an optional set of constraints (exclude some sets, include hidden
    * writes), attempt to calculate a complete snapshot for the given path
    *
-   * @param {!Path} treePath
-   * @param {?Node} completeServerCache
-   * @param {Array.<number>=} writeIdsToExclude An optional set to be excluded
-   * @param {boolean=} includeHiddenWrites Defaults to false, whether or not to layer on writes with visible set to false
-   * @return {?Node}
+   * @param writeIdsToExclude An optional set to be excluded
+   * @param includeHiddenWrites Defaults to false, whether or not to layer on writes with visible set to false
    */
   calcCompleteEventCache(
     treePath: Path,
@@ -296,10 +269,6 @@ export class WriteTree {
   /**
    * With optional, underlying server data, attempt to return a children node of children that we have complete data for.
    * Used when creating new views, to pre-fill their complete event children snapshot.
-   *
-   * @param {!Path} treePath
-   * @param {?ChildrenNode} completeServerChildren
-   * @return {!ChildrenNode}
    */
   calcCompleteEventChildren(
     treePath: Path,
@@ -369,12 +338,6 @@ export class WriteTree {
    * 3. Is partially shadowed. Events
    *
    * Either existingEventSnap or existingServerSnap must exist
-   *
-   * @param {!Path} treePath
-   * @param {!Path} childPath
-   * @param {?Node} existingEventSnap
-   * @param {?Node} existingServerSnap
-   * @return {?Node}
    */
   calcEventCacheAfterServerOverwrite(
     treePath: Path,
@@ -412,11 +375,6 @@ export class WriteTree {
   /**
    * Returns a complete child for a given server snap after applying all user writes or null if there is no
    * complete child for this ChildKey.
-   *
-   * @param {!Path} treePath
-   * @param {!string} childKey
-   * @param {!CacheNode} existingServerSnap
-   * @return {?Node}
    */
   calcCompleteChild(
     treePath: Path,
@@ -599,16 +557,11 @@ export class WriteTree {
  * A WriteTreeRef wraps a WriteTree and a path, for convenient access to a particular subtree.  All of the methods
  * just proxy to the underlying WriteTree.
  *
- * @constructor
  */
 export class WriteTreeRef {
   /**
    * The path to this particular write tree ref. Used for calling methods on writeTree_ while exposing a simpler
    * interface to callers.
-   *
-   * @type {!Path}
-   * @private
-   * @const
    */
   private readonly treePath_: Path;
 
@@ -618,17 +571,9 @@ export class WriteTreeRef {
    *
    * This lets us make cheap references to points in the tree for sync points without having to copy and maintain all of
    * the data.
-   *
-   * @type {!WriteTree}
-   * @private
-   * @const
    */
   private readonly writeTree_: WriteTree;
 
-  /**
-   * @param {!Path} path
-   * @param {!WriteTree} writeTree
-   */
   constructor(path: Path, writeTree: WriteTree) {
     this.treePath_ = path;
     this.writeTree_ = writeTree;
@@ -639,10 +584,8 @@ export class WriteTreeRef {
    * to get a cache that includes hidden writes, and excludes arbitrary writes. Note that customizing the returned node
    * can lead to a more expensive calculation.
    *
-   * @param {?Node} completeServerCache
-   * @param {Array.<number>=} writeIdsToExclude Optional writes to exclude.
-   * @param {boolean=} includeHiddenWrites Defaults to false, whether or not to layer on writes with visible set to false
-   * @return {?Node}
+   * @param writeIdsToExclude Optional writes to exclude.
+   * @param includeHiddenWrites Defaults to false, whether or not to layer on writes with visible set to false
    */
   calcCompleteEventCache(
     completeServerCache: Node | null,
@@ -661,8 +604,6 @@ export class WriteTreeRef {
    * If possible, returns a children node containing all of the complete children we have data for. The returned data is a
    * mix of the given server data and write data.
    *
-   * @param {?ChildrenNode} completeServerChildren
-   * @return {!ChildrenNode}
    */
   calcCompleteEventChildren(
     completeServerChildren: ChildrenNode | null
@@ -687,10 +628,7 @@ export class WriteTreeRef {
    *
    * Either existingEventSnap or existingServerSnap must exist, this is validated via an assert
    *
-   * @param {!Path} path
-   * @param {?Node} existingEventSnap
-   * @param {?Node} existingServerSnap
-   * @return {?Node}
+   *
    */
   calcEventCacheAfterServerOverwrite(
     path: Path,
@@ -710,8 +648,6 @@ export class WriteTreeRef {
    * a higher path, this will return the child of that write relative to the write and this path.
    * Returns null if there is no write at this path.
    *
-   * @param {!Path} path
-   * @return {?Node}
    */
   shadowingWrite(path: Path): Node | null {
     return this.writeTree_.shadowingWrite(this.treePath_.child(path));
@@ -720,13 +656,6 @@ export class WriteTreeRef {
   /**
    * This method is used when processing child remove events on a query. If we can, we pull in children that were outside
    * the window, but may now be in the window
-   *
-   * @param {?Node} completeServerData
-   * @param {!NamedNode} startPost
-   * @param {!number} count
-   * @param {boolean} reverse
-   * @param {!Index} index
-   * @return {!Array.<!NamedNode>}
    */
   calcIndexedSlice(
     completeServerData: Node | null,
@@ -748,10 +677,6 @@ export class WriteTreeRef {
   /**
    * Returns a complete child for a given server snap after applying all user writes or null if there is no
    * complete child for this ChildKey.
-   *
-   * @param {!string} childKey
-   * @param {!CacheNode} existingServerCache
-   * @return {?Node}
    */
   calcCompleteChild(
     childKey: string,
@@ -766,9 +691,6 @@ export class WriteTreeRef {
 
   /**
    * Return a WriteTreeRef for a child.
-   *
-   * @param {string} childName
-   * @return {!WriteTreeRef}
    */
   child(childName: string): WriteTreeRef {
     return new WriteTreeRef(this.treePath_.child(childName), this.writeTree_);

@@ -24,8 +24,6 @@ import { EventEmitter } from './EventEmitter';
  * The expectation is that this could have many false positives (thinks we are online
  * when we're not), but no false negatives.  So we can safely use it to determine when
  * we definitely cannot reach the internet.
- *
- * @extends {EventEmitter}
  */
 export class OnlineMonitor extends EventEmitter {
   private online_ = true;
@@ -70,18 +68,11 @@ export class OnlineMonitor extends EventEmitter {
     }
   }
 
-  /**
-   * @param {!string} eventType
-   * @return {Array.<boolean>}
-   */
   getInitialEvent(eventType: string): boolean[] {
     assert(eventType === 'online', 'Unknown event type: ' + eventType);
     return [this.online_];
   }
 
-  /**
-   * @return {boolean}
-   */
   currentlyOnline(): boolean {
     return this.online_;
   }
