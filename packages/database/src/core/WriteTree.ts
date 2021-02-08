@@ -53,7 +53,7 @@ export class WriteTree {
    * @type {!CompoundWrite}
    * @private
    */
-  private visibleWrites_: CompoundWrite = CompoundWrite.Empty;
+  private visibleWrites_: CompoundWrite = CompoundWrite.empty();
 
   /**
    * A list of all pending writes, regardless of visibility and shadowed-ness.  Used to calculate arbitrary
@@ -539,7 +539,7 @@ export class WriteTree {
     filter: (w: WriteRecord) => boolean,
     treeRoot: Path
   ): CompoundWrite {
-    let compoundWrite = CompoundWrite.Empty;
+    let compoundWrite = CompoundWrite.empty();
     for (let i = 0; i < writes.length; ++i) {
       const write = writes[i];
       // Theory, a later set will either:

@@ -88,13 +88,6 @@ export class QueryParams {
   };
 
   /**
-   * Default, empty query parameters
-   * @type {!QueryParams}
-   * @const
-   */
-  static readonly DEFAULT = new QueryParams();
-
-  /**
    * @return {boolean}
    */
   hasStart(): boolean {

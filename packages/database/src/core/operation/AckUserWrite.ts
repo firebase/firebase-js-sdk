@@ -25,7 +25,7 @@ export class AckUserWrite implements Operation {
   type = OperationType.ACK_USER_WRITE;
 
   /** @inheritDoc */
-  source = OperationSource.User;
+  source = OperationSource.user();
 
   /**
    *

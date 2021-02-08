@@ -71,27 +71,24 @@ export class OperationSource {
   ) {
     assert(!tagged || fromServer, 'Tagged queries must be from server.');
   }
-  /**
-   * @const
-   * @type {!OperationSource}
-   */
-  static User = new OperationSource(
-    /*fromUser=*/ true,
-    false,
-    null,
-    /*tagged=*/ false
-  );
 
-  /**
-   * @const
-   * @type {!OperationSource}
-   */
-  static Server = new OperationSource(
-    false,
-    /*fromServer=*/ true,
-    null,
-    /*tagged=*/ false
-  );
+  static user() {
+    return new OperationSource(
+      /*fromUser=*/ true,
+      false,
+      null,
+      /*tagged=*/ false
+    );
+  }
+
+  static server() {
+    return new OperationSource(
+      false,
+      /*fromServer=*/ true,
+      null,
+      /*tagged=*/ false
+    );
+  }
 
   /**
    * @param {string} queryId

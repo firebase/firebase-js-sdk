@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { ChildrenNode } from '../snap/ChildrenNode';
 import { CacheNode } from './CacheNode';
 import { Node } from '../snap/Node';
 
@@ -36,23 +35,6 @@ export class ViewCache {
     private readonly eventCache_: CacheNode,
     private readonly serverCache_: CacheNode
   ) {}
-
-  /**
-   * @const
-   * @type {ViewCache}
-   */
-  static Empty = new ViewCache(
-    new CacheNode(
-      ChildrenNode.EMPTY_NODE,
-      /*fullyInitialized=*/ false,
-      /*filtered=*/ false
-    ),
-    new CacheNode(
-      ChildrenNode.EMPTY_NODE,
-      /*fullyInitialized=*/ false,
-      /*filtered=*/ false
-    )
-  );
 
   /**
    * @param {!Node} eventSnap

@@ -16,7 +16,7 @@
  */
 
 import { assert } from '@firebase/util';
-import { errorForServerCode, each } from './util/util';
+import { each, errorForServerCode } from './util/util';
 import { AckUserWrite } from './operation/AckUserWrite';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { ImmutableTree } from './util/ImmutableTree';
@@ -82,7 +82,9 @@ export class SyncTree {
   /**
    * Tree of SyncPoints.  There's a SyncPoint at any location that has 1 or more views.
    */
-  private syncPointTree_: ImmutableTree<SyncPoint> = ImmutableTree.Empty;
+  private syncPointTree_: ImmutableTree<SyncPoint> = new ImmutableTree<SyncPoint>(
+    null
+  );
 
   /**
    * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
@@ -116,7 +118,7 @@ export class SyncTree {
       return [];
     } else {
       return this.applyOperationToSyncPoints_(
-        new Overwrite(OperationSource.User, path, newData)
+        new Overwrite(OperationSource.user(), path, newData)
       );
     }
   }
@@ -137,7 +139,7 @@ export class SyncTree {
     const changeTree = ImmutableTree.fromObject(changedChildren);
 
     return this.applyOperationToSyncPoints_(
-      new Merge(OperationSource.User, path, changeTree)
+      new Merge(OperationSource.user(), path, changeTree)
     );
   }
 
@@ -153,13 +155,13 @@ export class SyncTree {
     if (!needToReevaluate) {
       return [];
     } else {
-      let affectedTree = ImmutableTree.Empty;
+      let affectedTree = new ImmutableTree<boolean>(null);
       if (write.snap != null) {
         // overwrite
         affectedTree = affectedTree.set(Path.Empty, true);
       } else {
         each(write.children, (pathString: string, node: Node) => {
-          affectedTree = affectedTree.set(new Path(pathString), node);
+          affectedTree = affectedTree.set(new Path(pathString), true);
         });
       }
       return this.applyOperationToSyncPoints_(

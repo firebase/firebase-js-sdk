@@ -17,7 +17,7 @@
 
 import { SortedMap } from './SortedMap';
 import { Path } from './Path';
-import { stringCompare, each } from './util';
+import { each, stringCompare } from './util';
 
 let emptyChildrenSingleton: SortedMap<string, ImmutableTree<null>>;
 
@@ -40,16 +40,13 @@ const EmptyChildren = (): SortedMap<string, ImmutableTree<null>> => {
  * A tree with immutable elements.
  */
 export class ImmutableTree<T> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static Empty = new ImmutableTree<any>(null);
-
   /**
    * @template T
    * @param {!Object.<string, !T>} obj
    * @return {!ImmutableTree.<!T>}
    */
   static fromObject<T>(obj: { [k: string]: T }): ImmutableTree<T> {
-    let tree: ImmutableTree<T> = ImmutableTree.Empty;
+    let tree: ImmutableTree<T> = new ImmutableTree<T>(null);
     each(obj, (childPath: string, childSnap: T) => {
       tree = tree.set(new Path(childPath), childSnap);
     });
@@ -146,7 +143,7 @@ export class ImmutableTree<T> {
       if (childTree !== null) {
         return childTree.subtree(relativePath.popFront());
       } else {
-        return ImmutableTree.Empty;
+        return new ImmutableTree<T>(null);
       }
     }
   }
@@ -163,7 +160,7 @@ export class ImmutableTree<T> {
       return new ImmutableTree(toSet, this.children);
     } else {
       const front = relativePath.getFront();
-      const child = this.children.get(front) || ImmutableTree.Empty;
+      const child = this.children.get(front) || new ImmutableTree<T>(null);
       const newChild = child.set(relativePath.popFront(), toSet);
       const newChildren = this.children.insert(front, newChild);
       return new ImmutableTree(this.value, newChildren);
@@ -179,7 +176,7 @@ export class ImmutableTree<T> {
   remove(relativePath: Path): ImmutableTree<T> {
     if (relativePath.isEmpty()) {
       if (this.children.isEmpty()) {
-        return ImmutableTree.Empty;
+        return new ImmutableTree<T>(null);
       } else {
         return new ImmutableTree(null, this.children);
       }
@@ -195,7 +192,7 @@ export class ImmutableTree<T> {
           newChildren = this.children.insert(front, newChild);
         }
         if (this.value === null && newChildren.isEmpty()) {
-          return ImmutableTree.Empty;
+          return new ImmutableTree<T>(null);
         } else {
           return new ImmutableTree(this.value, newChildren);
         }
@@ -237,7 +234,7 @@ export class ImmutableTree<T> {
       return newTree;
     } else {
       const front = relativePath.getFront();
-      const child = this.children.get(front) || ImmutableTree.Empty;
+      const child = this.children.get(front) || new ImmutableTree<T>(null);
       const newChild = child.setTree(relativePath.popFront(), newTree);
       let newChildren;
       if (newChild.isEmpty()) {
@@ -353,7 +350,7 @@ export class ImmutableTree<T> {
           f
         );
       } else {
-        return ImmutableTree.Empty;
+        return new ImmutableTree<T>(null);
       }
     }
   }

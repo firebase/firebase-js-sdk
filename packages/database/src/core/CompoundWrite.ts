@@ -17,7 +17,7 @@
 
 import { ImmutableTree } from './util/ImmutableTree';
 import { Path } from './util/Path';
-import { Node, NamedNode } from './snap/Node';
+import { NamedNode, Node } from './snap/Node';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { assert } from '@firebase/util';
 import { ChildrenNode } from './snap/ChildrenNode';
@@ -32,7 +32,9 @@ import { each } from './util/util';
 export class CompoundWrite {
   constructor(private writeTree_: ImmutableTree<Node>) {}
 
-  static Empty = new CompoundWrite(new ImmutableTree(null));
+  static empty(): CompoundWrite {
+    return new CompoundWrite(new ImmutableTree(null));
+  }
 
   addWrite(path: Path, node: Node): CompoundWrite {
     if (path.isEmpty()) {
@@ -70,9 +72,12 @@ export class CompoundWrite {
    */
   removeWrite(path: Path): CompoundWrite {
     if (path.isEmpty()) {
-      return CompoundWrite.Empty;
+      return CompoundWrite.empty();
     } else {
-      const newWriteTree = this.writeTree_.setTree(path, ImmutableTree.Empty);
+      const newWriteTree = this.writeTree_.setTree(
+        path,
+        new ImmutableTree<Node>(null)
+      );
       return new CompoundWrite(newWriteTree);
     }
   }
