@@ -528,15 +528,15 @@ export class SyncTree {
       serverCache = serverCache || syncPoint.getCompleteServerCache(Path.Empty);
     }
     if (serverCache != null) {
-      let serverCacheNode: CacheNode | null = new CacheNode(
+      const serverCacheNode: CacheNode | null = new CacheNode(
         serverCache,
         true,
         false
       );
-      let writesCache: WriteTreeRef | null = this.pendingWriteTree_.childWrites(
+      const writesCache: WriteTreeRef | null = this.pendingWriteTree_.childWrites(
         query.path
       );
-      let view: View = syncPoint.getView(
+      const view: View = syncPoint.getView(
         query,
         writesCache,
         serverCacheNode.getNode(),

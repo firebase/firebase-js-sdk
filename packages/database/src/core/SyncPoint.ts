@@ -101,7 +101,7 @@ export class SyncPoint {
     serverCacheComplete: boolean
   ): View {
     const queryId = query.queryIdentifier();
-    let view = this.views.get(queryId);
+    const view = this.views.get(queryId);
     if (!view) {
       // TODO: make writesCache take flag for complete server node
       let eventCache = writesCache.calcCompleteEventCache(
@@ -151,7 +151,7 @@ export class SyncPoint {
     serverCache: Node | null,
     serverCacheComplete: boolean
   ): Event[] {
-    let view = this.getView(
+    const view = this.getView(
       query,
       writesCache,
       serverCache,
