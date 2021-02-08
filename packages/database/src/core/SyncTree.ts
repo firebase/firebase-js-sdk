@@ -160,7 +160,7 @@ export class SyncTree {
         // overwrite
         affectedTree = affectedTree.set(Path.Empty, true);
       } else {
-        each(write.children, (pathString: string, node: Node) => {
+        each(write.children, (pathString: string) => {
           affectedTree = affectedTree.set(new Path(pathString), true);
         });
       }
