@@ -34,36 +34,18 @@ import { Query } from '../../api/Query';
 export interface EventRegistration {
   /**
    * True if this container has a callback to trigger for this event type
-   * @param {!string} eventType
-   * @return {boolean}
    */
   respondsTo(eventType: string): boolean;
 
-  /**
-   * @param {!Change} change
-   * @param {!Query} query
-   * @return {!Event}
-   */
   createEvent(change: Change, query: Query): Event;
 
   /**
    * Given event data, return a function to trigger the user's callback
-   * @param {!Event} eventData
-   * @return {function()}
    */
   getEventRunner(eventData: Event): () => void;
 
-  /**
-   * @param {!Error} error
-   * @param {!Path} path
-   * @return {?CancelEvent}
-   */
   createCancelEvent(error: Error, path: Path): CancelEvent | null;
 
-  /**
-   * @param {!EventRegistration} other
-   * @return {boolean}
-   */
   matches(other: EventRegistration): boolean;
 
   /**
@@ -73,7 +55,6 @@ export interface EventRegistration {
    *
    * (TODO: Rework this, since it's hacky)
    *
-   * @return {boolean}
    */
   hasAnyCallback(): boolean;
 }
@@ -82,11 +63,6 @@ export interface EventRegistration {
  * Represents registration for 'value' events.
  */
 export class ValueEventRegistration implements EventRegistration {
-  /**
-   * @param {?function(!DataSnapshot)} callback_
-   * @param {?function(Error)} cancelCallback_
-   * @param {?Object} context_
-   */
   constructor(
     private callback_: ((d: DataSnapshot) => void) | null,
     private cancelCallback_: ((e: Error) => void) | null,
@@ -175,16 +151,8 @@ export class ValueEventRegistration implements EventRegistration {
  *
  * Currently, it is always exactly 1 child_xxx event, but the idea is we might let you
  * register a group of callbacks together in the future.
- *
- * @constructor
- * @implements {EventRegistration}
  */
 export class ChildEventRegistration implements EventRegistration {
-  /**
-   * @param {?Object.<string, function(!DataSnapshot, ?string=)>} callbacks_
-   * @param {?function(Error)} cancelCallback_
-   * @param {Object=} context_
-   */
   constructor(
     private callbacks_: {
       [k: string]: (d: DataSnapshot, s?: string | null) => void;

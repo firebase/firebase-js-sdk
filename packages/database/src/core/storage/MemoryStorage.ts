@@ -20,8 +20,6 @@ import { contains } from '@firebase/util';
 /**
  * An in-memory storage implementation that matches the API of DOMStorageWrapper
  * (TODO: create interface for both to implement).
- *
- * @constructor
  */
 export class MemoryStorage {
   private cache_: { [k: string]: unknown } = {};

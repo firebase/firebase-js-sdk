@@ -138,7 +138,6 @@ export class PersistentConnection extends ServerActions {
   private static nextConnectionId_ = 0;
 
   /**
-   * @implements {ServerActions}
    * @param repoInfo_ Data about the namespace we are connecting to
    * @param applicationId_ The Firebase App ID for this project
    * @param onDataUpdate_ A callback for new data from the server

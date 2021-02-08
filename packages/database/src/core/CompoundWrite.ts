@@ -66,7 +66,7 @@ export class CompoundWrite {
    * location, which must be removed by calling this method with that path.
    *
    * @param path The path at which a write and all deeper writes should be removed
-   * @return {!CompoundWrite} The new CompoundWrite with the removed path
+   * @return The new CompoundWrite with the removed path
    */
   removeWrite(path: Path): CompoundWrite {
     if (path.isEmpty()) {

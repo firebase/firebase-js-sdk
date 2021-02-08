@@ -37,8 +37,6 @@ import {
  * INTERNAL methods for internal-use only (tests, etc.).
  *
  * Customers shouldn't use these or else should be aware that they could break at any time.
- *
- * @const
  */
 
 export const forceLongPolling = function () {
