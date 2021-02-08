@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,8 @@ export function _getRedirectUrl(
     if (scopes.length > 0) {
       params.scopes = scopes.join(',');
     }
-    // TODO set additionalParams?
+
+    // TODO set additionalParams from the provider as well?
     for (const [key, value] of Object.entries(additionalParams || {})) {
       params[key] = value;
     }

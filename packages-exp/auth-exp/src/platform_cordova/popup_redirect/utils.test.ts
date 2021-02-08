@@ -31,12 +31,11 @@ import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { GoogleAuthProvider } from '../../core/providers/google';
 import { AuthProvider } from '../../../internal';
 
-enum UA {
-  ANDROID = 'UserAgent/5.0 (Linux; Android 0.0.0)',
-  IOS = 'UserAgent/5.0 (iPhone; CPU iPhone 0.0.0)',
-  IOS_8 = 'UserAgent/5.0 (iPhone OS 8_2)',
-  DESKTOP = 'UserAgent/5.0 (Linux; Ubuntu 0.0.0)'
-}
+const ANDROID_UA = 'UserAgent/5.0 (Linux; Android 0.0.0)';
+const IOS_UA = 'UserAgent/5.0 (iPhone; CPU iPhone 0.0.0)';
+const IOS_8_UA = 'UserAgent/5.0 (iPhone OS 8_2)';
+const DESKTOP_UA = 'UserAgent/5.0 (Linux; Ubuntu 0.0.0)';
+
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -116,7 +115,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
       expect(event.tenantId).to.eq(auth.tenantId);
     });
 
-    it('creates an event with a 20-digit session id', () => {
+    it('creates an event with a 20-char session id', () => {
       const event = _generateNewEvent(auth, AuthEventType.SIGN_IN_VIA_REDIRECT);
       expect(event.sessionId).to.be.a('string').with.length(20);
     });
@@ -146,7 +145,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     }
 
     it('hashes the sessionId and does not pass it through', async () => {
-      setUA(UA.ANDROID);
+      setUA(ANDROID_UA);
       const hashedSessionId = getParams(
         await _generateHandlerUrl(auth, event, provider)
       ).get('sessionId');
@@ -156,7 +155,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('sets the ibi and not apn for iOS devices', async () => {
-      setUA(UA.IOS);
+      setUA(IOS_UA);
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
@@ -165,7 +164,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('sets the apn and not ibi for Android devices', async () => {
-      setUA(UA.ANDROID);
+      setUA(ANDROID_UA);
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
@@ -174,7 +173,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('throws an error for any other user agent', async () => {
-      setUA(UA.DESKTOP);
+      setUA(DESKTOP_UA);
       await expect(
         _generateHandlerUrl(auth, event, provider)
       ).to.be.rejectedWith(
@@ -184,7 +183,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('does not attach a display name if none is present', async () => {
-      setUA(UA.ANDROID);
+      setUA(ANDROID_UA);
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
@@ -192,8 +191,8 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('attaches the relevant display name', async () => {
-      setUA(UA.IOS);
-      (BuildInfo as Record<string, string>).displayName = 'This is my app';
+      setUA(IOS_UA);
+      (BuildInfo as {displayName: string}).displayName = 'This is my app';
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
@@ -223,7 +222,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('falls back to InAppBrowser if need be', async () => {
       isBrowsertabAvailable = false;
-      setUA(UA.ANDROID);
+      setUA(ANDROID_UA);
       await _performRedirect('https://localhost/__/auth/handler');
       expect(cordova.plugins.browsertab.openUrl).not.to.have.been.called;
       expect(cordova.InAppBrowser.open).to.have.been.calledWith(
@@ -235,7 +234,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('uses _blank for iOS 8', async () => {
       isBrowsertabAvailable = false;
-      setUA(UA.IOS_8);
+      setUA(IOS_8_UA);
       await _performRedirect('https://localhost/__/auth/handler');
       expect(cordova.plugins.browsertab.openUrl).not.to.have.been.called;
       expect(cordova.InAppBrowser.open).to.have.been.calledWith(

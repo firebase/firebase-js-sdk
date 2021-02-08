@@ -39,7 +39,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
   let auth: TestAuth;
   let resolver: PopupRedirectResolver;
   let provider: externs.AuthProvider;
-  let utilsStubs: { [F in keyof typeof utils]: sinon.SinonStub };
+  let utilsStubs: Record<keyof typeof utils, sinon.SinonStub>;
 
   beforeEach(async () => {
     auth = await testAuth();

@@ -182,15 +182,29 @@ function generateSessionId(): string {
  * protocol).
  */
 async function computeSha256(sessionId: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const buf = await crypto.subtle.digest('SHA-256', encoder.encode(sessionId));
-  const arr = new Uint8Array(buf);
+  const bytes = stringToArrayBuffer(sessionId);
 
-  let hexString = '';
-  // Can't iterate over typed arrays using for...of
-  for (let i = 0; i < arr.length; i++) {
-    const hex = arr[i].toString(16);
-    hexString += hex.length === 1 ? `0${hex}` : hex;
+  // TODO: For IE11 crypto has a different name and this operation comes back
+  //       as an object, not a promise. This is the old proposed standard that
+  //       is used by IE11:
+  // https://www.w3.org/TR/2013/WD-WebCryptoAPI-20130108/#cryptooperation-interface
+  const buf = await crypto.subtle.digest('SHA-256', bytes);
+  const arr = Array.from(new Uint8Array(buf));
+  return arr.map(num => num.toString(16).padStart(2, '0')).join('');
+}
+
+function stringToArrayBuffer(str: string): Uint8Array {
+  // This function is only meant to deal with an ASCII charset and makes
+  // certain simplifying assumptions.
+  debugAssert(/[0-9a-zA-Z]+/.test(str), 'Can only convert alpha-numeric strings');
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(str);
   }
-  return hexString;
+
+  const buff = new ArrayBuffer(str.length);
+  const view = new Uint8Array(buff);
+  for (let i = 0; i < str.length; i++) {
+    view[i] = str.charCodeAt(i);
+  }
+  return view;
 }
