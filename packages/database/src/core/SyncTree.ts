@@ -509,22 +509,17 @@ export class SyncTree {
   getServerValue(query: Query): Node | null {
     const path = query.path;
     let serverCache: Node | null = null;
-    let foundAncestorDefaultView = false;
     // Any covering writes will necessarily be at the root, so really all we need to find is the server cache.
     // Consider optimizing this once there's a better understanding of what actual behavior will be.
     this.syncPointTree_.foreachOnPath(path, (pathToSyncPoint, sp) => {
       const relativePath = Path.relativePath(pathToSyncPoint, path);
       serverCache = serverCache || sp.getCompleteServerCache(relativePath);
-      foundAncestorDefaultView =
-        foundAncestorDefaultView || sp.hasCompleteView();
     });
     let syncPoint = this.syncPointTree_.get(path);
     if (!syncPoint) {
       syncPoint = new SyncPoint();
       this.syncPointTree_ = this.syncPointTree_.set(path, syncPoint);
     } else {
-      foundAncestorDefaultView =
-        foundAncestorDefaultView || syncPoint.hasCompleteView();
       serverCache = serverCache || syncPoint.getCompleteServerCache(Path.Empty);
     }
     if (serverCache != null) {
