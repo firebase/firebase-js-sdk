@@ -215,7 +215,7 @@ describe('API tests', () => {
       const warnStub = stub(console, 'warn');
       const initialSize = _components.size;
 
-      registerVersion('@firebase/analytics', '1.2.3');
+      registerVersion('@firebase/analytics-exp', '1.2.3');
       expect(_components.get('fire-analytics-version')).to.exist;
       expect(_components.size).to.equal(initialSize + 1);
 
