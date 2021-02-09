@@ -99,10 +99,6 @@ export class View {
     return this.viewCache_.getCompleteEventSnap();
   }
 
-  /**
-   * @param {!Path} path
-   * @return {?Node}
-   */
   getCompleteServerCache(path: Path): Node | null {
     const cache = this.viewCache_.getCompleteServerSnap();
     if (cache) {
