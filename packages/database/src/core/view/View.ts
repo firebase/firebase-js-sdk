@@ -23,7 +23,7 @@ import { ViewCache } from './ViewCache';
 import { EventGenerator } from './EventGenerator';
 import { assert } from '@firebase/util';
 import { Operation, OperationType } from '../operation/Operation';
-import { Change } from './Change';
+import { Change, changeChildAdded, changeValue } from './Change';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { Query } from '../../api/Query';
 import { EventRegistration } from './EventRegistration';
@@ -47,9 +47,6 @@ export class View {
   private eventRegistrations_: EventRegistration[] = [];
   private eventGenerator_: EventGenerator;
 
-  /**
-   * @param query_
-   */
   constructor(private query_: Query, initialViewCache: ViewCache) {
     const params = this.query_.getQueryParams();
 
@@ -213,11 +210,11 @@ export class View {
     if (!eventSnap.getNode().isLeafNode()) {
       const eventNode = eventSnap.getNode() as ChildrenNode;
       eventNode.forEachChild(PRIORITY_INDEX, (key, childNode) => {
-        initialChanges.push(Change.childAddedChange(key, childNode));
+        initialChanges.push(changeChildAdded(key, childNode));
       });
     }
     if (eventSnap.isFullyInitialized()) {
-      initialChanges.push(Change.valueChange(eventSnap.getNode()));
+      initialChanges.push(changeValue(eventSnap.getNode()));
     }
     return this.generateEventsForChanges_(
       initialChanges,

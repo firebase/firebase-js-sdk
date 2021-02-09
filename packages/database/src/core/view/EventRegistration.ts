@@ -188,7 +188,7 @@ export class ChildEventRegistration implements EventRegistration {
    */
   createEvent(change: Change, query: Query): DataEvent {
     assert(change.childName != null, 'Child events should have a childName.');
-    const ref = query.getRef().child(/** @type {!string} */ change.childName);
+    const ref = query.getRef().child(change.childName);
     const index = query.getQueryParams().getIndex();
     return new DataEvent(
       change.type as EventType,

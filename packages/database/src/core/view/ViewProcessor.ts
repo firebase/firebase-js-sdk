@@ -18,15 +18,15 @@
 import { Operation, OperationType } from '../operation/Operation';
 import { assert, assertionError } from '@firebase/util';
 import { ChildChangeAccumulator } from './ChildChangeAccumulator';
-import { Change } from './Change';
+import { Change, changeValue } from './Change';
 import { ChildrenNode } from '../snap/ChildrenNode';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { ImmutableTree } from '../util/ImmutableTree';
 import { Path } from '../util/Path';
 import {
-  WriteTreeCompleteChildSource,
+  CompleteChildSource,
   NO_COMPLETE_CHILD_SOURCE,
-  CompleteChildSource
+  WriteTreeCompleteChildSource
 } from './CompleteChildSource';
 import { ViewCache } from './ViewCache';
 import { NodeFilter } from './filter/NodeFilter';
@@ -174,9 +174,7 @@ export class ViewProcessor {
         (isLeafOrEmpty && !eventSnap.getNode().equals(oldCompleteSnap)) ||
         !eventSnap.getNode().getPriority().equals(oldCompleteSnap.getPriority())
       ) {
-        accumulator.push(
-          Change.valueChange(newViewCache.getCompleteEventSnap())
-        );
+        accumulator.push(changeValue(newViewCache.getCompleteEventSnap()));
       }
     }
   }

@@ -17,9 +17,13 @@
 
 import { RangedFilter } from './RangedFilter';
 import { ChildrenNode } from '../../snap/ChildrenNode';
-import { Node, NamedNode } from '../../snap/Node';
+import { NamedNode, Node } from '../../snap/Node';
 import { assert } from '@firebase/util';
-import { Change } from '../Change';
+import {
+  changeChildAdded,
+  changeChildChanged,
+  changeChildRemoved
+} from '../Change';
 import { NodeFilter } from './NodeFilter';
 import { Index } from '../../snap/indexes/Index';
 import { IndexedFilter } from './IndexedFilter';
@@ -265,14 +269,14 @@ export class LimitedFilter implements NodeFilter {
       if (remainsInWindow) {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childChangedChange(childKey, childSnap, oldChildSnap)
+            changeChildChanged(childKey, childSnap, oldChildSnap)
           );
         }
         return oldEventCache.updateImmediateChild(childKey, childSnap);
       } else {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childRemovedChange(childKey, oldChildSnap)
+            changeChildRemoved(childKey, oldChildSnap)
           );
         }
         const newEventCache = oldEventCache.updateImmediateChild(
@@ -284,7 +288,7 @@ export class LimitedFilter implements NodeFilter {
         if (nextChildInRange) {
           if (changeAccumulator != null) {
             changeAccumulator.trackChildChange(
-              Change.childAddedChange(nextChild.name, nextChild.node)
+              changeChildAdded(nextChild.name, nextChild.node)
             );
           }
           return newEventCache.updateImmediateChild(
@@ -302,10 +306,10 @@ export class LimitedFilter implements NodeFilter {
       if (cmp(windowBoundary, newChildNamedNode) >= 0) {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childRemovedChange(windowBoundary.name, windowBoundary.node)
+            changeChildRemoved(windowBoundary.name, windowBoundary.node)
           );
           changeAccumulator.trackChildChange(
-            Change.childAddedChange(childKey, childSnap)
+            changeChildAdded(childKey, childSnap)
           );
         }
         return oldEventCache

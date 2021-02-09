@@ -17,59 +17,66 @@
 
 import { Node } from '../snap/Node';
 
-/**
- * @param type The event type
- * @param snapshotNode The data
- * @param childName The name for this child, if it's a child event
- * @param oldSnap Used for intermediate processing of child changed events
- * @param prevName The name for the previous child, if applicable
- */
-export class Change {
-  constructor(
-    public type: string,
-    public snapshotNode: Node,
-    public childName?: string,
-    public oldSnap?: Node,
-    public prevName?: string | null
-  ) {}
-
-  static valueChange(snapshot: Node): Change {
-    return new Change(Change.VALUE, snapshot);
-  }
-
-  static childAddedChange(childKey: string, snapshot: Node): Change {
-    return new Change(Change.CHILD_ADDED, snapshot, childKey);
-  }
-
-  static childRemovedChange(childKey: string, snapshot: Node): Change {
-    return new Change(Change.CHILD_REMOVED, snapshot, childKey);
-  }
-
-  static childChangedChange(
-    childKey: string,
-    newSnapshot: Node,
-    oldSnapshot: Node
-  ): Change {
-    return new Change(Change.CHILD_CHANGED, newSnapshot, childKey, oldSnapshot);
-  }
-
-  static childMovedChange(childKey: string, snapshot: Node): Change {
-    return new Change(Change.CHILD_MOVED, snapshot, childKey);
-  }
-
-  //event types
+export const enum ChangeType {
   /** Event type for a child added */
-  static CHILD_ADDED = 'child_added';
-
+  CHILD_ADDED = 'child_added',
   /** Event type for a child removed */
-  static CHILD_REMOVED = 'child_removed';
-
+  CHILD_REMOVED = 'child_removed',
   /** Event type for a child changed */
-  static CHILD_CHANGED = 'child_changed';
-
+  CHILD_CHANGED = 'child_changed',
   /** Event type for a child moved */
-  static CHILD_MOVED = 'child_moved';
-
+  CHILD_MOVED = 'child_moved',
   /** Event type for a value change */
-  static VALUE = 'value';
+  VALUE = 'value'
+}
+
+export interface Change {
+  /** @param type The event type */
+  type: ChangeType;
+  /** @param snapshotNode The data */
+  snapshotNode: Node;
+  /** @param childName The name for this child, if it's a child even */
+  childName?: string;
+  /** @param oldSnap Used for intermediate processing of child changed events */
+  oldSnap?: Node;
+  /**  * @param prevName The name for the previous child, if applicable */
+  prevName?: string | null;
+}
+
+export function changeValue(snapshotNode: Node): Change {
+  return { type: ChangeType.VALUE, snapshotNode };
+}
+
+export function changeChildAdded(
+  childName: string,
+  snapshotNode: Node
+): Change {
+  return { type: ChangeType.CHILD_ADDED, snapshotNode, childName };
+}
+
+export function changeChildRemoved(
+  childName: string,
+  snapshotNode: Node
+): Change {
+  return { type: ChangeType.CHILD_REMOVED, snapshotNode, childName };
+}
+
+export function changeChildChanged(
+  childName: string,
+  snapshotNode: Node,
+  oldSnap: Node
+): Change {
+  return {
+    type: ChangeType.CHILD_CHANGED,
+    snapshotNode,
+    childName,
+    oldSnap
+  };
+}
+
+export function changeChildMoved(
+  childName: string,
+  snapshotNode: Node
+): Change {
+  return { type: ChangeType.CHILD_MOVED, snapshotNode, childName };
 }
