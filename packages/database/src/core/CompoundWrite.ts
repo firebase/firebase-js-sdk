@@ -37,7 +37,7 @@ export class CompoundWrite {
   }
 }
 
-export function addWrite(
+export function compoundWriteAddWrite(
   compoundWrite: CompoundWrite,
   path: Path,
   node: Node
@@ -62,14 +62,14 @@ export function addWrite(
   }
 }
 
-export function addWrites(
+export function compoundWriteAddWrites(
   compoundWrite: CompoundWrite,
   path: Path,
   updates: { [name: string]: Node }
 ): CompoundWrite {
   let newWrite = compoundWrite;
   each(updates, (childKey: string, node: Node) => {
-    newWrite = addWrite(newWrite, path.child(childKey), node);
+    newWrite = compoundWriteAddWrite(newWrite, path.child(childKey), node);
   });
   return newWrite;
 }
@@ -82,7 +82,7 @@ export function addWrites(
  * @param path The path at which a write and all deeper writes should be removed
  * @return The new CompoundWrite with the removed path
  */
-export function removeWrite(
+export function compoundWriteRemoveWrite(
   compoundWrite: CompoundWrite,
   path: Path
 ): CompoundWrite {
@@ -101,24 +101,26 @@ export function removeWrite(
  * Returns whether this CompoundWrite will fully overwrite a node at a given location and can therefore be
  * considered "complete".
  *
+ * @param compoundWrite The CompoundWrite to check.
  * @param path The path to check for
  * @return Whether there is a complete write at that path
  */
-export function hasCompleteWrite(
+export function compoundWriteHasCompleteWrite(
   compoundWrite: CompoundWrite,
   path: Path
 ): boolean {
-  return getCompleteNode(compoundWrite, path) != null;
+  return compoundWriteGetCompleteNode(compoundWrite, path) != null;
 }
 
 /**
  * Returns a node for a path if and only if the node is a "complete" overwrite at that path. This will not aggregate
  * writes from deeper paths, but will return child nodes from a more shallow path.
  *
+ * @param compoundWrite The CompoundWrite to get the node from.
  * @param path The path to get a complete write
  * @return The node if complete at that path, or null otherwise.
  */
-export function getCompleteNode(
+export function compoundWriteGetCompleteNode(
   compoundWrite: CompoundWrite,
   path: Path
 ): Node | null {
@@ -135,9 +137,12 @@ export function getCompleteNode(
 /**
  * Returns all children that are guaranteed to be a complete overwrite.
  *
+ * @param compoundWrite The CompoundWrite to get children from.
  * @return A list of all complete children.
  */
-export function getCompleteChildren(compoundWrite: CompoundWrite): NamedNode[] {
+export function compoundWriteGetCompleteChildren(
+  compoundWrite: CompoundWrite
+): NamedNode[] {
   const children: NamedNode[] = [];
   const node = compoundWrite.writeTree_.value;
   if (node != null) {
@@ -162,14 +167,14 @@ export function getCompleteChildren(compoundWrite: CompoundWrite): NamedNode[] {
   return children;
 }
 
-export function childCompoundWrite(
+export function compoundWriteChildCompoundWrite(
   compoundWrite: CompoundWrite,
   path: Path
 ): CompoundWrite {
   if (path.isEmpty()) {
     return compoundWrite;
   } else {
-    const shadowingNode = getCompleteNode(compoundWrite, path);
+    const shadowingNode = compoundWriteGetCompleteNode(compoundWrite, path);
     if (shadowingNode != null) {
       return new CompoundWrite(new ImmutableTree(shadowingNode));
     } else {
@@ -182,7 +187,7 @@ export function childCompoundWrite(
  * Returns true if this CompoundWrite is empty and therefore does not modify any nodes.
  * @return Whether this CompoundWrite is empty
  */
-export function isEmpty(compoundWrite: CompoundWrite): boolean {
+export function compoundWriteIsEmpty(compoundWrite: CompoundWrite): boolean {
   return compoundWrite.writeTree_.isEmpty();
 }
 
@@ -192,7 +197,10 @@ export function isEmpty(compoundWrite: CompoundWrite): boolean {
  * @param node The node to apply this CompoundWrite to
  * @return The node with all writes applied
  */
-export function apply(compoundWrite: CompoundWrite, node: Node): Node {
+export function compoundWriteApply(
+  compoundWrite: CompoundWrite,
+  node: Node
+): Node {
   return applySubtreeWrite(Path.Empty, compoundWrite.writeTree_, node);
 }
 
