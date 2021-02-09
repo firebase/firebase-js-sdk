@@ -72,11 +72,6 @@ export class KeyIndex extends Index {
     return new NamedNode(MAX_NAME, __EMPTY_NODE);
   }
 
-  /**
-   * @param {*} indexValue
-   * @param {string} name
-   * @return {!NamedNode}
-   */
   makePost(indexValue: string, name: string): NamedNode {
     assert(
       typeof indexValue === 'string',
@@ -87,7 +82,7 @@ export class KeyIndex extends Index {
   }
 
   /**
-   * @return {!string} String representation for inclusion in a query spec
+   * @return String representation for inclusion in a query spec
    */
   toString(): string {
     return '.key';

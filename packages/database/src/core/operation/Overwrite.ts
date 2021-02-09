@@ -19,13 +19,6 @@ import { Operation, OperationSource, OperationType } from './Operation';
 import { Path } from '../util/Path';
 import { Node } from '../snap/Node';
 
-/**
- * @param {!OperationSource} source
- * @param {!Path} path
- * @param {!Node} snap
- * @constructor
- * @implements {Operation}
- */
 export class Overwrite implements Operation {
   /** @inheritDoc */
   type = OperationType.OVERWRITE;

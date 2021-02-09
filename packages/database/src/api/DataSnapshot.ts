@@ -30,9 +30,9 @@ import { ChildrenNode } from '../core/snap/ChildrenNode';
  */
 export class DataSnapshot {
   /**
-   * @param {!Node} node_ A SnapshotNode to wrap.
-   * @param {!Reference} ref_ The ref of the location this snapshot came from.
-   * @param {!Index} index_ The iteration order for this snapshot
+   * @param node_ A SnapshotNode to wrap.
+   * @param ref_ The ref of the location this snapshot came from.
+   * @param index_ The iteration order for this snapshot
    */
   constructor(
     private readonly node_: Node,
@@ -44,7 +44,7 @@ export class DataSnapshot {
    * Retrieves the snapshot contents as JSON.  Returns null if the snapshot is
    * empty.
    *
-   * @return {*} JSON representation of the DataSnapshot contents, or null if empty.
+   * @return JSON representation of the DataSnapshot contents, or null if empty.
    */
   val(): unknown {
     validateArgCount('DataSnapshot.val', 0, 0, arguments.length);
@@ -54,7 +54,7 @@ export class DataSnapshot {
   /**
    * Returns the snapshot contents as JSON, including priorities of node.  Suitable for exporting
    * the entire node contents.
-   * @return {*} JSON representation of the DataSnapshot contents, or null if empty.
+   * @return JSON representation of the DataSnapshot contents, or null if empty.
    */
   exportVal(): unknown {
     validateArgCount('DataSnapshot.exportVal', 0, 0, arguments.length);
@@ -72,7 +72,7 @@ export class DataSnapshot {
   /**
    * Returns whether the snapshot contains a non-null value.
    *
-   * @return {boolean} Whether the snapshot contains a non-null value, or is empty.
+   * @return Whether the snapshot contains a non-null value, or is empty.
    */
   exists(): boolean {
     validateArgCount('DataSnapshot.exists', 0, 0, arguments.length);
@@ -82,8 +82,8 @@ export class DataSnapshot {
   /**
    * Returns a DataSnapshot of the specified child node's contents.
    *
-   * @param {!string} childPathString Path to a child.
-   * @return {!DataSnapshot} DataSnapshot for child node.
+   * @param childPathString Path to a child.
+   * @return DataSnapshot for child node.
    */
   child(childPathString: string): DataSnapshot {
     validateArgCount('DataSnapshot.child', 0, 1, arguments.length);
@@ -103,8 +103,8 @@ export class DataSnapshot {
   /**
    * Returns whether the snapshot contains a child at the specified path.
    *
-   * @param {!string} childPathString Path to a child.
-   * @return {boolean} Whether the child exists.
+   * @param childPathString Path to a child.
+   * @return Whether the child exists.
    */
   hasChild(childPathString: string): boolean {
     validateArgCount('DataSnapshot.hasChild', 1, 1, arguments.length);
@@ -117,7 +117,7 @@ export class DataSnapshot {
   /**
    * Returns the priority of the object, or null if no priority was set.
    *
-   * @return {string|number|null} The priority.
+   * @return The priority.
    */
   getPriority(): string | number | null {
     validateArgCount('DataSnapshot.getPriority', 0, 0, arguments.length);
@@ -129,9 +129,9 @@ export class DataSnapshot {
   /**
    * Iterates through child nodes and calls the specified action for each one.
    *
-   * @param {function(!DataSnapshot)} action Callback function to be called
+   * @param action Callback function to be called
    * for each child.
-   * @return {boolean} True if forEach was canceled by action returning true for
+   * @return True if forEach was canceled by action returning true for
    * one of the child nodes.
    */
   forEach(action: (d: DataSnapshot) => boolean | void): boolean {
@@ -153,7 +153,7 @@ export class DataSnapshot {
 
   /**
    * Returns whether this DataSnapshot has children.
-   * @return {boolean} True if the DataSnapshot contains 1 or more child nodes.
+   * @return True if the DataSnapshot contains 1 or more child nodes.
    */
   hasChildren(): boolean {
     validateArgCount('DataSnapshot.hasChildren', 0, 0, arguments.length);
@@ -171,7 +171,7 @@ export class DataSnapshot {
 
   /**
    * Returns the number of children for this DataSnapshot.
-   * @return {number} The number of children that this DataSnapshot contains.
+   * @return The number of children that this DataSnapshot contains.
    */
   numChildren(): number {
     validateArgCount('DataSnapshot.numChildren', 0, 0, arguments.length);
@@ -180,7 +180,8 @@ export class DataSnapshot {
   }
 
   /**
-   * @return {Reference} The Firebase reference for the location this snapshot's data came from.
+   * @return The Firebase reference for the location this snapshot's data came
+   * from.
    */
   getRef(): Reference {
     validateArgCount('DataSnapshot.ref', 0, 0, arguments.length);

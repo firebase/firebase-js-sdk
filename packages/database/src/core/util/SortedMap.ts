@@ -41,18 +41,12 @@ export type Comparator<K> = (key1: K, key2: K) => number;
  * An iterator over an LLRBNode.
  */
 export class SortedMapIterator<K, V, T> {
-  /** @private
-   * @type {Array.<!LLRBNode>}
-   */
   private nodeStack_: Array<LLRBNode<K, V> | LLRBEmptyNode<K, V>> = [];
 
   /**
-   * @template K, V, T
-   * @param {LLRBNode|LLRBEmptyNode} node Node to iterate.
-   * @param {?K} startKey
-   * @param {function(K, K): number} comparator
-   * @param {boolean} isReverse_ Whether or not to iterate in reverse
-   * @param {(function(K, V):T)=} resultGenerator_
+   * @param node Node to iterate.
+   * @param isReverse_ Whether or not to iterate in reverse
+   * @param resultGenerator_
    */
   constructor(
     node: LLRBNode<K, V> | LLRBEmptyNode<K, V>,
@@ -150,12 +144,11 @@ export class LLRBNode<K, V> {
   right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
 
   /**
-   * @template K, V
-   * @param {!K} key Key associated with this node.
-   * @param {!V} value Value associated with this node.
-   * @param {?boolean} color Whether this node is red.
-   * @param {?(LLRBNode|LLRBEmptyNode)=} left Left child.
-   * @param {?(LLRBNode|LLRBEmptyNode)=} right Right child.
+   * @param key Key associated with this node.
+   * @param value Value associated with this node.
+   * @param color Whether this node is red.
+   * @param left Left child.
+   * @param right Right child.
    */
   constructor(
     public key: K,
@@ -177,12 +170,12 @@ export class LLRBNode<K, V> {
   /**
    * Returns a copy of the current node, optionally replacing pieces of it.
    *
-   * @param {?K} key New key for the node, or null.
-   * @param {?V} value New value for the node, or null.
-   * @param {?boolean} color New color for the node, or null.
-   * @param {?LLRBNode|LLRBEmptyNode} left New left child for the node, or null.
-   * @param {?LLRBNode|LLRBEmptyNode} right New right child for the node, or null.
-   * @return {!LLRBNode} The node copy.
+   * @param key New key for the node, or null.
+   * @param value New value for the node, or null.
+   * @param color New color for the node, or null.
+   * @param left New left child for the node, or null.
+   * @param right New right child for the node, or null.
+   * @return The node copy.
    */
   copy(
     key: K | null,
@@ -201,14 +194,14 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @return {number} The total number of nodes in the tree.
+   * @return The total number of nodes in the tree.
    */
   count(): number {
     return this.left.count() + 1 + this.right.count();
   }
 
   /**
-   * @return {boolean} True if the tree is empty.
+   * @return True if the tree is empty.
    */
   isEmpty(): boolean {
     return false;
@@ -218,9 +211,9 @@ export class LLRBNode<K, V> {
    * Traverses the tree in key order and calls the specified action function
    * for each node.
    *
-   * @param {function(!K, !V):*} action Callback function to be called for each
+   * @param action Callback function to be called for each
    *   node.  If it returns true, traversal is aborted.
-   * @return {*} The first truthy value returned by action, or the last falsey
+   * @return The first truthy value returned by action, or the last falsey
    *   value returned by action
    */
   inorderTraversal(action: (k: K, v: V) => unknown): boolean {
@@ -235,9 +228,9 @@ export class LLRBNode<K, V> {
    * Traverses the tree in reverse key order and calls the specified action function
    * for each node.
    *
-   * @param {function(!Object, !Object)} action Callback function to be called for each
+   * @param action Callback function to be called for each
    * node.  If it returns true, traversal is aborted.
-   * @return {*} True if traversal was aborted.
+   * @return True if traversal was aborted.
    */
   reverseTraversal(action: (k: K, v: V) => void): boolean {
     return (
@@ -248,8 +241,7 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @return {!Object} The minimum node in the tree.
-   * @private
+   * @return The minimum node in the tree.
    */
   private min_(): LLRBNode<K, V> {
     if (this.left.isEmpty()) {
@@ -260,14 +252,14 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @return {!K} The maximum key in the tree.
+   * @return The maximum key in the tree.
    */
   minKey(): K {
     return this.min_().key;
   }
 
   /**
-   * @return {!K} The maximum key in the tree.
+   * @return The maximum key in the tree.
    */
   maxKey(): K {
     if (this.right.isEmpty()) {
@@ -278,11 +270,10 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   *
-   * @param {!Object} key Key to insert.
-   * @param {!Object} value Value to insert.
-   * @param {Comparator} comparator Comparator.
-   * @return {!LLRBNode} New tree, with the key/value added.
+   * @param key Key to insert.
+   * @param value Value to insert.
+   * @param comparator Comparator.
+   * @return New tree, with the key/value added.
    */
   insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
     let n: LLRBNode<K, V> = this;
@@ -304,8 +295,7 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @private
-   * @return {!LLRBNode|LLRBEmptyNode} New tree, with the minimum key removed.
+   * @return New tree, with the minimum key removed.
    */
   private removeMin_(): LLRBNode<K, V> | LLRBEmptyNode<K, V> {
     if (this.left.isEmpty()) {
@@ -320,9 +310,9 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @param {!Object} key The key of the item to remove.
-   * @param {Comparator} comparator Comparator.
-   * @return {!LLRBNode|LLRBEmptyNode} New tree, with the specified item removed.
+   * @param key The key of the item to remove.
+   * @param comparator Comparator.
+   * @return New tree, with the specified item removed.
    */
   remove(
     key: K,
@@ -362,16 +352,14 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @private
-   * @return {boolean} Whether this is a RED node.
+   * @return Whether this is a RED node.
    */
   isRed_(): boolean {
     return this.color;
   }
 
   /**
-   * @private
-   * @return {!LLRBNode} New tree after performing any needed rotations.
+   * @return New tree after performing any needed rotations.
    */
   private fixUp_(): LLRBNode<K, V> {
     let n: LLRBNode<K, V> = this;
@@ -388,8 +376,7 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @private
-   * @return {!LLRBNode} New tree, after moveRedLeft.
+   * @return New tree, after moveRedLeft.
    */
   private moveRedLeft_(): LLRBNode<K, V> {
     let n = this.colorFlip_();
@@ -408,8 +395,7 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @private
-   * @return {!LLRBNode} New tree, after moveRedRight.
+   * @return New tree, after moveRedRight.
    */
   private moveRedRight_(): LLRBNode<K, V> {
     let n = this.colorFlip_();
@@ -421,8 +407,7 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @private
-   * @return {!LLRBNode} New tree, after rotateLeft.
+   * @return New tree, after rotateLeft.
    */
   private rotateLeft_(): LLRBNode<K, V> {
     const nl = this.copy(null, null, LLRBNode.RED, null, this.right.left);
@@ -430,8 +415,7 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @private
-   * @return {!LLRBNode} New tree, after rotateRight.
+   * @return New tree, after rotateRight.
    */
   private rotateRight_(): LLRBNode<K, V> {
     const nr = this.copy(null, null, LLRBNode.RED, this.left.right, null);
@@ -439,8 +423,7 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @private
-   * @return {!LLRBNode} New tree, after colorFlip.
+   * @return Newt ree, after colorFlip.
    */
   private colorFlip_(): LLRBNode<K, V> {
     const left = this.left.copy(null, null, !this.left.color, null, null);
@@ -451,18 +434,13 @@ export class LLRBNode<K, V> {
   /**
    * For testing.
    *
-   * @private
-   * @return {boolean} True if all is well.
+   * @return True if all is well.
    */
   private checkMaxDepth_(): boolean {
     const blackDepth = this.check_();
     return Math.pow(2.0, blackDepth) <= this.count() + 1;
   }
 
-  /**
-   * @private
-   * @return {number} Not sure what this returns exactly. :-).
-   */
   check_(): number {
     if (this.isRed_() && this.left.isRed_()) {
       throw new Error(
@@ -496,7 +474,7 @@ export class LLRBEmptyNode<K, V> {
   /**
    * Returns a copy of the current node.
    *
-   * @return {!LLRBEmptyNode} The node copy.
+   * @return The node copy.
    */
   copy(
     key: K | null,
@@ -511,10 +489,10 @@ export class LLRBEmptyNode<K, V> {
   /**
    * Returns a copy of the tree, with the specified key/value added.
    *
-   * @param {!K} key Key to be added.
-   * @param {!V} value Value to be added.
-   * @param {Comparator} comparator Comparator.
-   * @return {!LLRBNode} New tree, with item added.
+   * @param key Key to be added.
+   * @param value Value to be added.
+   * @param comparator Comparator.
+   * @return New tree, with item added.
    */
   insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
     return new LLRBNode(key, value, null);
@@ -523,23 +501,23 @@ export class LLRBEmptyNode<K, V> {
   /**
    * Returns a copy of the tree, with the specified key removed.
    *
-   * @param {!K} key The key to remove.
-   * @param {Comparator} comparator Comparator.
-   * @return {!LLRBEmptyNode} New tree, with item removed.
+   * @param key The key to remove.
+   * @param comparator Comparator.
+   * @return New tree, with item removed.
    */
   remove(key: K, comparator: Comparator<K>): LLRBEmptyNode<K, V> {
     return this;
   }
 
   /**
-   * @return {number} The total number of nodes in the tree.
+   * @return The total number of nodes in the tree.
    */
   count(): number {
     return 0;
   }
 
   /**
-   * @return {boolean} True if the tree is empty.
+   * @return True if the tree is empty.
    */
   isEmpty(): boolean {
     return true;
@@ -549,9 +527,9 @@ export class LLRBEmptyNode<K, V> {
    * Traverses the tree in key order and calls the specified action function
    * for each node.
    *
-   * @param {function(!K, !V):*} action Callback function to be called for each
+   * @param action Callback function to be called for each
    * node.  If it returns true, traversal is aborted.
-   * @return {boolean} True if traversal was aborted.
+   * @return True if traversal was aborted.
    */
   inorderTraversal(action: (k: K, v: V) => unknown): boolean {
     return false;
@@ -561,39 +539,28 @@ export class LLRBEmptyNode<K, V> {
    * Traverses the tree in reverse key order and calls the specified action function
    * for each node.
    *
-   * @param {function(!K, !V)} action Callback function to be called for each
+   * @param action Callback function to be called for each
    * node.  If it returns true, traversal is aborted.
-   * @return {boolean} True if traversal was aborted.
+   * @return True if traversal was aborted.
    */
   reverseTraversal(action: (k: K, v: V) => void): boolean {
     return false;
   }
 
-  /**
-   * @return {null}
-   */
   minKey(): null {
     return null;
   }
 
-  /**
-   * @return {null}
-   */
   maxKey(): null {
     return null;
   }
 
-  /**
-   * @private
-   * @return {number} Not sure what this returns exactly. :-).
-   */
   check_(): number {
     return 0;
   }
 
   /**
-   * @private
-   * @return {boolean} Whether this node is red.
+   * @return Whether this node is red.
    */
   isRed_() {
     return false;
@@ -607,14 +574,12 @@ export class LLRBEmptyNode<K, V> {
 export class SortedMap<K, V> {
   /**
    * Always use the same empty node, to reduce memory.
-   * @const
    */
   static EMPTY_NODE = new LLRBEmptyNode();
 
   /**
-   * @template K, V
-   * @param {function(K, K):number} comparator_ Key comparator.
-   * @param {LLRBNode=} root_ (Optional) Root node for the map.
+   * @param comparator_ Key comparator.
+   * @param root_ (Optional) Root node for the map.
    */
   constructor(
     private comparator_: Comparator<K>,
@@ -627,9 +592,9 @@ export class SortedMap<K, V> {
    * Returns a copy of the map, with the specified key/value added or replaced.
    * (TODO: We should perhaps rename this method to 'put')
    *
-   * @param {!K} key Key to be added.
-   * @param {!V} value Value to be added.
-   * @return {!SortedMap.<K, V>} New map, with item added.
+   * @param key Key to be added.
+   * @param value Value to be added.
+   * @return New map, with item added.
    */
   insert(key: K, value: V): SortedMap<K, V> {
     return new SortedMap(
@@ -643,8 +608,8 @@ export class SortedMap<K, V> {
   /**
    * Returns a copy of the map, with the specified key removed.
    *
-   * @param {!K} key The key to remove.
-   * @return {!SortedMap.<K, V>} New map, with item removed.
+   * @param key The key to remove.
+   * @return New map, with item removed.
    */
   remove(key: K): SortedMap<K, V> {
     return new SortedMap(
@@ -658,8 +623,8 @@ export class SortedMap<K, V> {
   /**
    * Returns the value of the node with the given key, or null.
    *
-   * @param {!K} key The key to look up.
-   * @return {?V} The value of the node with the given key, or null if the
+   * @param key The key to look up.
+   * @return The value of the node with the given key, or null if the
    * key doesn't exist.
    */
   get(key: K): V | null {
@@ -680,8 +645,8 @@ export class SortedMap<K, V> {
 
   /**
    * Returns the key of the item *before* the specified key, or null if key is the first item.
-   * @param {K} key The key to find the predecessor of
-   * @return {?K} The predecessor key.
+   * @param key The key to find the predecessor of
+   * @return The predecessor key.
    */
   getPredecessorKey(key: K): K | null {
     let cmp,
@@ -715,28 +680,28 @@ export class SortedMap<K, V> {
   }
 
   /**
-   * @return {boolean} True if the map is empty.
+   * @return True if the map is empty.
    */
   isEmpty(): boolean {
     return this.root_.isEmpty();
   }
 
   /**
-   * @return {number} The total number of nodes in the map.
+   * @return The total number of nodes in the map.
    */
   count(): number {
     return this.root_.count();
   }
 
   /**
-   * @return {?K} The minimum key in the map.
+   * @return The minimum key in the map.
    */
   minKey(): K | null {
     return this.root_.minKey();
   }
 
   /**
-   * @return {?K} The maximum key in the map.
+   * @return The maximum key in the map.
    */
   maxKey(): K | null {
     return this.root_.maxKey();
@@ -746,9 +711,9 @@ export class SortedMap<K, V> {
    * Traverses the map in key order and calls the specified action function
    * for each key/value pair.
    *
-   * @param {function(!K, !V):*} action Callback function to be called
+   * @param action Callback function to be called
    * for each key/value pair.  If action returns true, traversal is aborted.
-   * @return {*} The first truthy value returned by action, or the last falsey
+   * @return The first truthy value returned by action, or the last falsey
    *   value returned by action
    */
   inorderTraversal(action: (k: K, v: V) => unknown): boolean {
@@ -759,9 +724,9 @@ export class SortedMap<K, V> {
    * Traverses the map in reverse key order and calls the specified action function
    * for each key/value pair.
    *
-   * @param {function(!Object, !Object)} action Callback function to be called
+   * @param action Callback function to be called
    * for each key/value pair.  If action returns true, traversal is aborted.
-   * @return {*} True if the traversal was aborted.
+   * @return True if the traversal was aborted.
    */
   reverseTraversal(action: (k: K, v: V) => void): boolean {
     return this.root_.reverseTraversal(action);
@@ -769,9 +734,7 @@ export class SortedMap<K, V> {
 
   /**
    * Returns an iterator over the SortedMap.
-   * @template T
-   * @param {(function(K, V):T)=} resultGenerator
-   * @return {SortedMapIterator.<K, V, T>} The iterator.
+   * @return The iterator.
    */
   getIterator<T>(
     resultGenerator?: (k: K, v: V) => T

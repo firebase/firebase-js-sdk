@@ -30,7 +30,7 @@ export async function signInWithRedirect(
   auth: externs.Auth,
   provider: externs.AuthProvider,
   resolver?: externs.PopupRedirectResolver
-): Promise<never> {
+): Promise<void> {
   const authInternal = _castAuth(auth);
   _assert(
     provider instanceof OAuthProvider,
@@ -42,5 +42,5 @@ export async function signInWithRedirect(
     authInternal,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
-  );
+  ) as Promise<void>;
 }

@@ -88,7 +88,7 @@ export async function signInWithRedirect(
     authInternal,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
-  );
+  ) as Promise<never>;
 }
 
 /**
@@ -140,7 +140,7 @@ export async function reauthenticateWithRedirect(
     provider,
     AuthEventType.REAUTH_VIA_REDIRECT,
     eventId
-  );
+  ) as Promise<never>;
 }
 
 /**
@@ -190,7 +190,7 @@ export async function linkWithRedirect(
     provider,
     AuthEventType.LINK_VIA_REDIRECT,
     eventId
-  );
+  ) as Promise<never>;
 }
 
 /**
