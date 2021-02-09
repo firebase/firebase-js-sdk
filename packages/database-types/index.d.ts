@@ -19,7 +19,8 @@ import { FirebaseApp } from '@firebase/app-types';
 
 export function getDatabase(app: FirebaseApp): FirebaseDatabase;
 
-export interface DataSnapshot {
+export class DataSnapshot {
+  private constructor();
   child(path: string): DataSnapshot;
   exists(): boolean;
   exportVal(): any;
@@ -30,12 +31,15 @@ export interface DataSnapshot {
   key: string | null;
   numChildren(): number;
   ref: Reference;
-  toJSON(): Object | null;
+  toJSON(): object | null;
   val(): any;
 }
 
 export class FirebaseDatabase {
   private constructor();
+  // This type property should likely be added to other Firebase Products. It
+  // helps distinguish the different SDKs as at least Firestore and RTDB have no
+  // other properties.
   'type': 'database';
   app: FirebaseApp;
 }
@@ -53,14 +57,14 @@ export function refFromURL(db: FirebaseDatabase, url: string): Reference;
 export interface OnDisconnect {
   cancel(onComplete?: (error: Error | null) => any): Promise<void>;
   remove(onComplete?: (error: Error | null) => any): Promise<void>;
-  set(value: any, onComplete?: (error: Error | null) => any): Promise<void>;
+  set(value: unknown, onComplete?: (error: Error | null) => any): Promise<void>;
   setWithPriority(
-    value: any,
+    value: unknown,
     priority: number | string | null,
     onComplete?: (error: Error | null) => any
   ): Promise<any>;
   update(
-    values: Object,
+    values: object,
     onComplete?: (error: Error | null) => any
   ): Promise<void>;
 }
@@ -72,10 +76,11 @@ type EventType =
   | 'child_moved'
   | 'child_removed';
 
-export interface Query {
+export class Query {
+  protected constructor();
   ref: Reference;
   isEqual(other: Query | null): boolean;
-  toJSON(): Object;
+  toJSON(): object;
   toString(): string;
 }
 
@@ -84,14 +89,14 @@ export function on(
   query: Query,
   eventType: EventType,
   callback: (snapshot: DataSnapshot, previousChildName?: string | null) => any,
-  cancelCallbackOrContext?: ((error: Error) => any) | Object | null,
-  context?: Object | null
+  cancelCallbackOrContext?: ((error: Error) => any) | object | null,
+  context?: object | null
 ): (snapshot: DataSnapshot, previousChildName?: string | null) => any;
 export function off(
   query: Query,
   eventType?: EventType,
   callback?: (snapshot: DataSnapshot, previousChildName?: string | null) => any,
-  context?: Object | null
+  context?: object | null
 ): void;
 
 export interface QueryConstraint {
@@ -137,7 +142,8 @@ export function equalTo(
 
 export function query(query: Query, ...constraints: QueryConstraint[]): Query;
 
-export interface Reference extends Query {
+export class Reference extends Query {
+  private constructor();
   key: string | null;
   parent: Reference | null;
   root: Reference;
@@ -155,19 +161,20 @@ export function setPriority(
 ): Promise<void>;
 export function setWithPriority(
   ref: Reference,
-  newVal: any,
+  newVal: unknown,
   newPriority: string | number | null
 ): Promise<void>;
-export function update(ref: Reference, values: Object): Promise<void>;
+export function update(ref: Reference, values: object): Promise<void>;
 export function transaction(
   ref: Reference,
-  transactionUpdate: (a: any) => unknown,
+  transactionUpdate: (currentData: any) => unknown,
   applyLocally?: boolean
 ): Promise<void>;
 
-export interface ServerValue {
-  TIMESTAMP: Object;
-  increment(delta: number): Object;
+export class ServerValue {
+  private constructor();
+  TIMESTAMP: object;
+  static increment(delta: number): object;
 }
 
 export interface ThenableReference
