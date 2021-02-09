@@ -30,6 +30,7 @@ import {
 import { cordovaPopupRedirectResolver } from './popup_redirect';
 import { GoogleAuthProvider } from '../../core/providers/google';
 import * as utils from './utils';
+import * as events from './events';
 import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
@@ -39,21 +40,15 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
   let auth: TestAuth;
   let resolver: PopupRedirectResolver;
   let provider: externs.AuthProvider;
-  let utilsStubs: Record<keyof typeof utils, sinon.SinonStub>;
+  let utilsStubs: sinon.SinonStubbedInstance<typeof utils>;
+  let eventsStubs: sinon.SinonStubbedInstance<typeof events>;
 
   beforeEach(async () => {
     auth = await testAuth();
     resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
     provider = new GoogleAuthProvider();
-    utilsStubs = {
-      _generateNewEvent: sinon.stub(utils, '_generateNewEvent'),
-      _generateHandlerUrl: sinon.stub(utils, '_generateHandlerUrl'),
-      _checkCordovaConfiguration: sinon.stub(
-        utils,
-        '_checkCordovaConfiguration'
-      ),
-      _performRedirect: sinon.stub(utils, '_performRedirect')
-    };
+    utilsStubs = sinon.stub(utils);
+    eventsStubs = sinon.stub(events);
   });
 
   afterEach(() => {
@@ -71,7 +66,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
         Promise.resolve('https://localhost/__/auth/handler')
       );
       utilsStubs._performRedirect.returns(Promise.resolve());
-      utilsStubs._generateNewEvent.returns(event);
+      eventsStubs._generateNewEvent.returns(event);
 
       await resolver._openRedirect(
         auth,

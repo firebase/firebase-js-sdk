@@ -47,7 +47,6 @@ import { UserCredentialImpl } from '../../core/user/user_credential_impl';
 import { _getInstance } from '../../core/util/instantiator';
 import * as idpTasks from '../../core/strategies/idp';
 import {
-  _clearOutcomes,
   getRedirectResult,
   linkWithRedirect,
   reauthenticateWithRedirect,
@@ -55,6 +54,7 @@ import {
   _getRedirectResult
 } from './redirect';
 import { FirebaseError } from '@firebase/util';
+import { _clearRedirectOutcomes } from '../../core/strategies/redirect';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -84,7 +84,7 @@ describe('platform_browser/strategies/redirect', () => {
 
   afterEach(() => {
     sinon.restore();
-    _clearOutcomes();
+    _clearRedirectOutcomes();
   });
 
   context('signInWithRedirect', () => {

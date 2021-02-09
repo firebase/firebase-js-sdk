@@ -30,9 +30,9 @@ import { AuthErrorCode } from '../../core/errors';
 import {
   _checkCordovaConfiguration,
   _generateHandlerUrl,
-  _generateNewEvent,
   _performRedirect
 } from './utils';
+import { _generateNewEvent } from './events';
 
 class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   readonly _redirectPersistence = browserSessionPersistence;

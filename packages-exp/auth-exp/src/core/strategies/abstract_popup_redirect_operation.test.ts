@@ -23,7 +23,6 @@ import * as sinonChai from 'sinon-chai';
 import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { delay } from '../../../test/helpers/delay';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { authEvent, BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
@@ -34,13 +33,13 @@ import {
   EventManager,
   PopupRedirectResolver
 } from '../../model/popup_redirect';
-import { AuthEventManager } from '../../core/auth/auth_event_manager';
-import { AuthErrorCode } from '../../core/errors';
-import { UserCredentialImpl } from '../../core/user/user_credential_impl';
-import { _getInstance } from '../../core/util/instantiator';
+import { AuthEventManager } from '../auth/auth_event_manager';
+import { AuthErrorCode } from '../errors';
+import { UserCredentialImpl } from '../user/user_credential_impl';
+import { _getInstance } from '../util/instantiator';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
-import * as idp from '../../core/strategies/idp';
-import { _createError } from '../../core/util/assert';
+import * as idp from '../strategies/idp';
+import { _createError } from '../util/assert';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -58,7 +57,7 @@ class WrapperOperation extends AbstractPopupRedirectOperation {
   cleanUp = sinon.stub();
 }
 
-describe('platform_browser/strategies/abstract_popup_redirect_operation', () => {
+describe('core/strategies/abstract_popup_redirect_operation', () => {
   let auth: TestAuth;
   let resolver: PopupRedirectResolver;
   let eventManager: EventManager;
@@ -98,14 +97,14 @@ describe('platform_browser/strategies/abstract_popup_redirect_operation', () => 
 
     /** Finishes out the promise */
     function finishPromise(outcome: AuthEvent | FirebaseError): void {
-      delay((): void => {
+      setTimeout((): void => {
         if (outcome instanceof FirebaseError) {
           operation.onError(outcome);
         } else {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           operation.onAuthEvent(outcome);
         }
-      });
+      }, 1);
     }
 
     it('initializes the resolver', async () => {

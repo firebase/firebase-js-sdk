@@ -25,15 +25,15 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
-import { AuthErrorCode } from '../../core/errors';
-import { debugAssert, _fail } from '../../core/util/assert';
+import { AuthErrorCode } from '../errors';
+import { debugAssert, _fail } from '../util/assert';
 import {
   _link,
   _reauth,
   _signIn,
   IdpTask,
   IdpTaskParams
-} from '../../core/strategies/idp';
+} from '../strategies/idp';
 import { Auth } from '../../model/auth';
 
 interface PendingPromise {
