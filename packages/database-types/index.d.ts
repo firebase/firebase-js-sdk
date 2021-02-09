@@ -182,6 +182,6 @@ export interface ThenableReference
     Pick<Promise<Reference>, 'then' | 'catch'> {}
 
 export function enableLogging(
-  logger?: boolean | ((a: string) => any),
+  logger?: boolean | ((message: string) => any),
   persistent?: boolean
 ): void;
