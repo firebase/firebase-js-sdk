@@ -1,7 +1,7 @@
 ---
 "@firebase/database-types": minor
 "@firebase/database": patch
-"firebase": minor
+"firebase": patch
 ---
 
 Add `startAfter()` and `endBefore()` to the Realtime Database TypeScript definitions.
