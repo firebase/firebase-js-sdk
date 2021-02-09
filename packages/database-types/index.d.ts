@@ -17,6 +17,8 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 
+export function getDatabase(app: FirebaseApp): FirebaseDatabase;
+
 export interface DataSnapshot {
   child(path: string): DataSnapshot;
   exists(): boolean;
@@ -35,7 +37,6 @@ export interface DataSnapshot {
 export class FirebaseDatabase {
   private constructor();
   'type': 'database';
-
   app: FirebaseApp;
 }
 
@@ -50,15 +51,18 @@ export function ref(db: FirebaseDatabase, path?: string | Reference): Reference;
 export function refFromURL(db: FirebaseDatabase, url: string): Reference;
 
 export interface OnDisconnect {
-  cancel(onComplete?: (a: Error | null) => any): Promise<void>;
-  remove(onComplete?: (a: Error | null) => any): Promise<void>;
-  set(value: any, onComplete?: (a: Error | null) => any): Promise<void>;
+  cancel(onComplete?: (error: Error | null) => any): Promise<void>;
+  remove(onComplete?: (error: Error | null) => any): Promise<void>;
+  set(value: any, onComplete?: (error: Error | null) => any): Promise<void>;
   setWithPriority(
     value: any,
     priority: number | string | null,
-    onComplete?: (a: Error | null) => any
+    onComplete?: (error: Error | null) => any
   ): Promise<any>;
-  update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
+  update(
+    values: Object,
+    onComplete?: (error: Error | null) => any
+  ): Promise<void>;
 }
 
 type EventType =
@@ -79,14 +83,14 @@ export function get(query: Query): Promise<DataSnapshot>;
 export function on(
   query: Query,
   eventType: EventType,
-  callback: (a: DataSnapshot, b?: string | null) => any,
-  cancelCallbackOrContext?: ((a: Error) => any) | Object | null,
+  callback: (snapshot: DataSnapshot, previousChildName?: string | null) => any,
+  cancelCallbackOrContext?: ((error: Error) => any) | Object | null,
   context?: Object | null
-): (a: DataSnapshot, b?: string | null) => any;
+): (snapshot: DataSnapshot, previousChildName?: string | null) => any;
 export function off(
   query: Query,
   eventType?: EventType,
-  callback?: (a: DataSnapshot, b?: string | null) => any,
+  callback?: (snapshot: DataSnapshot, previousChildName?: string | null) => any,
   context?: Object | null
 ): void;
 
@@ -116,7 +120,7 @@ export function startAt(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint;
-export function startAftr(
+export function startAfter(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint;
@@ -141,6 +145,7 @@ export interface Reference extends Query {
 
 export function child(ref: Reference, path: string): Reference;
 export function onDisconnect(ref: Reference): OnDisconnect;
+
 export function push(ref: Reference, value?: unknown): ThenableReference;
 export function remove(ref: Reference): Promise<void>;
 export function set(ref: Reference, value: unknown): Promise<void>;
@@ -153,12 +158,12 @@ export function setWithPriority(
   newVal: any,
   newPriority: string | number | null
 ): Promise<void>;
+export function update(ref: Reference, values: Object): Promise<void>;
 export function transaction(
   ref: Reference,
   transactionUpdate: (a: any) => unknown,
   applyLocally?: boolean
 ): Promise<void>;
-export function update(ref: Reference, values: Object): Promise<void>;
 
 export interface ServerValue {
   TIMESTAMP: Object;
@@ -172,10 +177,4 @@ export interface ThenableReference
 export function enableLogging(
   logger?: boolean | ((a: string) => any),
   persistent?: boolean
-): any;
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'database': FirebaseDatabase;
-  }
-}
+): void;
