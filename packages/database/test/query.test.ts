@@ -1403,6 +1403,7 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     const childOne = node.push();
     const childTwo = node.push();
+    // Create a server synced and a latency-compensated write
     await childOne.set(1);
     childTwo.set(2);
     const ea = EventAccumulatorFactory.waitsForCount(1);
@@ -1419,6 +1420,7 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     const childOne = node.push();
     const childTwo = node.push();
+    // Create a server synced and a latency-compensated write
     await childOne.set(1);
     childTwo.set(2);
     const ea = EventAccumulatorFactory.waitsForCount(1);

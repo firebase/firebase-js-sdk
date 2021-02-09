@@ -48,9 +48,6 @@ let EMPTY_NODE: ChildrenNode;
  * ChildrenNode is a class for storing internal nodes in a DataSnapshot
  * (i.e. nodes with children).  It implements Node and stores the
  * list of children in the children property, sorted by child name.
- *
- * @constructor
- * @implements {Node}
  */
 export class ChildrenNode implements Node {
   private lazyHash_: string | null = null;
@@ -67,11 +64,8 @@ export class ChildrenNode implements Node {
   }
 
   /**
-   *
-   * @param {!SortedMap.<string, !Node>} children_ List of children
-   * of this node..
-   * @param {?Node} priorityNode_ The priority of this node (as a snapshot node).
-   * @param {!IndexMap} indexMap_
+   * @param children_ List of children of this node..
+   * @param priorityNode_ The priority of this node (as a snapshot node).
    */
   constructor(
     private readonly children_: SortedMap<string, Node>,
@@ -195,10 +189,6 @@ export class ChildrenNode implements Node {
     return this.children_.count();
   }
 
-  /**
-   * @private
-   * @type {RegExp}
-   */
   private static INTEGER_REGEXP_ = /^(0|[1-9]\d*)$/;
 
   /** @inheritDoc */
@@ -279,10 +269,6 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {?string}
-   */
   getFirstChildName(indexDefinition: Index): string | null {
     const idx = this.resolveIndex_(indexDefinition);
     if (idx) {
@@ -293,10 +279,6 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {?NamedNode}
-   */
   getFirstChild(indexDefinition: Index): NamedNode | null {
     const minKey = this.getFirstChildName(indexDefinition);
     if (minKey) {
@@ -308,8 +290,6 @@ export class ChildrenNode implements Node {
 
   /**
    * Given an index, return the key name of the largest value we have, according to that index
-   * @param {!Index} indexDefinition
-   * @return {?string}
    */
   getLastChildName(indexDefinition: Index): string | null {
     const idx = this.resolveIndex_(indexDefinition);
@@ -321,10 +301,6 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {?NamedNode}
-   */
   getLastChild(indexDefinition: Index): NamedNode | null {
     const maxKey = this.getLastChildName(indexDefinition);
     if (maxKey) {
@@ -351,22 +327,12 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {SortedMapIterator}
-   */
   getIterator(
     indexDefinition: Index
   ): SortedMapIterator<string | NamedNode, Node, NamedNode> {
     return this.getIteratorFrom(indexDefinition.minPost(), indexDefinition);
   }
 
-  /**
-   *
-   * @param {!NamedNode} startPost
-   * @param {!Index} indexDefinition
-   * @return {!SortedMapIterator}
-   */
   getIteratorFrom(
     startPost: NamedNode,
     indexDefinition: Index
@@ -388,10 +354,6 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {!SortedMapIterator}
-   */
   getReverseIterator(
     indexDefinition: Index
   ): SortedMapIterator<string | NamedNode, Node, NamedNode> {
@@ -401,11 +363,6 @@ export class ChildrenNode implements Node {
     );
   }
 
-  /**
-   * @param {!NamedNode} endPost
-   * @param {!Index} indexDefinition
-   * @return {!SortedMapIterator}
-   */
   getReverseIteratorFrom(
     endPost: NamedNode,
     indexDefinition: Index
@@ -514,9 +471,6 @@ export class ChildrenNode implements Node {
    * Returns a SortedMap ordered by index, or null if the default (by-key) ordering can be used
    * instead.
    *
-   * @private
-   * @param {!Index} indexDefinition
-   * @return {?SortedMap.<NamedNode, Node>}
    */
   private resolveIndex_(
     indexDefinition: Index
@@ -529,11 +483,6 @@ export class ChildrenNode implements Node {
   }
 }
 
-/**
- * @constructor
- * @extends {ChildrenNode}
- * @private
- */
 export class MaxNode extends ChildrenNode {
   constructor() {
     super(
@@ -571,8 +520,6 @@ export class MaxNode extends ChildrenNode {
 
 /**
  * Marker that will sort higher than any other snapshot.
- * @type {!MAX_NODE}
- * @const
  */
 export const MAX_NODE = new MaxNode();
 

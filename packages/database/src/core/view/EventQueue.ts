@@ -31,24 +31,17 @@ import { Event } from './Event';
  *
  * NOTE: This can all go away if/when we move to async events.
  *
- * @constructor
  */
 export class EventQueue {
-  /**
-   * @private
-   * @type {!Array.<EventList>}
-   */
   private eventLists_: EventList[] = [];
 
   /**
    * Tracks recursion depth of raiseQueuedEvents_, for debugging purposes.
-   * @private
-   * @type {!number}
    */
   private recursionDepth_ = 0;
 
   /**
-   * @param {!Array.<Event>} eventDataList The new events to queue.
+   * @param eventDataList The new events to queue.
    */
   queueEvents(eventDataList: Event[]) {
     // We group events by path, storing them in a single EventList, to make it easier to skip over them quickly.
@@ -78,8 +71,8 @@ export class EventQueue {
    *
    * It is assumed that the new events are all for the specified path.
    *
-   * @param {!Path} path The path to raise events for.
-   * @param {!Array.<Event>} eventDataList The new events to raise.
+   * @param path The path to raise events for.
+   * @param eventDataList The new events to raise.
    */
   raiseEventsAtPath(path: Path, eventDataList: Event[]) {
     this.queueEvents(eventDataList);
@@ -94,8 +87,8 @@ export class EventQueue {
    *
    * It is assumed that the new events are all related (ancestor or descendant) to the specified path.
    *
-   * @param {!Path} changedPath The path to raise events for.
-   * @param {!Array.<!Event>} eventDataList The events to raise
+   * @param changedPath The path to raise events for.
+   * @param eventDataList The events to raise
    */
   raiseEventsForChangedPath(changedPath: Path, eventDataList: Event[]) {
     this.queueEvents(eventDataList);
@@ -105,10 +98,6 @@ export class EventQueue {
     });
   }
 
-  /**
-   * @param {!function(!Path):boolean} predicate
-   * @private
-   */
   private raiseQueuedEventsMatchingPredicate_(
     predicate: (path: Path) => boolean
   ) {
@@ -136,22 +125,11 @@ export class EventQueue {
   }
 }
 
-/**
- * @param {!Path} path
- * @constructor
- */
 export class EventList {
-  /**
-   * @type {!Array.<Event>}
-   * @private
-   */
   private events_: Event[] = [];
 
   constructor(private readonly path_: Path) {}
 
-  /**
-   * @param {!Event} eventData
-   */
   add(eventData: Event) {
     this.events_.push(eventData);
   }
@@ -173,9 +151,6 @@ export class EventList {
     }
   }
 
-  /**
-   * @return {!Path}
-   */
   getPath(): Path {
     return this.path_;
   }

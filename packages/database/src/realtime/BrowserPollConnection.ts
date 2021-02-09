@@ -69,23 +69,16 @@ const MAX_PAYLOAD_SIZE = MAX_URL_DATA_SIZE - SEG_HEADER_SIZE;
  * Keepalive period
  * send a fresh request at minimum every 25 seconds. Opera has a maximum request
  * length of 30 seconds that we can't exceed.
- * @const
- * @type {number}
  */
 const KEEPALIVE_REQUEST_INTERVAL = 25000;
 
 /**
  * How long to wait before aborting a long-polling connection attempt.
- * @const
- * @type {number}
  */
 const LP_CONNECT_TIMEOUT = 30000;
 
 /**
  * This class manages a single long-polling connection.
- *
- * @constructor
- * @implements {Transport}
  */
 export class BrowserPollConnection implements Transport {
   bytesSent = 0;
@@ -127,9 +120,8 @@ export class BrowserPollConnection implements Transport {
   }
 
   /**
-   *
-   * @param {function(Object)} onMessage Callback when messages arrive
-   * @param {function()} onDisconnect Callback with connection lost.
+   * @param onMessage Callback when messages arrive
+   * @param onDisconnect Callback with connection lost.
    */
   open(onMessage: (msg: {}) => void, onDisconnect: (a?: boolean) => void) {
     this.curSegmentNum = 0;
@@ -287,7 +279,6 @@ export class BrowserPollConnection implements Transport {
 
   /**
    * Stops polling and cleans up the iframe
-   * @private
    */
   private shutdown_() {
     this.isClosed_ = true;
@@ -311,7 +302,6 @@ export class BrowserPollConnection implements Transport {
 
   /**
    * Triggered when this transport is closed
-   * @private
    */
   private onClosed_() {
     if (!this.isClosed_) {
@@ -339,7 +329,7 @@ export class BrowserPollConnection implements Transport {
   /**
    * Send the JSON object down to the server. It will need to be stringified, base64 encoded, and then
    * broken into chunks (since URLs have a small maximum length).
-   * @param {!Object} data The JSON data to transmit.
+   * @param data The JSON data to transmit.
    */
   send(data: {}) {
     const dataStr = stringify(data);
@@ -369,8 +359,6 @@ export class BrowserPollConnection implements Transport {
    * This is how we notify the server that we're leaving.
    * We aren't able to send requests with DHTML on a window close event, but we can
    * trigger XHR requests in some browsers (everything but Opera basically).
-   * @param {!string} id
-   * @param {!string} pw
    */
   addDisconnectPingFrame(id: string, pw: string) {
     if (isNodeSdk()) {
@@ -389,8 +377,6 @@ export class BrowserPollConnection implements Transport {
 
   /**
    * Used to track the bytes received by this client
-   * @param {*} args
-   * @private
    */
   private incrementIncomingBytes_(args: unknown) {
     // TODO: This is an annoying perf hit just to track the number of incoming bytes.  Maybe it should be opt-in.
@@ -407,7 +393,6 @@ export interface IFrameElement extends HTMLIFrameElement {
 
 /*********************************************************************************************
  * A wrapper around an iframe that is used as a long-polling script holder.
- * @constructor
  *********************************************************************************************/
 export class FirebaseIFrameScriptHolder {
   //We maintain a count of all of the outstanding requests, because if we have too many active at once it can cause
@@ -496,8 +481,6 @@ export class FirebaseIFrameScriptHolder {
   /**
    * Each browser has its own funny way to handle iframes. Here we mush them all together into one object that I can
    * actually use.
-   * @private
-   * @return {Element}
    */
   private static createIFrame_(): IFrameElement {
     const iframe = document.createElement('iframe') as IFrameElement;
@@ -572,8 +555,8 @@ export class FirebaseIFrameScriptHolder {
 
   /**
    * Actually start the long-polling session by adding the first script tag(s) to the iframe.
-   * @param {!string} id - The ID of this connection
-   * @param {!string} pw - The password for this connection
+   * @param id - The ID of this connection
+   * @param pw - The password for this connection
    */
   startLongPoll(id: string, pw: string) {
     this.myID = id;
@@ -673,9 +656,8 @@ export class FirebaseIFrameScriptHolder {
 
   /**
    * Add a script tag for a regular long-poll request.
-   * @param {!string} url - The URL of the script tag.
-   * @param {!number} serial - The serial number of the request.
-   * @private
+   * @param url - The URL of the script tag.
+   * @param serial - The serial number of the request.
    */
   private addLongPollTag_(url: string, serial: number) {
     //remember that we sent this request.
@@ -706,8 +688,8 @@ export class FirebaseIFrameScriptHolder {
 
   /**
    * Add an arbitrary script tag to the iframe.
-   * @param {!string} url - The URL for the script tag source.
-   * @param {!function()} loadCB - A callback to be triggered once the script has loaded.
+   * @param url - The URL for the script tag source.
+   * @param loadCB - A callback to be triggered once the script has loaded.
    */
   addTag(url: string, loadCB: () => void) {
     if (isNodeSdk()) {

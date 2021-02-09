@@ -28,10 +28,6 @@ import { Node } from '../../snap/Node';
 
 /**
  * Doesn't really filter nodes but applies an index to the node and keeps track of any changes
- *
- * @constructor
- * @implements {NodeFilter}
- * @param {!Index} index
  */
 export class IndexedFilter implements NodeFilter {
   constructor(private readonly index_: Index) {}

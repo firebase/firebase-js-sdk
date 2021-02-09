@@ -93,7 +93,16 @@ export class SyncPoint {
       return events;
     }
   }
-
+  
+  /**
+   * Get a view for the specified query.
+   *
+   * @param query The query to return a view for
+   * @param writesCache
+   * @param serverCache
+   * @param serverCacheComplete
+   * @return Events to raise.
+   */
   getView(
     query: Query,
     writesCache: WriteTreeRef,
@@ -118,16 +127,8 @@ export class SyncPoint {
         eventCacheComplete = false;
       }
       const viewCache = new ViewCache(
-        new CacheNode(
-          /** @type {!Node} */ eventCache,
-          eventCacheComplete,
-          false
-        ),
-        new CacheNode(
-          /** @type {!Node} */ serverCache,
-          serverCacheComplete,
-          false
-        )
+        new CacheNode(eventCache, eventCacheComplete, false),
+        new CacheNode(serverCache, serverCacheComplete, false)
       );
       return new View(query, viewCache);
     }
@@ -171,10 +172,9 @@ export class SyncPoint {
    * If query is the default query, we'll check all views for the specified eventRegistration.
    * If eventRegistration is null, we'll remove all callbacks for the specified view(s).
    *
-   * @param {!Query} query
-   * @param {?EventRegistration} eventRegistration If null, remove all callbacks.
-   * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
-   * @return {{removed:!Array.<!Query>, events:!Array.<!Event>}} removed queries and any cancel events
+   * @param eventRegistration If null, remove all callbacks.
+   * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
+   * @return removed queries and any cancel events
    */
   removeEventRegistration(
     query: Query,

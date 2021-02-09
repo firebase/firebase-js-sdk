@@ -25,24 +25,12 @@ import { DataSnapshot } from '../../api/DataSnapshot';
  * @interface
  */
 export interface Event {
-  /**
-   * @return {!Path}
-   */
   getPath(): Path;
 
-  /**
-   * @return {!string}
-   */
   getEventType(): string;
 
-  /**
-   * @return {!function()}
-   */
   getEventRunner(): () => void;
 
-  /**
-   * @return {!string}
-   */
   toString(): string;
 }
 
@@ -55,14 +43,13 @@ export type EventType =
 
 /**
  * Encapsulates the data needed to raise an event
- * @implements {Event}
  */
 export class DataEvent implements Event {
   /**
-   * @param {!string} eventType One of: value, child_added, child_changed, child_moved, child_removed
-   * @param {!EventRegistration} eventRegistration The function to call to with the event data. User provided
-   * @param {!DataSnapshot} snapshot The data backing the event
-   * @param {?string=} prevName Optional, the name of the previous child for child_* events.
+   * @param eventType One of: value, child_added, child_changed, child_moved, child_removed
+   * @param eventRegistration The function to call to with the event data. User provided
+   * @param snapshot The data backing the event
+   * @param prevName Optional, the name of the previous child for child_* events.
    */
   constructor(
     public eventType: EventType,
@@ -112,11 +99,6 @@ export class DataEvent implements Event {
 }
 
 export class CancelEvent implements Event {
-  /**
-   * @param {EventRegistration} eventRegistration
-   * @param {Error} error
-   * @param {!Path} path
-   */
   constructor(
     public eventRegistration: EventRegistration,
     public error: Error,

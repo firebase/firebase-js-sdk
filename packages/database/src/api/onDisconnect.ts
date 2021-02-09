@@ -28,20 +28,9 @@ import { Repo } from '../core/Repo';
 import { Path } from '../core/util/Path';
 import { Indexable } from '../core/util/misc';
 
-/**
- * @constructor
- */
 export class OnDisconnect {
-  /**
-   * @param {!Repo} repo_
-   * @param {!Path} path_
-   */
   constructor(private repo_: Repo, private path_: Path) {}
 
-  /**
-   * @param {function(?Error)=} onComplete
-   * @return {!firebase.Promise}
-   */
   cancel(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.cancel', 0, 1, arguments.length);
     validateCallback('OnDisconnect.cancel', 1, onComplete, true);
@@ -53,10 +42,6 @@ export class OnDisconnect {
     return deferred.promise;
   }
 
-  /**
-   * @param {function(?Error)=} onComplete
-   * @return {!firebase.Promise}
-   */
   remove(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.remove', 0, 1, arguments.length);
     validateWritablePath('OnDisconnect.remove', this.path_);
@@ -70,11 +55,6 @@ export class OnDisconnect {
     return deferred.promise;
   }
 
-  /**
-   * @param {*} value
-   * @param {function(?Error)=} onComplete
-   * @return {!firebase.Promise}
-   */
   set(value: unknown, onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.set', 1, 2, arguments.length);
     validateWritablePath('OnDisconnect.set', this.path_);
@@ -89,12 +69,6 @@ export class OnDisconnect {
     return deferred.promise;
   }
 
-  /**
-   * @param {*} value
-   * @param {number|string|null} priority
-   * @param {function(?Error)=} onComplete
-   * @return {!firebase.Promise}
-   */
   setWithPriority(
     value: unknown,
     priority: number | string | null,
@@ -122,11 +96,6 @@ export class OnDisconnect {
     return deferred.promise;
   }
 
-  /**
-   * @param {!Object} objectToMerge
-   * @param {function(?Error)=} onComplete
-   * @return {!firebase.Promise}
-   */
   update(
     objectToMerge: Indexable,
     onComplete?: (a: Error | null) => void

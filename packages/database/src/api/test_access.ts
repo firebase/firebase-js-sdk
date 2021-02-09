@@ -23,10 +23,6 @@ import { Query } from './Query';
 
 export const DataConnection = PersistentConnection;
 
-/**
- * @param {!string} pathString
- * @param {function(*)} onComplete
- */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (PersistentConnection.prototype as any).simpleListen = function (
   pathString: string,
@@ -35,10 +31,6 @@ export const DataConnection = PersistentConnection;
   this.sendRequest('q', { p: pathString }, onComplete);
 };
 
-/**
- * @param {*} data
- * @param {function(*)} onEcho
- */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (PersistentConnection.prototype as any).echo = function (
   data: unknown,
@@ -50,10 +42,6 @@ export const DataConnection = PersistentConnection;
 // RealTimeConnection properties that we use in tests.
 export const RealTimeConnection = Connection;
 
-/**
- * @param {function(): string} newHash
- * @return {function()}
- */
 export const hijackHash = function (newHash: () => string) {
   const oldPut = PersistentConnection.prototype.put;
   PersistentConnection.prototype.put = function (
@@ -72,23 +60,14 @@ export const hijackHash = function (newHash: () => string) {
   };
 };
 
-/**
- * @type {function(new:RepoInfo, !string, boolean, !string, boolean): undefined}
- */
 export const ConnectionTarget = RepoInfo;
 
-/**
- * @param {!Query} query
- * @return {!string}
- */
 export const queryIdentifier = function (query: Query) {
   return query.queryIdentifier();
 };
 
 /**
  * Forces the RepoManager to create Repos that use ReadonlyRestClient instead of PersistentConnection.
- *
- * @param {boolean} forceRestClient
  */
 export const forceRestClient = function (forceRestClient: boolean) {
   RepoManager.getInstance().forceRestClient(forceRestClient);
