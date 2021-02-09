@@ -24,15 +24,15 @@ import { Repo } from '../core/Repo';
 import { Path } from '../core/util/Path';
 import { QueryParams } from '../core/view/QueryParams';
 import {
-  validateRootPathString,
-  validatePathString,
-  validateFirebaseMergeDataArg,
   validateBoolean,
-  validatePriority,
   validateFirebaseDataArg,
+  validateFirebaseMergeDataArg,
+  validatePathString,
+  validatePriority,
+  validateRootPathString,
   validateWritablePath
 } from '../core/util/validation';
-import { validateArgCount, validateCallback, Deferred } from '@firebase/util';
+import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
 
 import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
@@ -61,7 +61,7 @@ export class Reference extends Query {
     }
 
     // call Query's constructor, passing in the repo and path.
-    super(repo, path, QueryParams.DEFAULT, false);
+    super(repo, path, new QueryParams(), false);
   }
 
   /** @return {?string} */

@@ -80,11 +80,6 @@ export class QueryParams {
     LIMIT_TO_LAST: 'limitToLast'
   };
 
-  /**
-   * Default, empty query parameters
-   */
-  static readonly DEFAULT = new QueryParams();
-
   hasStart(): boolean {
     return this.startSet_;
   }

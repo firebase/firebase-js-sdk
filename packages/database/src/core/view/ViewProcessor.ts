@@ -551,7 +551,10 @@ export class ViewProcessor {
     if (path.isEmpty()) {
       viewMergeTree = changedChildren;
     } else {
-      viewMergeTree = ImmutableTree.Empty.setTree(path, changedChildren);
+      viewMergeTree = new ImmutableTree<Node>(null).setTree(
+        path,
+        changedChildren
+      );
     }
     const serverNode = viewCache.getServerCache().getNode();
     viewMergeTree.children.inorderTraversal((childKey, childTree) => {
@@ -633,7 +636,7 @@ export class ViewProcessor {
       } else if (ackPath.isEmpty()) {
         // This is a goofy edge case where we are acking data at this location but don't have full data.  We
         // should just re-apply whatever we have in our cache as a merge.
-        let changedChildren = ImmutableTree.Empty;
+        let changedChildren = new ImmutableTree<Node>(null);
         serverCache.getNode().forEachChild(KEY_INDEX, (name, node) => {
           changedChildren = changedChildren.set(new Path(name), node);
         });
@@ -651,7 +654,7 @@ export class ViewProcessor {
       }
     } else {
       // This is a merge.
-      let changedChildren = ImmutableTree.Empty;
+      let changedChildren = new ImmutableTree<Node>(null);
       affectedTree.foreach((mergePath, value) => {
         const serverCachePath = ackPath.child(mergePath);
         if (serverCache.isCompleteForPath(serverCachePath)) {
