@@ -18,7 +18,10 @@
 import { querystringDecode } from '@firebase/util';
 import { AuthErrorCode } from '../../core/errors';
 import { PersistedBlob, Persistence } from '../../core/persistence';
-import { KeyName, _persistenceKeyName } from '../../core/persistence/persistence_user_manager';
+import {
+  KeyName,
+  _persistenceKeyName
+} from '../../core/persistence/persistence_user_manager';
 import { _createError } from '../../core/util/assert';
 import { _getInstance } from '../../core/util/instantiator';
 import { Auth } from '../../model/auth';
@@ -47,18 +50,23 @@ export function _generateNewEvent(
 }
 
 export function _savePartialEvent(auth: Auth, event: AuthEvent): Promise<void> {
-  return storage()._set(key(auth), event as object as PersistedBlob);
+  return storage()._set(key(auth), (event as object) as PersistedBlob);
 }
 
-export async function _getAndRemoveEvent(auth: Auth): Promise<AuthEvent|null> {
-  const event = await storage()._get(key(auth)) as AuthEvent | null;
+export async function _getAndRemoveEvent(
+  auth: Auth
+): Promise<AuthEvent | null> {
+  const event = (await storage()._get(key(auth))) as AuthEvent | null;
   if (event) {
     await storage()._remove(key(auth));
   }
   return event;
 }
 
-export function _eventFromPartialAndUrl(partialEvent: AuthEvent, url: string): AuthEvent|null {
+export function _eventFromPartialAndUrl(
+  partialEvent: AuthEvent,
+  url: string
+): AuthEvent | null {
   // Parse the deep link within the dynamic link URL.
   const callbackUrl = _getDeepLinkFromCallback(url);
   // Confirm it is actually a callback URL.
@@ -72,8 +80,9 @@ export function _eventFromPartialAndUrl(partialEvent: AuthEvent, url: string): A
     // https://<AUTH_DOMAIN>/__/auth/callback?firebaseError=<STRINGIFIED_ERROR>
     const params = searchParamsOrEmpty(callbackUrl);
     // Get the error object corresponding to the stringified error if found.
-    const errorObject = params['firebaseError'] ?
-        JSON.parse(decodeURIComponent(params['firebaseError'])) : null;
+    const errorObject = params['firebaseError']
+      ? JSON.parse(decodeURIComponent(params['firebaseError']))
+      : null;
     const code = errorObject?.['code']?.split('auth/')?.[1];
     const error = code ? _createError(code) : null;
     if (error) {
@@ -84,7 +93,7 @@ export function _eventFromPartialAndUrl(partialEvent: AuthEvent, url: string): A
         error,
         urlResponse: null,
         sessionId: null,
-        postBody: null,
+        postBody: null
       };
     } else {
       return {
@@ -93,7 +102,7 @@ export function _eventFromPartialAndUrl(partialEvent: AuthEvent, url: string): A
         tenantId: partialEvent.tenantId,
         sessionId: partialEvent.sessionId,
         urlResponse: callbackUrl,
-        postBody: null,
+        postBody: null
       };
     }
   }
@@ -127,7 +136,9 @@ export function _getDeepLinkFromCallback(url: string): string {
   // Double link case (automatic redirect)
   const doubleDeepLink = searchParamsOrEmpty(link)['link'];
   // iOS custom scheme links.
-  const iOSDeepLink = params['deep_link_id'] ? decodeURIComponent(params['deep_link_id']) : undefined;
+  const iOSDeepLink = params['deep_link_id']
+    ? decodeURIComponent(params['deep_link_id'])
+    : undefined;
   const iOSDoubleDeepLink = searchParamsOrEmpty(iOSDeepLink)['link'];
   return iOSDoubleDeepLink || iOSDeepLink || doubleDeepLink || link || url;
 }
@@ -144,4 +155,3 @@ function searchParamsOrEmpty(url: string | undefined): Record<string, string> {
   const [_, ...rest] = url.split('?');
   return querystringDecode(rest.join('?')) as Record<string, string>;
 }
-

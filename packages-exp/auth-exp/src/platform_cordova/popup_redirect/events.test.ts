@@ -15,13 +15,19 @@
  * limitations under the License.
  */
 
- import * as sinonChai from 'sinon-chai';
+import * as sinonChai from 'sinon-chai';
 import * as sinon from 'sinon';
 import { FirebaseError, querystring } from '@firebase/util';
 import { expect, use } from 'chai';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
-import { _eventFromPartialAndUrl, _generateNewEvent, _getAndRemoveEvent, _getDeepLinkFromCallback, _savePartialEvent } from './events';
+import {
+  _eventFromPartialAndUrl,
+  _generateNewEvent,
+  _getAndRemoveEvent,
+  _getDeepLinkFromCallback,
+  _savePartialEvent
+} from './events';
 import { _createError } from '../../core/util/assert';
 import { AuthErrorCode } from '../../core/errors';
 
@@ -65,10 +71,13 @@ describe('platform_cordova/popup_redirect/events', () => {
   });
 
   describe('_savePartialEvent', () => {
-    it('sets the event',async () => {
+    it('sets the event', async () => {
       const event = _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT);
       await _savePartialEvent(auth, event);
-      expect(storageStub.setItem).to.have.been.calledWith('firebase:authEvent:test-api-key:test-app', JSON.stringify(event));
+      expect(storageStub.setItem).to.have.been.calledWith(
+        'firebase:authEvent:test-api-key:test-app',
+        JSON.stringify(event)
+      );
     });
   });
 
@@ -79,19 +88,27 @@ describe('platform_cordova/popup_redirect/events', () => {
     });
 
     it('returns the event and deletes the key if present', async () => {
-      const event = JSON.stringify(_generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT));
+      const event = JSON.stringify(
+        _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT)
+      );
       storageStub.getItem.returns(event);
       expect(await _getAndRemoveEvent(auth)).to.eql(JSON.parse(event));
-      expect(storageStub.removeItem).to.have.been.calledWith('firebase:authEvent:test-api-key:test-app');
+      expect(storageStub.removeItem).to.have.been.calledWith(
+        'firebase:authEvent:test-api-key:test-app'
+      );
     });
   });
 
   describe('_eventFromPartialAndUrl', () => {
     let partialEvent: AuthEvent;
     beforeEach(() => {
-      partialEvent = _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT, 'id');
+      partialEvent = _generateNewEvent(
+        auth,
+        AuthEventType.REAUTH_VIA_REDIRECT,
+        'id'
+      );
     });
-    
+
     function generateCallbackUrl(params: Record<string, string>): string {
       const deepLink = `http://foo/__/auth/callback?${querystring(params)}`;
       return `http://outer-app?link=${encodeURIComponent(deepLink)}`;
@@ -105,7 +122,7 @@ describe('platform_cordova/popup_redirect/events', () => {
         tenantId: null,
         sessionId: partialEvent.sessionId,
         urlResponse: 'http://foo/__/auth/callback?',
-        postBody: null,
+        postBody: null
       });
     });
 
@@ -116,45 +133,63 @@ describe('platform_cordova/popup_redirect/events', () => {
     it('generates an error if the callback has an error', () => {
       const handlerError = _createError(AuthErrorCode.INTERNAL_ERROR);
       const url = generateCallbackUrl({
-        'firebaseError': JSON.stringify(handlerError),
+        'firebaseError': JSON.stringify(handlerError)
       });
-      const {error, ...rest} = _eventFromPartialAndUrl(partialEvent, url)!;
+      const { error, ...rest } = _eventFromPartialAndUrl(partialEvent, url)!;
 
-      expect(error).to.be.instanceOf(FirebaseError).with.property('code', 'auth/internal-error');
+      expect(error)
+        .to.be.instanceOf(FirebaseError)
+        .with.property('code', 'auth/internal-error');
       expect(rest).to.eql({
         type: AuthEventType.REAUTH_VIA_REDIRECT,
         eventId: 'id',
         tenantId: null,
         urlResponse: null,
         sessionId: null,
-        postBody: null,
+        postBody: null
       });
     });
   });
 
   describe('_getDeepLinkFromCallback', () => {
     it('returns the iOS double deep link preferentially', () => {
-      expect(_getDeepLinkFromCallback('https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep' +
-      '&deep_link_id=http%3A%2F%2Ffoo%3Flink%3DdoubleDeepIos')).to.eq('doubleDeepIos');
+      expect(
+        _getDeepLinkFromCallback(
+          'https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep' +
+            '&deep_link_id=http%3A%2F%2Ffoo%3Flink%3DdoubleDeepIos'
+        )
+      ).to.eq('doubleDeepIos');
     });
 
     it('returns the iOS deep link preferentially', () => {
-      expect(_getDeepLinkFromCallback('https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep' +
-      '&deep_link_id=http%3A%2F%2FfooIOS')).to.eq('http://fooIOS');
+      expect(
+        _getDeepLinkFromCallback(
+          'https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep' +
+            '&deep_link_id=http%3A%2F%2FfooIOS'
+        )
+      ).to.eq('http://fooIOS');
     });
 
     it('returns double deep link preferentially', () => {
-      expect(_getDeepLinkFromCallback('https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep')).to.eq('doubleDeep');
+      expect(
+        _getDeepLinkFromCallback(
+          'https://foo?link=http%3A%2F%2Ffoo%3Flink%3DdoubleDeep'
+        )
+      ).to.eq('doubleDeep');
     });
-    
+
     it('returns the deep link preferentially', () => {
-      expect(_getDeepLinkFromCallback('https://foo?link=http%3A%2F%2Ffoo%3Funrelated%3Dyeah')).to.eq(
-        'http://foo?unrelated=yeah'
-      );
+      expect(
+        _getDeepLinkFromCallback(
+          'https://foo?link=http%3A%2F%2Ffoo%3Funrelated%3Dyeah'
+        )
+      ).to.eq('http://foo?unrelated=yeah');
     });
 
     it('returns the passed-in url when all else fails', () => {
-      expect(_getDeepLinkFromCallback('https://foo?bar=baz')).to.eq('https://foo?bar=baz');
+      expect(_getDeepLinkFromCallback('https://foo?bar=baz')).to.eq(
+        'https://foo?bar=baz'
+      );
     });
   });
 });
