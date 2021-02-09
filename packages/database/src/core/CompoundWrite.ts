@@ -193,7 +193,7 @@ export function isEmpty(compoundWrite: CompoundWrite): boolean {
  * @return The node with all writes applied
  */
 export function apply(compoundWrite: CompoundWrite, node: Node): Node {
-  return applySubtreeWrite(Path.Empty, this.writeTree_, node);
+  return applySubtreeWrite(Path.Empty, compoundWrite.writeTree_, node);
 }
 
 function applySubtreeWrite(
