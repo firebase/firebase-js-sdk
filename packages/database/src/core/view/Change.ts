@@ -32,48 +32,53 @@ export const CHANGE_TYPE_CHILD_MOVED = 'child_moved';
 /** Event type for a value change */
 export const CHANGE_TYPE_VALUE = 'value';
 
-/**
- * @param type The event type
- * @param snapshotNode The data
- * @param childName The name for this child, if it's a child event
- * @param oldSnap Used for intermediate processing of child changed events
- * @param prevName The name for the previous child, if applicable
- */
-export class Change {
-  constructor(
-    public type: string,
-    public snapshotNode: Node,
-    public childName?: string,
-    public oldSnap?: Node,
-    public prevName?: string | null
-  ) {}
+export interface Change {
+  /** @param type The event type */
+  type: string;
+  /** @param snapshotNode The data */
+  snapshotNode: Node;
+  /** @param childName The name for this child, if it's a child even */
+  childName?: string;
+  /** @param oldSnap Used for intermediate processing of child changed events */
+  oldSnap?: Node;
+  /**  * @param prevName The name for the previous child, if applicable */
+  prevName?: string | null;
 }
 
-export function changeValue(snapshot: Node): Change {
-  return new Change(CHANGE_TYPE_VALUE, snapshot);
+export function changeValue(snapshotNode: Node): Change {
+  return { type: CHANGE_TYPE_VALUE, snapshotNode };
 }
 
-export function changeChildAdded(childKey: string, snapshot: Node): Change {
-  return new Change(CHANGE_TYPE_CHILD_ADDED, snapshot, childKey);
+export function changeChildAdded(
+  childName: string,
+  snapshotNode: Node
+): Change {
+  return { type: CHANGE_TYPE_CHILD_ADDED, snapshotNode, childName };
 }
 
-export function changeChildRemoved(childKey: string, snapshot: Node): Change {
-  return new Change(CHANGE_TYPE_CHILD_REMOVED, snapshot, childKey);
+export function changeChildRemoved(
+  childName: string,
+  snapshotNode: Node
+): Change {
+  return { type: CHANGE_TYPE_CHILD_REMOVED, snapshotNode, childName };
 }
 
 export function changeChildChanged(
-  childKey: string,
-  newSnapshot: Node,
-  oldSnapshot: Node
+  childName: string,
+  snapshotNode: Node,
+  oldSnap: Node
 ): Change {
-  return new Change(
-    CHANGE_TYPE_CHILD_CHANGED,
-    newSnapshot,
-    childKey,
-    oldSnapshot
-  );
+  return {
+    type: CHANGE_TYPE_CHILD_CHANGED,
+    snapshotNode,
+    childName,
+    oldSnap
+  };
 }
 
-export function changeChildMoved(childKey: string, snapshot: Node): Change {
-  return new Change(CHANGE_TYPE_CHILD_MOVED, snapshot, childKey);
+export function changeChildMoved(
+  childName: string,
+  snapshotNode: Node
+): Change {
+  return { type: CHANGE_TYPE_CHILD_MOVED, snapshotNode, childName };
 }
