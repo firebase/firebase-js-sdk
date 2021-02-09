@@ -138,12 +138,12 @@ export class SyncPoint {
   /**
    * Add an event callback for the specified query.
    *
-   * @param {!Query} query
-   * @param {!EventRegistration} eventRegistration
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} serverCache Complete server cache, if we have it.
-   * @param {boolean} serverCacheComplete
-   * @return {!Array.<!Event>} Events to raise.
+   * @param query
+   * @param eventRegistration
+   * @param writesCache
+   * @param serverCache Complete server cache, if we have it.
+   * @param serverCacheComplete
+   * @return Events to raise.
    */
   addEventRegistration(
     query: Query,
