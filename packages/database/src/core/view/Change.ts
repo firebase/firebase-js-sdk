@@ -17,24 +17,22 @@
 
 import { Node } from '../snap/Node';
 
-/** Event type for a child added */
-export const CHANGE_TYPE_CHILD_ADDED = 'child_added';
-
-/** Event type for a child removed */
-export const CHANGE_TYPE_CHILD_REMOVED = 'child_removed';
-
-/** Event type for a child changed */
-export const CHANGE_TYPE_CHILD_CHANGED = 'child_changed';
-
-/** Event type for a child moved */
-export const CHANGE_TYPE_CHILD_MOVED = 'child_moved';
-
-/** Event type for a value change */
-export const CHANGE_TYPE_VALUE = 'value';
+export const enum ChangeType {
+  /** Event type for a child added */
+  CHILD_ADDED = 'child_added',
+  /** Event type for a child removed */
+  CHILD_REMOVED = 'child_removed',
+  /** Event type for a child changed */
+  CHILD_CHANGED = 'child_changed',
+  /** Event type for a child moved */
+  CHILD_MOVED = 'child_moved',
+  /** Event type for a value change */
+  VALUE = 'value'
+}
 
 export interface Change {
   /** @param type The event type */
-  type: string;
+  type: ChangeType;
   /** @param snapshotNode The data */
   snapshotNode: Node;
   /** @param childName The name for this child, if it's a child even */
@@ -46,21 +44,21 @@ export interface Change {
 }
 
 export function changeValue(snapshotNode: Node): Change {
-  return { type: CHANGE_TYPE_VALUE, snapshotNode };
+  return { type: ChangeType.VALUE, snapshotNode };
 }
 
 export function changeChildAdded(
   childName: string,
   snapshotNode: Node
 ): Change {
-  return { type: CHANGE_TYPE_CHILD_ADDED, snapshotNode, childName };
+  return { type: ChangeType.CHILD_ADDED, snapshotNode, childName };
 }
 
 export function changeChildRemoved(
   childName: string,
   snapshotNode: Node
 ): Change {
-  return { type: CHANGE_TYPE_CHILD_REMOVED, snapshotNode, childName };
+  return { type: ChangeType.CHILD_REMOVED, snapshotNode, childName };
 }
 
 export function changeChildChanged(
@@ -69,7 +67,7 @@ export function changeChildChanged(
   oldSnap: Node
 ): Change {
   return {
-    type: CHANGE_TYPE_CHILD_CHANGED,
+    type: ChangeType.CHILD_CHANGED,
     snapshotNode,
     childName,
     oldSnap
@@ -80,5 +78,5 @@ export function changeChildMoved(
   childName: string,
   snapshotNode: Node
 ): Change {
-  return { type: CHANGE_TYPE_CHILD_MOVED, snapshotNode, childName };
+  return { type: ChangeType.CHILD_MOVED, snapshotNode, childName };
 }

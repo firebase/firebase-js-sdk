@@ -16,15 +16,7 @@
  */
 
 import { NamedNode, Node } from '../snap/Node';
-import {
-  Change,
-  CHANGE_TYPE_CHILD_ADDED,
-  CHANGE_TYPE_CHILD_CHANGED,
-  CHANGE_TYPE_CHILD_MOVED,
-  CHANGE_TYPE_CHILD_REMOVED,
-  CHANGE_TYPE_VALUE,
-  changeChildMoved
-} from './Change';
+import { Change, ChangeType, changeChildMoved } from './Change';
 import { assertionError } from '@firebase/util';
 import { Query } from '../../api/Query';
 import { Index } from '../snap/indexes/Index';
@@ -65,7 +57,7 @@ export class EventGenerator {
 
     changes.forEach(change => {
       if (
-        change.type === CHANGE_TYPE_CHILD_CHANGED &&
+        change.type === ChangeType.CHILD_CHANGED &&
         this.index_.indexedValueChanged(
           change.oldSnap as Node,
           change.snapshotNode
@@ -77,35 +69,35 @@ export class EventGenerator {
 
     this.generateEventsForType_(
       events,
-      CHANGE_TYPE_CHILD_REMOVED,
+      ChangeType.CHILD_REMOVED,
       changes,
       eventRegistrations,
       eventCache
     );
     this.generateEventsForType_(
       events,
-      CHANGE_TYPE_CHILD_ADDED,
+      ChangeType.CHILD_ADDED,
       changes,
       eventRegistrations,
       eventCache
     );
     this.generateEventsForType_(
       events,
-      CHANGE_TYPE_CHILD_MOVED,
+      ChangeType.CHILD_MOVED,
       moves,
       eventRegistrations,
       eventCache
     );
     this.generateEventsForType_(
       events,
-      CHANGE_TYPE_CHILD_CHANGED,
+      ChangeType.CHILD_CHANGED,
       changes,
       eventRegistrations,
       eventCache
     );
     this.generateEventsForType_(
       events,
-      CHANGE_TYPE_VALUE,
+      ChangeType.VALUE,
       changes,
       eventRegistrations,
       eventCache

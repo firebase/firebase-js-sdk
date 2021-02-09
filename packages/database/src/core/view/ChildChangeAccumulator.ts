@@ -17,9 +17,7 @@
 
 import {
   Change,
-  CHANGE_TYPE_CHILD_ADDED,
-  CHANGE_TYPE_CHILD_CHANGED,
-  CHANGE_TYPE_CHILD_REMOVED,
+  ChangeType,
   changeChildAdded,
   changeChildChanged,
   changeChildRemoved
@@ -33,9 +31,9 @@ export class ChildChangeAccumulator {
     const type = change.type;
     const childKey = change.childName!;
     assert(
-      type === CHANGE_TYPE_CHILD_ADDED ||
-        type === CHANGE_TYPE_CHILD_CHANGED ||
-        type === CHANGE_TYPE_CHILD_REMOVED,
+      type === ChangeType.CHILD_ADDED ||
+        type === ChangeType.CHILD_CHANGED ||
+        type === ChangeType.CHILD_REMOVED,
       'Only child changes supported for tracking'
     );
     assert(
@@ -46,8 +44,8 @@ export class ChildChangeAccumulator {
     if (oldChange) {
       const oldType = oldChange.type;
       if (
-        type === CHANGE_TYPE_CHILD_ADDED &&
-        oldType === CHANGE_TYPE_CHILD_REMOVED
+        type === ChangeType.CHILD_ADDED &&
+        oldType === ChangeType.CHILD_REMOVED
       ) {
         this.changeMap.set(
           childKey,
@@ -58,29 +56,29 @@ export class ChildChangeAccumulator {
           )
         );
       } else if (
-        type === CHANGE_TYPE_CHILD_REMOVED &&
-        oldType === CHANGE_TYPE_CHILD_ADDED
+        type === ChangeType.CHILD_REMOVED &&
+        oldType === ChangeType.CHILD_ADDED
       ) {
         this.changeMap.delete(childKey);
       } else if (
-        type === CHANGE_TYPE_CHILD_REMOVED &&
-        oldType === CHANGE_TYPE_CHILD_CHANGED
+        type === ChangeType.CHILD_REMOVED &&
+        oldType === ChangeType.CHILD_CHANGED
       ) {
         this.changeMap.set(
           childKey,
           changeChildRemoved(childKey, oldChange.oldSnap)
         );
       } else if (
-        type === CHANGE_TYPE_CHILD_CHANGED &&
-        oldType === CHANGE_TYPE_CHILD_ADDED
+        type === ChangeType.CHILD_CHANGED &&
+        oldType === ChangeType.CHILD_ADDED
       ) {
         this.changeMap.set(
           childKey,
           changeChildAdded(childKey, change.snapshotNode)
         );
       } else if (
-        type === CHANGE_TYPE_CHILD_CHANGED &&
-        oldType === CHANGE_TYPE_CHILD_CHANGED
+        type === ChangeType.CHILD_CHANGED &&
+        oldType === ChangeType.CHILD_CHANGED
       ) {
         this.changeMap.set(
           childKey,
