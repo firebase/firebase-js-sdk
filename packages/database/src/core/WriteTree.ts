@@ -18,7 +18,18 @@
 import { safeGet, assert, assertionError } from '@firebase/util';
 
 import { Path } from './util/Path';
-import { CompoundWrite } from './CompoundWrite';
+import {
+  compoundWriteAddWrite,
+  compoundWriteAddWrites,
+  compoundWriteApply,
+  compoundWriteChildCompoundWrite,
+  CompoundWrite,
+  compoundWriteGetCompleteChildren,
+  compoundWriteGetCompleteNode,
+  compoundWriteHasCompleteWrite,
+  compoundWriteIsEmpty,
+  compoundWriteRemoveWrite
+} from './CompoundWrite';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { NamedNode, Node } from './snap/Node';
@@ -88,7 +99,11 @@ export class WriteTree {
     });
 
     if (visible) {
-      this.visibleWrites_ = this.visibleWrites_.addWrite(path, snap);
+      this.visibleWrites_ = compoundWriteAddWrite(
+        this.visibleWrites_,
+        path,
+        snap
+      );
     }
     this.lastWriteId_ = writeId;
   }
@@ -112,7 +127,11 @@ export class WriteTree {
       visible: true
     });
 
-    this.visibleWrites_ = this.visibleWrites_.addWrites(path, changedChildren);
+    this.visibleWrites_ = compoundWriteAddWrites(
+      this.visibleWrites_,
+      path,
+      changedChildren
+    );
     this.lastWriteId_ = writeId;
   }
 
@@ -177,13 +196,15 @@ export class WriteTree {
     } else {
       // There's no shadowing.  We can safely just remove the write(s) from visibleWrites.
       if (writeToRemove.snap) {
-        this.visibleWrites_ = this.visibleWrites_.removeWrite(
+        this.visibleWrites_ = compoundWriteRemoveWrite(
+          this.visibleWrites_,
           writeToRemove.path
         );
       } else {
         const children = writeToRemove.children;
         each(children, (childName: string) => {
-          this.visibleWrites_ = this.visibleWrites_.removeWrite(
+          this.visibleWrites_ = compoundWriteRemoveWrite(
+            this.visibleWrites_,
             writeToRemove.path.child(childName)
           );
         });
@@ -198,7 +219,7 @@ export class WriteTree {
    *
    */
   getCompleteWriteData(path: Path): Node | null {
-    return this.visibleWrites_.getCompleteNode(path);
+    return compoundWriteGetCompleteNode(this.visibleWrites_, path);
   }
 
   /**
@@ -215,34 +236,43 @@ export class WriteTree {
     includeHiddenWrites?: boolean
   ): Node | null {
     if (!writeIdsToExclude && !includeHiddenWrites) {
-      const shadowingNode = this.visibleWrites_.getCompleteNode(treePath);
+      const shadowingNode = compoundWriteGetCompleteNode(
+        this.visibleWrites_,
+        treePath
+      );
       if (shadowingNode != null) {
         return shadowingNode;
       } else {
-        const subMerge = this.visibleWrites_.childCompoundWrite(treePath);
-        if (subMerge.isEmpty()) {
+        const subMerge = compoundWriteChildCompoundWrite(
+          this.visibleWrites_,
+          treePath
+        );
+        if (compoundWriteIsEmpty(subMerge)) {
           return completeServerCache;
         } else if (
           completeServerCache == null &&
-          !subMerge.hasCompleteWrite(Path.Empty)
+          !compoundWriteHasCompleteWrite(subMerge, Path.Empty)
         ) {
           // We wouldn't have a complete snapshot, since there's no underlying data and no complete shadow
           return null;
         } else {
           const layeredCache = completeServerCache || ChildrenNode.EMPTY_NODE;
-          return subMerge.apply(layeredCache);
+          return compoundWriteApply(subMerge, layeredCache);
         }
       }
     } else {
-      const merge = this.visibleWrites_.childCompoundWrite(treePath);
-      if (!includeHiddenWrites && merge.isEmpty()) {
+      const merge = compoundWriteChildCompoundWrite(
+        this.visibleWrites_,
+        treePath
+      );
+      if (!includeHiddenWrites && compoundWriteIsEmpty(merge)) {
         return completeServerCache;
       } else {
         // If the server cache is null, and we don't have a complete cache, we need to return null
         if (
           !includeHiddenWrites &&
           completeServerCache == null &&
-          !merge.hasCompleteWrite(Path.Empty)
+          !compoundWriteHasCompleteWrite(merge, Path.Empty)
         ) {
           return null;
         } else {
@@ -260,7 +290,7 @@ export class WriteTree {
             treePath
           );
           const layeredCache = completeServerCache || ChildrenNode.EMPTY_NODE;
-          return mergeAtPath.apply(layeredCache);
+          return compoundWriteApply(mergeAtPath, layeredCache);
         }
       }
     }
@@ -275,7 +305,10 @@ export class WriteTree {
     completeServerChildren: ChildrenNode | null
   ) {
     let completeChildren = ChildrenNode.EMPTY_NODE as Node;
-    const topLevelSet = this.visibleWrites_.getCompleteNode(treePath);
+    const topLevelSet = compoundWriteGetCompleteNode(
+      this.visibleWrites_,
+      treePath
+    );
     if (topLevelSet) {
       if (!topLevelSet.isLeafNode()) {
         // we're shadowing everything. Return the children.
@@ -290,13 +323,17 @@ export class WriteTree {
     } else if (completeServerChildren) {
       // Layer any children we have on top of this
       // We know we don't have a top-level set, so just enumerate existing children
-      const merge = this.visibleWrites_.childCompoundWrite(treePath);
+      const merge = compoundWriteChildCompoundWrite(
+        this.visibleWrites_,
+        treePath
+      );
       completeServerChildren.forEachChild(
         PRIORITY_INDEX,
         (childName, childNode) => {
-          const node = merge
-            .childCompoundWrite(new Path(childName))
-            .apply(childNode);
+          const node = compoundWriteApply(
+            compoundWriteChildCompoundWrite(merge, new Path(childName)),
+            childNode
+          );
           completeChildren = completeChildren.updateImmediateChild(
             childName,
             node
@@ -304,7 +341,7 @@ export class WriteTree {
         }
       );
       // Add any complete children we have from the set
-      merge.getCompleteChildren().forEach(namedNode => {
+      compoundWriteGetCompleteChildren(merge).forEach(namedNode => {
         completeChildren = completeChildren.updateImmediateChild(
           namedNode.name,
           namedNode.node
@@ -314,8 +351,11 @@ export class WriteTree {
     } else {
       // We don't have anything to layer on top of. Layer on any children we have
       // Note that we can return an empty snap if we have a defined delete
-      const merge = this.visibleWrites_.childCompoundWrite(treePath);
-      merge.getCompleteChildren().forEach(namedNode => {
+      const merge = compoundWriteChildCompoundWrite(
+        this.visibleWrites_,
+        treePath
+      );
+      compoundWriteGetCompleteChildren(merge).forEach(namedNode => {
         completeChildren = completeChildren.updateImmediateChild(
           namedNode.name,
           namedNode.node
@@ -350,14 +390,17 @@ export class WriteTree {
       'Either existingEventSnap or existingServerSnap must exist'
     );
     const path = treePath.child(childPath);
-    if (this.visibleWrites_.hasCompleteWrite(path)) {
+    if (compoundWriteHasCompleteWrite(this.visibleWrites_, path)) {
       // At this point we can probably guarantee that we're in case 2, meaning no events
       // May need to check visibility while doing the findRootMostValueAndPath call
       return null;
     } else {
       // No complete shadowing. We're either partially shadowing or not shadowing at all.
-      const childMerge = this.visibleWrites_.childCompoundWrite(path);
-      if (childMerge.isEmpty()) {
+      const childMerge = compoundWriteChildCompoundWrite(
+        this.visibleWrites_,
+        path
+      );
+      if (compoundWriteIsEmpty(childMerge)) {
         // We're not shadowing at all. Case 1
         return existingServerSnap.getChild(childPath);
       } else {
@@ -367,7 +410,10 @@ export class WriteTree {
         // adds nodes, but doesn't change any existing writes. It is therefore not enough to
         // only check if the updates change the serverNode.
         // Maybe check if the merge tree contains these special cases and only do a full overwrite in that case?
-        return childMerge.apply(existingServerSnap.getChild(childPath));
+        return compoundWriteApply(
+          childMerge,
+          existingServerSnap.getChild(childPath)
+        );
       }
     }
   }
@@ -382,13 +428,20 @@ export class WriteTree {
     existingServerSnap: CacheNode
   ): Node | null {
     const path = treePath.child(childKey);
-    const shadowingNode = this.visibleWrites_.getCompleteNode(path);
+    const shadowingNode = compoundWriteGetCompleteNode(
+      this.visibleWrites_,
+      path
+    );
     if (shadowingNode != null) {
       return shadowingNode;
     } else {
       if (existingServerSnap.isCompleteForChild(childKey)) {
-        const childMerge = this.visibleWrites_.childCompoundWrite(path);
-        return childMerge.apply(
+        const childMerge = compoundWriteChildCompoundWrite(
+          this.visibleWrites_,
+          path
+        );
+        return compoundWriteApply(
+          childMerge,
           existingServerSnap.getNode().getImmediateChild(childKey)
         );
       } else {
@@ -403,7 +456,7 @@ export class WriteTree {
    * Returns null if there is no write at this path.
    */
   shadowingWrite(path: Path): Node | null {
-    return this.visibleWrites_.getCompleteNode(path);
+    return compoundWriteGetCompleteNode(this.visibleWrites_, path);
   }
 
   /**
@@ -419,12 +472,15 @@ export class WriteTree {
     index: Index
   ): NamedNode[] {
     let toIterate: Node;
-    const merge = this.visibleWrites_.childCompoundWrite(treePath);
-    const shadowingNode = merge.getCompleteNode(Path.Empty);
+    const merge = compoundWriteChildCompoundWrite(
+      this.visibleWrites_,
+      treePath
+    );
+    const shadowingNode = compoundWriteGetCompleteNode(merge, Path.Empty);
     if (shadowingNode != null) {
       toIterate = shadowingNode;
     } else if (completeServerData != null) {
-      toIterate = merge.apply(completeServerData);
+      toIterate = compoundWriteApply(merge, completeServerData);
     } else {
       // no children to iterate on
       return [];
@@ -509,10 +565,15 @@ export class WriteTree {
         if (write.snap) {
           if (treeRoot.contains(writePath)) {
             relativePath = Path.relativePath(treeRoot, writePath);
-            compoundWrite = compoundWrite.addWrite(relativePath, write.snap);
+            compoundWrite = compoundWriteAddWrite(
+              compoundWrite,
+              relativePath,
+              write.snap
+            );
           } else if (writePath.contains(treeRoot)) {
             relativePath = Path.relativePath(writePath, treeRoot);
-            compoundWrite = compoundWrite.addWrite(
+            compoundWrite = compoundWriteAddWrite(
+              compoundWrite,
               Path.Empty,
               write.snap.getChild(relativePath)
             );
@@ -522,14 +583,16 @@ export class WriteTree {
         } else if (write.children) {
           if (treeRoot.contains(writePath)) {
             relativePath = Path.relativePath(treeRoot, writePath);
-            compoundWrite = compoundWrite.addWrites(
+            compoundWrite = compoundWriteAddWrites(
+              compoundWrite,
               relativePath,
               write.children
             );
           } else if (writePath.contains(treeRoot)) {
             relativePath = Path.relativePath(writePath, treeRoot);
             if (relativePath.isEmpty()) {
-              compoundWrite = compoundWrite.addWrites(
+              compoundWrite = compoundWriteAddWrites(
+                compoundWrite,
                 Path.Empty,
                 write.children
               );
@@ -538,7 +601,11 @@ export class WriteTree {
               if (child) {
                 // There exists a child in this node that matches the root path
                 const deepNode = child.getChild(relativePath.popFront());
-                compoundWrite = compoundWrite.addWrite(Path.Empty, deepNode);
+                compoundWrite = compoundWriteAddWrite(
+                  compoundWrite,
+                  Path.Empty,
+                  deepNode
+                );
               }
             }
           } else {

@@ -30,145 +30,178 @@ import { each } from './util/util';
  * to reflect the write added.
  */
 export class CompoundWrite {
-  constructor(private writeTree_: ImmutableTree<Node>) {}
+  constructor(public writeTree_: ImmutableTree<Node>) {}
 
   static empty(): CompoundWrite {
     return new CompoundWrite(new ImmutableTree(null));
   }
+}
 
-  addWrite(path: Path, node: Node): CompoundWrite {
-    if (path.isEmpty()) {
-      return new CompoundWrite(new ImmutableTree(node));
-    } else {
-      const rootmost = this.writeTree_.findRootMostValueAndPath(path);
-      if (rootmost != null) {
-        const rootMostPath = rootmost.path;
-        let value = rootmost.value;
-        const relativePath = Path.relativePath(rootMostPath, path);
-        value = value.updateChild(relativePath, node);
-        return new CompoundWrite(this.writeTree_.set(rootMostPath, value));
-      } else {
-        const subtree = new ImmutableTree(node);
-        const newWriteTree = this.writeTree_.setTree(path, subtree);
-        return new CompoundWrite(newWriteTree);
-      }
-    }
-  }
-
-  addWrites(path: Path, updates: { [name: string]: Node }): CompoundWrite {
-    let newWrite = this as CompoundWrite;
-    each(updates, (childKey: string, node: Node) => {
-      newWrite = newWrite.addWrite(path.child(childKey), node);
-    });
-    return newWrite;
-  }
-
-  /**
-   * Will remove a write at the given path and deeper paths. This will <em>not</em> modify a write at a higher
-   * location, which must be removed by calling this method with that path.
-   *
-   * @param path The path at which a write and all deeper writes should be removed
-   * @return The new CompoundWrite with the removed path
-   */
-  removeWrite(path: Path): CompoundWrite {
-    if (path.isEmpty()) {
-      return CompoundWrite.empty();
-    } else {
-      const newWriteTree = this.writeTree_.setTree(
-        path,
-        new ImmutableTree<Node>(null)
+export function compoundWriteAddWrite(
+  compoundWrite: CompoundWrite,
+  path: Path,
+  node: Node
+): CompoundWrite {
+  if (path.isEmpty()) {
+    return new CompoundWrite(new ImmutableTree(node));
+  } else {
+    const rootmost = compoundWrite.writeTree_.findRootMostValueAndPath(path);
+    if (rootmost != null) {
+      const rootMostPath = rootmost.path;
+      let value = rootmost.value;
+      const relativePath = Path.relativePath(rootMostPath, path);
+      value = value.updateChild(relativePath, node);
+      return new CompoundWrite(
+        compoundWrite.writeTree_.set(rootMostPath, value)
       );
+    } else {
+      const subtree = new ImmutableTree(node);
+      const newWriteTree = compoundWrite.writeTree_.setTree(path, subtree);
       return new CompoundWrite(newWriteTree);
     }
   }
+}
 
-  /**
-   * Returns whether this CompoundWrite will fully overwrite a node at a given location and can therefore be
-   * considered "complete".
-   *
-   * @param path The path to check for
-   * @return Whether there is a complete write at that path
-   */
-  hasCompleteWrite(path: Path): boolean {
-    return this.getCompleteNode(path) != null;
+export function compoundWriteAddWrites(
+  compoundWrite: CompoundWrite,
+  path: Path,
+  updates: { [name: string]: Node }
+): CompoundWrite {
+  let newWrite = compoundWrite;
+  each(updates, (childKey: string, node: Node) => {
+    newWrite = compoundWriteAddWrite(newWrite, path.child(childKey), node);
+  });
+  return newWrite;
+}
+
+/**
+ * Will remove a write at the given path and deeper paths. This will <em>not</em> modify a write at a higher
+ * location, which must be removed by calling this method with that path.
+ *
+ * @param compoundWrite The CompoundWrite to remove.
+ * @param path The path at which a write and all deeper writes should be removed
+ * @return The new CompoundWrite with the removed path
+ */
+export function compoundWriteRemoveWrite(
+  compoundWrite: CompoundWrite,
+  path: Path
+): CompoundWrite {
+  if (path.isEmpty()) {
+    return CompoundWrite.empty();
+  } else {
+    const newWriteTree = compoundWrite.writeTree_.setTree(
+      path,
+      new ImmutableTree<Node>(null)
+    );
+    return new CompoundWrite(newWriteTree);
   }
+}
 
-  /**
-   * Returns a node for a path if and only if the node is a "complete" overwrite at that path. This will not aggregate
-   * writes from deeper paths, but will return child nodes from a more shallow path.
-   *
-   * @param path The path to get a complete write
-   * @return The node if complete at that path, or null otherwise.
-   */
-  getCompleteNode(path: Path): Node | null {
-    const rootmost = this.writeTree_.findRootMostValueAndPath(path);
-    if (rootmost != null) {
-      return this.writeTree_
-        .get(rootmost.path)
-        .getChild(Path.relativePath(rootmost.path, path));
-    } else {
-      return null;
+/**
+ * Returns whether this CompoundWrite will fully overwrite a node at a given location and can therefore be
+ * considered "complete".
+ *
+ * @param compoundWrite The CompoundWrite to check.
+ * @param path The path to check for
+ * @return Whether there is a complete write at that path
+ */
+export function compoundWriteHasCompleteWrite(
+  compoundWrite: CompoundWrite,
+  path: Path
+): boolean {
+  return compoundWriteGetCompleteNode(compoundWrite, path) != null;
+}
+
+/**
+ * Returns a node for a path if and only if the node is a "complete" overwrite at that path. This will not aggregate
+ * writes from deeper paths, but will return child nodes from a more shallow path.
+ *
+ * @param compoundWrite The CompoundWrite to get the node from.
+ * @param path The path to get a complete write
+ * @return The node if complete at that path, or null otherwise.
+ */
+export function compoundWriteGetCompleteNode(
+  compoundWrite: CompoundWrite,
+  path: Path
+): Node | null {
+  const rootmost = compoundWrite.writeTree_.findRootMostValueAndPath(path);
+  if (rootmost != null) {
+    return compoundWrite.writeTree_
+      .get(rootmost.path)
+      .getChild(Path.relativePath(rootmost.path, path));
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Returns all children that are guaranteed to be a complete overwrite.
+ *
+ * @param compoundWrite The CompoundWrite to get children from.
+ * @return A list of all complete children.
+ */
+export function compoundWriteGetCompleteChildren(
+  compoundWrite: CompoundWrite
+): NamedNode[] {
+  const children: NamedNode[] = [];
+  const node = compoundWrite.writeTree_.value;
+  if (node != null) {
+    // If it's a leaf node, it has no children; so nothing to do.
+    if (!node.isLeafNode()) {
+      (node as ChildrenNode).forEachChild(
+        PRIORITY_INDEX,
+        (childName, childNode) => {
+          children.push(new NamedNode(childName, childNode));
+        }
+      );
     }
-  }
-
-  /**
-   * Returns all children that are guaranteed to be a complete overwrite.
-   *
-   * @return A list of all complete children.
-   */
-  getCompleteChildren(): NamedNode[] {
-    const children: NamedNode[] = [];
-    const node = this.writeTree_.value;
-    if (node != null) {
-      // If it's a leaf node, it has no children; so nothing to do.
-      if (!node.isLeafNode()) {
-        (node as ChildrenNode).forEachChild(
-          PRIORITY_INDEX,
-          (childName, childNode) => {
-            children.push(new NamedNode(childName, childNode));
-          }
-        );
-      }
-    } else {
-      this.writeTree_.children.inorderTraversal((childName, childTree) => {
+  } else {
+    compoundWrite.writeTree_.children.inorderTraversal(
+      (childName, childTree) => {
         if (childTree.value != null) {
           children.push(new NamedNode(childName, childTree.value));
         }
-      });
-    }
-    return children;
-  }
-
-  childCompoundWrite(path: Path): CompoundWrite {
-    if (path.isEmpty()) {
-      return this;
-    } else {
-      const shadowingNode = this.getCompleteNode(path);
-      if (shadowingNode != null) {
-        return new CompoundWrite(new ImmutableTree(shadowingNode));
-      } else {
-        return new CompoundWrite(this.writeTree_.subtree(path));
       }
+    );
+  }
+  return children;
+}
+
+export function compoundWriteChildCompoundWrite(
+  compoundWrite: CompoundWrite,
+  path: Path
+): CompoundWrite {
+  if (path.isEmpty()) {
+    return compoundWrite;
+  } else {
+    const shadowingNode = compoundWriteGetCompleteNode(compoundWrite, path);
+    if (shadowingNode != null) {
+      return new CompoundWrite(new ImmutableTree(shadowingNode));
+    } else {
+      return new CompoundWrite(compoundWrite.writeTree_.subtree(path));
     }
   }
+}
 
-  /**
-   * Returns true if this CompoundWrite is empty and therefore does not modify any nodes.
-   * @return Whether this CompoundWrite is empty
-   */
-  isEmpty(): boolean {
-    return this.writeTree_.isEmpty();
-  }
+/**
+ * Returns true if this CompoundWrite is empty and therefore does not modify any nodes.
+ * @return Whether this CompoundWrite is empty
+ */
+export function compoundWriteIsEmpty(compoundWrite: CompoundWrite): boolean {
+  return compoundWrite.writeTree_.isEmpty();
+}
 
-  /**
-   * Applies this CompoundWrite to a node. The node is returned with all writes from this CompoundWrite applied to the
-   * node
-   * @param node The node to apply this CompoundWrite to
-   * @return The node with all writes applied
-   */
-  apply(node: Node): Node {
-    return applySubtreeWrite(Path.Empty, this.writeTree_, node);
-  }
+/**
+ * Applies this CompoundWrite to a node. The node is returned with all writes from this CompoundWrite applied to the
+ * node
+ * @param node The node to apply this CompoundWrite to
+ * @return The node with all writes applied
+ */
+export function compoundWriteApply(
+  compoundWrite: CompoundWrite,
+  node: Node
+): Node {
+  return applySubtreeWrite(Path.Empty, compoundWrite.writeTree_, node);
 }
 
 function applySubtreeWrite(
