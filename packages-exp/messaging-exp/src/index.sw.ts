@@ -15,9 +15,13 @@
  * limitations under the License.
  */
 
-import { FirebaseMessaging } from '@firebase/messaging-types-exp';
-import { registerMessaging } from './helpers/register';
 import '@firebase/installations-exp';
+
+import { ERROR_FACTORY, ErrorCode } from './util/errors';
+
+import { FirebaseMessaging } from '@firebase/messaging-types-exp';
+import { isSwSupported } from './helpers/isSupported';
+import { registerMessaging } from './helpers/registerMessaging';
 
 export { onBackgroundMessage, getMessaging } from './api';
 
@@ -25,6 +29,10 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     'messaging-exp': FirebaseMessaging;
   }
+}
+
+if (!isSwSupported()) {
+  throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
 }
 
 registerMessaging();
