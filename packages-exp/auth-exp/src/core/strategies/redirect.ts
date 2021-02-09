@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-// We only get one redirect outcome for any one auth, so just store it
-
 import { Auth } from '../../model/auth';
 import {
   AuthEvent,
@@ -26,6 +24,7 @@ import {
 import { UserCredential } from '../../model/user';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
+// We only get one redirect outcome for any one auth, so just store it
 // in here.
 const redirectOutcomeMap: Map<
   string,
