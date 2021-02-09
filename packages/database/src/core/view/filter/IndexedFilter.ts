@@ -16,7 +16,11 @@
  */
 
 import { assert } from '@firebase/util';
-import { Change } from '../Change';
+import {
+  changeChildAdded,
+  changeChildChanged,
+  changeChildRemoved
+} from '../Change';
 import { ChildrenNode } from '../../snap/ChildrenNode';
 import { PRIORITY_INDEX } from '../../snap/indexes/PriorityIndex';
 import { NodeFilter } from './NodeFilter';
@@ -65,7 +69,7 @@ export class IndexedFilter implements NodeFilter {
       if (newChild.isEmpty()) {
         if (snap.hasChild(key)) {
           optChangeAccumulator.trackChildChange(
-            Change.childRemovedChange(key, oldChild)
+            changeChildRemoved(key, oldChild)
           );
         } else {
           assert(
@@ -74,12 +78,10 @@ export class IndexedFilter implements NodeFilter {
           );
         }
       } else if (oldChild.isEmpty()) {
-        optChangeAccumulator.trackChildChange(
-          Change.childAddedChange(key, newChild)
-        );
+        optChangeAccumulator.trackChildChange(changeChildAdded(key, newChild));
       } else {
         optChangeAccumulator.trackChildChange(
-          Change.childChangedChange(key, newChild, oldChild)
+          changeChildChanged(key, newChild, oldChild)
         );
       }
     }
@@ -104,7 +106,7 @@ export class IndexedFilter implements NodeFilter {
         oldSnap.forEachChild(PRIORITY_INDEX, (key, childNode) => {
           if (!newSnap.hasChild(key)) {
             optChangeAccumulator.trackChildChange(
-              Change.childRemovedChange(key, childNode)
+              changeChildRemoved(key, childNode)
             );
           }
         });
@@ -115,12 +117,12 @@ export class IndexedFilter implements NodeFilter {
             const oldChild = oldSnap.getImmediateChild(key);
             if (!oldChild.equals(childNode)) {
               optChangeAccumulator.trackChildChange(
-                Change.childChangedChange(key, childNode, oldChild)
+                changeChildChanged(key, childNode, oldChild)
               );
             }
           } else {
             optChangeAccumulator.trackChildChange(
-              Change.childAddedChange(key, childNode)
+              changeChildAdded(key, childNode)
             );
           }
         });

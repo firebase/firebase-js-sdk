@@ -17,6 +17,21 @@
 
 import { Node } from '../snap/Node';
 
+/** Event type for a child added */
+export const CHANGE_TYPE_CHILD_ADDED = 'child_added';
+
+/** Event type for a child removed */
+export const CHANGE_TYPE_CHILD_REMOVED = 'child_removed';
+
+/** Event type for a child changed */
+export const CHANGE_TYPE_CHILD_CHANGED = 'child_changed';
+
+/** Event type for a child moved */
+export const CHANGE_TYPE_CHILD_MOVED = 'child_moved';
+
+/** Event type for a value change */
+export const CHANGE_TYPE_VALUE = 'value';
+
 /**
  * @param type The event type
  * @param snapshotNode The data
@@ -32,44 +47,33 @@ export class Change {
     public oldSnap?: Node,
     public prevName?: string | null
   ) {}
+}
 
-  static valueChange(snapshot: Node): Change {
-    return new Change(Change.VALUE, snapshot);
-  }
+export function changeValue(snapshot: Node): Change {
+  return new Change(CHANGE_TYPE_VALUE, snapshot);
+}
 
-  static childAddedChange(childKey: string, snapshot: Node): Change {
-    return new Change(Change.CHILD_ADDED, snapshot, childKey);
-  }
+export function changeChildAdded(childKey: string, snapshot: Node): Change {
+  return new Change(CHANGE_TYPE_CHILD_ADDED, snapshot, childKey);
+}
 
-  static childRemovedChange(childKey: string, snapshot: Node): Change {
-    return new Change(Change.CHILD_REMOVED, snapshot, childKey);
-  }
+export function changeChildRemoved(childKey: string, snapshot: Node): Change {
+  return new Change(CHANGE_TYPE_CHILD_REMOVED, snapshot, childKey);
+}
 
-  static childChangedChange(
-    childKey: string,
-    newSnapshot: Node,
-    oldSnapshot: Node
-  ): Change {
-    return new Change(Change.CHILD_CHANGED, newSnapshot, childKey, oldSnapshot);
-  }
+export function changeChildChanged(
+  childKey: string,
+  newSnapshot: Node,
+  oldSnapshot: Node
+): Change {
+  return new Change(
+    CHANGE_TYPE_CHILD_CHANGED,
+    newSnapshot,
+    childKey,
+    oldSnapshot
+  );
+}
 
-  static childMovedChange(childKey: string, snapshot: Node): Change {
-    return new Change(Change.CHILD_MOVED, snapshot, childKey);
-  }
-
-  //event types
-  /** Event type for a child added */
-  static CHILD_ADDED = 'child_added';
-
-  /** Event type for a child removed */
-  static CHILD_REMOVED = 'child_removed';
-
-  /** Event type for a child changed */
-  static CHILD_CHANGED = 'child_changed';
-
-  /** Event type for a child moved */
-  static CHILD_MOVED = 'child_moved';
-
-  /** Event type for a value change */
-  static VALUE = 'value';
+export function changeChildMoved(childKey: string, snapshot: Node): Change {
+  return new Change(CHANGE_TYPE_CHILD_MOVED, snapshot, childKey);
 }
