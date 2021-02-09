@@ -106,30 +106,6 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
   });
 
-  // describe('_generateNewEvent', () => {
-  //   it('sets the correct type and tenantId', () => {
-  //     auth.tenantId = 'tid---------------';
-  //     const event = _generateNewEvent(auth, AuthEventType.LINK_VIA_REDIRECT);
-  //     expect(event.type).to.eq(AuthEventType.LINK_VIA_REDIRECT);
-  //     expect(event.tenantId).to.eq(auth.tenantId);
-  //   });
-
-  //   it('creates an event with a 20-char session id', () => {
-  //     const event = _generateNewEvent(auth, AuthEventType.SIGN_IN_VIA_REDIRECT);
-  //     expect(event.sessionId).to.be.a('string').with.length(20);
-  //   });
-
-  //   it('sets the error field to be a "no auth event" error', () => {
-  //     const { error } = _generateNewEvent(
-  //       auth,
-  //       AuthEventType.REAUTH_VIA_REDIRECT
-  //     );
-  //     expect(error)
-  //       .to.be.instanceOf(fbUtils.FirebaseError)
-  //       .with.property('code', 'auth/no-auth-event');
-  //   });
-  // });
-
   describe('_generateHandlerUrl', () => {
     let event: AuthEvent;
     let provider: AuthProvider;
