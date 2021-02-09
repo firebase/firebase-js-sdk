@@ -39,6 +39,7 @@ export const enum AuthErrorCode {
   CREDENTIAL_ALREADY_IN_USE = 'credential-already-in-use',
   CREDENTIAL_MISMATCH = 'custom-token-mismatch',
   CREDENTIAL_TOO_OLD_LOGIN_AGAIN = 'requires-recent-login',
+  DEPENDENT_SDK_INIT_BEFORE_AUTH = 'dependent-sdk-initialized-before-auth',
   DYNAMIC_LINK_NOT_ACTIVATED = 'dynamic-link-not-activated',
   EMAIL_CHANGE_NEEDS_VERIFICATION = 'email-change-needs-verification',
   EMAIL_EXISTS = 'email-already-in-use',
@@ -152,6 +153,10 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.CREDENTIAL_TOO_OLD_LOGIN_AGAIN]:
       'This operation is sensitive and requires recent authentication. Log in ' +
       'again before retrying this request.',
+    [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]:
+      'Another Firebase SDK was initialized and is trying to use Auth before Auth is ' +
+      'initialized. Please be sure to call `initializeAuth` or `getAuth` before ' +
+      'starting any other Firebase SDK.',
     [AuthErrorCode.DYNAMIC_LINK_NOT_ACTIVATED]:
       'Please activate Dynamic Links in the Firebase Console and agree to the terms and ' +
       'conditions.',
@@ -351,7 +356,15 @@ export interface ErrorMapRetriever extends externs.AuthErrorMap {
 }
 
 function _prodErrorMap(): ErrorMap<AuthErrorCode> {
-  return {} as ErrorMap<AuthErrorCode>;
+  // We will include this one message in the prod error map since by the very
+  // nature of this error, developers will never be able to see the message
+  // using the debugErrorMap (which is installed during auth initialization).
+  return {
+    [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]:
+      'Another Firebase SDK was initialized and is trying to use Auth before Auth is ' +
+      'initialized. Please be sure to call `initializeAuth` or `getAuth` before ' +
+      'starting any other Firebase SDK.'
+  } as ErrorMap<AuthErrorCode>;
 }
 
 /**
@@ -386,6 +399,7 @@ type GenericAuthErrorParams = {
   [key in Exclude<
     AuthErrorCode,
     | AuthErrorCode.ARGUMENT_ERROR
+    | AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
     | AuthErrorCode.INTERNAL_ERROR
     | AuthErrorCode.MFA_REQUIRED
   >]: {
@@ -397,6 +411,7 @@ type GenericAuthErrorParams = {
 
 export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.ARGUMENT_ERROR]: { appName?: AppName };
+  [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]: { appName?: AppName };
   [AuthErrorCode.INTERNAL_ERROR]: { appName?: AppName };
   [AuthErrorCode.MFA_REQUIRED]: {
     appName: AppName;

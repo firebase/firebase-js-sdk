@@ -28,42 +28,16 @@ import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
 
 /**
  * Filters nodes by range and uses an IndexFilter to track any changes after filtering the node
- *
- * @constructor
- * @implements {NodeFilter}
  */
 export class RangedFilter implements NodeFilter {
-  /**
-   * @type {!IndexedFilter}
-   * @const
-   * @private
-   */
   private indexedFilter_: IndexedFilter;
 
-  /**
-   * @const
-   * @type {!Index}
-   * @private
-   */
   private index_: Index;
 
-  /**
-   * @const
-   * @type {!NamedNode}
-   * @private
-   */
   private startPost_: NamedNode;
 
-  /**
-   * @const
-   * @type {!NamedNode}
-   * @private
-   */
   private endPost_: NamedNode;
 
-  /**
-   * @param {!QueryParams} params
-   */
   constructor(params: QueryParams) {
     this.indexedFilter_ = new IndexedFilter(params.getIndex());
     this.index_ = params.getIndex();
@@ -71,24 +45,14 @@ export class RangedFilter implements NodeFilter {
     this.endPost_ = RangedFilter.getEndPost_(params);
   }
 
-  /**
-   * @return {!NamedNode}
-   */
   getStartPost(): NamedNode {
     return this.startPost_;
   }
 
-  /**
-   * @return {!NamedNode}
-   */
   getEndPost(): NamedNode {
     return this.endPost_;
   }
 
-  /**
-   * @param {!NamedNode} node
-   * @return {boolean}
-   */
   matches(node: NamedNode): boolean {
     return (
       this.index_.compare(this.getStartPost(), node) <= 0 &&
@@ -177,11 +141,6 @@ export class RangedFilter implements NodeFilter {
     return this.index_;
   }
 
-  /**
-   * @param {!QueryParams} params
-   * @return {!NamedNode}
-   * @private
-   */
   private static getStartPost_(params: QueryParams): NamedNode {
     if (params.hasStart()) {
       const startName = params.getIndexStartName();
@@ -191,11 +150,6 @@ export class RangedFilter implements NodeFilter {
     }
   }
 
-  /**
-   * @param {!QueryParams} params
-   * @return {!NamedNode}
-   * @private
-   */
   private static getEndPost_(params: QueryParams): NamedNode {
     if (params.hasEnd()) {
       const endName = params.getIndexEndName();

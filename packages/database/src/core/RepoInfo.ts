@@ -22,8 +22,6 @@ import { each } from './util/util';
 
 /**
  * A class that holds metadata about a Repo object
- *
- * @constructor
  */
 export class RepoInfo {
   host: string;
@@ -86,9 +84,9 @@ export class RepoInfo {
 
   /**
    * Returns the websocket URL for this repo
-   * @param {string} type of connection
-   * @param {Object} params list
-   * @return {string} The URL for this repo
+   * @param type of connection
+   * @param params list
+   * @return The URL for this repo
    */
   connectionURL(type: string, params: { [k: string]: string }): string {
     assert(typeof type === 'string', 'typeof type must == string');

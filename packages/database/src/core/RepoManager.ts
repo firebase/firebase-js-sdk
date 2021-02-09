@@ -54,9 +54,6 @@ export type FirebaseAppLike = FirebaseApp | FirebaseAppExp;
  * Creates and caches Repo instances.
  */
 export class RepoManager {
-  /**
-   * @private {!Object.<string, Object<string, !fb.core.Repo>>}
-   */
   private repos_: {
     [appName: string]: {
       [dbUrl: string]: Repo;
@@ -65,7 +62,6 @@ export class RepoManager {
 
   /**
    * If true, new Repos will be created to use ReadonlyRestClient (for testing purposes).
-   * @private {boolean}
    */
   private useRestClient_: boolean = false;
 
@@ -114,9 +110,6 @@ export class RepoManager {
 
   /**
    * This function should only ever be called to CREATE a new database instance.
-   *
-   * @param {!FirebaseApp} app
-   * @return {!Database}
    */
   databaseFromApp(
     app: FirebaseAppLike,
@@ -177,7 +170,6 @@ export class RepoManager {
   /**
    * Remove the repo and make sure it is disconnected.
    *
-   * @param {!Repo} repo
    */
   deleteRepo(repo: Repo) {
     const appRepos = safeGet(this.repos_, repo.app.name);
@@ -195,9 +187,8 @@ export class RepoManager {
    * Ensures a repo doesn't already exist and then creates one using the
    * provided app.
    *
-   * @param {!RepoInfo} repoInfo The metadata about the Repo
-   * @param {!FirebaseApp} app
-   * @return {!Repo} The Repo object for the specified server / repoName.
+   * @param repoInfo The metadata about the Repo
+   * @return The Repo object for the specified server / repoName.
    */
   createRepo(
     repoInfo: RepoInfo,
@@ -225,7 +216,6 @@ export class RepoManager {
 
   /**
    * Forces us to use ReadonlyRestClient instead of PersistentConnection for new Repos.
-   * @param {boolean} forceRestClient
    */
   forceRestClient(forceRestClient: boolean) {
     this.useRestClient_ = forceRestClient;

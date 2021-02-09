@@ -45,17 +45,9 @@ export class ReadonlyRestClient extends ServerActions {
   /**
    * We don't actually need to track listens, except to prevent us calling an onComplete for a listen
    * that's been removed. :-/
-   *
-   * @private {!Object.<string, !Object>}
    */
   private listens_: { [k: string]: object } = {};
 
-  /**
-   * @param {!Query} query
-   * @param {?number=} tag
-   * @return {string}
-   * @private
-   */
   static getListenId_(query: Query, tag?: number | null): string {
     if (tag !== undefined) {
       return 'tag$' + tag;
@@ -69,10 +61,8 @@ export class ReadonlyRestClient extends ServerActions {
   }
 
   /**
-   * @param {!RepoInfo} repoInfo_ Data about the namespace we are connecting to
-   * @param {function(string, *, boolean, ?number)} onDataUpdate_ A callback for new data from the server
-   * @param {AuthTokenProvider} authTokenProvider_
-   * @implements {ServerActions}
+   * @param repoInfo_ Data about the namespace we are connecting to
+   * @param onDataUpdate_ A callback for new data from the server
    */
   constructor(
     private repoInfo_: RepoInfo,
@@ -189,11 +179,6 @@ export class ReadonlyRestClient extends ServerActions {
   /**
    * Performs a REST request to the given path, with the provided query string parameters,
    * and any auth credentials we have.
-   *
-   * @param {!string} pathString
-   * @param {!Object.<string, *>} queryStringParameters
-   * @param {?function(?number, *=)} callback
-   * @private
    */
   private restRequest_(
     pathString: string,

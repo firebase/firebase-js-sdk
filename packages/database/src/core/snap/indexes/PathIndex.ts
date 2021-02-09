@@ -23,11 +23,6 @@ import { NamedNode, Node } from '../Node';
 import { nodeFromJSON } from '../nodeFromJSON';
 import { Path } from '../../util/Path';
 
-/**
- * @param {!Path} indexPath
- * @constructor
- * @extends {Index}
- */
 export class PathIndex extends Index {
   constructor(private indexPath_: Path) {
     super();
@@ -38,11 +33,6 @@ export class PathIndex extends Index {
     );
   }
 
-  /**
-   * @param {!Node} snap
-   * @return {!Node}
-   * @protected
-   */
   protected extractChild(snap: Node): Node {
     return snap.getChild(this.indexPath_);
   }

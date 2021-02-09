@@ -52,10 +52,6 @@ export class Reference extends Query {
    *   new Reference(url: string, string|RepoManager)
    *
    * Externally - this is the firebase.database.Reference type.
-   *
-   * @param {!Repo} repo
-   * @param {(!Path)} path
-   * @extends {Query}
    */
   constructor(repo: Repo, path: Path) {
     if (!(repo instanceof Repo)) {
@@ -79,10 +75,6 @@ export class Reference extends Query {
     }
   }
 
-  /**
-   * @param {!(string|Path)} pathString
-   * @return {!Reference}
-   */
   child(pathString: string | Path): Reference {
     validateArgCount('Reference.child', 1, 1, arguments.length);
     if (typeof pathString === 'number') {
@@ -122,11 +114,6 @@ export class Reference extends Query {
     return this.repo.database;
   }
 
-  /**
-   * @param {*} newVal
-   * @param {function(?Error)=} onComplete
-   * @return {!Promise}
-   */
   set(
     newVal: unknown,
     onComplete?: (a: Error | null) => void
@@ -146,11 +133,6 @@ export class Reference extends Query {
     return deferred.promise;
   }
 
-  /**
-   * @param {!Object} objectToMerge
-   * @param {function(?Error)=} onComplete
-   * @return {!Promise}
-   */
   update(
     objectToMerge: object,
     onComplete?: (a: Error | null) => void
@@ -188,12 +170,6 @@ export class Reference extends Query {
     return deferred.promise;
   }
 
-  /**
-   * @param {*} newVal
-   * @param {string|number|null} newPriority
-   * @param {function(?Error)=} onComplete
-   * @return {!Promise}
-   */
   setWithPriority(
     newVal: unknown,
     newPriority: string | number | null,
@@ -229,10 +205,6 @@ export class Reference extends Query {
     return deferred.promise;
   }
 
-  /**
-   * @param {function(?Error)=} onComplete
-   * @return {!Promise}
-   */
   remove(onComplete?: (a: Error | null) => void): Promise<unknown> {
     validateArgCount('Reference.remove', 0, 1, arguments.length);
     validateWritablePath('Reference.remove', this.path);
@@ -241,12 +213,6 @@ export class Reference extends Query {
     return this.set(null, onComplete);
   }
 
-  /**
-   * @param {function(*):*} transactionUpdate
-   * @param {(function(?Error, boolean, ?DataSnapshot))=} onComplete
-   * @param {boolean=} applyLocally
-   * @return {!Promise}
-   */
   transaction(
     transactionUpdate: (a: unknown) => unknown,
     onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
@@ -301,11 +267,6 @@ export class Reference extends Query {
     return deferred.promise;
   }
 
-  /**
-   * @param {string|number|null} priority
-   * @param {function(?Error)=} onComplete
-   * @return {!Promise}
-   */
   setPriority(
     priority: string | number | null,
     onComplete?: (a: Error | null) => void
@@ -325,11 +286,6 @@ export class Reference extends Query {
     return deferred.promise;
   }
 
-  /**
-   * @param {*=} value
-   * @param {function(?Error)=} onComplete
-   * @return {!Reference}
-   */
   push(value?: unknown, onComplete?: (a: Error | null) => void): Reference {
     validateArgCount('Reference.push', 0, 2, arguments.length);
     validateWritablePath('Reference.push', this.path);
@@ -364,9 +320,6 @@ export class Reference extends Query {
     return thennablePushRef;
   }
 
-  /**
-   * @return {!OnDisconnect}
-   */
   onDisconnect(): OnDisconnect {
     validateWritablePath('Reference.onDisconnect', this.path);
     return new OnDisconnect(this.repo, this.path);

@@ -35,6 +35,8 @@ function getTestFiles(argv) {
     return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
   } else if (argv.integration) {
     return ['test/integration/**/*.test.ts'];
+  } else if (argv.cordova) {
+    return ['src/platform_cordova/**/*.test.ts'];
   } else {
     // For the catch-all yarn:test, ignore the phone integration test
     return [

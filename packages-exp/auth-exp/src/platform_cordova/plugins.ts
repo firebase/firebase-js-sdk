@@ -34,4 +34,5 @@ declare namespace universalLinks {
 
 declare namespace BuildInfo {
   const packageName: string;
+  const displayName: string;
 }

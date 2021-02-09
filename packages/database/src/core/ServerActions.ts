@@ -24,12 +24,6 @@ import { Query } from '../api/Query';
  * @interface
  */
 export abstract class ServerActions {
-  /**
-   * @param {!Query} query
-   * @param {function():string} currentHashFn
-   * @param {?number} tag
-   * @param {function(string, *)} onComplete
-   */
   abstract listen(
     query: Query,
     currentHashFn: () => string,
@@ -39,9 +33,6 @@ export abstract class ServerActions {
 
   /**
    * Remove a listen.
-   *
-   * @param {!Query} query
-   * @param {?number} tag
    */
   abstract unlisten(query: Query, tag: number | null): void;
 
@@ -50,12 +41,6 @@ export abstract class ServerActions {
    */
   abstract get(query: Query): Promise<string>;
 
-  /**
-   * @param {string} pathString
-   * @param {*} data
-   * @param {function(string, string)=} onComplete
-   * @param {string=} hash
-   */
   put(
     pathString: string,
     data: unknown,
@@ -63,12 +48,6 @@ export abstract class ServerActions {
     hash?: string
   ) {}
 
-  /**
-   * @param {string} pathString
-   * @param {*} data
-   * @param {function(string, ?string)} onComplete
-   * @param {string=} hash
-   */
   merge(
     pathString: string,
     data: unknown,
@@ -78,43 +57,26 @@ export abstract class ServerActions {
 
   /**
    * Refreshes the auth token for the current connection.
-   * @param {string} token The authentication token
+   * @param token The authentication token
    */
   refreshAuthToken(token: string) {}
 
-  /**
-   * @param {string} pathString
-   * @param {*} data
-   * @param {function(string, string)=} onComplete
-   */
   onDisconnectPut(
     pathString: string,
     data: unknown,
     onComplete?: (a: string, b: string) => void
   ) {}
 
-  /**
-   * @param {string} pathString
-   * @param {*} data
-   * @param {function(string, string)=} onComplete
-   */
   onDisconnectMerge(
     pathString: string,
     data: unknown,
     onComplete?: (a: string, b: string) => void
   ) {}
 
-  /**
-   * @param {string} pathString
-   * @param {function(string, string)=} onComplete
-   */
   onDisconnectCancel(
     pathString: string,
     onComplete?: (a: string, b: string) => void
   ) {}
 
-  /**
-   * @param {Object.<string, *>} stats
-   */
   reportStats(stats: { [k: string]: unknown }) {}
 }

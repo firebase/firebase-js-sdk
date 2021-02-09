@@ -33,35 +33,15 @@ export enum OperationType {
  * @interface
  */
 export interface Operation {
-  /**
-   * @type {!OperationSource}
-   */
   source: OperationSource;
 
-  /**
-   * @type {!OperationType}
-   */
   type: OperationType;
 
-  /**
-   * @type {!Path}
-   */
   path: Path;
 
-  /**
-   * @param {string} childName
-   * @return {?Operation}
-   */
   operationForChild(childName: string): Operation | null;
 }
 
-/**
- * @param {boolean} fromUser
- * @param {boolean} fromServer
- * @param {?string} queryId
- * @param {boolean} tagged
- * @constructor
- */
 export class OperationSource {
   constructor(
     public fromUser: boolean,
@@ -90,10 +70,6 @@ export class OperationSource {
     );
   }
 
-  /**
-   * @param {string} queryId
-   * @return {!OperationSource}
-   */
   static forServerTaggedQuery = function (queryId: string): OperationSource {
     return new OperationSource(
       false,

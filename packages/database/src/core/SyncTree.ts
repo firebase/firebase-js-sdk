@@ -76,7 +76,6 @@ export interface ListenProvider {
  * NOTE: Although SyncTree tracks event callbacks and calculates events to raise, the actual
  * events are returned to the caller rather than raised synchronously.
  *
- * @constructor
  */
 export class SyncTree {
   /**
@@ -95,7 +94,7 @@ export class SyncTree {
   private readonly queryToTagMap: Map<string, number> = new Map();
 
   /**
-   * @param {!ListenProvider} listenProvider_ Used by SyncTree to start / stop listening
+   * @param listenProvider_ Used by SyncTree to start / stop listening
    *   to server data.
    */
   constructor(private listenProvider_: ListenProvider) {}
@@ -354,7 +353,7 @@ export class SyncTree {
       serverCacheComplete
     );
     if (!viewAlreadyExists && !foundAncestorDefaultView) {
-      const view /** @type !View */ = syncPoint.viewForQuery(query);
+      const view = syncPoint.viewForQuery(query);
       events = events.concat(this.setupListener_(query, view));
     }
     return events;
@@ -387,9 +386,6 @@ export class SyncTree {
       (query.queryIdentifier() === 'default' ||
         maybeSyncPoint.viewExistsForQuery(query))
     ) {
-      /**
-       * @type {{removed: !Array.<!Query>, events: !Array.<!Event>}}
-       */
       const removedAndEvents = maybeSyncPoint.removeEventRegistration(
         query,
         eventRegistration,

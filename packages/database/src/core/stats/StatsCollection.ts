@@ -19,8 +19,6 @@ import { deepCopy, contains } from '@firebase/util';
 
 /**
  * Tracks a collection of stats.
- *
- * @constructor
  */
 export class StatsCollection {
   private counters_: { [k: string]: number } = {};
