@@ -1106,7 +1106,7 @@ declare namespace firebase {
    *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
    *   Add Firebase to your app} and
    * {@link
-   *   https://firebase.google.com/docs/web/setup#multiple-projects
+   *   https://firebase.google.com/docs/web/learn-more#multiple-projects
    *   Initialize multiple projects} for detailed documentation.
    *
    * @example
