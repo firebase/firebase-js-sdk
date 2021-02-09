@@ -35,9 +35,6 @@ export class CompoundWrite {
   static empty(): CompoundWrite {
     return new CompoundWrite(new ImmutableTree(null));
   }
-
-  addWrite() {}
-  addWrites() {}
 }
 
 export function addWrite(
