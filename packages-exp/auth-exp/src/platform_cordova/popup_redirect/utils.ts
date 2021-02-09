@@ -17,11 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { AuthErrorCode } from '../../core/errors';
-import {
-  debugAssert,
-  _assert,
-  _fail
-} from '../../core/util/assert';
+import { debugAssert, _assert, _fail } from '../../core/util/assert';
 import { _isAndroid, _isIOS, _isIOS7Or8 } from '../../core/util/browser';
 import { _getRedirectUrl } from '../../core/util/handler';
 import { Auth } from '../../model/auth';

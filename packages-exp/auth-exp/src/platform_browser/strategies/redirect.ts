@@ -23,9 +23,7 @@ import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
 import { _assert } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
-import {
-  AuthEventType,
-} from '../../model/popup_redirect';
+import { AuthEventType } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { _withDefaultResolver } from '../../core/util/resolver';
 import { RedirectAction } from '../../core/strategies/redirect';
@@ -263,4 +261,3 @@ async function prepareUserForRedirect(user: User): Promise<string> {
   await user.auth._persistUserIfCurrent(user);
   return eventId;
 }
-

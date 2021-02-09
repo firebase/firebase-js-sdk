@@ -1,12 +1,38 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as externs from '@firebase/auth-types-exp';
 import * as sinon from 'sinon';
 import { _getInstance } from '../util/instantiator';
-import { MockPersistenceLayer, TestAuth, testAuth, testUser } from '../../../test/helpers/mock_auth';
+import {
+  MockPersistenceLayer,
+  TestAuth,
+  testAuth,
+  testUser
+} from '../../../test/helpers/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
 import { Auth } from '../../model/auth';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { RedirectAction, _clearRedirectOutcomes } from './redirect';
-import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
 import { Persistence } from '../persistence';
 import { InMemoryPersistence } from '../persistence/in_memory';
@@ -14,7 +40,6 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import * as idpTasks from '../strategies/idp';
 import { expect } from 'chai';
 import { AuthErrorCode } from '../errors';
-
 
 const MATCHING_EVENT_ID = 'matching-event-id';
 const OTHER_EVENT_ID = 'wrong-id';
@@ -32,7 +57,9 @@ describe('core/strategies/redirect', () => {
     eventManager = new AuthEventManager(({} as unknown) as TestAuth);
     idpStubs = sinon.stub(idpTasks);
     resolver = makeMockPopupRedirectResolver(eventManager);
-    _getInstance<PopupRedirectResolver>(resolver)._redirectPersistence = RedirectPersistence;
+    _getInstance<PopupRedirectResolver>(
+      resolver
+    )._redirectPersistence = RedirectPersistence;
     auth = await testAuth();
     redirectAction = new RedirectAction(auth, _getInstance(resolver), false);
   });
@@ -54,9 +81,7 @@ describe('core/strategies/redirect', () => {
   }
 
   async function reInitAuthWithRedirectUser(eventId: string): Promise<void> {
-    const redirectPersistence: Persistence = _getInstance(
-      RedirectPersistence
-    );
+    const redirectPersistence: Persistence = _getInstance(RedirectPersistence);
     const mainPersistence = new MockPersistenceLayer();
     const oldAuth = await testAuth();
     const user = testUser(oldAuth, 'uid');
@@ -64,9 +89,7 @@ describe('core/strategies/redirect', () => {
     sinon
       .stub(redirectPersistence, '_get')
       .returns(Promise.resolve(user.toJSON()));
-    sinon
-      .stub(mainPersistence, '_get')
-      .returns(Promise.resolve(user.toJSON()));
+    sinon.stub(mainPersistence, '_get').returns(Promise.resolve(user.toJSON()));
 
     auth = await testAuth(resolver, mainPersistence);
     redirectAction = new RedirectAction(auth, _getInstance(resolver), true);
