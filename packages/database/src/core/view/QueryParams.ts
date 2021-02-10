@@ -17,6 +17,7 @@
 
 import { assert, stringify } from '@firebase/util';
 import { MIN_NAME, MAX_NAME } from '../util/util';
+import { predecessor, successor } from '../util/NextPushId';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
@@ -31,14 +32,15 @@ import { Index } from '../snap/indexes/Index';
  * This class is an immutable-from-the-public-api struct containing a set of query parameters defining a
  * range to be returned for a particular location. It is assumed that validation of parameters is done at the
  * user-facing API level, so it is not done here.
- * @constructor
  */
 export class QueryParams {
   private limitSet_ = false;
   private startSet_ = false;
   private startNameSet_ = false;
+  private startAfterSet_ = false;
   private endSet_ = false;
   private endNameSet_ = false;
+  private endBeforeSet_ = false;
 
   private limit_ = 0;
   private viewFrom_ = '';
@@ -51,9 +53,6 @@ export class QueryParams {
 
   /**
    * Wire Protocol Constants
-   * @const
-   * @enum {string}
-   * @private
    */
   private static readonly WIRE_PROTOCOL_CONSTANTS_ = {
     INDEX_START_VALUE: 'sp',
@@ -69,9 +68,6 @@ export class QueryParams {
 
   /**
    * REST Query Constants
-   * @const
-   * @enum {string}
-   * @private
    */
   private static readonly REST_QUERY_CONSTANTS_ = {
     ORDER_BY: 'orderBy',
@@ -84,22 +80,20 @@ export class QueryParams {
     LIMIT_TO_LAST: 'limitToLast'
   };
 
-  /**
-   * Default, empty query parameters
-   * @type {!QueryParams}
-   * @const
-   */
-  static readonly DEFAULT = new QueryParams();
-
-  /**
-   * @return {boolean}
-   */
   hasStart(): boolean {
     return this.startSet_;
   }
 
+  hasStartAfter(): boolean {
+    return this.startAfterSet_;
+  }
+
+  hasEndBefore(): boolean {
+    return this.endBeforeSet_;
+  }
+
   /**
-   * @return {boolean} True if it would return from left.
+   * @return True if it would return from left.
    */
   isViewFromLeft(): boolean {
     if (this.viewFrom_ === '') {
@@ -117,7 +111,6 @@ export class QueryParams {
 
   /**
    * Only valid to call if hasStart() returns true
-   * @return {*}
    */
   getIndexStartValue(): unknown {
     assert(this.startSet_, 'Only valid if start has been set');
@@ -127,7 +120,6 @@ export class QueryParams {
   /**
    * Only valid to call if hasStart() returns true.
    * Returns the starting key name for the range defined by these query parameters
-   * @return {!string}
    */
   getIndexStartName(): string {
     assert(this.startSet_, 'Only valid if start has been set');
@@ -138,16 +130,12 @@ export class QueryParams {
     }
   }
 
-  /**
-   * @return {boolean}
-   */
   hasEnd(): boolean {
     return this.endSet_;
   }
 
   /**
    * Only valid to call if hasEnd() returns true.
-   * @return {*}
    */
   getIndexEndValue(): unknown {
     assert(this.endSet_, 'Only valid if end has been set');
@@ -157,7 +145,6 @@ export class QueryParams {
   /**
    * Only valid to call if hasEnd() returns true.
    * Returns the end key name for the range defined by these query parameters
-   * @return {!string}
    */
   getIndexEndName(): string {
     assert(this.endSet_, 'Only valid if end has been set');
@@ -168,15 +155,12 @@ export class QueryParams {
     }
   }
 
-  /**
-   * @return {boolean}
-   */
   hasLimit(): boolean {
     return this.limitSet_;
   }
 
   /**
-   * @return {boolean} True if a limit has been set and it has been explicitly anchored
+   * @return True if a limit has been set and it has been explicitly anchored
    */
   hasAnchoredLimit(): boolean {
     return this.limitSet_ && this.viewFrom_ !== '';
@@ -184,24 +168,16 @@ export class QueryParams {
 
   /**
    * Only valid to call if hasLimit() returns true
-   * @return {!number}
    */
   getLimit(): number {
     assert(this.limitSet_, 'Only valid if limit has been set');
     return this.limit_;
   }
 
-  /**
-   * @return {!Index}
-   */
   getIndex(): Index {
     return this.index_;
   }
 
-  /**
-   * @return {!QueryParams}
-   * @private
-   */
   private copy_(): QueryParams {
     const copy = new QueryParams();
     copy.limitSet_ = this.limitSet_;
@@ -219,10 +195,6 @@ export class QueryParams {
     return copy;
   }
 
-  /**
-   * @param {!number} newLimit
-   * @return {!QueryParams}
-   */
   limit(newLimit: number): QueryParams {
     const newParams = this.copy_();
     newParams.limitSet_ = true;
@@ -231,10 +203,6 @@ export class QueryParams {
     return newParams;
   }
 
-  /**
-   * @param {!number} newLimit
-   * @return {!QueryParams}
-   */
   limitToFirst(newLimit: number): QueryParams {
     const newParams = this.copy_();
     newParams.limitSet_ = true;
@@ -243,10 +211,6 @@ export class QueryParams {
     return newParams;
   }
 
-  /**
-   * @param {!number} newLimit
-   * @return {!QueryParams}
-   */
   limitToLast(newLimit: number): QueryParams {
     const newParams = this.copy_();
     newParams.limitSet_ = true;
@@ -255,11 +219,6 @@ export class QueryParams {
     return newParams;
   }
 
-  /**
-   * @param {*} indexValue
-   * @param {?string=} key
-   * @return {!QueryParams}
-   */
   startAt(indexValue: unknown, key?: string | null): QueryParams {
     const newParams = this.copy_();
     newParams.startSet_ = true;
@@ -277,11 +236,26 @@ export class QueryParams {
     return newParams;
   }
 
-  /**
-   * @param {*} indexValue
-   * @param {?string=} key
-   * @return {!QueryParams}
-   */
+  startAfter(indexValue: unknown, key?: string | null): QueryParams {
+    let params: QueryParams;
+    if (this.index_ === KEY_INDEX) {
+      if (typeof indexValue === 'string') {
+        indexValue = successor(indexValue as string);
+      }
+      params = this.startAt(indexValue, key);
+    } else {
+      let childKey: string;
+      if (key == null) {
+        childKey = MAX_NAME;
+      } else {
+        childKey = successor(key);
+      }
+      params = this.startAt(indexValue, childKey);
+    }
+    params.startAfterSet_ = true;
+    return params;
+  }
+
   endAt(indexValue: unknown, key?: string | null): QueryParams {
     const newParams = this.copy_();
     newParams.endSet_ = true;
@@ -299,19 +273,32 @@ export class QueryParams {
     return newParams;
   }
 
-  /**
-   * @param {!Index} index
-   * @return {!QueryParams}
-   */
+  endBefore(indexValue: unknown, key?: string | null): QueryParams {
+    let childKey: string;
+    let params: QueryParams;
+    if (this.index_ === KEY_INDEX) {
+      if (typeof indexValue === 'string') {
+        indexValue = predecessor(indexValue as string);
+      }
+      params = this.endAt(indexValue, key);
+    } else {
+      if (key == null) {
+        childKey = MIN_NAME;
+      } else {
+        childKey = predecessor(key);
+      }
+      params = this.endAt(indexValue, childKey);
+    }
+    params.endBeforeSet_ = true;
+    return params;
+  }
+
   orderBy(index: Index): QueryParams {
     const newParams = this.copy_();
     newParams.index_ = index;
     return newParams;
   }
 
-  /**
-   * @return {!Object}
-   */
   getQueryObject(): {} {
     const WIRE_PROTOCOL_CONSTANTS = QueryParams.WIRE_PROTOCOL_CONSTANTS_;
     const obj: { [k: string]: unknown } = {};
@@ -346,23 +333,14 @@ export class QueryParams {
     return obj;
   }
 
-  /**
-   * @return {boolean}
-   */
   loadsAllData(): boolean {
     return !(this.startSet_ || this.endSet_ || this.limitSet_);
   }
 
-  /**
-   * @return {boolean}
-   */
   isDefault(): boolean {
     return this.loadsAllData() && this.index_ === PRIORITY_INDEX;
   }
 
-  /**
-   * @return {!NodeFilter}
-   */
   getNodeFilter(): NodeFilter {
     if (this.loadsAllData()) {
       return new IndexedFilter(this.getIndex());
@@ -376,7 +354,7 @@ export class QueryParams {
   /**
    * Returns a set of REST query string parameters representing this query.
    *
-   * @return {!Object.<string,*>} query string parameters
+   * @return query string parameters
    */
   toRestQueryStringParameters(): { [k: string]: string | number } {
     const REST_CONSTANTS = QueryParams.REST_QUERY_CONSTANTS_;

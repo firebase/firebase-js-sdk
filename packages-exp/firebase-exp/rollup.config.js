@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-import { resolve } from 'path';
-import resolveModule from '@rollup/plugin-node-resolve';
+import appPkg from './app/package.json';
 import commonjs from '@rollup/plugin-commonjs';
-import sourcemaps from 'rollup-plugin-sourcemaps';
-import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
-import typescript from 'typescript';
-import { uglify } from 'rollup-plugin-uglify';
 import json from '@rollup/plugin-json';
 import pkg from './package.json';
-import appPkg from './app/package.json';
+import { resolve } from 'path';
+import resolveModule from '@rollup/plugin-node-resolve';
+import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+import typescript from 'typescript';
+import { uglify } from 'rollup-plugin-uglify';
 
 const external = Object.keys(pkg.dependencies || {});
 
@@ -129,6 +129,47 @@ const componentBuilds = pkg.components
     // It is needed for handling sub modules, for example firestore/lite which should produce firebase-firestore-lite.js
     // Otherwise, we will create a directory with '/' in the name.
     const componentName = component.replace('/', '-');
+
+    if (component === 'messaging') {
+      return [
+        {
+          input: `${component}/index.ts`,
+          output: [
+            {
+              file: resolve(component, pkg.main),
+              format: 'cjs',
+              sourcemap: true
+            },
+            {
+              file: resolve(component, pkg.module),
+              format: 'es',
+              sourcemap: true
+            }
+          ],
+          plugins: [...plugins, typescriptPlugin],
+          external
+        },
+        {
+          input: `${component}/index.ts`,
+          output: createUmdOutputConfig(
+            `firebase-${componentName}.js`,
+            componentName
+          ),
+          plugins: [...plugins, typescriptPluginUMD, uglify()],
+          external: ['@firebase/app-exp']
+        },
+        {
+          input: `${component}/index.sw.ts`,
+          output: createUmdOutputConfig(
+            `firebase-${componentName}-sw.js`,
+            componentName
+          ),
+          plugins: [...plugins, typescriptPluginUMD, uglify()],
+          external: ['@firebase/app-exp']
+        }
+      ];
+    }
+
     return [
       {
         input: `${component}/index.ts`,

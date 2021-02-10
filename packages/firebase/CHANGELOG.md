@@ -1,5 +1,57 @@
 # firebase
 
+## 8.2.6
+
+### Patch Changes
+
+- Updated dependencies [[`73bb561e1`](https://github.com/firebase/firebase-js-sdk/commit/73bb561e18ea42286a54d28648636bf1ac7fcfe0), [`9533688b1`](https://github.com/firebase/firebase-js-sdk/commit/9533688b1e39e58a550ec0527a0363270d73c5b5), [`0af2bdfc6`](https://github.com/firebase/firebase-js-sdk/commit/0af2bdfc6b8be3f362cd630e2a917c5a070c568e)]:
+  - @firebase/auth@0.16.3
+  - @firebase/firestore@2.1.5
+  - @firebase/database@0.9.2
+
+## 8.2.5
+
+### Patch Changes
+
+- Updated dependencies [[`749c7f3d9`](https://github.com/firebase/firebase-js-sdk/commit/749c7f3d985f978cd2a204cbc28c3fff09458b5b), [`04a0fea9e`](https://github.com/firebase/firebase-js-sdk/commit/04a0fea9ef291a7da244665289a1aed32e4e7a3b)]:
+  - @firebase/app@0.6.14
+  - @firebase/firestore@2.1.4
+  - @firebase/database@0.9.1
+
+## 8.2.4
+
+### Patch Changes
+
+- [`92a7f4345`](https://github.com/firebase/firebase-js-sdk/commit/92a7f434536051bedd00bc1be7e774174378aa7d) [#4280](https://github.com/firebase/firebase-js-sdk/pull/4280) - Add the `useEmulator()` function and `emulatorConfig` to the `firebase` package externs
+
+- Updated dependencies [[`cb835e723`](https://github.com/firebase/firebase-js-sdk/commit/cb835e723fab2a85a4e073a3f09354e3e6520dd1), [`6ac66baa0`](https://github.com/firebase/firebase-js-sdk/commit/6ac66baa0e7ac8dd90a6d6136a020cdd54710df5), [`92a7f4345`](https://github.com/firebase/firebase-js-sdk/commit/92a7f434536051bedd00bc1be7e774174378aa7d)]:
+  - @firebase/database@0.9.0
+  - @firebase/firestore@2.1.3
+  - @firebase/auth@0.16.2
+
+## 8.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`50abe6c4d`](https://github.com/firebase/firebase-js-sdk/commit/50abe6c4d455693ef6a3a3c1bc8ef6ab5b8bd9ea)]:
+  - @firebase/database@0.8.3
+
+## 8.2.2
+
+### Patch Changes
+
+- Updated dependencies [[`487f8e1d2`](https://github.com/firebase/firebase-js-sdk/commit/487f8e1d2c6bd1a54305f2b0f148b4985f3cea8e), [`6069b1d6c`](https://github.com/firebase/firebase-js-sdk/commit/6069b1d6c521d05dde821f21bcc7e02913180ae5), [`ba59a0f90`](https://github.com/firebase/firebase-js-sdk/commit/ba59a0f909a1eb59d23b887bba30b6f86d63c931)]:
+  - @firebase/database@0.8.2
+  - @firebase/firestore@2.1.2
+
+## 8.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`9fd3f5233`](https://github.com/firebase/firebase-js-sdk/commit/9fd3f5233077b45c5101789c427db51835484ce0), [`44b5251d0`](https://github.com/firebase/firebase-js-sdk/commit/44b5251d0527d1aa768959765ff04093a04dd8ab)]:
+  - @firebase/auth@0.16.1
+  - @firebase/firestore@2.1.1
+
 ## 8.2.0
 
 ### Minor Changes

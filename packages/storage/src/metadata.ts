@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import * as types from '@firebase/storage-types';
-import { StorageReference } from './reference';
+import { FullMetadata } from '@firebase/storage-types/exp';
 
 /**
  * @fileoverview Documentation for the metadata format.
@@ -24,20 +23,8 @@ import { StorageReference } from './reference';
 
 /**
  * The full set of object metadata, including read-only properties.
- * @public
  */
-interface Metadata extends types.FullMetadata {
-  type: string | undefined;
-  md5Hash: string | undefined;
-  cacheControl: string | undefined;
-  contentDisposition: string | undefined;
-  contentEncoding: string | undefined;
-  contentLanguage: string | undefined;
-  contentType: string | undefined;
-  downloadTokens: string[] | undefined;
-  customMetadata: { [key: string]: string } | undefined;
-  ref: StorageReference | undefined;
-
+interface Metadata extends FullMetadata {
   [prop: string]: unknown;
 }
 

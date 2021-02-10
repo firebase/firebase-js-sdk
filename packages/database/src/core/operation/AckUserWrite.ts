@@ -25,13 +25,10 @@ export class AckUserWrite implements Operation {
   type = OperationType.ACK_USER_WRITE;
 
   /** @inheritDoc */
-  source = OperationSource.User;
+  source = OperationSource.user();
 
   /**
-   *
-   * @param {!Path} path
-   * @param {!ImmutableTree<!boolean>} affectedTree A tree containing true for each affected path. Affected paths can't overlap.
-   * @param {!boolean} revert
+   * @param affectedTree A tree containing true for each affected path. Affected paths can't overlap.
    */
   constructor(
     /** @inheritDoc */ public path: Path,

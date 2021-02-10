@@ -39,6 +39,8 @@ const newTestFirestore = firebaseExport.newTestFirestore;
 const Timestamp = firebaseExport.Timestamp;
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
+const DocumentReference = firebaseExport.DocumentReference;
+const QueryDocumentSnapshot = firebaseExport.QueryDocumentSnapshot;
 
 const MEMORY_ONLY_BUILD =
   typeof process !== 'undefined' &&
@@ -1326,7 +1328,11 @@ apiDescribe('Database', (persistence: boolean) => {
   // only to web.
   apiDescribe('withConverter() support', (persistence: boolean) => {
     class Post {
-      constructor(readonly title: string, readonly author: string) {}
+      constructor(
+        readonly title: string,
+        readonly author: string,
+        readonly ref: firestore.DocumentReference | null = null
+      ) {}
       byline(): string {
         return this.title + ', by ' + this.author;
       }
@@ -1340,8 +1346,9 @@ apiDescribe('Database', (persistence: boolean) => {
         snapshot: firestore.QueryDocumentSnapshot,
         options: firestore.SnapshotOptions
       ): Post {
+        expect(snapshot).to.be.an.instanceof(QueryDocumentSnapshot);
         const data = snapshot.data(options);
-        return new Post(data.title, data.author);
+        return new Post(data.title, data.author, snapshot.ref);
       }
     };
 
@@ -1369,7 +1376,7 @@ apiDescribe('Database', (persistence: boolean) => {
         options: firestore.SnapshotOptions
       ): Post {
         const data = snapshot.data();
-        return new Post(data.title, data.author);
+        return new Post(data.title, data.author, snapshot.ref);
       }
     };
 
@@ -1552,7 +1559,7 @@ apiDescribe('Database', (persistence: boolean) => {
             expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
 
             const data = snapshot.data(options);
-            return new Post(data.title, data.author);
+            return new Post(data.title, data.author, snapshot.ref);
           }
         });
 
@@ -1588,6 +1595,53 @@ apiDescribe('Database', (persistence: boolean) => {
         const docRef = db.doc('some/doc').withConverter(postConverter);
         const docRef2 = db.doc('some/doc').withConverter(postConverter2);
         expect(docRef.isEqual(docRef2)).to.be.false;
+      });
+    });
+
+    it('Correct snapshot specified to fromFirestore() when registered with DocumentReference', () => {
+      return withTestDb(persistence, async db => {
+        const untypedDocRef = db.collection('/models').doc();
+        const docRef = untypedDocRef.withConverter(postConverter);
+        await docRef.set(new Post('post', 'author'));
+        const docSnapshot = await docRef.get();
+        const ref = docSnapshot.data()!.ref!;
+        expect(ref).to.be.an.instanceof(DocumentReference);
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
+      });
+    });
+
+    it('Correct snapshot specified to fromFirestore() when registered with CollectionReference', () => {
+      return withTestDb(persistence, async db => {
+        const untypedCollection = db
+          .collection('/models')
+          .doc()
+          .collection('sub');
+        const collection = untypedCollection.withConverter(postConverter);
+        const docRef = collection.doc();
+        await docRef.set(new Post('post', 'author', docRef));
+        const querySnapshot = await collection.get();
+        expect(querySnapshot.size).to.equal(1);
+        const ref = querySnapshot.docs[0].data().ref!;
+        expect(ref).to.be.an.instanceof(DocumentReference);
+        const untypedDocRef = untypedCollection.doc(docRef.id);
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
+      });
+    });
+
+    it('Correct snapshot specified to fromFirestore() when registered with Query', () => {
+      return withTestDb(persistence, async db => {
+        const untypedCollection = db.collection('/models');
+        const untypedDocRef = untypedCollection.doc();
+        const docRef = untypedDocRef.withConverter(postConverter);
+        await docRef.set(new Post('post', 'author', docRef));
+        const query = untypedCollection
+          .where(FieldPath.documentId(), '==', docRef.id)
+          .withConverter(postConverter);
+        const querySnapshot = await query.get();
+        expect(querySnapshot.size).to.equal(1);
+        const ref = querySnapshot.docs[0].data().ref!;
+        expect(ref).to.be.an.instanceof(DocumentReference);
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
       });
     });
   });

@@ -28,7 +28,6 @@ import { FirebaseService } from '@firebase/app-types/private';
 
 /**
  * Class representing a firebase database.
- * @implements {FirebaseService}
  */
 export class Database implements FirebaseService {
   /** Track if the instance has been used (root or repo accessed) */
@@ -52,7 +51,6 @@ export class Database implements FirebaseService {
 
   /**
    * The constructor should not be called by users of our public API.
-   * @param {!Repo} repoInternal_
    */
   constructor(private repoInternal_: Repo) {
     if (!(repoInternal_ instanceof Repo)) {
@@ -88,7 +86,7 @@ export class Database implements FirebaseService {
   }
 
   get app(): FirebaseApp {
-    return this.repo_.app;
+    return this.repo_.app as FirebaseApp;
   }
 
   /**
@@ -120,11 +118,11 @@ export class Database implements FirebaseService {
    * Returns a reference to the root or to the path specified in the provided
    * argument.
    *
-   * @param {string|Reference=} path The relative string path or an existing
-   * Reference to a database location.
+   * @param path The relative string path or an existing Reference to a database
+   * location.
    * @throws If a Reference is provided, throws if it does not belong to the
    * same project.
-   * @return {!Reference} Firebase reference.
+   * @return Firebase reference.
    */
   ref(path?: string): Reference;
   ref(path?: Reference): Reference;
@@ -143,8 +141,7 @@ export class Database implements FirebaseService {
    * Returns a reference to the root or the path specified in url.
    * We throw a exception if the url is not in the same domain as the
    * current repo.
-   * @param {string} url
-   * @return {!Reference} Firebase reference.
+   * @return Firebase reference.
    */
   refFromURL(url: string): Reference {
     /** @const {string} */
@@ -156,7 +153,7 @@ export class Database implements FirebaseService {
 
     const repoInfo = parsedURL.repoInfo;
     if (
-      !repoInfo.isCustomHost() &&
+      !this.repo_.repoInfo_.isCustomHost() &&
       repoInfo.host !== this.repo_.repoInfo_.host
     ) {
       fatal(
@@ -173,9 +170,6 @@ export class Database implements FirebaseService {
     return this.ref(parsedURL.path.toString());
   }
 
-  /**
-   * @param {string} apiName
-   */
   private checkDeleted_(apiName: string) {
     if (this.repoInternal_ === null) {
       fatal('Cannot call ' + apiName + ' on a deleted database.');
@@ -183,13 +177,13 @@ export class Database implements FirebaseService {
   }
 
   // Make individual repo go offline.
-  goOffline() {
+  goOffline(): void {
     validateArgCount('database.goOffline', 0, 0, arguments.length);
     this.checkDeleted_('goOffline');
     this.repo_.interrupt();
   }
 
-  goOnline() {
+  goOnline(): void {
     validateArgCount('database.goOnline', 0, 0, arguments.length);
     this.checkDeleted_('goOnline');
     this.repo_.resume();

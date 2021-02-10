@@ -18,7 +18,6 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "yarn build",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'"
   },
   "peerDependencies": {
@@ -35,8 +34,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.6.13",
-    "rollup": "2.33.2",
+    "@firebase/app": "0.6.14",
+    "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.29.0",
     "typescript": "4.0.5"

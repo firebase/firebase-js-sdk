@@ -23,7 +23,6 @@ import { _assert } from './util/assert';
  * Enums for fields in URL query string.
  *
  * @enum {string}
- * @internal
  */
 const enum QueryField {
   API_KEY = 'apiKey',
@@ -38,7 +37,6 @@ const enum QueryField {
  * Maps the mode string in action code URL to Action Code Info operation.
  *
  * @param mode
- * @internal
  */
 function parseMode(mode: string | null): externs.ActionCodeOperation | null {
   switch (mode) {
@@ -63,7 +61,6 @@ function parseMode(mode: string | null): externs.ActionCodeOperation | null {
  * Helper to parse FDL links
  *
  * @param url
- * @internal
  */
 function parseDeepLink(url: string): string {
   const uri = new URL(url);

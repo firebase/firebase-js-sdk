@@ -17,18 +17,23 @@
 
 import { spawn, exec } from 'child-process-promise';
 import ora from 'ora';
+import { createPromptModule } from 'inquirer';
 import { projectRoot, readPackageJson } from '../utils';
 import simpleGit from 'simple-git/promise';
 
 import { mapWorkspaceToPackages } from '../release/utils/workspace';
 import { inc } from 'semver';
-import { writeFile as _writeFile } from 'fs';
+import { writeFile as _writeFile, rmdirSync, existsSync } from 'fs';
+import { resolve } from 'path';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
 import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
+import { prepare as prepareStorageForRelease } from './prepare-storage-for-exp-release';
+import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
 
+const prompt = createPromptModule();
 const argv = yargs
   .options({
     dryRun: {
@@ -55,6 +60,8 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * Update fields in package.json and stuff
      */
     await prepareFirestoreForRelease();
+    await prepareStorageForRelease();
+    await prepareDatabaseForRelease();
 
     /**
      * build packages
@@ -67,6 +74,9 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     ]);
 
     packagePaths.push(`${projectRoot}/packages/firestore`);
+    packagePaths.push(`${projectRoot}/packages/storage`);
+    packagePaths.push(`${projectRoot}/packages/storage-types`);
+    packagePaths.push(`${projectRoot}/packages/database`);
 
     /**
      * It does 2 things:
@@ -79,36 +89,79 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      */
     const versions = await updatePackageNamesAndVersions(packagePaths);
 
-    /**
-     * Do not publish to npm and create tags if it's a dryrun
-     */
-    if (!dryRun) {
-      /**
-       * Release packages to NPM
-       */
-      await publishToNpm(packagePaths);
+    let versionCheckMessage =
+      '\r\nAre you sure these are the versions you want to publish?\r\n';
+    for (const [pkgName, version] of versions) {
+      versionCheckMessage += `${pkgName} : ${version}\n`;
+    }
+    const { versionCheck } = await prompt([
+      {
+        type: 'confirm',
+        name: 'versionCheck',
+        message: versionCheckMessage,
+        default: false
+      }
+    ]);
 
-      /**
-       * reset the working tree to recover package names with -exp in the package.json files,
-       * then bump patch version of firebase-exp (the umbrella package) only
-       */
-      const firebaseExpVersion = new Map<string, string>();
-      firebaseExpVersion.set(
-        FIREBASE_UMBRELLA_PACKAGE_NAME,
-        versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
-      );
-      const firebaseExpPath = packagePaths.filter(p =>
-        p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
-      );
+    if (!versionCheck) {
+      throw new Error('Version check failed');
+    }
+
+    /**
+     * Release packages to NPM
+     */
+    await publishToNpm(packagePaths, dryRun);
+
+    /**
+     * reset the working tree to recover package names with -exp in the package.json files,
+     * then bump patch version of firebase-exp (the umbrella package) only
+     */
+    const firebaseExpVersion = new Map<string, string>();
+    firebaseExpVersion.set(
+      FIREBASE_UMBRELLA_PACKAGE_NAME,
+      versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    );
+    const firebaseExpPath = packagePaths.filter(p =>
+      p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    );
+
+    const { resetWorkingTree } = await prompt([
+      {
+        type: 'confirm',
+        name: 'resetWorkingTree',
+        message: 'Do you want to reset the working tree?',
+        default: true
+      }
+    ]);
+
+    if (resetWorkingTree) {
       await resetWorkingTreeAndBumpVersions(
         firebaseExpPath,
         firebaseExpVersion
       );
+    } else {
+      process.exit(0);
+    }
 
+    /**
+     * Do not push to remote if it's a dryrun
+     */
+    if (!dryRun) {
+      const { shouldCommitAndPush } = await prompt([
+        {
+          type: 'confirm',
+          name: 'shouldCommitAndPush',
+          message:
+            'Do you want to commit and push the exp version update to remote?',
+          default: true
+        }
+      ]);
       /**
        * push to github
        */
-      await commitAndPush(versions);
+      if (shouldCommitAndPush) {
+        await commitAndPush(versions);
+      }
     }
   } catch (err) {
     /**
@@ -145,6 +198,9 @@ async function buildPackages() {
       '--scope',
       // the same reason above
       '@firebase/remote-config',
+      '--scope',
+      // the same reason above
+      '@firebase/analytics',
       '--scope',
       '@firebase/util',
       '--scope',
@@ -199,6 +255,46 @@ async function buildPackages() {
     }
   );
 
+  // Storage
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // storage-types. Remove -exp in import paths in d.ts
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/storage-types', 'build:exp:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Database
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // remove packages/installations/dist, otherwise packages that depend on packages-exp/installations-exp (e.g. Perf, FCM)
+  // will incorrectly reference packages/installations.
+  const installationsDistDirPath = resolve(
+    projectRoot,
+    'packages/installations/dist'
+  );
+  if (existsSync(installationsDistDirPath)) {
+    rmdirSync(installationsDistDirPath, { recursive: true });
+  }
+
   // Build firebase-exp
   await spawn(
     'yarn',
@@ -242,13 +338,13 @@ async function updatePackageNamesAndVersions(packagePaths: string[]) {
   return versions;
 }
 
-async function publishToNpm(packagePaths: string[]) {
+async function publishToNpm(packagePaths: string[], dryRun = false) {
   const taskArray = await Promise.all(
     packagePaths.map(async pp => {
       const { version, name } = await readPackageJson(pp);
       return {
         title: `📦  ${name}@${version}`,
-        task: () => publishPackage(pp)
+        task: () => publishPackage(pp, dryRun)
       };
     })
   );
@@ -262,8 +358,11 @@ async function publishToNpm(packagePaths: string[]) {
   return tasks.run();
 }
 
-async function publishPackage(packagePath: string) {
+async function publishPackage(packagePath: string, dryRun: boolean) {
   const args = ['publish', '--access', 'public', '--tag', 'exp'];
+  if (dryRun) {
+    args.push('--dry-run');
+  }
   await spawn('npm', args, { cwd: packagePath });
 }
 
@@ -350,7 +449,7 @@ async function updatePackageJsons(
 }
 
 async function commitAndPush(versions: Map<string, string>) {
-  await exec('git add */package.json yarn.lock');
+  await exec('git add packages-exp/firebase-exp/package.json yarn.lock');
 
   const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME);
   await exec(

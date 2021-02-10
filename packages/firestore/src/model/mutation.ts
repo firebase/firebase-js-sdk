@@ -87,11 +87,11 @@ export class MutationResult {
      */
     readonly version: SnapshotVersion,
     /**
-     * The resulting fields returned from the backend after a
-     * TransformMutation has been committed. Contains one FieldValue for each
-     * FieldTransform that was in the mutation.
+     * The resulting fields returned from the backend after a mutation
+     * containing field transforms has been committed. Contains one FieldValue
+     * for each FieldTransform that was in the mutation.
      *
-     * Will be null if the mutation was not a TransformMutation.
+     * Will be null if the mutation did not contain any field transforms.
      */
     readonly transformResults: Array<ProtoValue | null> | null
   ) {}
@@ -178,8 +178,8 @@ export function preconditionIsValidForDocument(
  * Mutations not only act on the value of the document but also its version.
  *
  * For local mutations (mutations that haven't been committed yet), we preserve
- * the existing version for Set, Patch, and Transform mutations. For Delete
- * mutations, we reset the version to 0.
+ * the existing version for Set and Patch mutations. For Delete mutations, we
+ * reset the version to 0.
  *
  * Here's the expected transition table.
  *
@@ -191,28 +191,22 @@ export function preconditionIsValidForDocument(
  * PatchMutation      Document(v3)          Document(v3)
  * PatchMutation      NoDocument(v3)        NoDocument(v3)
  * PatchMutation      null                  null
- * TransformMutation  Document(v3)          Document(v3)
- * TransformMutation  NoDocument(v3)        NoDocument(v3)
- * TransformMutation  null                  null
  * DeleteMutation     Document(v3)          NoDocument(v0)
  * DeleteMutation     NoDocument(v3)        NoDocument(v0)
  * DeleteMutation     null                  NoDocument(v0)
  *
  * For acknowledged mutations, we use the updateTime of the WriteResponse as
- * the resulting version for Set, Patch, and Transform mutations. As deletes
- * have no explicit update time, we use the commitTime of the WriteResponse for
+ * the resulting version for Set and Patch mutations. As deletes have no
+ * explicit update time, we use the commitTime of the WriteResponse for
  * Delete mutations.
  *
  * If a mutation is acknowledged by the backend but fails the precondition check
  * locally, we return an `UnknownDocument` and rely on Watch to send us the
  * updated version.
  *
- * Note that TransformMutations don't create Documents (in the case of being
- * applied to a NoDocument), even though they would on the backend. This is
- * because the client always combines the TransformMutation with a SetMutation
- * or PatchMutation and we only want to apply the transform if the prior
- * mutation resulted in a Document (always true for a SetMutation, but not
- * necessarily for a PatchMutation).
+ * Field transforms are used only with Patch and Set Mutations. We use the
+ * `updateTransforms` message to store transforms, rather than the `transforms`s
+ * messages.
  *
  * ## Subclassing Notes
  *
@@ -276,9 +270,6 @@ export function applyMutationToRemoteDocument(
  * @param mutation - The mutation to apply.
  * @param maybeDoc - The document to mutate. The input document can be null if
  *     the client has no knowledge of the pre-mutation state of the document.
- * @param baseDoc - The state of the document prior to this mutation batch. The
- *     input document can be null if the client has no knowledge of the
- *     pre-mutation state of the document.
  * @param localWriteTime - A timestamp indicating the local write time of the
  *     batch this mutation is a part of.
  * @returns The mutated document. The returned document may be null, but only
@@ -287,25 +278,14 @@ export function applyMutationToRemoteDocument(
 export function applyMutationToLocalView(
   mutation: Mutation,
   maybeDoc: MaybeDocument | null,
-  baseDoc: MaybeDocument | null,
   localWriteTime: Timestamp
 ): MaybeDocument | null {
   verifyMutationKeyMatches(mutation, maybeDoc);
 
   if (mutation instanceof SetMutation) {
-    return applySetMutationToLocalView(
-      mutation,
-      maybeDoc,
-      localWriteTime,
-      baseDoc
-    );
+    return applySetMutationToLocalView(mutation, maybeDoc, localWriteTime);
   } else if (mutation instanceof PatchMutation) {
-    return applyPatchMutationToLocalView(
-      mutation,
-      maybeDoc,
-      localWriteTime,
-      baseDoc
-    );
+    return applyPatchMutationToLocalView(mutation, maybeDoc, localWriteTime);
   } else {
     debugAssert(
       mutation instanceof DeleteMutation,
@@ -335,13 +315,7 @@ export function extractMutationBaseValue(
   mutation: Mutation,
   maybeDoc: MaybeDocument | null
 ): ObjectValue | null {
-  if (mutation.fieldTransforms !== undefined) {
-    return extractTransformMutationBaseValue(
-      mutation.fieldTransforms,
-      maybeDoc
-    );
-  }
-  return null;
+  return extractTransformMutationBaseValue(mutation.fieldTransforms, maybeDoc);
 }
 
 function extractTransformMutationBaseValue(
@@ -481,27 +455,23 @@ function applySetMutationToRemoteDocument(
 function applySetMutationToLocalView(
   mutation: SetMutation,
   maybeDoc: MaybeDocument | null,
-  localWriteTime: Timestamp,
-  baseDoc: MaybeDocument | null
+  localWriteTime: Timestamp
 ): MaybeDocument | null {
   if (!preconditionIsValidForDocument(mutation.precondition, maybeDoc)) {
     return maybeDoc;
   }
 
   let newData = mutation.value;
-  if (mutation.fieldTransforms) {
-    const transformResults = localTransformResults(
-      mutation.fieldTransforms,
-      localWriteTime,
-      maybeDoc,
-      baseDoc
-    );
-    newData = transformObject(
-      mutation.fieldTransforms,
-      newData,
-      transformResults
-    );
-  }
+  const transformResults = localTransformResults(
+    mutation.fieldTransforms,
+    localWriteTime,
+    maybeDoc
+  );
+  newData = transformObject(
+    mutation.fieldTransforms,
+    newData,
+    transformResults
+  );
 
   const version = getPostMutationVersion(maybeDoc);
   return new Document(mutation.key, version, newData, {
@@ -565,8 +535,7 @@ function applyPatchMutationToRemoteDocument(
 function applyPatchMutationToLocalView(
   mutation: PatchMutation,
   maybeDoc: MaybeDocument | null,
-  localWriteTime: Timestamp,
-  baseDoc: MaybeDocument | null
+  localWriteTime: Timestamp
 ): MaybeDocument | null {
   if (!preconditionIsValidForDocument(mutation.precondition, maybeDoc)) {
     return maybeDoc;
@@ -576,8 +545,7 @@ function applyPatchMutationToLocalView(
   const transformResults = localTransformResults(
     mutation.fieldTransforms,
     localWriteTime,
-    maybeDoc,
-    baseDoc
+    maybeDoc
   );
   const newData = patchDocument(mutation, maybeDoc, transformResults);
   return new Document(mutation.key, version, newData, {
@@ -623,17 +591,18 @@ function patchObject(mutation: PatchMutation, data: ObjectValue): ObjectValue {
 
 /**
  * Creates a list of "transform results" (a transform result is a field value
- * representing the result of applying a transform) for use after a
- * TransformMutation has been acknowledged by the server.
+ * representing the result of applying a transform) for use after a mutation
+ * containing transforms has been acknowledged by the server.
  *
  * @param fieldTransforms - The field transforms to apply the result to.
- * @param baseDoc - The document prior to applying this mutation batch.
+ * @param maybeDoc - The current state of the document after applying all
+ * previous mutations.
  * @param serverTransformResults - The transform results received by the server.
  * @returns The transform results list.
  */
 function serverTransformResults(
   fieldTransforms: FieldTransform[],
-  baseDoc: MaybeDocument | null,
+  maybeDoc: MaybeDocument | null,
   serverTransformResults: Array<ProtoValue | null>
 ): ProtoValue[] {
   const transformResults: ProtoValue[] = [];
@@ -647,8 +616,8 @@ function serverTransformResults(
     const fieldTransform = fieldTransforms[i];
     const transform = fieldTransform.transform;
     let previousValue: ProtoValue | null = null;
-    if (baseDoc instanceof Document) {
-      previousValue = baseDoc.field(fieldTransform.field);
+    if (maybeDoc instanceof Document) {
+      previousValue = maybeDoc.field(fieldTransform.field);
     }
     transformResults.push(
       applyTransformOperationToRemoteDocument(
@@ -664,21 +633,19 @@ function serverTransformResults(
 /**
  * Creates a list of "transform results" (a transform result is a field value
  * representing the result of applying a transform) for use when applying a
- * TransformMutation locally.
+ * transform locally.
  *
  * @param fieldTransforms - The field transforms to apply the result to.
- * @param localWriteTime - The local time of the transform mutation (used to
+ * @param localWriteTime - The local time of the mutation (used to
  *     generate ServerTimestampValues).
  * @param maybeDoc - The current state of the document after applying all
  *     previous mutations.
- * @param baseDoc - The document prior to applying this mutation batch.
  * @returns The transform results list.
  */
 function localTransformResults(
   fieldTransforms: FieldTransform[],
   localWriteTime: Timestamp,
-  maybeDoc: MaybeDocument | null,
-  baseDoc: MaybeDocument | null
+  maybeDoc: MaybeDocument | null
 ): ProtoValue[] {
   const transformResults: ProtoValue[] = [];
   for (const fieldTransform of fieldTransforms) {
@@ -687,14 +654,6 @@ function localTransformResults(
     let previousValue: ProtoValue | null = null;
     if (maybeDoc instanceof Document) {
       previousValue = maybeDoc.field(fieldTransform.field);
-    }
-
-    if (previousValue === null && baseDoc instanceof Document) {
-      // If the current document does not contain a value for the mutated
-      // field, use the value that existed before applying this mutation
-      // batch. This solves an edge case where a PatchMutation clears the
-      // values in a nested map before the TransformMutation is applied.
-      previousValue = baseDoc.field(fieldTransform.field);
     }
 
     transformResults.push(

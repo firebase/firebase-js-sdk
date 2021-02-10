@@ -16,7 +16,7 @@
  */
 
 import { NamedNode, Node } from '../snap/Node';
-import { Change } from './Change';
+import { Change, ChangeType, changeChildMoved } from './Change';
 import { assertionError } from '@firebase/util';
 import { Query } from '../../api/Query';
 import { Index } from '../snap/indexes/Index';
@@ -28,19 +28,12 @@ import { Event } from './Event';
  * CacheDiffer into actual events (Event) that can be raised.  See generateEventsForChanges()
  * for details.
  *
- * @constructor
  */
 export class EventGenerator {
   private index_: Index;
 
-  /**
-   *
-   * @param {!Query} query_
-   */
   constructor(private query_: Query) {
     /**
-     * @private
-     * @type {!Index}
      */
     this.index_ = this.query_.getQueryParams().getIndex();
   }
@@ -53,11 +46,6 @@ export class EventGenerator {
    *  - child_moved events will be synthesized at this time for any child_changed events that affect
    *    our index.
    *  - prevName will be calculated based on the index ordering.
-   *
-   * @param {!Array.<!Change>} changes
-   * @param {!Node} eventCache
-   * @param {!Array.<!EventRegistration>} eventRegistrations
-   * @return {!Array.<!Event>}
    */
   generateEventsForChanges(
     changes: Change[],
@@ -69,52 +57,47 @@ export class EventGenerator {
 
     changes.forEach(change => {
       if (
-        change.type === Change.CHILD_CHANGED &&
+        change.type === ChangeType.CHILD_CHANGED &&
         this.index_.indexedValueChanged(
           change.oldSnap as Node,
           change.snapshotNode
         )
       ) {
-        moves.push(
-          Change.childMovedChange(
-            change.childName as string,
-            change.snapshotNode
-          )
-        );
+        moves.push(changeChildMoved(change.childName, change.snapshotNode));
       }
     });
 
     this.generateEventsForType_(
       events,
-      Change.CHILD_REMOVED,
+      ChangeType.CHILD_REMOVED,
       changes,
       eventRegistrations,
       eventCache
     );
     this.generateEventsForType_(
       events,
-      Change.CHILD_ADDED,
+      ChangeType.CHILD_ADDED,
       changes,
       eventRegistrations,
       eventCache
     );
     this.generateEventsForType_(
       events,
-      Change.CHILD_MOVED,
+      ChangeType.CHILD_MOVED,
       moves,
       eventRegistrations,
       eventCache
     );
     this.generateEventsForType_(
       events,
-      Change.CHILD_CHANGED,
+      ChangeType.CHILD_CHANGED,
       changes,
       eventRegistrations,
       eventCache
     );
     this.generateEventsForType_(
       events,
-      Change.VALUE,
+      ChangeType.VALUE,
       changes,
       eventRegistrations,
       eventCache
@@ -125,13 +108,6 @@ export class EventGenerator {
 
   /**
    * Given changes of a single change type, generate the corresponding events.
-   *
-   * @param {!Array.<!Event>} events
-   * @param {!string} eventType
-   * @param {!Array.<!Change>} changes
-   * @param {!Array.<!EventRegistration>} registrations
-   * @param {!Node} eventCache
-   * @private
    */
   private generateEventsForType_(
     events: Event[],
@@ -158,18 +134,11 @@ export class EventGenerator {
     });
   }
 
-  /**
-   * @param {!Change} change
-   * @param {!Node} eventCache
-   * @return {!Change}
-   * @private
-   */
   private materializeSingleChange_(change: Change, eventCache: Node): Change {
     if (change.type === 'value' || change.type === 'child_removed') {
       return change;
     } else {
       change.prevName = eventCache.getPredecessorChildName(
-        /** @type {!string} */
         change.childName,
         change.snapshotNode,
         this.index_
@@ -178,12 +147,6 @@ export class EventGenerator {
     }
   }
 
-  /**
-   * @param {!Change} a
-   * @param {!Change} b
-   * @return {number}
-   * @private
-   */
   private compareChanges_(a: Change, b: Change) {
     if (a.childName == null || b.childName == null) {
       throw assertionError('Should only compare child_ events.');

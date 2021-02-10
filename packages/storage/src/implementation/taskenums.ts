@@ -20,41 +20,63 @@
  */
 
 /**
- * Enum for task events.
+ * An event that is triggered on a task.
  */
 export type TaskEvent = string;
+
+/**
+ * An event that is triggered on a task.
+ */
 export const TaskEvent = {
-  /** Triggered whenever the task changes or progress is updated. */
+  /**
+   * For this event,
+   * <ul>
+   *   <li>The `next` function is triggered on progress updates and when the
+   *       task is paused/resumed with an `UploadTaskSnapshot` as the first
+   *       argument.</li>
+   *   <li>The `error` function is triggered if the upload is canceled or fails
+   *       for another reason.</li>
+   *   <li>The `complete` function is triggered if the upload completes
+   *       successfully.</li>
+   * </ul>
+   */
   STATE_CHANGED: 'state_changed'
 };
 
 /**
  * Internal enum for task state.
  */
-export type InternalTaskState = string;
-export const InternalTaskState = {
-  RUNNING: 'running',
-  PAUSING: 'pausing',
-  PAUSED: 'paused',
-  SUCCESS: 'success',
-  CANCELING: 'canceling',
-  CANCELED: 'canceled',
-  ERROR: 'error'
-};
+export const enum InternalTaskState {
+  RUNNING = 'running',
+  PAUSING = 'pausing',
+  PAUSED = 'paused',
+  SUCCESS = 'success',
+  CANCELING = 'canceling',
+  CANCELED = 'canceled',
+  ERROR = 'error'
+}
 
 /**
- * External (API-surfaced) enum for task state.
+ * Represents the current state of a running upload.
  */
 export type TaskState = string;
+
+/**
+ * Represents the current state of a running upload.
+ */
 export const TaskState = {
   /** The task is currently transferring data. */
   RUNNING: 'running',
+
   /** The task was paused by the user. */
   PAUSED: 'paused',
+
   /** The task completed successfully. */
   SUCCESS: 'success',
+
   /** The task was canceled. */
   CANCELED: 'canceled',
+
   /** The task failed with an error. */
   ERROR: 'error'
 };

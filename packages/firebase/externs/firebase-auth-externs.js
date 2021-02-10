@@ -1219,6 +1219,47 @@ firebase.auth.Auth.prototype.app;
 firebase.auth.Auth.prototype.currentUser;
 
 /**
+ * The full emulator configuration as set on `auth().emulatorConfig`.
+ * <ul>
+ * <li>protocol: the protocol used by the emulator (http or https).</li>
+ * <li>host: the host used to reach the emulator.</li>
+ * <li>port: the port used to reach the emulator.</li>
+ * <li>options: a list of options used to configure the SDK's interaction with
+ * the emulator.</li>
+ * </ul>
+ *
+ * @typedef {{
+ *   protocol: string,
+ *   host: string,
+ *   port: (number|null),
+ *   options: {
+ *     disableWarnings: boolean,
+ *   }
+ * }}
+ */
+firebase.auth.EmulatorConfig;
+
+/**
+ * The current emulator configuration, or null if not set.
+ *
+ * @type {firebase.auth.EmulatorConfig|null}
+ */
+firebase.auth.Auth.prototype.emulatorConfig;
+
+/**
+ * Configures the SDK to communicate with the Firebase Auth emulator.
+ *
+ * This must be called before any other Auth SDK actions are taken.
+ *
+ * Options can include `disableWarnings`. When set to true, the SDK will not
+ * display a warning banner at the bottom of the page.
+ *
+ * @param {string} url The full emulator url including scheme and port.
+ * @param {!Object=} options Options for configuring the SDK's emulator config.
+ */
+firebase.auth.Auth.prototype.useEmulator = function (url, options) {};
+
+/**
  * The current Auth instance's tenant ID. This is a readable/writable
  * property. When you set the tenant ID of an Auth instance, all future
  * sign-in/sign-up operations will pass this tenant ID and sign in or

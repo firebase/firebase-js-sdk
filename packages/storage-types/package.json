@@ -6,7 +6,9 @@
   "license": "Apache-2.0",
   "scripts": {
     "test": "tsc",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js"
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "api-report": "api-extractor run --local --verbose",
+    "build:exp:release": "node ../../scripts/exp/remove-exp.js ./exp/index.d.ts"
   },
   "files": [
     "index.d.ts"

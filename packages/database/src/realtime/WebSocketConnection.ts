@@ -53,8 +53,6 @@ export function setWebSocketImpl(impl) {
 
 /**
  * Create a new websocket connection with the given callbacks.
- * @constructor
- * @implements {Transport}
  */
 export class WebSocketConnection implements Transport {
   keepaliveTimer: number | null = null;
@@ -98,12 +96,11 @@ export class WebSocketConnection implements Transport {
   }
 
   /**
-   * @param {RepoInfo} repoInfo The info for the websocket endpoint.
-   * @param {string=} transportSessionId Optional transportSessionId if this is connecting to an existing transport
+   * @param repoInfo The info for the websocket endpoint.
+   * @param transportSessionId Optional transportSessionId if this is connecting to an existing transport
    *                                         session
-   * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
-   * @return {string} connection url
-   * @private
+   * @param lastSessionId Optional lastSessionId if there was a previous connection
+   * @return connection url
    */
   private static connectionURL_(
     repoInfo: RepoInfo,
@@ -131,7 +128,6 @@ export class WebSocketConnection implements Transport {
   }
 
   /**
-   *
    * @param onMessage Callback when messages arrive
    * @param onDisconnect Callback with connection lost.
    */
@@ -244,19 +240,16 @@ export class WebSocketConnection implements Transport {
 
   /**
    * Number of response before we consider the connection "healthy."
-   * @type {number}
    */
   static responsesRequiredToBeHealthy = 2;
 
   /**
    * Time to wait for the connection te become healthy before giving up.
-   * @type {number}
    */
   static healthyTimeout = 30000;
 
   /**
    * Returns true if we previously failed to connect with this transport.
-   * @return {boolean}
    */
   static previouslyFailed(): boolean {
     // If our persistent storage is actually only in-memory storage,
@@ -284,8 +277,7 @@ export class WebSocketConnection implements Transport {
   }
 
   /**
-   * @param {number} frameCount The number of frames we are expecting from the server
-   * @private
+   * @param frameCount The number of frames we are expecting from the server
    */
   private handleNewFrameCount_(frameCount: number) {
     this.totalFrames = frameCount;
@@ -294,9 +286,7 @@ export class WebSocketConnection implements Transport {
 
   /**
    * Attempts to parse a frame count out of some text. If it can't, assumes a value of 1
-   * @param {!String} data
-   * @return {?String} Any remaining data to be process, or null if there is none
-   * @private
+   * @return Any remaining data to be process, or null if there is none
    */
   private extractFrameCount_(data: string): string | null {
     assert(this.frames === null, 'We already have a frame buffer');
@@ -341,7 +331,7 @@ export class WebSocketConnection implements Transport {
 
   /**
    * Send a message to the server
-   * @param {Object} data The JSON object to transmit
+   * @param data The JSON object to transmit
    */
   send(data: {}) {
     this.resetKeepAlive();
@@ -422,8 +412,7 @@ export class WebSocketConnection implements Transport {
   /**
    * Send a string over the websocket.
    *
-   * @param {string} str String to send.
-   * @private
+   * @param str String to send.
    */
   private sendString_(str: string) {
     // Firefox seems to sometimes throw exceptions (NS_ERROR_UNEXPECTED) from websocket .send()

@@ -1,5 +1,35 @@
 # Unreleased
 
+## 0.9.2
+
+### Patch Changes
+
+- [`0af2bdfc6`](https://github.com/firebase/firebase-js-sdk/commit/0af2bdfc6b8be3f362cd630e2a917c5a070c568e) [#4363](https://github.com/firebase/firebase-js-sdk/pull/4363) - Fixed an issue with startAfter/endBefore when used in orderByKey queries
+
+## 0.9.1
+
+### Patch Changes
+
+- [`04a0fea9e`](https://github.com/firebase/firebase-js-sdk/commit/04a0fea9ef291a7da244665289a1aed32e4e7a3b) [#4299](https://github.com/firebase/firebase-js-sdk/pull/4299) - get()s issued for queries that are being listened to no longer send backend requests.
+
+## 0.9.0
+
+### Minor Changes
+
+- [`cb835e723`](https://github.com/firebase/firebase-js-sdk/commit/cb835e723fab2a85a4e073a3f09354e3e6520dd1) [#4232](https://github.com/firebase/firebase-js-sdk/pull/4232) - Add `startAfter` and `endBefore` filters for paginating RTDB queries.
+
+## 0.8.3
+
+### Patch Changes
+
+- [`50abe6c4d`](https://github.com/firebase/firebase-js-sdk/commit/50abe6c4d455693ef6a3a3c1bc8ef6ab5b8bd9ea) [#4199](https://github.com/firebase/firebase-js-sdk/pull/4199) - Fixes an issue that caused `refFromUrl()` to reject production database URLs when `useEmulator()` was used.
+
+## 0.8.2
+
+### Patch Changes
+
+- [`487f8e1d2`](https://github.com/firebase/firebase-js-sdk/commit/487f8e1d2c6bd1a54305f2b0f148b4985f3cea8e) [#4247](https://github.com/firebase/firebase-js-sdk/pull/4247) (fixes [#3681](https://github.com/firebase/firebase-js-sdk/issues/3681)) - Fix issue with multiple database instances when using Realtime Database emulator (#3681)
+
 ## 0.8.1
 
 ### Patch Changes

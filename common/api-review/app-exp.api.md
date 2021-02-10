@@ -35,6 +35,12 @@ export const _DEFAULT_ENTRY_NAME = "[DEFAULT]";
 // @public
 export function deleteApp(app: FirebaseApp): Promise<void>;
 
+export { FirebaseApp }
+
+export { FirebaseAppConfig }
+
+export { FirebaseOptions }
+
 // @public
 export function getApp(name?: string): FirebaseApp;
 

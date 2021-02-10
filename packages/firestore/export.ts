@@ -15,6 +15,13 @@
  * limitations under the License.
  */
 
+import { Firestore, Query } from './src/api/database';
+import { LoadBundleTask } from './src/exp/bundle';
+import {
+  loadBundle as expLoadBundle,
+  namedQuery as expNamedQuery
+} from './src/exp/database';
+
 export { Blob } from './src/api/blob';
 export {
   CollectionReference,
@@ -36,4 +43,27 @@ export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
 export { FirebaseFirestore as ExpFirebaseFirestore } from './src/exp/database';
-export { loadBundle, namedQuery } from './src/api/bundle';
+
+export function loadBundle(
+  this: Firestore,
+  data: ArrayBuffer | ReadableStream<Uint8Array> | string
+): LoadBundleTask {
+  return expLoadBundle(this._delegate, data);
+}
+
+export function namedQuery(
+  this: Firestore,
+  queryName: string
+): Promise<Query | null> {
+  return expNamedQuery(this._delegate, queryName).then(expQuery => {
+    if (!expQuery) {
+      return null;
+    }
+    return new Query(
+      this,
+      // We can pass `expQuery` here directly since named queries don't have a UserDataConverter.
+      // Otherwise, we would have to create a new ExpQuery and pass the old UserDataConverter.
+      expQuery
+    );
+  });
+}

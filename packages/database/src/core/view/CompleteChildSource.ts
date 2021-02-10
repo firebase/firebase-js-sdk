@@ -30,18 +30,8 @@ import { ViewCache } from './ViewCache';
  * @interface
  */
 export interface CompleteChildSource {
-  /**
-   * @param {!string} childKey
-   * @return {?Node}
-   */
   getCompleteChild(childKey: string): Node | null;
 
-  /**
-   * @param {!Index} index
-   * @param {!NamedNode} child
-   * @param {boolean} reverse
-   * @return {?NamedNode}
-   */
   getChildAfterChild(
     index: Index,
     child: NamedNode,
@@ -51,10 +41,6 @@ export interface CompleteChildSource {
 
 /**
  * An implementation of CompleteChildSource that never returns any additional children
- *
- * @private
- * @constructor
- * @implements CompleteChildSource
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export class NoCompleteChildSource_ implements CompleteChildSource {
@@ -79,24 +65,14 @@ export class NoCompleteChildSource_ implements CompleteChildSource {
 
 /**
  * Singleton instance.
- * @const
- * @type {!CompleteChildSource}
  */
 export const NO_COMPLETE_CHILD_SOURCE = new NoCompleteChildSource_();
 
 /**
  * An implementation of CompleteChildSource that uses a WriteTree in addition to any other server data or
  * old event caches available to calculate complete children.
- *
- *
- * @implements CompleteChildSource
  */
 export class WriteTreeCompleteChildSource implements CompleteChildSource {
-  /**
-   * @param {!WriteTreeRef} writes_
-   * @param {!ViewCache} viewCache_
-   * @param {?Node} optCompleteServerCache_
-   */
   constructor(
     private writes_: WriteTreeRef,
     private viewCache_: ViewCache,

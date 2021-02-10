@@ -88,7 +88,7 @@ export function _getBrowserName(userAgent: string): BrowserName | string {
   return BrowserName.OTHER;
 }
 
-export function _isFirefox(ua: string): boolean {
+export function _isFirefox(ua = getUA()): boolean {
   return /firefox\//i.test(ua);
 }
 
@@ -102,31 +102,38 @@ export function _isSafari(userAgent: string): boolean {
   );
 }
 
-export function _isChromeIOS(ua: string): boolean {
+export function _isChromeIOS(ua = getUA()): boolean {
   return /crios\//i.test(ua);
 }
 
-export function _isIEMobile(ua: string): boolean {
+export function _isIEMobile(ua = getUA()): boolean {
   return /iemobile/i.test(ua);
 }
 
-export function _isAndroid(ua: string): boolean {
+export function _isAndroid(ua = getUA()): boolean {
   return /android/i.test(ua);
 }
 
-export function _isBlackBerry(ua: string): boolean {
+export function _isBlackBerry(ua = getUA()): boolean {
   return /blackberry/i.test(ua);
 }
 
-export function _isWebOS(ua: string): boolean {
+export function _isWebOS(ua = getUA()): boolean {
   return /webos/i.test(ua);
 }
 
-export function _isIOS(ua: string): boolean {
+export function _isIOS(ua = getUA()): boolean {
   return /iphone|ipad|ipod/i.test(ua);
 }
 
-export function _isIOSStandalone(ua: string): boolean {
+export function _isIOS7Or8(ua = getUA()): boolean {
+  return (
+    /(iPad|iPhone|iPod).*OS 7_\d/i.test(ua) ||
+    /(iPad|iPhone|iPod).*OS 8_\d/i.test(ua)
+  );
+}
+
+export function _isIOSStandalone(ua = getUA()): boolean {
   return _isIOS(ua) && !!(window.navigator as NavigatorStandalone)?.standalone;
 }
 

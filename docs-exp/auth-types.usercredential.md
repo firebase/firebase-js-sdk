@@ -21,6 +21,6 @@ export interface UserCredential
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [operationType](./auth-types.usercredential.operationtype.md) | [OperationType](./auth-types.operationtype.md) | The type of operation which was used to authenticate the user (such as sign-in or link). |
-|  [providerId](./auth-types.usercredential.providerid.md) | [ProviderId](./auth-types.providerid.md) \| null | The provider which was used to authenticate the user. |
+|  [providerId](./auth-types.usercredential.providerid.md) | string \| null | The provider which was used to authenticate the user. |
 |  [user](./auth-types.usercredential.user.md) | [User](./auth-types.user.md) | The user authenticated by this credential. |
 

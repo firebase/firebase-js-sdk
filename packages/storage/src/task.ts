@@ -19,7 +19,11 @@
  */
 
 import { FbsBlob } from './implementation/blob';
-import { canceled, Code, FirebaseStorageError } from './implementation/error';
+import {
+  canceled,
+  StorageErrorCode,
+  FirebaseStorageError
+} from './implementation/error';
 import {
   InternalTaskState,
   TaskEvent,
@@ -48,7 +52,7 @@ import {
   getMetadata,
   multipartUpload
 } from './implementation/requests';
-import { StorageReference } from './reference';
+import { Reference } from './reference';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -56,18 +60,18 @@ import { StorageReference } from './reference';
  * @public
  */
 export class UploadTask {
-  private _ref: StorageReference;
+  private _ref: Reference;
   /**
-   * @internal
+   * The data to be uploaded.
    */
   _blob: FbsBlob;
   /**
-   * @internal
+   * Metadata related to the upload.
    */
   _metadata: Metadata | null;
   private _mappings: Mappings;
   /**
-   * @internal
+   * Number of bytes transferred so far.
    */
   _transferred: number = 0;
   private _needToFetchStatus: boolean = false;
@@ -75,7 +79,7 @@ export class UploadTask {
   private _observers: Array<StorageObserver<UploadTaskSnapshot>> = [];
   private _resumable: boolean;
   /**
-   * @internal
+   * Upload state.
    */
   _state: InternalTaskState;
   private _error?: FirebaseStorageError = undefined;
@@ -93,11 +97,7 @@ export class UploadTask {
    *     from, untyped to avoid cyclic dependencies.
    * @param blob - The blob to upload.
    */
-  constructor(
-    ref: StorageReference,
-    blob: FbsBlob,
-    metadata: Metadata | null = null
-  ) {
+  constructor(ref: Reference, blob: FbsBlob, metadata: Metadata | null = null) {
     this._ref = ref;
     this._blob = blob;
     this._metadata = metadata;
@@ -107,7 +107,7 @@ export class UploadTask {
     this._errorHandler = error => {
       this._request = undefined;
       this._chunkMultiplier = 1;
-      if (error.codeEquals(Code.CANCELED)) {
+      if (error._codeEquals(StorageErrorCode.CANCELED)) {
         this._needToFetchStatus = true;
         this.completeTransitions_();
       } else {
@@ -117,7 +117,7 @@ export class UploadTask {
     };
     this._metadataErrorHandler = error => {
       this._request = undefined;
-      if (error.codeEquals(Code.CANCELED)) {
+      if (error._codeEquals(StorageErrorCode.CANCELED)) {
         this.completeTransitions_();
       } else {
         this._error = error;
@@ -174,7 +174,7 @@ export class UploadTask {
 
   private _resolveToken(callback: (p1: string | null) => void): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._ref.storage.getAuthToken().then(authToken => {
+    this._ref.storage._getAuthToken().then(authToken => {
       switch (this._state) {
         case InternalTaskState.RUNNING:
           callback(authToken);
@@ -201,7 +201,7 @@ export class UploadTask {
         this._blob,
         this._metadata
       );
-      const createRequest = this._ref.storage.makeRequest(
+      const createRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -225,7 +225,7 @@ export class UploadTask {
         url,
         this._blob
       );
-      const statusRequest = this._ref.storage.makeRequest(
+      const statusRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -270,7 +270,7 @@ export class UploadTask {
         this._transition(InternalTaskState.ERROR);
         return;
       }
-      const uploadRequest = this._ref.storage.makeRequest(
+      const uploadRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -305,7 +305,7 @@ export class UploadTask {
         this._ref._location,
         this._mappings
       );
-      const metadataRequest = this._ref.storage.makeRequest(
+      const metadataRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -327,7 +327,7 @@ export class UploadTask {
         this._blob,
         this._metadata
       );
-      const multipartRequest = this._ref.storage.makeRequest(
+      const multipartRequest = this._ref.storage._makeRequest(
         requestInfo,
         authToken
       );
@@ -437,6 +437,9 @@ export class UploadTask {
     }
   }
 
+  /**
+   * A snapshot of the current task state.
+   */
   get snapshot(): UploadTaskSnapshot {
     const externalState = taskStateFromInternalTaskState(this._state);
     return {
@@ -452,6 +455,19 @@ export class UploadTask {
   /**
    * Adds a callback for an event.
    * @param type - The type of event to listen for.
+   * @param nextOrObserver -
+   *     The `next` function, which gets called for each item in
+   *     the event stream, or an observer object with some or all of these three
+   *     properties (`next`, `error`, `complete`).
+   * @param error - A function that gets called with a `FirebaseStorageError`
+   *     if the event stream ends due to an error.
+   * @param completed - A function that gets called if the
+   *     event stream ends normally.
+   * @returns
+   *     If only the event argument is passed, returns a function you can use to
+   *     add callbacks (see the examples above). If more than just the event
+   *     argument is passed, returns a function you can call to unregister the
+   *     callbacks.
    */
   on(
     type: TaskEvent,

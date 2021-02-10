@@ -17,10 +17,25 @@
 import { assert } from 'chai';
 import { FbsBlob } from '../../src/implementation/blob';
 import { Location } from '../../src/implementation/location';
-import * as MetadataUtils from '../../src/implementation/metadata';
-import * as requests from '../../src/implementation/requests';
+import {
+  getMappings,
+  fromResourceString
+} from '../../src/implementation/metadata';
+import {
+  getMetadata,
+  list,
+  getDownloadUrl,
+  updateMetadata,
+  deleteObject,
+  multipartUpload,
+  createResumableUpload,
+  getResumableUploadStatus,
+  ResumableUploadStatus,
+  continueResumableUpload,
+  RESUMABLE_UPLOAD_CHUNK_SIZE
+} from '../../src/implementation/requests';
 import { makeUrl } from '../../src/implementation/url';
-import * as errors from '../../src/implementation/error';
+import { unknown, StorageErrorCode } from '../../src/implementation/error';
 import { RequestInfo } from '../../src/implementation/requestinfo';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { Metadata } from '../../src/metadata';
@@ -51,7 +66,7 @@ describe('Firebase Storage > Requests', () => {
   const smallBlobString = 'a';
   const bigBlob = new FbsBlob(new Blob([new ArrayBuffer(1024 * 1024)]));
 
-  const mappings = MetadataUtils.getMappings();
+  const mappings = getMappings();
 
   const mockApp: FirebaseApp = {
     name: 'mock-app',
@@ -106,7 +121,7 @@ describe('Firebase Storage > Requests', () => {
     metadata: { foo: 'bar' }
   };
   const serverResourceString = JSON.stringify(serverResource);
-  const metadataFromServerResource = MetadataUtils.fromResourceString(
+  const metadataFromServerResource = fromResourceString(
     storageService,
     serverResourceString,
     mappings
@@ -182,11 +197,7 @@ describe('Firebase Storage > Requests', () => {
       [locationEscapes, locationEscapesUrl]
     ];
     for (const [location, url] of maps) {
-      const requestInfo = requests.getMetadata(
-        storageService,
-        location,
-        mappings
-      );
+      const requestInfo = getMetadata(storageService, location, mappings);
       assertObjectIncludes(
         {
           url: makeUrl(url),
@@ -201,16 +212,12 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('getMetadata handler', () => {
-    const requestInfo = requests.getMetadata(
-      storageService,
-      locationNormal,
-      mappings
-    );
+    const requestInfo = getMetadata(storageService, locationNormal, mappings);
     checkMetadataHandler(requestInfo);
   });
 
   it('list root request info', () => {
-    const requestInfo = requests.list(storageService, locationRoot, '/');
+    const requestInfo = list(storageService, locationRoot, '/');
     assertObjectIncludes(
       {
         url: makeUrl(locationNormalNoObjUrl),
@@ -234,7 +241,7 @@ describe('Firebase Storage > Requests', () => {
     const pageToken = 'pageToken-afeafeagef';
     const maxResults = 13;
     for (const [location, locationNoObjectUrl] of maps) {
-      const requestInfo = requests.list(
+      const requestInfo = list(
         storageService,
         location,
         '/',
@@ -260,7 +267,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('list handler', () => {
-    const requestInfo = requests.list(storageService, locationNormal);
+    const requestInfo = list(storageService, locationNormal);
     const pageToken = 'YS9mLw==';
     const listResponse = {
       prefixes: ['a/f/'],
@@ -285,7 +292,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('list handler with custom bucket', () => {
-    const requestInfo = requests.list(storageService, locationDifferentBucket);
+    const requestInfo = list(storageService, locationDifferentBucket);
     const pageToken = 'YS9mLw==';
     const listResponse = {
       items: [
@@ -307,11 +314,7 @@ describe('Firebase Storage > Requests', () => {
       [locationEscapes, locationEscapesUrl]
     ];
     for (const [location, url] of maps) {
-      const requestInfo = requests.getDownloadUrl(
-        storageService,
-        location,
-        mappings
-      );
+      const requestInfo = getDownloadUrl(storageService, location, mappings);
       assertObjectIncludes(
         {
           url: makeUrl(url),
@@ -325,7 +328,7 @@ describe('Firebase Storage > Requests', () => {
     }
   });
   it('getDownloadUrl handler', () => {
-    const requestInfo = requests.getDownloadUrl(
+    const requestInfo = getDownloadUrl(
       storageService,
       locationNormal,
       mappings
@@ -341,7 +344,7 @@ describe('Firebase Storage > Requests', () => {
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
-      const requestInfo = requests.updateMetadata(
+      const requestInfo = updateMetadata(
         storageService,
         location,
         metadata,
@@ -360,7 +363,7 @@ describe('Firebase Storage > Requests', () => {
     }
   });
   it('updateMetadata handler', () => {
-    const requestInfo = requests.updateMetadata(
+    const requestInfo = updateMetadata(
       storageService,
       locationNormal,
       metadata,
@@ -377,7 +380,7 @@ describe('Firebase Storage > Requests', () => {
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
-      const requestInfo = requests.deleteObject(storageService, location);
+      const requestInfo = deleteObject(storageService, location);
       assertObjectIncludes(
         {
           url: makeUrl(url),
@@ -391,7 +394,7 @@ describe('Firebase Storage > Requests', () => {
     }
   });
   it('deleteObject handler', () => {
-    const requestInfo = requests.deleteObject(storageService, locationNormal);
+    const requestInfo = deleteObject(storageService, locationNormal);
     checkNoOpHandler(requestInfo);
   });
   it('multipartUpload request info', () => {
@@ -426,7 +429,7 @@ describe('Firebase Storage > Requests', () => {
           '--'
         );
       };
-      const requestInfo = requests.multipartUpload(
+      const requestInfo = multipartUpload(
         storageService,
         location,
         mappings,
@@ -462,7 +465,7 @@ describe('Firebase Storage > Requests', () => {
     return Promise.all(promises);
   });
   it('multipartUpload handler', () => {
-    const requestInfo = requests.multipartUpload(
+    const requestInfo = multipartUpload(
       storageService,
       locationNormal,
       mappings,
@@ -481,7 +484,7 @@ describe('Firebase Storage > Requests', () => {
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
-      const requestInfo = requests.createResumableUpload(
+      const requestInfo = createResumableUpload(
         storageService,
         location,
         mappings,
@@ -511,7 +514,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   function _testCreateResumableUploadHandler(): void {
-    const requestInfo = requests.createResumableUpload(
+    const requestInfo = createResumableUpload(
       storageService,
       locationNormal,
       mappings,
@@ -533,7 +536,7 @@ describe('Firebase Storage > Requests', () => {
   it('getResumableUploadStatus request info', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
-    const requestInfo = requests.getResumableUploadStatus(
+    const requestInfo = getResumableUploadStatus(
       storageService,
       locationNormal,
       url,
@@ -552,7 +555,7 @@ describe('Firebase Storage > Requests', () => {
   describe('getResumableUploadStatus handler', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
-    const requestInfo = requests.getResumableUploadStatus(
+    const requestInfo = getResumableUploadStatus(
       storageService,
       locationNormal,
       url,
@@ -566,11 +569,7 @@ describe('Firebase Storage > Requests', () => {
       }),
       ''
     );
-    let expectedStatus = new requests.ResumableUploadStatus(
-      0,
-      smallBlob.size(),
-      false
-    );
+    let expectedStatus = new ResumableUploadStatus(0, smallBlob.size(), false);
     assert.deepEqual(status, expectedStatus);
 
     status = requestInfo.handler(
@@ -580,7 +579,7 @@ describe('Firebase Storage > Requests', () => {
       }),
       ''
     );
-    expectedStatus = new requests.ResumableUploadStatus(
+    expectedStatus = new ResumableUploadStatus(
       smallBlob.size(),
       smallBlob.size(),
       true
@@ -590,12 +589,12 @@ describe('Firebase Storage > Requests', () => {
   it('continueResumableUpload request info', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
-    const requestInfo = requests.continueResumableUpload(
+    const requestInfo = continueResumableUpload(
       locationNormal,
       storageService,
       url,
       smallBlob,
-      requests.RESUMABLE_UPLOAD_CHUNK_SIZE,
+      RESUMABLE_UPLOAD_CHUNK_SIZE,
       mappings
     );
     assertObjectIncludes(
@@ -616,10 +615,10 @@ describe('Firebase Storage > Requests', () => {
   it('continueResumableUpload handler', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
-    const chunkSize = requests.RESUMABLE_UPLOAD_CHUNK_SIZE;
+    const chunkSize = RESUMABLE_UPLOAD_CHUNK_SIZE;
 
     assert.isTrue(smallBlob.size() < chunkSize);
-    let requestInfo = requests.continueResumableUpload(
+    let requestInfo = continueResumableUpload(
       locationNormal,
       storageService,
       url,
@@ -631,7 +630,7 @@ describe('Firebase Storage > Requests', () => {
       fakeXhrIo({ 'X-Goog-Upload-Status': 'final' }),
       serverResourceString
     );
-    let expectedStatus = new requests.ResumableUploadStatus(
+    let expectedStatus = new ResumableUploadStatus(
       smallBlob.size(),
       smallBlob.size(),
       true,
@@ -640,7 +639,7 @@ describe('Firebase Storage > Requests', () => {
     assert.deepEqual(status, expectedStatus);
 
     assert.isTrue(bigBlob.size() > chunkSize);
-    requestInfo = requests.continueResumableUpload(
+    requestInfo = continueResumableUpload(
       locationNormal,
       storageService,
       url,
@@ -652,7 +651,7 @@ describe('Firebase Storage > Requests', () => {
       fakeXhrIo({ 'X-Goog-Upload-Status': 'active' }),
       ''
     );
-    expectedStatus = new requests.ResumableUploadStatus(
+    expectedStatus = new ResumableUploadStatus(
       chunkSize,
       bigBlob.size(),
       false
@@ -661,33 +660,21 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('error handler passes through unknown errors', () => {
-    const requestInfo = requests.getMetadata(
-      storageService,
-      locationNormal,
-      mappings
-    );
-    const error = errors.unknown();
+    const requestInfo = getMetadata(storageService, locationNormal, mappings);
+    const error = unknown();
     const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 509), error);
     assert.equal(resultError, error);
   });
   it('error handler converts 404 to not found', () => {
-    const requestInfo = requests.getMetadata(
-      storageService,
-      locationNormal,
-      mappings
-    );
-    const error = errors.unknown();
+    const requestInfo = getMetadata(storageService, locationNormal, mappings);
+    const error = unknown();
     const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 404), error);
-    assert.isTrue(resultError.codeEquals(errors.Code.OBJECT_NOT_FOUND));
+    assert.isTrue(resultError._codeEquals(StorageErrorCode.OBJECT_NOT_FOUND));
   });
   it('error handler converts 402 to quota exceeded', () => {
-    const requestInfo = requests.getMetadata(
-      storageService,
-      locationNormal,
-      mappings
-    );
-    const error = errors.unknown();
+    const requestInfo = getMetadata(storageService, locationNormal, mappings);
+    const error = unknown();
     const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 402), error);
-    assert.isTrue(resultError.codeEquals(errors.Code.QUOTA_EXCEEDED));
+    assert.isTrue(resultError._codeEquals(StorageErrorCode.QUOTA_EXCEEDED));
   });
 });

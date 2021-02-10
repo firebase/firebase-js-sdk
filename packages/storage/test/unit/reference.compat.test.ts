@@ -27,7 +27,7 @@ import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { StorageService } from '../../src/service';
-import { StorageReference } from '../../src/reference';
+import { Reference } from '../../src/reference';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
@@ -52,10 +52,7 @@ function makeStorage(url: string): ReferenceCompat {
     {} as FirebaseApp,
     service
   );
-  return new ReferenceCompat(
-    new StorageReference(service, url),
-    storageServiceCompat
-  );
+  return new ReferenceCompat(new Reference(service, url), storageServiceCompat);
 }
 
 describe('Firebase Storage > Reference', () => {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 goog.provide('fireauth.IdToken');
 
+goog.require('goog.crypt');
 goog.require('goog.crypt.base64');
 
 
@@ -30,7 +31,7 @@ goog.require('goog.crypt.base64');
  * @constructor
  */
 fireauth.IdToken = function(tokenString) {
-  var token = fireauth.IdToken.parseIdTokenClaims(tokenString);
+  const token = fireauth.IdToken.parseIdTokenClaims(tokenString);
   if (!(token && token['sub'] && token['iss'] &&
         token['aud'] && token['exp'])) {
     throw new Error('Invalid JWT');
@@ -45,7 +46,7 @@ fireauth.IdToken = function(tokenString) {
   this.exp_ = token['exp'];
   /** @const @private {string} The local user ID of the token. */
   this.localId_ = token['sub'];
-  var now = goog.now() / 1000;
+  const now = Date.now() / 1000;
   /** @const @private {number} The issue time in seconds of the token. */
   this.iat_ = token['iat'] || (now > this.exp_ ? this.exp_ : now);
   /** @const @private {?string} The email address of the token. */
@@ -111,9 +112,21 @@ fireauth.IdToken.prototype.getEmail = function() {
 };
 
 
-/** @return {number} The expire time in seconds. */
+/**
+ * @deprecated Use client side clock to calculate when the token expires.
+ * @return {number} The expire time in seconds.
+ */
 fireauth.IdToken.prototype.getExp = function() {
   return this.exp_;
+};
+
+
+/**
+ * @return {number} The difference in seconds between when the token was
+ *     issued and when it expires.
+ */
+fireauth.IdToken.prototype.getExpiresIn = function() {
+  return this.exp_ - this.iat_;
 };
 
 
@@ -165,9 +178,12 @@ fireauth.IdToken.prototype.isVerified = function() {
 };
 
 
-/** @return {boolean} Whether token is expired. */
+/**
+ * @deprecated Use client side clock to calculate when the token expires.
+ * @return {boolean} Whether token is expired.
+ */
 fireauth.IdToken.prototype.isExpired = function() {
-  var now = Math.floor(goog.now() / 1000);
+  const now = Math.floor(Date.now() / 1000);
   // It is expired if token expiration time is less than current time.
   return this.getExp() <= now;
 };
@@ -218,18 +234,20 @@ fireauth.IdToken.parseIdTokenClaims = function(tokenString) {
     return null;
   }
   // Token format is <algorithm>.<info>.<sig>
-  var fields = tokenString.split('.');
+  const fields = tokenString.split('.');
   if (fields.length != 3) {
     return null;
   }
-  var jsonInfo = fields[1];
+  let jsonInfo = fields[1];
   // Google base64 library does not handle padding.
-  var padLen = (4 - jsonInfo.length % 4) % 4;
-  for (var i = 0; i < padLen; i++) {
+  const padLen = (4 - jsonInfo.length % 4) % 4;
+  for (let i = 0; i < padLen; i++) {
     jsonInfo += '.';
   }
   try {
-    var token = JSON.parse(goog.crypt.base64.decodeString(jsonInfo, true));
+    const decodedClaims = goog.crypt.utf8ByteArrayToString(
+        goog.crypt.base64.decodeStringToByteArray(jsonInfo));
+    const token = JSON.parse(decodedClaims);
     return /** @type {?Object} */ (token);
   } catch (e) {}
   return null;

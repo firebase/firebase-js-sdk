@@ -18,12 +18,6 @@
 import { Path } from '../util/Path';
 import { Operation, OperationSource, OperationType } from './Operation';
 
-/**
- * @param {!OperationSource} source
- * @param {!Path} path
- * @constructor
- * @implements {Operation}
- */
 export class ListenComplete implements Operation {
   /** @inheritDoc */
   type = OperationType.LISTEN_COMPLETE;

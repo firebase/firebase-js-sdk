@@ -31,11 +31,6 @@ export function setMaxNode(val: Node) {
   MAX_NODE = val;
 }
 
-/**
- * @constructor
- * @extends {Index}
- * @private
- */
 export class PriorityIndex extends Index {
   /**
    * @inheritDoc
@@ -80,18 +75,13 @@ export class PriorityIndex extends Index {
     return new NamedNode(MAX_NAME, new LeafNode('[PRIORITY-POST]', MAX_NODE));
   }
 
-  /**
-   * @param {*} indexValue
-   * @param {string} name
-   * @return {!NamedNode}
-   */
   makePost(indexValue: unknown, name: string): NamedNode {
     const priorityNode = nodeFromJSON(indexValue);
     return new NamedNode(name, new LeafNode('[PRIORITY-POST]', priorityNode));
   }
 
   /**
-   * @return {!string} String representation for inclusion in a query spec
+   * @return String representation for inclusion in a query spec
    */
   toString(): string {
     return '.priority';

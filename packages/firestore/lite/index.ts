@@ -24,7 +24,8 @@ export {
   FirebaseFirestore,
   initializeFirestore,
   getFirestore,
-  terminate
+  terminate,
+  useFirestoreEmulator
 } from '../src/lite/database';
 
 export {

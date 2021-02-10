@@ -23,7 +23,10 @@ import { Provider } from '@firebase/component';
 import {
   Functions,
   HttpsCallableOptions,
-  HttpsCallable
+  HttpsCallable,
+  HttpsCallableResult,
+  FunctionsError,
+  FunctionsErrorCode
 } from '@firebase/functions-types-exp';
 import {
   FunctionsService,
@@ -31,6 +34,15 @@ import {
   useFunctionsEmulator as _useFunctionsEmulator,
   httpsCallable as _httpsCallable
 } from './service';
+
+export {
+  Functions,
+  HttpsCallableOptions,
+  HttpsCallable,
+  HttpsCallableResult,
+  FunctionsError,
+  FunctionsErrorCode
+};
 
 /**
  * Returns a Functions instance for the given app.

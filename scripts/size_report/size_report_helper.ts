@@ -77,7 +77,7 @@ export function upload(
     console.log(`Response status code: ${response.statusCode}`);
     response.on('data', console.log);
     response.on('end', () => {
-      if (response.statusCode !== 202) {
+      if (response.statusCode !== 200 && response.statusCode !== 202) {
         process.exit(1);
       }
     });

@@ -18,13 +18,10 @@
 import { projectRoot, readPackageJson } from '../utils';
 import { writeFile as _writeFile, readFile as _readFile } from 'fs';
 import { promisify } from 'util';
-import path from 'path';
 
 const writeFile = promisify(_writeFile);
-const readFile = promisify(_readFile);
 const packagePath = `${projectRoot}/packages/firestore`;
 
-//
 /**
  * Transform package.json in @firebase/firestore so that we can use scripts/exp/release.ts to release Firestore exp.
  * It does following things:
@@ -60,8 +57,6 @@ export async function prepare() {
 
   packageJson.typings = expPackageJson.typings.replace('../', '');
 
-  delete packageJson.scripts.prepare;
-
   // include files to be published
   packageJson.files = [
     ...packageJson.files,
@@ -76,24 +71,4 @@ export async function prepare() {
     `${JSON.stringify(packageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
-
-  const expTypingPath = `${packagePath}/${packageJson.typings}`;
-  const liteTypingPath = path.resolve(
-    `${packagePath}/lite`,
-    litePackageJson.typings
-  );
-
-  // remove -exp in typings files
-  await replaceAppTypesExpInFile(expTypingPath);
-  await replaceAppTypesExpInFile(liteTypingPath);
-}
-
-async function replaceAppTypesExpInFile(filePath: string): Promise<void> {
-  const fileContent = await readFile(filePath, { encoding: 'utf-8' });
-  const newFileContent = fileContent.replace(
-    '@firebase/app-types-exp',
-    '@firebase/app-types'
-  );
-
-  await writeFile(filePath, newFileContent, { encoding: 'utf-8' });
 }

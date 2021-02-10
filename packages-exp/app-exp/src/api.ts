@@ -284,9 +284,7 @@ export function onLog(
   options?: LogOptions
 ): void {
   if (logCallback !== null && typeof logCallback !== 'function') {
-    throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT, {
-      appName: name
-    });
+    throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT);
   }
   setUserLogHandler(logCallback, options);
 }
@@ -303,3 +301,5 @@ export function onLog(
 export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
 }
+
+export { FirebaseApp, FirebaseAppConfig, FirebaseOptions };

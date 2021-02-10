@@ -17,8 +17,7 @@
     "test:all": "run-p test:browser test:integration",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run --nocache",
-    "test:integration": "karma start ./karma.integration.conf.js --single-run --nocache",
-    "prepare": "yarn build"
+    "test:integration": "karma start ./karma.integration.conf.js --single-run --nocache"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -34,8 +33,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.6.13",
-    "rollup": "2.33.2",
+    "@firebase/app": "0.6.14",
+    "rollup": "2.35.1",
     "@rollup/plugin-commonjs": "15.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",

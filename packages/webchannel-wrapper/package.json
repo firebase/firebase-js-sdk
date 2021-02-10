@@ -10,7 +10,6 @@
   "scripts": {
     "dev": "watch 'yarn build' src",
     "build": "gulp",
-    "prepare": "yarn build",
     "test": "echo 'No test suite for webchannel-wrapper'",
     "test:ci": "echo 'No test suite for webchannel-wrapper'"
   },
@@ -20,7 +19,7 @@
     "google-closure-library": "20201006.0.0",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
-    "rollup": "2.33.2",
+    "rollup": "2.35.1",
     "@rollup/plugin-commonjs": "15.1.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.29.0",

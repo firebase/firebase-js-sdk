@@ -32,6 +32,10 @@ describe('CollectionReference', () => {
     expectEqual(collectionReference('foo'), collectionReference('foo'));
     expectNotEqual(collectionReference('foo'), collectionReference('bar'));
   });
+
+  it('JSON.stringify() does not throw', () => {
+    JSON.stringify(collectionReference('foo'));
+  });
 });
 
 describe('DocumentReference', () => {
@@ -41,6 +45,10 @@ describe('DocumentReference', () => {
       documentReference('rooms/foo'),
       documentReference('rooms/bar')
     );
+  });
+
+  it('JSON.stringify() does not throw', () => {
+    JSON.stringify(documentReference('foo/bar'));
   });
 });
 
@@ -72,12 +80,20 @@ describe('DocumentSnapshot', () => {
       documentSnapshot('rooms/bar', { a: 1 }, false)
     );
   });
+
+  it('JSON.stringify() does not throw', () => {
+    JSON.stringify(documentSnapshot('foo/bar', { a: 1 }, true));
+  });
 });
 
 describe('Query', () => {
   it('support equality checking with isEqual()', () => {
     expectEqual(query('foo'), query('foo'));
     expectNotEqual(query('foo'), query('bar'));
+  });
+
+  it('JSON.stringify() does not throw', () => {
+    JSON.stringify(query('foo'));
   });
 });
 
@@ -121,6 +137,12 @@ describe('QuerySnapshot', () => {
     expectNotEqual(
       querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
       querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
+    );
+  });
+
+  it('JSON.stringify() does not throw', () => {
+    JSON.stringify(
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
     );
   });
 });

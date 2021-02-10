@@ -155,6 +155,8 @@ export abstract class FieldValue {
 export class FirebaseFirestore {
     // (undocumented)
     get app(): FirebaseApp;
+    // (undocumented)
+    toJSON(): object;
 }
 
 // @public
@@ -225,7 +227,29 @@ export function limit(limit: number): QueryConstraint;
 // @public
 export function limitToLast(limit: number): QueryConstraint;
 
+// @public
+export function loadBundle(firestore: FirebaseFirestore, bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string): LoadBundleTask;
+
+// @public
+export class LoadBundleTask {
+    catch<R>(onRejected: (a: FirestoreError) => R | LoadBundleTask<R>): Promise<R | LoadBundleTaskProgress>;
+    onProgress(next?: (progress: LoadBundleTaskProgress) => unknown, error?: (err: FirestoreError) => unknown, complete?: () => void): void;
+    then<T, R>(onFulfilled?: (a: LoadBundleTaskProgress) => T | LoadBundleTask<T>, onRejected?: (a: FirestoreError) => R | LoadBundleTask<R>): Promise<T | R>;
+}
+
+// @public
+export interface LoadBundleTaskProgress {
+    bytesLoaded: number;
+    documentsLoaded: number;
+    taskState: TaskState;
+    totalBytes: number;
+    totalDocuments: number;
+}
+
 export { LogLevel }
+
+// @public
+export function namedQuery(firestore: FirebaseFirestore, name: string): Promise<Query | null>;
 
 // @public
 export function onSnapshot<T>(reference: DocumentReference<T>, observer: {
@@ -402,6 +426,9 @@ export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 export function startAt(...fieldValues: unknown[]): QueryConstraint;
 
 // @public
+export type TaskState = 'Error' | 'Running' | 'Success';
+
+// @public
 export function terminate(firestore: FirebaseFirestore): Promise<void>;
 
 // @public
@@ -459,6 +486,9 @@ export function updateDoc(reference: DocumentReference<unknown>, data: UpdateDat
 
 // @public
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
+
+// @public
+export function useFirestoreEmulator(firestore: FirebaseFirestore, host: string, port: number): void;
 
 // @public
 export function waitForPendingWrites(firestore: FirebaseFirestore): Promise<void>;

@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { LoadBundleTask } from '../../../src/api/bundle';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
@@ -43,21 +42,22 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { SyncEngine } from '../../../src/core/sync_engine';
 import {
-  activeLimboDocumentResolutions,
-  enqueuedLimboDocumentResolutions,
-  registerPendingWritesCallback,
-  SyncEngine,
+  syncEngineGetActiveLimboDocumentResolutions,
+  syncEngineGetEnqueuedLimboDocumentResolutions,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite
-} from '../../../src/core/sync_engine';
+} from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import { LoadBundleTask } from '../../../src/exp/bundle';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
@@ -118,7 +118,6 @@ import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
-import { SortedSet } from '../../../src/util/sorted_set';
 import {
   byteStringFromString,
   deletedDoc,
@@ -753,7 +752,7 @@ abstract class TestRunner {
     const deferred = new Deferred();
     void deferred.promise.then(() => ++this.waitForPendingWritesEvents);
     return this.queue.enqueue(() =>
-      registerPendingWritesCallback(this.syncEngine, deferred)
+      syncEngineRegisterPendingWritesCallback(this.syncEngine, deferred)
     );
   }
 
@@ -974,7 +973,9 @@ abstract class TestRunner {
   }
 
   private validateActiveLimboDocs(): void {
-    let actualLimboDocs = activeLimboDocumentResolutions(this.syncEngine);
+    let actualLimboDocs = syncEngineGetActiveLimboDocumentResolutions(
+      this.syncEngine
+    );
 
     if (this.connection.isWatchOpen) {
       // Validate that each active limbo doc has an expected active target
@@ -1006,29 +1007,16 @@ abstract class TestRunner {
   }
 
   private validateEnqueuedLimboDocs(): void {
-    let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    enqueuedLimboDocumentResolutions(this.syncEngine).forEach(key => {
-      actualLimboDocs = actualLimboDocs.add(key);
-    });
-    let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    this.expectedEnqueuedLimboDocs.forEach(key => {
-      expectedLimboDocs = expectedLimboDocs.add(key);
-    });
-    actualLimboDocs.forEach(key => {
-      expect(expectedLimboDocs.has(key)).to.equal(
-        true,
-        `Found enqueued limbo doc ${key.toString()}, but it was not in ` +
-          `the set of expected enqueued limbo documents ` +
-          `(${expectedLimboDocs.toString()})`
-      );
-    });
-    expectedLimboDocs.forEach(key => {
-      expect(actualLimboDocs.has(key)).to.equal(
-        true,
-        `Expected doc ${key.toString()} to be enqueued for limbo resolution, ` +
-          `but it was not in the queue (${actualLimboDocs.toString()})`
-      );
-    });
+    const actualLimboDocs = Array.from(
+      syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine)
+    );
+    const expectedLimboDocs = Array.from(this.expectedEnqueuedLimboDocs, key =>
+      key.path.canonicalString()
+    );
+    expect(actualLimboDocs).to.have.members(
+      expectedLimboDocs,
+      'The set of enqueued limbo documents is incorrect'
+    );
   }
 
   private async validateActiveTargets(): Promise<void> {

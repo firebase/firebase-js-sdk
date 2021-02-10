@@ -18,15 +18,15 @@
 import { Operation, OperationType } from '../operation/Operation';
 import { assert, assertionError } from '@firebase/util';
 import { ChildChangeAccumulator } from './ChildChangeAccumulator';
-import { Change } from './Change';
+import { Change, changeValue } from './Change';
 import { ChildrenNode } from '../snap/ChildrenNode';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { ImmutableTree } from '../util/ImmutableTree';
 import { Path } from '../util/Path';
 import {
-  WriteTreeCompleteChildSource,
+  CompleteChildSource,
   NO_COMPLETE_CHILD_SOURCE,
-  CompleteChildSource
+  WriteTreeCompleteChildSource
 } from './CompleteChildSource';
 import { ViewCache } from './ViewCache';
 import { NodeFilter } from './filter/NodeFilter';
@@ -36,15 +36,7 @@ import { Merge } from '../operation/Merge';
 import { AckUserWrite } from '../operation/AckUserWrite';
 import { Node } from '../snap/Node';
 
-/**
- * @constructor
- * @struct
- */
 export class ProcessorResult {
-  /**
-   * @param {!ViewCache} viewCache
-   * @param {!Array.<!Change>} changes
-   */
   constructor(
     public readonly viewCache: ViewCache,
     public readonly changes: Change[]
@@ -52,17 +44,10 @@ export class ProcessorResult {
 }
 
 /**
- * @constructor
  */
 export class ViewProcessor {
-  /**
-   * @param {!NodeFilter} filter_
-   */
   constructor(private readonly filter_: NodeFilter) {}
 
-  /**
-   * @param {!ViewCache} viewCache
-   */
   assertIndexed(viewCache: ViewCache) {
     assert(
       viewCache.getEventCache().getNode().isIndexed(this.filter_.getIndex()),
@@ -74,13 +59,6 @@ export class ViewProcessor {
     );
   }
 
-  /**
-   * @param {!ViewCache} oldViewCache
-   * @param {!Operation} operation
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} completeCache
-   * @return {!ProcessorResult}
-   */
   applyOperation(
     oldViewCache: ViewCache,
     operation: Operation,
@@ -180,12 +158,6 @@ export class ViewProcessor {
     return new ProcessorResult(newViewCache, changes);
   }
 
-  /**
-   * @param {!ViewCache} oldViewCache
-   * @param {!ViewCache} newViewCache
-   * @param {!Array.<!Change>} accumulator
-   * @private
-   */
   private static maybeAddValueEvent_(
     oldViewCache: ViewCache,
     newViewCache: ViewCache,
@@ -199,28 +171,14 @@ export class ViewProcessor {
       if (
         accumulator.length > 0 ||
         !oldViewCache.getEventCache().isFullyInitialized() ||
-        (isLeafOrEmpty &&
-          !eventSnap.getNode().equals(/** @type {!Node} */ oldCompleteSnap)) ||
+        (isLeafOrEmpty && !eventSnap.getNode().equals(oldCompleteSnap)) ||
         !eventSnap.getNode().getPriority().equals(oldCompleteSnap.getPriority())
       ) {
-        accumulator.push(
-          Change.valueChange(
-            /** @type {!Node} */ newViewCache.getCompleteEventSnap()
-          )
-        );
+        accumulator.push(changeValue(newViewCache.getCompleteEventSnap()));
       }
     }
   }
 
-  /**
-   * @param {!ViewCache} viewCache
-   * @param {!Path} changePath
-   * @param {!WriteTreeRef} writesCache
-   * @param {!CompleteChildSource} source
-   * @param {!ChildChangeAccumulator} accumulator
-   * @return {!ViewCache}
-   * @private
-   */
   private generateEventCacheAfterServerEvent_(
     viewCache: ViewCache,
     changePath: Path,
@@ -342,17 +300,6 @@ export class ViewProcessor {
     }
   }
 
-  /**
-   * @param {!ViewCache} oldViewCache
-   * @param {!Path} changePath
-   * @param {!Node} changedSnap
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} completeCache
-   * @param {boolean} filterServerNode
-   * @param {!ChildChangeAccumulator} accumulator
-   * @return {!ViewCache}
-   * @private
-   */
   applyServerOverwrite_(
     oldViewCache: ViewCache,
     changePath: Path,
@@ -430,16 +377,6 @@ export class ViewProcessor {
     );
   }
 
-  /**
-   * @param {!ViewCache} oldViewCache
-   * @param {!Path} changePath
-   * @param {!Node} changedSnap
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} completeCache
-   * @param {!ChildChangeAccumulator} accumulator
-   * @return {!ViewCache}
-   * @private
-   */
   applyUserOverwrite_(
     oldViewCache: ViewCache,
     changePath: Path,
@@ -525,12 +462,6 @@ export class ViewProcessor {
     return newViewCache;
   }
 
-  /**
-   * @param {!ViewCache} viewCache
-   * @param {string} childKey
-   * @return {boolean}
-   * @private
-   */
   private static cacheHasChild_(
     viewCache: ViewCache,
     childKey: string
@@ -538,16 +469,6 @@ export class ViewProcessor {
     return viewCache.getEventCache().isCompleteForChild(childKey);
   }
 
-  /**
-   * @param {!ViewCache} viewCache
-   * @param {!Path} path
-   * @param {ImmutableTree.<!Node>} changedChildren
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} serverCache
-   * @param {!ChildChangeAccumulator} accumulator
-   * @return {!ViewCache}
-   * @private
-   */
   private applyUserMerge_(
     viewCache: ViewCache,
     path: Path,
@@ -594,12 +515,6 @@ export class ViewProcessor {
     return curViewCache;
   }
 
-  /**
-   * @param {!Node} node
-   * @param {ImmutableTree.<!Node>} merge
-   * @return {!Node}
-   * @private
-   */
   private applyMerge_(node: Node, merge: ImmutableTree<Node>): Node {
     merge.foreach((relativePath, childNode) => {
       node = node.updateChild(relativePath, childNode);
@@ -607,17 +522,6 @@ export class ViewProcessor {
     return node;
   }
 
-  /**
-   * @param {!ViewCache} viewCache
-   * @param {!Path} path
-   * @param {!ImmutableTree.<!Node>} changedChildren
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} serverCache
-   * @param {boolean} filterServerNode
-   * @param {!ChildChangeAccumulator} accumulator
-   * @return {!ViewCache}
-   * @private
-   */
   private applyServerMerge_(
     viewCache: ViewCache,
     path: Path,
@@ -647,7 +551,10 @@ export class ViewProcessor {
     if (path.isEmpty()) {
       viewMergeTree = changedChildren;
     } else {
-      viewMergeTree = ImmutableTree.Empty.setTree(path, changedChildren);
+      viewMergeTree = new ImmutableTree<Node>(null).setTree(
+        path,
+        changedChildren
+      );
     }
     const serverNode = viewCache.getServerCache().getNode();
     viewMergeTree.children.inorderTraversal((childKey, childTree) => {
@@ -693,16 +600,6 @@ export class ViewProcessor {
     return curViewCache;
   }
 
-  /**
-   * @param {!ViewCache} viewCache
-   * @param {!Path} ackPath
-   * @param {!ImmutableTree<!boolean>} affectedTree
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} completeCache
-   * @param {!ChildChangeAccumulator} accumulator
-   * @return {!ViewCache}
-   * @private
-   */
   private ackUserWrite_(
     viewCache: ViewCache,
     ackPath: Path,
@@ -739,7 +636,7 @@ export class ViewProcessor {
       } else if (ackPath.isEmpty()) {
         // This is a goofy edge case where we are acking data at this location but don't have full data.  We
         // should just re-apply whatever we have in our cache as a merge.
-        let changedChildren = ImmutableTree.Empty;
+        let changedChildren = new ImmutableTree<Node>(null);
         serverCache.getNode().forEachChild(KEY_INDEX, (name, node) => {
           changedChildren = changedChildren.set(new Path(name), node);
         });
@@ -757,7 +654,7 @@ export class ViewProcessor {
       }
     } else {
       // This is a merge.
-      let changedChildren = ImmutableTree.Empty;
+      let changedChildren = new ImmutableTree<Node>(null);
       affectedTree.foreach((mergePath, value) => {
         const serverCachePath = ackPath.child(mergePath);
         if (serverCache.isCompleteForPath(serverCachePath)) {
@@ -779,14 +676,6 @@ export class ViewProcessor {
     }
   }
 
-  /**
-   * @param {!ViewCache} viewCache
-   * @param {!Path} path
-   * @param {!WriteTreeRef} writesCache
-   * @param {!ChildChangeAccumulator} accumulator
-   * @return {!ViewCache}
-   * @private
-   */
   private listenComplete_(
     viewCache: ViewCache,
     path: Path,
@@ -808,15 +697,6 @@ export class ViewProcessor {
     );
   }
 
-  /**
-   * @param {!ViewCache} viewCache
-   * @param {!Path} path
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} completeServerCache
-   * @param {!ChildChangeAccumulator} accumulator
-   * @return {!ViewCache}
-   * @private
-   */
   private revertUserWrite_(
     viewCache: ViewCache,
     path: Path,

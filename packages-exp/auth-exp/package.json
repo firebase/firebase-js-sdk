@@ -7,6 +7,7 @@
   "main": "dist/node/index.js",
   "react-native": "dist/rn/index.js",
   "browser": "dist/esm5/index.js",
+  "cordova": "dist/cordova/index.esm5.js",
   "module": "dist/esm5/index.js",
   "esm2017": "dist/esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
@@ -16,7 +17,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/auth-exp --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
     "test:all": "run-p test:browser test:node",
@@ -26,12 +27,14 @@
     "test:browser:integration": "karma start --single-run --integration",
     "test:browser:debug": "karma start --auto-watch",
     "test:browser:unit:debug": "karma start --auto-watch --unit",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native)/**/*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
-    "prepare": "rollup -c rollup.config.release.js",
+    "test:cordova": "karma start --single-run --cordova",
+    "test:cordova:debug": "karma start --auto-watch --cordova",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native|platform_cordova)/**/*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn build && yarn doc"
+    "build:doc": "yarn build && yarn doc",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/auth-exp-public.d.ts"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
@@ -48,7 +51,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/app-exp": "0.0.900",
-    "rollup": "2.33.2",
+    "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.29.0",

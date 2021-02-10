@@ -122,6 +122,8 @@ export abstract class FieldValue {
 // @public
 export class FirebaseFirestore {
     get app(): FirebaseApp;
+    // (undocumented)
+    toJSON(): object;
 }
 
 // @public
@@ -328,6 +330,9 @@ export function updateDoc(reference: DocumentReference<unknown>, data: UpdateDat
 
 // @public
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
+
+// @public
+export function useFirestoreEmulator(firestore: FirebaseFirestore, host: string, port: number): void;
 
 // @public
 export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;

@@ -22,7 +22,7 @@ export declare function terminate(firestore: FirebaseFirestore): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  firestore | [FirebaseFirestore](./firestore_lite.firebasefirestore.md) |  |
+|  firestore | [FirebaseFirestore](./firestore_lite.firebasefirestore.md) | The Firestore instance to terminate. |
 
 <b>Returns:</b>
 

@@ -29,17 +29,14 @@ export class Path {
 
   /**
    * Singleton to represent an empty path
-   *
-   * @const
    */
   static get Empty() {
     return new Path('');
   }
 
   /**
-   * @param {string|Array.<string>} pathOrString Path string to parse,
-   *      or another path, or the raw tokens array
-   * @param {number=} pieceNum
+   * @param pathOrString Path string to parse, or another path, or the raw
+   * tokens array
    */
   constructor(pathOrString: string | string[], pieceNum?: number) {
     if (pieceNum === void 0) {
@@ -71,15 +68,12 @@ export class Path {
   }
 
   /**
-   * @return {number} The number of segments in this path
+   * @return The number of segments in this path
    */
   getLength(): number {
     return this.pieces_.length - this.pieceNum_;
   }
 
-  /**
-   * @return {!Path}
-   */
   popFront(): Path {
     let pieceNum = this.pieceNum_;
     if (pieceNum < this.pieces_.length) {
@@ -88,9 +82,6 @@ export class Path {
     return new Path(this.pieces_, pieceNum);
   }
 
-  /**
-   * @return {?string}
-   */
   getBack(): string | null {
     if (this.pieceNum_ < this.pieces_.length) {
       return this.pieces_[this.pieces_.length - 1];
@@ -124,16 +115,11 @@ export class Path {
   /**
    * Shallow copy of the parts of the path.
    *
-   * @param {number=} begin
-   * @return {!Array<string>}
    */
   slice(begin: number = 0): string[] {
     return this.pieces_.slice(this.pieceNum_ + begin);
   }
 
-  /**
-   * @return {?Path}
-   */
   parent(): Path | null {
     if (this.pieceNum_ >= this.pieces_.length) {
       return null;
@@ -147,10 +133,6 @@ export class Path {
     return new Path(pieces, 0);
   }
 
-  /**
-   * @param {string|!Path} childPathObj
-   * @return {!Path}
-   */
   child(childPathObj: string | Path): Path {
     const pieces = [];
     for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
@@ -178,16 +160,14 @@ export class Path {
   }
 
   /**
-   * @return {boolean} True if there are no segments in this path
+   * @return True if there are no segments in this path
    */
   isEmpty(): boolean {
     return this.pieceNum_ >= this.pieces_.length;
   }
 
   /**
-   * @param {!Path} outerPath
-   * @param {!Path} innerPath
-   * @return {!Path} The path from outerPath to innerPath
+   * @return The path from outerPath to innerPath
    */
   static relativePath(outerPath: Path, innerPath: Path): Path {
     const outer = outerPath.getFront(),
@@ -209,9 +189,7 @@ export class Path {
   }
 
   /**
-   * @param {!Path} left
-   * @param {!Path} right
-   * @return {number} -1, 0, 1 if left is less, equal, or greater than the right.
+   * @return -1, 0, 1 if left is less, equal, or greater than the right.
    */
   static comparePaths(left: Path, right: Path): number {
     const leftKeys = left.slice();
@@ -229,9 +207,7 @@ export class Path {
   }
 
   /**
-   *
-   * @param {Path} other
-   * @return {boolean} true if paths are the same.
+   * @return true if paths are the same.
    */
   equals(other: Path): boolean {
     if (this.getLength() !== other.getLength()) {
@@ -252,9 +228,7 @@ export class Path {
   }
 
   /**
-   *
-   * @param {!Path} other
-   * @return {boolean} True if this path is a parent (or the same as) other
+   * @return True if this path is a parent (or the same as) other
    */
   contains(other: Path): boolean {
     let i = this.pieceNum_;
@@ -284,19 +258,17 @@ export class Path {
  * The definition of a path always begins with '/'.
  */
 export class ValidationPath {
-  /** @type {!Array<string>} */
   private parts_: string[];
-  /** @type {number} Initialize to number of '/' chars needed in path. */
+  /** Initialize to number of '/' chars needed in path. */
   private byteLength_: number;
 
   /**
-   * @param {!Path} path Initial Path.
-   * @param {string} errorPrefix_ Prefix for any error messages.
+   * @param path Initial Path.
+   * @param errorPrefix_ Prefix for any error messages.
    */
   constructor(path: Path, private errorPrefix_: string) {
-    /** @type {!Array<string>} */
     this.parts_ = path.slice();
-    /** @type {number} Initialize to number of '/' chars needed in path. */
+    /** Initialize to number of '/' chars needed in path. */
     this.byteLength_ = Math.max(1, this.parts_.length);
 
     for (let i = 0; i < this.parts_.length; i++) {
@@ -315,7 +287,7 @@ export class ValidationPath {
     return 768;
   }
 
-  /** @param {string} child */
+  /** @param child */
   push(child: string) {
     // Count the needed '/'
     if (this.parts_.length > 0) {
@@ -359,8 +331,6 @@ export class ValidationPath {
 
   /**
    * String for use in error messages - uses '.' notation for path.
-   *
-   * @return {string}
    */
   toErrorString(): string {
     if (this.parts_.length === 0) {

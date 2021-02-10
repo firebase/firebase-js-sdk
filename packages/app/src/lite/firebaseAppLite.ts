@@ -90,7 +90,7 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
   }
 
   delete(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       this.checkDestroyed_();
       resolve();
     })
@@ -140,5 +140,13 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
     if (this.isDeleted_) {
       throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this.name_ });
     }
+  }
+
+  toJSON(): object {
+    return {
+      name: this.name,
+      automaticDataCollectionEnabled: this.automaticDataCollectionEnabled,
+      options: this.options
+    };
   }
 }

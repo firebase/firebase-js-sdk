@@ -86,7 +86,7 @@ export class FirebaseAppImpl implements FirebaseApp {
   }
 
   delete(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       this.checkDestroyed_();
       resolve();
     })
@@ -161,6 +161,14 @@ export class FirebaseAppImpl implements FirebaseApp {
 
   _addOrOverwriteComponent(component: Component): void {
     this.container.addOrOverwriteComponent(component);
+  }
+
+  toJSON(): object {
+    return {
+      name: this.name,
+      automaticDataCollectionEnabled: this.automaticDataCollectionEnabled,
+      options: this.options
+    };
   }
 
   /**
