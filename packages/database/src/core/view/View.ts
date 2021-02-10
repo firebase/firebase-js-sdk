@@ -92,6 +92,10 @@ export class View {
     return this.viewCache_.getServerCache().getNode();
   }
 
+  getCompleteNode(): Node | null {
+    return this.viewCache_.getCompleteEventSnap();
+  }
+
   getCompleteServerCache(path: Path): Node | null {
     const cache = this.viewCache_.getCompleteServerSnap();
     if (cache) {
