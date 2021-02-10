@@ -90,7 +90,7 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
   }
 
   delete(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       this.checkDestroyed_();
       resolve();
     })
