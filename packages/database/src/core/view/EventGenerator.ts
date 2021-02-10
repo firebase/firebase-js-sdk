@@ -58,7 +58,7 @@ export function eventGeneratorGenerateEventsForChanges(
   changes.forEach(change => {
     if (
       change.type === ChangeType.CHILD_CHANGED &&
-      this.index_.indexedValueChanged(
+      eventGenerator.index_.indexedValueChanged(
         change.oldSnap as Node,
         change.snapshotNode
       )
