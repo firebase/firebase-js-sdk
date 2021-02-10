@@ -1,5 +1,13 @@
 # @firebase/firestore
 
+## 2.1.6
+
+### Patch Changes
+
+- [`a718518e9`](https://github.com/firebase/firebase-js-sdk/commit/a718518e935931709669ea2e88f9711143655e61) [#4395](https://github.com/firebase/firebase-js-sdk/pull/4395) - Fixes a bug where local cache inconsistencies were unnecessarily being resolved.
+
+* [`3d0cd6f33`](https://github.com/firebase/firebase-js-sdk/commit/3d0cd6f33127e75e15aec9b6589eea360827df7a) [#4382](https://github.com/firebase/firebase-js-sdk/pull/4382) - Fix the path to the react native build for the Firestore memory build
+
 ## 2.1.5
 
 ### Patch Changes
