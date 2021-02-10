@@ -80,6 +80,18 @@ describe('Serializer', () => {
     expect(serializer.decode(1.2)).to.equal(1.2);
   });
 
+  it('encodes date', () => {
+    expect(serializer.encode(new Date('2021-02-10T13:26:37.977Z'))).to.equal(
+      '2021-02-10T13:26:37.977Z'
+    );
+  });
+
+  it('decodes date', () => {
+    expect(serializer.decode('2021-02-10T13:26:37.977Z')).to.deep.equal(
+      new Date('2021-02-10T13:26:37.977Z')
+    );
+  });
+
   it('encodes string', () => {
     expect(serializer.encode('hello')).to.equal('hello');
   });

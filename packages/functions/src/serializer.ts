@@ -51,6 +51,9 @@ export class Serializer {
     if (data === true || data === false) {
       return data;
     }
+    if (data instanceof Date) {
+      return data.toISOString();
+    }
     if (Object.prototype.toString.call(data) === '[object String]') {
       return data;
     }
@@ -94,6 +97,14 @@ export class Serializer {
     }
     if (typeof json === 'function' || typeof json === 'object') {
       return mapValues(json!, x => this.decode(x));
+    }
+    if (
+      typeof json === 'string' &&
+      /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/.test(
+        json
+      )
+    ) {
+      return new Date(json);
     }
     // Anything else is safe to return.
     return json;
