@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## EmailAuthCredential class
 
 Interface that represents the credentials returned by [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) for [ProviderId.PASSWORD](./auth-types.md#provideridpassword_enummember)

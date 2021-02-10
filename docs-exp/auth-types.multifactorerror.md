@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## MultiFactorError interface
 
 The error thrown when the user needs to provide a second factor to sign in successfully.

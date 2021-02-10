@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## EventParams interface
 
 Standard gtag.js event parameters. For more information, see [the gtag.js documentation on parameters](https://developers.google.com/gtagjs/reference/parameter)<!-- -->.

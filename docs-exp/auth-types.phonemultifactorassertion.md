@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## PhoneMultiFactorAssertion interface
 
 The class for asserting ownership of a phone second factor. Provided by [PhoneMultiFactorGenerator.assertion()](./auth-types.phonemultifactorgenerator.md#phonemultifactorgeneratorassertion_method)<!-- -->.

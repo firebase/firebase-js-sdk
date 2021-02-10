@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## Settings interface
 
 Defines configuration options for the Remote Config SDK.

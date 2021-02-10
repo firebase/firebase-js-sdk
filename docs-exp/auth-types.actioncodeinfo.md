@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## ActionCodeInfo interface
 
 A response from [checkActionCode()](./auth.md#checkactioncode_function)<!-- -->.

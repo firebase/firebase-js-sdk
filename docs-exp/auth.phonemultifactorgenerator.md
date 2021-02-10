@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## PhoneMultiFactorGenerator class
 
 Provider for generating a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md#phonemultifactorassertion_interface)<!-- -->.

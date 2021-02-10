@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## LoadBundleTask class
 
 Represents the task of loading a Firestore bundle. It provides progress of bundle loading, as well as task completion and error events.

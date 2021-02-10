@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## AuthProvider interface
 
 Interface that represents an auth provider, used to facilitate creating [AuthCredential](./auth-types.authcredential.md#authcredential_class)<!-- -->.

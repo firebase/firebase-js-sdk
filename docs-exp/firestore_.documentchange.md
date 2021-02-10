@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## DocumentChange interface
 
 A `DocumentChange` represents a change to the documents matching a query. It contains the document affected and the type of change that occurred.

@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## Query class
 
 A `Query` refers to a Query which you can read or listen to. You can also construct refined `Query` objects by adding filters and ordering.

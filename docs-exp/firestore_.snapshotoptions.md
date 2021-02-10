@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## SnapshotOptions interface
 
 Options that configure how data is retrieved from a `DocumentSnapshot` (for example the desired behavior for server timestamps that have not yet been set to their final value).

@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## SettingsOptions interface
 
 Specifies custom options for your Firebase Analytics instance. You must set these before initializing `firebase.analytics()`<!-- -->.

@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## CollectionReference class
 
 A `CollectionReference` object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query_function)<!-- -->).

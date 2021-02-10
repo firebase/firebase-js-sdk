@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## AnalyticsCallOptions interface
 
 Additional options that can be passed to Firebase Analytics method calls such as `logEvent`<!-- -->, `setCurrentScreen`<!-- -->, etc.

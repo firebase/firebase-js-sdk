@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## AuthCredential class
 
 Interface that represents the credentials returned by an [AuthProvider](./auth-types.authprovider.md#authprovider_interface)<!-- -->.

@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## DynamicConfig interface
 
 Dynamic configuration fetched from server. See https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig

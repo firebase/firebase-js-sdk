@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## PhoneAuthCredential class
 
 Interface that represents the credentials returned by a [PhoneAuthProvider](./auth.phoneauthprovider.md#phoneauthprovider_class)<!-- -->.

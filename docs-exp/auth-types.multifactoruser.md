@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## MultiFactorUser interface
 
 An interface that defines the multi-factor related properties and operations pertaining to a [User](./auth-types.user.md#user_interface)<!-- -->.

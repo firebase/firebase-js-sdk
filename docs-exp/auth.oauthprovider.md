@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## OAuthProvider class
 
 Provider for generating generic [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class)<!-- -->.

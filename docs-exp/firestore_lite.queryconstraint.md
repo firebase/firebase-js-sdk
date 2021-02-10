@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## QueryConstraint class
 
 A `QueryConstraint` is used to narrow the set of documents returned by a Firestore query. `QueryConstraint`<!-- -->s are created by invoking [where()](./firestore_.md#where_function)<!-- -->, [orderBy()](./firestore_.md#orderby_function)<!-- -->, , , , , [limit()](./firestore_.md#limit_function) or [limitToLast()](./firestore_.md#limittolast_function) and can then be passed to [query()](./firestore_.md#query_function) to create a new query instance that also contains this `QueryConstraint`<!-- -->.

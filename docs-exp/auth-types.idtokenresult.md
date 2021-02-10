@@ -1,4 +1,7 @@
-{% extends "_internal/templates/reference.html" %}{% block title %}Title{% endblock title %}{% block body %}
+{% extends "_internal/templates/reference.html" %}
+{% block title %}Title{% endblock title %}
+{% block body %}
+
 ## IdTokenResult interface
 
 Interface representing ID token result obtained from [User.getIdTokenResult()](./auth-types.user.md#usergetidtokenresult_method)<!-- -->.
