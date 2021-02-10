@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { VersionService } from '@firebase/app-types';
 import { expect } from 'chai';
 import '../test/setup';
 import { PlatformLoggerService } from './platformLoggerService';
@@ -24,6 +23,7 @@ import {
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
+import { VersionService } from './types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

@@ -5,9 +5,6 @@
 ```ts
 
 import { Component } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebaseAppConfig } from '@firebase/app-types-exp';
-import { FirebaseOptions } from '@firebase/app-types-exp';
 import { LogCallback } from '@firebase/logger';
 import { LogLevelString } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
@@ -35,11 +32,47 @@ export const _DEFAULT_ENTRY_NAME = "[DEFAULT]";
 // @public
 export function deleteApp(app: FirebaseApp): Promise<void>;
 
-export { FirebaseApp }
+// @public
+export interface FirebaseApp {
+    automaticDataCollectionEnabled: boolean;
+    readonly name: string;
+    readonly options: FirebaseOptions;
+}
 
-export { FirebaseAppConfig }
+// @public (undocumented)
+export interface FirebaseAppConfig {
+    // (undocumented)
+    automaticDataCollectionEnabled?: boolean;
+    // (undocumented)
+    name?: string;
+}
 
-export { FirebaseOptions }
+// @public (undocumented)
+export interface FirebaseOptions {
+    // (undocumented)
+    apiKey?: string;
+    // (undocumented)
+    appId?: string;
+    // (undocumented)
+    authDomain?: string;
+    // (undocumented)
+    databaseURL?: string;
+    // (undocumented)
+    measurementId?: string;
+    // (undocumented)
+    messagingSenderId?: string;
+    // (undocumented)
+    projectId?: string;
+    // (undocumented)
+    storageBucket?: string;
+}
+
+// @internal (undocumented)
+export interface _FirebaseService {
+    // (undocumented)
+    app: FirebaseApp;
+    _delete(): Promise<void>;
+}
 
 // @public
 export function getApp(name?: string): FirebaseApp;
