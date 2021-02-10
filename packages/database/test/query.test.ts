@@ -3324,6 +3324,30 @@ describe('Query Tests', () => {
     }
   });
 
+  it('get with pending writes', async () => {
+    const node = getRandomNode() as Reference;
+    node.database.goOffline();
+    try {
+      node.set({ foo: 'bar' });
+      const snap = await node.get();
+      expect(snap.val()).to.deep.equal({ foo: 'bar' });
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get child of pending writes', async () => {
+    const node = getRandomNode() as Reference;
+    node.database.goOffline();
+    try {
+      node.set({ foo: 'bar' });
+      const snap = await node.child('foo').get();
+      expect(snap.val()).to.deep.equal('bar');
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
   it('get does not cache sibling data', async () => {
     const reader = getRandomNode() as Reference;
     const writer = getFreshRepo(reader.path);

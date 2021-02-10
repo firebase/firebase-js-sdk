@@ -518,24 +518,20 @@ export class SyncTree {
     } else {
       serverCache = serverCache || syncPoint.getCompleteServerCache(Path.Empty);
     }
-    if (serverCache != null) {
-      const serverCacheNode: CacheNode | null = new CacheNode(
-        serverCache,
-        true,
-        false
-      );
-      const writesCache: WriteTreeRef | null = this.pendingWriteTree_.childWrites(
-        query.path
-      );
-      const view: View = syncPoint.getView(
-        query,
-        writesCache,
-        serverCacheNode.getNode(),
-        true
-      );
-      return view.getCompleteNode();
-    }
-    return null;
+    const serverCacheComplete = serverCache != null;
+    const serverCacheNode: CacheNode | null = serverCacheComplete
+      ? new CacheNode(serverCache, true, false)
+      : null;
+    const writesCache: WriteTreeRef | null = this.pendingWriteTree_.childWrites(
+      query.path
+    );
+    const view: View = syncPoint.getView(
+      query,
+      writesCache,
+      serverCacheComplete ? serverCacheNode.getNode() : ChildrenNode.EMPTY_NODE,
+      serverCacheComplete
+    );
+    return view.getCompleteNode();
   }
 
   /**
