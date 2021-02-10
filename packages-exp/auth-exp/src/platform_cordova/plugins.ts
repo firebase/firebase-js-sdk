@@ -29,7 +29,10 @@ declare namespace cordova.InAppBrowser {
 }
 
 declare namespace universalLinks {
-  function subscribe(n: null, cb: (event: Record<string, string>|null) => void): void;
+  function subscribe(
+    n: null,
+    cb: (event: Record<string, string> | null) => void
+  ): void;
 }
 
 declare namespace BuildInfo {

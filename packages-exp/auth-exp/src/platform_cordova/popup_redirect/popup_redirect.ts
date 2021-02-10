@@ -32,10 +32,14 @@ import {
   _generateHandlerUrl,
   _performRedirect
 } from './utils';
-import { _eventFromPartialAndUrl, _generateNewEvent, _getAndRemoveEvent } from './events';
+import {
+  _eventFromPartialAndUrl,
+  _generateNewEvent,
+  _getAndRemoveEvent
+} from './events';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 
-/** 
+/**
  * How long to wait for the initial auth event before concluding no
  * redirect pending
  */
@@ -114,7 +118,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
       urlResponse: null,
       postBody: null,
       tenantId: null,
-      error: _createError(AuthErrorCode.NO_AUTH_EVENT),
+      error: _createError(AuthErrorCode.NO_AUTH_EVENT)
     };
 
     const noEventTimeout = setTimeout(async () => {
@@ -124,12 +128,14 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
       manager.onEvent(noEvent);
     }, INITIAL_EVENT_TIMEOUT_MS);
 
-    const universalLinksCb = async (eventData: Record<string, string>|null): Promise<void> => {
+    const universalLinksCb = async (
+      eventData: Record<string, string> | null
+    ): Promise<void> => {
       // We have an event so we can clear the no event timeout
       clearTimeout(noEventTimeout);
 
       const partialEvent = await _getAndRemoveEvent(auth);
-      let finalEvent: AuthEvent|null = noEvent;
+      let finalEvent: AuthEvent | null = noEvent;
       // Start with the noEvent
       if (partialEvent && eventData?.['url']) {
         finalEvent = _eventFromPartialAndUrl(partialEvent, eventData['url']);
@@ -144,10 +150,14 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     // Do not overwrite the existing developer's URL handler.
     const existingHandleOpenUrl = window.handleOpenUrl;
     window.handleOpenUrl = async url => {
-      if (url.toLowerCase().startsWith(`${BuildInfo.packageName.toLowerCase()}://`)) {
+      if (
+        url
+          .toLowerCase()
+          .startsWith(`${BuildInfo.packageName.toLowerCase()}://`)
+      ) {
         // We want this intentionally to float
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        universalLinksCb({url});
+        universalLinksCb({ url });
       }
       // Call the developer's handler if it is present.
       if (typeof existingHandleOpenUrl === 'function') {
