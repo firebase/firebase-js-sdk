@@ -25,13 +25,15 @@ import { SingletonInstantiator } from '../../core/util/instantiator';
 import {
   AuthEvent,
   AuthEventType,
+  EventManager,
   PopupRedirectResolver
 } from '../../model/popup_redirect';
-import { cordovaPopupRedirectResolver } from './popup_redirect';
+import { CordovaAuthEventManager, cordovaPopupRedirectResolver } from './popup_redirect';
 import { GoogleAuthProvider } from '../../core/providers/google';
 import * as utils from './utils';
 import * as events from './events';
 import { FirebaseError } from '@firebase/util';
+import { stubSingleTimeout, TimerTripFn } from '../../../test/helpers/timeout_stub';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -82,6 +84,164 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       expect(utilsStubs._performRedirect).to.have.been.calledWith(
         'https://localhost/__/auth/handler'
       );
+    });
+  });
+
+  describe('_initialize', () => {
+    const NO_EVENT_TIMER_ID = 10001;
+    const PACKAGE_NAME = 'my.package';
+    const NOT_PACKAGE_NAME = 'not.my.package';
+    let universalLinksCb: ((eventData: Record<string, string>|null) => unknown)|null;
+    let tripNoEventTimer: TimerTripFn;
+
+    beforeEach(() => {
+      tripNoEventTimer = stubSingleTimeout(NO_EVENT_TIMER_ID);
+      window.universalLinks = {
+          subscribe(_unused, cb) {
+          universalLinksCb = cb;
+        },
+      };
+      window.BuildInfo = {
+        packageName: PACKAGE_NAME,
+        displayName: '',
+      };
+      sinon.stub(window, 'clearTimeout');
+    });
+
+    afterEach(() => {
+      universalLinksCb = null;
+    });
+
+    function event(manager: EventManager): Promise<AuthEvent> {
+      return new Promise(resolve => {
+        (manager as CordovaAuthEventManager).addPassiveListener(resolve);
+      });
+    }
+
+    context('when no event is present', () => {
+      it('clears local storage and dispatches no-event event', async () => {
+        const promise = event(await resolver._initialize(auth));
+        tripNoEventTimer();
+        const {error, ...rest} = await promise;
+
+        expect(error).to.be.instanceOf(FirebaseError).with.property('code', 'auth/no-auth-event');
+        expect(rest).to.eql({
+          type: AuthEventType.UNKNOWN,
+          eventId: null,
+          sessionId: null,
+          urlResponse: null,
+          postBody: null,
+          tenantId: null,
+        });
+        expect(events._getAndRemoveEvent).to.have.been.called;
+      });
+    });
+
+    context('when an event is present', () => {
+      it('clears the no event timeout',async () => {
+        await resolver._initialize(auth);
+        await universalLinksCb!({});
+        expect(window.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
+      });
+
+      it('signals no event if no url in event data', async () => {
+        const promise = event(await resolver._initialize(auth));
+        await universalLinksCb!({});
+        const {error, ...rest} = await promise;
+
+        expect(error).to.be.instanceOf(FirebaseError).with.property('code', 'auth/no-auth-event');
+        expect(rest).to.eql({
+          type: AuthEventType.UNKNOWN,
+          eventId: null,
+          sessionId: null,
+          urlResponse: null,
+          postBody: null,
+          tenantId: null,
+        });
+      });
+
+      it('signals no event if partial parse turns up null', async () => {
+        const promise = event(await resolver._initialize(auth));
+        eventsStubs._eventFromPartialAndUrl.returns(null);
+        eventsStubs._getAndRemoveEvent.returns(Promise.resolve({
+          type: AuthEventType.REAUTH_VIA_REDIRECT,
+        } as AuthEvent));
+        await universalLinksCb!({url: 'foo-bar'});
+        const {error, ...rest} = await promise;
+
+        expect(error).to.be.instanceOf(FirebaseError).with.property('code', 'auth/no-auth-event');
+        expect(rest).to.eql({
+          type: AuthEventType.UNKNOWN,
+          eventId: null,
+          sessionId: null,
+          urlResponse: null,
+          postBody: null,
+          tenantId: null,
+        });
+      });
+
+      it('signals the final event if partial expansion success', async () => {
+        const finalEvent = {
+          type: AuthEventType.REAUTH_VIA_REDIRECT,
+          postBody: 'foo',
+        };
+        eventsStubs._getAndRemoveEvent.returns(Promise.resolve({
+          type: AuthEventType.REAUTH_VIA_REDIRECT,
+        } as AuthEvent));
+
+        const promise = event(await resolver._initialize(auth));
+        eventsStubs._eventFromPartialAndUrl.returns(finalEvent as AuthEvent);
+        await universalLinksCb!({url: 'foo-bar'});
+        expect(await promise).to.eq(finalEvent);
+        expect(events._eventFromPartialAndUrl).to.have.been.calledWith(
+          {type: AuthEventType.REAUTH_VIA_REDIRECT},
+          'foo-bar'
+        );
+      });
+    });
+
+    context('when using global handleOpenUrl callback', () => {
+      it('ignores inbound callbacks that are not for this app', async () => {
+        await resolver._initialize(auth);
+        handleOpenUrl(`${NOT_PACKAGE_NAME}://foo`);
+
+        // Clear timeout is called in the handler so we can check that
+        expect(window.clearTimeout).not.to.have.been.called;
+      });
+
+      it('passes through callback if package name matches', async () => {
+        await resolver._initialize(auth);
+        handleOpenUrl(`${PACKAGE_NAME}://foo`);
+        expect(window.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
+      });
+
+      it('signals the final event if partial expansion success', async () => {
+        const finalEvent = {
+          type: AuthEventType.REAUTH_VIA_REDIRECT,
+          postBody: 'foo',
+        };
+        eventsStubs._getAndRemoveEvent.returns(Promise.resolve({
+          type: AuthEventType.REAUTH_VIA_REDIRECT,
+        } as AuthEvent));
+
+        const promise = event(await resolver._initialize(auth));
+        eventsStubs._eventFromPartialAndUrl.returns(finalEvent as AuthEvent);
+        handleOpenUrl(`${PACKAGE_NAME}://foo`);
+        expect(await promise).to.eq(finalEvent);
+        expect(events._eventFromPartialAndUrl).to.have.been.calledWith(
+          {type: AuthEventType.REAUTH_VIA_REDIRECT},
+          `${PACKAGE_NAME}://foo`
+        );
+      });
+
+      it('calls the dev existing handleOpenUrl function', async () => {
+        const oldHandleOpenUrl = sinon.stub();
+        window.handleOpenUrl = oldHandleOpenUrl;
+
+        await resolver._initialize(auth);
+        handleOpenUrl(`${PACKAGE_NAME}://foo`);
+        expect(oldHandleOpenUrl).to.have.been.calledWith(`${PACKAGE_NAME}://foo`);
+      });
     });
   });
 

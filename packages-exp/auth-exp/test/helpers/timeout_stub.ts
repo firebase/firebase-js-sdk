@@ -17,7 +17,7 @@
 
 import * as sinon from 'sinon';
 
-interface TimerTripFn {
+export interface TimerTripFn {
   (): void;
 }
 

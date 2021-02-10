@@ -25,14 +25,20 @@ declare namespace cordova.plugins.browsertab {
 }
 
 declare namespace cordova.InAppBrowser {
-  function open(url: string, target: string, options: string): unknown;
+  function open(url: string, target: string, options: string): InAppBrowserRef;
 }
 
 declare namespace universalLinks {
-  function subscribe(n: null, cb: (event: unknown) => void): void;
+  function subscribe(n: null, cb: (event: Record<string, string>|null) => void): void;
 }
 
 declare namespace BuildInfo {
   const packageName: string;
   const displayName: string;
+}
+
+declare function handleOpenUrl(url: string): void;
+
+declare interface InAppBrowserRef {
+  close?: () => void;
 }
