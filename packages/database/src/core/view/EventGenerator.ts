@@ -19,7 +19,7 @@ import { NamedNode, Node } from '../snap/Node';
 import { Change, ChangeType, changeChildMoved } from './Change';
 import { assertionError } from '@firebase/util';
 import { Query } from '../../api/Query';
-import { Index } from '../snap/indexes';
+import { Index } from '../snap/indexes/Index';
 import { EventRegistration } from './EventRegistration';
 import { Event } from './Event';
 
