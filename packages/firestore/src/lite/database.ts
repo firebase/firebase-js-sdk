@@ -181,10 +181,16 @@ export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
 ): FirebaseFirestore {
-  const firestore = _getProvider(
-    app,
-    'firestore/lite'
-  ).getImmediate() as FirebaseFirestore;
+  const provider = _getProvider(app, 'firestore-exp');
+
+  if (provider.isInitialized()) {
+    throw new FirestoreError(
+      Code.ALREADY_INITIALIZED,
+      'Firestore can only be initialized once per app.'
+    );
+  }
+
+  const firestore = provider.getImmediate() as FirebaseFirestore;
   firestore._setSettings(settings);
   return firestore;
 }
