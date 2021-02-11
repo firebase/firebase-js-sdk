@@ -84,7 +84,7 @@ export function eventQueueRaiseEventsAtPath(
   eventDataList: Event[]
 ) {
   eventQueueQueueEvents(eventQueue, eventDataList);
-  eventQueueRaiseQueuedEventsMatchingPredicate(eventQueue, (eventPath: Path) =>
+  eventQueueRaiseQueuedEventsMatchingPredicate(eventQueue, eventPath =>
     eventPath.equals(path)
   );
 }
@@ -104,12 +104,10 @@ export function eventQueueRaiseEventsForChangedPath(
   eventDataList: Event[]
 ) {
   eventQueueQueueEvents(eventQueue, eventDataList);
-
   eventQueueRaiseQueuedEventsMatchingPredicate(
     eventQueue,
-    (eventPath: Path) => {
-      return eventPath.contains(changedPath) || changedPath.contains(eventPath);
-    }
+    eventPath =>
+      eventPath.contains(changedPath) || changedPath.contains(eventPath)
   );
 }
 
