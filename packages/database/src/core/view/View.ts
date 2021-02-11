@@ -20,7 +20,10 @@ import { ViewProcessor } from './ViewProcessor';
 import { ChildrenNode } from '../snap/ChildrenNode';
 import { CacheNode } from './CacheNode';
 import { ViewCache } from './ViewCache';
-import { EventGenerator } from './EventGenerator';
+import {
+  EventGenerator,
+  eventGeneratorGenerateEventsForChanges
+} from './EventGenerator';
 import { assert } from '@firebase/util';
 import { Operation, OperationType } from '../operation/Operation';
 import { Change, changeChildAdded, changeValue } from './Change';
@@ -235,7 +238,8 @@ export class View {
     const registrations = eventRegistration
       ? [eventRegistration]
       : this.eventRegistrations_;
-    return this.eventGenerator_.generateEventsForChanges(
+    return eventGeneratorGenerateEventsForChanges(
+      this.eventGenerator_,
       changes,
       eventCache,
       registrations
