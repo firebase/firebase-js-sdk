@@ -16,7 +16,12 @@
  */
 
 import { FirebaseApp, FirebaseOptions } from './public-types';
-import { Component, ComponentType, Name } from '@firebase/component';
+import {
+  Component,
+  ComponentContainer,
+  ComponentType,
+  Name
+} from '@firebase/component';
 import {
   deleteApp,
   _addComponent,
@@ -31,6 +36,8 @@ import { _FirebaseService, _FirebaseNamespace } from './types';
  * a shared authentication state.
  */
 export class FirebaseAppImpl implements FirebaseApp {
+  private container: ComponentContainer;
+
   constructor(
     private readonly app: _FirebaseAppExp,
     private readonly firebase: _FirebaseNamespace
@@ -40,6 +47,8 @@ export class FirebaseAppImpl implements FirebaseApp {
       app,
       new Component('app-compat', () => this, ComponentType.PUBLIC)
     );
+
+    this.container = app.container;
   }
 
   get automaticDataCollectionEnabled(): boolean {
