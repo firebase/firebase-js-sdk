@@ -33,7 +33,7 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations-types-ex
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
 import { initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 
 /**
  * Analytics Service class.
@@ -60,9 +60,9 @@ export let initializationPromisesMap: {
  * wait on all these to be complete in order to determine if it can selectively
  * wait for only certain initialization (FID) promises or if it must wait for all.
  */
-let dynamicConfigPromisesList: Array<Promise<
-  DynamicConfig | MinimalDynamicConfig
->> = [];
+let dynamicConfigPromisesList: Array<
+  Promise<DynamicConfig | MinimalDynamicConfig>
+> = [];
 
 /**
  * Maps fetched measurementIds to appId. Populated when the app's dynamic config

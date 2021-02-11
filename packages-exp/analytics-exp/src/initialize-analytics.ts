@@ -24,7 +24,7 @@ import { GtagCommand, GA_FID_KEY, ORIGIN_KEY } from './constants';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { fetchDynamicConfigWithRetry } from './get-config';
 import { logger } from './logger';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable
