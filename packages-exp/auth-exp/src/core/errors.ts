@@ -402,6 +402,7 @@ type GenericAuthErrorParams = {
     | AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
     | AuthErrorCode.INTERNAL_ERROR
     | AuthErrorCode.MFA_REQUIRED
+    | AuthErrorCode.NO_AUTH_EVENT
   >]: {
     appName: AppName;
     email?: string;
@@ -413,6 +414,7 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.ARGUMENT_ERROR]: { appName?: AppName };
   [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]: { appName?: AppName };
   [AuthErrorCode.INTERNAL_ERROR]: { appName?: AppName };
+  [AuthErrorCode.NO_AUTH_EVENT]: { appName?: AppName };
   [AuthErrorCode.MFA_REQUIRED]: {
     appName: AppName;
     serverResponse: IdTokenMfaResponse;
