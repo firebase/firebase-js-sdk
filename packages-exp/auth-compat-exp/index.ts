@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app-compat';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-types-exp';
 import {
@@ -42,7 +41,7 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       AUTH_TYPE,
       container => {
         // getImmediate for FirebaseApp will always succeed
-        const app = container.getProvider('app').getImmediate();
+        const app = container.getProvider('app-compat').getImmediate();
         const auth = container.getProvider('auth-exp').getImmediate();
         return new Auth(app, auth as impl.AuthImpl);
       },

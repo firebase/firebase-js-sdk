@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, FirebaseOptions } from '../public-types';
-import { _FirebaseNamespace, FirebaseService } from '../types';
+import { _FirebaseNamespace, _FirebaseService } from '../types';
 import {
   deleteApp,
   _addComponent,
@@ -79,12 +79,12 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
   _getService(
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
-  ): FirebaseService {
+  ): _FirebaseService {
     this.app.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
     return (this.app.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
-    }) as unknown) as FirebaseService;
+    }) as unknown) as _FirebaseService;
   }
 }

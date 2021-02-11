@@ -33,7 +33,7 @@ export interface FirebaseServiceInternals {
 
 // Services are exposed through instances - each of which is associated with a
 // FirebaseApp.
-export interface FirebaseService {
+export interface _FirebaseService {
   app: FirebaseApp;
   INTERNAL?: FirebaseServiceInternals;
 }
@@ -41,7 +41,7 @@ export interface FirebaseService {
 /**
  * All ServiceNamespaces extend from FirebaseServiceNamespace
  */
-export interface FirebaseServiceNamespace<T extends FirebaseService> {
+export interface FirebaseServiceNamespace<T extends _FirebaseService> {
   (app?: FirebaseApp): T;
 }
 
@@ -72,7 +72,7 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
      */
     registerComponent(
       component: Component
-    ): FirebaseServiceNamespace<FirebaseService> | null;
+    ): FirebaseServiceNamespace<_FirebaseService> | null;
 
     /**
      * Internal API to remove an app from the list of registered apps.

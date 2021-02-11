@@ -37,6 +37,8 @@ export class PhoneAuthProvider
   }
 
   constructor() {
+    // TODO: remove ts-ignore when moving types from auth-types to auth-compat
+    // @ts-ignore
     this.phoneProvider = new impl.PhoneAuthProvider(unwrap(firebase.auth!()));
   }
 

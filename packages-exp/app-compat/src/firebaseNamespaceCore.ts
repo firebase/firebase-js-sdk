@@ -18,7 +18,7 @@
 import { FirebaseApp, FirebaseOptions } from './public-types';
 import {
   _FirebaseNamespace,
-  FirebaseService,
+  _FirebaseService,
   FirebaseServiceNamespace
 } from './types';
 import * as modularAPIs from '@firebase/app-exp';
@@ -133,7 +133,7 @@ export function createFirebaseNamespaceCore(
 
   function registerComponentCompat(
     component: Component
-  ): FirebaseServiceNamespace<FirebaseService> | null {
+  ): FirebaseServiceNamespace<_FirebaseService> | null {
     const componentName = component.name;
     if (
       modularAPIs._registerComponent(component) &&
@@ -143,7 +143,7 @@ export function createFirebaseNamespaceCore(
       // The Service namespace is an accessor function ...
       const serviceNamespace = (
         appArg: FirebaseApp = app()
-      ): FirebaseService => {
+      ): _FirebaseService => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof (appArg as any)[componentName] !== 'function') {
           // Invalid argument.

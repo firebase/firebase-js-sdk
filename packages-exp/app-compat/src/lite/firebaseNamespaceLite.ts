@@ -16,7 +16,7 @@
  */
 
 import { FirebaseNamespace } from '../public-types';
-import { FirebaseServiceNamespace, FirebaseService } from '../types';
+import { FirebaseServiceNamespace, _FirebaseService } from '../types';
 import { FirebaseAppLiteImpl } from './firebaseAppLite';
 import { createFirebaseNamespaceCore } from '../firebaseNamespaceCore';
 import { Component, ComponentType } from '@firebase/component';
@@ -36,7 +36,7 @@ export function createFirebaseNamespaceLite(): FirebaseNamespace {
   function registerComponentForLite(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     component: Component<any>
-  ): FirebaseServiceNamespace<FirebaseService> | null {
+  ): FirebaseServiceNamespace<_FirebaseService> | null {
     // only allow performance to register with firebase lite
     if (
       component.type === ComponentType.PUBLIC &&

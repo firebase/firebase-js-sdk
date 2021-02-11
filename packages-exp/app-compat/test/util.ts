@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseService } from '../src/types';
+import { _FirebaseService } from '../src/types';
 import { FirebaseApp } from '../src/public-types';
 import { ComponentType, Component } from '@firebase/component';
 
-export class TestService implements FirebaseService {
+export class TestService implements _FirebaseService {
   constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   get app(): FirebaseApp {

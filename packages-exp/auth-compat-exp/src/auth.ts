@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';

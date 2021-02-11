@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { LogCallback, LogLevelString, LogOptions } from '@firebase/logger';
+import { FirebaseAppImpl } from './firebaseApp';
 
 export interface FirebaseOptions {
   apiKey?: string;
@@ -33,7 +34,7 @@ export interface FirebaseAppConfig {
 }
 
 // used as type only
-export declare class FirebaseApp {
+export interface FirebaseApp {
   /**
    * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
    * App.
@@ -92,7 +93,7 @@ export interface FirebaseNamespace {
      *
      * DO NOT call this constuctor directly (use firebase.app() instead).
      */
-    App: typeof FirebaseApp;
+    App: typeof FirebaseAppImpl;
   };
 
   /**
