@@ -117,6 +117,12 @@ export const Code = {
   ALREADY_EXISTS: 'already-exists' as FirestoreErrorCode,
 
   /**
+   * Calling initializeFirestore() after a Firestore instance has already been created for the app
+   * It can happen when initializeFirestore() is called more than once or after calling getFirestore().
+   */
+  ALREADY_INITIALIZED: 'already-initialized' as FirestoreErrorCode,
+
+  /**
    * The caller does not have permission to execute the specified operation.
    * PERMISSION_DENIED must not be used for rejections caused by exhausting
    * some resource (use RESOURCE_EXHAUSTED instead for those errors).
