@@ -50,13 +50,18 @@ export function _generateNewEvent(
 }
 
 export function _savePartialEvent(auth: Auth, event: AuthEvent): Promise<void> {
-  return storage()._set(persistenceKey(auth), (event as object) as PersistedBlob);
+  return storage()._set(
+    persistenceKey(auth),
+    (event as object) as PersistedBlob
+  );
 }
 
 export async function _getAndRemoveEvent(
   auth: Auth
 ): Promise<AuthEvent | null> {
-  const event = (await storage()._get(persistenceKey(auth))) as AuthEvent | null;
+  const event = (await storage()._get(
+    persistenceKey(auth)
+  )) as AuthEvent | null;
   if (event) {
     await storage()._remove(persistenceKey(auth));
   }
@@ -129,8 +134,7 @@ function persistenceKey(auth: Auth): string {
   return _persistenceKeyName(KeyName.AUTH_EVENT, auth.config.apiKey, auth.name);
 }
 
-
-function parseJsonOrNull(json: string): ReturnType<typeof JSON.parse>|null {
+function parseJsonOrNull(json: string): ReturnType<typeof JSON.parse> | null {
   try {
     return JSON.parse(json);
   } catch (e) {
