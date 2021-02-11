@@ -65,6 +65,7 @@ import {
   UserProfile,
   PhoneInfoOptions
 } from '@firebase/auth-types-exp';
+import { _getProvider } from '@firebase/app-exp';
 
 // Public types
 export {
@@ -155,6 +156,12 @@ export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions
  * @public
  */
 export function getAuth(app: FirebaseApp): Auth {
+  const provider = _getProvider(app, 'auth-exp');
+
+  if (provider.isInitialized()) {
+    return provider.getImmediate();
+  }
+
   return initializeAuth(app, {
     popupRedirectResolver: browserPopupRedirectResolver,
     persistence: [indexedDBLocalPersistence, browserLocalPersistence]
