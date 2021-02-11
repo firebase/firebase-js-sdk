@@ -120,7 +120,7 @@ export function initializeFirestore(
 
   if (provider.isInitialized()) {
     throw new FirestoreError(
-      Code.ALREADY_INITIALIZED,
+      Code.FAILED_PRECONDITION,
       'Firestore can only be initialized once per app.'
     );
   }
