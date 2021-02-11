@@ -118,6 +118,9 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
     afterEach(() => {
       universalLinksCb = null;
+      const win = window as unknown as Record<string, unknown>;
+      delete win.universalLinks;
+      delete win.BuildInfo;
     });
 
     function event(manager: EventManager): Promise<AuthEvent> {
@@ -262,6 +265,17 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
         handleOpenUrl(`${PACKAGE_NAME}://foo`);
         expect(oldHandleOpenUrl).to.have.been.calledWith(
           `${PACKAGE_NAME}://foo`
+        );
+      });
+
+      it('calls the dev existing handleOpenUrl function for other package', async () => {
+        const oldHandleOpenUrl = sinon.stub();
+        window.handleOpenUrl = oldHandleOpenUrl;
+
+        await resolver._initialize(auth);
+        handleOpenUrl(`${NOT_PACKAGE_NAME}://foo`);
+        expect(oldHandleOpenUrl).to.have.been.calledWith(
+          `${NOT_PACKAGE_NAME}://foo`
         );
       });
     });

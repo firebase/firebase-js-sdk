@@ -47,7 +47,7 @@ const INITIAL_EVENT_TIMEOUT_MS = 500;
 
 /** Custom AuthEventManager that adds passive listeners to events */
 export class CordovaAuthEventManager extends AuthEventManager {
-  private readonly passiveListeners: Set<(e: AuthEvent) => void> = new Set();
+  private readonly passiveListeners = new Set<(e: AuthEvent) => void>();
 
   addPassiveListener(cb: (e: AuthEvent) => void): void {
     this.passiveListeners.add(cb);
@@ -73,18 +73,19 @@ export class CordovaAuthEventManager extends AuthEventManager {
 
 class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   readonly _redirectPersistence = browserSessionPersistence;
-  private readonly eventManagers: Record<string, CordovaAuthEventManager> = {};
+  private readonly eventManagers = new Map<string, CordovaAuthEventManager>();
 
   _completeRedirectFn: () => Promise<null> = async () => null;
 
   async _initialize(auth: Auth): Promise<CordovaAuthEventManager> {
     const key = auth._key();
-    if (!this.eventManagers[key]) {
-      const manager = new CordovaAuthEventManager(auth);
-      this.eventManagers[key] = manager;
+    let manager = this.eventManagers.get(key);
+    if (!manager) {
+      manager = new CordovaAuthEventManager(auth);
+      this.eventManagers.set(key, manager);
       this.attachCallbackListeners(auth, manager);
     }
-    return this.eventManagers[key];
+    return manager;
   }
 
   _openPopup(auth: Auth): Promise<AuthPopup> {
@@ -111,21 +112,11 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   }
 
   private attachCallbackListeners(auth: Auth, manager: AuthEventManager): void {
-    const noEvent: AuthEvent = {
-      type: AuthEventType.UNKNOWN,
-      eventId: null,
-      sessionId: null,
-      urlResponse: null,
-      postBody: null,
-      tenantId: null,
-      error: _createError(AuthErrorCode.NO_AUTH_EVENT)
-    };
-
     const noEventTimeout = setTimeout(async () => {
       // We didn't see that initial event. Clear any pending object and
       // dispatch no event
       await _getAndRemoveEvent(auth);
-      manager.onEvent(noEvent);
+      manager.onEvent(generateNoEvent());
     }, INITIAL_EVENT_TIMEOUT_MS);
 
     const universalLinksCb = async (
@@ -135,13 +126,19 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
       clearTimeout(noEventTimeout);
 
       const partialEvent = await _getAndRemoveEvent(auth);
-      let finalEvent: AuthEvent | null = noEvent;
-      // Start with the noEvent
+      let finalEvent: AuthEvent | null = null;
       if (partialEvent && eventData?.['url']) {
         finalEvent = _eventFromPartialAndUrl(partialEvent, eventData['url']);
       }
-      manager.onEvent(finalEvent || noEvent);
+
+      // If finalEvent is never filled, trigger with no event
+      manager.onEvent(finalEvent || generateNoEvent());
     };
+
+    // Universal links subscriber doesn't exist for iOS, so we need to check
+    if (typeof universalLinks.subscribe === 'function') {
+      universalLinks.subscribe(null, universalLinksCb);
+    }
 
     // iOS 7 or 8 custom URL schemes.
     // This is also the current default behavior for iOS 9+.
@@ -169,11 +166,6 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
         }
       }
     };
-
-    // Universal links subscriber doesn't exist for iOS, so we need to check
-    if (typeof universalLinks.subscribe === 'function') {
-      universalLinks.subscribe(null, universalLinksCb);
-    }
   }
 }
 
@@ -184,3 +176,15 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
  * @public
  */
 export const cordovaPopupRedirectResolver: externs.PopupRedirectResolver = CordovaPopupRedirectResolver;
+
+function generateNoEvent(): AuthEvent {
+  return {
+    type: AuthEventType.UNKNOWN,
+    eventId: null,
+    sessionId: null,
+    urlResponse: null,
+    postBody: null,
+    tenantId: null,
+    error: _createError(AuthErrorCode.NO_AUTH_EVENT)
+  };
+}
