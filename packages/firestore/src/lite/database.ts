@@ -16,8 +16,11 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import {
+  _getProvider,
+  _removeServiceInstance,
+  FirebaseApp
+} from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
