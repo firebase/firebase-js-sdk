@@ -110,17 +110,6 @@ export class EventQueue {
         const eventPath = eventList.path;
         if (predicate(eventPath)) {
           eventListRaise(this.eventLists_[i]);
-          for (let i1 = 0; i1 < this.eventLists_[i].events.length; i1++) {
-            const eventData = this.eventLists_[i].events[i1];
-            if (eventData !== null) {
-              this.eventLists_[i].events[i1] = null;
-              const eventFn = eventData.getEventRunner();
-              if (logger) {
-                log('event: ' + eventData.toString());
-              }
-              exceptionGuard(eventFn);
-            }
-          }
           this.eventLists_[i] = null;
         } else {
           sentAll = false;
