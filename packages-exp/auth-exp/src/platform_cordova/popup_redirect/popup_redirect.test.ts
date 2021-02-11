@@ -118,7 +118,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
     afterEach(() => {
       universalLinksCb = null;
-      const win = window as unknown as Record<string, unknown>;
+      const win = (window as unknown) as Record<string, unknown>;
       delete win.universalLinks;
       delete win.BuildInfo;
     });
