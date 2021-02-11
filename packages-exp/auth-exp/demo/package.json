@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@firebase/app-exp": "0.0.900",
-    "@firebase/app-types-exp": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/auth-types-exp": "0.0.900",
     "@firebase/logger": "0.2.6",

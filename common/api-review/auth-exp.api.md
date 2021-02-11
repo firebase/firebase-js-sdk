@@ -21,7 +21,7 @@ import { ErrorFactory } from '@firebase/util';
 import { ErrorFn } from '@firebase/util';
 import * as externs from '@firebase/auth-types-exp';
 import { FactorId } from '@firebase/auth-types-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 import { IdTokenResult } from '@firebase/auth-types-exp';
 import { MultiFactorAssertion } from '@firebase/auth-types-exp';

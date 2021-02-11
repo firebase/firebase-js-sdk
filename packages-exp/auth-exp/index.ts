@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
