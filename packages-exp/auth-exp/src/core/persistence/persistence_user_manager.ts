@@ -24,6 +24,7 @@ import { inMemoryPersistence } from './in_memory';
 
 export const enum KeyName {
   AUTH_USER = 'authUser',
+  AUTH_EVENT = 'authEvent',
   REDIRECT_USER = 'redirectUser',
   PERSISTENCE_USER = 'persistence'
 }
