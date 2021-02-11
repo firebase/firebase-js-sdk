@@ -27,8 +27,7 @@
     "build:doc": "yarn build && yarn doc"
   },
   "peerDependencies": {
-    "@firebase/app-exp": "0.x",
-    "@firebase/app-types-exp": "0.x"
+    "@firebase/app-exp": "0.x"
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",

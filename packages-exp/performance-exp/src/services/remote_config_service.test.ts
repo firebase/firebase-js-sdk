@@ -22,7 +22,7 @@ import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
 import { setupApi, Api } from './api_service';
 import * as iidService from './iid_service';
 import { getConfig } from './remote_config_service';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import '../../test/setup';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';

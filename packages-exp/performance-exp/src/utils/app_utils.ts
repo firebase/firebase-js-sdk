@@ -16,7 +16,7 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from './errors';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 
 export function getAppId(firebaseApp: FirebaseApp): string {
   const appId = firebaseApp.options?.appId;

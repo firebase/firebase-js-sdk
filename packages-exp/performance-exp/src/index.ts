@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
 import {
   FirebasePerformance,
   PerformanceSettings,
@@ -27,7 +26,8 @@ import { PerformanceController } from './controllers/perf';
 import {
   _registerComponent,
   _getProvider,
-  registerVersion
+  registerVersion,
+  FirebaseApp
 } from '@firebase/app-exp';
 import {
   InstanceFactory,
