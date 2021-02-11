@@ -4,7 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { Functions } from '@firebase/functions-types-exp';
 import { FunctionsError } from '@firebase/functions-types-exp';
 import { FunctionsErrorCode } from '@firebase/functions-types-exp';
