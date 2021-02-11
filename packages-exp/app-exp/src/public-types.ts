@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { PlatformLoggerService } from './platformLoggerService';
-import { VersionService } from './types';
+import { PlatformLoggerService, VersionService } from './types';
 
 /**
  * A FirebaseApp holds the initialization information for a collection of

@@ -19,3 +19,7 @@ export interface VersionService {
   library: string;
   version: string;
 }
+
+export interface PlatformLoggerService {
+  getPlatformInfoString(): string;
+}
