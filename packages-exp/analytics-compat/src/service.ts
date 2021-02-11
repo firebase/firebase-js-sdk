@@ -18,7 +18,6 @@
 import {
   AnalyticsCallOptions,
   CustomParams,
-  EventNameString,
   EventParams,
   FirebaseAnalytics
 } from '@firebase/analytics-types';
@@ -39,7 +38,7 @@ export class AnalyticsService implements FirebaseAnalytics {
   ) {}
 
   logEvent(
-    eventName: EventNameString,
+    eventName: string,
     eventParams?: EventParams | CustomParams,
     options?: AnalyticsCallOptions
   ): void {
