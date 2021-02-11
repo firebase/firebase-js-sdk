@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ComponentContainer } from '@firebase/component';
 import { PlatformLoggerService, VersionService } from './types';
 
 /**
@@ -99,6 +100,12 @@ export interface _FirebaseService {
    * {@link @firebase/app-exp#deleteApp | deleteApp()}
    */
   _delete(): Promise<void>;
+}
+
+export interface _FirebaseAppInternal extends FirebaseApp {
+  container: ComponentContainer;
+  isDeleted: boolean;
+  checkDestroyed(): void;
 }
 
 declare module '@firebase/component' {

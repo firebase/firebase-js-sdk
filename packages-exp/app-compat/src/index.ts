@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseNamespace } from './public-types';
 import { isBrowser } from '@firebase/util';
 import { firebase as firebaseNamespace } from './firebaseNamespace';
 import { logger } from './logger';

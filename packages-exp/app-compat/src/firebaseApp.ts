@@ -15,40 +15,31 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
-import {
-  Component,
-  ComponentType,
-  Name,
-  ComponentContainer
-} from '@firebase/component';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
+import { FirebaseApp, FirebaseOptions } from './public-types';
+import { Component, ComponentType, Name } from '@firebase/component';
 import {
   deleteApp,
   _addComponent,
   _addOrOverwriteComponent,
-  _DEFAULT_ENTRY_NAME
+  _DEFAULT_ENTRY_NAME,
+  _FirebaseAppInternal as _FirebaseAppExp
 } from '@firebase/app-exp';
+import { FirebaseService, _FirebaseNamespace } from './types';
 
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
 export class FirebaseAppImpl implements FirebaseApp {
-  private readonly container: ComponentContainer;
-
   constructor(
-    private readonly app: _FirebaseAppInternal,
+    private readonly app: _FirebaseAppExp,
     private readonly firebase: _FirebaseNamespace
   ) {
     // add itself to container
-    // TODO: change the component name to 'app-compat' before the official release
-    _addComponent(app, new Component('app', () => this, ComponentType.PUBLIC));
-    this.container = app.container;
+    _addComponent(
+      app,
+      new Component('app-compat', () => this, ComponentType.PUBLIC)
+    );
   }
 
   get automaticDataCollectionEnabled(): boolean {

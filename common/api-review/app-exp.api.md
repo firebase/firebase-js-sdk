@@ -5,6 +5,7 @@
 ```ts
 
 import { Component } from '@firebase/component';
+import { ComponentContainer } from '@firebase/component';
 import { LogCallback } from '@firebase/logger';
 import { LogLevelString } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
@@ -45,6 +46,16 @@ export interface FirebaseAppConfig {
     automaticDataCollectionEnabled?: boolean;
     // (undocumented)
     name?: string;
+}
+
+// @public (undocumented)
+export interface _FirebaseAppInternal extends FirebaseApp {
+    // (undocumented)
+    checkDestroyed(): void;
+    // (undocumented)
+    container: ComponentContainer;
+    // (undocumented)
+    isDeleted: boolean;
 }
 
 // @public (undocumented)
