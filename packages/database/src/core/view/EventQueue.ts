@@ -16,7 +16,7 @@
  */
 
 import { Path } from '../util/Path';
-import { log, logger, exceptionGuard } from '../util/util';
+import { exceptionGuard, log, logger } from '../util/util';
 import { Event } from './Event';
 
 /**
@@ -45,20 +45,20 @@ export class EventQueue {
    */
   queueEvents(eventDataList: Event[]) {
     // We group events by path, storing them in a single EventList, to make it easier to skip over them quickly.
-    let currList = null;
+    let currList: EventList | null = null;
     for (let i = 0; i < eventDataList.length; i++) {
-      const eventData = eventDataList[i];
-      const eventPath = eventData.getPath();
-      if (currList !== null && !eventPath.equals(currList.getPath())) {
+      const data = eventDataList[i];
+      const path = data.getPath();
+      if (currList !== null && !path.equals(currList.path)) {
         this.eventLists_.push(currList);
         currList = null;
       }
 
       if (currList === null) {
-        currList = new EventList(eventPath);
+        currList = { events: [], path };
       }
 
-      currList.add(eventData);
+      currList.events.push(data);
     }
     if (currList) {
       this.eventLists_.push(currList);
@@ -107,9 +107,9 @@ export class EventQueue {
     for (let i = 0; i < this.eventLists_.length; i++) {
       const eventList = this.eventLists_[i];
       if (eventList) {
-        const eventPath = eventList.getPath();
+        const eventPath = eventList.path;
         if (predicate(eventPath)) {
-          this.eventLists_[i].raise();
+          eventListRaise(this.eventLists_[i]);
           this.eventLists_[i] = null;
         } else {
           sentAll = false;
@@ -125,33 +125,24 @@ export class EventQueue {
   }
 }
 
-export class EventList {
-  private events_: Event[] = [];
+interface EventList {
+  events: Event[];
+  path: Path;
+}
 
-  constructor(private readonly path_: Path) {}
-
-  add(eventData: Event) {
-    this.events_.push(eventData);
-  }
-
-  /**
-   * Iterates through the list and raises each event
-   */
-  raise() {
-    for (let i = 0; i < this.events_.length; i++) {
-      const eventData = this.events_[i];
-      if (eventData !== null) {
-        this.events_[i] = null;
-        const eventFn = eventData.getEventRunner();
-        if (logger) {
-          log('event: ' + eventData.toString());
-        }
-        exceptionGuard(eventFn);
+/**
+ * Iterates through the list and raises each event
+ */
+function eventListRaise(eventList: EventList) {
+  for (let i = 0; i < eventList.events.length; i++) {
+    const eventData = eventList.events[i];
+    if (eventData !== null) {
+      eventList.events[i] = null;
+      const eventFn = eventData.getEventRunner();
+      if (logger) {
+        log('event: ' + eventData.toString());
       }
+      exceptionGuard(eventFn);
     }
-  }
-
-  getPath(): Path {
-    return this.path_;
   }
 }
