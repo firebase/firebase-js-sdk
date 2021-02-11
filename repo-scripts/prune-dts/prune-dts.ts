@@ -291,6 +291,8 @@ function extractExportedSymbol(
   }
 
   if (isExported(typeChecker, sourceFile, typeName)) {
+    // Don't replace the type reference if the type is already part of the
+    // public API.
     return undefined;
   }
 
