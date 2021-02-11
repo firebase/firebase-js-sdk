@@ -50,15 +50,15 @@ export function _generateNewEvent(
 }
 
 export function _savePartialEvent(auth: Auth, event: AuthEvent): Promise<void> {
-  return storage()._set(key(auth), (event as object) as PersistedBlob);
+  return storage()._set(persistenceKey(auth), (event as object) as PersistedBlob);
 }
 
 export async function _getAndRemoveEvent(
   auth: Auth
 ): Promise<AuthEvent | null> {
-  const event = (await storage()._get(key(auth))) as AuthEvent | null;
+  const event = (await storage()._get(persistenceKey(auth))) as AuthEvent | null;
   if (event) {
-    await storage()._remove(key(auth));
+    await storage()._remove(persistenceKey(auth));
   }
   return event;
 }
@@ -81,7 +81,7 @@ export function _eventFromPartialAndUrl(
     const params = searchParamsOrEmpty(callbackUrl);
     // Get the error object corresponding to the stringified error if found.
     const errorObject = params['firebaseError']
-      ? JSON.parse(decodeURIComponent(params['firebaseError']))
+      ? parseJsonOrNull(decodeURIComponent(params['firebaseError']))
       : null;
     const code = errorObject?.['code']?.split('auth/')?.[1];
     const error = code ? _createError(code) : null;
@@ -125,8 +125,17 @@ function storage(): Persistence {
   return _getInstance(browserLocalPersistence);
 }
 
-function key(auth: Auth): string {
+function persistenceKey(auth: Auth): string {
   return _persistenceKeyName(KeyName.AUTH_EVENT, auth.config.apiKey, auth.name);
+}
+
+
+function parseJsonOrNull(json: string): ReturnType<typeof JSON.parse>|null {
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
 }
 
 // Exported for testing
