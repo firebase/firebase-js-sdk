@@ -167,7 +167,7 @@ export interface FirestoreDataConverter<T> {
 }
 
 // @public
-export class FirestoreError {
+export class FirestoreError extends Error {
     // (undocumented)
     readonly code: FirestoreErrorCode;
     // (undocumented)
@@ -231,10 +231,10 @@ export function limitToLast(limit: number): QueryConstraint;
 export function loadBundle(firestore: FirebaseFirestore, bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string): LoadBundleTask;
 
 // @public
-export class LoadBundleTask {
-    catch<R>(onRejected: (a: FirestoreError) => R | LoadBundleTask<R>): Promise<R | LoadBundleTaskProgress>;
-    onProgress(next?: (progress: LoadBundleTaskProgress) => unknown, error?: (err: FirestoreError) => unknown, complete?: () => void): void;
-    then<T, R>(onFulfilled?: (a: LoadBundleTaskProgress) => T | LoadBundleTask<T>, onRejected?: (a: FirestoreError) => R | LoadBundleTask<R>): Promise<T | R>;
+export class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
+    catch<R>(onRejected: (a: Error) => R | PromiseLike<R>): Promise<R | LoadBundleTaskProgress>;
+    onProgress(next?: (progress: LoadBundleTaskProgress) => unknown, error?: (err: Error) => unknown, complete?: () => void): void;
+    then<T, R>(onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>, onRejected?: (a: Error) => R | PromiseLike<R>): Promise<T | R>;
 }
 
 // @public

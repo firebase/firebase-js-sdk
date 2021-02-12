@@ -134,7 +134,7 @@ export interface FirestoreDataConverter<T> {
 }
 
 // @public
-export class FirestoreError {
+export class FirestoreError extends Error {
     // (undocumented)
     readonly code: FirestoreErrorCode;
     // (undocumented)
