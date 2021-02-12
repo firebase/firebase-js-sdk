@@ -57,7 +57,7 @@ export function newOperationSourceUser(): OperationSource {
   };
 }
 
-export function newOperationSourceServer() {
+export function newOperationSourceServer(): OperationSource {
   return {
     fromUser: false,
     fromServer: true,
