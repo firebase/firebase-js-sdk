@@ -1,5 +1,16 @@
 # @firebase/rules-unit-testing
 
+## 1.2.0
+
+### Minor Changes
+
+- [`97f26b716`](https://github.com/firebase/firebase-js-sdk/commit/97f26b7168a2765618c7469f5ed1bf86b7c4ee7e) [#4388](https://github.com/firebase/firebase-js-sdk/pull/4388) - Add port configuration and discovery methods to rules-unit-testing.
+
+### Patch Changes
+
+- Updated dependencies [[`05614aa86`](https://github.com/firebase/firebase-js-sdk/commit/05614aa86614994b69df154bd6ce34861fae37a5)]:
+  - firebase@8.2.7
+
 ## 1.1.11
 
 ### Patch Changes

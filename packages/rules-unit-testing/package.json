@@ -1,13 +1,15 @@
 {
   "name": "@firebase/rules-unit-testing",
-  "version": "1.1.11",
+  "version": "1.2.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/rules-unit-testing --include-dependencies build",
@@ -18,7 +20,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "8.2.6",
+    "firebase": "8.2.7",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.4",
     "request": "2.88.2"
