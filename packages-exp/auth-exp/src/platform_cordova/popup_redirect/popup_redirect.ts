@@ -25,7 +25,7 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthPopup } from '../../platform_browser/util/popup';
-import { debugAssert, _createError, _fail } from '../../core/util/assert';
+import { _createError, _fail } from '../../core/util/assert';
 import { AuthErrorCode } from '../../core/errors';
 import {
   _checkCordovaConfiguration,
@@ -120,8 +120,9 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     const event = _generateNewEvent(auth, authType, eventId);
     await _savePartialEvent(auth, event);
     const url = await _generateHandlerUrl(auth, event, provider);
-    const iabRef = await _performRedirect(url);
-    return listenForAppActivity(auth, manager, iabRef);
+    console.log(url);
+    // const iabRef = await _performRedirect(url);
+    // return listenForAppActivity(auth, manager, iabRef);
   }
 
   _isIframeWebStorageSupported(
