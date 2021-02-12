@@ -20,7 +20,9 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 
 import { Dependencies } from '../../model/auth';
+import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
+import { _fail } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { AuthImpl } from './auth_impl';
 
@@ -29,7 +31,14 @@ export function initializeAuth(
   app: FirebaseApp,
   deps?: Dependencies
 ): externs.Auth {
-  const auth = _getProvider(app, 'auth-exp').getImmediate() as AuthImpl;
+  const provider = _getProvider(app, 'auth-exp');
+
+  if (provider.isInitialized()) {
+    const auth = provider.getImmediate() as AuthImpl;
+    _fail(auth, AuthErrorCode.ALREADY_INITIALIZED);
+  }
+
+  const auth = provider.getImmediate() as AuthImpl;
   _initializeAuthInstance(auth, deps);
 
   return auth;

@@ -17,37 +17,11 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { AuthErrorCode } from '../../core/errors';
-import {
-  debugAssert,
-  _assert,
-  _createError,
-  _fail
-} from '../../core/util/assert';
+import { debugAssert, _assert, _fail } from '../../core/util/assert';
 import { _isAndroid, _isIOS, _isIOS7Or8 } from '../../core/util/browser';
 import { _getRedirectUrl } from '../../core/util/handler';
 import { Auth } from '../../model/auth';
-import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
-
-const SESSION_ID_LENGTH = 20;
-
-/**
- * Generates a (partial) {@link AuthEvent}.
- */
-export function _generateNewEvent(
-  auth: Auth,
-  type: AuthEventType,
-  eventId: string | null = null
-): AuthEvent {
-  return {
-    type,
-    eventId,
-    urlResponse: null,
-    sessionId: generateSessionId(),
-    postBody: null,
-    tenantId: auth.tenantId,
-    error: _createError(auth, AuthErrorCode.NO_AUTH_EVENT)
-  };
-}
+import { AuthEvent } from '../../model/popup_redirect';
 
 /**
  * Generates the URL for the OAuth handler.
@@ -163,17 +137,6 @@ export function _checkCordovaConfiguration(auth: Auth): void {
       missingPlugin: 'cordova-plugin-inappbrowser'
     }
   );
-}
-
-function generateSessionId(): string {
-  const chars = [];
-  const allowedChars =
-    '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  for (let i = 0; i < SESSION_ID_LENGTH; i++) {
-    const idx = Math.floor(Math.random() * allowedChars.length);
-    chars.push(allowedChars.charAt(idx));
-  }
-  return chars.join('');
 }
 
 /**

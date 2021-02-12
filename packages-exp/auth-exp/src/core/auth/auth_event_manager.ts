@@ -32,8 +32,8 @@ const EVENT_DUPLICATION_CACHE_DURATION_MS = 10 * 60 * 1000;
 export class AuthEventManager implements EventManager {
   private readonly cachedEventUids: Set<string> = new Set();
   private readonly consumers: Set<AuthEventConsumer> = new Set();
-  private queuedRedirectEvent: AuthEvent | null = null;
-  private hasHandledPotentialRedirect = false;
+  protected queuedRedirectEvent: AuthEvent | null = null;
+  protected hasHandledPotentialRedirect = false;
   private lastProcessedEventTime = Date.now();
 
   constructor(private readonly auth: Auth) {}

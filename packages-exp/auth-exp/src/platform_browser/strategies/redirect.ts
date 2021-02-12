@@ -23,15 +23,10 @@ import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
 import { _assert } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
-import { Auth } from '../../model/auth';
-import {
-  AuthEvent,
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
-import { User, UserCredential } from '../../model/user';
+import { AuthEventType } from '../../model/popup_redirect';
+import { User } from '../../model/user';
 import { _withDefaultResolver } from '../../core/util/resolver';
-import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
+import { RedirectAction } from '../../core/strategies/redirect';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.
@@ -265,82 +260,4 @@ async function prepareUserForRedirect(user: User): Promise<string> {
   await user.auth._setRedirectUser(user);
   await user.auth._persistUserIfCurrent(user);
   return eventId;
-}
-
-// We only get one redirect outcome for any one auth, so just store it
-// in here.
-const redirectOutcomeMap: Map<
-  string,
-  () => Promise<UserCredential | null>
-> = new Map();
-
-class RedirectAction extends AbstractPopupRedirectOperation {
-  eventId = null;
-
-  constructor(
-    auth: Auth,
-    resolver: PopupRedirectResolver,
-    bypassAuthState = false
-  ) {
-    super(
-      auth,
-      [
-        AuthEventType.SIGN_IN_VIA_REDIRECT,
-        AuthEventType.LINK_VIA_REDIRECT,
-        AuthEventType.REAUTH_VIA_REDIRECT,
-        AuthEventType.UNKNOWN
-      ],
-      resolver,
-      undefined,
-      bypassAuthState
-    );
-  }
-
-  /**
-   * Override the execute function; if we already have a redirect result, then
-   * just return it.
-   */
-  async execute(): Promise<UserCredential | null> {
-    let readyOutcome = redirectOutcomeMap.get(this.auth._key());
-    if (!readyOutcome) {
-      try {
-        const result = await super.execute();
-        readyOutcome = () => Promise.resolve(result);
-      } catch (e) {
-        readyOutcome = () => Promise.reject(e);
-      }
-
-      redirectOutcomeMap.set(this.auth._key(), readyOutcome);
-    }
-
-    return readyOutcome();
-  }
-
-  async onAuthEvent(event: AuthEvent): Promise<void> {
-    if (event.type === AuthEventType.SIGN_IN_VIA_REDIRECT) {
-      return super.onAuthEvent(event);
-    } else if (event.type === AuthEventType.UNKNOWN) {
-      // This is a sentinel value indicating there's no pending redirect
-      this.resolve(null);
-      return;
-    }
-
-    if (event.eventId) {
-      const user = await this.auth._redirectUserForId(event.eventId);
-      if (user) {
-        this.user = user;
-        return super.onAuthEvent(event);
-      } else {
-        this.resolve(null);
-      }
-    }
-  }
-
-  async onExecution(): Promise<void> {}
-
-  cleanUp(): void {}
-}
-
-export function _clearOutcomes(): void {
-  redirectOutcomeMap.clear();
 }

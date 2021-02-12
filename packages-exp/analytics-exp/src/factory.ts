@@ -22,12 +22,7 @@ import {
   MinimalDynamicConfig,
   Analytics
 } from '@firebase/analytics-types-exp';
-import {
-  insertScriptTag,
-  getOrCreateDataLayer,
-  wrapOrCreateGtag,
-  findGtagScriptOnPage
-} from './helpers';
+import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
@@ -214,10 +209,6 @@ export function factory(
     // Steps here should only be done once per page: creation or wrapping
     // of dataLayer and global gtag function.
 
-    // Detect if user has already put the gtag <script> tag on this page.
-    if (!findGtagScriptOnPage()) {
-      insertScriptTag(dataLayerName);
-    }
     getOrCreateDataLayer(dataLayerName);
 
     const { wrappedGtag, gtagCore } = wrapOrCreateGtag(
@@ -239,7 +230,8 @@ export function factory(
     dynamicConfigPromisesList,
     measurementIdToAppId,
     installations,
-    gtagCoreFunction
+    gtagCoreFunction,
+    dataLayerName
   );
 
   const analyticsInstance: AnalyticsService = new AnalyticsService(app);

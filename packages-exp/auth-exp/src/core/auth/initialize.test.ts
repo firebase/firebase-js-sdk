@@ -192,5 +192,10 @@ describe('core/auth/initialize', () => {
 
       expect(auth._isInitialized).to.be.false;
     });
+
+    it('should throw if called more than once', () => {
+      initializeAuth(fakeApp);
+      expect(() => initializeAuth(fakeApp)).to.throw();
+    });
   });
 });

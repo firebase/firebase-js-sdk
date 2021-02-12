@@ -100,7 +100,11 @@ describe('FirebaseAnalytics instance tests', () => {
       );
     });
     it('Warns if config has no apiKey but does have a measurementId', async () => {
+      // Since this is a warning and doesn't block the rest of initialization
+      // all the async stuff needs to be stubbed and cleaned up.
       const warnStub = stub(console, 'warn');
+      const docStub = stub(document, 'createElement');
+      stubFetch(200, { measurementId: fakeMeasurementId });
       const app = getFakeApp({
         appId: fakeAppParams.appId,
         measurementId: fakeMeasurementId
@@ -115,7 +119,11 @@ describe('FirebaseAnalytics instance tests', () => {
         `Falling back to the measurement ID ${fakeMeasurementId}`
       );
       warnStub.restore();
+      docStub.restore();
+      fetchStub.restore();
       idbOpenStub.restore();
+      delete window['gtag'];
+      delete window['dataLayer'];
     });
     it('Throws if creating an instance with already-used appId', () => {
       const app = getFakeApp(fakeAppParams);
@@ -206,6 +214,7 @@ describe('FirebaseAnalytics instance tests', () => {
     afterEach(() => {
       delete window['gtag'];
       delete window['dataLayer'];
+      removeGtagScript();
       fetchStub.restore();
       clock.restore();
       warnStub.restore();

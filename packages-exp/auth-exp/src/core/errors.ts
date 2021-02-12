@@ -121,7 +121,8 @@ export const enum AuthErrorCode {
   USER_MISMATCH = 'user-mismatch',
   USER_SIGNED_OUT = 'user-signed-out',
   WEAK_PASSWORD = 'weak-password',
-  WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
+  WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported',
+  ALREADY_INITIALIZED = 'already-initialized'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -347,7 +348,9 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.WEAK_PASSWORD]:
       'The password must be 6 characters long or more.',
     [AuthErrorCode.WEB_STORAGE_UNSUPPORTED]:
-      'This browser is not supported or 3rd party cookies and data may be disabled.'
+      'This browser is not supported or 3rd party cookies and data may be disabled.',
+    [AuthErrorCode.ALREADY_INITIALIZED]:
+      'Auth can only be initialized once per app.'
   };
 }
 
@@ -402,6 +405,7 @@ type GenericAuthErrorParams = {
     | AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
     | AuthErrorCode.INTERNAL_ERROR
     | AuthErrorCode.MFA_REQUIRED
+    | AuthErrorCode.NO_AUTH_EVENT
   >]: {
     appName: AppName;
     email?: string;
@@ -413,6 +417,7 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.ARGUMENT_ERROR]: { appName?: AppName };
   [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]: { appName?: AppName };
   [AuthErrorCode.INTERNAL_ERROR]: { appName?: AppName };
+  [AuthErrorCode.NO_AUTH_EVENT]: { appName?: AppName };
   [AuthErrorCode.MFA_REQUIRED]: {
     appName: AppName;
     serverResponse: IdTokenMfaResponse;

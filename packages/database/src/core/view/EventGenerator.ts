@@ -30,129 +30,145 @@ import { Event } from './Event';
  *
  */
 export class EventGenerator {
-  private index_: Index;
+  index_: Index;
 
-  constructor(private query_: Query) {
-    /**
-     */
+  constructor(public query_: Query) {
     this.index_ = this.query_.getQueryParams().getIndex();
   }
+}
 
-  /**
-   * Given a set of raw changes (no moved events and prevName not specified yet), and a set of
-   * EventRegistrations that should be notified of these changes, generate the actual events to be raised.
-   *
-   * Notes:
-   *  - child_moved events will be synthesized at this time for any child_changed events that affect
-   *    our index.
-   *  - prevName will be calculated based on the index ordering.
-   */
-  generateEventsForChanges(
-    changes: Change[],
-    eventCache: Node,
-    eventRegistrations: EventRegistration[]
-  ): Event[] {
-    const events: Event[] = [];
-    const moves: Change[] = [];
+/**
+ * Given a set of raw changes (no moved events and prevName not specified yet), and a set of
+ * EventRegistrations that should be notified of these changes, generate the actual events to be raised.
+ *
+ * Notes:
+ *  - child_moved events will be synthesized at this time for any child_changed events that affect
+ *    our index.
+ *  - prevName will be calculated based on the index ordering.
+ */
+export function eventGeneratorGenerateEventsForChanges(
+  eventGenerator: EventGenerator,
+  changes: Change[],
+  eventCache: Node,
+  eventRegistrations: EventRegistration[]
+): Event[] {
+  const events: Event[] = [];
+  const moves: Change[] = [];
 
-    changes.forEach(change => {
-      if (
-        change.type === ChangeType.CHILD_CHANGED &&
-        this.index_.indexedValueChanged(
-          change.oldSnap as Node,
-          change.snapshotNode
-        )
-      ) {
-        moves.push(changeChildMoved(change.childName, change.snapshotNode));
+  changes.forEach(change => {
+    if (
+      change.type === ChangeType.CHILD_CHANGED &&
+      eventGenerator.index_.indexedValueChanged(
+        change.oldSnap as Node,
+        change.snapshotNode
+      )
+    ) {
+      moves.push(changeChildMoved(change.childName, change.snapshotNode));
+    }
+  });
+
+  eventGeneratorGenerateEventsForType(
+    eventGenerator,
+    events,
+    ChangeType.CHILD_REMOVED,
+    changes,
+    eventRegistrations,
+    eventCache
+  );
+  eventGeneratorGenerateEventsForType(
+    eventGenerator,
+    events,
+    ChangeType.CHILD_ADDED,
+    changes,
+    eventRegistrations,
+    eventCache
+  );
+  eventGeneratorGenerateEventsForType(
+    eventGenerator,
+    events,
+    ChangeType.CHILD_MOVED,
+    moves,
+    eventRegistrations,
+    eventCache
+  );
+  eventGeneratorGenerateEventsForType(
+    eventGenerator,
+    events,
+    ChangeType.CHILD_CHANGED,
+    changes,
+    eventRegistrations,
+    eventCache
+  );
+  eventGeneratorGenerateEventsForType(
+    eventGenerator,
+    events,
+    ChangeType.VALUE,
+    changes,
+    eventRegistrations,
+    eventCache
+  );
+
+  return events;
+}
+
+/**
+ * Given changes of a single change type, generate the corresponding events.
+ */
+function eventGeneratorGenerateEventsForType(
+  eventGenerator: EventGenerator,
+  events: Event[],
+  eventType: string,
+  changes: Change[],
+  registrations: EventRegistration[],
+  eventCache: Node
+) {
+  const filteredChanges = changes.filter(change => change.type === eventType);
+
+  filteredChanges.sort((a, b) =>
+    eventGeneratorCompareChanges(eventGenerator, a, b)
+  );
+  filteredChanges.forEach(change => {
+    const materializedChange = eventGeneratorMaterializeSingleChange(
+      eventGenerator,
+      change,
+      eventCache
+    );
+    registrations.forEach(registration => {
+      if (registration.respondsTo(change.type)) {
+        events.push(
+          registration.createEvent(materializedChange, eventGenerator.query_)
+        );
       }
     });
+  });
+}
 
-    this.generateEventsForType_(
-      events,
-      ChangeType.CHILD_REMOVED,
-      changes,
-      eventRegistrations,
-      eventCache
+function eventGeneratorMaterializeSingleChange(
+  eventGenerator: EventGenerator,
+  change: Change,
+  eventCache: Node
+): Change {
+  if (change.type === 'value' || change.type === 'child_removed') {
+    return change;
+  } else {
+    change.prevName = eventCache.getPredecessorChildName(
+      change.childName,
+      change.snapshotNode,
+      eventGenerator.index_
     );
-    this.generateEventsForType_(
-      events,
-      ChangeType.CHILD_ADDED,
-      changes,
-      eventRegistrations,
-      eventCache
-    );
-    this.generateEventsForType_(
-      events,
-      ChangeType.CHILD_MOVED,
-      moves,
-      eventRegistrations,
-      eventCache
-    );
-    this.generateEventsForType_(
-      events,
-      ChangeType.CHILD_CHANGED,
-      changes,
-      eventRegistrations,
-      eventCache
-    );
-    this.generateEventsForType_(
-      events,
-      ChangeType.VALUE,
-      changes,
-      eventRegistrations,
-      eventCache
-    );
-
-    return events;
+    return change;
   }
+}
 
-  /**
-   * Given changes of a single change type, generate the corresponding events.
-   */
-  private generateEventsForType_(
-    events: Event[],
-    eventType: string,
-    changes: Change[],
-    registrations: EventRegistration[],
-    eventCache: Node
-  ) {
-    const filteredChanges = changes.filter(change => change.type === eventType);
-
-    filteredChanges.sort(this.compareChanges_.bind(this));
-    filteredChanges.forEach(change => {
-      const materializedChange = this.materializeSingleChange_(
-        change,
-        eventCache
-      );
-      registrations.forEach(registration => {
-        if (registration.respondsTo(change.type)) {
-          events.push(
-            registration.createEvent(materializedChange, this.query_)
-          );
-        }
-      });
-    });
+function eventGeneratorCompareChanges(
+  eventGenerator: EventGenerator,
+  a: Change,
+  b: Change
+) {
+  if (a.childName == null || b.childName == null) {
+    throw assertionError('Should only compare child_ events.');
   }
-
-  private materializeSingleChange_(change: Change, eventCache: Node): Change {
-    if (change.type === 'value' || change.type === 'child_removed') {
-      return change;
-    } else {
-      change.prevName = eventCache.getPredecessorChildName(
-        change.childName,
-        change.snapshotNode,
-        this.index_
-      );
-      return change;
-    }
-  }
-
-  private compareChanges_(a: Change, b: Change) {
-    if (a.childName == null || b.childName == null) {
-      throw assertionError('Should only compare child_ events.');
-    }
-    const aWrapped = new NamedNode(a.childName, a.snapshotNode);
-    const bWrapped = new NamedNode(b.childName, b.snapshotNode);
-    return this.index_.compare(aWrapped, bWrapped);
-  }
+  const aWrapped = new NamedNode(a.childName, a.snapshotNode);
+  const bWrapped = new NamedNode(b.childName, b.snapshotNode);
+  return eventGenerator.index_.compare(aWrapped, bWrapped);
 }
