@@ -69,6 +69,8 @@ export interface FirebaseApp {
 
 /**
  * @public
+ *
+ * Firebase configuration object
  */
 export interface FirebaseOptions {
   apiKey?: string;
@@ -83,9 +85,18 @@ export interface FirebaseOptions {
 
 /**
  * @public
+ *
+ * Configuration options given to {@link (initializeApp:1) | initializeApp()}
  */
 export interface FirebaseAppConfig {
+  /**
+   * custom name for the Firebase App.
+   * The default value is `"[DEFAULT]"`.
+   */
   name?: string;
+  /**
+   * The settable config flag for GDPR opt-in/opt-out
+   */
   automaticDataCollectionEnabled?: boolean;
 }
 
@@ -102,6 +113,9 @@ export interface _FirebaseService {
   _delete(): Promise<void>;
 }
 
+/**
+ * @internal
+ */
 export interface _FirebaseAppInternal extends FirebaseApp {
   container: ComponentContainer;
   isDeleted: boolean;

@@ -40,15 +40,13 @@ export interface FirebaseApp {
     readonly options: FirebaseOptions;
 }
 
-// @public (undocumented)
+// @public
 export interface FirebaseAppConfig {
-    // (undocumented)
     automaticDataCollectionEnabled?: boolean;
-    // (undocumented)
     name?: string;
 }
 
-// @public (undocumented)
+// @internal (undocumented)
 export interface _FirebaseAppInternal extends FirebaseApp {
     // (undocumented)
     checkDestroyed(): void;
@@ -58,7 +56,7 @@ export interface _FirebaseAppInternal extends FirebaseApp {
     isDeleted: boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface FirebaseOptions {
     // (undocumented)
     apiKey?: string;
