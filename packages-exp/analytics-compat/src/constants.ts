@@ -18,8 +18,6 @@
 /**
  * Officially recommended event names for gtag.js
  * Any other string is also allowed.
- *
- * @public
  */
 export enum EventName {
   ADD_SHIPPING_INFO = 'add_shipping_info',

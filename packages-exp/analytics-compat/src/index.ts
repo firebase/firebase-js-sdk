@@ -58,7 +58,6 @@ const factory: InstanceFactory<'analytics-compat'> = (
 
 export function registerAnalytics(): void {
   const namespaceExports = {
-    // no-inline
     Analytics: AnalyticsService,
     settings: settingsExp,
     isSupported: isSupportedExp,
