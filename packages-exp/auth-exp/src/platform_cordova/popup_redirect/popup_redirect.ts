@@ -40,7 +40,6 @@ import {
 } from './events';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { _isAndroid } from '../../core/util/browser';
-import { _getRedirectResult } from '../strategies/redirect';
 
 /**
  * How long to wait for the initial auth event before concluding no
@@ -89,7 +88,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   readonly _redirectPersistence = browserSessionPersistence;
   private readonly eventManagers = new Map<string, CordovaAuthEventManager>();
 
-  _completeRedirectFn = _getRedirectResult;
+  _completeRedirectFn = async (): Promise<null> => null;
 
   async _initialize(auth: Auth): Promise<CordovaAuthEventManager> {
     const key = auth._key();
@@ -115,13 +114,14 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     _checkCordovaConfiguration(auth);
     const manager = await this._initialize(auth);
     await manager.initialized;
+    console.log('here');
     manager.resetRedirect();
 
     const event = _generateNewEvent(auth, authType, eventId);
     await _savePartialEvent(auth, event);
     const url = await _generateHandlerUrl(auth, event, provider);
     const iabRef = await _performRedirect(url);
-    return new AppActivityListener(auth, manager, iabRef).listenForActivity();
+    return listenForAppActivity(auth, manager, iabRef);
   }
 
   _isIframeWebStorageSupported(
@@ -156,7 +156,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     };
 
     // Universal links subscriber doesn't exist for iOS, so we need to check
-    if (typeof universalLinks.subscribe === 'function') {
+    if (typeof universalLinks !== 'undefined' && typeof universalLinks.subscribe === 'function') {
       universalLinks.subscribe(null, universalLinksCb);
     }
 
@@ -186,78 +186,74 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   }
 }
 
-class AppActivityListener {
-  private resolve!: () => void;  
-  private reject!: (e: Error) => void;
-  private promise = new Promise<void>((resolve, reject) => {
-    this.resolve = resolve;
-    this.reject = reject;
-  });
-  private onCloseTimer: number|null = null;
-  private listenerHasBeenUsed = false;
+/**
+ * This function waits for app activity to be seen before resolving. It does
+ * this by attaching listeners to various dom events. Once the app is determined
+ * to be visible, this promise resolves. AFTER that resolution, the listeners
+ * are detached and any browser tabs left open will be closed.
+ */
+async function listenForAppActivity(auth: Auth, eventManager: CordovaAuthEventManager, iabRef: InAppBrowserRef|null): Promise<void> {
+  let cleanup = () => {};
+  try {
+    await new Promise<void>((resolve, reject) => {
+      let onCloseTimer: number|null = null;
 
-  constructor(private readonly auth: Auth, private readonly eventManager: CordovaAuthEventManager, private iabRef: InAppBrowserRef|null) {}
-
-  async listenForActivity(): Promise<void> {
-    debugAssert(!this.listenerHasBeenUsed, 'Redirect resolver attempted to reuse activity listener');
-    this.listenerHasBeenUsed = true;
-
-    const onResume = () => this.resumed();
-    const onVisibilityChange = () => this.visibilityChanged();
-    const onAuthEvent = () => this.authEventSeen();
-
-    // Listen for the auth event
-    this.eventManager.addPassiveListener(onAuthEvent);
-
-    // Listen for resume and visibility events
-    document.addEventListener('resume', onResume, false);
-    if (_isAndroid()) {
-      document.addEventListener('visibilitychange', onVisibilityChange, false);
-    }
-
-    try {
-      await this.promise;
-    } finally {
-      this.eventManager.removePassiveListener(onAuthEvent);
-      document.removeEventListener('resume', onResume, false);
-      document.removeEventListener('visibilitychange', onVisibilityChange, false);
-      if (this.onCloseTimer) {
-        window.clearTimeout(this.onCloseTimer);
+      // DEFINE ALL THE CALLBACKS =====
+      function authEventSeen(): void {
+        // Auth event was detected. Resolve this promise and close the extra
+        // window if it's still open.
+        resolve();
+        const closeBrowserTab = cordova.plugins.browsertab?.close;
+        if (typeof closeBrowserTab === 'function') {
+          closeBrowserTab();
+        }
+        // Close inappbrowser emebedded webview in iOS7 and 8 case if still
+        // open.
+        if (typeof iabRef?.close === 'function') {
+          iabRef.close();
+        }
       }
-    }
-  }
 
-  private resumed(): void {
-    if (this.onCloseTimer) {
-      // This code already ran; do not rerun.
-      return;
-    }
+      function resumed(): void {
+        if (onCloseTimer) {
+          // This code already ran; do not rerun.
+          return;
+        }
+    
+        onCloseTimer = window.setTimeout(() => {
+          // Wait two seeconds after resume then reject.
+          reject(_createError(auth, AuthErrorCode.REDIRECT_CANCELLED_BY_USER));
+        }, REDIRECT_TIMEOUT_MS);
+      }
 
-    this.onCloseTimer = window.setTimeout(() => {
-      // Wait two seeconds after resume then reject.
-      this.reject(_createError(this.auth, AuthErrorCode.REDIRECT_CANCELLED_BY_USER));
-    }, REDIRECT_TIMEOUT_MS);
-  }
+      function visibilityChanged(): void {
+        if (document?.visibilityState === 'visible') {
+          resumed();
+        }
+      }
 
-  private visibilityChanged(): void {
-    if (document?.visibilityState === 'visible') {
-      this.resumed();
-    }
-  }
+      // ATTACH ALL THE LISTENERS =====
+      // Listen for the auth event
+      eventManager.addPassiveListener(authEventSeen);
 
-  private authEventSeen(): void {
-    // Auth event was detected. Resolve this promise and close the extra
-    // window if it's still open.
-    this.resolve();
-    const closeBrowserTab = cordova.plugins.browsertab?.close;
-    if (typeof closeBrowserTab === 'function') {
-      closeBrowserTab();
-    }
-    // Close inappbrowser emebedded webview in iOS7 and 8 case if still
-    // open.
-    if (typeof this.iabRef?.close === 'function') {
-      this.iabRef.close();
-    }
+      // Listen for resume and visibility events
+      document.addEventListener('resume', resumed, false);
+      if (_isAndroid()) {
+        document.addEventListener('visibilitychange', visibilityChanged, false);
+      }
+
+      // SETUP THE CLEANUP FUNCTION =====
+      cleanup = () => {
+        eventManager.removePassiveListener(authEventSeen);
+        document.removeEventListener('resume', resumed, false);
+        document.removeEventListener('visibilitychange', visibilityChanged, false);
+        if (onCloseTimer) {
+          window.clearTimeout(onCloseTimer);
+        }
+      }
+    });
+  } finally {
+    cleanup();
   }
 }
 
