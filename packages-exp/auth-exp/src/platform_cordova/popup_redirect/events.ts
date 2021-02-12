@@ -16,6 +16,7 @@
  */
 
 import { querystringDecode } from '@firebase/util';
+import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../../core/errors';
 import { PersistedBlob, Persistence } from '../../core/persistence';
 import {
@@ -29,6 +30,41 @@ import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { browserLocalPersistence } from '../../platform_browser/persistence/local_storage';
 
 const SESSION_ID_LENGTH = 20;
+
+/** Custom AuthEventManager that adds passive listeners to events */
+export class CordovaAuthEventManager extends AuthEventManager {
+  private readonly passiveListeners = new Set<(e: AuthEvent) => void>();
+  private resolveInialized!: () => void;
+  private initPromise = new Promise<void>(resolve => {
+    this.resolveInialized = resolve;
+  });
+
+  addPassiveListener(cb: (e: AuthEvent) => void): void {
+    this.passiveListeners.add(cb);
+  }
+
+  removePassiveListener(cb: (e: AuthEvent) => void): void {
+    this.passiveListeners.delete(cb);
+  }
+
+  // In a Cordova environment, this manager can live through multiple redirect
+  // operations
+  resetRedirect(): void {
+    this.queuedRedirectEvent = null;
+    this.hasHandledPotentialRedirect = false;
+  }
+
+  /** Override the onEvent method */
+  onEvent(event: AuthEvent): boolean {
+    this.resolveInialized();
+    this.passiveListeners.forEach(cb => cb(event));
+    return super.onEvent(event);
+  }
+
+  async initialized(): Promise<void> {
+    await this.initPromise;
+  }
+}
 
 /**
  * Generates a (partial) {@link AuthEvent}.

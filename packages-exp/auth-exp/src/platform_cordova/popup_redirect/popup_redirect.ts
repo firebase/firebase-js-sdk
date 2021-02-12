@@ -30,59 +30,23 @@ import { AuthErrorCode } from '../../core/errors';
 import {
   _checkCordovaConfiguration,
   _generateHandlerUrl,
-  _performRedirect
+  _performRedirect,
+  _waitForAppResume
 } from './utils';
 import {
+  CordovaAuthEventManager,
   _eventFromPartialAndUrl,
   _generateNewEvent,
   _getAndRemoveEvent,
   _savePartialEvent
 } from './events';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
-import { _isAndroid } from '../../core/util/browser';
 
 /**
  * How long to wait for the initial auth event before concluding no
  * redirect pending
  */
 const INITIAL_EVENT_TIMEOUT_MS = 500;
-
-/**
- * How long to wait after the app comes back into focus before concluding that
- * the user closed the sign in tab.
- */
-const REDIRECT_TIMEOUT_MS = 2000;
-
-/** Custom AuthEventManager that adds passive listeners to events */
-export class CordovaAuthEventManager extends AuthEventManager {
-  private readonly passiveListeners = new Set<(e: AuthEvent) => void>();
-  private resolveInialized!: () => void;
-  initialized = new Promise<void>(resolve => {
-    this.resolveInialized = resolve;
-  });
-
-  addPassiveListener(cb: (e: AuthEvent) => void): void {
-    this.passiveListeners.add(cb);
-  }
-
-  removePassiveListener(cb: (e: AuthEvent) => void): void {
-    this.passiveListeners.delete(cb);
-  }
-
-  // In a Cordova environment, this manager can live through multiple redirect
-  // operations
-  resetRedirect(): void {
-    this.queuedRedirectEvent = null;
-    this.hasHandledPotentialRedirect = false;
-  }
-
-  /** Override the onEvent method */
-  onEvent(event: AuthEvent): boolean {
-    this.resolveInialized();
-    this.passiveListeners.forEach(cb => cb(event));
-    return super.onEvent(event);
-  }
-}
 
 class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   readonly _redirectPersistence = browserSessionPersistence;
@@ -113,16 +77,14 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   ): Promise<void> {
     _checkCordovaConfiguration(auth);
     const manager = await this._initialize(auth);
-    await manager.initialized;
-    console.log('here');
+    await manager.initialized();
     manager.resetRedirect();
 
     const event = _generateNewEvent(auth, authType, eventId);
     await _savePartialEvent(auth, event);
     const url = await _generateHandlerUrl(auth, event, provider);
-    console.log(url);
-    // const iabRef = await _performRedirect(url);
-    // return listenForAppActivity(auth, manager, iabRef);
+    const iabRef = await _performRedirect(url);
+    return _waitForAppResume(auth, manager, iabRef);
   }
 
   _isIframeWebStorageSupported(
@@ -184,77 +146,6 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
         }
       }
     };
-  }
-}
-
-/**
- * This function waits for app activity to be seen before resolving. It does
- * this by attaching listeners to various dom events. Once the app is determined
- * to be visible, this promise resolves. AFTER that resolution, the listeners
- * are detached and any browser tabs left open will be closed.
- */
-async function listenForAppActivity(auth: Auth, eventManager: CordovaAuthEventManager, iabRef: InAppBrowserRef|null): Promise<void> {
-  let cleanup = () => {};
-  try {
-    await new Promise<void>((resolve, reject) => {
-      let onCloseTimer: number|null = null;
-
-      // DEFINE ALL THE CALLBACKS =====
-      function authEventSeen(): void {
-        // Auth event was detected. Resolve this promise and close the extra
-        // window if it's still open.
-        resolve();
-        const closeBrowserTab = cordova.plugins.browsertab?.close;
-        if (typeof closeBrowserTab === 'function') {
-          closeBrowserTab();
-        }
-        // Close inappbrowser emebedded webview in iOS7 and 8 case if still
-        // open.
-        if (typeof iabRef?.close === 'function') {
-          iabRef.close();
-        }
-      }
-
-      function resumed(): void {
-        if (onCloseTimer) {
-          // This code already ran; do not rerun.
-          return;
-        }
-    
-        onCloseTimer = window.setTimeout(() => {
-          // Wait two seeconds after resume then reject.
-          reject(_createError(auth, AuthErrorCode.REDIRECT_CANCELLED_BY_USER));
-        }, REDIRECT_TIMEOUT_MS);
-      }
-
-      function visibilityChanged(): void {
-        if (document?.visibilityState === 'visible') {
-          resumed();
-        }
-      }
-
-      // ATTACH ALL THE LISTENERS =====
-      // Listen for the auth event
-      eventManager.addPassiveListener(authEventSeen);
-
-      // Listen for resume and visibility events
-      document.addEventListener('resume', resumed, false);
-      if (_isAndroid()) {
-        document.addEventListener('visibilitychange', visibilityChanged, false);
-      }
-
-      // SETUP THE CLEANUP FUNCTION =====
-      cleanup = () => {
-        eventManager.removePassiveListener(authEventSeen);
-        document.removeEventListener('resume', resumed, false);
-        document.removeEventListener('visibilitychange', visibilityChanged, false);
-        if (onCloseTimer) {
-          window.clearTimeout(onCloseTimer);
-        }
-      }
-    });
-  } finally {
-    cleanup();
   }
 }
 
