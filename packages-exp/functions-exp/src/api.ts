@@ -78,7 +78,7 @@ export function httpsCallable<RequestParams = unknown, ResponseData = unknown>(
   functionsInstance: Functions,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable {
+): HttpsCallable<RequestParams, ResponseData> {
   return _httpsCallable<RequestParams, ResponseData>(
     functionsInstance as FunctionsService,
     name,
