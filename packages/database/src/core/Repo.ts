@@ -26,27 +26,32 @@ import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
 import {
-  stringify,
-  map,
-  isEmpty,
   assert,
   contains,
-  safeGet
+  isEmpty,
+  map,
+  safeGet,
+  stringify
 } from '@firebase/util';
 import {
   beingCrawled,
   each,
   exceptionGuard,
-  warn,
   log,
-  LUIDGenerator
+  LUIDGenerator,
+  warn
 } from './util/util';
 
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { StatsManager } from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
 import { StatsListener } from './stats/StatsListener';
-import { EventQueue } from './view/EventQueue';
+import {
+  EventQueue,
+  eventQueueQueueEvents,
+  eventQueueRaiseEventsAtPath,
+  eventQueueRaiseEventsForChangedPath
+} from './view/EventQueue';
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { RepoInfo } from './RepoInfo';
@@ -234,7 +239,11 @@ export class Repo {
       startListening: (query, tag, currentHashFn, onComplete) => {
         this.server_.listen(query, currentHashFn, tag, (status, data) => {
           const events = onComplete(status, data);
-          this.eventQueue_.raiseEventsForChangedPath(query.path, events);
+          eventQueueRaiseEventsForChangedPath(
+            this.eventQueue_,
+            query.path,
+            events
+          );
         });
         // No synchronous events for network-backed sync trees
         return [];
@@ -332,7 +341,7 @@ export class Repo {
       // is a proxy for some change having occurred.
       affectedPath = this.rerunTransactions_(path);
     }
-    this.eventQueue_.raiseEventsForChangedPath(affectedPath, events);
+    eventQueueRaiseEventsForChangedPath(this.eventQueue_, affectedPath, events);
   }
 
   // TODO: This should be @private but it's used by test_access.js and internal.js
@@ -358,7 +367,7 @@ export class Repo {
     const newNode = nodeFromJSON(value);
     this.infoData_.updateSnapshot(path, newNode);
     const events = this.infoSyncTree_.applyServerOverwrite(path, newNode);
-    this.eventQueue_.raiseEventsForChangedPath(path, events);
+    eventQueueRaiseEventsForChangedPath(this.eventQueue_, path, events);
   }
 
   private getNextWriteId_(): number {
@@ -399,7 +408,7 @@ export class Repo {
           query.path,
           node
         );
-        this.eventQueue_.raiseEventsAtPath(query.path, events);
+        eventQueueRaiseEventsAtPath(this.eventQueue_, query.path, events);
         return Promise.resolve(
           new DataSnapshot(
             node,
@@ -445,7 +454,7 @@ export class Repo {
       writeId,
       true
     );
-    this.eventQueue_.queueEvents(events);
+    eventQueueQueueEvents(this.eventQueue_, events);
     this.server_.put(
       path.toString(),
       newNodeUnresolved.val(/*export=*/ true),
@@ -459,14 +468,18 @@ export class Repo {
           writeId,
           !success
         );
-        this.eventQueue_.raiseEventsForChangedPath(path, clearEvents);
+        eventQueueRaiseEventsForChangedPath(
+          this.eventQueue_,
+          path,
+          clearEvents
+        );
         this.callOnCompleteCallback(onComplete, status, errorReason);
       }
     );
     const affectedPath = this.abortTransactions_(path);
     this.rerunTransactions_(affectedPath);
     // We queued the events above, so just flush the queue here
-    this.eventQueue_.raiseEventsForChangedPath(affectedPath, []);
+    eventQueueRaiseEventsForChangedPath(this.eventQueue_, affectedPath, []);
   }
 
   update(
@@ -497,7 +510,7 @@ export class Repo {
         changedChildren,
         writeId
       );
-      this.eventQueue_.queueEvents(events);
+      eventQueueQueueEvents(this.eventQueue_, events);
       this.server_.merge(
         path.toString(),
         childrenToMerge,
@@ -513,7 +526,11 @@ export class Repo {
           );
           const affectedPath =
             clearEvents.length > 0 ? this.rerunTransactions_(path) : path;
-          this.eventQueue_.raiseEventsForChangedPath(affectedPath, clearEvents);
+          eventQueueRaiseEventsForChangedPath(
+            this.eventQueue_,
+            affectedPath,
+            clearEvents
+          );
           this.callOnCompleteCallback(onComplete, status, errorReason);
         }
       );
@@ -524,7 +541,7 @@ export class Repo {
       });
 
       // We queued the events above, so just flush the queue here
-      this.eventQueue_.raiseEventsForChangedPath(path, []);
+      eventQueueRaiseEventsForChangedPath(this.eventQueue_, path, []);
     } else {
       log("update() called with empty data.  Don't do anything.");
       this.callOnCompleteCallback(onComplete, 'ok');
@@ -559,7 +576,7 @@ export class Repo {
     });
 
     this.onDisconnect_ = new SparseSnapshotTree();
-    this.eventQueue_.raiseEventsForChangedPath(Path.Empty, events);
+    eventQueueRaiseEventsForChangedPath(this.eventQueue_, Path.Empty, events);
   }
 
   onDisconnectCancel(
@@ -652,7 +669,7 @@ export class Repo {
         eventRegistration
       );
     }
-    this.eventQueue_.raiseEventsAtPath(query.path, events);
+    eventQueueRaiseEventsAtPath(this.eventQueue_, query.path, events);
   }
 
   removeEventCallbackForQuery(
@@ -673,7 +690,7 @@ export class Repo {
         eventRegistration
       );
     }
-    this.eventQueue_.raiseEventsAtPath(query.path, events);
+    eventQueueRaiseEventsAtPath(this.eventQueue_, query.path, events);
   }
 
   interrupt() {
@@ -885,7 +902,7 @@ export class Repo {
         transaction.currentWriteId,
         transaction.applyLocally
       );
-      this.eventQueue_.raiseEventsForChangedPath(path, events);
+      eventQueueRaiseEventsForChangedPath(this.eventQueue_, path, events);
 
       this.sendReadyTransactions_();
     }
@@ -1013,7 +1030,7 @@ export class Repo {
           // There may be pending transactions that we can now send.
           this.sendReadyTransactions_();
 
-          this.eventQueue_.raiseEventsForChangedPath(path, events);
+          eventQueueRaiseEventsForChangedPath(this.eventQueue_, path, events);
 
           // Finally, trigger onComplete callbacks.
           for (let i = 0; i < callbacks.length; i++) {
@@ -1178,7 +1195,7 @@ export class Repo {
           }
         }
       }
-      this.eventQueue_.raiseEventsForChangedPath(path, events);
+      eventQueueRaiseEventsForChangedPath(this.eventQueue_, path, events);
       events = [];
       if (abortTransaction) {
         // Abort.
@@ -1392,7 +1409,11 @@ export class Repo {
       }
 
       // Now fire the callbacks.
-      this.eventQueue_.raiseEventsForChangedPath(node.path(), events);
+      eventQueueRaiseEventsForChangedPath(
+        this.eventQueue_,
+        node.path(),
+        events
+      );
       for (let i = 0; i < callbacks.length; i++) {
         exceptionGuard(callbacks[i]);
       }
