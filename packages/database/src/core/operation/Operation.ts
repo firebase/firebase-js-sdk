@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
 import { Path } from '../util/Path';
 
 /**
