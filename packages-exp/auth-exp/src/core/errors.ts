@@ -121,7 +121,8 @@ export const enum AuthErrorCode {
   USER_MISMATCH = 'user-mismatch',
   USER_SIGNED_OUT = 'user-signed-out',
   WEAK_PASSWORD = 'weak-password',
-  WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
+  WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported',
+  ALREADY_INITIALIZED = 'already-initialized'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -347,7 +348,9 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.WEAK_PASSWORD]:
       'The password must be 6 characters long or more.',
     [AuthErrorCode.WEB_STORAGE_UNSUPPORTED]:
-      'This browser is not supported or 3rd party cookies and data may be disabled.'
+      'This browser is not supported or 3rd party cookies and data may be disabled.',
+    [AuthErrorCode.ALREADY_INITIALIZED]:
+      'Auth can only be initialized once per app.'
   };
 }
 
