@@ -17,7 +17,12 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { AuthErrorCode } from '../../core/errors';
-import { debugAssert, _assert, _createError, _fail } from '../../core/util/assert';
+import {
+  debugAssert,
+  _assert,
+  _createError,
+  _fail
+} from '../../core/util/assert';
 import { _isAndroid, _isIOS, _isIOS7Or8 } from '../../core/util/browser';
 import { _getRedirectUrl } from '../../core/util/handler';
 import { Auth } from '../../model/auth';
@@ -68,7 +73,9 @@ export async function _generateHandlerUrl(
   );
 }
 
-export function _performRedirect(handlerUrl: string): Promise<InAppBrowserRef|null> {
+export function _performRedirect(
+  handlerUrl: string
+): Promise<InAppBrowserRef | null> {
   return new Promise(resolve => {
     cordova.plugins.browsertab.isAvailable(browserTabIsAvailable => {
       let iabRef: InAppBrowserRef | null = null;
@@ -99,11 +106,15 @@ interface PassiveAuthEventListener {
  * to be visible, this promise resolves. AFTER that resolution, the listeners
  * are detached and any browser tabs left open will be closed.
  */
-export async function _waitForAppResume(auth: Auth, eventListener: PassiveAuthEventListener, iabRef: InAppBrowserRef|null): Promise<void> {
+export async function _waitForAppResume(
+  auth: Auth,
+  eventListener: PassiveAuthEventListener,
+  iabRef: InAppBrowserRef | null
+): Promise<void> {
   let cleanup = (): void => {};
   try {
     await new Promise<void>((resolve, reject) => {
-      let onCloseTimer: number|null = null;
+      let onCloseTimer: number | null = null;
 
       // DEFINE ALL THE CALLBACKS =====
       function authEventSeen(): void {
@@ -126,7 +137,7 @@ export async function _waitForAppResume(auth: Auth, eventListener: PassiveAuthEv
           // This code already ran; do not rerun.
           return;
         }
-    
+
         onCloseTimer = window.setTimeout(() => {
           // Wait two seeconds after resume then reject.
           reject(_createError(auth, AuthErrorCode.REDIRECT_CANCELLED_BY_USER));
@@ -153,7 +164,11 @@ export async function _waitForAppResume(auth: Auth, eventListener: PassiveAuthEv
       cleanup = () => {
         eventListener.removePassiveListener(authEventSeen);
         document.removeEventListener('resume', resumed, false);
-        document.removeEventListener('visibilitychange', visibilityChanged, false);
+        document.removeEventListener(
+          'visibilitychange',
+          visibilityChanged,
+          false
+        );
         if (onCloseTimer) {
           window.clearTimeout(onCloseTimer);
         }

@@ -31,7 +31,10 @@ import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { GoogleAuthProvider } from '../../core/providers/google';
 import { AuthProvider } from '../../../internal';
 import { CordovaAuthEventManager, _generateNewEvent } from './events';
-import { stubSingleTimeout, TimerTripFn } from '../../../test/helpers/timeout_stub';
+import {
+  stubSingleTimeout,
+  TimerTripFn
+} from '../../../test/helpers/timeout_stub';
 import { FirebaseError } from '@firebase/util';
 
 const ANDROID_UA = 'UserAgent/5.0 (Linux; Android 0.0.0)';
@@ -238,7 +241,10 @@ describe('platform_cordova/popup_redirect/utils', () => {
         const promise = _waitForAppResume(auth, eventManager, null);
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
-        await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/redirect-cancelled-by-user');
+        await expect(promise).to.be.rejectedWith(
+          FirebaseError,
+          'auth/redirect-cancelled-by-user'
+        );
       });
 
       it('rejects when timer trips after visibility change', async () => {
@@ -247,7 +253,10 @@ describe('platform_cordova/popup_redirect/utils', () => {
         sinon.stub(document, 'visibilityState').value('visible');
         document.dispatchEvent(new CustomEvent('visibilitychange'));
         tripCancelTimer();
-        await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/redirect-cancelled-by-user');
+        await expect(promise).to.be.rejectedWith(
+          FirebaseError,
+          'auth/redirect-cancelled-by-user'
+        );
       });
 
       it('only sets reject timeout once', async () => {
@@ -258,29 +267,45 @@ describe('platform_cordova/popup_redirect/utils', () => {
         document.dispatchEvent(new CustomEvent('resume'));
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
-        await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/redirect-cancelled-by-user');
+        await expect(promise).to.be.rejectedWith(
+          FirebaseError,
+          'auth/redirect-cancelled-by-user'
+        );
         expect(window.setTimeout).to.have.been.calledOnce;
       });
 
-      it('cleans up listeners and cancels timer', async  () => {
+      it('cleans up listeners and cancels timer', async () => {
         sinon.stub(document, 'removeEventListener').callThrough();
         sinon.stub(eventManager, 'removePassiveListener');
         sinon.stub(window, 'clearTimeout');
         const promise = _waitForAppResume(auth, eventManager, null);
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
-        await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/redirect-cancelled-by-user');
+        await expect(promise).to.be.rejectedWith(
+          FirebaseError,
+          'auth/redirect-cancelled-by-user'
+        );
 
-        expect(document.removeEventListener).to.have.been.calledWith('resume', sinon.match.func);
-        expect(document.removeEventListener).to.have.been.calledWith('visibilitychange', sinon.match.func);
-        expect(eventManager.removePassiveListener).to.have.been.calledWith(sinon.match.func);
+        expect(document.removeEventListener).to.have.been.calledWith(
+          'resume',
+          sinon.match.func
+        );
+        expect(document.removeEventListener).to.have.been.calledWith(
+          'visibilitychange',
+          sinon.match.func
+        );
+        expect(eventManager.removePassiveListener).to.have.been.calledWith(
+          sinon.match.func
+        );
         expect(window.clearTimeout).to.have.been.calledWith(CANCEL_TIMER_ID);
       });
     });
 
     context('when auth event is seen', () => {
       function sendEvent(): void {
-        eventManager.onEvent(_generateNewEvent(auth, AuthEventType.LINK_VIA_REDIRECT));
+        eventManager.onEvent(
+          _generateNewEvent(auth, AuthEventType.LINK_VIA_REDIRECT)
+        );
       }
 
       it('resolves the promise', async () => {
@@ -298,14 +323,14 @@ describe('platform_cordova/popup_redirect/utils', () => {
       });
 
       it('calls close on inAppBrowserRef', async () => {
-        const iabRef: InAppBrowserRef = {close: sinon.stub()};
+        const iabRef: InAppBrowserRef = { close: sinon.stub() };
         const promise = _waitForAppResume(auth, eventManager, iabRef);
         sendEvent();
         await promise;
         expect(iabRef.close).to.have.been.called;
       });
 
-      it('cleans up listeners and cancels timer', async  () => {
+      it('cleans up listeners and cancels timer', async () => {
         sinon.stub(document, 'removeEventListener').callThrough();
         sinon.stub(eventManager, 'removePassiveListener');
         sinon.stub(window, 'clearTimeout');
@@ -314,9 +339,17 @@ describe('platform_cordova/popup_redirect/utils', () => {
         sendEvent();
         await promise;
 
-        expect(document.removeEventListener).to.have.been.calledWith('resume', sinon.match.func);
-        expect(document.removeEventListener).to.have.been.calledWith('visibilitychange', sinon.match.func);
-        expect(eventManager.removePassiveListener).to.have.been.calledWith(sinon.match.func);
+        expect(document.removeEventListener).to.have.been.calledWith(
+          'resume',
+          sinon.match.func
+        );
+        expect(document.removeEventListener).to.have.been.calledWith(
+          'visibilitychange',
+          sinon.match.func
+        );
+        expect(eventManager.removePassiveListener).to.have.been.calledWith(
+          sinon.match.func
+        );
         expect(window.clearTimeout).to.have.been.calledWith(CANCEL_TIMER_ID);
       });
     });
@@ -331,7 +364,7 @@ function attachExpectedPlugins(): void {
       browsertab: {
         isAvailable: () => {},
         openUrl: () => {},
-        close: () => {},
+        close: () => {}
       }
     },
     InAppBrowser: {

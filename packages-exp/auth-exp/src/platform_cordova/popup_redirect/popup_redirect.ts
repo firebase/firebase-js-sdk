@@ -119,7 +119,10 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     };
 
     // Universal links subscriber doesn't exist for iOS, so we need to check
-    if (typeof universalLinks !== 'undefined' && typeof universalLinks.subscribe === 'function') {
+    if (
+      typeof universalLinks !== 'undefined' &&
+      typeof universalLinks.subscribe === 'function'
+    ) {
       universalLinks.subscribe(null, universalLinksCb);
     }
 
