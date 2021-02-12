@@ -62,20 +62,21 @@ export async function _generateHandlerUrl(
   );
 }
 
-export function _performRedirect(handlerUrl: string): Promise<void> {
+export function _performRedirect(handlerUrl: string): Promise<InAppBrowserRef|null> {
   return new Promise(resolve => {
     cordova.plugins.browsertab.isAvailable(browserTabIsAvailable => {
+      let iabRef: InAppBrowserRef | null = null;
       if (browserTabIsAvailable) {
         cordova.plugins.browsertab.openUrl(handlerUrl);
       } else {
         // TODO: Return the inappbrowser ref that's returned from the open call
-        cordova.InAppBrowser.open(
+        iabRef = cordova.InAppBrowser.open(
           handlerUrl,
           _isIOS7Or8() ? '_blank' : '_system',
           'location=yes'
         );
       }
-      resolve();
+      resolve(iabRef);
     });
   });
 }

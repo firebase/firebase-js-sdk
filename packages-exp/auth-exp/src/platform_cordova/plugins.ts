@@ -22,6 +22,7 @@
 declare namespace cordova.plugins.browsertab {
   function isAvailable(cb: (available: boolean) => void): void;
   function openUrl(url: string): void;
+  function close(): void;
 }
 
 declare namespace cordova.InAppBrowser {

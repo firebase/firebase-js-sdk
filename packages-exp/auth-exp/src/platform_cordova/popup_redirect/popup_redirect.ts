@@ -25,7 +25,7 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthPopup } from '../../platform_browser/util/popup';
-import { _createError, _fail } from '../../core/util/assert';
+import { debugAssert, _createError, _fail } from '../../core/util/assert';
 import { AuthErrorCode } from '../../core/errors';
 import {
   _checkCordovaConfiguration,
@@ -35,15 +35,24 @@ import {
 import {
   _eventFromPartialAndUrl,
   _generateNewEvent,
-  _getAndRemoveEvent
+  _getAndRemoveEvent,
+  _savePartialEvent
 } from './events';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
+import { _isAndroid } from '../../core/util/browser';
+import { _getRedirectResult } from '../strategies/redirect';
 
 /**
  * How long to wait for the initial auth event before concluding no
  * redirect pending
  */
 const INITIAL_EVENT_TIMEOUT_MS = 500;
+
+/**
+ * How long to wait after the app comes back into focus before concluding that
+ * the user closed the sign in tab.
+ */
+const REDIRECT_TIMEOUT_MS = 2000;
 
 /** Custom AuthEventManager that adds passive listeners to events */
 export class CordovaAuthEventManager extends AuthEventManager {
@@ -75,7 +84,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   readonly _redirectPersistence = browserSessionPersistence;
   private readonly eventManagers = new Map<string, CordovaAuthEventManager>();
 
-  _completeRedirectFn: () => Promise<null> = async () => null;
+  _completeRedirectFn = _getRedirectResult;
 
   async _initialize(auth: Auth): Promise<CordovaAuthEventManager> {
     const key = auth._key();
@@ -83,7 +92,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     if (!manager) {
       manager = new CordovaAuthEventManager(auth);
       this.eventManagers.set(key, manager);
-      this.attachCallbackListeners(auth, manager);
+      await this.getInitialEvent(auth, manager);
     }
     return manager;
   }
@@ -99,9 +108,14 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     eventId?: string
   ): Promise<void> {
     _checkCordovaConfiguration(auth);
+    const manager = await this._initialize(auth);
+    manager.resetRedirect();
+
     const event = _generateNewEvent(auth, authType, eventId);
+    await _savePartialEvent(auth, event);
     const url = await _generateHandlerUrl(auth, event, provider);
-    await _performRedirect(url);
+    const iabRef = await _performRedirect(url);
+    return new AppActivityListener(auth, manager, iabRef).listenForActivity();
   }
 
   _isIframeWebStorageSupported(
@@ -109,6 +123,22 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     _cb: (support: boolean) => unknown
   ): void {
     throw new Error('Method not implemented.');
+  }
+
+  private initialPromise: Promise<void>|null = null
+  private getInitialEvent(auth: Auth, manager: CordovaAuthEventManager): Promise<void> {
+    if (this.initialPromise) {
+      return this.initialPromise;
+    }
+
+    this.initialPromise = new Promise(resolve => {
+      manager.addPassiveListener(() => {
+        resolve();
+      });
+      this.attachCallbackListeners(auth, manager);
+    });
+
+    return this.initialPromise;
   }
 
   private attachCallbackListeners(auth: Auth, manager: AuthEventManager): void {
@@ -146,12 +176,9 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     // https://github.com/EddyVerbruggen/Custom-URL-scheme
     // Do not overwrite the existing developer's URL handler.
     const existingHandleOpenUrl = window.handleOpenUrl;
+    const packagePrefix = `${BuildInfo.packageName.toLowerCase()}://`;
     window.handleOpenUrl = async url => {
-      if (
-        url
-          .toLowerCase()
-          .startsWith(`${BuildInfo.packageName.toLowerCase()}://`)
-      ) {
+      if (url.toLowerCase().startsWith(packagePrefix)) {
         // We want this intentionally to float
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         universalLinksCb({ url });
@@ -166,6 +193,81 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
         }
       }
     };
+  }
+}
+
+class AppActivityListener {
+  private resolve!: () => void;  
+  private reject!: (e: Error) => void;
+  private promise = new Promise<void>((resolve, reject) => {
+    this.resolve = resolve;
+    this.reject = reject;
+  });
+  private onCloseTimer: number|null = null;
+  private listenerHasBeenUsed = false;
+
+  constructor(private readonly auth: Auth, private readonly eventManager: CordovaAuthEventManager, private iabRef: InAppBrowserRef|null) {}
+
+  async listenForActivity(): Promise<void> {
+    debugAssert(!this.listenerHasBeenUsed, 'Redirect resolver attempted to reuse activity listener');
+    this.listenerHasBeenUsed = true;
+
+    const onResume = () => this.resumed();
+    const onVisibilityChange = () => this.visibilityChanged();
+    const onAuthEvent = () => this.authEventSeen();
+
+    // Listen for the auth event
+    this.eventManager.addPassiveListener(onAuthEvent);
+
+    // Listen for resume and visibility events
+    document.addEventListener('resume', onResume, false);
+    if (_isAndroid()) {
+      document.addEventListener('visibilitychange', onVisibilityChange, false);
+    }
+
+    try {
+      await this.promise;
+    } finally {
+      this.eventManager.removePassiveListener(onAuthEvent);
+      document.removeEventListener('resume', onResume, false);
+      document.removeEventListener('visibilitychange', onVisibilityChange, false);
+      if (this.onCloseTimer) {
+        window.clearTimeout(this.onCloseTimer);
+      }
+    }
+  }
+
+  private resumed(): void {
+    if (this.onCloseTimer) {
+      // This code already ran; do not rerun.
+      return;
+    }
+
+    this.onCloseTimer = window.setTimeout(() => {
+      // Wait two seeconds after resume then reject.
+      this.reject(_createError(this.auth, AuthErrorCode.REDIRECT_CANCELLED_BY_USER));
+    }, REDIRECT_TIMEOUT_MS);
+  }
+
+  private visibilityChanged(): void {
+    if (document?.visibilityState === 'visible') {
+      this.resumed();
+    }
+  }
+
+  private authEventSeen(): void {
+    // Auth event was detected. Resolve this promise and close the extra
+    // window if it's still open.
+    this.resolve();
+    const closeBrowserTab = cordova.plugins.browsertab?.close;
+    if (typeof closeBrowserTab === 'function') {
+      closeBrowserTab();
+    }
+    // Close inappbrowser emebedded webview in iOS7 and 8 case if still
+    // open.
+    if (typeof this.iabRef?.close === 'function') {
+      this.iabRef.close();
+    }
   }
 }
 
