@@ -28,6 +28,10 @@ import {
 
 /* eslint-disable no-console */
 
+// This script takes the output of the API Extractor, post-processed it using
+// the pruned-dts script and then invokes API report to generate a report
+// that only includes exported symbols.
+
 const baseApiExtractorConfigFile: string = path.resolve(
   __dirname,
   '../../../config/api-extractor.json'
