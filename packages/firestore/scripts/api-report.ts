@@ -43,7 +43,10 @@ const tmpDir = tmp.dirSync().name;
 function writeTypescriptConfig(): void {
   const tsConfigJson = {
     extends: path.resolve(__dirname, '../tsconfig.json'),
-    include: [path.resolve(__dirname, '../src')]
+    include: [path.resolve(__dirname, '../src')],
+    compilerOptions: {
+      downlevelIteration: true  // Needed for FirebaseApp
+    },
   };
   fs.writeFileSync(
     path.resolve(tmpDir, 'tsconfig.json'),
