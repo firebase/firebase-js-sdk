@@ -57,6 +57,10 @@ const REDIRECT_TIMEOUT_MS = 2000;
 /** Custom AuthEventManager that adds passive listeners to events */
 export class CordovaAuthEventManager extends AuthEventManager {
   private readonly passiveListeners = new Set<(e: AuthEvent) => void>();
+  private resolveInialized!: () => void;
+  initialized = new Promise<void>(resolve => {
+    this.resolveInialized = resolve;
+  });
 
   addPassiveListener(cb: (e: AuthEvent) => void): void {
     this.passiveListeners.add(cb);
@@ -75,6 +79,7 @@ export class CordovaAuthEventManager extends AuthEventManager {
 
   /** Override the onEvent method */
   onEvent(event: AuthEvent): boolean {
+    this.resolveInialized();
     this.passiveListeners.forEach(cb => cb(event));
     return super.onEvent(event);
   }
@@ -92,7 +97,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     if (!manager) {
       manager = new CordovaAuthEventManager(auth);
       this.eventManagers.set(key, manager);
-      await this.getInitialEvent(auth, manager);
+      this.attachCallbackListeners(auth, manager);
     }
     return manager;
   }
@@ -109,6 +114,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   ): Promise<void> {
     _checkCordovaConfiguration(auth);
     const manager = await this._initialize(auth);
+    await manager.initialized;
     manager.resetRedirect();
 
     const event = _generateNewEvent(auth, authType, eventId);
@@ -123,22 +129,6 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     _cb: (support: boolean) => unknown
   ): void {
     throw new Error('Method not implemented.');
-  }
-
-  private initialPromise: Promise<void>|null = null
-  private getInitialEvent(auth: Auth, manager: CordovaAuthEventManager): Promise<void> {
-    if (this.initialPromise) {
-      return this.initialPromise;
-    }
-
-    this.initialPromise = new Promise(resolve => {
-      manager.addPassiveListener(() => {
-        resolve();
-      });
-      this.attachCallbackListeners(auth, manager);
-    });
-
-    return this.initialPromise;
   }
 
   private attachCallbackListeners(auth: Auth, manager: AuthEventManager): void {
