@@ -17,7 +17,7 @@
 
 import { assert } from '@firebase/util';
 import { Path } from '../util/Path';
-import { Operation, OperationSource, OperationType } from './Operation';
+import { newOperationSourceUser, Operation, OperationType } from './Operation';
 import { ImmutableTree } from '../util/ImmutableTree';
 
 export class AckUserWrite implements Operation {
@@ -25,7 +25,7 @@ export class AckUserWrite implements Operation {
   type = OperationType.ACK_USER_WRITE;
 
   /** @inheritDoc */
-  source = OperationSource.user();
+  source = newOperationSourceUser();
 
   /**
    * @param affectedTree A tree containing true for each affected path. Affected paths can't overlap.
