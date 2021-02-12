@@ -73,7 +73,7 @@ export function newOperationSourceServerTaggedQuery(
   return {
     fromUser: false,
     fromServer: true,
-    queryId: queryId,
+    queryId,
     tagged: true
   };
 }
