@@ -60,9 +60,9 @@ export class FirebaseAppImpl implements FirebaseApp {
     // add itself to container
     this._addComponent(new Component('app', () => this, ComponentType.PUBLIC));
     // populate ComponentContainer with existing components
-    for (const component of this.firebase_.INTERNAL.components.values()) {
-      this._addComponent(component);
-    }
+    this.firebase_.INTERNAL.components.forEach(component =>
+      this._addComponent(component)
+    );
   }
 
   get automaticDataCollectionEnabled(): boolean {

@@ -64,9 +64,9 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
       new Component('app', () => this, ComponentType.PUBLIC)
     );
     // populate ComponentContainer with existing components
-    for (const component of this.firebase_.INTERNAL.components.values()) {
-      this.container.addComponent(component);
-    }
+    this.firebase_.INTERNAL.components.forEach(component =>
+      this.container.addComponent(component)
+    );
   }
 
   get automaticDataCollectionEnabled(): boolean {
