@@ -116,11 +116,16 @@ export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
 ): FirebaseFirestore {
-  const firestore = _getProvider(
-    app,
-    'firestore-exp'
-  ).getImmediate() as FirebaseFirestore;
+  const provider = _getProvider(app, 'firestore-exp');
 
+  if (provider.isInitialized()) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'Firestore can only be initialized once per app.'
+    );
+  }
+
+  const firestore = provider.getImmediate() as FirebaseFirestore;
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
