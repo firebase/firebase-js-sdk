@@ -48,7 +48,7 @@ export interface OperationSource {
   tagged: boolean;
 }
 
-export function newOperationSourceUser() {
+export function newOperationSourceUser(): OperationSource {
   return {
     fromUser: true,
     fromServer: false,
