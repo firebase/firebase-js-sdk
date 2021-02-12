@@ -154,11 +154,11 @@ export function useFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable(
+export function httpsCallable<RequestParams, ResponseData>(
   functionsInstance: FunctionsService,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable {
+): HttpsCallable<RequestParams, ResponseData> {
   return data => {
     return call(functionsInstance, name, data, options || {});
   };

@@ -33,7 +33,7 @@ export interface HttpsCallable {
 }
 
 // @public
-export function httpsCallable(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
+export function httpsCallable<RequestParams = unknown, ResponseData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
 
 // @public
 export interface HttpsCallableOptions {

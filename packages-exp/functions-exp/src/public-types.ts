@@ -20,16 +20,16 @@ import { FirebaseError } from '@firebase/util';
 /**
  * An HttpsCallableResult wraps a single result from a function call.
  */
-export interface HttpsCallableResult {
-  readonly data: unknown;
+export interface HttpsCallableResult<ResponseData = unknown> {
+  readonly data: ResponseData;
 }
 
 /**
  * An HttpsCallable is a reference to a "callable" http trigger in
  * Google Cloud Functions.
  */
-export interface HttpsCallable {
-  (data?: {} | null): Promise<HttpsCallableResult>;
+export interface HttpsCallable<RequestParams = unknown, ResponseData = unknown> {
+  (data?: RequestParams | null): Promise<HttpsCallableResult<ResponseData>>;
 }
 
 /**
