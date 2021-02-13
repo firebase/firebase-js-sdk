@@ -26,12 +26,7 @@ const myPackageVersion: string = PackageJsonLookup.loadOwnPackageJson(__dirname)
   .version;
 
 console.log(
-  os.EOL +
-    colors.bold(
-      `api-documenter ${myPackageVersion} ` +
-        colors.cyan(' - https://api-extractor.com/') +
-        os.EOL
-    )
+  os.EOL + colors.bold(`@firebase/api-documenter ${myPackageVersion} ` + os.EOL)
 );
 
 const parser: ApiDocumenterCommandLine = new ApiDocumenterCommandLine();
