@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
-// See LICENSE in the project root for license information.
-
 /**
  * This is an internal part of the plugin infrastructure.
  *
@@ -28,7 +25,7 @@
  */
 export class PluginFeatureInitialization {
   /** @internal */
-  public _context: PluginFeatureContext;
+  public _context!: PluginFeatureContext;
 
   /** @internal */
   public constructor() {

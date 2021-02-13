@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-'use strict';
+const gulp = require('gulp');
 
-const build = require('@microsoft/node-library-build');
-
-build.initialize(require('gulp'));
+gulp.task('copy-resources', function () {
+  return gulp.src('./src/schemas/*').pipe(gulp.dest('./dist/schemas'));
+});

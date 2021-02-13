@@ -15,15 +15,11 @@
  * limitations under the License.
  */
 
-// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
-// See LICENSE in the project root for license information.
-
 import * as path from 'path';
 
 import { ApiDocumenterCommandLine } from './ApiDocumenterCommandLine';
 import { BaseAction } from './BaseAction';
 import { DocumenterConfig } from '../documenters/DocumenterConfig';
-import { ExperimentalYamlDocumenter } from '../documenters/ExperimentalYamlDocumenter';
 
 import { ApiModel } from 'api-extractor-model-me';
 import { FileSystem } from '@rushstack/node-core-library';
@@ -77,11 +73,9 @@ export class GenerateAction extends BaseAction {
       );
       markdownDocumenter.generateFiles(this.outputFolder);
     } else {
-      const yamlDocumenter: ExperimentalYamlDocumenter = new ExperimentalYamlDocumenter(
-        apiModel,
-        documenterConfig
+      throw new Error(
+        `Target ${documenterConfig.configFile.outputTarget} is not supported`
       );
-      yamlDocumenter.generateFiles(this.outputFolder);
     }
 
     return Promise.resolve();

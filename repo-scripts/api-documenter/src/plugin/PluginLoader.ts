@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
-// See LICENSE in the project root for license information.
-
 import * as path from 'path';
 import * as resolve from 'resolve';
 
@@ -58,7 +55,9 @@ export class PluginLoader {
         );
 
         // Load the package
-        const entryPoint: object | undefined = require(resolvedEntryPointPath);
+        const entryPoint:
+          | Record<string, unknown>
+          | undefined = require(resolvedEntryPointPath);
 
         if (!entryPoint) {
           throw new Error('Invalid entry point');

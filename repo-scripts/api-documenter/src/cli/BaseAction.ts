@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
-// See LICENSE in the project root for license information.
-
 import * as path from 'path';
 import * as tsdoc from '@microsoft/tsdoc';
 import * as colors from 'colors';
@@ -36,11 +33,11 @@ import {
 } from 'api-extractor-model-me';
 
 export abstract class BaseAction extends CommandLineAction {
-  protected inputFolder: string;
-  protected outputFolder: string;
+  protected inputFolder!: string;
+  protected outputFolder!: string;
 
-  private _inputFolderParameter: CommandLineStringParameter;
-  private _outputFolderParameter: CommandLineStringParameter;
+  private _inputFolderParameter!: CommandLineStringParameter;
+  private _outputFolderParameter!: CommandLineStringParameter;
 
   protected onDefineParameters(): void {
     // override

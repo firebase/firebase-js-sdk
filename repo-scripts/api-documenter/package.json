@@ -10,7 +10,7 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "build": "gulp test --clean"
+    "build": "tsc && gulp copy-resources"
   },
   "bin": {
     "api-documenter": "./bin/api-documenter"

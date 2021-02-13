@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
-// See LICENSE in the project root for license information.
-
 import { PluginFeature } from './PluginFeature';
 import { ApiItem, ApiModel } from 'api-extractor-model-me';
 import { MarkdownDocumenterAccessor } from './MarkdownDocumenterAccessor';
@@ -88,7 +85,7 @@ export interface IMarkdownDocumenterFeatureOnFinishedArgs {}
  */
 export class MarkdownDocumenterFeature extends PluginFeature {
   /** {@inheritdoc PluginFeature.context} */
-  public context: MarkdownDocumenterFeatureContext;
+  public context!: MarkdownDocumenterFeatureContext;
 
   /**
    * This event occurs before each markdown file is written.  It provides an opportunity to customize the
