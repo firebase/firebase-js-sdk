@@ -5,9 +5,9 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { LogLevel } from '@firebase/remote-config-types-exp';
 import { RemoteConfig } from '@firebase/remote-config-types-exp';
-import { LogLevel as RemoteConfigLogLevel } from '@firebase/remote-config-types-exp';
-import { Value as ValueType } from '@firebase/remote-config-types-exp';
+import { Value } from '@firebase/remote-config-types-exp';
 
 // @public
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
@@ -22,7 +22,7 @@ export function fetchAndActivate(remoteConfig: RemoteConfig): Promise<boolean>;
 export function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 
 // @public
-export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType>;
+export function getAll(remoteConfig: RemoteConfig): Record<string, Value>;
 
 // @public
 export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean;
@@ -37,16 +37,10 @@ export function getRemoteConfig(app: FirebaseApp): RemoteConfig;
 export function getString(remoteConfig: RemoteConfig, key: string): string;
 
 // @public
-export function getValue(remoteConfig: RemoteConfig, key: string): ValueType;
-
-export { RemoteConfig }
-
-export { RemoteConfigLogLevel }
+export function getValue(remoteConfig: RemoteConfig, key: string): Value;
 
 // @public
-export function setLogLevel(remoteConfig: RemoteConfig, logLevel: RemoteConfigLogLevel): void;
-
-export { ValueType }
+export function setLogLevel(remoteConfig: RemoteConfig, logLevel: LogLevel): void;
 
 
 // (No @packageDocumentation comment for this package)

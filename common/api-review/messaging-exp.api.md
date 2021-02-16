@@ -14,8 +14,6 @@ import { Unsubscribe } from '@firebase/util';
 // @public
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
 
-export { FirebaseMessaging }
-
 // @public
 export function getMessaging(app: FirebaseApp): FirebaseMessaging;
 
@@ -24,8 +22,6 @@ export function getToken(messaging: FirebaseMessaging, options?: {
     vapidKey?: string;
     swReg?: ServiceWorkerRegistration;
 }): Promise<string>;
-
-export { MessagePayload }
 
 // @public
 export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;

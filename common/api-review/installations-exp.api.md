@@ -10,8 +10,6 @@ import { FirebaseInstallations } from '@firebase/installations-types-exp';
 // @public
 export function deleteInstallations(installations: FirebaseInstallations): Promise<void>;
 
-export { FirebaseInstallations }
-
 // @public
 export function getId(installations: FirebaseInstallations): Promise<string>;
 
