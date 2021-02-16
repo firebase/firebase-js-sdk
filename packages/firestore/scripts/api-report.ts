@@ -31,7 +31,7 @@ import {
 // This script takes the output of the API Extractor, post-processes it using
 // the pruned-dts script and then invokes API report to generate a report
 // that only includes exported symbols. This is all done in temporary folders,
-// all all configuration is auto-generated for each run.
+// all configuration is auto-generated for each run.
 
 const baseApiExtractorConfigFile: string = path.resolve(
   __dirname,
