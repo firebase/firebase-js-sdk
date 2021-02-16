@@ -17,11 +17,22 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { AuthErrorCode } from '../../core/errors';
-import { debugAssert, _assert, _fail } from '../../core/util/assert';
+import {
+  debugAssert,
+  _assert,
+  _createError,
+  _fail
+} from '../../core/util/assert';
 import { _isAndroid, _isIOS, _isIOS7Or8 } from '../../core/util/browser';
 import { _getRedirectUrl } from '../../core/util/handler';
 import { Auth } from '../../model/auth';
 import { AuthEvent } from '../../model/popup_redirect';
+
+/**
+ * How long to wait after the app comes back into focus before concluding that
+ * the user closed the sign in tab.
+ */
+const REDIRECT_TIMEOUT_MS = 2000;
 
 /**
  * Generates the URL for the OAuth handler.
@@ -62,22 +73,110 @@ export async function _generateHandlerUrl(
   );
 }
 
-export function _performRedirect(handlerUrl: string): Promise<void> {
+export function _performRedirect(
+  handlerUrl: string
+): Promise<InAppBrowserRef | null> {
   return new Promise(resolve => {
     cordova.plugins.browsertab.isAvailable(browserTabIsAvailable => {
+      let iabRef: InAppBrowserRef | null = null;
       if (browserTabIsAvailable) {
         cordova.plugins.browsertab.openUrl(handlerUrl);
       } else {
         // TODO: Return the inappbrowser ref that's returned from the open call
-        cordova.InAppBrowser.open(
+        iabRef = cordova.InAppBrowser.open(
           handlerUrl,
           _isIOS7Or8() ? '_blank' : '_system',
           'location=yes'
         );
       }
-      resolve();
+      resolve(iabRef);
     });
   });
+}
+
+// Thin interface wrapper to avoid circular dependency with ./events module
+interface PassiveAuthEventListener {
+  addPassiveListener(cb: () => void): void;
+  removePassiveListener(cb: () => void): void;
+}
+
+/**
+ * This function waits for app activity to be seen before resolving. It does
+ * this by attaching listeners to various dom events. Once the app is determined
+ * to be visible, this promise resolves. AFTER that resolution, the listeners
+ * are detached and any browser tabs left open will be closed.
+ */
+export async function _waitForAppResume(
+  auth: Auth,
+  eventListener: PassiveAuthEventListener,
+  iabRef: InAppBrowserRef | null
+): Promise<void> {
+  let cleanup = (): void => {};
+  try {
+    await new Promise<void>((resolve, reject) => {
+      let onCloseTimer: number | null = null;
+
+      // DEFINE ALL THE CALLBACKS =====
+      function authEventSeen(): void {
+        // Auth event was detected. Resolve this promise and close the extra
+        // window if it's still open.
+        resolve();
+        const closeBrowserTab = cordova.plugins.browsertab?.close;
+        if (typeof closeBrowserTab === 'function') {
+          closeBrowserTab();
+        }
+        // Close inappbrowser emebedded webview in iOS7 and 8 case if still
+        // open.
+        if (typeof iabRef?.close === 'function') {
+          iabRef.close();
+        }
+      }
+
+      function resumed(): void {
+        if (onCloseTimer) {
+          // This code already ran; do not rerun.
+          return;
+        }
+
+        onCloseTimer = window.setTimeout(() => {
+          // Wait two seeconds after resume then reject.
+          reject(_createError(auth, AuthErrorCode.REDIRECT_CANCELLED_BY_USER));
+        }, REDIRECT_TIMEOUT_MS);
+      }
+
+      function visibilityChanged(): void {
+        if (document?.visibilityState === 'visible') {
+          resumed();
+        }
+      }
+
+      // ATTACH ALL THE LISTENERS =====
+      // Listen for the auth event
+      eventListener.addPassiveListener(authEventSeen);
+
+      // Listen for resume and visibility events
+      document.addEventListener('resume', resumed, false);
+      if (_isAndroid()) {
+        document.addEventListener('visibilitychange', visibilityChanged, false);
+      }
+
+      // SETUP THE CLEANUP FUNCTION =====
+      cleanup = () => {
+        eventListener.removePassiveListener(authEventSeen);
+        document.removeEventListener('resume', resumed, false);
+        document.removeEventListener(
+          'visibilitychange',
+          visibilityChanged,
+          false
+        );
+        if (onCloseTimer) {
+          window.clearTimeout(onCloseTimer);
+        }
+      };
+    });
+  } finally {
+    cleanup();
+  }
 }
 
 /**

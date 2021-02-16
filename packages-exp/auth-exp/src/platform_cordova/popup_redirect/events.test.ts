@@ -22,6 +22,7 @@ import { expect, use } from 'chai';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import {
+  CordovaAuthEventManager,
   _eventFromPartialAndUrl,
   _generateNewEvent,
   _getAndRemoveEvent,
@@ -190,6 +191,42 @@ describe('platform_cordova/popup_redirect/events', () => {
       expect(_getDeepLinkFromCallback('https://foo?bar=baz')).to.eq(
         'https://foo?bar=baz'
       );
+    });
+  });
+
+  describe('_CordovaAuthEventManager', () => {
+    let eventManager: CordovaAuthEventManager;
+    let event: AuthEvent;
+
+    beforeEach(() => {
+      eventManager = new CordovaAuthEventManager(auth);
+      event = _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT);
+    });
+
+    it('triggers passive listeners on events', done => {
+      eventManager.addPassiveListener(actual => {
+        expect(actual).to.eq(event);
+        done();
+      });
+
+      eventManager.onEvent(event);
+    });
+
+    it('removes passive listeners properly', () => {
+      const stub = sinon.stub();
+      eventManager.addPassiveListener(stub);
+      eventManager.onEvent(event);
+      eventManager.removePassiveListener(stub);
+      eventManager.onEvent(event);
+      expect(stub).to.have.been.calledOnce;
+    });
+
+    it('initialization resolves after first event', async () => {
+      const promise = eventManager.initialized();
+      eventManager.onEvent(event);
+      await promise;
+
+      // If this test doesn't time out, it passed.
     });
   });
 });

@@ -28,10 +28,7 @@ import {
   EventManager,
   PopupRedirectResolver
 } from '../../model/popup_redirect';
-import {
-  CordovaAuthEventManager,
-  cordovaPopupRedirectResolver
-} from './popup_redirect';
+import { cordovaPopupRedirectResolver } from './popup_redirect';
 import { GoogleAuthProvider } from '../../core/providers/google';
 import * as utils from './utils';
 import * as events from './events';
@@ -45,22 +42,52 @@ use(chaiAsPromised);
 use(sinonChai);
 
 describe('platform_cordova/popup_redirect/popup_redirect', () => {
+  const PACKAGE_NAME = 'my.package';
+  const NOT_PACKAGE_NAME = 'not.my.package';
+  const NO_EVENT_TIMER_ID = 10001;
+
   let auth: TestAuth;
   let resolver: PopupRedirectResolver;
   let provider: externs.AuthProvider;
   let utilsStubs: sinon.SinonStubbedInstance<typeof utils>;
-  let eventsStubs: sinon.SinonStubbedInstance<typeof events>;
+  let eventsStubs: sinon.SinonStubbedInstance<Partial<typeof events>>;
+  let universalLinksCb:
+    | ((eventData: Record<string, string> | null) => unknown)
+    | null;
+  let tripNoEventTimer: TimerTripFn;
 
   beforeEach(async () => {
     auth = await testAuth();
     resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
     provider = new GoogleAuthProvider();
     utilsStubs = sinon.stub(utils);
-    eventsStubs = sinon.stub(events);
+    eventsStubs = {
+      _generateNewEvent: sinon.stub(events, '_generateNewEvent'),
+      _savePartialEvent: sinon.stub(events, '_savePartialEvent'),
+      _getAndRemoveEvent: sinon.stub(events, '_getAndRemoveEvent'),
+      _eventFromPartialAndUrl: sinon.stub(events, '_eventFromPartialAndUrl'),
+      _getDeepLinkFromCallback: sinon.stub(events, '_getDeepLinkFromCallback')
+    };
+
+    window.universalLinks = {
+      subscribe(_unused, cb) {
+        universalLinksCb = cb;
+      }
+    };
+    window.BuildInfo = {
+      packageName: PACKAGE_NAME,
+      displayName: ''
+    };
+    tripNoEventTimer = stubSingleTimeout(NO_EVENT_TIMER_ID);
+    sinon.stub(window, 'clearTimeout');
   });
 
   afterEach(() => {
     sinon.restore();
+    universalLinksCb = null;
+    const win = (window as unknown) as Record<string, unknown>;
+    delete win.universalLinks;
+    delete win.BuildInfo;
   });
 
   describe('_openRedirect', () => {
@@ -73,14 +100,19 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       utilsStubs._generateHandlerUrl.returns(
         Promise.resolve('https://localhost/__/auth/handler')
       );
-      utilsStubs._performRedirect.returns(Promise.resolve());
-      eventsStubs._generateNewEvent.returns(event);
+      utilsStubs._performRedirect.returns(Promise.resolve({}));
+      utilsStubs._waitForAppResume.returns(Promise.resolve());
+      eventsStubs._generateNewEvent!.returns(event);
 
-      await resolver._openRedirect(
+      const redirectPromise = resolver._openRedirect(
         auth,
         provider,
         AuthEventType.REAUTH_VIA_REDIRECT
       );
+      // _openRedirect awaits the first event (eventManager initialized)
+      tripNoEventTimer();
+      await redirectPromise;
+
       expect(utilsStubs._checkCordovaConfiguration).to.have.been.called;
       expect(utilsStubs._generateHandlerUrl).to.have.been.calledWith(
         auth,
@@ -90,42 +122,14 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       expect(utilsStubs._performRedirect).to.have.been.calledWith(
         'https://localhost/__/auth/handler'
       );
+      expect(utilsStubs._waitForAppResume).to.have.been.called;
     });
   });
 
   describe('_initialize', () => {
-    const NO_EVENT_TIMER_ID = 10001;
-    const PACKAGE_NAME = 'my.package';
-    const NOT_PACKAGE_NAME = 'not.my.package';
-    let universalLinksCb:
-      | ((eventData: Record<string, string> | null) => unknown)
-      | null;
-    let tripNoEventTimer: TimerTripFn;
-
-    beforeEach(() => {
-      tripNoEventTimer = stubSingleTimeout(NO_EVENT_TIMER_ID);
-      window.universalLinks = {
-        subscribe(_unused, cb) {
-          universalLinksCb = cb;
-        }
-      };
-      window.BuildInfo = {
-        packageName: PACKAGE_NAME,
-        displayName: ''
-      };
-      sinon.stub(window, 'clearTimeout');
-    });
-
-    afterEach(() => {
-      universalLinksCb = null;
-      const win = (window as unknown) as Record<string, unknown>;
-      delete win.universalLinks;
-      delete win.BuildInfo;
-    });
-
     function event(manager: EventManager): Promise<AuthEvent> {
       return new Promise(resolve => {
-        (manager as CordovaAuthEventManager).addPassiveListener(resolve);
+        (manager as events.CordovaAuthEventManager).addPassiveListener(resolve);
       });
     }
 
@@ -177,8 +181,8 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
       it('signals no event if partial parse turns up null', async () => {
         const promise = event(await resolver._initialize(auth));
-        eventsStubs._eventFromPartialAndUrl.returns(null);
-        eventsStubs._getAndRemoveEvent.returns(
+        eventsStubs._eventFromPartialAndUrl!.returns(null);
+        eventsStubs._getAndRemoveEvent!.returns(
           Promise.resolve({
             type: AuthEventType.REAUTH_VIA_REDIRECT
           } as AuthEvent)
@@ -204,14 +208,14 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
           type: AuthEventType.REAUTH_VIA_REDIRECT,
           postBody: 'foo'
         };
-        eventsStubs._getAndRemoveEvent.returns(
+        eventsStubs._getAndRemoveEvent!.returns(
           Promise.resolve({
             type: AuthEventType.REAUTH_VIA_REDIRECT
           } as AuthEvent)
         );
 
         const promise = event(await resolver._initialize(auth));
-        eventsStubs._eventFromPartialAndUrl.returns(finalEvent as AuthEvent);
+        eventsStubs._eventFromPartialAndUrl!.returns(finalEvent as AuthEvent);
         await universalLinksCb!({ url: 'foo-bar' });
         expect(await promise).to.eq(finalEvent);
         expect(events._eventFromPartialAndUrl).to.have.been.calledWith(
@@ -241,14 +245,14 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
           type: AuthEventType.REAUTH_VIA_REDIRECT,
           postBody: 'foo'
         };
-        eventsStubs._getAndRemoveEvent.returns(
+        eventsStubs._getAndRemoveEvent!.returns(
           Promise.resolve({
             type: AuthEventType.REAUTH_VIA_REDIRECT
           } as AuthEvent)
         );
 
         const promise = event(await resolver._initialize(auth));
-        eventsStubs._eventFromPartialAndUrl.returns(finalEvent as AuthEvent);
+        eventsStubs._eventFromPartialAndUrl!.returns(finalEvent as AuthEvent);
         handleOpenUrl(`${PACKAGE_NAME}://foo`);
         expect(await promise).to.eq(finalEvent);
         expect(events._eventFromPartialAndUrl).to.have.been.calledWith(
