@@ -311,7 +311,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
       it('resolves the promise', async () => {
         const promise = _waitForAppResume(auth, eventManager, null);
         sendEvent();
-        await expect(promise).not.to.be.rejected;
+        await expect(promise).to.be.fulfilled;
       });
 
       it('closes the browser tab', async () => {
