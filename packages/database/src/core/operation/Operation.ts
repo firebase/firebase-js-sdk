@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
 import { Path } from '../util/Path';
 
 /**
@@ -42,40 +41,38 @@ export interface Operation {
   operationForChild(childName: string): Operation | null;
 }
 
-export class OperationSource {
-  constructor(
-    public fromUser: boolean,
-    public fromServer: boolean,
-    public queryId: string | null,
-    public tagged: boolean
-  ) {
-    assert(!tagged || fromServer, 'Tagged queries must be from server.');
-  }
+export interface OperationSource {
+  fromUser: boolean;
+  fromServer: boolean;
+  queryId: string | null;
+  tagged: boolean;
+}
 
-  static user() {
-    return new OperationSource(
-      /*fromUser=*/ true,
-      false,
-      null,
-      /*tagged=*/ false
-    );
-  }
+export function newOperationSourceUser(): OperationSource {
+  return {
+    fromUser: true,
+    fromServer: false,
+    queryId: null,
+    tagged: false
+  };
+}
 
-  static server() {
-    return new OperationSource(
-      false,
-      /*fromServer=*/ true,
-      null,
-      /*tagged=*/ false
-    );
-  }
+export function newOperationSourceServer(): OperationSource {
+  return {
+    fromUser: false,
+    fromServer: true,
+    queryId: null,
+    tagged: false
+  };
+}
 
-  static forServerTaggedQuery = function (queryId: string): OperationSource {
-    return new OperationSource(
-      false,
-      /*fromServer=*/ true,
-      queryId,
-      /*tagged=*/ true
-    );
+export function newOperationSourceServerTaggedQuery(
+  queryId: string
+): OperationSource {
+  return {
+    fromUser: false,
+    fromServer: true,
+    queryId,
+    tagged: true
   };
 }

@@ -22,7 +22,12 @@ import { ChildrenNode } from './snap/ChildrenNode';
 import { ImmutableTree } from './util/ImmutableTree';
 import { ListenComplete } from './operation/ListenComplete';
 import { Merge } from './operation/Merge';
-import { Operation, OperationSource } from './operation/Operation';
+import {
+  newOperationSourceServer,
+  newOperationSourceServerTaggedQuery,
+  newOperationSourceUser,
+  Operation
+} from './operation/Operation';
 import { Overwrite } from './operation/Overwrite';
 import { Path } from './util/Path';
 import { SyncPoint } from './SyncPoint';
@@ -118,7 +123,7 @@ export class SyncTree {
       return [];
     } else {
       return this.applyOperationToSyncPoints_(
-        new Overwrite(OperationSource.user(), path, newData)
+        new Overwrite(newOperationSourceUser(), path, newData)
       );
     }
   }
@@ -139,7 +144,7 @@ export class SyncTree {
     const changeTree = ImmutableTree.fromObject(changedChildren);
 
     return this.applyOperationToSyncPoints_(
-      new Merge(OperationSource.user(), path, changeTree)
+      new Merge(newOperationSourceUser(), path, changeTree)
     );
   }
 
@@ -177,7 +182,7 @@ export class SyncTree {
    */
   applyServerOverwrite(path: Path, newData: Node): Event[] {
     return this.applyOperationToSyncPoints_(
-      new Overwrite(OperationSource.server(), path, newData)
+      new Overwrite(newOperationSourceServer(), path, newData)
     );
   }
 
@@ -193,7 +198,7 @@ export class SyncTree {
     const changeTree = ImmutableTree.fromObject(changedChildren);
 
     return this.applyOperationToSyncPoints_(
-      new Merge(OperationSource.server(), path, changeTree)
+      new Merge(newOperationSourceServer(), path, changeTree)
     );
   }
 
@@ -204,7 +209,7 @@ export class SyncTree {
    */
   applyListenComplete(path: Path): Event[] {
     return this.applyOperationToSyncPoints_(
-      new ListenComplete(OperationSource.server(), path)
+      new ListenComplete(newOperationSourceServer(), path)
     );
   }
 
@@ -221,7 +226,7 @@ export class SyncTree {
         queryId = r.queryId;
       const relativePath = Path.relativePath(queryPath, path);
       const op = new Overwrite(
-        OperationSource.forServerTaggedQuery(queryId),
+        newOperationSourceServerTaggedQuery(queryId),
         relativePath,
         snap
       );
@@ -250,7 +255,7 @@ export class SyncTree {
       const relativePath = Path.relativePath(queryPath, path);
       const changeTree = ImmutableTree.fromObject(changedChildren);
       const op = new Merge(
-        OperationSource.forServerTaggedQuery(queryId),
+        newOperationSourceServerTaggedQuery(queryId),
         relativePath,
         changeTree
       );
@@ -274,7 +279,7 @@ export class SyncTree {
         queryId = r.queryId;
       const relativePath = Path.relativePath(queryPath, path);
       const op = new ListenComplete(
-        OperationSource.forServerTaggedQuery(queryId),
+        newOperationSourceServerTaggedQuery(queryId),
         relativePath
       );
       return this.applyTaggedOperation_(queryPath, op);
