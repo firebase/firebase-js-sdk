@@ -21,7 +21,14 @@ import { warn } from '../core/util/util';
 import { nextPushId } from '../core/util/NextPushId';
 import { Query } from './Query';
 import { Repo } from '../core/Repo';
-import { Path } from '../core/util/Path';
+import {
+  Path,
+  pathChild,
+  pathGetBack,
+  pathGetFront,
+  pathIsEmpty,
+  pathParent
+} from '../core/util/Path';
 import { QueryParams } from '../core/view/QueryParams';
 import {
   validateBoolean,
@@ -68,10 +75,10 @@ export class Reference extends Query {
   getKey(): string | null {
     validateArgCount('Reference.key', 0, 0, arguments.length);
 
-    if (this.path.isEmpty()) {
+    if (pathIsEmpty(this.path)) {
       return null;
     } else {
-      return this.path.getBack();
+      return pathGetBack(this.path);
     }
   }
 
@@ -80,21 +87,21 @@ export class Reference extends Query {
     if (typeof pathString === 'number') {
       pathString = String(pathString);
     } else if (!(pathString instanceof Path)) {
-      if (this.path.getFront() === null) {
+      if (pathGetFront(this.path) === null) {
         validateRootPathString('Reference.child', 1, pathString, false);
       } else {
         validatePathString('Reference.child', 1, pathString, false);
       }
     }
 
-    return new Reference(this.repo, this.path.child(pathString));
+    return new Reference(this.repo, pathChild(this.path, pathString));
   }
 
   /** @return {?Reference} */
   getParent(): Reference | null {
     validateArgCount('Reference.parent', 0, 0, arguments.length);
 
-    const parentPath = this.path.parent();
+    const parentPath = pathParent(this.path);
     return parentPath === null ? null : new Reference(this.repo, parentPath);
   }
 
@@ -278,7 +285,7 @@ export class Reference extends Query {
 
     const deferred = new Deferred();
     this.repo.setWithPriority(
-      this.path.child('.priority'),
+      pathChild(this.path, '.priority'),
       priority,
       null,
       deferred.wrapCallback(onComplete)

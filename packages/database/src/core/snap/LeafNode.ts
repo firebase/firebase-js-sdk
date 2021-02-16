@@ -19,7 +19,13 @@ import { assert } from '@firebase/util';
 import { doubleToIEEE754String, sha1 } from '../util/util';
 import { priorityHashText, validatePriorityNode } from './snap';
 import { Node } from './Node';
-import { Path } from '../util/Path';
+import {
+  Path,
+  pathGetFront,
+  pathGetLength,
+  pathIsEmpty,
+  pathPopFront
+} from '../util/Path';
 import { Index } from './indexes/Index';
 import { ChildrenNodeConstructor } from './ChildrenNode';
 import { Indexable } from '../util/misc';
@@ -92,9 +98,9 @@ export class LeafNode implements Node {
 
   /** @inheritDoc */
   getChild(path: Path): Node {
-    if (path.isEmpty()) {
+    if (pathIsEmpty(path)) {
       return this;
-    } else if (path.getFront() === '.priority') {
+    } else if (pathGetFront(path) === '.priority') {
       return this.priorityNode_;
     } else {
       return LeafNode.__childrenNodeConstructor.EMPTY_NODE;
@@ -129,21 +135,21 @@ export class LeafNode implements Node {
 
   /** @inheritDoc */
   updateChild(path: Path, newChildNode: Node): Node {
-    const front = path.getFront();
+    const front = pathGetFront(path);
     if (front === null) {
       return newChildNode;
     } else if (newChildNode.isEmpty() && front !== '.priority') {
       return this;
     } else {
       assert(
-        front !== '.priority' || path.getLength() === 1,
+        front !== '.priority' || pathGetLength(path) === 1,
         '.priority must be the last token in a path'
       );
 
       return this.updateImmediateChild(
         front,
         LeafNode.__childrenNodeConstructor.EMPTY_NODE.updateChild(
-          path.popFront(),
+          pathPopFront(path),
           newChildNode
         )
       );

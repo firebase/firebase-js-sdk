@@ -17,30 +17,35 @@
 
 import {
   assert,
+  Deferred,
   errorPrefix,
   validateArgCount,
   validateCallback,
-  validateContextObject,
-  Deferred
+  validateContextObject
 } from '@firebase/util';
 import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
 import { PathIndex } from '../core/snap/indexes/PathIndex';
-import { MIN_NAME, MAX_NAME, ObjectToUniqueKey } from '../core/util/util';
-import { Path } from '../core/util/Path';
+import { MAX_NAME, MIN_NAME, ObjectToUniqueKey } from '../core/util/util';
+import {
+  Path,
+  pathEquals,
+  pathIsEmpty,
+  pathToUrlEncodedString
+} from '../core/util/Path';
 import {
   isValidPriority,
   validateEventType,
-  validatePathString,
   validateFirebaseDataArg,
-  validateKey
+  validateKey,
+  validatePathString
 } from '../core/util/validation';
 
 import {
-  ValueEventRegistration,
   ChildEventRegistration,
-  EventRegistration
+  EventRegistration,
+  ValueEventRegistration
 } from '../core/view/EventRegistration';
 
 import { Repo } from '../core/Repo';
@@ -405,7 +410,7 @@ export class Query {
     validatePathString('Query.orderByChild', 1, path, false);
     this.validateNoPreviousOrderByCall_('Query.orderByChild');
     const parsedPath = new Path(path);
-    if (parsedPath.isEmpty()) {
+    if (pathIsEmpty(parsedPath)) {
       throw new Error(
         'Query.orderByChild: cannot pass in empty path.  Use Query.orderByValue() instead.'
       );
@@ -569,7 +574,7 @@ export class Query {
   toString(): string {
     validateArgCount('Query.toString', 0, 0, arguments.length);
 
-    return this.repo.toString() + this.path.toUrlEncodedString();
+    return this.repo.toString() + pathToUrlEncodedString(this.path);
   }
 
   // Do not create public documentation. This is intended to make JSON serialization work but is otherwise unnecessary
@@ -605,7 +610,7 @@ export class Query {
     }
 
     const sameRepo = this.repo === other.repo;
-    const samePath = this.path.equals(other.path);
+    const samePath = pathEquals(this.path, other.path);
     const sameQueryIdentifier =
       this.queryIdentifier() === other.queryIdentifier();
 

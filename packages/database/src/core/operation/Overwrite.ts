@@ -16,7 +16,7 @@
  */
 
 import { Operation, OperationSource, OperationType } from './Operation';
-import { Path } from '../util/Path';
+import { newEmptyPath, Path, pathIsEmpty, pathPopFront } from '../util/Path';
 import { Node } from '../snap/Node';
 
 export class Overwrite implements Operation {
@@ -30,14 +30,14 @@ export class Overwrite implements Operation {
   ) {}
 
   operationForChild(childName: string): Overwrite {
-    if (this.path.isEmpty()) {
+    if (pathIsEmpty(this.path)) {
       return new Overwrite(
         this.source,
-        Path.Empty,
+        newEmptyPath(),
         this.snap.getImmediateChild(childName)
       );
     } else {
-      return new Overwrite(this.source, this.path.popFront(), this.snap);
+      return new Overwrite(this.source, pathPopFront(this.path), this.snap);
     }
   }
 }

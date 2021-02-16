@@ -15,14 +15,22 @@
  * limitations under the License.
  */
 
-import { Path, ValidationPath } from './Path';
+import {
+  Path,
+  pathChild,
+  pathCompare,
+  pathContains,
+  pathGetBack,
+  pathGetFront,
+  ValidationPath
+} from './Path';
 import {
   contains,
-  safeGet,
   errorPrefix as errorPrefixFxn,
+  safeGet,
   stringLength
 } from '@firebase/util';
-import { isInvalidJSONNumber, each } from './util';
+import { each, isInvalidJSONNumber } from './util';
 
 import { RepoInfo } from '../RepoInfo';
 
@@ -215,11 +223,13 @@ export const validateFirebaseMergePaths = function (
   // Check that update keys are not descendants of each other.
   // We rely on the property that sorting guarantees that ancestors come
   // right before descendants.
-  mergePaths.sort(Path.comparePaths);
+  mergePaths.sort(function (left: Path, right: Path): number {
+    return pathCompare(left, right);
+  });
   let prevPath: Path | null = null;
   for (i = 0; i < mergePaths.length; i++) {
     curPath = mergePaths[i];
-    if (prevPath !== null && prevPath.contains(curPath)) {
+    if (prevPath !== null && pathContains(prevPath, curPath)) {
       throw new Error(
         errorPrefix +
           'contains a path ' +
@@ -258,8 +268,8 @@ export const validateFirebaseMergeDataArg = function (
   const mergePaths: Path[] = [];
   each(data, (key: string, value: unknown) => {
     const curPath = new Path(key);
-    validateFirebaseData(errorPrefix, value, path.child(curPath));
-    if (curPath.getBack() === '.priority') {
+    validateFirebaseData(errorPrefix, value, pathChild(path, curPath));
+    if (pathGetBack(curPath) === '.priority') {
       if (!isValidPriority(value)) {
         throw new Error(
           errorPrefix +
@@ -385,7 +395,7 @@ export const validateRootPathString = function (
 };
 
 export const validateWritablePath = function (fnName: string, path: Path) {
-  if (path.getFront() === '.info') {
+  if (pathGetFront(path) === '.info') {
     throw new Error(fnName + " failed = Can't modify data under /.info/");
   }
 };

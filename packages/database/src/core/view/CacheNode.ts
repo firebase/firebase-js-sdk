@@ -16,7 +16,7 @@
  */
 
 import { Node } from '../snap/Node';
-import { Path } from '../util/Path';
+import { Path, pathGetFront, pathIsEmpty } from '../util/Path';
 
 /**
  * A cache node only stores complete children. Additionally it holds a flag whether the node can be considered fully
@@ -46,11 +46,11 @@ export class CacheNode {
   }
 
   isCompleteForPath(path: Path): boolean {
-    if (path.isEmpty()) {
+    if (pathIsEmpty(path)) {
       return this.isFullyInitialized() && !this.filtered_;
     }
 
-    const childKey = path.getFront();
+    const childKey = pathGetFront(path);
     return this.isCompleteForChild(childKey);
   }
 
