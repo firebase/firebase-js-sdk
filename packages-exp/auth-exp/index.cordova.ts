@@ -40,7 +40,11 @@ export { browserSessionPersistence } from './src/platform_browser/persistence/se
 export { getRedirectResult } from './src/platform_browser/strategies/redirect';
 
 export { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect/popup_redirect';
-export { signInWithRedirect, reauthenticateWithRedirect, linkWithRedirect } from './src/platform_cordova/strategies/redirect';
+export {
+  signInWithRedirect,
+  reauthenticateWithRedirect,
+  linkWithRedirect
+} from './src/platform_cordova/strategies/redirect';
 
 import { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect/popup_redirect';
 

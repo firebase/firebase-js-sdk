@@ -16,7 +16,11 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { _linkWithRedirect, _reauthenticateWithRedirect, _signInWithRedirect } from '../../platform_browser/strategies/redirect';
+import {
+  _linkWithRedirect,
+  _reauthenticateWithRedirect,
+  _signInWithRedirect
+} from '../../platform_browser/strategies/redirect';
 
 export function signInWithRedirect(
   auth: externs.Auth,

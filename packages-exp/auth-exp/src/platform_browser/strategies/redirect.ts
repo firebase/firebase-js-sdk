@@ -78,7 +78,7 @@ export async function _signInWithRedirect(
   auth: externs.Auth,
   provider: externs.AuthProvider,
   resolver?: externs.PopupRedirectResolver
-): Promise<void|never> {
+): Promise<void | never> {
   const authInternal = _castAuth(auth);
   _assert(
     provider instanceof OAuthProvider,
@@ -126,13 +126,17 @@ export function reauthenticateWithRedirect(
   provider: externs.AuthProvider,
   resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
-  return _reauthenticateWithRedirect(user, provider, resolver) as Promise<never>;
+  return _reauthenticateWithRedirect(
+    user,
+    provider,
+    resolver
+  ) as Promise<never>;
 }
 export async function _reauthenticateWithRedirect(
   user: externs.User,
   provider: externs.AuthProvider,
   resolver?: externs.PopupRedirectResolver
-): Promise<void|never> {
+): Promise<void | never> {
   const userInternal = user as User;
   _assert(
     provider instanceof OAuthProvider,
@@ -188,7 +192,7 @@ export async function _linkWithRedirect(
   user: externs.User,
   provider: externs.AuthProvider,
   resolver?: externs.PopupRedirectResolver
-): Promise<void|never> {
+): Promise<void | never> {
   const userInternal = user as User;
   _assert(
     provider instanceof OAuthProvider,
@@ -208,7 +212,6 @@ export async function _linkWithRedirect(
     eventId
   );
 }
-
 
 /**
  * Returns a {@link @firebase/auth-types#UserCredential} from the redirect-based sign-in flow.

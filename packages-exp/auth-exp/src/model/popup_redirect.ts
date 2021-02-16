@@ -86,7 +86,7 @@ export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
     provider: externs.AuthProvider,
     authType: AuthEventType,
     eventId?: string
-  ): Promise<void|never>;
+  ): Promise<void | never>;
   _isIframeWebStorageSupported(
     auth: Auth,
     cb: (support: boolean) => unknown
