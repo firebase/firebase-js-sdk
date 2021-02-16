@@ -45,7 +45,7 @@
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
     "prepare": "yarn build:release",
-    "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ./scripts/api-report.js",
+    "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ./scripts/api-report.ts",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs"
   },
