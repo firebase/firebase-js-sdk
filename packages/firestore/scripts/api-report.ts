@@ -18,7 +18,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
+import { Extractor, ExtractorConfig } from 'api-extractor-me';
 import * as tmp from 'tmp';
 
 import {
