@@ -223,9 +223,7 @@ export const validateFirebaseMergePaths = function (
   // Check that update keys are not descendants of each other.
   // We rely on the property that sorting guarantees that ancestors come
   // right before descendants.
-  mergePaths.sort(function (left: Path, right: Path): number {
-    return pathCompare(left, right);
-  });
+  mergePaths.sort((l, r) => pathCompare(l, r));
   let prevPath: Path | null = null;
   for (i = 0; i < mergePaths.length; i++) {
     curPath = mergePaths[i];
