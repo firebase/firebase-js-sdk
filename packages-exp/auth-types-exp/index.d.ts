@@ -288,6 +288,8 @@ export interface Auth {
   ): Unsubscribe;
   /** The currently signed-in user (or null). */
   readonly currentUser: User | null;
+  /** The current emulator configuration (or null). */
+  readonly emulatorConfig: EmulatorConfig | null;
   /**
    * Asynchronously sets the provided user as {@link Auth.currentUser} on the {@link Auth} instance.
    *
@@ -1509,6 +1511,34 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     'auth-exp': Auth;
   }
+}
+
+/**
+ * Configuration of Firebase Authentication Emulator.
+ */
+export interface EmulatorConfig {
+  /**
+   * The protocol used to communicate with the emulator ("http"/"https").
+   */
+  readonly protocol: string;
+  /**
+   * The hostname of the emulator, which may be a domain ("localhost"), IPv4 address ("127.0.0.1")
+   * or quoted IPv6 address ("[::1]").
+   */
+  readonly host: string;
+  /**
+   * The port of the emulator, or null if port isn't specified (i.e. protocol default).
+   */
+  readonly port: number | null;
+  /**
+   * The emulator-specific options.
+   */
+  readonly options: {
+    /**
+     * Whether the warning banner attached to the DOM was disabled.
+     */
+    readonly disableWarnings: boolean;
+  };
 }
 
 /**

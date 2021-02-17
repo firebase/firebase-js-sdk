@@ -58,9 +58,20 @@ export function useAuthEmulator(
     AuthErrorCode.INVALID_EMULATOR_SCHEME
   );
 
-  authInternal.config.emulator = { url };
+  const parsedUrl = new URL(url);
+  const disableWarnings = !!options?.disableWarnings;
+
+  // Store the normalized URL whose path is always nonempty (i.e. containing at least a single '/').
+  authInternal.config.emulator = { url: parsedUrl.toString() };
   authInternal.settings.appVerificationDisabledForTesting = true;
-  emitEmulatorWarning(!!options?.disableWarnings);
+  authInternal.emulatorConfig = Object.freeze({
+    host: parsedUrl.hostname,
+    port: parsedUrl.port ? Number(parsedUrl.port) : null,
+    protocol: parsedUrl.protocol.replace(':', ''),
+    options: Object.freeze({ disableWarnings })
+  });
+
+  emitEmulatorWarning(disableWarnings);
 }
 
 function emitEmulatorWarning(disableBanner: boolean): void {
