@@ -59,6 +59,7 @@ export const enum DefaultConfig {
 
 export class AuthImpl implements Auth, _FirebaseService {
   currentUser: externs.User | null = null;
+  emulatorConfig: externs.EmulatorConfig | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;

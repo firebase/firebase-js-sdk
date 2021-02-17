@@ -83,6 +83,13 @@ describe('core/auth/emulator', () => {
       expect(emulatorEndpoint.calls.length).to.eq(1);
     });
 
+    it('updates the endpoint appropriately with trailing slash', async () => {
+      useAuthEmulator(auth, 'http://localhost:2020/');
+      await user.delete();
+      expect(normalEndpoint.calls.length).to.eq(0);
+      expect(emulatorEndpoint.calls.length).to.eq(1);
+    });
+
     it('checks the scheme properly', () => {
       expect(() => useAuthEmulator(auth, 'http://localhost:2020')).not.to.throw;
       delete auth.config.emulator;
@@ -133,6 +140,36 @@ describe('core/auth/emulator', () => {
       if (typeof document !== 'undefined') {
         expect(document.querySelector('.firebase-emulator-warning')).to.be.null;
       }
+    });
+
+    it('sets emulatorConfig on the Auth object', async () => {
+      useAuthEmulator(auth, 'http://localhost:2020');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: 'localhost',
+        port: 2020,
+        options: { disableWarnings: false }
+      });
+    });
+
+    it('sets disableWarnings in emulatorConfig accordingly', async () => {
+      useAuthEmulator(auth, 'https://127.0.0.1', { disableWarnings: true });
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'https',
+        host: '127.0.0.1',
+        port: null,
+        options: { disableWarnings: true }
+      });
+    });
+
+    it('quotes IPv6 address in emulatorConfig', async () => {
+      useAuthEmulator(auth, 'http://[::1]:2020/');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: '[::1]',
+        port: 2020,
+        options: { disableWarnings: false }
+      });
     });
   });
 

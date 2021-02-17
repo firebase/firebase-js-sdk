@@ -390,11 +390,11 @@ export class PhoneMultiFactorGenerator {
 }
 
 export interface EmulatorConfig {
-  protocol: string;
-  host: string;
-  port: number | null;
-  options: {
-    disableWarnings: boolean;
+  readonly protocol: string;
+  readonly host: string;
+  readonly port: number | null;
+  readonly options: {
+    readonly disableWarnings: boolean;
   };
 }
 

@@ -76,8 +76,7 @@ export class Auth
   }
 
   get emulatorConfig(): compat.EmulatorConfig | null {
-    // TODO
-    return null;
+    return this.auth.emulatorConfig;
   }
 
   get currentUser(): compat.User | null {

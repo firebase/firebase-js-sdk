@@ -37,6 +37,7 @@ export interface ConfigInternal extends externs.Config {
 
 export interface Auth extends externs.Auth {
   currentUser: externs.User | null;
+  emulatorConfig: externs.EmulatorConfig | null;
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
