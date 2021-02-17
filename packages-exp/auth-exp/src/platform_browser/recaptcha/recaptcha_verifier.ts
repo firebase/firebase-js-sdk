@@ -168,6 +168,7 @@ export class RecaptchaVerifier
       this.auth,
       AuthErrorCode.ARGUMENT_ERROR
     );
+    _assert(typeof document !== 'undefined', this.auth, AuthErrorCode.OPERATION_NOT_SUPPORTED);
   }
 
   private makeTokenCallback(
