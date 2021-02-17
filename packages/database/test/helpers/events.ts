@@ -17,7 +17,7 @@
 
 import { TEST_PROJECT } from './util';
 import { Reference } from '../../src/api/Reference';
-import { Path, pathParent } from '../../src/core/util/Path';
+import { pathParent } from '../../src/core/util/Path';
 
 /**
  * A set of functions to clean up event handlers.
