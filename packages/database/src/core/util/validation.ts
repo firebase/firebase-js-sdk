@@ -22,6 +22,7 @@ import {
   pathContains,
   pathGetBack,
   pathGetFront,
+  pathSlice,
   ValidationPath
 } from './Path';
 import {
@@ -199,10 +200,10 @@ export const validateFirebaseMergePaths = function (
   errorPrefix: string,
   mergePaths: Path[]
 ) {
-  let i, curPath;
+  let i, curPath: Path;
   for (i = 0; i < mergePaths.length; i++) {
     curPath = mergePaths[i];
-    const keys = curPath.slice();
+    const keys = pathSlice(curPath);
     for (let j = 0; j < keys.length; j++) {
       if (keys[j] === '.priority' && j === keys.length - 1) {
         // .priority is OK

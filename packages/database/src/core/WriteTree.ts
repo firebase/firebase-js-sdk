@@ -24,6 +24,7 @@ import {
   pathChild,
   pathContains,
   pathGetFront,
+  pathIsEmpty,
   pathPopFront
 } from './util/Path';
 import {
@@ -570,7 +571,7 @@ export class WriteTree {
       // b) not be relevant to a transaction (separate branch), so again will not affect the data for that transaction
       if (filter(write)) {
         const writePath = write.path;
-        let relativePath;
+        let relativePath: Path;
         if (write.snap) {
           if (pathContains(treeRoot, writePath)) {
             relativePath = newRelativePath(treeRoot, writePath);
@@ -599,7 +600,7 @@ export class WriteTree {
             );
           } else if (pathContains(writePath, treeRoot)) {
             relativePath = newRelativePath(writePath, treeRoot);
-            if (relativePath.isEmpty()) {
+            if (pathIsEmpty(relativePath)) {
               compoundWrite = compoundWriteAddWrites(
                 compoundWrite,
                 newEmptyPath(),
