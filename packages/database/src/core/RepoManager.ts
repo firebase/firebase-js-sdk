@@ -16,7 +16,8 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseApp as FirebaseAppExp } from '@firebase/app-exp';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import type { FirebaseApp as FirebaseAppExp } from '@firebase/app-exp';
 import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal, log } from './util/util';
