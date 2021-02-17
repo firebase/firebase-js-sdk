@@ -16,7 +16,7 @@
  */
 
 import { assert, contains, safeGet } from '@firebase/util';
-import { Path } from './Path';
+import { Path, pathGetFront, pathPopFront } from './Path';
 
 import { each } from './util';
 
@@ -58,12 +58,12 @@ export class Tree<T> {
     // TODO: Require pathObj to be Path?
     let path = pathObj instanceof Path ? pathObj : new Path(pathObj);
     let child = this as Tree<T>,
-      next = path.getFront();
+      next = pathGetFront(path);
     while (next !== null) {
       const childNode = safeGet(child.node_.children, next) || new TreeNode();
       child = new Tree(next, child, childNode);
-      path = path.popFront();
-      next = path.getFront();
+      path = pathPopFront(path);
+      next = pathGetFront(path);
     }
 
     return child;

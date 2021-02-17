@@ -31,7 +31,7 @@ import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { Query } from '../../api/Query';
 import { EventRegistration } from './EventRegistration';
 import { Node } from '../snap/Node';
-import { Path } from '../util/Path';
+import { Path, pathGetFront, pathIsEmpty } from '../util/Path';
 import { WriteTreeRef } from '../WriteTree';
 import { CancelEvent, Event } from './Event';
 
@@ -106,7 +106,8 @@ export class View {
       // we need to see if it contains the child we're interested in.
       if (
         this.query_.getQueryParams().loadsAllData() ||
-        (!path.isEmpty() && !cache.getImmediateChild(path.getFront()).isEmpty())
+        (!pathIsEmpty(path) &&
+          !cache.getImmediateChild(pathGetFront(path)).isEmpty())
       ) {
         return cache.getChild(path);
       }

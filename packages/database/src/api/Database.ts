@@ -17,7 +17,7 @@
 
 import { fatal } from '../core/util/util';
 import { parseRepoInfo } from '../core/util/libs/parser';
-import { Path } from '../core/util/Path';
+import { newEmptyPath } from '../core/util/Path';
 import { Reference } from './Reference';
 import { Repo } from '../core/Repo';
 import { RepoManager } from '../core/RepoManager';
@@ -79,7 +79,7 @@ export class Database implements FirebaseService {
 
   get root_(): Reference {
     if (!this.rootInternal_) {
-      this.rootInternal_ = new Reference(this.repo_, Path.Empty);
+      this.rootInternal_ = new Reference(this.repo_, newEmptyPath());
     }
 
     return this.rootInternal_;

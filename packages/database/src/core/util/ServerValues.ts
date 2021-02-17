@@ -16,7 +16,7 @@
  */
 
 import { assert } from '@firebase/util';
-import { Path } from './Path';
+import { Path, pathChild } from './Path';
 import { LeafNode } from '../snap/LeafNode';
 import { nodeFromJSON } from '../snap/nodeFromJSON';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
@@ -60,7 +60,7 @@ class DeferredValueProvider implements ValueProvider {
   }
 
   getImmediateChild(childName: string): ValueProvider {
-    const childPath = this.path_.child(childName);
+    const childPath = pathChild(this.path_, childName);
     return new DeferredValueProvider(this.syncTree_, childPath);
   }
 

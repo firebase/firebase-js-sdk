@@ -16,10 +16,10 @@
  */
 
 import { assert } from '@firebase/util';
-import { sha1, MAX_NAME, MIN_NAME } from '../util/util';
+import { MAX_NAME, MIN_NAME, sha1 } from '../util/util';
 import { SortedMap, SortedMapIterator } from '../util/SortedMap';
-import { Node, NamedNode } from './Node';
-import { validatePriorityNode, priorityHashText, setMaxNode } from './snap';
+import { NamedNode, Node } from './Node';
+import { priorityHashText, setMaxNode, validatePriorityNode } from './snap';
 import {
   PRIORITY_INDEX,
   setMaxNode as setPriorityMaxNode
@@ -29,7 +29,7 @@ import { IndexMap } from './IndexMap';
 import { LeafNode } from './LeafNode';
 import { NAME_COMPARATOR } from './comparators';
 import { Index } from './indexes/Index';
-import { Path } from '../util/Path';
+import { Path, pathGetFront, pathGetLength, pathPopFront } from '../util/Path';
 
 export interface ChildrenNodeConstructor {
   new (
@@ -122,12 +122,12 @@ export class ChildrenNode implements Node {
 
   /** @inheritDoc */
   getChild(path: Path): Node {
-    const front = path.getFront();
+    const front = pathGetFront(path);
     if (front === null) {
       return this;
     }
 
-    return this.getImmediateChild(front).getChild(path.popFront());
+    return this.getImmediateChild(front).getChild(pathPopFront(path));
   }
 
   /** @inheritDoc */
@@ -163,16 +163,16 @@ export class ChildrenNode implements Node {
 
   /** @inheritDoc */
   updateChild(path: Path, newChildNode: Node): Node {
-    const front = path.getFront();
+    const front = pathGetFront(path);
     if (front === null) {
       return newChildNode;
     } else {
       assert(
-        path.getFront() !== '.priority' || path.getLength() === 1,
+        pathGetFront(path) !== '.priority' || pathGetLength(path) === 1,
         '.priority must be the last token in a path'
       );
       const newImmediateChild = this.getImmediateChild(front).updateChild(
-        path.popFront(),
+        pathPopFront(path),
         newChildNode
       );
       return this.updateImmediateChild(front, newImmediateChild);

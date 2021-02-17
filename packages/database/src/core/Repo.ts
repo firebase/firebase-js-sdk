@@ -21,7 +21,14 @@ import {
   resolveDeferredValueTree
 } from './util/ServerValues';
 import { nodeFromJSON } from './snap/nodeFromJSON';
-import { Path } from './util/Path';
+import {
+  newEmptyPath,
+  newRelativePath,
+  Path,
+  pathChild,
+  pathGetFront,
+  pathPopFront
+} from './util/Path';
 import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
@@ -496,7 +503,7 @@ export class Repo {
     each(childrenToMerge, (changedKey: string, changedValue: unknown) => {
       empty = false;
       changedChildren[changedKey] = resolveDeferredValueTree(
-        path.child(changedKey),
+        pathChild(path, changedKey),
         nodeFromJSON(changedValue),
         this.serverSyncTree_,
         serverValues
@@ -536,7 +543,9 @@ export class Repo {
       );
 
       each(childrenToMerge, (changedPath: string) => {
-        const affectedPath = this.abortTransactions_(path.child(changedPath));
+        const affectedPath = this.abortTransactions_(
+          pathChild(path, changedPath)
+        );
         this.rerunTransactions_(affectedPath);
       });
 
@@ -556,7 +565,7 @@ export class Repo {
 
     const serverValues = this.generateServerValues();
     const resolvedOnDisconnectTree = new SparseSnapshotTree();
-    this.onDisconnect_.forEachTree(Path.Empty, (path, node) => {
+    this.onDisconnect_.forEachTree(newEmptyPath(), (path, node) => {
       const resolved = resolveDeferredValueTree(
         path,
         node,
@@ -567,7 +576,7 @@ export class Repo {
     });
     let events: Event[] = [];
 
-    resolvedOnDisconnectTree.forEachTree(Path.Empty, (path, snap) => {
+    resolvedOnDisconnectTree.forEachTree(newEmptyPath(), (path, snap) => {
       events = events.concat(
         this.serverSyncTree_.applyServerOverwrite(path, snap)
       );
@@ -576,7 +585,11 @@ export class Repo {
     });
 
     this.onDisconnect_ = new SparseSnapshotTree();
-    eventQueueRaiseEventsForChangedPath(this.eventQueue_, Path.Empty, events);
+    eventQueueRaiseEventsForChangedPath(
+      this.eventQueue_,
+      newEmptyPath(),
+      events
+    );
   }
 
   onDisconnectCancel(
@@ -648,7 +661,10 @@ export class Repo {
         if (status === 'ok') {
           each(childrenToMerge, (childName: string, childNode: unknown) => {
             const newChildNode = nodeFromJSON(childNode);
-            this.onDisconnect_.remember(path.child(childName), newChildNode);
+            this.onDisconnect_.remember(
+              pathChild(path, childName),
+              newChildNode
+            );
           });
         }
         this.callOnCompleteCallback(onComplete, status, errorReason);
@@ -658,7 +674,7 @@ export class Repo {
 
   addEventCallbackForQuery(query: Query, eventRegistration: EventRegistration) {
     let events;
-    if (query.path.getFront() === '.info') {
+    if (pathGetFront(query.path) === '.info') {
       events = this.infoSyncTree_.addEventRegistration(
         query,
         eventRegistration
@@ -679,7 +695,7 @@ export class Repo {
     // These are guaranteed not to raise events, since we're not passing in a cancelError. However, we can future-proof
     // a little bit by handling the return values anyways.
     let events;
-    if (query.path.getFront() === '.info') {
+    if (pathGetFront(query.path) === '.info') {
       events = this.infoSyncTree_.removeEventRegistration(
         query,
         eventRegistration
@@ -978,7 +994,7 @@ export class Repo {
       );
       txn.status = TransactionStatus.SENT;
       txn.retryCount++;
-      const relativePath = Path.relativePath(path, txn.path);
+      const relativePath = newRelativePath(path, txn.path);
       // If we've gotten to this point, the output snapshot must be defined.
       snapToSend = snapToSend.updateChild(
         relativePath /** @type {!Node} */,
@@ -1112,7 +1128,7 @@ export class Repo {
     });
     for (let i = 0; i < queue.length; i++) {
       const transaction = queue[i];
-      const relativePath = Path.relativePath(path, transaction.path);
+      const relativePath = newRelativePath(path, transaction.path);
       let abortTransaction = false,
         abortReason;
       assert(
@@ -1258,11 +1274,11 @@ export class Repo {
     // Start at the root and walk deeper into the tree towards path until we
     // find a node with pending transactions.
     let transactionNode = this.transactionQueueTree_;
-    front = path.getFront();
+    front = pathGetFront(path);
     while (front !== null && transactionNode.getValue() === null) {
       transactionNode = transactionNode.subTree(front);
-      path = path.popFront();
-      front = path.getFront();
+      path = pathPopFront(path);
+      front = pathGetFront(path);
     }
 
     return transactionNode;

@@ -17,6 +17,7 @@
 
 import { TEST_PROJECT } from './util';
 import { Reference } from '../../src/api/Reference';
+import { pathParent } from '../../src/core/util/Path';
 
 /**
  * A set of functions to clean up event handlers.
@@ -65,7 +66,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
   const makeEventCallback = function (type) {
     return function (snap) {
       // Get the ref of where the snapshot came from.
-      const ref = type === 'value' ? snap.ref : snap.ref.parent;
+      const ref = type === 'value' ? snap.ref : pathParent(this);
 
       actualPathAndEvents.push([rawPath(ref), [type, snap.key]]);
 

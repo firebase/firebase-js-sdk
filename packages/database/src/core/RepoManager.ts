@@ -32,6 +32,7 @@ import {
   EmulatorAdminTokenProvider,
   FirebaseAuthTokenProvider
 } from './AuthTokenProvider';
+import { pathIsEmpty } from './util/Path';
 
 /**
  * This variable is also defined in the firebase node.js admin SDK. Before
@@ -156,7 +157,7 @@ export class RepoManager {
         : new FirebaseAuthTokenProvider(app, authProvider);
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
-    if (!parsedUrl.path.isEmpty()) {
+    if (!pathIsEmpty(parsedUrl.path)) {
       fatal(
         'Database URL must point to the root of a Firebase Database ' +
           '(not including a child path).'

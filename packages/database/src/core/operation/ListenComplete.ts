@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Path } from '../util/Path';
+import { newEmptyPath, Path, pathIsEmpty, pathPopFront } from '../util/Path';
 import { Operation, OperationSource, OperationType } from './Operation';
 
 export class ListenComplete implements Operation {
@@ -25,10 +25,10 @@ export class ListenComplete implements Operation {
   constructor(public source: OperationSource, public path: Path) {}
 
   operationForChild(childName: string): ListenComplete {
-    if (this.path.isEmpty()) {
-      return new ListenComplete(this.source, Path.Empty);
+    if (pathIsEmpty(this.path)) {
+      return new ListenComplete(this.source, newEmptyPath());
     } else {
-      return new ListenComplete(this.source, this.path.popFront());
+      return new ListenComplete(this.source, pathPopFront(this.path));
     }
   }
 }
