@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _getProvider, FirebaseApp } from '@firebase/app-exp';
 import * as externs from '@firebase/auth-types-exp';
 
 import { Dependencies } from '../../model/auth';

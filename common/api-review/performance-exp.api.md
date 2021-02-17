@@ -4,13 +4,19 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebasePerformance } from '@firebase/performance-types-exp';
 import { PerformanceSettings } from '@firebase/performance-types-exp';
 import { PerformanceTrace } from '@firebase/performance-types-exp';
 
+export { FirebasePerformance }
+
 // @public
 export function getPerformance(app: FirebaseApp, settings?: PerformanceSettings): FirebasePerformance;
+
+export { PerformanceSettings }
+
+export { PerformanceTrace }
 
 // @public
 export function trace(performance: FirebasePerformance, name: string): PerformanceTrace;

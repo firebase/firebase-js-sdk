@@ -25,7 +25,7 @@ import {
 } from '../testing/get-fake-firebase-services';
 import { GtagCommand } from './constants';
 import { DynamicConfig } from '@firebase/analytics-types-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { Deferred } from '@firebase/util';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { removeGtagScript } from '../testing/gtag-script-util';

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import { RemoteConfig } from '@firebase/remote-config-types-exp';
 import {
   Value as ValueCompat,
@@ -36,10 +36,9 @@ import {
   getString,
   getValue
 } from '@firebase/remote-config-exp';
-import { FirebaseService } from '@firebase/app-types/private';
 
 export class RemoteConfigCompatImpl
-  implements RemoteConfigCompat, FirebaseService {
+  implements RemoteConfigCompat, _FirebaseService {
   constructor(public app: FirebaseApp, private _remoteConfig: RemoteConfig) {}
 
   get defaultConfig(): { [key: string]: string | number | boolean } {

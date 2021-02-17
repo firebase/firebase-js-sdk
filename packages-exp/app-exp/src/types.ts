@@ -15,18 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _getProvider } from '@firebase/app-exp';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+export interface VersionService {
+  library: string;
+  version: string;
+}
 
-/**
- * Returns an instance of FirebaseInstallations associated with the given FirebaseApp instance.
- *
- * @public
- */
-export function getInstallations(app: FirebaseApp): FirebaseInstallations {
-  const installationsImpl = _getProvider(
-    app,
-    'installations-exp'
-  ).getImmediate();
-  return installationsImpl;
+export interface PlatformLoggerService {
+  getPlatformInfoString(): string;
 }

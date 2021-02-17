@@ -23,8 +23,7 @@
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js"
   },
   "peerDependencies": {
-    "@firebase/app-compat": "0.x",
-    "@firebase/app-types": "0.x"
+    "@firebase/app-compat": "0.x"
   },
   "dependencies": {
     "@firebase/auth-types": "0.10.1",

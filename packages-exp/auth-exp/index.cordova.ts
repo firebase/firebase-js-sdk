@@ -22,7 +22,7 @@
  * just use index.ts
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { Auth } from '@firebase/auth-types-exp';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 

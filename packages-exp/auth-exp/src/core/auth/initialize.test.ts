@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
-import { deleteApp, initializeApp } from '@firebase/app-exp';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import {
+  deleteApp,
+  initializeApp,
+  FirebaseApp,
+  _FirebaseService
+} from '@firebase/app-exp';
 import * as externs from '@firebase/auth-types-exp';
 import { isNode } from '@firebase/util';
 

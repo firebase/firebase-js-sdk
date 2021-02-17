@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app-compat';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import {
   Component,
   ComponentContainer,
@@ -51,8 +50,7 @@ function remoteConfigFactory(
   container: ComponentContainer,
   namespace?: string
 ): RemoteConfigCompatImpl {
-  // TODO: change 'app' to 'app-compat' before the official release
-  const app = container.getProvider('app').getImmediate();
+  const app = container.getProvider('app-compat').getImmediate();
   // The following call will always succeed because rc `import {...} from '@firebase/remote-config-exp'`
   const remoteConfig = container.getProvider('remote-config-exp').getImmediate({
     identifier: namespace

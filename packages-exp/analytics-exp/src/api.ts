@@ -17,8 +17,7 @@
  * limitations under the License.
  */
 
-import { _getProvider } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _getProvider, FirebaseApp } from '@firebase/app-exp';
 import {
   Analytics,
   AnalyticsCallOptions,

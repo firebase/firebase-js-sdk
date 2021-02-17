@@ -24,7 +24,7 @@ import {
   HttpsCallableOptions,
   Functions as FunctionsServiceExp
 } from '@firebase/functions-types-exp';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-compat';
 import { FirebaseError } from '@firebase/util';
 
 export class FunctionsService implements FirebaseFunctions {

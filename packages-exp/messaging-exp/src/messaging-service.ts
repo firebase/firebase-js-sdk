@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 import { NextFn, Observer } from '@firebase/util';
 
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';

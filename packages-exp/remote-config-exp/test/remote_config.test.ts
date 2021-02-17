@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import {
   RemoteConfig as RemoteConfigType,
   LogLevel as RemoteConfigLogLevel
@@ -440,11 +440,9 @@ describe('RemoteConfig', () => {
   });
 
   describe('fetch', () => {
-    let timeoutStub: sinon.SinonStub<[
-      (...args: any[]) => void,
-      number,
-      ...any[]
-    ]>;
+    let timeoutStub: sinon.SinonStub<
+      [(...args: any[]) => void, number, ...any[]]
+    >;
     beforeEach(() => {
       client.fetch = sinon
         .stub()

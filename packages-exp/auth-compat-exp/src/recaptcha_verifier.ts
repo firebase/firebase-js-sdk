@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app-compat';
-import { FirebaseApp } from '@firebase/app-types';
+import firebase, { FirebaseApp } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
@@ -42,6 +41,8 @@ export class RecaptchaVerifier
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parameters as any,
 
+      // TODO: remove ts-ignore when moving types from auth-types to auth-compat
+      // @ts-ignore
       unwrap(app.auth!())
     );
     this.type = this.verifier.type;

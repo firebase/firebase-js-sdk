@@ -28,7 +28,7 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations-types-ex
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
 import { initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 
 /**
  * Analytics Service class.

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _FirebaseService } from '@firebase/app-types-exp';
+import { _FirebaseService } from '@firebase/app-exp';
 
 import { CredentialsProvider } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';

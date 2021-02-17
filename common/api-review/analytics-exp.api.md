@@ -10,7 +10,7 @@ import { ControlParams } from '@firebase/analytics-types-exp';
 import { CustomParams } from '@firebase/analytics-types-exp';
 import { EventNameString } from '@firebase/analytics-types-exp';
 import { EventParams } from '@firebase/analytics-types-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { Item } from '@firebase/analytics-types-exp';
 import { Promotion } from '@firebase/analytics-types-exp';
 import { SettingsOptions } from '@firebase/analytics-types-exp';

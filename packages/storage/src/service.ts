@@ -27,7 +27,7 @@ import {
   FirebaseApp,
   FirebaseOptions,
   _FirebaseService
-} from '@firebase/app-types-exp';
+} from '@firebase/app-exp';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
   DEFAULT_MAX_OPERATION_RETRY_TIME,

@@ -15,39 +15,39 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
+import { FirebaseApp, FirebaseOptions } from './public-types';
 import {
   Component,
+  ComponentContainer,
   ComponentType,
-  Name,
-  ComponentContainer
+  Name
 } from '@firebase/component';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 import {
   deleteApp,
   _addComponent,
   _addOrOverwriteComponent,
-  _DEFAULT_ENTRY_NAME
+  _DEFAULT_ENTRY_NAME,
+  _FirebaseAppInternal as _FirebaseAppExp
 } from '@firebase/app-exp';
+import { _FirebaseService, _FirebaseNamespace } from './types';
 
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
 export class FirebaseAppImpl implements FirebaseApp {
-  private readonly container: ComponentContainer;
+  private container: ComponentContainer;
 
   constructor(
-    private readonly app: _FirebaseAppInternal,
+    private readonly app: _FirebaseAppExp,
     private readonly firebase: _FirebaseNamespace
   ) {
     // add itself to container
-    // TODO: change the component name to 'app-compat' before the official release
-    _addComponent(app, new Component('app', () => this, ComponentType.PUBLIC));
+    _addComponent(
+      app,
+      new Component('app-compat', () => this, ComponentType.PUBLIC)
+    );
+
     this.container = app.container;
   }
 
@@ -94,13 +94,13 @@ export class FirebaseAppImpl implements FirebaseApp {
   _getService(
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
-  ): FirebaseService {
+  ): _FirebaseService {
     this.app.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
     return (this.app.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
-    }) as unknown) as FirebaseService;
+    }) as unknown) as _FirebaseService;
   }
 
   /**

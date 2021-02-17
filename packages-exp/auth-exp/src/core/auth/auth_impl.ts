@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
+import { _FirebaseService, FirebaseApp } from '@firebase/app-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
   CompleteFn,

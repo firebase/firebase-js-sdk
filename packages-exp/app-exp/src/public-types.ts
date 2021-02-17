@@ -16,13 +16,14 @@
  */
 
 import { ComponentContainer } from '@firebase/component';
+import { PlatformLoggerService, VersionService } from './types';
 
 /**
  * A FirebaseApp holds the initialization information for a collection of
  * services.
  *
  * Do not call this constructor directly. Instead, use
- * {@link @firebase/app-exp#(initializeApp:1) | initializeApp()} to create an app.
+ * {@link (initializeApp:1) | initializeApp()} to create an app.
  *
  * @public
  */
@@ -50,7 +51,7 @@ export interface FirebaseApp {
 
   /**
    * The (read-only) configuration options for this app. These are the original
-   * parameters given in {@link @firebase/app-exp#(initializeApp:1) | initializeApp()}.
+   * parameters given in {@link (initializeApp:1) | initializeApp()}.
    *
    * @example
    * ```javascript
@@ -67,16 +68,9 @@ export interface FirebaseApp {
 }
 
 /**
- * @internal
- */
-export interface _FirebaseAppInternal extends FirebaseApp {
-  container: ComponentContainer;
-  isDeleted: boolean;
-  checkDestroyed(): void;
-}
-
-/**
  * @public
+ *
+ * Firebase configuration object
  */
 export interface FirebaseOptions {
   apiKey?: string;
@@ -91,22 +85,25 @@ export interface FirebaseOptions {
 
 /**
  * @public
+ *
+ * Configuration options given to {@link (initializeApp:1) | initializeApp()}
  */
 export interface FirebaseAppConfig {
+  /**
+   * custom name for the Firebase App.
+   * The default value is `"[DEFAULT]"`.
+   */
   name?: string;
+  /**
+   * The settable config flag for GDPR opt-in/opt-out
+   */
   automaticDataCollectionEnabled?: boolean;
 }
 
 /**
  * @internal
  */
-export interface _PlatformLoggerService {
-  getPlatformInfoString(): string;
-}
-
-/**
- * @internal
- */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseService {
   app: FirebaseApp;
   /**
@@ -119,15 +116,16 @@ export interface _FirebaseService {
 /**
  * @internal
  */
-export interface _VersionService {
-  library: string;
-  version: string;
+export interface _FirebaseAppInternal extends FirebaseApp {
+  container: ComponentContainer;
+  isDeleted: boolean;
+  checkDestroyed(): void;
 }
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'app-exp': FirebaseApp;
-    'app-version': _VersionService;
-    'platform-logger': _PlatformLoggerService;
+    'app-version': VersionService;
+    'platform-logger': PlatformLoggerService;
   }
 }
