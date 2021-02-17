@@ -203,7 +203,7 @@ export class QueryParams {
   }
 }
 
-function getNodeFilter(queryParams: QueryParams): NodeFilter {
+export function getNodeFilter(queryParams: QueryParams): NodeFilter {
   if (queryParams.loadsAllData()) {
     return new IndexedFilter(queryParams.getIndex());
   } else if (queryParams.hasLimit()) {
@@ -333,7 +333,7 @@ export function endBefore(
   return params;
 }
 
-function orderBy(queryParams: QueryParams, index: Index): QueryParams {
+export function orderBy(queryParams: QueryParams, index: Index): QueryParams {
   const newParams = queryParams.copy();
   newParams.index_ = index;
   return newParams;
@@ -349,7 +349,7 @@ export function toRestQueryStringParameters(
 ): Record<string, string | number> {
   const qs: Record<string, string | number> = {};
 
-  if (this.isDefault()) {
+  if (queryParams.isDefault()) {
     return qs;
   }
 
