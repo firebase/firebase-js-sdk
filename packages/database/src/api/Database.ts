@@ -17,7 +17,7 @@
 
 import { fatal } from '../core/util/util';
 import { parseRepoInfo } from '../core/util/libs/parser';
-import { newEmptyPath, Path } from '../core/util/Path';
+import { newEmptyPath } from '../core/util/Path';
 import { Reference } from './Reference';
 import { Repo } from '../core/Repo';
 import { RepoManager } from '../core/RepoManager';
