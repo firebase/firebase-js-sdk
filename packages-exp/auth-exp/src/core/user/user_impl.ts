@@ -26,6 +26,7 @@ import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { MutableUserInfo, User, UserParameters } from '../../model/user';
+import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { _assert } from '../util/assert';
@@ -316,4 +317,8 @@ export class UserImpl implements User {
     await _reloadWithoutSaving(user);
     return user;
   }
+}
+
+export function userFromJSON(auth: externs.Auth, json: string): externs.User {
+  return UserImpl._fromJSON(_castAuth(auth), JSON.parse(json));
 }
