@@ -213,7 +213,7 @@ function getNodeFilter(queryParams: QueryParams): NodeFilter {
   }
 }
 
-function limit(queryParams: QueryParams, newLimit: number): QueryParams {
+export function limit(queryParams: QueryParams, newLimit: number): QueryParams {
   const newParams = queryParams.copy();
   newParams.limitSet_ = true;
   newParams.limit_ = newLimit;
@@ -221,7 +221,10 @@ function limit(queryParams: QueryParams, newLimit: number): QueryParams {
   return newParams;
 }
 
-function limitToFirst(queryParams: QueryParams, newLimit: number): QueryParams {
+export function limitToFirst(
+  queryParams: QueryParams,
+  newLimit: number
+): QueryParams {
   const newParams = queryParams.copy();
   newParams.limitSet_ = true;
   newParams.limit_ = newLimit;
@@ -229,7 +232,10 @@ function limitToFirst(queryParams: QueryParams, newLimit: number): QueryParams {
   return newParams;
 }
 
-function limitToLast(queryParams: QueryParams, newLimit: number): QueryParams {
+export function limitToLast(
+  queryParams: QueryParams,
+  newLimit: number
+): QueryParams {
   const newParams = queryParams.copy();
   newParams.limitSet_ = true;
   newParams.limit_ = newLimit;
@@ -237,7 +243,7 @@ function limitToLast(queryParams: QueryParams, newLimit: number): QueryParams {
   return newParams;
 }
 
-function startAt(
+export function startAt(
   queryParams: QueryParams,
   indexValue: unknown,
   key?: string | null
@@ -258,7 +264,7 @@ function startAt(
   return newParams;
 }
 
-function startAfter(
+export function startAfter(
   queryParams: QueryParams,
   indexValue: unknown,
   key?: string | null
@@ -282,7 +288,7 @@ function startAfter(
   return params;
 }
 
-function endAt(
+export function endAt(
   queryParams: QueryParams,
   indexValue: unknown,
   key?: string | null
@@ -303,7 +309,7 @@ function endAt(
   return newParams;
 }
 
-function endBefore(
+export function endBefore(
   queryParams: QueryParams,
   indexValue: unknown,
   key?: string | null
@@ -338,7 +344,7 @@ function orderBy(queryParams: QueryParams, index: Index): QueryParams {
  *
  * @return query string parameters
  */
-function toRestQueryStringParameters(
+export function toRestQueryStringParameters(
   queryParams: QueryParams
 ): Record<string, string | number> {
   const qs: Record<string, string | number> = {};
@@ -387,7 +393,9 @@ function toRestQueryStringParameters(
   return qs;
 }
 
-function getQueryObject(queryParams: QueryParams): Record<string, unknown> {
+export function getQueryObject(
+  queryParams: QueryParams
+): Record<string, unknown> {
   const obj: Record<string, unknown> = {};
   if (queryParams.startSet_) {
     obj[WIRE_PROTOCOL_CONSTANTS.INDEX_START_VALUE] =
