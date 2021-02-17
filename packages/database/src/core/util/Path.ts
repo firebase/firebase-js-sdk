@@ -74,7 +74,7 @@ export function pathGetFront(path: Path): string | null {
     return null;
   }
 
-  return path.pieces_[this.pieceNum_];
+  return path.pieces_[path.pieceNum_];
 }
 
 /**
