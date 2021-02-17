@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp, _getProvider } from '@firebase/app-exp';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
@@ -65,7 +65,6 @@ import {
   UserProfile,
   PhoneInfoOptions
 } from '@firebase/auth-types-exp';
-import { _getProvider } from '@firebase/app-exp';
 
 // Public types
 export {
