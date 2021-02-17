@@ -28,8 +28,8 @@ export interface HttpsCallableResult<ResponseData = unknown> {
  * An HttpsCallable is a reference to a "callable" http trigger in
  * Google Cloud Functions.
  */
-export interface HttpsCallable<RequestParams = unknown, ResponseData = unknown> {
-  (data?: RequestParams | null): Promise<HttpsCallableResult<ResponseData>>;
+export interface HttpsCallable<RequestData = unknown, ResponseData = unknown> {
+  (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
 }
 
 /**

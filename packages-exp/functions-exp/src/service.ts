@@ -159,9 +159,9 @@ export function httpsCallable<RequestData, ResponseData>(
   name: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData> {
-  return data => {
+  return (data => {
     return call(functionsInstance, name, data, options || {});
-  };
+  }) as HttpsCallable<RequestData, ResponseData>;
 }
 
 /**
