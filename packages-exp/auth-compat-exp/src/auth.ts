@@ -75,6 +75,11 @@ export class Auth
     );
   }
 
+  get emulatorConfig(): compat.EmulatorConfig | null {
+    // TODO
+    return null;
+  }
+
   get currentUser(): compat.User | null {
     if (!this.auth.currentUser) {
       return null;
