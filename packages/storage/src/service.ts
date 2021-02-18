@@ -27,6 +27,7 @@ import {
   FirebaseApp,
   FirebaseOptions,
   _FirebaseService
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
