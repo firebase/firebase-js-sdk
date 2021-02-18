@@ -15,15 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  DynamicConfig,
-  DataLayer,
-  Gtag,
-  CustomParams,
-  ControlParams,
-  EventParams,
-  MinimalDynamicConfig
-} from '@firebase/analytics-types-exp';
+import { CustomParams, ControlParams, EventParams } from './public-types';
+import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
 
@@ -259,7 +252,7 @@ function wrapGtag(
       logger.error(e);
     }
   }
-  return gtagWrapper;
+  return gtagWrapper as Gtag;
 }
 
 /**

@@ -15,13 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  Gtag,
-  SettingsOptions,
-  DynamicConfig,
-  MinimalDynamicConfig,
-  Analytics
-} from '@firebase/analytics-types-exp';
+import { SettingsOptions, Analytics } from './public-types';
+import { Gtag, DynamicConfig, MinimalDynamicConfig } from './types';
 import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
