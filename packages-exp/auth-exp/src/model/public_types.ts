@@ -508,7 +508,7 @@ export interface ActionCodeSettings {
  *
  * @public
  */
-export abstract class ActionCodeURL {
+export declare abstract class ActionCodeURL {
   /**
    * The API key of the email action link.
    */
@@ -573,7 +573,7 @@ export interface ApplicationVerifier {
  *
  * @public
  */
-export abstract class RecaptchaVerifier implements ApplicationVerifier {
+export declare abstract class RecaptchaVerifier implements ApplicationVerifier {
   constructor(
     /**
      * The reCAPTCHA container parameter.
@@ -637,7 +637,7 @@ export abstract class RecaptchaVerifier implements ApplicationVerifier {
  *
  * @public
  */
-export abstract class AuthCredential {
+export declare abstract class AuthCredential {
   /**
    * Static method to deserialize a JSON representation of an object into an {@link  @firebase/auth-types#AuthCredential}.
    *
@@ -680,7 +680,7 @@ export abstract class AuthCredential {
  *
  * @public
  */
-export abstract class OAuthCredential extends AuthCredential {
+export declare abstract class OAuthCredential extends AuthCredential {
   /**
    * Static method to deserialize a JSON representation of an object into an
    * {@link  @firebase/auth-types#AuthCredential}.
@@ -715,7 +715,7 @@ export abstract class OAuthCredential extends AuthCredential {
  *
  * @public
  */
-export abstract class PhoneAuthCredential extends AuthCredential {
+export declare abstract class PhoneAuthCredential extends AuthCredential {
   /** {@inheritdoc @firebase/auth-types#AuthCredential.fromJSON} */
   static fromJSON(json: object | string): PhoneAuthCredential | null;
   /** {@inheritdoc @firebase/auth-types#AuthCredential.toJSON} */
@@ -739,7 +739,7 @@ export interface AuthProvider {
  *
  * @public
  */
-export abstract class EmailAuthProvider implements AuthProvider {
+export declare abstract class EmailAuthProvider implements AuthProvider {
   private constructor();
   /**
    * Always set to {@link @firebase/auth-types#ProviderId.PASSWORD}, even for email link.
@@ -821,7 +821,7 @@ export abstract class EmailAuthProvider implements AuthProvider {
  *
  * @public
  */
-export class PhoneAuthProvider implements AuthProvider {
+export declare class PhoneAuthProvider implements AuthProvider {
   /** Always set to {@link @firebase/auth-types#ProviderId.PHONE}. */
   static readonly PROVIDER_ID: ProviderId;
   /** Always set to {@link @firebase/auth-types#SignInMethod.PHONE}. */
@@ -1205,7 +1205,7 @@ export interface PhoneMultiFactorAssertion extends MultiFactorAssertion {}
  *
  * @public
  */
-export abstract class PhoneMultiFactorGenerator {
+export declare abstract class PhoneMultiFactorGenerator {
   /**
    * The identifier of the phone second factor: {@link @firebase/auth-types#ProviderId.PHONE}.
    */

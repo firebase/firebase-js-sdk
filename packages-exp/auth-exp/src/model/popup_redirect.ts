@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from './public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { AuthPopup } from '../platform_browser/util/popup';

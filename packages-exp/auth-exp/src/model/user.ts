@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from './public_types';
 import { NextFn } from '@firebase/util';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';

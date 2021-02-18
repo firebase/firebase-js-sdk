@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from './public_types';
 import { ErrorFactory } from '@firebase/util';
 import { AuthErrorCode, AuthErrorParams } from '../core/errors';
 
