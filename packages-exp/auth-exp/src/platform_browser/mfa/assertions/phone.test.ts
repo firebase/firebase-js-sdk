@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
+import { ProviderId } from '../../model/public_types';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 

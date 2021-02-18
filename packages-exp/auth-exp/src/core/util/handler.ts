@@ -16,7 +16,7 @@
  */
 
 import { SDK_VERSION } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 import { ApiKey, AppName, Auth } from '../../model/auth';
 import { AuthEventType } from '../../model/popup_redirect';
 import { AuthErrorCode } from '../errors';

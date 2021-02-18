@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ActionCodeOperation, ProviderId } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, ProviderId } from '../../model/public_types';
 import { FirebaseError, isNode } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';

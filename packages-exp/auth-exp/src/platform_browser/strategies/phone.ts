@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import { startEnrollPhoneMfa } from '../../api/account_management/mfa';
 import { startSignInPhoneMfa } from '../../api/authentication/mfa';

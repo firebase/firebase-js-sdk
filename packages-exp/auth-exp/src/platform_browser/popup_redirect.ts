@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../model/public_types';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';

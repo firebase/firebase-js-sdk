@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
+import { ProviderId, UserInfo } from '../../model/public_types';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';

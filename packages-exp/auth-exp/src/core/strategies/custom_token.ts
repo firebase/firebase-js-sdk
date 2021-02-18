@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication/custom_token';
 import { IdTokenResponse } from '../../model/id_token';

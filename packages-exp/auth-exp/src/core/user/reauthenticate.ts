@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { OperationType } from '@firebase/auth-types-exp';
+import { OperationType } from '../../model/public_types';
 
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { User } from '../../model/user';

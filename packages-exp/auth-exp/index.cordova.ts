@@ -23,7 +23,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-exp';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from './src/model/public_types';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 import { initializeAuth } from './src';

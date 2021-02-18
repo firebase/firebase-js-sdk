@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import { deleteLinkedAccounts } from '../../api/account_management/account';
 import { User, UserCredential } from '../../model/user';

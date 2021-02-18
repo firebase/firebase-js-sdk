@@ -24,7 +24,7 @@ import {
   OperationType,
   PopupRedirectResolver,
   ProviderId
-} from '@firebase/auth-types-exp';
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { delay } from '../../../test/helpers/delay';

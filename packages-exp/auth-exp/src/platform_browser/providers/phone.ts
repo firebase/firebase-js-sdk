@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
 import { ApplicationVerifier } from '../../model/application_verifier';

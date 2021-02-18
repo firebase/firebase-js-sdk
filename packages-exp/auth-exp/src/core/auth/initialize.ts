@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, FirebaseApp } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import { Dependencies } from '../../model/auth';
 import { AuthErrorCode } from '../errors';

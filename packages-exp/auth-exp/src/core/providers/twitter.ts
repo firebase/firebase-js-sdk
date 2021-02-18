@@ -32,7 +32,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { SignInWithIdpResponse } from '../../api/authentication/idp';

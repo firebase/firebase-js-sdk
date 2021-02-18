@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../../model/public_types';
 
 import { MultiFactorAssertion } from '../../../mfa/mfa_assertion';
 import { Auth } from '../../../model/auth';

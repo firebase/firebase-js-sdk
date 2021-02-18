@@ -21,7 +21,7 @@ import {
   FirebaseApp,
   _FirebaseService
 } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 import { isNode } from '@firebase/util';
 
 import { expect } from 'chai';

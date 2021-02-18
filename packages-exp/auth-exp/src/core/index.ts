@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../model/public_types';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 export { debugErrorMap, prodErrorMap } from './errors';

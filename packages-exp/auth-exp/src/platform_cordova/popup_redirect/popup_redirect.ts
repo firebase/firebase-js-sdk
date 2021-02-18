@@ -16,7 +16,7 @@
  */
 
 import '../plugins';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 import { browserSessionPersistence } from '../../platform_browser/persistence/session_storage';
 import { Auth } from '../../model/auth';
 import {

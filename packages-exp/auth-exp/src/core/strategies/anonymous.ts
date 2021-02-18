@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 import { signUp } from '../../api/authentication/sign_up';
 import { User } from '../../model/user';
 import { UserCredentialImpl } from '../user/user_credential_impl';

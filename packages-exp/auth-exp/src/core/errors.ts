@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../model/public_types';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 import { IdTokenMfaResponse } from '../api/authentication/mfa';

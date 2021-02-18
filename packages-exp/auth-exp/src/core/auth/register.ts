@@ -16,7 +16,7 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../../../package.json';

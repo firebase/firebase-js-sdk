@@ -23,7 +23,7 @@ import {
   OperationType,
   ProviderId,
   SignInMethod
-} from '@firebase/auth-types-exp';
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';

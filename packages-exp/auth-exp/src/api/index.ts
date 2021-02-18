@@ -22,7 +22,7 @@ import { _createError, _fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../model/public_types';
 import { Auth as AuthInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';

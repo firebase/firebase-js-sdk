@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { _parseToken } from './id_token_result';
 import { UserCredential } from '../../model/user';

@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import { delay } from '../../../test/helpers/delay';
 import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';

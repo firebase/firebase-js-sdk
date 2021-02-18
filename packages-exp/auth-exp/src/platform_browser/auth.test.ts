@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { FirebaseApp } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
 import { AuthImpl, DefaultConfig } from '../core/auth/auth_impl';

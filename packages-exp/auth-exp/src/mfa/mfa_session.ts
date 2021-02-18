@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../model/public_types';
 
 export const enum MultiFactorSessionType {
   ENROLL = 'enroll',

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import * as api from '../../api/authentication/email_and_password';
 import { ActionCodeURL } from '../action_code_url';

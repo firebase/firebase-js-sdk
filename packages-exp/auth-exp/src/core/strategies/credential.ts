@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
-import { OperationType, UserCredential } from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
+import { OperationType, UserCredential } from '../../model/public_types';
 
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { Auth } from '../../model/auth';

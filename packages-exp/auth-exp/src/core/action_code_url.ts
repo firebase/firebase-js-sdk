@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  ActionCodeOperation,
+  ActionCodeURL as ActionCodeURLType
+} from '../model/public_types';
 import { AuthErrorCode } from './errors';
 import { _assert } from './util/assert';
 
@@ -38,20 +41,20 @@ const enum QueryField {
  *
  * @param mode
  */
-function parseMode(mode: string | null): externs.ActionCodeOperation | null {
+function parseMode(mode: string | null): ActionCodeOperation | null {
   switch (mode) {
     case 'recoverEmail':
-      return externs.ActionCodeOperation.RECOVER_EMAIL;
+      return ActionCodeOperation.RECOVER_EMAIL;
     case 'resetPassword':
-      return externs.ActionCodeOperation.PASSWORD_RESET;
+      return ActionCodeOperation.PASSWORD_RESET;
     case 'signIn':
-      return externs.ActionCodeOperation.EMAIL_SIGNIN;
+      return ActionCodeOperation.EMAIL_SIGNIN;
     case 'verifyEmail':
-      return externs.ActionCodeOperation.VERIFY_EMAIL;
+      return ActionCodeOperation.VERIFY_EMAIL;
     case 'verifyAndChangeEmail':
-      return externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL;
+      return ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL;
     case 'revertSecondFactorAddition':
-      return externs.ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION;
+      return ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION;
     default:
       return null;
   }
@@ -80,7 +83,7 @@ function parseDeepLink(url: string): string {
  *
  * @public
  */
-export class ActionCodeURL implements externs.ActionCodeURL {
+export class ActionCodeURL implements ActionCodeURLType {
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.apiKey} */
   readonly apiKey: string;
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.code} */
@@ -90,7 +93,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.languageCode} */
   readonly languageCode: string | null;
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.operation} */
-  readonly operation: externs.ActionCodeOperation;
+  readonly operation: ActionCodeOperation;
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.tenantId} */
   readonly tenantId: string | null;
 
@@ -116,7 +119,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   }
 
   /** {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink} */
-  static parseLink(link: string): externs.ActionCodeURL | null {
+  static parseLink(link: string): ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {
       return new ActionCodeURL(actionLink);
@@ -131,6 +134,6 @@ export class ActionCodeURL implements externs.ActionCodeURL {
  *
  * @public
  */
-export function parseActionCodeURL(link: string): externs.ActionCodeURL | null {
+export function parseActionCodeURL(link: string): ActionCodeURL | null {
   return ActionCodeURL.parseLink(link);
 }

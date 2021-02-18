@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, FirebaseApp } from '@firebase/app-exp';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from './src/model/public_types';
 
 import { AuthImpl } from './src/core/auth/auth_impl';
 import { _initializeAuthInstance } from './src/core/auth/initialize';

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '../../model/public_types';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { IdTokenResponse } from '../../model/id_token';

@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { SDK_VERSION } from '@firebase/app-exp';
-import { Config, ProviderId } from '@firebase/auth-types-exp';
+import { Config, ProviderId } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import {
