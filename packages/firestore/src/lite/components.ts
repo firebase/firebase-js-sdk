@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { _FirebaseService } from '@firebase/app-exp';
 
 import { CredentialsProvider } from '../api/credentials';
