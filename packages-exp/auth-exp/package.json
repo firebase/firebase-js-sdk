@@ -29,7 +29,7 @@
     "test:browser:unit:debug": "karma start --auto-watch --unit",
     "test:cordova": "karma start --single-run --cordova",
     "test:cordova:debug": "karma start --auto-watch --cordova",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native|platform_cordova)/**/*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native|platform_cordova)/**/*.test.ts' --file index.node.ts --file src/platform_browser/iframe/gapi.iframes.ts --config ../../config/mocharc.node.js",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",

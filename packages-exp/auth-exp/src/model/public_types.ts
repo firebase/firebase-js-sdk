@@ -584,6 +584,7 @@ export declare abstract class RecaptchaVerifier implements ApplicationVerifier {
      * an element ID. The corresponding element must also must be in the DOM at the time of
      * initialization.
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     container: any | string,
     /**
      * The optional reCAPTCHA parameters.
@@ -594,7 +595,7 @@ export declare abstract class RecaptchaVerifier implements ApplicationVerifier {
      * configure this upon rendering. For an invisible reCAPTCHA, a size key must have the value
      * 'invisible'.
      */
-    parameters?: Object | null,
+    parameters?: object | null,
     /**
      * The corresponding Firebase Auth instance.
      *

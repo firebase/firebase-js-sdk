@@ -29,10 +29,10 @@ use(chaiAsPromised);
 
 describe('core/auth/firebase_internal', () => {
   let auth: AuthInternal;
-  let authInternal: AuthInternal;
+  let authInternal: AuthInterop;
   beforeEach(async () => {
     auth = await testAuth();
-    authInternal = new AuthInternal(auth);
+    authInternal = new AuthInterop(auth);
   });
 
   afterEach(() => {
