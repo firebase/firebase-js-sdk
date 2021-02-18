@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '../model/public_types';
+import { Auth, NextOrObserver, Persistence, User } from '../model/public_types';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 export { debugErrorMap, prodErrorMap } from './errors';
@@ -43,8 +43,8 @@ export { debugErrorMap, prodErrorMap } from './errors';
  * @public
  */
 export function setPersistence(
-  auth: externs.Auth,
-  persistence: externs.Persistence
+  auth: Auth,
+  persistence: Persistence
 ): Promise<void> {
   return auth.setPersistence(persistence);
 }
@@ -60,8 +60,8 @@ export function setPersistence(
  * @public
  */
 export function onIdTokenChanged(
-  auth: externs.Auth,
-  nextOrObserver: externs.NextOrObserver<externs.User>,
+  auth: Auth,
+  nextOrObserver: NextOrObserver<User>,
   error?: ErrorFn,
   completed?: CompleteFn
 ): Unsubscribe {
@@ -81,8 +81,8 @@ export function onIdTokenChanged(
  * @public
  */
 export function onAuthStateChanged(
-  auth: externs.Auth,
-  nextOrObserver: externs.NextOrObserver<externs.User>,
+  auth: Auth,
+  nextOrObserver: NextOrObserver<User>,
   error?: ErrorFn,
   completed?: CompleteFn
 ): Unsubscribe {
@@ -95,7 +95,7 @@ export function onAuthStateChanged(
  *
  * @public
  */
-export function useDeviceLanguage(auth: externs.Auth): void {
+export function useDeviceLanguage(auth: Auth): void {
   auth.useDeviceLanguage();
 }
 /**
@@ -117,8 +117,8 @@ export function useDeviceLanguage(auth: externs.Auth): void {
  * @public
  */
 export function updateCurrentUser(
-  auth: externs.Auth,
-  user: externs.User | null
+  auth: Auth,
+  user: User | null
 ): Promise<void> {
   return auth.updateCurrentUser(user);
 }
@@ -129,7 +129,7 @@ export function updateCurrentUser(
  *
  * @public
  */
-export function signOut(auth: externs.Auth): Promise<void> {
+export function signOut(auth: Auth): Promise<void> {
   return auth.signOut();
 }
 
@@ -140,7 +140,7 @@ export { useAuthEmulator } from './auth/emulator';
 export { AuthCredential } from './credentials';
 export { EmailAuthCredential } from './credentials/email';
 export { OAuthCredential } from './credentials/oauth';
-export { PhoneAuthCredential } from './credentials/phone';
+export { PhoneAuthCredentialImpl as PhoneAuthCredential } from './credentials/phone';
 
 // persistence
 export { inMemoryPersistence } from './persistence/in_memory';
@@ -212,6 +212,6 @@ export { reload } from './user/reload';
  *
  * @public
  */
-export async function deleteUser(user: externs.User): Promise<void> {
+export async function deleteUser(user: User): Promise<void> {
   return user.delete();
 }

@@ -32,13 +32,18 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  OAuthCredential,
+  ProviderId,
+  SignInMethod,
+  UserCredential
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
-import { UserCredential } from '../../model/user';
-import { OAuthCredential } from '../credentials/oauth';
+import { UserCredentialInternal } from '../../model/user';
+import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
@@ -81,11 +86,11 @@ import { OAuthProvider } from './oauth';
  * @public
  */
 export class TwitterAuthProvider extends OAuthProvider {
-  static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
-  static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
+  static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
+  static readonly PROVIDER_ID = ProviderId.TWITTER;
 
   constructor() {
-    super(externs.ProviderId.TWITTER);
+    super(ProviderId.TWITTER);
   }
 
   /**
@@ -94,8 +99,8 @@ export class TwitterAuthProvider extends OAuthProvider {
    * @param token - Twitter access token.
    * @param secret - Twitter secret.
    */
-  static credential(token: string, secret: string): externs.OAuthCredential {
-    return OAuthCredential._fromParams({
+  static credential(token: string, secret: string): OAuthCredential {
+    return OAuthCredentialImpl._fromParams({
       providerId: TwitterAuthProvider.PROVIDER_ID,
       signInMethod: TwitterAuthProvider.TWITTER_SIGN_IN_METHOD,
       oauthToken: token,
@@ -109,10 +114,10 @@ export class TwitterAuthProvider extends OAuthProvider {
    * @param userCredential - The user credential.
    */
   static credentialFromResult(
-    userCredential: externs.UserCredential
-  ): externs.OAuthCredential | null {
+    userCredential: UserCredential
+  ): OAuthCredential | null {
     return TwitterAuthProvider.credentialFromTaggedObject(
-      userCredential as UserCredential
+      userCredential as UserCredentialInternal
     );
   }
 
@@ -122,9 +127,7 @@ export class TwitterAuthProvider extends OAuthProvider {
    *
    * @param userCredential - The user credential.
    */
-  static credentialFromError(
-    error: FirebaseError
-  ): externs.OAuthCredential | null {
+  static credentialFromError(error: FirebaseError): OAuthCredential | null {
     return TwitterAuthProvider.credentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );
@@ -132,7 +135,7 @@ export class TwitterAuthProvider extends OAuthProvider {
 
   private static credentialFromTaggedObject({
     _tokenResponse: tokenResponse
-  }: TaggedWithTokenResponse): externs.OAuthCredential | null {
+  }: TaggedWithTokenResponse): OAuthCredential | null {
     if (!tokenResponse) {
       return null;
     }

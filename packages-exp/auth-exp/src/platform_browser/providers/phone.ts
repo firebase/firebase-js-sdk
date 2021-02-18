@@ -15,13 +15,22 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  Auth,
+  PhoneAuthProvider as PhoneAuthProviderType,
+  PhoneInfoOptions,
+  ProviderId,
+  SignInMethod,
+  ApplicationVerifier,
+  UserCredential,
+  AuthCredential
+} from '../../model/public_types';
 
 import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
-import { ApplicationVerifier } from '../../model/application_verifier';
-import { Auth } from '../../model/auth';
-import { UserCredential } from '../../model/user';
-import { PhoneAuthCredential } from '../../core/credentials/phone';
+import { ApplicationVerifierInternal as ApplicationVerifierInternal } from '../../model/application_verifier';
+import { AuthInternal as AuthInternal } from '../../model/auth';
+import { UserCredentialInternal as UserCredentialInternal } from '../../model/user';
+import { PhoneAuthCredentialImpl } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
 import { _assert, _fail } from '../../core/util/assert';
@@ -31,29 +40,29 @@ import { _castAuth } from '../../core/auth/auth_impl';
  * {@inheritdoc @firebase/auth-types#PhoneAuthProvider}
  * @public
  */
-export class PhoneAuthProvider implements externs.PhoneAuthProvider {
+export class PhoneAuthProvider implements PhoneAuthProviderType {
   /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.PROVIDER_ID} */
-  static readonly PROVIDER_ID = externs.ProviderId.PHONE;
+  static readonly PROVIDER_ID = ProviderId.PHONE;
   /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.PHONE_SIGN_IN_METHOD} */
-  static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
+  static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
 
   /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.providerId} */
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
-  private readonly auth: Auth;
+  private readonly auth: AuthInternal;
 
-  constructor(auth: externs.Auth) {
+  constructor(auth: Auth) {
     this.auth = _castAuth(auth);
   }
 
   /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.verifyPhoneNumber} */
   verifyPhoneNumber(
-    phoneOptions: externs.PhoneInfoOptions | string,
-    applicationVerifier: externs.ApplicationVerifier
+    phoneOptions: PhoneInfoOptions | string,
+    applicationVerifier: ApplicationVerifier
   ): Promise<string> {
     return _verifyPhoneNumber(
       this.auth,
       phoneOptions,
-      applicationVerifier as ApplicationVerifier
+      applicationVerifier as ApplicationVerifierInternal
     );
   }
 
@@ -61,17 +70,17 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static credential(
     verificationId: string,
     verificationCode: string
-  ): PhoneAuthCredential {
-    return PhoneAuthCredential._fromVerification(
+  ): PhoneAuthCredentialImpl {
+    return PhoneAuthCredentialImpl._fromVerification(
       verificationId,
       verificationCode
     );
   }
 
   static credentialFromResult(
-    userCredential: externs.UserCredential
-  ): externs.AuthCredential | null {
-    const credential = userCredential as UserCredential;
+    userCredential: UserCredential
+  ): AuthCredential | null {
+    const credential = userCredential as UserCredentialInternal;
     _assert(
       credential._tokenResponse,
       credential.user.auth,
@@ -82,7 +91,7 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
       temporaryProof
     } = credential._tokenResponse as SignInWithPhoneNumberResponse;
     if (phoneNumber && temporaryProof) {
-      return PhoneAuthCredential._fromTokenResponse(
+      return PhoneAuthCredentialImpl._fromTokenResponse(
         phoneNumber,
         temporaryProof
       );

@@ -29,7 +29,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { UserCredentialImpl } from './user_credential_impl';
 
 use(chaiAsPromised);
@@ -96,7 +96,7 @@ describe('core/user/user_credential_impl', () => {
   });
 
   describe('forOperation', () => {
-    let user: User;
+    let user: UserInternal;
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', 'email', true);

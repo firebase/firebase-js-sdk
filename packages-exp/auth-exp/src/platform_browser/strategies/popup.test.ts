@@ -33,7 +33,7 @@ import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
 import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../../core/errors';
 import { OAuthProvider } from '../../core/providers/oauth';
@@ -271,7 +271,7 @@ describe('platform_browser/strategies/popup', () => {
   });
 
   context('linkWithPopup', () => {
-    let user: User;
+    let user: UserInternal;
     beforeEach(() => {
       user = testUser(auth, 'uid');
     });
@@ -452,7 +452,7 @@ describe('platform_browser/strategies/popup', () => {
   });
 
   context('reauthenticateWithPopup', () => {
-    let user: User;
+    let user: UserInternal;
     beforeEach(() => {
       user = testUser(auth, 'uid');
     });

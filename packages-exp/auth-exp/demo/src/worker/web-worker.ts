@@ -23,9 +23,10 @@ import {
   signInAnonymously,
   signInWithCredential,
   signInWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  OAuthCredential,
+  User
 } from '@firebase/auth-exp';
-import { OAuthCredential, User } from '@firebase/auth-types-exp';
 
 import { config } from '../config';
 

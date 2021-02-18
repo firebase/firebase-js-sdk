@@ -26,13 +26,13 @@ import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { _assertLinkedStatus, unlink } from './link_unlink';
 
 use(chaiAsPromised);
 
 describe('core/user/link_unlink', () => {
-  let user: User;
+  let user: UserInternal;
   let auth: TestAuth;
   let getAccountInfoEndpoint: fetch.Route;
 

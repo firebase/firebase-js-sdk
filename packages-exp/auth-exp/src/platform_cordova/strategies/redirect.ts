@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  Auth,
+  AuthProvider,
+  PopupRedirectResolver
+} from '../../model/public_types';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
 import { OAuthProvider } from '../../core/providers/oauth';
@@ -27,9 +31,9 @@ import { AuthEventType } from '../../model/popup_redirect';
 //       It's likely we can just reuse that code
 
 export async function signInWithRedirect(
-  auth: externs.Auth,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+  auth: Auth,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<void> {
   const authInternal = _castAuth(auth);
   _assert(

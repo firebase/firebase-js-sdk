@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  Auth,
+  AuthProvider,
+  PopupRedirectResolver,
+  User,
+  UserCredential
+} from '../../model/public_types';
 
 import { OAuthProvider } from '../../core';
 import { _castAuth } from '../../core/auth/auth_impl';
@@ -24,7 +30,7 @@ import { _assertLinkedStatus } from '../../core/user/link_unlink';
 import { _assert } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { _withDefaultResolver } from '../../core/util/resolver';
 import { RedirectAction } from '../../core/strategies/redirect';
 
@@ -68,9 +74,9 @@ import { RedirectAction } from '../../core/strategies/redirect';
  * @public
  */
 export async function signInWithRedirect(
-  auth: externs.Auth,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+  auth: Auth,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<never> {
   const authInternal = _castAuth(auth);
   _assert(
@@ -115,11 +121,11 @@ export async function signInWithRedirect(
  * @public
  */
 export async function reauthenticateWithRedirect(
-  user: externs.User,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<never> {
-  const userInternal = user as User;
+  const userInternal = user as UserInternal;
   _assert(
     provider instanceof OAuthProvider,
     userInternal.auth,
@@ -164,11 +170,11 @@ export async function reauthenticateWithRedirect(
  * @public
  */
 export async function linkWithRedirect(
-  user: externs.User,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<never> {
-  const userInternal = user as User;
+  const userInternal = user as UserInternal;
   _assert(
     provider instanceof OAuthProvider,
     userInternal.auth,
@@ -228,18 +234,18 @@ export async function linkWithRedirect(
  * @public
  */
 export async function getRedirectResult(
-  auth: externs.Auth,
-  resolver?: externs.PopupRedirectResolver
-): Promise<externs.UserCredential | null> {
+  auth: Auth,
+  resolver?: PopupRedirectResolver
+): Promise<UserCredential | null> {
   await _castAuth(auth)._initializationPromise;
   return _getRedirectResult(auth, resolver, false);
 }
 
 export async function _getRedirectResult(
-  auth: externs.Auth,
-  resolverExtern?: externs.PopupRedirectResolver,
+  auth: Auth,
+  resolverExtern?: PopupRedirectResolver,
   bypassAuthState = false
-): Promise<externs.UserCredential | null> {
+): Promise<UserCredential | null> {
   const authInternal = _castAuth(auth);
   const resolver = _withDefaultResolver(authInternal, resolverExtern);
   const action = new RedirectAction(authInternal, resolver, bypassAuthState);
@@ -247,14 +253,14 @@ export async function _getRedirectResult(
 
   if (result && !bypassAuthState) {
     delete result.user._redirectEventId;
-    await authInternal._persistUserIfCurrent(result.user as User);
+    await authInternal._persistUserIfCurrent(result.user as UserInternal);
     await authInternal._setRedirectUser(null, resolverExtern);
   }
 
   return result;
 }
 
-async function prepareUserForRedirect(user: User): Promise<string> {
+async function prepareUserForRedirect(user: UserInternal): Promise<string> {
   const eventId = _generateEventId(`${user.uid}:::`);
   user._redirectEventId = eventId;
   await user.auth._setRedirectUser(user);

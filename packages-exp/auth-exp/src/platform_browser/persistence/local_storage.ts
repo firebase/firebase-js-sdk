@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import { Persistence } from '../../model/public_types';
 
 import { getUA } from '@firebase/util';
 import {
@@ -26,7 +26,7 @@ import {
   _isIE10
 } from '../../core/util/browser';
 import {
-  Persistence,
+  PersistenceInternal as InternalPersistence,
   PersistenceType,
   StorageEventListener
 } from '../../core/persistence';
@@ -45,7 +45,7 @@ const IE10_LOCAL_STORAGE_SYNC_DELAY = 10;
 
 class BrowserLocalPersistence
   extends BrowserPersistenceClass
-  implements Persistence {
+  implements InternalPersistence {
   static type: 'LOCAL' = 'LOCAL';
 
   constructor() {
@@ -247,4 +247,4 @@ class BrowserLocalPersistence
  *
  * @public
  */
-export const browserLocalPersistence: externs.Persistence = BrowserLocalPersistence;
+export const browserLocalPersistence: Persistence = BrowserLocalPersistence;

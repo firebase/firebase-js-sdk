@@ -16,7 +16,7 @@
  */
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
 
@@ -38,15 +38,18 @@ export class AuthCredential {
   }
 
   /** @internal */
-  _getIdTokenResponse(_auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+  _getIdTokenResponse(_auth: AuthInternal): Promise<PhoneOrOauthTokenResponse> {
     return debugFail('not implemented');
   }
   /** @internal */
-  _linkToIdToken(_auth: Auth, _idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(
+    _auth: AuthInternal,
+    _idToken: string
+  ): Promise<IdTokenResponse> {
     return debugFail('not implemented');
   }
   /** @internal */
-  _getReauthenticationResolver(_auth: Auth): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(_auth: AuthInternal): Promise<IdTokenResponse> {
     return debugFail('not implemented');
   }
 }

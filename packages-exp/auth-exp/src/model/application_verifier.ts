@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import * as externs from './public_types';
+import { ApplicationVerifier } from './public_types';
 
-export interface ApplicationVerifier extends externs.ApplicationVerifier {
+export interface ApplicationVerifierInternal extends ApplicationVerifier {
   /**
    * @internal
    */

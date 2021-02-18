@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import * as externs from '../model/public_types';
+import { AuthCredential, AuthErrorMap, User } from '../model/public_types';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
@@ -354,7 +354,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
   };
 }
 
-export interface ErrorMapRetriever extends externs.AuthErrorMap {
+export interface ErrorMapRetriever extends AuthErrorMap {
   (): ErrorMap<AuthErrorCode>;
 }
 
@@ -377,7 +377,7 @@ function _prodErrorMap(): ErrorMap<AuthErrorCode> {
  *
  * @public
  */
-export const debugErrorMap: externs.AuthErrorMap = _debugErrorMap;
+export const debugErrorMap: AuthErrorMap = _debugErrorMap;
 
 /**
  * A minimal error map with all verbose error messages stripped.
@@ -386,15 +386,15 @@ export const debugErrorMap: externs.AuthErrorMap = _debugErrorMap;
  *
  * @public
  */
-export const prodErrorMap: externs.AuthErrorMap = _prodErrorMap;
+export const prodErrorMap: AuthErrorMap = _prodErrorMap;
 
 export interface NamedErrorParams {
   appName: AppName;
-  credential?: externs.AuthCredential;
+  credential?: AuthCredential;
   email?: string;
   phoneNumber?: string;
   tenantId?: string;
-  user?: externs.User;
+  user?: User;
   serverResponse?: object;
 }
 

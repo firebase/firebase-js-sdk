@@ -24,18 +24,21 @@ import { testAuth, TestAuth } from '../../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../../api';
 import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
-import { PhoneAuthCredential } from '../../../core/credentials/phone';
-import { MultiFactorSession } from '../../../mfa/mfa_session';
+import { PhoneAuthCredentialImpl } from '../../../core/credentials/phone';
+import { MultiFactorSessionImpl } from '../../../mfa/mfa_session';
 import { PhoneAuthProvider } from '../../providers/phone';
-import { PhoneMultiFactorAssertion, PhoneMultiFactorGenerator } from './phone';
+import {
+  PhoneMultiFactorAssertionImpl,
+  PhoneMultiFactorGeneratorImpl
+} from './phone';
 
 use(chaiAsPromised);
 
 describe('platform_browser/mfa/phone', () => {
   let auth: TestAuth;
-  let credential: PhoneAuthCredential;
-  let assertion: PhoneMultiFactorAssertion;
-  let session: MultiFactorSession;
+  let credential: PhoneAuthCredentialImpl;
+  let assertion: PhoneMultiFactorAssertionImpl;
+  let session: MultiFactorSessionImpl;
 
   const serverResponse: FinalizeMfaResponse = {
     idToken: 'final-id-token',
@@ -49,13 +52,13 @@ describe('platform_browser/mfa/phone', () => {
       'verification-id',
       'verification-code'
     );
-    assertion = PhoneMultiFactorAssertion._fromCredential(credential);
+    assertion = PhoneMultiFactorAssertionImpl._fromCredential(credential);
   });
   afterEach(mockFetch.tearDown);
 
   describe('enroll', () => {
     beforeEach(() => {
-      session = MultiFactorSession._fromIdtoken('enrollment-id-token');
+      session = MultiFactorSessionImpl._fromIdtoken('enrollment-id-token');
     });
 
     it('should finalize the MFA enrollment', async () => {
@@ -102,7 +105,7 @@ describe('platform_browser/mfa/phone', () => {
 
   describe('sign_in', () => {
     beforeEach(() => {
-      session = MultiFactorSession._fromMfaPendingCredential(
+      session = MultiFactorSessionImpl._fromMfaPendingCredential(
         'mfa-pending-credential'
       );
     });
@@ -128,7 +131,7 @@ describe('platform_browser/mfa/phone', () => {
 
 describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
   describe('.assertion', () => {
-    let credential: PhoneAuthCredential;
+    let credential: PhoneAuthCredentialImpl;
 
     beforeEach(async () => {
       credential = PhoneAuthProvider.credential(
@@ -138,7 +141,7 @@ describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
     });
 
     it('can be used to create an assertion', () => {
-      const assertion = PhoneMultiFactorGenerator.assertion(credential);
+      const assertion = PhoneMultiFactorGeneratorImpl.assertion(credential);
       expect(assertion.factorId).to.eq(ProviderId.PHONE);
     });
   });

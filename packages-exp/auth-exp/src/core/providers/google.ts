@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  OAuthCredential,
+  ProviderId,
+  SignInMethod,
+  UserCredential
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
-import { UserCredential } from '../../model/user';
-import { OAuthCredential } from '../credentials/oauth';
+import { UserCredentialInternal } from '../../model/user';
+import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
@@ -67,12 +72,12 @@ import { OAuthProvider } from './oauth';
  */
 export class GoogleAuthProvider extends OAuthProvider {
   /** Always set to {@link @firebase/auth-types#SignInMethod.GOOGLE}. */
-  static readonly GOOGLE_SIGN_IN_METHOD = externs.SignInMethod.GOOGLE;
+  static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
   /** Always set to {@link @firebase/auth-types#ProviderId.GOOGLE}. */
-  static readonly PROVIDER_ID = externs.ProviderId.GOOGLE;
+  static readonly PROVIDER_ID = ProviderId.GOOGLE;
 
   constructor() {
-    super(externs.ProviderId.GOOGLE);
+    super(ProviderId.GOOGLE);
     this.addScope('profile');
   }
 
@@ -92,8 +97,8 @@ export class GoogleAuthProvider extends OAuthProvider {
   static credential(
     idToken?: string | null,
     accessToken?: string | null
-  ): externs.OAuthCredential {
-    return OAuthCredential._fromParams({
+  ): OAuthCredential {
+    return OAuthCredentialImpl._fromParams({
       providerId: GoogleAuthProvider.PROVIDER_ID,
       signInMethod: GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD,
       idToken,
@@ -107,10 +112,10 @@ export class GoogleAuthProvider extends OAuthProvider {
    * @param userCredential - The user credential.
    */
   static credentialFromResult(
-    userCredential: externs.UserCredential
-  ): externs.OAuthCredential | null {
+    userCredential: UserCredential
+  ): OAuthCredential | null {
     return GoogleAuthProvider.credentialFromTaggedObject(
-      userCredential as UserCredential
+      userCredential as UserCredentialInternal
     );
   }
   /**
@@ -119,9 +124,7 @@ export class GoogleAuthProvider extends OAuthProvider {
    *
    * @param userCredential - The user credential.
    */
-  static credentialFromError(
-    error: FirebaseError
-  ): externs.OAuthCredential | null {
+  static credentialFromError(error: FirebaseError): OAuthCredential | null {
     return GoogleAuthProvider.credentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );
@@ -129,7 +132,7 @@ export class GoogleAuthProvider extends OAuthProvider {
 
   private static credentialFromTaggedObject({
     _tokenResponse: tokenResponse
-  }: TaggedWithTokenResponse): externs.OAuthCredential | null {
+  }: TaggedWithTokenResponse): OAuthCredential | null {
     if (!tokenResponse) {
       return null;
     }

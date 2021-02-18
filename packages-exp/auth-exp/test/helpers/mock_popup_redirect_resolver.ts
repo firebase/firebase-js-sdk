@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-import { Persistence, PopupRedirectResolver } from '@firebase/auth-types-exp';
+import {
+  Persistence,
+  PopupRedirectResolver
+} from '../../src/model/public_types';
 
 import { AuthEventManager } from '../../src/core/auth/auth_event_manager';
 import { AuthPopup } from '../../src/platform_browser/util/popup';
 import { EventManager } from '../../src/model/popup_redirect';
-import { Auth } from '../../src/model/auth';
+import { AuthInternal } from '../../src/model/auth';
 
 /**
  * Generates a PopupRedirectResolver that can be used by the oauth methods.
@@ -33,7 +36,9 @@ export function makeMockPopupRedirectResolver(
 ): PopupRedirectResolver {
   return class implements PopupRedirectResolver {
     async _initialize(): Promise<EventManager> {
-      return eventManager || new AuthEventManager(({} as unknown) as Auth);
+      return (
+        eventManager || new AuthEventManager(({} as unknown) as AuthInternal)
+      );
     }
 
     async _openPopup(): Promise<AuthPopup> {

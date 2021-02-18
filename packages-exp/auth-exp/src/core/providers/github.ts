@@ -15,12 +15,17 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  OAuthCredential,
+  ProviderId,
+  SignInMethod,
+  UserCredential
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { TaggedWithTokenResponse } from '../../model/id_token';
-import { UserCredential } from '../../model/user';
-import { OAuthCredential } from '../credentials/oauth';
+import { UserCredentialInternal } from '../../model/user';
+import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
@@ -67,12 +72,12 @@ import { OAuthProvider } from './oauth';
  */
 export class GithubAuthProvider extends OAuthProvider {
   /** Always set to {@link @firebase/auth-types#SignInMethod.GITHUB}. */
-  static readonly GITHUB_SIGN_IN_METHOD = externs.SignInMethod.GITHUB;
+  static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
   /** Always set to {@link @firebase/auth-types#ProviderId.GITHUB}. */
-  static readonly PROVIDER_ID = externs.ProviderId.GITHUB;
+  static readonly PROVIDER_ID = ProviderId.GITHUB;
 
   constructor() {
-    super(externs.ProviderId.GITHUB);
+    super(ProviderId.GITHUB);
   }
 
   /**
@@ -80,8 +85,8 @@ export class GithubAuthProvider extends OAuthProvider {
    *
    * @param accessToken - Github access token.
    */
-  static credential(accessToken: string): externs.OAuthCredential {
-    return OAuthCredential._fromParams({
+  static credential(accessToken: string): OAuthCredential {
+    return OAuthCredentialImpl._fromParams({
       providerId: GithubAuthProvider.PROVIDER_ID,
       signInMethod: GithubAuthProvider.GITHUB_SIGN_IN_METHOD,
       accessToken
@@ -94,10 +99,10 @@ export class GithubAuthProvider extends OAuthProvider {
    * @param userCredential - The user credential.
    */
   static credentialFromResult(
-    userCredential: externs.UserCredential
-  ): externs.OAuthCredential | null {
+    userCredential: UserCredential
+  ): OAuthCredential | null {
     return GithubAuthProvider.credentialFromTaggedObject(
-      userCredential as UserCredential
+      userCredential as UserCredentialInternal
     );
   }
 
@@ -107,9 +112,7 @@ export class GithubAuthProvider extends OAuthProvider {
    *
    * @param userCredential - The user credential.
    */
-  static credentialFromError(
-    error: FirebaseError
-  ): externs.OAuthCredential | null {
+  static credentialFromError(error: FirebaseError): OAuthCredential | null {
     return GithubAuthProvider.credentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );
@@ -117,7 +120,7 @@ export class GithubAuthProvider extends OAuthProvider {
 
   private static credentialFromTaggedObject({
     _tokenResponse: tokenResponse
-  }: TaggedWithTokenResponse): externs.OAuthCredential | null {
+  }: TaggedWithTokenResponse): OAuthCredential | null {
     if (!tokenResponse || !('oauthAccessToken' in tokenResponse)) {
       return null;
     }

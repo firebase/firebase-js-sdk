@@ -23,7 +23,7 @@ import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
 import { Auth } from '../model/public_types';
-import { Auth as AuthInternal } from '../model/auth';
+import { AuthInternal as AuthInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';

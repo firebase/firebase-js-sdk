@@ -28,7 +28,7 @@ import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import {
   fetchSignInMethodsForEmail,
   sendEmailVerification,
@@ -103,7 +103,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
 describe('core/strategies/sendEmailVerification', () => {
   const email = 'foo@bar.com';
   const idToken = 'access-token';
-  let user: User;
+  let user: UserInternal;
   let auth: TestAuth;
   let reloadStub: SinonStub;
 
@@ -209,7 +209,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
   const email = 'foo@bar.com';
   const newEmail = 'newemail@bar.com';
   const idToken = 'access-token';
-  let user: User;
+  let user: UserInternal;
   let auth: TestAuth;
   let reloadStub: SinonStub;
 

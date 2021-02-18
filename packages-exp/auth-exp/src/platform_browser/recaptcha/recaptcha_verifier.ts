@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  Auth,
+  RecaptchaVerifier as RecaptchaVerifierType
+} from '../../model/public_types';
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
 import { _assert } from '../../core/util/assert';
 import { _isHttpOrHttps } from '../../core/util/location';
-import { ApplicationVerifier } from '../../model/application_verifier';
-import { Auth } from '../../model/auth';
+import { ApplicationVerifierInternal } from '../../model/application_verifier';
+import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import { _isWorker } from '../util/worker';
 import { Parameters, Recaptcha } from './recaptcha';
@@ -46,7 +49,7 @@ type TokenCallback = (token: string) => void;
  * @public
  */
 export class RecaptchaVerifier
-  implements externs.RecaptchaVerifier, ApplicationVerifier {
+  implements RecaptchaVerifierType, ApplicationVerifierInternal {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
   private destroyed = false;
   private widgetId: number | null = null;
@@ -54,7 +57,7 @@ export class RecaptchaVerifier
   private readonly isInvisible: boolean;
   private readonly tokenChangeListeners = new Set<TokenCallback>();
   private renderPromise: Promise<number> | null = null;
-  private readonly auth: Auth;
+  private readonly auth: AuthInternal;
 
   /** @internal */
   readonly _recaptchaLoader: ReCaptchaLoader;
@@ -65,7 +68,7 @@ export class RecaptchaVerifier
     private readonly parameters: Parameters = {
       ...DEFAULT_PARAMS
     },
-    authExtern: externs.Auth
+    authExtern: Auth
   ) {
     this.auth = _castAuth(authExtern);
     this.isInvisible = this.parameters.size === 'invisible';

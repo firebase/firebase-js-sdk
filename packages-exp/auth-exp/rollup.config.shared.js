@@ -57,69 +57,69 @@ export function getConfig({ isReleaseBuild }) {
       output: [{ dir: 'dist/esm5', format: 'esm', sourcemap: true }],
       plugins: es5BuildPlugins,
       external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-    },
+    }
     /**
      * Web Worker Build (compiled without DOM)
      */
-    {
-      input: 'index.webworker.ts',
-      output: [{ file: pkg.webworker, format: 'es', sourcemap: true }],
-      plugins: [
-        ...commonPlugins,
-        getTypesScriptPlugin({
-          isReleaseBuild,
-          compilerOptions: {
-            lib: [
-              // Remove dom after we figure out why navigator stuff doesn't exist
-              'dom',
-              'es2015',
-              'webworker'
-            ]
-          }
-        })
-      ],
-      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-    },
-    /**
-     * Node.js Build
-     */
-    {
-      input: {
-        index: 'index.node.ts',
-        internal: 'internal/index.ts'
-      },
-      output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
-      plugins: es5BuildPlugins,
-      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-    },
-    /**
-     * Cordova Builds
-     */
-    {
-      input: {
-        index: 'index.cordova.ts',
-        internal: 'internal/index.ts'
-      },
-      output: [{ dir: 'dist/cordova', format: 'es', sourcemap: true }],
-      plugins: es5BuildPlugins,
-      external: id =>
-        [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
-    },
-    /**
-     * React Native Builds
-     */
-    {
-      input: {
-        index: 'index.rn.ts',
-        internal: 'internal/index.ts'
-      },
-      output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
-      plugins: es5BuildPlugins,
-      external: id =>
-        [...deps, 'react-native'].some(
-          dep => id === dep || id.startsWith(`${dep}/`)
-        )
-    }
+    // {
+    //   input: 'index.webworker.ts',
+    //   output: [{ file: pkg.webworker, format: 'es', sourcemap: true }],
+    //   plugins: [
+    //     ...commonPlugins,
+    //     getTypesScriptPlugin({
+    //       isReleaseBuild,
+    //       compilerOptions: {
+    //         lib: [
+    //           // Remove dom after we figure out why navigator stuff doesn't exist
+    //           'dom',
+    //           'es2015',
+    //           'webworker'
+    //         ]
+    //       }
+    //     })
+    //   ],
+    //   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    // },
+    // /**
+    //  * Node.js Build
+    //  */
+    // {
+    //   input: {
+    //     index: 'index.node.ts',
+    //     internal: 'internal/index.ts'
+    //   },
+    //   output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
+    //   plugins: es5BuildPlugins,
+    //   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    // },
+    // /**
+    //  * Cordova Builds
+    //  */
+    // {
+    //   input: {
+    //     index: 'index.cordova.ts',
+    //     internal: 'internal/index.ts'
+    //   },
+    //   output: [{ dir: 'dist/cordova', format: 'es', sourcemap: true }],
+    //   plugins: es5BuildPlugins,
+    //   external: id =>
+    //     [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
+    // },
+    // /**
+    //  * React Native Builds
+    //  */
+    // {
+    //   input: {
+    //     index: 'index.rn.ts',
+    //     internal: 'internal/index.ts'
+    //   },
+    //   output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
+    //   plugins: es5BuildPlugins,
+    //   external: id =>
+    //     [...deps, 'react-native'].some(
+    //       dep => id === dep || id.startsWith(`${dep}/`)
+    //     )
+    // }
   ];
 
   /**

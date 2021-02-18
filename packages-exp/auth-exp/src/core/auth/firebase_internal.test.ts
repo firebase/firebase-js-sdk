@@ -21,14 +21,14 @@ import * as sinon from 'sinon';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { AuthInternal } from './firebase_internal';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { AuthInterop } from './firebase_internal';
 
 use(chaiAsPromised);
 
 describe('core/auth/firebase_internal', () => {
-  let auth: Auth;
+  let auth: AuthInternal;
   let authInternal: AuthInternal;
   beforeEach(async () => {
     auth = await testAuth();
@@ -90,7 +90,7 @@ describe('core/auth/firebase_internal', () => {
 
   context('token listeners', () => {
     let isProactiveRefresh = false;
-    let user: User;
+    let user: UserInternal;
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', undefined, true);

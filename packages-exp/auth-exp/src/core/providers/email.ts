@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  EmailAuthProvider as EmailAuthProviderPublic,
+  ProviderId,
+  SignInMethod
+} from '../../model/public_types';
 
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthCredential } from '../credentials/email';
@@ -27,14 +31,13 @@ import { _assert } from '../util/assert';
  *
  * @public
  */
-export class EmailAuthProvider implements externs.EmailAuthProvider {
+export class EmailAuthProvider implements EmailAuthProviderPublic {
   /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.PROVIDER_ID} */
-  static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
+  static readonly PROVIDER_ID = ProviderId.PASSWORD;
   /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD} */
-  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD =
-    externs.SignInMethod.EMAIL_PASSWORD;
+  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
   /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD} */
-  static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
+  static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
   /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.providerId} */
   readonly providerId = EmailAuthProvider.PROVIDER_ID;
 

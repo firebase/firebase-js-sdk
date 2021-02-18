@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import { OAuthCredential as OAuthCredentialPublic } from '../../model/public_types';
 import { querystring } from '@firebase/util';
 
 import {
   signInWithIdp,
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
@@ -56,7 +56,7 @@ export interface OAuthCredentialParams {
  */
 export class OAuthCredential
   extends AuthCredential
-  implements externs.OAuthCredential {
+  implements OAuthCredentialPublic {
   /** {@inheritdoc @firebase/auth-types#OAuthCredential.idToken} @readonly */
   idToken?: string;
   /** {@inheritdoc @firebase/auth-types#OAuthCredential.accessToken} @readonly */
@@ -127,20 +127,23 @@ export class OAuthCredential
   }
 
   /** @internal */
-  _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
+  _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     return signInWithIdp(auth, request);
   }
 
   /** @internal */
-  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(
+    auth: AuthInternal,
+    idToken: string
+  ): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     request.idToken = idToken;
     return signInWithIdp(auth, request);
   }
 
   /** @internal */
-  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     request.autoCreate = false;
     return signInWithIdp(auth, request);

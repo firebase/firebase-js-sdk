@@ -17,7 +17,7 @@
 
 import { AuthErrorCode } from '../../core/errors';
 import { _assert } from '../../core/util/assert';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { Parameters, Recaptcha } from './recaptcha';
 
 export const _SOLVE_TIME_MS = 500;
@@ -34,7 +34,7 @@ export class MockReCaptcha implements Recaptcha {
   private counter = _WIDGET_ID_START;
   _widgets = new Map<number, Widget>();
 
-  constructor(private readonly auth: Auth) {}
+  constructor(private readonly auth: AuthInternal) {}
 
   render(container: string | HTMLElement, parameters?: Parameters): number {
     const id = this.counter;

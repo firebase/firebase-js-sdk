@@ -14,12 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as externs from '../../../model/public_types';
+import {
+  FactorId,
+  PhoneAuthCredential,
+  PhoneMultiFactorAssertion,
+  PhoneMultiFactorGenerator
+} from '../../../model/public_types';
 
-import { MultiFactorAssertion } from '../../../mfa/mfa_assertion';
-import { Auth } from '../../../model/auth';
+import { MultiFactorAssertionImpl } from '../../../mfa/mfa_assertion';
+import { AuthInternal } from '../../../model/auth';
 import { finalizeEnrollPhoneMfa } from '../../../api/account_management/mfa';
-import { PhoneAuthCredential } from '../../../core/credentials/phone';
+import { PhoneAuthCredentialImpl } from '../../../core/credentials/phone';
 import {
   finalizeSignInPhoneMfa,
   FinalizeMfaResponse
@@ -30,23 +35,23 @@ import {
  *
  * @public
  */
-export class PhoneMultiFactorAssertion
-  extends MultiFactorAssertion
-  implements externs.PhoneMultiFactorAssertion {
-  private constructor(private readonly credential: PhoneAuthCredential) {
-    super(externs.FactorId.PHONE);
+export class PhoneMultiFactorAssertionImpl
+  extends MultiFactorAssertionImpl
+  implements PhoneMultiFactorAssertion {
+  private constructor(private readonly credential: PhoneAuthCredentialImpl) {
+    super(FactorId.PHONE);
   }
 
   /** @internal */
   static _fromCredential(
-    credential: PhoneAuthCredential
-  ): PhoneMultiFactorAssertion {
-    return new PhoneMultiFactorAssertion(credential);
+    credential: PhoneAuthCredentialImpl
+  ): PhoneMultiFactorAssertionImpl {
+    return new PhoneMultiFactorAssertionImpl(credential);
   }
 
   /** @internal */
   _finalizeEnroll(
-    auth: Auth,
+    auth: AuthInternal,
     idToken: string,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
@@ -59,7 +64,7 @@ export class PhoneMultiFactorAssertion
 
   /** @internal */
   _finalizeSignIn(
-    auth: Auth,
+    auth: AuthInternal,
     mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
     return finalizeSignInPhoneMfa(auth, {
@@ -73,16 +78,14 @@ export class PhoneMultiFactorAssertion
  * {@inheritdoc @firebase/auth-types#PhoneMultiFactorGenerator}
  * @public
  */
-export class PhoneMultiFactorGenerator
-  implements externs.PhoneMultiFactorGenerator {
+export class PhoneMultiFactorGeneratorImpl
+  implements PhoneMultiFactorGenerator {
   private constructor() {}
 
   /** {@inheritdoc @firebase/auth-types#PhoneMultiFactorGenerator.assertion} */
-  static assertion(
-    credential: externs.PhoneAuthCredential
-  ): externs.PhoneMultiFactorAssertion {
-    return PhoneMultiFactorAssertion._fromCredential(
-      credential as PhoneAuthCredential
+  static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion {
+    return PhoneMultiFactorAssertionImpl._fromCredential(
+      credential as PhoneAuthCredentialImpl
     );
   }
 }

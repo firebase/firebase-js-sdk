@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  PhoneAuthCredential,
+  ProviderId,
+  SignInMethod
+} from '../../model/public_types';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import {
@@ -24,7 +28,7 @@ import {
   SignInWithPhoneNumberRequest,
   verifyPhoneNumberForExisting
 } from '../../api/authentication/sms';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthCredential } from './auth_credential';
 
@@ -40,36 +44,39 @@ export interface PhoneAuthCredentialParameters {
  *
  * @public
  */
-export class PhoneAuthCredential
+export class PhoneAuthCredentialImpl
   extends AuthCredential
-  implements externs.PhoneAuthCredential {
+  implements PhoneAuthCredential {
   private constructor(private readonly params: PhoneAuthCredentialParameters) {
-    super(externs.ProviderId.PHONE, externs.SignInMethod.PHONE);
+    super(ProviderId.PHONE, SignInMethod.PHONE);
   }
 
   /** @internal */
   static _fromVerification(
     verificationId: string,
     verificationCode: string
-  ): PhoneAuthCredential {
-    return new PhoneAuthCredential({ verificationId, verificationCode });
+  ): PhoneAuthCredentialImpl {
+    return new PhoneAuthCredentialImpl({ verificationId, verificationCode });
   }
 
   /** @internal */
   static _fromTokenResponse(
     phoneNumber: string,
     temporaryProof: string
-  ): PhoneAuthCredential {
-    return new PhoneAuthCredential({ phoneNumber, temporaryProof });
+  ): PhoneAuthCredentialImpl {
+    return new PhoneAuthCredentialImpl({ phoneNumber, temporaryProof });
   }
 
   /** @internal */
-  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+  _getIdTokenResponse(auth: AuthInternal): Promise<PhoneOrOauthTokenResponse> {
     return signInWithPhoneNumber(auth, this._makeVerificationRequest());
   }
 
   /** @internal */
-  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(
+    auth: AuthInternal,
+    idToken: string
+  ): Promise<IdTokenResponse> {
     return linkWithPhoneNumber(auth, {
       idToken,
       ...this._makeVerificationRequest()
@@ -77,7 +84,7 @@ export class PhoneAuthCredential
   }
 
   /** @internal */
-  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse> {
     return verifyPhoneNumberForExisting(auth, this._makeVerificationRequest());
   }
 
@@ -121,7 +128,7 @@ export class PhoneAuthCredential
   }
 
   /** {@inheritdoc @firebase/auth-types#fromJSON} */
-  static fromJSON(json: object | string): PhoneAuthCredential | null {
+  static fromJSON(json: object | string): PhoneAuthCredentialImpl | null {
     if (typeof json === 'string') {
       json = JSON.parse(json);
     }
@@ -141,7 +148,7 @@ export class PhoneAuthCredential
       return null;
     }
 
-    return new PhoneAuthCredential({
+    return new PhoneAuthCredentialImpl({
       verificationId,
       verificationCode,
       phoneNumber,

@@ -15,21 +15,26 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
-import { OperationType, UserCredential } from '../../model/public_types';
+import {
+  OperationType,
+  UserCredential,
+  Auth,
+  AuthCredential,
+  User
+} from '../../model/public_types';
 
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { AuthCredential } from '../credentials';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { AuthCredential as AuthCredentialImpl } from '../credentials';
 import { _assertLinkedStatus, _link } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 
 export async function _signInWithCredential(
-  auth: Auth,
-  credential: AuthCredential,
+  auth: AuthInternal,
+  credential: AuthCredentialImpl,
   bypassAuthState = false
 ): Promise<UserCredential> {
   const operationType = OperationType.SIGN_IN;
@@ -62,10 +67,13 @@ export async function _signInWithCredential(
  * @public
  */
 export async function signInWithCredential(
-  auth: externs.Auth,
-  credential: externs.AuthCredential
-): Promise<externs.UserCredential> {
-  return _signInWithCredential(_castAuth(auth), credential as AuthCredential);
+  auth: Auth,
+  credential: AuthCredential
+): Promise<UserCredential> {
+  return _signInWithCredential(
+    _castAuth(auth),
+    credential as AuthCredentialImpl
+  );
 }
 
 /**
@@ -80,14 +88,14 @@ export async function signInWithCredential(
  * @public
  */
 export async function linkWithCredential(
-  user: externs.User,
-  credential: externs.AuthCredential
+  user: User,
+  credential: AuthCredential
 ): Promise<UserCredential> {
-  const userInternal = user as User;
+  const userInternal = user as UserInternal;
 
   await _assertLinkedStatus(false, userInternal, credential.providerId);
 
-  return _link(userInternal, credential as AuthCredential);
+  return _link(userInternal, credential as AuthCredentialImpl);
 }
 
 /**
@@ -104,8 +112,11 @@ export async function linkWithCredential(
  * @public
  */
 export async function reauthenticateWithCredential(
-  user: externs.User,
-  credential: externs.AuthCredential
-): Promise<externs.UserCredential> {
-  return _reauthenticate(user as User, credential as AuthCredential);
+  user: User,
+  credential: AuthCredential
+): Promise<UserCredential> {
+  return _reauthenticate(
+    user as UserInternal,
+    credential as AuthCredentialImpl
+  );
 }

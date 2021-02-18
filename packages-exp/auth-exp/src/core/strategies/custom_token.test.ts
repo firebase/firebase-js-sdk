@@ -26,7 +26,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { UserCredential } from '../../model/user';
+import { UserCredentialInternal } from '../../model/user';
 import { signInWithCustomToken } from './custom_token';
 
 use(chaiAsPromised);
@@ -75,7 +75,7 @@ describe('core/strategies/signInWithCustomToken', () => {
     } = (await signInWithCustomToken(
       auth,
       'look-at-me-im-a-jwt'
-    )) as UserCredential;
+    )) as UserCredentialInternal;
     expect(_tokenResponse).to.eql(idTokenResponse);
     expect(user.uid).to.eq('local-id');
     expect(user.displayName).to.eq('display-name');

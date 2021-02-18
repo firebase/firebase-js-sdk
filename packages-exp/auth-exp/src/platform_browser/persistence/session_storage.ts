@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import { Persistence } from '../../model/public_types';
 
 import {
-  Persistence,
+  PersistenceInternal as InternalPersistence,
   PersistenceType,
   StorageEventListener
 } from '../../core/persistence';
@@ -26,7 +26,7 @@ import { BrowserPersistenceClass } from './browser';
 
 class BrowserSessionPersistence
   extends BrowserPersistenceClass
-  implements Persistence {
+  implements InternalPersistence {
   static type: 'SESSION' = 'SESSION';
 
   constructor() {
@@ -50,4 +50,4 @@ class BrowserSessionPersistence
  *
  * @public
  */
-export const browserSessionPersistence: externs.Persistence = BrowserSessionPersistence;
+export const browserSessionPersistence: Persistence = BrowserSessionPersistence;

@@ -15,13 +15,17 @@
  * limitations under the License.
  */
 
-import * as externs from '../../model/public_types';
+import {
+  AuthProvider,
+  OAuthCredential,
+  UserCredential
+} from '../../model/public_types';
 
 import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
 
-import { OAuthCredential } from '../credentials/oauth';
-import { UserCredential } from '../../model/user';
+import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
+import { UserCredentialInternal } from '../../model/user';
 import { FirebaseError } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { SignInWithIdpResponse } from '../../../internal';
@@ -100,7 +104,7 @@ export interface OAuthCredentialOptions {
  * ```
  * @public
  */
-export class OAuthProvider implements externs.AuthProvider {
+export class OAuthProvider implements AuthProvider {
   /** @internal */
   defaultLanguageCode: string | null = null;
   /** @internal */
@@ -115,13 +119,13 @@ export class OAuthProvider implements externs.AuthProvider {
    */
   constructor(readonly providerId: string) {}
 
-  static credentialFromJSON(json: object | string): externs.OAuthCredential {
+  static credentialFromJSON(json: object | string): OAuthCredential {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     _assert(
       'providerId' in obj && 'signInMethod' in obj,
       AuthErrorCode.ARGUMENT_ERROR
     );
-    return OAuthCredential._fromParams(obj);
+    return OAuthCredentialImpl._fromParams(obj);
   }
 
   /**
@@ -145,10 +149,10 @@ export class OAuthProvider implements externs.AuthProvider {
    * @param params - Either the options object containing the ID token, access token and raw nonce
    * or the ID token string.
    */
-  credential(params: OAuthCredentialOptions): externs.OAuthCredential {
+  credential(params: OAuthCredentialOptions): OAuthCredential {
     _assert(params.idToken && params.accessToken, AuthErrorCode.ARGUMENT_ERROR);
     // For OAuthCredential, sign in method is same as providerId.
-    return OAuthCredential._fromParams({
+    return OAuthCredentialImpl._fromParams({
       providerId: this.providerId,
       signInMethod: this.providerId,
       ...params
@@ -174,9 +178,7 @@ export class OAuthProvider implements externs.AuthProvider {
    *
    * @param customOAuthParameters - The custom OAuth parameters to pass in the OAuth request.
    */
-  setCustomParameters(
-    customOAuthParameters: CustomParameters
-  ): externs.AuthProvider {
+  setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider {
     this.customParameters = customOAuthParameters;
     return this;
   }
@@ -193,7 +195,7 @@ export class OAuthProvider implements externs.AuthProvider {
    *
    * @param scope - Provider OAuth scope to add.
    */
-  addScope(scope: string): externs.AuthProvider {
+  addScope(scope: string): AuthProvider {
     // If not already added, add scope to list.
     if (!this.scopes.includes(scope)) {
       this.scopes.push(scope);
@@ -214,10 +216,10 @@ export class OAuthProvider implements externs.AuthProvider {
    * @param userCredential - The user credential.
    */
   static credentialFromResult(
-    userCredential: externs.UserCredential
-  ): externs.OAuthCredential | null {
+    userCredential: UserCredential
+  ): OAuthCredential | null {
     return OAuthProvider.oauthCredentialFromTaggedObject(
-      userCredential as UserCredential
+      userCredential as UserCredentialInternal
     );
   }
   /**
@@ -226,9 +228,7 @@ export class OAuthProvider implements externs.AuthProvider {
    *
    * @param userCredential - The user credential.
    */
-  static credentialFromError(
-    error: FirebaseError
-  ): externs.OAuthCredential | null {
+  static credentialFromError(error: FirebaseError): OAuthCredential | null {
     return OAuthProvider.oauthCredentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );
@@ -238,7 +238,7 @@ export class OAuthProvider implements externs.AuthProvider {
   // subclasses
   private static oauthCredentialFromTaggedObject({
     _tokenResponse: tokenResponse
-  }: TaggedWithTokenResponse): externs.OAuthCredential | null {
+  }: TaggedWithTokenResponse): OAuthCredential | null {
     if (!tokenResponse) {
       return null;
     }
