@@ -28,6 +28,7 @@ import { ServerActions } from './ServerActions';
 import { RepoInfo } from './RepoInfo';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { Query } from '../api/Query';
+import { queryParamsToRestQueryStringParameters } from './view/QueryParams';
 
 /**
  * An implementation of ServerActions that communicates with the server via REST requests.
@@ -94,9 +95,9 @@ export class ReadonlyRestClient extends ServerActions {
     const thisListen = {};
     this.listens_[listenId] = thisListen;
 
-    const queryStringParameters = query
-      .getQueryParams()
-      .toRestQueryStringParameters();
+    const queryStringParameters = queryParamsToRestQueryStringParameters(
+      query.getQueryParams()
+    );
 
     this.restRequest_(
       pathString + '.json',
@@ -136,9 +137,9 @@ export class ReadonlyRestClient extends ServerActions {
   }
 
   get(query: Query): Promise<string> {
-    const queryStringParameters = query
-      .getQueryParams()
-      .toRestQueryStringParameters();
+    const queryStringParameters = queryParamsToRestQueryStringParameters(
+      query.getQueryParams()
+    );
 
     const pathString = query.path.toString();
 
