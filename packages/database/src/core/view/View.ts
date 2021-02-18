@@ -34,7 +34,7 @@ import { Node } from '../snap/Node';
 import { Path, pathGetFront, pathIsEmpty } from '../util/Path';
 import { WriteTreeRef } from '../WriteTree';
 import { CancelEvent, Event } from './Event';
-import { getNodeFilter } from './QueryParams';
+import { queryParamsGetNodeFilter } from './QueryParams';
 
 /**
  * A view represents a specific location and query that has 1 or more event registrations.
@@ -55,7 +55,7 @@ export class View {
     const params = this.query_.getQueryParams();
 
     const indexFilter = new IndexedFilter(params.getIndex());
-    const filter = getNodeFilter(params);
+    const filter = queryParamsGetNodeFilter(params);
 
     this.processor_ = new ViewProcessor(filter);
 

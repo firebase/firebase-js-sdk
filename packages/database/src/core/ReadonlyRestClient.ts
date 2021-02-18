@@ -28,7 +28,7 @@ import { ServerActions } from './ServerActions';
 import { RepoInfo } from './RepoInfo';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { Query } from '../api/Query';
-import { toRestQueryStringParameters } from './view/QueryParams';
+import { queryParamsToRestQueryStringParameters } from './view/QueryParams';
 
 /**
  * An implementation of ServerActions that communicates with the server via REST requests.
@@ -95,7 +95,7 @@ export class ReadonlyRestClient extends ServerActions {
     const thisListen = {};
     this.listens_[listenId] = thisListen;
 
-    const queryStringParameters = toRestQueryStringParameters(
+    const queryStringParameters = queryParamsToRestQueryStringParameters(
       query.getQueryParams()
     );
 
@@ -137,7 +137,7 @@ export class ReadonlyRestClient extends ServerActions {
   }
 
   get(query: Query): Promise<string> {
-    const queryStringParameters = toRestQueryStringParameters(
+    const queryStringParameters = queryParamsToRestQueryStringParameters(
       query.getQueryParams()
     );
 

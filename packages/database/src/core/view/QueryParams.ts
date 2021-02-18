@@ -203,7 +203,7 @@ export class QueryParams {
   }
 }
 
-export function getNodeFilter(queryParams: QueryParams): NodeFilter {
+export function queryParamsGetNodeFilter(queryParams: QueryParams): NodeFilter {
   if (queryParams.loadsAllData()) {
     return new IndexedFilter(queryParams.getIndex());
   } else if (queryParams.hasLimit()) {
@@ -213,7 +213,10 @@ export function getNodeFilter(queryParams: QueryParams): NodeFilter {
   }
 }
 
-export function limit(queryParams: QueryParams, newLimit: number): QueryParams {
+export function queryParamsLimit(
+  queryParams: QueryParams,
+  newLimit: number
+): QueryParams {
   const newParams = queryParams.copy();
   newParams.limitSet_ = true;
   newParams.limit_ = newLimit;
@@ -221,7 +224,7 @@ export function limit(queryParams: QueryParams, newLimit: number): QueryParams {
   return newParams;
 }
 
-export function limitToFirst(
+export function queryParamsLimitToFirst(
   queryParams: QueryParams,
   newLimit: number
 ): QueryParams {
@@ -232,7 +235,7 @@ export function limitToFirst(
   return newParams;
 }
 
-export function limitToLast(
+export function queryParamsLimitToLast(
   queryParams: QueryParams,
   newLimit: number
 ): QueryParams {
@@ -243,7 +246,7 @@ export function limitToLast(
   return newParams;
 }
 
-export function startAt(
+export function queryParamsStartAt(
   queryParams: QueryParams,
   indexValue: unknown,
   key?: string | null
@@ -264,7 +267,7 @@ export function startAt(
   return newParams;
 }
 
-export function startAfter(
+export function queryParamsStartAfter(
   queryParams: QueryParams,
   indexValue: unknown,
   key?: string | null
@@ -274,7 +277,7 @@ export function startAfter(
     if (typeof indexValue === 'string') {
       indexValue = successor(indexValue as string);
     }
-    params = startAt(queryParams, indexValue, key);
+    params = queryParamsStartAt(queryParams, indexValue, key);
   } else {
     let childKey: string;
     if (key == null) {
@@ -282,13 +285,13 @@ export function startAfter(
     } else {
       childKey = successor(key);
     }
-    params = startAt(queryParams, indexValue, childKey);
+    params = queryParamsStartAt(queryParams, indexValue, childKey);
   }
   params.startAfterSet_ = true;
   return params;
 }
 
-export function endAt(
+export function queryParamsEndAt(
   queryParams: QueryParams,
   indexValue: unknown,
   key?: string | null
@@ -309,7 +312,7 @@ export function endAt(
   return newParams;
 }
 
-export function endBefore(
+export function queryParamsEndBefore(
   queryParams: QueryParams,
   indexValue: unknown,
   key?: string | null
@@ -320,20 +323,23 @@ export function endBefore(
     if (typeof indexValue === 'string') {
       indexValue = predecessor(indexValue as string);
     }
-    params = endAt(queryParams, indexValue, key);
+    params = queryParamsEndAt(queryParams, indexValue, key);
   } else {
     if (key == null) {
       childKey = MIN_NAME;
     } else {
       childKey = predecessor(key);
     }
-    params = endAt(queryParams, indexValue, childKey);
+    params = queryParamsEndAt(queryParams, indexValue, childKey);
   }
   params.endBeforeSet_ = true;
   return params;
 }
 
-export function orderBy(queryParams: QueryParams, index: Index): QueryParams {
+export function queryParamsOrderBy(
+  queryParams: QueryParams,
+  index: Index
+): QueryParams {
   const newParams = queryParams.copy();
   newParams.index_ = index;
   return newParams;
@@ -344,7 +350,7 @@ export function orderBy(queryParams: QueryParams, index: Index): QueryParams {
  *
  * @return query string parameters
  */
-export function toRestQueryStringParameters(
+export function queryParamsToRestQueryStringParameters(
   queryParams: QueryParams
 ): Record<string, string | number> {
   const qs: Record<string, string | number> = {};
@@ -393,7 +399,7 @@ export function toRestQueryStringParameters(
   return qs;
 }
 
-export function getQueryObject(
+export function queryParamsGetQueryObject(
   queryParams: QueryParams
 ): Record<string, unknown> {
   const obj: Record<string, unknown> = {};

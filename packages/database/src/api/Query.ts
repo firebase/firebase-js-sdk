@@ -51,14 +51,14 @@ import {
 import { Repo } from '../core/Repo';
 import {
   QueryParams,
-  limitToFirst,
-  limitToLast,
-  startAfter,
-  startAt,
-  endAt,
-  endBefore,
-  getQueryObject,
-  orderBy
+  queryParamsLimitToFirst,
+  queryParamsLimitToLast,
+  queryParamsStartAfter,
+  queryParamsStartAt,
+  queryParamsEndAt,
+  queryParamsEndBefore,
+  queryParamsGetQueryObject,
+  queryParamsOrderBy
 } from '../core/view/QueryParams';
 import { Reference } from './Reference';
 import { DataSnapshot } from './DataSnapshot';
@@ -365,7 +365,7 @@ export class Query {
     return new Query(
       this.repo,
       this.path,
-      limitToFirst(this.queryParams_, limit),
+      queryParamsLimitToFirst(this.queryParams_, limit),
       this.orderByCalled_
     );
   }
@@ -394,7 +394,7 @@ export class Query {
     return new Query(
       this.repo,
       this.path,
-      limitToLast(this.queryParams_, limit),
+      queryParamsLimitToLast(this.queryParams_, limit),
       this.orderByCalled_
     );
   }
@@ -426,7 +426,7 @@ export class Query {
       );
     }
     const index = new PathIndex(parsedPath);
-    const newParams = orderBy(this.queryParams_, index);
+    const newParams = queryParamsOrderBy(this.queryParams_, index);
     Query.validateQueryEndpoints_(newParams);
 
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
@@ -438,7 +438,7 @@ export class Query {
   orderByKey(): Query {
     validateArgCount('Query.orderByKey', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByKey');
-    const newParams = orderBy(this.queryParams_, KEY_INDEX);
+    const newParams = queryParamsOrderBy(this.queryParams_, KEY_INDEX);
     Query.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
   }
@@ -449,7 +449,7 @@ export class Query {
   orderByPriority(): Query {
     validateArgCount('Query.orderByPriority', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByPriority');
-    const newParams = orderBy(this.queryParams_, PRIORITY_INDEX);
+    const newParams = queryParamsOrderBy(this.queryParams_, PRIORITY_INDEX);
     Query.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
   }
@@ -460,7 +460,7 @@ export class Query {
   orderByValue(): Query {
     validateArgCount('Query.orderByValue', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByValue');
-    const newParams = orderBy(this.queryParams_, VALUE_INDEX);
+    const newParams = queryParamsOrderBy(this.queryParams_, VALUE_INDEX);
     Query.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
   }
@@ -473,7 +473,7 @@ export class Query {
     validateFirebaseDataArg('Query.startAt', 1, value, this.path, true);
     validateKey('Query.startAt', 2, name, true);
 
-    const newParams = startAt(this.queryParams_, value, name);
+    const newParams = queryParamsStartAt(this.queryParams_, value, name);
     Query.validateLimit_(newParams);
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasStart()) {
@@ -500,7 +500,7 @@ export class Query {
     validateFirebaseDataArg('Query.startAfter', 1, value, this.path, false);
     validateKey('Query.startAfter', 2, name, true);
 
-    const newParams = startAfter(this.queryParams_, value, name);
+    const newParams = queryParamsStartAfter(this.queryParams_, value, name);
     Query.validateLimit_(newParams);
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasStart()) {
@@ -521,7 +521,7 @@ export class Query {
     validateFirebaseDataArg('Query.endAt', 1, value, this.path, true);
     validateKey('Query.endAt', 2, name, true);
 
-    const newParams = endAt(this.queryParams_, value, name);
+    const newParams = queryParamsEndAt(this.queryParams_, value, name);
     Query.validateLimit_(newParams);
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasEnd()) {
@@ -542,7 +542,7 @@ export class Query {
     validateFirebaseDataArg('Query.endBefore', 1, value, this.path, false);
     validateKey('Query.endBefore', 2, name, true);
 
-    const newParams = endBefore(this.queryParams_, value, name);
+    const newParams = queryParamsEndBefore(this.queryParams_, value, name);
     Query.validateLimit_(newParams);
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasEnd()) {
@@ -599,7 +599,7 @@ export class Query {
    * An object representation of the query parameters used by this Query.
    */
   queryObject(): object {
-    return getQueryObject(this.queryParams_);
+    return queryParamsGetQueryObject(this.queryParams_);
   }
 
   queryIdentifier(): string {
