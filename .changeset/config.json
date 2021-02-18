@@ -18,7 +18,6 @@
     "@firebase/analytics-types-exp",
     "@firebase/auth-exp",
     "@firebase/auth-compat",
-    "@firebase/auth-types-exp",
     "@firebase/functions-compat",
     "@firebase/functions-exp",
     "@firebase/functions-types-exp",
