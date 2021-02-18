@@ -58,7 +58,7 @@ export async function _signInWithCredential(
  * Asynchronously signs in with the given credentials.
  *
  * @remarks
- * An {@link @firebase/auth-types#AuthProvider} can be used to generate the credential.
+ * An {@link AuthProvider} can be used to generate the credential.
  *
  * @param auth - The Auth instance.
  * @param credential - The auth credential.
@@ -76,7 +76,7 @@ export async function signInWithCredential(
  * Links the user account with the given credentials.
  *
  * @remarks
- * An {@link @firebase/auth-types#AuthProvider} can be used to generate the credential.
+ * An {@link AuthProvider} can be used to generate the credential.
  *
  * @param user - The user.
  * @param credential - The auth credential.

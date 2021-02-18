@@ -58,7 +58,7 @@ export class InMemoryPersistence implements PersistenceInternal {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#Persistence} of type 'NONE'.
+ * An implementation of {@link Persistence} of type 'NONE'.
  *
  * @public
  */

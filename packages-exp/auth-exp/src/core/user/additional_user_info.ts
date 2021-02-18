@@ -132,7 +132,7 @@ class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername 
 }
 
 /**
- * Extracts provider specific {@link @firebase/auth-types#AdditionalUserInfo} for the given credential.
+ * Extracts provider specific {@link AdditionalUserInfo} for the given credential.
  *
  * @param userCredential - The user credential.
  *

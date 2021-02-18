@@ -524,7 +524,7 @@ export interface ApplicationVerifier {
 }
 
 /**
- * Interface that represents an auth provider, used to facilitate creating {@link @firebase/auth-types#AuthCredential}.
+ * Interface that represents an auth provider, used to facilitate creating {@link AuthCredential}.
  *
  * @public
  */
@@ -556,7 +556,7 @@ export interface ConfirmationResult {
    *
    * @remarks
    * This can be used along with the verification code to initialize a
-   * {@link @firebase/auth-types#PhoneAuthCredential}.
+   * {@link PhoneAuthCredential}.
    */
   readonly verificationId: string;
   /**
@@ -643,7 +643,7 @@ export interface MultiFactorInfo {
 }
 
 /**
- * The class used to facilitate recovery from {@link @firebase/auth-types#MultiFactorError} when a user needs to
+ * The class used to facilitate recovery from {@link MultiFactorError} when a user needs to
  * provide a second factor to sign in.
  *
  * @example
@@ -701,7 +701,7 @@ export interface MultiFactorResolver {
   readonly session: MultiFactorSession;
   /**
    * A helper function to help users complete sign in with a second factor using an
-   * {@link @firebase/auth-types#MultiFactorAssertion} confirming the user successfully completed the second factor
+   * {@link MultiFactorAssertion} confirming the user successfully completed the second factor
    * challenge.
    *
    * @example
@@ -757,12 +757,12 @@ export interface MultiFactorUser {
    * await multiFactorUser.enroll(multiFactorAssertion);
    * ```
    *
-   * @returns The promise that resolves with the {@link @firebase/auth-types#MultiFactorSession}.
+   * @returns The promise that resolves with the {@link MultiFactorSession}.
    */
   getSession(): Promise<MultiFactorSession>;
   /**
    *
-   * Enrolls a second factor as identified by the {@link @firebase/auth-types#MultiFactorAssertion} for the
+   * Enrolls a second factor as identified by the {@link MultiFactorAssertion} for the
    * user.
    *
    * @remarks
@@ -825,7 +825,7 @@ export interface MultiFactorUser {
 
 /**
  * The class for asserting ownership of a phone second factor. Provided by
- * {@link @firebase/auth-types#PhoneMultiFactorGenerator.assertion}.
+ * {@link PhoneMultiFactorGenerator.assertion}.
  *
  * @public
  */

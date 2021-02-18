@@ -46,7 +46,7 @@ import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
- * Provider for generating an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.TWITTER}.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId.TWITTER}.
  *
  * @example
  * ```javascript
@@ -108,7 +108,7 @@ export class TwitterAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   * Used to extract the underlying {@link OAuthCredential} from a {@link UserCredential}.
    *
    * @param userCredential - The user credential.
    */
@@ -121,7 +121,7 @@ export class TwitterAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * Used to extract the underlying {@link OAuthCredential} from a {@link AuthError} which was
    * thrown during a sign-in, link, or reauthenticate operation.
    *
    * @param userCredential - The user credential.

@@ -436,7 +436,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#Persistence} of type 'LOCAL' using `indexedDB`
+ * An implementation of {@link Persistence} of type 'LOCAL' using `indexedDB`
  * for the underlying storage.
  *
  * @public

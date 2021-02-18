@@ -37,8 +37,8 @@ import { _setActionCodeSettingsOnRequest } from './action_code_settings';
  * @remarks
  * This is useful to differentiate methods of sign-in for the same provider, eg.
  * {@link EmailAuthProvider} which has 2 methods of sign-in,
- * {@link @firebase/auth-types#SignInMethod.EMAIL_PASSWORD} and
- * {@link @firebase/auth-types#SignInMethod.EMAIL_LINK} .
+ * {@link SignInMethod.EMAIL_PASSWORD} and
+ * {@link SignInMethod.EMAIL_LINK} .
  *
  * @param auth - The Auth instance.
  * @param email - The user's email address.
@@ -89,7 +89,7 @@ export async function fetchSignInMethodsForEmail(
  * ```
  *
  * @param user - The user.
- * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
  * @public
  */
@@ -148,7 +148,7 @@ export async function sendEmailVerification(
  *
  * @param user - The user.
  * @param newEmail - The new email address to be verified before update.
- * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
  * @public
  */

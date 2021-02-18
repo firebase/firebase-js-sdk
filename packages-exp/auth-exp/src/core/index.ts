@@ -37,7 +37,7 @@ export { debugErrorMap, prodErrorMap } from './errors';
  * ```
  *
  * @param auth - The Auth instance.
- * @param persistence - The {@link @firebase/auth-types#Persistence} to use.
+ * @param persistence - The {@link Persistence} to use.
  * @returns A promise that resolves once the persistence change has completed
  *
  * @public
@@ -99,8 +99,8 @@ export function useDeviceLanguage(auth: Auth): void {
   auth.useDeviceLanguage();
 }
 /**
- * Asynchronously sets the provided user as {@link @firebase/auth-types#Auth.currentUser} on the
- * {@link @firebase/auth-types#Auth} instance.
+ * Asynchronously sets the provided user as {@link Auth.currentUser} on the
+ * {@link Auth} instance.
  *
  * @remarks
  * A new instance copy of the user provided will be made and set as currentUser.
@@ -112,7 +112,7 @@ export function useDeviceLanguage(auth: Auth): void {
  * project.
  *
  * @param auth - The Auth instance.
- * @param user - The new {@link @firebase/auth-types#User}.
+ * @param user - The new {@link User}.
  *
  * @public
  */

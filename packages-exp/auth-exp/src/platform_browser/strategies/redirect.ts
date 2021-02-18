@@ -68,7 +68,7 @@ import { RedirectAction } from '../../core/strategies/redirect';
  * @param auth - The Auth instance.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
@@ -115,7 +115,7 @@ export async function signInWithRedirect(
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
@@ -163,7 +163,7 @@ export async function reauthenticateWithRedirect(
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  *
@@ -195,11 +195,11 @@ export async function linkWithRedirect(
 }
 
 /**
- * Returns a {@link @firebase/auth-types#UserCredential} from the redirect-based sign-in flow.
+ * Returns a {@link UserCredential} from the redirect-based sign-in flow.
  *
  * @remarks
  * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
- * error. If no redirect operation was called, returns a {@link @firebase/auth-types#UserCredential}
+ * error. If no redirect operation was called, returns a {@link UserCredential}
  * with a null `user`.
  *
  * @example
@@ -228,7 +228,7 @@ export async function linkWithRedirect(
  * ```
  *
  * @param auth - The Auth instance.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public

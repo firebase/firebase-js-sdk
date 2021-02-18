@@ -65,7 +65,7 @@ import { _assert } from '../util/assert';
  *
  * @param auth - The Auth instance.
  * @param email - The user's email address.
- * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
  * @public
  */

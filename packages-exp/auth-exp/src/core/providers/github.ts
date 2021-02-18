@@ -28,7 +28,7 @@ import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
- * Provider for generating an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.GITHUB}.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId.GITHUB}.
  *
  * @remarks
  * GitHub requires an OAuth 2.0 redirect, so you can either handle the redirect directly, or use
@@ -70,9 +70,9 @@ import { OAuthProvider } from './oauth';
  * @public
  */
 export class GithubAuthProvider extends OAuthProvider {
-  /** Always set to {@link @firebase/auth-types#SignInMethod.GITHUB}. */
+  /** Always set to {@link SignInMethod.GITHUB}. */
   static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
-  /** Always set to {@link @firebase/auth-types#ProviderId.GITHUB}. */
+  /** Always set to {@link ProviderId.GITHUB}. */
   static readonly PROVIDER_ID = ProviderId.GITHUB;
 
   constructor() {
@@ -93,7 +93,7 @@ export class GithubAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   * Used to extract the underlying {@link OAuthCredential} from a {@link UserCredential}.
    *
    * @param userCredential - The user credential.
    */
@@ -106,7 +106,7 @@ export class GithubAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * Used to extract the underlying {@link OAuthCredential} from a {@link AuthError} which was
    * thrown during a sign-in, link, or reauthenticate operation.
    *
    * @param userCredential - The user credential.

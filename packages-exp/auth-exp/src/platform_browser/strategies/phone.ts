@@ -71,11 +71,11 @@ class ConfirmationResultImpl implements ConfirmationResult {
  *
  * @remarks
  * This method sends a code via SMS to the given
- * phone number, and returns a {@link @firebase/auth-types#ConfirmationResult}. After the user
- * provides the code sent to their phone, call {@link @firebase/auth-types#ConfirmationResult.confirm}
+ * phone number, and returns a {@link ConfirmationResult}. After the user
+ * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
  * with the code to sign the user in.
  *
- * For abuse prevention, this method also requires a {@link @firebase/auth-types#ApplicationVerifier}.
+ * For abuse prevention, this method also requires a {@link ApplicationVerifier}.
  * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
  *
  * @example
@@ -89,7 +89,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
  *
  * @param auth - The Auth instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
- * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ * @param appVerifier - The {@link ApplicationVerifier}.
  *
  * @public
  */
@@ -113,7 +113,7 @@ export async function signInWithPhoneNumber(
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
- * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ * @param appVerifier - The {@link ApplicationVerifier}.
  *
  * @public
  */
@@ -141,7 +141,7 @@ export async function linkWithPhoneNumber(
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
- * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ * @param appVerifier - The {@link ApplicationVerifier}.
  *
  * @public
  */

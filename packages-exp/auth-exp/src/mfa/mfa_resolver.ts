@@ -111,11 +111,11 @@ export class MultiFactorResolverImpl implements MultiFactorResolver {
 }
 
 /**
- * Provides a {@link @firebase/auth-types#MultiFactorResolver} suitable for completion of a
+ * Provides a {@link MultiFactorResolver} suitable for completion of a
  * multi-factor flow.
  *
  * @param auth - The auth instance.
- * @param error - The {@link @firebase/auth-types#MultiFactorError} raised during a sign-in, or
+ * @param error - The {@link MultiFactorError} raised during a sign-in, or
  * reauthentication operation.
  *
  * @public

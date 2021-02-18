@@ -167,7 +167,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for browser
+ * An implementation of {@link PopupRedirectResolver} suitable for browser
  * based applications.
  *
  * @public

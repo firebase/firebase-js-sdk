@@ -156,7 +156,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for Cordova
+ * An implementation of {@link PopupRedirectResolver} suitable for Cordova
  * based applications.
  *
  * @public

@@ -28,7 +28,7 @@ import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
- * Provider for generating an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.FACEBOOK}.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId.FACEBOOK}.
  *
  * @example
  * ```javascript
@@ -67,9 +67,9 @@ import { OAuthProvider } from './oauth';
  * @public
  */
 export class FacebookAuthProvider extends OAuthProvider {
-  /** Always set to {@link @firebase/auth-types#SignInMethod.FACEBOOK}. */
+  /** Always set to {@link SignInMethod.FACEBOOK}. */
   static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
-  /** Always set to {@link @firebase/auth-types#ProviderId.FACEBOOK}. */
+  /** Always set to {@link ProviderId.FACEBOOK}. */
   static readonly PROVIDER_ID = ProviderId.FACEBOOK;
 
   constructor() {
@@ -97,7 +97,7 @@ export class FacebookAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   * Used to extract the underlying {@link OAuthCredential} from a {@link UserCredential}.
    *
    * @param userCredential - The user credential.
    */
@@ -110,7 +110,7 @@ export class FacebookAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * Used to extract the underlying {@link OAuthCredential} from a {@link AuthError} which was
    * thrown during a sign-in, link, or reauthenticate operation.
    *
    * @param userCredential - The user credential.

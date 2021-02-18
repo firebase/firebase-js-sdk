@@ -103,7 +103,7 @@ export class MultiFactorUserImpl implements MultiFactorUser {
 const multiFactorUserCache = new WeakMap<User, MultiFactorUser>();
 
 /**
- * The {@link @firebase/auth-types#MultiFactorUser} corresponding to the user.
+ * The {@link MultiFactorUser} corresponding to the user.
  *
  * @remarks
  * This is used to access all multi-factor properties and operations related to the user.
