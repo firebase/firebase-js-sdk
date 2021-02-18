@@ -21,18 +21,39 @@ import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
 
 /**
- * {@inheritdoc @firebase/auth-types#AuthCredential}
+ * Interface that represents the credentials returned by an {@link AuthProvider}.
+ *
+ * @remarks
+ * Implementations specify the details about each auth provider's credential requirements.
  *
  * @public
  */
 export class AuthCredential {
   /** @internal */
   protected constructor(
+    /**
+     * The authentication provider ID for the credential.
+     *
+     * @remarks
+     * For example, 'facebook.com', or 'google.com'.
+     */
     readonly providerId: string,
+    /**
+     * The authentication sign in method for the credential.
+     *
+     * @remarks
+     * For example, {@link  SignInMethod.EMAIL_PASSWORD}, or
+     * {@link  SignInMethod.EMAIL_LINK}. This corresponds to the sign-in method
+     * identifier as returned in {@link fetchSignInMethodsForEmail}.
+     */
     readonly signInMethod: string
   ) {}
 
-  /** {@inheritdoc @firebase/auth-types#AuthCredential.toJSON} */
+  /**
+   * Returns a JSON-serializable representation of this object.
+   *
+   * @returns a JSON-serializable representation of this object.
+   */
   toJSON(): object {
     return debugFail('not implemented');
   }

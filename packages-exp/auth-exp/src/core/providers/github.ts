@@ -16,7 +16,6 @@
  */
 
 import {
-  OAuthCredential,
   ProviderId,
   SignInMethod,
   UserCredential
@@ -25,7 +24,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
-import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
+import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
@@ -86,7 +85,7 @@ export class GithubAuthProvider extends OAuthProvider {
    * @param accessToken - Github access token.
    */
   static credential(accessToken: string): OAuthCredential {
-    return OAuthCredentialImpl._fromParams({
+    return OAuthCredential._fromParams({
       providerId: GithubAuthProvider.PROVIDER_ID,
       signInMethod: GithubAuthProvider.GITHUB_SIGN_IN_METHOD,
       accessToken

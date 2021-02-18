@@ -22,7 +22,7 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { PhoneAuthCredentialImpl } from '../credentials/phone';
+import { PhoneAuthCredential } from '../credentials/phone';
 
 describe('core/credentials/phone', () => {
   let auth: TestAuth;
@@ -46,7 +46,7 @@ describe('core/credentials/phone', () => {
     };
 
     it('calls the endpoint with session and code', async () => {
-      const cred = PhoneAuthCredentialImpl._fromVerification(
+      const cred = PhoneAuthCredential._fromVerification(
         'session-info',
         'code'
       );
@@ -61,7 +61,7 @@ describe('core/credentials/phone', () => {
     });
 
     it('calls the endpoint with proof and number', async () => {
-      const cred = PhoneAuthCredentialImpl._fromTokenResponse(
+      const cred = PhoneAuthCredential._fromTokenResponse(
         'number',
         'temp-proof'
       );
@@ -86,7 +86,7 @@ describe('core/credentials/phone', () => {
     };
 
     it('calls the endpoint with session and code', async () => {
-      const cred = PhoneAuthCredentialImpl._fromVerification(
+      const cred = PhoneAuthCredential._fromVerification(
         'session-info',
         'code'
       );
@@ -102,7 +102,7 @@ describe('core/credentials/phone', () => {
     });
 
     it('calls the endpoint with proof and number', async () => {
-      const cred = PhoneAuthCredentialImpl._fromTokenResponse(
+      const cred = PhoneAuthCredential._fromTokenResponse(
         'number',
         'temp-proof'
       );
@@ -120,7 +120,7 @@ describe('core/credentials/phone', () => {
 
   context('#toJSON', () => {
     it('fills out the object with everything that is set', () => {
-      const cred = PhoneAuthCredentialImpl._fromVerification('id', 'code');
+      const cred = PhoneAuthCredential._fromVerification('id', 'code');
 
       expect(cred.toJSON()).to.eql({
         providerId: 'phone',
@@ -130,10 +130,7 @@ describe('core/credentials/phone', () => {
     });
 
     it('omits missing fields', () => {
-      const cred = PhoneAuthCredentialImpl._fromTokenResponse(
-        'number',
-        'proof'
-      );
+      const cred = PhoneAuthCredential._fromTokenResponse('number', 'proof');
 
       expect(cred.toJSON()).to.eql({
         providerId: 'phone',
@@ -145,9 +142,7 @@ describe('core/credentials/phone', () => {
 
   context('.fromJSON', () => {
     it('works if passed a string', () => {
-      const cred = PhoneAuthCredentialImpl.fromJSON(
-        '{"phoneNumber": "number"}'
-      );
+      const cred = PhoneAuthCredential.fromJSON('{"phoneNumber": "number"}');
       expect(cred?.toJSON()).to.eql({
         providerId: 'phone',
         phoneNumber: 'number'
@@ -155,7 +150,7 @@ describe('core/credentials/phone', () => {
     });
 
     it('works if passed an object', () => {
-      const cred = PhoneAuthCredentialImpl.fromJSON({
+      const cred = PhoneAuthCredential.fromJSON({
         temporaryProof: 'proof',
         phoneNumber: 'number',
         verificationId: 'id',
@@ -171,7 +166,7 @@ describe('core/credentials/phone', () => {
     });
 
     it('returns null if object contains no matching fields', () => {
-      expect(PhoneAuthCredentialImpl.fromJSON({})).to.be.null;
+      expect(PhoneAuthCredential.fromJSON({})).to.be.null;
     });
   });
 });

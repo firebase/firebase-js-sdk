@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { OAuthCredential as OAuthCredentialPublic } from '../../model/public_types';
 import { querystring } from '@firebase/util';
 
 import {
@@ -50,18 +49,31 @@ export interface OAuthCredentialParams {
 }
 
 /**
- * {@inheritdoc @firebase/auth-types#OAuthCredential}
+ * Represents the OAuth credentials returned by an {@link OAuthProvider}.
+ *
+ * @remarks
+ * Implementations specify the details about each auth provider's credential requirements.
  *
  * @public
  */
-export class OAuthCredential
-  extends AuthCredential
-  implements OAuthCredentialPublic {
-  /** {@inheritdoc @firebase/auth-types#OAuthCredential.idToken} @readonly */
+export class OAuthCredential extends AuthCredential {
+  /**
+   * The OAuth ID token associated with the credential if it belongs to an OIDC provider,
+   * such as `google.com`.
+   * @readonly
+   */
   idToken?: string;
-  /** {@inheritdoc @firebase/auth-types#OAuthCredential.accessToken} @readonly */
+  /**
+   * The OAuth access token associated with the credential if it belongs to an
+   * {@link OAuthProvider}, such as `facebook.com`, `twitter.com`, etc.
+   * @readonly
+   */
   accessToken?: string;
-  /** {@inheritdoc @firebase/auth-types#OAuthCredential.secret} @readonly */
+  /**
+   * The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0
+   * provider, such as `twitter.com`.
+   * @readonly
+   */
   secret?: string;
   /** @internal */
   nonce?: string;
@@ -100,7 +112,7 @@ export class OAuthCredential
     return cred;
   }
 
-  /** {@inheritdoc @firebase/auth-types#OAuthCredential.toJSON}  */
+  /** {@inheritdoc AuthCredential.toJSON}  */
   toJSON(): object {
     return {
       idToken: this.idToken,
@@ -113,7 +125,15 @@ export class OAuthCredential
     };
   }
 
-  /** {@inheritdoc @firebase/auth-types#OAuthCredential.fromJSON} */
+  /**
+   * Static method to deserialize a JSON representation of an object into an
+   * {@link  AuthCredential}.
+   *
+   * @param json - Input can be either Object or the stringified representation of the object.
+   * When string is provided, JSON.parse would be called first.
+   *
+   * @returns If the JSON input does not represent an {@link  AuthCredential}, null is returned.
+   */
   static fromJSON(json: string | object): OAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     const { providerId, signInMethod, ...rest }: Partial<OAuthCredential> = obj;

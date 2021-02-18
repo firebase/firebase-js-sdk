@@ -27,7 +27,7 @@ import { testAuth, testUser, TestAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
-import { PhoneAuthCredentialImpl } from '../core/credentials/phone';
+import { PhoneAuthCredential } from '../core/credentials/phone';
 import { AuthErrorCode } from '../core/errors';
 import { UserInternal, UserCredentialInternal } from '../model/user';
 import { MultiFactorAssertionImpl } from './mfa_assertion';
@@ -74,12 +74,12 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
 
   describe('MultiFactorResolver', () => {
     let assertion: MultiFactorAssertionImpl;
-    let secondFactorCredential: PhoneAuthCredentialImpl;
+    let secondFactorCredential: PhoneAuthCredential;
     let resolver: MultiFactorResolverImpl;
 
     beforeEach(() => {
       mockFetch.setUp();
-      secondFactorCredential = PhoneAuthCredentialImpl._fromVerification(
+      secondFactorCredential = PhoneAuthCredential._fromVerification(
         'verification-id',
         'verification-code'
       );

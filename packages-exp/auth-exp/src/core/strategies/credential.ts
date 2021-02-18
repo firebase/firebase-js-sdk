@@ -19,14 +19,13 @@ import {
   OperationType,
   UserCredential,
   Auth,
-  AuthCredential,
   User
 } from '../../model/public_types';
 
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
-import { AuthCredential as AuthCredentialImpl } from '../credentials';
+import { AuthCredential } from '../credentials';
 import { _assertLinkedStatus, _link } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
@@ -34,7 +33,7 @@ import { _castAuth } from '../auth/auth_impl';
 
 export async function _signInWithCredential(
   auth: AuthInternal,
-  credential: AuthCredentialImpl,
+  credential: AuthCredential,
   bypassAuthState = false
 ): Promise<UserCredential> {
   const operationType = OperationType.SIGN_IN;
@@ -70,10 +69,7 @@ export async function signInWithCredential(
   auth: Auth,
   credential: AuthCredential
 ): Promise<UserCredential> {
-  return _signInWithCredential(
-    _castAuth(auth),
-    credential as AuthCredentialImpl
-  );
+  return _signInWithCredential(_castAuth(auth), credential);
 }
 
 /**
@@ -95,7 +91,7 @@ export async function linkWithCredential(
 
   await _assertLinkedStatus(false, userInternal, credential.providerId);
 
-  return _link(userInternal, credential as AuthCredentialImpl);
+  return _link(userInternal, credential);
 }
 
 /**
@@ -104,7 +100,7 @@ export async function linkWithCredential(
  * @remarks
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in
  * attempts. This method can be used to recover from a
- * {@link AuthErrorCode.CREDENTIAL_TOO_OLD_LOGIN_AGAIN} error.
+ * {@link debugErrorMap.CREDENTIAL_TOO_OLD_LOGIN_AGAIN} error.
  *
  * @param user - The user.
  * @param credential - The auth credential.
@@ -115,8 +111,5 @@ export async function reauthenticateWithCredential(
   user: User,
   credential: AuthCredential
 ): Promise<UserCredential> {
-  return _reauthenticate(
-    user as UserInternal,
-    credential as AuthCredentialImpl
-  );
+  return _reauthenticate(user as UserInternal, credential);
 }

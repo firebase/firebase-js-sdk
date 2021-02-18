@@ -16,7 +16,6 @@
  */
 
 import {
-  OAuthCredential,
   ProviderId,
   SignInMethod,
   UserCredential
@@ -25,7 +24,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
-import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
+import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
@@ -90,7 +89,7 @@ export class FacebookAuthProvider extends OAuthProvider {
    * @param accessToken - Facebook access token.
    */
   static credential(accessToken: string): OAuthCredential {
-    return OAuthCredentialImpl._fromParams({
+    return OAuthCredential._fromParams({
       providerId: FacebookAuthProvider.PROVIDER_ID,
       signInMethod: FacebookAuthProvider.FACEBOOK_SIGN_IN_METHOD,
       accessToken

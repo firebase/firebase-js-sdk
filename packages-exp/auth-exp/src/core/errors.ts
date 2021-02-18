@@ -16,11 +16,12 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { AuthCredential, AuthErrorMap, User } from '../model/public_types';
+import { AuthErrorMap, User } from '../model/public_types';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 import { AppName } from '../model/auth';
+import { AuthCredential } from './credentials';
 
 /**
  * Enumeration of Firebase Auth error codes.

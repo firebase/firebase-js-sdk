@@ -35,7 +35,7 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { UserInternal } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
-import { PhoneAuthCredentialImpl } from '../../core/credentials/phone';
+import { PhoneAuthCredential } from '../../core/credentials/phone';
 import {
   _verifyPhoneNumber,
   linkWithPhoneNumber,
@@ -417,7 +417,7 @@ describe('platform_browser/strategies/phone', () => {
     let user: UserInternal;
     let reloadMock: fetch.Route;
     let signInMock: fetch.Route;
-    let credential: PhoneAuthCredentialImpl;
+    let credential: PhoneAuthCredential;
     let idToken: string;
 
     beforeEach(() => {
@@ -429,7 +429,7 @@ describe('platform_browser/strategies/phone', () => {
         idToken,
         refreshToken: 'refresh-token'
       });
-      credential = PhoneAuthCredentialImpl._fromVerification(
+      credential = PhoneAuthCredential._fromVerification(
         'session-info',
         'code'
       );

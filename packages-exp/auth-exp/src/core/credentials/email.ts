@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  AuthCredential as AuthCredentialPublic,
-  ProviderId,
-  SignInMethod
-} from '../../model/public_types';
+import { ProviderId, SignInMethod } from '../../model/public_types';
 
 import { updateEmailPassword } from '../../api/account_management/email_and_password';
 import { signInWithPassword } from '../../api/authentication/email_and_password';
@@ -35,17 +31,15 @@ import { AuthCredential } from './auth_credential';
 
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
- * {@link @firebase/auth-types#ProviderId.PASSWORD}
+ * {@link ProviderId.PASSWORD}
  *
  * @remarks
- * Covers both {@link @firebase/auth-types#SignInMethod.EMAIL_PASSWORD} and
- * {@link @firebase/auth-types#SignInMethod.EMAIL_LINK}.
+ * Covers both {@link SignInMethod.EMAIL_PASSWORD} and
+ * {@link SignInMethod.EMAIL_LINK}.
  *
  * @public
  */
-export class EmailAuthCredential
-  extends AuthCredential
-  implements AuthCredentialPublic {
+export class EmailAuthCredential extends AuthCredential {
   /** @internal */
   private constructor(
     readonly email: string,
@@ -82,7 +76,7 @@ export class EmailAuthCredential
     );
   }
 
-  /** {@inheritdoc @firebase/auth-types#AuthCredential.toJSON} */
+  /** {@inheritdoc AuthCredential.toJSON} */
   toJSON(): object {
     return {
       email: this.email,
@@ -92,7 +86,14 @@ export class EmailAuthCredential
     };
   }
 
-  /** {@inheritdoc @firebase/auth-types#AuthCredential.fromJSON} */
+  /**
+   * Static method to deserialize a JSON representation of an object into an {@link  AuthCredential}.
+   *
+   * @param json - Either `object` or the stringified representation of the object. When string is
+   * provided, `JSON.parse` would be called first.
+   *
+   * @returns If the JSON input does not represent an {@link AuthCredential}, null is returned.
+   */
   static fromJSON(json: object | string): EmailAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     if (obj?.email && obj?.password) {

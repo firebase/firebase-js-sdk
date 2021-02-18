@@ -15,16 +15,12 @@
  * limitations under the License.
  */
 
-import {
-  AuthProvider,
-  OAuthCredential,
-  UserCredential
-} from '../../model/public_types';
+import { AuthProvider, UserCredential } from '../../model/public_types';
 
 import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
 
-import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
+import { OAuthCredential } from '../credentials/oauth';
 import { UserCredentialInternal } from '../../model/user';
 import { FirebaseError } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
@@ -125,7 +121,7 @@ export class OAuthProvider implements AuthProvider {
       'providerId' in obj && 'signInMethod' in obj,
       AuthErrorCode.ARGUMENT_ERROR
     );
-    return OAuthCredentialImpl._fromParams(obj);
+    return OAuthCredential._fromParams(obj);
   }
 
   /**
@@ -152,7 +148,7 @@ export class OAuthProvider implements AuthProvider {
   credential(params: OAuthCredentialOptions): OAuthCredential {
     _assert(params.idToken && params.accessToken, AuthErrorCode.ARGUMENT_ERROR);
     // For OAuthCredential, sign in method is same as providerId.
-    return OAuthCredentialImpl._fromParams({
+    return OAuthCredential._fromParams({
       providerId: this.providerId,
       signInMethod: this.providerId,
       ...params

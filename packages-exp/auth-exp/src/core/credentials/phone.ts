@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  PhoneAuthCredential,
-  ProviderId,
-  SignInMethod
-} from '../../model/public_types';
+import { ProviderId, SignInMethod } from '../../model/public_types';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import {
@@ -40,13 +36,11 @@ export interface PhoneAuthCredentialParameters {
 }
 
 /**
- * {@inheritdoc @firebase/auth-types#PhoneAuthCredential}
+ * Represents the credentials returned by {@link PhoneAuthProvider}.
  *
  * @public
  */
-export class PhoneAuthCredentialImpl
-  extends AuthCredential
-  implements PhoneAuthCredential {
+export class PhoneAuthCredential extends AuthCredential {
   private constructor(private readonly params: PhoneAuthCredentialParameters) {
     super(ProviderId.PHONE, SignInMethod.PHONE);
   }
@@ -55,16 +49,16 @@ export class PhoneAuthCredentialImpl
   static _fromVerification(
     verificationId: string,
     verificationCode: string
-  ): PhoneAuthCredentialImpl {
-    return new PhoneAuthCredentialImpl({ verificationId, verificationCode });
+  ): PhoneAuthCredential {
+    return new PhoneAuthCredential({ verificationId, verificationCode });
   }
 
   /** @internal */
   static _fromTokenResponse(
     phoneNumber: string,
     temporaryProof: string
-  ): PhoneAuthCredentialImpl {
-    return new PhoneAuthCredentialImpl({ phoneNumber, temporaryProof });
+  ): PhoneAuthCredential {
+    return new PhoneAuthCredential({ phoneNumber, temporaryProof });
   }
 
   /** @internal */
@@ -106,7 +100,7 @@ export class PhoneAuthCredentialImpl
     };
   }
 
-  /** {@inheritdoc @firebase/auth-types#toJSON} */
+  /** {@inheritdoc AuthCredential.toJSON} */
   toJSON(): object {
     const obj: Record<string, string> = {
       providerId: this.providerId
@@ -127,8 +121,8 @@ export class PhoneAuthCredentialImpl
     return obj;
   }
 
-  /** {@inheritdoc @firebase/auth-types#fromJSON} */
-  static fromJSON(json: object | string): PhoneAuthCredentialImpl | null {
+  /** {@inheritdoc AuthCredential.fromJSON} */
+  static fromJSON(json: object | string): PhoneAuthCredential | null {
     if (typeof json === 'string') {
       json = JSON.parse(json);
     }
@@ -148,7 +142,7 @@ export class PhoneAuthCredentialImpl
       return null;
     }
 
-    return new PhoneAuthCredentialImpl({
+    return new PhoneAuthCredential({
       verificationId,
       verificationCode,
       phoneNumber,

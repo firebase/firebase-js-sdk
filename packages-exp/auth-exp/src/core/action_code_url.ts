@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  ActionCodeOperation,
-  ActionCodeURL as ActionCodeURLType
-} from '../model/public_types';
+import { ActionCodeOperation } from '../model/public_types';
 import { AuthErrorCode } from './errors';
 import { _assert } from './util/assert';
 
@@ -79,22 +76,36 @@ function parseDeepLink(url: string): string {
 }
 
 /**
- * {@inheritDoc @firebase/auth-types#ActionCodeURL}
+ * A utility class to parse email action URLs such as password reset, email verification,
+ * email link sign in, etc.
  *
  * @public
  */
-export class ActionCodeURL implements ActionCodeURLType {
-  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.apiKey} */
+export class ActionCodeURL {
+  /**
+   * The API key of the email action link.
+   */
   readonly apiKey: string;
-  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.code} */
+  /**
+   * The action code of the email action link.
+   */
   readonly code: string;
-  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.continueUrl} */
+  /**
+   * The continue URL of the email action link. Null if not provided.
+   */
   readonly continueUrl: string | null;
-  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.languageCode} */
+  /**
+   * The language code of the email action link. Null if not provided.
+   */
   readonly languageCode: string | null;
-  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.operation} */
+  /**
+   * The action performed by the email action link. It returns from one of the types from
+   * {@link ActionCodeInfo}
+   */
   readonly operation: ActionCodeOperation;
-  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.tenantId} */
+  /**
+   * The tenant ID of the email action link. Null if the email action is from the parent project.
+   */
   readonly tenantId: string | null;
 
   /**
@@ -118,7 +129,15 @@ export class ActionCodeURL implements ActionCodeURLType {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
   }
 
-  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink} */
+  /**
+   * Parses the email action link string and returns an {@link ActionCodeURL} if the link is valid,
+   * otherwise returns null.
+   *
+   * @param link  - The email action link string.
+   * @returns The ActionCodeURL object, or null if the link is invalid.
+   *
+   * @public
+   */
   static parseLink(link: string): ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {

@@ -48,25 +48,16 @@ export interface ActionCodeSettings {
     url: string;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ActionCodeURL" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export class ActionCodeURL implements ActionCodeURL_2 {
+// @public
+export class ActionCodeURL {
     // @internal
     constructor(actionLink: string);
-    // (undocumented)
     readonly apiKey: string;
-    // (undocumented)
     readonly code: string;
-    // (undocumented)
     readonly continueUrl: string | null;
-    // (undocumented)
     readonly languageCode: string | null;
-    // (undocumented)
     readonly operation: ActionCodeOperation;
-    // (undocumented)
     static parseLink(link: string): ActionCodeURL | null;
-    // (undocumented)
     readonly tenantId: string | null;
 }
 
@@ -106,10 +97,12 @@ export interface Auth {
     useDeviceLanguage(): void;
 }
 
-// @public (undocumented)
+// @public
 export class AuthCredential {
     // @internal
-    protected constructor(providerId: string, signInMethod: string);
+    protected constructor(
+    providerId: string,
+    signInMethod: string);
     // Warning: (ae-forgotten-export) The symbol "AuthInternal" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "PhoneOrOauthTokenResponse" needs to be exported by the entry point index.d.ts
     //
@@ -121,11 +114,8 @@ export class AuthCredential {
     //
     // @internal (undocumented)
     _linkToIdToken(_auth: AuthInternal, _idToken: string): Promise<IdTokenResponse>;
-    // (undocumented)
     readonly providerId: string;
-    // (undocumented)
     readonly signInMethod: string;
-    // (undocumented)
     toJSON(): object;
 }
 
@@ -194,17 +184,14 @@ export const debugErrorMap: AuthErrorMap;
 // @public
 export function deleteUser(user: User): Promise<void>;
 
-// Warning: (ae-forgotten-export) The symbol "AuthCredential" needs to be exported by the entry point index.d.ts
-//
 // @public
-export class EmailAuthCredential extends AuthCredential implements AuthCredential_2 {
+export class EmailAuthCredential extends AuthCredential {
     // (undocumented)
     readonly email: string;
     // @internal (undocumented)
     static _fromEmailAndCode(email: string, oobCode: string, tenantId?: string | null): EmailAuthCredential;
     // @internal (undocumented)
     static _fromEmailAndPassword(email: string, password: string): EmailAuthCredential;
-    // (undocumented)
     static fromJSON(json: object | string): EmailAuthCredential | null;
     // @internal (undocumented)
     _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse>;
@@ -216,35 +203,25 @@ export class EmailAuthCredential extends AuthCredential implements AuthCredentia
     readonly password: string;
     // (undocumented)
     readonly tenantId: string | null;
-    // (undocumented)
     toJSON(): object;
 }
 
-// Warning: (ae-forgotten-export) The symbol "EmailAuthProvider" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export class EmailAuthProvider implements EmailAuthProvider_2 {
-    // (undocumented)
+// @public
+export class EmailAuthProvider implements AuthProvider {
     static credential(email: string, password: string): EmailAuthCredential;
-    // (undocumented)
     static credentialWithLink(email: string, emailLink: string): EmailAuthCredential;
-    // (undocumented)
     static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
-    // (undocumented)
     static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
-    // (undocumented)
     static readonly PROVIDER_ID = ProviderId.PASSWORD;
-    // (undocumented)
     readonly providerId = ProviderId.PASSWORD;
 }
 
 // @public
 export class FacebookAuthProvider extends OAuthProvider {
     constructor();
-    // Warning: (ae-forgotten-export) The symbol "OAuthCredential" needs to be exported by the entry point index.d.ts
-    static credential(accessToken: string): OAuthCredential_2;
-    static credentialFromError(error: FirebaseError): OAuthCredential_2 | null;
-    static credentialFromResult(userCredential: UserCredential): OAuthCredential_2 | null;
+    static credential(accessToken: string): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
     static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
     static readonly PROVIDER_ID = ProviderId.FACEBOOK;
 }
@@ -280,9 +257,9 @@ export function getRedirectResult(auth: Auth, resolver?: PopupRedirectResolver):
 // @public
 export class GithubAuthProvider extends OAuthProvider {
     constructor();
-    static credential(accessToken: string): OAuthCredential_2;
-    static credentialFromError(error: FirebaseError): OAuthCredential_2 | null;
-    static credentialFromResult(userCredential: UserCredential): OAuthCredential_2 | null;
+    static credential(accessToken: string): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
     static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
     static readonly PROVIDER_ID = ProviderId.GITHUB;
 }
@@ -290,9 +267,9 @@ export class GithubAuthProvider extends OAuthProvider {
 // @public
 export class GoogleAuthProvider extends OAuthProvider {
     constructor();
-    static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential_2;
-    static credentialFromError(error: FirebaseError): OAuthCredential_2 | null;
-    static credentialFromResult(userCredential: UserCredential): OAuthCredential_2 | null;
+    static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
     static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
     static readonly PROVIDER_ID = ProviderId.GOOGLE;
 }
@@ -323,7 +300,7 @@ export const inMemoryPersistence: Persistence;
 export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean;
 
 // @public
-export function linkWithCredential(user: User, credential: AuthCredential_2): Promise<UserCredential>;
+export function linkWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
 export function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
@@ -374,11 +351,9 @@ export interface MultiFactorUser {
     unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
 
-// @public (undocumented)
-export class OAuthCredential extends AuthCredential implements OAuthCredential_2 {
-    // (undocumented)
+// @public
+export class OAuthCredential extends AuthCredential {
     accessToken?: string;
-    // (undocumented)
     static fromJSON(json: string | object): OAuthCredential | null;
     // Warning: (ae-forgotten-export) The symbol "OAuthCredentialParams" needs to be exported by the entry point index.d.ts
     //
@@ -388,15 +363,12 @@ export class OAuthCredential extends AuthCredential implements OAuthCredential_2
     _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse>;
     // @internal (undocumented)
     _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse>;
-    // (undocumented)
     idToken?: string;
     // @internal (undocumented)
     _linkToIdToken(auth: AuthInternal, idToken: string): Promise<IdTokenResponse>;
     // @internal (undocumented)
     nonce?: string;
-    // (undocumented)
     secret?: string;
-    // (undocumented)
     toJSON(): object;
 }
 
@@ -411,11 +383,11 @@ export interface OAuthCredentialOptions {
 export class OAuthProvider implements AuthProvider {
     constructor(providerId: string);
     addScope(scope: string): AuthProvider;
-    credential(params: OAuthCredentialOptions): OAuthCredential_2;
-    static credentialFromError(error: FirebaseError): OAuthCredential_2 | null;
+    credential(params: OAuthCredentialOptions): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
     // (undocumented)
-    static credentialFromJSON(json: object | string): OAuthCredential_2;
-    static credentialFromResult(userCredential: UserCredential): OAuthCredential_2 | null;
+    static credentialFromJSON(json: object | string): OAuthCredential;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
     // @internal (undocumented)
     defaultLanguageCode: string | null;
     getCustomParameters(): CustomParameters;
@@ -460,10 +432,10 @@ export interface Persistence {
     readonly type: 'SESSION' | 'LOCAL' | 'NONE';
 }
 
-// Warning: (ae-forgotten-export) The symbol "PhoneAuthCredential" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export class PhoneAuthCredential extends AuthCredential implements PhoneAuthCredential_2 {
+// @public
+export class PhoneAuthCredential extends AuthCredential {
+    // Warning: (ae-unresolved-inheritdoc-reference) The @inheritDoc reference could not be resolved: No member was found with name "fromJSON"
+    //
     // (undocumented)
     static fromJSON(json: object | string): PhoneAuthCredential | null;
     // @internal (undocumented)
@@ -480,26 +452,18 @@ export class PhoneAuthCredential extends AuthCredential implements PhoneAuthCred
     //
     // @internal (undocumented)
     _makeVerificationRequest(): SignInWithPhoneNumberRequest;
-    // (undocumented)
     toJSON(): object;
 }
 
-// Warning: (ae-forgotten-export) The symbol "PhoneAuthProvider" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export class PhoneAuthProvider implements PhoneAuthProvider_2 {
+// @public
+export class PhoneAuthProvider {
     constructor(auth: Auth);
-    // (undocumented)
     static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
     // (undocumented)
-    static credentialFromResult(userCredential: UserCredential): AuthCredential_2 | null;
-    // (undocumented)
+    static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
     static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
-    // (undocumented)
     static readonly PROVIDER_ID = ProviderId.PHONE;
-    // (undocumented)
     readonly providerId = ProviderId.PHONE;
-    // (undocumented)
     verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
 }
 
@@ -516,12 +480,9 @@ export interface PhoneMultiFactorEnrollInfoOptions {
     session: MultiFactorSession;
 }
 
-// Warning: (ae-forgotten-export) The symbol "PhoneMultiFactorGenerator" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export class PhoneMultiFactorGenerator implements PhoneMultiFactorGenerator_2 {
-    // (undocumented)
-    static assertion(credential: PhoneAuthCredential_2): PhoneMultiFactorAssertion;
+// @public
+export class PhoneMultiFactorGenerator {
+    static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion;
 }
 
 // @public
@@ -573,7 +534,7 @@ export interface ReactNativeAsyncStorage {
 }
 
 // @public
-export function reauthenticateWithCredential(user: User, credential: AuthCredential_2): Promise<UserCredential>;
+export function reauthenticateWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
 export function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
@@ -584,26 +545,21 @@ export function reauthenticateWithPopup(user: User, provider: AuthProvider, reso
 // @public
 export function reauthenticateWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 
-// Warning: (ae-forgotten-export) The symbol "RecaptchaVerifier" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ApplicationVerifierInternal" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export class RecaptchaVerifier implements RecaptchaVerifier_2, ApplicationVerifierInternal {
+// @public
+export class RecaptchaVerifier implements ApplicationVerifierInternal {
     // Warning: (ae-forgotten-export) The symbol "Parameters" needs to be exported by the entry point index.d.ts
     constructor(containerOrId: HTMLElement | string, parameters: Parameters_2, authExtern: Auth);
-    // (undocumented)
     clear(): void;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
     readonly _recaptchaLoader: ReCaptchaLoader;
-    // (undocumented)
     render(): Promise<number>;
     // @internal (undocumented)
     _reset(): void;
-    // (undocumented)
     readonly type = "recaptcha";
-    // (undocumented)
     verify(): Promise<string>;
     }
 
@@ -646,7 +602,7 @@ export const enum SignInMethod {
 }
 
 // @public
-export function signInWithCredential(auth: Auth, credential: AuthCredential_2): Promise<UserCredential>;
+export function signInWithCredential(auth: Auth, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
 export function signInWithCustomToken(auth: Auth, customToken: string): Promise<UserCredential>;
@@ -672,9 +628,9 @@ export function signOut(auth: Auth): Promise<void>;
 // @public
 export class TwitterAuthProvider extends OAuthProvider {
     constructor();
-    static credential(token: string, secret: string): OAuthCredential_2;
-    static credentialFromError(error: FirebaseError): OAuthCredential_2 | null;
-    static credentialFromResult(userCredential: UserCredential): OAuthCredential_2 | null;
+    static credential(token: string, secret: string): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
     // (undocumented)
     static readonly PROVIDER_ID = ProviderId.TWITTER;
     // (undocumented)
@@ -694,7 +650,7 @@ export function updateEmail(user: User, newEmail: string): Promise<void>;
 export function updatePassword(user: User, newPassword: string): Promise<void>;
 
 // @public
-export function updatePhoneNumber(user: User, credential: PhoneAuthCredential_2): Promise<void>;
+export function updatePhoneNumber(user: User, credential: PhoneAuthCredential): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "Profile" needs to be exported by the entry point index.d.ts
 //

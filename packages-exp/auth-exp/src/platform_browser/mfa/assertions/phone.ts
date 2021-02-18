@@ -16,35 +16,33 @@
  */
 import {
   FactorId,
-  PhoneAuthCredential,
-  PhoneMultiFactorAssertion,
-  PhoneMultiFactorGenerator
+  PhoneMultiFactorAssertion
 } from '../../../model/public_types';
 
 import { MultiFactorAssertionImpl } from '../../../mfa/mfa_assertion';
 import { AuthInternal } from '../../../model/auth';
 import { finalizeEnrollPhoneMfa } from '../../../api/account_management/mfa';
-import { PhoneAuthCredentialImpl } from '../../../core/credentials/phone';
+import { PhoneAuthCredential } from '../../../core/credentials/phone';
 import {
   finalizeSignInPhoneMfa,
   FinalizeMfaResponse
 } from '../../../api/authentication/mfa';
 
 /**
- * {@inheritdoc @firebase/auth-types#PhoneMultiFactorAssertion}
+ * {@inheritdoc PhoneMultiFactorAssertion}
  *
  * @public
  */
 export class PhoneMultiFactorAssertionImpl
   extends MultiFactorAssertionImpl
   implements PhoneMultiFactorAssertion {
-  private constructor(private readonly credential: PhoneAuthCredentialImpl) {
+  private constructor(private readonly credential: PhoneAuthCredential) {
     super(FactorId.PHONE);
   }
 
   /** @internal */
   static _fromCredential(
-    credential: PhoneAuthCredentialImpl
+    credential: PhoneAuthCredential
   ): PhoneMultiFactorAssertionImpl {
     return new PhoneMultiFactorAssertionImpl(credential);
   }
@@ -75,17 +73,23 @@ export class PhoneMultiFactorAssertionImpl
 }
 
 /**
- * {@inheritdoc @firebase/auth-types#PhoneMultiFactorGenerator}
+ * Provider for generating a {@link PhoneMultiFactorAssertion}.
+ *
  * @public
  */
-export class PhoneMultiFactorGeneratorImpl
-  implements PhoneMultiFactorGenerator {
+export class PhoneMultiFactorGenerator {
   private constructor() {}
 
-  /** {@inheritdoc @firebase/auth-types#PhoneMultiFactorGenerator.assertion} */
+  /**
+   * Provides a {@link PhoneMultiFactorAssertion} to confirm ownership of the phone second factor.
+   *
+   * @param phoneAuthCredential - A credential provided by {@link PhoneAuthProvider.credential}.
+   * @returns A {@link PhoneMultiFactorAssertion} which can be used with
+   * {@link MultiFactorResolver.resolveSignIn}
+   */
   static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion {
     return PhoneMultiFactorAssertionImpl._fromCredential(
-      credential as PhoneAuthCredentialImpl
+      credential as PhoneAuthCredential
     );
   }
 }

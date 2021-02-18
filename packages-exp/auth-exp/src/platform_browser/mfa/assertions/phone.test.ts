@@ -24,19 +24,19 @@ import { testAuth, TestAuth } from '../../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../../api';
 import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
-import { PhoneAuthCredentialImpl } from '../../../core/credentials/phone';
+import { PhoneAuthCredential } from '../../../core/credentials/phone';
 import { MultiFactorSessionImpl } from '../../../mfa/mfa_session';
 import { PhoneAuthProvider } from '../../providers/phone';
 import {
   PhoneMultiFactorAssertionImpl,
-  PhoneMultiFactorGeneratorImpl
+  PhoneMultiFactorGenerator
 } from './phone';
 
 use(chaiAsPromised);
 
 describe('platform_browser/mfa/phone', () => {
   let auth: TestAuth;
-  let credential: PhoneAuthCredentialImpl;
+  let credential: PhoneAuthCredential;
   let assertion: PhoneMultiFactorAssertionImpl;
   let session: MultiFactorSessionImpl;
 
@@ -131,7 +131,7 @@ describe('platform_browser/mfa/phone', () => {
 
 describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
   describe('.assertion', () => {
-    let credential: PhoneAuthCredentialImpl;
+    let credential: PhoneAuthCredential;
 
     beforeEach(async () => {
       credential = PhoneAuthProvider.credential(
@@ -141,7 +141,7 @@ describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
     });
 
     it('can be used to create an assertion', () => {
-      const assertion = PhoneMultiFactorGeneratorImpl.assertion(credential);
+      const assertion = PhoneMultiFactorGenerator.assertion(credential);
       expect(assertion.factorId).to.eq(ProviderId.PHONE);
     });
   });

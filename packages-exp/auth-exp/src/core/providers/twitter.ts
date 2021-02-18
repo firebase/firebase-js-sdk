@@ -33,7 +33,6 @@
  */
 
 import {
-  OAuthCredential,
   ProviderId,
   SignInMethod,
   UserCredential
@@ -43,7 +42,7 @@ import { FirebaseError } from '@firebase/util';
 import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
-import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
+import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
@@ -100,7 +99,7 @@ export class TwitterAuthProvider extends OAuthProvider {
    * @param secret - Twitter secret.
    */
   static credential(token: string, secret: string): OAuthCredential {
-    return OAuthCredentialImpl._fromParams({
+    return OAuthCredential._fromParams({
       providerId: TwitterAuthProvider.PROVIDER_ID,
       signInMethod: TwitterAuthProvider.TWITTER_SIGN_IN_METHOD,
       oauthToken: token,

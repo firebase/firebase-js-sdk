@@ -19,7 +19,6 @@ import {
   ApplicationVerifier,
   Auth,
   ConfirmationResult,
-  PhoneAuthCredential,
   PhoneInfoOptions,
   ProviderId,
   User,
@@ -30,7 +29,7 @@ import { startEnrollPhoneMfa } from '../../api/account_management/mfa';
 import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { ApplicationVerifierInternal } from '../../model/application_verifier';
-import { PhoneAuthCredentialImpl } from '../../core/credentials/phone';
+import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
 import { _assert } from '../../core/util/assert';
@@ -49,7 +48,7 @@ import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
 
 interface OnConfirmationCallback {
-  (credential: PhoneAuthCredentialImpl): Promise<UserCredential>;
+  (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
 
 class ConfirmationResultImpl implements ConfirmationResult {
@@ -59,7 +58,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
   ) {}
 
   confirm(verificationCode: string): Promise<UserCredential> {
-    const authCredential = PhoneAuthCredentialImpl._fromVerification(
+    const authCredential = PhoneAuthCredential._fromVerification(
       this.verificationId,
       verificationCode
     );
@@ -266,5 +265,5 @@ export async function updatePhoneNumber(
   user: User,
   credential: PhoneAuthCredential
 ): Promise<void> {
-  await _link(user as UserInternal, credential as PhoneAuthCredentialImpl);
+  await _link(user as UserInternal, credential as PhoneAuthCredential);
 }

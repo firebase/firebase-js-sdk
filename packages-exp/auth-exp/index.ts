@@ -104,7 +104,7 @@ export { RecaptchaVerifier } from './src/platform_browser/recaptcha/recaptcha_ve
 export { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
 
 // MFA
-export { PhoneMultiFactorGeneratorImpl as PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
+export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
 /**
  * Initializes an Auth instance with platform specific default dependencies.

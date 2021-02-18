@@ -140,7 +140,7 @@ export { useAuthEmulator } from './auth/emulator';
 export { AuthCredential } from './credentials';
 export { EmailAuthCredential } from './credentials/email';
 export { OAuthCredential } from './credentials/oauth';
-export { PhoneAuthCredentialImpl as PhoneAuthCredential } from './credentials/phone';
+export { PhoneAuthCredential } from './credentials/phone';
 
 // persistence
 export { inMemoryPersistence } from './persistence/in_memory';

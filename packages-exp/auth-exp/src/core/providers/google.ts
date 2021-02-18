@@ -16,7 +16,6 @@
  */
 
 import {
-  OAuthCredential,
   ProviderId,
   SignInMethod,
   UserCredential
@@ -26,7 +25,7 @@ import { FirebaseError } from '@firebase/util';
 import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
-import { OAuthCredential as OAuthCredentialImpl } from '../credentials/oauth';
+import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
@@ -98,7 +97,7 @@ export class GoogleAuthProvider extends OAuthProvider {
     idToken?: string | null,
     accessToken?: string | null
   ): OAuthCredential {
-    return OAuthCredentialImpl._fromParams({
+    return OAuthCredential._fromParams({
       providerId: GoogleAuthProvider.PROVIDER_ID,
       signInMethod: GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD,
       idToken,

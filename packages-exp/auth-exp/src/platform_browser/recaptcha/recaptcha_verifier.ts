@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  Auth,
-  RecaptchaVerifier as RecaptchaVerifierType
-} from '../../model/public_types';
+import { Auth } from '../../model/public_types';
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
@@ -45,11 +42,17 @@ const DEFAULT_PARAMS: Parameters = {
 type TokenCallback = (token: string) => void;
 
 /**
- * {@inheritdoc @firebase/auth-types#RecaptchaVerifier}
+ * An {@link https://www.google.com/recaptcha/ | reCAPTCHA}-based application verifier.
+ *
  * @public
  */
-export class RecaptchaVerifier
-  implements RecaptchaVerifierType, ApplicationVerifierInternal {
+export class RecaptchaVerifier implements ApplicationVerifierInternal {
+  /**
+   * The application verifier type.
+   *
+   * @remarks
+   * For a reCAPTCHA verifier, this is 'recaptcha'.
+   */
   readonly type = RECAPTCHA_VERIFIER_TYPE;
   private destroyed = false;
   private widgetId: number | null = null;
@@ -63,6 +66,30 @@ export class RecaptchaVerifier
   readonly _recaptchaLoader: ReCaptchaLoader;
   private recaptcha: Recaptcha | null = null;
 
+  /**
+   *
+   * @param containerOrId - The reCAPTCHA container parameter.
+   *
+   * @remarks
+   * This has different meaning depending on whether the reCAPTCHA is hidden or visible. For a
+   * visible reCAPTCHA the container must be empty. If a string is used, it has to correspond to
+   * an element ID. The corresponding element must also must be in the DOM at the time of
+   * initialization.
+   *
+   * @param parameters - The optional reCAPTCHA parameters.
+   *
+   * @remarks
+   * Check the reCAPTCHA docs for a comprehensive list. All parameters are accepted except for
+   * the sitekey. Firebase Auth backend provisions a reCAPTCHA for each project and will
+   * configure this upon rendering. For an invisible reCAPTCHA, a size key must have the value
+   * 'invisible'.
+   *
+   * @param authExtern - The corresponding Firebase Auth instance.
+   *
+   * @remarks
+   * If none is provided, the default Firebase Auth instance is used. A Firebase Auth instance
+   * must be initialized with an API key, otherwise an error will be thrown.
+   */
   constructor(
     containerOrId: HTMLElement | string,
     private readonly parameters: Parameters = {
@@ -94,7 +121,11 @@ export class RecaptchaVerifier
     // TODO: Figure out if sdk version is needed
   }
 
-  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.verify} */
+  /**
+   * Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA token.
+   *
+   * @returns A Promise for the reCAPTCHA token.
+   */
   async verify(): Promise<string> {
     this.assertNotDestroyed();
     const id = await this.render();
@@ -121,7 +152,11 @@ export class RecaptchaVerifier
     });
   }
 
-  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.render} */
+  /**
+   * Renders the reCAPTCHA widget on the page.
+   *
+   * @returns A Promise that resolves with the reCAPTCHA widget ID.
+   */
   render(): Promise<number> {
     try {
       this.assertNotDestroyed();
@@ -152,7 +187,9 @@ export class RecaptchaVerifier
     }
   }
 
-  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.clear} */
+  /**
+   * Clears the reCAPTCHA widget from the page and destroys the instance.
+   */
   clear(): void {
     this.assertNotDestroyed();
     this.destroyed = true;
