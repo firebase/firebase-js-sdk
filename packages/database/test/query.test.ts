@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-import { use, expect } from 'chai';
+import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { Reference } from '../src/api/Reference';
 import { DataSnapshot } from '../src/api/DataSnapshot';
 import { Query } from '../src/api/Query';
 import '../src/core/snap/ChildrenNode';
-import { getRandomNode, getFreshRepo, getPath, pause } from './helpers/util';
+import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
 import {
   EventAccumulator,
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
-import { INTEGER_32_MIN, INTEGER_32_MAX } from '../src/core/util/util';
+import { INTEGER_32_MAX, INTEGER_32_MIN } from '../src/core/util/util';
+import { repoGetDatabase } from '../src/core/Repo';
 
 use(chaiAsPromised);
 
@@ -81,11 +82,6 @@ describe('Query Tests', () => {
     const dbChild = child.database;
 
     expect(db).to.equal(dbChild);
-    /**
-     * TS throws an error here (as is expected)
-     * casting to any to allow the code to run
-     */
-    expect(() => ((path as any).database = "can't overwrite")).to.throw();
     expect(path.database).to.equal(db);
   });
 
@@ -4531,12 +4527,12 @@ describe('Query Tests', () => {
 
     expect(readSnapshot.val()).to.deep.equal({ a: 1, b: 2, c: 3 });
 
-    queryRef.database.goOffline();
+    repoGetDatabase(queryRef).goOffline();
 
     // Delete an item in the query and then bring our connection back up.
     ea.reset();
     await writerRef.child('b').remove();
-    queryRef.database.goOnline();
+    repoGetDatabase(queryRef).goOnline();
 
     await ea.promise;
     expect(readSnapshot.child('b').val()).to.be.null;

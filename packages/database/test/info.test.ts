@@ -24,6 +24,7 @@ import {
 } from './helpers/util';
 import { Reference } from '../src/api/Reference';
 import { EventAccumulator } from './helpers/EventAccumulator';
+import { repoGetDatabase } from '../src/core/Repo';
 
 /**
  * We have a test that depends on leveraging two properly
@@ -160,8 +161,8 @@ describe('.info Tests', function () {
     });
 
     runs(() => {
-      ref.database.goOffline();
-      refAlt.database.goOffline();
+      repoGetDatabase(ref).goOffline();
+      repoGetDatabase(refAlt).goOffline();
     });
 
     // Ensure we're disconnected from both Firebases
@@ -181,7 +182,7 @@ describe('.info Tests', function () {
     // Ensure that we don't automatically reconnect upon Reference creation
     runs(() => {
       ready = 0;
-      const refDup = ref.database.ref();
+      const refDup = repoGetDatabase(ref).ref();
       refDup.child('.info/connected').on('value', snap => {
         ready = snap.val() === true || ready;
       });
@@ -196,8 +197,8 @@ describe('.info Tests', function () {
     });
 
     runs(() => {
-      ref.database.goOnline();
-      refAlt.database.goOnline();
+      repoGetDatabase(ref).goOnline();
+      repoGetDatabase(refAlt).goOnline();
     });
 
     // Ensure we're connected to both Firebases
