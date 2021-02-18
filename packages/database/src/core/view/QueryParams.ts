@@ -178,9 +178,6 @@ export class QueryParams {
     return !(this.startSet_ || this.endSet_ || this.limitSet_);
   }
 
-  /**
-   * What does isDefault() mean?
-   */
   isDefault(): boolean {
     return this.loadsAllData() && this.index_ === PRIORITY_INDEX;
   }
