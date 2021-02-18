@@ -64,7 +64,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/esm5/index.d.ts",
+  "typings": "dist/auth-exp.d.ts",
   "nyc": {
     "extension": [
       ".ts"

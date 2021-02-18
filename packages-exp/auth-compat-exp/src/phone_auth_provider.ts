@@ -17,7 +17,7 @@
 
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '@firebase/auth-exp';
 import firebase from '@firebase/app-compat';
 import { unwrap, Wrapper } from './wrap';
 

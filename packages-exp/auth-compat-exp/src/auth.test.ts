@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
-import { Config } from '@firebase/auth-types-exp';
+import { Config } from '@firebase/auth-exp';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';

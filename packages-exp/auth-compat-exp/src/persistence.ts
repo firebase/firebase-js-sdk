@@ -16,7 +16,7 @@
  */
 
 import { _assert, AuthErrorCode } from '@firebase/auth-exp/internal';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '@firebase/auth-exp';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
 import { _isWebStorageSupported, _isWorker } from './platform';
 

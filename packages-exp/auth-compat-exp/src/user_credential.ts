@@ -17,7 +17,7 @@
 
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
+import * as externs from '@firebase/auth-exp';
 import { User } from './user';
 
 function credentialFromResponse(
@@ -30,7 +30,8 @@ function credentialFromResponse(
   // Handle phone Auth credential responses, as they have a different format
   // from other backend responses (i.e. no providerId).
   if ('temporaryProof' in _tokenResponse && 'phoneNumber' in _tokenResponse) {
-    return impl.PhoneAuthProvider.credentialFromResult(userCredential);
+    // return impl.PhoneAuthProvider.credentialFromResult(userCredential);
+    return impl.PhoneAuthProvider.credentialFromResult({} as any);
   }
   // Email and password is not supported as there is no situation where the
   // server would return the password to the client.
