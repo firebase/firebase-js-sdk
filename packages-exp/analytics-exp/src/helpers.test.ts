@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
-import { DataLayer, Gtag, DynamicConfig } from '@firebase/analytics-types-exp';
+import { DataLayer, Gtag, DynamicConfig } from './types';
 import {
   getOrCreateDataLayer,
   insertScriptTag,
