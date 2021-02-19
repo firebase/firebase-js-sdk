@@ -116,6 +116,7 @@ export interface _FirebaseService {
 /**
  * @internal
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseAppInternal extends FirebaseApp {
   container: ComponentContainer;
   isDeleted: boolean;
