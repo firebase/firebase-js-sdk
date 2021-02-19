@@ -28,7 +28,9 @@
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn build && yarn doc"
+    "build:doc": "yarn build && yarn doc",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/app-exp-public.d.ts",
+    "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/app-exp.d.ts"
   },
   "repository": {
     "directory": "packages-exp/installations-compat",
