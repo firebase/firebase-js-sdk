@@ -193,12 +193,7 @@ export function repoStart(repo: Repo): void {
     );
 
     // Minor hack: Fire onConnect immediately, since there's no actual connection.
-    setTimeout(
-      function (connectStatus: boolean) {
-        repoOnConnectStatus(this, connectStatus);
-      }.bind(repo, true),
-      0
-    );
+    setTimeout(() => repoOnConnectStatus(repo, /* connectStatus= */ true), 0);
   } else {
     const authOverride = repo.app.options['databaseAuthVariableOverride'];
     // Validate authOverride
@@ -807,7 +802,7 @@ export function repoCallOnCompleteCallback(
 }
 
 export function repoGetDatabase(repo: Repo): Database {
-  return repo.__database || (repo.__database = new Database(this));
+  return repo.__database || (repo.__database = new Database(repo));
 }
 
 /**
@@ -830,7 +825,7 @@ export function repoStartTransaction(
 
   // Add a watch to make sure we get server updates.
   const valueCallback = function () {};
-  const watchRef = new Reference(this, path);
+  const watchRef = new Reference(repo, path);
   watchRef.on('value', valueCallback);
   const unwatcher = function () {
     watchRef.off('value', valueCallback);
@@ -873,7 +868,7 @@ export function repoStartTransaction(
       // We just set the input snapshot, so this cast should be safe
       const snapshot = new DataSnapshot(
         transaction.currentInputSnapshot,
-        new Reference(this, transaction.path),
+        new Reference(repo, transaction.path),
         PRIORITY_INDEX
       );
       transaction.onComplete(null, false, snapshot);
@@ -936,7 +931,7 @@ export function repoStartTransaction(
     );
     eventQueueRaiseEventsForChangedPath(repo.eventQueue_, path, events);
 
-    repoSendReadyTransactions(repo, this.transactionQueueTree_);
+    repoSendReadyTransactions(repo, repo.transactionQueueTree_);
   }
 }
 
@@ -1069,7 +1064,7 @@ function repoSendTransactionQueue(
           repo.transactionQueueTree_.subTree(path)
         );
         // There may be pending transactions that we can now send.
-        repoSendReadyTransactions(repo, this.transactionQueueTree_);
+        repoSendReadyTransactions(repo, repo.transactionQueueTree_);
 
         eventQueueRaiseEventsForChangedPath(repo.eventQueue_, path, events);
 

@@ -142,7 +142,7 @@ export class Reference extends Query {
       this.repo,
       this.path,
       newVal,
-      null,
+      /*priority=*/ null,
       deferred.wrapCallback(onComplete)
     );
     return deferred.promise;
