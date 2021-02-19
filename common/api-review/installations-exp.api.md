@@ -13,6 +13,12 @@ export function deleteInstallations(installations: FirebaseInstallations): Promi
 export interface FirebaseInstallations {
 }
 
+// @internal
+export interface _FirebaseInstallationsInternal {
+    getId(): Promise<string>;
+    getToken(forceRefresh?: boolean): Promise<string>;
+}
+
 // @public
 export function getId(installations: FirebaseInstallations): Promise<string>;
 

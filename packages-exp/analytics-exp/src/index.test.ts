@@ -36,7 +36,7 @@ import {
   resetGlobalVars,
   factory as analyticsFactory
 } from './factory';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 
 let analyticsInstance: AnalyticsService = {} as AnalyticsService;
 const fakeMeasurementId = 'abcd-efgh';

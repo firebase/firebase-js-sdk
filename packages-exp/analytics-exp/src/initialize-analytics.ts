@@ -17,7 +17,7 @@
 
 import { DynamicConfig, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GA_FID_KEY, ORIGIN_KEY } from './constants';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { fetchDynamicConfigWithRetry } from './get-config';
 import { logger } from './logger';
 import { FirebaseApp } from '@firebase/app-exp';
