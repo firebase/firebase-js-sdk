@@ -13,8 +13,19 @@ import { Unsubscribe } from '@firebase/util';
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
 
 // @public (undocumented)
+export interface FcmOptions {
+    // (undocumented)
+    analyticsLabel?: string;
+    // (undocumented)
+    link?: string;
+}
+
+// @public (undocumented)
 export interface FirebaseMessaging {
 }
+
+// @internal (undocumented)
+export type _FirebaseMessagingName = 'messaging';
 
 // @public
 export function getMessaging(app: FirebaseApp): FirebaseMessaging;
@@ -33,16 +44,22 @@ export interface MessagePayload {
     data?: {
         [key: string]: string;
     };
-    // Warning: (ae-forgotten-export) The symbol "FcmOptions" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     fcmOptions?: FcmOptions;
     // (undocumented)
     from: string;
-    // Warning: (ae-forgotten-export) The symbol "NotificationPayload" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     notification?: NotificationPayload;
+}
+
+// @public
+export interface NotificationPayload {
+    // (undocumented)
+    body?: string;
+    // (undocumented)
+    image?: string;
+    // (undocumented)
+    title?: string;
 }
 
 // @public
