@@ -1275,7 +1275,7 @@ function repoRerunTransactionQueue(
   }
 
   // Try to send the transaction result to the server.
-  repoSendReadyTransactions(repo, this.transactionQueueTree_);
+  repoSendReadyTransactions(repo, repo.transactionQueueTree_);
 }
 
 /**
