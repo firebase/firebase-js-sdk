@@ -187,7 +187,7 @@ export function repoStart(repo: Repo): void {
         isMerge: boolean,
         tag: number | null
       ) => {
-        repoOnDataUpdate(this, pathString, data, isMerge, tag);
+        repoOnDataUpdate(repo, pathString, data, isMerge, tag);
       },
       repo.authTokenProvider_
     );
