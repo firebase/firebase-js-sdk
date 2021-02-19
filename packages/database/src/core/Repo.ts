@@ -224,13 +224,13 @@ export function repoStart(repo: Repo): void {
         isMerge: boolean,
         tag: number | null
       ) => {
-        repoOnDataUpdate(this, pathString, data, isMerge, tag);
+        repoOnDataUpdate(repo, pathString, data, isMerge, tag);
       },
       (connectStatus: boolean) => {
-        repoOnConnectStatus(this, connectStatus);
+        repoOnConnectStatus(repo, connectStatus);
       },
       (updates: object) => {
-        repoOnServerInfoUpdate(this, updates);
+        repoOnServerInfoUpdate(repo, updates);
       },
       repo.authTokenProvider_,
       authOverride
