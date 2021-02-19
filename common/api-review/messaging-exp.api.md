@@ -5,8 +5,6 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-exp';
-import { FirebaseMessaging } from '@firebase/messaging-types-exp';
-import { MessagePayload } from '@firebase/messaging-types-exp';
 import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
@@ -14,7 +12,9 @@ import { Unsubscribe } from '@firebase/util';
 // @public
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
 
-export { FirebaseMessaging }
+// @public (undocumented)
+export interface FirebaseMessaging {
+}
 
 // @public
 export function getMessaging(app: FirebaseApp): FirebaseMessaging;
@@ -25,7 +25,25 @@ export function getToken(messaging: FirebaseMessaging, options?: {
     swReg?: ServiceWorkerRegistration;
 }): Promise<string>;
 
-export { MessagePayload }
+// @public (undocumented)
+export interface MessagePayload {
+    // (undocumented)
+    collapseKey: string;
+    // (undocumented)
+    data?: {
+        [key: string]: string;
+    };
+    // Warning: (ae-forgotten-export) The symbol "FcmOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    fcmOptions?: FcmOptions;
+    // (undocumented)
+    from: string;
+    // Warning: (ae-forgotten-export) The symbol "NotificationPayload" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    notification?: NotificationPayload;
+}
 
 // @public
 export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;

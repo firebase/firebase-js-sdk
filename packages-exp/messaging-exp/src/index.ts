@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseMessaging } from '@firebase/messaging-types-exp';
+import { FirebaseMessaging } from './interfaces/public-types';
 import { registerMessaging } from './helpers/register';
 import '@firebase/installations-exp';
 
