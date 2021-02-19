@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "8.2.7",
+  "version": "8.2.8",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -46,7 +46,7 @@
   "dependencies": {
     "@firebase/app": "0.6.14",
     "@firebase/app-types": "0.6.1",
-    "@firebase/auth": "0.16.3",
+    "@firebase/auth": "0.16.4",
     "@firebase/database": "0.9.3",
     "@firebase/firestore": "2.1.6",
     "@firebase/functions": "0.6.1",
@@ -56,7 +56,7 @@
     "@firebase/storage": "0.4.2",
     "@firebase/performance": "0.4.5",
     "@firebase/remote-config": "0.1.30",
-    "@firebase/analytics": "0.6.2",
+    "@firebase/analytics": "0.6.3",
     "@firebase/util": "0.3.4"
   },
   "devDependencies": {

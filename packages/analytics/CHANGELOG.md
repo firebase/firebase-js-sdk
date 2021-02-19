@@ -1,5 +1,11 @@
 # @firebase/analytics
 
+## 0.6.3
+
+### Patch Changes
+
+- [`74bf52009`](https://github.com/firebase/firebase-js-sdk/commit/74bf52009b291a62deabfd865084d4e0fcacc483) [#4458](https://github.com/firebase/firebase-js-sdk/pull/4458) - Fixed a behavior causing `gtag` to be downloaded twice on Firebase Analytics initialization. This did not seem to affect the functionality of Firebase Analytics but adds noise to the logs when users are trying to debug.
+
 ## 0.6.2
 
 ### Patch Changes
