@@ -1252,7 +1252,7 @@ function repoRerunTransactionQueue(
 
       if (queue[i].onComplete) {
         if (abortReason === 'nodata') {
-          const ref = new Reference(this, queue[i].path);
+          const ref = new Reference(repo, queue[i].path);
           // We set this field immediately, so it's safe to cast to an actual snapshot
           const lastInput /** @type {!Node} */ = queue[i].currentInputSnapshot;
           const snapshot = new DataSnapshot(lastInput, ref, PRIORITY_INDEX);
