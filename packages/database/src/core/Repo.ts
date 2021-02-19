@@ -1054,7 +1054,7 @@ function repoSendTransactionQueue(
             // We never unset the output snapshot, and given that this
             // transaction is complete, it should be set
             const node = queue[i].currentOutputSnapshotResolved as Node;
-            const ref = new Reference(this, queue[i].path);
+            const ref = new Reference(repo, queue[i].path);
             const snapshot = new DataSnapshot(node, ref, PRIORITY_INDEX);
             callbacks.push(
               queue[i].onComplete.bind(null, null, true, snapshot)
