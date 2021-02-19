@@ -32,7 +32,6 @@
   "dependencies": {
     "@firebase/installations-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
-    "@firebase/remote-config-types-exp": "0.0.900",
     "@firebase/util": "0.3.4",
     "@firebase/component": "0.1.21",
     "tslib": "^1.11.1"
