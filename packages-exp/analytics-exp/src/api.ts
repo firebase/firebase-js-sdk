@@ -24,7 +24,7 @@ import {
   CustomParams,
   EventNameString,
   EventParams
-} from '@firebase/analytics-types-exp';
+} from './public-types';
 import { Provider } from '@firebase/component';
 import {
   isIndexedDBAvailable,

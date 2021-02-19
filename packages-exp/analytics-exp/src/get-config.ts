@@ -20,11 +20,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-exp';
-import {
-  DynamicConfig,
-  ThrottleMetadata,
-  MinimalDynamicConfig
-} from '@firebase/analytics-types-exp';
+import { DynamicConfig, ThrottleMetadata, MinimalDynamicConfig } from './types';
 import { FirebaseError, calculateBackoffMillis } from '@firebase/util';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { DYNAMIC_CONFIG_URL, FETCH_TIMEOUT_MILLIS } from './constants';

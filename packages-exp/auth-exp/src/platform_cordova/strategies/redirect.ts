@@ -16,31 +16,32 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { _castAuth } from '../../core/auth/auth_impl';
-import { AuthErrorCode } from '../../core/errors';
-import { OAuthProvider } from '../../core/providers/oauth';
-import { _assert } from '../../core/util/assert';
-import { _withDefaultResolver } from '../../core/util/resolver';
-import { AuthEventType } from '../../model/popup_redirect';
+import {
+  _linkWithRedirect,
+  _reauthenticateWithRedirect,
+  _signInWithRedirect
+} from '../../platform_browser/strategies/redirect';
 
-// TODO: For now this code is largely a duplicate of platform_browser/strategies/redirect.
-//       It's likely we can just reuse that code
-
-export async function signInWithRedirect(
+export function signInWithRedirect(
   auth: externs.Auth,
   provider: externs.AuthProvider,
   resolver?: externs.PopupRedirectResolver
 ): Promise<void> {
-  const authInternal = _castAuth(auth);
-  _assert(
-    provider instanceof OAuthProvider,
-    auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
+  return _signInWithRedirect(auth, provider, resolver) as Promise<void>;
+}
 
-  return _withDefaultResolver(authInternal, resolver)._openRedirect(
-    authInternal,
-    provider,
-    AuthEventType.SIGN_IN_VIA_REDIRECT
-  ) as Promise<void>;
+export function reauthenticateWithRedirect(
+  user: externs.User,
+  provider: externs.AuthProvider,
+  resolver?: externs.PopupRedirectResolver
+): Promise<void> {
+  return _reauthenticateWithRedirect(user, provider, resolver) as Promise<void>;
+}
+
+export function linkWithRedirect(
+  user: externs.User,
+  provider: externs.AuthProvider,
+  resolver?: externs.PopupRedirectResolver
+): Promise<void> {
+  return _linkWithRedirect(user, provider, resolver) as Promise<void>;
 }
