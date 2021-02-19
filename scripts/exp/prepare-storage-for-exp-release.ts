@@ -43,8 +43,7 @@ export async function prepare() {
   typesPackageJson.files = `['exp/index.d.ts']`;
 
   packageJson.peerDependencies = {
-    '@firebase/app-exp': '0.x',
-    '@firebase/app-types-exp': '0.x'
+    '@firebase/app-exp': '0.x'
   };
 
   packageJson.main = expPackageJson.main.replace('./', 'exp/');

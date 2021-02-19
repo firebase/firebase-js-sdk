@@ -41,8 +41,7 @@ export async function prepare() {
   packageJson.version = '0.0.900';
 
   packageJson.peerDependencies = {
-    '@firebase/app-exp': '0.x',
-    '@firebase/app-types-exp': '0.x'
+    '@firebase/app-exp': '0.x'
   };
 
   packageJson.main = expPackageJson.main.replace('../', '');
