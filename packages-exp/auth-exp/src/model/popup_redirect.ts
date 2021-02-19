@@ -92,7 +92,7 @@ export interface PopupRedirectResolverInternal extends PopupRedirectResolver {
     provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
-  ): Promise<unknown>;
+  ): Promise<void | never>;
   _isIframeWebStorageSupported(
     auth: AuthInternal,
     cb: (support: boolean) => unknown

@@ -4,27 +4,108 @@
 
 ```ts
 
-import { Analytics } from '@firebase/analytics-types-exp';
-import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
-import { ControlParams } from '@firebase/analytics-types-exp';
-import { CustomParams } from '@firebase/analytics-types-exp';
-import { EventNameString } from '@firebase/analytics-types-exp';
-import { EventParams } from '@firebase/analytics-types-exp';
 import { FirebaseApp } from '@firebase/app-exp';
-import { Item } from '@firebase/analytics-types-exp';
-import { Promotion } from '@firebase/analytics-types-exp';
-import { SettingsOptions } from '@firebase/analytics-types-exp';
 
-export { Analytics }
+// @public (undocumented)
+export interface Analytics {
+    app: FirebaseApp;
+}
 
-export { ControlParams }
+// @public
+export interface AnalyticsCallOptions {
+    global: boolean;
+}
+
+// @public
+export interface ControlParams {
+    // (undocumented)
+    event_callback?: () => void;
+    // (undocumented)
+    event_timeout?: number;
+    // (undocumented)
+    groups?: string | string[];
+    // (undocumented)
+    send_to?: string | string[];
+}
+
+// @public (undocumented)
+export type Currency = string | number;
 
 // @public
 export type CustomEventName<T> = T extends EventNameString ? never : T;
 
-export { CustomParams }
+// @public
+export interface CustomParams {
+    // (undocumented)
+    [key: string]: any;
+}
 
-export { EventParams }
+// @public
+export type EventNameString = 'add_payment_info' | 'add_shipping_info' | 'add_to_cart' | 'add_to_wishlist' | 'begin_checkout' | 'checkout_progress' | 'exception' | 'generate_lead' | 'login' | 'page_view' | 'purchase' | 'refund' | 'remove_from_cart' | 'screen_view' | 'search' | 'select_content' | 'select_item' | 'select_promotion' | 'set_checkout_option' | 'share' | 'sign_up' | 'timing_complete' | 'view_cart' | 'view_item' | 'view_item_list' | 'view_promotion' | 'view_search_results';
+
+// @public
+export interface EventParams {
+    // (undocumented)
+    affiliation?: string;
+    // (undocumented)
+    checkout_option?: string;
+    // (undocumented)
+    checkout_step?: number;
+    // (undocumented)
+    content_id?: string;
+    // (undocumented)
+    content_type?: string;
+    // (undocumented)
+    coupon?: string;
+    // (undocumented)
+    currency?: string;
+    // (undocumented)
+    description?: string;
+    // (undocumented)
+    event_category?: string;
+    // (undocumented)
+    event_label?: string;
+    // (undocumented)
+    fatal?: boolean;
+    // (undocumented)
+    item_list_id?: string;
+    // (undocumented)
+    item_list_name?: string;
+    // (undocumented)
+    items?: Item[];
+    // (undocumented)
+    method?: string;
+    // (undocumented)
+    number?: string;
+    // (undocumented)
+    page_location?: string;
+    // (undocumented)
+    page_path?: string;
+    // (undocumented)
+    page_title?: string;
+    // (undocumented)
+    payment_type?: string;
+    // (undocumented)
+    promotion_id?: string;
+    // (undocumented)
+    promotion_name?: string;
+    // (undocumented)
+    promotions?: Promotion[];
+    // (undocumented)
+    screen_name?: string;
+    // (undocumented)
+    search_term?: string;
+    // (undocumented)
+    shipping?: Currency;
+    // (undocumented)
+    shipping_tier?: string;
+    // (undocumented)
+    tax?: Currency;
+    // (undocumented)
+    transaction_id?: string;
+    // (undocumented)
+    value?: number;
+}
 
 // @public
 export function getAnalytics(app: FirebaseApp): Analytics;
@@ -32,7 +113,61 @@ export function getAnalytics(app: FirebaseApp): Analytics;
 // @public
 export function isSupported(): Promise<boolean>;
 
-export { Item }
+// @public (undocumented)
+export interface Item {
+    // (undocumented)
+    affiliation?: string;
+    // @deprecated (undocumented)
+    brand?: string;
+    // @deprecated (undocumented)
+    category?: string;
+    // (undocumented)
+    coupon?: string;
+    // (undocumented)
+    creative_name?: string;
+    // (undocumented)
+    creative_slot?: string;
+    // (undocumented)
+    discount?: Currency;
+    // @deprecated (undocumented)
+    id?: string;
+    // (undocumented)
+    index?: number;
+    // (undocumented)
+    item_brand?: string;
+    // (undocumented)
+    item_category?: string;
+    // (undocumented)
+    item_category2?: string;
+    // (undocumented)
+    item_category3?: string;
+    // (undocumented)
+    item_category4?: string;
+    // (undocumented)
+    item_category5?: string;
+    // (undocumented)
+    item_id?: string;
+    // (undocumented)
+    item_list_id?: string;
+    // (undocumented)
+    item_list_name?: string;
+    // (undocumented)
+    item_name?: string;
+    // (undocumented)
+    item_variant?: string;
+    // (undocumented)
+    location_id?: string;
+    // @deprecated (undocumented)
+    name?: string;
+    // (undocumented)
+    price?: Currency;
+    // (undocumented)
+    promotion_id?: string;
+    // (undocumented)
+    promotion_name?: string;
+    // (undocumented)
+    quantity?: number;
+}
 
 // @public
 export function logEvent(analyticsInstance: Analytics, eventName: 'add_payment_info', eventParams?: {
@@ -216,7 +351,17 @@ export function logEvent<T extends string>(analyticsInstance: Analytics, eventNa
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
-export { Promotion }
+// @public @deprecated (undocumented)
+export interface Promotion {
+    // (undocumented)
+    creative_name?: string;
+    // (undocumented)
+    creative_slot?: string;
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    name?: string;
+}
 
 // @public
 export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enabled: boolean): void;
@@ -227,7 +372,11 @@ export function setCurrentScreen(analyticsInstance: Analytics, screenName: strin
 // @public
 export function settings(options: SettingsOptions): void;
 
-export { SettingsOptions }
+// @public
+export interface SettingsOptions {
+    dataLayerName?: string;
+    gtagName?: string;
+}
 
 // @public
 export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;

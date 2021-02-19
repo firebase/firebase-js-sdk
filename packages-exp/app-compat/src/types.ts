@@ -33,6 +33,7 @@ export interface FirebaseServiceInternals {
 
 // Services are exposed through instances - each of which is associated with a
 // FirebaseApp.
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseService {
   app: FirebaseApp;
   INTERNAL?: FirebaseServiceInternals;

@@ -73,11 +73,19 @@ import { RedirectAction } from '../../core/strategies/redirect';
  *
  * @public
  */
-export async function signInWithRedirect(
+export function signInWithRedirect(
   auth: Auth,
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<never> {
+  return _signInWithRedirect(auth, provider, resolver) as Promise<never>;
+}
+
+export async function _signInWithRedirect(
+  auth: Auth,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<void | never> {
   const authInternal = _castAuth(auth);
   _assert(
     provider instanceof OAuthProvider,
@@ -89,7 +97,7 @@ export async function signInWithRedirect(
     authInternal,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
-  ) as Promise<never>;
+  );
 }
 
 /**
@@ -120,11 +128,22 @@ export async function signInWithRedirect(
  *
  * @public
  */
-export async function reauthenticateWithRedirect(
+export function reauthenticateWithRedirect(
   user: User,
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<never> {
+  return _reauthenticateWithRedirect(
+    user,
+    provider,
+    resolver
+  ) as Promise<never>;
+}
+export async function _reauthenticateWithRedirect(
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<void | never> {
   const userInternal = user as UserInternal;
   _assert(
     provider instanceof OAuthProvider,
@@ -141,7 +160,7 @@ export async function reauthenticateWithRedirect(
     provider,
     AuthEventType.REAUTH_VIA_REDIRECT,
     eventId
-  ) as Promise<never>;
+  );
 }
 
 /**
@@ -169,11 +188,18 @@ export async function reauthenticateWithRedirect(
  *
  * @public
  */
-export async function linkWithRedirect(
+export function linkWithRedirect(
   user: User,
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<never> {
+  return _linkWithRedirect(user, provider, resolver) as Promise<never>;
+}
+export async function _linkWithRedirect(
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<void | never> {
   const userInternal = user as UserInternal;
   _assert(
     provider instanceof OAuthProvider,
@@ -191,7 +217,7 @@ export async function linkWithRedirect(
     provider,
     AuthEventType.LINK_VIA_REDIRECT,
     eventId
-  ) as Promise<never>;
+  );
 }
 
 /**
