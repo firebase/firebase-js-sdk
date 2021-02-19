@@ -196,7 +196,7 @@ export function repoStart(repo: Repo): void {
     setTimeout(
       function (connectStatus: boolean) {
         repoOnConnectStatus(this, connectStatus);
-      }.bind(this, true),
+      }.bind(repo, true),
       0
     );
   } else {
