@@ -285,13 +285,6 @@ export function repoStart(repo: Repo): void {
 }
 
 /**
- * @return The namespace represented by the repo.
- */
-export function repoName(repo: Repo): string {
-  return repo.repoInfo_.namespace;
-}
-
-/**
  * @return The time in milliseconds, taking the server offset into account if we have one.
  */
 export function repoServerTime(repo: Repo): number {

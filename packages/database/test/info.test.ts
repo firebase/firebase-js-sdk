@@ -161,8 +161,8 @@ describe('.info Tests', function () {
     });
 
     runs(() => {
-      repoGetDatabase(ref).goOffline();
-      repoGetDatabase(refAlt).goOffline();
+      ref.database.goOffline();
+      refAlt.database.goOffline();
     });
 
     // Ensure we're disconnected from both Firebases
@@ -182,7 +182,7 @@ describe('.info Tests', function () {
     // Ensure that we don't automatically reconnect upon Reference creation
     runs(() => {
       ready = 0;
-      const refDup = repoGetDatabase(ref).ref();
+      const refDup = ref.database.ref();
       refDup.child('.info/connected').on('value', snap => {
         ready = snap.val() === true || ready;
       });
@@ -197,8 +197,8 @@ describe('.info Tests', function () {
     });
 
     runs(() => {
-      repoGetDatabase(ref).goOnline();
-      repoGetDatabase(refAlt).goOnline();
+      ref.database.goOnline();
+      refAlt.database.goOnline();
     });
 
     // Ensure we're connected to both Firebases

@@ -4527,12 +4527,12 @@ describe('Query Tests', () => {
 
     expect(readSnapshot.val()).to.deep.equal({ a: 1, b: 2, c: 3 });
 
-    repoGetDatabase(queryRef).goOffline();
+    queryRef.database.goOffline();
 
     // Delete an item in the query and then bring our connection back up.
     ea.reset();
     await writerRef.child('b').remove();
-    repoGetDatabase(queryRef).goOnline();
+    queryRef.database.goOnline();
 
     await ea.promise;
     expect(readSnapshot.child('b').val()).to.be.null;

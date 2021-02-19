@@ -31,7 +31,6 @@ import { QueryParams } from '../QueryParams';
 import { Path } from '../../util/Path';
 import { CompleteChildSource } from '../CompleteChildSource';
 import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
-import { repoName } from '../../Repo';
 
 /**
  * Applies a limit and a range to a node and uses RangedFilter to do the heavy lifting where possible
@@ -135,7 +134,7 @@ export class LimitedFilter implements NodeFilter {
               this.index_.compare(next, this.rangedFilter_.getEndPost()) <= 0;
           }
           if (inRange) {
-            filtered = filtered.updateImmediateChild(repoName(next), next.node);
+            filtered = filtered.updateImmediateChild(next.name, next.node);
             count++;
           } else {
             // if we have reached the end post, we cannot keep adding elemments
@@ -180,7 +179,7 @@ export class LimitedFilter implements NodeFilter {
             count++;
           } else {
             filtered = filtered.updateImmediateChild(
-              repoName(next),
+              next.name,
               ChildrenNode.EMPTY_NODE
             );
           }
