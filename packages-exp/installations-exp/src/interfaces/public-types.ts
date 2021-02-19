@@ -27,6 +27,7 @@ export interface FirebaseInstallations {}
  *
  * @internal
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseInstallationsInternal {
   /**
    * Creates a Firebase Installation if there isn't one for the app and
