@@ -41,6 +41,8 @@ import {
   _savePartialEvent
 } from './events';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
+import { _getRedirectResult } from '../../platform_browser/strategies/redirect';
+import { _clearRedirectOutcomes } from '../../core/strategies/redirect';
 
 /**
  * How long to wait for the initial auth event before concluding no
@@ -52,7 +54,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   readonly _redirectPersistence = browserSessionPersistence;
   private readonly eventManagers = new Map<string, CordovaAuthEventManager>();
 
-  _completeRedirectFn = async (): Promise<null> => null;
+  _completeRedirectFn = _getRedirectResult;
 
   async _initialize(auth: Auth): Promise<CordovaAuthEventManager> {
     const key = auth._key();
@@ -78,7 +80,12 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     _checkCordovaConfiguration(auth);
     const manager = await this._initialize(auth);
     await manager.initialized();
+
+    // Reset the persisted redirect states. This does not matter on Web where
+    // the redirect always blows away application state entirely. On Cordova,
+    // the app maintains control flow through the redirect.
     manager.resetRedirect();
+    _clearRedirectOutcomes();
 
     const event = _generateNewEvent(auth, authType, eventId);
     await _savePartialEvent(auth, event);

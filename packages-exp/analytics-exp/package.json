@@ -30,7 +30,6 @@
     "@firebase/app-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/analytics-types-exp": "0.0.900",
     "@firebase/installations-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.4",

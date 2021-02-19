@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  DynamicConfig,
-  Gtag,
-  MinimalDynamicConfig
-} from '@firebase/analytics-types-exp';
+import { DynamicConfig, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GA_FID_KEY, ORIGIN_KEY } from './constants';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { fetchDynamicConfigWithRetry } from './get-config';
@@ -124,7 +120,7 @@ export async function initializeAnalytics(
   // but since it is idempotent, we can call it multiple times.
   // We keep it together with other initialization logic for better code structure.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  gtagCore('js' as any, new Date());
+  (gtagCore as any)('js', new Date());
 
   const configProperties: { [key: string]: string | boolean } = {
     // guard against developers accidentally setting properties with prefix `firebase_`
