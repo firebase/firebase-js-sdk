@@ -25,7 +25,7 @@
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/app-exp-public.d.ts",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/remote-config-exp-public.d.ts",
     "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/src/index.d.ts"
   },
   "peerDependencies": {
