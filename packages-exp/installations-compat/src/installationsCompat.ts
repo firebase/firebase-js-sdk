@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { FirebaseInstallations as FirebaseInstallationsCompat } from '@firebase/installations-types';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import {
+  FirebaseInstallations,
   deleteInstallations,
   getId,
   getToken,

@@ -7,7 +7,7 @@
   "module": "dist/index.esm.js",
   "browser": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "typings": "dist/installations-exp.d.ts",
+  "typings": "dist/src/index.d.ts",
   "license": "Apache-2.0",
   "files": ["dist"],
   "scripts": {
