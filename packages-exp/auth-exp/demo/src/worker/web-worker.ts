@@ -24,7 +24,6 @@ import {
   signInWithCredential,
   signInWithEmailAndPassword,
   updateProfile,
-  OAuthCredential,
   User
 } from '@firebase/auth-exp';
 
