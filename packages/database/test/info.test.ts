@@ -24,7 +24,6 @@ import {
 } from './helpers/util';
 import { Reference } from '../src/api/Reference';
 import { EventAccumulator } from './helpers/EventAccumulator';
-import { repoGetDatabase } from '../src/core/Repo';
 
 /**
  * We have a test that depends on leveraging two properly

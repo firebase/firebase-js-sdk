@@ -28,7 +28,6 @@ import {
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
 import { INTEGER_32_MAX, INTEGER_32_MIN } from '../src/core/util/util';
-import { repoGetDatabase } from '../src/core/Repo';
 
 use(chaiAsPromised);
 
