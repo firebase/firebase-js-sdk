@@ -51,7 +51,8 @@ import {
   StorageObserver,
   SettableMetadata,
   UploadMetadata,
-  FullMetadata
+  FullMetadata,
+  UploadTaskSnapshot
 } from './public-types';
 import { Metadata as MetadataInternal } from '../src/metadata';
 import {
@@ -83,7 +84,8 @@ export {
   FirebaseStorageError,
   TaskEvent,
   TaskState,
-  StorageObserver
+  StorageObserver,
+  UploadTaskSnapshot
 };
 
 /**
