@@ -147,6 +147,12 @@ export function useStorageEmulator(
  */
 export class StorageService implements _FirebaseService {
   _bucket: Location | null = null;
+  /**
+   * This string can be in the formats:
+   * - host
+   * - host:port
+   * - protocol://host:port
+   */
   private _host: string = DEFAULT_HOST;
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
@@ -179,15 +185,16 @@ export class StorageService implements _FirebaseService {
   }
 
   /**
-   * Set host:port string for this service.
-   * @param origin - Origin string in the form of http://[host]:[port]
+   * Set host string for this service.
+   * @param host - host string in the form of host, host:port,
+   * or protocol://host:port
    */
-  set host(origin: string) {
-    this._host = origin;
+  set host(host: string) {
+    this._host = host;
     if (this._url != null) {
-      this._bucket = Location.makeFromBucketSpec(this._url, origin);
+      this._bucket = Location.makeFromBucketSpec(this._url, host);
     } else {
-      this._bucket = extractBucket(origin, this.app.options);
+      this._bucket = extractBucket(host, this.app.options);
     }
   }
 
