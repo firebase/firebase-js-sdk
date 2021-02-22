@@ -52,7 +52,7 @@ import {
   SettableMetadata,
   UploadMetadata,
   FullMetadata
-} from '@firebase/storage-types/exp';
+} from './public-types';
 import { Metadata as MetadataInternal } from '../src/metadata';
 import {
   uploadBytes as uploadBytesInternal,
