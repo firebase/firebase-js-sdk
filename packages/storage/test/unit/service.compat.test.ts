@@ -172,7 +172,7 @@ describe('Firebase Storage > Service', () => {
     });
   });
   describe('useStorageEmulator(service, host, port)', () => {
-    it('sets emulator host correctly', () => {
+    it('sets emulator host correctly', done => {
       function newSend(
         xhrio: TestingXhrIo,
         url: string,
@@ -182,8 +182,9 @@ describe('Firebase Storage > Service', () => {
       ): void {
         // Expect emulator host to be in url of storage operations requests,
         // in this case getDownloadURL.
-        expect(url).to.include('http://test.host.org:1234');
+        expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
         xhrio.abort();
+        done();
       }
       const service = makeService(
         testShared.fakeApp,
