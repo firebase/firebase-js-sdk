@@ -209,9 +209,10 @@ describe('platform_browser/popup_redirect', () => {
         Promise.reject(new Error('invalid-origin'))
       );
 
-      await expect(
-        resolver._originValidation(auth)
-      ).to.be.rejectedWith(Error, 'invalid-origin');
+      await expect(resolver._originValidation(auth)).to.be.rejectedWith(
+        Error,
+        'invalid-origin'
+      );
     });
   });
 
