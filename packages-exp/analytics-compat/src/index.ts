@@ -26,8 +26,8 @@ import {
   InstanceFactory
 } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app-types';
-import { Analytics as AnalyticsServiceExp } from '@firebase/analytics-types-exp';
 import {
+  Analytics as AnalyticsServiceExp,
   settings as settingsExp,
   isSupported as isSupportedExp
 } from '@firebase/analytics-exp';

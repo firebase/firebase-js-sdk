@@ -22,8 +22,8 @@ import {
   FirebaseAnalytics
 } from '@firebase/analytics-types';
 import { FirebaseApp } from '@firebase/app-types';
-import { Analytics as AnalyticsServiceExp } from '@firebase/analytics-types-exp';
 import {
+  Analytics as AnalyticsServiceExp,
   logEvent as logEventExp,
   setAnalyticsCollectionEnabled as setAnalyticsCollectionEnabledExp,
   setCurrentScreen as setCurrentScreenExp,
