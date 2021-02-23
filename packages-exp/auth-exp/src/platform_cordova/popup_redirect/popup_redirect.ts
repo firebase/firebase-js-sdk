@@ -101,6 +101,10 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
     throw new Error('Method not implemented.');
   }
 
+  _originValidation(): Promise<void> {
+    return Promise.resolve();
+  }
+
   private attachCallbackListeners(
     auth: AuthInternal,
     manager: AuthEventManager
