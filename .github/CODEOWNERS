@@ -90,7 +90,6 @@ scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-g
 
 # Auth-Exp Code
 packages-exp/auth-exp  @avolkovi @samhorlbeck @yuchenshi @firebase/jssdk-global-approvers
-packages-exp/auth-types-exp  @avolkovi @samhorlbeck @yuchenshi @firebase/jssdk-global-approvers
 packages-exp/auth-compat-exp @avolkovi @samhorlbeck @yuchenshi @firebase/jssdk-global-approvers
 
 # Installations-Exp Code
@@ -103,5 +102,4 @@ packages/performance-types-exp  @alikn @zijianjoy @firebase/jssdk-global-approve
 
 # RC-Exp Code
 packages/remote-config-exp  @erikeldridge @firebase/jssdk-global-approvers
-packages/remote-config-types-exp  @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-compat  @erikeldridge @firebase/jssdk-global-approvers
