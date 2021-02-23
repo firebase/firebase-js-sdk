@@ -57,8 +57,8 @@ export function getFunctions(
  *
  * Note: this must be called before this instance has been used to do any operations.
  *
- * @param host The emulator host (ex: localhost)
- * @param port The emulator port (ex: 5001)
+ * @param host - The emulator host (ex: localhost)
+ * @param port - The emulator port (ex: 5001)
  * @public
  */
 export function useFunctionsEmulator(
@@ -74,10 +74,14 @@ export function useFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable(
+export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
   functionsInstance: Functions,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable {
-  return _httpsCallable(functionsInstance as FunctionsService, name, options);
+): HttpsCallable<RequestData, ResponseData> {
+  return _httpsCallable<RequestData, ResponseData>(
+    functionsInstance as FunctionsService,
+    name,
+    options
+  );
 }

@@ -14,7 +14,7 @@ export interface Functions {
     region: string;
 }
 
-// @public (undocumented)
+// @public
 export interface FunctionsError extends FirebaseError {
     readonly code: FunctionsErrorCode;
     readonly details?: unknown;
@@ -27,13 +27,13 @@ export type FunctionsErrorCode = 'ok' | 'cancelled' | 'unknown' | 'invalid-argum
 export function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;
 
 // @public
-export interface HttpsCallable {
+export interface HttpsCallable<RequestData = unknown, ResponseData = unknown> {
     // (undocumented)
-    (data?: {} | null): Promise<HttpsCallableResult>;
+    (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
 }
 
 // @public
-export function httpsCallable(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
+export function httpsCallable<RequestData = unknown, ResponseData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData>;
 
 // @public
 export interface HttpsCallableOptions {
@@ -42,9 +42,9 @@ export interface HttpsCallableOptions {
 }
 
 // @public
-export interface HttpsCallableResult {
+export interface HttpsCallableResult<ResponseData = unknown> {
     // (undocumented)
-    readonly data: unknown;
+    readonly data: ResponseData;
 }
 
 // @public
