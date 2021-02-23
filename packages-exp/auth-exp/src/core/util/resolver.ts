@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
-import { Auth } from '../../model/auth';
-import { PopupRedirectResolver } from '../../model/popup_redirect';
+import { PopupRedirectResolver } from '../../model/public_types';
+import { AuthInternal } from '../../model/auth';
+import { PopupRedirectResolverInternal } from '../../model/popup_redirect';
 import { AuthErrorCode } from '../errors';
 import { _assert } from './assert';
 import { _getInstance } from './instantiator';
@@ -28,9 +28,9 @@ import { _getInstance } from './instantiator';
  * object. If neither are available, this function errors w/ an argument error.
  */
 export function _withDefaultResolver(
-  auth: Auth,
-  resolverOverride: externs.PopupRedirectResolver | undefined
-): PopupRedirectResolver {
+  auth: AuthInternal,
+  resolverOverride: PopupRedirectResolver | undefined
+): PopupRedirectResolverInternal {
   if (resolverOverride) {
     return _getInstance(resolverOverride);
   }

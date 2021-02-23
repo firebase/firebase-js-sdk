@@ -16,7 +16,7 @@
  */
 
 import { Provider } from '@firebase/component';
-import { _FirebaseService } from '@firebase/app-types-exp';
+import { _FirebaseService } from '@firebase/app-exp';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 export interface FirebaseInstallationsImpl

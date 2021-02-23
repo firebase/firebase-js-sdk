@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import {
   RemoteConfig as RemoteConfigType,
   FetchStatus,
   Settings
-} from '@firebase/remote-config-types-exp';
+} from './public_types';
 import { StorageCache } from './storage/storage_cache';
 import { RemoteConfigFetchClient } from './client/remote_config_fetch_client';
 import { Storage } from './storage/storage';

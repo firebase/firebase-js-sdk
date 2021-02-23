@@ -17,9 +17,9 @@
 
 import { fatal } from '../core/util/util';
 import { parseRepoInfo } from '../core/util/libs/parser';
-import { Path } from '../core/util/Path';
+import { newEmptyPath } from '../core/util/Path';
 import { Reference } from './Reference';
-import { Repo } from '../core/Repo';
+import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
 import { RepoManager } from '../core/RepoManager';
 import { validateArgCount } from '@firebase/util';
 import { validateUrl } from '../core/util/validation';
@@ -71,7 +71,7 @@ export class Database implements FirebaseService {
 
   private get repo_(): Repo {
     if (!this.instanceStarted_) {
-      this.repoInternal_.start();
+      repoStart(this.repoInternal_);
       this.instanceStarted_ = true;
     }
     return this.repoInternal_;
@@ -79,7 +79,7 @@ export class Database implements FirebaseService {
 
   get root_(): Reference {
     if (!this.rootInternal_) {
-      this.rootInternal_ = new Reference(this.repo_, Path.Empty);
+      this.rootInternal_ = new Reference(this.repo_, newEmptyPath());
     }
 
     return this.rootInternal_;
@@ -180,12 +180,12 @@ export class Database implements FirebaseService {
   goOffline(): void {
     validateArgCount('database.goOffline', 0, 0, arguments.length);
     this.checkDeleted_('goOffline');
-    this.repo_.interrupt();
+    repoInterrupt(this.repo_);
   }
 
   goOnline(): void {
     validateArgCount('database.goOnline', 0, 0, arguments.length);
     this.checkDeleted_('goOnline');
-    this.repo_.resume();
+    repoResume(this.repo_);
   }
 }

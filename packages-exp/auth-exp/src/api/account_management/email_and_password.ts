@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ActionCodeOperation, Auth } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, Auth } from '../../model/public_types';
 
 import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { IdTokenResponse } from '../../model/id_token';

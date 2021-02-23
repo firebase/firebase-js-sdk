@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import {
+  _getProvider,
+  _removeServiceInstance,
+  FirebaseApp
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 

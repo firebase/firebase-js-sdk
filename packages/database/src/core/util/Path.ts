@@ -17,6 +17,7 @@
 
 import { nameCompare } from './util';
 import { stringLength } from '@firebase/util';
+
 /**
  * An immutable object representing a parsed path.  It's immutable so that you
  * can pass them around to other functions without worrying about them changing
@@ -24,15 +25,8 @@ import { stringLength } from '@firebase/util';
  */
 
 export class Path {
-  private pieces_: string[];
-  private pieceNum_: number;
-
-  /**
-   * Singleton to represent an empty path
-   */
-  static get Empty() {
-    return new Path('');
-  }
+  pieces_: string[];
+  pieceNum_: number;
 
   /**
    * @param pathOrString Path string to parse, or another path, or the raw
@@ -59,37 +53,6 @@ export class Path {
     }
   }
 
-  getFront(): string | null {
-    if (this.pieceNum_ >= this.pieces_.length) {
-      return null;
-    }
-
-    return this.pieces_[this.pieceNum_];
-  }
-
-  /**
-   * @return The number of segments in this path
-   */
-  getLength(): number {
-    return this.pieces_.length - this.pieceNum_;
-  }
-
-  popFront(): Path {
-    let pieceNum = this.pieceNum_;
-    if (pieceNum < this.pieces_.length) {
-      pieceNum++;
-    }
-    return new Path(this.pieces_, pieceNum);
-  }
-
-  getBack(): string | null {
-    if (this.pieceNum_ < this.pieces_.length) {
-      return this.pieces_[this.pieces_.length - 1];
-    }
-
-    return null;
-  }
-
   toString(): string {
     let pathString = '';
     for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
@@ -100,152 +63,183 @@ export class Path {
 
     return pathString || '/';
   }
+}
 
-  toUrlEncodedString(): string {
-    let pathString = '';
-    for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
-      if (this.pieces_[i] !== '') {
-        pathString += '/' + encodeURIComponent(String(this.pieces_[i]));
+export function newEmptyPath(): Path {
+  return new Path('');
+}
+
+export function pathGetFront(path: Path): string | null {
+  if (path.pieceNum_ >= path.pieces_.length) {
+    return null;
+  }
+
+  return path.pieces_[path.pieceNum_];
+}
+
+/**
+ * @return The number of segments in this path
+ */
+export function pathGetLength(path: Path): number {
+  return path.pieces_.length - path.pieceNum_;
+}
+
+export function pathPopFront(path: Path): Path {
+  let pieceNum = path.pieceNum_;
+  if (pieceNum < path.pieces_.length) {
+    pieceNum++;
+  }
+  return new Path(path.pieces_, pieceNum);
+}
+
+export function pathGetBack(path: Path): string | null {
+  if (path.pieceNum_ < path.pieces_.length) {
+    return path.pieces_[path.pieces_.length - 1];
+  }
+
+  return null;
+}
+
+export function pathToUrlEncodedString(path: Path): string {
+  let pathString = '';
+  for (let i = path.pieceNum_; i < path.pieces_.length; i++) {
+    if (path.pieces_[i] !== '') {
+      pathString += '/' + encodeURIComponent(String(path.pieces_[i]));
+    }
+  }
+
+  return pathString || '/';
+}
+
+/**
+ * Shallow copy of the parts of the path.
+ *
+ */
+export function pathSlice(path: Path, begin: number = 0): string[] {
+  return path.pieces_.slice(path.pieceNum_ + begin);
+}
+
+export function pathParent(path: Path): Path | null {
+  if (path.pieceNum_ >= path.pieces_.length) {
+    return null;
+  }
+
+  const pieces = [];
+  for (let i = path.pieceNum_; i < path.pieces_.length - 1; i++) {
+    pieces.push(path.pieces_[i]);
+  }
+
+  return new Path(pieces, 0);
+}
+
+export function pathChild(path: Path, childPathObj: string | Path): Path {
+  const pieces = [];
+  for (let i = path.pieceNum_; i < path.pieces_.length; i++) {
+    pieces.push(path.pieces_[i]);
+  }
+
+  if (childPathObj instanceof Path) {
+    for (let i = childPathObj.pieceNum_; i < childPathObj.pieces_.length; i++) {
+      pieces.push(childPathObj.pieces_[i]);
+    }
+  } else {
+    const childPieces = childPathObj.split('/');
+    for (let i = 0; i < childPieces.length; i++) {
+      if (childPieces[i].length > 0) {
+        pieces.push(childPieces[i]);
       }
     }
-
-    return pathString || '/';
   }
 
-  /**
-   * Shallow copy of the parts of the path.
-   *
-   */
-  slice(begin: number = 0): string[] {
-    return this.pieces_.slice(this.pieceNum_ + begin);
+  return new Path(pieces, 0);
+}
+
+/**
+ * @return True if there are no segments in this path
+ */
+export function pathIsEmpty(path: Path): boolean {
+  return path.pieceNum_ >= path.pieces_.length;
+}
+
+/**
+ * @return The path from outerPath to innerPath
+ */
+export function newRelativePath(outerPath: Path, innerPath: Path): Path {
+  const outer = pathGetFront(outerPath),
+    inner = pathGetFront(innerPath);
+  if (outer === null) {
+    return innerPath;
+  } else if (outer === inner) {
+    return newRelativePath(pathPopFront(outerPath), pathPopFront(innerPath));
+  } else {
+    throw new Error(
+      'INTERNAL ERROR: innerPath (' +
+        innerPath +
+        ') is not within ' +
+        'outerPath (' +
+        outerPath +
+        ')'
+    );
   }
+}
 
-  parent(): Path | null {
-    if (this.pieceNum_ >= this.pieces_.length) {
-      return null;
-    }
-
-    const pieces = [];
-    for (let i = this.pieceNum_; i < this.pieces_.length - 1; i++) {
-      pieces.push(this.pieces_[i]);
-    }
-
-    return new Path(pieces, 0);
-  }
-
-  child(childPathObj: string | Path): Path {
-    const pieces = [];
-    for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
-      pieces.push(this.pieces_[i]);
-    }
-
-    if (childPathObj instanceof Path) {
-      for (
-        let i = childPathObj.pieceNum_;
-        i < childPathObj.pieces_.length;
-        i++
-      ) {
-        pieces.push(childPathObj.pieces_[i]);
-      }
-    } else {
-      const childPieces = childPathObj.split('/');
-      for (let i = 0; i < childPieces.length; i++) {
-        if (childPieces[i].length > 0) {
-          pieces.push(childPieces[i]);
-        }
-      }
-    }
-
-    return new Path(pieces, 0);
-  }
-
-  /**
-   * @return True if there are no segments in this path
-   */
-  isEmpty(): boolean {
-    return this.pieceNum_ >= this.pieces_.length;
-  }
-
-  /**
-   * @return The path from outerPath to innerPath
-   */
-  static relativePath(outerPath: Path, innerPath: Path): Path {
-    const outer = outerPath.getFront(),
-      inner = innerPath.getFront();
-    if (outer === null) {
-      return innerPath;
-    } else if (outer === inner) {
-      return Path.relativePath(outerPath.popFront(), innerPath.popFront());
-    } else {
-      throw new Error(
-        'INTERNAL ERROR: innerPath (' +
-          innerPath +
-          ') is not within ' +
-          'outerPath (' +
-          outerPath +
-          ')'
-      );
+/**
+ * @return -1, 0, 1 if left is less, equal, or greater than the right.
+ */
+export function pathCompare(left: Path, right: Path): number {
+  const leftKeys = pathSlice(left, 0);
+  const rightKeys = pathSlice(right, 0);
+  for (let i = 0; i < leftKeys.length && i < rightKeys.length; i++) {
+    const cmp = nameCompare(leftKeys[i], rightKeys[i]);
+    if (cmp !== 0) {
+      return cmp;
     }
   }
+  if (leftKeys.length === rightKeys.length) {
+    return 0;
+  }
+  return leftKeys.length < rightKeys.length ? -1 : 1;
+}
 
-  /**
-   * @return -1, 0, 1 if left is less, equal, or greater than the right.
-   */
-  static comparePaths(left: Path, right: Path): number {
-    const leftKeys = left.slice();
-    const rightKeys = right.slice();
-    for (let i = 0; i < leftKeys.length && i < rightKeys.length; i++) {
-      const cmp = nameCompare(leftKeys[i], rightKeys[i]);
-      if (cmp !== 0) {
-        return cmp;
-      }
-    }
-    if (leftKeys.length === rightKeys.length) {
-      return 0;
-    }
-    return leftKeys.length < rightKeys.length ? -1 : 1;
+/**
+ * @return true if paths are the same.
+ */
+export function pathEquals(path: Path, other: Path): boolean {
+  if (pathGetLength(path) !== pathGetLength(other)) {
+    return false;
   }
 
-  /**
-   * @return true if paths are the same.
-   */
-  equals(other: Path): boolean {
-    if (this.getLength() !== other.getLength()) {
+  for (
+    let i = path.pieceNum_, j = other.pieceNum_;
+    i <= path.pieces_.length;
+    i++, j++
+  ) {
+    if (path.pieces_[i] !== other.pieces_[j]) {
       return false;
     }
-
-    for (
-      let i = this.pieceNum_, j = other.pieceNum_;
-      i <= this.pieces_.length;
-      i++, j++
-    ) {
-      if (this.pieces_[i] !== other.pieces_[j]) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
-  /**
-   * @return True if this path is a parent (or the same as) other
-   */
-  contains(other: Path): boolean {
-    let i = this.pieceNum_;
-    let j = other.pieceNum_;
-    if (this.getLength() > other.getLength()) {
+  return true;
+}
+
+/**
+ * @return True if this path is a parent (or the same as) other
+ */
+export function pathContains(path: Path, other: Path): boolean {
+  let i = path.pieceNum_;
+  let j = other.pieceNum_;
+  if (pathGetLength(path) > pathGetLength(other)) {
+    return false;
+  }
+  while (i < path.pieces_.length) {
+    if (path.pieces_[i] !== other.pieces_[j]) {
       return false;
     }
-    while (i < this.pieces_.length) {
-      if (this.pieces_[i] !== other.pieces_[j]) {
-        return false;
-      }
-      ++i;
-      ++j;
-    }
-    return true;
+    ++i;
+    ++j;
   }
-} // end Path
+  return true;
+}
 
 /**
  * Dynamic (mutable) path used to count path lengths.
@@ -267,7 +261,7 @@ export class ValidationPath {
    * @param errorPrefix_ Prefix for any error messages.
    */
   constructor(path: Path, private errorPrefix_: string) {
-    this.parts_ = path.slice();
+    this.parts_ = pathSlice(path, 0);
     /** Initialize to number of '/' chars needed in path. */
     this.byteLength_ = Math.max(1, this.parts_.length);
 

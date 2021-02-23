@@ -17,7 +17,7 @@
 
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { requestStsToken } from '../../api/authentication/token';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
@@ -67,7 +67,10 @@ export class StsTokenManager {
     );
   }
 
-  async getToken(auth: Auth, forceRefresh = false): Promise<string | null> {
+  async getToken(
+    auth: AuthInternal,
+    forceRefresh = false
+  ): Promise<string | null> {
     _assert(
       !this.accessToken || this.refreshToken,
       auth,
@@ -90,7 +93,7 @@ export class StsTokenManager {
     this.refreshToken = null;
   }
 
-  private async refresh(auth: Auth, oldToken: string): Promise<void> {
+  private async refresh(auth: AuthInternal, oldToken: string): Promise<void> {
     const { accessToken, refreshToken, expiresIn } = await requestStsToken(
       auth,
       oldToken

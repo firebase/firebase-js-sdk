@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Path } from './util/Path';
+import { Path, pathGetFront, pathIsEmpty, pathPopFront } from './util/Path';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { Node } from './snap/Node';
 
@@ -36,9 +36,9 @@ export class SparseSnapshotTree {
   find(path: Path): Node | null {
     if (this.value != null) {
       return this.value.getChild(path);
-    } else if (!path.isEmpty() && this.children.size > 0) {
-      const childKey = path.getFront();
-      path = path.popFront();
+    } else if (!pathIsEmpty(path) && this.children.size > 0) {
+      const childKey = pathGetFront(path);
+      path = pathPopFront(path);
       if (this.children.has(childKey)) {
         const childTree = this.children.get(childKey);
         return childTree.find(path);
@@ -58,19 +58,19 @@ export class SparseSnapshotTree {
    * @param data The new data, or null.
    */
   remember(path: Path, data: Node) {
-    if (path.isEmpty()) {
+    if (pathIsEmpty(path)) {
       this.value = data;
       this.children.clear();
     } else if (this.value !== null) {
       this.value = this.value.updateChild(path, data);
     } else {
-      const childKey = path.getFront();
+      const childKey = pathGetFront(path);
       if (!this.children.has(childKey)) {
         this.children.set(childKey, new SparseSnapshotTree());
       }
 
       const child = this.children.get(childKey);
-      path = path.popFront();
+      path = pathPopFront(path);
       child.remember(path, data);
     }
   }
@@ -82,7 +82,7 @@ export class SparseSnapshotTree {
    * @return True if this node should now be removed.
    */
   forget(path: Path): boolean {
-    if (path.isEmpty()) {
+    if (pathIsEmpty(path)) {
       this.value = null;
       this.children.clear();
       return true;
@@ -103,8 +103,8 @@ export class SparseSnapshotTree {
           return this.forget(path);
         }
       } else if (this.children.size > 0) {
-        const childKey = path.getFront();
-        path = path.popFront();
+        const childKey = pathGetFront(path);
+        path = pathPopFront(path);
         if (this.children.has(childKey)) {
           const safeToRemove = this.children.get(childKey).forget(path);
           if (safeToRemove) {

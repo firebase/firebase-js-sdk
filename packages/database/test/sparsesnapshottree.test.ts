@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { SparseSnapshotTree } from '../src/core/SparseSnapshotTree';
-import { Path } from '../src/core/util/Path';
+import { newEmptyPath, Path } from '../src/core/util/Path';
 import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
 import { ChildrenNode } from '../src/core/snap/ChildrenNode';
 
@@ -83,7 +83,7 @@ describe('SparseSnapshotTree Tests', () => {
     const st = new SparseSnapshotTree();
     st.remember(new Path('t'), nodeFromJSON({ a: { b: 'v' } }));
     expect(st.find(new Path('t')).isEmpty()).to.equal(false);
-    st.forget(new Path(''));
+    st.forget(newEmptyPath());
     expect(st.find(new Path('t'))).to.equal(null);
   });
 
@@ -140,7 +140,7 @@ describe('SparseSnapshotTree Tests', () => {
     const st = new SparseSnapshotTree();
 
     let count = 0;
-    st.forEachTree(new Path(''), (path, tree) => {
+    st.forEachTree(newEmptyPath(), (path, tree) => {
       count += 1;
     });
     expect(count).to.equal(0);

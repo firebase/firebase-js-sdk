@@ -23,7 +23,7 @@ import {
   OperationType,
   ProviderId,
   SignInMethod
-} from '@firebase/auth-types-exp';
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -36,7 +36,7 @@ import { Endpoint } from '../../api';
 import { IdTokenMfaResponse } from '../../api/authentication/mfa';
 import { MultiFactorError } from '../../mfa/mfa_error';
 import { IdTokenResponse } from '../../model/id_token';
-import { User, UserCredential } from '../../model/user';
+import { UserInternal, UserCredentialInternal } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
 import { _reauthenticate } from './reauthenticate';
@@ -46,7 +46,7 @@ use(chaiAsPromised);
 
 describe('core/user/reauthenticate', () => {
   let credential: AuthCredential;
-  let user: User;
+  let user: UserInternal;
 
   beforeEach(async () => {
     fetch.setUp();
@@ -173,7 +173,10 @@ describe('core/user/reauthenticate', () => {
       users: [{ localId: 'uid' }]
     });
 
-    const cred = (await _reauthenticate(user, credential)) as UserCredential;
+    const cred = (await _reauthenticate(
+      user,
+      credential
+    )) as UserCredentialInternal;
 
     expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
     expect(cred._tokenResponse).to.eq(response);

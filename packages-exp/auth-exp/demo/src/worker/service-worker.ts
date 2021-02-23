@@ -21,8 +21,7 @@
  * mode.
  */
 import { initializeApp } from '@firebase/app-exp';
-import { getAuth } from '@firebase/auth-exp';
-import { User } from '@firebase/auth-types-exp';
+import { getAuth, User } from '@firebase/auth-exp';
 
 import { config } from '../config';
 

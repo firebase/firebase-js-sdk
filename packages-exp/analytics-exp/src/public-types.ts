@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-
-export type DataLayer = Array<IArguments>;
+import { FirebaseApp } from '@firebase/app-exp';
 
 /**
  * Additional options that can be passed to Firebase Analytics method
@@ -50,81 +48,11 @@ export interface SettingsOptions {
 }
 
 /**
- * Standard `gtag` function provided by gtag.js.
- */
-export interface Gtag {
-  (
-    command: 'config',
-    targetId: string,
-    config?: ControlParams | EventParams | CustomParams
-  ): void;
-  (command: 'set', config: CustomParams): void;
-  (
-    command: 'event',
-    eventName: string,
-    eventParams?: ControlParams | EventParams | CustomParams
-  ): void;
-}
-
-/**
- * Standard gtag.js control parameters.
- * For more information, see
- * {@link https://developers.google.com/gtagjs/reference/parameter
- * | the gtag.js documentation on parameters}.
- */
-export interface ControlParams {
-  groups?: string | string[];
-  send_to?: string | string[];
-  event_callback?: () => void;
-  event_timeout?: number;
-}
-
-/**
- * Standard gtag.js event parameters.
- * For more information, see
- * {@link https://developers.google.com/gtagjs/reference/parameter
- * | the gtag.js documentation on parameters}.
- */
-export interface EventParams {
-  checkout_option?: string;
-  checkout_step?: number;
-  content_id?: string;
-  content_type?: string;
-  coupon?: string;
-  currency?: string;
-  description?: string;
-  fatal?: boolean;
-  items?: Item[];
-  method?: string;
-  number?: string;
-  promotions?: Promotion[];
-  screen_name?: string;
-  search_term?: string;
-  shipping?: Currency;
-  tax?: Currency;
-  transaction_id?: string;
-  value?: number;
-  event_label?: string;
-  event_category?: string;
-  shipping_tier?: string;
-  item_list_id?: string;
-  item_list_name?: string;
-  promotion_id?: string;
-  promotion_name?: string;
-  payment_type?: string;
-  affiliation?: string;
-  page_title?: string;
-  page_location?: string;
-  page_path?: string;
-}
-
-/**
  * Any custom params the user may pass to gtag.js.
  */
 export interface CustomParams {
-  [key: string]: any;
+  [key: string]: unknown;
 }
-
 /**
  * Type for standard gtag.js event names. `logEvent` also accepts any
  * custom string and interprets it as a custom event name.
@@ -160,6 +88,7 @@ export type EventNameString =
 
 export type Currency = string | number;
 
+/* eslint-disable camelcase */
 export interface Item {
   item_id?: string;
   item_name?: string;
@@ -202,32 +131,55 @@ export interface Promotion {
 }
 
 /**
- * Dynamic configuration fetched from server.
- * See https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig
+ * Standard gtag.js control parameters.
+ * For more information, see
+ * {@link https://developers.google.com/gtagjs/reference/parameter
+ * | the gtag.js documentation on parameters}.
  */
-interface DynamicConfig {
-  projectId: string;
-  appId: string;
-  databaseURL: string;
-  storageBucket: string;
-  locationId: string;
-  apiKey: string;
-  authDomain: string;
-  messagingSenderId: string;
-  measurementId: string;
-}
-
-interface MinimalDynamicConfig {
-  appId: string;
-  measurementId: string;
+export interface ControlParams {
+  groups?: string | string[];
+  send_to?: string | string[];
+  event_callback?: () => void;
+  event_timeout?: number;
 }
 
 /**
- * Encapsulates metadata concerning throttled fetch requests.
+ * Standard gtag.js event parameters.
+ * For more information, see
+ * {@link https://developers.google.com/gtagjs/reference/parameter
+ * | the gtag.js documentation on parameters}.
  */
-export interface ThrottleMetadata {
-  // The number of times fetch has backed off. Used for resuming backoff after a timeout.
-  backoffCount: number;
-  // The Unix timestamp in milliseconds when callers can retry a request.
-  throttleEndTimeMillis: number;
+export interface EventParams {
+  checkout_option?: string;
+  checkout_step?: number;
+  content_id?: string;
+  content_type?: string;
+  coupon?: string;
+  currency?: string;
+  description?: string;
+  fatal?: boolean;
+  items?: Item[];
+  method?: string;
+  // eslint-disable-next-line id-blacklist
+  number?: string;
+  promotions?: Promotion[];
+  screen_name?: string;
+  search_term?: string;
+  shipping?: Currency;
+  tax?: Currency;
+  transaction_id?: string;
+  value?: number;
+  event_label?: string;
+  event_category?: string;
+  shipping_tier?: string;
+  item_list_id?: string;
+  item_list_name?: string;
+  promotion_id?: string;
+  promotion_name?: string;
+  payment_type?: string;
+  affiliation?: string;
+  page_title?: string;
+  page_location?: string;
+  page_path?: string;
 }
+/* eslint-enable camelcase */

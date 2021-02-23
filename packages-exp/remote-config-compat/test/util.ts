@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { RemoteConfig } from '@firebase/remote-config-types-exp';
+import { FirebaseApp } from '@firebase/app-compat';
+import { RemoteConfig } from '@firebase/remote-config-exp';
 
 export function getFakeApp(): FirebaseApp {
   return {

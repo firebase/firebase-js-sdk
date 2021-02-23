@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { OperationType, ProviderId } from '@firebase/auth-types-exp';
+import { OperationType, ProviderId } from '../../model/public_types';
 
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import {
@@ -26,8 +26,8 @@ import {
 } from './additional_user_info';
 import { base64Encode } from '@firebase/util';
 import { UserCredentialImpl } from './user_credential_impl';
-import { Auth } from '../../model/auth';
-import { User, UserCredential } from '../../model/user';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal, UserCredentialInternal } from '../../model/user';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { makeJWT } from '../../../test/helpers/jwt';
 
@@ -228,9 +228,9 @@ describe('core/user/additional_user_info', () => {
   });
 
   describe('getAdditionalUserInfo()', () => {
-    let auth: Auth;
-    let user: User;
-    let cred: UserCredential;
+    let auth: AuthInternal;
+    let user: UserInternal;
+    let cred: UserCredentialInternal;
     beforeEach(async () => {
       auth = await testAuth();
       user = testUser(auth, 'uid');

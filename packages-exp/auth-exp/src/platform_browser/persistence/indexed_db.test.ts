@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { Persistence, PersistenceType } from '../../core/persistence';
+import { PersistenceInternal, PersistenceType } from '../../core/persistence';
 import {
   SingletonInstantiator,
   _getInstance
@@ -43,12 +43,14 @@ import {
 
 use(sinonChai);
 
-interface TestPersistence extends Persistence {
+interface TestPersistence extends PersistenceInternal {
   _workerInitializationPromise: Promise<void>;
 }
 
 describe('platform_browser/persistence/indexed_db', () => {
-  const persistence: Persistence = _getInstance(indexedDBLocalPersistence);
+  const persistence: PersistenceInternal = _getInstance(
+    indexedDBLocalPersistence
+  );
 
   afterEach(sinon.restore);
 
@@ -194,9 +196,7 @@ describe('platform_browser/persistence/indexed_db', () => {
         sender = new Sender(serviceWorker);
         sinon.stub(workerUtil, '_isWorker').returns(true);
         sinon.stub(workerUtil, '_getWorkerGlobalScope').returns(serviceWorker);
-        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<
-          TestPersistence
-        >)();
+        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<TestPersistence>)();
         db = await _openDatabase();
       });
 
@@ -270,9 +270,7 @@ describe('platform_browser/persistence/indexed_db', () => {
         sinon
           .stub(workerUtil, '_getServiceWorkerController')
           .returns(serviceWorker);
-        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<
-          TestPersistence
-        >)();
+        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<TestPersistence>)();
       });
 
       it('should send a ping on init', async () => {

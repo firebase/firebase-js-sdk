@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  AuthError,
+  OperationType,
+  PopupRedirectResolver,
+  ProviderId
+} from '../../model/public_types';
 import * as sinon from 'sinon';
 import { _getInstance } from '../util/instantiator';
 import {
@@ -25,16 +30,16 @@ import {
   testUser
 } from '../../../test/helpers/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { RedirectAction, _clearRedirectOutcomes } from './redirect';
 import {
   AuthEvent,
   AuthEventType,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
 import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
-import { Persistence } from '../persistence';
+import { PersistenceInternal } from '../persistence';
 import { InMemoryPersistence } from '../persistence/in_memory';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import * as idpTasks from '../strategies/idp';
@@ -47,17 +52,17 @@ const OTHER_EVENT_ID = 'wrong-id';
 class RedirectPersistence extends InMemoryPersistence {}
 
 describe('core/strategies/redirect', () => {
-  let auth: Auth;
+  let auth: AuthInternal;
   let redirectAction: RedirectAction;
   let eventManager: AuthEventManager;
-  let resolver: externs.PopupRedirectResolver;
+  let resolver: PopupRedirectResolver;
   let idpStubs: sinon.SinonStubbedInstance<typeof idpTasks>;
 
   beforeEach(async () => {
     eventManager = new AuthEventManager(({} as unknown) as TestAuth);
     idpStubs = sinon.stub(idpTasks);
     resolver = makeMockPopupRedirectResolver(eventManager);
-    _getInstance<PopupRedirectResolver>(
+    _getInstance<PopupRedirectResolverInternal>(
       resolver
     )._redirectPersistence = RedirectPersistence;
     auth = await testAuth();
@@ -81,7 +86,9 @@ describe('core/strategies/redirect', () => {
   }
 
   async function reInitAuthWithRedirectUser(eventId: string): Promise<void> {
-    const redirectPersistence: Persistence = _getInstance(RedirectPersistence);
+    const redirectPersistence: PersistenceInternal = _getInstance(
+      RedirectPersistence
+    );
     const mainPersistence = new MockPersistenceLayer();
     const oldAuth = await testAuth();
     const user = testUser(oldAuth, 'uid');
@@ -98,8 +105,8 @@ describe('core/strategies/redirect', () => {
   it('completes with the cred', async () => {
     const cred = new UserCredentialImpl({
       user: testUser(auth, 'uid'),
-      providerId: externs.ProviderId.GOOGLE,
-      operationType: externs.OperationType.SIGN_IN
+      providerId: ProviderId.GOOGLE,
+      operationType: OperationType.SIGN_IN
     });
     idpStubs._signIn.returns(Promise.resolve(cred));
     const promise = redirectAction.execute();
@@ -112,8 +119,8 @@ describe('core/strategies/redirect', () => {
   it('returns the same value if called multiple times', async () => {
     const cred = new UserCredentialImpl({
       user: testUser(auth, 'uid'),
-      providerId: externs.ProviderId.GOOGLE,
-      operationType: externs.OperationType.SIGN_IN
+      providerId: ProviderId.GOOGLE,
+      operationType: OperationType.SIGN_IN
     });
     idpStubs._signIn.returns(Promise.resolve(cred));
     const promise = redirectAction.execute();
@@ -131,8 +138,8 @@ describe('core/strategies/redirect', () => {
 
     const cred = new UserCredentialImpl({
       user: testUser(auth, 'uid'),
-      providerId: externs.ProviderId.GOOGLE,
-      operationType: externs.OperationType.LINK
+      providerId: ProviderId.GOOGLE,
+      operationType: OperationType.LINK
     });
     idpStubs._link.returns(Promise.resolve(cred));
     const promise = redirectAction.execute();
@@ -149,8 +156,8 @@ describe('core/strategies/redirect', () => {
 
     const cred = new UserCredentialImpl({
       user: testUser(auth, 'uid'),
-      providerId: externs.ProviderId.GOOGLE,
-      operationType: externs.OperationType.LINK
+      providerId: ProviderId.GOOGLE,
+      operationType: OperationType.LINK
     });
     idpStubs._link.returns(Promise.resolve(cred));
     const promise = redirectAction.execute();
@@ -166,7 +173,7 @@ describe('core/strategies/redirect', () => {
       type: AuthEventType.UNKNOWN,
       error: {
         code: `auth/${AuthErrorCode.NO_AUTH_EVENT}`
-      } as externs.AuthError
+      } as AuthError
     });
     expect(await promise).to.be.null;
   });
@@ -176,8 +183,8 @@ describe('core/strategies/redirect', () => {
 
     const cred = new UserCredentialImpl({
       user: testUser(auth, 'uid'),
-      providerId: externs.ProviderId.GOOGLE,
-      operationType: externs.OperationType.REAUTHENTICATE
+      providerId: ProviderId.GOOGLE,
+      operationType: OperationType.REAUTHENTICATE
     });
     idpStubs._reauth.returns(Promise.resolve(cred));
     const promise = redirectAction.execute();

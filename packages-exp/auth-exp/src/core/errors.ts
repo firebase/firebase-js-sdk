@@ -16,11 +16,12 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import * as externs from '@firebase/auth-types-exp';
+import { AuthErrorMap, User } from '../model/public_types';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 import { AppName } from '../model/auth';
+import { AuthCredential } from './credentials';
 
 /**
  * Enumeration of Firebase Auth error codes.
@@ -354,7 +355,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
   };
 }
 
-export interface ErrorMapRetriever extends externs.AuthErrorMap {
+export interface ErrorMapRetriever extends AuthErrorMap {
   (): ErrorMap<AuthErrorCode>;
 }
 
@@ -373,28 +374,28 @@ function _prodErrorMap(): ErrorMap<AuthErrorCode> {
 /**
  * A verbose error map with detailed descriptions for most error codes.
  *
- * See discussion at {@link @firebase/auth-types#AuthErrorMap}
+ * See discussion at {@link AuthErrorMap}
  *
  * @public
  */
-export const debugErrorMap: externs.AuthErrorMap = _debugErrorMap;
+export const debugErrorMap: AuthErrorMap = _debugErrorMap;
 
 /**
  * A minimal error map with all verbose error messages stripped.
  *
- * See discussion at {@link @firebase/auth-types#AuthErrorMap}
+ * See discussion at {@link AuthErrorMap}
  *
  * @public
  */
-export const prodErrorMap: externs.AuthErrorMap = _prodErrorMap;
+export const prodErrorMap: AuthErrorMap = _prodErrorMap;
 
 export interface NamedErrorParams {
   appName: AppName;
-  credential?: externs.AuthCredential;
+  credential?: AuthCredential;
   email?: string;
   phoneNumber?: string;
   tenantId?: string;
-  user?: externs.User;
+  user?: User;
   serverResponse?: object;
 }
 

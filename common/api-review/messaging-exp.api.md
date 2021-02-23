@@ -4,7 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseMessaging } from '@firebase/messaging-types-exp';
 import { MessagePayload } from '@firebase/messaging-types-exp';
 import { NextFn } from '@firebase/util';
@@ -14,6 +14,8 @@ import { Unsubscribe } from '@firebase/util';
 // @public
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
 
+export { FirebaseMessaging }
+
 // @public
 export function getMessaging(app: FirebaseApp): FirebaseMessaging;
 
@@ -22,6 +24,8 @@ export function getToken(messaging: FirebaseMessaging, options?: {
     vapidKey?: string;
     swReg?: ServiceWorkerRegistration;
 }): Promise<string>;
+
+export { MessagePayload }
 
 // @public
 export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
   _DEFAULT_AUTH_ERROR_FACTORY,
   AuthErrorCode,
@@ -52,12 +52,12 @@ export function _fail<K extends AuthErrorCode>(
     : [AuthErrorParams[K]]
 ): never;
 export function _fail<K extends AuthErrorCode>(
-  auth: externs.Auth,
+  auth: Auth,
   code: K,
   ...data: {} extends LessAppName<K> ? [LessAppName<K>?] : [LessAppName<K>]
 ): never;
 export function _fail<K extends AuthErrorCode>(
-  authOrCode: externs.Auth | K,
+  authOrCode: Auth | K,
   ...rest: unknown[]
 ): never {
   throw createErrorInternal(authOrCode, ...rest);
@@ -70,19 +70,19 @@ export function _createError<K extends AuthErrorCode>(
     : [AuthErrorParams[K]]
 ): FirebaseError;
 export function _createError<K extends AuthErrorCode>(
-  auth: externs.Auth,
+  auth: Auth,
   code: K,
   ...data: {} extends LessAppName<K> ? [LessAppName<K>?] : [LessAppName<K>]
 ): FirebaseError;
 export function _createError<K extends AuthErrorCode>(
-  authOrCode: externs.Auth | K,
+  authOrCode: Auth | K,
   ...rest: unknown[]
 ): FirebaseError {
   return createErrorInternal(authOrCode, ...rest);
 }
 
 function createErrorInternal<K extends AuthErrorCode>(
-  authOrCode: externs.Auth | K,
+  authOrCode: Auth | K,
   ...rest: unknown[]
 ): FirebaseError {
   if (typeof authOrCode !== 'string') {
@@ -92,7 +92,10 @@ function createErrorInternal<K extends AuthErrorCode>(
       fullParams[0].appName = authOrCode.name;
     }
 
-    return (authOrCode as Auth)._errorFactory.create(code, ...fullParams);
+    return (authOrCode as AuthInternal)._errorFactory.create(
+      code,
+      ...fullParams
+    );
   }
 
   return _DEFAULT_AUTH_ERROR_FACTORY.create(
@@ -110,13 +113,13 @@ export function _assert<K extends AuthErrorCode>(
 ): asserts assertion;
 export function _assert<K extends AuthErrorCode>(
   assertion: unknown,
-  auth: externs.Auth,
+  auth: Auth,
   code: K,
   ...data: {} extends LessAppName<K> ? [LessAppName<K>?] : [LessAppName<K>]
 ): asserts assertion;
 export function _assert<K extends AuthErrorCode>(
   assertion: unknown,
-  authOrCode: externs.Auth | K,
+  authOrCode: Auth | K,
   ...rest: unknown[]
 ): asserts assertion {
   if (!assertion) {

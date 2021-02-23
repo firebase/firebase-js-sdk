@@ -15,41 +15,49 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  ApplicationVerifier,
+  Auth,
+  ConfirmationResult,
+  PhoneInfoOptions,
+  ProviderId,
+  User,
+  UserCredential
+} from '../../model/public_types';
 
 import { startEnrollPhoneMfa } from '../../api/account_management/mfa';
 import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
-import { ApplicationVerifier } from '../../model/application_verifier';
+import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
 import { _assert } from '../../core/util/assert';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
   linkWithCredential,
   reauthenticateWithCredential,
   signInWithCredential
 } from '../../core/strategies/credential';
 import {
-  MultiFactorSession,
+  MultiFactorSessionImpl,
   MultiFactorSessionType
 } from '../../mfa/mfa_session';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
 
 interface OnConfirmationCallback {
-  (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
+  (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
 
-class ConfirmationResult implements externs.ConfirmationResult {
+class ConfirmationResultImpl implements ConfirmationResult {
   constructor(
     readonly verificationId: string,
     private readonly onConfirmation: OnConfirmationCallback
   ) {}
 
-  confirm(verificationCode: string): Promise<externs.UserCredential> {
+  confirm(verificationCode: string): Promise<UserCredential> {
     const authCredential = PhoneAuthCredential._fromVerification(
       this.verificationId,
       verificationCode
@@ -63,11 +71,11 @@ class ConfirmationResult implements externs.ConfirmationResult {
  *
  * @remarks
  * This method sends a code via SMS to the given
- * phone number, and returns a {@link @firebase/auth-types#ConfirmationResult}. After the user
- * provides the code sent to their phone, call {@link @firebase/auth-types#ConfirmationResult.confirm}
+ * phone number, and returns a {@link ConfirmationResult}. After the user
+ * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
  * with the code to sign the user in.
  *
- * For abuse prevention, this method also requires a {@link @firebase/auth-types#ApplicationVerifier}.
+ * For abuse prevention, this method also requires a {@link ApplicationVerifier}.
  * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
  *
  * @example
@@ -81,21 +89,21 @@ class ConfirmationResult implements externs.ConfirmationResult {
  *
  * @param auth - The Auth instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
- * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ * @param appVerifier - The {@link ApplicationVerifier}.
  *
  * @public
  */
 export async function signInWithPhoneNumber(
-  auth: externs.Auth,
+  auth: Auth,
   phoneNumber: string,
-  appVerifier: externs.ApplicationVerifier
-): Promise<externs.ConfirmationResult> {
+  appVerifier: ApplicationVerifier
+): Promise<ConfirmationResult> {
   const verificationId = await _verifyPhoneNumber(
     _castAuth(auth),
     phoneNumber,
-    appVerifier as ApplicationVerifier
+    appVerifier as ApplicationVerifierInternal
   );
-  return new ConfirmationResult(verificationId, cred =>
+  return new ConfirmationResultImpl(verificationId, cred =>
     signInWithCredential(auth, cred)
   );
 }
@@ -105,23 +113,23 @@ export async function signInWithPhoneNumber(
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
- * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ * @param appVerifier - The {@link ApplicationVerifier}.
  *
  * @public
  */
 export async function linkWithPhoneNumber(
-  user: externs.User,
+  user: User,
   phoneNumber: string,
-  appVerifier: externs.ApplicationVerifier
-): Promise<externs.ConfirmationResult> {
-  const userInternal = user as User;
-  await _assertLinkedStatus(false, userInternal, externs.ProviderId.PHONE);
+  appVerifier: ApplicationVerifier
+): Promise<ConfirmationResult> {
+  const userInternal = user as UserInternal;
+  await _assertLinkedStatus(false, userInternal, ProviderId.PHONE);
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
     phoneNumber,
-    appVerifier as ApplicationVerifier
+    appVerifier as ApplicationVerifierInternal
   );
-  return new ConfirmationResult(verificationId, cred =>
+  return new ConfirmationResultImpl(verificationId, cred =>
     linkWithCredential(user, cred)
   );
 }
@@ -133,22 +141,22 @@ export async function linkWithPhoneNumber(
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
- * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ * @param appVerifier - The {@link ApplicationVerifier}.
  *
  * @public
  */
 export async function reauthenticateWithPhoneNumber(
-  user: externs.User,
+  user: User,
   phoneNumber: string,
-  appVerifier: externs.ApplicationVerifier
-): Promise<externs.ConfirmationResult> {
-  const userInternal = user as User;
+  appVerifier: ApplicationVerifier
+): Promise<ConfirmationResult> {
+  const userInternal = user as UserInternal;
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
     phoneNumber,
-    appVerifier as ApplicationVerifier
+    appVerifier as ApplicationVerifierInternal
   );
-  return new ConfirmationResult(verificationId, cred =>
+  return new ConfirmationResultImpl(verificationId, cred =>
     reauthenticateWithCredential(user, cred)
   );
 }
@@ -158,9 +166,9 @@ export async function reauthenticateWithPhoneNumber(
  *
  */
 export async function _verifyPhoneNumber(
-  auth: Auth,
-  options: externs.PhoneInfoOptions | string,
-  verifier: ApplicationVerifier
+  auth: AuthInternal,
+  options: PhoneInfoOptions | string,
+  verifier: ApplicationVerifierInternal
 ): Promise<string> {
   const recaptchaToken = await verifier.verify();
 
@@ -176,7 +184,7 @@ export async function _verifyPhoneNumber(
       AuthErrorCode.ARGUMENT_ERROR
     );
 
-    let phoneInfoOptions: externs.PhoneInfoOptions;
+    let phoneInfoOptions: PhoneInfoOptions;
 
     if (typeof options === 'string') {
       phoneInfoOptions = {
@@ -187,7 +195,7 @@ export async function _verifyPhoneNumber(
     }
 
     if ('session' in phoneInfoOptions) {
-      const session = phoneInfoOptions.session as MultiFactorSession;
+      const session = phoneInfoOptions.session as MultiFactorSessionImpl;
 
       if ('phoneNumber' in phoneInfoOptions) {
         _assert(
@@ -254,8 +262,8 @@ export async function _verifyPhoneNumber(
  * @public
  */
 export async function updatePhoneNumber(
-  user: externs.User,
-  credential: externs.PhoneAuthCredential
+  user: User,
+  credential: PhoneAuthCredential
 ): Promise<void> {
-  await _link(user as User, credential as PhoneAuthCredential);
+  await _link(user as UserInternal, credential as PhoneAuthCredential);
 }

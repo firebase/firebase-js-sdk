@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Path } from '../util/Path';
+import { Path, pathContains, pathEquals } from '../util/Path';
 import { exceptionGuard, log, logger } from '../util/util';
 import { Event } from './Event';
 
@@ -53,7 +53,7 @@ export function eventQueueQueueEvents(
   for (let i = 0; i < eventDataList.length; i++) {
     const data = eventDataList[i];
     const path = data.getPath();
-    if (currList !== null && !path.equals(currList.path)) {
+    if (currList !== null && !pathEquals(path, currList.path)) {
       eventQueue.eventLists_.push(currList);
       currList = null;
     }
@@ -85,7 +85,7 @@ export function eventQueueRaiseEventsAtPath(
 ) {
   eventQueueQueueEvents(eventQueue, eventDataList);
   eventQueueRaiseQueuedEventsMatchingPredicate(eventQueue, eventPath =>
-    eventPath.equals(path)
+    pathEquals(eventPath, path)
   );
 }
 
@@ -107,7 +107,8 @@ export function eventQueueRaiseEventsForChangedPath(
   eventQueueRaiseQueuedEventsMatchingPredicate(
     eventQueue,
     eventPath =>
-      eventPath.contains(changedPath) || changedPath.contains(eventPath)
+      pathContains(eventPath, changedPath) ||
+      pathContains(changedPath, eventPath)
   );
 }
 

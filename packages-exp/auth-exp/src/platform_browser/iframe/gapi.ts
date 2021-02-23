@@ -18,7 +18,7 @@
 import { AuthErrorCode } from '../../core/errors';
 import { _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as js from '../load_js';
 
@@ -54,7 +54,7 @@ function resetUnloadedGapiModules(): void {
   }
 }
 
-function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
+function loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
   return new Promise<gapi.iframes.Context>((resolve, reject) => {
     // Function to run when gapi.load is ready.
     function loadGapiIframe(): void {
@@ -113,7 +113,7 @@ function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
 }
 
 let cachedGApiLoader: Promise<gapi.iframes.Context> | null = null;
-export function _loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
+export function _loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
   cachedGApiLoader = cachedGApiLoader || loadGapi(auth);
   return cachedGApiLoader;
 }

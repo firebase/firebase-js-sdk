@@ -20,6 +20,7 @@ import { stub } from 'sinon';
 import '../test/setup';
 import { createTestComponent, TestService } from '../test/util';
 import { initializeApp, getApps, deleteApp } from './api';
+import { FirebaseAppImpl } from './firebaseApp';
 import {
   _addComponent,
   _addOrOverwriteComponent,
@@ -29,7 +30,6 @@ import {
   _getProvider,
   _removeServiceInstance
 } from './internal';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -47,7 +47,7 @@ describe('Internal API tests', () => {
 
   describe('_addComponent', () => {
     it('registers component with App', () => {
-      const app = initializeApp({}) as _FirebaseAppInternal;
+      const app = initializeApp({}) as FirebaseAppImpl;
       const testComp = createTestComponent('test');
 
       _addComponent(app, testComp);
@@ -58,7 +58,7 @@ describe('Internal API tests', () => {
     });
 
     it('does NOT throw registering duplicate components', () => {
-      const app = initializeApp({}) as _FirebaseAppInternal;
+      const app = initializeApp({}) as FirebaseAppImpl;
       const testComp = createTestComponent('test');
 
       _addComponent(app, testComp);
@@ -72,7 +72,7 @@ describe('Internal API tests', () => {
 
   describe('_addOrOverwriteComponent', () => {
     it('registers component with App', () => {
-      const app = initializeApp({}) as _FirebaseAppInternal;
+      const app = initializeApp({}) as FirebaseAppImpl;
       const testComp = createTestComponent('test');
 
       _addOrOverwriteComponent(app, testComp);
@@ -83,7 +83,7 @@ describe('Internal API tests', () => {
     });
 
     it('overwrites an existing component with the same name', () => {
-      const app = initializeApp({}) as _FirebaseAppInternal;
+      const app = initializeApp({}) as FirebaseAppImpl;
       const testComp1 = createTestComponent('test');
       const testComp2 = createTestComponent('test');
 
@@ -98,8 +98,8 @@ describe('Internal API tests', () => {
 
   describe('_registerComponent', () => {
     it('caches a component and registers it with all Apps', () => {
-      const app1 = initializeApp({}) as _FirebaseAppInternal;
-      const app2 = initializeApp({}, 'app2') as _FirebaseAppInternal;
+      const app1 = initializeApp({}) as FirebaseAppImpl;
+      const app2 = initializeApp({}, 'app2') as FirebaseAppImpl;
 
       const stub1 = stub(app1.container, 'addComponent').callThrough();
       const stub2 = stub(app2.container, 'addComponent').callThrough();
@@ -132,7 +132,7 @@ describe('Internal API tests', () => {
 
   describe('_getProvider', () => {
     it('gets provider for a service', () => {
-      const app1 = initializeApp({}) as _FirebaseAppInternal;
+      const app1 = initializeApp({}) as FirebaseAppImpl;
       const testComp = createTestComponent('test');
       _registerComponent(testComp);
 
@@ -143,7 +143,7 @@ describe('Internal API tests', () => {
 
   describe('_removeServiceInstance', () => {
     it('removes a service instance', () => {
-      const app1 = initializeApp({}) as _FirebaseAppInternal;
+      const app1 = initializeApp({}) as FirebaseAppImpl;
       const testComp = createTestComponent('test');
       _registerComponent(testComp);
       const provider = app1.container.getProvider('test');

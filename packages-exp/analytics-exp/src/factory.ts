@@ -15,20 +15,15 @@
  * limitations under the License.
  */
 
-import {
-  Gtag,
-  SettingsOptions,
-  DynamicConfig,
-  MinimalDynamicConfig,
-  Analytics
-} from '@firebase/analytics-types-exp';
+import { SettingsOptions, Analytics } from './public-types';
+import { Gtag, DynamicConfig, MinimalDynamicConfig } from './types';
 import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
 import { initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 
 /**
  * Analytics Service class.

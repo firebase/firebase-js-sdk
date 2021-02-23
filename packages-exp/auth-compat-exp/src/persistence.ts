@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { _assert, AuthErrorCode } from '@firebase/auth-exp/internal';
-import * as externs from '@firebase/auth-types-exp';
+import { _assert, AuthErrorCode, Auth } from '@firebase/auth-exp/internal';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
 import { _isWebStorageSupported, _isWorker } from './platform';
 
@@ -31,7 +30,7 @@ export const Persistence = {
  * is specified, an error is thrown synchronously.
  */
 export function _validatePersistenceArgument(
-  auth: externs.Auth,
+  auth: Auth,
   persistence: string
 ): void {
   _assert(

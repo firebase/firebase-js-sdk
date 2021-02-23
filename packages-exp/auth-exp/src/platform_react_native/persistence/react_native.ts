@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Persistence, ReactNativeAsyncStorage } from '../../model/public_types';
 
 import {
-  Persistence,
+  PersistenceInternal,
   PersistenceType,
   PersistenceValue,
   STORAGE_AVAILABLE_KEY,
@@ -41,9 +41,9 @@ import { debugFail } from '../../core/util/assert';
  */
 
 export function getReactNativePersistence(
-  storage: externs.ReactNativeAsyncStorage
-): externs.Persistence {
-  return class implements Persistence {
+  storage: ReactNativeAsyncStorage
+): Persistence {
+  return class implements PersistenceInternal {
     static type: 'LOCAL' = 'LOCAL';
     readonly type: PersistenceType = PersistenceType.LOCAL;
 

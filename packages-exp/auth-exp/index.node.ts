@@ -24,8 +24,8 @@
 
 import * as fetchImpl from 'node-fetch';
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { Auth } from '@firebase/auth-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
+import { Auth } from './src/model/public_types';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';

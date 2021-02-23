@@ -16,9 +16,10 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseApp as FirebaseAppExp } from '@firebase/app-exp';
 import { safeGet } from '@firebase/util';
-import { Repo } from './Repo';
+import { Repo, repoGetDatabase, repoInterrupt, repoResume } from './Repo';
 import { fatal, log } from './util/util';
 import { parseRepoInfo } from './util/libs/parser';
 import { validateUrl } from './util/validation';
@@ -31,6 +32,7 @@ import {
   EmulatorAdminTokenProvider,
   FirebaseAuthTokenProvider
 } from './AuthTokenProvider';
+import { pathIsEmpty } from './util/Path';
 
 /**
  * This variable is also defined in the firebase node.js admin SDK. Before
@@ -76,7 +78,7 @@ export class RepoManager {
   interrupt() {
     for (const appName of Object.keys(this.repos_)) {
       for (const dbUrl of Object.keys(this.repos_[appName])) {
-        this.repos_[appName][dbUrl].interrupt();
+        repoInterrupt(this.repos_[appName][dbUrl]);
       }
     }
   }
@@ -84,7 +86,7 @@ export class RepoManager {
   resume() {
     for (const appName of Object.keys(this.repos_)) {
       for (const dbUrl of Object.keys(this.repos_[appName])) {
-        this.repos_[appName][dbUrl].resume();
+        repoResume(this.repos_[appName][dbUrl]);
       }
     }
   }
@@ -155,7 +157,7 @@ export class RepoManager {
         : new FirebaseAuthTokenProvider(app, authProvider);
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
-    if (!parsedUrl.path.isEmpty()) {
+    if (!pathIsEmpty(parsedUrl.path)) {
       fatal(
         'Database URL must point to the root of a Firebase Database ' +
           '(not including a child path).'
@@ -164,7 +166,7 @@ export class RepoManager {
 
     const repo = this.createRepo(repoInfo, app, authTokenProvider);
 
-    return repo.database;
+    return repoGetDatabase(repo);
   }
 
   /**
@@ -179,7 +181,7 @@ export class RepoManager {
         `Database ${repo.app.name}(${repo.repoInfo_}) has already been deleted.`
       );
     }
-    repo.interrupt();
+    repoInterrupt(repo);
     delete appRepos[repo.key];
   }
 

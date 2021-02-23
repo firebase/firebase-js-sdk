@@ -16,25 +16,61 @@
  */
 
 import { querystringDecode } from '@firebase/util';
+import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../../core/errors';
-import { PersistedBlob, Persistence } from '../../core/persistence';
+import { PersistedBlob, PersistenceInternal } from '../../core/persistence';
 import {
   KeyName,
   _persistenceKeyName
 } from '../../core/persistence/persistence_user_manager';
 import { _createError } from '../../core/util/assert';
 import { _getInstance } from '../../core/util/instantiator';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { browserLocalPersistence } from '../../platform_browser/persistence/local_storage';
 
 const SESSION_ID_LENGTH = 20;
 
+/** Custom AuthEventManager that adds passive listeners to events */
+export class CordovaAuthEventManager extends AuthEventManager {
+  private readonly passiveListeners = new Set<(e: AuthEvent) => void>();
+  private resolveInialized!: () => void;
+  private initPromise = new Promise<void>(resolve => {
+    this.resolveInialized = resolve;
+  });
+
+  addPassiveListener(cb: (e: AuthEvent) => void): void {
+    this.passiveListeners.add(cb);
+  }
+
+  removePassiveListener(cb: (e: AuthEvent) => void): void {
+    this.passiveListeners.delete(cb);
+  }
+
+  // In a Cordova environment, this manager can live through multiple redirect
+  // operations
+  resetRedirect(): void {
+    this.queuedRedirectEvent = null;
+    this.hasHandledPotentialRedirect = false;
+  }
+
+  /** Override the onEvent method */
+  onEvent(event: AuthEvent): boolean {
+    this.resolveInialized();
+    this.passiveListeners.forEach(cb => cb(event));
+    return super.onEvent(event);
+  }
+
+  async initialized(): Promise<void> {
+    await this.initPromise;
+  }
+}
+
 /**
  * Generates a (partial) {@link AuthEvent}.
  */
 export function _generateNewEvent(
-  auth: Auth,
+  auth: AuthInternal,
   type: AuthEventType,
   eventId: string | null = null
 ): AuthEvent {
@@ -49,7 +85,10 @@ export function _generateNewEvent(
   };
 }
 
-export function _savePartialEvent(auth: Auth, event: AuthEvent): Promise<void> {
+export function _savePartialEvent(
+  auth: AuthInternal,
+  event: AuthEvent
+): Promise<void> {
   return storage()._set(
     persistenceKey(auth),
     (event as object) as PersistedBlob
@@ -57,7 +96,7 @@ export function _savePartialEvent(auth: Auth, event: AuthEvent): Promise<void> {
 }
 
 export async function _getAndRemoveEvent(
-  auth: Auth
+  auth: AuthInternal
 ): Promise<AuthEvent | null> {
   const event = (await storage()._get(
     persistenceKey(auth)
@@ -126,11 +165,11 @@ function generateSessionId(): string {
   return chars.join('');
 }
 
-function storage(): Persistence {
+function storage(): PersistenceInternal {
   return _getInstance(browserLocalPersistence);
 }
 
-function persistenceKey(auth: Auth): string {
+function persistenceKey(auth: AuthInternal): string {
   return _persistenceKeyName(KeyName.AUTH_EVENT, auth.config.apiKey, auth.name);
 }
 

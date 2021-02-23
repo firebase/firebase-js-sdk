@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
+import { ProviderId } from './public_types';
 
 import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
 

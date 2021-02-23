@@ -11,7 +11,9 @@
   "module": "dist/esm5/index.js",
   "esm2017": "dist/esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -29,7 +31,9 @@
     "test:browser:unit:debug": "karma start --auto-watch --unit",
     "test:cordova": "karma start --single-run --cordova",
     "test:cordova:debug": "karma start --auto-watch --cordova",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native|platform_cordova)/**/*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
+    "test:node": "run-s test:node:unit test:node:integration",
+    "test:node:unit": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native|platform_cordova)/**/*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
+    "test:node:integration": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/integration/flows/{email,anonymous}.test.ts' --config ../../config/mocharc.node.js",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
@@ -37,14 +41,12 @@
     "typings:public": "node ../../scripts/exp/use_typings.js ./dist/auth-exp-public.d.ts"
   },
   "peerDependencies": {
-    "@firebase/app-exp": "0.x",
-    "@firebase/app-types-exp": "0.x"
+    "@firebase/app-exp": "0.x"
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.4",
-    "@firebase/component": "0.1.21",
-    "@firebase/auth-types-exp": "0.0.900",
+    "@firebase/component": "0.2.0",
     "node-fetch": "2.6.1",
     "tslib": "^1.11.1"
   },
@@ -66,7 +68,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/esm5/index.d.ts",
+  "typings": "dist/auth-exp.d.ts",
   "nyc": {
     "extension": [
       ".ts"

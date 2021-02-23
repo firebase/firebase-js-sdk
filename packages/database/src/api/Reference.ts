@@ -20,8 +20,22 @@ import { TransactionResult } from './TransactionResult';
 import { warn } from '../core/util/util';
 import { nextPushId } from '../core/util/NextPushId';
 import { Query } from './Query';
-import { Repo } from '../core/Repo';
-import { Path } from '../core/util/Path';
+import {
+  Repo,
+  repoGetDatabase,
+  repoServerTime,
+  repoSetWithPriority,
+  repoStartTransaction,
+  repoUpdate
+} from '../core/Repo';
+import {
+  Path,
+  pathChild,
+  pathGetBack,
+  pathGetFront,
+  pathIsEmpty,
+  pathParent
+} from '../core/util/Path';
 import { QueryParams } from '../core/view/QueryParams';
 import {
   validateBoolean,
@@ -68,10 +82,10 @@ export class Reference extends Query {
   getKey(): string | null {
     validateArgCount('Reference.key', 0, 0, arguments.length);
 
-    if (this.path.isEmpty()) {
+    if (pathIsEmpty(this.path)) {
       return null;
     } else {
-      return this.path.getBack();
+      return pathGetBack(this.path);
     }
   }
 
@@ -80,21 +94,21 @@ export class Reference extends Query {
     if (typeof pathString === 'number') {
       pathString = String(pathString);
     } else if (!(pathString instanceof Path)) {
-      if (this.path.getFront() === null) {
+      if (pathGetFront(this.path) === null) {
         validateRootPathString('Reference.child', 1, pathString, false);
       } else {
         validatePathString('Reference.child', 1, pathString, false);
       }
     }
 
-    return new Reference(this.repo, this.path.child(pathString));
+    return new Reference(this.repo, pathChild(this.path, pathString));
   }
 
   /** @return {?Reference} */
   getParent(): Reference | null {
     validateArgCount('Reference.parent', 0, 0, arguments.length);
 
-    const parentPath = this.path.parent();
+    const parentPath = pathParent(this.path);
     return parentPath === null ? null : new Reference(this.repo, parentPath);
   }
 
@@ -111,7 +125,7 @@ export class Reference extends Query {
 
   /** @return {!Database} */
   databaseProp(): Database {
-    return this.repo.database;
+    return repoGetDatabase(this.repo);
   }
 
   set(
@@ -124,7 +138,8 @@ export class Reference extends Query {
     validateCallback('Reference.set', 2, onComplete, true);
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
+    repoSetWithPriority(
+      this.repo,
       this.path,
       newVal,
       /*priority=*/ null,
@@ -162,7 +177,8 @@ export class Reference extends Query {
     );
     validateCallback('Reference.update', 2, onComplete, true);
     const deferred = new Deferred();
-    this.repo.update(
+    repoUpdate(
+      this.repo,
       this.path,
       objectToMerge as { [k: string]: unknown },
       deferred.wrapCallback(onComplete)
@@ -196,7 +212,8 @@ export class Reference extends Query {
     }
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
+    repoSetWithPriority(
+      this.repo,
       this.path,
       newVal,
       newPriority,
@@ -257,7 +274,8 @@ export class Reference extends Query {
         onComplete(error, committed, snapshot);
       }
     };
-    this.repo.startTransaction(
+    repoStartTransaction(
+      this.repo,
       this.path,
       transactionUpdate,
       promiseComplete,
@@ -277,8 +295,9 @@ export class Reference extends Query {
     validateCallback('Reference.setPriority', 2, onComplete, true);
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
-      this.path.child('.priority'),
+    repoSetWithPriority(
+      this.repo,
+      pathChild(this.path, '.priority'),
       priority,
       null,
       deferred.wrapCallback(onComplete)
@@ -292,7 +311,7 @@ export class Reference extends Query {
     validateFirebaseDataArg('Reference.push', 1, value, this.path, true);
     validateCallback('Reference.push', 2, onComplete, true);
 
-    const now = this.repo.serverTime();
+    const now = repoServerTime(this.repo);
     const name = nextPushId(now);
 
     // push() returns a ThennableReference whose promise is fulfilled with a regular Reference.

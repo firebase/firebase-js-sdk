@@ -15,15 +15,24 @@
  * limitations under the License.
  */
 
-import { safeGet, assert, assertionError } from '@firebase/util';
+import { assert, assertionError, safeGet } from '@firebase/util';
 
-import { Path } from './util/Path';
 import {
+  newEmptyPath,
+  newRelativePath,
+  Path,
+  pathChild,
+  pathContains,
+  pathGetFront,
+  pathIsEmpty,
+  pathPopFront
+} from './util/Path';
+import {
+  CompoundWrite,
   compoundWriteAddWrite,
   compoundWriteAddWrites,
   compoundWriteApply,
   compoundWriteChildCompoundWrite,
-  CompoundWrite,
   compoundWriteGetCompleteChildren,
   compoundWriteGetCompleteNode,
   compoundWriteHasCompleteWrite,
@@ -179,7 +188,7 @@ export class WriteTree {
         ) {
           // The removed write was completely shadowed by a subsequent write.
           removedWriteWasVisible = false;
-        } else if (writeToRemove.path.contains(currentWrite.path)) {
+        } else if (pathContains(writeToRemove.path, currentWrite.path)) {
           // Either we're covering some writes or they're covering part of us (depending on which came first).
           removedWriteOverlapsWithOtherWrites = true;
         }
@@ -205,7 +214,7 @@ export class WriteTree {
         each(children, (childName: string) => {
           this.visibleWrites_ = compoundWriteRemoveWrite(
             this.visibleWrites_,
-            writeToRemove.path.child(childName)
+            pathChild(writeToRemove.path, childName)
           );
         });
       }
@@ -251,7 +260,7 @@ export class WriteTree {
           return completeServerCache;
         } else if (
           completeServerCache == null &&
-          !compoundWriteHasCompleteWrite(subMerge, Path.Empty)
+          !compoundWriteHasCompleteWrite(subMerge, newEmptyPath())
         ) {
           // We wouldn't have a complete snapshot, since there's no underlying data and no complete shadow
           return null;
@@ -272,7 +281,7 @@ export class WriteTree {
         if (
           !includeHiddenWrites &&
           completeServerCache == null &&
-          !compoundWriteHasCompleteWrite(merge, Path.Empty)
+          !compoundWriteHasCompleteWrite(merge, newEmptyPath())
         ) {
           return null;
         } else {
@@ -281,7 +290,8 @@ export class WriteTree {
               (write.visible || includeHiddenWrites) &&
               (!writeIdsToExclude ||
                 !~writeIdsToExclude.indexOf(write.writeId)) &&
-              (write.path.contains(treePath) || treePath.contains(write.path))
+              (pathContains(write.path, treePath) ||
+                pathContains(treePath, write.path))
             );
           };
           const mergeAtPath = WriteTree.layerTree_(
@@ -389,7 +399,7 @@ export class WriteTree {
       existingEventSnap || existingServerSnap,
       'Either existingEventSnap or existingServerSnap must exist'
     );
-    const path = treePath.child(childPath);
+    const path = pathChild(treePath, childPath);
     if (compoundWriteHasCompleteWrite(this.visibleWrites_, path)) {
       // At this point we can probably guarantee that we're in case 2, meaning no events
       // May need to check visibility while doing the findRootMostValueAndPath call
@@ -427,7 +437,7 @@ export class WriteTree {
     childKey: string,
     existingServerSnap: CacheNode
   ): Node | null {
-    const path = treePath.child(childKey);
+    const path = pathChild(treePath, childKey);
     const shadowingNode = compoundWriteGetCompleteNode(
       this.visibleWrites_,
       path
@@ -476,7 +486,7 @@ export class WriteTree {
       this.visibleWrites_,
       treePath
     );
-    const shadowingNode = compoundWriteGetCompleteNode(merge, Path.Empty);
+    const shadowingNode = compoundWriteGetCompleteNode(merge, newEmptyPath());
     if (shadowingNode != null) {
       toIterate = shadowingNode;
     } else if (completeServerData != null) {
@@ -507,12 +517,12 @@ export class WriteTree {
 
   private recordContainsPath_(writeRecord: WriteRecord, path: Path): boolean {
     if (writeRecord.snap) {
-      return writeRecord.path.contains(path);
+      return pathContains(writeRecord.path, path);
     } else {
       for (const childName in writeRecord.children) {
         if (
           writeRecord.children.hasOwnProperty(childName) &&
-          writeRecord.path.child(childName).contains(path)
+          pathContains(pathChild(writeRecord.path, childName), path)
         ) {
           return true;
         }
@@ -528,7 +538,7 @@ export class WriteTree {
     this.visibleWrites_ = WriteTree.layerTree_(
       this.allWrites_,
       WriteTree.DefaultFilter_,
-      Path.Empty
+      newEmptyPath()
     );
     if (this.allWrites_.length > 0) {
       this.lastWriteId_ = this.allWrites_[this.allWrites_.length - 1].writeId;
@@ -561,49 +571,49 @@ export class WriteTree {
       // b) not be relevant to a transaction (separate branch), so again will not affect the data for that transaction
       if (filter(write)) {
         const writePath = write.path;
-        let relativePath;
+        let relativePath: Path;
         if (write.snap) {
-          if (treeRoot.contains(writePath)) {
-            relativePath = Path.relativePath(treeRoot, writePath);
+          if (pathContains(treeRoot, writePath)) {
+            relativePath = newRelativePath(treeRoot, writePath);
             compoundWrite = compoundWriteAddWrite(
               compoundWrite,
               relativePath,
               write.snap
             );
-          } else if (writePath.contains(treeRoot)) {
-            relativePath = Path.relativePath(writePath, treeRoot);
+          } else if (pathContains(writePath, treeRoot)) {
+            relativePath = newRelativePath(writePath, treeRoot);
             compoundWrite = compoundWriteAddWrite(
               compoundWrite,
-              Path.Empty,
+              newEmptyPath(),
               write.snap.getChild(relativePath)
             );
           } else {
             // There is no overlap between root path and write path, ignore write
           }
         } else if (write.children) {
-          if (treeRoot.contains(writePath)) {
-            relativePath = Path.relativePath(treeRoot, writePath);
+          if (pathContains(treeRoot, writePath)) {
+            relativePath = newRelativePath(treeRoot, writePath);
             compoundWrite = compoundWriteAddWrites(
               compoundWrite,
               relativePath,
               write.children
             );
-          } else if (writePath.contains(treeRoot)) {
-            relativePath = Path.relativePath(writePath, treeRoot);
-            if (relativePath.isEmpty()) {
+          } else if (pathContains(writePath, treeRoot)) {
+            relativePath = newRelativePath(writePath, treeRoot);
+            if (pathIsEmpty(relativePath)) {
               compoundWrite = compoundWriteAddWrites(
                 compoundWrite,
-                Path.Empty,
+                newEmptyPath(),
                 write.children
               );
             } else {
-              const child = safeGet(write.children, relativePath.getFront());
+              const child = safeGet(write.children, pathGetFront(relativePath));
               if (child) {
                 // There exists a child in this node that matches the root path
-                const deepNode = child.getChild(relativePath.popFront());
+                const deepNode = child.getChild(pathPopFront(relativePath));
                 compoundWrite = compoundWriteAddWrite(
                   compoundWrite,
-                  Path.Empty,
+                  newEmptyPath(),
                   deepNode
                 );
               }
@@ -717,7 +727,7 @@ export class WriteTreeRef {
    *
    */
   shadowingWrite(path: Path): Node | null {
-    return this.writeTree_.shadowingWrite(this.treePath_.child(path));
+    return this.writeTree_.shadowingWrite(pathChild(this.treePath_, path));
   }
 
   /**
@@ -760,6 +770,9 @@ export class WriteTreeRef {
    * Return a WriteTreeRef for a child.
    */
   child(childName: string): WriteTreeRef {
-    return new WriteTreeRef(this.treePath_.child(childName), this.writeTree_);
+    return new WriteTreeRef(
+      pathChild(this.treePath_, childName),
+      this.writeTree_
+    );
   }
 }

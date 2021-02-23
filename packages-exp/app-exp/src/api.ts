@@ -18,9 +18,8 @@
 import {
   FirebaseApp,
   FirebaseOptions,
-  FirebaseAppConfig,
-  _FirebaseAppInternal
-} from '@firebase/app-types-exp';
+  FirebaseAppConfig
+} from './public-types';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { ERROR_FACTORY, AppError } from './errors';
 import {
@@ -214,11 +213,11 @@ export async function deleteApp(app: FirebaseApp): Promise<void> {
   if (_apps.has(name)) {
     _apps.delete(name);
     await Promise.all(
-      (app as _FirebaseAppInternal).container
+      (app as FirebaseAppImpl).container
         .getProviders()
         .map(provider => provider.delete())
     );
-    (app as _FirebaseAppInternal).isDeleted = true;
+    (app as FirebaseAppImpl).isDeleted = true;
   }
 }
 
@@ -301,5 +300,3 @@ export function onLog(
 export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
 }
-
-export { FirebaseApp, FirebaseAppConfig, FirebaseOptions };

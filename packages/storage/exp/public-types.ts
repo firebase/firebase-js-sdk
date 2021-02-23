@@ -15,8 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
-import { CompleteFn, FirebaseError, NextFn, Unsubscribe } from '@firebase/util';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseApp } from '@firebase/app-exp';
+import {
+  CompleteFn,
+  FirebaseError,
+  NextFn,
+  Subscribe,
+  Unsubscribe
+} from '@firebase/util';
 
 /**
  * A Firebase Storage instance.
@@ -245,7 +252,7 @@ export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
  * An error returned by the Firebase Storage SDK.
  * @public
  */
-interface FirebaseStorageError extends FirebaseError {
+export interface FirebaseStorageError extends FirebaseError {
   /**
    * A server response message for the error, if applicable.
    */
@@ -276,7 +283,7 @@ export interface UploadTask {
   /**
    * Equivalent to calling `then(null, onRejected)`.
    */
-  catch(onRejected: (error: FirebaseStorageError) => any): Promise<any>;
+  catch(onRejected: (error: FirebaseStorageError) => unknown): Promise<unknown>;
   /**
    * Listens for events on this task.
    *
@@ -391,10 +398,10 @@ export interface UploadTask {
     nextOrObserver?:
       | StorageObserver<UploadTaskSnapshot>
       | null
-      | ((snapshot: UploadTaskSnapshot) => any),
-    error?: ((a: FirebaseStorageError) => any) | null,
+      | ((snapshot: UploadTaskSnapshot) => unknown),
+    error?: ((a: FirebaseStorageError) => unknown) | null,
     complete?: Unsubscribe | null
-  ): Function;
+  ): Unsubscribe | Subscribe<UploadTaskSnapshot>;
 
   /**
    * Pauses a currently running task. Has no effect on a paused or failed task.
@@ -419,9 +426,9 @@ export interface UploadTask {
    * @param onRejected - The rejection callback.
    */
   then(
-    onFulfilled?: ((snapshot: UploadTaskSnapshot) => any) | null,
-    onRejected?: ((error: FirebaseStorageError) => any) | null
-  ): Promise<any>;
+    onFulfilled?: ((snapshot: UploadTaskSnapshot) => unknown) | null,
+    onRejected?: ((error: FirebaseStorageError) => unknown) | null
+  ): Promise<unknown>;
 }
 
 /**

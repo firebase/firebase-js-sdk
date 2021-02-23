@@ -16,7 +16,7 @@
  */
 
 import { Endpoint, HttpMethod, _performApiRequest } from '../index';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 
 export interface CreateAuthUriRequest {
   identifier: string;

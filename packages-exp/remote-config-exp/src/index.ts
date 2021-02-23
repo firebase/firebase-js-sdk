@@ -29,6 +29,7 @@ declare global {
 
 export * from './api';
 export * from './api2';
+export * from './public_types';
 
 /** register component and version */
 registerRemoteConfig();

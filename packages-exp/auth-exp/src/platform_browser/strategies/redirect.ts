@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  AuthProvider,
+  PopupRedirectResolver,
+  User,
+  UserCredential
+} from '../../model/public_types';
 
 import { OAuthProvider } from '../../core';
 import { _castAuth } from '../../core/auth/auth_impl';
@@ -24,7 +30,7 @@ import { _assertLinkedStatus } from '../../core/user/link_unlink';
 import { _assert } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { _withDefaultResolver } from '../../core/util/resolver';
 import { RedirectAction } from '../../core/strategies/redirect';
 
@@ -62,16 +68,24 @@ import { RedirectAction } from '../../core/strategies/redirect';
  * @param auth - The Auth instance.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
  */
-export async function signInWithRedirect(
-  auth: externs.Auth,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+export function signInWithRedirect(
+  auth: Auth,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<never> {
+  return _signInWithRedirect(auth, provider, resolver) as Promise<never>;
+}
+
+export async function _signInWithRedirect(
+  auth: Auth,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<void | never> {
   const authInternal = _castAuth(auth);
   _assert(
     provider instanceof OAuthProvider,
@@ -83,7 +97,7 @@ export async function signInWithRedirect(
     authInternal,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
-  ) as Promise<never>;
+  );
 }
 
 /**
@@ -109,17 +123,28 @@ export async function signInWithRedirect(
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
  */
-export async function reauthenticateWithRedirect(
-  user: externs.User,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+export function reauthenticateWithRedirect(
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<never> {
-  const userInternal = user as User;
+  return _reauthenticateWithRedirect(
+    user,
+    provider,
+    resolver
+  ) as Promise<never>;
+}
+export async function _reauthenticateWithRedirect(
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<void | never> {
+  const userInternal = user as UserInternal;
   _assert(
     provider instanceof OAuthProvider,
     userInternal.auth,
@@ -135,7 +160,7 @@ export async function reauthenticateWithRedirect(
     provider,
     AuthEventType.REAUTH_VIA_REDIRECT,
     eventId
-  ) as Promise<never>;
+  );
 }
 
 /**
@@ -157,18 +182,25 @@ export async function reauthenticateWithRedirect(
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  *
  * @public
  */
-export async function linkWithRedirect(
-  user: externs.User,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+export function linkWithRedirect(
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<never> {
-  const userInternal = user as User;
+  return _linkWithRedirect(user, provider, resolver) as Promise<never>;
+}
+export async function _linkWithRedirect(
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<void | never> {
+  const userInternal = user as UserInternal;
   _assert(
     provider instanceof OAuthProvider,
     userInternal.auth,
@@ -185,15 +217,15 @@ export async function linkWithRedirect(
     provider,
     AuthEventType.LINK_VIA_REDIRECT,
     eventId
-  ) as Promise<never>;
+  );
 }
 
 /**
- * Returns a {@link @firebase/auth-types#UserCredential} from the redirect-based sign-in flow.
+ * Returns a {@link UserCredential} from the redirect-based sign-in flow.
  *
  * @remarks
  * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
- * error. If no redirect operation was called, returns a {@link @firebase/auth-types#UserCredential}
+ * error. If no redirect operation was called, returns a {@link UserCredential}
  * with a null `user`.
  *
  * @example
@@ -222,24 +254,24 @@ export async function linkWithRedirect(
  * ```
  *
  * @param auth - The Auth instance.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
  */
 export async function getRedirectResult(
-  auth: externs.Auth,
-  resolver?: externs.PopupRedirectResolver
-): Promise<externs.UserCredential | null> {
+  auth: Auth,
+  resolver?: PopupRedirectResolver
+): Promise<UserCredential | null> {
   await _castAuth(auth)._initializationPromise;
   return _getRedirectResult(auth, resolver, false);
 }
 
 export async function _getRedirectResult(
-  auth: externs.Auth,
-  resolverExtern?: externs.PopupRedirectResolver,
+  auth: Auth,
+  resolverExtern?: PopupRedirectResolver,
   bypassAuthState = false
-): Promise<externs.UserCredential | null> {
+): Promise<UserCredential | null> {
   const authInternal = _castAuth(auth);
   const resolver = _withDefaultResolver(authInternal, resolverExtern);
   const action = new RedirectAction(authInternal, resolver, bypassAuthState);
@@ -247,14 +279,14 @@ export async function _getRedirectResult(
 
   if (result && !bypassAuthState) {
     delete result.user._redirectEventId;
-    await authInternal._persistUserIfCurrent(result.user as User);
+    await authInternal._persistUserIfCurrent(result.user as UserInternal);
     await authInternal._setRedirectUser(null, resolverExtern);
   }
 
   return result;
 }
 
-async function prepareUserForRedirect(user: User): Promise<string> {
+async function prepareUserForRedirect(user: UserInternal): Promise<string> {
   const eventId = _generateEventId(`${user.uid}:::`);
   user._redirectEventId = eventId;
   await user.auth._setRedirectUser(user);

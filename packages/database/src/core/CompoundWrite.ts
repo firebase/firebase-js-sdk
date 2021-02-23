@@ -16,7 +16,13 @@
  */
 
 import { ImmutableTree } from './util/ImmutableTree';
-import { Path } from './util/Path';
+import {
+  newEmptyPath,
+  newRelativePath,
+  Path,
+  pathChild,
+  pathIsEmpty
+} from './util/Path';
 import { NamedNode, Node } from './snap/Node';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { assert } from '@firebase/util';
@@ -42,14 +48,14 @@ export function compoundWriteAddWrite(
   path: Path,
   node: Node
 ): CompoundWrite {
-  if (path.isEmpty()) {
+  if (pathIsEmpty(path)) {
     return new CompoundWrite(new ImmutableTree(node));
   } else {
     const rootmost = compoundWrite.writeTree_.findRootMostValueAndPath(path);
     if (rootmost != null) {
       const rootMostPath = rootmost.path;
       let value = rootmost.value;
-      const relativePath = Path.relativePath(rootMostPath, path);
+      const relativePath = newRelativePath(rootMostPath, path);
       value = value.updateChild(relativePath, node);
       return new CompoundWrite(
         compoundWrite.writeTree_.set(rootMostPath, value)
@@ -69,7 +75,7 @@ export function compoundWriteAddWrites(
 ): CompoundWrite {
   let newWrite = compoundWrite;
   each(updates, (childKey: string, node: Node) => {
-    newWrite = compoundWriteAddWrite(newWrite, path.child(childKey), node);
+    newWrite = compoundWriteAddWrite(newWrite, pathChild(path, childKey), node);
   });
   return newWrite;
 }
@@ -86,7 +92,7 @@ export function compoundWriteRemoveWrite(
   compoundWrite: CompoundWrite,
   path: Path
 ): CompoundWrite {
-  if (path.isEmpty()) {
+  if (pathIsEmpty(path)) {
     return CompoundWrite.empty();
   } else {
     const newWriteTree = compoundWrite.writeTree_.setTree(
@@ -128,7 +134,7 @@ export function compoundWriteGetCompleteNode(
   if (rootmost != null) {
     return compoundWrite.writeTree_
       .get(rootmost.path)
-      .getChild(Path.relativePath(rootmost.path, path));
+      .getChild(newRelativePath(rootmost.path, path));
   } else {
     return null;
   }
@@ -171,7 +177,7 @@ export function compoundWriteChildCompoundWrite(
   compoundWrite: CompoundWrite,
   path: Path
 ): CompoundWrite {
-  if (path.isEmpty()) {
+  if (pathIsEmpty(path)) {
     return compoundWrite;
   } else {
     const shadowingNode = compoundWriteGetCompleteNode(compoundWrite, path);
@@ -201,7 +207,7 @@ export function compoundWriteApply(
   compoundWrite: CompoundWrite,
   node: Node
 ): Node {
-  return applySubtreeWrite(Path.Empty, compoundWrite.writeTree_, node);
+  return applySubtreeWrite(newEmptyPath(), compoundWrite.writeTree_, node);
 }
 
 function applySubtreeWrite(
@@ -224,12 +230,19 @@ function applySubtreeWrite(
         );
         priorityWrite = childTree.value;
       } else {
-        node = applySubtreeWrite(relativePath.child(childKey), childTree, node);
+        node = applySubtreeWrite(
+          pathChild(relativePath, childKey),
+          childTree,
+          node
+        );
       }
     });
     // If there was a priority write, we only apply it if the node is not empty
     if (!node.getChild(relativePath).isEmpty() && priorityWrite !== null) {
-      node = node.updateChild(relativePath.child('.priority'), priorityWrite);
+      node = node.updateChild(
+        pathChild(relativePath, '.priority'),
+        priorityWrite
+      );
     }
     return node;
   }

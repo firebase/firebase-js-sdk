@@ -18,11 +18,11 @@
 import { expect } from 'chai';
 import { ChildrenNode } from '../src/core/snap/ChildrenNode';
 import {
+  CompoundWrite,
   compoundWriteAddWrite,
   compoundWriteAddWrites,
   compoundWriteApply,
   compoundWriteChildCompoundWrite,
-  CompoundWrite,
   compoundWriteGetCompleteChildren,
   compoundWriteHasCompleteWrite,
   compoundWriteIsEmpty,
@@ -31,7 +31,7 @@ import {
 import { LeafNode } from '../src/core/snap/LeafNode';
 import { NamedNode } from '../src/core/snap/Node';
 import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
-import { Path } from '../src/core/util/Path';
+import { newEmptyPath, Path, pathGetFront } from '../src/core/util/Path';
 
 describe('CompoundWrite Tests', () => {
   const LEAF_NODE = nodeFromJSON('leaf-node');
@@ -87,7 +87,7 @@ describe('CompoundWrite Tests', () => {
   it('CompoundWrite with root update is not empty.', () => {
     expect(
       compoundWriteIsEmpty(
-        compoundWriteAddWrite(CompoundWrite.empty(), Path.Empty, LEAF_NODE)
+        compoundWriteAddWrite(CompoundWrite.empty(), newEmptyPath(), LEAF_NODE)
       )
     ).to.be.false;
   });
@@ -95,7 +95,7 @@ describe('CompoundWrite Tests', () => {
   it('CompoundWrite with empty root update is not empty.', () => {
     expect(
       compoundWriteIsEmpty(
-        compoundWriteAddWrite(CompoundWrite.empty(), Path.Empty, EMPTY_NODE)
+        compoundWriteAddWrite(CompoundWrite.empty(), newEmptyPath(), EMPTY_NODE)
       )
     ).to.be.false;
   });
@@ -115,14 +115,22 @@ describe('CompoundWrite Tests', () => {
 
   it('Applies leaf overwrite', () => {
     let compoundWrite = CompoundWrite.empty();
-    compoundWrite = compoundWriteAddWrite(compoundWrite, Path.Empty, LEAF_NODE);
+    compoundWrite = compoundWriteAddWrite(
+      compoundWrite,
+      newEmptyPath(),
+      LEAF_NODE
+    );
     expect(compoundWriteApply(compoundWrite, EMPTY_NODE)).to.equal(LEAF_NODE);
   });
 
   it('Applies children overwrite', () => {
     let compoundWrite = CompoundWrite.empty();
     const childNode = EMPTY_NODE.updateImmediateChild('child', LEAF_NODE);
-    compoundWrite = compoundWriteAddWrite(compoundWrite, Path.Empty, childNode);
+    compoundWrite = compoundWriteAddWrite(
+      compoundWrite,
+      newEmptyPath(),
+      childNode
+    );
     expect(compoundWriteApply(compoundWrite, EMPTY_NODE)).to.equal(childNode);
   });
 
@@ -215,7 +223,11 @@ describe('CompoundWrite Tests', () => {
   it('child merge looks into update node', () => {
     let compoundWrite = CompoundWrite.empty();
     const update = nodeFromJSON({ foo: 'foo-value', bar: 'bar-value' });
-    compoundWrite = compoundWriteAddWrite(compoundWrite, Path.Empty, update);
+    compoundWrite = compoundWriteAddWrite(
+      compoundWrite,
+      newEmptyPath(),
+      update
+    );
     assertNodesEqual(
       nodeFromJSON('foo-value'),
       compoundWriteApply(
@@ -228,7 +240,11 @@ describe('CompoundWrite Tests', () => {
   it('child merge removes node on deeper paths', () => {
     let compoundWrite = CompoundWrite.empty();
     const update = nodeFromJSON({ foo: 'foo-value', bar: 'bar-value' });
-    compoundWrite = compoundWriteAddWrite(compoundWrite, Path.Empty, update);
+    compoundWrite = compoundWriteAddWrite(
+      compoundWrite,
+      newEmptyPath(),
+      update
+    );
     assertNodesEqual(
       EMPTY_NODE,
       compoundWriteApply(
@@ -244,10 +260,14 @@ describe('CompoundWrite Tests', () => {
   it('child merge with empty path is same merge', () => {
     let compoundWrite = CompoundWrite.empty();
     const update = nodeFromJSON({ foo: 'foo-value', bar: 'bar-value' });
-    compoundWrite = compoundWriteAddWrite(compoundWrite, Path.Empty, update);
-    expect(compoundWriteChildCompoundWrite(compoundWrite, Path.Empty)).to.equal(
-      compoundWrite
+    compoundWrite = compoundWriteAddWrite(
+      compoundWrite,
+      newEmptyPath(),
+      update
     );
+    expect(
+      compoundWriteChildCompoundWrite(compoundWrite, newEmptyPath())
+    ).to.equal(compoundWrite);
   });
 
   it('root update removes root priority', () => {
@@ -259,7 +279,7 @@ describe('CompoundWrite Tests', () => {
     );
     compoundWrite = compoundWriteAddWrite(
       compoundWrite,
-      Path.Empty,
+      newEmptyPath(),
       nodeFromJSON('foo')
     );
     assertNodesEqual(
@@ -317,7 +337,11 @@ describe('CompoundWrite Tests', () => {
       'child-2': EMPTY_NODE,
       'child-3': nodeFromJSON('value-3')
     };
-    compoundWrite = compoundWriteAddWrites(compoundWrite, Path.Empty, updates);
+    compoundWrite = compoundWriteAddWrites(
+      compoundWrite,
+      newEmptyPath(),
+      updates
+    );
 
     const expected = {
       'child-1': 'new-value-1',
@@ -411,7 +435,7 @@ describe('CompoundWrite Tests', () => {
     let compoundWrite = CompoundWrite.empty();
     compoundWrite = compoundWriteAddWrite(
       compoundWrite,
-      Path.Empty,
+      newEmptyPath(),
       CHILDREN_NODE
     );
 
@@ -429,17 +453,18 @@ describe('CompoundWrite Tests', () => {
   });
 
   it('empty merge has no shadowing write', () => {
-    expect(compoundWriteHasCompleteWrite(CompoundWrite.empty(), Path.Empty)).to
-      .be.false;
+    expect(compoundWriteHasCompleteWrite(CompoundWrite.empty(), newEmptyPath()))
+      .to.be.false;
   });
 
   it('compound write with empty root has shadowing write', () => {
     const compoundWrite = compoundWriteAddWrite(
       CompoundWrite.empty(),
-      Path.Empty,
+      newEmptyPath(),
       EMPTY_NODE
     );
-    expect(compoundWriteHasCompleteWrite(compoundWrite, Path.Empty)).to.be.true;
+    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).to.be
+      .true;
     expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('child'))).to
       .be.true;
   });
@@ -447,10 +472,11 @@ describe('CompoundWrite Tests', () => {
   it('compound write with  root has shadowing write', () => {
     const compoundWrite = compoundWriteAddWrite(
       CompoundWrite.empty(),
-      Path.Empty,
+      newEmptyPath(),
       LEAF_NODE
     );
-    expect(compoundWriteHasCompleteWrite(compoundWrite, Path.Empty)).to.be.true;
+    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).to.be
+      .true;
     expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('child'))).to
       .be.true;
   });
@@ -461,7 +487,7 @@ describe('CompoundWrite Tests', () => {
       new Path('deep/update'),
       LEAF_NODE
     );
-    expect(compoundWriteHasCompleteWrite(compoundWrite, Path.Empty)).to.be
+    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).to.be
       .false;
     expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('deep'))).to.be
       .false;
@@ -476,7 +502,7 @@ describe('CompoundWrite Tests', () => {
       new Path('.priority'),
       PRIO_NODE
     );
-    expect(compoundWriteHasCompleteWrite(compoundWrite, Path.Empty)).to.be
+    expect(compoundWriteHasCompleteWrite(compoundWrite, newEmptyPath())).to.be
       .false;
     expect(compoundWriteHasCompleteWrite(compoundWrite, new Path('.priority')))
       .to.be.true;
@@ -599,7 +625,11 @@ describe('CompoundWrite Tests', () => {
       'child-2': EMPTY_NODE,
       'child-3': nodeFromJSON('value-3')
     };
-    compoundWrite = compoundWriteAddWrites(compoundWrite, Path.Empty, updates);
+    compoundWrite = compoundWriteAddWrites(
+      compoundWrite,
+      newEmptyPath(),
+      updates
+    );
     compoundWrite = compoundWriteRemoveWrite(
       compoundWrite,
       new Path('child-2')
@@ -644,17 +674,21 @@ describe('CompoundWrite Tests', () => {
     let compoundWrite = CompoundWrite.empty();
     compoundWrite = compoundWriteAddWrite(
       compoundWrite,
-      Path.Empty,
+      newEmptyPath(),
       new LeafNode('foo', PRIO_NODE)
     );
-    compoundWrite = compoundWriteRemoveWrite(compoundWrite, Path.Empty);
+    compoundWrite = compoundWriteRemoveWrite(compoundWrite, newEmptyPath());
     const node = nodeFromJSON('value');
     assertNodeGetsCorrectPriority(compoundWrite, node, EMPTY_NODE);
   });
 
   it('updating priority doesnt overwrite leaf node', () => {
     let compoundWrite = CompoundWrite.empty();
-    compoundWrite = compoundWriteAddWrite(compoundWrite, Path.Empty, LEAF_NODE);
+    compoundWrite = compoundWriteAddWrite(
+      compoundWrite,
+      newEmptyPath(),
+      LEAF_NODE
+    );
     compoundWrite = compoundWriteAddWrite(
       compoundWrite,
       new Path('child/.priority'),
@@ -665,7 +699,11 @@ describe('CompoundWrite Tests', () => {
 
   it("updating empty node doesn't overwrite leaf node", () => {
     let compoundWrite = CompoundWrite.empty();
-    compoundWrite = compoundWriteAddWrite(compoundWrite, Path.Empty, LEAF_NODE);
+    compoundWrite = compoundWriteAddWrite(
+      compoundWrite,
+      newEmptyPath(),
+      LEAF_NODE
+    );
     compoundWrite = compoundWriteAddWrite(
       compoundWrite,
       new Path('child'),
@@ -679,7 +717,7 @@ describe('CompoundWrite Tests', () => {
     const path = new Path('child-1');
     compoundWrite = compoundWriteAddWrite(compoundWrite, path, LEAF_NODE);
     expect(compoundWriteApply(compoundWrite, CHILDREN_NODE)).to.deep.equal(
-      CHILDREN_NODE.updateImmediateChild(path.getFront(), LEAF_NODE)
+      CHILDREN_NODE.updateImmediateChild(pathGetFront(path), LEAF_NODE)
     );
   });
 

@@ -20,7 +20,7 @@ import * as sinonChai from 'sinon-chai';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { OperationType } from '@firebase/auth-types-exp';
+import { OperationType } from '../../model/public_types';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
@@ -28,7 +28,7 @@ import { makeJWT } from '../../../test/helpers/jwt';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import * as reauthenticate from '../../core/user/reauthenticate';
 import * as linkUnlink from '../../core/user/link_unlink';
 import * as credential from '../../core/strategies/credential';
@@ -41,7 +41,7 @@ use(sinonChai);
 
 describe('core/strategies/idb', () => {
   let auth: TestAuth;
-  let user: User;
+  let user: UserInternal;
   let signInEndpoint: fetch.Route;
 
   beforeEach(async () => {

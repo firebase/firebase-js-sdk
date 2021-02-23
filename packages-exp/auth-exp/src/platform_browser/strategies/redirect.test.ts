@@ -20,7 +20,12 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  AuthError,
+  OperationType,
+  PopupRedirectResolver,
+  ProviderId
+} from '../../model/public_types';
 
 import { delay } from '../../../test/helpers/delay';
 import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
@@ -34,12 +39,12 @@ import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_
 import {
   AuthEvent,
   AuthEventType,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../../core/errors';
-import { Persistence } from '../../core/persistence';
+import { PersistenceInternal } from '../../core/persistence';
 import { InMemoryPersistence } from '../../core/persistence/in_memory';
 import { OAuthProvider } from '../../core/providers/oauth';
 import * as link from '../../core/user/link_unlink';
@@ -68,14 +73,14 @@ describe('platform_browser/strategies/redirect', () => {
   let auth: TestAuth;
   let eventManager: AuthEventManager;
   let provider: OAuthProvider;
-  let resolver: externs.PopupRedirectResolver;
+  let resolver: PopupRedirectResolver;
   let idpStubs: sinon.SinonStubbedInstance<typeof idpTasks>;
 
   beforeEach(async () => {
     eventManager = new AuthEventManager(({} as unknown) as TestAuth);
-    provider = new OAuthProvider(externs.ProviderId.GOOGLE);
+    provider = new OAuthProvider(ProviderId.GOOGLE);
     resolver = makeMockPopupRedirectResolver(eventManager);
-    _getInstance<PopupRedirectResolver>(
+    _getInstance<PopupRedirectResolverInternal>(
       resolver
     )._redirectPersistence = RedirectPersistence;
     auth = await testAuth(resolver);
@@ -90,7 +95,7 @@ describe('platform_browser/strategies/redirect', () => {
   context('signInWithRedirect', () => {
     it('redirects the window', async () => {
       const spy = sinon.spy(
-        _getInstance<PopupRedirectResolver>(resolver),
+        _getInstance<PopupRedirectResolverInternal>(resolver),
         '_openRedirect'
       );
       await signInWithRedirect(auth, provider, resolver);
@@ -103,7 +108,7 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('redirects the window with auth fallback resolver', async () => {
       const spy = sinon.spy(
-        _getInstance<PopupRedirectResolver>(resolver),
+        _getInstance<PopupRedirectResolverInternal>(resolver),
         '_openRedirect'
       );
       await signInWithRedirect(auth, provider);
@@ -124,7 +129,7 @@ describe('platform_browser/strategies/redirect', () => {
   });
 
   context('linkWithRedirect', () => {
-    let user: User;
+    let user: UserInternal;
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', 'email', true);
@@ -134,7 +139,7 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('redirects the window', async () => {
       const spy = sinon.spy(
-        _getInstance<PopupRedirectResolver>(resolver),
+        _getInstance<PopupRedirectResolverInternal>(resolver),
         '_openRedirect'
       );
       await linkWithRedirect(user, provider, resolver);
@@ -147,7 +152,7 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('redirects the window with auth fallback resolver', async () => {
       const spy = sinon.spy(
-        _getInstance<PopupRedirectResolver>(resolver),
+        _getInstance<PopupRedirectResolverInternal>(resolver),
         '_openRedirect'
       );
       await linkWithRedirect(user, provider);
@@ -167,7 +172,7 @@ describe('platform_browser/strategies/redirect', () => {
     });
 
     it('persists the redirect user and current user', async () => {
-      const redirectPersistence: Persistence = _getInstance(
+      const redirectPersistence: PersistenceInternal = _getInstance(
         RedirectPersistence
       );
       sinon.spy(redirectPersistence, '_set');
@@ -187,7 +192,7 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('persists the redirect user but not current user if diff currentUser', async () => {
       await auth._updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
-      const redirectPersistence: Persistence = _getInstance(
+      const redirectPersistence: PersistenceInternal = _getInstance(
         RedirectPersistence
       );
       sinon.spy(redirectPersistence, '_set');
@@ -204,7 +209,7 @@ describe('platform_browser/strategies/redirect', () => {
   });
 
   context('reauthenticateWithRedirect', () => {
-    let user: User;
+    let user: UserInternal;
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', 'email', true);
@@ -213,7 +218,7 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('redirects the window', async () => {
       const spy = sinon.spy(
-        _getInstance<PopupRedirectResolver>(resolver),
+        _getInstance<PopupRedirectResolverInternal>(resolver),
         '_openRedirect'
       );
       await reauthenticateWithRedirect(user, provider, resolver);
@@ -226,7 +231,7 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('redirects the window with auth fallback resolver', async () => {
       const spy = sinon.spy(
-        _getInstance<PopupRedirectResolver>(resolver),
+        _getInstance<PopupRedirectResolverInternal>(resolver),
         '_openRedirect'
       );
       await reauthenticateWithRedirect(user, provider);
@@ -245,7 +250,7 @@ describe('platform_browser/strategies/redirect', () => {
     });
 
     it('persists the redirect user and current user', async () => {
-      const redirectPersistence: Persistence = _getInstance(
+      const redirectPersistence: PersistenceInternal = _getInstance(
         RedirectPersistence
       );
       sinon.spy(redirectPersistence, '_set');
@@ -265,7 +270,7 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('persists the redirect user but not current user if diff currentUser', async () => {
       await auth._updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
-      const redirectPersistence: Persistence = _getInstance(
+      const redirectPersistence: PersistenceInternal = _getInstance(
         RedirectPersistence
       );
       sinon.spy(redirectPersistence, '_set');
@@ -294,7 +299,7 @@ describe('platform_browser/strategies/redirect', () => {
     }
 
     async function reInitAuthWithRedirectUser(eventId: string): Promise<void> {
-      const redirectPersistence: Persistence = _getInstance(
+      const redirectPersistence: PersistenceInternal = _getInstance(
         RedirectPersistence
       );
       const mainPersistence = new MockPersistenceLayer();
@@ -314,8 +319,8 @@ describe('platform_browser/strategies/redirect', () => {
     it('completes the proper flow', async () => {
       const cred = new UserCredentialImpl({
         user: testUser(auth, 'uid'),
-        providerId: externs.ProviderId.GOOGLE,
-        operationType: externs.OperationType.SIGN_IN
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
       });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
@@ -328,8 +333,8 @@ describe('platform_browser/strategies/redirect', () => {
     it('returns the same value if called multiple times', async () => {
       const cred = new UserCredentialImpl({
         user: testUser(auth, 'uid'),
-        providerId: externs.ProviderId.GOOGLE,
-        operationType: externs.OperationType.SIGN_IN
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
       });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
@@ -347,8 +352,8 @@ describe('platform_browser/strategies/redirect', () => {
 
       const cred = new UserCredentialImpl({
         user: testUser(auth, 'uid'),
-        providerId: externs.ProviderId.GOOGLE,
-        operationType: externs.OperationType.LINK
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
       });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
@@ -365,8 +370,8 @@ describe('platform_browser/strategies/redirect', () => {
 
       const cred = new UserCredentialImpl({
         user: testUser(auth, 'uid'),
-        providerId: externs.ProviderId.GOOGLE,
-        operationType: externs.OperationType.LINK
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
       });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
@@ -382,7 +387,7 @@ describe('platform_browser/strategies/redirect', () => {
         type: AuthEventType.UNKNOWN,
         error: {
           code: `auth/${AuthErrorCode.NO_AUTH_EVENT}`
-        } as externs.AuthError
+        } as AuthError
       });
       expect(await promise).to.be.null;
     });
@@ -392,8 +397,8 @@ describe('platform_browser/strategies/redirect', () => {
 
       const cred = new UserCredentialImpl({
         user: testUser(auth, 'uid'),
-        providerId: externs.ProviderId.GOOGLE,
-        operationType: externs.OperationType.REAUTHENTICATE
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
       });
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
@@ -406,15 +411,15 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('removes the redirect user and clears eventId from currentuser', async () => {
       await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
-      const redirectPersistence: Persistence = _getInstance(
+      const redirectPersistence: PersistenceInternal = _getInstance(
         RedirectPersistence
       );
       sinon.spy(redirectPersistence, '_remove');
 
       const cred = new UserCredentialImpl({
         user: auth._currentUser!,
-        providerId: externs.ProviderId.GOOGLE,
-        operationType: externs.OperationType.LINK
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
       });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
@@ -430,15 +435,15 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('does not mutate authstate if bypassAuthState is true', async () => {
       await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
-      const redirectPersistence: Persistence = _getInstance(
+      const redirectPersistence: PersistenceInternal = _getInstance(
         RedirectPersistence
       );
       sinon.spy(redirectPersistence, '_remove');
 
       const cred = new UserCredentialImpl({
         user: auth._currentUser!,
-        providerId: externs.ProviderId.GOOGLE,
-        operationType: externs.OperationType.LINK
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
       });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = _getRedirectResult(auth, resolver, true);

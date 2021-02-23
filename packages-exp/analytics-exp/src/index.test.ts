@@ -23,7 +23,7 @@ import {
   getFakeApp,
   getFakeInstallations
 } from '../testing/get-fake-firebase-services';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { GtagCommand } from './constants';
 import { findGtagScriptOnPage } from './helpers';
 import { removeGtagScript } from '../testing/gtag-script-util';

@@ -28,10 +28,7 @@ import {
   onLog
 } from './api';
 import { DEFAULT_ENTRY_NAME } from './constants';
-import {
-  _FirebaseAppInternal,
-  _FirebaseService
-} from '@firebase/app-types-exp';
+import { _FirebaseService } from './public-types';
 import {
   _clearComponents,
   _components,
@@ -41,6 +38,7 @@ import {
 import { createTestComponent } from '../test/util';
 import { Component, ComponentType } from '@firebase/component';
 import { Logger } from '@firebase/logger';
+import { FirebaseAppImpl } from './firebaseApp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -111,7 +109,7 @@ describe('API tests', () => {
       _registerComponent(comp1);
       _registerComponent(comp2);
 
-      const app = initializeApp({}) as _FirebaseAppInternal;
+      const app = initializeApp({}) as FirebaseAppImpl;
       // -1 here to not count the FirebaseApp provider that's added during initializeApp
       expect(app.container.getProviders().length - 1).to.equal(
         _components.size
@@ -164,10 +162,10 @@ describe('API tests', () => {
   describe('deleteApp', () => {
     it('marks an App as deleted', async () => {
       const app = initializeApp({});
-      expect((app as _FirebaseAppInternal).isDeleted).to.be.false;
+      expect((app as FirebaseAppImpl).isDeleted).to.be.false;
 
       await deleteApp(app).catch(() => {});
-      expect((app as _FirebaseAppInternal).isDeleted).to.be.true;
+      expect((app as FirebaseAppImpl).isDeleted).to.be.true;
     });
 
     it('removes App from the cache', () => {

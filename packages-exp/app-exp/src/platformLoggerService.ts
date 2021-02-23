@@ -21,8 +21,9 @@ import {
   Provider,
   Name
 } from '@firebase/component';
+import { PlatformLoggerService } from './types';
 
-export class PlatformLoggerService {
+export class PlatformLoggerServiceImpl implements PlatformLoggerService {
   constructor(private readonly container: ComponentContainer) {}
   // In initial implementation, this will be called by installations on
   // auth token refresh, and installations will send this string.
