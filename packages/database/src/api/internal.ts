@@ -32,6 +32,11 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
+import {
+  repoInterceptServerData,
+  repoStats,
+  repoStatsIncrementCounter
+} from '../core/Repo';
 
 /**
  * INTERNAL methods for internal-use only (tests, etc.).
@@ -62,11 +67,11 @@ export const setSecurityDebugCallback = function (
 };
 
 export const stats = function (ref: Reference, showDelta?: boolean) {
-  ref.repo.stats(showDelta);
+  repoStats(ref.repo, showDelta);
 };
 
 export const statsIncrementCounter = function (ref: Reference, metric: string) {
-  ref.repo.statsIncrementCounter(metric);
+  repoStatsIncrementCounter(ref.repo, metric);
 };
 
 export const dataUpdateCount = function (ref: Reference): number {
@@ -77,7 +82,7 @@ export const interceptServerData = function (
   ref: Reference,
   callback: ((a: string, b: unknown) => void) | null
 ) {
-  return ref.repo.interceptServerData_(callback);
+  return repoInterceptServerData(ref.repo, callback);
 };
 
 /**
