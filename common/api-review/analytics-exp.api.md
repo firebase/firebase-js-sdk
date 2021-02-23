@@ -37,7 +37,7 @@ export type CustomEventName<T> = T extends EventNameString ? never : T;
 // @public
 export interface CustomParams {
     // (undocumented)
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 // @public
