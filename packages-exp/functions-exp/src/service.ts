@@ -20,7 +20,7 @@ import {
   HttpsCallable,
   HttpsCallableResult,
   HttpsCallableOptions
-} from '@firebase/functions-types-exp';
+} from './public-types';
 import { _errorForResponse, FunctionsError } from './error';
 import { ContextProvider } from './context';
 import { encode, decode } from './serializer';

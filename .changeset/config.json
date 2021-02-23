@@ -20,7 +20,6 @@
     "@firebase/auth-types-exp",
     "@firebase/functions-compat",
     "@firebase/functions-exp",
-    "@firebase/functions-types-exp",
     "@firebase/installations-exp",
     "@firebase/installations-types-exp",
     "@firebase/installations-compat",

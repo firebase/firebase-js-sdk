@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 
 /**
  * An HttpsCallableResult wraps a single result from a function call.
  */
 export interface HttpsCallableResult {
-  readonly data: any;
+  readonly data: unknown;
 }
 
 /**
@@ -130,7 +130,7 @@ export interface FunctionsError extends FirebaseError {
   /**
    * Extra data to be converted to JSON and included in the error response.
    */
-  readonly details?: any;
+  readonly details?: unknown;
 }
 
 declare module '@firebase/component' {
