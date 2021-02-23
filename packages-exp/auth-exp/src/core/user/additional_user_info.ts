@@ -82,7 +82,7 @@ export function _fromIdTokenResponse(
 class GenericAdditionalUserInfo implements AdditionalUserInfo {
   constructor(
     readonly isNewUser: boolean,
-    readonly providerId: ProviderId | null,
+    readonly providerId: ProviderId | string | null,
     readonly profile: Record<string, unknown> = {}
   ) {}
 }
