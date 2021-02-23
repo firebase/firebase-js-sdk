@@ -45,14 +45,9 @@ import {
   ListOptions,
   ListResult,
   UploadTask,
-  FirebaseStorageError,
-  TaskEvent,
-  TaskState,
-  StorageObserver,
   SettableMetadata,
   UploadMetadata,
-  FullMetadata,
-  UploadTaskSnapshot
+  FullMetadata
 } from './public-types';
 import { Metadata as MetadataInternal } from '../src/metadata';
 import {
@@ -71,22 +66,7 @@ import {
 /**
  * Public types.
  */
-export {
-  StorageReference,
-  StorageService,
-  UploadMetadata,
-  SettableMetadata,
-  FullMetadata,
-  UploadResult,
-  ListOptions,
-  ListResult,
-  UploadTask,
-  FirebaseStorageError,
-  TaskEvent,
-  TaskState,
-  StorageObserver,
-  UploadTaskSnapshot
-};
+export * from './public-types';
 
 /**
  * Uploads data to this object's location.
