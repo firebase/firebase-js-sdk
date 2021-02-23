@@ -15,10 +15,14 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  AdditionalUserInfo,
+  ProviderId,
+  UserCredential
+} from '../../model/public_types';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { _parseToken } from './id_token_result';
-import { UserCredential } from '../../model/user';
+import { UserCredentialInternal } from '../../model/user';
 
 /**
  * Parse the `AdditionalUserInfo` from the ID token response.
@@ -26,7 +30,7 @@ import { UserCredential } from '../../model/user';
  */
 export function _fromIdTokenResponse(
   idTokenResponse?: IdTokenResponse
-): externs.AdditionalUserInfo | null {
+): AdditionalUserInfo | null {
   if (!idTokenResponse) {
     return null;
   }
@@ -43,9 +47,9 @@ export function _fromIdTokenResponse(
     ];
     if (signInProvider) {
       const filteredProviderId =
-        signInProvider !== externs.ProviderId.ANONYMOUS &&
-        signInProvider !== externs.ProviderId.CUSTOM
-          ? (signInProvider as externs.ProviderId)
+        signInProvider !== ProviderId.ANONYMOUS &&
+        signInProvider !== ProviderId.CUSTOM
+          ? (signInProvider as ProviderId)
           : null;
       // Uses generic class in accordance with the legacy SDK.
       return new GenericAdditionalUserInfo(isNewUser, filteredProviderId);
@@ -55,30 +59,30 @@ export function _fromIdTokenResponse(
     return null;
   }
   switch (providerId) {
-    case externs.ProviderId.FACEBOOK:
+    case ProviderId.FACEBOOK:
       return new FacebookAdditionalUserInfo(isNewUser, profile);
-    case externs.ProviderId.GITHUB:
+    case ProviderId.GITHUB:
       return new GithubAdditionalUserInfo(isNewUser, profile);
-    case externs.ProviderId.GOOGLE:
+    case ProviderId.GOOGLE:
       return new GoogleAdditionalUserInfo(isNewUser, profile);
-    case externs.ProviderId.TWITTER:
+    case ProviderId.TWITTER:
       return new TwitterAdditionalUserInfo(
         isNewUser,
         profile,
         idTokenResponse.screenName || null
       );
-    case externs.ProviderId.CUSTOM:
-    case externs.ProviderId.ANONYMOUS:
+    case ProviderId.CUSTOM:
+    case ProviderId.ANONYMOUS:
       return new GenericAdditionalUserInfo(isNewUser, null);
     default:
       return new GenericAdditionalUserInfo(isNewUser, providerId, profile);
   }
 }
 
-class GenericAdditionalUserInfo implements externs.AdditionalUserInfo {
+class GenericAdditionalUserInfo implements AdditionalUserInfo {
   constructor(
     readonly isNewUser: boolean,
-    readonly providerId: externs.ProviderId | null,
+    readonly providerId: ProviderId | null,
     readonly profile: Record<string, unknown> = {}
   ) {}
 }
@@ -86,7 +90,7 @@ class GenericAdditionalUserInfo implements externs.AdditionalUserInfo {
 class FederatedAdditionalUserInfoWithUsername extends GenericAdditionalUserInfo {
   constructor(
     isNewUser: boolean,
-    providerId: externs.ProviderId,
+    providerId: ProviderId,
     profile: Record<string, unknown>,
     readonly username: string | null
   ) {
@@ -96,7 +100,7 @@ class FederatedAdditionalUserInfoWithUsername extends GenericAdditionalUserInfo 
 
 class FacebookAdditionalUserInfo extends GenericAdditionalUserInfo {
   constructor(isNewUser: boolean, profile: Record<string, unknown>) {
-    super(isNewUser, externs.ProviderId.FACEBOOK, profile);
+    super(isNewUser, ProviderId.FACEBOOK, profile);
   }
 }
 
@@ -104,7 +108,7 @@ class GithubAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
   constructor(isNewUser: boolean, profile: Record<string, unknown>) {
     super(
       isNewUser,
-      externs.ProviderId.GITHUB,
+      ProviderId.GITHUB,
       profile,
       typeof profile?.login === 'string' ? profile?.login : null
     );
@@ -113,7 +117,7 @@ class GithubAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
 
 class GoogleAdditionalUserInfo extends GenericAdditionalUserInfo {
   constructor(isNewUser: boolean, profile: Record<string, unknown>) {
-    super(isNewUser, externs.ProviderId.GOOGLE, profile);
+    super(isNewUser, ProviderId.GOOGLE, profile);
   }
 }
 
@@ -123,21 +127,21 @@ class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername 
     profile: Record<string, unknown>,
     screenName: string | null
   ) {
-    super(isNewUser, externs.ProviderId.TWITTER, profile, screenName);
+    super(isNewUser, ProviderId.TWITTER, profile, screenName);
   }
 }
 
 /**
- * Extracts provider specific {@link @firebase/auth-types#AdditionalUserInfo} for the given credential.
+ * Extracts provider specific {@link AdditionalUserInfo} for the given credential.
  *
  * @param userCredential - The user credential.
  *
  * @public
  */
 export function getAdditionalUserInfo(
-  userCredential: externs.UserCredential
-): externs.AdditionalUserInfo | null {
-  const { user, _tokenResponse } = userCredential as UserCredential;
+  userCredential: UserCredential
+): AdditionalUserInfo | null {
+  const { user, _tokenResponse } = userCredential as UserCredentialInternal;
   if (user.isAnonymous && !_tokenResponse) {
     // Handle the special case where signInAnonymously() gets called twice.
     // No network call is made so there's nothing to actually fill this in

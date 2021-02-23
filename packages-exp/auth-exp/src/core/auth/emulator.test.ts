@@ -26,7 +26,7 @@ import { endpointUrl, mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { _castAuth } from './auth_impl';
 import { useAuthEmulator } from './emulator';
 
@@ -35,7 +35,7 @@ use(chaiAsPromised);
 
 describe('core/auth/emulator', () => {
   let auth: TestAuth;
-  let user: User;
+  let user: UserInternal;
   let normalEndpoint: fetch.Route;
   let emulatorEndpoint: fetch.Route;
 
@@ -183,7 +183,7 @@ describe('core/auth/emulator', () => {
     it('also stringifies the current user', () => {
       auth.currentUser = ({
         toJSON: (): object => ({ foo: 'bar' })
-      } as unknown) as User;
+      } as unknown) as UserInternal;
       expect(JSON.stringify(auth)).to.eq(
         '{"apiKey":"test-api-key","authDomain":"localhost",' +
           '"appName":"test-app","currentUser":{"foo":"bar"}}'

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { AuthProvider } from '../../model/public_types';
 import { AuthErrorCode } from '../../core/errors';
 import {
   debugAssert,
@@ -25,7 +25,7 @@ import {
 } from '../../core/util/assert';
 import { _isAndroid, _isIOS, _isIOS7Or8 } from '../../core/util/browser';
 import { _getRedirectUrl } from '../../core/util/handler';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { AuthEvent } from '../../model/popup_redirect';
 
 /**
@@ -38,9 +38,9 @@ const REDIRECT_TIMEOUT_MS = 2000;
  * Generates the URL for the OAuth handler.
  */
 export async function _generateHandlerUrl(
-  auth: Auth,
+  auth: AuthInternal,
   event: AuthEvent,
-  provider: externs.AuthProvider
+  provider: AuthProvider
 ): Promise<string> {
   debugAssert(event.sessionId, 'AuthEvent did not contain a session ID');
   const sessionDigest = await computeSha256(event.sessionId);
@@ -107,7 +107,7 @@ interface PassiveAuthEventListener {
  * are detached and any browser tabs left open will be closed.
  */
 export async function _waitForAppResume(
-  auth: Auth,
+  auth: AuthInternal,
   eventListener: PassiveAuthEventListener,
   iabRef: InAppBrowserRef | null
 ): Promise<void> {
@@ -184,7 +184,7 @@ export async function _waitForAppResume(
  * if the configuration is correct; otherwise it throws an error with the
  * missing plugin.
  */
-export function _checkCordovaConfiguration(auth: Auth): void {
+export function _checkCordovaConfiguration(auth: AuthInternal): void {
   // Check all dependencies installed.
   // https://github.com/nordnet/cordova-universal-links-plugin
   // Note that cordova-universal-links-plugin has been abandoned.

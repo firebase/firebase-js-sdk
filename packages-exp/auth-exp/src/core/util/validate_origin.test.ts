@@ -25,14 +25,14 @@ import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import * as location from './location';
 import { _validateOrigin } from './validate_origin';
 
 use(chaiAsPromised);
 
 describe('core/util/validate_origin', () => {
-  let auth: Auth;
+  let auth: AuthInternal;
   let authorizedDomains: string[];
   let currentUrl: string;
   beforeEach(async () => {

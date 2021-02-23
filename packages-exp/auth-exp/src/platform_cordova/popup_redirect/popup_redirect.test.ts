@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { AuthProvider } from '../../model/public_types';
 import * as sinon from 'sinon';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
@@ -26,7 +26,7 @@ import {
   AuthEvent,
   AuthEventType,
   EventManager,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
 import { cordovaPopupRedirectResolver } from './popup_redirect';
 import { GoogleAuthProvider } from '../../core/providers/google';
@@ -47,8 +47,8 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
   const NO_EVENT_TIMER_ID = 10001;
 
   let auth: TestAuth;
-  let resolver: PopupRedirectResolver;
-  let provider: externs.AuthProvider;
+  let resolver: PopupRedirectResolverInternal;
+  let provider: AuthProvider;
   let utilsStubs: sinon.SinonStubbedInstance<typeof utils>;
   let eventsStubs: sinon.SinonStubbedInstance<Partial<typeof events>>;
   let universalLinksCb:
@@ -58,7 +58,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
+    resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>)();
     provider = new GoogleAuthProvider();
     utilsStubs = sinon.stub(utils);
     eventsStubs = {

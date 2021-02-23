@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { OperationType, ProviderId } from '@firebase/auth-types-exp';
+import { OperationType, ProviderId } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
@@ -31,7 +31,7 @@ import {
   AuthEvent,
   AuthEventType,
   EventManager,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AuthErrorCode } from '../errors';
@@ -59,7 +59,7 @@ class WrapperOperation extends AbstractPopupRedirectOperation {
 
 describe('core/strategies/abstract_popup_redirect_operation', () => {
   let auth: TestAuth;
-  let resolver: PopupRedirectResolver;
+  let resolver: PopupRedirectResolverInternal;
   let eventManager: EventManager;
   let idpStubs: sinon.SinonStubbedInstance<typeof idp>;
 

@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { OperationType, ProviderId } from '@firebase/auth-types-exp';
+import { OperationType, ProviderId } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -28,12 +28,12 @@ import { makeJWT } from '../../../test/helpers/jwt';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { MultiFactorInfo } from '../../mfa/mfa_info';
-import { MultiFactorSession } from '../../mfa/mfa_session';
-import { multiFactor, MultiFactorUser } from '../../mfa/mfa_user';
-import { ApplicationVerifier } from '../../model/application_verifier';
+import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
+import { MultiFactorSessionImpl } from '../../mfa/mfa_session';
+import { multiFactor, MultiFactorUserImpl } from '../../mfa/mfa_user';
+import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import {
@@ -49,7 +49,7 @@ use(sinonChai);
 
 describe('platform_browser/strategies/phone', () => {
   let auth: TestAuth;
-  let verifier: ApplicationVerifier;
+  let verifier: ApplicationVerifierInternal;
   let sendCodeEndpoint: fetch.Route;
 
   beforeEach(async () => {
@@ -118,7 +118,7 @@ describe('platform_browser/strategies/phone', () => {
 
   describe('linkWithPhoneNumber', () => {
     let getAccountInfoEndpoint: fetch.Route;
-    let user: User;
+    let user: UserInternal;
 
     beforeEach(() => {
       getAccountInfoEndpoint = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
@@ -196,7 +196,7 @@ describe('platform_browser/strategies/phone', () => {
   });
 
   describe('reauthenticateWithPhoneNumber', () => {
-    let user: User;
+    let user: UserInternal;
 
     beforeEach(() => {
       mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
@@ -310,8 +310,8 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('MFA', () => {
-      let user: User;
-      let mfaUser: MultiFactorUser;
+      let user: UserInternal;
+      let mfaUser: MultiFactorUserImpl;
 
       beforeEach(() => {
         mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
@@ -319,7 +319,7 @@ describe('platform_browser/strategies/phone', () => {
         });
 
         user = testUser(auth, 'uid', 'email', true);
-        mfaUser = multiFactor(user) as MultiFactorUser;
+        mfaUser = multiFactor(user) as MultiFactorUserImpl;
       });
 
       it('works with an enrollment flow', async () => {
@@ -328,7 +328,7 @@ describe('platform_browser/strategies/phone', () => {
             sessionInfo: 'session-info'
           }
         });
-        const session = (await mfaUser.getSession()) as MultiFactorSession;
+        const session = (await mfaUser.getSession()) as MultiFactorSessionImpl;
         const sessionInfo = await _verifyPhoneNumber(
           auth,
           { phoneNumber: 'number', session },
@@ -351,10 +351,10 @@ describe('platform_browser/strategies/phone', () => {
             sessionInfo: 'session-info'
           }
         });
-        const session = MultiFactorSession._fromMfaPendingCredential(
+        const session = MultiFactorSessionImpl._fromMfaPendingCredential(
           'mfa-pending-credential'
         );
-        const mfaInfo = MultiFactorInfo._fromServerResponse(auth, {
+        const mfaInfo = MultiFactorInfoImpl._fromServerResponse(auth, {
           mfaEnrollmentId: 'mfa-enrollment-id',
           enrolledAt: Date.now(),
           phoneInfo: 'phone-number-from-enrollment'
@@ -388,7 +388,7 @@ describe('platform_browser/strategies/phone', () => {
 
     it('throws if the verifier type is not recaptcha', async () => {
       const mutVerifier: {
-        -readonly [K in keyof ApplicationVerifier]: ApplicationVerifier[K];
+        -readonly [K in keyof ApplicationVerifierInternal]: ApplicationVerifierInternal[K];
       } = verifier;
       mutVerifier.type = 'not-recaptcha-thats-for-sure';
       await expect(
@@ -414,7 +414,7 @@ describe('platform_browser/strategies/phone', () => {
   });
 
   describe('updatePhoneNumber', () => {
-    let user: User;
+    let user: UserInternal;
     let reloadMock: fetch.Route;
     let signInMock: fetch.Route;
     let credential: PhoneAuthCredential;

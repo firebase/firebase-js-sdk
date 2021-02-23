@@ -32,17 +32,21 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  ProviderId,
+  SignInMethod,
+  UserCredential
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
-import { UserCredential } from '../../model/user';
+import { UserCredentialInternal } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
- * Provider for generating an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.TWITTER}.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId.TWITTER}.
  *
  * @example
  * ```javascript
@@ -81,11 +85,11 @@ import { OAuthProvider } from './oauth';
  * @public
  */
 export class TwitterAuthProvider extends OAuthProvider {
-  static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
-  static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
+  static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
+  static readonly PROVIDER_ID = ProviderId.TWITTER;
 
   constructor() {
-    super(externs.ProviderId.TWITTER);
+    super(ProviderId.TWITTER);
   }
 
   /**
@@ -94,7 +98,7 @@ export class TwitterAuthProvider extends OAuthProvider {
    * @param token - Twitter access token.
    * @param secret - Twitter secret.
    */
-  static credential(token: string, secret: string): externs.OAuthCredential {
+  static credential(token: string, secret: string): OAuthCredential {
     return OAuthCredential._fromParams({
       providerId: TwitterAuthProvider.PROVIDER_ID,
       signInMethod: TwitterAuthProvider.TWITTER_SIGN_IN_METHOD,
@@ -104,27 +108,25 @@ export class TwitterAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   * Used to extract the underlying {@link OAuthCredential} from a {@link UserCredential}.
    *
    * @param userCredential - The user credential.
    */
   static credentialFromResult(
-    userCredential: externs.UserCredential
-  ): externs.OAuthCredential | null {
+    userCredential: UserCredential
+  ): OAuthCredential | null {
     return TwitterAuthProvider.credentialFromTaggedObject(
-      userCredential as UserCredential
+      userCredential as UserCredentialInternal
     );
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * Used to extract the underlying {@link OAuthCredential} from a {@link AuthError} which was
    * thrown during a sign-in, link, or reauthenticate operation.
    *
    * @param userCredential - The user credential.
    */
-  static credentialFromError(
-    error: FirebaseError
-  ): externs.OAuthCredential | null {
+  static credentialFromError(error: FirebaseError): OAuthCredential | null {
     return TwitterAuthProvider.credentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );
@@ -132,7 +134,7 @@ export class TwitterAuthProvider extends OAuthProvider {
 
   private static credentialFromTaggedObject({
     _tokenResponse: tokenResponse
-  }: TaggedWithTokenResponse): externs.OAuthCredential | null {
+  }: TaggedWithTokenResponse): OAuthCredential | null {
     if (!tokenResponse) {
       return null;
     }

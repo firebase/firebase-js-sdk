@@ -16,7 +16,7 @@
  */
 
 import { deleteApp, initializeApp } from '@firebase/app-exp';
-import { Auth, User } from '@firebase/auth-types-exp';
+import { Auth, User } from '../../../src/model/public_types';
 
 import { getAuth } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';

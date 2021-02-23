@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Auth, OperationType, UserCredential } from '../../model/public_types';
 import { signUp } from '../../api/authentication/sign_up';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 
@@ -32,16 +32,14 @@ import { _castAuth } from '../auth/auth_impl';
  *
  * @public
  */
-export async function signInAnonymously(
-  auth: externs.Auth
-): Promise<externs.UserCredential> {
+export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
   if (authInternal.currentUser?.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign them in again.
     return new UserCredentialImpl({
-      user: authInternal.currentUser as User,
+      user: authInternal.currentUser as UserInternal,
       providerId: null,
-      operationType: externs.OperationType.SIGN_IN
+      operationType: OperationType.SIGN_IN
     });
   }
   const response = await signUp(authInternal, {
@@ -49,7 +47,7 @@ export async function signInAnonymously(
   });
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
     authInternal,
-    externs.OperationType.SIGN_IN,
+    OperationType.SIGN_IN,
     response,
     true
   );

@@ -15,27 +15,27 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { OperationType, ProviderId } from '../../model/public_types';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { IdTokenResponse } from '../../model/id_token';
-import { User, UserCredential } from '../../model/user';
+import { UserInternal, UserCredentialInternal } from '../../model/user';
 import { UserImpl } from './user_impl';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 
 interface UserCredentialParams {
-  readonly user: User;
-  readonly providerId: externs.ProviderId | null;
+  readonly user: UserInternal;
+  readonly providerId: ProviderId | null;
   readonly _tokenResponse?: PhoneOrOauthTokenResponse;
-  readonly operationType: externs.OperationType;
+  readonly operationType: OperationType;
 }
 
 export class UserCredentialImpl
-  implements UserCredential, UserCredentialParams {
-  readonly user: User;
-  readonly providerId: externs.ProviderId | null;
+  implements UserCredentialInternal, UserCredentialParams {
+  readonly user: UserInternal;
+  readonly providerId: ProviderId | null;
   readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined;
-  readonly operationType: externs.OperationType;
+  readonly operationType: OperationType;
 
   constructor(params: UserCredentialParams) {
     this.user = params.user;
@@ -45,11 +45,11 @@ export class UserCredentialImpl
   }
 
   static async _fromIdTokenResponse(
-    auth: Auth,
-    operationType: externs.OperationType,
+    auth: AuthInternal,
+    operationType: OperationType,
     idTokenResponse: IdTokenResponse,
     isAnonymous: boolean = false
-  ): Promise<UserCredential> {
+  ): Promise<UserCredentialInternal> {
     const user = await UserImpl._fromIdTokenResponse(
       auth,
       idTokenResponse,
@@ -66,8 +66,8 @@ export class UserCredentialImpl
   }
 
   static async _forOperation(
-    user: User,
-    operationType: externs.OperationType,
+    user: UserInternal,
+    operationType: OperationType,
     response: PhoneOrOauthTokenResponse
   ): Promise<UserCredentialImpl> {
     await user._updateTokensIfNecessary(response, /* reload */ true);
@@ -81,15 +81,13 @@ export class UserCredentialImpl
   }
 }
 
-function providerIdForResponse(
-  response: IdTokenResponse
-): externs.ProviderId | null {
+function providerIdForResponse(response: IdTokenResponse): ProviderId | null {
   if (response.providerId) {
     return response.providerId;
   }
 
   if ('phoneNumber' in response) {
-    return externs.ProviderId.PHONE;
+    return ProviderId.PHONE;
   }
 
   return null;

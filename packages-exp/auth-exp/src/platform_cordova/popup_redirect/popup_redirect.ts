@@ -16,13 +16,13 @@
  */
 
 import '../plugins';
-import * as externs from '@firebase/auth-types-exp';
+import { AuthProvider, PopupRedirectResolver } from '../../model/public_types';
 import { browserSessionPersistence } from '../../platform_browser/persistence/session_storage';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
   AuthEvent,
   AuthEventType,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
 import { AuthPopup } from '../../platform_browser/util/popup';
 import { _createError, _fail } from '../../core/util/assert';
@@ -50,13 +50,13 @@ import { _clearRedirectOutcomes } from '../../core/strategies/redirect';
  */
 const INITIAL_EVENT_TIMEOUT_MS = 500;
 
-class CordovaPopupRedirectResolver implements PopupRedirectResolver {
+class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
   readonly _redirectPersistence = browserSessionPersistence;
   private readonly eventManagers = new Map<string, CordovaAuthEventManager>();
 
   _completeRedirectFn = _getRedirectResult;
 
-  async _initialize(auth: Auth): Promise<CordovaAuthEventManager> {
+  async _initialize(auth: AuthInternal): Promise<CordovaAuthEventManager> {
     const key = auth._key();
     let manager = this.eventManagers.get(key);
     if (!manager) {
@@ -67,13 +67,13 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     return manager;
   }
 
-  _openPopup(auth: Auth): Promise<AuthPopup> {
+  _openPopup(auth: AuthInternal): Promise<AuthPopup> {
     _fail(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED);
   }
 
   async _openRedirect(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<void> {
@@ -95,13 +95,16 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   }
 
   _isIframeWebStorageSupported(
-    _auth: Auth,
+    _auth: AuthInternal,
     _cb: (support: boolean) => unknown
   ): void {
     throw new Error('Method not implemented.');
   }
 
-  private attachCallbackListeners(auth: Auth, manager: AuthEventManager): void {
+  private attachCallbackListeners(
+    auth: AuthInternal,
+    manager: AuthEventManager
+  ): void {
     const noEventTimeout = setTimeout(async () => {
       // We didn't see that initial event. Clear any pending object and
       // dispatch no event
@@ -160,12 +163,12 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for Cordova
+ * An implementation of {@link PopupRedirectResolver} suitable for Cordova
  * based applications.
  *
  * @public
  */
-export const cordovaPopupRedirectResolver: externs.PopupRedirectResolver = CordovaPopupRedirectResolver;
+export const cordovaPopupRedirectResolver: PopupRedirectResolver = CordovaPopupRedirectResolver;
 
 function generateNoEvent(): AuthEvent {
   return {

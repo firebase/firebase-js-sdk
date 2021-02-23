@@ -15,11 +15,17 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  AuthProvider,
+  Persistence,
+  PopupRedirectResolver,
+  UserCredential
+} from './public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { AuthPopup } from '../platform_browser/util/popup';
-import { Auth } from './auth';
+import { AuthInternal } from './auth';
 
 export const enum EventFilter {
   POPUP,
@@ -73,30 +79,30 @@ export interface EventManager {
   unregisterConsumer(authEventConsumer: AuthEventConsumer): void;
 }
 
-export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
-  _initialize(auth: Auth): Promise<EventManager>;
+export interface PopupRedirectResolverInternal extends PopupRedirectResolver {
+  _initialize(auth: AuthInternal): Promise<EventManager>;
   _openPopup(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup>;
   _openRedirect(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<void | never>;
   _isIframeWebStorageSupported(
-    auth: Auth,
+    auth: AuthInternal,
     cb: (support: boolean) => unknown
   ): void;
-  _redirectPersistence: externs.Persistence;
+  _redirectPersistence: Persistence;
 
   // This is needed so that auth does not have a hard dependency on redirect
   _completeRedirectFn: (
-    auth: externs.Auth,
-    resolver: externs.PopupRedirectResolver,
+    auth: Auth,
+    resolver: PopupRedirectResolver,
     bypassAuthState: boolean
-  ) => Promise<externs.UserCredential | null>;
+  ) => Promise<UserCredential | null>;
 }

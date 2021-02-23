@@ -47,7 +47,6 @@
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.4",
     "@firebase/component": "0.2.0",
-    "@firebase/auth-types-exp": "0.0.900",
     "node-fetch": "2.6.1",
     "tslib": "^1.11.1"
   },
@@ -69,7 +68,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/esm5/index.d.ts",
+  "typings": "dist/auth-exp.d.ts",
   "nyc": {
     "extension": [
       ".ts"

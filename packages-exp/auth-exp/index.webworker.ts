@@ -16,12 +16,12 @@
  */
 
 import { _getProvider, FirebaseApp } from '@firebase/app-exp';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from './src/model/public_types';
 
 import { AuthImpl } from './src/core/auth/auth_impl';
 import { _initializeAuthInstance } from './src/core/auth/initialize';
 import { _ComponentName, registerAuth } from './src/core/auth/register';
-import { Persistence } from './src/core/persistence';
+import { PersistenceInternal } from './src/core/persistence';
 import { _getInstance } from './src/core/util/instantiator';
 import { ClientPlatform } from './src/core/util/version';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
@@ -45,7 +45,7 @@ export function getAuth(app: FirebaseApp): Auth {
   // This promise is intended to float; auth initialization happens in the
   // background, meanwhile the auth object may be used by the app.
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  _getInstance<Persistence>(indexedDBLocalPersistence)
+  _getInstance<PersistenceInternal>(indexedDBLocalPersistence)
     ._isAvailable()
     .then(avail => {
       const deps = avail ? { persistence: indexedDBLocalPersistence } : {};

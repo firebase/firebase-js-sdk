@@ -15,31 +15,30 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
 import firebase from '@firebase/app-compat';
 import { unwrap, Wrapper } from './wrap';
 
 export class PhoneAuthProvider
-  implements compat.PhoneAuthProvider, Wrapper<externs.PhoneAuthProvider> {
+  implements compat.PhoneAuthProvider, Wrapper<exp.PhoneAuthProvider> {
   providerId = 'phone';
-  private readonly phoneProvider: impl.PhoneAuthProvider;
+  private readonly phoneProvider: exp.PhoneAuthProvider;
 
-  static PHONE_SIGN_IN_METHOD = impl.PhoneAuthProvider.PHONE_SIGN_IN_METHOD;
-  static PROVIDER_ID = impl.PhoneAuthProvider.PROVIDER_ID;
+  static PHONE_SIGN_IN_METHOD = exp.PhoneAuthProvider.PHONE_SIGN_IN_METHOD;
+  static PROVIDER_ID = exp.PhoneAuthProvider.PROVIDER_ID;
 
   static credential(
     verificationId: string,
     verificationCode: string
   ): compat.AuthCredential {
-    return impl.PhoneAuthProvider.credential(verificationId, verificationCode);
+    return exp.PhoneAuthProvider.credential(verificationId, verificationCode);
   }
 
   constructor() {
     // TODO: remove ts-ignore when moving types from auth-types to auth-compat
     // @ts-ignore
-    this.phoneProvider = new impl.PhoneAuthProvider(unwrap(firebase.auth!()));
+    this.phoneProvider = new exp.PhoneAuthProvider(unwrap(firebase.auth!()));
   }
 
   verifyPhoneNumber(
@@ -58,7 +57,7 @@ export class PhoneAuthProvider
     );
   }
 
-  unwrap(): externs.PhoneAuthProvider {
+  unwrap(): exp.PhoneAuthProvider {
     return this.phoneProvider;
   }
 }

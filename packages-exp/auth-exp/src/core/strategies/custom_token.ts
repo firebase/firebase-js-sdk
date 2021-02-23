@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Auth, OperationType, UserCredential } from '../../model/public_types';
 
 import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication/custom_token';
 import { IdTokenResponse } from '../../model/id_token';
@@ -39,9 +39,9 @@ import { _castAuth } from '../auth/auth_impl';
  * @public
  */
 export async function signInWithCustomToken(
-  auth: externs.Auth,
+  auth: Auth,
   customToken: string
-): Promise<externs.UserCredential> {
+): Promise<UserCredential> {
   const response: IdTokenResponse = await getIdTokenResponse(auth, {
     token: customToken,
     returnSecureToken: true
@@ -49,7 +49,7 @@ export async function signInWithCustomToken(
   const authInternal = _castAuth(auth);
   const cred = await UserCredentialImpl._fromIdTokenResponse(
     authInternal,
-    externs.OperationType.SIGN_IN,
+    OperationType.SIGN_IN,
     response
   );
   await authInternal._updateCurrentUser(cred.user);

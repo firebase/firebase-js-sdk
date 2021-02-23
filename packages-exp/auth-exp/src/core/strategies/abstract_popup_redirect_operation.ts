@@ -22,9 +22,9 @@ import {
   AuthEventConsumer,
   AuthEventType,
   EventManager,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
-import { User, UserCredential } from '../../model/user';
+import { UserInternal, UserCredentialInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { debugAssert, _fail } from '../util/assert';
 import {
@@ -34,10 +34,10 @@ import {
   IdpTask,
   IdpTaskParams
 } from '../strategies/idp';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 
 interface PendingPromise {
-  resolve: (cred: UserCredential | null) => void;
+  resolve: (cred: UserCredentialInternal | null) => void;
   reject: (error: Error) => void;
 }
 
@@ -54,10 +54,10 @@ export abstract class AbstractPopupRedirectOperation
   abstract eventId: string | null;
 
   constructor(
-    protected readonly auth: Auth,
+    protected readonly auth: AuthInternal,
     filter: AuthEventType | AuthEventType[],
-    protected readonly resolver: PopupRedirectResolver,
-    protected user?: User,
+    protected readonly resolver: PopupRedirectResolverInternal,
+    protected user?: UserInternal,
     private readonly bypassAuthState = false
   ) {
     this.filter = Array.isArray(filter) ? filter : [filter];
@@ -65,18 +65,20 @@ export abstract class AbstractPopupRedirectOperation
 
   abstract onExecution(): Promise<void>;
 
-  execute(): Promise<UserCredential | null> {
-    return new Promise<UserCredential | null>(async (resolve, reject) => {
-      this.pendingPromise = { resolve, reject };
+  execute(): Promise<UserCredentialInternal | null> {
+    return new Promise<UserCredentialInternal | null>(
+      async (resolve, reject) => {
+        this.pendingPromise = { resolve, reject };
 
-      try {
-        this.eventManager = await this.resolver._initialize(this.auth);
-        await this.onExecution();
-        this.eventManager.registerConsumer(this);
-      } catch (e) {
-        this.reject(e);
+        try {
+          this.eventManager = await this.resolver._initialize(this.auth);
+          await this.onExecution();
+          this.eventManager.registerConsumer(this);
+        } catch (e) {
+          this.reject(e);
+        }
       }
-    });
+    );
   }
 
   async onAuthEvent(event: AuthEvent): Promise<void> {
@@ -123,7 +125,7 @@ export abstract class AbstractPopupRedirectOperation
     }
   }
 
-  protected resolve(cred: UserCredential | null): void {
+  protected resolve(cred: UserCredentialInternal | null): void {
     debugAssert(this.pendingPromise, 'Pending promise was never set');
     this.pendingPromise.resolve(cred);
     this.unregisterAndCleanUp();

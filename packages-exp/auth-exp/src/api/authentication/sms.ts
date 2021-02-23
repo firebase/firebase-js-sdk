@@ -24,7 +24,7 @@ import {
 import { AuthErrorCode } from '../../core/errors';
 import { IdTokenResponse } from '../../model/id_token';
 import { ServerError, ServerErrorMap } from '../errors';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 
 export interface SendPhoneVerificationCodeRequest {
   phoneNumber: string;
@@ -87,9 +87,9 @@ interface VerifyPhoneNumberForExistingRequest
   operation: 'REAUTH';
 }
 
-const VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_: Partial<ServerErrorMap<
-  ServerError
->> = {
+const VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_: Partial<
+  ServerErrorMap<ServerError>
+> = {
   [ServerError.USER_NOT_FOUND]: AuthErrorCode.USER_DELETED
 };
 

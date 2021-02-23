@@ -15,28 +15,28 @@
  * limitations under the License.
  */
 
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
   AuthEvent,
   AuthEventType,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
-import { UserCredential } from '../../model/user';
+import { UserCredentialInternal } from '../../model/user';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
 // We only get one redirect outcome for any one auth, so just store it
 // in here.
 const redirectOutcomeMap: Map<
   string,
-  () => Promise<UserCredential | null>
+  () => Promise<UserCredentialInternal | null>
 > = new Map();
 
 export class RedirectAction extends AbstractPopupRedirectOperation {
   eventId = null;
 
   constructor(
-    auth: Auth,
-    resolver: PopupRedirectResolver,
+    auth: AuthInternal,
+    resolver: PopupRedirectResolverInternal,
     bypassAuthState = false
   ) {
     super(
@@ -57,7 +57,7 @@ export class RedirectAction extends AbstractPopupRedirectOperation {
    * Override the execute function; if we already have a redirect result, then
    * just return it.
    */
-  async execute(): Promise<UserCredential | null> {
+  async execute(): Promise<UserCredentialInternal | null> {
     let readyOutcome = redirectOutcomeMap.get(this.auth._key());
     if (!readyOutcome) {
       try {

@@ -15,23 +15,29 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  IdTokenResult,
+  ProviderId,
+  User,
+  UserCredential,
+  UserInfo
+} from './public_types';
 import { NextFn } from '@firebase/util';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
 import { StsTokenManager } from '../core/user/token_manager';
 import { UserMetadata } from '../core/user/user_metadata';
-import { Auth } from './auth';
+import { AuthInternal } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
 
 export type MutableUserInfo = {
-  -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
+  -readonly [K in keyof UserInfo]: UserInfo[K];
 };
 
 export interface UserParameters {
   uid: string;
-  auth: Auth;
+  auth: AuthInternal;
   stsTokenManager: StsTokenManager;
 
   displayName?: string | null;
@@ -46,14 +52,14 @@ export interface UserParameters {
   lastLoginAt?: string | null;
 }
 
-export interface User extends externs.User {
+export interface UserInternal extends User {
   displayName: string | null;
   email: string | null;
   phoneNumber: string | null;
   photoURL: string | null;
 
-  auth: Auth;
-  providerId: externs.ProviderId.FIREBASE;
+  auth: AuthInternal;
+  providerId: ProviderId.FIREBASE;
   refreshToken: string;
   emailVerified: boolean;
   tenantId: string | null;
@@ -68,22 +74,22 @@ export interface User extends externs.User {
     reload?: boolean
   ): Promise<void>;
 
-  _assign(user: User): void;
-  _clone(): User;
+  _assign(user: UserInternal): void;
+  _clone(): UserInternal;
   _onReload: (cb: NextFn<APIUserInfo>) => void;
   _notifyReloadListener: NextFn<APIUserInfo>;
   _startProactiveRefresh: () => void;
   _stopProactiveRefresh: () => void;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
-  getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
+  getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
   reload(): Promise<void>;
   delete(): Promise<void>;
   toJSON(): PersistedBlob;
 }
 
-export interface UserCredential
-  extends externs.UserCredential,
+export interface UserCredentialInternal
+  extends UserCredential,
     TaggedWithTokenResponse {
-  user: User;
+  user: UserInternal;
 }

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { ApiKey, AppName, Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { PersistedBlob, Persistence } from '../persistence';
+import { ApiKey, AppName, AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { PersistedBlob, PersistenceInternal } from '../persistence';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
@@ -46,8 +46,8 @@ export class PersistenceUserManager {
   private readonly boundEventHandler: () => void;
 
   private constructor(
-    public persistence: Persistence,
-    private readonly auth: Auth,
+    public persistence: PersistenceInternal,
+    private readonly auth: AuthInternal,
     private readonly userKey: string
   ) {
     const { config, name } = this.auth;
@@ -61,11 +61,11 @@ export class PersistenceUserManager {
     this.persistence._addListener(this.fullUserKey, this.boundEventHandler);
   }
 
-  setCurrentUser(user: User): Promise<void> {
+  setCurrentUser(user: UserInternal): Promise<void> {
     return this.persistence._set(this.fullUserKey, user.toJSON());
   }
 
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(): Promise<UserInternal | null> {
     const blob = await this.persistence._get<PersistedBlob>(this.fullUserKey);
     return blob ? UserImpl._fromJSON(this.auth, blob) : null;
   }
@@ -81,7 +81,7 @@ export class PersistenceUserManager {
     );
   }
 
-  async setPersistence(newPersistence: Persistence): Promise<void> {
+  async setPersistence(newPersistence: PersistenceInternal): Promise<void> {
     if (this.persistence.type === newPersistence.type) {
       return;
     }
@@ -101,8 +101,8 @@ export class PersistenceUserManager {
   }
 
   static async create(
-    auth: Auth,
-    persistenceHierarchy: Persistence[],
+    auth: AuthInternal,
+    persistenceHierarchy: PersistenceInternal[],
     userKey = KeyName.AUTH_USER
   ): Promise<PersistenceUserManager> {
     if (!persistenceHierarchy.length) {

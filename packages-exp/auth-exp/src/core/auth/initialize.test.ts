@@ -21,22 +21,28 @@ import {
   FirebaseApp,
   _FirebaseService
 } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  AuthProvider,
+  Persistence as PersistencePublic,
+  PopupRedirectResolver,
+  UserCredential
+} from '../../model/public_types';
 import { isNode } from '@firebase/util';
 
 import { expect } from 'chai';
 import { inMemoryPersistence } from '../../../internal';
 
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
-  PopupRedirectResolver,
+  PopupRedirectResolverInternal,
   AuthEventType,
   EventManager,
   AuthEventConsumer
 } from '../../model/popup_redirect';
 import { AuthPopup } from '../../platform_browser/util/popup';
 import {
-  Persistence,
+  PersistenceInternal,
   PersistenceType,
   PersistenceValue,
   StorageEventListener
@@ -48,7 +54,7 @@ import { registerAuth } from './register';
 describe('core/auth/initialize', () => {
   let fakeApp: FirebaseApp;
 
-  class FakeSessionPersistence implements Persistence {
+  class FakeSessionPersistence implements PersistenceInternal {
     static type: 'SESSION' = 'SESSION';
     readonly type = PersistenceType.SESSION;
     storage: Record<string, PersistenceValue> = {};
@@ -73,12 +79,12 @@ describe('core/auth/initialize', () => {
     }
   }
 
-  const fakeSessionPersistence: externs.Persistence = FakeSessionPersistence;
+  const fakeSessionPersistence: PersistencePublic = FakeSessionPersistence;
 
-  class FakePopupRedirectResolver implements PopupRedirectResolver {
+  class FakePopupRedirectResolver implements PopupRedirectResolverInternal {
     readonly _redirectPersistence = fakeSessionPersistence;
 
-    async _initialize(_auth: Auth): Promise<EventManager> {
+    async _initialize(_auth: AuthInternal): Promise<EventManager> {
       return new (class implements EventManager {
         registerConsumer(_authEventConsumer: AuthEventConsumer): void {
           return;
@@ -89,37 +95,37 @@ describe('core/auth/initialize', () => {
       })();
     }
     async _openPopup(
-      _auth: Auth,
-      _provider: externs.AuthProvider,
+      _auth: AuthInternal,
+      _provider: AuthProvider,
       _authType: AuthEventType,
       _eventId?: string
     ): Promise<AuthPopup> {
       return new AuthPopup(null);
     }
     _openRedirect(
-      _auth: Auth,
-      _provider: externs.AuthProvider,
+      _auth: AuthInternal,
+      _provider: AuthProvider,
       _authType: AuthEventType,
       _eventId?: string
     ): Promise<never> {
       return new Promise((_, reject) => reject());
     }
     _isIframeWebStorageSupported(
-      _auth: Auth,
+      _auth: AuthInternal,
       cb: (support: boolean) => unknown
     ): void {
       cb(true);
     }
     async _completeRedirectFn(
-      _auth: externs.Auth,
-      _resolver: externs.PopupRedirectResolver,
+      _auth: Auth,
+      _resolver: PopupRedirectResolver,
       _bypassAuthState: boolean
-    ): Promise<externs.UserCredential | null> {
+    ): Promise<UserCredential | null> {
       return null;
     }
   }
 
-  const fakePopupRedirectResolver: externs.PopupRedirectResolver = FakePopupRedirectResolver;
+  const fakePopupRedirectResolver: PopupRedirectResolver = FakePopupRedirectResolver;
 
   before(() => {
     registerAuth(ClientPlatform.BROWSER);
@@ -139,7 +145,7 @@ describe('core/auth/initialize', () => {
 
   describe('initializeAuth', () => {
     it('should work with no deps', async () => {
-      const auth = initializeAuth(fakeApp) as Auth;
+      const auth = initializeAuth(fakeApp) as AuthInternal;
       await auth._initializationPromise;
 
       expect(auth.name).to.eq(fakeApp.name);
@@ -161,7 +167,7 @@ describe('core/auth/initialize', () => {
     it('should set persistence', async () => {
       const auth = initializeAuth(fakeApp, {
         persistence: fakeSessionPersistence
-      }) as Auth;
+      }) as AuthInternal;
       await auth._initializationPromise;
 
       expect(auth._getPersistence()).to.eq('SESSION');
@@ -170,7 +176,7 @@ describe('core/auth/initialize', () => {
     it('should set persistence with fallback', async () => {
       const auth = initializeAuth(fakeApp, {
         persistence: [fakeSessionPersistence, inMemoryPersistence]
-      }) as Auth;
+      }) as AuthInternal;
       await auth._initializationPromise;
 
       expect(auth._getPersistence()).to.eq('SESSION');
@@ -179,7 +185,7 @@ describe('core/auth/initialize', () => {
     it('should set resolver', async () => {
       const auth = initializeAuth(fakeApp, {
         popupRedirectResolver: fakePopupRedirectResolver
-      }) as Auth;
+      }) as AuthInternal;
       await auth._initializationPromise;
 
       expect(auth._popupRedirectResolver).to.be.instanceof(
@@ -190,7 +196,7 @@ describe('core/auth/initialize', () => {
     it('should abort initialization if deleted synchronously', async () => {
       const auth = initializeAuth(fakeApp, {
         popupRedirectResolver: fakePopupRedirectResolver
-      }) as Auth;
+      }) as AuthInternal;
       await ((auth as unknown) as _FirebaseService)._delete();
       await auth._initializationPromise;
 

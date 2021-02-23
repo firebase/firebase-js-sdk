@@ -386,21 +386,21 @@ export interface ActionCodeInfo {
    * The data associated with the action code.
    *
    * @remarks
-   * For the {@link Operation.PASSWORD_RESET}, {@link Operation.VERIFY_EMAIL}, and
-   * {@link Operation.RECOVER_EMAIL} actions, this object contains an email field with the address
+   * For the {@link ActionCodeOperation.PASSWORD_RESET}, {@link ActionCodeOperation.VERIFY_EMAIL}, and
+   * {@link ActionCodeOperation.RECOVER_EMAIL} actions, this object contains an email field with the address
    * the email was sent to.
    *
-   * For the {@link Operation.RECOVER_EMAIL} action, which allows a user to undo an email address
+   * For the {@link ActionCodeOperation.RECOVER_EMAIL} action, which allows a user to undo an email address
    * change, this object also contains a `previousEmail` field with the user account's current
    * email address. After the action completes, the user's email address will revert to the value
    * in the `email` field from the value in `previousEmail` field.
    *
-   * For the {@link Operation.VERIFY_AND_CHANGE_EMAIL} action, which allows a user to verify the
+   * For the {@link ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL} action, which allows a user to verify the
    * email before updating it, this object contains a `previousEmail` field with the user account's
    * email address before updating. After the action completes, the user's email address will be
    * updated to the value in the `email` field from the value in `previousEmail` field.
    *
-   * For the {@link Operation.REVERT_SECOND_FACTOR_ADDITION} action, which allows a user to
+   * For the {@link ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION} action, which allows a user to
    * unenroll a newly added second factor, this object contains a `multiFactorInfo` field with
    * the information about the second factor. For phone second factor, the `multiFactorInfo`
    * is a {@link MultiFactorInfo} object, which contains the phone number.
@@ -503,51 +503,6 @@ export interface ActionCodeSettings {
 }
 
 /**
- * A utility class to parse email action URLs such as password reset, email verification,
- * email link sign in, etc.
- *
- * @public
- */
-export abstract class ActionCodeURL {
-  /**
-   * The API key of the email action link.
-   */
-  readonly apiKey: string;
-  /**
-   * The action code of the email action link.
-   */
-  readonly code: string;
-  /**
-   * The continue URL of the email action link. Null if not provided.
-   */
-  readonly continueUrl: string | null;
-  /**
-   * The language code of the email action link. Null if not provided.
-   */
-  readonly languageCode: string | null;
-  /**
-   * The action performed by the email action link. It returns from one of the types from
-   * {@link @firebase/auth-types#ActionCodeInfo}
-   */
-  readonly operation: ActionCodeOperation;
-  /**
-   * The tenant ID of the email action link. Null if the email action is from the parent project.
-   */
-  readonly tenantId: string | null;
-
-  /**
-   * Parses the email action link string and returns an {@link ActionCodeURL} if the link is valid,
-   * otherwise returns null.
-   *
-   * @param link  - The email action link string.
-   * @returns The ActionCodeURL object, or null if the link is invalid.
-   *
-   * @public
-   */
-  static parseLink(link: string): ActionCodeURL | null;
-}
-
-/**
  * A verifier for domain verification and abuse prevention.
  *
  * @remarks
@@ -569,161 +524,7 @@ export interface ApplicationVerifier {
 }
 
 /**
- * An {@link https://www.google.com/recaptcha/ | reCAPTCHA}-based application verifier.
- *
- * @public
- */
-export abstract class RecaptchaVerifier implements ApplicationVerifier {
-  constructor(
-    /**
-     * The reCAPTCHA container parameter.
-     *
-     * @remarks
-     * This has different meaning depending on whether the reCAPTCHA is hidden or visible. For a
-     * visible reCAPTCHA the container must be empty. If a string is used, it has to correspond to
-     * an element ID. The corresponding element must also must be in the DOM at the time of
-     * initialization.
-     */
-    container: any | string,
-    /**
-     * The optional reCAPTCHA parameters.
-     *
-     * @remarks
-     * Check the reCAPTCHA docs for a comprehensive list. All parameters are accepted except for
-     * the sitekey. Firebase Auth backend provisions a reCAPTCHA for each project and will
-     * configure this upon rendering. For an invisible reCAPTCHA, a size key must have the value
-     * 'invisible'.
-     */
-    parameters?: Object | null,
-    /**
-     * The corresponding Firebase Auth instance.
-     *
-     * @remarks
-     * If none is provided, the default Firebase Auth instance is used. A Firebase Auth instance
-     * must be initialized with an API key, otherwise an error will be thrown.
-     */
-    auth?: Auth | null
-  );
-  /**
-   * Clears the reCAPTCHA widget from the page and destroys the instance.
-   */
-  clear(): void;
-  /**
-   * Renders the reCAPTCHA widget on the page.
-   *
-   * @returns A Promise that resolves with the reCAPTCHA widget ID.
-   */
-  render(): Promise<number>;
-  /**
-   * The application verifier type.
-   *
-   * @remarks
-   * For a reCAPTCHA verifier, this is 'recaptcha'.
-   */
-  readonly type: string;
-  /**
-   * Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA token.
-   *
-   * @returns A Promise for the reCAPTCHA token.
-   */
-  verify(): Promise<string>;
-}
-
-/**
- * Interface that represents the credentials returned by an {@link @firebase/auth-types#AuthProvider}.
- *
- * @remarks
- * Implementations specify the details about each auth provider's credential requirements.
- *
- * @public
- */
-export abstract class AuthCredential {
-  /**
-   * Static method to deserialize a JSON representation of an object into an {@link  @firebase/auth-types#AuthCredential}.
-   *
-   * @param json - Either `object` or the stringified representation of the object. When string is
-   * provided, `JSON.parse` would be called first.
-   *
-   * @returns If the JSON input does not represent an {@link @firebase/auth-types#AuthCredential}, null is returned.
-   */
-  static fromJSON(json: object | string): AuthCredential | null;
-
-  /**
-   * The authentication provider ID for the credential.
-   *
-   * @remarks
-   * For example, 'facebook.com', or 'google.com'.
-   */
-  readonly providerId: string;
-  /**
-   * The authentication sign in method for the credential.
-   *
-   * @remarks
-   * For example, {@link  @firebase/auth-types#SignInMethod.EMAIL_PASSWORD}, or
-   * {@link  @firebase/auth-types#SignInMethod.EMAIL_LINK}. This corresponds to the sign-in method
-   * identifier as returned in {@link @firebase/auth#fetchSignInMethodsForEmail}.
-   */
-  readonly signInMethod: string;
-  /**
-   * Returns a JSON-serializable representation of this object.
-   *
-   * @returns a JSON-serializable representation of this object.
-   */
-  toJSON(): object;
-}
-
-/**
- * Interface that represents the OAuth credentials returned by an {@link @firebase/auth#OAuthProvider}.
- *
- * @remarks
- * Implementations specify the details about each auth provider's credential requirements.
- *
- * @public
- */
-export abstract class OAuthCredential extends AuthCredential {
-  /**
-   * Static method to deserialize a JSON representation of an object into an
-   * {@link  @firebase/auth-types#AuthCredential}.
-   *
-   * @param json - Input can be either Object or the stringified representation of the object.
-   * When string is provided, JSON.parse would be called first.
-   *
-   * @returns If the JSON input does not represent an {@link  @firebase/auth-types#AuthCredential}, null is returned.
-   */
-  static fromJSON(json: object | string): OAuthCredential | null;
-
-  /**
-   * The OAuth access token associated with the credential if it belongs to an
-   * {@link @firebase/auth#OAuthProvider}, such as `facebook.com`, `twitter.com`, etc.
-   */
-  readonly accessToken?: string;
-  /**
-   * The OAuth ID token associated with the credential if it belongs to an OIDC provider,
-   * such as `google.com`.
-   */
-  readonly idToken?: string;
-  /**
-   * The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0
-   * provider, such as `twitter.com`.
-   */
-  readonly secret?: string;
-}
-
-/**
- * Interface that represents the credentials returned by a
- * {@link @firebase/auth#PhoneAuthProvider}.
- *
- * @public
- */
-export abstract class PhoneAuthCredential extends AuthCredential {
-  /** {@inheritdoc @firebase/auth-types#AuthCredential.fromJSON} */
-  static fromJSON(json: object | string): PhoneAuthCredential | null;
-  /** {@inheritdoc @firebase/auth-types#AuthCredential.toJSON} */
-  toJSON(): object;
-}
-
-/**
- * Interface that represents an auth provider, used to facilitate creating {@link @firebase/auth-types#AuthCredential}.
+ * Interface that represents an auth provider, used to facilitate creating {@link AuthCredential}.
  *
  * @public
  */
@@ -732,176 +533,6 @@ export interface AuthProvider {
    * Provider for which credentials can be constructed.
    */
   readonly providerId: string;
-}
-
-/**
- * Provider for generating {@link @firebase/auth#EmailAuthCredential}.
- *
- * @public
- */
-export abstract class EmailAuthProvider implements AuthProvider {
-  private constructor();
-  /**
-   * Always set to {@link @firebase/auth-types#ProviderId.PASSWORD}, even for email link.
-   */
-  static readonly PROVIDER_ID: ProviderId;
-  /**
-   * Always set to {@link @firebase/auth-types#SignInMethod.EMAIL_PASSWORD}.
-   */
-  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: SignInMethod;
-  /**
-   * Always set to {@link @firebase/auth-types#SignInMethod.EMAIL_LINK}.
-   */
-  static readonly EMAIL_LINK_SIGN_IN_METHOD: SignInMethod;
-  /**
-   * Initialize an {@link @firebase/auth-types#AuthCredential} using an email and password.
-   *
-   * @example
-   * ```javascript
-   * const authCredential = EmailAuthProvider.credential(email, password);
-   * const userCredential = await signInWithCredential(auth, authCredential);
-   * ```
-   *
-   * @example
-   * ```javascript
-   * const userCredential = await signInWithEmailAndPassword(auth, email, password);
-   * ```
-   *
-   * @param email - Email address.
-   * @param password - User account password.
-   * @returns The auth provider credential.
-   */
-  static credential(email: string, password: string): AuthCredential;
-  /**
-   * Initialize an {@link @firebase/auth-types#AuthCredential} using an email and an email link after a sign in with
-   * email link operation.
-   *
-   * @example
-   * ```javascript
-   * const authCredential = EmailAuthProvider.credentialWithLink(auth, email, emailLink);
-   * const userCredential = await signInWithCredential(auth, authCredential);
-   * ```
-   *
-   * @example
-   * ```javascript
-   * await sendSignInLinkToEmail(auth, email);
-   * // Obtain emailLink from user.
-   * const userCredential = await signInWithEmailLink(auth, email, emailLink);
-   * ```
-   *
-   * @param auth - The Auth instance used to verify the link.
-   * @param email - Email address.
-   * @param emailLink - Sign-in email link.
-   * @returns - The auth provider credential.
-   */
-  static credentialWithLink(
-    auth: Auth,
-    email: string,
-    emailLink: string
-  ): AuthCredential;
-  /**
-   * Always set to {@link @firebase/auth-types#ProviderId.PASSWORD}, even for email link.
-   */
-  readonly providerId: ProviderId;
-}
-
-/**
- * Provider for generating an {@link @firebase/auth#PhoneAuthCredential}.
- *
- * @example
- * ```javascript
- * // 'recaptcha-container' is the ID of an element in the DOM.
- * const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
- * const provider = new PhoneAuthProvider(auth);
- * const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
- * // Obtain the verificationCode from the user.
- * const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
- * const userCredential = await signInWithCredential(auth, phoneCredential);
- * ```
- *
- * @public
- */
-export class PhoneAuthProvider implements AuthProvider {
-  /** Always set to {@link @firebase/auth-types#ProviderId.PHONE}. */
-  static readonly PROVIDER_ID: ProviderId;
-  /** Always set to {@link @firebase/auth-types#SignInMethod.PHONE}. */
-  static readonly PHONE_SIGN_IN_METHOD: SignInMethod;
-  /**
-   * Creates a phone auth credential, given the verification ID from
-   * {@link @firebase/auth#PhoneAuthProvider.verifyPhoneNumber} and the code that was sent to the user's
-   * mobile device.
-   *
-   * @example
-   * ```javascript
-   * const provider = new PhoneAuthProvider(auth);
-   * const verificationId = provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
-   * // Obtain verificationCode from the user.
-   * const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
-   * const userCredential = signInWithCredential(auth, authCredential);
-   * ```
-   *
-   * @example
-   * An alternative flow is provided using the `signInWithPhoneNumber` method.
-   * ```javascript
-   * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
-   * // Obtain verificationCode from the user.
-   * const userCredential = await confirmationResult.confirm(verificationCode);
-   * ```
-   *
-   * @param verificationId - The verification ID returned from {@link @firebase/auth#PhoneAuthProvider.verifyPhoneNumber}.
-   * @param verificationCode - The verification code sent to the user's mobile device.
-   *
-   * @returns The auth provider credential.
-   */
-  static credential(
-    verificationId: string,
-    verificationCode: string
-  ): AuthCredential;
-  /**
-   * @param auth - The Firebase Auth instance in which sign-ins should occur.
-   *
-   * @remarks
-   * Uses the default Auth instance if unspecified.
-   */
-  constructor(auth?: Auth | null);
-  /** Always set to {@link @firebase/auth-types#ProviderId.PHONE}. */
-  readonly providerId: ProviderId;
-
-  /**
-   *
-   * Starts a phone number authentication flow by sending a verification code to the given phone
-   * number.
-   *
-   * @example
-   * ```javascript
-   * const provider = new PhoneAuthProvider(auth);
-   * const verificationId = await provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
-   * // Obtain verificationCode from the user.
-   * const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
-   * const userCredential = await signInWithCredential(auth, authCredential);
-   * ```
-   *
-   * @example
-   * An alternative flow is provided using the `signInWithPhoneNumber` method.
-   * ```javascript
-   * const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
-   * // Obtain verificationCode from the user.
-   * const userCredential = confirmationResult.confirm(verificationCode);
-   * ```
-   *
-   * @param phoneInfoOptions - The user's {@link @firebase/auth-types#PhoneInfoOptions}. The phone number should be in
-   * E.164 format (e.g. +16505550101).
-   * @param applicationVerifier - For abuse prevention, this method also requires a
-   * {@link @firebase/auth-types#ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
-   * {@link RecaptchaVerifier}.
-   *
-   * @returns A Promise for a verification ID that can be passed to
-   * {@link @firebase/auth#PhoneAuthProvider.credential} to identify this flow..
-   */
-  verifyPhoneNumber(
-    phoneInfoOptions: PhoneInfoOptions | string,
-    applicationVerifier: ApplicationVerifier
-  ): Promise<string>;
 }
 
 /**
@@ -925,7 +556,7 @@ export interface ConfirmationResult {
    *
    * @remarks
    * This can be used along with the verification code to initialize a
-   * {@link @firebase/auth-types#PhoneAuthCredential}.
+   * {@link PhoneAuthCredential}.
    */
   readonly verificationId: string;
   /**
@@ -1012,7 +643,7 @@ export interface MultiFactorInfo {
 }
 
 /**
- * The class used to facilitate recovery from {@link @firebase/auth-types#MultiFactorError} when a user needs to
+ * The class used to facilitate recovery from {@link MultiFactorError} when a user needs to
  * provide a second factor to sign in.
  *
  * @example
@@ -1070,7 +701,7 @@ export interface MultiFactorResolver {
   readonly session: MultiFactorSession;
   /**
    * A helper function to help users complete sign in with a second factor using an
-   * {@link @firebase/auth-types#MultiFactorAssertion} confirming the user successfully completed the second factor
+   * {@link MultiFactorAssertion} confirming the user successfully completed the second factor
    * challenge.
    *
    * @example
@@ -1126,12 +757,12 @@ export interface MultiFactorUser {
    * await multiFactorUser.enroll(multiFactorAssertion);
    * ```
    *
-   * @returns The promise that resolves with the {@link @firebase/auth-types#MultiFactorSession}.
+   * @returns The promise that resolves with the {@link MultiFactorSession}.
    */
   getSession(): Promise<MultiFactorSession>;
   /**
    *
-   * Enrolls a second factor as identified by the {@link @firebase/auth-types#MultiFactorAssertion} for the
+   * Enrolls a second factor as identified by the {@link MultiFactorAssertion} for the
    * user.
    *
    * @remarks
@@ -1194,33 +825,11 @@ export interface MultiFactorUser {
 
 /**
  * The class for asserting ownership of a phone second factor. Provided by
- * {@link @firebase/auth-types#PhoneMultiFactorGenerator.assertion}.
+ * {@link PhoneMultiFactorGenerator.assertion}.
  *
  * @public
  */
 export interface PhoneMultiFactorAssertion extends MultiFactorAssertion {}
-
-/**
- * Provider for generating a {@link @firebase/auth-types#PhoneMultiFactorAssertion}.
- *
- * @public
- */
-export abstract class PhoneMultiFactorGenerator {
-  /**
-   * The identifier of the phone second factor: {@link @firebase/auth-types#ProviderId.PHONE}.
-   */
-  static FACTOR_ID: ProviderId;
-  /**
-   * Provides a {@link @firebase/auth-types#PhoneMultiFactorAssertion} to confirm ownership of the phone second factor.
-   *
-   * @param phoneAuthCredential - A credential provided by {@link @firebase/auth#PhoneAuthProvider.credential}.
-   * @returns A {@link @firebase/auth-types#PhoneMultiFactorAssertion} which can be used with
-   * {@link @firebase/auth-types#MultiFactorResolver.resolveSignIn}
-   */
-  static assertion(
-    phoneAuthCredential: PhoneAuthCredential
-  ): PhoneMultiFactorAssertion;
-}
 
 /**
  * The information required to verify the ownership of a phone number.
@@ -1313,12 +922,12 @@ export interface ReactNativeAsyncStorage {
  */
 export interface User extends UserInfo {
   /**
-   * Whether the email has been verified with {@link @firebase/auth#sendEmailVerification} and
-   * {@link @firebase/auth#applyActionCode}.
+   * Whether the email has been verified with {@link sendEmailVerification} and
+   * {@link applyActionCode}.
    */
   readonly emailVerified: boolean;
   /**
-   * Whether the user is authenticated using the {@link @firebase/auth-types@ProviderId.ANONYMOUS} provider.
+   * Whether the user is authenticated using the {@link ProviderId.ANONYMOUS} provider.
    */
   readonly isAnonymous: boolean;
   /**
@@ -1544,7 +1153,7 @@ export interface EmulatorConfig {
 /**
  * A mapping of error codes to error messages.
  *
- * @discussion
+ * @remarks
  *
  * While error messages are useful for debugging (providing verbose textual
  * context around what went wrong), these strings take up a lot of space in the

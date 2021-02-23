@@ -17,7 +17,7 @@
 
 import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { MfaEnrollment } from './mfa';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 
 export interface DeleteAccountRequest {
   idToken: string;

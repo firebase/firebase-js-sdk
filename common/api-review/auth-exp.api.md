@@ -4,308 +4,371 @@
 
 ```ts
 
-import { ActionCodeInfo } from '@firebase/auth-types-exp';
-import { ActionCodeOperation } from '@firebase/auth-types-exp';
-import { ActionCodeSettings } from '@firebase/auth-types-exp';
-import { AdditionalUserInfo } from '@firebase/auth-types-exp';
-import { ApplicationVerifier } from '@firebase/auth-types-exp';
-import { Auth } from '@firebase/auth-types-exp';
-import { AuthError } from '@firebase/auth-types-exp';
-import { AuthErrorMap } from '@firebase/auth-types-exp';
-import { AuthProvider } from '@firebase/auth-types-exp';
-import { AuthSettings } from '@firebase/auth-types-exp';
 import { CompleteFn } from '@firebase/util';
-import { Config } from '@firebase/auth-types-exp';
-import { ConfirmationResult } from '@firebase/auth-types-exp';
 import { ErrorFactory } from '@firebase/util';
 import { ErrorFn } from '@firebase/util';
-import * as externs from '@firebase/auth-types-exp';
-import { FactorId } from '@firebase/auth-types-exp';
 import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
-import { IdTokenResult } from '@firebase/auth-types-exp';
-import { MultiFactorAssertion } from '@firebase/auth-types-exp';
-import { MultiFactorError } from '@firebase/auth-types-exp';
-import { MultiFactorInfo } from '@firebase/auth-types-exp';
-import { MultiFactorResolver } from '@firebase/auth-types-exp';
-import { MultiFactorSession } from '@firebase/auth-types-exp';
-import { MultiFactorUser } from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
-import { OperationType } from '@firebase/auth-types-exp';
-import { ParsedToken } from '@firebase/auth-types-exp';
-import { Persistence } from '@firebase/auth-types-exp';
-import { PhoneInfoOptions } from '@firebase/auth-types-exp';
-import { PhoneMultiFactorAssertion } from '@firebase/auth-types-exp';
-import { PhoneMultiFactorEnrollInfoOptions } from '@firebase/auth-types-exp';
-import { PhoneMultiFactorSignInInfoOptions } from '@firebase/auth-types-exp';
-import { PhoneSingleFactorInfoOptions } from '@firebase/auth-types-exp';
-import { PopupRedirectResolver } from '@firebase/auth-types-exp';
-import { ProviderId } from '@firebase/auth-types-exp';
-import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
-import { SignInMethod } from '@firebase/auth-types-exp';
+import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
-import { User } from '@firebase/auth-types-exp';
-import { UserCredential } from '@firebase/auth-types-exp';
-import { UserInfo } from '@firebase/auth-types-exp';
-import { UserMetadata } from '@firebase/auth-types-exp';
-import { UserProfile } from '@firebase/auth-types-exp';
 
-export { ActionCodeInfo }
+// @public
+export interface ActionCodeInfo {
+    data: {
+        email?: string | null;
+        multiFactorInfo?: MultiFactorInfo | null;
+        previousEmail?: string | null;
+    };
+    operation: ActionCodeOperation;
+}
 
-export { ActionCodeOperation }
+// @public
+export const enum ActionCodeOperation {
+    EMAIL_SIGNIN = "EMAIL_SIGNIN",
+    PASSWORD_RESET = "PASSWORD_RESET",
+    RECOVER_EMAIL = "RECOVER_EMAIL",
+    REVERT_SECOND_FACTOR_ADDITION = "REVERT_SECOND_FACTOR_ADDITION",
+    VERIFY_AND_CHANGE_EMAIL = "VERIFY_AND_CHANGE_EMAIL",
+    VERIFY_EMAIL = "VERIFY_EMAIL"
+}
 
-export { ActionCodeSettings }
+// @public
+export interface ActionCodeSettings {
+    android?: {
+        installApp?: boolean;
+        minimumVersion?: string;
+        packageName: string;
+    };
+    dynamicLinkDomain?: string;
+    handleCodeInApp?: boolean;
+    iOS?: {
+        bundleId: string;
+    };
+    url: string;
+}
 
-// @public (undocumented)
-export class ActionCodeURL implements externs.ActionCodeURL {
+// @public
+export class ActionCodeURL {
     // @internal
     constructor(actionLink: string);
-    // (undocumented)
     readonly apiKey: string;
-    // (undocumented)
     readonly code: string;
-    // (undocumented)
     readonly continueUrl: string | null;
-    // (undocumented)
     readonly languageCode: string | null;
-    // (undocumented)
-    readonly operation: externs.ActionCodeOperation;
-    // (undocumented)
-    static parseLink(link: string): externs.ActionCodeURL | null;
-    // (undocumented)
+    readonly operation: ActionCodeOperation;
+    static parseLink(link: string): ActionCodeURL | null;
     readonly tenantId: string | null;
 }
 
-export { AdditionalUserInfo }
-
-export { ApplicationVerifier }
+// @public
+export interface AdditionalUserInfo {
+    readonly isNewUser: boolean;
+    readonly profile: Record<string, unknown> | null;
+    readonly providerId: string | null;
+    readonly username?: string | null;
+}
 
 // @public
-export function applyActionCode(auth: externs.Auth, oobCode: string): Promise<void>;
+export interface ApplicationVerifier {
+    readonly type: string;
+    verify(): Promise<string>;
+}
 
-export { Auth }
+// @public
+export function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 
-// @public (undocumented)
+// @public
+export interface Auth {
+    readonly config: Config;
+    readonly currentUser: User | null;
+    // Warning: (ae-forgotten-export) The symbol "EmulatorConfig" needs to be exported by the entry point index.d.ts
+    readonly emulatorConfig: EmulatorConfig | null;
+    languageCode: string | null;
+    readonly name: string;
+    // Warning: (ae-forgotten-export) The symbol "NextOrObserver" needs to be exported by the entry point index.d.ts
+    onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
+    onIdTokenChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
+    setPersistence(persistence: Persistence): Promise<void>;
+    readonly settings: AuthSettings;
+    signOut(): Promise<void>;
+    tenantId: string | null;
+    updateCurrentUser(user: User | null): Promise<void>;
+    useDeviceLanguage(): void;
+}
+
+// @public
 export class AuthCredential {
     // @internal
-    protected constructor(providerId: string, signInMethod: string);
-    // Warning: (ae-forgotten-export) The symbol "Auth" needs to be exported by the entry point index.d.ts
+    protected constructor(
+    providerId: string,
+    signInMethod: string);
+    // Warning: (ae-forgotten-export) The symbol "AuthInternal" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "PhoneOrOauthTokenResponse" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
-    _getIdTokenResponse(_auth: Auth_2): Promise<PhoneOrOauthTokenResponse>;
+    _getIdTokenResponse(_auth: AuthInternal): Promise<PhoneOrOauthTokenResponse>;
     // @internal (undocumented)
-    _getReauthenticationResolver(_auth: Auth_2): Promise<IdTokenResponse>;
+    _getReauthenticationResolver(_auth: AuthInternal): Promise<IdTokenResponse>;
     // Warning: (ae-forgotten-export) The symbol "IdTokenResponse" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
-    _linkToIdToken(_auth: Auth_2, _idToken: string): Promise<IdTokenResponse>;
-    // (undocumented)
+    _linkToIdToken(_auth: AuthInternal, _idToken: string): Promise<IdTokenResponse>;
     readonly providerId: string;
-    // (undocumented)
     readonly signInMethod: string;
-    // (undocumented)
     toJSON(): object;
 }
 
-export { AuthError }
-
-export { AuthErrorMap }
-
-export { AuthProvider }
-
-export { AuthSettings }
+// @public
+export interface AuthError extends FirebaseError {
+    readonly appName: string;
+    readonly email?: string;
+    readonly phoneNumber?: string;
+    readonly tenantid?: string;
+}
 
 // @public
-export const browserLocalPersistence: externs.Persistence;
+export interface AuthErrorMap {
+}
 
 // @public
-export const browserPopupRedirectResolver: externs.PopupRedirectResolver;
+export interface AuthProvider {
+    readonly providerId: string;
+}
 
 // @public
-export const browserSessionPersistence: externs.Persistence;
+export interface AuthSettings {
+    appVerificationDisabledForTesting: boolean;
+}
 
 // @public
-export function checkActionCode(auth: externs.Auth, oobCode: string): Promise<externs.ActionCodeInfo>;
-
-export { Config }
-
-export { ConfirmationResult }
+export const browserLocalPersistence: Persistence;
 
 // @public
-export function confirmPasswordReset(auth: externs.Auth, oobCode: string, newPassword: string): Promise<void>;
+export const browserPopupRedirectResolver: PopupRedirectResolver;
 
 // @public
-export function createUserWithEmailAndPassword(auth: externs.Auth, email: string, password: string): Promise<externs.UserCredential>;
+export const browserSessionPersistence: Persistence;
+
+// @public
+export function checkActionCode(auth: Auth, oobCode: string): Promise<ActionCodeInfo>;
+
+// @public
+export interface Config {
+    apiHost: string;
+    apiKey: string;
+    apiScheme: string;
+    authDomain?: string;
+    sdkClientVersion: string;
+    tokenApiHost: string;
+}
+
+// @public
+export interface ConfirmationResult {
+    confirm(verificationCode: string): Promise<UserCredential>;
+    readonly verificationId: string;
+}
+
+// @public
+export function confirmPasswordReset(auth: Auth, oobCode: string, newPassword: string): Promise<void>;
+
+// @public
+export function createUserWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 
 // @public
 export type CustomParameters = Record<string, string>;
 
 // @public
-export const debugErrorMap: externs.AuthErrorMap;
+export const debugErrorMap: AuthErrorMap;
 
 // @public
-export function deleteUser(user: externs.User): Promise<void>;
+export function deleteUser(user: User): Promise<void>;
 
 // @public
-export class EmailAuthCredential extends AuthCredential implements externs.AuthCredential {
+export class EmailAuthCredential extends AuthCredential {
     // (undocumented)
     readonly email: string;
     // @internal (undocumented)
     static _fromEmailAndCode(email: string, oobCode: string, tenantId?: string | null): EmailAuthCredential;
     // @internal (undocumented)
     static _fromEmailAndPassword(email: string, password: string): EmailAuthCredential;
-    // (undocumented)
     static fromJSON(json: object | string): EmailAuthCredential | null;
     // @internal (undocumented)
-    _getIdTokenResponse(auth: Auth_2): Promise<IdTokenResponse>;
+    _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse>;
     // @internal (undocumented)
-    _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
+    _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse>;
     // @internal (undocumented)
-    _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
+    _linkToIdToken(auth: AuthInternal, idToken: string): Promise<IdTokenResponse>;
     // (undocumented)
     readonly password: string;
     // (undocumented)
     readonly tenantId: string | null;
-    // (undocumented)
     toJSON(): object;
 }
 
-// @public (undocumented)
-export class EmailAuthProvider implements externs.EmailAuthProvider {
-    // (undocumented)
+// @public
+export class EmailAuthProvider implements AuthProvider {
     static credential(email: string, password: string): EmailAuthCredential;
-    // (undocumented)
     static credentialWithLink(email: string, emailLink: string): EmailAuthCredential;
-    // (undocumented)
-    static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
-    // (undocumented)
-    static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_PASSWORD;
-    // (undocumented)
-    static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.PASSWORD;
+    static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
+    static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
+    static readonly PROVIDER_ID = ProviderId.PASSWORD;
+    readonly providerId = ProviderId.PASSWORD;
 }
 
 // @public
 export class FacebookAuthProvider extends OAuthProvider {
     constructor();
-    static credential(accessToken: string): externs.OAuthCredential;
-    static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
-    static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
-    static readonly FACEBOOK_SIGN_IN_METHOD = externs.SignInMethod.FACEBOOK;
-    static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
+    static credential(accessToken: string): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
+    static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
+    static readonly PROVIDER_ID = ProviderId.FACEBOOK;
 }
 
-export { FactorId }
+// @public
+export const enum FactorId {
+    PHONE = "phone"
+}
 
 // @public
-export function fetchSignInMethodsForEmail(auth: externs.Auth, email: string): Promise<string[]>;
+export function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<string[]>;
 
 // @public
-export function getAdditionalUserInfo(userCredential: externs.UserCredential): externs.AdditionalUserInfo | null;
+export function getAdditionalUserInfo(userCredential: UserCredential): AdditionalUserInfo | null;
 
 // @public
 export function getAuth(app: FirebaseApp): Auth;
 
 // @public
-export function getIdToken(user: externs.User, forceRefresh?: boolean): Promise<string>;
+export function getIdToken(user: User, forceRefresh?: boolean): Promise<string>;
 
 // @public
-export function getIdTokenResult(user: externs.User, forceRefresh?: boolean): Promise<externs.IdTokenResult>;
+export function getIdTokenResult(user: User, forceRefresh?: boolean): Promise<IdTokenResult>;
+
+// Warning: (ae-forgotten-export) The symbol "MultiFactorError" needs to be exported by the entry point index.d.ts
+//
+// @public
+export function getMultiFactorResolver(auth: Auth, error: MultiFactorError_2): MultiFactorResolver;
 
 // @public
-export function getMultiFactorResolver(auth: externs.Auth, error: externs.MultiFactorError): externs.MultiFactorResolver;
-
-// @public
-export function getRedirectResult(auth: externs.Auth, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
+export function getRedirectResult(auth: Auth, resolver?: PopupRedirectResolver): Promise<UserCredential | null>;
 
 // @public
 export class GithubAuthProvider extends OAuthProvider {
     constructor();
-    static credential(accessToken: string): externs.OAuthCredential;
-    static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
-    static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
-    static readonly GITHUB_SIGN_IN_METHOD = externs.SignInMethod.GITHUB;
-    static readonly PROVIDER_ID = externs.ProviderId.GITHUB;
+    static credential(accessToken: string): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
+    static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
+    static readonly PROVIDER_ID = ProviderId.GITHUB;
 }
 
 // @public
 export class GoogleAuthProvider extends OAuthProvider {
     constructor();
-    static credential(idToken?: string | null, accessToken?: string | null): externs.OAuthCredential;
-    static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
-    static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
-    static readonly GOOGLE_SIGN_IN_METHOD = externs.SignInMethod.GOOGLE;
-    static readonly PROVIDER_ID = externs.ProviderId.GOOGLE;
+    static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
+    static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
+    static readonly PROVIDER_ID = ProviderId.GOOGLE;
 }
 
-export { IdTokenResult }
+// @public
+export interface IdTokenResult {
+    authTime: string;
+    claims: ParsedToken;
+    expirationTime: string;
+    issuedAtTime: string;
+    signInProvider: string | null;
+    signInSecondFactor: string | null;
+    token: string;
+}
 
 // @public
-export const indexedDBLocalPersistence: externs.Persistence;
+export const indexedDBLocalPersistence: Persistence;
 
 // Warning: (ae-forgotten-export) The symbol "Dependencies" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function initializeAuth(app: FirebaseApp, deps?: Dependencies): externs.Auth;
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
 
 // @public
-export const inMemoryPersistence: externs.Persistence;
+export const inMemoryPersistence: Persistence;
 
 // @public
-export function isSignInWithEmailLink(auth: externs.Auth, emailLink: string): boolean;
+export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean;
 
 // @public
-export function linkWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<UserCredential>;
+export function linkWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
-export function linkWithPhoneNumber(user: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
+export function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
-export function linkWithPopup(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export function linkWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
 
 // @public
-export function linkWithRedirect(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<never>;
+export function linkWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 
 // @public
-export function multiFactor(user: externs.User): externs.MultiFactorUser;
+export function multiFactor(user: User): MultiFactorUser;
 
-export { MultiFactorAssertion }
+// @public
+export interface MultiFactorAssertion {
+    readonly factorId: FactorId;
+}
 
-export { MultiFactorError }
+// @public
+export interface MultiFactorError extends AuthError {
+    readonly operationType: OperationType;
+}
 
-export { MultiFactorInfo }
+// @public
+export interface MultiFactorInfo {
+    readonly displayName?: string | null;
+    readonly enrollmentTime: string;
+    readonly factorId: FactorId;
+    readonly uid: string;
+}
 
-export { MultiFactorResolver }
+// @public
+export interface MultiFactorResolver {
+    readonly hints: MultiFactorInfo[];
+    resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
+    readonly session: MultiFactorSession;
+}
 
-export { MultiFactorSession }
+// @public
+export interface MultiFactorSession {
+}
 
-export { MultiFactorUser }
+// @public
+export interface MultiFactorUser {
+    enroll(assertion: MultiFactorAssertion, displayName?: string | null): Promise<void>;
+    readonly enrolledFactors: MultiFactorInfo[];
+    getSession(): Promise<MultiFactorSession>;
+    unenroll(option: MultiFactorInfo | string): Promise<void>;
+}
 
-// @public (undocumented)
-export class OAuthCredential extends AuthCredential implements externs.OAuthCredential {
-    // (undocumented)
+// @public
+export class OAuthCredential extends AuthCredential {
     accessToken?: string;
-    // (undocumented)
     static fromJSON(json: string | object): OAuthCredential | null;
     // Warning: (ae-forgotten-export) The symbol "OAuthCredentialParams" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
     static _fromParams(params: OAuthCredentialParams): OAuthCredential;
     // @internal (undocumented)
-    _getIdTokenResponse(auth: Auth_2): Promise<IdTokenResponse>;
+    _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse>;
     // @internal (undocumented)
-    _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
-    // (undocumented)
+    _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse>;
     idToken?: string;
     // @internal (undocumented)
-    _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
+    _linkToIdToken(auth: AuthInternal, idToken: string): Promise<IdTokenResponse>;
     // @internal (undocumented)
     nonce?: string;
-    // (undocumented)
     secret?: string;
-    // (undocumented)
     toJSON(): object;
 }
 
@@ -317,41 +380,62 @@ export interface OAuthCredentialOptions {
 }
 
 // @public
-export class OAuthProvider implements externs.AuthProvider {
+export class OAuthProvider implements AuthProvider {
     constructor(providerId: string);
-    addScope(scope: string): externs.AuthProvider;
-    credential(params: OAuthCredentialOptions): externs.OAuthCredential;
-    static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
+    addScope(scope: string): AuthProvider;
+    credential(params: OAuthCredentialOptions): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
     // (undocumented)
-    static credentialFromJSON(json: object | string): externs.OAuthCredential;
-    static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
+    static credentialFromJSON(json: object | string): OAuthCredential;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
     // @internal (undocumented)
     defaultLanguageCode: string | null;
     getCustomParameters(): CustomParameters;
     getScopes(): string[];
     // (undocumented)
     readonly providerId: string;
-    setCustomParameters(customOAuthParameters: CustomParameters): externs.AuthProvider;
+    setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider;
     setDefaultLanguage(languageCode: string | null): void;
 }
 
 // @public
-export function onAuthStateChanged(auth: externs.Auth, nextOrObserver: externs.NextOrObserver<externs.User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
+export function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 
 // @public
-export function onIdTokenChanged(auth: externs.Auth, nextOrObserver: externs.NextOrObserver<externs.User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
+export function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 
-export { OperationType }
-
-// @public (undocumented)
-export function parseActionCodeURL(link: string): externs.ActionCodeURL | null;
-
-export { ParsedToken }
-
-export { Persistence }
+// @public
+export const enum OperationType {
+    LINK = "link",
+    REAUTHENTICATE = "reauthenticate",
+    SIGN_IN = "signIn"
+}
 
 // @public (undocumented)
-export class PhoneAuthCredential extends AuthCredential implements externs.PhoneAuthCredential {
+export function parseActionCodeURL(link: string): ActionCodeURL | null;
+
+// @public
+export interface ParsedToken {
+    [key: string]: string | object | undefined;
+    'auth_time'?: string;
+    'exp'?: string;
+    'firebase'?: {
+        'sign_in_provider'?: string;
+        'sign_in_second_factor'?: string;
+    };
+    'iat'?: string;
+    'sub'?: string;
+}
+
+// @public
+export interface Persistence {
+    readonly type: 'SESSION' | 'LOCAL' | 'NONE';
+}
+
+// @public
+export class PhoneAuthCredential extends AuthCredential {
+    // Warning: (ae-unresolved-inheritdoc-reference) The @inheritDoc reference could not be resolved: No member was found with name "fromJSON"
+    //
     // (undocumented)
     static fromJSON(json: object | string): PhoneAuthCredential | null;
     // @internal (undocumented)
@@ -359,194 +443,274 @@ export class PhoneAuthCredential extends AuthCredential implements externs.Phone
     // @internal (undocumented)
     static _fromVerification(verificationId: string, verificationCode: string): PhoneAuthCredential;
     // @internal (undocumented)
-    _getIdTokenResponse(auth: Auth_2): Promise<PhoneOrOauthTokenResponse>;
+    _getIdTokenResponse(auth: AuthInternal): Promise<PhoneOrOauthTokenResponse>;
     // @internal (undocumented)
-    _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
+    _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse>;
     // @internal (undocumented)
-    _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
+    _linkToIdToken(auth: AuthInternal, idToken: string): Promise<IdTokenResponse>;
     // Warning: (ae-forgotten-export) The symbol "SignInWithPhoneNumberRequest" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
     _makeVerificationRequest(): SignInWithPhoneNumberRequest;
-    // (undocumented)
     toJSON(): object;
 }
 
-// @public (undocumented)
-export class PhoneAuthProvider implements externs.PhoneAuthProvider {
-    constructor(auth: externs.Auth);
-    // (undocumented)
+// @public
+export class PhoneAuthProvider {
+    constructor(auth: Auth);
     static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
     // (undocumented)
-    static credentialFromResult(userCredential: externs.UserCredential): externs.AuthCredential | null;
-    // (undocumented)
-    static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
-    // (undocumented)
-    static readonly PROVIDER_ID = externs.ProviderId.PHONE;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.PHONE;
-    // (undocumented)
-    verifyPhoneNumber(phoneOptions: externs.PhoneInfoOptions | string, applicationVerifier: externs.ApplicationVerifier): Promise<string>;
+    static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
+    static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
+    static readonly PROVIDER_ID = ProviderId.PHONE;
+    readonly providerId = ProviderId.PHONE;
+    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
 }
 
-export { PhoneInfoOptions }
+// @public
+export type PhoneInfoOptions = PhoneSingleFactorInfoOptions | PhoneMultiFactorEnrollInfoOptions | PhoneMultiFactorSignInInfoOptions;
 
-export { PhoneMultiFactorAssertion }
-
-export { PhoneMultiFactorEnrollInfoOptions }
-
-// @public (undocumented)
-export class PhoneMultiFactorGenerator implements externs.PhoneMultiFactorGenerator {
-    // (undocumented)
-    static assertion(credential: externs.PhoneAuthCredential): externs.PhoneMultiFactorAssertion;
+// @public
+export interface PhoneMultiFactorAssertion extends MultiFactorAssertion {
 }
 
-export { PhoneMultiFactorSignInInfoOptions }
-
-export { PhoneSingleFactorInfoOptions }
-
-export { PopupRedirectResolver }
+// @public
+export interface PhoneMultiFactorEnrollInfoOptions {
+    phoneNumber: string;
+    session: MultiFactorSession;
+}
 
 // @public
-export const prodErrorMap: externs.AuthErrorMap;
-
-export { ProviderId }
-
-export { ReactNativeAsyncStorage }
+export class PhoneMultiFactorGenerator {
+    static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion;
+}
 
 // @public
-export function reauthenticateWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<externs.UserCredential>;
+export interface PhoneMultiFactorSignInInfoOptions {
+    multiFactorHint?: MultiFactorInfo;
+    multiFactorUid?: string;
+    session: MultiFactorSession;
+}
 
 // @public
-export function reauthenticateWithPhoneNumber(user: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
+export interface PhoneSingleFactorInfoOptions {
+    phoneNumber: string;
+}
 
 // @public
-export function reauthenticateWithPopup(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export interface PopupRedirectResolver {
+}
 
 // @public
-export function reauthenticateWithRedirect(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<never>;
+export const prodErrorMap: AuthErrorMap;
 
-// Warning: (ae-forgotten-export) The symbol "ApplicationVerifier" needs to be exported by the entry point index.d.ts
+// @public
+export const enum ProviderId {
+    // (undocumented)
+    ANONYMOUS = "anonymous",
+    // (undocumented)
+    CUSTOM = "custom",
+    // (undocumented)
+    FACEBOOK = "facebook.com",
+    // (undocumented)
+    FIREBASE = "firebase",
+    // (undocumented)
+    GITHUB = "github.com",
+    // (undocumented)
+    GOOGLE = "google.com",
+    // (undocumented)
+    PASSWORD = "password",
+    // (undocumented)
+    PHONE = "phone",
+    // (undocumented)
+    TWITTER = "twitter.com"
+}
+
+// @public
+export interface ReactNativeAsyncStorage {
+    getItem(key: string): Promise<string | null>;
+    removeItem(key: string): Promise<void>;
+    setItem(key: string, value: string): Promise<void>;
+}
+
+// @public
+export function reauthenticateWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
+
+// @public
+export function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+
+// @public
+export function reauthenticateWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
+
+// @public
+export function reauthenticateWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
+
+// Warning: (ae-forgotten-export) The symbol "ApplicationVerifierInternal" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export class RecaptchaVerifier implements externs.RecaptchaVerifier, ApplicationVerifier_2 {
+// @public
+export class RecaptchaVerifier implements ApplicationVerifierInternal {
     // Warning: (ae-forgotten-export) The symbol "Parameters" needs to be exported by the entry point index.d.ts
-    constructor(containerOrId: HTMLElement | string, parameters: Parameters_2, authExtern: externs.Auth);
-    // (undocumented)
+    constructor(containerOrId: HTMLElement | string, parameters: Parameters_2, authExtern: Auth);
     clear(): void;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
     readonly _recaptchaLoader: ReCaptchaLoader;
-    // (undocumented)
     render(): Promise<number>;
     // @internal (undocumented)
     _reset(): void;
-    // (undocumented)
     readonly type = "recaptcha";
-    // (undocumented)
     verify(): Promise<string>;
     }
 
 // @public
-export function reload(user: externs.User): Promise<void>;
+export function reload(user: User): Promise<void>;
 
 // @public
-export function sendEmailVerification(user: externs.User, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
+export function sendEmailVerification(user: User, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
 
 // @public
-export function sendPasswordResetEmail(auth: externs.Auth, email: string, actionCodeSettings?: externs.ActionCodeSettings): Promise<void>;
+export function sendPasswordResetEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
 
 // @public
-export function sendSignInLinkToEmail(auth: externs.Auth, email: string, actionCodeSettings?: externs.ActionCodeSettings): Promise<void>;
+export function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
 
 // @public
-export function setPersistence(auth: externs.Auth, persistence: externs.Persistence): Promise<void>;
+export function setPersistence(auth: Auth, persistence: Persistence): Promise<void>;
 
 // @public
-export function signInAnonymously(auth: externs.Auth): Promise<externs.UserCredential>;
-
-export { SignInMethod }
+export function signInAnonymously(auth: Auth): Promise<UserCredential>;
 
 // @public
-export function signInWithCredential(auth: externs.Auth, credential: externs.AuthCredential): Promise<externs.UserCredential>;
+export const enum SignInMethod {
+    // (undocumented)
+    ANONYMOUS = "anonymous",
+    // (undocumented)
+    EMAIL_LINK = "emailLink",
+    // (undocumented)
+    EMAIL_PASSWORD = "password",
+    // (undocumented)
+    FACEBOOK = "facebook.com",
+    // (undocumented)
+    GITHUB = "github.com",
+    // (undocumented)
+    GOOGLE = "google.com",
+    // (undocumented)
+    PHONE = "phone",
+    // (undocumented)
+    TWITTER = "twitter.com"
+}
 
 // @public
-export function signInWithCustomToken(auth: externs.Auth, customToken: string): Promise<externs.UserCredential>;
+export function signInWithCredential(auth: Auth, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
-export function signInWithEmailAndPassword(auth: externs.Auth, email: string, password: string): Promise<externs.UserCredential>;
+export function signInWithCustomToken(auth: Auth, customToken: string): Promise<UserCredential>;
 
 // @public
-export function signInWithEmailLink(auth: externs.Auth, email: string, emailLink?: string): Promise<externs.UserCredential>;
+export function signInWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 
 // @public
-export function signInWithPhoneNumber(auth: externs.Auth, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
+export function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 
 // @public
-export function signInWithPopup(auth: externs.Auth, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
-export function signInWithRedirect(auth: externs.Auth, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<never>;
+export function signInWithPopup(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
 
 // @public
-export function signOut(auth: externs.Auth): Promise<void>;
+export function signInWithRedirect(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
+
+// @public
+export function signOut(auth: Auth): Promise<void>;
 
 // @public
 export class TwitterAuthProvider extends OAuthProvider {
     constructor();
-    static credential(token: string, secret: string): externs.OAuthCredential;
-    static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
-    static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
+    static credential(token: string, secret: string): OAuthCredential;
+    static credentialFromError(error: FirebaseError): OAuthCredential | null;
+    static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
     // (undocumented)
-    static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
+    static readonly PROVIDER_ID = ProviderId.TWITTER;
     // (undocumented)
-    static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
+    static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
 }
 
 // @public
-export function unlink(user: externs.User, providerId: externs.ProviderId): Promise<externs.User>;
+export function unlink(user: User, providerId: ProviderId): Promise<User>;
 
 // @public
-export function updateCurrentUser(auth: externs.Auth, user: externs.User | null): Promise<void>;
+export function updateCurrentUser(auth: Auth, user: User | null): Promise<void>;
 
 // @public
-export function updateEmail(user: externs.User, newEmail: string): Promise<void>;
+export function updateEmail(user: User, newEmail: string): Promise<void>;
 
 // @public
-export function updatePassword(user: externs.User, newPassword: string): Promise<void>;
+export function updatePassword(user: User, newPassword: string): Promise<void>;
 
 // @public
-export function updatePhoneNumber(user: externs.User, credential: externs.PhoneAuthCredential): Promise<void>;
+export function updatePhoneNumber(user: User, credential: PhoneAuthCredential): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "Profile" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function updateProfile(user: externs.User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
+export function updateProfile(user: User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
 
 // @public
-export function useAuthEmulator(auth: externs.Auth, url: string, options?: {
+export function useAuthEmulator(auth: Auth, url: string, options?: {
     disableWarnings: boolean;
 }): void;
 
 // @public
-export function useDeviceLanguage(auth: externs.Auth): void;
-
-export { User }
-
-export { UserCredential }
-
-export { UserInfo }
-
-export { UserMetadata }
-
-export { UserProfile }
+export function useDeviceLanguage(auth: Auth): void;
 
 // @public
-export function verifyBeforeUpdateEmail(user: externs.User, newEmail: string, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
+export interface User extends UserInfo {
+    delete(): Promise<void>;
+    readonly emailVerified: boolean;
+    getIdToken(forceRefresh?: boolean): Promise<string>;
+    getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
+    readonly isAnonymous: boolean;
+    readonly metadata: UserMetadata;
+    readonly providerData: UserInfo[];
+    readonly refreshToken: string;
+    reload(): Promise<void>;
+    readonly tenantId: string | null;
+    toJSON(): object;
+}
 
 // @public
-export function verifyPasswordResetCode(auth: externs.Auth, code: string): Promise<string>;
+export interface UserCredential {
+    operationType: OperationType;
+    providerId: string | null;
+    user: User;
+}
+
+// @public
+export interface UserInfo {
+    readonly displayName: string | null;
+    readonly email: string | null;
+    readonly phoneNumber: string | null;
+    readonly photoURL: string | null;
+    readonly providerId: string;
+    readonly uid: string;
+}
+
+// @public
+export interface UserMetadata {
+    readonly creationTime?: string;
+    readonly lastSignInTime?: string;
+}
+
+// @public
+export type UserProfile = Record<string, unknown>;
+
+// @public
+export function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
+
+// @public
+export function verifyPasswordResetCode(auth: Auth, code: string): Promise<string>;
 
 
 // (No @packageDocumentation comment for this package)

@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { IdTokenResult, ParsedToken, User } from '../../model/public_types';
 import { base64Decode } from '@firebase/util';
 
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { _assert } from '../util/assert';
 import { _logError } from '../util/log';
 import { utcTimestampToDateString } from '../util/time';
@@ -36,10 +36,7 @@ import { AuthErrorCode } from '../errors';
  *
  * @public
  */
-export function getIdToken(
-  user: externs.User,
-  forceRefresh = false
-): Promise<string> {
+export function getIdToken(user: User, forceRefresh = false): Promise<string> {
   return user.getIdToken(forceRefresh);
 }
 
@@ -56,10 +53,10 @@ export function getIdToken(
  * @public
  */
 export async function getIdTokenResult(
-  user: externs.User,
+  user: User,
   forceRefresh = false
-): Promise<externs.IdTokenResult> {
-  const userInternal = user as User;
+): Promise<IdTokenResult> {
+  const userInternal = user as UserInternal;
   const token = await user.getIdToken(forceRefresh);
   const claims = _parseToken(token);
 
@@ -94,7 +91,7 @@ function secondsStringToMilliseconds(seconds: string): number {
   return Number(seconds) * 1000;
 }
 
-export function _parseToken(token: string): externs.ParsedToken | null {
+export function _parseToken(token: string): ParsedToken | null {
   const [algorithm, payload, signature] = token.split('.');
   if (
     algorithm === undefined ||

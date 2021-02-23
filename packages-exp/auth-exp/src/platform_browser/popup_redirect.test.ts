@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { SDK_VERSION } from '@firebase/app-exp';
-import { Config, ProviderId } from '@firebase/auth-types-exp';
+import { Config, ProviderId } from '../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import {
@@ -38,7 +38,7 @@ import {
   AuthEvent,
   AuthEventType,
   GapiAuthEvent,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../model/popup_redirect';
 import * as authWindow from './auth_window';
 import * as gapiLoader from './iframe/gapi';
@@ -48,14 +48,14 @@ use(chaiAsPromised);
 use(sinonChai);
 
 describe('platform_browser/popup_redirect', () => {
-  let resolver: PopupRedirectResolver;
+  let resolver: PopupRedirectResolverInternal;
   let auth: TestAuth;
   let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;
   let iframeSendStub: sinon.SinonStub;
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
+    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>)();
 
     sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
     iframeSendStub = sinon.stub();
