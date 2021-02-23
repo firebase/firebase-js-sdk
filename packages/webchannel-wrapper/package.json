@@ -18,7 +18,7 @@
     "google-closure-compiler": "20201102.0.1",
     "google-closure-library": "20201006.0.0",
     "gulp": "4.0.2",
-    "gulp-sourcemaps": "2.6.5",
+    "gulp-sourcemaps": "3.0.0",
     "rollup": "2.35.1",
     "@rollup/plugin-commonjs": "15.1.0",
     "rollup-plugin-sourcemaps": "0.6.3",
