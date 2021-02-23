@@ -75,7 +75,6 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
 
     packagePaths.push(`${projectRoot}/packages/firestore`);
     packagePaths.push(`${projectRoot}/packages/storage`);
-    packagePaths.push(`${projectRoot}/packages/storage-types`);
     packagePaths.push(`${projectRoot}/packages/database`);
 
     /**
