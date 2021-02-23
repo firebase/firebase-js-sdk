@@ -32,7 +32,8 @@ const MIN_SECONDS = -62135596800;
  * table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to
  * 9999-12-31T23:59:59.999999999Z.
  *
- * @see https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto
+ * For examples and further specifications, refer to the
+ * {@link https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto | Timestamp definition}.
  */
 export class Timestamp {
   /**

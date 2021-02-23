@@ -17,10 +17,10 @@
 
 import { TEST_PROJECT } from './util';
 import { Reference } from '../../src/api/Reference';
+import { pathParent } from '../../src/core/util/Path';
 
 /**
  * A set of functions to clean up event handlers.
- * @type {function()}
  */
 export let eventCleanupHandlers = [];
 
@@ -34,8 +34,6 @@ export function eventCleanup() {
 
 /**
  * The path component of the firebaseRef url
- * @param {Reference} firebaseRef
- * @return {string}
  */
 function rawPath(firebaseRef: Reference) {
   return firebaseRef.toString().replace(TEST_PROJECT.databaseURL, '');
@@ -43,9 +41,7 @@ function rawPath(firebaseRef: Reference) {
 
 /**
  * Creates a struct which waits for many events.
- * @param {Array<Array>} pathAndEvents an array of tuples of [Firebase, [event type strings]]
- * @param {string=} helperName
- * @return {{waiter: waiter, watchesInitializedWaiter: watchesInitializedWaiter, unregister: unregister, addExpectedEvents: addExpectedEvents}}
+ * @param pathAndEvents an array of tuples of [Firebase, [event type strings]]
  */
 export function eventTestHelper(pathAndEvents, helperName?) {
   let resolve, reject;
@@ -70,7 +66,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
   const makeEventCallback = function (type) {
     return function (snap) {
       // Get the ref of where the snapshot came from.
-      const ref = type === 'value' ? snap.ref : snap.ref.parent;
+      const ref = type === 'value' ? snap.ref : pathParent(this);
 
       actualPathAndEvents.push([rawPath(ref), [type, snap.key]]);
 

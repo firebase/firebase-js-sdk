@@ -19,26 +19,13 @@ import { Node, NamedNode } from '../Node';
 import { MIN_NAME } from '../../util/util';
 import { Comparator } from '../../util/SortedMap';
 
-/**
- *
- * @constructor
- */
 export abstract class Index {
-  /**
-   * @param {!NamedNode} a
-   * @param {!NamedNode} b
-   * @return {number}
-   */
   abstract compare(a: NamedNode, b: NamedNode): number;
 
-  /**
-   * @param {!Node} node
-   * @return {boolean}
-   */
   abstract isDefinedOn(node: Node): boolean;
 
   /**
-   * @return {function(!NamedNode, !NamedNode):number} A standalone comparison function for
+   * @return A standalone comparison function for
    * this index
    */
   getCompare(): Comparator<NamedNode> {
@@ -49,9 +36,8 @@ export abstract class Index {
    * Given a before and after value for a node, determine if the indexed value has changed. Even if they are different,
    * it's possible that the changes are isolated to parts of the snapshot that are not indexed.
    *
-   * @param {!Node} oldNode
-   * @param {!Node} newNode
-   * @return {boolean} True if the portion of the snapshot being indexed changed between oldNode and newNode
+   *
+   * @return True if the portion of the snapshot being indexed changed between oldNode and newNode
    */
   indexedValueChanged(oldNode: Node, newNode: Node): boolean {
     const oldWrapped = new NamedNode(MIN_NAME, oldNode);
@@ -60,7 +46,7 @@ export abstract class Index {
   }
 
   /**
-   * @return {!NamedNode} a node wrapper that will sort equal to or less than
+   * @return a node wrapper that will sort equal to or less than
    * any other node wrapper, using this index
    */
   minPost(): NamedNode {
@@ -69,20 +55,15 @@ export abstract class Index {
   }
 
   /**
-   * @return {!NamedNode} a node wrapper that will sort greater than or equal to
+   * @return a node wrapper that will sort greater than or equal to
    * any other node wrapper, using this index
    */
   abstract maxPost(): NamedNode;
 
-  /**
-   * @param {*} indexValue
-   * @param {string} name
-   * @return {!NamedNode}
-   */
   abstract makePost(indexValue: unknown, name: string): NamedNode;
 
   /**
-   * @return {!string} String representation for inclusion in a query spec
+   * @return String representation for inclusion in a query spec
    */
   abstract toString(): string;
 }

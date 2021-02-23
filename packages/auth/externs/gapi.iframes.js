@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ gapi.iframes = {};
 /**
  * Type for options bag for create and open functions.
  * Please use gapix.iframes.Options to construct the options.
- * (See javascript/abc/iframes/api/options.js)
+ * (See javascript/abc/libs/gapi/iframes/options.js)
  * @typedef {Object<string, *>}
  **/
 gapi.iframes.OptionsBag;

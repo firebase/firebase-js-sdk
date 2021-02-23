@@ -93,26 +93,24 @@ export class SyncPoint {
       return events;
     }
   }
-
+  
   /**
-   * Add an event callback for the specified query.
+   * Get a view for the specified query.
    *
-   * @param {!Query} query
-   * @param {!EventRegistration} eventRegistration
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} serverCache Complete server cache, if we have it.
-   * @param {boolean} serverCacheComplete
-   * @return {!Array.<!Event>} Events to raise.
+   * @param query The query to return a view for
+   * @param writesCache
+   * @param serverCache
+   * @param serverCacheComplete
+   * @return Events to raise.
    */
-  addEventRegistration(
+  getView(
     query: Query,
-    eventRegistration: EventRegistration,
     writesCache: WriteTreeRef,
     serverCache: Node | null,
     serverCacheComplete: boolean
-  ): Event[] {
+  ): View {
     const queryId = query.queryIdentifier();
-    let view = this.views.get(queryId);
+    const view = this.views.get(queryId);
     if (!view) {
       // TODO: make writesCache take flag for complete server node
       let eventCache = writesCache.calcCompleteEventCache(
@@ -129,21 +127,40 @@ export class SyncPoint {
         eventCacheComplete = false;
       }
       const viewCache = new ViewCache(
-        new CacheNode(
-          /** @type {!Node} */ eventCache,
-          eventCacheComplete,
-          false
-        ),
-        new CacheNode(
-          /** @type {!Node} */ serverCache,
-          serverCacheComplete,
-          false
-        )
+        new CacheNode(eventCache, eventCacheComplete, false),
+        new CacheNode(serverCache, serverCacheComplete, false)
       );
-      view = new View(query, viewCache);
-      this.views.set(queryId, view);
+      return new View(query, viewCache);
     }
+    return view;
+  }
 
+  /**
+   * Add an event callback for the specified query.
+   *
+   * @param query
+   * @param eventRegistration
+   * @param writesCache
+   * @param serverCache Complete server cache, if we have it.
+   * @param serverCacheComplete
+   * @return Events to raise.
+   */
+  addEventRegistration(
+    query: Query,
+    eventRegistration: EventRegistration,
+    writesCache: WriteTreeRef,
+    serverCache: Node | null,
+    serverCacheComplete: boolean
+  ): Event[] {
+    const view = this.getView(
+      query,
+      writesCache,
+      serverCache,
+      serverCacheComplete
+    );
+    if (!this.views.has(query.queryIdentifier())) {
+      this.views.set(query.queryIdentifier(), view);
+    }
     // This is guaranteed to exist now, we just created anything that was missing
     view.addEventRegistration(eventRegistration);
     return view.getInitialEvents(eventRegistration);
@@ -155,10 +172,9 @@ export class SyncPoint {
    * If query is the default query, we'll check all views for the specified eventRegistration.
    * If eventRegistration is null, we'll remove all callbacks for the specified view(s).
    *
-   * @param {!Query} query
-   * @param {?EventRegistration} eventRegistration If null, remove all callbacks.
-   * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
-   * @return {{removed:!Array.<!Query>, events:!Array.<!Event>}} removed queries and any cancel events
+   * @param eventRegistration If null, remove all callbacks.
+   * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
+   * @return removed queries and any cancel events
    */
   removeEventRegistration(
     query: Query,

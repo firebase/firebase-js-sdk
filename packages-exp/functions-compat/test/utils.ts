@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-compat';
 import { FunctionsService } from '../src/service';
 import { getFunctions } from '@firebase/functions-exp';
 

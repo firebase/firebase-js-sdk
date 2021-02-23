@@ -66,7 +66,7 @@ if (argv.persistence) {
   args.push('--require', 'test/util/node_persistence.ts');
 }
 
-args = args.concat(argv._);
+args = args.concat(argv._ as string[]);
 
 const childProcess = spawn(nyc, args, {
   stdio: 'inherit',

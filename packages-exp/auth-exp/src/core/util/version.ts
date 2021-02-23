@@ -27,6 +27,7 @@ export const enum ClientPlatform {
   BROWSER = 'Browser',
   NODE = 'Node',
   REACT_NATIVE = 'ReactNative',
+  CORDOVA = 'Cordova',
   WORKER = 'Worker'
 }
 

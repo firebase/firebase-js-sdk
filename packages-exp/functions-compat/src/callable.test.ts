@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { FirebaseApp } from '@firebase/app-types';
 import { FunctionsErrorCode } from '@firebase/functions-types-exp';
 import { createTestService } from '../test/utils';
-import { firebase } from '@firebase/app-compat';
+import { firebase, FirebaseApp } from '@firebase/app-compat';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');

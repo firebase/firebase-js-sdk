@@ -14,7 +14,7 @@
     "firebase-firestore-integration-test",
     "firebase-messaging-integration-test",
     "@firebase/app-exp",
-    "@firebase/app-types-exp",
+    "@firebase/analytics-exp",
     "@firebase/auth-exp",
     "@firebase/auth-compat",
     "@firebase/auth-types-exp",

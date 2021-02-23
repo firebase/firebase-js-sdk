@@ -15,17 +15,14 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
+import { FirebaseApp, FirebaseOptions } from '../public-types';
+import { _FirebaseNamespace, _FirebaseService } from '../types';
 import {
   deleteApp,
   _addComponent,
-  _DEFAULT_ENTRY_NAME
+  _DEFAULT_ENTRY_NAME,
+  _FirebaseAppInternal as FirebaseAppExp
 } from '@firebase/app-exp';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 import { Component, ComponentType, Name } from '@firebase/component';
 
 /**
@@ -34,11 +31,14 @@ import { Component, ComponentType, Name } from '@firebase/component';
  */
 export class FirebaseAppLiteImpl implements FirebaseApp {
   constructor(
-    private readonly app: _FirebaseAppInternal,
+    private readonly app: FirebaseAppExp,
     private readonly firebase: _FirebaseNamespace
   ) {
     // add itself to container
-    _addComponent(app, new Component('app', () => this, ComponentType.PUBLIC));
+    _addComponent(
+      app,
+      new Component('app-compat', () => this, ComponentType.PUBLIC)
+    );
   }
 
   get automaticDataCollectionEnabled(): boolean {
@@ -79,12 +79,12 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
   _getService(
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
-  ): FirebaseService {
+  ): _FirebaseService {
     this.app.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
     return (this.app.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
-    }) as unknown) as FirebaseService;
+    }) as unknown) as _FirebaseService;
   }
 }

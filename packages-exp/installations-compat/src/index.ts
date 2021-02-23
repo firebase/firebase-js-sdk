@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-import { firebase } from '@firebase/app-compat';
+import {
+  firebase,
+  _FirebaseNamespace,
+  FirebaseApp
+} from '@firebase/app-compat';
 import { name, version } from '../package.json';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations as FirebaseInstallationsCompat } from '@firebase/installations-types';
-import { FirebaseApp } from '@firebase/app-types';
 import { InstallationsCompat } from './installationsCompat';
 
 declare module '@firebase/component' {

@@ -19,7 +19,7 @@ import { setupOobResources } from '../services/oob_resources_service';
 import { SettingsService } from '../services/settings_service';
 import { getInitializationPromise } from '../services/initialization_service';
 import { Api } from '../services/api_service';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import {
   PerformanceSettings,

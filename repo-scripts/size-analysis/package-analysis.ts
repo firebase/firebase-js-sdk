@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { resolve, basename } from 'path';
+import { resolve, basename, dirname } from 'path';
 import {
   generateReport,
   generateReportForModules,
@@ -24,10 +24,10 @@ import {
   ErrorCode,
   writeReportToDirectory
 } from './analysis-helper';
-import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
-import { projectRoot } from '../../scripts/utils';
+import glob from 'glob';
 import * as fs from 'fs';
 
+const projectRoot = dirname(resolve(__dirname, '../package.json'));
 /**
  * Support Command Line Options
  * -- inputModule (optional) : can be left unspecified which results in running analysis on all exp modules.
@@ -111,4 +111,18 @@ export async function analyzePackageSize(
   } else {
     throw new Error(ErrorCode.INVALID_FLAG_COMBINATION);
   }
+}
+
+function mapWorkspaceToPackages(workspaces: string[]): Promise<string[]> {
+  return Promise.all<string[]>(
+    workspaces.map(
+      workspace =>
+        new Promise(resolve => {
+          glob(workspace, (err, paths) => {
+            if (err) throw err;
+            resolve(paths);
+          });
+        })
+    )
+  ).then(paths => paths.reduce((arr, val) => arr.concat(val), []));
 }

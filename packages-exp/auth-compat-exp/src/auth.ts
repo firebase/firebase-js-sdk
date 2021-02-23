@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
@@ -75,6 +74,10 @@ export class Auth
     );
   }
 
+  get emulatorConfig(): compat.EmulatorConfig | null {
+    return this.auth.emulatorConfig;
+  }
+
   get currentUser(): compat.User | null {
     if (!this.auth.currentUser) {
       return null;
@@ -98,7 +101,7 @@ export class Auth
     return this.auth.signOut();
   }
   useEmulator(url: string, options?: { disableWarnings: boolean }): void {
-    this.auth.useEmulator(url, options);
+    impl.useAuthEmulator(this.auth, url, options);
   }
   applyActionCode(code: string): Promise<void> {
     return impl.applyActionCode(this.auth, code);

@@ -336,6 +336,11 @@ function firebaseAppTests(
       expect(() => firebase.app('toString')).throws(/'toString'.*created/i);
     });
 
+    it('JSON.stringify() does not throw', () => {
+      const app = firebase.initializeApp({}, 'new-app');
+      JSON.stringify(app);
+    });
+
     describe('Check for bad app names', () => {
       const tests = ['', 123, false, null];
       for (const data of tests) {

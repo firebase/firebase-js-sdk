@@ -46,6 +46,7 @@ import {
 } from '@firebase/firestore-types';
 
 import { DatabaseId } from '../core/database_info';
+import { LoadBundleTask } from '../exp/bundle';
 import { Bytes } from '../exp/bytes';
 import {
   clearIndexedDbPersistence,
@@ -99,6 +100,7 @@ import {
 import {
   DocumentChange as ExpDocumentChange,
   DocumentSnapshot as ExpDocumentSnapshot,
+  QueryDocumentSnapshot as ExpQueryDocumentSnapshot,
   QuerySnapshot as ExpQuerySnapshot,
   snapshotEqual,
   SnapshotMetadata
@@ -121,7 +123,6 @@ import {
 import { setLogLevel as setClientLogLevel } from '../util/log';
 
 import { Blob } from './blob';
-import { LoadBundleTask } from './bundle';
 import { Compat } from './compat';
 import {
   CompleteFn,
@@ -276,8 +277,10 @@ export class Firestore
   }
 
   terminate(): Promise<void> {
-    (this.app as _FirebaseApp)._removeServiceInstance('firestore');
-    (this.app as _FirebaseApp)._removeServiceInstance('firestore-exp');
+    if (this._appCompat) {
+      (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore');
+      (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore-exp');
+    }
     return this._delegate._delete();
   }
 
@@ -553,6 +556,86 @@ export class WriteBatch
 }
 
 /**
+ * Wraps a `PublicFirestoreDataConverter` translating the types from the
+ * experimental SDK into corresponding types from the Classic SDK before passing
+ * them to the wrapped converter.
+ */
+class FirestoreDataConverter<U>
+  extends Compat<PublicFirestoreDataConverter<U>>
+  implements UntypedFirestoreDataConverter<U> {
+  private static readonly INSTANCES = new WeakMap();
+
+  private constructor(
+    private readonly _firestore: Firestore,
+    private readonly _userDataWriter: UserDataWriter,
+    delegate: PublicFirestoreDataConverter<U>
+  ) {
+    super(delegate);
+  }
+
+  fromFirestore(
+    snapshot: ExpQueryDocumentSnapshot,
+    options?: PublicSnapshotOptions
+  ): U {
+    const expSnapshot = new ExpQueryDocumentSnapshot(
+      this._firestore._delegate,
+      this._userDataWriter,
+      snapshot._key,
+      snapshot._document,
+      snapshot.metadata,
+      /* converter= */ null
+    );
+    return this._delegate.fromFirestore(
+      new QueryDocumentSnapshot(this._firestore, expSnapshot),
+      options ?? {}
+    );
+  }
+
+  toFirestore(modelObject: U): PublicDocumentData;
+  toFirestore(
+    modelObject: Partial<U>,
+    options: PublicSetOptions
+  ): PublicDocumentData;
+  toFirestore(
+    modelObject: U | Partial<U>,
+    options?: PublicSetOptions
+  ): PublicDocumentData {
+    if (!options) {
+      return this._delegate.toFirestore(modelObject as U);
+    } else {
+      return this._delegate.toFirestore(modelObject, options);
+    }
+  }
+
+  // Use the same instance of `FirestoreDataConverter` for the given instances
+  // of `Firestore` and `PublicFirestoreDataConverter` so that isEqual() will
+  // compare equal for two objects created with the same converter instance.
+  static getInstance<U>(
+    firestore: Firestore,
+    converter: PublicFirestoreDataConverter<U>
+  ): FirestoreDataConverter<U> {
+    const converterMapByFirestore = FirestoreDataConverter.INSTANCES;
+    let untypedConverterByConverter = converterMapByFirestore.get(firestore);
+    if (!untypedConverterByConverter) {
+      untypedConverterByConverter = new WeakMap();
+      converterMapByFirestore.set(firestore, untypedConverterByConverter);
+    }
+
+    let instance = untypedConverterByConverter.get(converter);
+    if (!instance) {
+      instance = new FirestoreDataConverter(
+        firestore,
+        new UserDataWriter(firestore),
+        converter
+      );
+      untypedConverterByConverter.set(converter, instance);
+    }
+
+    return instance;
+  }
+}
+
+/**
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = PublicDocumentData>
@@ -753,7 +836,7 @@ export class DocumentReference<T = PublicDocumentData>
     return new DocumentReference<U>(
       this.firestore,
       this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
+        FirestoreDataConverter.getInstance(this.firestore, converter)
       )
     );
   }
@@ -1062,7 +1145,7 @@ export class Query<T = PublicDocumentData>
     return new Query<U>(
       this.firestore,
       this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
+        FirestoreDataConverter.getInstance(this.firestore, converter)
       )
     );
   }
@@ -1206,7 +1289,7 @@ export class CollectionReference<T = PublicDocumentData>
     return new CollectionReference<U>(
       this.firestore,
       this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
+        FirestoreDataConverter.getInstance(this.firestore, converter)
       )
     );
   }

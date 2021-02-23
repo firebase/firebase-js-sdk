@@ -17,9 +17,13 @@
 
 import { RangedFilter } from './RangedFilter';
 import { ChildrenNode } from '../../snap/ChildrenNode';
-import { Node, NamedNode } from '../../snap/Node';
+import { NamedNode, Node } from '../../snap/Node';
 import { assert } from '@firebase/util';
-import { Change } from '../Change';
+import {
+  changeChildAdded,
+  changeChildChanged,
+  changeChildRemoved
+} from '../Change';
 import { NodeFilter } from './NodeFilter';
 import { Index } from '../../snap/indexes/Index';
 import { IndexedFilter } from './IndexedFilter';
@@ -30,42 +34,16 @@ import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
 
 /**
  * Applies a limit and a range to a node and uses RangedFilter to do the heavy lifting where possible
- *
- * @constructor
- * @implements {NodeFilter}
  */
 export class LimitedFilter implements NodeFilter {
-  /**
-   * @const
-   * @type {RangedFilter}
-   * @private
-   */
   private readonly rangedFilter_: RangedFilter;
 
-  /**
-   * @const
-   * @type {!Index}
-   * @private
-   */
   private readonly index_: Index;
 
-  /**
-   * @const
-   * @type {number}
-   * @private
-   */
   private readonly limit_: number;
 
-  /**
-   * @const
-   * @type {boolean}
-   * @private
-   */
   private readonly reverse_: boolean;
 
-  /**
-   * @param {!QueryParams} params
-   */
   constructor(params: QueryParams) {
     this.rangedFilter_ = new RangedFilter(params);
     this.index_ = params.getIndex();
@@ -242,15 +220,6 @@ export class LimitedFilter implements NodeFilter {
     return this.index_;
   }
 
-  /**
-   * @param {!Node} snap
-   * @param {string} childKey
-   * @param {!Node} childSnap
-   * @param {!CompleteChildSource} source
-   * @param {?ChildChangeAccumulator} changeAccumulator
-   * @return {!Node}
-   * @private
-   */
   private fullLimitUpdateChild_(
     snap: Node,
     childKey: string,
@@ -300,14 +269,14 @@ export class LimitedFilter implements NodeFilter {
       if (remainsInWindow) {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childChangedChange(childKey, childSnap, oldChildSnap)
+            changeChildChanged(childKey, childSnap, oldChildSnap)
           );
         }
         return oldEventCache.updateImmediateChild(childKey, childSnap);
       } else {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childRemovedChange(childKey, oldChildSnap)
+            changeChildRemoved(childKey, oldChildSnap)
           );
         }
         const newEventCache = oldEventCache.updateImmediateChild(
@@ -319,7 +288,7 @@ export class LimitedFilter implements NodeFilter {
         if (nextChildInRange) {
           if (changeAccumulator != null) {
             changeAccumulator.trackChildChange(
-              Change.childAddedChange(nextChild.name, nextChild.node)
+              changeChildAdded(nextChild.name, nextChild.node)
             );
           }
           return newEventCache.updateImmediateChild(
@@ -337,10 +306,10 @@ export class LimitedFilter implements NodeFilter {
       if (cmp(windowBoundary, newChildNamedNode) >= 0) {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childRemovedChange(windowBoundary.name, windowBoundary.node)
+            changeChildRemoved(windowBoundary.name, windowBoundary.node)
           );
           changeAccumulator.trackChildChange(
-            Change.childAddedChange(childKey, childSnap)
+            changeChildAdded(childKey, childSnap)
           );
         }
         return oldEventCache

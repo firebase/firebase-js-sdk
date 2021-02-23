@@ -288,6 +288,8 @@ export interface Auth {
   ): Unsubscribe;
   /** The currently signed-in user (or null). */
   readonly currentUser: User | null;
+  /** The current emulator configuration (or null). */
+  readonly emulatorConfig: EmulatorConfig | null;
   /**
    * Asynchronously sets the provided user as {@link Auth.currentUser} on the {@link Auth} instance.
    *
@@ -307,18 +309,6 @@ export interface Auth {
    * Sets the current language to the default device/browser preference.
    */
   useDeviceLanguage(): void;
-  /**
-   * Modify this Auth instance to communicate with the Firebase Auth emulator.
-   *
-   * @remarks
-   * This must be called synchronously immediately following the first call to
-   * {@link @firebase/auth#initializeAuth}.  Do not use with production credentials as emulator
-   * traffic is not encrypted.
-   *
-   * @param url - The URL at which the emulator is running (eg, 'http://localhost:9099').
-   * @param disableBanner - (Optional: default false) Disable the warning banner attached to the DOM
-   */
-  useEmulator(url: string, options?: { disableWarnings: boolean }): void;
   /**
    * Signs out the current user.
    */
@@ -1067,7 +1057,7 @@ export interface MultiFactorInfo {
  *
  * @public
  */
-export abstract class MultiFactorResolver {
+export interface MultiFactorResolver {
   /**
    * The list of hints for the second factors needed to complete the sign-in for the current
    * session.
@@ -1521,6 +1511,34 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     'auth-exp': Auth;
   }
+}
+
+/**
+ * Configuration of Firebase Authentication Emulator.
+ */
+export interface EmulatorConfig {
+  /**
+   * The protocol used to communicate with the emulator ("http"/"https").
+   */
+  readonly protocol: string;
+  /**
+   * The hostname of the emulator, which may be a domain ("localhost"), IPv4 address ("127.0.0.1")
+   * or quoted IPv6 address ("[::1]").
+   */
+  readonly host: string;
+  /**
+   * The port of the emulator, or null if port isn't specified (i.e. protocol default).
+   */
+  readonly port: number | null;
+  /**
+   * The emulator-specific options.
+   */
+  readonly options: {
+    /**
+     * Whether the warning banner attached to the DOM was disabled.
+     */
+    readonly disableWarnings: boolean;
+  };
 }
 
 /**

@@ -738,6 +738,11 @@ export function parseData(
     // context.fieldMask and we return null as our parsing result.
     parseSentinelFieldValue(input, context);
     return null;
+  } else if (input === undefined && context.ignoreUndefinedProperties) {
+    // If the input is undefined it can never participate in the fieldMask, so
+    // don't handle this below. If `ignoreUndefinedProperties` is false,
+    // `parseScalarValue` will reject an undefined value.
+    return null;
   } else {
     // If context.path is null we are inside an array and we don't support
     // field mask paths more granular than the top-level array.
@@ -896,8 +901,6 @@ function parseScalarValue(
         value._key.path
       )
     };
-  } else if (value === undefined && context.ignoreUndefinedProperties) {
-    return null;
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`

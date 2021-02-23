@@ -85,7 +85,7 @@ function bundleWithDocumentAndQuery(
   );
 }
 
-describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
+describeSpec('Bundles:', ['no-ios'], () => {
   specTest('Newer docs from bundles should overwrite cache', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { value: 'a' });

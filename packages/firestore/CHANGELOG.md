@@ -1,5 +1,38 @@
 # @firebase/firestore
 
+## 2.1.7
+
+### Patch Changes
+
+- Updated dependencies [[`6afe42613`](https://github.com/firebase/firebase-js-sdk/commit/6afe42613ed3d7a842d378dc1a09a795811db2ac)]:
+  - @firebase/component@0.2.0
+
+## 2.1.6
+
+### Patch Changes
+
+- [`a718518e9`](https://github.com/firebase/firebase-js-sdk/commit/a718518e935931709669ea2e88f9711143655e61) [#4395](https://github.com/firebase/firebase-js-sdk/pull/4395) - Fixes a bug where local cache inconsistencies were unnecessarily being resolved.
+
+* [`3d0cd6f33`](https://github.com/firebase/firebase-js-sdk/commit/3d0cd6f33127e75e15aec9b6589eea360827df7a) [#4382](https://github.com/firebase/firebase-js-sdk/pull/4382) - Fix the path to the react native build for the Firestore memory build
+
+## 2.1.5
+
+### Patch Changes
+
+- [`9533688b1`](https://github.com/firebase/firebase-js-sdk/commit/9533688b1e39e58a550ec0527a0363270d73c5b5) [#4347](https://github.com/firebase/firebase-js-sdk/pull/4347) (fixes [#1392](https://github.com/firebase/firebase-js-sdk/issues/1392)) - handle `ignoreUndefinedProperties` in `set({ merge: true })`. Previously this would behave as if the undefined value were `FieldValue.delete()`, which wasn't intended.
+
+## 2.1.4
+
+### Patch Changes
+
+- [`749c7f3d9`](https://github.com/firebase/firebase-js-sdk/commit/749c7f3d985f978cd2a204cbc28c3fff09458b5b) [#4298](https://github.com/firebase/firebase-js-sdk/pull/4298) (fixes [#4258](https://github.com/firebase/firebase-js-sdk/issues/4258)) - Firestore classes like DocumentReference and Query can now be serialized to JSON (#4258)
+
+## 2.1.3
+
+### Patch Changes
+
+- [`6ac66baa0`](https://github.com/firebase/firebase-js-sdk/commit/6ac66baa0e7ac8dd90a6d6136a020cdd54710df5) [#4284](https://github.com/firebase/firebase-js-sdk/pull/4284) (fixes [#4278](https://github.com/firebase/firebase-js-sdk/issues/4278)) - Fixes FirestoreDataConverter.fromFirestore() being called with an incorrect "snapshot" object.
+
 ## 2.1.2
 
 ### Patch Changes

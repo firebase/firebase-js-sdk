@@ -30,9 +30,6 @@ const FIRST_STATS_MAX_TIME = 30 * 1000;
 // We'll continue to report stats on average every 5 minutes.
 const REPORT_STATS_INTERVAL = 5 * 60 * 1000;
 
-/**
- * @constructor
- */
 export class StatsReporter {
   private statsListener_: StatsListener;
   private statsToReport_: { [k: string]: boolean } = {};

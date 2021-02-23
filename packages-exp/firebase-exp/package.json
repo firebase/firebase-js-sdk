@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.900.4",
+  "version": "0.900.14",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -36,11 +36,14 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
+    "@firebase/analytics-exp": "0.0.900",
     "@firebase/app-exp": "0.0.900",
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
+    "@firebase/database": "0.9.4",
     "@firebase/functions-exp": "0.0.900",
-    "@firebase/firestore": "2.1.2",
+    "@firebase/firestore": "2.1.7",
+    "@firebase/storage": "0.4.3",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
     "@firebase/messaging-exp": "0.0.900"
@@ -60,13 +63,16 @@
     "typescript": "4.0.5"
   },
   "components": [
+    "analytics",
     "app",
     "auth",
     "functions",
     "firestore",
     "firestore/lite",
+    "storage",
     "performance",
     "remote-config",
-    "messaging"
+    "messaging",
+    "database"
   ]
 }

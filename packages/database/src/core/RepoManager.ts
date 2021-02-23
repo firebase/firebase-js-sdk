@@ -16,12 +16,13 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseApp as FirebaseAppExp } from '@firebase/app-exp';
 import { safeGet } from '@firebase/util';
-import { Repo } from './Repo';
+import { Repo, repoGetDatabase, repoInterrupt, repoResume } from './Repo';
 import { fatal, log } from './util/util';
 import { parseRepoInfo } from './util/libs/parser';
 import { validateUrl } from './util/validation';
-import './Repo_transaction';
 import { Database } from '../api/Database';
 import { RepoInfo } from './RepoInfo';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -31,6 +32,7 @@ import {
   EmulatorAdminTokenProvider,
   FirebaseAuthTokenProvider
 } from './AuthTokenProvider';
+import { pathIsEmpty } from './util/Path';
 
 /**
  * This variable is also defined in the firebase node.js admin SDK. Before
@@ -45,12 +47,15 @@ const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
 let _staticInstance: RepoManager;
 
 /**
+ * Intersection type that allows the SDK to be used from firebase-exp and
+ * firebase v8.
+ */
+export type FirebaseAppLike = FirebaseApp | FirebaseAppExp;
+
+/**
  * Creates and caches Repo instances.
  */
 export class RepoManager {
-  /**
-   * @private {!Object.<string, Object<string, !fb.core.Repo>>}
-   */
   private repos_: {
     [appName: string]: {
       [dbUrl: string]: Repo;
@@ -59,7 +64,6 @@ export class RepoManager {
 
   /**
    * If true, new Repos will be created to use ReadonlyRestClient (for testing purposes).
-   * @private {boolean}
    */
   private useRestClient_: boolean = false;
 
@@ -74,7 +78,7 @@ export class RepoManager {
   interrupt() {
     for (const appName of Object.keys(this.repos_)) {
       for (const dbUrl of Object.keys(this.repos_[appName])) {
-        this.repos_[appName][dbUrl].interrupt();
+        repoInterrupt(this.repos_[appName][dbUrl]);
       }
     }
   }
@@ -82,7 +86,7 @@ export class RepoManager {
   resume() {
     for (const appName of Object.keys(this.repos_)) {
       for (const dbUrl of Object.keys(this.repos_[appName])) {
-        this.repos_[appName][dbUrl].resume();
+        repoResume(this.repos_[appName][dbUrl]);
       }
     }
   }
@@ -108,12 +112,9 @@ export class RepoManager {
 
   /**
    * This function should only ever be called to CREATE a new database instance.
-   *
-   * @param {!FirebaseApp} app
-   * @return {!Database}
    */
   databaseFromApp(
-    app: FirebaseApp,
+    app: FirebaseAppLike,
     authProvider: Provider<FirebaseAuthInternalName>,
     url?: string,
     nodeAdmin?: boolean
@@ -156,7 +157,7 @@ export class RepoManager {
         : new FirebaseAuthTokenProvider(app, authProvider);
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
-    if (!parsedUrl.path.isEmpty()) {
+    if (!pathIsEmpty(parsedUrl.path)) {
       fatal(
         'Database URL must point to the root of a Firebase Database ' +
           '(not including a child path).'
@@ -165,13 +166,12 @@ export class RepoManager {
 
     const repo = this.createRepo(repoInfo, app, authTokenProvider);
 
-    return repo.database;
+    return repoGetDatabase(repo);
   }
 
   /**
    * Remove the repo and make sure it is disconnected.
    *
-   * @param {!Repo} repo
    */
   deleteRepo(repo: Repo) {
     const appRepos = safeGet(this.repos_, repo.app.name);
@@ -181,7 +181,7 @@ export class RepoManager {
         `Database ${repo.app.name}(${repo.repoInfo_}) has already been deleted.`
       );
     }
-    repo.interrupt();
+    repoInterrupt(repo);
     delete appRepos[repo.key];
   }
 
@@ -189,13 +189,12 @@ export class RepoManager {
    * Ensures a repo doesn't already exist and then creates one using the
    * provided app.
    *
-   * @param {!RepoInfo} repoInfo The metadata about the Repo
-   * @param {!FirebaseApp} app
-   * @return {!Repo} The Repo object for the specified server / repoName.
+   * @param repoInfo The metadata about the Repo
+   * @return The Repo object for the specified server / repoName.
    */
   createRepo(
     repoInfo: RepoInfo,
-    app: FirebaseApp,
+    app: FirebaseAppLike,
     authTokenProvider: AuthTokenProvider
   ): Repo {
     let appRepos = safeGet(this.repos_, app.name);
@@ -219,7 +218,6 @@ export class RepoManager {
 
   /**
    * Forces us to use ReadonlyRestClient instead of PersistentConnection for new Repos.
-   * @param {boolean} forceRestClient
    */
   forceRestClient(forceRestClient: boolean) {
     this.useRestClient_ = forceRestClient;

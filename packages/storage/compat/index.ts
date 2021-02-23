@@ -88,7 +88,7 @@ registerStorage(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     storage?: {
-      (app?: FirebaseApp): types.FirebaseStorage;
+      (app?: FirebaseApp, url?: string): types.FirebaseStorage;
       Storage: typeof types.FirebaseStorage;
 
       StringFormat: {

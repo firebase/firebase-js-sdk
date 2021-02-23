@@ -25,6 +25,7 @@ export interface SignInWithIdpRequest {
   sessionId?: string;
   tenantId?: string;
   returnSecureToken: boolean;
+  returnIdpCredential?: boolean;
   idToken?: IdToken;
   autoCreate?: boolean;
   pendingToken?: string;

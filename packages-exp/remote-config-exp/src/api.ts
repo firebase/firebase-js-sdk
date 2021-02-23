@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _getProvider, FirebaseApp } from '@firebase/app-exp';
 import {
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
@@ -257,3 +256,5 @@ export function setLogLevel(
 function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
   return Object.keys({ ...obj1, ...obj2 });
 }
+
+export { RemoteConfig, ValueType, RemoteConfigLogLevel };

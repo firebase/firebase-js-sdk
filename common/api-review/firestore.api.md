@@ -7,7 +7,7 @@
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
-// @public (undocumented)
+// @public
 export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
 
 // @public
@@ -459,6 +459,9 @@ export function updateDoc(reference: DocumentReference<unknown>, data: UpdateDat
 
 // @public
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
+
+// @public
+export function useFirestoreEmulator(firestore: FirebaseFirestore, host: string, port: number): void;
 
 // @public
 export function waitForPendingWrites(firestore: FirebaseFirestore): Promise<void>;

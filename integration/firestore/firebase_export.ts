@@ -50,11 +50,22 @@ export function usesFunctionalApi(): false {
   return false;
 }
 
-const Firestore = firebase.firestore.Firestore;
-const FieldPath = firebase.firestore.FieldPath;
-const Timestamp = firebase.firestore.Timestamp;
-const GeoPoint = firebase.firestore.GeoPoint;
-const FieldValue = firebase.firestore.FieldValue;
 const Blob = firebase.firestore.Blob;
+const DocumentReference = firebase.firestore.DocumentReference;
+const FieldPath = firebase.firestore.FieldPath;
+const FieldValue = firebase.firestore.FieldValue;
+const Firestore = firebase.firestore.Firestore;
+const GeoPoint = firebase.firestore.GeoPoint;
+const QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
+const Timestamp = firebase.firestore.Timestamp;
 
-export { Firestore, FieldValue, FieldPath, Timestamp, Blob, GeoPoint };
+export {
+  Blob,
+  DocumentReference,
+  FieldPath,
+  FieldValue,
+  Firestore,
+  GeoPoint,
+  QueryDocumentSnapshot,
+  Timestamp
+};

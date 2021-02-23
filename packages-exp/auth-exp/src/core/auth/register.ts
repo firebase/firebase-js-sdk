@@ -41,6 +41,8 @@ function getVersionForPlatform(
       return 'rn';
     case ClientPlatform.WORKER:
       return 'webworker';
+    case ClientPlatform.CORDOVA:
+      return 'cordova';
     default:
       return undefined;
   }

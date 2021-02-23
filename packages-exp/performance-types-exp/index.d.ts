@@ -26,6 +26,9 @@ export interface PerformanceSettings {
   instrumentationEnabled?: boolean;
 }
 
+/**
+ * @public
+ */
 export interface FirebasePerformance {
   /**
    * Controls the logging of automatic traces and HTTP/S network monitoring.
@@ -38,6 +41,9 @@ export interface FirebasePerformance {
   dataCollectionEnabled: boolean;
 }
 
+/**
+ * @public
+ */
 export interface PerformanceTrace {
   /**
    * Starts the timing for the trace instance.

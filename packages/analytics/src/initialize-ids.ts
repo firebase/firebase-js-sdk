@@ -30,6 +30,7 @@ import {
   validateIndexedDBOpenable
 } from '@firebase/util';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
+import { findGtagScriptOnPage, insertScriptTag } from './helpers';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
@@ -74,7 +75,8 @@ export async function initializeIds(
   >,
   measurementIdToAppId: { [key: string]: string },
   installations: FirebaseInstallations,
-  gtagCore: Gtag
+  gtagCore: Gtag,
+  dataLayerName: string
 ): Promise<string> {
   const dynamicConfigPromise = fetchDynamicConfigWithRetry(app);
   // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.
@@ -113,6 +115,11 @@ export async function initializeIds(
     fidPromise
   ]);
 
+  // Detect if user has already put the gtag <script> tag on this page.
+  if (!findGtagScriptOnPage()) {
+    insertScriptTag(dataLayerName, dynamicConfig.measurementId);
+  }
+
   // This command initializes gtag.js and only needs to be called once for the entire web app,
   // but since it is idempotent, we can call it multiple times.
   // We keep it together with other initialization logic for better code structure.
@@ -131,6 +138,8 @@ export async function initializeIds(
 
   // It should be the first config command called on this GA-ID
   // Initialize this GA-ID and set FID on it using the gtag config API.
+  // Note: This will trigger a page_view event unless 'send_page_view' is set to false in
+  // `configProperties`.
   gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, configProperties);
   return dynamicConfig.measurementId;
 }

@@ -18,13 +18,10 @@
 import { projectRoot, readPackageJson } from '../utils';
 import { writeFile as _writeFile, readFile as _readFile } from 'fs';
 import { promisify } from 'util';
-import path from 'path';
 
 const writeFile = promisify(_writeFile);
-const readFile = promisify(_readFile);
 const packagePath = `${projectRoot}/packages/firestore`;
 
-//
 /**
  * Transform package.json in @firebase/firestore so that we can use scripts/exp/release.ts to release Firestore exp.
  * It does following things:
@@ -44,8 +41,7 @@ export async function prepare() {
   packageJson.version = '0.0.900';
 
   packageJson.peerDependencies = {
-    '@firebase/app-exp': '0.x',
-    '@firebase/app-types-exp': '0.x'
+    '@firebase/app-exp': '0.x'
   };
 
   packageJson.main = expPackageJson.main.replace('../', '');

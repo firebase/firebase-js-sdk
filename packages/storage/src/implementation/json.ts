@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as type from './type';
+import { isNonArrayObject } from './type';
 
 /**
  * Returns the Object resulting from parsing the given JSON, or null if the
@@ -29,7 +29,7 @@ export function jsonObjectOrNull(
   } catch (e) {
     return null;
   }
-  if (type.isNonArrayObject(obj)) {
+  if (isNonArrayObject(obj)) {
     return obj;
   } else {
     return null;

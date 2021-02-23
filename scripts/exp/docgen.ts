@@ -30,6 +30,15 @@ async function generateDocs() {
     stdio: 'inherit'
   });
 
+  // build storage-exp
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
+    {
+      stdio: 'inherit'
+    }
+  );
+
   // generate public typings for firestore
   await spawn(
     'yarn',

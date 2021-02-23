@@ -15,7 +15,6 @@
     "packages/app-types/index.d.ts",
     "packages/app-types/private.d.ts",
     "packages-exp/app-exp/dist/app-exp.d.ts",
-    "packages-exp/app-types-exp/index.d.ts",
     "packages/auth-interop-types/index.d.ts",
     "packages/firestore/dist/lite/index.d.ts",
     "packages/firestore/dist/exp/index.d.ts",

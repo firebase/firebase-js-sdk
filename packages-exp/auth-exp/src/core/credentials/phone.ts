@@ -28,7 +28,6 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthCredential } from './auth_credential';
 
-/** @internal */
 export interface PhoneAuthCredentialParameters {
   verificationId?: string;
   verificationCode?: string;

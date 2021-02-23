@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import { VersionService } from '@firebase/app-types';
 import { expect } from 'chai';
 import '../test/setup';
-import { PlatformLoggerService } from './platformLoggerService';
+import { PlatformLoggerServiceImpl } from './platformLoggerService';
 import {
   Component,
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
+import { VersionService } from './types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -50,7 +50,7 @@ describe('Platform Logger Service', () => {
           ComponentType.VERSION
         )
       );
-      const platformLoggerService = new PlatformLoggerService(container);
+      const platformLoggerService = new PlatformLoggerServiceImpl(container);
       const platformInfoString = platformLoggerService.getPlatformInfoString();
       expect(platformInfoString).to.include('vs1/1.2.3');
       expect(platformInfoString).to.include('vs2/3.02.01');

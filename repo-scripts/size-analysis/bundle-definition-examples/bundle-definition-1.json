@@ -1,6 +1,7 @@
 [
     {
         "name": "test",
+        "desecription": "",
         "dependencies": [
             {
                 "packageName": "@firebase/app",
@@ -16,6 +17,26 @@
                     "getFirestore",
                     "doc",
                     "getDoc"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "test2",
+        "description": "default imports and side effect imports",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            },
+            {
+                "packageName": "@firebase/firestore",
+                "versionOrTag": "latest",
+                "imports": [
+                    "side effect import"
                 ]
             }
         ]

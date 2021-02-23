@@ -1,5 +1,24 @@
 # @firebase/auth
 
+## 0.16.4
+
+### Patch Changes
+
+- Updated dependencies [[`4ab5a9ce5`](https://github.com/firebase/firebase-js-sdk/commit/4ab5a9ce5b6256a95d745f6dc40a5e5ddd2301f2)]:
+  - @firebase/auth-types@0.10.2
+
+## 0.16.3
+
+### Patch Changes
+
+- [`73bb561e1`](https://github.com/firebase/firebase-js-sdk/commit/73bb561e18ea42286a54d28648636bf1ac7fcfe0) [#4357](https://github.com/firebase/firebase-js-sdk/pull/4357) (fixes [#4174](https://github.com/firebase/firebase-js-sdk/issues/4174)) - Decode UTF-8 in ID Token. Fix #4174.
+
+## 0.16.2
+
+### Patch Changes
+
+- [`92a7f4345`](https://github.com/firebase/firebase-js-sdk/commit/92a7f434536051bedd00bc1be7e774174378aa7d) [#4280](https://github.com/firebase/firebase-js-sdk/pull/4280) - Add the `useEmulator()` function and `emulatorConfig` to the `firebase` package externs
+
 ## 0.16.1
 
 ### Patch Changes

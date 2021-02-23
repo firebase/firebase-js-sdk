@@ -19,7 +19,6 @@ import * as types from '@firebase/storage-types';
 import { ReferenceCompat } from './reference';
 import { UploadTaskCompat } from './task';
 import { UploadTaskSnapshot } from '../src/tasksnapshot';
-import { Metadata } from '../src/metadata';
 
 export class UploadTaskSnapshotCompat implements types.UploadTaskSnapshot {
   constructor(
@@ -31,8 +30,8 @@ export class UploadTaskSnapshotCompat implements types.UploadTaskSnapshot {
   get bytesTransferred(): number {
     return this._delegate.bytesTransferred;
   }
-  get metadata(): Metadata {
-    return this._delegate.metadata;
+  get metadata(): types.FullMetadata {
+    return this._delegate.metadata as types.FullMetadata;
   }
   get state(): string {
     return this._delegate.state;

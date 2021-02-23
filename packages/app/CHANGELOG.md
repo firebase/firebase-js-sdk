@@ -1,5 +1,18 @@
 # @firebase/app
 
+## 0.6.15
+
+### Patch Changes
+
+- Updated dependencies [[`6afe42613`](https://github.com/firebase/firebase-js-sdk/commit/6afe42613ed3d7a842d378dc1a09a795811db2ac)]:
+  - @firebase/component@0.2.0
+
+## 0.6.14
+
+### Patch Changes
+
+- [`749c7f3d9`](https://github.com/firebase/firebase-js-sdk/commit/749c7f3d985f978cd2a204cbc28c3fff09458b5b) [#4298](https://github.com/firebase/firebase-js-sdk/pull/4298) (fixes [#4258](https://github.com/firebase/firebase-js-sdk/issues/4258)) - Firestore classes like DocumentReference and Query can now be serialized to JSON (#4258)
+
 ## 0.6.13
 
 ### Patch Changes

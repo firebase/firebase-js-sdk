@@ -21,7 +21,6 @@ import { SubscriptionOptions, TokenDetails } from '../interfaces/token-details';
 
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { getToken } from '@firebase/installations-exp';
 
 export interface ApiResponse {
   token?: string;
@@ -155,7 +154,7 @@ async function getHeaders({
   appConfig,
   installations
 }: FirebaseInternalDependencies): Promise<Headers> {
-  const authToken = await getToken(installations);
+  const authToken = await installations.getToken();
 
   return new Headers({
     'Content-Type': 'application/json',

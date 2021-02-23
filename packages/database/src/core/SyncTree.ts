@@ -16,15 +16,26 @@
  */
 
 import { assert } from '@firebase/util';
-import { errorForServerCode, each } from './util/util';
+import { each, errorForServerCode } from './util/util';
 import { AckUserWrite } from './operation/AckUserWrite';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { ImmutableTree } from './util/ImmutableTree';
 import { ListenComplete } from './operation/ListenComplete';
 import { Merge } from './operation/Merge';
-import { Operation, OperationSource } from './operation/Operation';
+import {
+  newOperationSourceServer,
+  newOperationSourceServerTaggedQuery,
+  newOperationSourceUser,
+  Operation
+} from './operation/Operation';
 import { Overwrite } from './operation/Overwrite';
-import { Path } from './util/Path';
+import {
+  newEmptyPath,
+  newRelativePath,
+  Path,
+  pathGetFront,
+  pathIsEmpty
+} from './util/Path';
 import { SyncPoint } from './SyncPoint';
 import { WriteTree, WriteTreeRef } from './WriteTree';
 import { Query } from '../api/Query';
@@ -32,6 +43,7 @@ import { Node } from './snap/Node';
 import { Event } from './view/Event';
 import { EventRegistration } from './view/EventRegistration';
 import { View } from './view/View';
+import { CacheNode } from './view/CacheNode';
 
 /**
  * @typedef {{
@@ -76,13 +88,14 @@ export interface ListenProvider {
  * NOTE: Although SyncTree tracks event callbacks and calculates events to raise, the actual
  * events are returned to the caller rather than raised synchronously.
  *
- * @constructor
  */
 export class SyncTree {
   /**
    * Tree of SyncPoints.  There's a SyncPoint at any location that has 1 or more views.
    */
-  private syncPointTree_: ImmutableTree<SyncPoint> = ImmutableTree.Empty;
+  private syncPointTree_: ImmutableTree<SyncPoint> = new ImmutableTree<SyncPoint>(
+    null
+  );
 
   /**
    * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
@@ -93,7 +106,7 @@ export class SyncTree {
   private readonly queryToTagMap: Map<string, number> = new Map();
 
   /**
-   * @param {!ListenProvider} listenProvider_ Used by SyncTree to start / stop listening
+   * @param listenProvider_ Used by SyncTree to start / stop listening
    *   to server data.
    */
   constructor(private listenProvider_: ListenProvider) {}
@@ -116,7 +129,7 @@ export class SyncTree {
       return [];
     } else {
       return this.applyOperationToSyncPoints_(
-        new Overwrite(OperationSource.User, path, newData)
+        new Overwrite(newOperationSourceUser(), path, newData)
       );
     }
   }
@@ -137,7 +150,7 @@ export class SyncTree {
     const changeTree = ImmutableTree.fromObject(changedChildren);
 
     return this.applyOperationToSyncPoints_(
-      new Merge(OperationSource.User, path, changeTree)
+      new Merge(newOperationSourceUser(), path, changeTree)
     );
   }
 
@@ -153,13 +166,13 @@ export class SyncTree {
     if (!needToReevaluate) {
       return [];
     } else {
-      let affectedTree = ImmutableTree.Empty;
+      let affectedTree = new ImmutableTree<boolean>(null);
       if (write.snap != null) {
         // overwrite
-        affectedTree = affectedTree.set(Path.Empty, true);
+        affectedTree = affectedTree.set(newEmptyPath(), true);
       } else {
-        each(write.children, (pathString: string, node: Node) => {
-          affectedTree = affectedTree.set(new Path(pathString), node);
+        each(write.children, (pathString: string) => {
+          affectedTree = affectedTree.set(new Path(pathString), true);
         });
       }
       return this.applyOperationToSyncPoints_(
@@ -175,7 +188,7 @@ export class SyncTree {
    */
   applyServerOverwrite(path: Path, newData: Node): Event[] {
     return this.applyOperationToSyncPoints_(
-      new Overwrite(OperationSource.Server, path, newData)
+      new Overwrite(newOperationSourceServer(), path, newData)
     );
   }
 
@@ -191,7 +204,7 @@ export class SyncTree {
     const changeTree = ImmutableTree.fromObject(changedChildren);
 
     return this.applyOperationToSyncPoints_(
-      new Merge(OperationSource.Server, path, changeTree)
+      new Merge(newOperationSourceServer(), path, changeTree)
     );
   }
 
@@ -202,7 +215,7 @@ export class SyncTree {
    */
   applyListenComplete(path: Path): Event[] {
     return this.applyOperationToSyncPoints_(
-      new ListenComplete(OperationSource.Server, path)
+      new ListenComplete(newOperationSourceServer(), path)
     );
   }
 
@@ -217,9 +230,9 @@ export class SyncTree {
       const r = SyncTree.parseQueryKey_(queryKey);
       const queryPath = r.path,
         queryId = r.queryId;
-      const relativePath = Path.relativePath(queryPath, path);
+      const relativePath = newRelativePath(queryPath, path);
       const op = new Overwrite(
-        OperationSource.forServerTaggedQuery(queryId),
+        newOperationSourceServerTaggedQuery(queryId),
         relativePath,
         snap
       );
@@ -245,10 +258,10 @@ export class SyncTree {
       const r = SyncTree.parseQueryKey_(queryKey);
       const queryPath = r.path,
         queryId = r.queryId;
-      const relativePath = Path.relativePath(queryPath, path);
+      const relativePath = newRelativePath(queryPath, path);
       const changeTree = ImmutableTree.fromObject(changedChildren);
       const op = new Merge(
-        OperationSource.forServerTaggedQuery(queryId),
+        newOperationSourceServerTaggedQuery(queryId),
         relativePath,
         changeTree
       );
@@ -270,9 +283,9 @@ export class SyncTree {
       const r = SyncTree.parseQueryKey_(queryKey);
       const queryPath = r.path,
         queryId = r.queryId;
-      const relativePath = Path.relativePath(queryPath, path);
+      const relativePath = newRelativePath(queryPath, path);
       const op = new ListenComplete(
-        OperationSource.forServerTaggedQuery(queryId),
+        newOperationSourceServerTaggedQuery(queryId),
         relativePath
       );
       return this.applyTaggedOperation_(queryPath, op);
@@ -298,7 +311,7 @@ export class SyncTree {
     // Any covering writes will necessarily be at the root, so really all we need to find is the server cache.
     // Consider optimizing this once there's a better understanding of what actual behavior will be.
     this.syncPointTree_.foreachOnPath(path, (pathToSyncPoint, sp) => {
-      const relativePath = Path.relativePath(pathToSyncPoint, path);
+      const relativePath = newRelativePath(pathToSyncPoint, path);
       serverCache = serverCache || sp.getCompleteServerCache(relativePath);
       foundAncestorDefaultView =
         foundAncestorDefaultView || sp.hasCompleteView();
@@ -310,7 +323,8 @@ export class SyncTree {
     } else {
       foundAncestorDefaultView =
         foundAncestorDefaultView || syncPoint.hasCompleteView();
-      serverCache = serverCache || syncPoint.getCompleteServerCache(Path.Empty);
+      serverCache =
+        serverCache || syncPoint.getCompleteServerCache(newEmptyPath());
     }
 
     let serverCacheComplete;
@@ -321,7 +335,9 @@ export class SyncTree {
       serverCache = ChildrenNode.EMPTY_NODE;
       const subtree = this.syncPointTree_.subtree(path);
       subtree.foreachChild((childName, childSyncPoint) => {
-        const completeCache = childSyncPoint.getCompleteServerCache(Path.Empty);
+        const completeCache = childSyncPoint.getCompleteServerCache(
+          newEmptyPath()
+        );
         if (completeCache) {
           serverCache = serverCache.updateImmediateChild(
             childName,
@@ -352,7 +368,7 @@ export class SyncTree {
       serverCacheComplete
     );
     if (!viewAlreadyExists && !foundAncestorDefaultView) {
-      const view /** @type !View */ = syncPoint.viewForQuery(query);
+      const view = syncPoint.viewForQuery(query);
       events = events.concat(this.setupListener_(query, view));
     }
     return events;
@@ -385,9 +401,6 @@ export class SyncTree {
       (query.queryIdentifier() === 'default' ||
         maybeSyncPoint.viewExistsForQuery(query))
     ) {
-      /**
-       * @type {{removed: !Array.<!Query>, events: !Array.<!Event>}}
-       */
       const removedAndEvents = maybeSyncPoint.removeEventRegistration(
         query,
         eventRegistration,
@@ -490,7 +503,7 @@ export class SyncTree {
     const serverCache = this.syncPointTree_.findOnPath(
       path,
       (pathSoFar, syncPoint) => {
-        const relativePath = Path.relativePath(pathSoFar, path);
+        const relativePath = newRelativePath(pathSoFar, path);
         const serverCache = syncPoint.getCompleteServerCache(relativePath);
         if (serverCache) {
           return serverCache;
@@ -503,6 +516,39 @@ export class SyncTree {
       writeIdsToExclude,
       includeHiddenSets
     );
+  }
+
+  getServerValue(query: Query): Node | null {
+    const path = query.path;
+    let serverCache: Node | null = null;
+    // Any covering writes will necessarily be at the root, so really all we need to find is the server cache.
+    // Consider optimizing this once there's a better understanding of what actual behavior will be.
+    this.syncPointTree_.foreachOnPath(path, (pathToSyncPoint, sp) => {
+      const relativePath = newRelativePath(pathToSyncPoint, path);
+      serverCache = serverCache || sp.getCompleteServerCache(relativePath);
+    });
+    let syncPoint = this.syncPointTree_.get(path);
+    if (!syncPoint) {
+      syncPoint = new SyncPoint();
+      this.syncPointTree_ = this.syncPointTree_.set(path, syncPoint);
+    } else {
+      serverCache =
+        serverCache || syncPoint.getCompleteServerCache(newEmptyPath());
+    }
+    const serverCacheComplete = serverCache != null;
+    const serverCacheNode: CacheNode | null = serverCacheComplete
+      ? new CacheNode(serverCache, true, false)
+      : null;
+    const writesCache: WriteTreeRef | null = this.pendingWriteTree_.childWrites(
+      query.path
+    );
+    const view: View = syncPoint.getView(
+      query,
+      writesCache,
+      serverCacheComplete ? serverCacheNode.getNode() : ChildrenNode.EMPTY_NODE,
+      serverCacheComplete
+    );
+    return view.getCompleteNode();
   }
 
   /**
@@ -594,7 +640,7 @@ export class SyncTree {
       const queriesToStop = subtree.fold<Query[]>(
         (relativePath, maybeChildSyncPoint, childMap) => {
           if (
-            !relativePath.isEmpty() &&
+            !pathIsEmpty(relativePath) &&
             maybeChildSyncPoint &&
             maybeChildSyncPoint.hasCompleteView()
           ) {
@@ -743,7 +789,7 @@ export class SyncTree {
       operation,
       this.syncPointTree_,
       /*serverCache=*/ null,
-      this.pendingWriteTree_.childWrites(Path.Empty)
+      this.pendingWriteTree_.childWrites(newEmptyPath())
     );
   }
 
@@ -756,7 +802,7 @@ export class SyncTree {
     serverCache: Node | null,
     writesCache: WriteTreeRef
   ): Event[] {
-    if (operation.path.isEmpty()) {
+    if (pathIsEmpty(operation.path)) {
       return this.applyOperationDescendantsHelper_(
         operation,
         syncPointTree,
@@ -764,15 +810,15 @@ export class SyncTree {
         writesCache
       );
     } else {
-      const syncPoint = syncPointTree.get(Path.Empty);
+      const syncPoint = syncPointTree.get(newEmptyPath());
 
       // If we don't have cached server data, see if we can get it from this SyncPoint.
       if (serverCache == null && syncPoint != null) {
-        serverCache = syncPoint.getCompleteServerCache(Path.Empty);
+        serverCache = syncPoint.getCompleteServerCache(newEmptyPath());
       }
 
       let events: Event[] = [];
-      const childName = operation.path.getFront();
+      const childName = pathGetFront(operation.path);
       const childOperation = operation.operationForChild(childName);
       const childTree = syncPointTree.children.get(childName);
       if (childTree && childOperation) {
@@ -809,11 +855,11 @@ export class SyncTree {
     serverCache: Node | null,
     writesCache: WriteTreeRef
   ): Event[] {
-    const syncPoint = syncPointTree.get(Path.Empty);
+    const syncPoint = syncPointTree.get(newEmptyPath());
 
     // If we don't have cached server data, see if we can get it from this SyncPoint.
     if (serverCache == null && syncPoint != null) {
-      serverCache = syncPoint.getCompleteServerCache(Path.Empty);
+      serverCache = syncPoint.getCompleteServerCache(newEmptyPath());
     }
 
     let events: Event[] = [];
