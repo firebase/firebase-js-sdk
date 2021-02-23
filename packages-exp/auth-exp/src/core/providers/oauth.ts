@@ -156,7 +156,7 @@ export class OAuthProvider implements AuthProvider {
     return OAuthCredential._fromParams({
       ...params,
       providerId: this.providerId,
-      signInMethod: this.providerId,
+      signInMethod: this.providerId
     });
   }
 
@@ -270,7 +270,7 @@ export class OAuthProvider implements AuthProvider {
         idToken: oauthIdToken,
         accessToken: oauthAccessToken,
         rawNonce: nonce,
-        pendingToken,
+        pendingToken
       });
     } catch (e) {
       return null;

@@ -87,7 +87,7 @@ describe('core/providers/oauth', () => {
         ...TEST_ID_TOKEN_RESPONSE,
         pendingToken: 'pending-token',
         oauthIdToken: 'id-token',
-        providerId: 'oidc.oidctest',
+        providerId: 'oidc.oidctest'
       },
       operationType: OperationType.SIGN_IN
     });
@@ -95,7 +95,9 @@ describe('core/providers/oauth', () => {
     expect(cred.idToken).to.eq('id-token');
     expect(cred.providerId).to.eq('oidc.oidctest');
     expect(cred.signInMethod).to.eq('oidc.oidctest');
-    expect((cred.toJSON() as Record<string, string>).pendingToken).to.eq('pending-token');
+    expect((cred.toJSON() as Record<string, string>).pendingToken).to.eq(
+      'pending-token'
+    );
   });
 
   it('credentialFromError creates the cred from a tagged error', () => {
