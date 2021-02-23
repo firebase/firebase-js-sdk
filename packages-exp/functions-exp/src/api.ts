@@ -19,14 +19,7 @@ import { _getProvider, FirebaseApp } from '@firebase/app-exp';
 import { FUNCTIONS_TYPE } from './constants';
 
 import { Provider } from '@firebase/component';
-import {
-  Functions,
-  HttpsCallableOptions,
-  HttpsCallable,
-  HttpsCallableResult,
-  FunctionsError,
-  FunctionsErrorCode
-} from '@firebase/functions-types-exp';
+import { Functions, HttpsCallableOptions, HttpsCallable } from './public-types';
 import {
   FunctionsService,
   DEFAULT_REGION,
@@ -34,14 +27,7 @@ import {
   httpsCallable as _httpsCallable
 } from './service';
 
-export {
-  Functions,
-  HttpsCallableOptions,
-  HttpsCallable,
-  HttpsCallableResult,
-  FunctionsError,
-  FunctionsErrorCode
-};
+export * from './public-types';
 
 /**
  * Returns a Functions instance for the given app.

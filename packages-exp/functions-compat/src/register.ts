@@ -26,7 +26,7 @@ import {
   InstanceFactory,
   ComponentContainer
 } from '@firebase/component';
-import { Functions as FunctionsServiceExp } from '@firebase/functions-types-exp';
+import { Functions as FunctionsServiceExp } from '@firebase/functions-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

@@ -23,7 +23,7 @@ import { FirebaseFunctions, HttpsCallable } from '@firebase/functions-types';
 import {
   HttpsCallableOptions,
   Functions as FunctionsServiceExp
-} from '@firebase/functions-types-exp';
+} from '@firebase/functions-exp';
 import { FirebaseApp } from '@firebase/app-compat';
 import { FirebaseError } from '@firebase/util';
 
