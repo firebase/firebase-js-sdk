@@ -264,16 +264,6 @@ async function buildPackages() {
     }
   );
 
-  // storage-types. Remove -exp in import paths in d.ts
-  await spawn(
-    'yarn',
-    ['lerna', 'run', '--scope', '@firebase/storage-types', 'build:exp:release'],
-    {
-      cwd: projectRoot,
-      stdio: 'inherit'
-    }
-  );
-
   // Database
   await spawn(
     'yarn',
