@@ -19,6 +19,7 @@ import { FirebaseError } from '@firebase/util';
 
 /**
  * An HttpsCallableResult wraps a single result from a function call.
+ * @public
  */
 export interface HttpsCallableResult<ResponseData = unknown> {
   readonly data: ResponseData;
@@ -27,6 +28,7 @@ export interface HttpsCallableResult<ResponseData = unknown> {
 /**
  * An HttpsCallable is a reference to a "callable" http trigger in
  * Google Cloud Functions.
+ * @public
  */
 export interface HttpsCallable<RequestData = unknown, ResponseData = unknown> {
   (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
@@ -34,6 +36,7 @@ export interface HttpsCallable<RequestData = unknown, ResponseData = unknown> {
 
 /**
  * HttpsCallableOptions specify metadata about how calls should be executed.
+ * @public
  */
 export interface HttpsCallableOptions {
   timeout?: number; // in millis
@@ -42,6 +45,7 @@ export interface HttpsCallableOptions {
 /**
  * `Functions` represents a Functions instance, and is a required argument for
  * all Functions operations.
+ * @public
  */
 export interface Functions {
   /**
@@ -100,6 +104,7 @@ export interface Functions {
  * - 'data-loss': Unrecoverable data loss or corruption.
  * - 'unauthenticated': The request does not have valid authentication
  *   credentials for the operation.
+ * @public
  */
 export type FunctionsErrorCode =
   | 'ok'
@@ -120,6 +125,10 @@ export type FunctionsErrorCode =
   | 'data-loss'
   | 'unauthenticated';
 
+/**
+ * An error returned by the Firebase Functions client SDK.
+ * @public
+ */
 export interface FunctionsError extends FirebaseError {
   /**
    * A standard error code that will be returned to the client. This also
