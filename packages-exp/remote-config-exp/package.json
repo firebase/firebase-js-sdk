@@ -16,7 +16,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/remote-config-exp --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
@@ -26,7 +26,9 @@
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn build && yarn doc"
+    "build:doc": "yarn build && yarn doc",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/remote-config-exp-public.d.ts",
+    "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/src/index.d.ts"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x"
@@ -34,7 +36,6 @@
   "dependencies": {
     "@firebase/installations-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
-    "@firebase/remote-config-types-exp": "0.0.900",
     "@firebase/util": "0.3.4",
     "@firebase/component": "0.2.0",
     "tslib": "^1.11.1"
@@ -54,7 +55,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/remote-config-exp.d.ts",
+  "typings": "dist/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

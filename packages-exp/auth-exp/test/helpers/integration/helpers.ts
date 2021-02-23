@@ -18,7 +18,7 @@
 import { deleteApp, initializeApp } from '@firebase/app-exp';
 import { Auth, User } from '@firebase/auth-types-exp';
 
-import { getAuth } from '../../../';  // Use browser OR node dist entrypoint depending on test env.
+import { getAuth } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

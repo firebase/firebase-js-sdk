@@ -29,8 +29,7 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/remote-config-exp": "0.0.900",
-    "@firebase/remote-config-types-exp": "0.0.900",
+    "@firebase/remote-config-exp": "0.0.900", 
     "@firebase/util": "0.3.4",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.2.0",
