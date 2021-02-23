@@ -1,13 +1,15 @@
 {
   "name": "@firebase/performance",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -26,15 +28,15 @@
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/installations": "0.4.19",
+    "@firebase/installations": "0.4.20",
     "@firebase/util": "0.3.4",
     "@firebase/performance-types": "0.0.13",
-    "@firebase/component": "0.1.21",
+    "@firebase/component": "0.2.0",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.6.14",
+    "@firebase/app": "0.6.15",
     "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.29.0",

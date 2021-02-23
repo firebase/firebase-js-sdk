@@ -20,7 +20,14 @@ import { TransactionResult } from './TransactionResult';
 import { warn } from '../core/util/util';
 import { nextPushId } from '../core/util/NextPushId';
 import { Query } from './Query';
-import { Repo } from '../core/Repo';
+import {
+  Repo,
+  repoGetDatabase,
+  repoServerTime,
+  repoSetWithPriority,
+  repoStartTransaction,
+  repoUpdate
+} from '../core/Repo';
 import {
   Path,
   pathChild,
@@ -118,7 +125,7 @@ export class Reference extends Query {
 
   /** @return {!Database} */
   databaseProp(): Database {
-    return this.repo.database;
+    return repoGetDatabase(this.repo);
   }
 
   set(
@@ -131,7 +138,8 @@ export class Reference extends Query {
     validateCallback('Reference.set', 2, onComplete, true);
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
+    repoSetWithPriority(
+      this.repo,
       this.path,
       newVal,
       /*priority=*/ null,
@@ -169,7 +177,8 @@ export class Reference extends Query {
     );
     validateCallback('Reference.update', 2, onComplete, true);
     const deferred = new Deferred();
-    this.repo.update(
+    repoUpdate(
+      this.repo,
       this.path,
       objectToMerge as { [k: string]: unknown },
       deferred.wrapCallback(onComplete)
@@ -203,7 +212,8 @@ export class Reference extends Query {
     }
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
+    repoSetWithPriority(
+      this.repo,
       this.path,
       newVal,
       newPriority,
@@ -264,7 +274,8 @@ export class Reference extends Query {
         onComplete(error, committed, snapshot);
       }
     };
-    this.repo.startTransaction(
+    repoStartTransaction(
+      this.repo,
       this.path,
       transactionUpdate,
       promiseComplete,
@@ -284,7 +295,8 @@ export class Reference extends Query {
     validateCallback('Reference.setPriority', 2, onComplete, true);
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
+    repoSetWithPriority(
+      this.repo,
       pathChild(this.path, '.priority'),
       priority,
       null,
@@ -299,7 +311,7 @@ export class Reference extends Query {
     validateFirebaseDataArg('Reference.push', 1, value, this.path, true);
     validateCallback('Reference.push', 2, onComplete, true);
 
-    const now = this.repo.serverTime();
+    const now = repoServerTime(this.repo);
     const name = nextPushId(now);
 
     // push() returns a ThennableReference whose promise is fulfilled with a regular Reference.

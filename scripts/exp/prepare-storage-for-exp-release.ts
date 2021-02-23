@@ -37,14 +37,10 @@ export async function prepare() {
   // Update package.json
   const packageJson = await readPackageJson(packagePath);
   const expPackageJson = await readPackageJson(`${packagePath}/exp`);
-  const typesPackageJson = await readPackageJson(`${packagePath}-types`);
   packageJson.version = '0.0.900';
-  typesPackageJson.version = '0.0.900';
-  typesPackageJson.files = `['exp/index.d.ts']`;
 
   packageJson.peerDependencies = {
-    '@firebase/app-exp': '0.x',
-    '@firebase/app-types-exp': '0.x'
+    '@firebase/app-exp': '0.x'
   };
 
   packageJson.main = expPackageJson.main.replace('./', 'exp/');
@@ -61,11 +57,6 @@ export async function prepare() {
   await writeFile(
     `${packagePath}/package.json`,
     `${JSON.stringify(packageJson, null, 2)}\n`,
-    { encoding: 'utf-8' }
-  );
-  await writeFile(
-    `${packagePath}-types/package.json`,
-    `${JSON.stringify(typesPackageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
 }

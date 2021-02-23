@@ -34,7 +34,7 @@ import {
 
 import { use, expect } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as types from '@firebase/storage-types/exp';
+import * as types from '../../exp/public-types';
 
 use(chaiAsPromised);
 

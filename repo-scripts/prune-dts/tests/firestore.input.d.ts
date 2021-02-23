@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { _FirebaseService } from '@firebase/app-types-exp';
+import { _FirebaseService } from '@firebase/app-exp';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';

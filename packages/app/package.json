@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.6.14",
+  "version": "0.6.15",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -10,7 +10,9 @@
   "esm2017": "dist/index.esm2017.js",
   "lite": "dist/index.lite.js",
   "lite-esm2017": "dist/index.lite.esm2017.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
@@ -29,7 +31,7 @@
     "@firebase/app-types": "0.6.1",
     "@firebase/util": "0.3.4",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.1.21",
+    "@firebase/component": "0.2.0",
     "tslib": "^1.11.1",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
