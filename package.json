@@ -53,7 +53,8 @@
     "api-report": "lerna run --scope @firebase/*-exp --scope @firebase/firestore --scope @firebase/storage --scope @firebase/storage-types --scope @firebase/database api-report",
     "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
-    "sa": "ts-node-script repo-scripts/size-analysis/cli.ts"
+    "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
+    "dm": "ts-node-script repo-scripts/api-documenter/src/start.ts markdown --input /Users/feiyangc/Projects/test/rollup/temp --output docs"
   },
   "repository": {
     "type": "git",

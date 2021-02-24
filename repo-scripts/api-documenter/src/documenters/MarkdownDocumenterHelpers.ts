@@ -81,17 +81,23 @@ export function writeApiItemPage(
   documenterConfig?: DocumenterConfig
 ): void {
   const output: DocSection = new DocSection({ configuration });
-  output.appendNodes(
-    createCompleteOutputForApiItem(
-      apiItem,
-      apiModel,
-      configuration,
-      outputFolder,
-      markdownEmitter,
-      pluginLoader,
-      documenterConfig
-    )
+  const nodes = createCompleteOutputForApiItem(
+    apiItem,
+    apiModel,
+    configuration,
+    outputFolder,
+    markdownEmitter,
+    pluginLoader,
+    documenterConfig
   );
+
+  /**
+   * Remove the heading of the page from md output. (the first item is always a DocHeading)
+   * Later we will add the heading to the devsite header {% block title %}
+   */
+  const headingNode: DocHeading = nodes[0] as DocHeading;
+  const pageWithoutHeading = nodes.slice(1);
+  output.appendNodes(pageWithoutHeading);
 
   // write to file
   const filename: string = path.join(
@@ -102,7 +108,9 @@ export function writeApiItemPage(
 
   // devsite headers
   stringBuilder.append('{% extends "_internal/templates/reference.html" %}\n');
-  stringBuilder.append('{% block title %}Title{% endblock title %}\n');
+  stringBuilder.append(
+    `{% block title %}${headingNode.title}{% endblock title %}\n`
+  );
   stringBuilder.append('{% block body %}\n');
 
   markdownEmitter.emit(stringBuilder, output, {
