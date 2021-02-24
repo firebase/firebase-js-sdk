@@ -57,5 +57,7 @@ export function makeMockPopupRedirectResolver(
     _redirectPersistence?: Persistence;
 
     async _completeRedirectFn(): Promise<void> {}
+
+    async _originValidation(): Promise<void> {}
   };
 }

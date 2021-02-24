@@ -73,7 +73,6 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
       '_initialize() not called before _openPopup()'
     );
 
-    await this.originValidation(auth);
     const url = _getRedirectUrl(
       auth,
       provider,
@@ -90,7 +89,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
     authType: AuthEventType,
     eventId?: string
   ): Promise<never> {
-    await this.originValidation(auth);
+    await this._originValidation(auth);
     _setWindowLocation(
       _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId)
     );
@@ -154,7 +153,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
     );
   }
 
-  private originValidation(auth: AuthInternal): Promise<void> {
+  _originValidation(auth: AuthInternal): Promise<void> {
     const key = auth._key();
     if (!this.originValidationPromises[key]) {
       this.originValidationPromises[key] = _validateOrigin(auth);
