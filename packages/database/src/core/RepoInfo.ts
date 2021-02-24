@@ -92,7 +92,7 @@ export class RepoInfo {
   }
 }
 
-function needsQueryParam(repoInfo: RepoInfo): boolean {
+function repoInfoNeedsQueryParam(repoInfo: RepoInfo): boolean {
   return (
     repoInfo.host !== repoInfo.internalHost ||
     repoInfo.isCustomHost() ||
@@ -127,7 +127,7 @@ export function repoInfoConnectionURL(
   } else {
     throw new Error('Unknown connection type: ' + type);
   }
-  if (needsQueryParam(repoInfo)) {
+  if (repoInfoNeedsQueryParam(repoInfo)) {
     params['ns'] = repoInfo.namespace;
   }
 
