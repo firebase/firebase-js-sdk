@@ -677,7 +677,7 @@ function createRemarksSection(
         const heading: string =
           exampleBlocks.length > 1 ? `Example ${exampleNumber}` : 'Example';
 
-        nodes.push(new DocHeading({ configuration, title: heading }));
+        nodes.push(new DocHeading({ configuration, title: heading, level: 2 }));
 
         nodes.push(...exampleBlock.content.nodes);
 
@@ -1138,7 +1138,9 @@ function createParameterTables(
   }
 
   if (parametersTable.rows.length > 0) {
-    output.push(new DocHeading({ configuration, title: 'Parameters' }));
+    output.push(
+      new DocHeading({ configuration, title: 'Parameters', level: 2 })
+    );
     output.push(parametersTable);
   }
 
