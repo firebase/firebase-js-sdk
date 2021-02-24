@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
+
 import * as path from 'path';
 import * as resolve from 'resolve';
 
@@ -56,25 +59,22 @@ export class PluginLoader {
 
         // Load the package
         const entryPoint:
-          | Record<string, unknown>
+          | { apiDocumenterPluginManifest?: IApiDocumenterPluginManifest }
           | undefined = require(resolvedEntryPointPath);
 
         if (!entryPoint) {
           throw new Error('Invalid entry point');
         }
 
-        const manifest: IApiDocumenterPluginManifest =
-          // eslint-disable-next-line dot-notation
-          entryPoint[
-            'apiDocumenterPluginManifest'
-          ] as IApiDocumenterPluginManifest;
-
-        if (!manifest) {
+        if (!entryPoint.apiDocumenterPluginManifest) {
           throw new Error(
             `The package is not an API documenter plugin;` +
               ` the "apiDocumenterPluginManifest" export was not found`
           );
         }
+
+        const manifest: IApiDocumenterPluginManifest =
+          entryPoint.apiDocumenterPluginManifest;
 
         if (manifest.manifestVersion !== 1000) {
           throw new Error(

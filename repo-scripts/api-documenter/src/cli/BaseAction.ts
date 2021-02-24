@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
+
 import * as path from 'path';
 import * as tsdoc from '@microsoft/tsdoc';
-import * as colors from 'colors';
+import colors from 'colors';
 
 import {
   CommandLineAction,
@@ -30,12 +33,15 @@ import {
   ApiItemContainerMixin,
   ApiDocumentedItem,
   IResolveDeclarationReferenceResult
-} from 'api-extractor-model-me';
+} from '@microsoft/api-extractor-model';
+
+export interface IBuildApiModelResult {
+  apiModel: ApiModel;
+  inputFolder: string;
+  outputFolder: string;
+}
 
 export abstract class BaseAction extends CommandLineAction {
-  protected inputFolder!: string;
-  protected outputFolder!: string;
-
   private _inputFolderParameter!: CommandLineStringParameter;
   private _outputFolderParameter!: CommandLineStringParameter;
 
@@ -61,29 +67,29 @@ export abstract class BaseAction extends CommandLineAction {
     });
   }
 
-  protected buildApiModel(): ApiModel {
+  protected buildApiModel(): IBuildApiModelResult {
     const apiModel: ApiModel = new ApiModel();
 
-    this.inputFolder = this._inputFolderParameter.value || './input';
-    if (!FileSystem.exists(this.inputFolder)) {
-      throw new Error('The input folder does not exist: ' + this.inputFolder);
+    const inputFolder: string = this._inputFolderParameter.value || './input';
+    if (!FileSystem.exists(inputFolder)) {
+      throw new Error('The input folder does not exist: ' + inputFolder);
     }
 
-    this.outputFolder =
+    const outputFolder: string =
       this._outputFolderParameter.value || `./${this.actionName}`;
-    FileSystem.ensureFolder(this.outputFolder);
+    FileSystem.ensureFolder(outputFolder);
 
-    for (const filename of FileSystem.readFolder(this.inputFolder)) {
+    for (const filename of FileSystem.readFolder(inputFolder)) {
       if (filename.match(/\.api\.json$/i)) {
         console.log(`Reading ${filename}`);
-        const filenamePath: string = path.join(this.inputFolder, filename);
+        const filenamePath: string = path.join(inputFolder, filename);
         apiModel.loadPackage(filenamePath);
       }
     }
 
     this._applyInheritDoc(apiModel, apiModel);
 
-    return apiModel;
+    return { apiModel, inputFolder, outputFolder };
   }
 
   // TODO: This is a temporary workaround.  The long term plan is for API Extractor's DocCommentEnhancer

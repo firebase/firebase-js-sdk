@@ -23,6 +23,9 @@ import { DocTable } from './DocTable';
 import { DocTableCell } from './DocTableCell';
 import { DocTableRow } from './DocTableRow';
 
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
+
 /**
  * Identifies custom subclasses of {@link DocNode}.
  */

@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
+
 // import {
 //   DocSection,
 //   TSDocConfiguration,
@@ -35,7 +38,7 @@
 // import { DocTableRow } from '../../nodes/DocTableRow';
 // import { DocTableCell } from '../../nodes/DocTableCell';
 // import { CustomMarkdownEmitter } from '../CustomMarkdownEmitter';
-// import { ApiModel, ApiItem } from 'api-extractor-model-me';
+// import { ApiModel, ApiItem } from '@microsoft/api-extractor-model';
 
 // test('render Markdown from TSDoc', () => {
 //   const configuration: TSDocConfiguration = CustomDocNodes.configuration;
@@ -46,9 +49,7 @@
 //     new DocHeading({ configuration, title: 'Simple bold test' }),
 //     new DocParagraph({ configuration }, [
 //       new DocPlainText({ configuration, text: 'This is a ' }),
-//       new DocEmphasisSpan({ configuration, bold: true }, [
-//         new DocPlainText({ configuration, text: 'bold' })
-//       ]),
+//       new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text: 'bold' })]),
 //       new DocPlainText({ configuration, text: ' word.' })
 //     ])
 //   ]);
@@ -56,9 +57,7 @@
 //   output.appendNodes([
 //     new DocHeading({ configuration, title: 'All whitespace bold' }),
 //     new DocParagraph({ configuration }, [
-//       new DocEmphasisSpan({ configuration, bold: true }, [
-//         new DocPlainText({ configuration, text: '  ' })
-//       ])
+//       new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text: '  ' })])
 //     ])
 //   ]);
 
@@ -89,23 +88,15 @@
 //   output.appendNodes([
 //     new DocHeading({ configuration, title: 'Adjacent bold regions' }),
 //     new DocParagraph({ configuration }, [
-//       new DocEmphasisSpan({ configuration, bold: true }, [
-//         new DocPlainText({ configuration, text: 'one' })
-//       ]),
-//       new DocEmphasisSpan({ configuration, bold: true }, [
-//         new DocPlainText({ configuration, text: 'two' })
-//       ]),
+//       new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text: 'one' })]),
+//       new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text: 'two' })]),
 //       new DocEmphasisSpan({ configuration, bold: true }, [
 //         new DocPlainText({ configuration, text: ' three ' })
 //       ]),
 //       new DocPlainText({ configuration, text: '' }),
-//       new DocEmphasisSpan({ configuration, bold: true }, [
-//         new DocPlainText({ configuration, text: 'four' })
-//       ]),
+//       new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text: 'four' })]),
 //       new DocPlainText({ configuration, text: 'non-bold' }),
-//       new DocEmphasisSpan({ configuration, bold: true }, [
-//         new DocPlainText({ configuration, text: 'five' })
-//       ])
+//       new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text: 'five' })])
 //     ])
 //   ]);
 
@@ -118,9 +109,7 @@
 //         linkText: 'a link',
 //         urlDestination: './index.md'
 //       }),
-//       new DocEmphasisSpan({ configuration, bold: true }, [
-//         new DocPlainText({ configuration, text: 'bold' })
-//       ]),
+//       new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text: 'bold' })]),
 //       new DocPlainText({ configuration, text: 'non-bold' }),
 //       new DocPlainText({ configuration, text: 'more-non-bold' })
 //     ])
@@ -133,9 +122,7 @@
 //         configuration,
 //         tagName: '@unknown'
 //       }),
-//       new DocEmphasisSpan({ configuration, bold: true }, [
-//         new DocPlainText({ configuration, text: 'bold' })
-//       ]),
+//       new DocEmphasisSpan({ configuration, bold: true }, [new DocPlainText({ configuration, text: 'bold' })]),
 //       new DocPlainText({ configuration, text: 'non-bold' }),
 //       new DocPlainText({ configuration, text: 'more-non-bold' })
 //     ])
@@ -154,30 +141,16 @@
 //   ]);
 
 //   output.appendNodes([
-//     new DocHeading({
-//       configuration,
-//       title: 'Characters that should be escaped'
-//     }),
+//     new DocHeading({ configuration, title: 'Characters that should be escaped' }),
 //     new DocParagraph({ configuration }, [
-//       new DocPlainText({
-//         configuration,
-//         text: 'Double-encoded JSON: "{ \\"A\\": 123}"'
-//       })
+//       new DocPlainText({ configuration, text: 'Double-encoded JSON: "{ \\"A\\": 123}"' })
 //     ]),
 //     new DocParagraph({ configuration }, [
-//       new DocPlainText({
-//         configuration,
-//         text: 'HTML chars: <script>alert("[You] are #1!");</script>'
-//       })
+//       new DocPlainText({ configuration, text: 'HTML chars: <script>alert("[You] are #1!");</script>' })
 //     ]),
+//     new DocParagraph({ configuration }, [new DocPlainText({ configuration, text: 'HTML escape: &quot;' })]),
 //     new DocParagraph({ configuration }, [
-//       new DocPlainText({ configuration, text: 'HTML escape: &quot;' })
-//     ]),
-//     new DocParagraph({ configuration }, [
-//       new DocPlainText({
-//         configuration,
-//         text: '3 or more hyphens: - -- --- ---- ----- ------'
-//       })
+//       new DocPlainText({ configuration, text: '3 or more hyphens: - -- --- ---- ----- ------' })
 //     ])
 //   ]);
 
@@ -200,14 +173,10 @@
 //       [
 //         new DocTableRow({ configuration }, [
 //           new DocTableCell({ configuration }, [
-//             new DocParagraph({ configuration }, [
-//               new DocPlainText({ configuration, text: 'Cell 1' })
-//             ])
+//             new DocParagraph({ configuration }, [new DocPlainText({ configuration, text: 'Cell 1' })])
 //           ]),
 //           new DocTableCell({ configuration }, [
-//             new DocParagraph({ configuration }, [
-//               new DocPlainText({ configuration, text: 'Cell 2' })
-//             ])
+//             new DocParagraph({ configuration }, [new DocPlainText({ configuration, text: 'Cell 2' })])
 //           ])
 //         ])
 //       ]
@@ -216,9 +185,7 @@
 
 //   const stringBuilder: StringBuilder = new StringBuilder();
 //   const apiModel: ApiModel = new ApiModel();
-//   const markdownEmitter: CustomMarkdownEmitter = new CustomMarkdownEmitter(
-//     apiModel
-//   );
+//   const markdownEmitter: CustomMarkdownEmitter = new CustomMarkdownEmitter(apiModel);
 //   markdownEmitter.emit(stringBuilder, output, {
 //     contextApiItem: undefined,
 //     onGetFilenameForApiItem: (apiItem: ApiItem) => {

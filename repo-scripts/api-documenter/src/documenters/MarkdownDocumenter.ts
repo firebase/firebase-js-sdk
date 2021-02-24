@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
+
 import { FileSystem } from '@rushstack/node-core-library';
 import { TSDocConfiguration } from '@microsoft/tsdoc';
-import { ApiModel, ApiItem } from 'api-extractor-model-me';
+import { ApiModel, ApiItem } from '@microsoft/api-extractor-model';
 
 import { CustomDocNodes } from '../nodes/CustomDocNodeKind';
 import { CustomMarkdownEmitter } from '../markdown/CustomMarkdownEmitter';
@@ -30,6 +33,12 @@ import {
   writeApiItemPage
 } from './MarkdownDocumenterHelpers';
 
+export interface IMarkdownDocumenterOptions {
+  apiModel: ApiModel;
+  documenterConfig: DocumenterConfig | undefined;
+  outputFolder: string;
+}
+
 /**
  * Renders API documentation in the Markdown file format.
  * For more info:  https://en.wikipedia.org/wiki/Markdown
@@ -39,29 +48,25 @@ export class MarkdownDocumenter {
   private readonly _documenterConfig: DocumenterConfig | undefined;
   private readonly _tsdocConfiguration: TSDocConfiguration;
   private readonly _markdownEmitter: CustomMarkdownEmitter;
-  private _outputFolder!: string;
+  private readonly _outputFolder: string;
   private readonly _pluginLoader: PluginLoader;
 
-  public constructor(
-    apiModel: ApiModel,
-    documenterConfig: DocumenterConfig | undefined
-  ) {
-    this._apiModel = apiModel;
-    this._documenterConfig = documenterConfig;
+  public constructor(options: IMarkdownDocumenterOptions) {
+    this._apiModel = options.apiModel;
+    this._documenterConfig = options.documenterConfig;
+    this._outputFolder = options.outputFolder;
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
     this._pluginLoader = new PluginLoader();
   }
 
-  public generateFiles(outputFolder: string): void {
-    this._outputFolder = outputFolder;
-
+  public generateFiles(): void {
     if (this._documenterConfig) {
       this._pluginLoader.load(this._documenterConfig, () => {
         return new MarkdownDocumenterFeatureContext({
           apiModel: this._apiModel,
-          outputFolder: outputFolder,
+          outputFolder: this._outputFolder,
           documenter: new MarkdownDocumenterAccessor({
             getLinkForApiItem: (apiItem: ApiItem) => {
               return getLinkForApiItem(apiItem);

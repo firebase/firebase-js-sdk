@@ -4,7 +4,9 @@
     "outDir": "dist",
     "downlevelIteration": true,
     "module": "CommonJS",
-    "target": "ES6"
+    "target": "ES6",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "exclude": ["dist/**/*"]
 }

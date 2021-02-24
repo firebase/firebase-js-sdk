@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
-import * as colors from 'colors';
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
+
+import colors from 'colors';
 
 import { DocNode, DocLinkTag, StringBuilder } from '@microsoft/tsdoc';
 import {
   ApiModel,
   IResolveDeclarationReferenceResult,
   ApiItem
-} from 'api-extractor-model-me';
+} from '@microsoft/api-extractor-model';
 
 import { CustomDocNodeKind } from '../nodes/CustomDocNodeKind';
 import { DocHeading } from '../nodes/DocHeading';

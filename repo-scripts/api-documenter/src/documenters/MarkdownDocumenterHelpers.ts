@@ -52,7 +52,7 @@ import {
   ApiPropertyItem,
   ApiReturnTypeMixin,
   ApiEnum
-} from 'api-extractor-model-me';
+} from '@microsoft/api-extractor-model';
 import { DocEmphasisSpan } from '../nodes/DocEmphasisSpan';
 import { DocHeading } from '../nodes/DocHeading';
 import { DocTable } from '../nodes/DocTable';

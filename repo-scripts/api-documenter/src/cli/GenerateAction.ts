@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
+// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+// See LICENSE in the project root for license information.
+
 import * as path from 'path';
 
 import { ApiDocumenterCommandLine } from './ApiDocumenterCommandLine';
 import { BaseAction } from './BaseAction';
 import { DocumenterConfig } from '../documenters/DocumenterConfig';
 
-import { ApiModel } from 'api-extractor-model-me';
 import { FileSystem } from '@rushstack/node-core-library';
 import { MarkdownDocumenter } from '../documenters/MarkdownDocumenter';
 
@@ -36,7 +38,7 @@ export class GenerateAction extends BaseAction {
     });
   }
 
-  protected onExecute(): Promise<void> {
+  protected async onExecute(): Promise<void> {
     // override
     // Look for the config file under the current folder
 
@@ -64,20 +66,19 @@ export class GenerateAction extends BaseAction {
       configFilePath
     );
 
-    const apiModel: ApiModel = this.buildApiModel();
+    const { apiModel, outputFolder } = this.buildApiModel();
 
     if (documenterConfig.configFile.outputTarget === 'markdown') {
-      const markdownDocumenter: MarkdownDocumenter = new MarkdownDocumenter(
+      const markdownDocumenter: MarkdownDocumenter = new MarkdownDocumenter({
         apiModel,
-        documenterConfig
-      );
-      markdownDocumenter.generateFiles(this.outputFolder);
+        documenterConfig,
+        outputFolder
+      });
+      markdownDocumenter.generateFiles();
     } else {
-      throw new Error(
-        `Target ${documenterConfig.configFile.outputTarget} is not supported`
+      throw Error(
+        `Format ${documenterConfig.configFile.outputTarget} is not supported`
       );
     }
-
-    return Promise.resolve();
   }
 }
