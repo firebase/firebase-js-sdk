@@ -27,7 +27,7 @@ import {
 import glob from 'glob';
 import * as fs from 'fs';
 
-const projectRoot = dirname(resolve(__dirname, '../package.json'));
+const projectRoot = dirname(resolve(__dirname, '../../package.json'));
 /**
  * Support Command Line Options
  * -- inputModule (optional) : can be left unspecified which results in running analysis on all exp modules.
