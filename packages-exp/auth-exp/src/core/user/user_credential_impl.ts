@@ -81,7 +81,9 @@ export class UserCredentialImpl
   }
 }
 
-function providerIdForResponse(response: IdTokenResponse): ProviderId | string | null {
+function providerIdForResponse(
+  response: IdTokenResponse
+): ProviderId | string | null {
   if (response.providerId) {
     return response.providerId;
   }

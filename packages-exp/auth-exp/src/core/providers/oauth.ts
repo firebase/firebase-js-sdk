@@ -150,7 +150,9 @@ export class OAuthProvider implements AuthProvider {
   }
 
   /** An internal credential method that accepts more permissive options */
-  private _credential(params: OAuthCredentialOptions | OAuthCredentialParams): OAuthCredential {
+  private _credential(
+    params: OAuthCredentialOptions | OAuthCredentialParams
+  ): OAuthCredential {
     _assert(params.idToken || params.accessToken, AuthErrorCode.ARGUMENT_ERROR);
     // For OAuthCredential, sign in method is same as providerId.
     return OAuthCredential._fromParams({
