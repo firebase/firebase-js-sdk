@@ -20,7 +20,7 @@ import { NextFn, Observer } from '@firebase/util';
 
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
-import { MessagePayload } from '@firebase/messaging-types-exp';
+import { MessagePayload } from './interfaces/public-types';
 import { Provider } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { extractAppConfig } from './helpers/extract-app-config';
