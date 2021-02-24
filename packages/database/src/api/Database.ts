@@ -20,7 +20,10 @@ import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath } from '../core/util/Path';
 import { Reference } from './Reference';
 import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
-import { RepoManager } from '../core/RepoManager';
+import {
+  repoManagerApplyEmulatorSettings,
+  repoManagerDeleteRepo
+} from '../core/RepoManager';
 import { validateArgCount } from '@firebase/util';
 import { validateUrl } from '../core/util/validation';
 import { FirebaseApp } from '@firebase/app-types';
@@ -63,7 +66,7 @@ export class Database implements FirebaseService {
   INTERNAL = {
     delete: async () => {
       this.checkDeleted_('delete');
-      RepoManager.getInstance().deleteRepo(this.repo_);
+      repoManagerDeleteRepo(this.repo_);
       this.repoInternal_ = null;
       this.rootInternal_ = null;
     }
@@ -107,11 +110,7 @@ export class Database implements FirebaseService {
     }
 
     // Modify the repo to apply emulator settings
-    RepoManager.getInstance().applyEmulatorSettings(
-      this.repoInternal_,
-      host,
-      port
-    );
+    repoManagerApplyEmulatorSettings(this.repoInternal_, host, port);
   }
 
   /**
