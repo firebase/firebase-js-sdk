@@ -10,7 +10,8 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "build": "tsc && gulp copy-resources"
+    "build": "tsc && gulp copy-resources",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
   },
   "bin": {
     "api-documenter": "./bin/api-documenter"
@@ -27,6 +28,6 @@
   },
   "devDependencies": {
     "@types/resolve": "1.17.1",
-    "jest": "~25.4.0"
+    "mocha-chai-jest-snapshot": "1.1.1"
   }
 }
