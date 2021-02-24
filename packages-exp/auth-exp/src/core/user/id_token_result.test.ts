@@ -19,12 +19,12 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import { ProviderId } from '@firebase/auth-types-exp';
+import { ProviderId } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { makeJWT } from '../../../test/helpers/jwt';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { getIdTokenResult } from './id_token_result';
 
 use(chaiAsPromised);
@@ -34,7 +34,7 @@ const MAY_2 = new Date('May 2, 2020');
 const MAY_3 = new Date('May 3, 2020');
 
 describe('core/user/id_token_result', () => {
-  let user: User;
+  let user: UserInternal;
 
   beforeEach(async () => {
     user = testUser(await testAuth(), 'uid');

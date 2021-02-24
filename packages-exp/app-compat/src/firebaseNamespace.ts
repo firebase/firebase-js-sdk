@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { FirebaseNamespace } from './public-types';
 import { createSubscribe, deepExtend, ErrorFactory } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
 import { createFirebaseNamespaceCore } from './firebaseNamespaceCore';
@@ -30,8 +29,8 @@ import { createFirebaseNamespaceCore } from './firebaseNamespaceCore';
  */
 export function createFirebaseNamespace(): FirebaseNamespace {
   const namespace = createFirebaseNamespaceCore(FirebaseAppImpl);
-  (namespace as _FirebaseNamespace).INTERNAL = {
-    ...(namespace as _FirebaseNamespace).INTERNAL,
+  namespace.INTERNAL = {
+    ...namespace.INTERNAL,
     createFirebaseNamespace,
     extendNamespace,
     createSubscribe,

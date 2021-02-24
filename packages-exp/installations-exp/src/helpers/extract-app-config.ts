@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types-exp';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 import { AppConfig } from '../interfaces/installation-impl';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';

@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import {
+  _getProvider,
+  _removeServiceInstance,
+  FirebaseApp
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
@@ -32,12 +35,15 @@ import {
   FirestoreClient,
   firestoreClientDisableNetwork,
   firestoreClientEnableNetwork,
+  firestoreClientGetNamedQuery,
+  firestoreClientLoadBundle,
   firestoreClientWaitForPendingWrites,
   setOfflineComponentProvider,
   setOnlineComponentProvider
 } from '../core/firestore_client';
 import { makeDatabaseInfo } from '../lite/components';
 import { FirebaseFirestore as LiteFirestore } from '../lite/database';
+import { Query } from '../lite/reference';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
@@ -51,8 +57,8 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
+import { LoadBundleTask } from './bundle';
 import { PersistenceSettings, Settings } from './settings';
-
 export { useFirestoreEmulator } from '../lite/database';
 
 /** DOMException error code constants. */
@@ -113,11 +119,16 @@ export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
 ): FirebaseFirestore {
-  const firestore = _getProvider(
-    app,
-    'firestore-exp'
-  ).getImmediate() as FirebaseFirestore;
+  const provider = _getProvider(app, 'firestore-exp');
 
+  if (provider.isInitialized()) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'Firestore can only be initialized once per app.'
+    );
+  }
+
+  const firestore = provider.getImmediate() as FirebaseFirestore;
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
@@ -458,6 +469,55 @@ export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
 export function terminate(firestore: FirebaseFirestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore-exp');
   return firestore._delete();
+}
+
+/**
+ * Loads a Firestore bundle into the local cache.
+ *
+ * @param firestore - The `Firestore` instance to load bundles for for.
+ * @param bundleData - An object representing the bundle to be loaded. Valid objects are
+ *   `ArrayBuffer`, `ReadableStream<Uint8Array>` or `string`.
+ *
+ * @return
+ *   A `LoadBundleTask` object, which notifies callers with progress updates, and completion
+ *   or error events. It can be used as a `Promise<LoadBundleTaskProgress>`.
+ */
+export function loadBundle(
+  firestore: FirebaseFirestore,
+  bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string
+): LoadBundleTask {
+  firestore = cast(firestore, FirebaseFirestore);
+  const client = ensureFirestoreConfigured(firestore);
+  const resultTask = new LoadBundleTask();
+  firestoreClientLoadBundle(
+    client,
+    firestore._databaseId,
+    bundleData,
+    resultTask
+  );
+  return resultTask;
+}
+
+/**
+ * Reads a Firestore `Query` from local cache, identified by the given name.
+ *
+ * The named queries are packaged  into bundles on the server side (along
+ * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
+ * cache, use this method to extract a `Query` by name.
+ */
+export function namedQuery(
+  firestore: FirebaseFirestore,
+  name: string
+): Promise<Query | null> {
+  firestore = cast(firestore, FirebaseFirestore);
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientGetNamedQuery(client, name).then(namedQuery => {
+    if (!namedQuery) {
+      return null;
+    }
+
+    return new Query(firestore, null, namedQuery.query);
+  });
 }
 
 function verifyNotInitialized(firestore: FirebaseFirestore): void {

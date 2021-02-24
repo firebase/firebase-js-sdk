@@ -20,21 +20,18 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { endpointUrl, mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
-import * as fetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { Persistence } from '../persistence';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { PersistenceInternal } from '../persistence';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
-import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
+import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 
 use(sinonChai);
@@ -50,8 +47,8 @@ const FAKE_APP: FirebaseApp = {
 };
 
 describe('core/auth/auth_impl', () => {
-  let auth: Auth;
-  let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
+  let auth: AuthInternal;
+  let persistenceStub: sinon.SinonStubbedInstance<PersistenceInternal>;
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
@@ -206,7 +203,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     describe('user logs in/out, tokens refresh', () => {
-      let user: User;
+      let user: UserInternal;
       let authStateCallback: sinon.SinonSpy;
       let idTokenCallback: sinon.SinonSpy;
 
@@ -329,7 +326,7 @@ describe('core/auth/auth_impl', () => {
       });
 
       context('now logged in', () => {
-        let user: User;
+        let user: UserInternal;
 
         beforeEach(() => {
           user = testUser(auth, 'uid');
@@ -347,7 +344,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     context('previously logged in', () => {
-      let user: User;
+      let user: UserInternal;
 
       beforeEach(async () => {
         user = testUser(auth, 'uid', undefined, true);
@@ -403,9 +400,9 @@ describe('core/auth/auth_impl', () => {
           await auth._onStorageEvent();
 
           expect(auth.currentUser?.uid).to.eq(user.uid);
-          expect((auth.currentUser as User)?.stsTokenManager.accessToken).to.eq(
-            'new-access-token'
-          );
+          expect(
+            (auth.currentUser as UserInternal)?.stsTokenManager.accessToken
+          ).to.eq('new-access-token');
           expect(authStateCallback).not.to.have.been.called;
           expect(idTokenCallback).to.have.been.called;
         });
@@ -445,7 +442,7 @@ describe('core/auth/auth_impl', () => {
       );
       await authImpl._delete();
       await authImpl._initializeWithPersistence([
-        persistenceStub as Persistence
+        persistenceStub as PersistenceInternal
       ]);
       expect(authImpl.currentUser).to.be.null;
     });
@@ -458,129 +455,6 @@ describe('core/auth/auth_impl', () => {
       await (auth as AuthImpl)._delete();
       await auth._updateCurrentUser(testUser(auth, 'blah'));
       expect(spy).not.to.have.been.called;
-    });
-  });
-});
-
-// These tests are separate because they are using a different auth with
-// separate setup and config
-describe('core/auth/auth_impl useEmulator', () => {
-  let auth: TestAuth;
-  let user: User;
-  let normalEndpoint: fetch.Route;
-  let emulatorEndpoint: fetch.Route;
-
-  beforeEach(async () => {
-    auth = await testAuth();
-    user = testUser(_castAuth(auth), 'uid', 'email', true);
-    fetch.setUp();
-    normalEndpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
-    emulatorEndpoint = fetch.mock(
-      `http://localhost:2020/${endpointUrl(Endpoint.DELETE_ACCOUNT).replace(
-        /^.*:\/\//,
-        ''
-      )}`,
-      {}
-    );
-  });
-
-  afterEach(() => {
-    fetch.tearDown();
-    sinon.restore();
-
-    // The DOM persists through tests; remove the banner if it is attached
-    const banner =
-      typeof document !== 'undefined'
-        ? document.querySelector('.firebase-emulator-warning')
-        : null;
-    if (banner) {
-      banner.parentElement?.removeChild(banner);
-    }
-  });
-
-  context('useEmulator', () => {
-    it('fails if a network request has already been made', async () => {
-      await user.delete();
-      expect(() => auth.useEmulator('http://localhost:2020')).to.throw(
-        FirebaseError,
-        'auth/emulator-config-failed'
-      );
-    });
-
-    it('updates the endpoint appropriately', async () => {
-      auth.useEmulator('http://localhost:2020');
-      await user.delete();
-      expect(normalEndpoint.calls.length).to.eq(0);
-      expect(emulatorEndpoint.calls.length).to.eq(1);
-    });
-
-    it('checks the scheme properly', () => {
-      expect(() => auth.useEmulator('http://localhost:2020')).not.to.throw;
-      delete auth.config.emulator;
-      expect(() => auth.useEmulator('https://localhost:2020')).not.to.throw;
-      delete auth.config.emulator;
-      expect(() => auth.useEmulator('ssh://localhost:2020')).to.throw(
-        FirebaseError,
-        'auth/invalid-emulator-scheme'
-      );
-      delete auth.config.emulator;
-      expect(() => auth.useEmulator('localhost:2020')).to.throw(
-        FirebaseError,
-        'auth/invalid-emulator-scheme'
-      );
-    });
-
-    it('attaches a banner to the DOM', () => {
-      auth.useEmulator('http://localhost:2020');
-      if (typeof document !== 'undefined') {
-        const el = document.querySelector('.firebase-emulator-warning')!;
-        expect(el).not.to.be.null;
-        expect(el.textContent).to.eq(
-          'Running in emulator mode. ' +
-            'Do not use with production credentials.'
-        );
-      }
-    });
-
-    it('logs out a warning to the console', () => {
-      sinon.stub(console, 'info');
-      auth.useEmulator('http://localhost:2020');
-      expect(console.info).to.have.been.calledWith(
-        'WARNING: You are using the Auth Emulator,' +
-          ' which is intended for local testing only.  Do not use with' +
-          ' production credentials.'
-      );
-    });
-
-    it('logs out the warning but has no banner if disableBanner true', () => {
-      sinon.stub(console, 'info');
-      auth.useEmulator('http://localhost:2020', { disableWarnings: true });
-      expect(console.info).to.have.been.calledWith(
-        'WARNING: You are using the Auth Emulator,' +
-          ' which is intended for local testing only.  Do not use with' +
-          ' production credentials.'
-      );
-      if (typeof document !== 'undefined') {
-        expect(document.querySelector('.firebase-emulator-warning')).to.be.null;
-      }
-    });
-  });
-
-  context('toJSON', () => {
-    it('works when theres no current user', () => {
-      expect(JSON.stringify(auth)).to.eq(
-        '{"apiKey":"test-api-key","authDomain":"localhost","appName":"test-app"}'
-      );
-    });
-
-    it('also stringifies the current user', () => {
-      auth.currentUser = ({
-        toJSON: (): object => ({ foo: 'bar' })
-      } as unknown) as User;
-      expect(JSON.stringify(auth)).to.eq(
-        '{"apiKey":"test-api-key","authDomain":"localhost",' +
-          '"appName":"test-app","currentUser":{"foo":"bar"}}'
-      );
     });
   });
 });

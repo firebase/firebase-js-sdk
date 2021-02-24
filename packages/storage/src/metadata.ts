@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FullMetadata } from '@firebase/storage-types/exp';
+import { FullMetadata } from '../exp/public-types';
 
 /**
  * @fileoverview Documentation for the metadata format.

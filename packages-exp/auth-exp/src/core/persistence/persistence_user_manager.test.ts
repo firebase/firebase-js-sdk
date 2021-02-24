@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
-import { Persistence, PersistenceType, StorageEventListener } from './';
+import { PersistenceInternal, PersistenceType, StorageEventListener } from './';
 import { inMemoryPersistence } from './in_memory';
 import { KeyName, PersistenceUserManager } from './persistence_user_manager';
 
@@ -32,10 +32,10 @@ chai.use(sinonChai);
 function makePersistence(
   type = PersistenceType.NONE
 ): {
-  persistence: Persistence;
-  stub: sinon.SinonStubbedInstance<Persistence>;
+  persistence: PersistenceInternal;
+  stub: sinon.SinonStubbedInstance<PersistenceInternal>;
 } {
-  const persistence: Persistence = {
+  const persistence: PersistenceInternal = {
     type,
     _isAvailable: () => Promise.resolve(true),
     _set: async () => {},
@@ -113,7 +113,7 @@ describe('core/persistence/persistence_user_manager', () => {
   });
 
   describe('manager methods', () => {
-    let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
+    let persistenceStub: sinon.SinonStubbedInstance<PersistenceInternal>;
     let manager: PersistenceUserManager;
 
     beforeEach(async () => {

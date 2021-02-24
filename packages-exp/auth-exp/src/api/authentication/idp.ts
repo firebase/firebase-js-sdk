@@ -17,7 +17,7 @@
 
 import { Endpoint, HttpMethod, _performSignInRequest } from '../index';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 
 export interface SignInWithIdpRequest {
   requestUri: string;
@@ -25,6 +25,7 @@ export interface SignInWithIdpRequest {
   sessionId?: string;
   tenantId?: string;
   returnSecureToken: boolean;
+  returnIdpCredential?: boolean;
   idToken?: IdToken;
   autoCreate?: boolean;
   pendingToken?: string;

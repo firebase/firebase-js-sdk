@@ -15,51 +15,32 @@
  * limitations under the License.
  */
 
-import { SDK_VERSION } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
-import { isEmpty, querystring } from '@firebase/util';
-import { _getInstance } from '../core/util/instantiator';
+import { AuthProvider, PopupRedirectResolver } from '../model/public_types';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
-import { OAuthProvider } from '../core/providers/oauth';
 import { _assert, debugAssert, _fail } from '../core/util/assert';
-import { _emulatorUrl } from '../core/util/emulator';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
 import { _validateOrigin } from '../core/util/validate_origin';
-import { ApiKey, AppName, Auth } from '../model/auth';
+import { AuthInternal } from '../model/auth';
 import {
   AuthEventType,
   EventManager,
   GapiAuthEvent,
   GapiOutcome,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
 import { browserSessionPersistence } from './persistence/session_storage';
 import { _open, AuthPopup } from './util/popup';
 import { _getRedirectResult } from './strategies/redirect';
-
-/**
- * URL for Authentication widget which will initiate the OAuth handshake
- *
- * @internal
- */
-const WIDGET_PATH = '__/auth/handler';
-
-/**
- * URL for emulated environment
- *
- * @internal
- */
-const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
+import { _getRedirectUrl } from '../core/util/handler';
 
 /**
  * The special web storage event
  *
- * @internal
  */
 const WEB_STORAGE_SUPPORT_KEY = 'webStorageSupport';
 
@@ -72,27 +53,7 @@ interface ManagerOrPromise {
   promise?: Promise<EventManager>;
 }
 
-/**
- * Chooses a popup/redirect resolver to use. This prefers the override (which
- * is directly passed in), and falls back to the property set on the auth
- * object. If neither are available, this function errors w/ an argument error.
- *
- * @internal
- */
-export function _withDefaultResolver(
-  auth: Auth,
-  resolverOverride: externs.PopupRedirectResolver | undefined
-): PopupRedirectResolver {
-  if (resolverOverride) {
-    return _getInstance(resolverOverride);
-  }
-
-  _assert(auth._popupRedirectResolver, auth, AuthErrorCode.ARGUMENT_ERROR);
-
-  return auth._popupRedirectResolver;
-}
-
-class BrowserPopupRedirectResolver implements PopupRedirectResolver {
+class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
   private readonly eventManagers: Record<string, ManagerOrPromise> = {};
   private readonly iframes: Record<string, gapi.iframes.Iframe> = {};
   private readonly originValidationPromises: Record<string, Promise<void>> = {};
@@ -102,8 +63,8 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   // Wrapping in async even though we don't await anywhere in order
   // to make sure errors are raised as promise rejections
   async _openPopup(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup> {
@@ -112,23 +73,30 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
       '_initialize() not called before _openPopup()'
     );
 
-    await this.originValidation(auth);
-    const url = getRedirectUrl(auth, provider, authType, eventId);
+    const url = _getRedirectUrl(
+      auth,
+      provider,
+      authType,
+      _getCurrentUrl(),
+      eventId
+    );
     return _open(auth, url, _generateEventId());
   }
 
   async _openRedirect(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<never> {
-    await this.originValidation(auth);
-    _setWindowLocation(getRedirectUrl(auth, provider, authType, eventId));
+    await this._originValidation(auth);
+    _setWindowLocation(
+      _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId)
+    );
     return new Promise(() => {});
   }
 
-  _initialize(auth: Auth): Promise<EventManager> {
+  _initialize(auth: AuthInternal): Promise<EventManager> {
     const key = auth._key();
     if (this.eventManagers[key]) {
       const { manager, promise } = this.eventManagers[key];
@@ -145,7 +113,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return promise;
   }
 
-  private async initAndGetManager(auth: Auth): Promise<EventManager> {
+  private async initAndGetManager(auth: AuthInternal): Promise<EventManager> {
     const iframe = await _openIframe(auth);
     const manager = new AuthEventManager(auth);
     iframe.register<GapiAuthEvent>(
@@ -166,7 +134,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   }
 
   _isIframeWebStorageSupported(
-    auth: Auth,
+    auth: AuthInternal,
     cb: (supported: boolean) => unknown
   ): void {
     const iframe = this.iframes[auth._key()];
@@ -185,7 +153,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     );
   }
 
-  private originValidation(auth: Auth): Promise<void> {
+  _originValidation(auth: AuthInternal): Promise<void> {
     const key = auth._key();
     if (!this.originValidationPromises[key]) {
       this.originValidationPromises[key] = _validateOrigin(auth);
@@ -198,90 +166,9 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for browser
+ * An implementation of {@link PopupRedirectResolver} suitable for browser
  * based applications.
  *
  * @public
  */
-export const browserPopupRedirectResolver: externs.PopupRedirectResolver = BrowserPopupRedirectResolver;
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type WidgetParams = {
-  apiKey: ApiKey;
-  appName: AppName;
-  authType: AuthEventType;
-  redirectUrl: string;
-  v: string;
-  providerId?: string;
-  scopes?: string;
-  customParameters?: string;
-  eventId?: string;
-  tid?: string;
-};
-
-function getRedirectUrl(
-  auth: Auth,
-  provider: externs.AuthProvider,
-  authType: AuthEventType,
-  eventId?: string
-): string {
-  _assert(auth.config.authDomain, auth, AuthErrorCode.MISSING_AUTH_DOMAIN);
-  _assert(auth.config.apiKey, auth, AuthErrorCode.INVALID_API_KEY);
-
-  const params: WidgetParams = {
-    apiKey: auth.config.apiKey,
-    appName: auth.name,
-    authType,
-    redirectUrl: _getCurrentUrl(),
-    v: SDK_VERSION,
-    eventId
-  };
-
-  if (provider instanceof OAuthProvider) {
-    provider.setDefaultLanguage(auth.languageCode);
-    params.providerId = provider.providerId || '';
-    if (!isEmpty(provider.getCustomParameters())) {
-      params.customParameters = JSON.stringify(provider.getCustomParameters());
-    }
-    const scopes = provider.getScopes().filter(scope => scope !== '');
-    if (scopes.length > 0) {
-      params.scopes = scopes.join(',');
-    }
-    // TODO set additionalParams?
-    // let additionalParams = provider.getAdditionalParams();
-    // for (let key in additionalParams) {
-    //   if (!params.hasOwnProperty(key)) {
-    //     params[key] = additionalParams[key]
-    //   }
-    // }
-  }
-
-  if (auth.tenantId) {
-    params.tid = auth.tenantId;
-  }
-
-  for (const key of Object.keys(params)) {
-    if ((params as Record<string, unknown>)[key] === undefined) {
-      delete (params as Record<string, unknown>)[key];
-    }
-  }
-
-  // TODO: maybe set eid as endipointId
-  // TODO: maybe set fw as Frameworks.join(",")
-
-  const url = new URL(
-    `${getHandlerBase(auth)}?${querystring(
-      params as Record<string, string | number>
-    ).slice(1)}`
-  );
-
-  return url.toString();
-}
-
-function getHandlerBase({ config }: Auth): string {
-  if (!config.emulator) {
-    return `https://${config.authDomain}/${WIDGET_PATH}`;
-  }
-
-  return _emulatorUrl(config, EMULATOR_WIDGET_PATH);
-}
+export const browserPopupRedirectResolver: PopupRedirectResolver = BrowserPopupRedirectResolver;

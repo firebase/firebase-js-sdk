@@ -15,17 +15,20 @@
  * limitations under the License.
  */
 
-import { resolve as pathResolve } from 'path';
 import * as fs from 'fs';
-import { execSync } from 'child_process';
+import * as path from 'path';
+import * as rollup from 'rollup';
 import * as terser from 'terser';
+
+import { execSync } from 'child_process';
 import {
   upload,
   runId,
   RequestBody,
   RequestEndpoint
 } from './size_report_helper';
-import * as rollup from 'rollup';
+import { glob } from 'glob';
+
 import commonjs from '@rollup/plugin-commonjs';
 
 interface Report {
@@ -37,10 +40,10 @@ interface BinarySizeRequestBody extends RequestBody {
   metric: string;
   results: Report[];
 }
-// CDN scripts
+
 function generateReportForCDNScripts(): Report[] {
   const reports = [];
-  const firebaseRoot = pathResolve(__dirname, '../../packages/firebase');
+  const firebaseRoot = path.resolve(__dirname, '../../packages/firebase');
   const pkgJson = require(`${firebaseRoot}/package.json`);
 
   const special_files = [
@@ -60,14 +63,43 @@ function generateReportForCDNScripts(): Report[] {
   for (const file of files) {
     const { size } = fs.statSync(file);
     const fileName = file.split('/').slice(-1)[0];
-    reports.push(makeReportObject('firebase', fileName, size));
+    reports.push({ sdk: 'firebase', type: fileName, value: size });
   }
 
   return reports;
 }
 
-// NPM packages
 async function generateReportForNPMPackages(): Promise<Report[]> {
+  const reports: Report[] = [];
+  const packageInfo = JSON.parse(
+    execSync('npx lerna ls --json --scope @firebase/*').toString()
+  );
+  for (const info of packageInfo) {
+    const packages = await findAllPackages(info.location);
+    for (const pkg of packages) {
+      reports.push(...(await collectBinarySize(pkg)));
+    }
+  }
+  return reports;
+}
+
+async function findAllPackages(root: string): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    glob(
+      '**/package.json',
+      { cwd: root, ignore: '**/node_modules/**' },
+      (err, files) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(files.map(x => path.resolve(root, x)));
+        }
+      }
+    );
+  });
+}
+
+async function collectBinarySize(pkg: string): Promise<Report[]> {
   const reports: Report[] = [];
   const fields = [
     'main',
@@ -78,91 +110,35 @@ async function generateReportForNPMPackages(): Promise<Report[]> {
     'lite',
     'lite-esm2017'
   ];
+  const json = require(pkg);
+  for (const field of fields) {
+    if (json[field]) {
+      const artifact = path.resolve(path.dirname(pkg), json[field]);
 
-  const packageInfo = JSON.parse(
-    execSync('npx lerna ls --json --scope @firebase/*').toString()
-  );
+      // Need to create a bundle and get the size of the bundle instead of reading the size of the file directly.
+      // It is because some packages might be split into multiple files in order to share code between entry points.
+      const bundle = await rollup.rollup({
+        input: artifact,
+        plugins: [commonjs()]
+      });
 
-  const taskPromises: Promise<void>[] = [];
-  for (const pkg of packageInfo) {
-    // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
-    // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
-    traverseDirs(pkg.location, collectBinarySize, 0, 1);
+      const { output } = await bundle.generate({ format: 'es' });
+      const rawCode = output[0].code;
+
+      // remove comments and whitespaces, then get size
+      const { code } = await terser.minify(rawCode, {
+        format: {
+          comments: false
+        },
+        mangle: false,
+        compress: false
+      });
+
+      const size = Buffer.byteLength(code!, 'utf-8');
+      reports.push({ sdk: json.name, type: field, value: size });
+    }
   }
-
-  await Promise.all(taskPromises);
-
   return reports;
-
-  function collectBinarySize(path: string) {
-    const packageJsonPath = `${path}/package.json`;
-    if (!fs.existsSync(packageJsonPath)) {
-      return;
-    }
-
-    const promise = new Promise<void>(async resolve => {
-      const packageJson = require(packageJsonPath);
-
-      for (const field of fields) {
-        if (packageJson[field]) {
-          const filePath = pathResolve(path, packageJson[field]);
-          // Need to create a bundle and get the size of the bundle instead of reading the size of the file directly.
-          // It is because some packages might be split into multiple files in order to share code between entry points.
-          const bundle = await rollup.rollup({
-            input: filePath,
-            plugins: [commonjs()]
-          });
-
-          const { output } = await bundle.generate({ format: 'es' });
-          const rawCode = output[0].code;
-
-          // remove comments and whitespaces, then get size
-          const { code } = await terser.minify(rawCode, {
-            format: {
-              comments: false
-            },
-            mangle: false,
-            compress: false
-          });
-
-          const size = Buffer.byteLength(code!, 'utf-8');
-          reports.push(makeReportObject(packageJson.name, field, size));
-        }
-      }
-
-      resolve();
-    });
-    taskPromises.push(promise);
-  }
-}
-
-function traverseDirs(
-  path: string,
-  executor: Function,
-  level: number,
-  levelLimit: number
-) {
-  if (level > levelLimit) {
-    return;
-  }
-
-  executor(path);
-
-  for (const name of fs.readdirSync(path)) {
-    const p = `${path}/${name}`;
-
-    if (fs.lstatSync(p).isDirectory()) {
-      traverseDirs(p, executor, level + 1, levelLimit);
-    }
-  }
-}
-
-function makeReportObject(sdk: string, type: string, value: number): Report {
-  return {
-    sdk,
-    type,
-    value
-  };
 }
 
 async function generateSizeReport(): Promise<BinarySizeRequestBody> {

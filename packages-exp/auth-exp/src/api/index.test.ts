@@ -120,6 +120,27 @@ describe('api/_performApiRequest', () => {
       expect(mock.calls[0].request).to.eql(request);
     });
 
+    it('should translate server success with errorMessage into auth error', async () => {
+      const response = {
+        errorMessage: ServerError.FEDERATED_USER_ID_ALREADY_LINKED,
+        idToken: 'foo-bar'
+      };
+      const mock = mockEndpoint(Endpoint.SIGN_IN_WITH_IDP, response, 200);
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_IN_WITH_IDP,
+        request
+      );
+      await expect(promise)
+        .to.be.rejectedWith(FirebaseError, 'auth/credential-already-in-use')
+        .eventually.with.deep.property('customData', {
+          appName: 'test-app',
+          _tokenResponse: response
+        });
+      expect(mock.calls[0].request).to.eql(request);
+    });
+
     it('should translate complex server errors to auth errors', async () => {
       const mock = mockEndpoint(
         Endpoint.SIGN_UP,
@@ -362,7 +383,7 @@ describe('api/_performApiRequest', () => {
 
     it('works properly with an emulated environment', () => {
       (auth.config as ConfigInternal).emulator = {
-        url: 'http://localhost:5000'
+        url: 'http://localhost:5000/'
       };
       expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'http://localhost:5000/host/path?query=test'

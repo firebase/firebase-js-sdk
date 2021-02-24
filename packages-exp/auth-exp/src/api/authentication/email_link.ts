@@ -17,7 +17,7 @@
 
 import { _performSignInRequest, Endpoint, HttpMethod } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 
 export interface SignInWithEmailLinkRequest {
   email: string;

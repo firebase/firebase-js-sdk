@@ -23,7 +23,7 @@ import { _emulatorUrl } from './emulator';
 describe('core/util/emulator', () => {
   const config: ConfigInternal = {
     emulator: {
-      url: 'http://localhost:4000'
+      url: 'http://localhost:4000/'
     }
   } as ConfigInternal;
 

@@ -1106,7 +1106,7 @@ declare namespace firebase {
    *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
    *   Add Firebase to your app} and
    * {@link
-   *   https://firebase.google.com/docs/web/setup#multiple-projects
+   *   https://firebase.google.com/docs/web/learn-more#multiple-projects
    *   Initialize multiple projects} for detailed documentation.
    *
    * @example
@@ -1117,12 +1117,12 @@ declare namespace firebase {
    * // https://console.firebase.google.com
    * firebase.initializeApp({
    *   apiKey: "AIza....",                             // Auth / General Use
-   *   appId: "1:27992087142:web:ce....",      // General Use
+   *   appId: "1:27992087142:web:ce....",              // General Use
    *   projectId: "my-firebase-project",               // General Use
    *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
    *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
    *   storageBucket: "YOUR_APP.appspot.com",          // Storage
-   *   messagingSenderId: "123456789",                  // Cloud Messaging
+   *   messagingSenderId: "123456789",                 // Cloud Messaging
    *   measurementId: "G-12345"                        // Analytics
    * });
    * ```
@@ -5942,8 +5942,8 @@ declare namespace firebase.database {
     /**
      * Creates a `Query` with the specified ending point.
      *
-     * Using `startAt()`, `endAt()`, and `equalTo()` allows you to choose arbitrary
-     * starting and ending points for your queries.
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
      *
      * The ending point is inclusive, so children with exactly the specified value
      * will be included in the query. The optional key argument can be used to
@@ -5959,6 +5959,7 @@ declare namespace firebase.database {
      * @example
      * ```javascript
      * // Find all dinosaurs whose names come before Pterodactyl lexicographically.
+     * // Include Pterodactyl in the result.
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByKey().endAt("pterodactyl").on("child_added", function(snapshot) {
      *   console.log(snapshot.key);
@@ -5978,10 +5979,42 @@ declare namespace firebase.database {
       key?: string
     ): firebase.database.Query;
     /**
+     * Creates a `Query` with the specified ending point (exclusive).
+     *
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
+     *
+     * The ending point is exclusive. If only a value is provided, children
+     * with a value less than the specified value will be included in the query.
+     * If a key is specified, then children must have a value lesss than or equal
+     * to the specified value and a a key name less than the specified key.
+     *
+     * @example
+     * ```javascript
+     * // Find all dinosaurs whose names come before Pterodactyl lexicographically.
+     * // Do not include Pterodactyl in the result.
+     * var ref = firebase.database().ref("dinosaurs");
+     * ref.orderByKey().endBefore("pterodactyl").on("child_added", function(snapshot) {
+     *   console.log(snapshot.key);
+     * });
+     *
+     * @param value The value to end before. The argument
+     *   type depends on which `orderBy*()` function was used in this query.
+     *   Specify a value that matches the `orderBy*()` type. When used in
+     *   combination with `orderByKey()`, the value must be a string.
+     * @param key The child key to end before, among the children with the
+     *   previously specified priority. This argument is only allowed if ordering by
+     *   child, value, or priority.
+     */
+    endBefore(
+      value: number | string | boolean | null,
+      key?: string
+    ): firebase.database.Query;
+    /**
      * Creates a `Query` that includes children that match the specified value.
      *
-     * Using `startAt()`, `endAt()`, and `equalTo()` allows us to choose arbitrary
-     * starting and ending points for our queries.
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
      *
      * The optional key argument can be used to further limit the range of the
      * query. If it is specified, then children that have exactly the specified
@@ -6426,8 +6459,8 @@ declare namespace firebase.database {
     /**
      * Creates a `Query` with the specified starting point.
      *
-     * Using `startAt()`, `endAt()`, and `equalTo()` allows you to choose arbitrary
-     * starting and ending points for your queries.
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
      *
      * The starting point is inclusive, so children with exactly the specified value
      * will be included in the query. The optional key argument can be used to
@@ -6457,6 +6490,37 @@ declare namespace firebase.database {
      *   if ordering by child, value, or priority.
      */
     startAt(
+      value: number | string | boolean | null,
+      key?: string
+    ): firebase.database.Query;
+    /**
+     * Creates a `Query` with the specified starting point (exclusive).
+     *
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
+     *
+     * The starting point is exclusive. If only a value is provided, children
+     * with a value greater than the specified value will be included in the query.
+     * If a key is specified, then children must have a value greater than or equal
+     * to the specified value and a a key name greater than the specified key.
+     *
+     * @example
+     * ```javascript
+     * // Find all dinosaurs that are more than three meters tall.
+     * var ref = firebase.database().ref("dinosaurs");
+     * ref.orderByChild("height").startAfter(3).on("child_added", function(snapshot) {
+     *   console.log(snapshot.key)
+     * });
+     * ```
+     *
+     * @param value The value to start after. The argument
+     *   type depends on which `orderBy*()` function was used in this query.
+     *   Specify a value that matches the `orderBy*()` type. When used in
+     *   combination with `orderByKey()`, the value must be a string.
+     * @param key The child key to start after. This argument is only allowed
+     *   if ordering by child, value, or priority.
+     */
+    startAfter(
       value: number | string | boolean | null,
       key?: string
     ): firebase.database.Query;

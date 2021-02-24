@@ -18,12 +18,12 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { ProviderId } from '@firebase/auth-types-exp';
+import { ProviderId } from '../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import { PhoneMfaEnrollment } from '../api/account_management/mfa';
-import { MultiFactorInfo } from './mfa_info';
+import { MultiFactorInfoImpl } from './mfa_info';
 
 use(chaiAsPromised);
 
@@ -45,7 +45,7 @@ describe('core/mfa/mfa_info/MultiFactorInfo', () => {
       };
 
       it('should create a valid MfaInfo', () => {
-        const mfaInfo = MultiFactorInfo._fromServerResponse(
+        const mfaInfo = MultiFactorInfoImpl._fromServerResponse(
           auth,
           enrollmentInfo
         );
@@ -65,7 +65,7 @@ describe('core/mfa/mfa_info/MultiFactorInfo', () => {
 
       it('should throw an error', () => {
         expect(() =>
-          MultiFactorInfo._fromServerResponse(
+          MultiFactorInfoImpl._fromServerResponse(
             auth,
             enrollmentInfo as PhoneMfaEnrollment
           )

@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseApp } from '@firebase/app';
 
 /**
  * @public
@@ -146,10 +147,10 @@ export interface Reference extends Query {
 /**
  * @public
  */
-export interface ServerValue {
+export declare const ServerValue: {
   TIMESTAMP: object;
   increment(delta: number): object;
-}
+};
 
 /**
  * @public

@@ -22,8 +22,8 @@ import { _createError, _fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
-import { Auth } from '@firebase/auth-types-exp';
-import { Auth as AuthInternal } from '../model/auth';
+import { Auth } from '../model/public_types';
+import { AuthInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
@@ -132,10 +132,11 @@ export async function _performFetchWithErrorHandling<V>(
       throw makeTaggedError(auth, AuthErrorCode.NEED_CONFIRMATION, json);
     }
 
-    if (response.ok) {
+    if (response.ok && !('errorMessage' in json)) {
       return json;
     } else {
-      const serverErrorCode = json.error.message.split(' : ')[0] as ServerError;
+      const errorMessage = response.ok ? json.errorMessage : json.error.message;
+      const serverErrorCode = errorMessage.split(' : ')[0] as ServerError;
       if (serverErrorCode === ServerError.FEDERATED_USER_ID_ALREADY_LINKED) {
         throw makeTaggedError(
           auth,

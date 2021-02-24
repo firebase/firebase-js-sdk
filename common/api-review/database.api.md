@@ -4,7 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 
 // @public (undocumented)
 export interface Database {
@@ -177,12 +177,10 @@ export interface Reference extends Query {
 }
 
 // @public (undocumented)
-export interface ServerValue {
-  // (undocumented)
-  increment(delta: number): object;
-  // (undocumented)
+export const ServerValue: {
   TIMESTAMP: object;
-}
+  increment(delta: number): object;
+};
 
 // @public (undocumented)
 export interface ThenableReference

@@ -1,5 +1,57 @@
 # firebase
 
+## 8.2.9
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/analytics@0.6.4
+  - @firebase/app@0.6.15
+  - @firebase/database@0.9.4
+  - @firebase/firestore@2.1.7
+  - @firebase/functions@0.6.2
+  - @firebase/installations@0.4.20
+  - @firebase/messaging@0.7.4
+  - @firebase/performance@0.4.6
+  - @firebase/remote-config@0.1.31
+  - @firebase/storage@0.4.3
+
+## 8.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`74bf52009`](https://github.com/firebase/firebase-js-sdk/commit/74bf52009b291a62deabfd865084d4e0fcacc483)]:
+  - @firebase/analytics@0.6.3
+  - @firebase/auth@0.16.4
+
+## 8.2.7
+
+### Patch Changes
+
+- [`05614aa86`](https://github.com/firebase/firebase-js-sdk/commit/05614aa86614994b69df154bd6ce34861fae37a5) [#4427](https://github.com/firebase/firebase-js-sdk/pull/4427) - Add `startAfter()` and `endBefore()` to the Realtime Database TypeScript definitions.
+
+- Updated dependencies [[`a718518e9`](https://github.com/firebase/firebase-js-sdk/commit/a718518e935931709669ea2e88f9711143655e61), [`3d0cd6f33`](https://github.com/firebase/firebase-js-sdk/commit/3d0cd6f33127e75e15aec9b6589eea360827df7a), [`318af5471`](https://github.com/firebase/firebase-js-sdk/commit/318af54715dc61a09897b144dd8841fec1abd8a3), [`05614aa86`](https://github.com/firebase/firebase-js-sdk/commit/05614aa86614994b69df154bd6ce34861fae37a5)]:
+  - @firebase/firestore@2.1.6
+  - @firebase/database@0.9.3
+
+## 8.2.6
+
+### Patch Changes
+
+- Updated dependencies [[`73bb561e1`](https://github.com/firebase/firebase-js-sdk/commit/73bb561e18ea42286a54d28648636bf1ac7fcfe0), [`9533688b1`](https://github.com/firebase/firebase-js-sdk/commit/9533688b1e39e58a550ec0527a0363270d73c5b5), [`0af2bdfc6`](https://github.com/firebase/firebase-js-sdk/commit/0af2bdfc6b8be3f362cd630e2a917c5a070c568e)]:
+  - @firebase/auth@0.16.3
+  - @firebase/firestore@2.1.5
+  - @firebase/database@0.9.2
+
+## 8.2.5
+
+### Patch Changes
+
+- Updated dependencies [[`749c7f3d9`](https://github.com/firebase/firebase-js-sdk/commit/749c7f3d985f978cd2a204cbc28c3fff09458b5b), [`04a0fea9e`](https://github.com/firebase/firebase-js-sdk/commit/04a0fea9ef291a7da244665289a1aed32e4e7a3b)]:
+  - @firebase/app@0.6.14
+  - @firebase/firestore@2.1.4
+  - @firebase/database@0.9.1
+
 ## 8.2.4
 
 ### Patch Changes

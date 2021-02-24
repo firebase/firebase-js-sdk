@@ -19,10 +19,10 @@ import {
   _registerComponent,
   registerVersion,
   _getProvider,
-  SDK_VERSION
+  SDK_VERSION,
+  FirebaseApp
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
 
 import { XhrIoPool } from '../src/implementation/xhriopool';
 import {
@@ -45,14 +45,10 @@ import {
   ListOptions,
   ListResult,
   UploadTask,
-  FirebaseStorageError,
-  TaskEvent,
-  TaskState,
-  StorageObserver,
   SettableMetadata,
   UploadMetadata,
   FullMetadata
-} from '@firebase/storage-types/exp';
+} from './public-types';
 import { Metadata as MetadataInternal } from '../src/metadata';
 import {
   uploadBytes as uploadBytesInternal,
@@ -70,21 +66,7 @@ import {
 /**
  * Public types.
  */
-export {
-  StorageReference,
-  StorageService,
-  UploadMetadata,
-  SettableMetadata,
-  FullMetadata,
-  UploadResult,
-  ListOptions,
-  ListResult,
-  UploadTask,
-  FirebaseStorageError,
-  TaskEvent,
-  TaskState,
-  StorageObserver
-};
+export * from './public-types';
 
 /**
  * Uploads data to this object's location.
@@ -294,15 +276,22 @@ const STORAGE_TYPE = 'storage-exp';
  * Gets a Firebase StorageService instance for the given Firebase app.
  * @public
  * @param app - Firebase app to get Storage instance for.
+ * @param bucketUrl - The gs:// url to your Firebase Storage Bucket.
+ * If not passed, uses the app's default Storage Bucket.
  * @returns A Firebase StorageService instance.
  */
-export function getStorage(app: FirebaseApp, url?: string): StorageService {
+export function getStorage(
+  app: FirebaseApp,
+  bucketUrl?: string
+): StorageService {
   // Dependencies
   const storageProvider: Provider<'storage-exp'> = _getProvider(
     app,
     STORAGE_TYPE
   );
-  const storageInstance = storageProvider.getImmediate({ identifier: url });
+  const storageInstance = storageProvider.getImmediate({
+    identifier: bucketUrl
+  });
   return storageInstance;
 }
 

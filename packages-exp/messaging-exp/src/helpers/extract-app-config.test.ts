@@ -18,7 +18,7 @@
 import '../testing/setup';
 
 import { AppConfig } from '../interfaces/app-config';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { expect } from 'chai';
 import { extractAppConfig } from './extract-app-config';
 import { getFakeApp } from '../testing/fakes/firebase-dependencies';

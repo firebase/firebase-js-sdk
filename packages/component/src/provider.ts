@@ -186,6 +186,10 @@ export class Provider<T extends Name> {
     return this.component != null;
   }
 
+  isInitialized(identifier: string = DEFAULT_ENTRY_NAME): boolean {
+    return this.instances.has(identifier);
+  }
+
   private getOrInitializeService(
     identifier: string
   ): NameServiceMapping[T] | null {

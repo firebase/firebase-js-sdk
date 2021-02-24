@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { ApplicationVerifier } from './public_types';
 
-/** @internal */
-export interface ApplicationVerifier extends externs.ApplicationVerifier {
-  /** @internal */
+export interface ApplicationVerifierInternal extends ApplicationVerifier {
+  /**
+   * @internal
+   */
   _reset(): void;
 }

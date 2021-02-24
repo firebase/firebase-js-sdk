@@ -21,4 +21,4 @@
 export { AuthCredential } from './auth_credential';
 export { EmailAuthCredential } from './email';
 export { OAuthCredential } from './oauth';
-export { PhoneAuthCredential } from './phone';
+export { PhoneAuthCredential as PhoneAuthCredential } from './phone';

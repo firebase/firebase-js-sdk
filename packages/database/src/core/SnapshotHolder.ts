@@ -21,8 +21,6 @@ import { Node } from './snap/Node';
 
 /**
  * Mutable object which basically just stores a reference to the "latest" immutable snapshot.
- *
- * @constructor
  */
 export class SnapshotHolder {
   private rootNode_: Node = ChildrenNode.EMPTY_NODE;

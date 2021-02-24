@@ -19,7 +19,7 @@ import {
   FirebaseApp,
   FirebaseOptions,
   FirebaseAppConfig
-} from '@firebase/app-types-exp';
+} from './public-types';
 import {
   ComponentContainer,
   Component,
@@ -28,22 +28,22 @@ import {
 import { ERROR_FACTORY, AppError } from './errors';
 
 export class FirebaseAppImpl implements FirebaseApp {
-  private readonly options_: FirebaseOptions;
-  private readonly name_: string;
-  private automaticDataCollectionEnabled_: boolean;
-  private isDeleted = false;
-  private readonly container: ComponentContainer;
+  private readonly _options: FirebaseOptions;
+  private readonly _name: string;
+  private _automaticDataCollectionEnabled: boolean;
+  private _isDeleted = false;
+  private readonly _container: ComponentContainer;
 
   constructor(
     options: FirebaseOptions,
     config: Required<FirebaseAppConfig>,
     container: ComponentContainer
   ) {
-    this.options_ = { ...options };
-    this.name_ = config.name;
-    this.automaticDataCollectionEnabled_ =
+    this._options = { ...options };
+    this._name = config.name;
+    this._automaticDataCollectionEnabled =
       config.automaticDataCollectionEnabled;
-    this.container = container;
+    this._container = container;
     this.container.addComponent(
       new Component('app-exp', () => this, ComponentType.PUBLIC)
     );
@@ -51,22 +51,34 @@ export class FirebaseAppImpl implements FirebaseApp {
 
   get automaticDataCollectionEnabled(): boolean {
     this.checkDestroyed();
-    return this.automaticDataCollectionEnabled_;
+    return this._automaticDataCollectionEnabled;
   }
 
   set automaticDataCollectionEnabled(val: boolean) {
     this.checkDestroyed();
-    this.automaticDataCollectionEnabled_ = val;
+    this._automaticDataCollectionEnabled = val;
   }
 
   get name(): string {
     this.checkDestroyed();
-    return this.name_;
+    return this._name;
   }
 
   get options(): FirebaseOptions {
     this.checkDestroyed();
-    return this.options_;
+    return this._options;
+  }
+
+  get container(): ComponentContainer {
+    return this._container;
+  }
+
+  get isDeleted(): boolean {
+    return this._isDeleted;
+  }
+
+  set isDeleted(val: boolean) {
+    this._isDeleted = val;
   }
 
   /**
@@ -75,7 +87,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    */
   private checkDestroyed(): void {
     if (this.isDeleted) {
-      throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this.name_ });
+      throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this._name });
     }
   }
 }

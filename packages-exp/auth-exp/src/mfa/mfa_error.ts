@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  MultiFactorError as MultiFactorErrorPublic,
+  OperationType
+} from '../model/public_types';
 import { FirebaseError } from '@firebase/util';
-import { Auth } from '../model/auth';
+import { AuthInternal } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
 import { AuthErrorCode } from '../core/errors';
-import { User } from '../model/user';
+import { UserInternal } from '../model/user';
 import { AuthCredential } from '../core/credentials';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 
 export class MultiFactorError
   extends FirebaseError
-  implements externs.MultiFactorError {
+  implements MultiFactorErrorPublic {
   readonly name = 'FirebaseError';
   readonly code: string;
   readonly appName: string;
@@ -35,10 +38,10 @@ export class MultiFactorError
   readonly tenantId?: string;
 
   private constructor(
-    auth: Auth,
+    auth: AuthInternal,
     error: FirebaseError,
-    readonly operationType: externs.OperationType,
-    readonly user?: User
+    readonly operationType: OperationType,
+    readonly user?: UserInternal
   ) {
     super(error.code, error.message);
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -51,23 +54,23 @@ export class MultiFactorError
   }
 
   static _fromErrorAndOperation(
-    auth: Auth,
+    auth: AuthInternal,
     error: FirebaseError,
-    operationType: externs.OperationType,
-    user?: User
+    operationType: OperationType,
+    user?: UserInternal
   ): MultiFactorError {
     return new MultiFactorError(auth, error, operationType, user);
   }
 }
 
 export function _processCredentialSavingMfaContextIfNecessary(
-  auth: Auth,
-  operationType: externs.OperationType,
+  auth: AuthInternal,
+  operationType: OperationType,
   credential: AuthCredential,
-  user?: User
+  user?: UserInternal
 ): Promise<IdTokenResponse> {
   const idTokenProvider =
-    operationType === externs.OperationType.REAUTHENTICATE
+    operationType === OperationType.REAUTHENTICATE
       ? credential._getReauthenticationResolver(auth)
       : credential._getIdTokenResponse(auth);
 

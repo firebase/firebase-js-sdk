@@ -17,8 +17,7 @@
 
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { FirebaseInstallations as FirebaseInstallationsCompat } from '@firebase/installations-types';
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import {
   deleteInstallations,
   getId,
@@ -29,7 +28,7 @@ import {
 } from '@firebase/installations-exp';
 
 export class InstallationsCompat
-  implements FirebaseInstallationsCompat, FirebaseService {
+  implements FirebaseInstallationsCompat, _FirebaseService {
   constructor(
     public app: FirebaseApp,
     private _installations: FirebaseInstallations

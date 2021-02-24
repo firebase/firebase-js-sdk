@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
 import {
   FirebasePerformance,
   PerformanceSettings,
@@ -27,7 +26,8 @@ import { PerformanceController } from './controllers/perf';
 import {
   _registerComponent,
   _getProvider,
-  registerVersion
+  registerVersion,
+  FirebaseApp
 } from '@firebase/app-exp';
 import {
   InstanceFactory,
@@ -44,14 +44,32 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 /**
  * Returns a FirebasePerformance instance for the given app.
  * @param app - The FirebaseApp to use.
+ * @public
+ */
+export function getPerformance(app: FirebaseApp): FirebasePerformance {
+  const provider = _getProvider(app, 'performance-exp');
+  const perfInstance = provider.getImmediate() as PerformanceController;
+  return perfInstance;
+}
+
+/**
+ * Returns a FirebasePerformance instance for the given app. Can only be called once.
+ * @param app - The FirebaseApp to use.
  * @param settings - Optional settings for the Performance instance.
  * @public
  */
-export function getPerformance(
+export function initializePerformance(
   app: FirebaseApp,
   settings?: PerformanceSettings
 ): FirebasePerformance {
   const provider = _getProvider(app, 'performance-exp');
+
+  // throw if an instance was already created.
+  // It could happen if initializePerformance() is called more than once, or getPerformance() is called first.
+  if (provider.isInitialized()) {
+    throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+  }
+
   const perfInstance = provider.getImmediate() as PerformanceController;
   perfInstance._init(settings);
   return perfInstance;

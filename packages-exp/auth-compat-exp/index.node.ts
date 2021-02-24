@@ -21,5 +21,4 @@
  * implementation that mandates having a separate entrypoint. Otherwise you can
  * just use index.ts
  */
-
 export * from './index';

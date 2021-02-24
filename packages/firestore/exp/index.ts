@@ -32,8 +32,16 @@ export {
   disableNetwork,
   enableNetwork,
   terminate,
-  useFirestoreEmulator
+  useFirestoreEmulator,
+  loadBundle,
+  namedQuery
 } from '../src/exp/database';
+
+export {
+  LoadBundleTask,
+  LoadBundleTaskProgress,
+  TaskState
+} from '../src/exp/bundle';
 
 export { Settings, PersistenceSettings } from '../src/exp/settings';
 
