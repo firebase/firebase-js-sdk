@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app-compat';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import {
   Component,
   ComponentContainer,
