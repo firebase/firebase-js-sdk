@@ -378,7 +378,7 @@ export class Connection {
     const version = handshake.v;
     const host = handshake.h;
     this.sessionId = handshake.s;
-    this.repoInfo_.updateHost(host);
+    this.repoInfo_.host = host;
     // if we've already closed the connection, then don't bother trying to progress further
     if (this.state_ === RealtimeState.CONNECTING) {
       this.conn_.start();
@@ -425,7 +425,7 @@ export class Connection {
 
   private onReset_(host: string) {
     this.log_('Reset packet received.  New host: ' + host);
-    this.repoInfo_.updateHost(host);
+    this.repoInfo_.host = host;
     // TODO: if we're already "connected", we need to trigger a disconnect at the next layer up.
     // We don't currently support resets after the connection has already been established
     if (this.state_ === RealtimeState.CONNECTED) {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { RepoInfo } from '../core/RepoInfo';
+import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
 import { assert, jsonEval, stringify, isNodeSdk } from '@firebase/util';
 import { logWrapper, splitStringBySize } from '../core/util/util';
 import { StatsManager } from '../core/stats/StatsManager';
@@ -124,7 +124,7 @@ export class WebSocketConnection implements Transport {
     if (lastSessionId) {
       urlParams[LAST_SESSION_PARAM] = lastSessionId;
     }
-    return repoInfo.connectionURL(WEBSOCKET, urlParams);
+    return repoInfoConnectionURL(repoInfo, WEBSOCKET, urlParams);
   }
 
   /**

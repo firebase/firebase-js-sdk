@@ -24,8 +24,8 @@ import { each } from './util/util';
  * A class that holds metadata about a Repo object
  */
 export class RepoInfo {
-  host: string;
-  domain: string;
+  private _host: string;
+  private _domain: string;
   internalHost: string;
 
   /**
@@ -45,77 +45,36 @@ export class RepoInfo {
     public readonly persistenceKey: string = '',
     public readonly includeNamespaceInQueryParams: boolean = false
   ) {
-    this.host = host.toLowerCase();
-    this.domain = this.host.substr(this.host.indexOf('.') + 1);
+    this._host = host.toLowerCase();
+    this._domain = this._host.substr(this._host.indexOf('.') + 1);
     this.internalHost =
-      (PersistentStorage.get('host:' + host) as string) || this.host;
-  }
-
-  needsQueryParam(): boolean {
-    return (
-      this.host !== this.internalHost ||
-      this.isCustomHost() ||
-      this.includeNamespaceInQueryParams
-    );
+      (PersistentStorage.get('host:' + host) as string) || this._host;
   }
 
   isCacheableHost(): boolean {
     return this.internalHost.substr(0, 2) === 's-';
   }
 
-  isDemoHost() {
-    return this.domain === 'firebaseio-demo.com';
-  }
-
   isCustomHost() {
     return (
-      this.domain !== 'firebaseio.com' && this.domain !== 'firebaseio-demo.com'
+      this._domain !== 'firebaseio.com' &&
+      this._domain !== 'firebaseio-demo.com'
     );
   }
 
-  updateHost(newHost: string) {
+  get host() {
+    return this._host;
+  }
+
+  set host(newHost: string) {
     if (newHost !== this.internalHost) {
       this.internalHost = newHost;
       if (this.isCacheableHost()) {
-        PersistentStorage.set('host:' + this.host, this.internalHost);
+        PersistentStorage.set('host:' + this._host, this.internalHost);
       }
     }
   }
 
-  /**
-   * Returns the websocket URL for this repo
-   * @param type of connection
-   * @param params list
-   * @return The URL for this repo
-   */
-  connectionURL(type: string, params: { [k: string]: string }): string {
-    assert(typeof type === 'string', 'typeof type must == string');
-    assert(typeof params === 'object', 'typeof params must == object');
-
-    let connURL: string;
-    if (type === WEBSOCKET) {
-      connURL =
-        (this.secure ? 'wss://' : 'ws://') + this.internalHost + '/.ws?';
-    } else if (type === LONG_POLLING) {
-      connURL =
-        (this.secure ? 'https://' : 'http://') + this.internalHost + '/.lp?';
-    } else {
-      throw new Error('Unknown connection type: ' + type);
-    }
-    if (this.needsQueryParam()) {
-      params['ns'] = this.namespace;
-    }
-
-    const pairs: string[] = [];
-
-    each(params, (key: string, value: string) => {
-      pairs.push(key + '=' + value);
-    });
-
-    return connURL + pairs.join('&');
-  }
-
-  /** @return {string} */
   toString(): string {
     let str = this.toURLString();
     if (this.persistenceKey) {
@@ -124,7 +83,6 @@ export class RepoInfo {
     return str;
   }
 
-  /** @return {string} */
   toURLString(): string {
     const protocol = this.secure ? 'https://' : 'http://';
     const query = this.includeNamespaceInQueryParams
@@ -132,4 +90,52 @@ export class RepoInfo {
       : '';
     return `${protocol}${this.host}/${query}`;
   }
+}
+
+function repoInfoNeedsQueryParam(repoInfo: RepoInfo): boolean {
+  return (
+    repoInfo.host !== repoInfo.internalHost ||
+    repoInfo.isCustomHost() ||
+    repoInfo.includeNamespaceInQueryParams
+  );
+}
+
+/**
+ * Returns the websocket URL for this repo
+ * @param repoInfo - RepoInfo object
+ * @param type - of connection
+ * @param params - list
+ * @returns The URL for this repo
+ */
+export function repoInfoConnectionURL(
+  repoInfo: RepoInfo,
+  type: string,
+  params: { [k: string]: string }
+): string {
+  assert(typeof type === 'string', 'typeof type must == string');
+  assert(typeof params === 'object', 'typeof params must == object');
+
+  let connURL: string;
+  if (type === WEBSOCKET) {
+    connURL =
+      (repoInfo.secure ? 'wss://' : 'ws://') + repoInfo.internalHost + '/.ws?';
+  } else if (type === LONG_POLLING) {
+    connURL =
+      (repoInfo.secure ? 'https://' : 'http://') +
+      repoInfo.internalHost +
+      '/.lp?';
+  } else {
+    throw new Error('Unknown connection type: ' + type);
+  }
+  if (repoInfoNeedsQueryParam(repoInfo)) {
+    params['ns'] = repoInfo.namespace;
+  }
+
+  const pairs: string[] = [];
+
+  each(params, (key: string, value: string) => {
+    pairs.push(key + '=' + value);
+  });
+
+  return connURL + pairs.join('&');
 }
