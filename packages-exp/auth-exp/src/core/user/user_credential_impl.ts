@@ -25,7 +25,7 @@ import { AuthInternal } from '../../model/auth';
 
 interface UserCredentialParams {
   readonly user: UserInternal;
-  readonly providerId: ProviderId | null;
+  readonly providerId: ProviderId | string | null;
   readonly _tokenResponse?: PhoneOrOauthTokenResponse;
   readonly operationType: OperationType;
 }
@@ -33,7 +33,7 @@ interface UserCredentialParams {
 export class UserCredentialImpl
   implements UserCredentialInternal, UserCredentialParams {
   readonly user: UserInternal;
-  readonly providerId: ProviderId | null;
+  readonly providerId: ProviderId | string | null;
   readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined;
   readonly operationType: OperationType;
 
@@ -81,7 +81,9 @@ export class UserCredentialImpl
   }
 }
 
-function providerIdForResponse(response: IdTokenResponse): ProviderId | null {
+function providerIdForResponse(
+  response: IdTokenResponse
+): ProviderId | string | null {
   if (response.providerId) {
     return response.providerId;
   }

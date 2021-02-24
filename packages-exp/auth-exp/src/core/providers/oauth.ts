@@ -20,7 +20,7 @@ import { AuthProvider, UserCredential } from '../../model/public_types';
 import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
 
-import { OAuthCredential } from '../credentials/oauth';
+import { OAuthCredential, OAuthCredentialParams } from '../credentials/oauth';
 import { UserCredentialInternal } from '../../model/user';
 import { FirebaseError } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
@@ -146,12 +146,19 @@ export class OAuthProvider implements AuthProvider {
    * or the ID token string.
    */
   credential(params: OAuthCredentialOptions): OAuthCredential {
-    _assert(params.idToken && params.accessToken, AuthErrorCode.ARGUMENT_ERROR);
+    return this._credential(params);
+  }
+
+  /** An internal credential method that accepts more permissive options */
+  private _credential(
+    params: OAuthCredentialOptions | OAuthCredentialParams
+  ): OAuthCredential {
+    _assert(params.idToken || params.accessToken, AuthErrorCode.ARGUMENT_ERROR);
     // For OAuthCredential, sign in method is same as providerId.
     return OAuthCredential._fromParams({
+      ...params,
       providerId: this.providerId,
-      signInMethod: this.providerId,
-      ...params
+      signInMethod: this.providerId
     });
   }
 
@@ -261,10 +268,11 @@ export class OAuthProvider implements AuthProvider {
     }
 
     try {
-      return new OAuthProvider(providerId).credential({
+      return new OAuthProvider(providerId)._credential({
         idToken: oauthIdToken,
         accessToken: oauthAccessToken,
-        rawNonce: nonce
+        rawNonce: nonce,
+        pendingToken
       });
     } catch (e) {
       return null;
