@@ -86,8 +86,15 @@ async function generateDocs() {
   // Generate docs without the -exp suffix
   removeExpSuffix(tmpDir);
   await spawn(
-    'npx',
-    ['api-documenter', 'markdown', '--input', 'temp', '--output', 'docs-exp'],
+    'yarn',
+    [
+      'api-documenter-devsite',
+      'markdown',
+      '--input',
+      'temp',
+      '--output',
+      'docs-exp'
+    ],
     { stdio: 'inherit' }
   );
 }
