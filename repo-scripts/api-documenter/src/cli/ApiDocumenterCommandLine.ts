@@ -20,7 +20,6 @@
 
 import { CommandLineParser } from '@rushstack/ts-command-line';
 import { MarkdownAction } from './MarkdownAction';
-import { GenerateAction } from './GenerateAction';
 
 export class ApiDocumenterCommandLine extends CommandLineParser {
   public constructor() {
@@ -40,6 +39,5 @@ export class ApiDocumenterCommandLine extends CommandLineParser {
 
   private _populateActions(): void {
     this.addAction(new MarkdownAction(this));
-    this.addAction(new GenerateAction(this));
   }
 }
