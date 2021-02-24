@@ -208,9 +208,7 @@ export class MarkdownDocumenter {
         );
         break;
       case ApiItemKind.Enum:
-        output.push(
-          new DocHeading({ configuration, title: `${scopedName} enum` })
-        );
+        output.push(new DocHeading({ configuration, title: `${scopedName}` }));
         break;
       case ApiItemKind.Interface:
         output.push(
@@ -223,14 +221,10 @@ export class MarkdownDocumenter {
         break;
       case ApiItemKind.Method:
       case ApiItemKind.MethodSignature:
-        output.push(
-          new DocHeading({ configuration, title: `${scopedName} method` })
-        );
+        output.push(new DocHeading({ configuration, title: `${scopedName}` }));
         break;
       case ApiItemKind.Function:
-        output.push(
-          new DocHeading({ configuration, title: `${scopedName} function` })
-        );
+        output.push(new DocHeading({ configuration, title: `${scopedName}` }));
         break;
       case ApiItemKind.Model:
         output.push(new DocHeading({ configuration, title: `API Reference` }));
@@ -264,19 +258,13 @@ export class MarkdownDocumenter {
         break;
       case ApiItemKind.Property:
       case ApiItemKind.PropertySignature:
-        output.push(
-          new DocHeading({ configuration, title: `${scopedName} property` })
-        );
+        output.push(new DocHeading({ configuration, title: `${scopedName}` }));
         break;
       case ApiItemKind.TypeAlias:
-        output.push(
-          new DocHeading({ configuration, title: `${scopedName} type` })
-        );
+        output.push(new DocHeading({ configuration, title: `${scopedName}` }));
         break;
       case ApiItemKind.Variable:
-        output.push(
-          new DocHeading({ configuration, title: `${scopedName} variable` })
-        );
+        output.push(new DocHeading({ configuration, title: `${scopedName}` }));
         break;
       default:
         throw new Error('Unsupported API item kind:1 ' + apiItem.kind);
