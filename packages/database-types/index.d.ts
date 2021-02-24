@@ -21,16 +21,17 @@ export function getDatabase(app: FirebaseApp): FirebaseDatabase;
 
 export class DataSnapshot {
   private constructor();
+  priority: string | number | null;
+  numChildren: number;
+  key: string | null;
+  ref: Reference;
+
   child(path: string): DataSnapshot;
   exists(): boolean;
   exportVal(): any;
-  forEach(action: (a: DataSnapshot) => boolean | void): boolean;
-  getPriority(): string | number | null;
+  forEach(action: (child: DataSnapshot) => boolean | void): boolean;
   hasChild(path: string): boolean;
   hasChildren(): boolean;
-  key: string | null;
-  numChildren(): number;
-  ref: Reference;
   toJSON(): object | null;
   val(): any;
 }
@@ -69,13 +70,6 @@ export interface OnDisconnect {
   ): Promise<void>;
 }
 
-type EventType =
-  | 'value'
-  | 'child_added'
-  | 'child_changed'
-  | 'child_moved'
-  | 'child_removed';
-
 export class Query {
   protected constructor();
   ref: Reference;
@@ -85,18 +79,108 @@ export class Query {
 }
 
 export function get(query: Query): Promise<DataSnapshot>;
-export function on(
+
+export type Unsubscribe = () => {};
+export interface ListenOptions {
+  readonly once?: boolean;
+}
+
+export function onValue(
   query: Query,
-  eventType: EventType,
-  callback: (snapshot: DataSnapshot, previousChildName?: string | null) => any,
-  cancelCallbackOrContext?: ((error: Error) => any) | object | null,
-  context?: object | null
-): (snapshot: DataSnapshot, previousChildName?: string | null) => any;
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+export function onValue(
+  options: ListenOptions,
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+
+export function onChildAdded(
+  options: ListenOptions,
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+export function onChildAdded(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+
+export function onChildChanged(
+  options: ListenOptions,
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+export function onChildChanged(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+
+export function onChildMoved(
+  options: ListenOptions,
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+export function onChildMoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+
+export function onChildRemoved(
+  options: ListenOptions,
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+export function onChildRemoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback?: (error: Error) => unknown
+): Unsubscribe;
+
 export function off(
   query: Query,
-  eventType?: EventType,
-  callback?: (snapshot: DataSnapshot, previousChildName?: string | null) => any,
-  context?: object | null
+  callback?: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown
 ): void;
 
 export interface QueryConstraint {
@@ -165,10 +249,19 @@ export function setWithPriority(
   newPriority: string | number | null
 ): Promise<void>;
 export function update(ref: Reference, values: object): Promise<void>;
+
+export interface TransactionOptions {
+  readonly applyLocally?: boolean;
+}
+
 export function transaction(
   ref: Reference,
-  transactionUpdate: (currentData: any) => unknown,
-  applyLocally?: boolean
+  transactionUpdate: (currentData: any) => unknown
+): Promise<void>;
+export function transaction(
+  options: TransactionOptions,
+  ref: Reference,
+  transactionUpdate: (currentData: any) => unknown
 ): Promise<void>;
 
 export class ServerValue {
@@ -182,6 +275,6 @@ export interface ThenableReference
     Pick<Promise<Reference>, 'then' | 'catch'> {}
 
 export function enableLogging(
-  logger?: boolean | ((message: string) => any),
+  logger?: boolean | ((message: string) => unknown),
   persistent?: boolean
 ): void;
