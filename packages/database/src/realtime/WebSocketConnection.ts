@@ -16,9 +16,9 @@
  */
 
 import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
-import { assert, jsonEval, stringify, isNodeSdk } from '@firebase/util';
+import { assert, isNodeSdk, jsonEval, stringify } from '@firebase/util';
 import { logWrapper, splitStringBySize } from '../core/util/util';
-import { StatsManager } from '../core/stats/StatsManager';
+import { statsManagerGetCollection } from '../core/stats/StatsManager';
 import {
   FORGE_DOMAIN_RE,
   FORGE_REF,
@@ -86,7 +86,7 @@ export class WebSocketConnection implements Transport {
     lastSessionId?: string
   ) {
     this.log_ = logWrapper(this.connId);
-    this.stats_ = StatsManager.getCollection(repoInfo);
+    this.stats_ = statsManagerGetCollection(repoInfo);
     this.connURL = WebSocketConnection.connectionURL_(
       repoInfo,
       transportSessionId,
