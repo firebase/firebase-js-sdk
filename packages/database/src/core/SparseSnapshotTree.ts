@@ -22,7 +22,7 @@ import { Node } from './snap/Node';
 /**
  * Helper class to store a sparse set of snapshots.
  */
-export interface SparseSnapshotTree {
+interface SparseSnapshotTree {
   value: Node | null;
   readonly children: Map<string, SparseSnapshotTree>;
 }
@@ -113,9 +113,8 @@ export function sparseSnapshotTreeForget(
         const value = sparseSnapshotTree.value;
         sparseSnapshotTree.value = null;
 
-        const self = this;
         value.forEachChild(PRIORITY_INDEX, (key, tree) => {
-          self.remember(new Path(key), tree);
+          sparseSnapshotTreeRemember(sparseSnapshotTree, new Path(key), tree);
         });
 
         return sparseSnapshotTreeForget(sparseSnapshotTree, path);
