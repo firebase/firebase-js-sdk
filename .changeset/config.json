@@ -25,7 +25,6 @@
     "@firebase/installations-compat",
     "@firebase/messaging-exp",
     "@firebase/performance-exp",
-    "@firebase/performance-types-exp",
     "@firebase/remote-config-exp",
     "@firebase/remote-config-compat",
     "firebase-exp",

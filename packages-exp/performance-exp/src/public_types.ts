@@ -58,9 +58,9 @@ export interface PerformanceTrace {
    * start/stop. This is useful for use cases in which the trace cannot directly be used
    * (e.g. if the duration was captured before the Performance SDK was loaded).
    *
-   * @param startTime trace start time since epoch in millisec.
-   * @param duration The duraction of the trace in millisec.
-   * @param options An object which can optionally hold maps of custom metrics and
+   * @param startTime - trace start time since epoch in millisec.
+   * @param duration - The duraction of the trace in millisec.
+   * @param options - An object which can optionally hold maps of custom metrics and
    * custom attributes.
    */
   record(
@@ -76,8 +76,8 @@ export interface PerformanceTrace {
    * exist, it creates one with that name and the value equal to the given number. The value will be floored down to an
    * integer.
    *
-   * @param metricName The name of the custom metric.
-   * @param num The number to be added to the value of the custom metric. If not provided, it
+   * @param metricName - The name of the custom metric.
+   * @param num - The number to be added to the value of the custom metric. If not provided, it
    * uses a default value of one.
    */
   incrementMetric(metricName: string, num?: number): void;
@@ -86,34 +86,34 @@ export interface PerformanceTrace {
    * a metric with that name already exists on the trace instance or not. The value will be floored down to an
    * integer.
    *
-   * @param metricName Name of the custom metric.
-   * @param num Value to of the custom metric.
+   * @param metricName - Name of the custom metric.
+   * @param num - Value to of the custom metric.
    */
   putMetric(metricName: string, num: number): void;
   /**
    * Returns the value of the custom metric by that name. If a custom metric with that name does
    * not exist will return zero.
    *
-   * @param metricName Name of the custom metric.
+   * @param metricName - Name of the custom metric.
    */
   getMetric(metricName: string): number;
   /**
    * Set a custom attribute of a trace to a certain value.
    *
-   * @param attr Name of the custom attribute.
-   * @param value Value of the custom attribute.
+   * @param attr - Name of the custom attribute.
+   * @param value - Value of the custom attribute.
    */
   putAttribute(attr: string, value: string): void;
   /**
    * Retrieves the value which a custom attribute is set to.
    *
-   * @param attr Name of the custom attribute.
+   * @param attr - Name of the custom attribute.
    */
   getAttribute(attr: string): string | undefined;
   /**
    * Removes the specified custom attribute from a trace instance.
    *
-   * @param attr Name of the custom attribute.
+   * @param attr - Name of the custom attribute.
    */
   removeAttribute(attr: string): void;
   /**
