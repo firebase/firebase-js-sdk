@@ -76,7 +76,8 @@ import {
   createDescriptionCell,
   createEnumTables,
   createThrowsSection,
-  createEntryPointTitleCell
+  createEntryPointTitleCell,
+  createExampleSection
 } from './MarkdownDocumenterHelpers';
 import * as path from 'path';
 import { DocHeading } from '../nodes/DocHeading';
@@ -298,19 +299,11 @@ export class MarkdownDocumenter {
       }
     }
 
+    // render remark sections
+    output.push(...createRemarksSection(apiItem, configuration));
+
     if (apiItem instanceof ApiDeclaredItem) {
       output.push(...this._createSignatureSection(apiItem));
-    }
-
-    let appendRemarks: boolean = true;
-    switch (apiItem.kind) {
-      case ApiItemKind.Class:
-      case ApiItemKind.Interface:
-      case ApiItemKind.Namespace:
-      case ApiItemKind.Package:
-        output.push(...createRemarksSection(apiItem, configuration));
-        appendRemarks = false;
-        break;
     }
 
     switch (apiItem.kind) {
@@ -358,9 +351,7 @@ export class MarkdownDocumenter {
         throw new Error('Unsupported API item kind:2 ' + apiItem.kind);
     }
 
-    if (appendRemarks) {
-      output.push(...createRemarksSection(apiItem, configuration));
-    }
+    output.push(...createExampleSection(apiItem, configuration));
 
     return output;
   }

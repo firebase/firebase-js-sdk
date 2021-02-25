@@ -181,10 +181,23 @@ export function createRemarksSection(
     if (tsdocComment) {
       // Write the @remarks block
       if (tsdocComment.remarksBlock) {
-        nodes.push(new DocHeading({ configuration, title: 'Remarks' }));
         nodes.push(...tsdocComment.remarksBlock.content.nodes);
       }
+    }
+  }
 
+  return nodes;
+}
+
+export function createExampleSection(
+  apiItem: ApiItem,
+  configuration: TSDocConfiguration
+): DocNode[] {
+  const nodes: DocNode[] = [];
+  if (apiItem instanceof ApiDocumentedItem) {
+    const tsdocComment: DocComment | undefined = apiItem.tsdocComment;
+
+    if (tsdocComment) {
       // Write the @example blocks
       const exampleBlocks: DocBlock[] = tsdocComment.customBlocks.filter(
         x =>
