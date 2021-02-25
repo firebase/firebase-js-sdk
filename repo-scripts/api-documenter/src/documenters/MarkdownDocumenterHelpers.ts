@@ -112,19 +112,19 @@ function getHeadingAnchorForApiItem(apiItem: ApiItem): string {
 
   switch (apiItem.kind) {
     case ApiItemKind.Function:
-      return `${scopedName}_function`;
+      return `${scopedName}`;
     case ApiItemKind.Variable:
-      return `${scopedName}_variable`;
+      return `${scopedName}`;
     case ApiItemKind.TypeAlias:
-      return `${scopedName}_type`;
+      return `${scopedName}`;
     case ApiItemKind.Enum:
-      return `${scopedName}_enum`;
+      return `${scopedName}`;
     case ApiItemKind.Method:
     case ApiItemKind.MethodSignature:
-      return `${scopedName}_method`;
+      return `${scopedName}`;
     case ApiItemKind.Property:
     case ApiItemKind.PropertySignature:
-      return `${scopedName}_property`;
+      return `${scopedName}`;
     case ApiItemKind.Constructor:
     case ApiItemKind.ConstructSignature:
       return `${scopedName}`;
