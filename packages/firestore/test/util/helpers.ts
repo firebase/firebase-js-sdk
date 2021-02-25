@@ -284,7 +284,7 @@ export function deleteMutation(keyStr: string): DeleteMutation {
 export function mutationResult(
   testVersion: TestSnapshotVersion
 ): MutationResult {
-  return new MutationResult(version(testVersion), /* transformResults= */ null);
+  return new MutationResult(version(testVersion), /* transformResults= */ []);
 }
 
 export function bound(
