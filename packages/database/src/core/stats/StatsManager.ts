@@ -18,30 +18,28 @@
 import { StatsCollection } from './StatsCollection';
 import { RepoInfo } from '../RepoInfo';
 
-export class StatsManager {
-  private static collections_: { [k: string]: StatsCollection } = {};
-  private static reporters_: { [k: string]: unknown } = {};
+const collections: { [k: string]: StatsCollection } = {};
+const reporters: { [k: string]: unknown } = {};
 
-  static getCollection(repoInfo: RepoInfo): StatsCollection {
-    const hashString = repoInfo.toString();
+export function statsManagerGetCollection(repoInfo: RepoInfo): StatsCollection {
+  const hashString = repoInfo.toString();
 
-    if (!this.collections_[hashString]) {
-      this.collections_[hashString] = new StatsCollection();
-    }
-
-    return this.collections_[hashString];
+  if (!collections[hashString]) {
+    collections[hashString] = new StatsCollection();
   }
 
-  static getOrCreateReporter<T>(
-    repoInfo: RepoInfo,
-    creatorFunction: () => T
-  ): T {
-    const hashString = repoInfo.toString();
+  return collections[hashString];
+}
 
-    if (!this.reporters_[hashString]) {
-      this.reporters_[hashString] = creatorFunction();
-    }
+export function statsManagerGetOrCreateReporter<T>(
+  repoInfo: RepoInfo,
+  creatorFunction: () => T
+): T {
+  const hashString = repoInfo.toString();
 
-    return this.reporters_[hashString] as T;
+  if (!reporters[hashString]) {
+    reporters[hashString] = creatorFunction();
   }
+
+  return reporters[hashString] as T;
 }

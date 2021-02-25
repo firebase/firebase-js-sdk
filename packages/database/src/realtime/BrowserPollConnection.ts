@@ -24,7 +24,7 @@ import {
   LUIDGenerator,
   splitStringBySize
 } from '../core/util/util';
-import { StatsManager } from '../core/stats/StatsManager';
+import { statsManagerGetCollection } from '../core/stats/StatsManager';
 import { PacketReceiver } from './polling/PacketReceiver';
 import {
   APPLICATION_ID_PARAM,
@@ -37,7 +37,7 @@ import {
   TRANSPORT_SESSION_PARAM,
   VERSION_PARAM
 } from './Constants';
-import { base64Encode, stringify, isNodeSdk } from '@firebase/util';
+import { base64Encode, isNodeSdk, stringify } from '@firebase/util';
 
 import { Transport } from './Transport';
 import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
@@ -114,7 +114,7 @@ export class BrowserPollConnection implements Transport {
     public lastSessionId?: string
   ) {
     this.log_ = logWrapper(connId);
-    this.stats_ = StatsManager.getCollection(repoInfo);
+    this.stats_ = statsManagerGetCollection(repoInfo);
     this.urlFn = (params: { [k: string]: string }) =>
       repoInfoConnectionURL(repoInfo, LONG_POLLING, params);
   }

@@ -55,7 +55,10 @@ import {
 } from './util/util';
 
 import { AuthTokenProvider } from './AuthTokenProvider';
-import { StatsManager } from './stats/StatsManager';
+import {
+  statsManagerGetCollection,
+  statsManagerGetOrCreateReporter
+} from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
 import { StatsListener } from './stats/StatsListener';
 import {
@@ -181,7 +184,7 @@ export class Repo {
 }
 
 export function repoStart(repo: Repo): void {
-  repo.stats_ = StatsManager.getCollection(repo.repoInfo_);
+  repo.stats_ = statsManagerGetCollection(repo.repoInfo_);
 
   if (repo.forceRestClient_ || beingCrawled()) {
     repo.server_ = new ReadonlyRestClient(
@@ -245,7 +248,7 @@ export function repoStart(repo: Repo): void {
 
   // In the case of multiple Repos for the same repoInfo (i.e. there are multiple Firebase.Contexts being used),
   // we only want to create one StatsReporter.  As such, we'll report stats over the first Repo created.
-  repo.statsReporter_ = StatsManager.getOrCreateReporter(
+  repo.statsReporter_ = statsManagerGetOrCreateReporter(
     repo.repoInfo_,
     () => new StatsReporter(repo.stats_, repo.server_)
   );
