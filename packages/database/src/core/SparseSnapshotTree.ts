@@ -22,7 +22,7 @@ import { Node } from './snap/Node';
 /**
  * Helper class to store a sparse set of snapshots.
  */
-interface SparseSnapshotTree {
+export interface SparseSnapshotTree {
   value: Node | null;
   readonly children: Map<string, SparseSnapshotTree>;
 }
