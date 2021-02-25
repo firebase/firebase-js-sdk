@@ -29,7 +29,12 @@ import {
   pathGetFront,
   pathPopFront
 } from './util/Path';
-import { SparseSnapshotTree } from './SparseSnapshotTree';
+import {
+  newSparseSnapshotTree,
+  sparseSnapshotTreeForEachTree,
+  sparseSnapshotTreeForget,
+  sparseSnapshotTreeRemember
+} from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
 import {
@@ -147,7 +152,7 @@ export class Repo {
   __database: Database;
 
   /** A list of data pieces and paths to be set when this client disconnects. */
-  onDisconnect_ = new SparseSnapshotTree();
+  onDisconnect_ = newSparseSnapshotTree();
 
   /** Stores queues of outstanding transactions for Firebase locations. */
   transactionQueueTree_ = new Tree<Transaction[]>();
@@ -569,27 +574,35 @@ function repoRunOnDisconnectEvents(repo: Repo): void {
   repoLog(repo, 'onDisconnectEvents');
 
   const serverValues = repoGenerateServerValues(repo);
-  const resolvedOnDisconnectTree = new SparseSnapshotTree();
-  repo.onDisconnect_.forEachTree(newEmptyPath(), (path, node) => {
-    const resolved = resolveDeferredValueTree(
-      path,
-      node,
-      repo.serverSyncTree_,
-      serverValues
-    );
-    resolvedOnDisconnectTree.remember(path, resolved);
-  });
+  const resolvedOnDisconnectTree = newSparseSnapshotTree();
+  sparseSnapshotTreeForEachTree(
+    repo.onDisconnect_,
+    newEmptyPath(),
+    (path, node) => {
+      const resolved = resolveDeferredValueTree(
+        path,
+        node,
+        repo.serverSyncTree_,
+        serverValues
+      );
+      sparseSnapshotTreeRemember(resolvedOnDisconnectTree, path, resolved);
+    }
+  );
   let events: Event[] = [];
 
-  resolvedOnDisconnectTree.forEachTree(newEmptyPath(), (path, snap) => {
-    events = events.concat(
-      repo.serverSyncTree_.applyServerOverwrite(path, snap)
-    );
-    const affectedPath = repoAbortTransactions(repo, path);
-    repoRerunTransactions(repo, affectedPath);
-  });
+  sparseSnapshotTreeForEachTree(
+    resolvedOnDisconnectTree,
+    newEmptyPath(),
+    (path, snap) => {
+      events = events.concat(
+        repo.serverSyncTree_.applyServerOverwrite(path, snap)
+      );
+      const affectedPath = repoAbortTransactions(repo, path);
+      repoRerunTransactions(repo, affectedPath);
+    }
+  );
 
-  repo.onDisconnect_ = new SparseSnapshotTree();
+  repo.onDisconnect_ = newSparseSnapshotTree();
   eventQueueRaiseEventsForChangedPath(repo.eventQueue_, newEmptyPath(), events);
 }
 
@@ -600,7 +613,7 @@ export function repoOnDisconnectCancel(
 ): void {
   repo.server_.onDisconnectCancel(path.toString(), (status, errorReason) => {
     if (status === 'ok') {
-      repo.onDisconnect_.forget(path);
+      sparseSnapshotTreeForget(repo.onDisconnect_, path);
     }
     repoCallOnCompleteCallback(repo, onComplete, status, errorReason);
   });
@@ -618,7 +631,7 @@ export function repoOnDisconnectSet(
     newNode.val(/*export=*/ true),
     (status, errorReason) => {
       if (status === 'ok') {
-        repo.onDisconnect_.remember(path, newNode);
+        sparseSnapshotTreeRemember(repo.onDisconnect_, path, newNode);
       }
       repoCallOnCompleteCallback(repo, onComplete, status, errorReason);
     }
@@ -638,7 +651,7 @@ export function repoOnDisconnectSetWithPriority(
     newNode.val(/*export=*/ true),
     (status, errorReason) => {
       if (status === 'ok') {
-        repo.onDisconnect_.remember(path, newNode);
+        sparseSnapshotTreeRemember(repo.onDisconnect_, path, newNode);
       }
       repoCallOnCompleteCallback(repo, onComplete, status, errorReason);
     }
@@ -664,7 +677,11 @@ export function repoOnDisconnectUpdate(
       if (status === 'ok') {
         each(childrenToMerge, (childName: string, childNode: unknown) => {
           const newChildNode = nodeFromJSON(childNode);
-          repo.onDisconnect_.remember(pathChild(path, childName), newChildNode);
+          sparseSnapshotTreeRemember(
+            repo.onDisconnect_,
+            pathChild(path, childName),
+            newChildNode
+          );
         });
       }
       repoCallOnCompleteCallback(repo, onComplete, status, errorReason);
