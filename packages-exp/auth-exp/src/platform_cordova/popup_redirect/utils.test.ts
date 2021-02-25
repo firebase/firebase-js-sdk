@@ -168,7 +168,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('does not attach a display name if none is present', async () => {
       setUA(ANDROID_UA);
-      delete (win.BuildInfo as {displayName?: string}).displayName;
+      delete (win.BuildInfo as { displayName?: string }).displayName;
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
@@ -385,7 +385,7 @@ function attachExpectedPlugins(): void {
   };
   win.BuildInfo = {
     packageName: 'com.example.name.package',
-    displayName: 'display name',
+    displayName: 'display name'
   };
 }
 

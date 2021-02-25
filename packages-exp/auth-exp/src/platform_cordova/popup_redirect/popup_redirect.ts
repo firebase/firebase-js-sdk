@@ -110,7 +110,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
     manager: AuthEventManager
   ): void {
     // Get the global plugins
-    const {universalLinks, handleOpenUrl, BuildInfo} = _cordovaWindow();
+    const { universalLinks, handleOpenUrl, BuildInfo } = _cordovaWindow();
 
     const noEventTimeout = setTimeout(async () => {
       // We didn't see that initial event. Clear any pending object and

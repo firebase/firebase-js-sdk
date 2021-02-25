@@ -70,7 +70,7 @@ describe('auth compat', () => {
             exp._getInstance(exp.inMemoryPersistence),
             exp._getInstance(exp.indexedDBLocalPersistence)
           ],
-          CompatPopupRedirectResolver,
+          CompatPopupRedirectResolver
         );
       }
     });

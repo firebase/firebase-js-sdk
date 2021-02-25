@@ -44,7 +44,7 @@ export async function _generateHandlerUrl(
   provider: AuthProvider
 ): Promise<string> {
   // Get the cordova plugins
-  const {BuildInfo} = _cordovaWindow();
+  const { BuildInfo } = _cordovaWindow();
   debugAssert(event.sessionId, 'AuthEvent did not contain a session ID');
   const sessionDigest = await computeSha256(event.sessionId);
 
@@ -80,7 +80,7 @@ export function _performRedirect(
   handlerUrl: string
 ): Promise<InAppBrowserRef | null> {
   // Get the cordova plugins
-  const {cordova} = _cordovaWindow();
+  const { cordova } = _cordovaWindow();
 
   return new Promise(resolve => {
     cordova.plugins.browsertab.isAvailable(browserTabIsAvailable => {
@@ -118,7 +118,7 @@ export async function _waitForAppResume(
   iabRef: InAppBrowserRef | null
 ): Promise<void> {
   // Get the cordova plugins
-  const {cordova} = _cordovaWindow();
+  const { cordova } = _cordovaWindow();
 
   let cleanup = (): void => {};
   try {
