@@ -17,6 +17,7 @@
 
 import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
+import { CompatPopupRedirectResolver } from './popup_redirect';
 import {
   convertConfirmationResult,
   convertCredential
@@ -91,7 +92,7 @@ export class User implements compat.User, Wrapper<exp.User> {
       exp.linkWithPopup(
         this.user,
         provider as exp.AuthProvider,
-        exp.browserPopupRedirectResolver
+        CompatPopupRedirectResolver
       )
     );
   }
@@ -99,7 +100,7 @@ export class User implements compat.User, Wrapper<exp.User> {
     return exp.linkWithRedirect(
       this.user,
       provider as exp.AuthProvider,
-      exp.browserPopupRedirectResolver
+      CompatPopupRedirectResolver
     );
   }
   reauthenticateAndRetrieveDataWithCredential(
@@ -139,7 +140,7 @@ export class User implements compat.User, Wrapper<exp.User> {
       exp.reauthenticateWithPopup(
         this.user,
         provider as exp.AuthProvider,
-        exp.browserPopupRedirectResolver
+        CompatPopupRedirectResolver
       )
     );
   }
@@ -147,7 +148,7 @@ export class User implements compat.User, Wrapper<exp.User> {
     return exp.reauthenticateWithRedirect(
       this.user,
       provider as exp.AuthProvider,
-      exp.browserPopupRedirectResolver
+      CompatPopupRedirectResolver
     );
   }
   sendEmailVerification(
