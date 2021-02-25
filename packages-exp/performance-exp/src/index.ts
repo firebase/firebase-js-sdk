@@ -19,7 +19,7 @@ import {
   FirebasePerformance,
   PerformanceSettings,
   PerformanceTrace
-} from '@firebase/performance-types-exp';
+} from './public_types';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import { setupApi } from './services/api_service';
 import { PerformanceController } from './controllers/perf';

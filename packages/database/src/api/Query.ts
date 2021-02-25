@@ -48,17 +48,22 @@ import {
   ValueEventRegistration
 } from '../core/view/EventRegistration';
 
-import { Repo } from '../core/Repo';
+import {
+  Repo,
+  repoAddEventCallbackForQuery,
+  repoGetValue,
+  repoRemoveEventCallbackForQuery
+} from '../core/Repo';
 import {
   QueryParams,
-  queryParamsLimitToFirst,
-  queryParamsLimitToLast,
-  queryParamsStartAfter,
-  queryParamsStartAt,
   queryParamsEndAt,
   queryParamsEndBefore,
   queryParamsGetQueryObject,
-  queryParamsOrderBy
+  queryParamsLimitToFirst,
+  queryParamsLimitToLast,
+  queryParamsOrderBy,
+  queryParamsStartAfter,
+  queryParamsStartAt
 } from '../core/view/QueryParams';
 import { Reference } from './Reference';
 import { DataSnapshot } from './DataSnapshot';
@@ -231,7 +236,7 @@ export class Query {
       cancelCallback || null,
       context || null
     );
-    this.repo.addEventCallbackForQuery(this, container);
+    repoAddEventCallbackForQuery(this.repo, this, container);
   }
 
   onChildEvent(
@@ -244,7 +249,7 @@ export class Query {
       cancelCallback,
       context
     );
-    this.repo.addEventCallbackForQuery(this, container);
+    repoAddEventCallbackForQuery(this.repo, this, container);
   }
 
   off(
@@ -273,14 +278,14 @@ export class Query {
       }
       container = new ChildEventRegistration(callbacks, null, context || null);
     }
-    this.repo.removeEventCallbackForQuery(this, container);
+    repoRemoveEventCallbackForQuery(this.repo, this, container);
   }
 
   /**
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return this.repo.getValue(this);
+    return repoGetValue(this.repo, this);
   }
 
   /**

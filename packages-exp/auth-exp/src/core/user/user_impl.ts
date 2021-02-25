@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { IdTokenResult, ProviderId } from '../../model/public_types';
 import { NextFn } from '@firebase/util';
 
 import {
@@ -23,9 +23,13 @@ import {
   deleteAccount
 } from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { MutableUserInfo, User, UserParameters } from '../../model/user';
+import {
+  MutableUserInfo,
+  UserInternal,
+  UserParameters
+} from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { _assert } from '../util/assert';
@@ -47,15 +51,15 @@ function assertStringOrUndefined(
   );
 }
 
-export class UserImpl implements User {
+export class UserImpl implements UserInternal {
   // For the user object, provider is always Firebase.
-  readonly providerId = externs.ProviderId.FIREBASE;
+  readonly providerId = ProviderId.FIREBASE;
   stsTokenManager: StsTokenManager;
   // Last known accessToken so we know when it changes
   private accessToken: string | null;
 
   uid: string;
-  auth: Auth;
+  auth: AuthInternal;
   emailVerified = false;
   isAnonymous = false;
   tenantId: string | null = null;
@@ -103,7 +107,7 @@ export class UserImpl implements User {
     return accessToken;
   }
 
-  getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult> {
+  getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult> {
     return getIdTokenResult(this, forceRefresh);
   }
 
@@ -114,7 +118,7 @@ export class UserImpl implements User {
   private reloadUserInfo: APIUserInfo | null = null;
   private reloadListener: NextFn<APIUserInfo> | null = null;
 
-  _assign(user: User): void {
+  _assign(user: UserInternal): void {
     if (this === user) {
       return;
     }
@@ -131,7 +135,7 @@ export class UserImpl implements User {
     this.stsTokenManager._assign(user.stsTokenManager);
   }
 
-  _clone(): User {
+  _clone(): UserInternal {
     return new UserImpl({
       ...this,
       stsTokenManager: this.stsTokenManager._clone()
@@ -222,7 +226,7 @@ export class UserImpl implements User {
     return this.stsTokenManager.refreshToken || '';
   }
 
-  static _fromJSON(auth: Auth, object: PersistedBlob): User {
+  static _fromJSON(auth: AuthInternal, object: PersistedBlob): UserInternal {
     const displayName = object.displayName ?? undefined;
     const email = object.email ?? undefined;
     const phoneNumber = object.phoneNumber ?? undefined;
@@ -297,10 +301,10 @@ export class UserImpl implements User {
    * @param idTokenResponse
    */
   static async _fromIdTokenResponse(
-    auth: Auth,
+    auth: AuthInternal,
     idTokenResponse: IdTokenResponse,
     isAnonymous: boolean = false
-  ): Promise<User> {
+  ): Promise<UserInternal> {
     const stsTokenManager = new StsTokenManager();
     stsTokenManager.updateFromServerResponse(idTokenResponse);
 

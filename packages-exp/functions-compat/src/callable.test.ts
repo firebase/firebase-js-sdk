@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { FunctionsErrorCode } from '@firebase/functions-types-exp';
+import { FunctionsErrorCode } from '@firebase/functions-exp';
 import { createTestService } from '../test/utils';
 import { firebase, FirebaseApp } from '@firebase/app-compat';
 

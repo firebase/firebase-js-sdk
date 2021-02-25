@@ -19,7 +19,7 @@ import { FirebaseApp } from '@firebase/app-exp';
 import {
   RemoteConfig as RemoteConfigType,
   LogLevel as RemoteConfigLogLevel
-} from '@firebase/remote-config-types-exp';
+} from '../src/public_types';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { StorageCache } from '../src/storage/storage_cache';

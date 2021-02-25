@@ -19,13 +19,13 @@ import { _getProvider, FirebaseApp } from '@firebase/app-exp';
 import {
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
-  Value as ValueType
-} from '@firebase/remote-config-types-exp';
+  Value
+} from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import { RC_COMPONENT_NAME } from './constants';
 import { ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
-import { Value } from './value';
+import { Value as ValueImpl } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
 
 /**
@@ -137,7 +137,7 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
  *
  * @public
  */
-export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType> {
+export function getAll(remoteConfig: RemoteConfig): Record<string, Value> {
   const rc = remoteConfig as RemoteConfigImpl;
   return getAllKeys(
     rc._storageCache.getActiveConfig(),
@@ -145,7 +145,7 @@ export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType> {
   ).reduce((allConfigs, key) => {
     allConfigs[key] = getValue(remoteConfig, key);
     return allConfigs;
-  }, {} as Record<string, ValueType>);
+  }, {} as Record<string, Value>);
 }
 
 /**
@@ -204,7 +204,7 @@ export function getString(remoteConfig: RemoteConfig, key: string): string {
  *
  * @public
  */
-export function getValue(remoteConfig: RemoteConfig, key: string): ValueType {
+export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   const rc = remoteConfig as RemoteConfigImpl;
   if (!rc._isInitializationComplete) {
     rc._logger.debug(
@@ -214,15 +214,15 @@ export function getValue(remoteConfig: RemoteConfig, key: string): ValueType {
   }
   const activeConfig = rc._storageCache.getActiveConfig();
   if (activeConfig && activeConfig[key] !== undefined) {
-    return new Value('remote', activeConfig[key]);
+    return new ValueImpl('remote', activeConfig[key]);
   } else if (rc.defaultConfig && rc.defaultConfig[key] !== undefined) {
-    return new Value('default', String(rc.defaultConfig[key]));
+    return new ValueImpl('default', String(rc.defaultConfig[key]));
   }
   rc._logger.debug(
     `Returning static value for key "${key}".` +
       ' Define a default or remote value if this is unintentional.'
   );
-  return new Value('static');
+  return new ValueImpl('static');
 }
 
 /**
@@ -256,5 +256,3 @@ export function setLogLevel(
 function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
   return Object.keys({ ...obj1, ...obj2 });
 }
-
-export { RemoteConfig, ValueType, RemoteConfigLogLevel };

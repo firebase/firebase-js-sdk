@@ -24,7 +24,7 @@ import {
   _isFirefox,
   _isIOSStandalone
 } from '../../core/util/browser';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 
 const BASE_POPUP_OPTIONS = {
   location: 'yes',
@@ -54,7 +54,7 @@ export class AuthPopup {
 }
 
 export function _open(
-  auth: Auth,
+  auth: AuthInternal,
   url?: string,
   name?: string,
   width = DEFAULT_WIDTH,

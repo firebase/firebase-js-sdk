@@ -1,5 +1,21 @@
 # firebase
 
+## 8.2.9
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/analytics@0.6.4
+  - @firebase/app@0.6.15
+  - @firebase/database@0.9.4
+  - @firebase/firestore@2.1.7
+  - @firebase/functions@0.6.2
+  - @firebase/installations@0.4.20
+  - @firebase/messaging@0.7.4
+  - @firebase/performance@0.4.6
+  - @firebase/remote-config@0.1.31
+  - @firebase/storage@0.4.3
+
 ## 8.2.8
 
 ### Patch Changes

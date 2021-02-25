@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Persistence } from '../../model/public_types';
 import {
   PersistedBlob,
-  Persistence,
+  PersistenceInternal as InternalPersistence,
   PersistenceType,
   PersistenceValue,
   StorageEventListener,
@@ -160,7 +160,7 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
 export const _POLLING_INTERVAL_MS = 800;
 export const _TRANSACTION_RETRY_COUNT = 3;
 
-class IndexedDBLocalPersistence implements Persistence {
+class IndexedDBLocalPersistence implements InternalPersistence {
   static type: 'LOCAL' = 'LOCAL';
 
   type = PersistenceType.LOCAL;
@@ -436,9 +436,9 @@ class IndexedDBLocalPersistence implements Persistence {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#Persistence} of type 'LOCAL' using `indexedDB`
+ * An implementation of {@link Persistence} of type 'LOCAL' using `indexedDB`
  * for the underlying storage.
  *
  * @public
  */
-export const indexedDBLocalPersistence: externs.Persistence = IndexedDBLocalPersistence;
+export const indexedDBLocalPersistence: Persistence = IndexedDBLocalPersistence;

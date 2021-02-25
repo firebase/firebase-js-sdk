@@ -26,7 +26,7 @@ import {
   InstanceFactory,
   ComponentContainer
 } from '@firebase/component';
-import { Functions as FunctionsServiceExp } from '@firebase/functions-types-exp';
+import { Functions as FunctionsServiceExp } from '@firebase/functions-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -53,7 +53,6 @@ const factory: InstanceFactory<'functions-compat'> = (
 
 export function registerFunctions(): void {
   const namespaceExports = {
-    // no-inline
     Functions: FunctionsService
   };
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(

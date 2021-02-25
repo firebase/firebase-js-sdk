@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { validateArgCount, validateCallback, Deferred } from '@firebase/util';
+import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
 import {
   validateWritablePath,
   validateFirebaseDataArg,
@@ -24,7 +24,13 @@ import {
 } from '../core/util/validation';
 import { warn } from '../core/util/util';
 
-import { Repo } from '../core/Repo';
+import {
+  Repo,
+  repoOnDisconnectCancel,
+  repoOnDisconnectSet,
+  repoOnDisconnectSetWithPriority,
+  repoOnDisconnectUpdate
+} from '../core/Repo';
 import { Path } from '../core/util/Path';
 import { Indexable } from '../core/util/misc';
 
@@ -35,7 +41,8 @@ export class OnDisconnect {
     validateArgCount('OnDisconnect.cancel', 0, 1, arguments.length);
     validateCallback('OnDisconnect.cancel', 1, onComplete, true);
     const deferred = new Deferred<void>();
-    this.repo_.onDisconnectCancel(
+    repoOnDisconnectCancel(
+      this.repo_,
       this.path_,
       deferred.wrapCallback(onComplete)
     );
@@ -47,7 +54,8 @@ export class OnDisconnect {
     validateWritablePath('OnDisconnect.remove', this.path_);
     validateCallback('OnDisconnect.remove', 1, onComplete, true);
     const deferred = new Deferred<void>();
-    this.repo_.onDisconnectSet(
+    repoOnDisconnectSet(
+      this.repo_,
       this.path_,
       null,
       deferred.wrapCallback(onComplete)
@@ -61,7 +69,8 @@ export class OnDisconnect {
     validateFirebaseDataArg('OnDisconnect.set', 1, value, this.path_, false);
     validateCallback('OnDisconnect.set', 2, onComplete, true);
     const deferred = new Deferred<void>();
-    this.repo_.onDisconnectSet(
+    repoOnDisconnectSet(
+      this.repo_,
       this.path_,
       value,
       deferred.wrapCallback(onComplete)
@@ -87,7 +96,8 @@ export class OnDisconnect {
     validateCallback('OnDisconnect.setWithPriority', 3, onComplete, true);
 
     const deferred = new Deferred<void>();
-    this.repo_.onDisconnectSetWithPriority(
+    repoOnDisconnectSetWithPriority(
+      this.repo_,
       this.path_,
       value,
       priority,
@@ -122,7 +132,8 @@ export class OnDisconnect {
     );
     validateCallback('OnDisconnect.update', 2, onComplete, true);
     const deferred = new Deferred<void>();
-    this.repo_.onDisconnectUpdate(
+    repoOnDisconnectUpdate(
+      this.repo_,
       this.path_,
       objectToMerge,
       deferred.wrapCallback(onComplete)

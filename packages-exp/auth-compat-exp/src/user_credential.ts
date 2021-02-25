@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
 import { User } from './user';
 
 function credentialFromResponse(
-  userCredential: impl.UserCredential
-): externs.AuthCredential | null {
+  userCredential: exp.UserCredentialInternal
+): exp.AuthCredential | null {
   const { providerId, _tokenResponse } = userCredential;
   if (!_tokenResponse) {
     return null;
@@ -30,23 +29,23 @@ function credentialFromResponse(
   // Handle phone Auth credential responses, as they have a different format
   // from other backend responses (i.e. no providerId).
   if ('temporaryProof' in _tokenResponse && 'phoneNumber' in _tokenResponse) {
-    return impl.PhoneAuthProvider.credentialFromResult(userCredential);
+    return exp.PhoneAuthProvider.credentialFromResult(userCredential);
   }
   // Email and password is not supported as there is no situation where the
   // server would return the password to the client.
-  if (!providerId || providerId === externs.ProviderId.PASSWORD) {
+  if (!providerId || providerId === exp.ProviderId.PASSWORD) {
     return null;
   }
 
   switch (providerId) {
-    case externs.ProviderId.GOOGLE:
-      return impl.GoogleAuthProvider.credentialFromResult(userCredential);
-    case externs.ProviderId.FACEBOOK:
-      return impl.FacebookAuthProvider.credentialFromResult(userCredential!);
-    case externs.ProviderId.GITHUB:
-      return impl.GithubAuthProvider.credentialFromResult(userCredential!);
-    case externs.ProviderId.TWITTER:
-      return impl.TwitterAuthProvider.credentialFromResult(userCredential);
+    case exp.ProviderId.GOOGLE:
+      return exp.GoogleAuthProvider.credentialFromResult(userCredential);
+    case exp.ProviderId.FACEBOOK:
+      return exp.FacebookAuthProvider.credentialFromResult(userCredential!);
+    case exp.ProviderId.GITHUB:
+      return exp.GithubAuthProvider.credentialFromResult(userCredential!);
+    case exp.ProviderId.TWITTER:
+      return exp.TwitterAuthProvider.credentialFromResult(userCredential);
     default:
       const {
         oauthIdToken,
@@ -54,7 +53,7 @@ function credentialFromResponse(
         oauthTokenSecret,
         pendingToken,
         nonce
-      } = _tokenResponse as impl.SignInWithIdpResponse;
+      } = _tokenResponse as exp.SignInWithIdpResponse;
       if (
         !oauthAccessToken &&
         !oauthTokenSecret &&
@@ -79,7 +78,7 @@ function credentialFromResponse(
       //       providerId);
       //   }
       // }
-      return new impl.OAuthProvider(providerId).credential({
+      return new exp.OAuthProvider(providerId).credential({
         idToken: oauthIdToken,
         accessToken: oauthAccessToken,
         rawNonce: nonce
@@ -88,15 +87,15 @@ function credentialFromResponse(
 }
 
 export async function convertCredential(
-  auth: externs.Auth,
-  credentialPromise: Promise<externs.UserCredential>
+  auth: exp.Auth,
+  credentialPromise: Promise<exp.UserCredential>
 ): Promise<compat.UserCredential> {
-  let credential: externs.UserCredential;
+  let credential: exp.UserCredential;
   try {
     credential = await credentialPromise;
   } catch (e) {
     if (e.code === 'auth/multi-factor-auth-required') {
-      e.resolver = impl.getMultiFactorResolver(auth, e);
+      e.resolver = exp.getMultiFactorResolver(auth, e);
     }
     throw e;
   }
@@ -104,17 +103,19 @@ export async function convertCredential(
 
   return {
     operationType,
-    credential: credentialFromResponse(credential as impl.UserCredential),
-    additionalUserInfo: impl.getAdditionalUserInfo(
-      credential as impl.UserCredential
+    credential: credentialFromResponse(
+      credential as exp.UserCredentialInternal
+    ),
+    additionalUserInfo: exp.getAdditionalUserInfo(
+      credential as exp.UserCredential
     ),
     user: User.getOrCreate(user)
   };
 }
 
 export async function convertConfirmationResult(
-  auth: externs.Auth,
-  confirmationResultPromise: Promise<externs.ConfirmationResult>
+  auth: exp.Auth,
+  confirmationResultPromise: Promise<exp.ConfirmationResult>
 ): Promise<compat.ConfirmationResult> {
   const confirmationResultExp = await confirmationResultPromise;
   return {

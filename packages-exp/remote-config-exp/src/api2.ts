@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { RemoteConfig } from '@firebase/remote-config-types-exp';
+import { RemoteConfig } from './public_types';
 import { activate, fetchConfig } from './api';
 
 // This API is put in a separate file, so we can stub fetchConfig and activate in tests.

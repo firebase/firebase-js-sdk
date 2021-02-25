@@ -26,15 +26,13 @@ import {
   signInAnonymously,
   signInWithPhoneNumber,
   unlink,
-  updatePhoneNumber
-  // eslint-disable-next-line import/no-extraneous-dependencies
-} from '@firebase/auth-exp';
-import {
+  updatePhoneNumber,
   Auth,
   OperationType,
   ProviderId,
   UserCredential
-} from '@firebase/auth-types-exp';
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/auth-exp';
 import { FirebaseError } from '@firebase/util';
 
 import {

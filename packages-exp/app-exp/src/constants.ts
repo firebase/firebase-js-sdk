@@ -17,6 +17,7 @@
 
 import { name as appName } from '../package.json';
 import { name as appCompatName } from '../../app-compat/package.json';
+import { name as analyticsCompatName } from '../../../packages-exp/analytics-compat/package.json';
 import { name as analyticsName } from '../../../packages-exp/analytics-exp/package.json';
 import { name as authName } from '../../../packages-exp/auth-exp/package.json';
 import { name as authCompatName } from '../../../packages-exp/auth-compat-exp/package.json';
@@ -44,6 +45,7 @@ export const PLATFORM_LOG_STRING = {
   [appName]: 'fire-core',
   [appCompatName]: 'fire-core-compat',
   [analyticsName]: 'fire-analytics',
+  [analyticsCompatName]: 'fire-analytics-compat',
   [authName]: 'fire-auth',
   [authCompatName]: 'fire-auth-compat',
   [databaseName]: 'fire-rtdb',

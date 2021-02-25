@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as externs from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
@@ -41,7 +41,7 @@ import { _castAuth } from './auth_impl';
  * @public
  */
 export function useAuthEmulator(
-  auth: externs.Auth,
+  auth: Auth,
   url: string,
   options?: { disableWarnings: boolean }
 ): void {

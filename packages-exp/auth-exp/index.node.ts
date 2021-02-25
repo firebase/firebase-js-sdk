@@ -24,8 +24,8 @@
 
 import * as fetchImpl from 'node-fetch';
 
-import { FirebaseApp } from '@firebase/app-exp';
-import { Auth } from '@firebase/auth-types-exp';
+import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { Auth } from './src/model/public_types';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
@@ -43,6 +43,12 @@ FetchProvider.initialize(
 export * from './src';
 
 export function getAuth(app: FirebaseApp): Auth {
+  const provider = _getProvider(app, 'auth-exp');
+
+  if (provider.isInitialized()) {
+    return provider.getImmediate();
+  }
+
   return initializeAuth(app);
 }
 

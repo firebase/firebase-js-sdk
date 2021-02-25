@@ -16,12 +16,12 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import * as impl from '@firebase/auth-exp/internal';
-import { Config } from '@firebase/auth-types-exp';
+import * as exp from '@firebase/auth-exp/internal';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Auth } from './auth';
+import { CompatPopupRedirectResolver } from './popup_redirect';
 
 use(sinonChai);
 
@@ -29,13 +29,13 @@ use(sinonChai);
 // of the auth compat layer are more complicated: these tests cover those
 describe('auth compat', () => {
   context('redirect persistence key storage', () => {
-    let underlyingAuth: impl.AuthImpl;
+    let underlyingAuth: exp.AuthImpl;
     let app: FirebaseApp;
     beforeEach(() => {
       app = { options: { apiKey: 'api-key' } } as FirebaseApp;
-      underlyingAuth = new impl.AuthImpl(app, {
+      underlyingAuth = new exp.AuthImpl(app, {
         apiKey: 'api-key'
-      } as Config);
+      } as exp.Config);
       sinon.stub(underlyingAuth, '_initializeWithPersistence');
     });
 
@@ -48,7 +48,7 @@ describe('auth compat', () => {
       if (typeof self !== 'undefined') {
         sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        authCompat.signInWithRedirect(new impl.GoogleAuthProvider());
+        authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
         expect(
           sessionStorage.getItem('firebase:persistence:api-key:undefined')
         ).to.eq('TEST');
@@ -67,10 +67,10 @@ describe('auth compat', () => {
           underlyingAuth._initializeWithPersistence
         ).to.have.been.calledWith(
           [
-            impl._getInstance(impl.inMemoryPersistence),
-            impl._getInstance(impl.indexedDBLocalPersistence)
+            exp._getInstance(exp.inMemoryPersistence),
+            exp._getInstance(exp.indexedDBLocalPersistence)
           ],
-          impl.browserPopupRedirectResolver
+          CompatPopupRedirectResolver
         );
       }
     });

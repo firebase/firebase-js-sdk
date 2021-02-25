@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { ProviderId, SignInMethod } from '../../model/public_types';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import {
@@ -24,7 +24,7 @@ import {
   SignInWithPhoneNumberRequest,
   verifyPhoneNumberForExisting
 } from '../../api/authentication/sms';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthCredential } from './auth_credential';
 
@@ -36,15 +36,13 @@ export interface PhoneAuthCredentialParameters {
 }
 
 /**
- * {@inheritdoc @firebase/auth-types#PhoneAuthCredential}
+ * Represents the credentials returned by {@link PhoneAuthProvider}.
  *
  * @public
  */
-export class PhoneAuthCredential
-  extends AuthCredential
-  implements externs.PhoneAuthCredential {
+export class PhoneAuthCredential extends AuthCredential {
   private constructor(private readonly params: PhoneAuthCredentialParameters) {
-    super(externs.ProviderId.PHONE, externs.SignInMethod.PHONE);
+    super(ProviderId.PHONE, SignInMethod.PHONE);
   }
 
   /** @internal */
@@ -64,12 +62,15 @@ export class PhoneAuthCredential
   }
 
   /** @internal */
-  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+  _getIdTokenResponse(auth: AuthInternal): Promise<PhoneOrOauthTokenResponse> {
     return signInWithPhoneNumber(auth, this._makeVerificationRequest());
   }
 
   /** @internal */
-  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(
+    auth: AuthInternal,
+    idToken: string
+  ): Promise<IdTokenResponse> {
     return linkWithPhoneNumber(auth, {
       idToken,
       ...this._makeVerificationRequest()
@@ -77,7 +78,7 @@ export class PhoneAuthCredential
   }
 
   /** @internal */
-  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse> {
     return verifyPhoneNumberForExisting(auth, this._makeVerificationRequest());
   }
 
@@ -99,7 +100,7 @@ export class PhoneAuthCredential
     };
   }
 
-  /** {@inheritdoc @firebase/auth-types#toJSON} */
+  /** {@inheritdoc AuthCredential.toJSON} */
   toJSON(): object {
     const obj: Record<string, string> = {
       providerId: this.providerId
@@ -120,7 +121,7 @@ export class PhoneAuthCredential
     return obj;
   }
 
-  /** {@inheritdoc @firebase/auth-types#fromJSON} */
+  /** {@inheritdoc AuthCredential.fromJSON} */
   static fromJSON(json: object | string): PhoneAuthCredential | null {
     if (typeof json === 'string') {
       json = JSON.parse(json);

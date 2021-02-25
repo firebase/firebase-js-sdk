@@ -25,7 +25,7 @@ import {
   ComponentContainer
 } from '@firebase/component';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
-import { RemoteConfig } from '@firebase/remote-config-types-exp';
+import { RemoteConfig } from './public_types';
 import { name as packageName, version } from '../package.json';
 import { ensureInitialized } from './api';
 import { CachingClient } from './client/caching_client';

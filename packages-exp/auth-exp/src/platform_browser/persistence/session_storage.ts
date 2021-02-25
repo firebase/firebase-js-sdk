@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Persistence } from '../../model/public_types';
 
 import {
-  Persistence,
+  PersistenceInternal as InternalPersistence,
   PersistenceType,
   StorageEventListener
 } from '../../core/persistence';
@@ -26,7 +26,7 @@ import { BrowserPersistenceClass } from './browser';
 
 class BrowserSessionPersistence
   extends BrowserPersistenceClass
-  implements Persistence {
+  implements InternalPersistence {
   static type: 'SESSION' = 'SESSION';
 
   constructor() {
@@ -45,9 +45,9 @@ class BrowserSessionPersistence
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#Persistence} of 'SESSION' using `sessionStorage`
+ * An implementation of {@link Persistence} of 'SESSION' using `sessionStorage`
  * for the underlying storage.
  *
  * @public
  */
-export const browserSessionPersistence: externs.Persistence = BrowserSessionPersistence;
+export const browserSessionPersistence: Persistence = BrowserSessionPersistence;

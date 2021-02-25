@@ -23,7 +23,7 @@ import {
   OperationType,
   ProviderId,
   SignInMethod
-} from '@firebase/auth-types-exp';
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -36,7 +36,7 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenMfaResponse } from '../../api/authentication/mfa';
 import { MultiFactorError } from '../../mfa/mfa_error';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { User, UserCredential } from '../../model/user';
+import { UserInternal, UserCredentialInternal } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
 import {
@@ -72,7 +72,7 @@ describe('core/strategies/credential', () => {
   let authCredential: AuthCredential;
   let auth: TestAuth;
   let getAccountInfoEndpoint: mockFetch.Route;
-  let user: User;
+  let user: UserInternal;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -99,7 +99,9 @@ describe('core/strategies/credential', () => {
         auth,
         authCredential
       );
-      expect((rest as UserCredential)._tokenResponse).to.eq(idTokenResponse);
+      expect((rest as UserCredentialInternal)._tokenResponse).to.eq(
+        idTokenResponse
+      );
       expect(user.uid).to.eq('local-id');
       expect(user.displayName).to.eq('display-name');
       expect(operationType).to.eq(OperationType.SIGN_IN);
@@ -182,7 +184,7 @@ describe('core/strategies/credential', () => {
       } = await reauthenticateWithCredential(user, authCredential);
       expect(operationType).to.eq(OperationType.REAUTHENTICATE);
       expect(newUser).to.eq(user);
-      expect((rest as UserCredential)._tokenResponse).to.eql({
+      expect((rest as UserCredentialInternal)._tokenResponse).to.eql({
         ...idTokenResponse,
         idToken: makeJWT({ sub: 'uid' })
       });
@@ -220,7 +222,9 @@ describe('core/strategies/credential', () => {
       } = await linkWithCredential(user, authCredential);
       expect(operationType).to.eq(OperationType.LINK);
       expect(newUser).to.eq(user);
-      expect((rest as UserCredential)._tokenResponse).to.eq(idTokenResponse);
+      expect((rest as UserCredentialInternal)._tokenResponse).to.eq(
+        idTokenResponse
+      );
     });
   });
 });

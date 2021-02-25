@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import { FactorId } from '@firebase/auth-types-exp';
+import { FactorId } from '../model/public_types';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
 import { testAuth, testUser, TestAuth } from '../../test/helpers/mock_auth';
@@ -28,30 +28,30 @@ import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { ServerError } from '../api/errors';
-import { User } from '../model/user';
-import { MultiFactorInfo } from './mfa_info';
-import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
-import { multiFactor, MultiFactorUser } from './mfa_user';
-import { MultiFactorAssertion } from './mfa_assertion';
-import { Auth } from '../model/auth';
+import { UserInternal } from '../model/user';
+import { MultiFactorInfoImpl } from './mfa_info';
+import { MultiFactorSessionImpl, MultiFactorSessionType } from './mfa_session';
+import { multiFactor, MultiFactorUserImpl } from './mfa_user';
+import { MultiFactorAssertionImpl } from './mfa_assertion';
+import { AuthInternal } from '../model/auth';
 import { makeJWT } from '../../test/helpers/jwt';
 
 use(chaiAsPromised);
 
-class MockMultiFactorAssertion extends MultiFactorAssertion {
+class MockMultiFactorAssertion extends MultiFactorAssertionImpl {
   constructor(readonly response: FinalizeMfaResponse) {
     super(FactorId.PHONE);
   }
 
   async _finalizeEnroll(
-    _auth: Auth,
+    _auth: AuthInternal,
     _idToken: string,
     _displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
     return this.response;
   }
   async _finalizeSignIn(
-    _auth: Auth,
+    _auth: AuthInternal,
     _mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
     return this.response;
@@ -61,14 +61,16 @@ class MockMultiFactorAssertion extends MultiFactorAssertion {
 describe('core/mfa/mfa_user/MultiFactorUser', () => {
   const idToken = makeJWT({ 'exp': '3600', 'iat': '1200' });
   let auth: TestAuth;
-  let mfaUser: MultiFactorUser;
+  let mfaUser: MultiFactorUserImpl;
   let clock: sinon.SinonFakeTimers;
 
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
     clock = sinon.useFakeTimers();
-    mfaUser = MultiFactorUser._fromUser(testUser(auth, 'uid', undefined, true));
+    mfaUser = MultiFactorUserImpl._fromUser(
+      testUser(auth, 'uid', undefined, true)
+    );
   });
 
   afterEach(() => {
@@ -78,14 +80,14 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
 
   describe('getSession', () => {
     it('should return the id token', async () => {
-      const mfaSession = (await mfaUser.getSession()) as MultiFactorSession;
+      const mfaSession = (await mfaUser.getSession()) as MultiFactorSessionImpl;
       expect(mfaSession.type).to.eq(MultiFactorSessionType.ENROLL);
       expect(mfaSession.credential).to.eq('access-token');
     });
   });
 
   describe('enroll', () => {
-    let assertion: MultiFactorAssertion;
+    let assertion: MultiFactorAssertionImpl;
 
     const serverUser: APIUserInfo = {
       localId: 'local-id',
@@ -146,13 +148,13 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       refreshToken: 'refresh-token'
     };
 
-    const mfaInfo = MultiFactorInfo._fromServerResponse(auth, {
+    const mfaInfo = MultiFactorInfoImpl._fromServerResponse(auth, {
       mfaEnrollmentId: 'mfa-id',
       enrolledAt: Date.now(),
       phoneInfo: 'phone-info'
     });
 
-    const otherMfaInfo = MultiFactorInfo._fromServerResponse(auth, {
+    const otherMfaInfo = MultiFactorInfoImpl._fromServerResponse(auth, {
       mfaEnrollmentId: 'other-mfa-id',
       enrolledAt: Date.now(),
       phoneInfo: 'other-phone-info'
@@ -238,7 +240,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
 
 describe('core/mfa/mfa_user/multiFactor', () => {
   let auth: TestAuth;
-  let user: User;
+  let user: UserInternal;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -247,7 +249,7 @@ describe('core/mfa/mfa_user/multiFactor', () => {
 
   it('can be used to a create a MultiFactorUser', () => {
     const mfaUser = multiFactor(user);
-    expect((mfaUser as MultiFactorUser).user).to.eq(user);
+    expect((mfaUser as MultiFactorUserImpl).user).to.eq(user);
   });
 
   it('should only create one instance of an MFA user per User', () => {

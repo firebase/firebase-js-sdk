@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import { RemoteConfig } from '@firebase/remote-config-types-exp';
+import { RemoteConfig } from '@firebase/remote-config-exp';
 
 export function getFakeApp(): FirebaseApp {
   return {

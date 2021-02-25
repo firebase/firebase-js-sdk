@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Persistence } from '../../model/public_types';
 
 export const enum PersistenceType {
   SESSION = 'SESSION',
@@ -35,7 +36,7 @@ export interface StorageEventListener {
   (value: PersistenceValue | null): void;
 }
 
-export interface Persistence {
+export interface PersistenceInternal extends Persistence {
   type: PersistenceType;
   _isAvailable(): Promise<boolean>;
   _set(key: string, value: PersistenceValue): Promise<void>;

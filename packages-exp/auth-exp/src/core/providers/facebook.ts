@@ -15,16 +15,20 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  ProviderId,
+  SignInMethod,
+  UserCredential
+} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { TaggedWithTokenResponse } from '../../model/id_token';
-import { UserCredential } from '../../model/user';
+import { UserCredentialInternal } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
 /**
- * Provider for generating an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.FACEBOOK}.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId.FACEBOOK}.
  *
  * @example
  * ```javascript
@@ -63,13 +67,13 @@ import { OAuthProvider } from './oauth';
  * @public
  */
 export class FacebookAuthProvider extends OAuthProvider {
-  /** Always set to {@link @firebase/auth-types#SignInMethod.FACEBOOK}. */
-  static readonly FACEBOOK_SIGN_IN_METHOD = externs.SignInMethod.FACEBOOK;
-  /** Always set to {@link @firebase/auth-types#ProviderId.FACEBOOK}. */
-  static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
+  /** Always set to {@link SignInMethod.FACEBOOK}. */
+  static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
+  /** Always set to {@link ProviderId.FACEBOOK}. */
+  static readonly PROVIDER_ID = ProviderId.FACEBOOK;
 
   constructor() {
-    super(externs.ProviderId.FACEBOOK);
+    super(ProviderId.FACEBOOK);
   }
 
   /**
@@ -84,7 +88,7 @@ export class FacebookAuthProvider extends OAuthProvider {
    *
    * @param accessToken - Facebook access token.
    */
-  static credential(accessToken: string): externs.OAuthCredential {
+  static credential(accessToken: string): OAuthCredential {
     return OAuthCredential._fromParams({
       providerId: FacebookAuthProvider.PROVIDER_ID,
       signInMethod: FacebookAuthProvider.FACEBOOK_SIGN_IN_METHOD,
@@ -93,27 +97,25 @@ export class FacebookAuthProvider extends OAuthProvider {
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   * Used to extract the underlying {@link OAuthCredential} from a {@link UserCredential}.
    *
    * @param userCredential - The user credential.
    */
   static credentialFromResult(
-    userCredential: externs.UserCredential
-  ): externs.OAuthCredential | null {
+    userCredential: UserCredential
+  ): OAuthCredential | null {
     return FacebookAuthProvider.credentialFromTaggedObject(
-      userCredential as UserCredential
+      userCredential as UserCredentialInternal
     );
   }
 
   /**
-   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * Used to extract the underlying {@link OAuthCredential} from a {@link AuthError} which was
    * thrown during a sign-in, link, or reauthenticate operation.
    *
    * @param userCredential - The user credential.
    */
-  static credentialFromError(
-    error: FirebaseError
-  ): externs.OAuthCredential | null {
+  static credentialFromError(error: FirebaseError): OAuthCredential | null {
     return FacebookAuthProvider.credentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );
@@ -121,7 +123,7 @@ export class FacebookAuthProvider extends OAuthProvider {
 
   private static credentialFromTaggedObject({
     _tokenResponse: tokenResponse
-  }: TaggedWithTokenResponse): externs.OAuthCredential | null {
+  }: TaggedWithTokenResponse): OAuthCredential | null {
     if (!tokenResponse || !('oauthAccessToken' in tokenResponse)) {
       return null;
     }

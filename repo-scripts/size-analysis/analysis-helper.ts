@@ -867,19 +867,35 @@ export async function buildJsonReport(
     name: moduleName,
     symbols: []
   };
-
   for (const exp of publicApi.classes) {
-    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+    try {
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+    } catch (e) {
+      console.log(e);
+    }
   }
+
   for (const exp of publicApi.functions) {
-    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+    try {
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+    } catch (e) {
+      console.log(e);
+    }
   }
   for (const exp of publicApi.variables) {
-    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+    try {
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   for (const exp of publicApi.enums) {
-    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+    try {
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+    } catch (e) {
+      console.log(e);
+    }
   }
   return result;
 }

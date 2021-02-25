@@ -4,27 +4,34 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseStorageError } from '@firebase/storage-types/exp';
-import { FullMetadata } from '@firebase/storage-types/exp';
-import { ListOptions } from '@firebase/storage-types/exp';
-import { ListResult } from '@firebase/storage-types/exp';
-import { SettableMetadata } from '@firebase/storage-types/exp';
-import { StorageObserver } from '@firebase/storage-types/exp';
-import { StorageReference } from '@firebase/storage-types/exp';
-import { StorageService } from '@firebase/storage-types/exp';
-import { TaskEvent } from '@firebase/storage-types/exp';
-import { TaskState } from '@firebase/storage-types/exp';
-import { UploadMetadata } from '@firebase/storage-types/exp';
-import { UploadResult } from '@firebase/storage-types/exp';
-import { UploadTask } from '@firebase/storage-types/exp';
+import { CompleteFn } from '@firebase/util';
+import { FirebaseApp } from '@firebase/app';
+import { FirebaseError } from '@firebase/util';
+import { NextFn } from '@firebase/util';
+import { Subscribe } from '@firebase/util';
+import { Unsubscribe } from '@firebase/util';
 
 // @public
 export function deleteObject(ref: StorageReference): Promise<void>;
 
-export { FirebaseStorageError }
+// @public
+export interface FirebaseStorageError extends FirebaseError {
+    serverResponse: string | null;
+}
 
-export { FullMetadata }
+// @public
+export interface FullMetadata extends UploadMetadata {
+    bucket: string;
+    downloadTokens: string[] | undefined;
+    fullPath: string;
+    generation: string;
+    metageneration: string;
+    name: string;
+    ref?: StorageReference | undefined;
+    size: number;
+    timeCreated: string;
+    updated: string;
+}
 
 // @public
 export function getDownloadURL(ref: StorageReference): Promise<string>;
@@ -41,9 +48,18 @@ export function list(ref: StorageReference, options?: ListOptions): Promise<List
 // @public
 export function listAll(ref: StorageReference): Promise<ListResult>;
 
-export { ListOptions }
+// @public
+export interface ListOptions {
+    maxResults?: number | null;
+    pageToken?: string | null;
+}
 
-export { ListResult }
+// @public
+export interface ListResult {
+    items: StorageReference[];
+    nextPageToken?: string;
+    prefixes: StorageReference[];
+}
 
 // @public
 export function ref(storage: StorageService, url?: string): StorageReference;
@@ -51,13 +67,45 @@ export function ref(storage: StorageService, url?: string): StorageReference;
 // @public
 export function ref(storageOrRef: StorageService | StorageReference, path?: string): StorageReference;
 
-export { SettableMetadata }
+// @public
+export interface SettableMetadata {
+    cacheControl?: string | undefined;
+    contentDisposition?: string | undefined;
+    contentEncoding?: string | undefined;
+    contentLanguage?: string | undefined;
+    contentType?: string | undefined;
+    customMetadata?: {
+        [key: string]: string;
+    } | undefined;
+}
 
-export { StorageObserver }
+// @public
+export interface StorageObserver<T> {
+    // (undocumented)
+    complete?: CompleteFn | null;
+    // (undocumented)
+    error?: (error: FirebaseStorageError) => void | null;
+    // (undocumented)
+    next?: NextFn<T> | null;
+}
 
-export { StorageReference }
+// @public
+export interface StorageReference {
+    bucket: string;
+    fullPath: string;
+    name: string;
+    parent: StorageReference | null;
+    root: StorageReference;
+    storage: StorageService;
+    toString(): string;
+}
 
-export { StorageService }
+// @public
+export interface StorageService {
+    readonly app: FirebaseApp;
+    maxOperationRetryTime: number;
+    maxUploadRetryTime: number;
+}
 
 // @public
 export type StringFormat = string;
@@ -70,9 +118,11 @@ export const StringFormat: {
     DATA_URL: string;
 };
 
-export { TaskEvent }
+// @public
+export type TaskEvent = 'state_changed';
 
-export { TaskState }
+// @public
+export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
 
 // @public
 export function updateMetadata(ref: StorageReference, metadata: SettableMetadata): Promise<FullMetadata>;
@@ -83,14 +133,40 @@ export function uploadBytes(ref: StorageReference, data: Blob | Uint8Array | Arr
 // @public
 export function uploadBytesResumable(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: UploadMetadata): UploadTask;
 
-export { UploadMetadata }
+// @public
+export interface UploadMetadata extends SettableMetadata {
+    md5Hash?: string | undefined;
+}
 
-export { UploadResult }
+// @public
+export interface UploadResult {
+    readonly metadata: FullMetadata;
+    readonly ref: StorageReference;
+}
 
 // @public
 export function uploadString(ref: StorageReference, value: string, format?: string, metadata?: UploadMetadata): Promise<UploadResult>;
 
-export { UploadTask }
+// @public
+export interface UploadTask {
+    cancel(): boolean;
+    catch(onRejected: (error: FirebaseStorageError) => unknown): Promise<unknown>;
+    on(event: TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: FirebaseStorageError) => unknown) | null, complete?: Unsubscribe | null): Unsubscribe | Subscribe<UploadTaskSnapshot>;
+    pause(): boolean;
+    resume(): boolean;
+    snapshot: UploadTaskSnapshot;
+    then(onFulfilled?: ((snapshot: UploadTaskSnapshot) => unknown) | null, onRejected?: ((error: FirebaseStorageError) => unknown) | null): Promise<unknown>;
+}
+
+// @public
+export interface UploadTaskSnapshot {
+    bytesTransferred: number;
+    metadata: FullMetadata;
+    ref: StorageReference;
+    state: TaskState;
+    task: UploadTask;
+    totalBytes: number;
+}
 
 
 // (No @packageDocumentation comment for this package)

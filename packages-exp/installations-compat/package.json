@@ -9,7 +9,9 @@
   "esm2017": "dist/index.esm2017.js",
   "typings": "dist/installations-compat.d.ts",
   "license": "Apache-2.0",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -43,7 +45,7 @@
   "devDependencies": {
     "@firebase/app-compat": "0.0.900",
     "rollup": "2.33.2",
-    "@rollup/plugin-commonjs": "15.1.0",
+    "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "9.0.0",
     "rollup-plugin-typescript2": "0.29.0",
@@ -56,7 +58,7 @@
   "dependencies": {
     "@firebase/installations-exp": "0.0.900",
     "@firebase/util": "0.3.4",
-    "@firebase/component": "0.1.21",
+    "@firebase/component": "0.2.0",
     "idb": "3.0.2",
     "tslib": "^1.11.1"
   }

@@ -17,7 +17,7 @@
 
 import { RepoInfo } from '../core/RepoInfo';
 import { PersistentConnection } from '../core/PersistentConnection';
-import { RepoManager } from '../core/RepoManager';
+import { repoManagerForceRestClient } from '../core/RepoManager';
 import { Connection } from '../realtime/Connection';
 import { Query } from './Query';
 
@@ -70,5 +70,5 @@ export const queryIdentifier = function (query: Query) {
  * Forces the RepoManager to create Repos that use ReadonlyRestClient instead of PersistentConnection.
  */
 export const forceRestClient = function (forceRestClient: boolean) {
-  RepoManager.getInstance().forceRestClient(forceRestClient);
+  repoManagerForceRestClient(forceRestClient);
 };

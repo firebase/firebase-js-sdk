@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { ProviderId, User } from '../../model/public_types';
 
 import {
   updateEmailPassword as apiUpdateEmailPassword,
   UpdateEmailPasswordRequest
 } from '../../api/account_management/email_and_password';
 import { updateProfile as apiUpdateProfile } from '../../api/account_management/profile';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { _logoutIfInvalidated } from './invalidation';
 
 interface Profile {
@@ -39,14 +39,14 @@ interface Profile {
  * @public
  */
 export async function updateProfile(
-  user: externs.User,
+  user: User,
   { displayName, photoURL: photoUrl }: Profile
 ): Promise<void> {
   if (displayName === undefined && photoUrl === undefined) {
     return;
   }
 
-  const userInternal = user as User;
+  const userInternal = user as UserInternal;
   const idToken = await user.getIdToken();
   const profileRequest = {
     idToken,
@@ -64,7 +64,7 @@ export async function updateProfile(
 
   // Update the password provider as well
   const passwordProvider = userInternal.providerData.find(
-    ({ providerId }) => providerId === externs.ProviderId.PASSWORD
+    ({ providerId }) => providerId === ProviderId.PASSWORD
   );
   if (passwordProvider) {
     passwordProvider.displayName = user.displayName;
@@ -90,11 +90,8 @@ export async function updateProfile(
  *
  * @public
  */
-export function updateEmail(
-  user: externs.User,
-  newEmail: string
-): Promise<void> {
-  return updateEmailOrPassword(user as User, newEmail, null);
+export function updateEmail(user: User, newEmail: string): Promise<void> {
+  return updateEmailOrPassword(user as UserInternal, newEmail, null);
 }
 
 /**
@@ -110,15 +107,12 @@ export function updateEmail(
  *
  * @public
  */
-export function updatePassword(
-  user: externs.User,
-  newPassword: string
-): Promise<void> {
-  return updateEmailOrPassword(user as User, null, newPassword);
+export function updatePassword(user: User, newPassword: string): Promise<void> {
+  return updateEmailOrPassword(user as UserInternal, null, newPassword);
 }
 
 async function updateEmailOrPassword(
-  user: User,
+  user: UserInternal,
   email: string | null,
   password: string | null
 ): Promise<void> {

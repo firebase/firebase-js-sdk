@@ -18,8 +18,8 @@
 import { Unsubscribe } from '@firebase/util';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
 import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
 
@@ -27,13 +27,13 @@ interface TokenListener {
   (tok: string | null): unknown;
 }
 
-export class AuthInternal implements FirebaseAuthInternal {
+export class AuthInterop implements FirebaseAuthInternal {
   private readonly internalListeners: Map<
     TokenListener,
     Unsubscribe
   > = new Map();
 
-  constructor(private readonly auth: Auth) {}
+  constructor(private readonly auth: AuthInternal) {}
 
   getUid(): string | null {
     this.assertAuthConfigured();
@@ -60,7 +60,9 @@ export class AuthInternal implements FirebaseAuthInternal {
     }
 
     const unsubscribe = this.auth.onIdTokenChanged(user => {
-      listener((user as User | null)?.stsTokenManager.accessToken || null);
+      listener(
+        (user as UserInternal | null)?.stsTokenManager.accessToken || null
+      );
     });
     this.internalListeners.set(listener, unsubscribe);
     this.updateProactiveRefresh();

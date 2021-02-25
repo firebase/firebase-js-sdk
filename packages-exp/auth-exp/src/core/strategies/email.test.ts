@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ActionCodeOperation, ProviderId } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, ProviderId } from '../../model/public_types';
 import { FirebaseError, isNode } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -28,7 +28,7 @@ import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import {
   fetchSignInMethodsForEmail,
   sendEmailVerification,
@@ -103,7 +103,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
 describe('core/strategies/sendEmailVerification', () => {
   const email = 'foo@bar.com';
   const idToken = 'access-token';
-  let user: User;
+  let user: UserInternal;
   let auth: TestAuth;
   let reloadStub: SinonStub;
 
@@ -209,7 +209,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
   const email = 'foo@bar.com';
   const newEmail = 'newemail@bar.com';
   const idToken = 'access-token';
-  let user: User;
+  let user: UserInternal;
   let auth: TestAuth;
   let reloadStub: SinonStub;
 
