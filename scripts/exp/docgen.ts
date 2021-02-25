@@ -21,10 +21,24 @@ import { projectRoot } from '../utils';
 import { removeExpSuffix } from './remove-exp';
 import fs from 'fs';
 import glob from 'glob';
+import * as yargs from 'yargs';
+
+yargs
+  .command('$0', 'generate standard reference docs', {}, _argv =>
+    generateDocs(/* forDevsite */ false)
+  )
+  .command('devsite', 'generate reference docs for devsite', {}, _argv =>
+    generateDocs(/* forDevsite */ true)
+  )
+  .demandCommand()
+  .help().argv;
 
 const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
-async function generateDocs() {
+async function generateDocs(forDevsite: boolean = false) {
+  const outputFolder = forDevsite ? 'docs-devsite' : 'docs-exp';
+  const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
+
   // TODO: change yarn command once exp packages become official
   await spawn('yarn', ['lerna', 'run', '--scope', '@firebase/*-exp', 'build'], {
     stdio: 'inherit'
@@ -87,16 +101,7 @@ async function generateDocs() {
   removeExpSuffix(tmpDir);
   await spawn(
     'yarn',
-    [
-      'api-documenter-devsite',
-      'markdown',
-      '--input',
-      'temp',
-      '--output',
-      'docs-exp'
-    ],
+    [command, 'markdown', '--input', 'temp', '--output', outputFolder],
     { stdio: 'inherit' }
   );
 }
-
-generateDocs();
