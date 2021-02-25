@@ -1,5 +1,5 @@
 import * as exp from '@firebase/auth-exp/internal';
-import { _isAndroidOrIosCordovaScheme, _isCordova } from './platform';
+import { _isCordova } from './platform';
 
 const _assert: typeof exp._assert = exp._assert;
 
