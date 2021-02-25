@@ -130,7 +130,6 @@ export class MarkdownDocumenter {
       });
     }
 
-    console.log();
     this._deleteOldOutputFiles();
 
     this._writeApiItemPage(this._apiModel);
