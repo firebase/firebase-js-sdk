@@ -47,8 +47,15 @@ describe('auth compat', () => {
       if (typeof self !== 'undefined') {
         underlyingAuth._initializationPromise = Promise.resolve();
         sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
-        sinon.stub(underlyingAuth, '_initializationPromise').value(Promise.resolve());
-        sinon.stub(exp._getInstance<exp.PopupRedirectResolverInternal>(CompatPopupRedirectResolver), '_openRedirect');
+        sinon
+          .stub(underlyingAuth, '_initializationPromise')
+          .value(Promise.resolve());
+        sinon.stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            CompatPopupRedirectResolver
+          ),
+          '_openRedirect'
+        );
         const authCompat = new Auth(app, underlyingAuth);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());

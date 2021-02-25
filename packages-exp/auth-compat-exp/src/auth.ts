@@ -25,7 +25,12 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
-import { _validatePersistenceArgument, Persistence, _getPersistenceFromRedirect, _savePersistenceForRedirect } from './persistence';
+import {
+  _validatePersistenceArgument,
+  Persistence,
+  _getPersistenceFromRedirect,
+  _savePersistenceForRedirect
+} from './persistence';
 import { _isPopupRedirectSupported } from './platform';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import { User } from './user';
@@ -293,7 +298,7 @@ export class Auth
       this.auth,
       exp.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
-    
+
     await _savePersistenceForRedirect(this.auth);
     return exp.signInWithRedirect(
       this.auth,

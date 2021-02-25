@@ -81,7 +81,9 @@ export function _validatePersistenceArgument(
   );
 }
 
-export async function _savePersistenceForRedirect(auth: AuthInternal): Promise<void> {
+export async function _savePersistenceForRedirect(
+  auth: AuthInternal
+): Promise<void> {
   await auth._initializationPromise;
 
   const win = getSelfWindow();
@@ -95,7 +97,9 @@ export async function _savePersistenceForRedirect(auth: AuthInternal): Promise<v
   }
 }
 
-export function _getPersistenceFromRedirect(auth: AuthInternal): exp.Persistence | null {
+export function _getPersistenceFromRedirect(
+  auth: AuthInternal
+): exp.Persistence | null {
   const win = getSelfWindow();
   if (!win?.sessionStorage) {
     return null;

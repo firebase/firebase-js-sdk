@@ -146,7 +146,9 @@ export class User implements compat.User, Wrapper<exp.User> {
       )
     );
   }
-  async reauthenticateWithRedirect(provider: compat.AuthProvider): Promise<void> {
+  async reauthenticateWithRedirect(
+    provider: compat.AuthProvider
+  ): Promise<void> {
     await _savePersistenceForRedirect(exp._castAuth(this.auth));
     return exp.reauthenticateWithRedirect(
       this.user,
