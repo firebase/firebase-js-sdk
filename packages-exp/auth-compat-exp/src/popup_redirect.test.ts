@@ -1,4 +1,21 @@
-import {expect, use} from 'chai';
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { expect, use } from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as sinon from 'sinon';
 import * as exp from '@firebase/auth-exp/internal';
@@ -25,8 +42,12 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
   });
 
   context('initialization and resolver selection', () => {
-    const browserResolver = exp._getInstance<exp.PopupRedirectResolverInternal>(exp.browserPopupRedirectResolver);
-    const cordovaResolver = exp._getInstance<exp.PopupRedirectResolverInternal>(exp.cordovaPopupRedirectResolver);
+    const browserResolver = exp._getInstance<exp.PopupRedirectResolverInternal>(
+      exp.browserPopupRedirectResolver
+    );
+    const cordovaResolver = exp._getInstance<exp.PopupRedirectResolverInternal>(
+      exp.cordovaPopupRedirectResolver
+    );
 
     beforeEach(() => {
       sinon.stub(browserResolver, '_initialize');
@@ -54,29 +75,55 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
 
     beforeEach(() => {
       underlyingResolver = sinon.createStubInstance(FakeResolver);
-      (compatResolver as unknown as {underlyingResolver: exp.PopupRedirectResolverInternal}).underlyingResolver = underlyingResolver;
+      ((compatResolver as unknown) as {
+        underlyingResolver: exp.PopupRedirectResolverInternal;
+      }).underlyingResolver = underlyingResolver;
       provider = new exp.GoogleAuthProvider();
     });
 
     it('_openPopup', async () => {
-      await compatResolver._openPopup(auth, provider, exp.AuthEventType.LINK_VIA_POPUP, 'eventId');
-      expect(underlyingResolver._openPopup).to.have.been.calledWith(auth, provider, exp.AuthEventType.LINK_VIA_POPUP, 'eventId');
+      await compatResolver._openPopup(
+        auth,
+        provider,
+        exp.AuthEventType.LINK_VIA_POPUP,
+        'eventId'
+      );
+      expect(underlyingResolver._openPopup).to.have.been.calledWith(
+        auth,
+        provider,
+        exp.AuthEventType.LINK_VIA_POPUP,
+        'eventId'
+      );
     });
 
     it('_openRedirect', async () => {
-      await compatResolver._openRedirect(auth, provider, exp.AuthEventType.LINK_VIA_REDIRECT, 'eventId');
-      expect(underlyingResolver._openRedirect).to.have.been.calledWith(auth, provider, exp.AuthEventType.LINK_VIA_REDIRECT, 'eventId');
+      await compatResolver._openRedirect(
+        auth,
+        provider,
+        exp.AuthEventType.LINK_VIA_REDIRECT,
+        'eventId'
+      );
+      expect(underlyingResolver._openRedirect).to.have.been.calledWith(
+        auth,
+        provider,
+        exp.AuthEventType.LINK_VIA_REDIRECT,
+        'eventId'
+      );
     });
 
     it('_isIframeWebStorageSupported', () => {
       const cb = (): void => {};
       compatResolver._isIframeWebStorageSupported(auth, cb);
-      expect(underlyingResolver._isIframeWebStorageSupported).to.have.been.calledWith(auth, cb);
+      expect(
+        underlyingResolver._isIframeWebStorageSupported
+      ).to.have.been.calledWith(auth, cb);
     });
 
     it('_originValidation', async () => {
       await compatResolver._originValidation(auth);
-      expect(underlyingResolver._originValidation).to.have.been.calledWith(auth);
+      expect(underlyingResolver._originValidation).to.have.been.calledWith(
+        auth
+      );
     });
   });
 });
