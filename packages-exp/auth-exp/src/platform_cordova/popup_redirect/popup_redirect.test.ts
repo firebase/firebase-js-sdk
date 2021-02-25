@@ -37,9 +37,12 @@ import {
   stubSingleTimeout,
   TimerTripFn
 } from '../../../test/helpers/timeout_stub';
+import { _cordovaWindow } from '../plugins';
 
 use(chaiAsPromised);
 use(sinonChai);
+
+const win = _cordovaWindow();
 
 describe('platform_cordova/popup_redirect/popup_redirect', () => {
   const PACKAGE_NAME = 'my.package';
@@ -69,25 +72,25 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       _getDeepLinkFromCallback: sinon.stub(events, '_getDeepLinkFromCallback')
     };
 
-    window.universalLinks = {
+    win.universalLinks = {
       subscribe(_unused, cb) {
         universalLinksCb = cb;
       }
     };
-    window.BuildInfo = {
+    win.BuildInfo = {
       packageName: PACKAGE_NAME,
       displayName: ''
     };
     tripNoEventTimer = stubSingleTimeout(NO_EVENT_TIMER_ID);
-    sinon.stub(window, 'clearTimeout');
+    sinon.stub(win, 'clearTimeout');
   });
 
   afterEach(() => {
     sinon.restore();
     universalLinksCb = null;
-    const win = (window as unknown) as Record<string, unknown>;
-    delete win.universalLinks;
-    delete win.BuildInfo;
+    const anyWindow = (win as unknown) as Record<string, unknown>;
+    delete anyWindow.universalLinks;
+    delete anyWindow.BuildInfo;
   });
 
   describe('_openRedirect', () => {
@@ -158,7 +161,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       it('clears the no event timeout', async () => {
         await resolver._initialize(auth);
         await universalLinksCb!({});
-        expect(window.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
+        expect(win.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
       });
 
       it('signals no event if no url in event data', async () => {
@@ -228,16 +231,16 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
     context('when using global handleOpenUrl callback', () => {
       it('ignores inbound callbacks that are not for this app', async () => {
         await resolver._initialize(auth);
-        handleOpenUrl(`${NOT_PACKAGE_NAME}://foo`);
+        win.handleOpenUrl(`${NOT_PACKAGE_NAME}://foo`);
 
         // Clear timeout is called in the handler so we can check that
-        expect(window.clearTimeout).not.to.have.been.called;
+        expect(win.clearTimeout).not.to.have.been.called;
       });
 
       it('passes through callback if package name matches', async () => {
         await resolver._initialize(auth);
-        handleOpenUrl(`${PACKAGE_NAME}://foo`);
-        expect(window.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
+        win.handleOpenUrl(`${PACKAGE_NAME}://foo`);
+        expect(win.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
       });
 
       it('signals the final event if partial expansion success', async () => {
@@ -253,7 +256,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
         const promise = event(await resolver._initialize(auth));
         eventsStubs._eventFromPartialAndUrl!.returns(finalEvent as AuthEvent);
-        handleOpenUrl(`${PACKAGE_NAME}://foo`);
+        win.handleOpenUrl(`${PACKAGE_NAME}://foo`);
         expect(await promise).to.eq(finalEvent);
         expect(events._eventFromPartialAndUrl).to.have.been.calledWith(
           { type: AuthEventType.REAUTH_VIA_REDIRECT },
@@ -263,10 +266,10 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
       it('calls the dev existing handleOpenUrl function', async () => {
         const oldHandleOpenUrl = sinon.stub();
-        window.handleOpenUrl = oldHandleOpenUrl;
+        win.handleOpenUrl = oldHandleOpenUrl;
 
         await resolver._initialize(auth);
-        handleOpenUrl(`${PACKAGE_NAME}://foo`);
+        win.handleOpenUrl(`${PACKAGE_NAME}://foo`);
         expect(oldHandleOpenUrl).to.have.been.calledWith(
           `${PACKAGE_NAME}://foo`
         );
@@ -274,10 +277,10 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
       it('calls the dev existing handleOpenUrl function for other package', async () => {
         const oldHandleOpenUrl = sinon.stub();
-        window.handleOpenUrl = oldHandleOpenUrl;
+        win.handleOpenUrl = oldHandleOpenUrl;
 
         await resolver._initialize(auth);
-        handleOpenUrl(`${NOT_PACKAGE_NAME}://foo`);
+        win.handleOpenUrl(`${NOT_PACKAGE_NAME}://foo`);
         expect(oldHandleOpenUrl).to.have.been.calledWith(
           `${NOT_PACKAGE_NAME}://foo`
         );

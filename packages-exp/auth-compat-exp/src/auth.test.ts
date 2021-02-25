@@ -21,6 +21,7 @@ import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Auth } from './auth';
+import { CompatPopupRedirectResolver } from './popup_redirect';
 
 use(sinonChai);
 
@@ -69,7 +70,7 @@ describe('auth compat', () => {
             exp._getInstance(exp.inMemoryPersistence),
             exp._getInstance(exp.indexedDBLocalPersistence)
           ],
-          exp.browserPopupRedirectResolver
+          CompatPopupRedirectResolver
         );
       }
     });

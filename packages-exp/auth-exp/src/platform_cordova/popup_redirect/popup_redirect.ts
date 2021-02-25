@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import '../plugins';
 import { AuthProvider, PopupRedirectResolver } from '../../model/public_types';
 import { browserSessionPersistence } from '../../platform_browser/persistence/session_storage';
 import { AuthInternal } from '../../model/auth';
@@ -43,6 +42,7 @@ import {
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { _getRedirectResult } from '../../platform_browser/strategies/redirect';
 import { _clearRedirectOutcomes } from '../../core/strategies/redirect';
+import { _cordovaWindow } from '../plugins';
 
 /**
  * How long to wait for the initial auth event before concluding no
@@ -109,6 +109,9 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
     auth: AuthInternal,
     manager: AuthEventManager
   ): void {
+    // Get the global plugins
+    const { universalLinks, handleOpenUrl, BuildInfo } = _cordovaWindow();
+
     const noEventTimeout = setTimeout(async () => {
       // We didn't see that initial event. Clear any pending object and
       // dispatch no event
@@ -145,9 +148,9 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
     // For this to work, cordova-plugin-customurlscheme needs to be installed.
     // https://github.com/EddyVerbruggen/Custom-URL-scheme
     // Do not overwrite the existing developer's URL handler.
-    const existingHandleOpenUrl = window.handleOpenUrl;
+    const existingHandleOpenUrl = handleOpenUrl;
     const packagePrefix = `${BuildInfo.packageName.toLowerCase()}://`;
-    window.handleOpenUrl = async url => {
+    _cordovaWindow().handleOpenUrl = async url => {
       if (url.toLowerCase().startsWith(packagePrefix)) {
         // We want this intentionally to float
         // eslint-disable-next-line @typescript-eslint/no-floating-promises

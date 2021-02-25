@@ -36,6 +36,7 @@ import {
   TimerTripFn
 } from '../../../test/helpers/timeout_stub';
 import { FirebaseError } from '@firebase/util';
+import { InAppBrowserRef, _cordovaWindow } from '../plugins';
 
 const ANDROID_UA = 'UserAgent/5.0 (Linux; Android 0.0.0)';
 const IOS_UA = 'UserAgent/5.0 (iPhone; CPU iPhone 0.0.0)';
@@ -44,6 +45,8 @@ const DESKTOP_UA = 'UserAgent/5.0 (Linux; Ubuntu 0.0.0)';
 
 use(chaiAsPromised);
 use(sinonChai);
+
+const win = _cordovaWindow();
 
 describe('platform_cordova/popup_redirect/utils', () => {
   let auth: TestAuth;
@@ -56,9 +59,9 @@ describe('platform_cordova/popup_redirect/utils', () => {
   afterEach(() => {
     sinon.restore();
     // Clean up the window object from attachExpectedPlugins()
-    removeProp(window, 'cordova');
-    removeProp(window, 'BuildInfo');
-    removeProp(window, 'universalLinks');
+    removeProp(win, 'cordova');
+    removeProp(win, 'BuildInfo');
+    removeProp(win, 'universalLinks');
   });
 
   function setUA(ua: string): void {
@@ -72,7 +75,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('rejects if universal links is missing', () => {
-      removeProp(window, 'universalLinks');
+      removeProp(win, 'universalLinks');
       expect(() => _checkCordovaConfiguration(auth))
         .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
@@ -82,7 +85,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('rejects if build info is missing', () => {
-      removeProp(window.BuildInfo, 'packageName');
+      removeProp(win.BuildInfo, 'packageName');
       expect(() => _checkCordovaConfiguration(auth))
         .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
@@ -92,7 +95,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('rejects if browsertab openUrl is missing', () => {
-      removeProp(window.cordova.plugins.browsertab, 'openUrl');
+      removeProp(win.cordova.plugins.browsertab, 'openUrl');
       expect(() => _checkCordovaConfiguration(auth))
         .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
@@ -102,7 +105,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
     });
 
     it('rejects if InAppBrowser is missing', () => {
-      removeProp(window.cordova.InAppBrowser, 'open');
+      removeProp(win.cordova.InAppBrowser, 'open');
       expect(() => _checkCordovaConfiguration(auth))
         .to.throw(fbUtils.FirebaseError, 'auth/invalid-cordova-configuration')
         .that.has.deep.property('customData', {
@@ -165,6 +168,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('does not attach a display name if none is present', async () => {
       setUA(ANDROID_UA);
+      delete (win.BuildInfo as { displayName?: string }).displayName;
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
@@ -173,7 +177,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
     it('attaches the relevant display name', async () => {
       setUA(IOS_UA);
-      (BuildInfo as { displayName: string }).displayName = 'This is my app';
+      (win.BuildInfo as { displayName: string }).displayName = 'This is my app';
       const params = getParams(
         await _generateHandlerUrl(auth, event, provider)
       );
@@ -186,27 +190,27 @@ describe('platform_cordova/popup_redirect/utils', () => {
     beforeEach(() => {
       isBrowsertabAvailable = false;
       sinon
-        .stub(cordova.plugins.browsertab, 'isAvailable')
+        .stub(win.cordova.plugins.browsertab, 'isAvailable')
         .callsFake(cb => cb(isBrowsertabAvailable));
-      sinon.stub(cordova.plugins.browsertab, 'openUrl');
-      sinon.stub(cordova.InAppBrowser, 'open');
+      sinon.stub(win.cordova.plugins.browsertab, 'openUrl');
+      sinon.stub(win.cordova.InAppBrowser, 'open');
     });
 
     it('uses browserTab if that is available', async () => {
       isBrowsertabAvailable = true;
       await _performRedirect('https://localhost/__/auth/handler');
-      expect(cordova.plugins.browsertab.openUrl).to.have.been.calledWith(
+      expect(win.cordova.plugins.browsertab.openUrl).to.have.been.calledWith(
         'https://localhost/__/auth/handler'
       );
-      expect(cordova.InAppBrowser.open).not.to.have.been.called;
+      expect(win.cordova.InAppBrowser.open).not.to.have.been.called;
     });
 
     it('falls back to InAppBrowser if need be', async () => {
       isBrowsertabAvailable = false;
       setUA(ANDROID_UA);
       await _performRedirect('https://localhost/__/auth/handler');
-      expect(cordova.plugins.browsertab.openUrl).not.to.have.been.called;
-      expect(cordova.InAppBrowser.open).to.have.been.calledWith(
+      expect(win.cordova.plugins.browsertab.openUrl).not.to.have.been.called;
+      expect(win.cordova.InAppBrowser.open).to.have.been.calledWith(
         'https://localhost/__/auth/handler',
         '_system',
         'location=yes'
@@ -217,8 +221,8 @@ describe('platform_cordova/popup_redirect/utils', () => {
       isBrowsertabAvailable = false;
       setUA(IOS_8_UA);
       await _performRedirect('https://localhost/__/auth/handler');
-      expect(cordova.plugins.browsertab.openUrl).not.to.have.been.called;
-      expect(cordova.InAppBrowser.open).to.have.been.calledWith(
+      expect(win.cordova.plugins.browsertab.openUrl).not.to.have.been.called;
+      expect(win.cordova.InAppBrowser.open).to.have.been.calledWith(
         'https://localhost/__/auth/handler',
         '_blank',
         'location=yes'
@@ -271,13 +275,13 @@ describe('platform_cordova/popup_redirect/utils', () => {
           FirebaseError,
           'auth/redirect-cancelled-by-user'
         );
-        expect(window.setTimeout).to.have.been.calledOnce;
+        expect(win.setTimeout).to.have.been.calledOnce;
       });
 
       it('cleans up listeners and cancels timer', async () => {
         sinon.stub(document, 'removeEventListener').callThrough();
         sinon.stub(eventManager, 'removePassiveListener');
-        sinon.stub(window, 'clearTimeout');
+        sinon.stub(win, 'clearTimeout');
         const promise = _waitForAppResume(auth, eventManager, null);
         document.dispatchEvent(new CustomEvent('resume'));
         tripCancelTimer();
@@ -297,7 +301,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
         expect(eventManager.removePassiveListener).to.have.been.calledWith(
           sinon.match.func
         );
-        expect(window.clearTimeout).to.have.been.calledWith(CANCEL_TIMER_ID);
+        expect(win.clearTimeout).to.have.been.calledWith(CANCEL_TIMER_ID);
       });
     });
 
@@ -307,6 +311,12 @@ describe('platform_cordova/popup_redirect/utils', () => {
           _generateNewEvent(auth, AuthEventType.LINK_VIA_REDIRECT)
         );
       }
+
+      let cordova: typeof win.cordova;
+
+      beforeEach(() => {
+        cordova = win.cordova;
+      });
 
       it('resolves the promise', async () => {
         const promise = _waitForAppResume(auth, eventManager, null);
@@ -333,7 +343,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
       it('cleans up listeners and cancels timer', async () => {
         sinon.stub(document, 'removeEventListener').callThrough();
         sinon.stub(eventManager, 'removePassiveListener');
-        sinon.stub(window, 'clearTimeout');
+        sinon.stub(win, 'clearTimeout');
         const promise = _waitForAppResume(auth, eventManager, null);
         document.dispatchEvent(new CustomEvent('resume'));
         sendEvent();
@@ -350,7 +360,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
         expect(eventManager.removePassiveListener).to.have.been.calledWith(
           sinon.match.func
         );
-        expect(window.clearTimeout).to.have.been.calledWith(CANCEL_TIMER_ID);
+        expect(win.clearTimeout).to.have.been.calledWith(CANCEL_TIMER_ID);
       });
     });
   });
@@ -358,7 +368,6 @@ describe('platform_cordova/popup_redirect/utils', () => {
 
 function attachExpectedPlugins(): void {
   // Eventually these will be replaced with full mocks
-  const win = (window as unknown) as Record<string, unknown>;
   win.cordova = {
     plugins: {
       browsertab: {
@@ -368,14 +377,15 @@ function attachExpectedPlugins(): void {
       }
     },
     InAppBrowser: {
-      open: () => {}
+      open: () => ({})
     }
   };
   win.universalLinks = {
     subscribe: () => {}
   };
   win.BuildInfo = {
-    packageName: 'com.example.name.package'
+    packageName: 'com.example.name.package',
+    displayName: 'display name'
   };
 }
 
