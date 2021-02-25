@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 
 // Refresh the token five minutes before expiration
@@ -35,7 +35,7 @@ export class ProactiveRefresh {
   private timerId: any | null = null;
   private errorBackoff = Duration.RETRY_BACKOFF_MIN;
 
-  constructor(private readonly user: User) {}
+  constructor(private readonly user: UserInternal) {}
 
   _start(): void {
     if (this.isRunning) {

@@ -20,7 +20,10 @@ import {
   Gtag,
   SettingsOptions,
   DynamicConfig,
-  MinimalDynamicConfig
+  MinimalDynamicConfig,
+  AnalyticsCallOptions,
+  CustomParams,
+  EventParams
 } from '@firebase/analytics-types';
 import {
   logEvent,
@@ -226,7 +229,11 @@ export function factory(
     app,
     // Public methods return void for API simplicity and to better match gtag,
     // while internal implementations return promises.
-    logEvent: (eventName, eventParams, options) => {
+    logEvent: (
+      eventName: string,
+      eventParams?: EventParams | CustomParams,
+      options?: AnalyticsCallOptions
+    ) => {
       logEvent(
         wrappedGtagFunction,
         initializationPromisesMap[appId],

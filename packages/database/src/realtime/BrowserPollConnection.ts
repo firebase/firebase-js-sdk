@@ -40,7 +40,7 @@ import {
 import { base64Encode, stringify, isNodeSdk } from '@firebase/util';
 
 import { Transport } from './Transport';
-import { RepoInfo } from '../core/RepoInfo';
+import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
 import { StatsCollection } from '../core/stats/StatsCollection';
 
 // URL query parameters associated with longpolling
@@ -116,7 +116,7 @@ export class BrowserPollConnection implements Transport {
     this.log_ = logWrapper(connId);
     this.stats_ = StatsManager.getCollection(repoInfo);
     this.urlFn = (params: { [k: string]: string }) =>
-      repoInfo.connectionURL(LONG_POLLING, params);
+      repoInfoConnectionURL(repoInfo, LONG_POLLING, params);
   }
 
   /**

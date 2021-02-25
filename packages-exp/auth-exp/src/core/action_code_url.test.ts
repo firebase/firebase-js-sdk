@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { ActionCodeOperation } from '@firebase/auth-types-exp';
+import { ActionCodeOperation } from '../model/public_types';
 
 import { ActionCodeURL } from './action_code_url';
 

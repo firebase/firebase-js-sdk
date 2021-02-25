@@ -16,8 +16,8 @@
  */
 
 import { SDK_VERSION } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
-import { ApiKey, AppName, Auth } from '../../model/auth';
+import { AuthProvider } from '../../model/public_types';
+import { ApiKey, AppName, AuthInternal } from '../../model/auth';
 import { AuthEventType } from '../../model/popup_redirect';
 import { AuthErrorCode } from '../errors';
 import { OAuthProvider } from '../providers/oauth';
@@ -54,8 +54,8 @@ type WidgetParams = {
 } & { [key: string]: string | undefined };
 
 export function _getRedirectUrl(
-  auth: Auth,
-  provider: externs.AuthProvider,
+  auth: AuthInternal,
+  provider: AuthProvider,
   authType: AuthEventType,
   redirectUrl?: string,
   eventId?: string,
@@ -112,7 +112,7 @@ export function _getRedirectUrl(
   return url.toString();
 }
 
-function getHandlerBase({ config }: Auth): string {
+function getHandlerBase({ config }: AuthInternal): string {
   if (!config.emulator) {
     return `https://${config.authDomain}/${WIDGET_PATH}`;
   }

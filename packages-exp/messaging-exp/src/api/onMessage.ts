@@ -18,7 +18,7 @@
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
-import { MessagePayload } from '@firebase/messaging-types-exp';
+import { MessagePayload } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
 import { messageEventListener } from '../listeners/messageEventListener';
 

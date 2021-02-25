@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
-import { RemoteConfig } from '@firebase/remote-config-types-exp';
 import {
   Value as ValueCompat,
   FetchStatus as FetchSTatusCompat,
@@ -25,6 +24,7 @@ import {
   RemoteConfig as RemoteConfigCompat
 } from '@firebase/remote-config-types';
 import {
+  RemoteConfig,
   setLogLevel,
   activate,
   ensureInitialized,

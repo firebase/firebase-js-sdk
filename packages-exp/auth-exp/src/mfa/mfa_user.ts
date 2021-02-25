@@ -14,43 +14,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as externs from '@firebase/auth-types-exp';
+import {
+  MultiFactorAssertion,
+  MultiFactorInfo,
+  MultiFactorSession,
+  MultiFactorUser,
+  User
+} from '../model/public_types';
 
 import { withdrawMfa } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
 import { _logoutIfInvalidated } from '../core/user/invalidation';
-import { User } from '../model/user';
-import { MultiFactorAssertion } from './mfa_assertion';
-import { MultiFactorInfo } from './mfa_info';
-import { MultiFactorSession } from './mfa_session';
+import { UserInternal } from '../model/user';
+import { MultiFactorAssertionImpl } from './mfa_assertion';
+import { MultiFactorInfoImpl } from './mfa_info';
+import { MultiFactorSessionImpl } from './mfa_session';
 
-export class MultiFactorUser implements externs.MultiFactorUser {
-  enrolledFactors: externs.MultiFactorInfo[] = [];
+export class MultiFactorUserImpl implements MultiFactorUser {
+  enrolledFactors: MultiFactorInfo[] = [];
 
-  private constructor(readonly user: User) {
+  private constructor(readonly user: UserInternal) {
     user._onReload(userInfo => {
       if (userInfo.mfaInfo) {
         this.enrolledFactors = userInfo.mfaInfo.map(enrollment =>
-          MultiFactorInfo._fromServerResponse(user.auth, enrollment)
+          MultiFactorInfoImpl._fromServerResponse(user.auth, enrollment)
         );
       }
     });
   }
 
-  static _fromUser(user: User): MultiFactorUser {
-    return new MultiFactorUser(user);
+  static _fromUser(user: UserInternal): MultiFactorUserImpl {
+    return new MultiFactorUserImpl(user);
   }
 
-  async getSession(): Promise<externs.MultiFactorSession> {
-    return MultiFactorSession._fromIdtoken(await this.user.getIdToken());
+  async getSession(): Promise<MultiFactorSession> {
+    return MultiFactorSessionImpl._fromIdtoken(await this.user.getIdToken());
   }
 
   async enroll(
-    assertionExtern: externs.MultiFactorAssertion,
+    assertionExtern: MultiFactorAssertion,
     displayName?: string | null
   ): Promise<void> {
-    const assertion = assertionExtern as MultiFactorAssertion;
-    const session = (await this.getSession()) as MultiFactorSession;
+    const assertion = assertionExtern as MultiFactorAssertionImpl;
+    const session = (await this.getSession()) as MultiFactorSessionImpl;
     const finalizeMfaResponse = await _logoutIfInvalidated(
       this.user,
       assertion._process(this.user.auth, session, displayName)
@@ -64,7 +70,7 @@ export class MultiFactorUser implements externs.MultiFactorUser {
     return this.user.reload();
   }
 
-  async unenroll(infoOrUid: externs.MultiFactorInfo | string): Promise<void> {
+  async unenroll(infoOrUid: MultiFactorInfo | string): Promise<void> {
     const mfaEnrollmentId =
       typeof infoOrUid === 'string' ? infoOrUid : infoOrUid.uid;
     const idToken = await this.user.getIdToken();
@@ -94,13 +100,10 @@ export class MultiFactorUser implements externs.MultiFactorUser {
   }
 }
 
-const multiFactorUserCache = new WeakMap<
-  externs.User,
-  externs.MultiFactorUser
->();
+const multiFactorUserCache = new WeakMap<User, MultiFactorUser>();
 
 /**
- * The {@link @firebase/auth-types#MultiFactorUser} corresponding to the user.
+ * The {@link MultiFactorUser} corresponding to the user.
  *
  * @remarks
  * This is used to access all multi-factor properties and operations related to the user.
@@ -109,9 +112,12 @@ const multiFactorUserCache = new WeakMap<
  *
  * @public
  */
-export function multiFactor(user: externs.User): externs.MultiFactorUser {
+export function multiFactor(user: User): MultiFactorUser {
   if (!multiFactorUserCache.has(user)) {
-    multiFactorUserCache.set(user, MultiFactorUser._fromUser(user as User));
+    multiFactorUserCache.set(
+      user,
+      MultiFactorUserImpl._fromUser(user as UserInternal)
+    );
   }
   return multiFactorUserCache.get(user)!;
 }

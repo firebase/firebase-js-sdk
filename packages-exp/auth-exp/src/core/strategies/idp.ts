@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { ProviderId } from '../../model/public_types';
 import {
   signInWithIdp,
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { User, UserCredential } from '../../model/user';
+import { UserInternal, UserCredentialInternal } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
@@ -32,32 +32,37 @@ import { _signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 
 export interface IdpTaskParams {
-  auth: Auth;
+  auth: AuthInternal;
   requestUri: string;
   sessionId?: string;
   tenantId?: string;
   postBody?: string;
   pendingToken?: string;
-  user?: User;
+  user?: UserInternal;
   bypassAuthState?: boolean;
 }
 
-export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
+export type IdpTask = (
+  params: IdpTaskParams
+) => Promise<UserCredentialInternal>;
 
 class IdpCredential extends AuthCredential {
   constructor(readonly params: IdpTaskParams) {
-    super(externs.ProviderId.CUSTOM, externs.ProviderId.CUSTOM);
+    super(ProviderId.CUSTOM, ProviderId.CUSTOM);
   }
 
-  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+  _getIdTokenResponse(auth: AuthInternal): Promise<PhoneOrOauthTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest());
   }
 
-  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(
+    auth: AuthInternal,
+    idToken: string
+  ): Promise<IdTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest(idToken));
   }
 
-  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest());
   }
 
@@ -80,15 +85,19 @@ class IdpCredential extends AuthCredential {
   }
 }
 
-export function _signIn(params: IdpTaskParams): Promise<UserCredential> {
+export function _signIn(
+  params: IdpTaskParams
+): Promise<UserCredentialInternal> {
   return _signInWithCredential(
     params.auth,
     new IdpCredential(params),
     params.bypassAuthState
-  ) as Promise<UserCredential>;
+  ) as Promise<UserCredentialInternal>;
 }
 
-export function _reauth(params: IdpTaskParams): Promise<UserCredential> {
+export function _reauth(
+  params: IdpTaskParams
+): Promise<UserCredentialInternal> {
   const { auth, user } = params;
   _assert(user, auth, AuthErrorCode.INTERNAL_ERROR);
   return _reauthenticate(
@@ -98,7 +107,9 @@ export function _reauth(params: IdpTaskParams): Promise<UserCredential> {
   );
 }
 
-export async function _link(params: IdpTaskParams): Promise<UserCredential> {
+export async function _link(
+  params: IdpTaskParams
+): Promise<UserCredentialInternal> {
   const { auth, user } = params;
   _assert(user, auth, AuthErrorCode.INTERNAL_ERROR);
   return _linkUser(user, new IdpCredential(params), params.bypassAuthState);

@@ -16,20 +16,17 @@
  */
 
 import { _getProvider, FirebaseApp } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 
 import { Dependencies } from '../../model/auth';
 import { AuthErrorCode } from '../errors';
-import { Persistence } from '../persistence';
+import { PersistenceInternal } from '../persistence';
 import { _fail } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { AuthImpl } from './auth_impl';
 
 /** @public */
-export function initializeAuth(
-  app: FirebaseApp,
-  deps?: Dependencies
-): externs.Auth {
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
   const provider = _getProvider(app, 'auth-exp');
 
   if (provider.isInitialized()) {
@@ -51,7 +48,7 @@ export function _initializeAuthInstance(
   const hierarchy = (Array.isArray(persistence)
     ? persistence
     : [persistence]
-  ).map<Persistence>(_getInstance);
+  ).map<PersistenceInternal>(_getInstance);
   if (deps?.errorMap) {
     auth._updateErrorMap(deps.errorMap);
   }

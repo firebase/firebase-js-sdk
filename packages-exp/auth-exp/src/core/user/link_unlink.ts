@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { OperationType, ProviderId, User } from '../../model/public_types';
 
 import { deleteLinkedAccounts } from '../../api/account_management/account';
-import { User, UserCredential } from '../../model/user';
+import { UserInternal, UserCredentialInternal } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
@@ -36,10 +36,10 @@ import { UserCredentialImpl } from './user_credential_impl';
  * @public
  */
 export async function unlink(
-  user: externs.User,
-  providerId: externs.ProviderId
-): Promise<externs.User> {
-  const userInternal = user as User;
+  user: User,
+  providerId: ProviderId
+): Promise<User> {
+  const userInternal = user as UserInternal;
   await _assertLinkedStatus(true, userInternal, providerId);
   const { providerUserInfo } = await deleteLinkedAccounts(userInternal.auth, {
     idToken: await user.getIdToken(),
@@ -51,7 +51,7 @@ export async function unlink(
   userInternal.providerData = user.providerData.filter(pd =>
     providersLeft.has(pd.providerId)
   );
-  if (!providersLeft.has(externs.ProviderId.PHONE)) {
+  if (!providersLeft.has(ProviderId.PHONE)) {
     userInternal.phoneNumber = null;
   }
 
@@ -60,25 +60,21 @@ export async function unlink(
 }
 
 export async function _link(
-  user: User,
+  user: UserInternal,
   credential: AuthCredential,
   bypassAuthState = false
-): Promise<UserCredential> {
+): Promise<UserCredentialInternal> {
   const response = await _logoutIfInvalidated(
     user,
     credential._linkToIdToken(user.auth, await user.getIdToken()),
     bypassAuthState
   );
-  return UserCredentialImpl._forOperation(
-    user,
-    externs.OperationType.LINK,
-    response
-  );
+  return UserCredentialImpl._forOperation(user, OperationType.LINK, response);
 }
 
 export async function _assertLinkedStatus(
   expected: boolean,
-  user: User,
+  user: UserInternal,
   provider: string
 ): Promise<void> {
   await _reloadWithoutSaving(user);

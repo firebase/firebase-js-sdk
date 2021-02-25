@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
-import { ActionCodeOperation, OperationType } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, OperationType } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -28,7 +28,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
-import { UserCredential } from '../../model/user';
+import { UserCredentialInternal } from '../../model/user';
 import {
   applyActionCode,
   checkActionCode,
@@ -391,7 +391,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       auth,
       'some-email',
       'some-password'
-    )) as UserCredential;
+    )) as UserCredentialInternal;
     expect(_tokenResponse).to.eql({
       idToken: 'id-token',
       refreshToken: 'refresh-token',
@@ -434,7 +434,7 @@ describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => 
       auth,
       'some-email',
       'some-password'
-    )) as UserCredential;
+    )) as UserCredentialInternal;
     expect(_tokenResponse).to.eql({
       idToken: 'id-token',
       refreshToken: 'refresh-token',

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
+import { ProviderId } from './public_types';
 
 import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
 
@@ -55,7 +55,7 @@ export interface IdTokenResponse {
   idToken?: IdToken;
   refreshToken?: string;
   expiresIn?: string;
-  providerId?: ProviderId;
+  providerId?: ProviderId | string;
 
   // Used in AdditionalUserInfo
   displayName?: string | null;

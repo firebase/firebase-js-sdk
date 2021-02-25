@@ -16,9 +16,8 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
-import * as impl from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
 import {
   ErrorFn,
   isIndexedDBAvailable,
@@ -36,13 +35,13 @@ import {
 import { unwrap, Wrapper } from './wrap';
 
 const PERSISTENCE_KEY = 'persistence';
-const _assert: typeof impl._assert = impl._assert;
+const _assert: typeof exp._assert = exp._assert;
 
 export class Auth
-  implements compat.FirebaseAuth, Wrapper<externs.Auth>, _FirebaseService {
+  implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService {
   // private readonly auth: impl.AuthImpl;
 
-  constructor(readonly app: FirebaseApp, private readonly auth: impl.AuthImpl) {
+  constructor(readonly app: FirebaseApp, private readonly auth: exp.AuthImpl) {
     const { apiKey } = app.options;
     if (this.auth._deleted) {
       return;
@@ -53,24 +52,26 @@ export class Auth
     // the fallback (if no user is found) to be the stored persistence type
     const storedPersistence = this.getPersistenceFromRedirect();
     const persistences = storedPersistence ? [storedPersistence] : [];
-    persistences.push(impl.indexedDBLocalPersistence);
+    persistences.push(exp.indexedDBLocalPersistence);
 
     // TODO(avolkovi): Implement proper persistence fallback
-    const hierarchy = persistences.map<impl.Persistence>(impl._getInstance);
+    const hierarchy = persistences.map<exp.PersistenceInternal>(
+      exp._getInstance
+    );
 
     // TODO: platform needs to be determined using heuristics
-    _assert(apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
+    _assert(apiKey, exp.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
 
-    this.auth._updateErrorMap(impl.debugErrorMap);
+    this.auth._updateErrorMap(exp.debugErrorMap);
 
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.auth._initializeWithPersistence(
       hierarchy,
-      impl.browserPopupRedirectResolver
+      exp.browserPopupRedirectResolver
     );
   }
 
@@ -101,18 +102,18 @@ export class Auth
     return this.auth.signOut();
   }
   useEmulator(url: string, options?: { disableWarnings: boolean }): void {
-    impl.useAuthEmulator(this.auth, url, options);
+    exp.useAuthEmulator(this.auth, url, options);
   }
   applyActionCode(code: string): Promise<void> {
-    return impl.applyActionCode(this.auth, code);
+    return exp.applyActionCode(this.auth, code);
   }
 
   checkActionCode(code: string): Promise<compat.ActionCodeInfo> {
-    return impl.checkActionCode(this.auth, code);
+    return exp.checkActionCode(this.auth, code);
   }
 
   confirmPasswordReset(code: string, newPassword: string): Promise<void> {
-    return impl.confirmPasswordReset(this.auth, code, newPassword);
+    return exp.confirmPasswordReset(this.auth, code, newPassword);
   }
 
   async createUserWithEmailAndPassword(
@@ -121,27 +122,27 @@ export class Auth
   ): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.createUserWithEmailAndPassword(this.auth, email, password)
+      exp.createUserWithEmailAndPassword(this.auth, email, password)
     );
   }
   fetchProvidersForEmail(email: string): Promise<string[]> {
     return this.fetchSignInMethodsForEmail(email);
   }
   fetchSignInMethodsForEmail(email: string): Promise<string[]> {
-    return impl.fetchSignInMethodsForEmail(this.auth, email);
+    return exp.fetchSignInMethodsForEmail(this.auth, email);
   }
   isSignInWithEmailLink(emailLink: string): boolean {
-    return impl.isSignInWithEmailLink(this.auth, emailLink);
+    return exp.isSignInWithEmailLink(this.auth, emailLink);
   }
   async getRedirectResult(): Promise<compat.UserCredential> {
     _assert(
       _isPopupRedirectSupported(),
       this.auth,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+      exp.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
-    const credential = await impl.getRedirectResult(
+    const credential = await exp.getRedirectResult(
       this.auth,
-      impl.browserPopupRedirectResolver
+      exp.browserPopupRedirectResolver
     );
     if (!credential) {
       return {
@@ -179,13 +180,13 @@ export class Auth
     email: string,
     actionCodeSettings: compat.ActionCodeSettings
   ): Promise<void> {
-    return impl.sendSignInLinkToEmail(this.auth, email, actionCodeSettings);
+    return exp.sendSignInLinkToEmail(this.auth, email, actionCodeSettings);
   }
   sendPasswordResetEmail(
     email: string,
     actionCodeSettings?: compat.ActionCodeSettings | null
   ): Promise<void> {
-    return impl.sendPasswordResetEmail(
+    return exp.sendPasswordResetEmail(
       this.auth,
       email,
       actionCodeSettings || undefined
@@ -193,21 +194,21 @@ export class Auth
   }
   async setPersistence(persistence: string): Promise<void> {
     function convertPersistence(
-      auth: externs.Auth,
+      auth: exp.Auth,
       persistenceCompat: string
-    ): externs.Persistence {
+    ): exp.Persistence {
       _validatePersistenceArgument(auth, persistence);
       switch (persistenceCompat) {
         case Persistence.SESSION:
-          return impl.browserSessionPersistence;
+          return exp.browserSessionPersistence;
         case Persistence.LOCAL:
           return isIndexedDBAvailable()
-            ? impl.indexedDBLocalPersistence
-            : impl.browserLocalPersistence;
+            ? exp.indexedDBLocalPersistence
+            : exp.browserLocalPersistence;
         case Persistence.NONE:
-          return impl.inMemoryPersistence;
+          return exp.inMemoryPersistence;
         default:
-          return impl._fail(impl.AuthErrorCode.ARGUMENT_ERROR, {
+          return exp._fail(exp.AuthErrorCode.ARGUMENT_ERROR, {
             appName: auth.name
           });
       }
@@ -222,20 +223,20 @@ export class Auth
     return this.signInWithCredential(credential);
   }
   signInAnonymously(): Promise<compat.UserCredential> {
-    return convertCredential(this.auth, impl.signInAnonymously(this.auth));
+    return convertCredential(this.auth, exp.signInAnonymously(this.auth));
   }
   signInWithCredential(
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.signInWithCredential(this.auth, credential as externs.AuthCredential)
+      exp.signInWithCredential(this.auth, credential as exp.AuthCredential)
     );
   }
   signInWithCustomToken(token: string): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.signInWithCustomToken(this.auth, token)
+      exp.signInWithCustomToken(this.auth, token)
     );
   }
   signInWithEmailAndPassword(
@@ -244,7 +245,7 @@ export class Auth
   ): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.signInWithEmailAndPassword(this.auth, email, password)
+      exp.signInWithEmailAndPassword(this.auth, email, password)
     );
   }
   signInWithEmailLink(
@@ -253,7 +254,7 @@ export class Auth
   ): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.signInWithEmailLink(this.auth, email, emailLink)
+      exp.signInWithEmailLink(this.auth, email, emailLink)
     );
   }
   signInWithPhoneNumber(
@@ -262,7 +263,7 @@ export class Auth
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
       this.auth,
-      impl.signInWithPhoneNumber(
+      exp.signInWithPhoneNumber(
         this.auth,
         phoneNumber,
         unwrap(applicationVerifier)
@@ -275,14 +276,14 @@ export class Auth
     _assert(
       _isPopupRedirectSupported(),
       this.auth,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+      exp.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     return convertCredential(
       this.auth,
-      impl.signInWithPopup(
+      exp.signInWithPopup(
         this.auth,
-        provider as externs.AuthProvider,
-        impl.browserPopupRedirectResolver
+        provider as exp.AuthProvider,
+        exp.browserPopupRedirectResolver
       )
     );
   }
@@ -290,22 +291,22 @@ export class Auth
     _assert(
       _isPopupRedirectSupported(),
       this.auth,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+      exp.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     this.savePersistenceForRedirect();
-    return impl.signInWithRedirect(
+    return exp.signInWithRedirect(
       this.auth,
-      provider as externs.AuthProvider,
-      impl.browserPopupRedirectResolver
+      provider as exp.AuthProvider,
+      exp.browserPopupRedirectResolver
     );
   }
   updateCurrentUser(user: compat.User | null): Promise<void> {
     return this.auth.updateCurrentUser(unwrap(user));
   }
   verifyPasswordResetCode(code: string): Promise<string> {
-    return impl.verifyPasswordResetCode(this.auth, code);
+    return exp.verifyPasswordResetCode(this.auth, code);
   }
-  unwrap(): externs.Auth {
+  unwrap(): exp.Auth {
     return this.auth;
   }
   _delete(): Promise<void> {
@@ -314,7 +315,7 @@ export class Auth
 
   private savePersistenceForRedirect(): void {
     const win = getSelfWindow();
-    const key = impl._persistenceKeyName(
+    const key = exp._persistenceKeyName(
       PERSISTENCE_KEY,
       this.auth.config.apiKey,
       this.auth.name
@@ -324,13 +325,13 @@ export class Auth
     }
   }
 
-  private getPersistenceFromRedirect(): externs.Persistence | null {
+  private getPersistenceFromRedirect(): exp.Persistence | null {
     const win = getSelfWindow();
     if (!win?.sessionStorage) {
       return null;
     }
 
-    const key = impl._persistenceKeyName(
+    const key = exp._persistenceKeyName(
       PERSISTENCE_KEY,
       this.auth.config.apiKey,
       this.auth.name
@@ -338,14 +339,14 @@ export class Auth
     const persistence = win.sessionStorage.getItem(key);
 
     switch (persistence) {
-      case impl.inMemoryPersistence.type:
-        return impl.inMemoryPersistence;
-      case impl.indexedDBLocalPersistence.type:
-        return impl.indexedDBLocalPersistence;
-      case impl.browserSessionPersistence.type:
-        return impl.browserSessionPersistence;
-      case impl.browserLocalPersistence.type:
-        return impl.browserLocalPersistence;
+      case exp.inMemoryPersistence.type:
+        return exp.inMemoryPersistence;
+      case exp.indexedDBLocalPersistence.type:
+        return exp.indexedDBLocalPersistence;
+      case exp.browserSessionPersistence.type:
+        return exp.browserSessionPersistence;
+      case exp.browserLocalPersistence.type:
+        return exp.browserLocalPersistence;
       default:
         return null;
     }
@@ -360,7 +361,7 @@ function wrapObservers(
   nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
   error?: (error: compat.Error) => unknown,
   complete?: Unsubscribe
-): Partial<Observer<externs.User | null>> {
+): Partial<Observer<exp.User | null>> {
   let next = nextOrObserver;
   if (typeof nextOrObserver !== 'function') {
     ({ next, error, complete } = nextOrObserver);
@@ -369,8 +370,8 @@ function wrapObservers(
   // We know 'next' is now a function
   const oldNext = next as (a: compat.User | null) => unknown;
 
-  const newNext = (user: externs.User | null): unknown =>
-    oldNext(user && User.getOrCreate(user as externs.User));
+  const newNext = (user: exp.User | null): unknown =>
+    oldNext(user && User.getOrCreate(user as exp.User));
   return {
     next: newNext,
     error: error as ErrorFn,

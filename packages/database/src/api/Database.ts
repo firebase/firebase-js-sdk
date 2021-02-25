@@ -19,8 +19,11 @@ import { fatal } from '../core/util/util';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath } from '../core/util/Path';
 import { Reference } from './Reference';
-import { Repo } from '../core/Repo';
-import { RepoManager } from '../core/RepoManager';
+import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
+import {
+  repoManagerApplyEmulatorSettings,
+  repoManagerDeleteRepo
+} from '../core/RepoManager';
 import { validateArgCount } from '@firebase/util';
 import { validateUrl } from '../core/util/validation';
 import { FirebaseApp } from '@firebase/app-types';
@@ -63,7 +66,7 @@ export class Database implements FirebaseService {
   INTERNAL = {
     delete: async () => {
       this.checkDeleted_('delete');
-      RepoManager.getInstance().deleteRepo(this.repo_);
+      repoManagerDeleteRepo(this.repo_);
       this.repoInternal_ = null;
       this.rootInternal_ = null;
     }
@@ -71,7 +74,7 @@ export class Database implements FirebaseService {
 
   private get repo_(): Repo {
     if (!this.instanceStarted_) {
-      this.repoInternal_.start();
+      repoStart(this.repoInternal_);
       this.instanceStarted_ = true;
     }
     return this.repoInternal_;
@@ -107,11 +110,7 @@ export class Database implements FirebaseService {
     }
 
     // Modify the repo to apply emulator settings
-    RepoManager.getInstance().applyEmulatorSettings(
-      this.repoInternal_,
-      host,
-      port
-    );
+    repoManagerApplyEmulatorSettings(this.repoInternal_, host, port);
   }
 
   /**
@@ -180,12 +179,12 @@ export class Database implements FirebaseService {
   goOffline(): void {
     validateArgCount('database.goOffline', 0, 0, arguments.length);
     this.checkDeleted_('goOffline');
-    this.repo_.interrupt();
+    repoInterrupt(this.repo_);
   }
 
   goOnline(): void {
     validateArgCount('database.goOnline', 0, 0, arguments.length);
     this.checkDeleted_('goOnline');
-    this.repo_.resume();
+    repoResume(this.repo_);
   }
 }
