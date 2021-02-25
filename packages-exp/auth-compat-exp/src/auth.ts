@@ -27,6 +27,7 @@ import {
 
 import { _validatePersistenceArgument, Persistence } from './persistence';
 import { _isPopupRedirectSupported } from './platform';
+import { CompatPopupRedirectResolver } from './popup_redirect';
 import { User } from './user';
 import {
   convertConfirmationResult,
@@ -71,7 +72,7 @@ export class Auth
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.auth._initializeWithPersistence(
       hierarchy,
-      exp.browserPopupRedirectResolver
+      CompatPopupRedirectResolver
     );
   }
 
@@ -142,7 +143,7 @@ export class Auth
     );
     const credential = await exp.getRedirectResult(
       this.auth,
-      exp.browserPopupRedirectResolver
+      CompatPopupRedirectResolver
     );
     if (!credential) {
       return {
@@ -283,7 +284,7 @@ export class Auth
       exp.signInWithPopup(
         this.auth,
         provider as exp.AuthProvider,
-        exp.browserPopupRedirectResolver
+        CompatPopupRedirectResolver
       )
     );
   }
@@ -297,7 +298,7 @@ export class Auth
     return exp.signInWithRedirect(
       this.auth,
       provider as exp.AuthProvider,
-      exp.browserPopupRedirectResolver
+      CompatPopupRedirectResolver
     );
   }
   updateCurrentUser(user: compat.User | null): Promise<void> {
