@@ -72,7 +72,7 @@ export function sparseSnapshotTreeRemember(
   sparseSnapshotTree: SparseSnapshotTree,
   path: Path,
   data: Node
-) {
+): void {
   if (pathIsEmpty(path)) {
     sparseSnapshotTree.value = data;
     sparseSnapshotTree.children.clear();
@@ -150,7 +150,7 @@ export function sparseSnapshotTreeForEachTree(
   sparseSnapshotTree: SparseSnapshotTree,
   prefixPath: Path,
   func: (a: Path, b: Node) => unknown
-) {
+): void {
   if (sparseSnapshotTree.value !== null) {
     func(prefixPath, sparseSnapshotTree.value);
   } else {
@@ -170,7 +170,7 @@ export function sparseSnapshotTreeForEachTree(
 export function sparseSnapshotTreeForEachChild(
   sparseSnapshotTree: SparseSnapshotTree,
   func: (a: string, b: SparseSnapshotTree) => void
-) {
+): void {
   sparseSnapshotTree.children.forEach((tree, key) => {
     func(key, tree);
   });
