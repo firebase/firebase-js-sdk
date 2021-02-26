@@ -23,7 +23,7 @@ import {
 import { FirebaseInternalDependencies } from '../../interfaces/internal-dependencies';
 import { FirebaseOptions } from '@firebase/app-exp';
 import { Provider } from '@firebase/component';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { extractAppConfig } from '../../helpers/extract-app-config';
 
 export function getFakeFirebaseDependencies(

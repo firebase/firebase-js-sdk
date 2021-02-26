@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ export interface FirebaseInstallations {}
  *
  * @internal
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseInstallationsInternal {
   /**
    * Creates a Firebase Installation if there isn't one for the app and

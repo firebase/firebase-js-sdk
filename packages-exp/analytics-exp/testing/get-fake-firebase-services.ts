@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-exp';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 
 export function getFakeApp(fakeAppParams?: {
   appId?: string;

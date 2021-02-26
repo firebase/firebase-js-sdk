@@ -22,7 +22,7 @@ import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types
 import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
 import { MessagePayload } from './interfaces/public-types';
 import { Provider } from '@firebase/component';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { extractAppConfig } from './helpers/extract-app-config';
 
 export class MessagingService implements _FirebaseService {

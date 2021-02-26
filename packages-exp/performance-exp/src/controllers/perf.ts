@@ -20,7 +20,7 @@ import { SettingsService } from '../services/settings_service';
 import { getInitializationPromise } from '../services/initialization_service';
 import { Api } from '../services/api_service';
 import { FirebaseApp } from '@firebase/app-exp';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { PerformanceSettings, FirebasePerformance } from '../public_types';
 import { validateIndexedDBOpenable } from '@firebase/util';
 import { setupTransportService } from '../services/transport_service';

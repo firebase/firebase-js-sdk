@@ -26,11 +26,7 @@
     "type-check": "tsc -p . --noEmit",
     "serve": "yarn serve:build && yarn serve:host",
     "serve:build": "rollup -c test-app/rollup.config.js",
-    "serve:host": "http-server -c-1 test-app",
-    "api-report": "api-extractor run --local --verbose",
-    "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn build && yarn doc"
+    "serve:host": "http-server -c-1 test-app"
   },
   "repository": {
     "directory": "packages-exp/installations-compat",
@@ -55,7 +51,6 @@
   },
   "dependencies": {
     "@firebase/installations-exp": "0.0.900",
-    "@firebase/installations-types-exp": "0.0.900",
     "@firebase/util": "0.3.4",
     "@firebase/component": "0.2.0",
     "idb": "3.0.2",
