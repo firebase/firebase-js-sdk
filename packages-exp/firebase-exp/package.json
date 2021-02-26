@@ -38,7 +38,7 @@
   "dependencies": {
     "@firebase/analytics-exp": "0.0.900",
     "@firebase/app-exp": "0.0.900",
-    "@firebase/app-compat": "0.0.900",
+    "@firebase/app-compat": "0.0.900-exp.f919db6a9",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/database": "0.9.4",
     "@firebase/functions-exp": "0.0.900",
