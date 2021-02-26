@@ -582,7 +582,7 @@ describe('Mutation', () => {
 
     const mutationResult = new MutationResult(
       version(7),
-      /*transformResults=*/ null
+      /*transformResults=*/ []
     );
     const docV7Unknown = unknownDoc('collection/key', 7);
     const docV7Deleted = deletedDoc('collection/key', 7, {
