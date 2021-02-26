@@ -81,7 +81,6 @@ import {
   Target as ProtoTarget,
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
-  Value as ProtoValue,
   Write as ProtoWrite,
   WriteResult as ProtoWriteResult
 } from '../protos/firestore_proto_api';
