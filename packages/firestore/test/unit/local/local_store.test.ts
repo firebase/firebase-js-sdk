@@ -255,7 +255,7 @@ class LocalStoreTester {
         const mutationResults = [
           new MutationResult(
             ver,
-            options.transformResult ? [options.transformResult] : null
+            options.transformResult ? [options.transformResult] : []
           )
         ];
         const write = MutationBatchResult.from(batch, ver, mutationResults);

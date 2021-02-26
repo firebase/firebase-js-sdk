@@ -22,8 +22,8 @@
  * just use index.ts
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { Auth } from '@firebase/auth-types-exp';
+import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { Auth } from './src/model/public_types';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 import { initializeAuth } from './src';
@@ -37,13 +37,24 @@ export * from './src';
 export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 export { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
 export { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
+export { getRedirectResult } from './src/platform_browser/strategies/redirect';
 
-export { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect';
-export { signInWithRedirect } from './src/platform_cordova/strategies/redirect';
+export { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect/popup_redirect';
+export {
+  signInWithRedirect,
+  reauthenticateWithRedirect,
+  linkWithRedirect
+} from './src/platform_cordova/strategies/redirect';
 
-import { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect';
+import { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect/popup_redirect';
 
 export function getAuth(app: FirebaseApp): Auth {
+  const provider = _getProvider(app, 'auth-exp');
+
+  if (provider.isInitialized()) {
+    return provider.getImmediate();
+  }
+
   return initializeAuth(app, {
     persistence: indexedDBLocalPersistence,
     popupRedirectResolver: cordovaPopupRedirectResolver

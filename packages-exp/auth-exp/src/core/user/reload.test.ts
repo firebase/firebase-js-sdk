@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
+import { ProviderId, UserInfo } from '../../model/public_types';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
@@ -32,7 +32,7 @@ import {
 } from '../../api/account_management/account';
 import { _reloadWithoutSaving, reload } from './reload';
 import { UserMetadata } from './user_metadata';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -169,7 +169,7 @@ describe('core/user/reload', () => {
   });
 
   context('anonymous carryover', () => {
-    let user: User;
+    let user: UserInternal;
     beforeEach(() => {
       user = testUser(auth, 'abc', '', true);
     });

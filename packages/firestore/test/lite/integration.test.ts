@@ -115,16 +115,11 @@ describe('Firestore', () => {
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-initializeFirestore-twice'
     );
-    const db = initializeFirestore(app, {});
-
-    // Start the client.
-    writeBatch(db);
+    initializeFirestore(app, {});
 
     expect(() => {
       initializeFirestore(app, {});
-    }).to.throw(
-      'Firestore has already been started and its settings can no longer be changed.'
-    );
+    }).to.throw('Firestore can only be initialized once per app.');
   });
 
   it('cannot use once terminated', () => {

@@ -21,7 +21,7 @@ import * as sinonChai from 'sinon-chai';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import {
   PersistedBlob,
-  Persistence,
+  PersistenceInternal,
   PersistenceType
 } from '../../core/persistence';
 import { _getInstance } from '../../core/util/instantiator';
@@ -30,7 +30,9 @@ import { browserLocalPersistence, _POLLING_INTERVAL_MS } from './local_storage';
 use(sinonChai);
 
 describe('platform_browser/persistence/local_storage', () => {
-  const persistence: Persistence = _getInstance(browserLocalPersistence);
+  const persistence: PersistenceInternal = _getInstance(
+    browserLocalPersistence
+  );
 
   beforeEach(() => {
     localStorage.clear();

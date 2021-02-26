@@ -24,6 +24,7 @@ import {
   WEBSOCKET
 } from '../src/realtime/Constants';
 import { expect } from 'chai';
+import { repoInfoConnectionURL } from '../src/core/RepoInfo';
 
 describe('RepoInfo', () => {
   it('should return the correct URL', () => {
@@ -33,12 +34,16 @@ describe('RepoInfo', () => {
     urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
     urlParams[LAST_SESSION_PARAM] = 'test';
 
-    const websocketUrl = repoInfo.connectionURL(WEBSOCKET, urlParams);
+    const websocketUrl = repoInfoConnectionURL(repoInfo, WEBSOCKET, urlParams);
     expect(websocketUrl).to.equal(
       'wss://test-ns.firebaseio.com/.ws?v=5&ls=test'
     );
 
-    const longPollingUrl = repoInfo.connectionURL(LONG_POLLING, urlParams);
+    const longPollingUrl = repoInfoConnectionURL(
+      repoInfo,
+      LONG_POLLING,
+      urlParams
+    );
     expect(longPollingUrl).to.equal(
       'https://test-ns.firebaseio.com/.lp?v=5&ls=test'
     );

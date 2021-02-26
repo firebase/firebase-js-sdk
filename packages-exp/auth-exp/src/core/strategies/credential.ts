@@ -15,12 +15,16 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
-import { OperationType, UserCredential } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  UserCredential,
+  Auth,
+  User
+} from '../../model/public_types';
 
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { _assertLinkedStatus, _link } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
@@ -28,7 +32,7 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 
 export async function _signInWithCredential(
-  auth: Auth,
+  auth: AuthInternal,
   credential: AuthCredential,
   bypassAuthState = false
 ): Promise<UserCredential> {
@@ -54,7 +58,7 @@ export async function _signInWithCredential(
  * Asynchronously signs in with the given credentials.
  *
  * @remarks
- * An {@link @firebase/auth-types#AuthProvider} can be used to generate the credential.
+ * An {@link AuthProvider} can be used to generate the credential.
  *
  * @param auth - The Auth instance.
  * @param credential - The auth credential.
@@ -62,17 +66,17 @@ export async function _signInWithCredential(
  * @public
  */
 export async function signInWithCredential(
-  auth: externs.Auth,
-  credential: externs.AuthCredential
-): Promise<externs.UserCredential> {
-  return _signInWithCredential(_castAuth(auth), credential as AuthCredential);
+  auth: Auth,
+  credential: AuthCredential
+): Promise<UserCredential> {
+  return _signInWithCredential(_castAuth(auth), credential);
 }
 
 /**
  * Links the user account with the given credentials.
  *
  * @remarks
- * An {@link @firebase/auth-types#AuthProvider} can be used to generate the credential.
+ * An {@link AuthProvider} can be used to generate the credential.
  *
  * @param user - The user.
  * @param credential - The auth credential.
@@ -80,14 +84,14 @@ export async function signInWithCredential(
  * @public
  */
 export async function linkWithCredential(
-  user: externs.User,
-  credential: externs.AuthCredential
+  user: User,
+  credential: AuthCredential
 ): Promise<UserCredential> {
-  const userInternal = user as User;
+  const userInternal = user as UserInternal;
 
   await _assertLinkedStatus(false, userInternal, credential.providerId);
 
-  return _link(userInternal, credential as AuthCredential);
+  return _link(userInternal, credential);
 }
 
 /**
@@ -95,8 +99,7 @@ export async function linkWithCredential(
  *
  * @remarks
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in
- * attempts. This method can be used to recover from a
- * {@link AuthErrorCode.CREDENTIAL_TOO_OLD_LOGIN_AGAIN} error.
+ * attempts. This method can be used to recover from a CREDENTIAL_TOO_OLD_LOGIN_AGAIN error.
  *
  * @param user - The user.
  * @param credential - The auth credential.
@@ -104,8 +107,8 @@ export async function linkWithCredential(
  * @public
  */
 export async function reauthenticateWithCredential(
-  user: externs.User,
-  credential: externs.AuthCredential
-): Promise<externs.UserCredential> {
-  return _reauthenticate(user as User, credential as AuthCredential);
+  user: User,
+  credential: AuthCredential
+): Promise<UserCredential> {
+  return _reauthenticate(user as UserInternal, credential);
 }

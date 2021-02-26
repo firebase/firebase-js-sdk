@@ -15,15 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  DynamicConfig,
-  DataLayer,
-  Gtag,
-  CustomParams,
-  ControlParams,
-  EventParams,
-  MinimalDynamicConfig
-} from '@firebase/analytics-types-exp';
+import { CustomParams, ControlParams, EventParams } from './public-types';
+import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
 
@@ -43,11 +36,14 @@ export function promiseAllSettled<T>(
  * Inserts gtag script tag into the page to asynchronously download gtag.
  * @param dataLayerName Name of datalayer (most often the default, "_dataLayer").
  */
-export function insertScriptTag(dataLayerName: string): void {
+export function insertScriptTag(
+  dataLayerName: string,
+  measurementId: string
+): void {
   const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
   // without fid. We will initialize ga-id using gtag (config) command together with fid.
-  script.src = `${GTAG_URL}?l=${dataLayerName}`;
+  script.src = `${GTAG_URL}?l=${dataLayerName}&id=${measurementId}`;
   script.async = true;
   document.head.appendChild(script);
 }
@@ -256,7 +252,7 @@ function wrapGtag(
       logger.error(e);
     }
   }
-  return gtagWrapper;
+  return gtagWrapper as Gtag;
 }
 
 /**

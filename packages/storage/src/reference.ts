@@ -31,7 +31,7 @@ import {
   deleteObject as requestsDeleteObject,
   multipartUpload
 } from './implementation/requests';
-import { ListOptions } from '@firebase/storage-types/exp';
+import { ListOptions } from '../exp/public-types';
 import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
 import { StorageService } from './service';

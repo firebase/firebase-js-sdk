@@ -16,7 +16,7 @@
  */
 
 import { _getProjectConfig } from '../../api/project_config/get_project_config';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { AuthErrorCode } from '../errors';
 import { _fail } from './assert';
 import { _getCurrentUrl } from './location';
@@ -24,7 +24,7 @@ import { _getCurrentUrl } from './location';
 const IP_ADDRESS_REGEX = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
 const HTTP_REGEX = /^https?/;
 
-export async function _validateOrigin(auth: Auth): Promise<void> {
+export async function _validateOrigin(auth: AuthInternal): Promise<void> {
   // Skip origin validation if we are in an emulated environment
   if (auth.config.emulator) {
     return;

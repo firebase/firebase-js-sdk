@@ -54,7 +54,7 @@ const nodePlugins = function () {
       ]
     }),
     replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../src/protos')
+      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
     })
   ];
 };

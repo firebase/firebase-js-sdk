@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as externs from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
@@ -41,7 +41,7 @@ import { _castAuth } from './auth_impl';
  * @public
  */
 export function useAuthEmulator(
-  auth: externs.Auth,
+  auth: Auth,
   url: string,
   options?: { disableWarnings: boolean }
 ): void {
@@ -58,9 +58,20 @@ export function useAuthEmulator(
     AuthErrorCode.INVALID_EMULATOR_SCHEME
   );
 
-  authInternal.config.emulator = { url };
+  const parsedUrl = new URL(url);
+  const disableWarnings = !!options?.disableWarnings;
+
+  // Store the normalized URL whose path is always nonempty (i.e. containing at least a single '/').
+  authInternal.config.emulator = { url: parsedUrl.toString() };
   authInternal.settings.appVerificationDisabledForTesting = true;
-  emitEmulatorWarning(!!options?.disableWarnings);
+  authInternal.emulatorConfig = Object.freeze({
+    host: parsedUrl.hostname,
+    port: parsedUrl.port ? Number(parsedUrl.port) : null,
+    protocol: parsedUrl.protocol.replace(':', ''),
+    options: Object.freeze({ disableWarnings })
+  });
+
+  emitEmulatorWarning(disableWarnings);
 }
 
 function emitEmulatorWarning(disableBanner: boolean): void {

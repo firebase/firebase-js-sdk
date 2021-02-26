@@ -20,6 +20,7 @@ import { registerVersion } from '@firebase/app-exp';
 import { name, version } from '../package.json';
 
 export * from './api';
+export * from './interfaces/public-types';
 
 registerInstallations();
 registerVersion(name, version);

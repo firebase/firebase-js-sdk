@@ -16,7 +16,7 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
+import { Config } from '../../model/public_types';
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../../../package.json';
@@ -24,7 +24,7 @@ import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
-import { AuthInternal } from './firebase_internal';
+import { AuthInterop } from './firebase_internal';
 
 export const enum _ComponentName {
   AUTH = 'auth-exp',
@@ -58,7 +58,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const { apiKey, authDomain } = app.options;
         return (app => {
           _assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
-          const config: externs.Config = {
+          const config: Config = {
             apiKey,
             authDomain,
             apiHost: DefaultConfig.API_HOST,
@@ -80,7 +80,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const auth = _castAuth(
           container.getProvider(_ComponentName.AUTH).getImmediate()!
         );
-        return (auth => new AuthInternal(auth))(auth);
+        return (auth => new AuthInterop(auth))(auth);
       },
       ComponentType.PRIVATE
     )

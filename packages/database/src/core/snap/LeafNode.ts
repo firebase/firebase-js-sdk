@@ -19,7 +19,13 @@ import { assert } from '@firebase/util';
 import { doubleToIEEE754String, sha1 } from '../util/util';
 import { priorityHashText, validatePriorityNode } from './snap';
 import { Node } from './Node';
-import { Path } from '../util/Path';
+import {
+  Path,
+  pathGetFront,
+  pathGetLength,
+  pathIsEmpty,
+  pathPopFront
+} from '../util/Path';
 import { Index } from './indexes/Index';
 import { ChildrenNodeConstructor } from './ChildrenNode';
 import { Indexable } from '../util/misc';
@@ -43,18 +49,15 @@ export class LeafNode implements Node {
   /**
    * The sort order for comparing leaf nodes of different types. If two leaf nodes have
    * the same type, the comparison falls back to their value
-   * @type {Array.<!string>}
-   * @const
    */
   static VALUE_TYPE_ORDER = ['object', 'boolean', 'number', 'string'];
 
   private lazyHash_: string | null = null;
 
   /**
-   * @implements {Node}
-   * @param {!(string|number|boolean|Object)} value_ The value to store in this leaf node.
-   *                                         The object type is possible in the event of a deferred value
-   * @param {!Node=} priorityNode_ The priority of this node.
+   * @param value_ The value to store in this leaf node. The object type is
+   * possible in the event of a deferred value
+   * @param priorityNode_ The priority of this node.
    */
   constructor(
     private readonly value_: string | number | boolean | Indexable,
@@ -95,9 +98,9 @@ export class LeafNode implements Node {
 
   /** @inheritDoc */
   getChild(path: Path): Node {
-    if (path.isEmpty()) {
+    if (pathIsEmpty(path)) {
       return this;
-    } else if (path.getFront() === '.priority') {
+    } else if (pathGetFront(path) === '.priority') {
       return this.priorityNode_;
     } else {
       return LeafNode.__childrenNodeConstructor.EMPTY_NODE;
@@ -132,21 +135,21 @@ export class LeafNode implements Node {
 
   /** @inheritDoc */
   updateChild(path: Path, newChildNode: Node): Node {
-    const front = path.getFront();
+    const front = pathGetFront(path);
     if (front === null) {
       return newChildNode;
     } else if (newChildNode.isEmpty() && front !== '.priority') {
       return this;
     } else {
       assert(
-        front !== '.priority' || path.getLength() === 1,
+        front !== '.priority' || pathGetLength(path) === 1,
         '.priority must be the last token in a path'
       );
 
       return this.updateImmediateChild(
         front,
         LeafNode.__childrenNodeConstructor.EMPTY_NODE.updateChild(
-          path.popFront(),
+          pathPopFront(path),
           newChildNode
         )
       );
@@ -207,7 +210,7 @@ export class LeafNode implements Node {
 
   /**
    * Returns the value of the leaf node.
-   * @return {Object|string|number|boolean} The value of the node.
+   * @return The value of the node.
    */
   getValue(): Indexable | string | number | boolean {
     return this.value_;
@@ -229,9 +232,6 @@ export class LeafNode implements Node {
 
   /**
    * Comparison specifically for two leaf nodes
-   * @param {!LeafNode} otherLeaf
-   * @return {!number}
-   * @private
    */
   private compareToLeafNode_(otherLeaf: LeafNode): number {
     const otherLeafType = typeof otherLeaf.value_;

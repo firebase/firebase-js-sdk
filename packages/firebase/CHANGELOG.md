@@ -1,5 +1,39 @@
 # firebase
 
+## 8.2.9
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/analytics@0.6.4
+  - @firebase/app@0.6.15
+  - @firebase/database@0.9.4
+  - @firebase/firestore@2.1.7
+  - @firebase/functions@0.6.2
+  - @firebase/installations@0.4.20
+  - @firebase/messaging@0.7.4
+  - @firebase/performance@0.4.6
+  - @firebase/remote-config@0.1.31
+  - @firebase/storage@0.4.3
+
+## 8.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`74bf52009`](https://github.com/firebase/firebase-js-sdk/commit/74bf52009b291a62deabfd865084d4e0fcacc483)]:
+  - @firebase/analytics@0.6.3
+  - @firebase/auth@0.16.4
+
+## 8.2.7
+
+### Patch Changes
+
+- [`05614aa86`](https://github.com/firebase/firebase-js-sdk/commit/05614aa86614994b69df154bd6ce34861fae37a5) [#4427](https://github.com/firebase/firebase-js-sdk/pull/4427) - Add `startAfter()` and `endBefore()` to the Realtime Database TypeScript definitions.
+
+- Updated dependencies [[`a718518e9`](https://github.com/firebase/firebase-js-sdk/commit/a718518e935931709669ea2e88f9711143655e61), [`3d0cd6f33`](https://github.com/firebase/firebase-js-sdk/commit/3d0cd6f33127e75e15aec9b6589eea360827df7a), [`318af5471`](https://github.com/firebase/firebase-js-sdk/commit/318af54715dc61a09897b144dd8841fec1abd8a3), [`05614aa86`](https://github.com/firebase/firebase-js-sdk/commit/05614aa86614994b69df154bd6ce34861fae37a5)]:
+  - @firebase/firestore@2.1.6
+  - @firebase/database@0.9.3
+
 ## 8.2.6
 
 ### Patch Changes

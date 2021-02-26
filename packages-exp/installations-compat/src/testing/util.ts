@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseApp } from '@firebase/app-compat';
+import { FirebaseInstallations } from '@firebase/installations-exp';
 
 const appName = 'testApp';
 const apiKey = 'AIzaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaA';

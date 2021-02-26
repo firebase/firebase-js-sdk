@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { ActionCodeOperation } from '@firebase/auth-types-exp';
+import { ActionCodeOperation } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';

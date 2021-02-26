@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-import { initializeApp, deleteApp } from '@firebase/app-exp';
+import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app-exp';
 import '@firebase/installations-exp';
 import { getAnalytics, logEvent } from '../../src/index';
 import '../setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { FirebaseApp } from '@firebase/app-types-exp';
 
 let config: Record<string, string>;
 try {

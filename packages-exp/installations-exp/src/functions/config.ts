@@ -23,7 +23,7 @@ import {
   ComponentContainer
 } from '@firebase/component';
 import { getId, getToken } from '../api/index';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '../interfaces/public-types';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { extractAppConfig } from '../helpers/extract-app-config';
 

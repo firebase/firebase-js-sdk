@@ -25,10 +25,11 @@ import {
   signInAnonymously,
   signInWithEmailAndPassword,
   updateEmail,
-  updatePassword
+  updatePassword,
+  Auth,
+  OperationType
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
-import { Auth, OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import {

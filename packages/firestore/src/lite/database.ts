@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import {
+  _getProvider,
+  _removeServiceInstance,
+  FirebaseApp
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
@@ -181,10 +184,16 @@ export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
 ): FirebaseFirestore {
-  const firestore = _getProvider(
-    app,
-    'firestore/lite'
-  ).getImmediate() as FirebaseFirestore;
+  const provider = _getProvider(app, 'firestore/lite');
+
+  if (provider.isInitialized()) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'Firestore can only be initialized once per app.'
+    );
+  }
+
+  const firestore = provider.getImmediate() as FirebaseFirestore;
   firestore._setSettings(settings);
   return firestore;
 }

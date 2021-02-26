@@ -17,7 +17,7 @@
 
 import { addCallback, removeCallback } from '../helpers/fid-changed';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseInstallations } from '../interfaces/public-types';
 
 /**
  * An user defined callback function that gets called when Installations ID changes.

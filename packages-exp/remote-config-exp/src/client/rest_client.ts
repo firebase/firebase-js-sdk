@@ -23,7 +23,7 @@ import {
 } from './remote_config_fetch_client';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { getUserLanguage } from '../language';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 
 /**
  * Defines request body parameters required to call the fetch API:

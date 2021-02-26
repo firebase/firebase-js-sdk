@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseApp } from '@firebase/app';
 
 /**
  * @public

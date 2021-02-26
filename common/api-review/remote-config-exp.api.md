@@ -4,10 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { RemoteConfig } from '@firebase/remote-config-types-exp';
-import { LogLevel as RemoteConfigLogLevel } from '@firebase/remote-config-types-exp';
-import { Value as ValueType } from '@firebase/remote-config-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 
 // @public
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
@@ -22,7 +19,10 @@ export function fetchAndActivate(remoteConfig: RemoteConfig): Promise<boolean>;
 export function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 
 // @public
-export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType>;
+export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+// @public
+export function getAll(remoteConfig: RemoteConfig): Record<string, Value>;
 
 // @public
 export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean;
@@ -44,9 +44,37 @@ export { RemoteConfig }
 export { RemoteConfigLogLevel }
 
 // @public
-export function setLogLevel(remoteConfig: RemoteConfig, logLevel: RemoteConfigLogLevel): void;
+export type LogLevel = 'debug' | 'error' | 'silent';
 
-export { ValueType }
+// @public
+export interface RemoteConfig {
+    defaultConfig: {
+        [key: string]: string | number | boolean;
+    };
+    fetchTimeMillis: number;
+    lastFetchStatus: FetchStatus;
+    settings: Settings;
+}
+
+// @public
+export function setLogLevel(remoteConfig: RemoteConfig, logLevel: LogLevel): void;
+
+// @public
+export interface Settings {
+    fetchTimeoutMillis: number;
+    minimumFetchIntervalMillis: number;
+}
+
+// @public
+export interface Value {
+    asBoolean(): boolean;
+    asNumber(): number;
+    asString(): string;
+    getSource(): ValueSource;
+}
+
+// @public
+export type ValueSource = 'static' | 'default' | 'remote';
 
 
 // (No @packageDocumentation comment for this package)

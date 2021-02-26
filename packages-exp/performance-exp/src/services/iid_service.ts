@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 
 let iid: string | undefined;
 let authToken: string | undefined;

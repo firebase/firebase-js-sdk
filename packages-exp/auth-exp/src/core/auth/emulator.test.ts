@@ -26,7 +26,7 @@ import { endpointUrl, mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { _castAuth } from './auth_impl';
 import { useAuthEmulator } from './emulator';
 
@@ -35,7 +35,7 @@ use(chaiAsPromised);
 
 describe('core/auth/emulator', () => {
   let auth: TestAuth;
-  let user: User;
+  let user: UserInternal;
   let normalEndpoint: fetch.Route;
   let emulatorEndpoint: fetch.Route;
 
@@ -78,6 +78,13 @@ describe('core/auth/emulator', () => {
 
     it('updates the endpoint appropriately', async () => {
       useAuthEmulator(auth, 'http://localhost:2020');
+      await user.delete();
+      expect(normalEndpoint.calls.length).to.eq(0);
+      expect(emulatorEndpoint.calls.length).to.eq(1);
+    });
+
+    it('updates the endpoint appropriately with trailing slash', async () => {
+      useAuthEmulator(auth, 'http://localhost:2020/');
       await user.delete();
       expect(normalEndpoint.calls.length).to.eq(0);
       expect(emulatorEndpoint.calls.length).to.eq(1);
@@ -134,6 +141,36 @@ describe('core/auth/emulator', () => {
         expect(document.querySelector('.firebase-emulator-warning')).to.be.null;
       }
     });
+
+    it('sets emulatorConfig on the Auth object', async () => {
+      useAuthEmulator(auth, 'http://localhost:2020');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: 'localhost',
+        port: 2020,
+        options: { disableWarnings: false }
+      });
+    });
+
+    it('sets disableWarnings in emulatorConfig accordingly', async () => {
+      useAuthEmulator(auth, 'https://127.0.0.1', { disableWarnings: true });
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'https',
+        host: '127.0.0.1',
+        port: null,
+        options: { disableWarnings: true }
+      });
+    });
+
+    it('quotes IPv6 address in emulatorConfig', async () => {
+      useAuthEmulator(auth, 'http://[::1]:2020/');
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'http',
+        host: '[::1]',
+        port: 2020,
+        options: { disableWarnings: false }
+      });
+    });
   });
 
   context('toJSON', () => {
@@ -146,7 +183,7 @@ describe('core/auth/emulator', () => {
     it('also stringifies the current user', () => {
       auth.currentUser = ({
         toJSON: (): object => ({ foo: 'bar' })
-      } as unknown) as User;
+      } as unknown) as UserInternal;
       expect(JSON.stringify(auth)).to.eq(
         '{"apiKey":"test-api-key","authDomain":"localhost",' +
           '"appName":"test-app","currentUser":{"foo":"bar"}}'

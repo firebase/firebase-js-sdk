@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { User, UserInfo } from '../../model/public_types';
 
 import {
   getAccountInfo,
   ProviderUserInfo
 } from '../../api/account_management/account';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _logoutIfInvalidated } from './invalidation';
 import { UserMetadata } from './user_metadata';
 
-export async function _reloadWithoutSaving(user: User): Promise<void> {
+export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
   const auth = user.auth;
   const idToken = await user.getIdToken();
   const response = await _logoutIfInvalidated(
@@ -57,7 +57,7 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
     !(user.email && coreAccount.passwordHash) && !providerData?.length;
   const isAnonymous = !oldIsAnonymous ? false : newIsAnonymous;
 
-  const updates: Partial<User> = {
+  const updates: Partial<UserInternal> = {
     uid: coreAccount.localId,
     displayName: coreAccount.displayName || null,
     photoURL: coreAccount.photoUrl || null,
@@ -80,8 +80,8 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
  *
  * @public
  */
-export async function reload(user: externs.User): Promise<void> {
-  const userInternal: User = user as User;
+export async function reload(user: User): Promise<void> {
+  const userInternal: UserInternal = user as UserInternal;
   await _reloadWithoutSaving(userInternal);
 
   // Even though the current user hasn't changed, update
@@ -92,18 +92,16 @@ export async function reload(user: externs.User): Promise<void> {
 }
 
 function mergeProviderData(
-  original: externs.UserInfo[],
-  newData: externs.UserInfo[]
-): externs.UserInfo[] {
+  original: UserInfo[],
+  newData: UserInfo[]
+): UserInfo[] {
   const deduped = original.filter(
     o => !newData.some(n => n.providerId === o.providerId)
   );
   return [...deduped, ...newData];
 }
 
-function extractProviderData(
-  providers: ProviderUserInfo[]
-): externs.UserInfo[] {
+function extractProviderData(providers: ProviderUserInfo[]): UserInfo[] {
   return providers.map(({ providerId, ...provider }) => {
     return {
       providerId,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { ProviderId, SignInMethod } from '../../model/public_types';
 
 import { updateEmailPassword } from '../../api/account_management/email_and_password';
 import { signInWithPassword } from '../../api/authentication/email_and_password';
@@ -23,7 +23,7 @@ import {
   signInWithEmailLink,
   signInWithEmailLinkForLinking
 } from '../../api/authentication/email_link';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
@@ -31,25 +31,23 @@ import { AuthCredential } from './auth_credential';
 
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
- * {@link @firebase/auth-types#ProviderId.PASSWORD}
+ * {@link ProviderId.PASSWORD}
  *
  * @remarks
- * Covers both {@link @firebase/auth-types#SignInMethod.EMAIL_PASSWORD} and
- * {@link @firebase/auth-types#SignInMethod.EMAIL_LINK}.
+ * Covers both {@link SignInMethod.EMAIL_PASSWORD} and
+ * {@link SignInMethod.EMAIL_LINK}.
  *
  * @public
  */
-export class EmailAuthCredential
-  extends AuthCredential
-  implements externs.AuthCredential {
+export class EmailAuthCredential extends AuthCredential {
   /** @internal */
   private constructor(
     readonly email: string,
     readonly password: string,
-    signInMethod: externs.SignInMethod,
+    signInMethod: SignInMethod,
     readonly tenantId: string | null = null
   ) {
-    super(externs.ProviderId.PASSWORD, signInMethod);
+    super(ProviderId.PASSWORD, signInMethod);
   }
 
   /** @internal */
@@ -60,7 +58,7 @@ export class EmailAuthCredential
     return new EmailAuthCredential(
       email,
       password,
-      externs.SignInMethod.EMAIL_PASSWORD
+      SignInMethod.EMAIL_PASSWORD
     );
   }
 
@@ -73,12 +71,12 @@ export class EmailAuthCredential
     return new EmailAuthCredential(
       email,
       oobCode,
-      externs.SignInMethod.EMAIL_LINK,
+      SignInMethod.EMAIL_LINK,
       tenantId
     );
   }
 
-  /** {@inheritdoc @firebase/auth-types#AuthCredential.toJSON} */
+  /** {@inheritdoc AuthCredential.toJSON} */
   toJSON(): object {
     return {
       email: this.email,
@@ -88,13 +86,20 @@ export class EmailAuthCredential
     };
   }
 
-  /** {@inheritdoc @firebase/auth-types#AuthCredential.fromJSON} */
+  /**
+   * Static method to deserialize a JSON representation of an object into an {@link  AuthCredential}.
+   *
+   * @param json - Either `object` or the stringified representation of the object. When string is
+   * provided, `JSON.parse` would be called first.
+   *
+   * @returns If the JSON input does not represent an {@link AuthCredential}, null is returned.
+   */
   static fromJSON(json: object | string): EmailAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     if (obj?.email && obj?.password) {
-      if (obj.signInMethod === externs.SignInMethod.EMAIL_PASSWORD) {
+      if (obj.signInMethod === SignInMethod.EMAIL_PASSWORD) {
         return this._fromEmailAndPassword(obj.email, obj.password);
-      } else if (obj.signInMethod === externs.SignInMethod.EMAIL_LINK) {
+      } else if (obj.signInMethod === SignInMethod.EMAIL_LINK) {
         return this._fromEmailAndCode(obj.email, obj.password, obj.tenantId);
       }
     }
@@ -102,15 +107,15 @@ export class EmailAuthCredential
   }
 
   /** @internal */
-  async _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
+  async _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
-      case externs.SignInMethod.EMAIL_PASSWORD:
+      case SignInMethod.EMAIL_PASSWORD:
         return signInWithPassword(auth, {
           returnSecureToken: true,
           email: this.email,
           password: this.password
         });
-      case externs.SignInMethod.EMAIL_LINK:
+      case SignInMethod.EMAIL_LINK:
         return signInWithEmailLink(auth, {
           email: this.email,
           oobCode: this.password
@@ -121,16 +126,19 @@ export class EmailAuthCredential
   }
 
   /** @internal */
-  async _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+  async _linkToIdToken(
+    auth: AuthInternal,
+    idToken: string
+  ): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
-      case externs.SignInMethod.EMAIL_PASSWORD:
+      case SignInMethod.EMAIL_PASSWORD:
         return updateEmailPassword(auth, {
           idToken,
           returnSecureToken: true,
           email: this.email,
           password: this.password
         });
-      case externs.SignInMethod.EMAIL_LINK:
+      case SignInMethod.EMAIL_LINK:
         return signInWithEmailLinkForLinking(auth, {
           idToken,
           email: this.email,
@@ -142,7 +150,7 @@ export class EmailAuthCredential
   }
 
   /** @internal */
-  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse> {
     return this._getIdTokenResponse(auth);
   }
 }

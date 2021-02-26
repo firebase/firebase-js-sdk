@@ -16,7 +16,7 @@
  */
 
 import { _performApiRequest, Endpoint, HttpMethod } from '../index';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 
 export interface GetProjectConfigRequest {}
 

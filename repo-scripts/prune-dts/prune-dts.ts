@@ -39,9 +39,10 @@ export function pruneDts(inputLocation: string, outputLocation: string): void {
   const program = ts.createProgram([inputLocation], compilerOptions, host);
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(inputLocation)!;
-  const result: ts.TransformationResult<ts.SourceFile> = ts.transform<
-    ts.SourceFile
-  >(sourceFile, [dropPrivateApiTransformer.bind(null, program, host)]);
+  const result: ts.TransformationResult<ts.SourceFile> = ts.transform<ts.SourceFile>(
+    sourceFile,
+    [dropPrivateApiTransformer.bind(null, program, host)]
+  );
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
 
   const content = printer.printFile(transformedSourceFile);
@@ -87,6 +88,15 @@ function isExported(
   sourceFile: ts.SourceFile,
   name: ts.Identifier
 ): boolean {
+  // Check is this is a public symbol (e.g. part of the DOM library)
+  const sourceFileNames = typeChecker
+    .getSymbolAtLocation(name)
+    ?.declarations?.map(d => d.getSourceFile().fileName);
+  if (sourceFileNames?.find(s => s.indexOf('typescript/lib') != -1)) {
+    return true;
+  }
+
+  // Check is this is part of the exported symbols of the SDK module
   const allExportedSymbols = typeChecker.getExportsOfModule(
     typeChecker.getSymbolAtLocation(sourceFile)!
   );
@@ -240,7 +250,7 @@ function convertPropertiesForEnclosingClass(
   currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration
 ): ts.NamedDeclaration[] {
   const newMembers: ts.NamedDeclaration[] = [];
-  // The `codefix` package is not public but it does exactly what we want. It's 
+  // The `codefix` package is not public but it does exactly what we want. It's
   // the same package that is used by VSCode to fill in missing members, which
   // is what we are using it for in this script. `codefix` handles missing
   // properties, methods and correctly deduces generics.
@@ -280,6 +290,12 @@ function extractExportedSymbol(
     return undefined;
   }
 
+  if (isExported(typeChecker, sourceFile, typeName)) {
+    // Don't replace the type reference if the type is already part of the
+    // public API.
+    return undefined;
+  }
+
   const localSymbolName = typeName.escapedText;
   const allExportedSymbols = typeChecker.getExportsOfModule(
     typeChecker.getSymbolAtLocation(sourceFile)!
@@ -309,7 +325,7 @@ function extractExportedSymbol(
             if (ts.isIdentifier(type.expression)) {
               const subclassName = type.expression.escapedText;
               if (subclassName === localSymbolName) {
-                // TODO: We may need to change this to return a Union type if 
+                // TODO: We may need to change this to return a Union type if
                 // more than one public type corresponds to the private type.
                 return symbol;
               }

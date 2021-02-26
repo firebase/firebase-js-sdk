@@ -15,23 +15,40 @@
  * limitations under the License.
  */
 
-// For some reason, the linter doesn't recognize that these are used elsewhere
-// in the SDK
-/* eslint-disable @typescript-eslint/no-unused-vars */
+export interface CordovaWindow extends Window {
+  cordova: {
+    plugins: {
+      browsertab: {
+        isAvailable(cb: (available: boolean) => void): void;
+        openUrl(url: string): void;
+        close(): void;
+      };
+    };
 
-declare namespace cordova.plugins.browsertab {
-  function isAvailable(cb: (available: boolean) => void): void;
-  function openUrl(url: string): void;
+    InAppBrowser: {
+      open(url: string, target: string, options: string): InAppBrowserRef;
+    };
+  };
+
+  universalLinks: {
+    subscribe(
+      n: null,
+      cb: (event: Record<string, string> | null) => void
+    ): void;
+  };
+
+  BuildInfo: {
+    readonly packageName: string;
+    readonly displayName: string;
+  };
+
+  handleOpenUrl(url: string): void;
 }
 
-declare namespace cordova.InAppBrowser {
-  function open(url: string, target: string, options: string): unknown;
+export interface InAppBrowserRef {
+  close?: () => void;
 }
 
-declare namespace universalLinks {
-  function subscribe(n: null, cb: (event: unknown) => void): void;
-}
-
-declare namespace BuildInfo {
-  const packageName: string;
+export function _cordovaWindow(): CordovaWindow {
+  return (window as unknown) as CordovaWindow;
 }

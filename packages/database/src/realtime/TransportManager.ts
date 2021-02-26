@@ -27,30 +27,21 @@ import { RepoInfo } from '../core/RepoInfo';
  *
  * It starts with longpolling in a browser, and httppolling on node. It then upgrades to websockets if
  * they are available.
- * @constructor
  */
 export class TransportManager {
   private transports_: TransportConstructor[];
 
-  /**
-   * @const
-   * @type {!Array.<function(new:Transport, string, RepoInfo, string=)>}
-   */
   static get ALL_TRANSPORTS() {
     return [BrowserPollConnection, WebSocketConnection];
   }
 
   /**
-   * @param {!RepoInfo} repoInfo Metadata around the namespace we're connecting to
+   * @param repoInfo Metadata around the namespace we're connecting to
    */
   constructor(repoInfo: RepoInfo) {
     this.initTransports_(repoInfo);
   }
 
-  /**
-   * @param {!RepoInfo} repoInfo
-   * @private
-   */
   private initTransports_(repoInfo: RepoInfo) {
     const isWebSocketsAvailable: boolean =
       WebSocketConnection && WebSocketConnection['isAvailable']();
@@ -80,8 +71,7 @@ export class TransportManager {
   }
 
   /**
-   * @return {function(new:Transport, !string, !RepoInfo, string=, string=)} The constructor for the
-   * initial transport to use
+   * @return The constructor for the initial transport to use
    */
   initialTransport(): TransportConstructor {
     if (this.transports_.length > 0) {
@@ -92,8 +82,7 @@ export class TransportManager {
   }
 
   /**
-   * @return {?function(new:Transport, function(),function(), string=)} The constructor for the next
-   * transport, or null
+   * @return The constructor for the next transport, or null
    */
   upgradeTransport(): TransportConstructor | null {
     if (this.transports_.length > 1) {

@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app-compat';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import firebase, {
+  _FirebaseNamespace,
+  FirebaseApp
+} from '@firebase/app-compat';
 import { FunctionsService } from './service';
 import {
   Component,
@@ -24,8 +26,7 @@ import {
   InstanceFactory,
   ComponentContainer
 } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types';
-import { Functions as FunctionsServiceExp } from '@firebase/functions-types-exp';
+import { Functions as FunctionsServiceExp } from '@firebase/functions-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -47,12 +48,11 @@ const factory: InstanceFactory<'functions-compat'> = (
       identifier: regionOrCustomDomain
     });
 
-  return new FunctionsService(app as FirebaseApp, functionsServiceExp);
+  return new FunctionsService(app, functionsServiceExp);
 };
 
 export function registerFunctions(): void {
   const namespaceExports = {
-    // no-inline
     Functions: FunctionsService
   };
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(

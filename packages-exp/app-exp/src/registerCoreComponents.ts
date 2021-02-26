@@ -16,7 +16,7 @@
  */
 
 import { Component, ComponentType } from '@firebase/component';
-import { PlatformLoggerService } from './platformLoggerService';
+import { PlatformLoggerServiceImpl } from './platformLoggerService';
 import { name, version } from '../package.json';
 import { _registerComponent } from './internal';
 import { registerVersion } from './api';
@@ -25,7 +25,7 @@ export function registerCoreComponents(variant?: string): void {
   _registerComponent(
     new Component(
       'platform-logger',
-      container => new PlatformLoggerService(container),
+      container => new PlatformLoggerServiceImpl(container),
       ComponentType.PRIVATE
     )
   );
