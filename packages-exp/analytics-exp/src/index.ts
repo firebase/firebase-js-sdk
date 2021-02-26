@@ -49,11 +49,8 @@ function registerAnalytics(): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-exp').getImmediate();
-        const installations = container
-          .getProvider('installations-exp-internal')
-          .getImmediate();
 
-        return factory(app, installations);
+        return factory(app);
       },
       ComponentType.PUBLIC
     )
@@ -68,6 +65,8 @@ function registerAnalytics(): void {
   function internalFactory(
     container: ComponentContainer
   ): FirebaseAnalyticsInternal {
+    //TODO: initialization fetches aren't in factory anymore so it might need to be
+    // called here.
     try {
       const analytics = container.getProvider(ANALYTICS_TYPE).getImmediate();
       return {

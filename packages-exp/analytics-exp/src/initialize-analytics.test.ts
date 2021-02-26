@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
-import { initializeAnalytics } from './initialize-analytics';
+import { _initializeAnalytics } from './initialize-analytics';
 import {
   getFakeApp,
   getFakeInstallations
@@ -65,7 +65,7 @@ describe('initializeIds()', () => {
   });
   it('gets FID and measurement ID and calls gtag config with them', async () => {
     stubFetch();
-    await initializeAnalytics(
+    await _initializeAnalytics(
       app,
       dynamicPromisesList,
       measurementIdToAppId,
@@ -81,7 +81,7 @@ describe('initializeIds()', () => {
   });
   it('puts dynamic fetch promise into dynamic promises list', async () => {
     stubFetch();
-    await initializeAnalytics(
+    await _initializeAnalytics(
       app,
       dynamicPromisesList,
       measurementIdToAppId,
@@ -95,7 +95,7 @@ describe('initializeIds()', () => {
   });
   it('puts dynamically fetched measurementId into lookup table', async () => {
     stubFetch();
-    await initializeAnalytics(
+    await _initializeAnalytics(
       app,
       dynamicPromisesList,
       measurementIdToAppId,
@@ -108,7 +108,7 @@ describe('initializeIds()', () => {
   it('warns on local/fetched measurement ID mismatch', async () => {
     stubFetch();
     const consoleStub = stub(console, 'warn');
-    await initializeAnalytics(
+    await _initializeAnalytics(
       getFakeApp({ ...fakeAppParams, measurementId: 'old-measurement-id' }),
       dynamicPromisesList,
       measurementIdToAppId,

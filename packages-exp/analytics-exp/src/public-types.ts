@@ -18,6 +18,35 @@
 import { FirebaseApp } from '@firebase/app-exp';
 
 /**
+ * A set of common Analytics config settings recognized by
+ * gtag.
+ */
+export interface GtagConfigParams {
+  'send_page_view'?: boolean;
+  'page_title'?: string;
+  'page_path'?: string;
+  'page_location'?: string;
+  'cookie_domain'?: string;
+  'cookie_expires'?: number;
+  'cookie_prefix'?: string;
+  'cookie_update'?: boolean;
+  'cookie_flags'?: string;
+  'allow_google_signals?': boolean;
+  'allow_ad_personalization_signals'?: boolean;
+  'link_attribution'?: boolean;
+  'anonymize_ip'?: boolean;
+  'custom_map'?: { [key: string]: unknown };
+  [key: string]: unknown;
+}
+
+/**
+ * Analytics initialization options.
+ */
+export interface AnalyticsOptions {
+  config: GtagConfigParams | EventParams;
+}
+
+/**
  * Additional options that can be passed to Firebase Analytics method
  * calls such as `logEvent`, `setCurrentScreen`, etc.
  * @public
@@ -204,5 +233,6 @@ export interface EventParams {
   page_title?: string;
   page_location?: string;
   page_path?: string;
+  [key: string]: unknown;
 }
 /* eslint-enable camelcase */

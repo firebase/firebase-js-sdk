@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { SettingsOptions, Analytics } from './public-types';
+import { SettingsOptions, Analytics, AnalyticsOptions } from './public-types';
 import { Gtag, DynamicConfig, MinimalDynamicConfig } from './types';
 import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
-import { initializeAnalytics } from './initialize-analytics';
+import { _initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 
@@ -174,10 +174,7 @@ function warnOnBrowserContextMismatch(): void {
  * Analytics instance factory.
  * @internal
  */
-export function factory(
-  app: FirebaseApp,
-  installations: _FirebaseInstallationsInternal
-): AnalyticsService {
+export function factory(app: FirebaseApp): AnalyticsService {
   warnOnBrowserContextMismatch();
   const appId = app.options.appId;
   if (!appId) {
@@ -218,18 +215,29 @@ export function factory(
 
     globalInitDone = true;
   }
+
+  const analyticsInstance: AnalyticsService = new AnalyticsService(app);
+  return analyticsInstance;
+}
+
+/**
+ * Starts async initializations for this app.
+ */
+export function _initializeAnalyticsForApp(
+  app: FirebaseApp,
+  installations: _FirebaseInstallationsInternal,
+  options?: AnalyticsOptions
+): void {
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = initializeAnalytics(
+  // Factory will have thrown if options has no appId.
+  initializationPromisesMap[app.options.appId!] = _initializeAnalytics(
     app,
     dynamicConfigPromisesList,
     measurementIdToAppId,
     installations,
     gtagCoreFunction,
-    dataLayerName
+    dataLayerName,
+    options
   );
-
-  const analyticsInstance: AnalyticsService = new AnalyticsService(app);
-
-  return analyticsInstance;
 }

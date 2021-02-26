@@ -21,6 +21,7 @@ import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import {
   Analytics,
   AnalyticsCallOptions,
+  AnalyticsOptions,
   CustomParams,
   EventNameString,
   EventParams
@@ -37,6 +38,7 @@ import { ANALYTICS_TYPE } from './constants';
 import {
   AnalyticsService,
   initializationPromisesMap,
+  _initializeAnalyticsForApp,
   wrappedGtagFunction
 } from './factory';
 import { logger } from './logger';
@@ -70,7 +72,42 @@ export function getAnalytics(app: FirebaseApp = getApp()): Analytics {
     app,
     ANALYTICS_TYPE
   );
+
+  if (analyticsProvider.isInitialized()) {
+    return analyticsProvider.getImmediate();
+  }
+
+  return initializeAnalytics(app);
+}
+
+/**
+ * Returns a Firebase Analytics instance for the given app.
+ *
+ * @public
+ *
+ * @param app - The FirebaseApp to use.
+ */
+export function initializeAnalytics(
+  app: FirebaseApp,
+  options?: AnalyticsOptions
+): Analytics {
+  // Dependencies
+  const analyticsProvider: Provider<'analytics-exp'> = _getProvider(
+    app,
+    ANALYTICS_TYPE
+  );
+  if (analyticsProvider.isInitialized()) {
+    return analyticsProvider.getImmediate();
+    // TODO: Throw an analytics specific error.
+    // _fail(analyticsInstance, AuthErrorCode.ALREADY_INITIALIZED);
+  }
   const analyticsInstance = analyticsProvider.getImmediate();
+  // do init settings stuff here
+  const installations = _getProvider(
+    app,
+    'installations-exp-internal'
+  ).getImmediate();
+  _initializeAnalyticsForApp(app, installations, options);
   return analyticsInstance;
 }
 

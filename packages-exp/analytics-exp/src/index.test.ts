@@ -34,7 +34,8 @@ import {
   AnalyticsService,
   getGlobalVars,
   resetGlobalVars,
-  factory as analyticsFactory
+  factory as analyticsFactory,
+  _initializeAnalyticsForApp
 } from './factory';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 
@@ -89,15 +90,11 @@ describe('FirebaseAnalytics instance tests', () => {
 
     it('Throws if no appId in config', () => {
       const app = getFakeApp({ apiKey: fakeAppParams.apiKey });
-      expect(() => analyticsFactory(app, fakeInstallations)).to.throw(
-        AnalyticsError.NO_APP_ID
-      );
+      expect(() => analyticsFactory(app)).to.throw(AnalyticsError.NO_APP_ID);
     });
     it('Throws if no apiKey or measurementId in config', () => {
       const app = getFakeApp({ appId: fakeAppParams.appId });
-      expect(() => analyticsFactory(app, fakeInstallations)).to.throw(
-        AnalyticsError.NO_API_KEY
-      );
+      expect(() => analyticsFactory(app)).to.throw(AnalyticsError.NO_API_KEY);
     });
     it('Warns if config has no apiKey but does have a measurementId', async () => {
       // Since this is a warning and doesn't block the rest of initialization
@@ -110,7 +107,8 @@ describe('FirebaseAnalytics instance tests', () => {
         measurementId: fakeMeasurementId
       });
       stubIdbOpen();
-      analyticsFactory(app, fakeInstallations);
+      analyticsFactory(app);
+      _initializeAnalyticsForApp(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
       // Lets async IDB validation process complete.
@@ -128,7 +126,7 @@ describe('FirebaseAnalytics instance tests', () => {
     it('Throws if creating an instance with already-used appId', () => {
       const app = getFakeApp(fakeAppParams);
       resetGlobalVars(false, { [fakeAppParams.appId]: Promise.resolve() });
-      expect(() => analyticsFactory(app, fakeInstallations)).to.throw(
+      expect(() => analyticsFactory(app)).to.throw(
         AnalyticsError.ALREADY_EXISTS
       );
     });
@@ -149,7 +147,8 @@ describe('FirebaseAnalytics instance tests', () => {
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
       stubIdbOpen();
-      analyticsInstance = analyticsFactory(app, fakeInstallations);
+      analyticsInstance = analyticsFactory(app);
+      _initializeAnalyticsForApp(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
     });
@@ -223,7 +222,8 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Warns on initialization if cookies not available', async () => {
       cookieStub = stub(navigator, 'cookieEnabled').value(false);
-      analyticsInstance = analyticsFactory(app, fakeInstallations);
+      analyticsInstance = analyticsFactory(app);
+      _initializeAnalyticsForApp(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
       expect(warnStub.args[0][1]).to.include(
@@ -234,7 +234,8 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Warns on initialization if in browser extension', async () => {
       window.chrome = { runtime: { id: 'blah' } };
-      analyticsInstance = analyticsFactory(app, fakeInstallations);
+      analyticsInstance = analyticsFactory(app);
+      _initializeAnalyticsForApp(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
       expect(warnStub.args[0][1]).to.include(
@@ -245,7 +246,8 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Warns on logEvent if indexedDB API not available', async () => {
       const idbStub = stub(window, 'indexedDB').value(undefined);
-      analyticsInstance = analyticsFactory(app, fakeInstallations);
+      analyticsInstance = analyticsFactory(app);
+      _initializeAnalyticsForApp(app, fakeInstallations);
       logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
@@ -265,7 +267,8 @@ describe('FirebaseAnalytics instance tests', () => {
     it('Warns on logEvent if indexedDB.open() not allowed', async () => {
       idbOpenStub.restore();
       idbOpenStub = stub(indexedDB, 'open').throws('idb open error test');
-      analyticsInstance = analyticsFactory(app, fakeInstallations);
+      analyticsInstance = analyticsFactory(app);
+      _initializeAnalyticsForApp(app, fakeInstallations);
       logEvent(analyticsInstance, 'add_payment_info', {
         currency: 'USD'
       });
@@ -303,7 +306,8 @@ describe('FirebaseAnalytics instance tests', () => {
       });
       stubIdbOpen();
       stubFetch(200, { measurementId: fakeMeasurementId });
-      analyticsInstance = analyticsFactory(app, fakeInstallations);
+      analyticsInstance = analyticsFactory(app);
+      _initializeAnalyticsForApp(app, fakeInstallations);
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
     });
@@ -349,7 +353,8 @@ describe('FirebaseAnalytics instance tests', () => {
       fakeInstallations = getFakeInstallations();
       stubFetch(200, {});
       stubIdbOpen();
-      analyticsInstance = analyticsFactory(app, fakeInstallations);
+      analyticsInstance = analyticsFactory(app);
+      _initializeAnalyticsForApp(app, fakeInstallations);
 
       const { initializationPromisesMap } = getGlobalVars();
       // Successfully resolves fake IDB open request.
