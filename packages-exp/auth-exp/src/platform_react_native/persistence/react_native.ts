@@ -24,7 +24,6 @@ import {
   STORAGE_AVAILABLE_KEY,
   StorageEventListener
 } from '../../core/persistence';
-import { debugFail } from '../../core/util/assert';
 
 /**
  * Returns a persistence class that wraps AsyncStorage imported from
