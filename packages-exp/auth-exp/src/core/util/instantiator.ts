@@ -46,3 +46,7 @@ export function _getInstance<T>(cls: unknown): T {
   instanceCache.set(cls, instance);
   return instance;
 }
+
+export function _clearInstanceMap(): void {
+  instanceCache.clear();
+}
