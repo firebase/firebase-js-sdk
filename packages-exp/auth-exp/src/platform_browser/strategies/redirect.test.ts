@@ -83,7 +83,9 @@ describe('platform_browser/strategies/redirect', () => {
     )._redirectPersistence = RedirectPersistence;
     auth = await testAuth(resolver);
     idpStubs = sinon.stub(idpTasks);
-    _getInstance<RedirectPersistence>(RedirectPersistence).hasPendingRedirect = true;
+    _getInstance<RedirectPersistence>(
+      RedirectPersistence
+    ).hasPendingRedirect = true;
   });
 
   afterEach(() => {
@@ -425,7 +427,9 @@ describe('platform_browser/strategies/redirect', () => {
         type: AuthEventType.LINK_VIA_REDIRECT
       });
       expect(await promise).to.eq(cred);
-      expect(redirectPersistence._remove).to.have.been.calledWith('firebase:redirectUser:test-api-key:test-app');
+      expect(redirectPersistence._remove).to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app'
+      );
       expect(auth._currentUser?._redirectEventId).to.be.undefined;
       expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).to.be
         .undefined;
@@ -449,7 +453,9 @@ describe('platform_browser/strategies/redirect', () => {
         type: AuthEventType.LINK_VIA_REDIRECT
       });
       expect(await promise).to.eq(cred);
-      expect(redirectPersistence._remove).not.to.have.been.calledWith('firebase:redirectUser:test-api-key:test-app');
+      expect(redirectPersistence._remove).not.to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app'
+      );
       expect(auth._currentUser?._redirectEventId).not.to.be.undefined;
       expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).not.to.be
         .undefined;

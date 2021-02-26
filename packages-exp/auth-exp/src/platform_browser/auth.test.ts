@@ -194,7 +194,9 @@ describe('core/auth/initializeAuth', () => {
 
     it('does not early-initialize the resolver', async () => {
       const popupRedirectResolver = makeMockPopupRedirectResolver();
-      const resolverInternal: PopupRedirectResolverInternal = _getInstance(popupRedirectResolver);
+      const resolverInternal: PopupRedirectResolverInternal = _getInstance(
+        popupRedirectResolver
+      );
       sinon.stub(resolverInternal, '_shouldInitProactively').value(false);
       sinon.spy(resolverInternal, '_initialize');
       await initAndWait(inMemoryPersistence, popupRedirectResolver);
@@ -203,7 +205,9 @@ describe('core/auth/initializeAuth', () => {
 
     it('does early-initialize the resolver', async () => {
       const popupRedirectResolver = makeMockPopupRedirectResolver();
-      const resolverInternal: PopupRedirectResolverInternal = _getInstance(popupRedirectResolver);
+      const resolverInternal: PopupRedirectResolverInternal = _getInstance(
+        popupRedirectResolver
+      );
       sinon.stub(resolverInternal, '_shouldInitProactively').value(true);
       sinon.spy(resolverInternal, '_initialize');
       await initAndWait(inMemoryPersistence, popupRedirectResolver);

@@ -198,11 +198,13 @@ describe('core/strategies/redirect', () => {
 
   it('bypasses initialization if no key set', async () => {
     await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
-    const resolverInstance = _getInstance<PopupRedirectResolverInternal>(resolver);
+    const resolverInstance = _getInstance<PopupRedirectResolverInternal>(
+      resolver
+    );
 
     sinon.spy(resolverInstance, '_initialize');
     redirectPersistence.hasPendingRedirect = false;
-   
+
     expect(await redirectAction.execute()).to.eq(null);
     expect(await redirectAction.execute()).to.eq(null);
     expect(resolverInstance._initialize).not.to.have.been.called;

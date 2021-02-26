@@ -32,7 +32,10 @@ import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
 import { _withDefaultResolver } from '../../core/util/resolver';
-import { RedirectAction, _setPendingRedirectStatus } from '../../core/strategies/redirect';
+import {
+  RedirectAction,
+  _setPendingRedirectStatus
+} from '../../core/strategies/redirect';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.
