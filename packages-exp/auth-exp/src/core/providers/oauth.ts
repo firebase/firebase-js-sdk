@@ -25,13 +25,7 @@ import { UserCredentialInternal } from '../../model/user';
 import { FirebaseError } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { SignInWithIdpResponse } from '../../../internal';
-
-/**
- * Map of OAuth Custom Parameters.
- *
- * @public
- */
-export type CustomParameters = Record<string, string>;
+import { FederatedAuthProvider } from './federated';
 
 /**
  * Defines the options for initializing an {@link OAuthCredential}.
@@ -100,20 +94,9 @@ export interface OAuthCredentialOptions {
  * ```
  * @public
  */
-export class OAuthProvider implements AuthProvider {
-  /** @internal */
-  defaultLanguageCode: string | null = null;
+export class OAuthProvider extends FederatedAuthProvider implements AuthProvider {
   /** @internal */
   private scopes: string[] = [];
-  /** @internal */
-  private customParameters: CustomParameters = {};
-
-  /**
-   * Constructor for generic OAuth providers.
-   *
-   * @param providerId - Provider for which credentials should be generated.
-   */
-  constructor(readonly providerId: string) {}
 
   static credentialFromJSON(json: object | string): OAuthCredential {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
@@ -160,37 +143,6 @@ export class OAuthProvider implements AuthProvider {
       providerId: this.providerId,
       signInMethod: this.providerId
     });
-  }
-
-  /**
-   * Set the language gode.
-   *
-   * @param languageCode - language code
-   */
-  setDefaultLanguage(languageCode: string | null): void {
-    this.defaultLanguageCode = languageCode;
-  }
-
-  /**
-   * Sets the OAuth custom parameters to pass in an OAuth request for popup and redirect sign-in
-   * operations.
-   *
-   * @remarks
-   * For a detailed list, check the reserved required OAuth 2.0 parameters such as `client_id`,
-   * `redirect_uri`, `scope`, `response_type`, and `state` are not allowed and will be ignored.
-   *
-   * @param customOAuthParameters - The custom OAuth parameters to pass in the OAuth request.
-   */
-  setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider {
-    this.customParameters = customOAuthParameters;
-    return this;
-  }
-
-  /**
-   * Retrieve the current list of {@link CustomParameters}.
-   */
-  getCustomParameters(): CustomParameters {
-    return this.customParameters;
   }
 
   /**
