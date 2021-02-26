@@ -16,12 +16,12 @@ export declare function updateMetadata(ref: StorageReference, metadata: Settable
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference to update metadata for. |
-|  metadata | [SettableMetadata](./storage-types.settablemetadata.md) | The new metadata for the object. Only values that have been explicitly set will be changed. Explicitly setting a value to null will remove the metadata. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference to update metadata for. |
+|  metadata | [SettableMetadata](./storage.settablemetadata.md) | The new metadata for the object. Only values that have been explicitly set will be changed. Explicitly setting a value to null will remove the metadata. |
 
 <b>Returns:</b>
 
-Promise&lt;[FullMetadata](./storage-types.fullmetadata.md)<!-- -->&gt;
+Promise&lt;[FullMetadata](./storage.fullmetadata.md)<!-- -->&gt;
 
 A promise that resolves with the new metadata for this object.
 

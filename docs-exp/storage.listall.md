@@ -22,11 +22,11 @@ export declare function listAll(ref: StorageReference): Promise<ListResult>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference to get list from. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference to get list from. |
 
 <b>Returns:</b>
 
-Promise&lt;[ListResult](./storage-types.listresult.md)<!-- -->&gt;
+Promise&lt;[ListResult](./storage.listresult.md)<!-- -->&gt;
 
 A Promise that resolves with all the items and prefixes under the current storage reference. `prefixes` contains references to sub-directories and `items` contains references to objects in this folder. `nextPageToken` is never returned.
 

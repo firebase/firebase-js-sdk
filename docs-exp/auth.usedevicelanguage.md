@@ -9,14 +9,14 @@ Sets the current language to the default device/browser preference.
 <b>Signature:</b>
 
 ```typescript
-export declare function useDeviceLanguage(auth: externs.Auth): void;
+export declare function useDeviceLanguage(auth: Auth): void;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instanec. |
+|  auth | [Auth](./auth.auth.md) | The Auth instanec. |
 
 <b>Returns:</b>
 

@@ -37,11 +37,7 @@ export function getRemoteConfig(app: FirebaseApp): RemoteConfig;
 export function getString(remoteConfig: RemoteConfig, key: string): string;
 
 // @public
-export function getValue(remoteConfig: RemoteConfig, key: string): ValueType;
-
-export { RemoteConfig }
-
-export { RemoteConfigLogLevel }
+export function getValue(remoteConfig: RemoteConfig, key: string): Value;
 
 // @public
 export type LogLevel = 'debug' | 'error' | 'silent';

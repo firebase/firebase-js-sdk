@@ -16,9 +16,9 @@ export declare function getInstallations(app: FirebaseApp): FirebaseInstallation
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
+|  app | [FirebaseApp](./app.firebaseapp.md) |  |
 
 <b>Returns:</b>
 
-[FirebaseInstallations](./installations-types.firebaseinstallations.md)
+[FirebaseInstallations](./installations.firebaseinstallations.md)
 

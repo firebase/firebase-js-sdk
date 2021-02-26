@@ -16,13 +16,13 @@ export declare function uploadBytesResumable(ref: StorageReference, data: Blob |
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference where data should be uploaded. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference where data should be uploaded. |
 |  data | Blob \| Uint8Array \| ArrayBuffer | The data to upload. |
-|  metadata | [UploadMetadata](./storage-types.uploadmetadata.md) | Metadata for the data to upload. |
+|  metadata | [UploadMetadata](./storage.uploadmetadata.md) | Metadata for the data to upload. |
 
 <b>Returns:</b>
 
-[UploadTask](./storage-types.uploadtask.md)
+[UploadTask](./storage.uploadtask.md)
 
 An UploadTask
 

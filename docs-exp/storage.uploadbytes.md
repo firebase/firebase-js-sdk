@@ -16,13 +16,13 @@ export declare function uploadBytes(ref: StorageReference, data: Blob | Uint8Arr
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference where data should be uploaded. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference where data should be uploaded. |
 |  data | Blob \| Uint8Array \| ArrayBuffer | The data to upload. |
-|  metadata | [UploadMetadata](./storage-types.uploadmetadata.md) | Metadata for the data to upload. |
+|  metadata | [UploadMetadata](./storage.uploadmetadata.md) | Metadata for the data to upload. |
 
 <b>Returns:</b>
 
-Promise&lt;[UploadResult](./storage-types.uploadresult.md)<!-- -->&gt;
+Promise&lt;[UploadResult](./storage.uploadresult.md)<!-- -->&gt;
 
 A Promise containing an UploadResult
 

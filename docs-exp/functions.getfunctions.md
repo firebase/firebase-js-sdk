@@ -16,10 +16,10 @@ export declare function getFunctions(app: FirebaseApp, regionOrCustomDomain?: st
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) | The FirebaseApp to use. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The FirebaseApp to use. |
 |  regionOrCustomDomain | string | one of: a) The region the callable functions are located in (ex: us-central1) b) A custom domain hosting the callable functions (ex: https://mydomain.com) |
 
 <b>Returns:</b>
 
-[Functions](./functions-types.functions.md)
+[Functions](./functions.functions.md)
 

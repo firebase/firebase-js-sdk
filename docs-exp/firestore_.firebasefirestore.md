@@ -18,7 +18,7 @@ export declare class FirebaseFirestore
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [app](./firestore_.firebasefirestore.app.md) |  | [FirebaseApp](./app-types.firebaseapp.md) |  |
+|  [app](./firestore_.firebasefirestore.app.md) |  | [FirebaseApp](./app.firebaseapp.md) |  |
 
 ## Methods
 

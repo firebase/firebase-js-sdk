@@ -9,15 +9,15 @@ Updates the user's phone number.
 <b>Signature:</b>
 
 ```typescript
-export declare function updatePhoneNumber(user: externs.User, credential: externs.PhoneAuthCredential): Promise<void>;
+export declare function updatePhoneNumber(user: User, credential: PhoneAuthCredential): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
-|  credential | externs.[PhoneAuthCredential](./auth-types.phoneauthcredential.md) | A credential authenticating the new phone number. |
+|  user | [User](./auth.user.md) | The user. |
+|  credential | [PhoneAuthCredential](./auth.phoneauthcredential.md) | A credential authenticating the new phone number. |
 
 <b>Returns:</b>
 

@@ -9,7 +9,7 @@ Parses the email action link string and returns an [ActionCodeURL](./auth.action
 <b>Signature:</b>
 
 ```typescript
-static parseLink(link: string): externs.ActionCodeURL | null;
+static parseLink(link: string): ActionCodeURL | null;
 ```
 
 ## Parameters
@@ -20,7 +20,7 @@ static parseLink(link: string): externs.ActionCodeURL | null;
 
 <b>Returns:</b>
 
-externs.[ActionCodeURL](./auth-types.actioncodeurl.md) \| null
+[ActionCodeURL](./auth.actioncodeurl.md) \| null
 
 The ActionCodeURL object, or null if the link is invalid.
 

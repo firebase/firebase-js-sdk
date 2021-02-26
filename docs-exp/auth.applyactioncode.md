@@ -9,14 +9,14 @@ Applies a verification code sent to the user by email or other out-of-band mecha
 <b>Signature:</b>
 
 ```typescript
-export declare function applyActionCode(auth: externs.Auth, oobCode: string): Promise<void>;
+export declare function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  oobCode | string | A verification code sent to the user. |
 
 <b>Returns:</b>

@@ -4,8 +4,15 @@
 
 ## AuthCredential.providerId property
 
+The authentication provider ID for the credential.
+
 <b>Signature:</b>
 
 ```typescript
 readonly providerId: string;
 ```
+
+## Remarks
+
+For example, 'facebook.com', or 'google.com'.
+

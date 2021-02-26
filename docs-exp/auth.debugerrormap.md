@@ -6,10 +6,10 @@
 
 A verbose error map with detailed descriptions for most error codes.
 
-See discussion at [AuthErrorMap](./auth-types.autherrormap.md)
+See discussion at [AuthErrorMap](./auth.autherrormap.md)
 
 <b>Signature:</b>
 
 ```typescript
-debugErrorMap: externs.AuthErrorMap
+debugErrorMap: AuthErrorMap
 ```

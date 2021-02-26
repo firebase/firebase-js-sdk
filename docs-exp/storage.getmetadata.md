@@ -16,9 +16,9 @@ export declare function getMetadata(ref: StorageReference): Promise<FullMetadata
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference to get metadata from. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference to get metadata from. |
 
 <b>Returns:</b>
 
-Promise&lt;[FullMetadata](./storage-types.fullmetadata.md)<!-- -->&gt;
+Promise&lt;[FullMetadata](./storage.fullmetadata.md)<!-- -->&gt;
 

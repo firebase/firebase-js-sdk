@@ -16,8 +16,8 @@ export declare function setLogLevel(remoteConfig: RemoteConfig, logLevel: Remote
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config-types.remoteconfig.md) | the remote config instance |
-|  logLevel | [RemoteConfigLogLevel](./remote-config-types.loglevel.md) | the log level to set |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
+|  logLevel | [RemoteConfigLogLevel](./remote-config.loglevel.md) | the log level to set |
 
 <b>Returns:</b>
 

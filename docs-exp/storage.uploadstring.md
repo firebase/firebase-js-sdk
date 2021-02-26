@@ -16,14 +16,14 @@ export declare function uploadString(ref: StorageReference, value: string, forma
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference where string should be uploaded. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference where string should be uploaded. |
 |  value | string | The string to upload. |
 |  format | string | The format of the string to upload. |
-|  metadata | [UploadMetadata](./storage-types.uploadmetadata.md) | Metadata for the string to upload. |
+|  metadata | [UploadMetadata](./storage.uploadmetadata.md) | Metadata for the string to upload. |
 
 <b>Returns:</b>
 
-Promise&lt;[UploadResult](./storage-types.uploadresult.md)<!-- -->&gt;
+Promise&lt;[UploadResult](./storage.uploadresult.md)<!-- -->&gt;
 
 A Promise containing an UploadResult
 

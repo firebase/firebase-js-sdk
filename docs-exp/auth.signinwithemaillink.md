@@ -9,20 +9,20 @@ Asynchronously signs in using an email and sign-in email link.
 <b>Signature:</b>
 
 ```typescript
-export declare function signInWithEmailLink(auth: externs.Auth, email: string, emailLink?: string): Promise<externs.UserCredential>;
+export declare function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  email | string | The user's email address. |
 |  emailLink | string | The link sent to the user's email address. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md)<!-- -->&gt;
 
 ## Remarks
 

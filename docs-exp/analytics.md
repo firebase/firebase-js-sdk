@@ -38,9 +38,24 @@
 |  [setUserId(analyticsInstance, id, options)](./analytics.setuserid.md) | Use gtag 'config' command to set 'user\_id'. |
 |  [setUserProperties(analyticsInstance, properties, options)](./analytics.setuserproperties.md) | Use gtag 'config' command to set all params specified. |
 
+## Interfaces
+
+|  Interface | Description |
+|  --- | --- |
+|  [Analytics](./analytics.analytics.md) |  |
+|  [AnalyticsCallOptions](./analytics.analyticscalloptions.md) | Additional options that can be passed to Firebase Analytics method calls such as <code>logEvent</code>, <code>setCurrentScreen</code>, etc. |
+|  [ControlParams](./analytics.controlparams.md) | Standard gtag.js control parameters. For more information, see [the gtag.js documentation on parameters](https://developers.google.com/gtagjs/reference/parameter)<!-- -->. |
+|  [CustomParams](./analytics.customparams.md) | Any custom params the user may pass to gtag.js. |
+|  [EventParams](./analytics.eventparams.md) | Standard gtag.js event parameters. For more information, see [the gtag.js documentation on parameters](https://developers.google.com/gtagjs/reference/parameter)<!-- -->. |
+|  [Item](./analytics.item.md) |  |
+|  [Promotion](./analytics.promotion.md) |  |
+|  [SettingsOptions](./analytics.settingsoptions.md) | Specifies custom options for your Firebase Analytics instance. You must set these before initializing <code>firebase.analytics()</code>. |
+
 ## Type Aliases
 
 |  Type Alias | Description |
 |  --- | --- |
+|  [Currency](./analytics.currency.md) |  |
 |  [CustomEventName](./analytics.customeventname.md) | Any custom event name string not in the standard list of recommended event names. |
+|  [EventNameString](./analytics.eventnamestring.md) | Type for standard gtag.js event names. <code>logEvent</code> also accepts any custom string and interprets it as a custom event name. |
 

@@ -23,10 +23,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'selec
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'select\_promotion' \| 'view\_promotion' |  |
-|  eventParams | { items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; promotion\_id?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['promotion\_id'\]; promotion\_name?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['promotion\_name'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; promotion\_id?: [EventParams](./analytics.eventparams.md)<!-- -->\['promotion\_id'\]; promotion\_name?: [EventParams](./analytics.eventparams.md)<!-- -->\['promotion\_name'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

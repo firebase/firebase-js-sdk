@@ -22,12 +22,12 @@ export declare function list(ref: StorageReference, options?: ListOptions): Prom
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference to get list from. |
-|  options | [ListOptions](./storage-types.listoptions.md) | See ListOptions for details. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference to get list from. |
+|  options | [ListOptions](./storage.listoptions.md) | See ListOptions for details. |
 
 <b>Returns:</b>
 
-Promise&lt;[ListResult](./storage-types.listresult.md)<!-- -->&gt;
+Promise&lt;[ListResult](./storage.listresult.md)<!-- -->&gt;
 
 A Promise that resolves with the items and prefixes. `prefixes` contains references to sub-folders and `items` contains references to objects in this folder. `nextPageToken` can be used to get the rest of the results.
 

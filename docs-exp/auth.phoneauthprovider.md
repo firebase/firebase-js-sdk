@@ -9,9 +9,22 @@ Provider for generating an [PhoneAuthCredential](./auth.phoneauthcredential.md)<
 <b>Signature:</b>
 
 ```typescript
-export declare class PhoneAuthProvider implements externs.PhoneAuthProvider 
+export declare class PhoneAuthProvider 
 ```
-<b>Implements:</b> externs.[PhoneAuthProvider](./auth-types.phoneauthprovider.md)
+
+## Example
+
+
+```javascript
+// 'recaptcha-container' is the ID of an element in the DOM.
+const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
+const provider = new PhoneAuthProvider(auth);
+const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
+// Obtain the verificationCode from the user.
+const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const userCredential = await signInWithCredential(auth, phoneCredential);
+
+```
 
 ## Constructors
 
@@ -23,9 +36,9 @@ export declare class PhoneAuthProvider implements externs.PhoneAuthProvider
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [PHONE\_SIGN\_IN\_METHOD](./auth.phoneauthprovider.phone_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.PHONE](./auth-types.signinmethod.phone.md)<!-- -->. |
-|  [PROVIDER\_ID](./auth.phoneauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.PHONE](./auth-types.providerid.phone.md)<!-- -->. |
-|  [providerId](./auth.phoneauthprovider.providerid.md) |  | (not declared) | Always set to [ProviderId.PHONE](./auth-types.providerid.phone.md)<!-- -->. |
+|  [PHONE\_SIGN\_IN\_METHOD](./auth.phoneauthprovider.phone_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.PHONE](./auth.signinmethod.phone.md)<!-- -->. |
+|  [PROVIDER\_ID](./auth.phoneauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.PHONE](./auth.providerid.phone.md)<!-- -->. |
+|  [providerId](./auth.phoneauthprovider.providerid.md) |  | (not declared) | Always set to [ProviderId.PHONE](./auth.providerid.phone.md)<!-- -->. |
 
 ## Methods
 

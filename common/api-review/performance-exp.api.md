@@ -15,8 +15,6 @@ export interface FirebasePerformance {
 // @public
 export function getPerformance(app: FirebaseApp): FirebasePerformance;
 
-export { FirebasePerformance }
-
 // @public
 export function initializePerformance(app: FirebaseApp, settings?: PerformanceSettings): FirebasePerformance;
 
@@ -48,10 +46,6 @@ export interface PerformanceTrace {
     start(): void;
     stop(): void;
 }
-
-export { PerformanceSettings }
-
-export { PerformanceTrace }
 
 // @public
 export function trace(performance: FirebasePerformance, name: string): PerformanceTrace;

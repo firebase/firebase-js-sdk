@@ -24,10 +24,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'begin
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'begin\_checkout' |  |
-|  eventParams | { currency?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['currency'\]; coupon?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['coupon'\]; value?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['value'\]; items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { currency?: [EventParams](./analytics.eventparams.md)<!-- -->\['currency'\]; coupon?: [EventParams](./analytics.eventparams.md)<!-- -->\['coupon'\]; value?: [EventParams](./analytics.eventparams.md)<!-- -->\['value'\]; items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

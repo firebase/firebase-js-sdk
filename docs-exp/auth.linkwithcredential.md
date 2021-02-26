@@ -9,21 +9,21 @@ Links the user account with the given credentials.
 <b>Signature:</b>
 
 ```typescript
-export declare function linkWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<UserCredential>;
+export declare function linkWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
-|  credential | externs.[AuthCredential](./auth-types.authcredential.md) | The auth credential. |
+|  user | [User](./auth.user.md) | The user. |
+|  credential | [AuthCredential](./auth.authcredential.md) | The auth credential. |
 
 <b>Returns:</b>
 
-Promise&lt;[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md)<!-- -->&gt;
 
 ## Remarks
 
-An [AuthProvider](./auth-types.authprovider.md) can be used to generate the credential.
+An [AuthProvider](./auth.authprovider.md) can be used to generate the credential.
 

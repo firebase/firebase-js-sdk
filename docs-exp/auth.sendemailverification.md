@@ -9,15 +9,15 @@ Sends a verification email to a user.
 <b>Signature:</b>
 
 ```typescript
-export declare function sendEmailVerification(user: externs.User, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
+export declare function sendEmailVerification(user: User, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
-|  actionCodeSettings | externs.[ActionCodeSettings](./auth-types.actioncodesettings.md) \| null | The [ActionCodeSettings](./auth-types.actioncodesettings.md)<!-- -->. |
+|  user | [User](./auth.user.md) | The user. |
+|  actionCodeSettings | [ActionCodeSettings](./auth.actioncodesettings.md) \| null | The [ActionCodeSettings](./auth.actioncodesettings.md)<!-- -->. |
 
 <b>Returns:</b>
 

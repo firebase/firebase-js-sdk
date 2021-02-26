@@ -9,8 +9,6 @@ import { FirebaseApp } from '@firebase/app-exp';
 // @public
 export function deleteInstallations(installations: FirebaseInstallations): Promise<void>;
 
-export { FirebaseInstallations }
-
 // @public
 export interface FirebaseInstallations {
 }

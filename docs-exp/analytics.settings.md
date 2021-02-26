@@ -16,7 +16,7 @@ export declare function settings(options: SettingsOptions): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [SettingsOptions](./analytics-types.settingsoptions.md) | Custom gtag and dataLayer names. |
+|  options | [SettingsOptions](./analytics.settingsoptions.md) | Custom gtag and dataLayer names. |
 
 <b>Returns:</b>
 
