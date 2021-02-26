@@ -25,7 +25,12 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
-import { _validatePersistenceArgument, Persistence } from './persistence';
+import {
+  _validatePersistenceArgument,
+  Persistence,
+  _getPersistenceFromRedirect,
+  _savePersistenceForRedirect
+} from './persistence';
 import { _isPopupRedirectSupported } from './platform';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import { User } from './user';
@@ -35,7 +40,6 @@ import {
 } from './user_credential';
 import { unwrap, Wrapper } from './wrap';
 
-const PERSISTENCE_KEY = 'persistence';
 const _assert: typeof exp._assert = exp._assert;
 
 export class Auth
@@ -51,7 +55,7 @@ export class Auth
     // Note this is slightly different behavior: in this case, the stored
     // persistence is checked *first* rather than last. This is because we want
     // the fallback (if no user is found) to be the stored persistence type
-    const storedPersistence = this.getPersistenceFromRedirect();
+    const storedPersistence = _getPersistenceFromRedirect(this.auth);
     const persistences = storedPersistence ? [storedPersistence] : [];
     persistences.push(exp.indexedDBLocalPersistence);
 
@@ -294,7 +298,8 @@ export class Auth
       this.auth,
       exp.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
-    this.savePersistenceForRedirect();
+
+    await _savePersistenceForRedirect(this.auth);
     return exp.signInWithRedirect(
       this.auth,
       provider as exp.AuthProvider,
@@ -313,49 +318,6 @@ export class Auth
   _delete(): Promise<void> {
     return this.auth._delete();
   }
-
-  private savePersistenceForRedirect(): void {
-    const win = getSelfWindow();
-    const key = exp._persistenceKeyName(
-      PERSISTENCE_KEY,
-      this.auth.config.apiKey,
-      this.auth.name
-    );
-    if (win?.sessionStorage) {
-      win.sessionStorage.setItem(key, this.auth._getPersistence());
-    }
-  }
-
-  private getPersistenceFromRedirect(): exp.Persistence | null {
-    const win = getSelfWindow();
-    if (!win?.sessionStorage) {
-      return null;
-    }
-
-    const key = exp._persistenceKeyName(
-      PERSISTENCE_KEY,
-      this.auth.config.apiKey,
-      this.auth.name
-    );
-    const persistence = win.sessionStorage.getItem(key);
-
-    switch (persistence) {
-      case exp.inMemoryPersistence.type:
-        return exp.inMemoryPersistence;
-      case exp.indexedDBLocalPersistence.type:
-        return exp.indexedDBLocalPersistence;
-      case exp.browserSessionPersistence.type:
-        return exp.browserSessionPersistence;
-      case exp.browserLocalPersistence.type:
-        return exp.browserLocalPersistence;
-      default:
-        return null;
-    }
-  }
-}
-
-function getSelfWindow(): Window | null {
-  return typeof window !== 'undefined' ? window : null;
 }
 
 function wrapObservers(

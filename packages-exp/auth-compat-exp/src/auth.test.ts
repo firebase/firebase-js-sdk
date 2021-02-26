@@ -43,12 +43,22 @@ describe('auth compat', () => {
       sinon.restore;
     });
 
-    it('saves the persistence into session storage if available', () => {
-      const authCompat = new Auth(app, underlyingAuth);
+    it('saves the persistence into session storage if available', async () => {
       if (typeof self !== 'undefined') {
+        underlyingAuth._initializationPromise = Promise.resolve();
         sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
+        sinon
+          .stub(underlyingAuth, '_initializationPromise')
+          .value(Promise.resolve());
+        sinon.stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            CompatPopupRedirectResolver
+          ),
+          '_openRedirect'
+        );
+        const authCompat = new Auth(app, underlyingAuth);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
+        await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
         expect(
           sessionStorage.getItem('firebase:persistence:api-key:undefined')
         ).to.eq('TEST');
