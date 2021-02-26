@@ -26,13 +26,7 @@
     "type-check": "tsc -p . --noEmit",
     "serve": "yarn serve:build && yarn serve:host",
     "serve:build": "rollup -c test-app/rollup.config.js",
-    "serve:host": "http-server -c-1 test-app",
-    "api-report": "api-extractor run --local --verbose",
-    "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/app-exp-public.d.ts",
-    "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/app-exp.d.ts"
+    "serve:host": "http-server -c-1 test-app"
   },
   "repository": {
     "directory": "packages-exp/installations-compat",
