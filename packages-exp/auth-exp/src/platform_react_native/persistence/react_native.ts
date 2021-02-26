@@ -74,11 +74,13 @@ export function getReactNativePersistence(
     }
 
     _addListener(_key: string, _listener: StorageEventListener): void {
-      debugFail('not implemented');
+      // Listeners are not supported for React Native storage.
+      return;
     }
 
     _removeListener(_key: string, _listener: StorageEventListener): void {
-      debugFail('not implemented');
+      // Listeners are not supported for React Native storage.
+      return;
     }
   };
 }

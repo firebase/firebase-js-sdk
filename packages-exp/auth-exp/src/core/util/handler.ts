@@ -94,22 +94,16 @@ export function _getRedirectUrl(
     params.tid = auth.tenantId;
   }
 
-  for (const key of Object.keys(params)) {
-    if ((params as Record<string, unknown>)[key] === undefined) {
-      delete (params as Record<string, unknown>)[key];
-    }
-  }
-
   // TODO: maybe set eid as endipointId
   // TODO: maybe set fw as Frameworks.join(",")
 
-  const url = new URL(
-    `${getHandlerBase(auth)}?${querystring(
-      params as Record<string, string | number>
-    ).slice(1)}`
-  );
-
-  return url.toString();
+  const paramsDict = params as Record<string, string | number>;
+  for (const key of Object.keys(paramsDict)) {
+    if (paramsDict[key] === undefined) {
+      delete paramsDict[key];
+    }
+  }
+  return `${getHandlerBase(auth)}?${querystring(paramsDict).slice(1)}`;
 }
 
 function getHandlerBase({ config }: AuthInternal): string {
