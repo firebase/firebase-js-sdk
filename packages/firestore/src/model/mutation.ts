@@ -697,7 +697,7 @@ function applyDeleteMutationToRemoteDocument(
   mutationResult: MutationResult
 ): NoDocument {
   debugAssert(
-    mutationResult.transformResults.length == 0,
+    mutationResult.transformResults.length === 0,
     'Transform results received by DeleteMutation.'
   );
 
