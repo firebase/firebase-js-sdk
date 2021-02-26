@@ -59,7 +59,7 @@ import {
   statsManagerGetCollection,
   statsManagerGetOrCreateReporter
 } from './stats/StatsManager';
-import { StatsReporter } from './stats/StatsReporter';
+import { StatsReporter, statsReporterIncludeStat } from './stats/StatsReporter';
 import { StatsListener } from './stats/StatsListener';
 import {
   EventQueue,
@@ -776,7 +776,7 @@ export function repoStats(repo: Repo, showDelta: boolean = false): void {
 
 export function repoStatsIncrementCounter(repo: Repo, metric: string): void {
   repo.stats_.incrementCounter(metric);
-  repo.statsReporter_.includeStat(metric);
+  statsReporterIncludeStat(repo.statsReporter_, metric);
 }
 
 function repoLog(repo: Repo, ...varArgs: unknown[]): void {
