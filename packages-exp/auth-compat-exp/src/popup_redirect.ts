@@ -19,8 +19,12 @@ import * as exp from '@firebase/auth-exp/internal';
 import { _isCordova, _isLikelyCordova } from './platform';
 
 const _assert: typeof exp._assert = exp._assert;
-const BROWSER_RESOLVER: exp.PopupRedirectResolverInternal = exp._getInstance(exp.browserPopupRedirectResolver);
-const CORDOVA_RESOLVER: exp.PopupRedirectResolverInternal = exp._getInstance(exp.cordovaPopupRedirectResolver);
+const BROWSER_RESOLVER: exp.PopupRedirectResolverInternal = exp._getInstance(
+  exp.browserPopupRedirectResolver
+);
+const CORDOVA_RESOLVER: exp.PopupRedirectResolverInternal = exp._getInstance(
+  exp.cordovaPopupRedirectResolver
+);
 
 /** Platform-agnostic popup-redirect resolver */
 export class CompatPopupRedirectResolver

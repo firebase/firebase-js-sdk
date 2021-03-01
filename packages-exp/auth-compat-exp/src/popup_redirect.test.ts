@@ -134,13 +134,27 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
     });
 
     it('returns true if cordova is false but browser value is true', () => {
-      sinon.stub(exp._getInstance<exp.PopupRedirectResolverInternal>(exp.browserPopupRedirectResolver), '_shouldInitProactively').value(true);
+      sinon
+        .stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            exp.browserPopupRedirectResolver
+          ),
+          '_shouldInitProactively'
+        )
+        .value(true);
       sinon.stub(platform, '_isLikelyCordova').returns(false);
       expect(compatResolver._shouldInitProactively).to.be.true;
     });
 
     it('returns false if not cordova and not browser early init', () => {
-      sinon.stub(exp._getInstance<exp.PopupRedirectResolverInternal>(exp.browserPopupRedirectResolver), '_shouldInitProactively').value(false);
+      sinon
+        .stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            exp.browserPopupRedirectResolver
+          ),
+          '_shouldInitProactively'
+        )
+        .value(false);
       sinon.stub(platform, '_isLikelyCordova').returns(false);
       expect(compatResolver._shouldInitProactively).to.be.false;
     });
