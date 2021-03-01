@@ -203,7 +203,7 @@ describe('core/auth/initializeAuth', () => {
       expect(resolverInternal._initialize).not.to.have.been.called;
     });
 
-    it('does early-initialize the resolver', async () => {
+    it('early-initializes the resolver if _shouldInitProactively is true', async () => {
       const popupRedirectResolver = makeMockPopupRedirectResolver();
       const resolverInternal: PopupRedirectResolverInternal = _getInstance(
         popupRedirectResolver
