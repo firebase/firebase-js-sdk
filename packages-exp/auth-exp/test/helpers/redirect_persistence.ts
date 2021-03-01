@@ -26,8 +26,10 @@ export class RedirectPersistence extends InMemoryPersistence {
   async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
     if (key.includes('pendingRedirect')) {
       return this.hasPendingRedirect.toString() as T;
+    } else if (key.includes('redirectUser')) {
+      return this.redirectUser as T | null;
     }
 
-    return this.redirectUser as T | null;
+    throw new Error(`Unexpected redirect persistence key requested: ${key}`);
   }
 }
