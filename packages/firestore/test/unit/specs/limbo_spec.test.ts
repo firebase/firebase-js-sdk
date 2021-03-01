@@ -333,12 +333,10 @@ describeSpec('Limbo Documents:', [], () => {
     const filteredQuery = query('collection', filter('matches', '==', true));
     const fullQuery = query('collection');
     const remoteDoc = doc('collection/a', 1000, { matches: true });
-    const localDoc = doc(
-      'collection/a',
-      1000,
-      { matches: true, modified: true },
-      { hasLocalMutations: true }
-    );
+    const localDoc = doc('collection/a', 1000, {
+      matches: true,
+      modified: true
+    }).setHasLocalMutations();
     return (
       spec()
         .userListens(filteredQuery)
@@ -505,18 +503,12 @@ describeSpec('Limbo Documents:', [], () => {
     const filteredQuery = query('collection', filter('matches', '==', true));
 
     const docA = doc('collection/a', 1000, { matches: true });
-    const docADirty = doc(
-      'collection/a',
-      1000,
-      { matches: true },
-      { hasCommittedMutations: true }
-    );
-    const docBDirty = doc(
-      'collection/b',
-      1001,
-      { matches: true },
-      { hasCommittedMutations: true }
-    );
+    const docADirty = doc('collection/a', 1000, {
+      matches: true
+    }).setHasCommittedMutations();
+    const docBDirty = doc('collection/b', 1001, {
+      matches: true
+    }).setHasCommittedMutations();
 
     return (
       spec()

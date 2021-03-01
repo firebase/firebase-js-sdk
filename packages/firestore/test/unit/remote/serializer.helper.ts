@@ -797,7 +797,7 @@ export function serializerTest(
       const d = doc('foo/bar', 42, { a: 5, b: 'b' });
       const proto = {
         name: toName(s, d.key),
-        fields: d.toProto().mapValue.fields,
+        fields: d.data.toProto().mapValue.fields,
         updateTime: toVersion(s, d.version)
       };
       const serialized = toDocument(s, d);

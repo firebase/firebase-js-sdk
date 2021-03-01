@@ -18,7 +18,7 @@
 import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
-import { Document, MaybeDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { estimateByteSize } from '../model/values';
 import { JsonProtoSerializer } from '../remote/serializer';
@@ -91,7 +91,7 @@ export class MemoryPersistence implements Persistence {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
     this.targetCache = new MemoryTargetCache(this);
-    const sizer = (doc: MaybeDocument): number =>
+    const sizer = (doc: Document): number =>
       this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
     this.remoteDocumentCache = newMemoryRemoteDocumentCache(
@@ -198,7 +198,7 @@ export class MemoryTransaction extends PersistenceTransaction {
 }
 
 export interface MemoryReferenceDelegate extends ReferenceDelegate {
-  documentSize(doc: MaybeDocument): number;
+  documentSize(doc: Document): number;
   onTransactionStarted(): void;
   onTransactionCommitted(txn: PersistenceTransaction): PersistencePromise<void>;
 }
@@ -307,7 +307,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     });
   }
 
-  documentSize(doc: MaybeDocument): number {
+  documentSize(doc: Document): number {
     // For eager GC, we don't care about the document size, there are no size thresholds.
     return 0;
   }
@@ -471,10 +471,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     return PersistencePromise.resolve();
   }
 
-  documentSize(maybeDoc: MaybeDocument): number {
-    let documentSize = maybeDoc.key.toString().length;
-    if (maybeDoc instanceof Document) {
-      documentSize += estimateByteSize(maybeDoc.toProto());
+  documentSize(document: Document): number {
+    let documentSize = document.key.toString().length;
+    if (document.isFoundDocument()) {
+      documentSize += estimateByteSize(document.data.toProto());
     }
     return documentSize;
   }

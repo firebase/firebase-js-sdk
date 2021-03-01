@@ -34,12 +34,9 @@ describeSpec('Collections:', [], () => {
 
   specTest('Events are raised for local sets before watch ack', [], () => {
     const query1 = query('collection');
-    const doc1 = doc(
-      'collection/key',
-      0,
-      { foo: 'bar' },
-      { hasLocalMutations: true }
-    );
+    const doc1 = doc('collection/key', 0, {
+      foo: 'bar'
+    }).setHasLocalMutations();
     return spec()
       .userListens(query1)
       .userSets('collection/key', { foo: 'bar' })

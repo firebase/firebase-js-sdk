@@ -31,7 +31,6 @@ import {
 } from '../api/user_data_reader';
 import { AbstractUserDataWriter } from '../api/user_data_writer';
 import { hasLimitToLast } from '../core/query';
-import { Document } from '../model/document';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
   invokeBatchGetDocumentsRpc,
@@ -134,7 +133,7 @@ export function getDoc<T>(
         reference.firestore,
         userDataWriter,
         reference._key,
-        maybeDocument instanceof Document ? maybeDocument : null,
+        maybeDocument.isFoundDocument() ? maybeDocument : null,
         reference._converter
       );
     }

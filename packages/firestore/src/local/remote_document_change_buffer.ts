@@ -16,8 +16,8 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { DocumentKeySet, NullableMaybeDocumentMap } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
@@ -30,7 +30,7 @@ import { PersistenceTransaction } from './persistence_transaction';
  */
 interface RemoteDocumentChange {
   // The document in this change, null if it is a removal from the cache.
-  readonly maybeDocument: MaybeDocument | null;
+  readonly document: MutableDocument;
   // The timestamp when this change is read.
   readonly readTime: SnapshotVersion | null;
 }
@@ -65,12 +65,12 @@ export abstract class RemoteDocumentChangeBuffer {
   protected abstract getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null>;
+  ): PersistencePromise<MutableDocument>;
 
   protected abstract getAllFromCache(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap>;
+  ): PersistencePromise<MutableDocumentMap>;
 
   protected abstract applyChanges(
     transaction: PersistenceTransaction
@@ -94,9 +94,9 @@ export abstract class RemoteDocumentChangeBuffer {
    * You can only modify documents that have already been retrieved via
    * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
    */
-  addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
+  addEntry(document: MutableDocument, readTime: SnapshotVersion): void {
     this.assertNotApplied();
-    this.changes.set(maybeDocument.key, { maybeDocument, readTime });
+    this.changes.set(document.key, { document, readTime });
   }
 
   /**
@@ -107,7 +107,10 @@ export abstract class RemoteDocumentChangeBuffer {
    */
   removeEntry(key: DocumentKey, readTime: SnapshotVersion | null = null): void {
     this.assertNotApplied();
-    this.changes.set(key, { maybeDocument: null, readTime });
+    this.changes.set(key, {
+      document: MutableDocument.newInvalidDocument(key),
+      readTime
+    });
   }
 
   /**
@@ -124,13 +127,11 @@ export abstract class RemoteDocumentChangeBuffer {
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
+  ): PersistencePromise<MutableDocument> {
     this.assertNotApplied();
     const bufferedEntry = this.changes.get(documentKey);
     if (bufferedEntry !== undefined) {
-      return PersistencePromise.resolve<MaybeDocument | null>(
-        bufferedEntry.maybeDocument
-      );
+      return PersistencePromise.resolve(bufferedEntry.document);
     } else {
       return this.getFromCache(transaction, documentKey);
     }
@@ -150,7 +151,7 @@ export abstract class RemoteDocumentChangeBuffer {
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap> {
+  ): PersistencePromise<MutableDocumentMap> {
     return this.getAllFromCache(transaction, documentKeys);
   }
 

@@ -54,7 +54,6 @@ import {
   UpdateData
 } from '../lite/reference';
 import { applyFirestoreDataConverter } from '../lite/reference_impl';
-import { Document } from '../model/document';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -140,7 +139,7 @@ export function getDocFromCache<T>(
         reference._key,
         doc,
         new SnapshotMetadata(
-          doc instanceof Document ? doc.hasLocalMutations : false,
+          doc !== null && doc.hasLocalMutations,
           /* fromCache= */ true
         ),
         reference._converter

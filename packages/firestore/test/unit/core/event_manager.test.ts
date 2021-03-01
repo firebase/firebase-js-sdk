@@ -261,12 +261,7 @@ describe('QueryListener', () => {
   it("raises 'hasPendingWrites' for pending mutation in initial snapshot", () => {
     const events: ViewSnapshot[] = [];
     const query1 = query('rooms');
-    const doc1 = doc(
-      'rooms/Eros',
-      1,
-      { name: 'Eros' },
-      { hasLocalMutations: true }
-    );
+    const doc1 = doc('rooms/Eros', 1, { name: 'Eros' }).setHasLocalMutations();
 
     const eventListenable = queryListener(query1, events);
 
@@ -282,12 +277,9 @@ describe('QueryListener', () => {
   it("doesn't raise 'hasPendingWrites' for committed mutation in initial snapshot", () => {
     const events: ViewSnapshot[] = [];
     const query1 = query('rooms');
-    const doc1 = doc(
-      'rooms/Eros',
-      1,
-      { name: 'Eros' },
-      { hasCommittedMutations: true }
-    );
+    const doc1 = doc('rooms/Eros', 1, {
+      name: 'Eros'
+    }).setHasCommittedMutations();
 
     const eventListenable = queryListener(query1, events);
 
@@ -336,12 +328,7 @@ describe('QueryListener', () => {
     const filteredEvents: ViewSnapshot[] = [];
     const fullEvents: ViewSnapshot[] = [];
     const query1 = query('rooms');
-    const doc1 = doc(
-      'rooms/Eros',
-      1,
-      { name: 'Eros' },
-      { hasLocalMutations: true }
-    );
+    const doc1 = doc('rooms/Eros', 1, { name: 'Eros' }).setHasLocalMutations();
     const doc2 = doc('rooms/Hades', 2, { name: 'Hades' });
     const doc1prime = doc('rooms/Eros', 1, { name: 'Eros' });
     const doc3 = doc('rooms/Other', 3, { name: 'Other' });
@@ -385,12 +372,9 @@ describe('QueryListener', () => {
     () => {
       const filteredEvents: ViewSnapshot[] = [];
       const query1 = query('rooms');
-      const doc1 = doc(
-        'rooms/Eros',
-        1,
-        { name: 'Eros' },
-        { hasLocalMutations: true }
-      );
+      const doc1 = doc('rooms/Eros', 1, {
+        name: 'Eros'
+      }).setHasLocalMutations();
       const doc2 = doc('rooms/Hades', 2, { name: 'Hades' });
       const doc1prime = doc('rooms/Eros', 1, { name: 'Eros' });
       const doc3 = doc('rooms/Other', 3, { name: 'Other' });
@@ -424,22 +408,14 @@ describe('QueryListener', () => {
     // and instead wait for Watch to catch up.
     const events: ViewSnapshot[] = [];
     const query1 = query('coll');
-    const doc1 = doc('coll/a', 1, { time: 1 }, { hasLocalMutations: true });
+    const doc1 = doc('coll/a', 1, { time: 1 }).setHasLocalMutations();
     // This event is suppressed
-    const doc1Committed = doc(
-      'coll/a',
-      2,
-      { time: 2 },
-      { hasCommittedMutations: true }
-    );
+    const doc1Committed = doc('coll/a', 2, {
+      time: 2
+    }).setHasCommittedMutations();
     const doc1Acknowledged = doc('coll/a', 2, { time: 2 });
-    const doc2 = doc('coll/b', 1, { time: 1 }, { hasLocalMutations: true });
-    const doc2Modified = doc(
-      'coll/b',
-      2,
-      { time: 3 },
-      { hasLocalMutations: true }
-    );
+    const doc2 = doc('coll/b', 1, { time: 1 }).setHasLocalMutations();
+    const doc2Modified = doc('coll/b', 2, { time: 3 }).setHasLocalMutations();
     const doc2Acknowledged = doc('coll/b', 2, { time: 3 });
     const listener = queryListener(query1, events, [], {
       includeMetadataChanges: true

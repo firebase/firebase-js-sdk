@@ -17,12 +17,8 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  DocumentKeySet,
-  DocumentMap,
-  NullableMaybeDocumentMap
-} from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { PersistencePromise } from './persistence_promise';
@@ -48,7 +44,7 @@ export interface RemoteDocumentCache {
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null>;
+  ): PersistencePromise<MutableDocument>;
 
   /**
    * Looks up a set of entries in the cache.
@@ -60,7 +56,7 @@ export interface RemoteDocumentCache {
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap>;
+  ): PersistencePromise<MutableDocumentMap>;
 
   /**
    * Executes a query against the cached Document entries.
@@ -79,7 +75,7 @@ export interface RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query,
     sinceReadTime: SnapshotVersion
-  ): PersistencePromise<DocumentMap>;
+  ): PersistencePromise<MutableDocumentMap>;
 
   /**
    * Provides access to add or update the contents of the cache. The buffer

@@ -76,19 +76,11 @@ describeSpec('Queries:', [], () => {
       doc('cg/1', 1000, { val: 1 }),
       doc('not-cg/nope', 1000, { val: 1 })
     ];
-    const toWrite1 = doc('cg/2', 0, { val: 2 }, { hasLocalMutations: true });
-    const toWrite2 = doc(
-      'not-cg/nope/cg/3',
-      0,
-      { val: 1 },
-      { hasLocalMutations: true }
-    );
-    const toWrite3 = doc(
-      'not-cg2/nope',
-      0,
-      { val: 1 },
-      { hasLocalMutations: true }
-    );
+    const toWrite1 = doc('cg/2', 0, { val: 2 }).setHasLocalMutations();
+    const toWrite2 = doc('not-cg/nope/cg/3', 0, {
+      val: 1
+    }).setHasLocalMutations();
+    const toWrite3 = doc('not-cg2/nope', 0, { val: 1 }).setHasLocalMutations();
 
     return specWithCachedDocs(...cachedDocs)
       .userSets(toWrite1.key.toString(), { val: 2 })
@@ -118,12 +110,9 @@ describeSpec('Queries:', [], () => {
         filter('match', '==', true)
       );
       const docA = doc('collection/a', 1000, { match: false });
-      const docAv2Local = doc(
-        'collection/a',
-        1000,
-        { match: true },
-        { hasLocalMutations: true }
-      );
+      const docAv2Local = doc('collection/a', 1000, {
+        match: true
+      }).setHasLocalMutations();
 
       return (
         spec()
