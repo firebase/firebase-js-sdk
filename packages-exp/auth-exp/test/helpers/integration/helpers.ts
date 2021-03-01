@@ -38,8 +38,6 @@ export function getTestInstance(): Auth {
   auth.settings.appVerificationDisabledForTesting = true;
   const emulatorUrl = getEmulatorUrl();
 
-  console.log(emulatorUrl);
-
   if (emulatorUrl) {
     useAuthEmulator(auth, emulatorUrl, {disableWarnings: true});
   }
