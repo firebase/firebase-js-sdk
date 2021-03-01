@@ -45,11 +45,10 @@ import { UserInternal } from '../../model/user';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../../core/errors';
 import { PersistenceInternal } from '../../core/persistence';
-import { InMemoryPersistence } from '../../core/persistence/in_memory';
 import { OAuthProvider } from '../../core/providers/oauth';
 import * as link from '../../core/user/link_unlink';
 import { UserCredentialImpl } from '../../core/user/user_credential_impl';
-import { _getInstance } from '../../core/util/instantiator';
+import { _clearInstanceMap, _getInstance } from '../../core/util/instantiator';
 import * as idpTasks from '../../core/strategies/idp';
 import {
   getRedirectResult,
@@ -60,14 +59,13 @@ import {
 } from './redirect';
 import { FirebaseError } from '@firebase/util';
 import { _clearRedirectOutcomes } from '../../core/strategies/redirect';
+import { RedirectPersistence } from '../../../test/helpers/redirect_persistence';
 
 use(sinonChai);
 use(chaiAsPromised);
 
 const MATCHING_EVENT_ID = 'matching-event-id';
 const OTHER_EVENT_ID = 'wrong-id';
-
-class RedirectPersistence extends InMemoryPersistence {}
 
 describe('platform_browser/strategies/redirect', () => {
   let auth: TestAuth;
@@ -85,11 +83,15 @@ describe('platform_browser/strategies/redirect', () => {
     )._redirectPersistence = RedirectPersistence;
     auth = await testAuth(resolver);
     idpStubs = sinon.stub(idpTasks);
+    _getInstance<RedirectPersistence>(
+      RedirectPersistence
+    ).hasPendingRedirect = true;
   });
 
   afterEach(() => {
     sinon.restore();
     _clearRedirectOutcomes();
+    _clearInstanceMap();
   });
 
   context('signInWithRedirect', () => {
@@ -299,16 +301,14 @@ describe('platform_browser/strategies/redirect', () => {
     }
 
     async function reInitAuthWithRedirectUser(eventId: string): Promise<void> {
-      const redirectPersistence: PersistenceInternal = _getInstance(
+      const redirectPersistence: RedirectPersistence = _getInstance(
         RedirectPersistence
       );
       const mainPersistence = new MockPersistenceLayer();
       const oldAuth = await testAuth();
       const user = testUser(oldAuth, 'uid');
       user._redirectEventId = eventId;
-      sinon
-        .stub(redirectPersistence, '_get')
-        .returns(Promise.resolve(user.toJSON()));
+      redirectPersistence.redirectUser = user.toJSON();
       sinon
         .stub(mainPersistence, '_get')
         .returns(Promise.resolve(user.toJSON()));
@@ -427,7 +427,9 @@ describe('platform_browser/strategies/redirect', () => {
         type: AuthEventType.LINK_VIA_REDIRECT
       });
       expect(await promise).to.eq(cred);
-      expect(redirectPersistence._remove).to.have.been.called;
+      expect(redirectPersistence._remove).to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app'
+      );
       expect(auth._currentUser?._redirectEventId).to.be.undefined;
       expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).to.be
         .undefined;
@@ -451,7 +453,9 @@ describe('platform_browser/strategies/redirect', () => {
         type: AuthEventType.LINK_VIA_REDIRECT
       });
       expect(await promise).to.eq(cred);
-      expect(redirectPersistence._remove).not.to.have.been.called;
+      expect(redirectPersistence._remove).not.to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app'
+      );
       expect(auth._currentUser?._redirectEventId).not.to.be.undefined;
       expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).not.to.be
         .undefined;

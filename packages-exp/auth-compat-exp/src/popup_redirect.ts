@@ -16,9 +16,15 @@
  */
 
 import * as exp from '@firebase/auth-exp/internal';
-import { _isCordova } from './platform';
+import { _isCordova, _isLikelyCordova } from './platform';
 
 const _assert: typeof exp._assert = exp._assert;
+const BROWSER_RESOLVER: exp.PopupRedirectResolverInternal = exp._getInstance(
+  exp.browserPopupRedirectResolver
+);
+const CORDOVA_RESOLVER: exp.PopupRedirectResolverInternal = exp._getInstance(
+  exp.cordovaPopupRedirectResolver
+);
 
 /** Platform-agnostic popup-redirect resolver */
 export class CompatPopupRedirectResolver
@@ -40,11 +46,7 @@ export class CompatPopupRedirectResolver
     // We haven't yet determined whether or not we're in Cordova; go ahead
     // and determine that state now.
     const isCordova = await _isCordova();
-    this.underlyingResolver = exp._getInstance(
-      isCordova
-        ? exp.cordovaPopupRedirectResolver
-        : exp.browserPopupRedirectResolver
-    );
+    this.underlyingResolver = isCordova ? CORDOVA_RESOLVER : BROWSER_RESOLVER;
     return this.assertedUnderlyingResolver._initialize(auth);
   }
 
@@ -85,6 +87,10 @@ export class CompatPopupRedirectResolver
 
   _originValidation(auth: exp.Auth): Promise<void> {
     return this.assertedUnderlyingResolver._originValidation(auth);
+  }
+
+  get _shouldInitProactively(): boolean {
+    return _isLikelyCordova() || BROWSER_RESOLVER._shouldInitProactively;
   }
 
   private get assertedUnderlyingResolver(): exp.PopupRedirectResolverInternal {

@@ -22,7 +22,8 @@ import {
   ProviderId
 } from '../../model/public_types';
 import * as sinon from 'sinon';
-import { _getInstance } from '../util/instantiator';
+import * as sinonChai from 'sinon-chai';
+import { _clearInstanceMap, _getInstance } from '../util/instantiator';
 import {
   MockPersistenceLayer,
   TestAuth,
@@ -39,17 +40,16 @@ import {
   PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
 import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
-import { PersistenceInternal } from '../persistence';
-import { InMemoryPersistence } from '../persistence/in_memory';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import * as idpTasks from '../strategies/idp';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 import { AuthErrorCode } from '../errors';
+import { RedirectPersistence } from '../../../test/helpers/redirect_persistence';
+
+use(sinonChai);
 
 const MATCHING_EVENT_ID = 'matching-event-id';
 const OTHER_EVENT_ID = 'wrong-id';
-
-class RedirectPersistence extends InMemoryPersistence {}
 
 describe('core/strategies/redirect', () => {
   let auth: AuthInternal;
@@ -57,6 +57,7 @@ describe('core/strategies/redirect', () => {
   let eventManager: AuthEventManager;
   let resolver: PopupRedirectResolver;
   let idpStubs: sinon.SinonStubbedInstance<typeof idpTasks>;
+  let redirectPersistence: RedirectPersistence;
 
   beforeEach(async () => {
     eventManager = new AuthEventManager(({} as unknown) as TestAuth);
@@ -67,11 +68,16 @@ describe('core/strategies/redirect', () => {
     )._redirectPersistence = RedirectPersistence;
     auth = await testAuth();
     redirectAction = new RedirectAction(auth, _getInstance(resolver), false);
+    redirectPersistence = _getInstance(RedirectPersistence);
+
+    // Default to has redirect for most test
+    redirectPersistence.hasPendingRedirect = true;
   });
 
   afterEach(() => {
     sinon.restore();
     _clearRedirectOutcomes();
+    _clearInstanceMap();
   });
 
   function iframeEvent(event: Partial<AuthEvent>): void {
@@ -86,16 +92,11 @@ describe('core/strategies/redirect', () => {
   }
 
   async function reInitAuthWithRedirectUser(eventId: string): Promise<void> {
-    const redirectPersistence: PersistenceInternal = _getInstance(
-      RedirectPersistence
-    );
     const mainPersistence = new MockPersistenceLayer();
     const oldAuth = await testAuth();
     const user = testUser(oldAuth, 'uid');
     user._redirectEventId = eventId;
-    sinon
-      .stub(redirectPersistence, '_get')
-      .returns(Promise.resolve(user.toJSON()));
+    redirectPersistence.redirectUser = user.toJSON();
     sinon.stub(mainPersistence, '_get').returns(Promise.resolve(user.toJSON()));
 
     auth = await testAuth(resolver, mainPersistence);
@@ -193,5 +194,19 @@ describe('core/strategies/redirect', () => {
     });
     expect(await promise).to.eq(cred);
     expect(await redirectAction.execute()).to.eq(cred);
+  });
+
+  it('bypasses initialization if no key set', async () => {
+    await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
+    const resolverInstance = _getInstance<PopupRedirectResolverInternal>(
+      resolver
+    );
+
+    sinon.spy(resolverInstance, '_initialize');
+    redirectPersistence.hasPendingRedirect = false;
+
+    expect(await redirectAction.execute()).to.eq(null);
+    expect(await redirectAction.execute()).to.eq(null);
+    expect(resolverInstance._initialize).not.to.have.been.called;
   });
 });

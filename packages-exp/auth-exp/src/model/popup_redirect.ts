@@ -80,6 +80,9 @@ export interface EventManager {
 }
 
 export interface PopupRedirectResolverInternal extends PopupRedirectResolver {
+  // Whether or not to initialize the event manager early
+  _shouldInitProactively: boolean;
+
   _initialize(auth: AuthInternal): Promise<EventManager>;
   _openPopup(
     auth: AuthInternal,
