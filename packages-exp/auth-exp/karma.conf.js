@@ -26,7 +26,7 @@ module.exports = function (config) {
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
 
-    client: Object.assign({}, karmaBase.client, getClientConfig(argv)),
+    client: Object.assign({}, karmaBase.client, getClientConfig(argv))
   });
 
   config.set(karmaConfig);
@@ -59,9 +59,9 @@ function getClientConfig(argv) {
     authAppConfig: {
       apiKey: 'local-api-key',
       projectId: 'test-emulator',
-      authDomain: 'local-auth-domain',
+      authDomain: 'local-auth-domain'
     },
-    authEmulatorPort: '9099',
+    authEmulatorPort: '9099'
   };
 }
 

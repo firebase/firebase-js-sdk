@@ -39,7 +39,7 @@ export function getTestInstance(): Auth {
   const emulatorUrl = getEmulatorUrl();
 
   if (emulatorUrl) {
-    useAuthEmulator(auth, emulatorUrl, {disableWarnings: true});
+    useAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
   }
 
   auth.onAuthStateChanged(user => {
