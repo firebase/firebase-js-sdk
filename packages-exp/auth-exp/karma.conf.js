@@ -58,7 +58,7 @@ function getClientConfig(argv) {
   return {
     authAppConfig: {
       apiKey: 'local-api-key',
-      projectId: 'hackweek-demo-mfa',
+      projectId: 'test-emulator',
       authDomain: 'local-auth-domain',
     },
     authEmulatorPort: '9099',
