@@ -207,7 +207,7 @@ which is licensed under BSD-3-Clause, both licenses given below.
 
 For Google protobuf source.
 
-file: src/packages/firestore/src/protos/google/protobuf/any.proto
+file: [source code root]/packages/firestore/src/protos/google/protobuf/any.proto
 
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
