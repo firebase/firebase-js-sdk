@@ -1028,19 +1028,19 @@ function applyWriteToRemoteDocuments(
   docKeys.forEach(docKey => {
     promiseChain = promiseChain
       .next(() => documentBuffer.getEntry(txn, docKey))
-      .next(remoteDoc => {
+      .next(doc => {
         const ackVersion = batchResult.docVersions.get(docKey);
         hardAssert(
           ackVersion !== null,
           'ackVersions should contain every doc in the write.'
         );
-        if (remoteDoc.version.compareTo(ackVersion!) < 0) {
-          batch.applyToRemoteDocument(docKey, remoteDoc, batchResult);
-          if (remoteDoc.isValidDocument()) {
+        if (doc.version.compareTo(ackVersion!) < 0) {
+          batch.applyToRemoteDocument(docKey, doc, batchResult);
+          if (doc.isValidDocument()) {
             // We use the commitVersion as the readTime rather than the
             // document's updateTime since the updateTime is not advanced
             // for updates that do not modify the underlying document.
-            documentBuffer.addEntry(remoteDoc, batchResult.commitVersion);
+            documentBuffer.addEntry(doc, batchResult.commitVersion);
           }
         }
       });

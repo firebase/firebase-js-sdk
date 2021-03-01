@@ -79,10 +79,9 @@ export function fromDbRemoteDocument(
     const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
     const version = fromDbTimestamp(remoteDoc.noDocument.readTime);
     const document = MutableDocument.newNoDocument(key, version);
-    if (remoteDoc.hasCommittedMutations) {
-      document.setHasCommittedMutations();
-    }
-    return document;
+    return remoteDoc.hasCommittedMutations
+      ? document.setHasCommittedMutations()
+      : document;
   } else if (remoteDoc.unknownDocument) {
     const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
     const version = fromDbTimestamp(remoteDoc.unknownDocument.version);

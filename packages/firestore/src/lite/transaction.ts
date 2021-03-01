@@ -99,7 +99,7 @@ export class Transaction {
         );
       } else {
         throw fail(
-          `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
+          `BatchGetDocumentsRequest returned unexpected document: ${doc}`
         );
       }
     });

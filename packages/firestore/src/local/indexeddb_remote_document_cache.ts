@@ -141,17 +141,15 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   getSizedEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<DocumentSizeEntry | null> {
+  ): PersistencePromise<DocumentSizeEntry> {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
         const doc = this.maybeDecodeDocument(documentKey, dbRemoteDoc);
-        return doc.isValidDocument()
-          ? {
-              document: doc,
-              size: dbDocumentSize(dbRemoteDoc!)
-            }
-          : null;
+        return {
+          document: doc,
+          size: dbRemoteDoc ? dbDocumentSize(dbRemoteDoc) : 0
+        };
       });
   }
 
@@ -546,13 +544,8 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
     return this.documentCache
       .getSizedEntry(transaction, documentKey)
       .next(getResult => {
-        if (getResult === null) {
-          this.documentSizes.set(documentKey, 0);
-          return MutableDocument.newInvalidDocument(documentKey);
-        } else {
-          this.documentSizes.set(documentKey, getResult.size);
-          return getResult.document;
-        }
+        this.documentSizes.set(documentKey, getResult.size);
+        return getResult.document;
       });
   }
 
