@@ -80,7 +80,9 @@ export function removeMutationBatch(
  * Returns an approximate size for the given document.
  */
 export function dbDocumentSize(doc: DbRemoteDocument | null): number {
-  if (!doc) return 0;
+  if (!doc) {
+    return 0;
+  }
 
   let value: unknown;
   if (doc.document) {
