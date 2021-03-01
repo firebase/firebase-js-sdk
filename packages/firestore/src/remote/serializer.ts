@@ -410,7 +410,7 @@ export function fromDocument(
   if (hasCommittedMutations) {
     result.setHasCommittedMutations();
   }
-  return result;
+  return hasCommittedMutations ? result.setHasCommittedMutations() : result;
 }
 
 function fromFound(

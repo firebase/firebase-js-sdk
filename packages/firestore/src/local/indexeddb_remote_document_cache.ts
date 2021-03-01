@@ -148,7 +148,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
         const doc = this.maybeDecodeDocument(documentKey, dbRemoteDoc);
         return {
           document: doc,
-          size: dbRemoteDoc ? dbDocumentSize(dbRemoteDoc) : 0
+          size: dbDocumentSize(dbRemoteDoc)
         };
       });
   }
@@ -187,16 +187,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       documentKeys,
       (key, dbRemoteDoc) => {
         const doc = this.maybeDecodeDocument(key, dbRemoteDoc);
-        if (doc.isValidDocument()) {
-          results = results.insert(key, doc);
-          sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc!));
-        } else {
-          results = results.insert(
-            key,
-            MutableDocument.newInvalidDocument(key)
-          );
-          sizeMap = sizeMap.insert(key, 0);
-        }
+        results = results.insert(key, doc);
+        sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
       }
     ).next(() => {
       return { documents: results, sizeMap };

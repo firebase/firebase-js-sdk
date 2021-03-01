@@ -16,7 +16,6 @@
  */
 
 import {
-  MapValue,
   MapValue as ProtoMapValue,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
@@ -82,8 +81,8 @@ export class ObjectValue {
   }
 
   /** Returns the full protobuf representation. */
-  toProto(): { mapValue: MapValue } {
-    return this.field(FieldPath.emptyPath()) as { mapValue: MapValue };
+  toProto(): { mapValue: ProtoMapValue } {
+    return this.field(FieldPath.emptyPath()) as { mapValue: ProtoMapValue };
   }
 
   /**

@@ -424,29 +424,29 @@ function genericRemoteDocumentCacheTests(
     // This test verifies that the MemoryMutationCache returns copies of all
     // data to ensure that the documents in the cache cannot be modified.
     function verifyOldValue(d: Document): void {
-      expect(d.data.field(field('ver'))).to.deep.equal(wrap(0));
+      expect(d.data.field(field('state'))).to.deep.equal(wrap('old'));
     }
 
-    let document = doc('coll/doc', 1, { ver: 0 });
+    let document = doc('coll/doc', 1, { state: 'old' });
     await cache.addEntries([document], /* readTime= */ version(1));
     verifyOldValue(document);
-    document.data.set(field('ver'), wrap(1));
+    document.data.set(field('state'), wrap('new'));
 
     document = await cache.getEntry(key('coll/doc'));
     verifyOldValue(document);
-    document.data.set(field('ver'), wrap(1));
+    document.data.set(field('state'), wrap('new'));
 
     document = await cache
       .getEntries(documentKeySet(key('coll/doc')))
       .then(m => m.get(key('coll/doc'))!);
     verifyOldValue(document);
-    document.data.set(field('ver'), wrap(1));
+    document.data.set(field('state'), wrap('new'));
 
     document = await cache
       .getEntries(documentKeySet(key('coll/doc')))
       .then(m => m.get(key('coll/doc'))!);
     verifyOldValue(document);
-    document.data.set(field('ver'), wrap(1));
+    document.data.set(field('state'), wrap('new'));
 
     const query1 = query('coll');
     document = await cache

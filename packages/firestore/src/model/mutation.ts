@@ -188,7 +188,7 @@ export function preconditionIsValidForDocument(
  * PatchMutation      InvalidDocument(v0)   UnknownDocument(v3)
  * DeleteMutation     Document(v3)          NoDocument(v0)
  * DeleteMutation     NoDocument(v3)        NoDocument(v0)
- * DeleteMutation     InvalidDocument(v0)  NoDocument(v0)
+ * DeleteMutation     InvalidDocument(v0)   NoDocument(v0)
  *
  * For acknowledged mutations, we use the updateTime of the WriteResponse as
  * the resulting version for Set and Patch mutations. As deletes have no
