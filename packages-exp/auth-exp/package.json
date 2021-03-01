@@ -28,7 +28,7 @@
     "test:browser": "karma start --single-run",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:integration": "karma start --single-run --integration",
-    "test:browser:integration:emulator": "karma start --single-run --integration --local --auto-watch",
+    "test:browser:integration:local": "karma start --single-run --integration --local --auto-watch",
     "test:browser:debug": "karma start --auto-watch",
     "test:browser:unit:debug": "karma start --auto-watch --unit",
     "test:cordova": "karma start --single-run --cordova",
