@@ -36,7 +36,7 @@
     "terser": "5.5.1",
     "yargs": "16.2.0",
     "@firebase/util": "0.3.4",
-    "gzip-size": "5.1.1"
+    "gzip-size": "6.0.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
