@@ -173,7 +173,6 @@ export class OAuthCredential extends AuthCredential {
     const request: SignInWithIdpRequest = {
       requestUri: IDP_REQUEST_URI,
       returnSecureToken: true,
-      postBody: null
     };
 
     if (this.pendingToken) {

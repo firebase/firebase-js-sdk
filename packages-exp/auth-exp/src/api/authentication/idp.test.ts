@@ -33,7 +33,6 @@ describe('api/authentication/signInWithIdp', () => {
   const request = {
     returnSecureToken: true,
     requestUri: 'request-uri',
-    postBody: null
   };
 
   let auth: TestAuth;
