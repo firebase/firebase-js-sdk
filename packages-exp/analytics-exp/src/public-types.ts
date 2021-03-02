@@ -23,19 +23,77 @@ import { FirebaseApp } from '@firebase/app-exp';
  * @public
  */
 export interface GtagConfigParams {
+  /**
+   * Whether or not a page view should be sent.
+   * If set to true (default), a page view is automatically sent upon initialization
+   * of analytics.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+   */
   'send_page_view'?: boolean;
+  /**
+   * The title of the page.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+   */
   'page_title'?: string;
+  /**
+   * The path to the page. If overridden, this value must start with a / character.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+   */
   'page_path'?: string;
+  /**
+   * The URL of the page.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+   */
   'page_location'?: string;
+  /**
+   * Defaults to `auto`.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   */
   'cookie_domain'?: string;
+  /**
+   * Defaults to 63072000 (two years, in seconds).
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   */
   'cookie_expires'?: number;
+  /**
+   * Defaults to `_ga`.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   */
   'cookie_prefix'?: string;
+  /**
+   * If set to true, will update cookies on each page load.
+   * Defaults to true.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   */
   'cookie_update'?: boolean;
+  /**
+   * Appends additional flags to the cookie when set.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   */
   'cookie_flags'?: string;
+  /**
+   * If set to false, disables all advertising features with gtag.js.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/display-features
+   */
   'allow_google_signals?': boolean;
+  /**
+   * If set to false, disables all advertising personalization with gtag.js.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/display-features
+   */
   'allow_ad_personalization_signals'?: boolean;
+  /**
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/enhanced-link-attribution
+   */
   'link_attribution'?: boolean;
+  /**
+   * If set to true, anonymizes IP addresses for all events.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/ip-anonymization
+   */
   'anonymize_ip'?: boolean;
+  /**
+   * Custom dimensions and metrics.
+   * See https://developers.google.com/analytics/devguides/collection/gtagjs/custom-dims-mets
+   */
   'custom_map'?: { [key: string]: unknown };
   [key: string]: unknown;
 }
@@ -45,6 +103,9 @@ export interface GtagConfigParams {
  * @public
  */
 export interface AnalyticsOptions {
+  /**
+   * Params to be passed in the initial gtag config call during analytics initialization.
+   */
   config: GtagConfigParams | EventParams;
 }
 
@@ -91,6 +152,7 @@ export interface SettingsOptions {
 export interface CustomParams {
   [key: string]: unknown;
 }
+
 /**
  * Type for standard gtag.js event names. `logEvent` also accepts any
  * custom string and interprets it as a custom event name.
@@ -126,14 +188,14 @@ export type EventNameString =
   | 'view_search_results';
 
 /**
- * Currency field used by some Analytics events.
+ * Standard analytics currency type.
  * @public
  */
 export type Currency = string | number;
 
 /* eslint-disable camelcase */
 /**
- * Item field used by some Analytics events.
+ * Standard analytics `Item` type.
  * @public
  */
 export interface Item {
