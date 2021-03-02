@@ -32,7 +32,7 @@ use(chaiAsPromised);
 describe('api/authentication/signInWithIdp', () => {
   const request = {
     returnSecureToken: true,
-    requestUri: 'request-uri',
+    requestUri: 'request-uri'
   };
 
   let auth: TestAuth;
