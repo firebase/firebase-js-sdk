@@ -49,6 +49,7 @@ import {
   setUserProperties as internalSetUserProperties,
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
 } from './functions';
+import { ERROR_FACTORY, AnalyticsError } from './errors';
 
 export { settings } from './factory';
 
@@ -97,9 +98,7 @@ export function initializeAnalytics(
     ANALYTICS_TYPE
   );
   if (analyticsProvider.isInitialized()) {
-    return analyticsProvider.getImmediate();
-    // TODO: Throw an analytics specific error.
-    // _fail(analyticsInstance, AuthErrorCode.ALREADY_INITIALIZED);
+    throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
   }
   const analyticsInstance = analyticsProvider.getImmediate();
   // do init settings stuff here

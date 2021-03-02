@@ -136,7 +136,7 @@ export function getGlobalVars(): {
  */
 export function settings(options: SettingsOptions): void {
   if (globalInitDone) {
-    throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
+    throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED_SETTINGS);
   }
   if (options.dataLayerName) {
     dataLayerName = options.dataLayerName;

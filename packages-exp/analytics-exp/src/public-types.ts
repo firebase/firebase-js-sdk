@@ -20,6 +20,7 @@ import { FirebaseApp } from '@firebase/app-exp';
 /**
  * A set of common Analytics config settings recognized by
  * gtag.
+ * @public
  */
 export interface GtagConfigParams {
   'send_page_view'?: boolean;
@@ -41,6 +42,7 @@ export interface GtagConfigParams {
 
 /**
  * Analytics initialization options.
+ * @public
  */
 export interface AnalyticsOptions {
   config: GtagConfigParams | EventParams;
@@ -60,8 +62,7 @@ export interface AnalyticsCallOptions {
 }
 
 /**
- * The Firebase Analytics service interface.
- *
+ * An instance of Firebase Analytics.
  * @public
  */
 export interface Analytics {
