@@ -32,7 +32,7 @@
     "@firebase/auth-exp": "0.0.900",
     "@firebase/component": "0.2.0",
     "@firebase/util": "0.3.4",
-    "tslib": "^1.11.1"
+    "tslib": "^2.0.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {

@@ -32,7 +32,7 @@
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
   },
   "dependencies": {
-    "tslib": "^1.11.1"
+    "tslib": "^2.0.0"
   },
   "peerDependencies": {
     "firebase": ">=8.0.0",
