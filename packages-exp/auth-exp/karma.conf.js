@@ -24,7 +24,9 @@ module.exports = function (config) {
     files: getTestFiles(argv),
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
+    frameworks: ['mocha'],
+
+    client: Object.assign({}, karmaBase.client, getClientConfig(argv))
   });
 
   config.set(karmaConfig);
@@ -46,6 +48,21 @@ function getTestFiles(argv) {
       'test/integration/flows/email.test.ts'
     ];
   }
+}
+
+function getClientConfig(argv) {
+  if (!argv.local) {
+    return {};
+  }
+
+  return {
+    authAppConfig: {
+      apiKey: 'local-api-key',
+      projectId: 'test-emulator',
+      authDomain: 'local-auth-domain'
+    },
+    authEmulatorPort: '9099'
+  };
 }
 
 module.exports.files = getTestFiles(argv);
