@@ -36,7 +36,20 @@ import {
   pathGetFront,
   pathIsEmpty
 } from './util/Path';
-import { SyncPoint } from './SyncPoint';
+import {
+  SyncPoint,
+  syncPointAddEventRegistration,
+  syncPointApplyOperation,
+  syncPointGetCompleteServerCache,
+  syncPointGetCompleteView,
+  syncPointGetQueryViews,
+  syncPointGetView,
+  syncPointHasCompleteView,
+  syncPointIsEmpty,
+  syncPointRemoveEventRegistration,
+  syncPointViewExistsForQuery,
+  syncPointViewForQuery
+} from './SyncPoint';
 import { WriteTree, WriteTreeRef } from './WriteTree';
 import { Query } from '../api/Query';
 import { Node } from './snap/Node';
@@ -312,9 +325,10 @@ export class SyncTree {
     // Consider optimizing this once there's a better understanding of what actual behavior will be.
     this.syncPointTree_.foreachOnPath(path, (pathToSyncPoint, sp) => {
       const relativePath = newRelativePath(pathToSyncPoint, path);
-      serverCache = serverCache || sp.getCompleteServerCache(relativePath);
+      serverCache =
+        serverCache || syncPointGetCompleteServerCache(sp, relativePath);
       foundAncestorDefaultView =
-        foundAncestorDefaultView || sp.hasCompleteView();
+        foundAncestorDefaultView || syncPointHasCompleteView(sp);
     });
     let syncPoint = this.syncPointTree_.get(path);
     if (!syncPoint) {
@@ -322,9 +336,10 @@ export class SyncTree {
       this.syncPointTree_ = this.syncPointTree_.set(path, syncPoint);
     } else {
       foundAncestorDefaultView =
-        foundAncestorDefaultView || syncPoint.hasCompleteView();
+        foundAncestorDefaultView || syncPointHasCompleteView(syncPoint);
       serverCache =
-        serverCache || syncPoint.getCompleteServerCache(newEmptyPath());
+        serverCache ||
+        syncPointGetCompleteServerCache(syncPoint, newEmptyPath());
     }
 
     let serverCacheComplete;
@@ -335,7 +350,8 @@ export class SyncTree {
       serverCache = ChildrenNode.EMPTY_NODE;
       const subtree = this.syncPointTree_.subtree(path);
       subtree.foreachChild((childName, childSyncPoint) => {
-        const completeCache = childSyncPoint.getCompleteServerCache(
+        const completeCache = syncPointGetCompleteServerCache(
+          childSyncPoint,
           newEmptyPath()
         );
         if (completeCache) {
@@ -347,7 +363,7 @@ export class SyncTree {
       });
     }
 
-    const viewAlreadyExists = syncPoint.viewExistsForQuery(query);
+    const viewAlreadyExists = syncPointViewExistsForQuery(syncPoint, query);
     if (!viewAlreadyExists && !query.getQueryParams().loadsAllData()) {
       // We need to track a tag for this query
       const queryKey = SyncTree.makeQueryKey_(query);
@@ -360,7 +376,8 @@ export class SyncTree {
       this.tagToQueryMap.set(tag, queryKey);
     }
     const writesCache = this.pendingWriteTree_.childWrites(path);
-    let events = syncPoint.addEventRegistration(
+    let events = syncPointAddEventRegistration(
+      syncPoint,
       query,
       eventRegistration,
       writesCache,
@@ -368,7 +385,7 @@ export class SyncTree {
       serverCacheComplete
     );
     if (!viewAlreadyExists && !foundAncestorDefaultView) {
-      const view = syncPoint.viewForQuery(query);
+      const view = syncPointViewForQuery(syncPoint, query);
       events = events.concat(this.setupListener_(query, view));
     }
     return events;
@@ -399,14 +416,15 @@ export class SyncTree {
     if (
       maybeSyncPoint &&
       (query.queryIdentifier() === 'default' ||
-        maybeSyncPoint.viewExistsForQuery(query))
+        syncPointViewExistsForQuery(maybeSyncPoint, query))
     ) {
-      const removedAndEvents = maybeSyncPoint.removeEventRegistration(
+      const removedAndEvents = syncPointRemoveEventRegistration(
+        maybeSyncPoint,
         query,
         eventRegistration,
         cancelError
       );
-      if (maybeSyncPoint.isEmpty()) {
+      if (syncPointIsEmpty(maybeSyncPoint)) {
         this.syncPointTree_ = this.syncPointTree_.remove(path);
       }
       const removed = removedAndEvents.removed;
@@ -424,9 +442,8 @@ export class SyncTree {
         });
       const covered = this.syncPointTree_.findOnPath(
         path,
-        (relativePath, parentSyncPoint) => {
-          return parentSyncPoint.hasCompleteView();
-        }
+        (relativePath, parentSyncPoint) =>
+          syncPointHasCompleteView(parentSyncPoint)
       );
 
       if (removingDefault && !covered) {
@@ -504,7 +521,10 @@ export class SyncTree {
       path,
       (pathSoFar, syncPoint) => {
         const relativePath = newRelativePath(pathSoFar, path);
-        const serverCache = syncPoint.getCompleteServerCache(relativePath);
+        const serverCache = syncPointGetCompleteServerCache(
+          syncPoint,
+          relativePath
+        );
         if (serverCache) {
           return serverCache;
         }
@@ -525,7 +545,8 @@ export class SyncTree {
     // Consider optimizing this once there's a better understanding of what actual behavior will be.
     this.syncPointTree_.foreachOnPath(path, (pathToSyncPoint, sp) => {
       const relativePath = newRelativePath(pathToSyncPoint, path);
-      serverCache = serverCache || sp.getCompleteServerCache(relativePath);
+      serverCache =
+        serverCache || syncPointGetCompleteServerCache(sp, relativePath);
     });
     let syncPoint = this.syncPointTree_.get(path);
     if (!syncPoint) {
@@ -533,7 +554,8 @@ export class SyncTree {
       this.syncPointTree_ = this.syncPointTree_.set(path, syncPoint);
     } else {
       serverCache =
-        serverCache || syncPoint.getCompleteServerCache(newEmptyPath());
+        serverCache ||
+        syncPointGetCompleteServerCache(syncPoint, newEmptyPath());
     }
     const serverCacheComplete = serverCache != null;
     const serverCacheNode: CacheNode | null = serverCacheComplete
@@ -542,7 +564,8 @@ export class SyncTree {
     const writesCache: WriteTreeRef | null = this.pendingWriteTree_.childWrites(
       query.path
     );
-    const view: View = syncPoint.getView(
+    const view: View = syncPointGetView(
+      syncPoint,
       query,
       writesCache,
       serverCacheComplete ? serverCacheNode.getNode() : ChildrenNode.EMPTY_NODE,
@@ -560,14 +583,17 @@ export class SyncTree {
   ): View[] {
     return subtree.fold<View[]>(
       (relativePath, maybeChildSyncPoint, childMap) => {
-        if (maybeChildSyncPoint && maybeChildSyncPoint.hasCompleteView()) {
-          const completeView = maybeChildSyncPoint.getCompleteView();
+        if (
+          maybeChildSyncPoint &&
+          syncPointHasCompleteView(maybeChildSyncPoint)
+        ) {
+          const completeView = syncPointGetCompleteView(maybeChildSyncPoint);
           return [completeView];
         } else {
           // No complete view here, flatten any deeper listens into an array
           let views: View[] = [];
           if (maybeChildSyncPoint) {
-            views = maybeChildSyncPoint.getQueryViews();
+            views = syncPointGetQueryViews(maybeChildSyncPoint);
           }
           each(childMap, (_key: string, childViews: View[]) => {
             views = views.concat(childViews);
@@ -632,7 +658,7 @@ export class SyncTree {
     // may need to shadow other listens as well.
     if (tag) {
       assert(
-        !subtree.value.hasCompleteView(),
+        !syncPointHasCompleteView(subtree.value),
         "If we're adding a query, it shouldn't be shadowed"
       );
     } else {
@@ -642,15 +668,17 @@ export class SyncTree {
           if (
             !pathIsEmpty(relativePath) &&
             maybeChildSyncPoint &&
-            maybeChildSyncPoint.hasCompleteView()
+            syncPointHasCompleteView(maybeChildSyncPoint)
           ) {
-            return [maybeChildSyncPoint.getCompleteView().getQuery()];
+            return [syncPointGetCompleteView(maybeChildSyncPoint).getQuery()];
           } else {
             // No default listener here, flatten any deeper queries into an array
             let queries: Query[] = [];
             if (maybeChildSyncPoint) {
               queries = queries.concat(
-                maybeChildSyncPoint.getQueryViews().map(view => view.getQuery())
+                syncPointGetQueryViews(maybeChildSyncPoint).map(view =>
+                  view.getQuery()
+                )
               );
             }
             each(childMap, (_key: string, childQueries: Query[]) => {
@@ -764,11 +792,7 @@ export class SyncTree {
     const syncPoint = this.syncPointTree_.get(queryPath);
     assert(syncPoint, "Missing sync point for query tag that we're tracking");
     const writesCache = this.pendingWriteTree_.childWrites(queryPath);
-    return syncPoint.applyOperation(
-      operation,
-      writesCache,
-      /*serverCache=*/ null
-    );
+    return syncPointApplyOperation(syncPoint, operation, writesCache, null);
   }
 
   /**
@@ -814,7 +838,10 @@ export class SyncTree {
 
       // If we don't have cached server data, see if we can get it from this SyncPoint.
       if (serverCache == null && syncPoint != null) {
-        serverCache = syncPoint.getCompleteServerCache(newEmptyPath());
+        serverCache = syncPointGetCompleteServerCache(
+          syncPoint,
+          newEmptyPath()
+        );
       }
 
       let events: Event[] = [];
@@ -838,7 +865,12 @@ export class SyncTree {
 
       if (syncPoint) {
         events = events.concat(
-          syncPoint.applyOperation(operation, writesCache, serverCache)
+          syncPointApplyOperation(
+            syncPoint,
+            operation,
+            writesCache,
+            serverCache
+          )
         );
       }
 
@@ -859,7 +891,7 @@ export class SyncTree {
 
     // If we don't have cached server data, see if we can get it from this SyncPoint.
     if (serverCache == null && syncPoint != null) {
-      serverCache = syncPoint.getCompleteServerCache(newEmptyPath());
+      serverCache = syncPointGetCompleteServerCache(syncPoint, newEmptyPath());
     }
 
     let events: Event[] = [];
@@ -883,7 +915,7 @@ export class SyncTree {
 
     if (syncPoint) {
       events = events.concat(
-        syncPoint.applyOperation(operation, writesCache, serverCache)
+        syncPointApplyOperation(syncPoint, operation, writesCache, serverCache)
       );
     }
 
