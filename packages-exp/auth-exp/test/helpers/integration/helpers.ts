@@ -75,7 +75,11 @@ export async function cleanUpTestInstance(auth: Auth): Promise<void> {
 function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
   const originalConsoleInfo = console.info.bind(console);
   return sinon.stub(console, 'info').callsFake((...args: unknown[]) => {
-    if (!JSON.stringify(args[0]).includes('WARNING: You are using the Auth Emulator')) {
+    if (
+      !JSON.stringify(args[0]).includes(
+        'WARNING: You are using the Auth Emulator'
+      )
+    ) {
       originalConsoleInfo(...args);
     }
   });
