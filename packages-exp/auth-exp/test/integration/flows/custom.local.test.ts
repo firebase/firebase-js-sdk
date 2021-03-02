@@ -21,11 +21,13 @@ import {
   EmailAuthProvider,
   linkWithCredential,
   OperationType,
+  reload,
   signInAnonymously,
   signInWithCustomToken,
   signInWithEmailAndPassword,
   updateEmail,
-  updatePassword
+  updatePassword,
+  updateProfile,
 // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { FirebaseError } from '@firebase/util';
@@ -41,9 +43,18 @@ use(chaiAsPromised);
 
 describe('Integration test: custom auth', () => {
   let auth: Auth;
+  let customToken: string;
+  let uid: string;
 
   beforeEach(() => {
     auth = getTestInstance();
+    uid = randomEmail();
+    customToken = JSON.stringify({
+      uid,
+      claims: {
+        customClaim: 'some-claim',
+      }
+    });
 
     if (!auth.emulatorConfig) {
       throw new Error('Test can only be run against the emulator!');
@@ -57,17 +68,14 @@ describe('Integration test: custom auth', () => {
   it('signs in with custom token', async () => {
     const cred = await signInWithCustomToken(
       auth,
-      JSON.stringify({
-        uid: 'custom-uid-yay',
-        claims: { customClaim: 'some-claim' }
-      })
+      customToken
     );
     expect(auth.currentUser).to.eq(cred.user);
     expect(cred.operationType).to.eq(OperationType.SIGN_IN);
 
     const { user } = cred;
     expect(user.isAnonymous).to.be.false;
-    expect(user.uid).to.eq('custom-uid-yay');
+    expect(user.uid).to.eq(uid);
     expect((await user.getIdTokenResult(false)).claims.customClaim).to.eq(
       'some-claim'
     );
@@ -86,6 +94,54 @@ describe('Integration test: custom auth', () => {
     expect(auth.currentUser).to.eq(customCred.user);
     expect(customCred.user.uid).to.eq(anonUser.uid);
     expect(customCred.user.isAnonymous).to.be.false;
+  });
+
+  it('allows the user to delete the account', async () => {
+    let { user } = await signInWithCustomToken(
+      auth,
+      customToken
+    );
+    await updateProfile(user, {displayName: 'Display Name'});
+    expect(user.displayName).to.eq('Display Name');
+
+    await user.delete();
+    await expect(reload(user)).to.be.rejectedWith(
+      FirebaseError,
+      'auth/user-token-expired'
+    );
+    expect(auth.currentUser).to.be.null;
+
+    ({user} = await signInWithCustomToken(auth, customToken));
+    // New user in the system: the display name should be missing
+    expect(user.displayName).to.be.null;
+  });
+
+  it('sign in can be called twice successively', async () => {
+    const { user: userA } = await signInWithCustomToken(
+      auth,
+      customToken
+    );
+    const { user: userB } = await signInWithCustomToken(
+      auth,
+      customToken
+    );
+    expect(userA.uid).to.eq(userB.uid);
+  });
+
+  it('allows user to update profile', async () => {
+    let { user } = await signInWithCustomToken(auth, customToken);
+    await updateProfile(user, {
+      displayName: 'Display Name',
+      photoURL: 'photo-url'
+    });
+    expect(user.displayName).to.eq('Display Name');
+    expect(user.photoURL).to.eq('photo-url');
+
+    await auth.signOut();
+
+    user = (await signInWithCustomToken(auth, customToken)).user;
+    expect(user.displayName).to.eq('Display Name');
+    expect(user.photoURL).to.eq('photo-url');
   });
 
   context('email/password interaction', () => {
