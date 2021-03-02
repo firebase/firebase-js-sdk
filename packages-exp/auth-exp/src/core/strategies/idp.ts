@@ -70,7 +70,7 @@ class IdpCredential extends AuthCredential {
     const request: SignInWithIdpRequest = {
       requestUri: this.params.requestUri,
       sessionId: this.params.sessionId,
-      postBody: this.params.postBody || null,
+      postBody: this.params.postBody,
       tenantId: this.params.tenantId,
       pendingToken: this.params.pendingToken,
       returnSecureToken: true,
