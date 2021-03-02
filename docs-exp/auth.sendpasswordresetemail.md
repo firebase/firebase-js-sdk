@@ -9,16 +9,16 @@ Sends a password reset email to the given email address.
 <b>Signature:</b>
 
 ```typescript
-export declare function sendPasswordResetEmail(auth: externs.Auth, email: string, actionCodeSettings?: externs.ActionCodeSettings): Promise<void>;
+export declare function sendPasswordResetEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  email | string | The user's email address. |
-|  actionCodeSettings | externs.[ActionCodeSettings](./auth-types.actioncodesettings.md) | The [ActionCodeSettings](./auth-types.actioncodesettings.md)<!-- -->. |
+|  actionCodeSettings | [ActionCodeSettings](./auth.actioncodesettings.md) | The [ActionCodeSettings](./auth.actioncodesettings.md)<!-- -->. |
 
 <b>Returns:</b>
 

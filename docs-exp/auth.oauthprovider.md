@@ -9,9 +9,9 @@ Provider for generating generic [OAuthCredential](./auth.oauthcredential.md)<!--
 <b>Signature:</b>
 
 ```typescript
-export declare class OAuthProvider implements externs.AuthProvider 
+export declare class OAuthProvider implements AuthProvider 
 ```
-<b>Implements:</b> externs.[AuthProvider](./auth-types.authprovider.md)
+<b>Implements:</b> [AuthProvider](./auth.authprovider.md)
 
 ## Example 1
 
@@ -73,9 +73,9 @@ const token = credential.accessToken;
 |  --- | --- | --- |
 |  [addScope(scope)](./auth.oauthprovider.addscope.md) |  | Add an OAuth scope to the credential. |
 |  [credential(params)](./auth.oauthprovider.credential.md) |  | Creates a [OAuthCredential](./auth.oauthcredential.md) from a generic OAuth provider's access token or ID token. |
-|  [credentialFromError(error)](./auth.oauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth-types.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
+|  [credentialFromError(error)](./auth.oauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
 |  [credentialFromJSON(json)](./auth.oauthprovider.credentialfromjson.md) | <code>static</code> |  |
-|  [credentialFromResult(userCredential)](./auth.oauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth-types.usercredential.md)<!-- -->. |
+|  [credentialFromResult(userCredential)](./auth.oauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->. |
 |  [getCustomParameters()](./auth.oauthprovider.getcustomparameters.md) |  | Retrieve the current list of [CustomParameters](./auth.customparameters.md)<!-- -->. |
 |  [getScopes()](./auth.oauthprovider.getscopes.md) |  | Retrieve the current list of OAuth scopes. |
 |  [setCustomParameters(customOAuthParameters)](./auth.oauthprovider.setcustomparameters.md) |  | Sets the OAuth custom parameters to pass in an OAuth request for popup and redirect sign-in operations. |

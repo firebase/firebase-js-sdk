@@ -4,7 +4,7 @@
 
 ## AuthCredential class
 
-Interface that represents the credentials returned by an [AuthProvider](./auth-types.authprovider.md)<!-- -->.
+Interface that represents the credentials returned by an [AuthProvider](./auth.authprovider.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -16,12 +16,14 @@ export declare class AuthCredential
 
 Implementations specify the details about each auth provider's credential requirements.
 
+The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `AuthCredential` class.
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [providerId](./auth.authcredential.providerid.md) |  | string |  |
-|  [signInMethod](./auth.authcredential.signinmethod.md) |  | string |  |
+|  [providerId](./auth.authcredential.providerid.md) |  | string | The authentication provider ID for the credential. |
+|  [signInMethod](./auth.authcredential.signinmethod.md) |  | string | The authentication sign in method for the credential. |
 
 ## Methods
 

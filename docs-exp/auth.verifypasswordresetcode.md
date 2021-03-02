@@ -9,14 +9,14 @@ Checks a password reset code sent to the user by email or other out-of-band mech
 <b>Signature:</b>
 
 ```typescript
-export declare function verifyPasswordResetCode(auth: externs.Auth, code: string): Promise<string>;
+export declare function verifyPasswordResetCode(auth: Auth, code: string): Promise<string>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  code | string | A verification code sent to the user. |
 
 <b>Returns:</b>

@@ -93,7 +93,7 @@ export class SyncPoint {
       return events;
     }
   }
-  
+
   /**
    * Get a view for the specified query.
    *

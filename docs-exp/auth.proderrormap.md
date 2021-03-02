@@ -6,10 +6,10 @@
 
 A minimal error map with all verbose error messages stripped.
 
-See discussion at [AuthErrorMap](./auth-types.autherrormap.md)
+See discussion at [AuthErrorMap](./auth.autherrormap.md)
 
 <b>Signature:</b>
 
 ```typescript
-prodErrorMap: externs.AuthErrorMap
+prodErrorMap: AuthErrorMap
 ```

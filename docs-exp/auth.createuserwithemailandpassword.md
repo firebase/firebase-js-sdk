@@ -9,20 +9,20 @@ Creates a new user account associated with the specified email address and passw
 <b>Signature:</b>
 
 ```typescript
-export declare function createUserWithEmailAndPassword(auth: externs.Auth, email: string, password: string): Promise<externs.UserCredential>;
+export declare function createUserWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  email | string | The user's email address. |
 |  password | string | The user's chosen password. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md)<!-- -->&gt;
 
 ## Remarks
 

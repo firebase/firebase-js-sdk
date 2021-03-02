@@ -9,14 +9,14 @@ Gets the list of possible sign in methods for the given email address.
 <b>Signature:</b>
 
 ```typescript
-export declare function fetchSignInMethodsForEmail(auth: externs.Auth, email: string): Promise<string[]>;
+export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<string[]>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  email | string | The user's email address. |
 
 <b>Returns:</b>
@@ -25,5 +25,5 @@ Promise&lt;string\[\]&gt;
 
 ## Remarks
 
-This is useful to differentiate methods of sign-in for the same provider, eg. [EmailAuthProvider](./auth.emailauthprovider.md) which has 2 methods of sign-in, [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md) and [SignInMethod.EMAIL\_LINK](./auth-types.signinmethod.email_link.md) .
+This is useful to differentiate methods of sign-in for the same provider, eg. [EmailAuthProvider](./auth.emailauthprovider.md) which has 2 methods of sign-in, [SignInMethod.EMAIL\_PASSWORD](./auth.signinmethod.email_password.md) and [SignInMethod.EMAIL\_LINK](./auth.signinmethod.email_link.md) .
 

@@ -9,20 +9,20 @@ Asynchronously signs in using an email and password.
 <b>Signature:</b>
 
 ```typescript
-export declare function signInWithEmailAndPassword(auth: externs.Auth, email: string, password: string): Promise<externs.UserCredential>;
+export declare function signInWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  email | string | The users email address. |
 |  password | string | The users password. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md)<!-- -->&gt;
 
 ## Remarks
 

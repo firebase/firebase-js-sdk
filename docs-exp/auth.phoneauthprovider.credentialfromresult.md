@@ -7,16 +7,16 @@
 <b>Signature:</b>
 
 ```typescript
-static credentialFromResult(userCredential: externs.UserCredential): externs.AuthCredential | null;
+static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userCredential | externs.[UserCredential](./auth-types.usercredential.md) |  |
+|  userCredential | [UserCredential](./auth.usercredential.md) |  |
 
 <b>Returns:</b>
 
-externs.[AuthCredential](./auth-types.authcredential.md) \| null
+[AuthCredential](./auth.authcredential.md) \| null
 

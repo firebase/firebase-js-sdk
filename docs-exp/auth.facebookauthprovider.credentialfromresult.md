@@ -4,21 +4,21 @@
 
 ## FacebookAuthProvider.credentialFromResult() method
 
-Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth-types.usercredential.md)<!-- -->.
+Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
+static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userCredential | externs.[UserCredential](./auth-types.usercredential.md) | The user credential. |
+|  userCredential | [UserCredential](./auth.usercredential.md) | The user credential. |
 
 <b>Returns:</b>
 
-externs.[OAuthCredential](./auth-types.oauthcredential.md) \| null
+[OAuthCredential](./auth.oauthcredential.md) \| null
 

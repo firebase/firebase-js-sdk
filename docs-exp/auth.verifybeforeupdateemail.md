@@ -9,16 +9,16 @@ Sends a verification email to a new email address.
 <b>Signature:</b>
 
 ```typescript
-export declare function verifyBeforeUpdateEmail(user: externs.User, newEmail: string, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
+export declare function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
+|  user | [User](./auth.user.md) | The user. |
 |  newEmail | string | The new email address to be verified before update. |
-|  actionCodeSettings | externs.[ActionCodeSettings](./auth-types.actioncodesettings.md) \| null | The [ActionCodeSettings](./auth-types.actioncodesettings.md)<!-- -->. |
+|  actionCodeSettings | [ActionCodeSettings](./auth.actioncodesettings.md) \| null | The [ActionCodeSettings](./auth.actioncodesettings.md)<!-- -->. |
 
 <b>Returns:</b>
 

@@ -9,14 +9,14 @@ Updates a user's profile data.
 <b>Signature:</b>
 
 ```typescript
-export declare function updateProfile(user: externs.User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
+export declare function updateProfile(user: User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
+|  user | [User](./auth.user.md) | The user. |
 |  { displayName, photoURL: photoUrl } | Profile |  |
 
 <b>Returns:</b>
