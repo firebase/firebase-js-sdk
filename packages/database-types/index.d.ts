@@ -17,12 +17,12 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 
-export function getDatabase(app: FirebaseApp): FirebaseDatabase;
+export function getDatabase(app: FirebaseApp, url?: string): FirebaseDatabase;
 
 export class DataSnapshot {
   private constructor();
   priority: string | number | null;
-  numChildren: number;
+  size: number;
   key: string | null;
   ref: Reference;
 
@@ -56,18 +56,14 @@ export function ref(db: FirebaseDatabase, path?: string | Reference): Reference;
 export function refFromURL(db: FirebaseDatabase, url: string): Reference;
 
 export interface OnDisconnect {
-  cancel(onComplete?: (error: Error | null) => any): Promise<void>;
-  remove(onComplete?: (error: Error | null) => any): Promise<void>;
-  set(value: unknown, onComplete?: (error: Error | null) => any): Promise<void>;
+  cancel(): Promise<void>;
+  remove(): Promise<void>;
+  set(value: unknown): Promise<void>;
   setWithPriority(
     value: unknown,
-    priority: number | string | null,
-    onComplete?: (error: Error | null) => any
+    priority: number | string | null
   ): Promise<any>;
-  update(
-    values: object,
-    onComplete?: (error: Error | null) => any
-  ): Promise<void>;
+  update(values: object): Promise<void>;
 }
 
 export class Query {
@@ -82,29 +78,27 @@ export function get(query: Query): Promise<DataSnapshot>;
 
 export type Unsubscribe = () => {};
 export interface ListenOptions {
-  readonly once?: boolean;
+  readonly onlyOnce?: boolean;
 }
 
 export function onValue(
   query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName?: string | null
-  ) => unknown,
+  callback: (snapshot: DataSnapshot) => unknown,
   cancelCallback?: (error: Error) => unknown
 ): Unsubscribe;
 export function onValue(
-  options: ListenOptions,
   query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName?: string | null
-  ) => unknown,
-  cancelCallback?: (error: Error) => unknown
+  callback: (snapshot: DataSnapshot) => unknown,
+  options: ListenOptions
+): Unsubscribe;
+export function onValue(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
 ): Unsubscribe;
 
 export function onChildAdded(
-  options: ListenOptions,
   query: Query,
   callback: (
     snapshot: DataSnapshot,
@@ -118,7 +112,16 @@ export function onChildAdded(
     snapshot: DataSnapshot,
     previousChildName?: string | null
   ) => unknown,
-  cancelCallback?: (error: Error) => unknown
+  options: ListenOptions
+): Unsubscribe;
+export function onChildAdded(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
 ): Unsubscribe;
 
 export function onChildChanged(
@@ -136,7 +139,16 @@ export function onChildChanged(
     snapshot: DataSnapshot,
     previousChildName?: string | null
   ) => unknown,
-  cancelCallback?: (error: Error) => unknown
+  options: ListenOptions
+): Unsubscribe;
+export function onChildChanged(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
 ): Unsubscribe;
 
 export function onChildMoved(
@@ -154,25 +166,34 @@ export function onChildMoved(
     snapshot: DataSnapshot,
     previousChildName?: string | null
   ) => unknown,
-  cancelCallback?: (error: Error) => unknown
+  options: ListenOptions
+): Unsubscribe;
+export function onChildMoved(
+  query: Query,
+  callback: (
+    snapshot: DataSnapshot,
+    previousChildName?: string | null
+  ) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
 ): Unsubscribe;
 
 export function onChildRemoved(
   options: ListenOptions,
   query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName?: string | null
-  ) => unknown,
+  callback: (snapshot: DataSnapshot) => unknown,
   cancelCallback?: (error: Error) => unknown
 ): Unsubscribe;
 export function onChildRemoved(
   query: Query,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName?: string | null
-  ) => unknown,
-  cancelCallback?: (error: Error) => unknown
+  callback: (snapshot: DataSnapshot) => unknown,
+  options: ListenOptions
+): Unsubscribe;
+export function onChildRemoved(
+  query: Query,
+  callback: (snapshot: DataSnapshot) => unknown,
+  cancelCallback: (error: Error) => unknown,
+  options: ListenOptions
 ): Unsubscribe;
 
 export function off(
@@ -254,21 +275,14 @@ export interface TransactionOptions {
   readonly applyLocally?: boolean;
 }
 
-export function transaction(
+export function runTransaction(
   ref: Reference,
-  transactionUpdate: (currentData: any) => unknown
-): Promise<void>;
-export function transaction(
-  options: TransactionOptions,
-  ref: Reference,
-  transactionUpdate: (currentData: any) => unknown
+  transactionUpdate: (currentData: any) => unknown,
+  options?: TransactionOptions
 ): Promise<void>;
 
-export class ServerValue {
-  private constructor();
-  TIMESTAMP: object;
-  static increment(delta: number): object;
-}
+export function serverTimestamp(): object;
+export function increment(delta: number): object;
 
 export interface ThenableReference
   extends Reference,
