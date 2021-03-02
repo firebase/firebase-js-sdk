@@ -16,7 +16,7 @@ export declare function deleteObject(ref: StorageReference): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference for object to delete. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference for object to delete. |
 
 <b>Returns:</b>
 

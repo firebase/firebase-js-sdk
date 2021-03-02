@@ -4,28 +4,28 @@
 
 ## getRedirectResult() function
 
-Returns a [UserCredential](./auth-types.usercredential.md) from the redirect-based sign-in flow.
+Returns a [UserCredential](./auth.usercredential.md) from the redirect-based sign-in flow.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getRedirectResult(auth: externs.Auth, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
+export declare function getRedirectResult(auth: Auth, resolver?: PopupRedirectResolver): Promise<UserCredential | null>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
-|  resolver | externs.[PopupRedirectResolver](./auth-types.popupredirectresolver.md) | An instance of [PopupRedirectResolver](./auth-types.popupredirectresolver.md)<!-- -->, optional if already supplied to [initializeAuth()](./auth.initializeauth.md) or provided by [getAuth()](./auth.getauth.md)<!-- -->. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md)<!-- -->, optional if already supplied to [initializeAuth()](./auth.initializeauth.md) or provided by [getAuth()](./auth.getauth.md)<!-- -->. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[UserCredential](./auth-types.usercredential.md) \| null&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md) \| null&gt;
 
 ## Remarks
 
-If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an error. If no redirect operation was called, returns a [UserCredential](./auth-types.usercredential.md) with a null `user`<!-- -->.
+If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an error. If no redirect operation was called, returns a [UserCredential](./auth.usercredential.md) with a null `user`<!-- -->.
 
 ## Example
 

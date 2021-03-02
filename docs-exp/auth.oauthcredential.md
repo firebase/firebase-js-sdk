@@ -4,16 +4,14 @@
 
 ## OAuthCredential class
 
-Interface that represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md)<!-- -->.
+Represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class OAuthCredential extends AuthCredential implements externs.OAuthCredential 
+export declare class OAuthCredential extends AuthCredential 
 ```
 <b>Extends:</b> [AuthCredential](./auth.authcredential.md)
-
-<b>Implements:</b> externs.[OAuthCredential](./auth-types.oauthcredential.md)
 
 ## Remarks
 
@@ -31,6 +29,6 @@ Implementations specify the details about each auth provider's credential requir
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromJSON(json)](./auth.oauthcredential.fromjson.md) | <code>static</code> | Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
-|  [toJSON()](./auth.oauthcredential.tojson.md) |  |  |
+|  [fromJSON(json)](./auth.oauthcredential.fromjson.md) | <code>static</code> | Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth.authcredential.md)<!-- -->. |
+|  [toJSON()](./auth.oauthcredential.tojson.md) |  | Returns a JSON-serializable representation of this object. |
 

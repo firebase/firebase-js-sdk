@@ -21,10 +21,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'searc
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'search' \| 'view\_search\_results' |  |
-|  eventParams | { search\_term?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['search\_term'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { search\_term?: [EventParams](./analytics.eventparams.md)<!-- -->\['search\_term'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

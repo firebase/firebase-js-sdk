@@ -16,9 +16,9 @@ export declare function getAuth(app: FirebaseApp): Auth;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) | The Firebase App. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The Firebase App. |
 
 <b>Returns:</b>
 
-[Auth](./auth-types.auth.md)
+[Auth](./auth.auth.md)
 

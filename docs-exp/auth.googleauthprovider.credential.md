@@ -9,7 +9,7 @@ Creates a credential for Google. At least one of ID token and access token is re
 <b>Signature:</b>
 
 ```typescript
-static credential(idToken?: string | null, accessToken?: string | null): externs.OAuthCredential;
+static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential;
 ```
 
 ## Parameters
@@ -21,7 +21,7 @@ static credential(idToken?: string | null, accessToken?: string | null): externs
 
 <b>Returns:</b>
 
-externs.[OAuthCredential](./auth-types.oauthcredential.md)
+[OAuthCredential](./auth.oauthcredential.md)
 
 ## Example
 

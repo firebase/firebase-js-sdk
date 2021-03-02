@@ -4,7 +4,7 @@
 
 ## GoogleAuthProvider class
 
-Provider for generating an an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.GOOGLE](./auth-types.providerid.google.md)<!-- -->.
+Provider for generating an an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.GOOGLE](./auth.providerid.google.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -65,14 +65,14 @@ const token = credential.accessToken;
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [GOOGLE\_SIGN\_IN\_METHOD](./auth.googleauthprovider.google_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.GOOGLE](./auth-types.signinmethod.google.md)<!-- -->. |
-|  [PROVIDER\_ID](./auth.googleauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.GOOGLE](./auth-types.providerid.google.md)<!-- -->. |
+|  [GOOGLE\_SIGN\_IN\_METHOD](./auth.googleauthprovider.google_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.GOOGLE](./auth.signinmethod.google.md)<!-- -->. |
+|  [PROVIDER\_ID](./auth.googleauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.GOOGLE](./auth.providerid.google.md)<!-- -->. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [credential(idToken, accessToken)](./auth.googleauthprovider.credential.md) | <code>static</code> | Creates a credential for Google. At least one of ID token and access token is required. |
-|  [credentialFromError(error)](./auth.googleauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth-types.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
-|  [credentialFromResult(userCredential)](./auth.googleauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth-types.usercredential.md)<!-- -->. |
+|  [credentialFromError(error)](./auth.googleauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
+|  [credentialFromResult(userCredential)](./auth.googleauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->. |
 

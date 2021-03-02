@@ -9,21 +9,21 @@ Re-authenticates a user using a fresh credential.
 <b>Signature:</b>
 
 ```typescript
-export declare function reauthenticateWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<externs.UserCredential>;
+export declare function reauthenticateWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
-|  credential | externs.[AuthCredential](./auth-types.authcredential.md) | The auth credential. |
+|  user | [User](./auth.user.md) | The user. |
+|  credential | [AuthCredential](./auth.authcredential.md) | The auth credential. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md)<!-- -->&gt;
 
 ## Remarks
 
-Use before operations such as [updatePassword()](./auth.updatepassword.md) that require tokens from recent sign-in attempts. This method can be used to recover from a  error.
+Use before operations such as [updatePassword()](./auth.updatepassword.md) that require tokens from recent sign-in attempts. This method can be used to recover from a CREDENTIAL\_TOO\_OLD\_LOGIN\_AGAIN error.
 

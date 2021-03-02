@@ -4,10 +4,10 @@
 
 ## browserPopupRedirectResolver variable
 
-An implementation of [PopupRedirectResolver](./auth-types.popupredirectresolver.md) suitable for browser based applications.
+An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md) suitable for browser based applications.
 
 <b>Signature:</b>
 
 ```typescript
-browserPopupRedirectResolver: externs.PopupRedirectResolver
+browserPopupRedirectResolver: PopupRedirectResolver
 ```

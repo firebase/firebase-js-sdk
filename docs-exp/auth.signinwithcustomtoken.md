@@ -9,19 +9,19 @@ Asynchronously signs in using a custom token.
 <b>Signature:</b>
 
 ```typescript
-export declare function signInWithCustomToken(auth: externs.Auth, customToken: string): Promise<externs.UserCredential>;
+export declare function signInWithCustomToken(auth: Auth, customToken: string): Promise<UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  customToken | string | The custom token to sign in with. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md)<!-- -->&gt;
 
 ## Remarks
 

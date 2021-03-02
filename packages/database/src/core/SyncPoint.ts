@@ -29,6 +29,8 @@ import { Path } from './util/Path';
 import { Event } from './view/Event';
 import { ReferenceConstructor } from '../api/Reference';
 
+let referenceConstructor: ReferenceConstructor;
+
 /**
  * SyncPoint represents a single location in a SyncTree with 1 or more event registrations, meaning we need to
  * maintain 1 or more Views at this location to cache server data and raise appropriate events for server changes
@@ -39,8 +41,15 @@ import { ReferenceConstructor } from '../api/Reference';
  *  - Proxying user / server operations to the views as appropriate (i.e. applyServerOverwrite,
  *    applyUserOverwrite, etc.)
  */
-
-let referenceConstructor: ReferenceConstructor;
+export class SyncPoint {
+  /**
+   * The Views being tracked at this location in the tree, stored as a map where the key is a
+   * queryId and the value is the View for that query.
+   *
+   * NOTE: This list will be quite small (usually 1, but perhaps 2 or 3; any more is an odd use case).
+   */
+  readonly views: Map<string, View> = new Map();
+}
 
 export function syncPointSetReferenceConstructor(
   val: ReferenceConstructor
@@ -55,16 +64,6 @@ export function syncPointSetReferenceConstructor(
 function syncPointGetReferenceConstructor(): ReferenceConstructor {
   assert(referenceConstructor, 'Reference.ts has not been loaded');
   return referenceConstructor;
-}
-
-export class SyncPoint {
-  /**
-   * The Views being tracked at this location in the tree, stored as a map where the key is a
-   * queryId and the value is the View for that query.
-   *
-   * NOTE: This list will be quite small (usually 1, but perhaps 2 or 3; any more is an odd use case).
-   */
-  readonly views: Map<string, View> = new Map();
 }
 
 export function syncPointIsEmpty(syncPoint: SyncPoint): boolean {

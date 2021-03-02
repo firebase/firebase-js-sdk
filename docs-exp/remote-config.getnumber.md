@@ -18,7 +18,7 @@ export declare function getNumber(remoteConfig: RemoteConfig, key: string): numb
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config-types.remoteconfig.md) | the remote config instance |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
 |  key | string | the name of the parameter |
 
 <b>Returns:</b>

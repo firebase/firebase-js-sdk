@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
+static readonly PROVIDER_ID = ProviderId.TWITTER;
 ```

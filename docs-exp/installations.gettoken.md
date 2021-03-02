@@ -16,7 +16,7 @@ export declare function getToken(installations: FirebaseInstallations, forceRefr
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  installations | [FirebaseInstallations](./installations-types.firebaseinstallations.md) |  |
+|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) |  |
 |  forceRefresh | boolean |  |
 
 <b>Returns:</b>

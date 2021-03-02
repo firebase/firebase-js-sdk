@@ -25,10 +25,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_s
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'add\_shipping\_info' |  |
-|  eventParams | { coupon?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['coupon'\]; currency?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['currency'\]; items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; shipping\_tier?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['shipping\_tier'\]; value?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['value'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { coupon?: [EventParams](./analytics.eventparams.md)<!-- -->\['coupon'\]; currency?: [EventParams](./analytics.eventparams.md)<!-- -->\['currency'\]; items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; shipping\_tier?: [EventParams](./analytics.eventparams.md)<!-- -->\['shipping\_tier'\]; value?: [EventParams](./analytics.eventparams.md)<!-- -->\['value'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

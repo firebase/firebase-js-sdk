@@ -4,24 +4,24 @@
 
 ## getValue() function
 
-Gets the [Value](./remote-config-types.value.md) for the given key.
+Gets the  for the given key.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getValue(remoteConfig: RemoteConfig, key: string): ValueType;
+export declare function getValue(remoteConfig: RemoteConfig, key: string): Value;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config-types.remoteconfig.md) | the remote config instance |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
 |  key | string | the name of the parameter |
 
 <b>Returns:</b>
 
-[ValueType](./remote-config-types.value.md)
+[Value](./remote-config.value.md)
 
 the value for the given key
 
