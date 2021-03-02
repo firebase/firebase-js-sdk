@@ -61,7 +61,7 @@ const PHONE_B = {
   code: '654321'
 };
 
-describe.only('Integration test: phone auth', () => {
+describe('Integration test: phone auth', () => {
   let auth: Auth;
   let verifier: RecaptchaVerifier;
   let fakeRecaptchaContainer: HTMLElement;
