@@ -27,8 +27,8 @@ import {
   signInWithEmailAndPassword,
   updateEmail,
   updatePassword,
-  updateProfile,
-// eslint-disable-next-line import/no-extraneous-dependencies
+  updateProfile
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
@@ -52,7 +52,7 @@ describe('Integration test: custom auth', () => {
     customToken = JSON.stringify({
       uid,
       claims: {
-        customClaim: 'some-claim',
+        customClaim: 'some-claim'
       }
     });
 
@@ -66,10 +66,7 @@ describe('Integration test: custom auth', () => {
   });
 
   it('signs in with custom token', async () => {
-    const cred = await signInWithCustomToken(
-      auth,
-      customToken
-    );
+    const cred = await signInWithCustomToken(auth, customToken);
     expect(auth.currentUser).to.eq(cred.user);
     expect(cred.operationType).to.eq(OperationType.SIGN_IN);
 
@@ -97,11 +94,8 @@ describe('Integration test: custom auth', () => {
   });
 
   it('allows the user to delete the account', async () => {
-    let { user } = await signInWithCustomToken(
-      auth,
-      customToken
-    );
-    await updateProfile(user, {displayName: 'Display Name'});
+    let { user } = await signInWithCustomToken(auth, customToken);
+    await updateProfile(user, { displayName: 'Display Name' });
     expect(user.displayName).to.eq('Display Name');
 
     await user.delete();
@@ -111,20 +105,14 @@ describe('Integration test: custom auth', () => {
     );
     expect(auth.currentUser).to.be.null;
 
-    ({user} = await signInWithCustomToken(auth, customToken));
+    ({ user } = await signInWithCustomToken(auth, customToken));
     // New user in the system: the display name should be missing
     expect(user.displayName).to.be.null;
   });
 
   it('sign in can be called twice successively', async () => {
-    const { user: userA } = await signInWithCustomToken(
-      auth,
-      customToken
-    );
-    const { user: userB } = await signInWithCustomToken(
-      auth,
-      customToken
-    );
+    const { user: userA } = await signInWithCustomToken(auth, customToken);
+    const { user: userB } = await signInWithCustomToken(auth, customToken);
     expect(userA.uid).to.eq(userB.uid);
   });
 
