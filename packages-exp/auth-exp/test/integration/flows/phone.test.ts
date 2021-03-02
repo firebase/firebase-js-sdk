@@ -83,7 +83,10 @@ describe.only('Integration test: phone auth', () => {
   });
 
   /** If in the emulator, search for the code in the API */
-  async function code(crOrId: ConfirmationResult|string, fallback: string): Promise<string> {
+  async function code(
+    crOrId: ConfirmationResult | string,
+    fallback: string
+  ): Promise<string> {
     if (auth.emulatorConfig) {
       const codes = await getPhoneVerificationCodes(auth);
       const vid = typeof crOrId === 'string' ? crOrId : crOrId.verificationId;
@@ -171,7 +174,10 @@ describe.only('Integration test: phone auth', () => {
 
       await updatePhoneNumber(
         user,
-        PhoneAuthProvider.credential(verificationId, await code(verificationId, PHONE_B.code))
+        PhoneAuthProvider.credential(
+          verificationId,
+          await code(verificationId, PHONE_B.code)
+        )
       );
       expect(user.phoneNumber).to.eq(PHONE_B.phoneNumber);
 
@@ -179,7 +185,9 @@ describe.only('Integration test: phone auth', () => {
       resetVerifier();
 
       cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier);
-      const { user: secondSignIn } = await cr.confirm(await code(cr, PHONE_B.code));
+      const { user: secondSignIn } = await cr.confirm(
+        await code(cr, PHONE_B.code)
+      );
       expect(secondSignIn.uid).to.eq(user.uid);
     });
 
@@ -225,7 +233,9 @@ describe.only('Integration test: phone auth', () => {
       // reauthenticateWithPhoneNumber does not trigger a state change
       resetVerifier();
       cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier);
-      const { user: otherUser } = await cr.confirm(await code(cr, PHONE_B.code));
+      const { user: otherUser } = await cr.confirm(
+        await code(cr, PHONE_B.code)
+      );
       await otherUser.delete();
     });
   });
