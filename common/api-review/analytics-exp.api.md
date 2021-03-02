@@ -18,7 +18,6 @@ export interface AnalyticsCallOptions {
 
 // @public
 export interface AnalyticsOptions {
-    // (undocumented)
     config: GtagConfigParams | EventParams;
 }
 
@@ -120,37 +119,23 @@ export function getAnalytics(app?: FirebaseApp): Analytics;
 
 // @public
 export interface GtagConfigParams {
-    // (undocumented)
     'allow_google_signals?': boolean;
     // (undocumented)
     [key: string]: unknown;
-    // (undocumented)
     'allow_ad_personalization_signals'?: boolean;
-    // (undocumented)
     'anonymize_ip'?: boolean;
-    // (undocumented)
     'cookie_domain'?: string;
-    // (undocumented)
     'cookie_expires'?: number;
-    // (undocumented)
     'cookie_flags'?: string;
-    // (undocumented)
     'cookie_prefix'?: string;
-    // (undocumented)
     'cookie_update'?: boolean;
-    // (undocumented)
     'custom_map'?: {
         [key: string]: unknown;
     };
-    // (undocumented)
     'link_attribution'?: boolean;
-    // (undocumented)
     'page_location'?: string;
-    // (undocumented)
     'page_path'?: string;
-    // (undocumented)
     'page_title'?: string;
-    // (undocumented)
     'send_page_view'?: boolean;
 }
 
