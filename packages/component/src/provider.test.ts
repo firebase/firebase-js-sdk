@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import { fake, SinonSpy } from 'sinon';
 import { ComponentContainer } from './component_container';
 import { FirebaseService } from '@firebase/app-types/private';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { _FirebaseService } from '@firebase/app-exp';
 import { Provider } from './provider';
 import { getFakeApp, getFakeComponent } from '../test/util';
