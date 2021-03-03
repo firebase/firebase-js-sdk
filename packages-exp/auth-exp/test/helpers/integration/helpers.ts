@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import * as sinon from 'sinon';
 import { deleteApp, initializeApp } from '@firebase/app-exp';
 import { Auth, User } from '../../../src/model/public_types';
 
@@ -39,7 +40,9 @@ export function getTestInstance(): Auth {
   const emulatorUrl = getEmulatorUrl();
 
   if (emulatorUrl) {
+    const stub = stubConsoleToSilenceEmulatorWarnings();
     useAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
+    stub.restore();
   }
 
   auth.onAuthStateChanged(user => {
@@ -67,4 +70,17 @@ export function getTestInstance(): Auth {
 export async function cleanUpTestInstance(auth: Auth): Promise<void> {
   await auth.signOut();
   await (auth as IntegrationTestAuth).cleanUp();
+}
+
+function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
+  const originalConsoleInfo = console.info.bind(console);
+  return sinon.stub(console, 'info').callsFake((...args: unknown[]) => {
+    if (
+      !JSON.stringify(args[0]).includes(
+        'WARNING: You are using the Auth Emulator'
+      )
+    ) {
+      originalConsoleInfo(...args);
+    }
+  });
 }

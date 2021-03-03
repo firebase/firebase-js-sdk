@@ -1,3 +1,4 @@
+'use strict';
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -13,10 +14,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-
-'use strict';
-var __spreadArrays =
+ */ var __spreadArrays =
   (this && this.__spreadArrays) ||
   function () {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++)
@@ -44,6 +42,9 @@ var testConfig = [
 ];
 if (argv.integration) {
   testConfig = ['test/integration/flows/{email,anonymous}.test.ts'];
+  if (argv.local) {
+    testConfig.push('test/integration/flows/*.local.test.ts');
+  }
 }
 var args = __spreadArrays(['--reporter', 'lcovonly', mocha], testConfig, [
   '--config',
