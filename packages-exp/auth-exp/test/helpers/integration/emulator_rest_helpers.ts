@@ -57,7 +57,9 @@ export async function getPhoneVerificationCodes(
 ): Promise<Record<string, VerificationSession>> {
   assertEmulator(auth);
   const url = getEmulatorUrl(auth, 'verificationCodes');
-  const response: VerificationCodesResponse = await (await FetchProvider.fetch()(url)).json();
+  const response: VerificationCodesResponse = await (
+    await FetchProvider.fetch()(url)
+  ).json();
 
   return response.verificationCodes.reduce((accum, session) => {
     accum[session.sessionInfo] = session;
@@ -65,10 +67,14 @@ export async function getPhoneVerificationCodes(
   }, {} as Record<string, VerificationSession>);
 }
 
-export async function getOobCodes(auth: Auth): Promise<Record<string, OobCodeSession>> {
+export async function getOobCodes(
+  auth: Auth
+): Promise<Record<string, OobCodeSession>> {
   assertEmulator(auth);
   const url = getEmulatorUrl(auth, 'oobCodes');
-  const response: OobCodesResponse = await (await FetchProvider.fetch()(url)).json();
+  const response: OobCodesResponse = await (
+    await FetchProvider.fetch()(url)
+  ).json();
 
   return response.oobCodes.reduce((accum, session) => {
     accum[session.email] = session;
