@@ -50,7 +50,7 @@ export function toByteStreamReaderHelper(
         return result;
       }
 
-      return { done: true } as any;
+      return { done: true };
     },
     async cancel(): Promise<void> {},
     releaseLock() {},
