@@ -47,7 +47,7 @@ describe('Integration test: custom auth', () => {
   let uid: string;
 
   beforeEach(() => {
-    auth = getTestInstance();
+    auth = getTestInstance(/* requireEmulator */ true);
     uid = randomEmail();
     customToken = JSON.stringify({
       uid,
@@ -55,10 +55,6 @@ describe('Integration test: custom auth', () => {
         customClaim: 'some-claim'
       }
     });
-
-    if (!auth.emulatorConfig) {
-      throw new Error('Test can only be run against the emulator!');
-    }
   });
 
   afterEach(async () => {

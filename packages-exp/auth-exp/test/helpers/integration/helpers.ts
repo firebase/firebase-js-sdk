@@ -31,7 +31,7 @@ export function randomEmail(): string {
   return `${_generateEventId('test.email.')}@test.com`;
 }
 
-export function getTestInstance(): Auth {
+export function getTestInstance(requireEmulator = false): Auth {
   const app = initializeApp(getAppConfig());
 
   const createdUsers: User[] = [];
@@ -43,6 +43,9 @@ export function getTestInstance(): Auth {
     const stub = stubConsoleToSilenceEmulatorWarnings();
     useAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
     stub.restore();
+  } else if (requireEmulator) {
+    /* Emulator wasn't configured but test must use emulator */
+    throw new Error('Test may only be run using the Auth Emulator!');
   }
 
   auth.onAuthStateChanged(user => {
