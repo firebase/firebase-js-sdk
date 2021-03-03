@@ -75,7 +75,7 @@ describe('.info Tests', function () {
   });
 
   it('Can watch .info/connected.', () => {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       const f = (getRandomNode() as Reference).root;
       f.child('.info/connected').on('value', snap => {
         if (snap.val() === true) {

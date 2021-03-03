@@ -45,7 +45,7 @@
     "@firebase/app-exp": "0.0.900",
     "rollup": "2.35.1",
     "rollup-plugin-typescript2": "0.29.0",
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   },
   "repository": {
     "directory": "packages/remote-config",
