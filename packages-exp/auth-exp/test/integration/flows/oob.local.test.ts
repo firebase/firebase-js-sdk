@@ -39,6 +39,7 @@ import {
   updatePassword,
   verifyBeforeUpdateEmail,
   verifyPasswordResetCode
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
@@ -55,12 +56,14 @@ import {
 
 use(chaiAsPromised);
 
+declare const xit: typeof it;
+
 const BASE_SETTINGS: ActionCodeSettings = {
   url: 'http://localhost/action_code_return',
   handleCodeInApp: true
 };
 
-describe.only('Integration test: oob codes', () => {
+describe('Integration test: oob codes', () => {
   let auth: Auth;
   let email: string;
 
