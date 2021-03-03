@@ -37,8 +37,8 @@ function getTestFiles(argv) {
     return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
   } else if (argv.integration) {
     return argv.local
-      ? ['test/integration/**/*.test.ts']
-      : ['test/integration/**/*!(local).test.ts'];
+      ? ['test/integration/flows/*.test.ts']
+      : ['test/integration/flows/*!(local).test.ts'];
   } else if (argv.cordova) {
     return ['src/platform_cordova/**/*.test.ts'];
   } else {

@@ -26,6 +26,9 @@ const argv = yargs.options({
   },
   integration: {
     type: 'boolean'
+  },
+  webdriver: {
+    type: 'boolean'
   }
 }).argv;
 
@@ -45,6 +48,8 @@ if (argv.integration) {
   if (argv.local) {
     testConfig.push('test/integration/flows/*.local.test.ts');
   }
+} else if (argv.webdriver) {
+  testConfig = ['test/integration/webdriver/**.test.ts'];
 }
 
 let args = [
