@@ -58,12 +58,12 @@ export function nodePromise<R>(
   action: (callback: NodeCallback<R>) => void
 ): Promise<R> {
   return new Promise(
-    (resolve: (value?: R) => void, reject: (error?: unknown) => void) => {
+    (resolve: (value: R) => void, reject: (error?: unknown) => void) => {
       action((error?: unknown, value?: R) => {
         if (error) {
           reject(error);
         } else {
-          resolve(value);
+          resolve(value!);
         }
       });
     }

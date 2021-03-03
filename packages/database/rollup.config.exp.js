@@ -21,7 +21,8 @@ import typescript from 'typescript';
 import path from 'path';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-import pkg from './exp/package.json';
+import expPkg from './exp/package.json';
+import pkg from './package.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -46,7 +47,7 @@ const es5Builds = [
   {
     input: 'exp/index.ts',
     output: [
-      { file: path.resolve('exp', pkg.main), format: 'cjs', sourcemap: true }
+      { file: path.resolve('exp', expPkg.main), format: 'cjs', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     treeshake: {
@@ -60,7 +61,11 @@ const es5Builds = [
   {
     input: 'exp/index.ts',
     output: [
-      { file: path.resolve('exp', pkg.module), format: 'es', sourcemap: true }
+      {
+        file: path.resolve('exp', expPkg.module),
+        format: 'es',
+        sourcemap: true
+      }
     ],
     plugins: es5BuildPlugins,
     treeshake: {
@@ -94,7 +99,11 @@ const es2017Builds = [
   {
     input: 'exp/index.ts',
     output: [
-      { file: path.resolve('exp', pkg.esm2017), format: 'es', sourcemap: true }
+      {
+        file: path.resolve('exp', expPkg.esm2017),
+        format: 'es',
+        sourcemap: true
+      }
     ],
     plugins: es2017BuildPlugins,
     treeshake: {
