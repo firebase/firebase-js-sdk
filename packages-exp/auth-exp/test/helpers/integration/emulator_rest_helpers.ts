@@ -69,17 +69,13 @@ export async function getPhoneVerificationCodes(
 
 export async function getOobCodes(
   auth: Auth
-): Promise<Record<string, OobCodeSession>> {
+): Promise<OobCodeSession[]> {
   assertEmulator(auth);
   const url = getEmulatorUrl(auth, 'oobCodes');
   const response: OobCodesResponse = await (
     await FetchProvider.fetch()(url)
   ).json();
-
-  return response.oobCodes.reduce((accum, session) => {
-    accum[session.email] = session;
-    return accum;
-  }, {} as Record<string, OobCodeSession>);
+  return response.oobCodes;
 }
 
 function getEmulatorUrl(auth: Auth, endpoint: string): string {

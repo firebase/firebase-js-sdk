@@ -77,7 +77,8 @@ describe('Integration test: oob codes', () => {
   });
 
   async function code(toEmail: string): Promise<OobCodeSession> {
-    return (await getOobCodes(auth))[toEmail];
+    const codes = await getOobCodes(auth);
+    return codes.reverse().find(({email}) => email === toEmail)!;
   }
 
   context('flows beginning with sendSignInLinkToEmail', () => {
