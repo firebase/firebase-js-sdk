@@ -840,10 +840,10 @@ export class DocumentReference<T = PublicDocumentData>
     return new DocumentReference<U>(
       this.firestore,
       converter
-        ? this._delegate.withConverter<U>(
+        ? this._delegate.withConverter(
             FirestoreDataConverter.getInstance(this.firestore, converter)
           )
-        : this._delegate.withConverter(null)
+        : (this._delegate.withConverter(null) as ExpDocumentReference<U>)
     );
   }
 }
@@ -1151,14 +1151,14 @@ export class Query<T = PublicDocumentData>
   withConverter<U>(converter: PublicFirestoreDataConverter<U>): Query<U>;
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U> | null
-  ): Query<U> | Query<DocumentData> {
-    return new Query(
+  ): Query<U> {
+    return new Query<U>(
       this.firestore,
       converter
         ? this._delegate.withConverter(
             FirestoreDataConverter.getInstance(this.firestore, converter)
           )
-        : this._delegate.withConverter(null)
+        : (this._delegate.withConverter(null) as ExpQuery<U>)
     );
   }
 }
@@ -1301,14 +1301,14 @@ export class CollectionReference<T = PublicDocumentData>
   ): CollectionReference<U>;
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U> | null
-  ): CollectionReference<U> | CollectionReference<PublicDocumentData> {
-    return new CollectionReference(
+  ): CollectionReference<U> {
+    return new CollectionReference<U>(
       this.firestore,
       converter
         ? this._delegate.withConverter(
             FirestoreDataConverter.getInstance(this.firestore, converter)
           )
-        : this._delegate.withConverter(null)
+        : (this._delegate.withConverter(null) as ExpCollectionReference<U>)
     );
   }
 }
