@@ -836,11 +836,11 @@ export class DocumentReference<T = PublicDocumentData>
   ): PublicDocumentReference<U>;
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U> | null
-  ): PublicDocumentReference<U> | PublicDocumentReference<PublicDocumentData> {
-    return new DocumentReference(
+  ): PublicDocumentReference<U> {
+    return new DocumentReference<U>(
       this.firestore,
       converter
-        ? this._delegate.withConverter(
+        ? this._delegate.withConverter<U>(
             FirestoreDataConverter.getInstance(this.firestore, converter)
           )
         : this._delegate.withConverter(null)
