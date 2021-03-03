@@ -18,8 +18,20 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Auth } from '@firebase/auth-exp';
 import { getApps } from '@firebase/app-exp';
+import { FetchProvider } from '../../../src/core/util/fetch_provider';
+import * as fetchImpl from 'node-fetch';
 
-interface VerificationSession {
+if (typeof document !== 'undefined') {
+  FetchProvider.initialize(fetch);
+} else {
+  FetchProvider.initialize(
+    (fetchImpl.default as unknown) as typeof fetch,
+    (fetchImpl.Headers as unknown) as typeof Headers,
+    (fetchImpl.Response as unknown) as typeof Response
+  );
+}
+
+export interface VerificationSession {
   code: string;
   phoneNumber: string;
   sessionInfo: string;
@@ -29,17 +41,39 @@ interface VerificationCodesResponse {
   verificationCodes: VerificationSession[];
 }
 
+export interface OobCodeSession {
+  email: string;
+  requestType: string;
+  oobCode: string;
+  oobLink: string;
+}
+
+interface OobCodesResponse {
+  oobCodes: OobCodeSession[];
+}
+
 export async function getPhoneVerificationCodes(
   auth: Auth
 ): Promise<Record<string, VerificationSession>> {
   assertEmulator(auth);
   const url = getEmulatorUrl(auth, 'verificationCodes');
-  const response: VerificationCodesResponse = await (await fetch(url)).json();
+  const response: VerificationCodesResponse = await (
+    await FetchProvider.fetch()(url)
+  ).json();
 
   return response.verificationCodes.reduce((accum, session) => {
     accum[session.sessionInfo] = session;
     return accum;
   }, {} as Record<string, VerificationSession>);
+}
+
+export async function getOobCodes(auth: Auth): Promise<OobCodeSession[]> {
+  assertEmulator(auth);
+  const url = getEmulatorUrl(auth, 'oobCodes');
+  const response: OobCodesResponse = await (
+    await FetchProvider.fetch()(url)
+  ).json();
+  return response.oobCodes;
 }
 
 function getEmulatorUrl(auth: Auth, endpoint: string): string {
