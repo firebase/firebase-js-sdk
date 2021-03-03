@@ -5277,6 +5277,9 @@ declare namespace firebase.User {
   }
 }
 
+/**
+ * Developer-facing Firebase Auth error codes.
+ */
 declare namespace firebase.auth.ErrorCode {
   var ADMIN_ONLY_OPERATION: string;
   var ARGUMENT_ERROR: string;
