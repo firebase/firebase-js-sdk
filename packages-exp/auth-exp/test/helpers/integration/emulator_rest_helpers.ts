@@ -67,9 +67,7 @@ export async function getPhoneVerificationCodes(
   }, {} as Record<string, VerificationSession>);
 }
 
-export async function getOobCodes(
-  auth: Auth
-): Promise<OobCodeSession[]> {
+export async function getOobCodes(auth: Auth): Promise<OobCodeSession[]> {
   assertEmulator(auth);
   const url = getEmulatorUrl(auth, 'oobCodes');
   const response: OobCodesResponse = await (
