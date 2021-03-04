@@ -88,7 +88,7 @@ describe('Integration test: phone auth', () => {
     fallback: string
   ): Promise<string> {
     if (auth.emulatorConfig) {
-      const codes = await getPhoneVerificationCodes(auth);
+      const codes = await getPhoneVerificationCodes();
       const vid = typeof crOrId === 'string' ? crOrId : crOrId.verificationId;
       return codes[vid].code;
     }

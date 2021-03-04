@@ -77,7 +77,7 @@ describe('Integration test: oob codes', () => {
   });
 
   async function code(toEmail: string): Promise<OobCodeSession> {
-    const codes = await getOobCodes(auth);
+    const codes = await getOobCodes();
     return codes.reverse().find(({ email }) => email === toEmail)!;
   }
 

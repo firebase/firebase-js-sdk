@@ -42,14 +42,11 @@ window.userSnap = async () => auth.currentUser;
 
 window.authSnap = async () => auth;
 
-// Initialize library and attach globals
-(async () => {
-  const app = initializeApp({
-    apiKey: 'api-key',
-    projectId: 'test-emulator',
-    authDomain: 'http://localhost/emulator'
-  });
+// The config and emulator URL are injected by the test. The test framework
+// calls this function after that injection.
+window.startAuth = async () => {
+  const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  useAuthEmulator(auth, 'http://localhost:9099');
+  useAuthEmulator(auth, emulatorUrl);
   window.auth = auth;
-})();
+}

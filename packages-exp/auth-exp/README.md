@@ -25,17 +25,26 @@ are not broken into such granular details. Check out `package.json` for more.
 
 To test against the emulator, set up the Auth emulator
 ([instructions](https://firebase.google.com/docs/emulator-suite/connect_and_prototype)).
-When starting the emulators, make sure to specify the project ID manually
-when issuing the command (the local integration tests use a fake project ID):
-`firebase emulators:start --project test-emulator`). Once the emulator is
-started and waiting, you can execute the tests. In addition to the npm commands
-above, you can execute the following:
+The easiest way to run these tests is to use the `firebase emulators:exec`
+command
+([documentation](https://firebase.google.com/docs/emulator-suite/install_and_configure#startup)).
+You can also manually start the emulator separately, and then point the tests
+to it by setting the `GCLOUD_PROJECT` and `FIREBASE_AUTH_EMULATOR_HOST`
+environmental variables. In addition to the commands listed above, the below
+commands also run various tests:
 
   * `yarn test:integration:local` — Executes Node and browser emulator
     integration tests, as well as the Selenium WebDriver tests
   
   * `yarn test:webdriver` — Executes only the Selenium WebDriver
     integration tests
+
+For example, to run all integration and WebDriver tests against the emulator,
+you would simply execute the following command:
+
+```sh
+firebase emulators:exec --project foo-bar --only auth "yarn test:integration:local"
+```
 
 ### Selenium Webdriver tests
 

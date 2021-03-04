@@ -18,6 +18,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Auth, User } from '@firebase/auth-exp';
 import { Builder, WebDriver } from 'selenium-webdriver';
+import { resetEmulator } from '../../../helpers/integration/emulator_rest_helpers';
+import { getEmulatorUrl, PROJECT_ID, USE_EMULATOR } from '../../../helpers/integration/settings';
 import { authTestServer } from './test_server';
 
 /** Browsers to run the tests on */
@@ -29,7 +31,8 @@ export enum TestFunction {
   RESET = 'reset',
   AWAIT_AUTH_INIT = 'authInit',
   USER_SNAPSHOT = 'userSnap',
-  AUTH_SNAPSHOT = 'authSnap'
+  AUTH_SNAPSHOT = 'authSnap',
+  START_AUTH = 'startAuth',
 }
 
 /** Helper wraper around the WebDriver object */
@@ -40,6 +43,7 @@ export class AuthDriver {
     await authTestServer.start();
     this.webDriver = await new Builder().forBrowser(browser).build();
     await this.webDriver.get(authTestServer.address!);
+    await this.injectConfigAndInitAuth();
   }
 
   async stop(): Promise<void> {
@@ -92,6 +96,7 @@ export class AuthDriver {
   }
 
   async reset(): Promise<void> {
+    await resetEmulator();
     return this.call(TestFunction.RESET);
   }
 
@@ -101,6 +106,25 @@ export class AuthDriver {
 
   async refresh(): Promise<void> {
     await this.webDriver.navigate().refresh();
+    await this.injectConfigAndInitAuth();
     await this.waitForAuthInit();
+  }
+
+  private async injectConfigAndInitAuth(): Promise<void> {
+    if (!USE_EMULATOR) {
+      throw new Error('Local testing against emulator requested, but ' +
+    'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+    'are missing');
+    }
+
+    await this.webDriver.executeScript(`
+      window.firebaseConfig = {
+        apiKey: 'emulator-api-key',
+        projectId: '${PROJECT_ID}',
+        authDomain: 'http://localhost/emulator',
+      };
+      window.emulatorUrl = '${getEmulatorUrl()}';
+    `);
+    await this.call(TestFunction.START_AUTH);
   }
 }

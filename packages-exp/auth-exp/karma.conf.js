@@ -57,13 +57,20 @@ function getClientConfig(argv) {
     return {};
   }
 
+  if (!process.env.GCLOUD_PROJECT || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+    console.error('Local testing against emulator requested, but ' +
+    'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+    'are missing');
+    process.exit(1);
+  }
+
   return {
     authAppConfig: {
       apiKey: 'local-api-key',
-      projectId: 'test-emulator',
+      projectId: process.env.GCLOUD_PROJECT,
       authDomain: 'local-auth-domain'
     },
-    authEmulatorPort: '9099'
+    authEmulatorHost: process.env.FIREBASE_AUTH_EMULATOR_HOST,
   };
 }
 
