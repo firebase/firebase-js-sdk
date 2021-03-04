@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
+import { Timestamp } from '../lite/timestamp';
 import { isCollectionGroupQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
 import { DocumentKey } from '../model/document_key';

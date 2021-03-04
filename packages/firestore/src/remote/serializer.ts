@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
+import { Timestamp } from '../lite/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
   LimitType,

@@ -34,7 +34,8 @@ export {
   terminate,
   useFirestoreEmulator,
   loadBundle,
-  namedQuery
+  namedQuery,
+  ensureFirestoreConfigured
 } from '../src/exp/database';
 
 export {
@@ -104,7 +105,8 @@ export {
   setDoc,
   updateDoc,
   deleteDoc,
-  addDoc
+  addDoc,
+  executeWrite
 } from '../src/exp/reference_impl';
 
 export { FieldValue } from '../src/exp/field_value';
@@ -130,3 +132,5 @@ export { Timestamp } from '../src/exp/timestamp';
 export { CACHE_SIZE_UNLIMITED } from '../src/exp/database';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+
+export { AbstractUserDataWriter } from '../src/lite/user_data_writer';

@@ -82,7 +82,9 @@ const nodeDeps = [...browserDeps, 'util', 'path'];
 
 /** Resolves the external dependencies for the browser build. */
 exports.resolveBrowserExterns = function (id) {
-  return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+  return [...browserDeps, '@firebase/firestore'].some(
+    dep => id === dep || id.startsWith(`${dep}/`)
+  );
 };
 
 /** Resolves the external dependencies for the Node build. */
@@ -110,6 +112,16 @@ const removeAssertTransformer = service => ({
   after: []
 });
 exports.removeAssertTransformer = removeAssertTransformer;
+
+/**
+ * Transformer that coverts import paths that match `exp/index` to `@firebase/firestore`
+ * and `lite/index` to `@firebase/firestore/lite`
+ */
+const importTransformer = service => ({
+  before: [removeAsserts(service.getProgram())],
+  after: []
+});
+exports.importTransformer = importTransformer;
 
 /**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and

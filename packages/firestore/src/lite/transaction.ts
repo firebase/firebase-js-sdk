@@ -22,7 +22,7 @@ import {
   parseUpdateData,
   parseUpdateVarargs,
   UserDataReader
-} from '../api/user_data_reader';
+} from './user_data_reader';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { TransactionRunner } from '../core/transaction_runner';
 import { Document, MaybeDocument, NoDocument } from '../model/document';

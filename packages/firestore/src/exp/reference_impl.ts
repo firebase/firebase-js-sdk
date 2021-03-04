@@ -29,8 +29,8 @@ import {
   parseSetData,
   parseUpdateData,
   parseUpdateVarargs
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
+} from '../lite/user_data_reader';
+import { AbstractUserDataWriter } from '../lite/user_data_writer';
 import {
   firestoreClientAddSnapshotsInSyncListener,
   firestoreClientGetDocumentFromLocalCache,
@@ -760,7 +760,10 @@ export function onSnapshotsInSync(
   return firestoreClientAddSnapshotsInSyncListener(client, observer);
 }
 
-/** Locally writes `mutations` on the async queue. */
+/**
+ * Locally writes `mutations` on the async queue.
+ * @internal
+ */
 export function executeWrite(
   firestore: FirebaseFirestore,
   mutations: Mutation[]

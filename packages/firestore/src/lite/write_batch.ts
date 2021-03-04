@@ -22,7 +22,7 @@ import {
   parseUpdateData,
   parseUpdateVarargs,
   UserDataReader
-} from '../api/user_data_reader';
+} from './user_data_reader';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { invokeCommitRpc } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';

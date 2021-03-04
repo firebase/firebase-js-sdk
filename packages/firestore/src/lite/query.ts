@@ -20,7 +20,7 @@ import {
   newUserDataReader,
   parseQueryValue,
   UserDataReader
-} from '../api/user_data_reader';
+} from './user_data_reader';
 import { DatabaseId } from '../core/database_info';
 import {
   findFilterOperator,

@@ -19,8 +19,8 @@ import { Compat } from '../api/compat';
 import {
   fieldPathFromDotSeparatedString,
   UntypedFirestoreDataConverter
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
+} from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath } from '../model/path';

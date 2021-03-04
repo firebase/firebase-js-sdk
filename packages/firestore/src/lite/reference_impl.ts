@@ -28,8 +28,8 @@ import {
   parseUpdateData,
   parseUpdateVarargs,
   UntypedFirestoreDataConverter
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
+} from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 import { hasLimitToLast } from '../core/query';
 import { Document } from '../model/document';
 import { DeleteMutation, Precondition } from '../model/mutation';

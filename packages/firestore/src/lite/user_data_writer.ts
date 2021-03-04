@@ -44,14 +44,16 @@ import { ByteString } from '../util/byte_string';
 import { logError } from '../util/log';
 import { forEach } from '../util/obj';
 
-import { GeoPoint } from './geo_point';
-import { Timestamp } from './timestamp';
+import { GeoPoint } from '../lite/geo_point';
+import { Timestamp } from '../lite/timestamp';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
 /**
  * Converts Firestore's internal types to the JavaScript types that we expose
  * to the user.
+ *
+ * @internal
  */
 export abstract class AbstractUserDataWriter {
   convertValue(

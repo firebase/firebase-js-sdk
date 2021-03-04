@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Bytes } from '../lite/bytes';
+import { Bytes } from '../../exp/index';
 import { isBase64Available } from '../platform/base64';
 import { Code, FirestoreError } from '../util/error';
 

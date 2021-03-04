@@ -21,7 +21,7 @@ import {
   DeleteFieldValueImpl,
   NumericIncrementFieldValueImpl,
   ServerTimestampFieldValueImpl
-} from '../api/user_data_reader';
+} from './user_data_reader';
 
 import { FieldValue } from './field_value';
 

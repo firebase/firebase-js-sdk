@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
+import { Timestamp } from '../lite/timestamp';
 import { User } from '../auth/user';
 import { BundledDocuments, NamedQuery, BundleConverter } from '../core/bundle';
 import { newQueryForPath, Query, queryToTarget } from '../core/query';

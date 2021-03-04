@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { Timestamp } from '../exp/timestamp';
+export { Timestamp } from '../../exp/index';

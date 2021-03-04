@@ -22,7 +22,7 @@ import { DocumentReference, UserDataWriter } from '../../../src/api/database';
 import { FieldValue } from '../../../src/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
-import { parseQueryValue } from '../../../src/api/user_data_reader';
+import { parseQueryValue } from '../../../src/lite/user_data_reader';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
   LimitType,

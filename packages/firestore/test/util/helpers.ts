@@ -27,7 +27,7 @@ import {
   parseSetData,
   parseUpdateData,
   UserDataReader
-} from '../../src/api/user_data_reader';
+} from '../../src/lite/user_data_reader';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
