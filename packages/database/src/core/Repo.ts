@@ -35,7 +35,20 @@ import {
   sparseSnapshotTreeForget,
   sparseSnapshotTreeRemember
 } from './SparseSnapshotTree';
-import { SyncTree } from './SyncTree';
+import {
+  SyncTree,
+  syncTreeAckUserWrite,
+  syncTreeApplyServerOverwrite,
+  syncTreeApplyTaggedQueryMerge,
+  syncTreeApplyTaggedQueryOverwrite,
+  syncTreeApplyServerMerge,
+  syncTreeGetServerValue,
+  syncTreeCalcCompleteEventCache,
+  syncTreeApplyUserOverwrite,
+  syncTreeApplyUserMerge,
+  syncTreeAddEventRegistration,
+  syncTreeRemoveEventRegistration
+} from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
 import {
   assert,
@@ -262,7 +275,11 @@ export function repoStart(repo: Repo): void {
       // This is possibly a hack, but we have different semantics for .info endpoints. We don't raise null events
       // on initial data...
       if (!node.isEmpty()) {
-        infoEvents = repo.infoSyncTree_.applyServerOverwrite(query.path, node);
+        infoEvents = syncTreeApplyServerOverwrite(
+          repo.infoSyncTree_,
+          query.path,
+          node
+        );
         setTimeout(() => {
           onComplete('ok');
         }, 0);
@@ -333,14 +350,16 @@ function repoOnDataUpdate(
         data as { [k: string]: unknown },
         (raw: unknown) => nodeFromJSON(raw)
       );
-      events = repo.serverSyncTree_.applyTaggedQueryMerge(
+      events = syncTreeApplyTaggedQueryMerge(
+        repo.serverSyncTree_,
         path,
         taggedChildren,
         tag
       );
     } else {
       const taggedSnap = nodeFromJSON(data);
-      events = repo.serverSyncTree_.applyTaggedQueryOverwrite(
+      events = syncTreeApplyTaggedQueryOverwrite(
+        repo.serverSyncTree_,
         path,
         taggedSnap,
         tag
@@ -351,10 +370,14 @@ function repoOnDataUpdate(
       data as { [k: string]: unknown },
       (raw: unknown) => nodeFromJSON(raw)
     );
-    events = repo.serverSyncTree_.applyServerMerge(path, changedChildren);
+    events = syncTreeApplyServerMerge(
+      repo.serverSyncTree_,
+      path,
+      changedChildren
+    );
   } else {
     const snap = nodeFromJSON(data);
-    events = repo.serverSyncTree_.applyServerOverwrite(path, snap);
+    events = syncTreeApplyServerOverwrite(repo.serverSyncTree_, path, snap);
   }
   let affectedPath = path;
   if (events.length > 0) {
@@ -390,7 +413,11 @@ function repoUpdateInfo(repo: Repo, pathString: string, value: unknown): void {
   const path = new Path('/.info/' + pathString);
   const newNode = nodeFromJSON(value);
   repo.infoData_.updateSnapshot(path, newNode);
-  const events = repo.infoSyncTree_.applyServerOverwrite(path, newNode);
+  const events = syncTreeApplyServerOverwrite(
+    repo.infoSyncTree_,
+    path,
+    newNode
+  );
   eventQueueRaiseEventsForChangedPath(repo.eventQueue_, path, events);
 }
 
@@ -415,7 +442,7 @@ function repoGetNextWriteId(repo: Repo): number {
  */
 export function repoGetValue(repo: Repo, query: Query): Promise<DataSnapshot> {
   // Only active queries are cached. There is no persisted cache.
-  const cached = repo.serverSyncTree_.getServerValue(query);
+  const cached = syncTreeGetServerValue(repo.serverSyncTree_, query);
   if (cached != null) {
     return Promise.resolve(
       new DataSnapshot(
@@ -428,7 +455,8 @@ export function repoGetValue(repo: Repo, query: Query): Promise<DataSnapshot> {
   return repo.server_.get(query).then(
     payload => {
       const node = nodeFromJSON(payload as string);
-      const events = repo.serverSyncTree_.applyServerOverwrite(
+      const events = syncTreeApplyServerOverwrite(
+        repo.serverSyncTree_,
         query.path,
         node
       );
@@ -465,7 +493,7 @@ export function repoSetWithPriority(
   // (b) store unresolved paths on JSON parse
   const serverValues = repoGenerateServerValues(repo);
   const newNodeUnresolved = nodeFromJSON(newVal, newPriority);
-  const existing = repo.serverSyncTree_.calcCompleteEventCache(path);
+  const existing = syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path);
   const newNode = resolveDeferredValueSnapshot(
     newNodeUnresolved,
     existing,
@@ -473,7 +501,8 @@ export function repoSetWithPriority(
   );
 
   const writeId = repoGetNextWriteId(repo);
-  const events = repo.serverSyncTree_.applyUserOverwrite(
+  const events = syncTreeApplyUserOverwrite(
+    repo.serverSyncTree_,
     path,
     newNode,
     writeId,
@@ -489,7 +518,11 @@ export function repoSetWithPriority(
         warn('set at ' + path + ' failed: ' + status);
       }
 
-      const clearEvents = repo.serverSyncTree_.ackUserWrite(writeId, !success);
+      const clearEvents = syncTreeAckUserWrite(
+        repo.serverSyncTree_,
+        writeId,
+        !success
+      );
       eventQueueRaiseEventsForChangedPath(repo.eventQueue_, path, clearEvents);
       repoCallOnCompleteCallback(repo, onComplete, status, errorReason);
     }
@@ -524,7 +557,8 @@ export function repoUpdate(
 
   if (!empty) {
     const writeId = repoGetNextWriteId(repo);
-    const events = repo.serverSyncTree_.applyUserMerge(
+    const events = syncTreeApplyUserMerge(
+      repo.serverSyncTree_,
       path,
       changedChildren,
       writeId
@@ -539,7 +573,8 @@ export function repoUpdate(
           warn('update at ' + path + ' failed: ' + status);
         }
 
-        const clearEvents = repo.serverSyncTree_.ackUserWrite(
+        const clearEvents = syncTreeAckUserWrite(
+          repo.serverSyncTree_,
           writeId,
           !success
         );
@@ -598,7 +633,7 @@ function repoRunOnDisconnectEvents(repo: Repo): void {
     newEmptyPath(),
     (path, snap) => {
       events = events.concat(
-        repo.serverSyncTree_.applyServerOverwrite(path, snap)
+        syncTreeApplyServerOverwrite(repo.serverSyncTree_, path, snap)
       );
       const affectedPath = repoAbortTransactions(repo, path);
       repoRerunTransactions(repo, affectedPath);
@@ -699,9 +734,14 @@ export function repoAddEventCallbackForQuery(
 ): void {
   let events;
   if (pathGetFront(query.path) === '.info') {
-    events = repo.infoSyncTree_.addEventRegistration(query, eventRegistration);
+    events = syncTreeAddEventRegistration(
+      repo.infoSyncTree_,
+      query,
+      eventRegistration
+    );
   } else {
-    events = repo.serverSyncTree_.addEventRegistration(
+    events = syncTreeAddEventRegistration(
+      repo.serverSyncTree_,
       query,
       eventRegistration
     );
@@ -718,12 +758,14 @@ export function repoRemoveEventCallbackForQuery(
   // a little bit by handling the return values anyways.
   let events;
   if (pathGetFront(query.path) === '.info') {
-    events = repo.infoSyncTree_.removeEventRegistration(
+    events = syncTreeRemoveEventRegistration(
+      repo.infoSyncTree_,
       query,
       eventRegistration
     );
   } else {
-    events = repo.serverSyncTree_.removeEventRegistration(
+    events = syncTreeRemoveEventRegistration(
+      repo.serverSyncTree_,
       query,
       eventRegistration
     );
@@ -920,7 +962,7 @@ export function repoStartTransaction(
       );
     } else {
       const currentNode =
-        repo.serverSyncTree_.calcCompleteEventCache(path) ||
+        syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path) ||
         ChildrenNode.EMPTY_NODE;
       priorityForNode = currentNode.getPriority().val();
     }
@@ -936,7 +978,8 @@ export function repoStartTransaction(
     transaction.currentOutputSnapshotResolved = newNode;
     transaction.currentWriteId = repoGetNextWriteId(repo);
 
-    const events = repo.serverSyncTree_.applyUserOverwrite(
+    const events = syncTreeApplyUserOverwrite(
+      repo.serverSyncTree_,
       path,
       newNode,
       transaction.currentWriteId,
@@ -957,7 +1000,7 @@ function repoGetLatestState(
   excludeSets?: number[]
 ): Node {
   return (
-    repo.serverSyncTree_.calcCompleteEventCache(path, excludeSets) ||
+    syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path, excludeSets) ||
     ChildrenNode.EMPTY_NODE
   );
 }
@@ -1056,7 +1099,7 @@ function repoSendTransactionQueue(
         for (let i = 0; i < queue.length; i++) {
           queue[i].status = TransactionStatus.COMPLETED;
           events = events.concat(
-            repo.serverSyncTree_.ackUserWrite(queue[i].currentWriteId)
+            syncTreeAckUserWrite(repo.serverSyncTree_, queue[i].currentWriteId)
           );
           if (queue[i].onComplete) {
             // We never unset the output snapshot, and given that this
@@ -1178,14 +1221,22 @@ function repoRerunTransactionQueue(
       abortTransaction = true;
       abortReason = transaction.abortReason;
       events = events.concat(
-        repo.serverSyncTree_.ackUserWrite(transaction.currentWriteId, true)
+        syncTreeAckUserWrite(
+          repo.serverSyncTree_,
+          transaction.currentWriteId,
+          true
+        )
       );
     } else if (transaction.status === TransactionStatus.RUN) {
       if (transaction.retryCount >= MAX_TRANSACTION_RETRIES) {
         abortTransaction = true;
         abortReason = 'maxretry';
         events = events.concat(
-          repo.serverSyncTree_.ackUserWrite(transaction.currentWriteId, true)
+          syncTreeAckUserWrite(
+            repo.serverSyncTree_,
+            transaction.currentWriteId,
+            true
+          )
         );
       } else {
         // This code reruns a transaction
@@ -1226,7 +1277,8 @@ function repoRerunTransactionQueue(
           // Mutates setsToIgnore in place
           setsToIgnore.splice(setsToIgnore.indexOf(oldWriteId), 1);
           events = events.concat(
-            repo.serverSyncTree_.applyUserOverwrite(
+            syncTreeApplyUserOverwrite(
+              repo.serverSyncTree_,
               transaction.path,
               newNodeResolved,
               transaction.currentWriteId,
@@ -1234,13 +1286,17 @@ function repoRerunTransactionQueue(
             )
           );
           events = events.concat(
-            repo.serverSyncTree_.ackUserWrite(oldWriteId, true)
+            syncTreeAckUserWrite(repo.serverSyncTree_, oldWriteId, true)
           );
         } else {
           abortTransaction = true;
           abortReason = 'nodata';
           events = events.concat(
-            repo.serverSyncTree_.ackUserWrite(transaction.currentWriteId, true)
+            syncTreeAckUserWrite(
+              repo.serverSyncTree_,
+              transaction.currentWriteId,
+              true
+            )
           );
         }
       }
@@ -1447,7 +1503,11 @@ function repoAbortTransactionsOnNode(
         // We can abort it immediately.
         queue[i].unwatcher();
         events = events.concat(
-          repo.serverSyncTree_.ackUserWrite(queue[i].currentWriteId, true)
+          syncTreeAckUserWrite(
+            repo.serverSyncTree_,
+            queue[i].currentWriteId,
+            true
+          )
         );
         if (queue[i].onComplete) {
           const snapshot: DataSnapshot | null = null;
