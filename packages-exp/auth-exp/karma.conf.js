@@ -58,9 +58,11 @@ function getClientConfig(argv) {
   }
 
   if (!process.env.GCLOUD_PROJECT || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    console.error('Local testing against emulator requested, but ' +
-    'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
-    'are missing');
+    console.error(
+      'Local testing against emulator requested, but ' +
+        'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+        'are missing'
+    );
     process.exit(1);
   }
 
@@ -70,7 +72,7 @@ function getClientConfig(argv) {
       projectId: process.env.GCLOUD_PROJECT,
       authDomain: 'local-auth-domain'
     },
-    authEmulatorHost: process.env.FIREBASE_AUTH_EMULATOR_HOST,
+    authEmulatorHost: process.env.FIREBASE_AUTH_EMULATOR_HOST
   };
 }
 

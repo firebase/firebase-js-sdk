@@ -64,9 +64,11 @@ let args = [
 // Make sure that the environment variables are present for local test
 if (argv.local) {
   if (!process.env.GCLOUD_PROJECT || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    console.error('Local testing against emulator requested, but ' +
-    'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
-    'are missing');
+    console.error(
+      'Local testing against emulator requested, but ' +
+        'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+        'are missing'
+    );
     process.exit(1);
   }
 }

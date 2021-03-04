@@ -49,4 +49,4 @@ window.startAuth = async () => {
   auth = getAuth(app);
   useAuthEmulator(auth, emulatorUrl);
   window.auth = auth;
-}
+};

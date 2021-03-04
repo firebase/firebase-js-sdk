@@ -19,7 +19,11 @@
 import { Auth, User } from '@firebase/auth-exp';
 import { Builder, WebDriver } from 'selenium-webdriver';
 import { resetEmulator } from '../../../helpers/integration/emulator_rest_helpers';
-import { getEmulatorUrl, PROJECT_ID, USE_EMULATOR } from '../../../helpers/integration/settings';
+import {
+  getEmulatorUrl,
+  PROJECT_ID,
+  USE_EMULATOR
+} from '../../../helpers/integration/settings';
 import { authTestServer } from './test_server';
 
 /** Browsers to run the tests on */
@@ -32,7 +36,7 @@ export enum TestFunction {
   AWAIT_AUTH_INIT = 'authInit',
   USER_SNAPSHOT = 'userSnap',
   AUTH_SNAPSHOT = 'authSnap',
-  START_AUTH = 'startAuth',
+  START_AUTH = 'startAuth'
 }
 
 /** Helper wraper around the WebDriver object */
@@ -112,9 +116,11 @@ export class AuthDriver {
 
   private async injectConfigAndInitAuth(): Promise<void> {
     if (!USE_EMULATOR) {
-      throw new Error('Local testing against emulator requested, but ' +
-    'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
-    'are missing');
+      throw new Error(
+        'Local testing against emulator requested, but ' +
+          'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+          'are missing'
+      );
     }
 
     await this.webDriver.executeScript(`

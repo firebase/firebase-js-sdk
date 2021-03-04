@@ -50,8 +50,9 @@ interface OobCodesResponse {
   oobCodes: OobCodeSession[];
 }
 
-export async function getPhoneVerificationCodes(
-): Promise<Record<string, VerificationSession>> {
+export async function getPhoneVerificationCodes(): Promise<
+  Record<string, VerificationSession>
+> {
   const url = buildEmulatorUrlForPath('verificationCodes');
   const response: VerificationCodesResponse = await (
     await FetchProvider.fetch()(url)
@@ -73,7 +74,7 @@ export async function getOobCodes(): Promise<OobCodeSession[]> {
 
 export async function resetEmulator(): Promise<void> {
   const url = buildEmulatorUrlForPath('accounts');
-  await FetchProvider.fetch()(url, {method: 'DELETE'});
+  await FetchProvider.fetch()(url, { method: 'DELETE' });
 }
 
 function buildEmulatorUrlForPath(endpoint: string): string {

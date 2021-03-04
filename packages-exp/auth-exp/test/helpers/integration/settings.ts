@@ -52,7 +52,9 @@ export function getAppConfig(): FirebaseOptions {
 
 export function getEmulatorUrl(): string | null {
   // Check karma first, then fallback on node process
-  const host = getKarma()?.config?.authEmulatorHost || (USE_EMULATOR ? EMULATOR_HOST : null);
+  const host =
+    getKarma()?.config?.authEmulatorHost ||
+    (USE_EMULATOR ? EMULATOR_HOST : null);
   return host ? `http://${host}` : null;
 }
 
