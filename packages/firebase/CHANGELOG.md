@@ -1,5 +1,11 @@
 # firebase
 
+## 8.2.10
+
+### Patch Changes
+
+- [`d4ba8daa2`](https://github.com/firebase/firebase-js-sdk/commit/d4ba8daa298ec00f1800374e2bc5c6200575a233) [#4469](https://github.com/firebase/firebase-js-sdk/pull/4469) - Change the `eventParams` argument in the signature of `analytics().logEvent()` to be optional.
+
 ## 8.2.9
 
 ### Patch Changes
