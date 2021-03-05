@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore, IndexedDbPersistenceProvider } from '../src/api/database';
@@ -37,4 +37,4 @@ export function registerFirestore(instance: FirebaseNamespace): void {
   instance.registerVersion(name, version);
 }
 
-registerFirestore(firebase);
+registerFirestore(firebase as any);

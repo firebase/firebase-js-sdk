@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
@@ -80,7 +81,7 @@ export function configureForFirebase(
     new Component(
       'firestore',
       container => {
-        const app = container.getProvider('app').getImmediate()!;
+        const app = container.getProvider('app-compat').getImmediate()!;
         const firestoreExp = container
           .getProvider('firestore-exp')
           .getImmediate()!;

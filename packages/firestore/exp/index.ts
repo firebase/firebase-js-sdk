@@ -93,7 +93,6 @@ export { Unsubscribe } from '../src/exp/reference_impl';
 export { runTransaction, Transaction } from '../src/exp/transaction';
 
 export {
-  SnapshotListenOptions,
   getDoc,
   getDocFromCache,
   getDocFromServer,
