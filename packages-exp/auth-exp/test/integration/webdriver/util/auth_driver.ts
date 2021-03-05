@@ -36,7 +36,7 @@ export enum TestFunction {
   AUTH_SNAPSHOT = 'authSnap',
   START_AUTH = 'startAuth',
   IDP_REDIRECT = 'idpRedirect',
-  REDIRECT_RESULT = 'redirectResult',
+  REDIRECT_RESULT = 'redirectResult'
 }
 
 /** Helper wraper around the WebDriver object */

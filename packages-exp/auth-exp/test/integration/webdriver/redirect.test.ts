@@ -18,13 +18,13 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { OperationType, UserCredential } from '@firebase/auth-exp';
 import { expect } from 'chai';
-import { TestFunction, } from './util/auth_driver';
+import { TestFunction } from './util/auth_driver';
 import { IdPPage } from './util/idp_page';
 import { browserDescribe } from './util/test_runner';
 
 browserDescribe('WebDriver redirect IdP test', driver => {
   it('allows users to sign in', async () => {
-    await driver.pause(200);  // Race condition on auth init
+    await driver.pause(200); // Race condition on auth init
     await driver.callNoWait(TestFunction.IDP_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
 
@@ -38,13 +38,15 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     await widget.clickSignIn();
 
     await driver.reinitOnRedirect();
-    
+
     const currentUser = await driver.getUserSnapshot();
     expect(currentUser.email).to.eq('bob@bob.test');
     expect(currentUser.displayName).to.eq('Bob Test');
     expect(currentUser.photoURL).to.eq('bob.test/bob');
 
-    const redirectResult: UserCredential = await driver.call(TestFunction.REDIRECT_RESULT);
+    const redirectResult: UserCredential = await driver.call(
+      TestFunction.REDIRECT_RESULT
+    );
     expect(redirectResult.operationType).to.eq(OperationType.SIGN_IN);
     expect(redirectResult.user).to.eql(currentUser);
   });
