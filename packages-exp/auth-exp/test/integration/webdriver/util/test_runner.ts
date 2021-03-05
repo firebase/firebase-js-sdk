@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { AuthDriver } from './auth_driver';
 
 /*
@@ -5,7 +22,7 @@ import { AuthDriver } from './auth_driver';
  * driver. In order to avoid that cost, all of the tests are collected and
  * bundled into single suites for each browser. To do this, we create a new
  * describe function that is used to generate the new suites.
- * 
+ *
  * This test is started with the --delay flag, which allows us to control when
  * test execution starts. Collection of the tests is synchronous, but we need
  * a way to ensure that run() is called after they're all added. To accomplish
@@ -26,9 +43,13 @@ const DRIVER = new AuthDriver();
 const SUITES: TempSuite[] = [];
 
 /** Main entry point for all WebDriver tests */
-export function browserDescribe(title: string, generator:(driver: AuthDriver) => void): void {
+export function browserDescribe(
+  title: string,
+  generator: (driver: AuthDriver) => void
+): void {
   SUITES.push({
-    title, generator
+    title,
+    generator
   });
 }
 
@@ -57,7 +78,7 @@ setTimeout(() => {
         await DRIVER.reset();
       });
 
-      for (const {title, generator} of SUITES) {
+      for (const { title, generator } of SUITES) {
         describe(title, () => generator(DRIVER));
       }
     });

@@ -40,7 +40,7 @@ window.reset = () => {
     del.addEventListener('error', () => resolve());
     del.addEventListener('blocked', () => resolve());
   });
-}
+};
 
 window.authInit = () => {
   return new Promise(resolve => {
