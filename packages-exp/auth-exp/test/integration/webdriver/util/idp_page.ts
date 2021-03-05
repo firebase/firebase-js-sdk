@@ -37,7 +37,7 @@ export class IdPPage {
 
   async clickAddAccount(): Promise<void> {
     await this.driver.wait(until.elementLocated(ADD_ACCOUNT_BUTTON));
-    this.driver.findElement(ADD_ACCOUNT_BUTTON).click();
+    await this.driver.findElement(ADD_ACCOUNT_BUTTON).click();
   }
 
   async clickSignIn(): Promise<void> {
