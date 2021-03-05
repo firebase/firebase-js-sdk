@@ -18,7 +18,10 @@
 import { initializeApp } from '@firebase/app-exp';
 import {
   getAuth,
+  getRedirectResult,
+  GoogleAuthProvider,
   signInAnonymously,
+  signInWithRedirect,
   useAuthEmulator
 } from '@firebase/auth-exp';
 
@@ -51,6 +54,14 @@ window.authInit = () => {
 window.userSnap = async () => auth.currentUser;
 
 window.authSnap = async () => auth;
+
+window.idpRedirect = () => {
+  signInWithRedirect(auth, new GoogleAuthProvider());
+};
+
+window.redirectResult = () => {
+  return getRedirectResult(auth);
+};
 
 // The config and emulator URL are injected by the test. The test framework
 // calls this function after that injection.
