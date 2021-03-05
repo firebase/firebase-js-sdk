@@ -30,7 +30,17 @@ window.anonymous = async () => {
   return userCred;
 };
 
-window.reset = () => auth.signOut();
+window.reset = () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  const del = indexedDB.deleteDatabase('firebaseLocalStorageDb');
+
+  return new Promise(resolve => {
+    del.addEventListener('success', () => resolve());
+    del.addEventListener('error', () => resolve());
+    del.addEventListener('blocked', () => resolve());
+  });
+}
 
 window.authInit = () => {
   return new Promise(resolve => {

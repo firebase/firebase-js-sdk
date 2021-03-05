@@ -1,0 +1,67 @@
+import { AuthDriver } from './auth_driver';
+
+/*
+ * The most expensive operation in these tests is setting up / tearing down the
+ * driver. In order to avoid that cost, all of the tests are collected and
+ * bundled into single suites for each browser. To do this, we create a new
+ * describe function that is used to generate the new suites.
+ * 
+ * This test is started with the --delay flag, which allows us to control when
+ * test execution starts. Collection of the tests is synchronous, but we need
+ * a way to ensure that run() is called after they're all added. To accomplish
+ * this, we put the final construction of the suites (and the subsequent run()
+ * call) after a delay of 1ms.
+ */
+
+interface TempSuite {
+  generator: (driver: AuthDriver) => void;
+  title: string;
+}
+
+/** The browsers that these tests will run in */
+const BROWSERS = ['chrome', 'firefox'];
+
+/** One single AuthDriver instance to control everything */
+const DRIVER = new AuthDriver();
+const SUITES: TempSuite[] = [];
+
+/** Main entry point for all WebDriver tests */
+export function browserDescribe(title: string, generator:(driver: AuthDriver) => void): void {
+  SUITES.push({
+    title, generator
+  });
+}
+
+// Construct the final suites after a delay of 1ms, then kick off tests
+setTimeout(() => {
+  for (const browser of BROWSERS) {
+    describe(`Testing in browser "${browser}"`, () => {
+      before(async () => {
+        await DRIVER.start(browser);
+
+        // Prime for the first test.
+        await DRIVER.reset();
+      });
+
+      after(async () => {
+        await DRIVER.stop();
+      });
+
+      // It's assumed that the tests will start with a clean slate (i.e.
+      // no storage).
+      beforeEach(async () => {
+        await DRIVER.injectConfigAndInitAuth();
+      });
+
+      afterEach(async () => {
+        await DRIVER.reset();
+      });
+
+      for (const {title, generator} of SUITES) {
+        describe(title, () => generator(DRIVER));
+      }
+    });
+  }
+
+  run();
+}, 1);

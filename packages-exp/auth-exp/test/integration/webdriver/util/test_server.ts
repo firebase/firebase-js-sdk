@@ -38,8 +38,8 @@ class AuthTestServer {
     this.app.use([INTEGRATION_TEST_ASSETS]);
   }
 
-  get address(): string | null {
-    return this.server ? `http://localhost:${PORT_NUMBER}` : null;
+  get address(): string {
+    return `http://localhost:${PORT_NUMBER}`;
   }
 
   async start(): Promise<void> {

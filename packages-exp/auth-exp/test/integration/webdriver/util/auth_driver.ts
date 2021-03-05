@@ -26,9 +26,6 @@ import {
 } from '../../../helpers/integration/settings';
 import { authTestServer } from './test_server';
 
-/** Browsers to run the tests on */
-const BROWSERS = ['chrome', 'firefox'];
-
 /** Available functions within the browser. See static/index.js */
 export enum TestFunction {
   SIGN_IN_ANONYMOUSLY = 'anonymous',
@@ -53,27 +50,6 @@ export class AuthDriver {
   async stop(): Promise<void> {
     authTestServer.stop();
     await this.webDriver.quit();
-  }
-
-  /** Wraps a set of tests and runs them in multiple browsers */
-  runTestsInAvailableBrowsers(cb: () => void): void {
-    for (const browser of BROWSERS) {
-      context(`Under browser: ${browser}`, () => {
-        before(async () => {
-          await this.start(browser);
-        });
-
-        after(async () => {
-          await this.stop();
-        });
-
-        afterEach(async () => {
-          await this.reset();
-        });
-
-        cb();
-      });
-    }
   }
 
   async call<T>(fn: TestFunction): Promise<T> {
@@ -101,6 +77,7 @@ export class AuthDriver {
 
   async reset(): Promise<void> {
     await resetEmulator();
+    await this.webDriver.get(authTestServer.address!);
     return this.call(TestFunction.RESET);
   }
 
@@ -114,7 +91,7 @@ export class AuthDriver {
     await this.waitForAuthInit();
   }
 
-  private async injectConfigAndInitAuth(): Promise<void> {
+  async injectConfigAndInitAuth(): Promise<void> {
     if (!USE_EMULATOR) {
       throw new Error(
         'Local testing against emulator requested, but ' +
