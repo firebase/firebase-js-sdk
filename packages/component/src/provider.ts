@@ -195,10 +195,9 @@ export class Provider<T extends Name> {
   ): NameServiceMapping[T] | null {
     let instance = this.instances.get(identifier);
     if (!instance && this.component) {
-      instance = this.component.instanceFactory(
-        this.container,
-        normalizeIdentifierForFactory(identifier)
-      ) as NameServiceMapping[T];
+      instance = this.component.instanceFactory(this.container, {
+        instanceIdentifier: normalizeIdentifierForFactory(identifier)
+      }) as NameServiceMapping[T];
       this.instances.set(identifier, instance);
     }
 
