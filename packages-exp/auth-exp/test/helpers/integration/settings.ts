@@ -24,10 +24,10 @@ declare const __karma__: any;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
-const EMULATOR_PORT = process.env.AUTH_EMULATOR_PORT;
-const EMULATOR_PROJECT_ID = process.env.AUTH_EMULATOR_PROJECT_ID;
+const EMULATOR_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+const EMULATOR_PROJECT_ID = process.env.GCLOUD_PROJECT;
 
-export const USE_EMULATOR = !!EMULATOR_PORT;
+export const USE_EMULATOR = !!EMULATOR_HOST;
 
 export const PROJECT_ID = USE_EMULATOR
   ? EMULATOR_PROJECT_ID
@@ -52,11 +52,10 @@ export function getAppConfig(): FirebaseOptions {
 
 export function getEmulatorUrl(): string | null {
   // Check karma first, then fallback on node process
-  const emulatorPort: string | null =
-    getKarma()?.config?.authEmulatorPort ||
-    (USE_EMULATOR ? EMULATOR_PORT : null);
-
-  return emulatorPort ? `http://localhost:${emulatorPort}` : null;
+  const host =
+    getKarma()?.config?.authEmulatorHost ||
+    (USE_EMULATOR ? EMULATOR_HOST : null);
+  return host ? `http://${host}` : null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

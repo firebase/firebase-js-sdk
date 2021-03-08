@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Auth } from '@firebase/auth-exp';
-import { getApps } from '@firebase/app-exp';
 import { FetchProvider } from '../../../src/core/util/fetch_provider';
 import * as fetchImpl from 'node-fetch';
+import { getAppConfig, getEmulatorUrl } from './settings';
 
 if (typeof document !== 'undefined') {
   FetchProvider.initialize(fetch);
@@ -52,11 +50,10 @@ interface OobCodesResponse {
   oobCodes: OobCodeSession[];
 }
 
-export async function getPhoneVerificationCodes(
-  auth: Auth
-): Promise<Record<string, VerificationSession>> {
-  assertEmulator(auth);
-  const url = getEmulatorUrl(auth, 'verificationCodes');
+export async function getPhoneVerificationCodes(): Promise<
+  Record<string, VerificationSession>
+> {
+  const url = buildEmulatorUrlForPath('verificationCodes');
   const response: VerificationCodesResponse = await (
     await FetchProvider.fetch()(url)
   ).json();
@@ -67,27 +64,21 @@ export async function getPhoneVerificationCodes(
   }, {} as Record<string, VerificationSession>);
 }
 
-export async function getOobCodes(auth: Auth): Promise<OobCodeSession[]> {
-  assertEmulator(auth);
-  const url = getEmulatorUrl(auth, 'oobCodes');
+export async function getOobCodes(): Promise<OobCodeSession[]> {
+  const url = buildEmulatorUrlForPath('oobCodes');
   const response: OobCodesResponse = await (
     await FetchProvider.fetch()(url)
   ).json();
   return response.oobCodes;
 }
 
-function getEmulatorUrl(auth: Auth, endpoint: string): string {
-  const { host, port, protocol } = auth.emulatorConfig!;
-  const projectId = getProjectId(auth);
-  return `${protocol}://${host}:${port}/emulator/v1/projects/${projectId}/${endpoint}`;
+export async function resetEmulator(): Promise<void> {
+  const url = buildEmulatorUrlForPath('accounts');
+  await FetchProvider.fetch()(url, { method: 'DELETE' });
 }
 
-function getProjectId(auth: Auth): string {
-  return getApps().find(app => app.name === auth.name)!.options.projectId!;
-}
-
-function assertEmulator(auth: Auth): void {
-  if (!auth.emulatorConfig) {
-    throw new Error("Can't fetch OOB codes against prod API");
-  }
+function buildEmulatorUrlForPath(endpoint: string): string {
+  const emulatorBaseUrl = getEmulatorUrl();
+  const projectId = getAppConfig().projectId;
+  return `${emulatorBaseUrl}/emulator/v1/projects/${projectId}/${endpoint}`;
 }

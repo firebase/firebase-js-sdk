@@ -30,7 +30,8 @@ var child_process_promise_1 = require('child-process-promise');
 var yargs = require('yargs');
 var argv = yargs.options({
   local: { type: 'boolean' },
-  integration: { type: 'boolean' }
+  integration: { type: 'boolean' },
+  webdriver: { type: 'boolean' }
 }).argv;
 var nyc = path_1.resolve(__dirname, '../../../node_modules/.bin/nyc');
 var mocha = path_1.resolve(__dirname, '../../../node_modules/.bin/mocha');
@@ -45,20 +46,33 @@ if (argv.integration) {
   if (argv.local) {
     testConfig.push('test/integration/flows/*.local.test.ts');
   }
+} else if (argv.webdriver) {
+  testConfig = ['test/integration/webdriver/**.test.ts', '--delay'];
 }
 var args = __spreadArrays(['--reporter', 'lcovonly', mocha], testConfig, [
   '--config',
   '../../config/mocharc.node.js'
 ]);
 if (argv.local) {
-  process.env.AUTH_EMULATOR_PORT = '9099';
-  process.env.AUTH_EMULATOR_PROJECT_ID = 'test-emulator';
+  if (!process.env.GCLOUD_PROJECT || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+    console.error(
+      'Local testing against emulator requested, but ' +
+        'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+        'are missing'
+    );
+    process.exit(1);
+  }
 }
 args = args.concat(argv._);
-var childProcess = child_process_promise_1.spawn(nyc, args, {
+var spawned = child_process_promise_1.spawn(nyc, args, {
   stdio: 'inherit',
   cwd: process.cwd()
-}).childProcess;
+});
+var childProcess = spawned.childProcess;
+spawned['catch'](function () {
+  childProcess.kill();
+  process.exit(1);
+});
 process.once('exit', function () {
   return childProcess.kill();
 });

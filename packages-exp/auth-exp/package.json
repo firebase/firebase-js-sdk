@@ -25,6 +25,7 @@
     "test": "run-p lint test:all",
     "test:all": "run-p test:browser test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:integration:local": "run-s test:node:integration:local test:browser:integration:local test:webdriver",
     "test:browser": "karma start --single-run",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:integration": "karma start --single-run --integration",
@@ -37,6 +38,7 @@
     "test:node:unit": "node ./scripts/run-node-tests.js",
     "test:node:integration": "node ./scripts/run-node-tests.js --integration",
     "test:node:integration:local": "node ./scripts/run-node-tests.js --integration --local",
+    "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && node ./scripts/run-node-tests.js --webdriver",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
@@ -47,17 +49,18 @@
     "@firebase/app-exp": "0.x"
   },
   "dependencies": {
+    "@firebase/component": "0.2.0",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.4",
-    "@firebase/component": "0.2.0",
     "node-fetch": "2.6.1",
+    "selenium-webdriver": "4.0.0-beta.1",
     "tslib": "^2.0.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/app-exp": "0.0.900",
-    "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
+    "rollup": "2.35.1",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.29.0",
     "@rollup/plugin-strip": "2.0.0",

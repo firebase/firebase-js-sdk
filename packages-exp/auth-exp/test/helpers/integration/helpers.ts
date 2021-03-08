@@ -22,6 +22,7 @@ import { Auth, User } from '../../../src/model/public_types';
 import { getAuth, useAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
+import { resetEmulator } from './emulator_rest_helpers';
 
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
@@ -55,12 +56,17 @@ export function getTestInstance(requireEmulator = false): Auth {
   });
 
   auth.cleanUp = async () => {
-    // Clear out any new users that were created in the course of the test
-    for (const user of createdUsers) {
-      try {
-        await user.delete();
-      } catch {
-        // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+    // If we're in an emulated environment, the emulator will clean up for us
+    if (emulatorUrl) {
+      await resetEmulator();
+    } else {
+      // Clear out any new users that were created in the course of the test
+      for (const user of createdUsers) {
+        try {
+          await user.delete();
+        } catch {
+          // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+        }
       }
     }
 

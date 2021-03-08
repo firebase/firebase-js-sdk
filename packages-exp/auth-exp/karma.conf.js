@@ -37,8 +37,8 @@ function getTestFiles(argv) {
     return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
   } else if (argv.integration) {
     return argv.local
-      ? ['test/integration/**/*.test.ts']
-      : ['test/integration/**/*!(local).test.ts'];
+      ? ['test/integration/flows/*.test.ts']
+      : ['test/integration/flows/*!(local).test.ts'];
   } else if (argv.cordova) {
     return ['src/platform_cordova/**/*.test.ts'];
   } else {
@@ -57,13 +57,22 @@ function getClientConfig(argv) {
     return {};
   }
 
+  if (!process.env.GCLOUD_PROJECT || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+    console.error(
+      'Local testing against emulator requested, but ' +
+        'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+        'are missing'
+    );
+    process.exit(1);
+  }
+
   return {
     authAppConfig: {
       apiKey: 'local-api-key',
-      projectId: 'test-emulator',
+      projectId: process.env.GCLOUD_PROJECT,
       authDomain: 'local-auth-domain'
     },
-    authEmulatorPort: '9099'
+    authEmulatorHost: process.env.FIREBASE_AUTH_EMULATOR_HOST
   };
 }
 
