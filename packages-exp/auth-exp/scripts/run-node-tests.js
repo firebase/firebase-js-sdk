@@ -35,7 +35,7 @@ var argv = yargs.options({
 }).argv;
 var nyc = path_1.resolve(__dirname, '../../../node_modules/.bin/nyc');
 var mocha = path_1.resolve(__dirname, '../../../node_modules/.bin/mocha');
-process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs"}';
+process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs", "target": "es6"}';
 var testConfig = [
   'src/!(platform_browser|platform_react_native|platform_cordova)/**/*.test.ts',
   '--file',
