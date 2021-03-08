@@ -22,8 +22,18 @@ import {
   InstanceFactory
 } from '@firebase/component';
 
+import { FirebaseApp } from '@firebase/app-compat';
+import { FirebaseMessaging } from '@firebase/messaging-exp';
 import { MessagingCompat } from './messaging-compat';
 import { _registerComponent } from '@firebase/app-exp';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'app-compat': FirebaseApp;
+    'messaging-compat': MessagingCompat;
+    'messaging-exp': FirebaseMessaging;
+  }
+}
 
 const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
   container: ComponentContainer
@@ -36,6 +46,10 @@ const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
 
 export function registerMessagingCompat(): void {
   _registerComponent(
-    new Component('messaging-exp', messagingCompatFactory, ComponentType.PUBLIC)
+    new Component(
+      'messaging-compat',
+      messagingCompatFactory,
+      ComponentType.PUBLIC
+    )
   );
 }
