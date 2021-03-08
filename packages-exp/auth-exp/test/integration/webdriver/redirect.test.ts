@@ -34,7 +34,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     await widget.fillEmail('bob@bob.test');
     await widget.fillDisplayName('Bob Test');
     await widget.fillScreenName('bob.test');
-    await widget.fillProfilePhoto('bob.test/bob');
+    await widget.fillProfilePhoto('http://bob.test/bob.png');
     await widget.clickSignIn();
 
     await driver.reinitOnRedirect();
@@ -42,7 +42,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     const currentUser = await driver.getUserSnapshot();
     expect(currentUser.email).to.eq('bob@bob.test');
     expect(currentUser.displayName).to.eq('Bob Test');
-    expect(currentUser.photoURL).to.eq('bob.test/bob');
+    expect(currentUser.photoURL).to.eq('http://bob.test/bob.png');
 
     const redirectResult: UserCredential = await driver.call(
       TestFunction.REDIRECT_RESULT
