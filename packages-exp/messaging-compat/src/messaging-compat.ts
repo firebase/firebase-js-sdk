@@ -63,8 +63,10 @@ export class MessagingCompat implements _FirebaseService {
     return deleteToken(this.messaging);
   }
 
-  onMessage(nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>) {
-    onMessage(this.messaging, nextOrObserver);
+  onMessage(
+    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
+  ): Unsubscribe {
+    return onMessage(this.messaging, nextOrObserver);
   }
 
   onBackgroundMessage(
