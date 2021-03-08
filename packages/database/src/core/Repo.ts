@@ -38,15 +38,15 @@ import {
 import {
   SyncTree,
   syncTreeAckUserWrite,
+  syncTreeAddEventRegistration,
+  syncTreeApplyServerMerge,
   syncTreeApplyServerOverwrite,
   syncTreeApplyTaggedQueryMerge,
   syncTreeApplyTaggedQueryOverwrite,
-  syncTreeApplyServerMerge,
-  syncTreeGetServerValue,
-  syncTreeCalcCompleteEventCache,
-  syncTreeApplyUserOverwrite,
   syncTreeApplyUserMerge,
-  syncTreeAddEventRegistration,
+  syncTreeApplyUserOverwrite,
+  syncTreeCalcCompleteEventCache,
+  syncTreeGetServerValue,
   syncTreeRemoveEventRegistration
 } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
@@ -92,7 +92,17 @@ import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
 import { Node } from './snap/Node';
 import { Indexable } from './util/misc';
-import { Tree } from './util/Tree';
+import {
+  Tree,
+  treeForEachAncestor,
+  treeForEachChild,
+  treeForEachDescendant,
+  treeGetPath,
+  treeGetValue,
+  treeHasChildren,
+  treeSetValue,
+  treeSubTree
+} from './util/Tree';
 import { isValidPriority, validateFirebaseData } from './util/validation';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
@@ -937,11 +947,11 @@ export function repoStartTransaction(
 
     // Mark as run and add to our queue.
     transaction.status = TransactionStatus.RUN;
-    const queueNode = repo.transactionQueueTree_.subTree(path);
-    const nodeQueue = queueNode.getValue() || [];
+    const queueNode = treeSubTree(repo.transactionQueueTree_, path);
+    const nodeQueue = treeGetValue(queueNode) || [];
     nodeQueue.push(transaction);
 
-    queueNode.setValue(nodeQueue);
+    treeSetValue(queueNode, nodeQueue);
 
     // Update visibleData and raise events
     // Note: We intentionally raise events after updating all of our
@@ -1023,7 +1033,7 @@ function repoSendReadyTransactions(
     repoPruneCompletedTransactionsBelowNode(repo, node);
   }
 
-  if (node.getValue() !== null) {
+  if (treeGetValue(node)) {
     const queue = repoBuildTransactionQueue(repo, node);
     assert(queue.length > 0, 'Sending zero length transaction queue');
 
@@ -1033,10 +1043,10 @@ function repoSendReadyTransactions(
 
     // If they're all run (and not sent), we can send them.  Else, we must wait.
     if (allRun) {
-      repoSendTransactionQueue(repo, node.path(), queue);
+      repoSendTransactionQueue(repo, treeGetPath(node), queue);
     }
-  } else if (node.hasChildren()) {
-    node.forEachChild(childNode => {
+  } else if (treeHasChildren(node)) {
+    treeForEachChild(node, childNode => {
       repoSendReadyTransactions(repo, childNode);
     });
   }
@@ -1117,7 +1127,7 @@ function repoSendTransactionQueue(
         // Now remove the completed transactions.
         repoPruneCompletedTransactionsBelowNode(
           repo,
-          repo.transactionQueueTree_.subTree(path)
+          treeSubTree(repo.transactionQueueTree_, path)
         );
         // There may be pending transactions that we can now send.
         repoSendReadyTransactions(repo, repo.transactionQueueTree_);
@@ -1171,7 +1181,7 @@ function repoRerunTransactions(repo: Repo, changedPath: Path): Path {
     repo,
     changedPath
   );
-  const path = rootMostTransactionNode.path();
+  const path = treeGetPath(rootMostTransactionNode);
 
   const queue = repoBuildTransactionQueue(repo, rootMostTransactionNode);
   repoRerunTransactionQueue(repo, queue, path);
@@ -1360,8 +1370,8 @@ function repoGetAncestorTransactionNode(
   // find a node with pending transactions.
   let transactionNode = repo.transactionQueueTree_;
   front = pathGetFront(path);
-  while (front !== null && transactionNode.getValue() === null) {
-    transactionNode = transactionNode.subTree(front);
+  while (front !== null && treeGetValue(transactionNode) === undefined) {
+    transactionNode = treeSubTree(transactionNode, front);
     path = pathPopFront(path);
     front = pathGetFront(path);
   }
@@ -1389,9 +1399,7 @@ function repoBuildTransactionQueue(
   );
 
   // Sort them by the order the transactions were created.
-  transactionQueue.sort((a, b) => {
-    return a.order - b.order;
-  });
+  transactionQueue.sort((a, b) => a.order - b.order);
 
   return transactionQueue;
 }
@@ -1401,14 +1409,14 @@ function repoAggregateTransactionQueuesForNode(
   node: Tree<Transaction[]>,
   queue: Transaction[]
 ): void {
-  const nodeQueue = node.getValue();
-  if (nodeQueue !== null) {
+  const nodeQueue = treeGetValue(node);
+  if (nodeQueue) {
     for (let i = 0; i < nodeQueue.length; i++) {
       queue.push(nodeQueue[i]);
     }
   }
 
-  node.forEachChild(child => {
+  treeForEachChild(node, child => {
     repoAggregateTransactionQueuesForNode(repo, child, queue);
   });
 }
@@ -1420,7 +1428,7 @@ function repoPruneCompletedTransactionsBelowNode(
   repo: Repo,
   node: Tree<Transaction[]>
 ): void {
-  const queue = node.getValue();
+  const queue = treeGetValue(node);
   if (queue) {
     let to = 0;
     for (let from = 0; from < queue.length; from++) {
@@ -1430,10 +1438,10 @@ function repoPruneCompletedTransactionsBelowNode(
       }
     }
     queue.length = to;
-    node.setValue(queue.length > 0 ? queue : null);
+    treeSetValue(node, queue.length > 0 ? queue : undefined);
   }
 
-  node.forEachChild(childNode => {
+  treeForEachChild(node, childNode => {
     repoPruneCompletedTransactionsBelowNode(repo, childNode);
   });
 }
@@ -1446,17 +1454,17 @@ function repoPruneCompletedTransactionsBelowNode(
  * @param path Path for which we want to abort related transactions.
  */
 function repoAbortTransactions(repo: Repo, path: Path): Path {
-  const affectedPath = repoGetAncestorTransactionNode(repo, path).path();
+  const affectedPath = treeGetPath(repoGetAncestorTransactionNode(repo, path));
 
-  const transactionNode = repo.transactionQueueTree_.subTree(path);
+  const transactionNode = treeSubTree(repo.transactionQueueTree_, path);
 
-  transactionNode.forEachAncestor((node: Tree<Transaction[]>) => {
+  treeForEachAncestor(transactionNode, (node: Tree<Transaction[]>) => {
     repoAbortTransactionsOnNode(repo, node);
   });
 
   repoAbortTransactionsOnNode(repo, transactionNode);
 
-  transactionNode.forEachDescendant((node: Tree<Transaction[]>) => {
+  treeForEachDescendant(transactionNode, (node: Tree<Transaction[]>) => {
     repoAbortTransactionsOnNode(repo, node);
   });
 
@@ -1472,8 +1480,8 @@ function repoAbortTransactionsOnNode(
   repo: Repo,
   node: Tree<Transaction[]>
 ): void {
-  const queue = node.getValue();
-  if (queue !== null) {
+  const queue = treeGetValue(node);
+  if (queue) {
     // Queue up the callbacks and fire them after cleaning up all of our
     // transaction state, since the callback could trigger more transactions
     // or sets.
@@ -1519,14 +1527,18 @@ function repoAbortTransactionsOnNode(
     }
     if (lastSent === -1) {
       // We're not waiting for any sent transactions.  We can clear the queue.
-      node.setValue(null);
+      treeSetValue(node, undefined);
     } else {
       // Remove the transactions we aborted.
       queue.length = lastSent + 1;
     }
 
     // Now fire the callbacks.
-    eventQueueRaiseEventsForChangedPath(repo.eventQueue_, node.path(), events);
+    eventQueueRaiseEventsForChangedPath(
+      repo.eventQueue_,
+      treeGetPath(node),
+      events
+    );
     for (let i = 0; i < callbacks.length; i++) {
       exceptionGuard(callbacks[i]);
     }
