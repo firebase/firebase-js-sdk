@@ -49,7 +49,7 @@ firebase emulators:exec --project foo-bar --only auth "yarn test:integration:loc
 ### Selenium Webdriver tests
 
 These tests assume that you have both Firefox and Chrome installed on your
-computer and in your `PATH`. The tests will error out if this is not the case.
+computer and in your `$PATH`. The tests will error out if this is not the case.
 The WebDriver tests talk to the emulator, but unlike the headless integration
 tests, these run in a browser robot environment; the assertions themselves run
 in Node. When you run these tests a small Express server will be started to
