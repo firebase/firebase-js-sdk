@@ -830,14 +830,20 @@ export class DocumentReference<T = PublicDocumentData>
     );
   }
 
+  withConverter(converter: null): PublicDocumentReference<PublicDocumentData>;
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
+  ): PublicDocumentReference<U>;
+  withConverter<U>(
+    converter: PublicFirestoreDataConverter<U> | null
   ): PublicDocumentReference<U> {
     return new DocumentReference<U>(
       this.firestore,
-      this._delegate.withConverter(
-        FirestoreDataConverter.getInstance(this.firestore, converter)
-      )
+      converter
+        ? this._delegate.withConverter(
+            FirestoreDataConverter.getInstance(this.firestore, converter)
+          )
+        : (this._delegate.withConverter(null) as ExpDocumentReference<U>)
     );
   }
 }
@@ -1141,12 +1147,18 @@ export class Query<T = PublicDocumentData>
     return onSnapshot(this._delegate, options, observer);
   }
 
-  withConverter<U>(converter: PublicFirestoreDataConverter<U>): Query<U> {
+  withConverter(converter: null): Query<PublicDocumentData>;
+  withConverter<U>(converter: PublicFirestoreDataConverter<U>): Query<U>;
+  withConverter<U>(
+    converter: PublicFirestoreDataConverter<U> | null
+  ): Query<U> {
     return new Query<U>(
       this.firestore,
-      this._delegate.withConverter(
-        FirestoreDataConverter.getInstance(this.firestore, converter)
-      )
+      converter
+        ? this._delegate.withConverter(
+            FirestoreDataConverter.getInstance(this.firestore, converter)
+          )
+        : (this._delegate.withConverter(null) as ExpQuery<U>)
     );
   }
 }
@@ -1283,14 +1295,20 @@ export class CollectionReference<T = PublicDocumentData>
     return refEqual(this._delegate, other._delegate);
   }
 
+  withConverter(converter: null): CollectionReference<PublicDocumentData>;
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
+  ): CollectionReference<U>;
+  withConverter<U>(
+    converter: PublicFirestoreDataConverter<U> | null
   ): CollectionReference<U> {
     return new CollectionReference<U>(
       this.firestore,
-      this._delegate.withConverter(
-        FirestoreDataConverter.getInstance(this.firestore, converter)
-      )
+      converter
+        ? this._delegate.withConverter(
+            FirestoreDataConverter.getInstance(this.firestore, converter)
+          )
+        : (this._delegate.withConverter(null) as ExpCollectionReference<U>)
     );
   }
 }
