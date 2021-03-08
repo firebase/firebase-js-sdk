@@ -41,6 +41,8 @@ export interface InstanceFactoryOptions {
   options?: Record<string, unknown>;
 }
 
+export type InitializeOptions = InstanceFactoryOptions;
+
 /**
  * Factory to create an instance of type T, given a ComponentContainer.
  * ComponentContainer is the IOC container that provides {@link Provider}
