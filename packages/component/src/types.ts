@@ -38,7 +38,7 @@ export const enum ComponentType {
 
 export interface InstanceFactoryOptions {
   instanceIdentifier?: string;
-  options?: Record<string, unknown>;
+  options?: {};
 }
 
 export type InitializeOptions = InstanceFactoryOptions;
