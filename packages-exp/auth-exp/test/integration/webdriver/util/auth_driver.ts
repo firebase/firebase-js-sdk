@@ -29,6 +29,7 @@ import { JsLoadCondition } from './js_load_condition';
 import { authTestServer } from './test_server';
 
 const START_FUNCTION = 'startAuth';
+const PASSED_ARGS = '...Array.prototype.slice.call(arguments, 0, -1)';
 
 /** Helper wraper around the WebDriver object */
 export class AuthDriver {
@@ -60,7 +61,7 @@ export class AuthDriver {
     } = await this.webDriver.executeAsyncScript(
       `
       var callback = arguments[arguments.length - 1];
-      ${fn}(...arguments).then(result => {
+      ${fn}(${PASSED_ARGS}).then(result => {
         callback({type: 'success', value: JSON.stringify(result)});
       }).catch(e => {
         callback({type: 'error', value: JSON.stringify(e)});
@@ -80,7 +81,7 @@ export class AuthDriver {
   }
 
   async callNoWait(fn: string, ...args: unknown[]): Promise<void> {
-    return this.webDriver.executeScript(`${fn}(...arguments)`, ...args);
+    return this.webDriver.executeScript(`${fn}(${PASSED_ARGS})`, ...args);
   }
 
   async getAuthSnapshot(): Promise<Auth> {
