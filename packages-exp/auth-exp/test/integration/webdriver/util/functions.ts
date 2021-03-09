@@ -17,7 +17,7 @@
 
 /** Available in the browser. See static/anonymous.js */
 export enum AnonFunction {
-  SIGN_IN_ANONYMOUSLY = 'anonymous.anonymous'
+  SIGN_IN_ANONYMOUSLY = 'anonymous.anonymousSignIn'
 }
 
 /** Available redirect functions. See static/redirect.js */

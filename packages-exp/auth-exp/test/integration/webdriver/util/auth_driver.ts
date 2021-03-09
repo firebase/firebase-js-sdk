@@ -46,7 +46,6 @@ export class AuthDriver {
   }
 
   async call<T>(fn: string, ...args: unknown[]): Promise<T> {
-    const argString = args.length ? args.join(', ') : '';
     // When running on firefox we can't just return result immediately. For
     // some reason, the binding ends up causing a cycle dependency issue during
     // serialization which blows up the whole thing. It's okay though; this is
@@ -55,12 +54,12 @@ export class AuthDriver {
     const { type, value }: { type: string; value: string } = await this
       .webDriver.executeAsyncScript(`
       var callback = arguments[arguments.length - 1];
-      ${fn}(${argString}).then(result => {
+      ${fn}(...arguments).then(result => {
         callback({type: 'success', value: JSON.stringify(result)});
       }).catch(e => {
         callback({type: 'error', value: JSON.stringify(e)});
       });
-    `);
+    `, ...args);
 
     const parsed: object = JSON.parse(value);
     if (type === 'success') {
@@ -73,7 +72,7 @@ export class AuthDriver {
   }
 
   async callNoWait(fn: string, ...args: unknown[]): Promise<void> {
-    return this.webDriver.executeScript(`${fn}()`, ...args);
+    return this.webDriver.executeScript(`${fn}(...arguments)`, ...args);
   }
 
   async getAuthSnapshot(): Promise<Auth> {

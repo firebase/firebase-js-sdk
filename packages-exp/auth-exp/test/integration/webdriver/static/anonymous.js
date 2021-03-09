@@ -17,7 +17,7 @@
 
 import { signInAnonymously } from '@firebase/auth-exp';
 
-export async function anonymous() {
+export async function anonymousSignIn() {
   const userCred = await signInAnonymously(auth);
   return userCred;
 }
