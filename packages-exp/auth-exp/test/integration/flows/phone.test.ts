@@ -140,31 +140,31 @@ describe('Integration test: phone auth', () => {
     const { uid: anonId } = user;
 
     const provider = new PhoneAuthProvider(auth);
-      const verificationId = await provider.verifyPhoneNumber(
-        PHONE_B.phoneNumber,
-        verifier
-      );
+    const verificationId = await provider.verifyPhoneNumber(
+      PHONE_B.phoneNumber,
+      verifier
+    );
 
-      await updatePhoneNumber(
-        user,
-        PhoneAuthProvider.credential(
-          verificationId,
-          await code(verificationId, PHONE_B.code)
-        )
-      );
-      expect(user.phoneNumber).to.eq(PHONE_B.phoneNumber);
+    await updatePhoneNumber(
+      user,
+      PhoneAuthProvider.credential(
+        verificationId,
+        await code(verificationId, PHONE_B.code)
+      )
+    );
+    expect(user.phoneNumber).to.eq(PHONE_B.phoneNumber);
 
-      await auth.signOut();
-      resetVerifier();
+    await auth.signOut();
+    resetVerifier();
 
-      const cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier);
-      const { user: secondSignIn } = await cr.confirm(
-        await code(cr, PHONE_B.code)
-      );
-      expect(secondSignIn.uid).to.eq(anonId);
-      expect(secondSignIn.isAnonymous).to.be.false;
-      expect(secondSignIn.providerData[0].phoneNumber).to.eq(PHONE_B.phoneNumber);
-      expect(secondSignIn.providerData[0].providerId).to.eq('phone');
+    const cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier);
+    const { user: secondSignIn } = await cr.confirm(
+      await code(cr, PHONE_B.code)
+    );
+    expect(secondSignIn.uid).to.eq(anonId);
+    expect(secondSignIn.isAnonymous).to.be.false;
+    expect(secondSignIn.providerData[0].phoneNumber).to.eq(PHONE_B.phoneNumber);
+    expect(secondSignIn.providerData[0].providerId).to.eq('phone');
   });
 
   context('with already-created user', () => {

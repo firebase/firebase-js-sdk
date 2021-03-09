@@ -26,7 +26,12 @@ import { expect, use } from 'chai';
 import { IdPPage } from './util/idp_page';
 import * as chaiAsPromised from 'chai-as-promised';
 import { browserDescribe } from './util/test_runner';
-import { AnonFunction, CoreFunction, EmailFunction, RedirectFunction } from './util/functions';
+import {
+  AnonFunction,
+  CoreFunction,
+  EmailFunction,
+  RedirectFunction
+} from './util/functions';
 
 use(chaiAsPromised);
 
@@ -147,7 +152,9 @@ browserDescribe('WebDriver redirect IdP test', driver => {
   });
 
   it('does not auto-upgrade anon accounts', async () => {
-    const {user: anonUser}: UserCredential = await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
+    const { user: anonUser }: UserCredential = await driver.call(
+      AnonFunction.SIGN_IN_ANONYMOUSLY
+    );
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
     await widget.pageLoad();
@@ -162,7 +169,9 @@ browserDescribe('WebDriver redirect IdP test', driver => {
   });
 
   it('linking with anonymous user upgrades account', async () => {
-    const {user: anonUser}: UserCredential = await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
+    const { user: anonUser }: UserCredential = await driver.call(
+      AnonFunction.SIGN_IN_ANONYMOUSLY
+    );
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
     await widget.pageLoad();
@@ -178,8 +187,11 @@ browserDescribe('WebDriver redirect IdP test', driver => {
   });
 
   it('is possible to link with different email', async () => {
-    const {user: emailUser}: UserCredential = await driver.call(EmailFunction.CREATE_USER, 'user@test.test');
-  
+    const { user: emailUser }: UserCredential = await driver.call(
+      EmailFunction.CREATE_USER,
+      'user@test.test'
+    );
+
     // Link using pre-poulated user
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
 
@@ -198,8 +210,11 @@ browserDescribe('WebDriver redirect IdP test', driver => {
   });
 
   it('is possible to link with the same email', async () => {
-    const {user: emailUser}: UserCredential = await driver.call(EmailFunction.CREATE_USER, 'same@test.test');
-  
+    const { user: emailUser }: UserCredential = await driver.call(
+      EmailFunction.CREATE_USER,
+      'same@test.test'
+    );
+
     // Link using pre-poulated user
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
 

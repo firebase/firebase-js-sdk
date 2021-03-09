@@ -48,7 +48,7 @@ export enum PopupFunction {
 
 /** Available email functions. See static/email.js */
 export enum EmailFunction {
-  CREATE_USER = 'email.createUser',
+  CREATE_USER = 'email.createUser'
 }
 
 /** Available core functions within the browser. See static/core.js */
