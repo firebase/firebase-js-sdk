@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { extractQuerystring, querystringDecode } from '@firebase/util';
 import { ActionCodeOperation } from '../model/public_types';
 import { AuthErrorCode } from './errors';
 import { _assert } from './util/assert';
@@ -63,14 +64,18 @@ function parseMode(mode: string | null): ActionCodeOperation | null {
  * @param url
  */
 function parseDeepLink(url: string): string {
-  const uri = new URL(url);
-  const link = uri.searchParams.get('link');
+  const link = querystringDecode(extractQuerystring(url))['link'];
+
   // Double link case (automatic redirect).
-  const doubleDeepLink = link ? new URL(link).searchParams.get('link') : null;
+  const doubleDeepLink = link
+    ? querystringDecode(extractQuerystring(link))['deep_link_id']
+    : null;
   // iOS custom scheme links.
-  const iOSDeepLink = uri.searchParams.get('deep_link_id');
+  const iOSDeepLink = querystringDecode(extractQuerystring(url))[
+    'deep_link_id'
+  ];
   const iOSDoubleDeepLink = iOSDeepLink
-    ? new URL(iOSDeepLink).searchParams.get('link')
+    ? querystringDecode(extractQuerystring(iOSDeepLink))['link']
     : null;
   return iOSDoubleDeepLink || iOSDeepLink || doubleDeepLink || link || url;
 }
@@ -115,18 +120,18 @@ export class ActionCodeURL {
    * @internal
    */
   constructor(actionLink: string) {
-    const uri = new URL(actionLink);
-    const apiKey = uri.searchParams.get(QueryField.API_KEY);
-    const code = uri.searchParams.get(QueryField.CODE);
-    const operation = parseMode(uri.searchParams.get(QueryField.MODE));
+    const searchParams = querystringDecode(extractQuerystring(actionLink));
+    const apiKey = searchParams[QueryField.API_KEY] ?? null;
+    const code = searchParams[QueryField.CODE] ?? null;
+    const operation = parseMode(searchParams[QueryField.MODE] ?? null);
     // Validate API key, code and mode.
     _assert(apiKey && code && operation, AuthErrorCode.ARGUMENT_ERROR);
     this.apiKey = apiKey;
     this.operation = operation;
     this.code = code;
-    this.continueUrl = uri.searchParams.get(QueryField.CONTINUE_URL);
-    this.languageCode = uri.searchParams.get(QueryField.LANGUAGE_CODE);
-    this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
+    this.continueUrl = searchParams[QueryField.CONTINUE_URL] ?? null;
+    this.languageCode = searchParams[QueryField.LANGUAGE_CODE] ?? null;
+    this.tenantId = searchParams[QueryField.TENANT_ID] ?? null;
   }
 
   /**

@@ -9,15 +9,15 @@ Changes the type of persistence on the Auth instance for the currently saved Aut
 <b>Signature:</b>
 
 ```typescript
-export declare function setPersistence(auth: externs.Auth, persistence: externs.Persistence): Promise<void>;
+export declare function setPersistence(auth: Auth, persistence: Persistence): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
-|  persistence | externs.[Persistence](./auth-types.persistence.md) | The [Persistence](./auth-types.persistence.md) to use. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
+|  persistence | [Persistence](./auth.persistence.md) | The [Persistence](./auth.persistence.md) to use. |
 
 <b>Returns:</b>
 

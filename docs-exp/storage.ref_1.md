@@ -16,10 +16,10 @@ export declare function ref(storageOrRef: StorageService | StorageReference, pat
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  storageOrRef | [StorageService](./storage-types.storageservice.md) \| [StorageReference](./storage-types.storagereference.md) | <code>StorageService</code> or <code>StorageReference</code>. |
+|  storageOrRef | [StorageService](./storage.storageservice.md) \| [StorageReference](./storage.storagereference.md) | <code>StorageService</code> or <code>StorageReference</code>. |
 |  path | string |  |
 
 <b>Returns:</b>
 
-[StorageReference](./storage-types.storagereference.md)
+[StorageReference](./storage.storagereference.md)
 

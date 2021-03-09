@@ -55,7 +55,7 @@ export interface IdTokenResponse {
   idToken?: IdToken;
   refreshToken?: string;
   expiresIn?: string;
-  providerId?: ProviderId;
+  providerId?: ProviderId | string;
 
   // Used in AdditionalUserInfo
   displayName?: string | null;

@@ -4,10 +4,10 @@
 
 ## FacebookAuthProvider.PROVIDER\_ID property
 
-Always set to [ProviderId.FACEBOOK](./auth-types.providerid.facebook.md)<!-- -->.
+Always set to [ProviderId.FACEBOOK](./auth.providerid.facebook.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
+static readonly PROVIDER_ID = ProviderId.FACEBOOK;
 ```

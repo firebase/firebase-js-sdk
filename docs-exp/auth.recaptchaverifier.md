@@ -9,9 +9,9 @@ An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application veri
 <b>Signature:</b>
 
 ```typescript
-export declare class RecaptchaVerifier implements externs.RecaptchaVerifier, ApplicationVerifier 
+export declare class RecaptchaVerifier implements ApplicationVerifierInternal 
 ```
-<b>Implements:</b> externs.[RecaptchaVerifier](./auth-types.recaptchaverifier.md)<!-- -->, ApplicationVerifier
+<b>Implements:</b> ApplicationVerifierInternal
 
 ## Constructors
 
@@ -23,7 +23,7 @@ export declare class RecaptchaVerifier implements externs.RecaptchaVerifier, App
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [type](./auth.recaptchaverifier.type.md) |  | (not declared) |  |
+|  [type](./auth.recaptchaverifier.type.md) |  | (not declared) | The application verifier type. |
 
 ## Methods
 

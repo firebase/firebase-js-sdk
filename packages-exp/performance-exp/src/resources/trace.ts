@@ -35,7 +35,7 @@ import {
   isValidMetricName,
   convertMetricValueToInteger
 } from '../utils/metric_utils';
-import { PerformanceTrace } from '@firebase/performance-types-exp';
+import { PerformanceTrace } from '../public_types';
 import { PerformanceController } from '../controllers/perf';
 
 const enum TraceState {

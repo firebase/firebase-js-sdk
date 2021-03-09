@@ -16,7 +16,7 @@ export declare function ensureInitialized(remoteConfig: RemoteConfig): Promise<v
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config-types.remoteconfig.md) | the remote config instance |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
 
 <b>Returns:</b>
 

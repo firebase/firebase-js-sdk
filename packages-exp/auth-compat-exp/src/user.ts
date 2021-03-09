@@ -17,6 +17,8 @@
 
 import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
+import { _savePersistenceForRedirect } from './persistence';
+import { CompatPopupRedirectResolver } from './popup_redirect';
 import {
   convertConfirmationResult,
   convertCredential
@@ -91,15 +93,16 @@ export class User implements compat.User, Wrapper<exp.User> {
       exp.linkWithPopup(
         this.user,
         provider as exp.AuthProvider,
-        exp.browserPopupRedirectResolver
+        CompatPopupRedirectResolver
       )
     );
   }
-  linkWithRedirect(provider: compat.AuthProvider): Promise<void> {
+  async linkWithRedirect(provider: compat.AuthProvider): Promise<void> {
+    await _savePersistenceForRedirect(exp._castAuth(this.auth));
     return exp.linkWithRedirect(
       this.user,
       provider as exp.AuthProvider,
-      exp.browserPopupRedirectResolver
+      CompatPopupRedirectResolver
     );
   }
   reauthenticateAndRetrieveDataWithCredential(
@@ -139,15 +142,18 @@ export class User implements compat.User, Wrapper<exp.User> {
       exp.reauthenticateWithPopup(
         this.user,
         provider as exp.AuthProvider,
-        exp.browserPopupRedirectResolver
+        CompatPopupRedirectResolver
       )
     );
   }
-  reauthenticateWithRedirect(provider: compat.AuthProvider): Promise<void> {
+  async reauthenticateWithRedirect(
+    provider: compat.AuthProvider
+  ): Promise<void> {
+    await _savePersistenceForRedirect(exp._castAuth(this.auth));
     return exp.reauthenticateWithRedirect(
       this.user,
       provider as exp.AuthProvider,
-      exp.browserPopupRedirectResolver
+      CompatPopupRedirectResolver
     );
   }
   sendEmailVerification(

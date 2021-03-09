@@ -1114,6 +1114,15 @@ describe('withConverter() support', () => {
     });
   });
 
+  it('for DocumentReference.withConverter(null) applies default converter', () => {
+    return withTestCollection(async coll => {
+      coll = coll.withConverter(postConverter).withConverter(null);
+      expect(() =>
+        setDoc(doc(coll, 'post1'), new Post('post', 'author'))
+      ).to.throw();
+    });
+  });
+
   it('for CollectionReference.withConverter()', () => {
     return withTestCollection(async coll => {
       coll = coll.withConverter(postConverter);
@@ -1125,14 +1134,36 @@ describe('withConverter() support', () => {
     });
   });
 
-  it('for Query.withConverter()', () => {
-    return withTestCollection(async coll => {
-      coll = coll.withConverter(postConverter);
-      await setDoc(doc(coll, 'post1'), new Post('post1', 'author1'));
-      const posts = await getDocs(coll);
-      expect(posts.size).to.equal(1);
-      expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+  it('for CollectionReference.withConverter(null) applies default converter', () => {
+    return withTestDoc(async doc => {
+      doc = doc.withConverter(postConverter).withConverter(null);
+      expect(() => setDoc(doc, new Post('post', 'author'))).to.throw();
     });
+  });
+
+  it('for Query.withConverter()', () => {
+    return withTestCollectionAndInitialData(
+      [{ title: 'post', author: 'author' }],
+      async collRef => {
+        let query1 = query(collRef, where('title', '==', 'post'));
+        query1 = query1.withConverter(postConverter);
+        const result = await getDocs(query1);
+        expect(result.docs[0].data()).to.be.an.instanceOf(Post);
+        expect(result.docs[0].data()!.byline()).to.equal('post, by author');
+      }
+    );
+  });
+
+  it('for Query.withConverter(null) applies default converter', () => {
+    return withTestCollectionAndInitialData(
+      [{ title: 'post', author: 'author' }],
+      async collRef => {
+        let query1 = query(collRef, where('title', '==', 'post'));
+        query1 = query1.withConverter(postConverter).withConverter(null);
+        const result = await getDocs(query1);
+        expect(result.docs[0]).to.not.be.an.instanceOf(Post);
+      }
+    );
   });
 
   it('keeps the converter when calling parent() with a DocumentReference', () => {

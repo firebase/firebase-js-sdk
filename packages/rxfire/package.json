@@ -32,20 +32,20 @@
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
   },
   "dependencies": {
-    "tslib": "^1.11.1"
+    "tslib": "^2.0.0"
   },
   "peerDependencies": {
     "firebase": ">=8.0.0",
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "8.2.9",
+    "firebase": "8.2.10",
     "rollup": "2.35.1",
-    "@rollup/plugin-commonjs": "15.1.0",
-    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-commonjs": "17.1.0",
+    "@rollup/plugin-node-resolve": "11.2.0",
     "rollup-plugin-typescript2": "0.29.0",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   },
   "files": [
     "/auth/package.json",

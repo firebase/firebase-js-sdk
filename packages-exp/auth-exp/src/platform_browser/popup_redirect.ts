@@ -37,6 +37,7 @@ import { browserSessionPersistence } from './persistence/session_storage';
 import { _open, AuthPopup } from './util/popup';
 import { _getRedirectResult } from './strategies/redirect';
 import { _getRedirectUrl } from '../core/util/handler';
+import { _isIOS, _isMobileBrowser, _isSafari } from '../core/util/browser';
 
 /**
  * The special web storage event
@@ -73,7 +74,6 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
       '_initialize() not called before _openPopup()'
     );
 
-    await this.originValidation(auth);
     const url = _getRedirectUrl(
       auth,
       provider,
@@ -90,7 +90,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
     authType: AuthEventType,
     eventId?: string
   ): Promise<never> {
-    await this.originValidation(auth);
+    await this._originValidation(auth);
     _setWindowLocation(
       _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId)
     );
@@ -154,13 +154,18 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
     );
   }
 
-  private originValidation(auth: AuthInternal): Promise<void> {
+  _originValidation(auth: AuthInternal): Promise<void> {
     const key = auth._key();
     if (!this.originValidationPromises[key]) {
       this.originValidationPromises[key] = _validateOrigin(auth);
     }
 
     return this.originValidationPromises[key];
+  }
+
+  get _shouldInitProactively(): boolean {
+    // Mobile browsers and Safari need to optimistically initialize
+    return _isMobileBrowser() || _isSafari() || _isIOS();
   }
 
   _completeRedirectFn = _getRedirectResult;

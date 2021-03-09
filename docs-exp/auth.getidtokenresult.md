@@ -9,19 +9,19 @@ Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Fire
 <b>Signature:</b>
 
 ```typescript
-export declare function getIdTokenResult(user: externs.User, forceRefresh?: boolean): Promise<externs.IdTokenResult>;
+export declare function getIdTokenResult(user: User, forceRefresh?: boolean): Promise<IdTokenResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
+|  user | [User](./auth.user.md) | The user. |
 |  forceRefresh | boolean | Force refresh regardless of token expiration. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[IdTokenResult](./auth-types.idtokenresult.md)<!-- -->&gt;
+Promise&lt;[IdTokenResult](./auth.idtokenresult.md)<!-- -->&gt;
 
 ## Remarks
 

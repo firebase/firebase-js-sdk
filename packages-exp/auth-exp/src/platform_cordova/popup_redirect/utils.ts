@@ -27,6 +27,7 @@ import { _isAndroid, _isIOS, _isIOS7Or8 } from '../../core/util/browser';
 import { _getRedirectUrl } from '../../core/util/handler';
 import { AuthInternal } from '../../model/auth';
 import { AuthEvent } from '../../model/popup_redirect';
+import { InAppBrowserRef, _cordovaWindow } from '../plugins';
 
 /**
  * How long to wait after the app comes back into focus before concluding that
@@ -42,6 +43,8 @@ export async function _generateHandlerUrl(
   event: AuthEvent,
   provider: AuthProvider
 ): Promise<string> {
+  // Get the cordova plugins
+  const { BuildInfo } = _cordovaWindow();
   debugAssert(event.sessionId, 'AuthEvent did not contain a session ID');
   const sessionDigest = await computeSha256(event.sessionId);
 
@@ -76,6 +79,9 @@ export async function _generateHandlerUrl(
 export function _performRedirect(
   handlerUrl: string
 ): Promise<InAppBrowserRef | null> {
+  // Get the cordova plugins
+  const { cordova } = _cordovaWindow();
+
   return new Promise(resolve => {
     cordova.plugins.browsertab.isAvailable(browserTabIsAvailable => {
       let iabRef: InAppBrowserRef | null = null;
@@ -111,6 +117,9 @@ export async function _waitForAppResume(
   eventListener: PassiveAuthEventListener,
   iabRef: InAppBrowserRef | null
 ): Promise<void> {
+  // Get the cordova plugins
+  const { cordova } = _cordovaWindow();
+
   let cleanup = (): void => {};
   try {
     await new Promise<void>((resolve, reject) => {
@@ -185,13 +194,14 @@ export async function _waitForAppResume(
  * missing plugin.
  */
 export function _checkCordovaConfiguration(auth: AuthInternal): void {
+  const win = _cordovaWindow();
   // Check all dependencies installed.
   // https://github.com/nordnet/cordova-universal-links-plugin
   // Note that cordova-universal-links-plugin has been abandoned.
   // A fork with latest fixes is available at:
   // https://www.npmjs.com/package/cordova-universal-links-plugin-fix
   _assert(
-    typeof window?.universalLinks?.subscribe === 'function',
+    typeof win?.universalLinks?.subscribe === 'function',
     auth,
     AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
     {
@@ -201,7 +211,7 @@ export function _checkCordovaConfiguration(auth: AuthInternal): void {
 
   // https://www.npmjs.com/package/cordova-plugin-buildinfo
   _assert(
-    typeof window?.BuildInfo?.packageName !== 'undefined',
+    typeof win?.BuildInfo?.packageName !== 'undefined',
     auth,
     AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
     {
@@ -211,7 +221,7 @@ export function _checkCordovaConfiguration(auth: AuthInternal): void {
 
   // https://github.com/google/cordova-plugin-browsertab
   _assert(
-    typeof window?.cordova?.plugins?.browsertab?.openUrl === 'function',
+    typeof win?.cordova?.plugins?.browsertab?.openUrl === 'function',
     auth,
     AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
     {
@@ -219,7 +229,7 @@ export function _checkCordovaConfiguration(auth: AuthInternal): void {
     }
   );
   _assert(
-    typeof window?.cordova?.plugins?.browsertab?.isAvailable === 'function',
+    typeof win?.cordova?.plugins?.browsertab?.isAvailable === 'function',
     auth,
     AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
     {
@@ -229,7 +239,7 @@ export function _checkCordovaConfiguration(auth: AuthInternal): void {
 
   // https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-inappbrowser/
   _assert(
-    typeof window?.cordova?.InAppBrowser?.open === 'function',
+    typeof win?.cordova?.InAppBrowser?.open === 'function',
     auth,
     AuthErrorCode.INVALID_CORDOVA_CONFIGURATION,
     {

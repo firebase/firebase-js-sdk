@@ -165,7 +165,7 @@ describe('core/credentials/oauth', () => {
       expect(request.requestUri).to.eq('http://localhost');
       expect(request.returnSecureToken).to.be.true;
       expect(request.pendingToken).to.eq('pending-token');
-      expect(request.postBody).to.be.null;
+      expect(request.postBody).to.be.undefined;
     });
   });
 

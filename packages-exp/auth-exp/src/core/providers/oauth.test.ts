@@ -78,6 +78,28 @@ describe('core/providers/oauth', () => {
     expect(OAuthProvider.credentialFromResult(userCred)).to.be.null;
   });
 
+  it('credentialFromResult works for oidc', async () => {
+    const auth = await testAuth();
+    const userCred = new UserCredentialImpl({
+      user: testUser(auth, 'uid'),
+      providerId: ProviderId.GOOGLE,
+      _tokenResponse: {
+        ...TEST_ID_TOKEN_RESPONSE,
+        pendingToken: 'pending-token',
+        oauthIdToken: 'id-token',
+        providerId: 'oidc.oidctest'
+      },
+      operationType: OperationType.SIGN_IN
+    });
+    const cred = OAuthProvider.credentialFromResult(userCred)!;
+    expect(cred.idToken).to.eq('id-token');
+    expect(cred.providerId).to.eq('oidc.oidctest');
+    expect(cred.signInMethod).to.eq('oidc.oidctest');
+    expect((cred.toJSON() as Record<string, string>).pendingToken).to.eq(
+      'pending-token'
+    );
+  });
+
   it('credentialFromError creates the cred from a tagged error', () => {
     const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
       appName: 'foo'

@@ -31,6 +31,8 @@ declare global {
   }
 }
 
+const CORDOVA_ONDEVICEREADY_TIMEOUT_MS = 1000;
+
 function _getCurrentScheme(): string | null {
   return self?.location?.protocol || null;
 }
@@ -47,7 +49,7 @@ function _isHttpOrHttps(): boolean {
  * @return {boolean} Whether the app is rendered in a mobile iOS or Android
  *     Cordova environment.
  */
-function _isAndroidOrIosCordovaScheme(ua: string = getUA()): boolean {
+export function _isAndroidOrIosCordovaScheme(ua: string = getUA()): boolean {
   return !!(
     (_getCurrentScheme() === 'file:' || _getCurrentScheme() === 'ionic:') &&
     ua.toLowerCase().match(/iphone|ipad|ipod|android/)
@@ -158,4 +160,27 @@ export function _getClientPlatform(): impl.ClientPlatform {
     return impl.ClientPlatform.WORKER;
   }
   return impl.ClientPlatform.BROWSER;
+}
+
+/** Quick check that indicates the platform *may* be Cordova */
+export function _isLikelyCordova(): boolean {
+  return _isAndroidOrIosCordovaScheme() && typeof document !== 'undefined';
+}
+
+export async function _isCordova(): Promise<boolean> {
+  if (!_isLikelyCordova()) {
+    return false;
+  }
+
+  return new Promise(resolve => {
+    const timeoutId = setTimeout(() => {
+      // We've waited long enough; the telltale Cordova event didn't happen
+      resolve(false);
+    }, CORDOVA_ONDEVICEREADY_TIMEOUT_MS);
+
+    document.addEventListener('deviceready', () => {
+      clearTimeout(timeoutId);
+      resolve(true);
+    });
+  });
 }

@@ -24,7 +24,6 @@ import {
   STORAGE_AVAILABLE_KEY,
   StorageEventListener
 } from '../../core/persistence';
-import { debugFail } from '../../core/util/assert';
 
 /**
  * Returns a persistence class that wraps AsyncStorage imported from
@@ -74,11 +73,13 @@ export function getReactNativePersistence(
     }
 
     _addListener(_key: string, _listener: StorageEventListener): void {
-      debugFail('not implemented');
+      // Listeners are not supported for React Native storage.
+      return;
     }
 
     _removeListener(_key: string, _listener: StorageEventListener): void {
-      debugFail('not implemented');
+      // Listeners are not supported for React Native storage.
+      return;
     }
   };
 }

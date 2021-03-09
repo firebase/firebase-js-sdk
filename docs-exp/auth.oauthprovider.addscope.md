@@ -9,7 +9,7 @@ Add an OAuth scope to the credential.
 <b>Signature:</b>
 
 ```typescript
-addScope(scope: string): externs.AuthProvider;
+addScope(scope: string): AuthProvider;
 ```
 
 ## Parameters
@@ -20,5 +20,5 @@ addScope(scope: string): externs.AuthProvider;
 
 <b>Returns:</b>
 
-externs.[AuthProvider](./auth-types.authprovider.md)
+[AuthProvider](./auth.authprovider.md)
 

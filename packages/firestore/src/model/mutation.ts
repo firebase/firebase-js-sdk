@@ -91,9 +91,9 @@ export class MutationResult {
      * containing field transforms has been committed. Contains one FieldValue
      * for each FieldTransform that was in the mutation.
      *
-     * Will be null if the mutation did not contain any field transforms.
+     * Will be empty if the mutation did not contain any field transforms.
      */
-    readonly transformResults: Array<ProtoValue | null> | null
+    readonly transformResults: Array<ProtoValue | null>
   ) {}
 }
 
@@ -434,18 +434,16 @@ function applySetMutationToRemoteDocument(
   // remote document the server has accepted the mutation so the precondition
   // must have held.
   let newData = mutation.value;
-  if (mutationResult.transformResults) {
-    const transformResults = serverTransformResults(
-      mutation.fieldTransforms,
-      maybeDoc,
-      mutationResult.transformResults
-    );
-    newData = transformObject(
-      mutation.fieldTransforms,
-      newData,
-      transformResults
-    );
-  }
+  const transformResults = serverTransformResults(
+    mutation.fieldTransforms,
+    maybeDoc,
+    mutationResult.transformResults
+  );
+  newData = transformObject(
+    mutation.fieldTransforms,
+    newData,
+    transformResults
+  );
 
   return new Document(mutation.key, mutationResult.version, newData, {
     hasCommittedMutations: true
@@ -519,13 +517,11 @@ function applyPatchMutationToRemoteDocument(
     return new UnknownDocument(mutation.key, mutationResult.version);
   }
 
-  const transformResults = mutationResult.transformResults
-    ? serverTransformResults(
-        mutation.fieldTransforms,
-        maybeDoc,
-        mutationResult.transformResults
-      )
-    : [];
+  const transformResults = serverTransformResults(
+    mutation.fieldTransforms,
+    maybeDoc,
+    mutationResult.transformResults
+  );
   const newData = patchDocument(mutation, maybeDoc, transformResults);
   return new Document(mutation.key, mutationResult.version, newData, {
     hasCommittedMutations: true
@@ -701,7 +697,7 @@ function applyDeleteMutationToRemoteDocument(
   mutationResult: MutationResult
 ): NoDocument {
   debugAssert(
-    mutationResult.transformResults == null,
+    mutationResult.transformResults.length === 0,
     'Transform results received by DeleteMutation.'
   );
 

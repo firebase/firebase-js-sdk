@@ -9,18 +9,18 @@ Asynchronously signs in as an anonymous user.
 <b>Signature:</b>
 
 ```typescript
-export declare function signInAnonymously(auth: externs.Auth): Promise<externs.UserCredential>;
+export declare function signInAnonymously(auth: Auth): Promise<UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md)<!-- -->&gt;
 
 ## Remarks
 

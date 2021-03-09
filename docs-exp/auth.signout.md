@@ -9,14 +9,14 @@ Signs out the current user.
 <b>Signature:</b>
 
 ```typescript
-export declare function signOut(auth: externs.Auth): Promise<void>;
+export declare function signOut(auth: Auth): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 
 <b>Returns:</b>
 

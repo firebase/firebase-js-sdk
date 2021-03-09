@@ -18,6 +18,12 @@
 import { nameCompare } from './util';
 import { stringLength } from '@firebase/util';
 
+/** Maximum key depth. */
+const MAX_PATH_DEPTH = 32;
+
+/** Maximum number of (UTF8) bytes in a Firebase path. */
+const MAX_PATH_LENGTH_BYTES = 768;
+
 /**
  * An immutable object representing a parsed path.  It's immutable so that you
  * can pass them around to other functions without worrying about them changing
@@ -252,15 +258,15 @@ export function pathContains(path: Path, other: Path): boolean {
  * The definition of a path always begins with '/'.
  */
 export class ValidationPath {
-  private parts_: string[];
+  parts_: string[];
   /** Initialize to number of '/' chars needed in path. */
-  private byteLength_: number;
+  byteLength_: number;
 
   /**
    * @param path Initial Path.
    * @param errorPrefix_ Prefix for any error messages.
    */
-  constructor(path: Path, private errorPrefix_: string) {
+  constructor(path: Path, public errorPrefix_: string) {
     this.parts_ = pathSlice(path, 0);
     /** Initialize to number of '/' chars needed in path. */
     this.byteLength_ = Math.max(1, this.parts_.length);
@@ -268,68 +274,62 @@ export class ValidationPath {
     for (let i = 0; i < this.parts_.length; i++) {
       this.byteLength_ += stringLength(this.parts_[i]);
     }
-    this.checkValid_();
+    validationPathCheckValid(this);
   }
+}
 
-  /** @const {number} Maximum key depth. */
-  static get MAX_PATH_DEPTH() {
-    return 32;
+export function validationPathPush(
+  validationPath: ValidationPath,
+  child: string
+): void {
+  // Count the needed '/'
+  if (validationPath.parts_.length > 0) {
+    validationPath.byteLength_ += 1;
   }
+  validationPath.parts_.push(child);
+  validationPath.byteLength_ += stringLength(child);
+  validationPathCheckValid(validationPath);
+}
 
-  /** @const {number} Maximum number of (UTF8) bytes in a Firebase path. */
-  static get MAX_PATH_LENGTH_BYTES() {
-    return 768;
+export function validationPathPop(validationPath: ValidationPath): void {
+  const last = validationPath.parts_.pop();
+  validationPath.byteLength_ -= stringLength(last);
+  // Un-count the previous '/'
+  if (validationPath.parts_.length > 0) {
+    validationPath.byteLength_ -= 1;
   }
+}
 
-  /** @param child */
-  push(child: string) {
-    // Count the needed '/'
-    if (this.parts_.length > 0) {
-      this.byteLength_ += 1;
-    }
-    this.parts_.push(child);
-    this.byteLength_ += stringLength(child);
-    this.checkValid_();
+function validationPathCheckValid(validationPath: ValidationPath): void {
+  if (validationPath.byteLength_ > MAX_PATH_LENGTH_BYTES) {
+    throw new Error(
+      validationPath.errorPrefix_ +
+        'has a key path longer than ' +
+        MAX_PATH_LENGTH_BYTES +
+        ' bytes (' +
+        validationPath.byteLength_ +
+        ').'
+    );
   }
+  if (validationPath.parts_.length > MAX_PATH_DEPTH) {
+    throw new Error(
+      validationPath.errorPrefix_ +
+        'path specified exceeds the maximum depth that can be written (' +
+        MAX_PATH_DEPTH +
+        ') or object contains a cycle ' +
+        validationPathToErrorString(validationPath)
+    );
+  }
+}
 
-  pop() {
-    const last = this.parts_.pop();
-    this.byteLength_ -= stringLength(last);
-    // Un-count the previous '/'
-    if (this.parts_.length > 0) {
-      this.byteLength_ -= 1;
-    }
+/**
+ * String for use in error messages - uses '.' notation for path.
+ */
+export function validationPathToErrorString(
+  validationPath: ValidationPath
+): string {
+  if (validationPath.parts_.length === 0) {
+    return '';
   }
-
-  private checkValid_() {
-    if (this.byteLength_ > ValidationPath.MAX_PATH_LENGTH_BYTES) {
-      throw new Error(
-        this.errorPrefix_ +
-          'has a key path longer than ' +
-          ValidationPath.MAX_PATH_LENGTH_BYTES +
-          ' bytes (' +
-          this.byteLength_ +
-          ').'
-      );
-    }
-    if (this.parts_.length > ValidationPath.MAX_PATH_DEPTH) {
-      throw new Error(
-        this.errorPrefix_ +
-          'path specified exceeds the maximum depth that can be written (' +
-          ValidationPath.MAX_PATH_DEPTH +
-          ') or object contains a cycle ' +
-          this.toErrorString()
-      );
-    }
-  }
-
-  /**
-   * String for use in error messages - uses '.' notation for path.
-   */
-  toErrorString(): string {
-    if (this.parts_.length === 0) {
-      return '';
-    }
-    return "in property '" + this.parts_.join('.') + "'";
-  }
+  return "in property '" + validationPath.parts_.join('.') + "'";
 }

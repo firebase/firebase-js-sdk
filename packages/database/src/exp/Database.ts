@@ -16,9 +16,9 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, FirebaseApp, _FirebaseService } from '@firebase/app-exp';
+import { _FirebaseService, _getProvider, FirebaseApp } from '@firebase/app-exp';
 import { Reference } from '../api/Reference';
-import { RepoManager } from '../core/RepoManager';
+import { repoManagerDatabaseFromApp } from '../core/RepoManager';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Database } from '../api/Database';
 import { Provider } from '@firebase/component';
@@ -36,10 +36,11 @@ export class FirebaseDatabase implements _FirebaseService {
     authProvider: Provider<FirebaseAuthInternalName>,
     databaseUrl?: string
   ) {
-    this._delegate = RepoManager.getInstance().databaseFromApp(
+    this._delegate = repoManagerDatabaseFromApp(
       this.app,
       authProvider,
-      databaseUrl
+      databaseUrl,
+      undefined
     );
   }
 

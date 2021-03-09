@@ -9,18 +9,18 @@ Gets all config.
 <b>Signature:</b>
 
 ```typescript
-export declare function getAll(remoteConfig: RemoteConfig): Record<string, ValueType>;
+export declare function getAll(remoteConfig: RemoteConfig): Record<string, Value>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config-types.remoteconfig.md) | the remote config instance |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
 
 <b>Returns:</b>
 
-Record&lt;string, [ValueType](./remote-config-types.value.md)<!-- -->&gt;
+Record&lt;string, [Value](./remote-config.value.md)<!-- -->&gt;
 
 all config
 

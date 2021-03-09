@@ -32,7 +32,10 @@ import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
 import { _withDefaultResolver } from '../../core/util/resolver';
-import { RedirectAction } from '../../core/strategies/redirect';
+import {
+  RedirectAction,
+  _setPendingRedirectStatus
+} from '../../core/strategies/redirect';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.
@@ -93,7 +96,10 @@ export async function _signInWithRedirect(
     AuthErrorCode.ARGUMENT_ERROR
   );
 
-  return _withDefaultResolver(authInternal, resolver)._openRedirect(
+  const resolverInternal = _withDefaultResolver(authInternal, resolver);
+  await _setPendingRedirectStatus(resolverInternal, authInternal);
+
+  return resolverInternal._openRedirect(
     authInternal,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
@@ -153,6 +159,7 @@ export async function _reauthenticateWithRedirect(
 
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
+  await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
 
   const eventId = await prepareUserForRedirect(userInternal);
   return resolverInternal._openRedirect(
@@ -209,8 +216,9 @@ export async function _linkWithRedirect(
 
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
-
   await _assertLinkedStatus(false, userInternal, provider.providerId);
+  await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
+
   const eventId = await prepareUserForRedirect(userInternal);
   return resolverInternal._openRedirect(
     userInternal.auth,

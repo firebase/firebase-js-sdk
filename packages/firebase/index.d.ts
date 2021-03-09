@@ -4479,7 +4479,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'add_shipping_info',
-      eventParams: {
+      eventParams?: {
         coupon?: EventParams['coupon'];
         currency?: EventParams['currency'];
         items?: EventParams['items'];
@@ -4500,7 +4500,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
-      eventParams: {
+      eventParams?: {
         currency?: EventParams['currency'];
         value?: EventParams['value'];
         items?: EventParams['items'];
@@ -4519,7 +4519,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'begin_checkout',
-      eventParams: {
+      eventParams?: {
         currency?: EventParams['currency'];
         coupon?: EventParams['coupon'];
         value?: EventParams['value'];
@@ -4539,7 +4539,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'checkout_progress',
-      eventParams: {
+      eventParams?: {
         currency?: EventParams['currency'];
         coupon?: EventParams['coupon'];
         value?: EventParams['value'];
@@ -4561,7 +4561,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'exception',
-      eventParams: {
+      eventParams?: {
         description?: EventParams['description'];
         fatal?: EventParams['fatal'];
         [key: string]: any;
@@ -4579,7 +4579,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'generate_lead',
-      eventParams: {
+      eventParams?: {
         value?: EventParams['value'];
         currency?: EventParams['currency'];
         transaction_id?: EventParams['transaction_id'];
@@ -4598,7 +4598,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'login',
-      eventParams: {
+      eventParams?: {
         method?: EventParams['method'];
         [key: string]: any;
       },
@@ -4615,7 +4615,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'page_view',
-      eventParams: {
+      eventParams?: {
         page_title?: string;
         page_location?: string;
         page_path?: string;
@@ -4634,7 +4634,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'purchase' | 'refund',
-      eventParams: {
+      eventParams?: {
         value?: EventParams['value'];
         currency?: EventParams['currency'];
         transaction_id: EventParams['transaction_id'];
@@ -4658,7 +4658,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'screen_view',
-      eventParams: {
+      eventParams?: {
         app_name: string;
         screen_name: EventParams['screen_name'];
         app_id?: string;
@@ -4679,7 +4679,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'search' | 'view_search_results',
-      eventParams: {
+      eventParams?: {
         search_term?: EventParams['search_term'];
         [key: string]: any;
       },
@@ -4696,7 +4696,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'select_content',
-      eventParams: {
+      eventParams?: {
         items?: EventParams['items'];
         promotions?: EventParams['promotions'];
         content_type?: EventParams['content_type'];
@@ -4716,7 +4716,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'select_item',
-      eventParams: {
+      eventParams?: {
         items?: EventParams['items'];
         item_list_name?: EventParams['item_list_name'];
         item_list_id?: EventParams['item_list_id'];
@@ -4735,7 +4735,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'select_promotion' | 'view_promotion',
-      eventParams: {
+      eventParams?: {
         items?: EventParams['items'];
         promotion_id?: EventParams['promotion_id'];
         promotion_name?: EventParams['promotion_name'];
@@ -4754,7 +4754,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'set_checkout_option',
-      eventParams: {
+      eventParams?: {
         checkout_step?: EventParams['checkout_step'];
         checkout_option?: EventParams['checkout_option'];
         [key: string]: any;
@@ -4772,7 +4772,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'share',
-      eventParams: {
+      eventParams?: {
         method?: EventParams['method'];
         content_type?: EventParams['content_type'];
         content_id?: EventParams['content_id'];
@@ -4791,7 +4791,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'sign_up',
-      eventParams: {
+      eventParams?: {
         method?: EventParams['method'];
         [key: string]: any;
       },
@@ -4808,7 +4808,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'timing_complete',
-      eventParams: {
+      eventParams?: {
         name: string;
         value: number;
         event_category?: string;
@@ -4828,7 +4828,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'view_cart' | 'view_item',
-      eventParams: {
+      eventParams?: {
         currency?: EventParams['currency'];
         items?: EventParams['items'];
         value?: EventParams['value'];
@@ -4847,7 +4847,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'view_item_list',
-      eventParams: {
+      eventParams?: {
         items?: EventParams['items'];
         item_list_name?: EventParams['item_list_name'];
         item_list_id?: EventParams['item_list_id'];
@@ -9089,7 +9089,26 @@ declare namespace firebase.firestore {
      * provided converter will convert between Firestore data and your custom
      * type U.
      *
-     * @param converter Converts objects to and from Firestore.
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
+     * @return A DocumentReference<U> that uses the provided converter.
+     */
+    withConverter(converter: null): DocumentReference<DocumentData>;
+    /**
+     * Applies a custom data converter to this DocumentReference, allowing you
+     * to use your own custom model objects with Firestore. When you call
+     * set(), get(), etc. on the returned DocumentReference instance, the
+     * provided converter will convert between Firestore data and your custom
+     * type U.
+     *
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
      * @return A DocumentReference<U> that uses the provided converter.
      */
     withConverter<U>(
@@ -9544,7 +9563,25 @@ declare namespace firebase.firestore {
      * returned Query, the provided converter will convert between Firestore
      * data and your custom type U.
      *
-     * @param converter Converts objects to and from Firestore.
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
+     * @return A Query<U> that uses the provided converter.
+     */
+    withConverter(converter: null): Query<DocumentData>;
+    /**
+     * Applies a custom data converter to this Query, allowing you to use your
+     * own custom model objects with Firestore. When you call get() on the
+     * returned Query, the provided converter will convert between Firestore
+     * data and your custom type U.
+     *
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
      * @return A Query<U> that uses the provided converter.
      */
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
@@ -9700,7 +9737,25 @@ declare namespace firebase.firestore {
      * on the returned CollectionReference instance, the provided converter will
      * convert between Firestore data and your custom type U.
      *
-     * @param converter Converts objects to and from Firestore.
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
+     * @return A CollectionReference<U> that uses the provided converter.
+     */
+    withConverter(converter: null): CollectionReference<DocumentData>;
+    /**
+     * Applies a custom data converter to this CollectionReference, allowing you
+     * to use your own custom model objects with Firestore. When you call add()
+     * on the returned CollectionReference instance, the provided converter will
+     * convert between Firestore data and your custom type U.
+     *
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
      * @return A CollectionReference<U> that uses the provided converter.
      */
     withConverter<U>(

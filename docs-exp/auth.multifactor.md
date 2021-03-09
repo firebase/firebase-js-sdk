@@ -4,23 +4,23 @@
 
 ## multiFactor() function
 
-The [MultiFactorUser](./auth-types.multifactoruser.md) corresponding to the user.
+The [MultiFactorUser](./auth.multifactoruser.md) corresponding to the user.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function multiFactor(user: externs.User): externs.MultiFactorUser;
+export declare function multiFactor(user: User): MultiFactorUser;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
+|  user | [User](./auth.user.md) | The user. |
 
 <b>Returns:</b>
 
-externs.[MultiFactorUser](./auth-types.multifactoruser.md)
+[MultiFactorUser](./auth.multifactoruser.md)
 
 ## Remarks
 

@@ -21,7 +21,7 @@ import { Auth } from '../../model/public_types';
 
 export interface SignInWithIdpRequest {
   requestUri: string;
-  postBody: string | null;
+  postBody?: string;
   sessionId?: string;
   tenantId?: string;
   returnSecureToken: boolean;

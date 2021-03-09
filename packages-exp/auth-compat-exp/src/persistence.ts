@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { _assert, AuthErrorCode, Auth } from '@firebase/auth-exp/internal';
+import { AuthInternal } from '@firebase/auth-exp/dist/esm5/src/model/auth';
+import * as exp from '@firebase/auth-exp/internal';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
 import { _isWebStorageSupported, _isWorker } from './platform';
 
@@ -25,18 +26,22 @@ export const Persistence = {
   SESSION: 'SESSION'
 };
 
+const _assert: typeof exp._assert = exp._assert;
+
+const PERSISTENCE_KEY = 'persistence';
+
 /**
  * Validates that an argument is a valid persistence value. If an invalid type
  * is specified, an error is thrown synchronously.
  */
 export function _validatePersistenceArgument(
-  auth: Auth,
+  auth: exp.Auth,
   persistence: string
 ): void {
   _assert(
     Object.values(Persistence).includes(persistence),
     auth,
-    AuthErrorCode.INVALID_PERSISTENCE
+    exp.AuthErrorCode.INVALID_PERSISTENCE
   );
   // Validate if the specified type is supported in the current environment.
   if (isReactNative()) {
@@ -44,7 +49,7 @@ export function _validatePersistenceArgument(
     _assert(
       persistence !== Persistence.SESSION,
       auth,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE
+      exp.AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
@@ -53,7 +58,7 @@ export function _validatePersistenceArgument(
     _assert(
       persistence === Persistence.NONE,
       auth,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE
+      exp.AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
@@ -64,7 +69,7 @@ export function _validatePersistenceArgument(
       persistence === Persistence.NONE ||
         (persistence === Persistence.LOCAL && isIndexedDBAvailable()),
       auth,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE
+      exp.AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
@@ -72,6 +77,55 @@ export function _validatePersistenceArgument(
   _assert(
     persistence === Persistence.NONE || _isWebStorageSupported(),
     auth,
-    AuthErrorCode.UNSUPPORTED_PERSISTENCE
+    exp.AuthErrorCode.UNSUPPORTED_PERSISTENCE
   );
+}
+
+export async function _savePersistenceForRedirect(
+  auth: AuthInternal
+): Promise<void> {
+  await auth._initializationPromise;
+
+  const win = getSelfWindow();
+  const key = exp._persistenceKeyName(
+    PERSISTENCE_KEY,
+    auth.config.apiKey,
+    auth.name
+  );
+  if (win?.sessionStorage) {
+    win.sessionStorage.setItem(key, auth._getPersistence());
+  }
+}
+
+export function _getPersistenceFromRedirect(
+  auth: AuthInternal
+): exp.Persistence | null {
+  const win = getSelfWindow();
+  if (!win?.sessionStorage) {
+    return null;
+  }
+
+  const key = exp._persistenceKeyName(
+    PERSISTENCE_KEY,
+    auth.config.apiKey,
+    auth.name
+  );
+  const persistence = win.sessionStorage.getItem(key);
+
+  switch (persistence) {
+    case exp.inMemoryPersistence.type:
+      return exp.inMemoryPersistence;
+    case exp.indexedDBLocalPersistence.type:
+      return exp.indexedDBLocalPersistence;
+    case exp.browserSessionPersistence.type:
+      return exp.browserSessionPersistence;
+    case exp.browserLocalPersistence.type:
+      return exp.browserLocalPersistence;
+    default:
+      return null;
+  }
+}
+
+function getSelfWindow(): Window | null {
+  return typeof window !== 'undefined' ? window : null;
 }

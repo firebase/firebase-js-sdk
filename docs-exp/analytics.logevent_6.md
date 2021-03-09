@@ -23,10 +23,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'gener
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'generate\_lead' |  |
-|  eventParams | { value?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['value'\]; currency?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['currency'\]; transaction\_id?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['transaction\_id'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { value?: [EventParams](./analytics.eventparams.md)<!-- -->\['value'\]; currency?: [EventParams](./analytics.eventparams.md)<!-- -->\['currency'\]; transaction\_id?: [EventParams](./analytics.eventparams.md)<!-- -->\['transaction\_id'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

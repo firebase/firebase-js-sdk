@@ -117,13 +117,6 @@ describe('platform_browser/popup_redirect', () => {
       );
     });
 
-    it('validates the origin', async () => {
-      await resolver._initialize(auth);
-
-      await resolver._openPopup(auth, provider, event);
-      expect(validateOrigin._validateOrigin).to.have.been.calledWith(auth);
-    });
-
     it('throws an error if apiKey is unspecified', async () => {
       delete (auth.config as Partial<Config>).apiKey;
       await resolver._initialize(auth);
@@ -131,17 +124,6 @@ describe('platform_browser/popup_redirect', () => {
       await expect(
         resolver._openPopup(auth, provider, event)
       ).to.be.rejectedWith(FirebaseError, 'auth/invalid-api-key');
-    });
-
-    it('rejects immediately if origin validation fails', async () => {
-      await resolver._initialize(auth);
-      (validateOrigin._validateOrigin as sinon.SinonStub).returns(
-        Promise.reject(new Error('invalid-origin'))
-      );
-
-      await expect(
-        resolver._openPopup(auth, provider, event)
-      ).to.be.rejectedWith(Error, 'invalid-origin');
     });
   });
 
@@ -210,6 +192,27 @@ describe('platform_browser/popup_redirect', () => {
       await expect(
         resolver._openRedirect(auth, provider, event)
       ).to.be.rejectedWith(Error, 'invalid-origin');
+    });
+  });
+
+  context('#_originValidation', () => {
+    it('validates the origin', async () => {
+      await resolver._initialize(auth);
+
+      await resolver._originValidation(auth);
+      expect(validateOrigin._validateOrigin).to.have.been.calledWith(auth);
+    });
+
+    it('rejects if origin validation fails', async () => {
+      await resolver._initialize(auth);
+      (validateOrigin._validateOrigin as sinon.SinonStub).returns(
+        Promise.reject(new Error('invalid-origin'))
+      );
+
+      await expect(resolver._originValidation(auth)).to.be.rejectedWith(
+        Error,
+        'invalid-origin'
+      );
     });
   });
 

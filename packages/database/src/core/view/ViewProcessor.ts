@@ -588,7 +588,7 @@ export class ViewProcessor {
     viewMergeTree.children.inorderTraversal((childKey, childMergeTree) => {
       const isUnknownDeepMerge =
         !viewCache.getServerCache().isCompleteForChild(childKey) &&
-        childMergeTree.value == null;
+        childMergeTree.value === undefined;
       if (!serverNode.hasChild(childKey) && !isUnknownDeepMerge) {
         const serverChild = viewCache
           .getServerCache()

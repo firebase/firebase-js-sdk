@@ -13,5 +13,5 @@ export declare function getApps(): FirebaseApp[];
 ```
 <b>Returns:</b>
 
-[FirebaseApp](./app-types.firebaseapp.md)<!-- -->\[\]
+[FirebaseApp](./app.firebaseapp.md)<!-- -->\[\]
 

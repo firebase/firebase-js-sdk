@@ -42,15 +42,30 @@ export function querystring(querystringParams: {
  * Decodes a querystring (e.g. ?arg=val&arg2=val2) into a params object
  * (e.g. {arg: 'val', arg2: 'val2'})
  */
-export function querystringDecode(querystring: string): object {
-  const obj: { [key: string]: unknown } = {};
+export function querystringDecode(querystring: string): Record<string, string> {
+  const obj: Record<string, string> = {};
   const tokens = querystring.replace(/^\?/, '').split('&');
 
   tokens.forEach(token => {
     if (token) {
-      const key = token.split('=');
-      obj[key[0]] = key[1];
+      const [key, value] = token.split('=');
+      obj[decodeURIComponent(key)] = decodeURIComponent(value);
     }
   });
   return obj;
+}
+
+/**
+ * Extract the query string part of a URL, including the leading question mark (if present).
+ */
+export function extractQuerystring(url: string): string {
+  const queryStart = url.indexOf('?');
+  if (!queryStart) {
+    return '';
+  }
+  const fragmentStart = url.indexOf('#', queryStart);
+  return url.substring(
+    queryStart,
+    fragmentStart > 0 ? fragmentStart : undefined
+  );
 }

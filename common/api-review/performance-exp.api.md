@@ -5,18 +5,47 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-exp';
-import { FirebasePerformance } from '@firebase/performance-types-exp';
-import { PerformanceSettings } from '@firebase/performance-types-exp';
-import { PerformanceTrace } from '@firebase/performance-types-exp';
 
-export { FirebasePerformance }
+// @public (undocumented)
+export interface FirebasePerformance {
+    dataCollectionEnabled: boolean;
+    instrumentationEnabled: boolean;
+}
 
 // @public
-export function getPerformance(app: FirebaseApp, settings?: PerformanceSettings): FirebasePerformance;
+export function getPerformance(app: FirebaseApp): FirebasePerformance;
 
-export { PerformanceSettings }
+// @public
+export function initializePerformance(app: FirebaseApp, settings?: PerformanceSettings): FirebasePerformance;
 
-export { PerformanceTrace }
+// @public (undocumented)
+export interface PerformanceSettings {
+    dataCollectionEnabled?: boolean;
+    instrumentationEnabled?: boolean;
+}
+
+// @public (undocumented)
+export interface PerformanceTrace {
+    getAttribute(attr: string): string | undefined;
+    getAttributes(): {
+        [key: string]: string;
+    };
+    getMetric(metricName: string): number;
+    incrementMetric(metricName: string, num?: number): void;
+    putAttribute(attr: string, value: string): void;
+    putMetric(metricName: string, num: number): void;
+    record(startTime: number, duration: number, options?: {
+        metrics?: {
+            [key: string]: number;
+        };
+        attributes?: {
+            [key: string]: string;
+        };
+    }): void;
+    removeAttribute(attr: string): void;
+    start(): void;
+    stop(): void;
+}
 
 // @public
 export function trace(performance: FirebasePerformance, name: string): PerformanceTrace;

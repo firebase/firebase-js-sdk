@@ -81,7 +81,6 @@ import {
   Target as ProtoTarget,
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
-  Value as ProtoValue,
   Write as ProtoWrite,
   WriteResult as ProtoWriteResult
 } from '../protos/firestore_proto_api';
@@ -698,11 +697,7 @@ function fromWriteResult(
     version = fromVersion(commitTime);
   }
 
-  let transformResults: ProtoValue[] | null = null;
-  if (proto.transformResults && proto.transformResults.length > 0) {
-    transformResults = proto.transformResults;
-  }
-  return new MutationResult(version, transformResults);
+  return new MutationResult(version, proto.transformResults || []);
 }
 
 export function fromWriteResults(

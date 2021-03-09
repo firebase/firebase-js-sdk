@@ -241,13 +241,17 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     );
     this.authWindow.associatedEvent = eventId;
 
-    // Check for web storage support _after_ the popup is loaded. Checking for
-    // web storage is slow (on the order of a second or so). Rather than
-    // waiting on that before opening the window, optimistically open the popup
+    // Check for web storage support and origin validation _after_ the popup is
+    // loaded. These operations are slow (~1 second or so) Rather than
+    // waiting on them before opening the window, optimistically open the popup
     // and check for storage support at the same time. If storage support is
     // not available, this will cause the whole thing to reject properly. It
     // will also close the popup, but since the promise has already rejected,
     // the popup closed by user poll will reject into the void.
+    this.resolver._originValidation(this.auth).catch(e => {
+      this.reject(e);
+    });
+
     this.resolver._isIframeWebStorageSupported(this.auth, isSupported => {
       if (!isSupported) {
         this.reject(

@@ -27,7 +27,7 @@ import { GtagCommand } from './constants';
 import { DynamicConfig } from './types';
 import { FirebaseApp } from '@firebase/app-exp';
 import { Deferred } from '@firebase/util';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { removeGtagScript } from '../testing/gtag-script-util';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';

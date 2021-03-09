@@ -28,10 +28,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'purch
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'purchase' \| 'refund' |  |
-|  eventParams | { value?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['value'\]; currency?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['currency'\]; transaction\_id: [EventParams](./analytics-types.eventparams.md)<!-- -->\['transaction\_id'\]; tax?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['tax'\]; shipping?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['shipping'\]; items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; coupon?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['coupon'\]; affiliation?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['affiliation'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { value?: [EventParams](./analytics.eventparams.md)<!-- -->\['value'\]; currency?: [EventParams](./analytics.eventparams.md)<!-- -->\['currency'\]; transaction\_id: [EventParams](./analytics.eventparams.md)<!-- -->\['transaction\_id'\]; tax?: [EventParams](./analytics.eventparams.md)<!-- -->\['tax'\]; shipping?: [EventParams](./analytics.eventparams.md)<!-- -->\['shipping'\]; items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; coupon?: [EventParams](./analytics.eventparams.md)<!-- -->\['coupon'\]; affiliation?: [EventParams](./analytics.eventparams.md)<!-- -->\['affiliation'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

@@ -53,7 +53,6 @@ const factory: InstanceFactory<'functions-compat'> = (
 
 export function registerFunctions(): void {
   const namespaceExports = {
-    // no-inline
     Functions: FunctionsService
   };
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(

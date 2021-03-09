@@ -9,14 +9,14 @@ Checks if an incoming link is a sign-in with email link suitable for [signInWith
 <b>Signature:</b>
 
 ```typescript
-export declare function isSignInWithEmailLink(auth: externs.Auth, emailLink: string): boolean;
+export declare function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  emailLink | string | The link sent to the user's email address. |
 
 <b>Returns:</b>

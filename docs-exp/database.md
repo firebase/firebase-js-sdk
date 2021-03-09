@@ -20,8 +20,13 @@
 |  [OnDisconnect](./database.ondisconnect.md) |  |
 |  [Query](./database.query.md) |  |
 |  [Reference](./database.reference.md) |  |
-|  [ServerValue](./database.servervalue.md) |  |
 |  [ThenableReference](./database.thenablereference.md) |  |
+
+## Variables
+
+|  Variable | Description |
+|  --- | --- |
+|  [ServerValue](./database.servervalue.md) |  |
 
 ## Type Aliases
 

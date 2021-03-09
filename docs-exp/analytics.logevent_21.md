@@ -20,10 +20,10 @@ export declare function logEvent<T extends string>(analyticsInstance: Analytics,
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | [CustomEventName](./analytics.customeventname.md)<!-- -->&lt;T&gt; |  |
 |  eventParams | { \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 
