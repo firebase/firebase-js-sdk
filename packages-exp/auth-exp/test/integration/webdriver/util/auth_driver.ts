@@ -148,18 +148,26 @@ export class AuthDriver {
 
   async selectPopupWindow(): Promise<void> {
     const currentWindowHandle = await this.webDriver.getWindowHandle();
-    const condition = new Condition('Waiting for popup to open', async driver => {
-      return (await driver.getAllWindowHandles()).length > 1;
-    });
+    const condition = new Condition(
+      'Waiting for popup to open',
+      async driver => {
+        return (await driver.getAllWindowHandles()).length > 1;
+      }
+    );
     await this.webDriver.wait(condition);
     const handles = await this.webDriver.getAllWindowHandles();
-    return this.webDriver.switchTo().window(handles.find(h => h !== currentWindowHandle)!);
+    return this.webDriver
+      .switchTo()
+      .window(handles.find(h => h !== currentWindowHandle)!);
   }
 
   async selectMainWindow(): Promise<void> {
-    const condition = new Condition('Waiting for popup to close', async driver => {
-      return (await driver.getAllWindowHandles()).length === 1;
-    });
+    const condition = new Condition(
+      'Waiting for popup to close',
+      async driver => {
+        return (await driver.getAllWindowHandles()).length === 1;
+      }
+    );
     await this.webDriver.wait(condition);
     const handles = await this.webDriver.getAllWindowHandles();
     return this.webDriver.switchTo().window(handles[0]);

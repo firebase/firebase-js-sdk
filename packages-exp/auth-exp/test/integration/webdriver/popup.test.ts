@@ -46,7 +46,9 @@ browserDescribe('Popup IdP tests', driver => {
     await widget.clickSignIn();
 
     await driver.selectMainWindow();
-    const result: UserCredential = await driver.call(PopupFunction.POPUP_RESULT);
+    const result: UserCredential = await driver.call(
+      PopupFunction.POPUP_RESULT
+    );
     const currentUser = await driver.getUserSnapshot();
     expect(currentUser.email).to.eq('bob@bob.test');
     expect(currentUser.displayName).to.eq('Bob Test');
@@ -240,7 +242,12 @@ browserDescribe('Popup IdP tests', driver => {
       // Don't actually sign in; go back to the previous page
       await widget.pageLoad();
       await driver.closePopup();
-      await expect(driver.call(PopupFunction.POPUP_RESULT)).to.be.rejected.and.eventually.have.property('code', 'auth/popup-closed-by-user');
+      await expect(
+        driver.call(PopupFunction.POPUP_RESULT)
+      ).to.be.rejected.and.eventually.have.property(
+        'code',
+        'auth/popup-closed-by-user'
+      );
       expect(await driver.getUserSnapshot()).to.be.null;
 
       // Now do sign in
@@ -261,12 +268,17 @@ browserDescribe('Popup IdP tests', driver => {
       await driver.selectPopupWindow();
       await widget.pageLoad();
       await driver.closePopup();
-      await expect(driver.call(PopupFunction.POPUP_RESULT)).to.be.rejected.and.eventually.have.property('code', 'auth/popup-closed-by-user');
+      await expect(
+        driver.call(PopupFunction.POPUP_RESULT)
+      ).to.be.rejected.and.eventually.have.property(
+        'code',
+        'auth/popup-closed-by-user'
+      );
 
       // Make sure state remained
       user = await driver.getUserSnapshot();
       expect(user.uid).to.eq(user1.uid);
       expect(user.email).to.eq(user1.email);
-    }).timeout(12_000);  // Test takes a while due to the closed-by-user errors
+    }).timeout(12_000); // Test takes a while due to the closed-by-user errors
   });
 });

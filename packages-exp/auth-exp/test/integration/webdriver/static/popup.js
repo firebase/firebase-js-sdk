@@ -41,12 +41,17 @@ export function idpPopup(optProvider) {
 }
 
 export function idpReauthPopup() {
-  window.popup.popupPromise =
-      reauthenticateWithPopup(auth.currentUser, new GoogleAuthProvider());
+  window.popup.popupPromise = reauthenticateWithPopup(
+    auth.currentUser,
+    new GoogleAuthProvider()
+  );
 }
 
 export function idpLinkPopup() {
-  window.popup.popupPromise = linkWithPopup(auth.currentUser, new GoogleAuthProvider());
+  window.popup.popupPromise = linkWithPopup(
+    auth.currentUser,
+    new GoogleAuthProvider()
+  );
 }
 
 export function popupResult() {

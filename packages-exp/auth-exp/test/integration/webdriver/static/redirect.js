@@ -48,7 +48,9 @@ export function redirectResult() {
 
 export async function generateCredentialFromRedirectResultAndStore() {
   const result = await getRedirectResult(auth);
-  window.redirect.redirectCred = GoogleAuthProvider.credentialFromResult(result);
+  window.redirect.redirectCred = GoogleAuthProvider.credentialFromResult(
+    result
+  );
   return window.redirect.redirectCred;
 }
 
