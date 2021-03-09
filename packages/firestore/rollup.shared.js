@@ -89,7 +89,9 @@ exports.resolveBrowserExterns = function (id) {
 
 /** Resolves the external dependencies for the Node build. */
 exports.resolveNodeExterns = function (id) {
-  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+  return [...nodeDeps, '@firebase/firestore'].some(
+    dep => id === dep || id.startsWith(`${dep}/`)
+  );
 };
 
 /** Breaks the build if there is a circular dependency. */
@@ -304,6 +306,48 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
         cacheDir: tmp.dirSync()
       }),
       sourcemaps()
+    ];
+  }
+};
+
+exports.es2017PluginsCompat = function (
+  platform,
+  pathTransformer,
+  mangled = false
+) {
+  if (mangled) {
+    return [
+      alias(generateAliasConfig(platform)),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017'
+          }
+        },
+        cacheDir: tmp.dirSync(),
+        transformers: [
+          removeAssertAndPrefixInternalTransformer,
+          pathTransformer
+        ]
+      }),
+      json({ preferConst: true }),
+      terser(manglePrivatePropertiesOptions)
+    ];
+  } else {
+    return [
+      alias(generateAliasConfig(platform)),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017'
+          }
+        },
+        cacheDir: tmp.dirSync(),
+        transformers: [removeAssertTransformer, pathTransformer]
+      }),
+      json({ preferConst: true })
     ];
   }
 };

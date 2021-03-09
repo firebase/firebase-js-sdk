@@ -40,15 +40,15 @@ import {
   QuerySnapshot,
   WriteBatch,
   setLogLevel
-  // TODO: implement Blob using the exp public API
-  // Blob
 } from '../src/api/database';
+
+import { Blob } from '../src/api/blob';
 
 const firestoreNamespace = {
   Firestore,
   GeoPoint,
   Timestamp,
-  // Blob,
+  Blob,
   Transaction,
   WriteBatch,
   DocumentReference,

@@ -88,7 +88,6 @@ function visitNode(node, { pattern, template }) {
         }
       }
       const newName = newNameFragments.join('');
-      console.log(`converting ${importPath} to ${newName}`);
       const newNode = ts.getMutableClone(node);
       newNode.moduleSpecifier = ts.createLiteral(newName);
       return newNode;
