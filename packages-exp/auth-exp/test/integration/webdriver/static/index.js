@@ -15,14 +15,11 @@
  * limitations under the License.
  */
 
-import * as redirect from './redirect'
+import * as redirect from './redirect';
 import * as anonymous from './anonymous';
 import * as core from './core';
 import { initializeApp } from '@firebase/app-exp';
-import {
-  getAuth,
-  useAuthEmulator
-} from '@firebase/auth-exp';
+import { getAuth, useAuthEmulator } from '@firebase/auth-exp';
 
 window.core = core;
 window.anonymous = anonymous;
