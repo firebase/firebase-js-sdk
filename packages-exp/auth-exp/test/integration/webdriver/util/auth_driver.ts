@@ -24,20 +24,12 @@ import {
   PROJECT_ID,
   USE_EMULATOR
 } from '../../../helpers/integration/settings';
+import { CoreFunction } from './functions';
 import { JsLoadCondition } from './js_load_condition';
 import { authTestServer } from './test_server';
 
-/** Available functions within the browser. See static/index.js */
-export enum TestFunction {
-  SIGN_IN_ANONYMOUSLY = 'anonymous',
-  RESET = 'reset',
-  AWAIT_AUTH_INIT = 'authInit',
-  USER_SNAPSHOT = 'userSnap',
-  AUTH_SNAPSHOT = 'authSnap',
-  START_AUTH = 'startAuth',
-  IDP_REDIRECT = 'idpRedirect',
-  REDIRECT_RESULT = 'redirectResult'
-}
+const START_FUNCTION = 'startAuth';
+const PASSED_ARGS = '...Array.prototype.slice.call(arguments, 0, -1)';
 
 /** Helper wraper around the WebDriver object */
 export class AuthDriver {
@@ -46,8 +38,7 @@ export class AuthDriver {
   async start(browser: string): Promise<void> {
     await authTestServer.start();
     this.webDriver = await new Builder().forBrowser(browser).build();
-    await this.webDriver.get(authTestServer.address!);
-    await this.injectConfigAndInitAuth();
+    await this.goToTestPage();
   }
 
   async stop(): Promise<void> {
@@ -55,48 +46,70 @@ export class AuthDriver {
     await this.webDriver.quit();
   }
 
-  async call<T>(fn: TestFunction): Promise<T> {
+  async call<T>(fn: string, ...args: unknown[]): Promise<T> {
     // When running on firefox we can't just return result immediately. For
     // some reason, the binding ends up causing a cycle dependency issue during
     // serialization which blows up the whole thing. It's okay though; this is
     // an integration test: we don't care about the internal (hidden) values of
     // these objects.
-    const result = await this.webDriver.executeAsyncScript(`
+    const {
+      type,
+      value
+    }: {
+      type: string;
+      value: string;
+    } = await this.webDriver.executeAsyncScript(
+      `
       var callback = arguments[arguments.length - 1];
-      ${fn}().then(result => {
-        callback(JSON.stringify(result));
+      ${fn}(${PASSED_ARGS}).then(result => {
+        callback({type: 'success', value: JSON.stringify(result)});
+      }).catch(e => {
+        callback({type: 'error', value: JSON.stringify(e)});
       });
-    `);
-    return JSON.parse(result as string) as T;
+    `,
+      ...args
+    );
+
+    const parsed: object = JSON.parse(value);
+    if (type === 'success') {
+      return JSON.parse(value) as T;
+    } else {
+      const e = new Error('Test promise rejection');
+      Object.assign(e, parsed);
+      throw e;
+    }
   }
 
-  async callNoWait(fn: TestFunction): Promise<void> {
-    return this.webDriver.executeScript(`${fn}()`);
+  async callNoWait(fn: string, ...args: unknown[]): Promise<void> {
+    return this.webDriver.executeScript(`${fn}(${PASSED_ARGS})`, ...args);
   }
 
   async getAuthSnapshot(): Promise<Auth> {
-    return this.call(TestFunction.AUTH_SNAPSHOT);
+    return this.call(CoreFunction.AUTH_SNAPSHOT);
   }
 
   async getUserSnapshot(): Promise<User> {
-    return this.call(TestFunction.USER_SNAPSHOT);
+    return this.call(CoreFunction.USER_SNAPSHOT);
   }
 
   async reset(): Promise<void> {
     await resetEmulator();
+    await this.goToTestPage();
+    return this.call(CoreFunction.RESET);
+  }
+
+  async goToTestPage(): Promise<void> {
     await this.webDriver.get(authTestServer.address!);
-    return this.call(TestFunction.RESET);
   }
 
   async waitForAuthInit(): Promise<void> {
-    return this.call(TestFunction.AWAIT_AUTH_INIT);
+    return this.call(CoreFunction.AWAIT_AUTH_INIT);
   }
 
   async reinitOnRedirect(): Promise<void> {
     // In this unique case we don't know when the page is back; check for the
-    // presence of the init function
-    // await this.webDriver.wait(this.webDriver.executeScript('typeof authInit !== "undefined"'));
-    await this.webDriver.wait(new JsLoadCondition(TestFunction.START_AUTH));
+    // presence of the core module
+    await this.webDriver.wait(new JsLoadCondition(START_FUNCTION));
     await this.injectConfigAndInitAuth();
     await this.waitForAuthInit();
   }
@@ -130,6 +143,6 @@ export class AuthDriver {
       };
       window.emulatorUrl = '${getEmulatorUrl()}';
     `);
-    await this.call(TestFunction.START_AUTH);
+    await this.call(START_FUNCTION);
   }
 }

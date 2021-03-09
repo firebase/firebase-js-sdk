@@ -15,21 +15,9 @@
  * limitations under the License.
  */
 
-import * as redirect from './redirect';
-import * as anonymous from './anonymous';
-import * as core from './core';
-import { initializeApp } from '@firebase/app-exp';
-import { getAuth, useAuthEmulator } from '@firebase/auth-exp';
+import { signInAnonymously } from '@firebase/auth-exp';
 
-window.core = core;
-window.anonymous = anonymous;
-window.redirect = redirect;
-
-// The config and emulator URL are injected by the test. The test framework
-// calls this function after that injection.
-window.startAuth = async () => {
-  const app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  useAuthEmulator(auth, emulatorUrl);
-  window.auth = auth;
-};
+export async function anonymousSignIn() {
+  const userCred = await signInAnonymously(auth);
+  return userCred;
+}
