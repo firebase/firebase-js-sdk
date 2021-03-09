@@ -19,6 +19,7 @@ import {
   Auth,
   createUserWithEmailAndPassword,
   EmailAuthProvider,
+  getAdditionalUserInfo,
   linkWithCredential,
   OperationType,
   reload,
@@ -73,6 +74,9 @@ describe('Integration test: custom auth', () => {
       'some-claim'
     );
     expect(user.providerId).to.eq('firebase');
+    const additionalUserInfo = await getAdditionalUserInfo(cred)!;
+    expect(additionalUserInfo.providerId).to.be.null;
+    expect(additionalUserInfo.isNewUser).to.be.true;
   });
 
   it('uid will overwrite existing user, joining accounts', async () => {
@@ -126,6 +130,20 @@ describe('Integration test: custom auth', () => {
     user = (await signInWithCustomToken(auth, customToken)).user;
     expect(user.displayName).to.eq('Display Name');
     expect(user.photoURL).to.eq('photo-url');
+  });
+
+  it('token can be refreshed', async () => {
+    const { user } = await signInWithCustomToken(auth, customToken);
+    const origToken = await user.getIdToken();
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    expect(await user.getIdToken(true)).not.to.eq(origToken);
+  });
+
+  it('signing in will not override anonymous user', async () => {
+    const { user: anonUser } = await signInAnonymously(auth);
+    const { user: customUser } = await signInWithCustomToken(auth, customToken);
+    expect(auth.currentUser).to.eql(customUser);
+    expect(customUser.uid).not.to.eql(anonUser.uid);
   });
 
   context('email/password interaction', () => {
