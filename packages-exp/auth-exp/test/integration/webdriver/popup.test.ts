@@ -128,7 +128,7 @@ browserDescribe('Popup IdP tests', driver => {
     // TODO: Convert this to the widget once unverified accounts work
     // Come back and verify error / prepare for link
     await expect(
-      driver.call(PopupFunction.TRY_TO_SIGN_IN_UNVERIFIED, '"bob@bob.test"')
+      driver.call(PopupFunction.TRY_TO_SIGN_IN_UNVERIFIED, 'bob@bob.test')
     ).to.be.rejected.and.eventually.have.property(
       'code',
       'auth/account-exists-with-different-credential'
@@ -154,12 +154,12 @@ browserDescribe('Popup IdP tests', driver => {
       // Create a couple existing users
       let cred: UserCredential = await driver.call(
         PopupFunction.CREATE_FAKE_GOOGLE_USER,
-        '"bob@bob.test"'
+        'bob@bob.test'
       );
       user1 = cred.user;
       cred = await driver.call(
         PopupFunction.CREATE_FAKE_GOOGLE_USER,
-        '"sally@sally.test"'
+        'sally@sally.test'
       );
       user2 = cred.user;
       await driver.call(CoreFunction.SIGN_OUT);
