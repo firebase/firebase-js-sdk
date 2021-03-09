@@ -81,7 +81,7 @@ export class AuthDriver {
   }
 
   async callNoWait(fn: string, ...args: unknown[]): Promise<void> {
-    return this.webDriver.executeScript(`${fn}(${PASSED_ARGS})`, ...args);
+    return this.webDriver.executeScript(`${fn}(...arguments)`, ...args);
   }
 
   async getAuthSnapshot(): Promise<Auth> {
