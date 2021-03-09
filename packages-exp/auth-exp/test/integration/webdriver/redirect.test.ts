@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   OperationType,
   UserCredential,
   User,
   OAuthCredential
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { expect, use } from 'chai';
 import { IdPPage } from './util/idp_page';
@@ -68,7 +68,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     );
 
     // Then, link with redirect
-    driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
+    await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
     await widget.pageLoad();
     await widget.clickAddAccount();
@@ -85,7 +85,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
 
   it('can be converted to a credential', async () => {
     // Start with redirect
-    driver.callNoWait(RedirectFunction.IDP_REDIRECT);
+    await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
     await widget.pageLoad();
     await widget.clickAddAccount();
@@ -113,7 +113,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
 
   it('handles account exists different credential errors', async () => {
     // Start with redirect and a verified account
-    driver.callNoWait(RedirectFunction.IDP_REDIRECT);
+    await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
     await widget.pageLoad();
     await widget.clickAddAccount();
