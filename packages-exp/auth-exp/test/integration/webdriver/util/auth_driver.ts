@@ -51,15 +51,23 @@ export class AuthDriver {
     // serialization which blows up the whole thing. It's okay though; this is
     // an integration test: we don't care about the internal (hidden) values of
     // these objects.
-    const { type, value }: { type: string; value: string } = await this
-      .webDriver.executeAsyncScript(`
+    const {
+      type,
+      value
+    }: {
+      type: string;
+      value: string;
+    } = await this.webDriver.executeAsyncScript(
+      `
       var callback = arguments[arguments.length - 1];
       ${fn}(...arguments).then(result => {
         callback({type: 'success', value: JSON.stringify(result)});
       }).catch(e => {
         callback({type: 'error', value: JSON.stringify(e)});
       });
-    `, ...args);
+    `,
+      ...args
+    );
 
     const parsed: object = JSON.parse(value);
     if (type === 'success') {
