@@ -15,53 +15,18 @@
  * limitations under the License.
  */
 
+import * as redirect from './redirect'
+import * as anonymous from './anonymous';
+import * as core from './core';
 import { initializeApp } from '@firebase/app-exp';
 import {
   getAuth,
-  getRedirectResult,
-  GoogleAuthProvider,
-  signInAnonymously,
-  signInWithRedirect,
   useAuthEmulator
 } from '@firebase/auth-exp';
 
-let auth;
-
-// Helper functions for tests
-window.anonymous = async () => {
-  const userCred = await signInAnonymously(auth);
-  return userCred;
-};
-
-window.reset = () => {
-  sessionStorage.clear();
-  localStorage.clear();
-  const del = indexedDB.deleteDatabase('firebaseLocalStorageDb');
-
-  return new Promise(resolve => {
-    del.addEventListener('success', () => resolve());
-    del.addEventListener('error', () => resolve());
-    del.addEventListener('blocked', () => resolve());
-  });
-};
-
-window.authInit = () => {
-  return new Promise(resolve => {
-    auth.onAuthStateChanged(() => resolve());
-  });
-};
-
-window.userSnap = async () => auth.currentUser;
-
-window.authSnap = async () => auth;
-
-window.idpRedirect = () => {
-  signInWithRedirect(auth, new GoogleAuthProvider());
-};
-
-window.redirectResult = () => {
-  return getRedirectResult(auth);
-};
+window.core = core;
+window.anonymous = anonymous;
+window.redirect = redirect;
 
 // The config and emulator URL are injected by the test. The test framework
 // calls this function after that injection.
