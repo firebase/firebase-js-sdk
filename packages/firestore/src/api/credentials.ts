@@ -34,7 +34,7 @@ export interface FirstPartyCredentialsSettings {
   ['type']: 'gapi';
   ['client']: unknown;
   ['sessionIndex']: string;
-  ['iamToken']: string;
+  ['iamToken']: string | null;
 }
 
 export interface ProviderCredentialsSettings {
@@ -296,10 +296,8 @@ export class FirstPartyToken implements Token {
   constructor(
     private gapi: Gapi,
     private sessionIndex: string,
-    private iamToken: string
-  ) {
-    console.log('bingo!! this is the token', iamToken);
-  }
+    private iamToken: string | null
+  ) {}
 
   get authHeaders(): { [header: string]: string } {
     const headers: { [header: string]: string } = {
@@ -326,7 +324,7 @@ export class FirstPartyCredentialsProvider implements CredentialsProvider {
   constructor(
     private gapi: Gapi,
     private sessionIndex: string,
-    private iamToken: string
+    private iamToken: string | null
   ) {}
 
   getToken(): Promise<Token | null> {
@@ -372,7 +370,7 @@ export function makeCredentialsProvider(
       return new FirstPartyCredentialsProvider(
         client,
         credentials['sessionIndex'] || '0',
-        credentials['iamToken'] || ''
+        credentials['iamToken'] || null
       );
 
     case 'provider':
