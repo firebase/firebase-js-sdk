@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 0.4.0
+
+### Minor Changes
+
+- [`ec95df3d0`](https://github.com/firebase/firebase-js-sdk/commit/ec95df3d07e5f091f2a7f7327e46417f64d04b4e) [#4610](https://github.com/firebase/firebase-js-sdk/pull/4610) - Add extractQuerystring() function which extracts the query string part of a URL, including the leading question mark (if present).
+
 ## 0.3.4
 
 ### Patch Changes
