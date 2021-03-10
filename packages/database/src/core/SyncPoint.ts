@@ -19,7 +19,15 @@ import { CacheNode } from './view/CacheNode';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { assert } from '@firebase/util';
 import { ViewCache } from './view/ViewCache';
-import { View } from './view/View';
+import {
+  View,
+  viewAddEventRegistration,
+  viewApplyOperation,
+  viewGetCompleteServerCache,
+  viewGetInitialEvents,
+  viewIsEmpty,
+  viewRemoveEventRegistration
+} from './view/View';
 import { Operation } from './operation/Operation';
 import { WriteTreeRef } from './WriteTree';
 import { Query } from '../api/Query';
@@ -80,13 +88,18 @@ export function syncPointApplyOperation(
   if (queryId !== null) {
     const view = syncPoint.views.get(queryId);
     assert(view != null, 'SyncTree gave us an op for an invalid query.');
-    return view.applyOperation(operation, writesCache, optCompleteServerCache);
+    return viewApplyOperation(
+      view,
+      operation,
+      writesCache,
+      optCompleteServerCache
+    );
   } else {
     let events: Event[] = [];
 
     for (const view of syncPoint.views.values()) {
       events = events.concat(
-        view.applyOperation(operation, writesCache, optCompleteServerCache)
+        viewApplyOperation(view, operation, writesCache, optCompleteServerCache)
       );
     }
 
@@ -165,8 +178,8 @@ export function syncPointAddEventRegistration(
     syncPoint.views.set(query.queryIdentifier(), view);
   }
   // This is guaranteed to exist now, we just created anything that was missing
-  view.addEventRegistration(eventRegistration);
-  return view.getInitialEvents(eventRegistration);
+  viewAddEventRegistration(view, eventRegistration);
+  return viewGetInitialEvents(view, eventRegistration);
 }
 
 /**
@@ -193,14 +206,14 @@ export function syncPointRemoveEventRegistration(
     // When you do ref.off(...), we search all views for the registration to remove.
     for (const [viewQueryId, view] of syncPoint.views.entries()) {
       cancelEvents = cancelEvents.concat(
-        view.removeEventRegistration(eventRegistration, cancelError)
+        viewRemoveEventRegistration(view, eventRegistration, cancelError)
       );
-      if (view.isEmpty()) {
+      if (viewIsEmpty(view)) {
         syncPoint.views.delete(viewQueryId);
 
         // We'll deal with complete views later.
-        if (!view.getQuery().getQueryParams().loadsAllData()) {
-          removed.push(view.getQuery());
+        if (!view.query.getQueryParams().loadsAllData()) {
+          removed.push(view.query);
         }
       }
     }
@@ -209,14 +222,14 @@ export function syncPointRemoveEventRegistration(
     const view = syncPoint.views.get(queryId);
     if (view) {
       cancelEvents = cancelEvents.concat(
-        view.removeEventRegistration(eventRegistration, cancelError)
+        viewRemoveEventRegistration(view, eventRegistration, cancelError)
       );
-      if (view.isEmpty()) {
+      if (viewIsEmpty(view)) {
         syncPoint.views.delete(queryId);
 
         // We'll deal with complete views later.
-        if (!view.getQuery().getQueryParams().loadsAllData()) {
-          removed.push(view.getQuery());
+        if (!view.query.getQueryParams().loadsAllData()) {
+          removed.push(view.query);
         }
       }
     }
@@ -235,7 +248,7 @@ export function syncPointRemoveEventRegistration(
 export function syncPointGetQueryViews(syncPoint: SyncPoint): View[] {
   const result = [];
   for (const view of syncPoint.views.values()) {
-    if (!view.getQuery().getQueryParams().loadsAllData()) {
+    if (!view.query.getQueryParams().loadsAllData()) {
       result.push(view);
     }
   }
@@ -252,7 +265,7 @@ export function syncPointGetCompleteServerCache(
 ): Node | null {
   let serverCache: Node | null = null;
   for (const view of syncPoint.views.values()) {
-    serverCache = serverCache || view.getCompleteServerCache(path);
+    serverCache = serverCache || viewGetCompleteServerCache(view, path);
   }
   return serverCache;
 }
@@ -283,7 +296,7 @@ export function syncPointHasCompleteView(syncPoint: SyncPoint): boolean {
 
 export function syncPointGetCompleteView(syncPoint: SyncPoint): View | null {
   for (const view of syncPoint.views.values()) {
-    if (view.getQuery().getQueryParams().loadsAllData()) {
+    if (view.query.getQueryParams().loadsAllData()) {
       return view;
     }
   }

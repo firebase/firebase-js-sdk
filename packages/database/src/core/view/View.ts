@@ -46,10 +46,10 @@ import { queryParamsGetNodeFilter } from './QueryParams';
  *    registrations returns the set of events to be raised.
  */
 export class View {
-  private processor_: ViewProcessor;
-  private viewCache_: ViewCache;
-  private eventRegistrations_: EventRegistration[] = [];
-  private eventGenerator_: EventGenerator;
+  processor_: ViewProcessor;
+  viewCache_: ViewCache;
+  eventRegistrations_: EventRegistration[] = [];
+  eventGenerator_: EventGenerator;
 
   constructor(private query_: Query, initialViewCache: ViewCache) {
     const params = this.query_.getQueryParams();
@@ -88,163 +88,177 @@ export class View {
     this.eventGenerator_ = new EventGenerator(this.query_);
   }
 
-  getQuery(): Query {
+  get query(): Query {
     return this.query_;
   }
+}
 
-  getServerCache(): Node | null {
-    return this.viewCache_.getServerCache().getNode();
-  }
+export function viewGetServerCache(view: View): Node | null {
+  return view.viewCache_.getServerCache().getNode();
+}
 
-  getCompleteNode(): Node | null {
-    return this.viewCache_.getCompleteEventSnap();
-  }
+export function viewGetCompleteNode(view: View): Node | null {
+  return view.viewCache_.getCompleteEventSnap();
+}
 
-  getCompleteServerCache(path: Path): Node | null {
-    const cache = this.viewCache_.getCompleteServerSnap();
-    if (cache) {
-      // If this isn't a "loadsAllData" view, then cache isn't actually a complete cache and
-      // we need to see if it contains the child we're interested in.
-      if (
-        this.query_.getQueryParams().loadsAllData() ||
-        (!pathIsEmpty(path) &&
-          !cache.getImmediateChild(pathGetFront(path)).isEmpty())
-      ) {
-        return cache.getChild(path);
-      }
-    }
-    return null;
-  }
-
-  isEmpty(): boolean {
-    return this.eventRegistrations_.length === 0;
-  }
-
-  addEventRegistration(eventRegistration: EventRegistration) {
-    this.eventRegistrations_.push(eventRegistration);
-  }
-
-  /**
-   * @param eventRegistration If null, remove all callbacks.
-   * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
-   * @return Cancel events, if cancelError was provided.
-   */
-  removeEventRegistration(
-    eventRegistration: EventRegistration | null,
-    cancelError?: Error
-  ): Event[] {
-    const cancelEvents: CancelEvent[] = [];
-    if (cancelError) {
-      assert(
-        eventRegistration == null,
-        'A cancel should cancel all event registrations.'
-      );
-      const path = this.query_.path;
-      this.eventRegistrations_.forEach(registration => {
-        const maybeEvent = registration.createCancelEvent(cancelError, path);
-        if (maybeEvent) {
-          cancelEvents.push(maybeEvent);
-        }
-      });
-    }
-
-    if (eventRegistration) {
-      let remaining = [];
-      for (let i = 0; i < this.eventRegistrations_.length; ++i) {
-        const existing = this.eventRegistrations_[i];
-        if (!existing.matches(eventRegistration)) {
-          remaining.push(existing);
-        } else if (eventRegistration.hasAnyCallback()) {
-          // We're removing just this one
-          remaining = remaining.concat(this.eventRegistrations_.slice(i + 1));
-          break;
-        }
-      }
-      this.eventRegistrations_ = remaining;
-    } else {
-      this.eventRegistrations_ = [];
-    }
-    return cancelEvents;
-  }
-
-  /**
-   * Applies the given Operation, updates our cache, and returns the appropriate events.
-   */
-  applyOperation(
-    operation: Operation,
-    writesCache: WriteTreeRef,
-    completeServerCache: Node | null
-  ): Event[] {
+export function viewGetCompleteServerCache(
+  view: View,
+  path: Path
+): Node | null {
+  const cache = view.viewCache_.getCompleteServerSnap();
+  if (cache) {
+    // If this isn't a "loadsAllData" view, then cache isn't actually a complete cache and
+    // we need to see if it contains the child we're interested in.
     if (
-      operation.type === OperationType.MERGE &&
-      operation.source.queryId !== null
+      view.query.getQueryParams().loadsAllData() ||
+      (!pathIsEmpty(path) &&
+        !cache.getImmediateChild(pathGetFront(path)).isEmpty())
     ) {
-      assert(
-        this.viewCache_.getCompleteServerSnap(),
-        'We should always have a full cache before handling merges'
-      );
-      assert(
-        this.viewCache_.getCompleteEventSnap(),
-        'Missing event cache, even though we have a server cache'
-      );
+      return cache.getChild(path);
     }
+  }
+  return null;
+}
 
-    const oldViewCache = this.viewCache_;
-    const result = this.processor_.applyOperation(
-      oldViewCache,
-      operation,
-      writesCache,
-      completeServerCache
-    );
-    this.processor_.assertIndexed(result.viewCache);
+export function viewIsEmpty(view: View): boolean {
+  return view.eventRegistrations_.length === 0;
+}
 
+export function viewAddEventRegistration(
+  view: View,
+  eventRegistration: EventRegistration
+) {
+  view.eventRegistrations_.push(eventRegistration);
+}
+
+/**
+ * @param eventRegistration If null, remove all callbacks.
+ * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
+ * @return Cancel events, if cancelError was provided.
+ */
+export function viewRemoveEventRegistration(
+  view: View,
+  eventRegistration: EventRegistration | null,
+  cancelError?: Error
+): Event[] {
+  const cancelEvents: CancelEvent[] = [];
+  if (cancelError) {
     assert(
-      result.viewCache.getServerCache().isFullyInitialized() ||
-        !oldViewCache.getServerCache().isFullyInitialized(),
-      'Once a server snap is complete, it should never go back'
+      eventRegistration == null,
+      'A cancel should cancel all event registrations.'
     );
-
-    this.viewCache_ = result.viewCache;
-
-    return this.generateEventsForChanges_(
-      result.changes,
-      result.viewCache.getEventCache().getNode(),
-      null
-    );
+    const path = view.query.path;
+    view.eventRegistrations_.forEach(registration => {
+      const maybeEvent = registration.createCancelEvent(cancelError, path);
+      if (maybeEvent) {
+        cancelEvents.push(maybeEvent);
+      }
+    });
   }
 
-  getInitialEvents(registration: EventRegistration): Event[] {
-    const eventSnap = this.viewCache_.getEventCache();
-    const initialChanges: Change[] = [];
-    if (!eventSnap.getNode().isLeafNode()) {
-      const eventNode = eventSnap.getNode() as ChildrenNode;
-      eventNode.forEachChild(PRIORITY_INDEX, (key, childNode) => {
-        initialChanges.push(changeChildAdded(key, childNode));
-      });
+  if (eventRegistration) {
+    let remaining = [];
+    for (let i = 0; i < view.eventRegistrations_.length; ++i) {
+      const existing = view.eventRegistrations_[i];
+      if (!existing.matches(eventRegistration)) {
+        remaining.push(existing);
+      } else if (eventRegistration.hasAnyCallback()) {
+        // We're removing just this one
+        remaining = remaining.concat(view.eventRegistrations_.slice(i + 1));
+        break;
+      }
     }
-    if (eventSnap.isFullyInitialized()) {
-      initialChanges.push(changeValue(eventSnap.getNode()));
-    }
-    return this.generateEventsForChanges_(
-      initialChanges,
-      eventSnap.getNode(),
-      registration
+    view.eventRegistrations_ = remaining;
+  } else {
+    view.eventRegistrations_ = [];
+  }
+  return cancelEvents;
+}
+
+/**
+ * Applies the given Operation, updates our cache, and returns the appropriate events.
+ */
+export function viewApplyOperation(
+  view: View,
+  operation: Operation,
+  writesCache: WriteTreeRef,
+  completeServerCache: Node | null
+): Event[] {
+  if (
+    operation.type === OperationType.MERGE &&
+    operation.source.queryId !== null
+  ) {
+    assert(
+      view.viewCache_.getCompleteServerSnap(),
+      'We should always have a full cache before handling merges'
+    );
+    assert(
+      view.viewCache_.getCompleteEventSnap(),
+      'Missing event cache, even though we have a server cache'
     );
   }
 
-  generateEventsForChanges_(
-    changes: Change[],
-    eventCache: Node,
-    eventRegistration?: EventRegistration
-  ): Event[] {
-    const registrations = eventRegistration
-      ? [eventRegistration]
-      : this.eventRegistrations_;
-    return eventGeneratorGenerateEventsForChanges(
-      this.eventGenerator_,
-      changes,
-      eventCache,
-      registrations
-    );
+  const oldViewCache = view.viewCache_;
+  const result = view.processor_.applyOperation(
+    oldViewCache,
+    operation,
+    writesCache,
+    completeServerCache
+  );
+  view.processor_.assertIndexed(result.viewCache);
+
+  assert(
+    result.viewCache.getServerCache().isFullyInitialized() ||
+      !oldViewCache.getServerCache().isFullyInitialized(),
+    'Once a server snap is complete, it should never go back'
+  );
+
+  view.viewCache_ = result.viewCache;
+
+  return viewGenerateEventsForChanges_(
+    view,
+    result.changes,
+    result.viewCache.getEventCache().getNode(),
+    null
+  );
+}
+
+export function viewGetInitialEvents(
+  view: View,
+  registration: EventRegistration
+): Event[] {
+  const eventSnap = view.viewCache_.getEventCache();
+  const initialChanges: Change[] = [];
+  if (!eventSnap.getNode().isLeafNode()) {
+    const eventNode = eventSnap.getNode() as ChildrenNode;
+    eventNode.forEachChild(PRIORITY_INDEX, (key, childNode) => {
+      initialChanges.push(changeChildAdded(key, childNode));
+    });
   }
+  if (eventSnap.isFullyInitialized()) {
+    initialChanges.push(changeValue(eventSnap.getNode()));
+  }
+  return viewGenerateEventsForChanges_(
+    view,
+    initialChanges,
+    eventSnap.getNode(),
+    registration
+  );
+}
+
+function viewGenerateEventsForChanges_(
+  view: View,
+  changes: Change[],
+  eventCache: Node,
+  eventRegistration?: EventRegistration
+): Event[] {
+  const registrations = eventRegistration
+    ? [eventRegistration]
+    : view.eventRegistrations_;
+  return eventGeneratorGenerateEventsForChanges(
+    view.eventGenerator_,
+    changes,
+    eventCache,
+    registrations
+  );
 }
