@@ -2,7 +2,7 @@ import pkg from './compat/package.json';
 import path from 'path';
 import memoryPkg from './compat/memory/package.json';
 import bundlePkg from './compat/bundle/package.json';
-import memoryBundlePkg from './compat/memory-bundle/package.json';
+import memoryBundlePkg from './compat/memory/bundle/package.json';
 import { getImportPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 /**
@@ -102,7 +102,7 @@ export default [
   {
     input: {
       index: path.resolve('./compat/memory', memoryPkg['esm2017']),
-      bundle: path.resolve('./compat/memory-bundle', memoryBundlePkg['esm2017'])
+      bundle: path.resolve('./compat/memory/bundle', memoryBundlePkg['esm2017'])
     },
     output: [
       {

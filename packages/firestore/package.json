@@ -17,7 +17,7 @@
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
-    "build:exp:release": "yarn build:exp && yarn build:lite",
+    "build:exp:release": "yarn build:exp && yarn build:lite && yarn build:compat",
     "postbuild:exp:release": "node ../../scripts/exp/remove-exp.js dist/exp/index.d.ts && node ../../scripts/exp/remove-exp.js dist/lite/index.d.ts",
     "build:browser": "rollup -c rollup.config.browser.js",
     "predev": "yarn prebuild",

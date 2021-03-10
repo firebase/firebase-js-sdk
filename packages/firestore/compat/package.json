@@ -3,28 +3,13 @@
     "version": "0.0.900",
     "description": "The Cloud Firestore component of the Firebase JS SDK.",
     "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-    "main": "../dist/compat/index.js",
-    "main-esm2017": "../dist/compat/index.js",
-    "react-native": "../dist/compat/index.js",
-    "browser": "../dist/compat/index.js",
-    "module": "../dist/compat/index.js",
+    "main": "../dist/compat/node-cjs/index.js",
+    "main-esm2017": "../dist/compat/node-esm2017/index.js",
+    "react-native": "../dist/compat/rn/index.js",
+    "browser": "../dist/compat/esm5/index.js",
+    "module": "../dist/compat/esm5/index.js",
     "esm2017": "../dist/compat/esm2017/index.js",
     "license": "Apache-2.0",
-    "dependencies": {
-      "@firebase/component": "0.2.0",
-      "@firebase/firestore-types": "2.1.0",
-      "@firebase/logger": "0.2.6",
-      "@firebase/util": "0.3.4",
-      "@firebase/webchannel-wrapper": "0.4.1",
-      "@grpc/grpc-js": "^1.0.0",
-      "@grpc/proto-loader": "^0.5.0",
-      "node-fetch": "2.6.1",
-      "tslib": "^2.0.0"
-    },
-    "peerDependencies": {
-      "@firebase/app": "0.x",
-      "@firebase/app-types": "0.x"
-    },
-    "typings": "dist/compat/firestore/compat/index.d.ts"
+    "typings": "../dist/compat/esm5/packages/firestore/compat/index.d.ts"
   }
   
