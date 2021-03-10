@@ -27,81 +27,19 @@ import { Provider } from '@firebase/component';
  * Class representing a Firebase Realtime Database.
  */
 export class FirebaseDatabase implements _FirebaseService {
-  static readonly ServerValue = Database.ServerValue;
-
-  private _delegate: Database;
+  readonly 'type' = 'database';
 
   constructor(
     readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
     databaseUrl?: string
-  ) {
-    this._delegate = repoManagerDatabaseFromApp(
-      this.app,
-      authProvider,
-      databaseUrl,
-      undefined
-    );
-  }
-
-  /**
-   * Modify this instance to communicate with the Realtime Database emulator.
-   *
-   * <p>Note: This method must be called before performing any other operation.
-   *
-   * @param host - the emulator host (ex: localhost)
-   * @param port - the emulator port (ex: 8080)
-   */
-  useEmulator(host: string, port: number): void {
-    this._delegate.useEmulator(host, port);
-  }
-
-  /**
-   * Returns a reference to the root or to the path specified in the provided
-   * argument.
-   *
-   * @param path - The relative string path or an existing Reference to a
-   * database location.
-   * @throws If a Reference is provided, throws if it does not belong to the
-   * same project.
-   * @returns Firebase reference.
-   */
-  ref(path?: string): Reference;
-  ref(path?: Reference): Reference;
-  ref(path?: string | Reference): Reference {
-    return typeof path === 'string'
-      ? this._delegate.ref(path)
-      : this._delegate.ref(path);
-  }
-
-  /**
-   * Returns a reference to the root or the path specified in url.
-   * We throw a exception if the url is not in the same domain as the
-   * current repo.
-   * @param url - A URL that refers to a database location.
-   * @returns A Firebase reference.
-   */
-  refFromURL(url: string): Reference {
-    return this._delegate.refFromURL(url);
-  }
-
-  goOffline(): void {
-    this._delegate.goOffline();
-  }
-
-  goOnline(): void {
-    this._delegate.goOnline();
-  }
+  ) {}
 
   _delete(): Promise<void> {
-    return this._delegate.INTERNAL.delete();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return {} as any;
   }
-
-  _setDatabaseUrl(url: string) {}
 }
-
-const ServerValue = Database.ServerValue;
-export { ServerValue };
 
 /**
  * Returns the instance of the Realtime Database SDK that is associated
@@ -119,4 +57,44 @@ export function getDatabase(app: FirebaseApp, url?: string): FirebaseDatabase {
   return _getProvider(app, 'database-exp').getImmediate({
     identifier: url
   }) as FirebaseDatabase;
+}
+
+export function useDatabaseEmulator(
+  db: FirebaseDatabase,
+  host: string,
+  port: number
+): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return {} as any;
+}
+
+export function goOffline(db: FirebaseDatabase): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return {} as any;
+}
+
+export function goOnline(db: FirebaseDatabase): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return {} as any;
+}
+
+export function ref(
+  db: FirebaseDatabase,
+  path?: string | Reference
+): Reference {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return {} as any;
+}
+
+export function refFromURL(db: FirebaseDatabase, url: string): Reference {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return {} as any;
+}
+
+export function enableLogging(
+  logger?: boolean | ((message: string) => unknown),
+  persistent?: boolean
+): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return {} as any;
 }
