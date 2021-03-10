@@ -18,7 +18,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { OperationType, UserCredential } from '@firebase/auth-exp';
 import { expect } from 'chai';
-import { TestFunction } from './util/auth_driver';
+import { AnonFunction } from './util/functions';
 import { browserDescribe } from './util/test_runner';
 
 /**
@@ -29,7 +29,7 @@ import { browserDescribe } from './util/test_runner';
 browserDescribe('WebDriver anonymous auth test', driver => {
   it('basic sign in is possible', async () => {
     const cred: UserCredential = await driver.call(
-      TestFunction.SIGN_IN_ANONYMOUSLY
+      AnonFunction.SIGN_IN_ANONYMOUSLY
     );
     expect(cred).not.to.be.null;
     expect(cred.user.isAnonymous).to.be.true;
@@ -39,7 +39,7 @@ browserDescribe('WebDriver anonymous auth test', driver => {
 
   it('same user persists after refresh and sign in', async () => {
     const { user: before }: UserCredential = await driver.call(
-      TestFunction.SIGN_IN_ANONYMOUSLY
+      AnonFunction.SIGN_IN_ANONYMOUSLY
     );
     await driver.refresh();
 
@@ -48,7 +48,7 @@ browserDescribe('WebDriver anonymous auth test', driver => {
 
     // Then, sign in again and check
     const { user: after }: UserCredential = await driver.call(
-      TestFunction.SIGN_IN_ANONYMOUSLY
+      AnonFunction.SIGN_IN_ANONYMOUSLY
     );
     expect(after.uid).to.eq(before.uid);
   });

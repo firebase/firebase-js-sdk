@@ -57,7 +57,8 @@ export function browserDescribe(
 setTimeout(() => {
   for (const browser of BROWSERS) {
     describe(`Testing in browser "${browser}"`, () => {
-      before(async () => {
+      before(async function () {
+        this.timeout(20000); // Starting browsers can be slow.
         await DRIVER.start(browser);
 
         // Prime for the first test.

@@ -24,6 +24,7 @@ const EMAIL_INPUT = By.id('email-input');
 const DISPLAY_NAME_INPUT = By.id('display-name-input');
 const SCREEN_NAME_INPUT = By.id('screen-name-input');
 const PROFILE_PHOTO_INPUT = By.id('profile-photo-input');
+const ACCOUNT_LIST_ITEMS = By.css('#accounts-list li');
 
 export class IdPPage {
   static PAGE_TITLE = 'Auth Emulator IDP Login Widget';
@@ -45,6 +46,17 @@ export class IdPPage {
     const button = await this.driver.findElement(SIGN_IN_BUTTON);
     await this.driver.wait(until.elementIsEnabled(button));
     await button.click();
+  }
+
+  async selectExistingAccountByEmail(email: string): Promise<void> {
+    await this.driver.wait(until.elementLocated(ACCOUNT_LIST_ITEMS));
+    const accounts = await this.driver.findElements(ACCOUNT_LIST_ITEMS);
+    for (const account of accounts) {
+      if ((await account.getText()).includes(email)) {
+        await account.click();
+        return;
+      }
+    }
   }
 
   fillEmail(email: string): Promise<void> {
