@@ -66,7 +66,7 @@ describe('api/authentication/signInWithPassword', () => {
     const response = await signInWithPassword(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -124,7 +124,7 @@ describe('api/authentication/sendEmailVerification', () => {
     auth.tenantId = 'tenant-id';
     const response = await sendEmailVerification(auth, request);
     expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -182,7 +182,7 @@ describe('api/authentication/sendPasswordResetEmail', () => {
     auth.tenantId = 'tenant-id';
     const response = await sendPasswordResetEmail(auth, request);
     expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -240,7 +240,7 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
     auth.tenantId = 'tenant-id';
     const response = await sendSignInLinkToEmail(auth, request);
     expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -295,11 +295,11 @@ describe('api/authentication/verifyAndChangeEmail', () => {
     const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
       email: 'test@foo.com'
     });
-    
+
     auth.tenantId = 'tenant-id';
     const response = await verifyAndChangeEmail(auth, request);
     expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'

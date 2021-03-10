@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _addTidIfNecessary, _performApiRequest } from '../index';
+import {
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary,
+  _performApiRequest
+} from '../index';
 import { Auth } from '../../model/public_types';
 
 export interface CreateAuthUriRequest {
@@ -36,6 +41,6 @@ export async function createAuthUri(
     auth,
     HttpMethod.POST,
     Endpoint.CREATE_AUTH_URI,
-    _addTidIfNecessary(auth, request),
+    _addTidIfNecessary(auth, request)
   );
 }

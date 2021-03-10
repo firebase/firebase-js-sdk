@@ -17,7 +17,12 @@
 
 import { ActionCodeOperation, Auth } from '../../model/public_types';
 
-import { Endpoint, HttpMethod, _addTidIfNecessary, _performApiRequest } from '../index';
+import {
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary,
+  _performApiRequest
+} from '../index';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from './mfa';
 
@@ -42,7 +47,7 @@ export async function resetPassword(
     auth,
     HttpMethod.POST,
     Endpoint.RESET_PASSWORD,
-    _addTidIfNecessary(auth, request),
+    _addTidIfNecessary(auth, request)
   );
 }
 export interface UpdateEmailPasswordRequest {
@@ -79,6 +84,6 @@ export async function applyActionCode(
     auth,
     HttpMethod.POST,
     Endpoint.SET_ACCOUNT_INFO,
-    _addTidIfNecessary(auth, request),
+    _addTidIfNecessary(auth, request)
   );
 }

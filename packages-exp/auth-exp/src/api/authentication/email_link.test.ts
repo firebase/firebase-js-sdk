@@ -58,7 +58,10 @@ describe('api/authentication/email_link', () => {
       const response = await signInWithEmailLink(auth, request);
       expect(response.displayName).to.eq('my-name');
       expect(response.email).to.eq('test@foo.com');
-      expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+      expect(mock.calls[0].request).to.eql({
+        ...request,
+        tenantId: 'tenant-id'
+      });
       expect(mock.calls[0].method).to.eq('POST');
       expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
         'application/json'
@@ -110,7 +113,10 @@ describe('api/authentication/email_link', () => {
       const response = await signInWithEmailLinkForLinking(auth, request);
       expect(response.displayName).to.eq('my-name');
       expect(response.email).to.eq('test@foo.com');
-      expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+      expect(mock.calls[0].request).to.eql({
+        ...request,
+        tenantId: 'tenant-id'
+      });
       expect(mock.calls[0].method).to.eq('POST');
       expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
         'application/json'

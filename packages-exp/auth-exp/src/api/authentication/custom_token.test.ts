@@ -59,7 +59,7 @@ describe('api/authentication/signInWithCustomToken', () => {
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
     expect(response.localId).to.eq('1234');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'

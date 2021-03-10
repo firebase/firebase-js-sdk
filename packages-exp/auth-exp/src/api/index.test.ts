@@ -395,33 +395,49 @@ describe('api/_performApiRequest', () => {
   context('_addTidIfNecessary', () => {
     it('adds the tenant ID if it is not already defined', () => {
       auth.tenantId = 'auth-tenant-id';
-      expect(_addTidIfNecessary<Record<string, string>>(auth, {foo: 'bar'})).to.eql({
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' })
+      ).to.eql({
         tenantId: 'auth-tenant-id',
-        foo: 'bar',
+        foo: 'bar'
       });
     });
 
     it('does not overwrite the tenant ID if already supplied', () => {
       auth.tenantId = 'auth-tenant-id';
-      expect(_addTidIfNecessary<Record<string, string>>(auth, {foo: 'bar', tenantId: 'request-tenant-id'})).to.eql({
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, {
+          foo: 'bar',
+          tenantId: 'request-tenant-id'
+        })
+      ).to.eql({
         tenantId: 'request-tenant-id',
-        foo: 'bar',
+        foo: 'bar'
       });
     });
 
     it('leaves tenant id on the request even if not specified on auth', () => {
       auth.tenantId = null;
-      expect(_addTidIfNecessary<Record<string, string>>(auth, {foo: 'bar', tenantId: 'request-tenant-id'})).to.eql({
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, {
+          foo: 'bar',
+          tenantId: 'request-tenant-id'
+        })
+      ).to.eql({
         tenantId: 'request-tenant-id',
-        foo: 'bar',
+        foo: 'bar'
       });
     });
 
     it('does not attach the tenant ID at all if not specified', () => {
       auth.tenantId = null;
-      expect(_addTidIfNecessary<Record<string, string>>(auth, {foo: 'bar'})).to.eql({
-        foo: 'bar',
-      }).and.not.have.property('tenantId');
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' })
+      )
+        .to.eql({
+          foo: 'bar'
+        })
+        .and.not.have.property('tenantId');
     });
   });
 });

@@ -44,7 +44,12 @@ export async function sendPhoneVerificationCode(
   return _performApiRequest<
     SendPhoneVerificationCodeRequest,
     SendPhoneVerificationCodeResponse
-  >(auth, HttpMethod.POST, Endpoint.SEND_VERIFICATION_CODE, _addTidIfNecessary(auth, request),);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SEND_VERIFICATION_CODE,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export interface SignInWithPhoneNumberRequest {
@@ -72,7 +77,12 @@ export async function signInWithPhoneNumber(
   return _performSignInRequest<
     SignInWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, _addTidIfNecessary(auth, request),);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export async function linkWithPhoneNumber(
@@ -82,7 +92,12 @@ export async function linkWithPhoneNumber(
   return _performSignInRequest<
     LinkWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, _addTidIfNecessary(auth, request),);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 interface VerifyPhoneNumberForExistingRequest

@@ -58,7 +58,7 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
     auth.tenantId = 'tenant-id';
     const response = await sendPhoneVerificationCode(auth, request);
     expect(response.sessionInfo).to.eq('my-session');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -125,7 +125,7 @@ describe('api/authentication/signInWithPhoneNumber', () => {
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
     expect(response.localId).to.eq('1234');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -193,7 +193,7 @@ describe('api/authentication/linkWithPhoneNumber', () => {
     expect(response.idToken).to.eq('id-token');
     expect(response.expiresIn).to.eq('1000');
     expect(response.localId).to.eq('1234');
-    expect(mock.calls[0].request).to.eql({...request, tenantId: 'tenant-id'});
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -263,7 +263,7 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
     expect(mock.calls[0].request).to.eql({
       ...request,
       operation: 'REAUTH',
-      tenantId: 'tenant-id',
+      tenantId: 'tenant-id'
     });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(

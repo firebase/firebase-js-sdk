@@ -64,11 +64,14 @@ export const enum Endpoint {
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
-export function _addTidIfNecessary<T extends {tenantId?: string}>(auth: Auth, request: T): T {
+export function _addTidIfNecessary<T extends { tenantId?: string }>(
+  auth: Auth,
+  request: T
+): T {
   if (auth.tenantId && !request.tenantId) {
     return {
       ...request,
-      tenantId: auth.tenantId,
+      tenantId: auth.tenantId
     };
   }
   return request;
@@ -254,4 +257,3 @@ function makeTaggedError(
   (error.customData! as TaggedWithTokenResponse)._tokenResponse = response;
   return error;
 }
-

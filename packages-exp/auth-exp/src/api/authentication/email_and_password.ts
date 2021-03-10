@@ -45,7 +45,12 @@ export async function signInWithPassword(
   return _performSignInRequest<
     SignInWithPasswordRequest,
     SignInWithPasswordResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PASSWORD, _addTidIfNecessary(auth, request),);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PASSWORD,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export interface GetOobCodeRequest {
@@ -101,7 +106,7 @@ async function sendOobCode(
     auth,
     HttpMethod.POST,
     Endpoint.SEND_OOB_CODE,
-    _addTidIfNecessary(auth, request),
+    _addTidIfNecessary(auth, request)
   );
 }
 
