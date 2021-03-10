@@ -49,7 +49,7 @@ class BrowserLocalPersistence
   static type: 'LOCAL' = 'LOCAL';
 
   constructor() {
-    super(localStorage, PersistenceType.LOCAL);
+    super(window.localStorage, PersistenceType.LOCAL);
     this.boundEventHandler = this.onStorageEvent.bind(this);
   }
 

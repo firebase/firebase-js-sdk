@@ -14,17 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { clearPersistence } from './persistence';
 
 export function reset() {
-  sessionStorage.clear();
-  localStorage.clear();
-  const del = indexedDB.deleteDatabase('firebaseLocalStorageDb');
-
-  return new Promise(resolve => {
-    del.addEventListener('success', () => resolve());
-    del.addEventListener('error', () => resolve());
-    del.addEventListener('blocked', () => resolve());
-  });
+  return clearPersistence();
 }
 
 export function authInit() {
