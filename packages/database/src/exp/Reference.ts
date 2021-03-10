@@ -34,7 +34,7 @@ export interface OnDisconnect {
   setWithPriority(
     value: unknown,
     priority: number | string | null
-  ): Promise<any>;
+  ): Promise<void>;
   update(values: object): Promise<void>;
 }
 

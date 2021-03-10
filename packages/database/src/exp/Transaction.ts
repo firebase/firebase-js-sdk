@@ -23,6 +23,7 @@ export interface TransactionOptions {
 
 export function runTransaction(
   ref: Reference,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transactionUpdate: (currentData: any) => unknown,
   options?: TransactionOptions
 ): Promise<void> {

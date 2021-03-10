@@ -34,6 +34,7 @@ export class DataSnapshot {
     return {} as any;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   exportVal(): any {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return {} as any;
@@ -59,6 +60,7 @@ export class DataSnapshot {
     return {} as any;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   val(): any {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return {} as any;
