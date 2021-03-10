@@ -19,7 +19,7 @@ import { CacheNode } from './CacheNode';
 import { NamedNode, Node } from '../snap/Node';
 import { Index } from '../snap/indexes/Index';
 import { WriteTreeRef } from '../WriteTree';
-import { ViewCache } from './ViewCache';
+import { ViewCache, viewCacheGetCompleteServerSnap } from './ViewCache';
 
 /**
  * Since updates to filtered nodes might require nodes to be pulled in from "outside" the node, this interface
@@ -83,14 +83,14 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
    * @inheritDoc
    */
   getCompleteChild(childKey: string): Node | null {
-    const node = this.viewCache_.getEventCache();
+    const node = this.viewCache_.eventCache;
     if (node.isCompleteForChild(childKey)) {
       return node.getNode().getImmediateChild(childKey);
     } else {
       const serverNode =
         this.optCompleteServerCache_ != null
           ? new CacheNode(this.optCompleteServerCache_, true, false)
-          : this.viewCache_.getServerCache();
+          : this.viewCache_.serverCache;
       return this.writes_.calcCompleteChild(childKey, serverNode);
     }
   }
@@ -106,7 +106,7 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
     const completeServerData =
       this.optCompleteServerCache_ != null
         ? this.optCompleteServerCache_
-        : this.viewCache_.getCompleteServerSnap();
+        : viewCacheGetCompleteServerSnap(this.viewCache_);
     const nodes = this.writes_.calcIndexedSlice(
       completeServerData,
       child,

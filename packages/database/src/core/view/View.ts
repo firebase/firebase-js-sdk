@@ -19,7 +19,12 @@ import { IndexedFilter } from './filter/IndexedFilter';
 import { ViewProcessor } from './ViewProcessor';
 import { ChildrenNode } from '../snap/ChildrenNode';
 import { CacheNode } from './CacheNode';
-import { ViewCache } from './ViewCache';
+import {
+  newViewCache,
+  ViewCache,
+  viewCacheGetCompleteEventSnap,
+  viewCacheGetCompleteServerSnap
+} from './ViewCache';
 import {
   EventGenerator,
   eventGeneratorGenerateEventsForChanges
@@ -59,8 +64,8 @@ export class View {
 
     this.processor_ = new ViewProcessor(filter);
 
-    const initialServerCache = initialViewCache.getServerCache();
-    const initialEventCache = initialViewCache.getEventCache();
+    const initialServerCache = initialViewCache.serverCache;
+    const initialEventCache = initialViewCache.eventCache;
 
     // Don't filter server node with other filter than index, wait for tagged listen
     const serverSnap = indexFilter.updateFullNode(
@@ -84,7 +89,7 @@ export class View {
       filter.filtersNodes()
     );
 
-    this.viewCache_ = new ViewCache(newEventCache, newServerCache);
+    this.viewCache_ = newViewCache(newEventCache, newServerCache);
     this.eventGenerator_ = new EventGenerator(this.query_);
   }
 
@@ -94,18 +99,18 @@ export class View {
 }
 
 export function viewGetServerCache(view: View): Node | null {
-  return view.viewCache_.getServerCache().getNode();
+  return view.viewCache_.serverCache.getNode();
 }
 
 export function viewGetCompleteNode(view: View): Node | null {
-  return view.viewCache_.getCompleteEventSnap();
+  return viewCacheGetCompleteEventSnap(view.viewCache_);
 }
 
 export function viewGetCompleteServerCache(
   view: View,
   path: Path
 ): Node | null {
-  const cache = view.viewCache_.getCompleteServerSnap();
+  const cache = viewCacheGetCompleteServerSnap(view.viewCache_);
   if (cache) {
     // If this isn't a "loadsAllData" view, then cache isn't actually a complete cache and
     // we need to see if it contains the child we're interested in.
@@ -189,11 +194,11 @@ export function viewApplyOperation(
     operation.source.queryId !== null
   ) {
     assert(
-      view.viewCache_.getCompleteServerSnap(),
+      viewCacheGetCompleteServerSnap(view.viewCache_),
       'We should always have a full cache before handling merges'
     );
     assert(
-      view.viewCache_.getCompleteEventSnap(),
+      viewCacheGetCompleteEventSnap(view.viewCache_),
       'Missing event cache, even though we have a server cache'
     );
   }
@@ -208,8 +213,8 @@ export function viewApplyOperation(
   view.processor_.assertIndexed(result.viewCache);
 
   assert(
-    result.viewCache.getServerCache().isFullyInitialized() ||
-      !oldViewCache.getServerCache().isFullyInitialized(),
+    result.viewCache.serverCache.isFullyInitialized() ||
+      !oldViewCache.serverCache.isFullyInitialized(),
     'Once a server snap is complete, it should never go back'
   );
 
@@ -218,7 +223,7 @@ export function viewApplyOperation(
   return viewGenerateEventsForChanges_(
     view,
     result.changes,
-    result.viewCache.getEventCache().getNode(),
+    result.viewCache.eventCache.getNode(),
     null
   );
 }
@@ -227,7 +232,7 @@ export function viewGetInitialEvents(
   view: View,
   registration: EventRegistration
 ): Event[] {
-  const eventSnap = view.viewCache_.getEventCache();
+  const eventSnap = view.viewCache_.eventCache;
   const initialChanges: Change[] = [];
   if (!eventSnap.getNode().isLeafNode()) {
     const eventNode = eventSnap.getNode() as ChildrenNode;

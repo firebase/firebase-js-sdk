@@ -18,7 +18,7 @@
 import { CacheNode } from './view/CacheNode';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { assert } from '@firebase/util';
-import { ViewCache } from './view/ViewCache';
+import { newViewCache } from './view/ViewCache';
 import {
   View,
   viewAddEventRegistration,
@@ -140,7 +140,7 @@ export function syncPointGetView(
       eventCache = ChildrenNode.EMPTY_NODE;
       eventCacheComplete = false;
     }
-    const viewCache = new ViewCache(
+    const viewCache = newViewCache(
       new CacheNode(eventCache, eventCacheComplete, false),
       new CacheNode(serverCache, serverCacheComplete, false)
     );
