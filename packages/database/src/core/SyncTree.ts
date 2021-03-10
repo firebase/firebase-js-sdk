@@ -55,7 +55,7 @@ import { Query } from '../api/Query';
 import { Node } from './snap/Node';
 import { Event } from './view/Event';
 import { EventRegistration } from './view/EventRegistration';
-import { View } from './view/View';
+import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
 import { CacheNode } from './view/CacheNode';
 
 /**
@@ -350,7 +350,7 @@ export function syncTreeRemoveEventRegistration(
         // Ok, we've collected all the listens we need. Set them up.
         for (let i = 0; i < newViews.length; ++i) {
           const view = newViews[i],
-            newQuery = view.getQuery();
+            newQuery = view.query;
           const listener = syncTreeCreateListenerForView_(syncTree, view);
           syncTree.listenProvider_.startListening(
             syncTreeQueryForListening_(newQuery),
@@ -612,7 +612,7 @@ export function syncTreeGetServerValue(
     serverCacheComplete ? serverCacheNode.getNode() : ChildrenNode.EMPTY_NODE,
     serverCacheComplete
   );
-  return view.getCompleteNode();
+  return viewGetCompleteNode(view);
 }
 
 /**
@@ -741,12 +741,12 @@ function syncTreeCreateListenerForView_(
   syncTree: SyncTree,
   view: View
 ): { hashFn(): string; onComplete(a: string, b?: unknown): Event[] } {
-  const query = view.getQuery();
+  const query = view.query;
   const tag = syncTreeTagForQuery_(syncTree, query);
 
   return {
     hashFn: () => {
-      const cache = view.getServerCache() || ChildrenNode.EMPTY_NODE;
+      const cache = viewGetServerCache(view) || ChildrenNode.EMPTY_NODE;
       return cache.hash();
     },
     onComplete: (status: string): Event[] => {
@@ -929,14 +929,14 @@ function syncTreeSetupListener_(
           maybeChildSyncPoint &&
           syncPointHasCompleteView(maybeChildSyncPoint)
         ) {
-          return [syncPointGetCompleteView(maybeChildSyncPoint).getQuery()];
+          return [syncPointGetCompleteView(maybeChildSyncPoint).query];
         } else {
           // No default listener here, flatten any deeper queries into an array
           let queries: Query[] = [];
           if (maybeChildSyncPoint) {
             queries = queries.concat(
-              syncPointGetQueryViews(maybeChildSyncPoint).map(view =>
-                view.getQuery()
+              syncPointGetQueryViews(maybeChildSyncPoint).map(
+                view => view.query
               )
             );
           }
