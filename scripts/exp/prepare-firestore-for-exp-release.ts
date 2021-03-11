@@ -80,7 +80,7 @@ export async function prepare() {
   );
 }
 
-const FIRESTORE_SRC = resolve(projectRoot, 'package/firestore');
+const FIRESTORE_SRC = resolve(projectRoot, 'packages/firestore');
 const FIRESTORE_COMPAT_SRC = resolve(projectRoot, 'packages/firestore/compat');
 const FIRESTORE_COMPAT_DEST = resolve(
   projectRoot,
