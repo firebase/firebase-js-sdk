@@ -96,7 +96,11 @@ export async function createFirestoreCompatProject() {
   }
 
   copyRescursiveSync(FIRESTORE_COMPAT_SRC, FIRESTORE_COMPAT_DEST);
-  copyRescursiveSync(FIRESTORE_COMPAT_BINARY_SRC, FIRESTORE_COMPAT_BINARY_DEST);
+  copyRescursiveSync(
+    FIRESTORE_COMPAT_BINARY_SRC,
+    FIRESTORE_COMPAT_BINARY_DEST,
+    /* include d.ts files*/ true
+  );
 
   // update root package.json
   await transformFile(
@@ -141,7 +145,11 @@ export async function createFirestoreCompatProject() {
   );
 }
 
-function copyRescursiveSync(src: string, dest: string) {
+function copyRescursiveSync(
+  src: string,
+  dest: string,
+  includeTs: boolean = false
+) {
   if (!existsSync(src)) {
     return;
   }
@@ -151,13 +159,15 @@ function copyRescursiveSync(src: string, dest: string) {
   if (isDirectory) {
     mkdirSync(dest);
     for (const item of readdirSync(src)) {
-      copyRescursiveSync(resolve(src, item), resolve(dest, item));
+      copyRescursiveSync(resolve(src, item), resolve(dest, item), includeTs);
     }
   } else {
     // do not copy source file
-    if (!src.includes('.ts')) {
-      copyFileSync(src, dest);
+    if (src.includes('.ts') && !includeTs) {
+      return;
     }
+
+    copyFileSync(src, dest);
   }
 }
 
