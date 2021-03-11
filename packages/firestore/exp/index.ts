@@ -88,7 +88,7 @@ export {
   WhereFilterOp
 } from '../src/exp/query';
 
-export { Unsubscribe } from '../src/exp/reference_impl';
+export { Unsubscribe, SnapshotListenOptions } from '../src/exp/reference_impl';
 
 export { runTransaction, Transaction } from '../src/exp/transaction';
 

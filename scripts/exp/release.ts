@@ -57,16 +57,16 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     );
 
     /**
-     * Update fields in package.json and stuff
+     * build packages
+     */
+    await buildPackages();
+
+    /**
+     * Update fields in package.json and create compat packages (e.g. packages-exp/firestore-compat)
      */
     await prepareFirestoreForRelease();
     await prepareStorageForRelease();
     await prepareDatabaseForRelease();
-
-    /**
-     * build packages
-     */
-    await buildPackages();
 
     // path to exp packages
     let packagePaths = await mapWorkspaceToPackages([
@@ -235,7 +235,7 @@ async function buildPackages() {
   );
 
   // Build exp packages developed in place
-  // Firestore
+  // Firestore and firestore-compat
   await spawn(
     'yarn',
     ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
