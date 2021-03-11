@@ -131,7 +131,7 @@ describe('Integration test: headless IdP', () => {
     expect(auth.currentUser!.email).to.eq(newEmail);
   });
 
-  it('allows you to set a password', async () => {
+  it('allows the user to set a password', async () => {
     const credential = GoogleAuthProvider.credential(oauthIdToken);
     const { user } = await signInWithCredential(auth, credential);
 
