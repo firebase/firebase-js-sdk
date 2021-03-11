@@ -110,7 +110,7 @@ describe('Integration test: headless IdP', () => {
     expect(auth.currentUser!.photoURL).to.eq('http://photo.test/david.png');
   });
 
-  it('allows you to change the email', async () => {
+  it('allows the user to change the email', async () => {
     const credential = FacebookAuthProvider.credential(oauthIdToken);
     const { user } = await signInWithCredential(auth, credential);
 
@@ -131,7 +131,7 @@ describe('Integration test: headless IdP', () => {
     expect(auth.currentUser!.email).to.eq(newEmail);
   });
 
-  it('allows you to set a password', async () => {
+  it('allows the user to set a password', async () => {
     const credential = GoogleAuthProvider.credential(oauthIdToken);
     const { user } = await signInWithCredential(auth, credential);
 
