@@ -87,10 +87,7 @@ const FIRESTORE_COMPAT_DEST = resolve(
   'packages-exp/firestore-compat'
 );
 const FIRESTORE_COMPAT_BINARY_SRC = resolve(FIRESTORE_SRC, 'dist/compat');
-const FIRESTORE_COMPAT_BINARY_DEST = resolve(
-  FIRESTORE_COMPAT_DEST,
-  'packages-exp/firestore-compat/dist'
-);
+const FIRESTORE_COMPAT_BINARY_DEST = resolve(FIRESTORE_COMPAT_DEST, 'dist');
 
 export async function createFirestoreCompatProject() {
   // remove the dir if it exists
@@ -105,7 +102,7 @@ export async function createFirestoreCompatProject() {
   await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'package.json'),
     async content => {
-      const updatedContent = content.replace('../dist/compat', './dist');
+      const updatedContent = content.replaceAll('../dist/compat', './dist');
       const compatPkgJson = JSON.parse(updatedContent);
 
       const firestorePkgJson = await readPackageJson(FIRESTORE_SRC);
@@ -128,19 +125,19 @@ export async function createFirestoreCompatProject() {
   // update bundle/package.json
   await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'bundle/package.json'),
-    async content => content.replace('../../dist/compat', '../dist')
+    async content => content.replaceAll('../../dist/compat', '../dist')
   );
 
   // update memory/package.json
   await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'memory/package.json'),
-    async content => content.replace('../../dist/compat', '../dist')
+    async content => content.replaceAll('../../dist/compat', '../dist')
   );
 
   // update memory/bundle/packages.json
   await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'memory/bundle/package.json'),
-    async content => content.replace('../../../dist/compat', '../../dist')
+    async content => content.replaceAll('../../../dist/compat', '../../dist')
   );
 }
 
