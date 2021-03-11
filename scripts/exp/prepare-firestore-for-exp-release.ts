@@ -78,9 +78,6 @@ export async function prepare() {
     `${JSON.stringify(packageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
-
-  // create firestore-compat package for publishing
-  createFirestoreCompatProject();
 }
 
 const FIRESTORE_SRC = resolve(projectRoot, 'package/firestore');
@@ -170,11 +167,11 @@ function copyRescursiveSync(src: string, dest: string) {
   }
 }
 
-function transformFile(
+async function transformFile(
   path: string,
   transformer: (content: string) => Promise<string>
 ) {
   let content = readFileSync(path, 'utf8');
 
-  writeFileSync(path, transformer(content), { encoding: 'utf8' });
+  writeFileSync(path, await transformer(content), { encoding: 'utf8' });
 }
