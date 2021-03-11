@@ -133,7 +133,7 @@ let tocText = '';
  * @param {string} homeRaw
  */
 function generateTempHomeMdFile(tocRaw, homeRaw) {
-  const { toc } = yaml.safeLoad(tocRaw);
+  const { toc } = yaml.load(tocRaw);
   let tocPageLines = [homeRaw, '# API Reference'];
   toc.forEach(group => {
     tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)}.html)`);
