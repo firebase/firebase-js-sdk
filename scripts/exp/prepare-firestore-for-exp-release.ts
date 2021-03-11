@@ -106,7 +106,7 @@ export async function createFirestoreCompatProject() {
   await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'package.json'),
     async content => {
-      const updatedContent = content.replaceAll('../dist/compat', './dist');
+      const updatedContent = content.replace(/\.\.\/dist\/compat/g, './dist');
       const compatPkgJson = JSON.parse(updatedContent);
 
       const firestorePkgJson = await readPackageJson(FIRESTORE_SRC);
@@ -129,19 +129,20 @@ export async function createFirestoreCompatProject() {
   // update bundle/package.json
   await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'bundle/package.json'),
-    async content => content.replaceAll('../../dist/compat', '../dist')
+    async content => content.replace(/\.\.\/\.\.\/dist\/compat/g, '../dist')
   );
 
   // update memory/package.json
   await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'memory/package.json'),
-    async content => content.replaceAll('../../dist/compat', '../dist')
+    async content => content.replace(/\.\.\/\.\.\/dist\/compat/g, '../dist')
   );
 
   // update memory/bundle/packages.json
   await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'memory/bundle/package.json'),
-    async content => content.replaceAll('../../../dist/compat', '../../dist')
+    async content =>
+      content.replace(/\.\.\/\.\.\/\.\.\/dist\/compat/g, '../../dist')
   );
 }
 
