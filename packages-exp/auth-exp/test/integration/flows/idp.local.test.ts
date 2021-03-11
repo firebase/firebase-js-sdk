@@ -58,7 +58,7 @@ describe('Integration test: headless IdP', () => {
     email = randomEmail();
     oauthIdToken = JSON.stringify({
       email,
-      email_verified: true,
+      'email_verified': true,
       sub: `oauthidp--${email}--oauthidp`
     });
   });
@@ -173,7 +173,7 @@ describe('Integration test: headless IdP', () => {
       JSON.stringify({
         sub: googleEmail,
         email: googleEmail,
-        email_verified: true
+        'email_verified': true
       })
     );
 
@@ -236,16 +236,16 @@ describe('Integration test: headless IdP', () => {
     const googleCredential = GoogleAuthProvider.credential(
       JSON.stringify({
         sub: email,
-        email: email,
-        email_verified: true
+        email,
+        'email_verified': true
       })
     );
 
     const githubCredential = GithubAuthProvider.credential(
       JSON.stringify({
         sub: email,
-        email: email,
-        email_verified: true
+        email,
+        'email_verified': true
       })
     );
 
