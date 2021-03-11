@@ -28,7 +28,10 @@ import { resolve } from 'path';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
-import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
+import {
+  prepare as prepareFirestoreForRelease,
+  createFirestoreCompatProject
+} from './prepare-firestore-for-exp-release';
 import { prepare as prepareStorageForRelease } from './prepare-storage-for-exp-release';
 import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
@@ -57,16 +60,20 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     );
 
     /**
-     * build packages
-     */
-    await buildPackages();
-
-    /**
      * Update fields in package.json and create compat packages (e.g. packages-exp/firestore-compat)
      */
     await prepareFirestoreForRelease();
     await prepareStorageForRelease();
     await prepareDatabaseForRelease();
+    /**
+     * build packages
+     */
+    await buildPackages();
+
+    /**
+     * Create compat packages for Firestore, Database and Storage
+     */
+    await createFirestoreCompatProject();
 
     // path to exp packages
     let packagePaths = await mapWorkspaceToPackages([

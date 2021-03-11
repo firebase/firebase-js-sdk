@@ -27,7 +27,6 @@ import {
   mkdirSync,
   copyFileSync
 } from 'fs';
-import { promisify } from 'util';
 
 const packagePath = `${projectRoot}/packages/firestore`;
 
@@ -99,7 +98,7 @@ const FIRESTORE_COMPAT_BINARY_DEST = resolve(
   'packages-exp/firestore-compat/dist'
 );
 
-async function createFirestoreCompatProject() {
+export async function createFirestoreCompatProject() {
   // remove the dir if it exists
   if (existsSync(FIRESTORE_COMPAT_DEST)) {
     rmdirSync(FIRESTORE_COMPAT_DEST, { recursive: true });
@@ -109,7 +108,7 @@ async function createFirestoreCompatProject() {
   copyRescursiveSync(FIRESTORE_COMPAT_BINARY_SRC, FIRESTORE_COMPAT_BINARY_DEST);
 
   // update root package.json
-  transformFile(
+  await transformFile(
     resolve(FIRESTORE_COMPAT_DEST, 'package.json'),
     async content => {
       const updatedContent = content.replace('../dist/compat', './dist');
