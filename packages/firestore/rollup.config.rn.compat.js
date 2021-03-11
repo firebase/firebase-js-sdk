@@ -31,7 +31,7 @@ export default [
       sourcemap: true
     },
     plugins: [
-      ...util.es2017Plugins(
+      ...util.es2017PluginsCompat(
         'rn',
         getImportPathTransformer({
           // ../../exp/index
@@ -58,7 +58,7 @@ export default [
       sourcemap: true
     },
     plugins: [
-      ...util.es2017Plugins(
+      ...util.es2017PluginsCompat(
         'rn',
         getImportPathTransformer({
           // ../../exp/index
