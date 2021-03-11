@@ -250,24 +250,39 @@ describe('Integration test: headless IdP', () => {
     );
 
     // First sign in with Google
-    const {user: initialUser} = await signInWithCredential(auth, googleCredential);
+    const { user: initialUser } = await signInWithCredential(
+      auth,
+      googleCredential
+    );
     expect(initialUser.providerData.length).to.eq(1);
     expect(initialUser.providerData[0].providerId).to.eq('google.com');
 
     await auth.signOut();
 
     // Now with GitHub
-    const {user: githubUser} = await signInWithCredential(auth, githubCredential);
+    const { user: githubUser } = await signInWithCredential(
+      auth,
+      githubCredential
+    );
     expect(githubUser.uid).to.eq(initialUser.uid);
     expect(githubUser.providerData.length).to.eq(2);
-    expect(githubUser.providerData.map(p => p.providerId)).to.have.members(['google.com', 'github.com']);
+    expect(githubUser.providerData.map(p => p.providerId)).to.have.members([
+      'google.com',
+      'github.com'
+    ]);
 
     await auth.signOut();
 
     // Sign in once again with the initial credential
-    const {user: googleUser} = await signInWithCredential(auth, googleCredential);
+    const { user: googleUser } = await signInWithCredential(
+      auth,
+      googleCredential
+    );
     expect(googleUser.uid).to.eq(initialUser.uid);
     expect(googleUser.providerData.length).to.eq(2);
-    expect(googleUser.providerData.map(p => p.providerId)).to.have.members(['google.com', 'github.com']);
+    expect(googleUser.providerData.map(p => p.providerId)).to.have.members([
+      'google.com',
+      'github.com'
+    ]);
   });
 });
