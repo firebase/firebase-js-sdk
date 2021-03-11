@@ -329,6 +329,7 @@ exports.es2017PluginsCompat = function (
           }
         },
         cacheDir: tmp.dirSync(),
+        abortOnError: false,
         transformers: [
           removeAssertAndPrefixInternalTransformer,
           pathTransformer
@@ -348,6 +349,7 @@ exports.es2017PluginsCompat = function (
           }
         },
         cacheDir: tmp.dirSync(),
+        abortOnError: false,
         transformers: [removeAssertTransformer, pathTransformer]
       }),
       json({ preferConst: true })
