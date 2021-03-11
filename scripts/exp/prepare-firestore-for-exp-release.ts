@@ -86,10 +86,7 @@ const FIRESTORE_COMPAT_DEST = resolve(
   projectRoot,
   'packages-exp/firestore-compat'
 );
-const FIRESTORE_COMPAT_BINARY_SRC = resolve(
-  FIRESTORE_COMPAT_SRC,
-  'dist/compat'
-);
+const FIRESTORE_COMPAT_BINARY_SRC = resolve(FIRESTORE_SRC, 'dist/compat');
 const FIRESTORE_COMPAT_BINARY_DEST = resolve(
   FIRESTORE_COMPAT_DEST,
   'packages-exp/firestore-compat/dist'
