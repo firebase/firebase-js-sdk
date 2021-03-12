@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
+import firebase, { FirebaseApp, _FirebaseNamespace } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-exp';
 import {
@@ -24,6 +24,7 @@ import {
   InstantiationMode
 } from '@firebase/component';
 
+import {FirebaseAuth} from '@firebase/auth-types';
 import { version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';
@@ -32,6 +33,23 @@ import { _getClientPlatform } from './src/platform';
 import { RecaptchaVerifier } from './src/recaptcha_verifier';
 
 const AUTH_TYPE = 'auth';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'auth-compat': FirebaseAuth;
+  }
+}
+
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    auth: {
+      (app?: FirebaseApp): FirebaseAuth;
+    }
+  }
+  interface FirebaseApp {
+    auth?(): FirebaseAuth;
+  }
+}
 
 // Create auth components to register with firebase.
 // Provides Auth public APIs.
