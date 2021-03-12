@@ -16,7 +16,12 @@
  */
 
 import { IndexedFilter } from './filter/IndexedFilter';
-import { ViewProcessor } from './ViewProcessor';
+import {
+  newViewProcessor,
+  ViewProcessor,
+  viewProcessorApplyOperation,
+  viewProcessorAssertIndexed
+} from './ViewProcessor';
 import { ChildrenNode } from '../snap/ChildrenNode';
 import { CacheNode } from './CacheNode';
 import {
@@ -62,7 +67,7 @@ export class View {
     const indexFilter = new IndexedFilter(params.getIndex());
     const filter = queryParamsGetNodeFilter(params);
 
-    this.processor_ = new ViewProcessor(filter);
+    this.processor_ = newViewProcessor(filter);
 
     const initialServerCache = initialViewCache.serverCache;
     const initialEventCache = initialViewCache.eventCache;
@@ -204,13 +209,14 @@ export function viewApplyOperation(
   }
 
   const oldViewCache = view.viewCache_;
-  const result = view.processor_.applyOperation(
+  const result = viewProcessorApplyOperation(
+    view.processor_,
     oldViewCache,
     operation,
     writesCache,
     completeServerCache
   );
-  view.processor_.assertIndexed(result.viewCache);
+  viewProcessorAssertIndexed(view.processor_, result.viewCache);
 
   assert(
     result.viewCache.serverCache.isFullyInitialized() ||
