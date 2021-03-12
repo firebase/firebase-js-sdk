@@ -16,7 +16,6 @@
  */
 
 import firebase, {
-  FirebaseApp,
   _FirebaseNamespace
 } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
