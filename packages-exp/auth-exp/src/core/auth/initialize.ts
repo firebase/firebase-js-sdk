@@ -34,8 +34,7 @@ export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
     _fail(auth, AuthErrorCode.ALREADY_INITIALIZED);
   }
 
-  const auth = provider.getImmediate() as AuthImpl;
-  _initializeAuthInstance(auth, deps);
+  const auth = provider.initialize({ options: deps }) as AuthImpl;
 
   return auth;
 }

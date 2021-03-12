@@ -25,6 +25,8 @@ import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
 import { AuthInterop } from './firebase_internal';
+import { Dependencies } from '../../model/auth';
+import { _initializeAuthInstance } from './initialize';
 
 export const enum _ComponentName {
   AUTH = 'auth-exp',
@@ -53,7 +55,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
   _registerComponent(
     new Component(
       _ComponentName.AUTH,
-      container => {
+      (container, { options: deps }: { options?: Dependencies }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const { apiKey, authDomain } = app.options;
         return (app => {
@@ -66,7 +68,11 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
             apiScheme: DefaultConfig.API_SCHEME,
             sdkClientVersion: _getClientVersion(clientPlatform)
           };
-          return new AuthImpl(app, config);
+
+          const authInstance = new AuthImpl(app, config);
+          _initializeAuthInstance(authInstance, deps);
+
+          return authInstance;
         })(app);
       },
       ComponentType.PUBLIC

@@ -128,7 +128,6 @@ export function initializeFirestore(
     );
   }
 
-  const firestore = provider.getImmediate() as FirebaseFirestore;
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
@@ -140,8 +139,7 @@ export function initializeFirestore(
     );
   }
 
-  firestore._setSettings(settings);
-  return firestore;
+  return provider.initialize({ options: settings });
 }
 
 /**

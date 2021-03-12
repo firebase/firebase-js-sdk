@@ -193,9 +193,7 @@ export function initializeFirestore(
     );
   }
 
-  const firestore = provider.getImmediate() as FirebaseFirestore;
-  firestore._setSettings(settings);
-  return firestore;
+  return provider.initialize({ options: settings });
 }
 
 /**

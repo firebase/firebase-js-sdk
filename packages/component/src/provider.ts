@@ -18,7 +18,12 @@
 import { Deferred } from '@firebase/util';
 import { ComponentContainer } from './component_container';
 import { DEFAULT_ENTRY_NAME } from './constants';
-import { InstantiationMode, Name, NameServiceMapping } from './types';
+import {
+  InitializeOptions,
+  InstantiationMode,
+  Name,
+  NameServiceMapping
+} from './types';
 import { Component } from './component';
 
 /**
@@ -51,7 +56,9 @@ export class Provider<T extends Name> {
       this.instancesDeferred.set(normalizedIdentifier, deferred);
       // If the service instance is available, resolve the promise with it immediately
       try {
-        const instance = this.getOrInitializeService(normalizedIdentifier);
+        const instance = this.getOrInitializeService({
+          instanceIdentifier: normalizedIdentifier
+        });
         if (instance) {
           deferred.resolve(instance);
         }
@@ -92,7 +99,9 @@ export class Provider<T extends Name> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
     try {
-      const instance = this.getOrInitializeService(normalizedIdentifier);
+      const instance = this.getOrInitializeService({
+        instanceIdentifier: normalizedIdentifier
+      });
 
       if (!instance) {
         if (optional) {
@@ -129,7 +138,7 @@ export class Provider<T extends Name> {
     // if the service is eager, initialize the default instance
     if (isComponentEager(component)) {
       try {
-        this.getOrInitializeService(DEFAULT_ENTRY_NAME);
+        this.getOrInitializeService({ instanceIdentifier: DEFAULT_ENTRY_NAME });
       } catch (e) {
         // when the instance factory for an eager Component throws an exception during the eager
         // initialization, it should not cause a fatal error.
@@ -151,7 +160,9 @@ export class Provider<T extends Name> {
 
       try {
         // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy.
-        const instance = this.getOrInitializeService(normalizedIdentifier)!;
+        const instance = this.getOrInitializeService({
+          instanceIdentifier: normalizedIdentifier
+        })!;
         instanceDeferred.resolve(instance);
       } catch (e) {
         // when the instance factory throws an exception, it should not cause
@@ -190,16 +201,41 @@ export class Provider<T extends Name> {
     return this.instances.has(identifier);
   }
 
-  private getOrInitializeService(
-    identifier: string
-  ): NameServiceMapping[T] | null {
-    let instance = this.instances.get(identifier);
+  initialize(opts: InitializeOptions = {}): NameServiceMapping[T] {
+    const { instanceIdentifier = DEFAULT_ENTRY_NAME, options = {} } = opts;
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(
+      instanceIdentifier
+    );
+    if (this.isInitialized(normalizedIdentifier)) {
+      throw Error(
+        `${this.name}(${normalizedIdentifier}) has already been initialized`
+      );
+    }
+
+    if (!this.isComponentSet()) {
+      throw Error(`Component ${this.name} has not been registered yet`);
+    }
+
+    return this.getOrInitializeService({
+      instanceIdentifier: normalizedIdentifier,
+      options
+    })!;
+  }
+
+  private getOrInitializeService({
+    instanceIdentifier,
+    options = {}
+  }: {
+    instanceIdentifier: string;
+    options?: Record<string, unknown>;
+  }): NameServiceMapping[T] | null {
+    let instance = this.instances.get(instanceIdentifier);
     if (!instance && this.component) {
-      instance = this.component.instanceFactory(
-        this.container,
-        normalizeIdentifierForFactory(identifier)
-      ) as NameServiceMapping[T];
-      this.instances.set(identifier, instance);
+      instance = this.component.instanceFactory(this.container, {
+        instanceIdentifier: normalizeIdentifierForFactory(instanceIdentifier),
+        options
+      });
+      this.instances.set(instanceIdentifier, instance);
     }
 
     return instance || null;

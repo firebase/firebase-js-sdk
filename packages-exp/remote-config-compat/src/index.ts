@@ -19,7 +19,8 @@ import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import {
   Component,
   ComponentContainer,
-  ComponentType
+  ComponentType,
+  InstanceFactoryOptions
 } from '@firebase/component';
 import { RemoteConfigCompatImpl } from './remoteConfig';
 import { name as packageName, version } from '../package.json';
@@ -48,7 +49,7 @@ function registerRemoteConfigCompat(
 
 function remoteConfigFactory(
   container: ComponentContainer,
-  namespace?: string
+  { instanceIdentifier: namespace }: InstanceFactoryOptions
 ): RemoteConfigCompatImpl {
   const app = container.getProvider('app-compat').getImmediate();
   // The following call will always succeed because rc `import {...} from '@firebase/remote-config-exp'`
