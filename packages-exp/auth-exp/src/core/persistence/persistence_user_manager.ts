@@ -113,17 +113,16 @@ export class PersistenceUserManager {
       );
     }
 
-    // Use the first persistence that supports a full read-write roundtrip (._isAvailable()).
-    let chosenPersistence: PersistenceInternal | null = null;
+    // Use the first persistence that supports a full read-write roundtrip (or fallback to memory).
+    let chosenPersistence = _getInstance<PersistenceInternal>(
+      inMemoryPersistence
+    );
     for (const persistence of persistenceHierarchy) {
       if (await persistence._isAvailable()) {
         chosenPersistence = persistence;
         break;
       }
     }
-    chosenPersistence =
-      chosenPersistence ||
-      _getInstance<PersistenceInternal>(inMemoryPersistence);
 
     // However, attempt to migrate users stored in other persistences (in the hierarchy order).
     let userToMigrate: UserInternal | null = null;
