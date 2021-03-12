@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import firebase, { FirebaseApp, _FirebaseNamespace } from '@firebase/app-compat';
+import firebase, {
+  FirebaseApp,
+  _FirebaseNamespace
+} from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-exp';
 import {
@@ -24,7 +27,7 @@ import {
   InstantiationMode
 } from '@firebase/component';
 
-import {FirebaseAuth} from '@firebase/auth-types';
+import { FirebaseAuth } from '@firebase/auth-types';
 import { version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';
@@ -44,7 +47,7 @@ declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
     auth: {
       (app?: FirebaseApp): FirebaseAuth;
-    }
+    };
   }
   interface FirebaseApp {
     auth?(): FirebaseAuth;
