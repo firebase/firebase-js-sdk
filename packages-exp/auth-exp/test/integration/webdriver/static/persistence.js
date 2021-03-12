@@ -33,8 +33,14 @@ export async function clearPersistence() {
 export async function localStorageSnap() {
   return dumpStorage(localStorage);
 }
+export async function localStorageSet(dict) {
+  setInStorage(localStorage, dict);
+}
 export async function sessionStorageSnap() {
   return dumpStorage(sessionStorage);
+}
+export async function sessionStorageSet(dict) {
+  setInStorage(sessionStorage, dict);
 }
 
 const DB_OBJECTSTORE_NAME = 'firebaseLocalStorage';
@@ -58,6 +64,21 @@ export async function indexedDBSnap() {
   return result;
 }
 
+// Mock functions for testing edge cases
+export async function makeIndexedDBReadonly() {
+  IDBObjectStore.prototype.add = IDBObjectStore.prototype.put = () => {
+    return {
+      error: 'add/put is disabled for test purposes',
+      readyState: 'done',
+      addEventListener(event, listener) {
+        if (event === 'error') {
+          void Promise.resolve({}).then(listener);
+        }
+      }
+    };
+  };
+}
+
 function dumpStorage(storage) {
   const result = {};
   for (let i = 0; i < storage.length; i++) {
@@ -65,6 +86,16 @@ function dumpStorage(storage) {
     result[key] = JSON.parse(storage.getItem(key));
   }
   return result;
+}
+
+function setInStorage(storage, dict) {
+  for (const [key, value] of Object.entries(dict)) {
+    if (value === undefined) {
+      storage.removeItem(key);
+    } else {
+      storage.setItem(key, JSON.stringify(value));
+    }
+  }
 }
 
 function dbPromise(dbRequest) {
