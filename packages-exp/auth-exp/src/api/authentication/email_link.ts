@@ -15,13 +15,19 @@
  * limitations under the License.
  */
 
-import { _performSignInRequest, Endpoint, HttpMethod } from '../index';
+import {
+  _performSignInRequest,
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary
+} from '../index';
 import { IdTokenResponse } from '../../model/id_token';
 import { Auth } from '../../model/public_types';
 
 export interface SignInWithEmailLinkRequest {
   email: string;
   oobCode: string;
+  tenantId?: string;
 }
 
 export interface SignInWithEmailLinkResponse extends IdTokenResponse {
@@ -36,7 +42,12 @@ export async function signInWithEmailLink(
   return _performSignInRequest<
     SignInWithEmailLinkRequest,
     SignInWithEmailLinkResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_EMAIL_LINK,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export interface SignInWithEmailLinkForLinkingRequest
@@ -51,5 +62,10 @@ export async function signInWithEmailLinkForLinking(
   return _performSignInRequest<
     SignInWithEmailLinkForLinkingRequest,
     SignInWithEmailLinkResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_EMAIL_LINK, request);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_EMAIL_LINK,
+    _addTidIfNecessary(auth, request)
+  );
 }
