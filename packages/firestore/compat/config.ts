@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseApp } from '@firebase/app-compat';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
@@ -28,7 +29,7 @@ import {
   Timestamp,
   FieldValue
 } from '../exp/index'; // import from the exp public API
-
+import { Blob } from '../src/api/blob';
 import {
   Firestore,
   Transaction,
@@ -41,8 +42,6 @@ import {
   WriteBatch,
   setLogLevel
 } from '../src/api/database';
-
-import { Blob } from '../src/api/blob';
 
 const firestoreNamespace = {
   Firestore,

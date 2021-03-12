@@ -24,14 +24,6 @@ import {
   PartialObserver
 } from '../api/observer';
 import {
-  newUserDataReader,
-  ParsedUpdateData,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs
-} from '../lite/user_data_reader';
-import { AbstractUserDataWriter } from '../lite/user_data_writer';
-import {
   firestoreClientAddSnapshotsInSyncListener,
   firestoreClientGetDocumentFromLocalCache,
   firestoreClientGetDocumentsFromLocalCache,
@@ -54,6 +46,14 @@ import {
   UpdateData
 } from '../lite/reference';
 import { applyFirestoreDataConverter } from '../lite/reference_impl';
+import {
+  newUserDataReader,
+  ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs
+} from '../lite/user_data_reader';
+import { AbstractUserDataWriter } from '../lite/user_data_writer';
 import { Document } from '../model/document';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';

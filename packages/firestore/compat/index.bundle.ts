@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { Firestore, Query } from '../src/api/database';
 import {
   loadBundle as expLoadBundle,
   namedQuery as expNamedQuery,
   LoadBundleTask
 } from '../exp/index';
+import { Firestore, Query } from '../src/api/database';
 
 export function loadBundle(
   this: Firestore,

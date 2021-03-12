@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app-compat';
 import { FirebaseNamespace } from '@firebase/app-types';
 
+import { name, version } from '../package.json';
 import { Firestore, MemoryPersistenceProvider } from '../src/api/database';
 
-import { name, version } from '../package.json';
 import { configureForFirebase } from './config';
 
 import '../register-module';
@@ -37,4 +38,4 @@ export function registerFirestore(instance: FirebaseNamespace): void {
   instance.registerVersion(name, version);
 }
 
-registerFirestore(firebase as any);
+registerFirestore((firebase as unknown) as FirebaseNamespace);

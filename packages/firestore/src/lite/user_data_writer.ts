@@ -18,6 +18,8 @@
 import { DocumentData } from '@firebase/firestore-types';
 
 import { DatabaseId } from '../core/database_info';
+import { GeoPoint } from '../lite/geo_point';
+import { Timestamp } from '../lite/timestamp';
 import { DocumentKey } from '../model/document_key';
 import {
   normalizeByteString,
@@ -43,9 +45,6 @@ import { fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { logError } from '../util/log';
 import { forEach } from '../util/obj';
-
-import { GeoPoint } from '../lite/geo_point';
-import { Timestamp } from '../lite/timestamp';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
