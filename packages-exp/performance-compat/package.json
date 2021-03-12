@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance-compat",
-  "version": "0.0.1",
+  "version": "0.0.900",
   "description": "The compatibility package of Firebase Performance",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "private": true,
@@ -21,7 +21,6 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "prepare": "yarn build:release",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'"
   },
   "license": "Apache-2.0",
