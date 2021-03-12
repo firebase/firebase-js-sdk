@@ -17,12 +17,12 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import {
+  trace,
   FirebasePerformance,
   // The PerformanceTrace type has not changed between modular and non-modular packages.
   PerformanceTrace
-} from '@firebase/performance-types-exp';
+} from '@firebase/performance-exp';
 import { FirebasePerformance as FirebasePerformanceCompat } from '@firebase/performance-types';
-import { trace } from '@firebase/performance-exp';
 import { FirebaseService } from '@firebase/app-types/private';
 
 export class PerformanceCompatImpl

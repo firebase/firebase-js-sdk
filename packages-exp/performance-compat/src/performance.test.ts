@@ -25,14 +25,10 @@ import {
 } from '../test/util';
 import * as perfModularApi from '@firebase/performance-exp';
 import { PerformanceCompatImpl } from './performance';
-import {
-  FirebasePerformance
-  //PerformanceTrace
-} from '@firebase/performance-types-exp';
 
 describe('Performance Compat', () => {
   let performanceCompat!: PerformanceCompatImpl;
-  let fakeModularPerformance!: FirebasePerformance;
+  let fakeModularPerformance!: perfModularApi.FirebasePerformance;
 
   beforeEach(() => {
     fakeModularPerformance = getFakeModularPerformance();
