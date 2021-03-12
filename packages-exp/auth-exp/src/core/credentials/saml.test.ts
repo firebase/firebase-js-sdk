@@ -86,7 +86,7 @@ describe('core/credentials/saml', () => {
       expect(request.requestUri).to.eq('http://localhost');
       expect(request.returnSecureToken).to.be.true;
       expect(request.pendingToken).to.eq('pending-token');
-      expect(request.postBody).to.be.null;
+      expect(request.postBody).to.be.undefined;
     });
   });
 
@@ -101,14 +101,14 @@ describe('core/credentials/saml', () => {
       await cred._getIdTokenResponse(auth);
 
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(request.postBody).to.be.null;
+      expect(request.postBody).to.be.undefined;
       expect(request.pendingToken).to.eq('pending-token');
     });
 
     it('_linkToIdToken sets the idToken field on the request', async () => {
       await cred._linkToIdToken(auth, 'new-id-token');
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(request.postBody).to.be.null;
+      expect(request.postBody).to.be.undefined;
       expect(request.pendingToken).to.eq('pending-token');
       expect(request.idToken).to.eq('new-id-token');
     });
@@ -116,7 +116,7 @@ describe('core/credentials/saml', () => {
     it('_getReauthenticationResolver sets autoCreate to false', async () => {
       await cred._getReauthenticationResolver(auth);
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
-      expect(request.postBody).to.be.null;
+      expect(request.postBody).to.be.undefined;
       expect(request.pendingToken).to.eq('pending-token');
       expect(request.autoCreate).to.be.false;
     });
