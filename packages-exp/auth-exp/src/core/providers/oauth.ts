@@ -55,6 +55,37 @@ export interface OAuthCredentialOptions {
 }
 
 /**
+ * Common code to all OAuth providers. This is separate from the
+ * {@link OAuthProvider} so that child providers (like
+ * {@link GoogleAuthProvider}) don't inherit the `credential` instance method.
+ * Instead, they rely on a static `credential` method.
+ */
+export abstract class BaseOAuthProvider extends FederatedAuthProvider implements AuthProvider {
+  /** @internal */
+  private scopes: string[] = [];
+
+  /**
+   * Add an OAuth scope to the credential.
+   *
+   * @param scope - Provider OAuth scope to add.
+   */
+  addScope(scope: string): AuthProvider {
+    // If not already added, add scope to list.
+    if (!this.scopes.includes(scope)) {
+      this.scopes.push(scope);
+    }
+    return this;
+  }
+
+  /**
+   * Retrieve the current list of OAuth scopes.
+   */
+  getScopes(): string[] {
+    return [...this.scopes];
+  }
+}
+
+/**
  * Provider for generating generic {@link OAuthCredential}.
  *
  * @example
@@ -94,9 +125,7 @@ export interface OAuthCredentialOptions {
  * ```
  * @public
  */
-export class OAuthProvider extends FederatedAuthProvider implements AuthProvider {
-  /** @internal */
-  private scopes: string[] = [];
+export class OAuthProvider extends BaseOAuthProvider {
 
   static credentialFromJSON(json: object | string): OAuthCredential {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
@@ -146,26 +175,6 @@ export class OAuthProvider extends FederatedAuthProvider implements AuthProvider
   }
 
   /**
-   * Add an OAuth scope to the credential.
-   *
-   * @param scope - Provider OAuth scope to add.
-   */
-  addScope(scope: string): AuthProvider {
-    // If not already added, add scope to list.
-    if (!this.scopes.includes(scope)) {
-      this.scopes.push(scope);
-    }
-    return this;
-  }
-
-  /**
-   * Retrieve the current list of OAuth scopes.
-   */
-  getScopes(): string[] {
-    return [...this.scopes];
-  }
-
-  /**
    * Used to extract the underlying {@link OAuthCredential} from a {@link UserCredential}.
    *
    * @param userCredential - The user credential.
@@ -189,8 +198,6 @@ export class OAuthProvider extends FederatedAuthProvider implements AuthProvider
     );
   }
 
-  // This needs to have a different name so it doesn't conflict with the
-  // subclasses
   private static oauthCredentialFromTaggedObject({
     _tokenResponse: tokenResponse
   }: TaggedWithTokenResponse): OAuthCredential | null {

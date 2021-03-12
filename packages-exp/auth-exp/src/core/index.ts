@@ -141,7 +141,6 @@ export { AuthCredential } from './credentials';
 export { EmailAuthCredential } from './credentials/email';
 export { OAuthCredential } from './credentials/oauth';
 export { PhoneAuthCredential } from './credentials/phone';
-export { SAMLAuthCredential } from './credentials/saml';
 
 // persistence
 export { inMemoryPersistence } from './persistence/in_memory';

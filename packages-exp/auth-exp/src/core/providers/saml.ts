@@ -1,6 +1,7 @@
+import { FirebaseError } from '@firebase/util';
 import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
-import { AuthError, UserCredential } from '../../model/public_types';
+import { UserCredential } from '../../model/public_types';
 import { UserCredentialInternal } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { SAMLAuthCredential } from '../credentials/saml';
@@ -33,7 +34,7 @@ export class SAMLAuthProvider extends FederatedAuthProvider {
     );
   }
 
-  static credentialFromError(error: AuthError): AuthCredential | null {
+  static credentialFromError(error: FirebaseError): AuthCredential | null {
     return SAMLAuthProvider.samlCredentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );

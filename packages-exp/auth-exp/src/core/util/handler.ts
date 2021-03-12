@@ -24,7 +24,7 @@ import { _assert } from './assert';
 import { isEmpty, querystring } from '@firebase/util';
 import { _emulatorUrl } from './emulator';
 import { FederatedAuthProvider } from '../providers/federated';
-import { OAuthProvider } from '../providers/oauth';
+import { BaseOAuthProvider } from '../providers/oauth';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -87,7 +87,7 @@ export function _getRedirectUrl(
     }
   }
 
-  if (provider instanceof OAuthProvider) {
+  if (provider instanceof BaseOAuthProvider) {
     const scopes = provider.getScopes().filter(scope => scope !== '');
     if (scopes.length > 0) {
       params.scopes = scopes.join(',');

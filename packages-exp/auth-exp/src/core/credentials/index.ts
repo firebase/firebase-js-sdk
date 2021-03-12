@@ -22,4 +22,3 @@ export { AuthCredential } from './auth_credential';
 export { EmailAuthCredential } from './email';
 export { OAuthCredential } from './oauth';
 export { PhoneAuthCredential as PhoneAuthCredential } from './phone';
-export { SAMLAuthCredential } from './saml';
