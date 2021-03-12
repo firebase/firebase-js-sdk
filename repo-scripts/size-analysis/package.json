@@ -35,13 +35,13 @@
     "typescript": "4.2.2",
     "terser": "5.5.1",
     "yargs": "16.2.0",
-    "@firebase/util": "0.3.4",
+    "@firebase/util": "0.4.0",
     "gzip-size": "6.0.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/app": "0.6.15"
+    "@firebase/app": "0.6.16"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",

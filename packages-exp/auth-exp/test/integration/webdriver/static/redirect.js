@@ -48,16 +48,18 @@ export function redirectResult() {
 
 export async function generateCredentialFromRedirectResultAndStore() {
   const result = await getRedirectResult(auth);
-  window.redirectCred = GoogleAuthProvider.credentialFromResult(result);
-  return window.redirectCred;
+  window.redirect.redirectCred = GoogleAuthProvider.credentialFromResult(
+    result
+  );
+  return window.redirect.redirectCred;
 }
 
 export async function signInWithRedirectCredential() {
-  return signInWithCredential(auth, window.redirectCred);
+  return signInWithCredential(auth, window.redirect.redirectCred);
 }
 
 export async function linkWithErrorCredential() {
-  await linkWithCredential(auth.currentUser, window.errorCred);
+  await linkWithCredential(auth.currentUser, window.redirect.errorCred);
 }
 
 // These below are not technically redirect functions but they're helpers for
@@ -81,7 +83,7 @@ export async function tryToSignInUnverified(email) {
       )
     );
   } catch (e) {
-    window.errorCred = FacebookAuthProvider.credentialFromError(e);
+    window.redirect.errorCred = FacebookAuthProvider.credentialFromError(e);
     throw e;
   }
 }

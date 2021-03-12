@@ -43,7 +43,7 @@ import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
-import { OAuthProvider } from './oauth';
+import { BaseOAuthProvider } from './oauth';
 
 /**
  * Provider for generating an {@link OAuthCredential} for {@link ProviderId.TWITTER}.
@@ -84,7 +84,7 @@ import { OAuthProvider } from './oauth';
  *
  * @public
  */
-export class TwitterAuthProvider extends OAuthProvider {
+export class TwitterAuthProvider extends BaseOAuthProvider {
   static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
   static readonly PROVIDER_ID = ProviderId.TWITTER;
 

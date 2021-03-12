@@ -20,6 +20,7 @@ import { ActionCodeOperation, Auth } from '../../model/public_types';
 import {
   Endpoint,
   HttpMethod,
+  _addTidIfNecessary,
   _performApiRequest,
   _performSignInRequest
 } from '../index';
@@ -29,6 +30,7 @@ export interface SignInWithPasswordRequest {
   returnSecureToken?: boolean;
   email: string;
   password: string;
+  tenantId?: string;
 }
 
 export interface SignInWithPasswordResponse extends IdTokenResponse {
@@ -43,7 +45,12 @@ export async function signInWithPassword(
   return _performSignInRequest<
     SignInWithPasswordRequest,
     SignInWithPasswordResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PASSWORD, request);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PASSWORD,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export interface GetOobCodeRequest {
@@ -99,7 +106,7 @@ async function sendOobCode(
     auth,
     HttpMethod.POST,
     Endpoint.SEND_OOB_CODE,
-    request
+    _addTidIfNecessary(auth, request)
   );
 }
 

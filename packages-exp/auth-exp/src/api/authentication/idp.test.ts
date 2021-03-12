@@ -50,10 +50,11 @@ describe('api/authentication/signInWithIdp', () => {
       idToken: 'id-token'
     });
 
+    auth.tenantId = 'tenant-id';
     const response = await signInWithIdp(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'

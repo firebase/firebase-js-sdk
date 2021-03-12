@@ -17,7 +17,7 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Auth, User } from '@firebase/auth-exp';
-import { Builder, WebDriver } from 'selenium-webdriver';
+import { Builder, Condition, WebDriver } from 'selenium-webdriver';
 import { resetEmulator } from '../../../helpers/integration/emulator_rest_helpers';
 import {
   getEmulatorUrl,
@@ -144,5 +144,38 @@ export class AuthDriver {
       window.emulatorUrl = '${getEmulatorUrl()}';
     `);
     await this.call(START_FUNCTION);
+  }
+
+  async selectPopupWindow(): Promise<void> {
+    const currentWindowHandle = await this.webDriver.getWindowHandle();
+    const condition = new Condition(
+      'Waiting for popup to open',
+      async driver => {
+        return (await driver.getAllWindowHandles()).length > 1;
+      }
+    );
+    await this.webDriver.wait(condition);
+    const handles = await this.webDriver.getAllWindowHandles();
+    return this.webDriver
+      .switchTo()
+      .window(handles.find(h => h !== currentWindowHandle)!);
+  }
+
+  async selectMainWindow(): Promise<void> {
+    const condition = new Condition(
+      'Waiting for popup to close',
+      async driver => {
+        return (await driver.getAllWindowHandles()).length === 1;
+      }
+    );
+    await this.webDriver.wait(condition);
+    const handles = await this.webDriver.getAllWindowHandles();
+    return this.webDriver.switchTo().window(handles[0]);
+  }
+
+  async closePopup(): Promise<void> {
+    // This assumes the current driver is already the popup
+    await this.webDriver.close();
+    return this.selectMainWindow();
   }
 }

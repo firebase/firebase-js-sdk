@@ -15,13 +15,19 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '../index';
+import {
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary,
+  _performSignInRequest
+} from '../index';
 import { IdTokenResponse } from '../../model/id_token';
 import { Auth } from '../../model/public_types';
 
 export interface SignInWithCustomTokenRequest {
   token: string;
   returnSecureToken: boolean;
+  tenantId?: string;
 }
 
 export interface SignInWithCustomTokenResponse extends IdTokenResponse {}
@@ -33,5 +39,10 @@ export async function signInWithCustomToken(
   return _performSignInRequest<
     SignInWithCustomTokenRequest,
     SignInWithCustomTokenResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN, request);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
+    _addTidIfNecessary(auth, request)
+  );
 }

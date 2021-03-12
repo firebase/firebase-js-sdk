@@ -64,6 +64,19 @@ export const enum Endpoint {
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
+export function _addTidIfNecessary<T extends { tenantId?: string }>(
+  auth: Auth,
+  request: T
+): T {
+  if (auth.tenantId && !request.tenantId) {
+    return {
+      ...request,
+      tenantId: auth.tenantId
+    };
+  }
+  return request;
+}
+
 export async function _performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,

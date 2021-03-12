@@ -30,8 +30,8 @@
   "dependencies": {
     "@firebase/auth-types": "0.10.2",
     "@firebase/auth-exp": "0.0.900",
-    "@firebase/component": "0.2.0",
-    "@firebase/util": "0.3.4",
+    "@firebase/component": "0.2.1",
+    "@firebase/util": "0.4.0",
     "tslib": "^2.0.0"
   },
   "license": "Apache-2.0",
