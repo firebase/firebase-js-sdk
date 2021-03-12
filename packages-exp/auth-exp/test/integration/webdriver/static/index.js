@@ -18,12 +18,14 @@
 import * as redirect from './redirect';
 import * as anonymous from './anonymous';
 import * as core from './core';
+import * as popup from './popup';
 import { initializeApp } from '@firebase/app-exp';
 import { getAuth, useAuthEmulator } from '@firebase/auth-exp';
 
-window.core = core;
-window.anonymous = anonymous;
-window.redirect = redirect;
+window.core = { ...core };
+window.anonymous = { ...anonymous };
+window.redirect = { ...redirect };
+window.popup = { ...popup };
 
 // The config and emulator URL are injected by the test. The test framework
 // calls this function after that injection.

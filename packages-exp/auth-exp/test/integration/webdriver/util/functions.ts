@@ -33,6 +33,19 @@ export enum RedirectFunction {
   TRY_TO_SIGN_IN_UNVERIFIED = 'redirect.tryToSignInUnverified'
 }
 
+/** Available popup functions. See static/popup.js */
+export enum PopupFunction {
+  IDP_POPUP = 'popup.idpPopup',
+  IDP_REAUTH_POPUP = 'popup.idpReauthPopup',
+  IDP_LINK_POPUP = 'popup.idpLinkPopup',
+  POPUP_RESULT = 'popup.popupResult',
+  GENERATE_CREDENTIAL_FROM_RESULT = 'popup.generateCredentialFromResult',
+  SIGN_IN_WITH_POPUP_CREDENTIAL = 'popup.signInWithPopupCredential',
+  LINK_WITH_ERROR_CREDENTIAL = 'popup.linkWithErrorCredential',
+  CREATE_FAKE_GOOGLE_USER = 'popup.createFakeGoogleUser',
+  TRY_TO_SIGN_IN_UNVERIFIED = 'popup.tryToSignInUnverified'
+}
+
 /** Available core functions within the browser. See static/core.js */
 export enum CoreFunction {
   RESET = 'core.reset',
