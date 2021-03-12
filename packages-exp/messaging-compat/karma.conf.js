@@ -17,7 +17,7 @@
 
 const karmaBase = require('../../config/karma.base');
 
-const files = [`src/**/*.test.ts`];
+const files = ['test/**/*'];
 
 module.exports = function (config) {
   const karmaConfig = {
