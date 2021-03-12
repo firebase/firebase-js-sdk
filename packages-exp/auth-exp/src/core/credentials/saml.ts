@@ -1,10 +1,30 @@
 /**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * Represents the SAML credentials returned by an {@link SAMLAuthProvider}.
- * 
+ *
  * @public
  */
 
-import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication/idp';
+import {
+  signInWithIdp,
+  SignInWithIdpRequest
+} from '../../api/authentication/idp';
 import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthCredential } from './auth_credential';
@@ -15,13 +35,15 @@ const IDP_REQUEST_URI = 'http://localhost';
  * @public
  */
 export class SAMLAuthCredential extends AuthCredential {
-
   /** @internal */
-  private constructor(providerId: string, private readonly pendingToken: string) {
+  private constructor(
+    providerId: string,
+    private readonly pendingToken: string
+  ) {
     super(providerId, providerId);
   }
 
-   /** @internal */
+  /** @internal */
   _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     return signInWithIdp(auth, request);
@@ -49,7 +71,7 @@ export class SAMLAuthCredential extends AuthCredential {
     return {
       signInMethod: this.signInMethod,
       providerId: this.providerId,
-      pendingToken: this.pendingToken,
+      pendingToken: this.pendingToken
     };
   }
 
@@ -64,8 +86,17 @@ export class SAMLAuthCredential extends AuthCredential {
    */
   static fromJSON(json: string | object): SAMLAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
-    const { providerId, signInMethod, pendingToken }: Record<string, string> = obj;
-    if (!providerId || !signInMethod || !pendingToken || providerId !== signInMethod) {
+    const {
+      providerId,
+      signInMethod,
+      pendingToken
+    }: Record<string, string> = obj;
+    if (
+      !providerId ||
+      !signInMethod ||
+      !pendingToken ||
+      providerId !== signInMethod
+    ) {
       return null;
     }
 
@@ -74,7 +105,7 @@ export class SAMLAuthCredential extends AuthCredential {
 
   /**
    * Helper static method to avoid exposing the constructor to end users.
-   * 
+   *
    * @internal
    */
   static _create(providerId: string, pendingToken: string): SAMLAuthCredential {
@@ -82,11 +113,11 @@ export class SAMLAuthCredential extends AuthCredential {
   }
 
   private buildRequest(): SignInWithIdpRequest {
-    return{
+    return {
       requestUri: IDP_REQUEST_URI,
       returnSecureToken: true,
       pendingToken: this.pendingToken,
-      postBody: null,
+      postBody: null
     };
   }
 }

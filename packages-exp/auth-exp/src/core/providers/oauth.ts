@@ -60,7 +60,9 @@ export interface OAuthCredentialOptions {
  * {@link GoogleAuthProvider}) don't inherit the `credential` instance method.
  * Instead, they rely on a static `credential` method.
  */
-export abstract class BaseOAuthProvider extends FederatedAuthProvider implements AuthProvider {
+export abstract class BaseOAuthProvider
+  extends FederatedAuthProvider
+  implements AuthProvider {
   /** @internal */
   private scopes: string[] = [];
 
@@ -126,7 +128,6 @@ export abstract class BaseOAuthProvider extends FederatedAuthProvider implements
  * @public
  */
 export class OAuthProvider extends BaseOAuthProvider {
-
   static credentialFromJSON(json: object | string): OAuthCredential {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     _assert(

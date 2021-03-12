@@ -56,7 +56,7 @@ describe('core/credentials/saml', () => {
       expect(cred.toJSON()).to.eql({
         signInMethod: 'saml.provider',
         providerId: 'saml.provider',
-        pendingToken: 'pending-token',
+        pendingToken: 'pending-token'
       });
     });
   });
@@ -77,7 +77,10 @@ describe('core/credentials/saml', () => {
 
   context('#makeRequest', () => {
     it('generates the proper request', async () => {
-      await SAMLAuthCredential._create('saml.provider', 'pending-token')._getIdTokenResponse(auth);
+      await SAMLAuthCredential._create(
+        'saml.provider',
+        'pending-token'
+      )._getIdTokenResponse(auth);
 
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
       expect(request.requestUri).to.eq('http://localhost');

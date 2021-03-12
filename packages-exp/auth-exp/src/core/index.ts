@@ -151,10 +151,7 @@ export { FacebookAuthProvider } from './providers/facebook';
 export { CustomParameters } from './providers/federated';
 export { GoogleAuthProvider } from './providers/google';
 export { GithubAuthProvider } from './providers/github';
-export {
-  OAuthProvider,
-  OAuthCredentialOptions
-} from './providers/oauth';
+export { OAuthProvider, OAuthCredentialOptions } from './providers/oauth';
 export { SAMLAuthProvider } from './providers/saml';
 export { TwitterAuthProvider } from './providers/twitter';
 
