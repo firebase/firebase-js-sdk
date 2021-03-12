@@ -22,8 +22,48 @@ import { Component, ComponentType } from '@firebase/component';
 import { version } from '../package.json';
 import { FirebaseDatabase } from '../src/exp/Database';
 
-export { getDatabase, ServerValue } from '../src/exp/Database';
-export { enableLogging } from '../src/core/util/util';
+export {
+  enableLogging,
+  getDatabase,
+  goOffline,
+  goOnline,
+  ref,
+  refFromURL,
+  useDatabaseEmulator
+} from '../src/exp/Database';
+export {
+  OnDisconnect,
+  Reference,
+  ThenableReference
+} from '../src/exp/Reference';
+export { DataSnapshot } from '../src/exp/DataSnapshot';
+export {
+  ListenOptions,
+  Query,
+  QueryConstraint,
+  Unsubscribe,
+  endAt,
+  endBefore,
+  equalTo,
+  get,
+  limitToFirst,
+  limitToLast,
+  off,
+  onChildAdded,
+  onChildChanged,
+  onChildMoved,
+  onChildRemoved,
+  onValue,
+  orderByChild,
+  orderByKey,
+  orderByPriority,
+  orderByValue,
+  query,
+  startAfter,
+  startAt
+} from '../src/exp/Query';
+export { increment, serverTimestamp } from '../src/exp/ServerValue';
+export { runTransaction, TransactionOptions } from '../src/exp/Transaction';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
