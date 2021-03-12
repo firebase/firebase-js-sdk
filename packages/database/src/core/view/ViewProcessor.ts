@@ -38,7 +38,13 @@ import {
   NO_COMPLETE_CHILD_SOURCE,
   WriteTreeCompleteChildSource
 } from './CompleteChildSource';
-import { ViewCache } from './ViewCache';
+import {
+  ViewCache,
+  viewCacheGetCompleteEventSnap,
+  viewCacheGetCompleteServerSnap,
+  viewCacheUpdateEventSnap,
+  viewCacheUpdateServerSnap
+} from './ViewCache';
 import { NodeFilter } from './filter/NodeFilter';
 import { WriteTreeRef } from '../WriteTree';
 import { Overwrite } from '../operation/Overwrite';
@@ -60,11 +66,11 @@ export class ViewProcessor {
 
   assertIndexed(viewCache: ViewCache) {
     assert(
-      viewCache.getEventCache().getNode().isIndexed(this.filter_.getIndex()),
+      viewCache.eventCache.getNode().isIndexed(this.filter_.getIndex()),
       'Event snap not indexed'
     );
     assert(
-      viewCache.getServerCache().getNode().isIndexed(this.filter_.getIndex()),
+      viewCache.serverCache.getNode().isIndexed(this.filter_.getIndex()),
       'Server snap not indexed'
     );
   }
@@ -95,7 +101,7 @@ export class ViewProcessor {
         // again
         filterServerNode =
           overwrite.source.tagged ||
-          (oldViewCache.getServerCache().isFiltered() &&
+          (oldViewCache.serverCache.isFiltered() &&
             !pathIsEmpty(overwrite.path));
         newViewCache = this.applyServerOverwrite_(
           oldViewCache,
@@ -122,7 +128,7 @@ export class ViewProcessor {
         assert(merge.source.fromServer, 'Unknown source.');
         // We filter the node if it's a tagged update or the node has been previously filtered
         filterServerNode =
-          merge.source.tagged || oldViewCache.getServerCache().isFiltered();
+          merge.source.tagged || oldViewCache.serverCache.isFiltered();
         newViewCache = this.applyServerMerge_(
           oldViewCache,
           merge.path,
@@ -173,18 +179,20 @@ export class ViewProcessor {
     newViewCache: ViewCache,
     accumulator: Change[]
   ) {
-    const eventSnap = newViewCache.getEventCache();
+    const eventSnap = newViewCache.eventCache;
     if (eventSnap.isFullyInitialized()) {
       const isLeafOrEmpty =
         eventSnap.getNode().isLeafNode() || eventSnap.getNode().isEmpty();
-      const oldCompleteSnap = oldViewCache.getCompleteEventSnap();
+      const oldCompleteSnap = viewCacheGetCompleteEventSnap(oldViewCache);
       if (
         accumulator.length > 0 ||
-        !oldViewCache.getEventCache().isFullyInitialized() ||
+        !oldViewCache.eventCache.isFullyInitialized() ||
         (isLeafOrEmpty && !eventSnap.getNode().equals(oldCompleteSnap)) ||
         !eventSnap.getNode().getPriority().equals(oldCompleteSnap.getPriority())
       ) {
-        accumulator.push(changeValue(newViewCache.getCompleteEventSnap()));
+        accumulator.push(
+          changeValue(viewCacheGetCompleteEventSnap(newViewCache))
+        );
       }
     }
   }
@@ -196,7 +204,7 @@ export class ViewProcessor {
     source: CompleteChildSource,
     accumulator: ChildChangeAccumulator
   ): ViewCache {
-    const oldEventSnap = viewCache.getEventCache();
+    const oldEventSnap = viewCache.eventCache;
     if (writesCache.shadowingWrite(changePath) != null) {
       // we have a shadowing write, ignore changes
       return viewCache;
@@ -205,14 +213,14 @@ export class ViewProcessor {
       if (pathIsEmpty(changePath)) {
         // TODO: figure out how this plays with "sliding ack windows"
         assert(
-          viewCache.getServerCache().isFullyInitialized(),
+          viewCache.serverCache.isFullyInitialized(),
           'If change path is empty, we must have complete server data'
         );
-        if (viewCache.getServerCache().isFiltered()) {
+        if (viewCache.serverCache.isFiltered()) {
           // We need to special case this, because we need to only apply writes to complete children, or
           // we might end up raising events for incomplete children. If the server data is filtered deep
           // writes cannot be guaranteed to be complete
-          const serverCache = viewCache.getCompleteServerSnap();
+          const serverCache = viewCacheGetCompleteServerSnap(viewCache);
           const completeChildren =
             serverCache instanceof ChildrenNode
               ? serverCache
@@ -221,16 +229,16 @@ export class ViewProcessor {
             completeChildren
           );
           newEventCache = this.filter_.updateFullNode(
-            viewCache.getEventCache().getNode(),
+            viewCache.eventCache.getNode(),
             completeEventChildren,
             accumulator
           );
         } else {
           const completeNode = writesCache.calcCompleteEventCache(
-            viewCache.getCompleteServerSnap()
+            viewCacheGetCompleteServerSnap(viewCache)
           );
           newEventCache = this.filter_.updateFullNode(
-            viewCache.getEventCache().getNode(),
+            viewCache.eventCache.getNode(),
             completeNode,
             accumulator
           );
@@ -243,7 +251,7 @@ export class ViewProcessor {
             "Can't have a priority with additional path components"
           );
           const oldEventNode = oldEventSnap.getNode();
-          serverNode = viewCache.getServerCache().getNode();
+          serverNode = viewCache.serverCache.getNode();
           // we might have overwrites for this priority
           const updatedPriority = writesCache.calcEventCacheAfterServerOverwrite(
             changePath,
@@ -264,7 +272,7 @@ export class ViewProcessor {
           // update child
           let newEventChild;
           if (oldEventSnap.isCompleteForChild(childKey)) {
-            serverNode = viewCache.getServerCache().getNode();
+            serverNode = viewCache.serverCache.getNode();
             const eventChildUpdate = writesCache.calcEventCacheAfterServerOverwrite(
               changePath,
               oldEventSnap.getNode(),
@@ -284,7 +292,7 @@ export class ViewProcessor {
           } else {
             newEventChild = writesCache.calcCompleteChild(
               childKey,
-              viewCache.getServerCache()
+              viewCache.serverCache
             );
           }
           if (newEventChild != null) {
@@ -302,7 +310,8 @@ export class ViewProcessor {
           }
         }
       }
-      return viewCache.updateEventSnap(
+      return viewCacheUpdateEventSnap(
+        viewCache,
         newEventCache,
         oldEventSnap.isFullyInitialized() || pathIsEmpty(changePath),
         this.filter_.filtersNodes()
@@ -319,7 +328,7 @@ export class ViewProcessor {
     filterServerNode: boolean,
     accumulator: ChildChangeAccumulator
   ): ViewCache {
-    const oldServerSnap = oldViewCache.getServerCache();
+    const oldServerSnap = oldViewCache.serverCache;
     let newServerCache;
     const serverFilter = filterServerNode
       ? this.filter_
@@ -368,7 +377,8 @@ export class ViewProcessor {
         );
       }
     }
-    const newViewCache = oldViewCache.updateServerSnap(
+    const newViewCache = viewCacheUpdateServerSnap(
+      oldViewCache,
       newServerCache,
       oldServerSnap.isFullyInitialized() || pathIsEmpty(changePath),
       serverFilter.filtersNodes()
@@ -395,7 +405,7 @@ export class ViewProcessor {
     completeCache: Node | null,
     accumulator: ChildChangeAccumulator
   ): ViewCache {
-    const oldEventSnap = oldViewCache.getEventCache();
+    const oldEventSnap = oldViewCache.eventCache;
     let newViewCache, newEventCache;
     const source = new WriteTreeCompleteChildSource(
       writesCache,
@@ -404,11 +414,12 @@ export class ViewProcessor {
     );
     if (pathIsEmpty(changePath)) {
       newEventCache = this.filter_.updateFullNode(
-        oldViewCache.getEventCache().getNode(),
+        oldViewCache.eventCache.getNode(),
         changedSnap,
         accumulator
       );
-      newViewCache = oldViewCache.updateEventSnap(
+      newViewCache = viewCacheUpdateEventSnap(
+        oldViewCache,
         newEventCache,
         true,
         this.filter_.filtersNodes()
@@ -417,10 +428,11 @@ export class ViewProcessor {
       const childKey = pathGetFront(changePath);
       if (childKey === '.priority') {
         newEventCache = this.filter_.updatePriority(
-          oldViewCache.getEventCache().getNode(),
+          oldViewCache.eventCache.getNode(),
           changedSnap
         );
-        newViewCache = oldViewCache.updateEventSnap(
+        newViewCache = viewCacheUpdateEventSnap(
+          oldViewCache,
           newEventCache,
           oldEventSnap.isFullyInitialized(),
           oldEventSnap.isFiltered()
@@ -459,7 +471,8 @@ export class ViewProcessor {
             source,
             accumulator
           );
-          newViewCache = oldViewCache.updateEventSnap(
+          newViewCache = viewCacheUpdateEventSnap(
+            oldViewCache,
             newEventSnap,
             oldEventSnap.isFullyInitialized(),
             this.filter_.filtersNodes()
@@ -476,7 +489,7 @@ export class ViewProcessor {
     viewCache: ViewCache,
     childKey: string
   ): boolean {
-    return viewCache.getEventCache().isCompleteForChild(childKey);
+    return viewCache.eventCache.isCompleteForChild(childKey);
   }
 
   private applyUserMerge_(
@@ -544,8 +557,8 @@ export class ViewProcessor {
     // If we don't have a cache yet, this merge was intended for a previously listen in the same location. Ignore it and
     // wait for the complete data update coming soon.
     if (
-      viewCache.getServerCache().getNode().isEmpty() &&
-      !viewCache.getServerCache().isFullyInitialized()
+      viewCache.serverCache.getNode().isEmpty() &&
+      !viewCache.serverCache.isFullyInitialized()
     ) {
       return viewCache;
     }
@@ -566,11 +579,10 @@ export class ViewProcessor {
         changedChildren
       );
     }
-    const serverNode = viewCache.getServerCache().getNode();
+    const serverNode = viewCache.serverCache.getNode();
     viewMergeTree.children.inorderTraversal((childKey, childTree) => {
       if (serverNode.hasChild(childKey)) {
-        const serverChild = viewCache
-          .getServerCache()
+        const serverChild = viewCache.serverCache
           .getNode()
           .getImmediateChild(childKey);
         const newChild = this.applyMerge_(serverChild, childTree);
@@ -587,11 +599,10 @@ export class ViewProcessor {
     });
     viewMergeTree.children.inorderTraversal((childKey, childMergeTree) => {
       const isUnknownDeepMerge =
-        !viewCache.getServerCache().isCompleteForChild(childKey) &&
+        !viewCache.serverCache.isCompleteForChild(childKey) &&
         childMergeTree.value === undefined;
       if (!serverNode.hasChild(childKey) && !isUnknownDeepMerge) {
-        const serverChild = viewCache
-          .getServerCache()
+        const serverChild = viewCache.serverCache
           .getNode()
           .getImmediateChild(childKey);
         const newChild = this.applyMerge_(serverChild, childMergeTree);
@@ -623,11 +634,11 @@ export class ViewProcessor {
     }
 
     // Only filter server node if it is currently filtered
-    const filterServerNode = viewCache.getServerCache().isFiltered();
+    const filterServerNode = viewCache.serverCache.isFiltered();
 
     // Essentially we'll just get our existing server cache for the affected paths and re-apply it as a server update
     // now that it won't be shadowed.
-    const serverCache = viewCache.getServerCache();
+    const serverCache = viewCache.serverCache;
     if (affectedTree.value != null) {
       // This is an overwrite.
       if (
@@ -692,8 +703,9 @@ export class ViewProcessor {
     writesCache: WriteTreeRef,
     accumulator: ChildChangeAccumulator
   ): ViewCache {
-    const oldServerNode = viewCache.getServerCache();
-    const newViewCache = viewCache.updateServerSnap(
+    const oldServerNode = viewCache.serverCache;
+    const newViewCache = viewCacheUpdateServerSnap(
+      viewCache,
       oldServerNode.getNode(),
       oldServerNode.isFullyInitialized() || pathIsEmpty(path),
       oldServerNode.isFiltered()
@@ -723,16 +735,16 @@ export class ViewProcessor {
         viewCache,
         completeServerCache
       );
-      const oldEventCache = viewCache.getEventCache().getNode();
+      const oldEventCache = viewCache.eventCache.getNode();
       let newEventCache;
       if (pathIsEmpty(path) || pathGetFront(path) === '.priority') {
         let newNode;
-        if (viewCache.getServerCache().isFullyInitialized()) {
+        if (viewCache.serverCache.isFullyInitialized()) {
           newNode = writesCache.calcCompleteEventCache(
-            viewCache.getCompleteServerSnap()
+            viewCacheGetCompleteServerSnap(viewCache)
           );
         } else {
-          const serverChildren = viewCache.getServerCache().getNode();
+          const serverChildren = viewCache.serverCache.getNode();
           assert(
             serverChildren instanceof ChildrenNode,
             'serverChildren would be complete if leaf node'
@@ -751,11 +763,11 @@ export class ViewProcessor {
         const childKey = pathGetFront(path);
         let newChild = writesCache.calcCompleteChild(
           childKey,
-          viewCache.getServerCache()
+          viewCache.serverCache
         );
         if (
           newChild == null &&
-          viewCache.getServerCache().isCompleteForChild(childKey)
+          viewCache.serverCache.isCompleteForChild(childKey)
         ) {
           newChild = oldEventCache.getImmediateChild(childKey);
         }
@@ -768,7 +780,7 @@ export class ViewProcessor {
             source,
             accumulator
           );
-        } else if (viewCache.getEventCache().getNode().hasChild(childKey)) {
+        } else if (viewCache.eventCache.getNode().hasChild(childKey)) {
           // No complete child available, delete the existing one, if any
           newEventCache = this.filter_.updateChild(
             oldEventCache,
@@ -783,11 +795,11 @@ export class ViewProcessor {
         }
         if (
           newEventCache.isEmpty() &&
-          viewCache.getServerCache().isFullyInitialized()
+          viewCache.serverCache.isFullyInitialized()
         ) {
           // We might have reverted all child writes. Maybe the old event was a leaf node
           complete = writesCache.calcCompleteEventCache(
-            viewCache.getCompleteServerSnap()
+            viewCacheGetCompleteServerSnap(viewCache)
           );
           if (complete.isLeafNode()) {
             newEventCache = this.filter_.updateFullNode(
@@ -799,9 +811,10 @@ export class ViewProcessor {
         }
       }
       complete =
-        viewCache.getServerCache().isFullyInitialized() ||
+        viewCache.serverCache.isFullyInitialized() ||
         writesCache.shadowingWrite(newEmptyPath()) != null;
-      return viewCache.updateEventSnap(
+      return viewCacheUpdateEventSnap(
+        viewCache,
         newEventCache,
         complete,
         this.filter_.filtersNodes()
