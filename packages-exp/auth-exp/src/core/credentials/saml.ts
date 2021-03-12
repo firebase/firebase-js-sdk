@@ -116,7 +116,7 @@ export class SAMLAuthCredential extends AuthCredential {
     return {
       requestUri: IDP_REQUEST_URI,
       returnSecureToken: true,
-      pendingToken: this.pendingToken,
+      pendingToken: this.pendingToken
     };
   }
 }
