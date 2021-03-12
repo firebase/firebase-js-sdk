@@ -23,7 +23,6 @@ import {
   UserCredential
 } from '../../model/public_types';
 
-import { OAuthProvider } from '../../core';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
@@ -36,6 +35,7 @@ import {
   RedirectAction,
   _setPendingRedirectStatus
 } from '../../core/strategies/redirect';
+import { FederatedAuthProvider } from '../../core/providers/federated';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.
@@ -91,7 +91,7 @@ export async function _signInWithRedirect(
 ): Promise<void | never> {
   const authInternal = _castAuth(auth);
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
@@ -152,7 +152,7 @@ export async function _reauthenticateWithRedirect(
 ): Promise<void | never> {
   const userInternal = user as UserInternal;
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     userInternal.auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
@@ -209,7 +209,7 @@ export async function _linkWithRedirect(
 ): Promise<void | never> {
   const userInternal = user as UserInternal;
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     userInternal.auth,
     AuthErrorCode.ARGUMENT_ERROR
   );

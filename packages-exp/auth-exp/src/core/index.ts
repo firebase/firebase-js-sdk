@@ -148,13 +148,11 @@ export { inMemoryPersistence } from './persistence/in_memory';
 // providers
 export { EmailAuthProvider } from './providers/email';
 export { FacebookAuthProvider } from './providers/facebook';
+export { CustomParameters } from './providers/federated';
 export { GoogleAuthProvider } from './providers/google';
 export { GithubAuthProvider } from './providers/github';
-export {
-  OAuthProvider,
-  CustomParameters,
-  OAuthCredentialOptions
-} from './providers/oauth';
+export { OAuthProvider, OAuthCredentialOptions } from './providers/oauth';
+export { SAMLAuthProvider } from './providers/saml';
 export { TwitterAuthProvider } from './providers/twitter';
 
 // strategies

@@ -25,7 +25,6 @@ import {
 
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
-import { OAuthProvider } from '../../core/providers/oauth';
 import { _assert, debugAssert, _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
@@ -38,6 +37,7 @@ import { UserInternal } from '../../model/user';
 import { _withDefaultResolver } from '../../core/util/resolver';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from '../../core/strategies/abstract_popup_redirect_operation';
+import { FederatedAuthProvider } from '../../core/providers/federated';
 
 /*
  * The event timeout is the same on mobile and desktop, no need for Delay.
@@ -83,7 +83,7 @@ export async function signInWithPopup(
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
@@ -130,7 +130,7 @@ export async function reauthenticateWithPopup(
 ): Promise<UserCredential> {
   const userInternal = user as UserInternal;
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     userInternal.auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
@@ -177,7 +177,7 @@ export async function linkWithPopup(
 ): Promise<UserCredential> {
   const userInternal = user as UserInternal;
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     userInternal.auth,
     AuthErrorCode.ARGUMENT_ERROR
   );

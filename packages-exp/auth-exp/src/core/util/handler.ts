@@ -20,10 +20,11 @@ import { AuthProvider } from '../../model/public_types';
 import { ApiKey, AppName, AuthInternal } from '../../model/auth';
 import { AuthEventType } from '../../model/popup_redirect';
 import { AuthErrorCode } from '../errors';
-import { OAuthProvider } from '../providers/oauth';
 import { _assert } from './assert';
 import { isEmpty, querystring } from '@firebase/util';
 import { _emulatorUrl } from './emulator';
+import { FederatedAuthProvider } from '../providers/federated';
+import { BaseOAuthProvider } from '../providers/oauth';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -73,20 +74,23 @@ export function _getRedirectUrl(
     eventId
   };
 
-  if (provider instanceof OAuthProvider) {
+  if (provider instanceof FederatedAuthProvider) {
     provider.setDefaultLanguage(auth.languageCode);
     params.providerId = provider.providerId || '';
     if (!isEmpty(provider.getCustomParameters())) {
       params.customParameters = JSON.stringify(provider.getCustomParameters());
     }
-    const scopes = provider.getScopes().filter(scope => scope !== '');
-    if (scopes.length > 0) {
-      params.scopes = scopes.join(',');
-    }
 
     // TODO set additionalParams from the provider as well?
     for (const [key, value] of Object.entries(additionalParams || {})) {
       params[key] = value;
+    }
+  }
+
+  if (provider instanceof BaseOAuthProvider) {
+    const scopes = provider.getScopes().filter(scope => scope !== '');
+    if (scopes.length > 0) {
+      params.scopes = scopes.join(',');
     }
   }
 

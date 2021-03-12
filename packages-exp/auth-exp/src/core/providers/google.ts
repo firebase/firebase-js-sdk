@@ -26,7 +26,7 @@ import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
-import { OAuthProvider } from './oauth';
+import { BaseOAuthProvider } from './oauth';
 
 /**
  * Provider for generating an an {@link OAuthCredential} for {@link ProviderId.GOOGLE}.
@@ -69,7 +69,7 @@ import { OAuthProvider } from './oauth';
  *
  * @public
  */
-export class GoogleAuthProvider extends OAuthProvider {
+export class GoogleAuthProvider extends BaseOAuthProvider {
   /** Always set to {@link SignInMethod.GOOGLE}. */
   static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
   /** Always set to {@link ProviderId.GOOGLE}. */

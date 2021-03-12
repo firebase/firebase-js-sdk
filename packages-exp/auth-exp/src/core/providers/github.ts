@@ -25,7 +25,7 @@ import { FirebaseError } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
-import { OAuthProvider } from './oauth';
+import { BaseOAuthProvider } from './oauth';
 
 /**
  * Provider for generating an {@link OAuthCredential} for {@link ProviderId.GITHUB}.
@@ -69,7 +69,7 @@ import { OAuthProvider } from './oauth';
  * ```
  * @public
  */
-export class GithubAuthProvider extends OAuthProvider {
+export class GithubAuthProvider extends BaseOAuthProvider {
   /** Always set to {@link SignInMethod.GITHUB}. */
   static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
   /** Always set to {@link ProviderId.GITHUB}. */
