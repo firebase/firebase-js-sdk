@@ -26,7 +26,12 @@ import { expect, use } from 'chai';
 import { IdPPage } from './util/idp_page';
 import * as chaiAsPromised from 'chai-as-promised';
 import { browserDescribe } from './util/test_runner';
-import { AnonFunction, CoreFunction, RedirectFunction } from './util/functions';
+import {
+  AnonFunction,
+  CoreFunction,
+  EmailFunction,
+  RedirectFunction
+} from './util/functions';
 
 use(chaiAsPromised);
 
@@ -144,6 +149,87 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       'google.com',
       'facebook.com'
     ]);
+  });
+
+  it('does not auto-upgrade anon accounts', async () => {
+    const { user: anonUser }: UserCredential = await driver.call(
+      AnonFunction.SIGN_IN_ANONYMOUSLY
+    );
+    await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
+    const widget = new IdPPage(driver.webDriver);
+    await widget.pageLoad();
+    await widget.clickAddAccount();
+    await widget.fillEmail('bob@bob.test');
+    await widget.clickSignIn();
+
+    // On redirect, check that the signed in user is different
+    await driver.reinitOnRedirect();
+    const curUser = await driver.getUserSnapshot();
+    expect(curUser.uid).not.to.eq(anonUser.uid);
+  });
+
+  it('linking with anonymous user upgrades account', async () => {
+    const { user: anonUser }: UserCredential = await driver.call(
+      AnonFunction.SIGN_IN_ANONYMOUSLY
+    );
+    await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
+    const widget = new IdPPage(driver.webDriver);
+    await widget.pageLoad();
+    await widget.clickAddAccount();
+    await widget.fillEmail('bob@bob.test');
+    await widget.clickSignIn();
+
+    // On redirect, check that the signed in user is upgraded
+    await driver.reinitOnRedirect();
+    const curUser = await driver.getUserSnapshot();
+    expect(curUser.uid).to.eq(anonUser.uid);
+    expect(curUser.isAnonymous).to.be.false;
+  });
+
+  it('is possible to link with different email', async () => {
+    const { user: emailUser }: UserCredential = await driver.call(
+      EmailFunction.CREATE_USER,
+      'user@test.test'
+    );
+
+    // Link using pre-poulated user
+    await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
+
+    const widget = new IdPPage(driver.webDriver);
+    await widget.pageLoad();
+    await widget.clickAddAccount();
+    await widget.fillEmail('other-user@test.test');
+    await widget.clickSignIn();
+
+    // Check the linked account
+    await driver.reinitOnRedirect();
+    const curUser = await driver.getUserSnapshot();
+    expect(curUser.uid).to.eq(emailUser.uid);
+    expect(curUser.emailVerified).to.be.false;
+    expect(curUser.providerData.length).to.eq(2);
+  });
+
+  it('is possible to link with the same email', async () => {
+    const { user: emailUser }: UserCredential = await driver.call(
+      EmailFunction.CREATE_USER,
+      'same@test.test'
+    );
+
+    // Link using pre-poulated user
+    await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
+
+    const widget = new IdPPage(driver.webDriver);
+    await widget.pageLoad();
+    await widget.clickAddAccount();
+    await widget.fillEmail('same@test.test');
+    await widget.clickSignIn();
+
+    // Check the linked account
+    await driver.reinitOnRedirect();
+    const curUser = await driver.getUserSnapshot();
+    expect(curUser.uid).to.eq(emailUser.uid);
+    expect(curUser.emailVerified).to.be.true;
+    expect(curUser.providerData.length).to.eq(2);
   });
 
   context('with existing user', () => {

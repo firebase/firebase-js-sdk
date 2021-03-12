@@ -46,6 +46,11 @@ export enum PopupFunction {
   TRY_TO_SIGN_IN_UNVERIFIED = 'popup.tryToSignInUnverified'
 }
 
+/** Available email functions. See static/email.js */
+export enum EmailFunction {
+  CREATE_USER = 'email.createUser'
+}
+
 /** Available core functions within the browser. See static/core.js */
 export enum CoreFunction {
   RESET = 'core.reset',
