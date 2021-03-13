@@ -53,5 +53,3 @@ export function registerBundle(instance: typeof Firestore): void {
   instance.prototype.loadBundle = loadBundle;
   instance.prototype.namedQuery = namedQuery;
 }
-
-registerBundle(Firestore);

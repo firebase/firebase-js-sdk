@@ -70,51 +70,5 @@ export default [
     treeshake: {
       moduleSideEffects: false
     }
-  },
-  // Create memory build
-  {
-    input: {
-      index: 'compat/index.memory.ts',
-      bundle: 'compat/index.bundle.ts'
-    },
-    output: {
-      dir: 'dist/compat/memory/esm2017',
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [
-      ...util.es2017PluginsCompat(
-        'browser',
-        getImportPathTransformer({
-          // ../../exp/index
-          pattern: /^.*exp\/index$/g,
-          template: ['@firebase/firestore']
-        }),
-        /* mangled= */ false
-      )
-    ],
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
-  // Convert memory build to ES5
-  {
-    input: {
-      index: path.resolve('./compat/memory', memoryPkg['esm2017']),
-      bundle: path.resolve('./compat/memory/bundle', memoryBundlePkg['esm2017'])
-    },
-    output: [
-      {
-        dir: 'dist/compat/memory/esm5',
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
   }
 ];

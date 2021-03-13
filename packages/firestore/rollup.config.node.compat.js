@@ -76,56 +76,5 @@ export default [
     treeshake: {
       moduleSideEffects: false
     }
-  },
-  {
-    input: {
-      index: './compat/index.node.memory.ts',
-      bundle: './compat/index.bundle.ts'
-    },
-    output: {
-      dir: 'dist/compat/memory/node-esm2017',
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [
-      ...util.es2017PluginsCompat(
-        'node',
-        getImportPathTransformer({
-          // ../../exp/index
-          pattern: /^.*exp\/index$/g,
-          template: ['@firebase/firestore']
-        })
-      ),
-      replace({
-        'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../protos')
-      }),
-      copy({
-        targets: [{ src: 'src/protos', dest: 'dist/memory' }]
-      })
-    ],
-    external: util.resolveNodeExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
-  {
-    input: {
-      index: path.resolve('./compat/memory', memoryPkg['main-esm2017']),
-      bundle: path.resolve(
-        './compat/memory/bundle',
-        memoryBundlePkg['main-esm2017']
-      )
-    },
-    output: [
-      {
-        dir: 'dist/compat/memory/node-cjs',
-        format: 'cjs',
-        sourcemap: true
-      }
-    ],
-    external: util.resolveNodeExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
   }
 ];

@@ -45,32 +45,5 @@ export default [
     treeshake: {
       moduleSideEffects: false
     }
-  },
-  // Create memory build
-  {
-    input: {
-      index: './compat/index.memory.ts',
-      bundle: './compat/index.bundle.ts'
-    },
-    output: {
-      dir: 'dist/compat/memory/rn',
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [
-      ...util.es2017PluginsCompat(
-        'rn',
-        getImportPathTransformer({
-          // ../../exp/index
-          pattern: /^.*exp\/index$/g,
-          template: ['@firebase/firestore']
-        }),
-        /* mangled= */ false
-      )
-    ],
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
   }
 ];

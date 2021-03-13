@@ -131,19 +131,6 @@ export async function createFirestoreCompatProject() {
     resolve(FIRESTORE_COMPAT_DEST, 'bundle/package.json'),
     async content => content.replace(/\.\.\/\.\.\/dist\/compat/g, '../dist')
   );
-
-  // update memory/package.json
-  await transformFile(
-    resolve(FIRESTORE_COMPAT_DEST, 'memory/package.json'),
-    async content => content.replace(/\.\.\/\.\.\/dist\/compat/g, '../dist')
-  );
-
-  // update memory/bundle/packages.json
-  await transformFile(
-    resolve(FIRESTORE_COMPAT_DEST, 'memory/bundle/package.json'),
-    async content =>
-      content.replace(/\.\.\/\.\.\/\.\.\/dist\/compat/g, '../../dist')
-  );
 }
 
 function copyRecursiveSync(
