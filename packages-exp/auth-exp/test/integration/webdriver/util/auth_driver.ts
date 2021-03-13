@@ -31,6 +31,15 @@ import { authTestServer } from './test_server';
 const START_FUNCTION = 'startAuth';
 const PASSED_ARGS = '...Array.prototype.slice.call(arguments, 0, -1)';
 
+type DriverCallResult =
+  | { type: 'success'; value: string /* JSON stringified */ }
+  | {
+      type: 'error';
+      fields: string /* JSON stringified */;
+      message: string;
+      stack: string;
+    };
+
 /** Helper wraper around the WebDriver object */
 export class AuthDriver {
   webDriver!: WebDriver;
@@ -52,30 +61,27 @@ export class AuthDriver {
     // serialization which blows up the whole thing. It's okay though; this is
     // an integration test: we don't care about the internal (hidden) values of
     // these objects.
-    const {
-      type,
-      value
-    }: {
-      type: string;
-      value: string;
-    } = await this.webDriver.executeAsyncScript(
+    const result = await this.webDriver.executeAsyncScript<DriverCallResult>(
       `
       var callback = arguments[arguments.length - 1];
       ${fn}(${PASSED_ARGS}).then(result => {
         callback({type: 'success', value: JSON.stringify(result)});
       }).catch(e => {
-        callback({type: 'error', value: JSON.stringify(e)});
+        callback({type: 'error', message: e.message, stack: e.stack, fields: JSON.stringify(e)});
       });
     `,
       ...args
     );
 
-    const parsed: object = JSON.parse(value);
-    if (type === 'success') {
-      return JSON.parse(value) as T;
+    if (result.type === 'success') {
+      return JSON.parse(result.value) as T;
     } else {
-      const e = new Error('Test promise rejection');
-      Object.assign(e, parsed);
+      const e = new Error(result.message);
+      const stack = e.stack;
+      Object.assign(e, JSON.parse(result.fields));
+
+      const trimmedDriverStack = result.stack.split('at eval (')[0];
+      e.stack = `${trimmedDriverStack}\nfrom WebDriver call ${fn}(...)\n${stack}`;
       throw e;
     }
   }

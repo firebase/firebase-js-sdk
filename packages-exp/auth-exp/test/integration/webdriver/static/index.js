@@ -24,18 +24,20 @@ import * as persistence from './persistence';
 import { initializeApp } from '@firebase/app-exp';
 import { getAuth, useAuthEmulator } from '@firebase/auth-exp';
 
-window.core = { ...core };
-window.anonymous = { ...anonymous };
-window.redirect = { ...redirect };
-window.popup = { ...popup };
-window.email = { ...email };
-window.persistence = { ...persistence };
+window.core = core;
+window.anonymous = anonymous;
+window.redirect = redirect;
+window.popup = popup;
+window.email = email;
+window.persistence = persistence;
+
+window.auth = null;
 
 // The config and emulator URL are injected by the test. The test framework
 // calls this function after that injection.
 window.startAuth = async () => {
   const app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
+  const auth = getAuth(app);
   useAuthEmulator(auth, emulatorUrl);
   window.auth = auth;
 };

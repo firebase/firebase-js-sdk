@@ -30,46 +30,46 @@ import {
 // pass data back to the main Node process. Because of that setup, we can't
 // return the popup tasks as pending promises as they won't resolve until
 // the WebDriver is allowed to do other stuff. Instead, we'll store the
-// promises on the window and provide a way to retrieve them later, unblocking
+// promises in variables and provide a way to retrieve them later, unblocking
 // the WebDriver process.
+let popupPromise = null;
+let popupCred = null;
+let errorCred = null;
 
 export function idpPopup(optProvider) {
   const provider = optProvider
     ? new OAuthProvider(optProvider)
     : new GoogleAuthProvider();
-  window.popup.popupPromise = signInWithPopup(auth, provider);
+  popupPromise = signInWithPopup(auth, provider);
 }
 
 export function idpReauthPopup() {
-  window.popup.popupPromise = reauthenticateWithPopup(
+  popupPromise = reauthenticateWithPopup(
     auth.currentUser,
     new GoogleAuthProvider()
   );
 }
 
 export function idpLinkPopup() {
-  window.popup.popupPromise = linkWithPopup(
-    auth.currentUser,
-    new GoogleAuthProvider()
-  );
+  popupPromise = linkWithPopup(auth.currentUser, new GoogleAuthProvider());
 }
 
 export function popupResult() {
-  return window.popup.popupPromise;
+  return popupPromise;
 }
 
 export async function generateCredentialFromResult() {
-  const result = await window.popup.popupPromise;
-  window.popup.popupCred = GoogleAuthProvider.credentialFromResult(result);
-  return window.popup.popupCred;
+  const result = await popupPromise;
+  popupCred = GoogleAuthProvider.credentialFromResult(result);
+  return popupCred;
 }
 
 export async function signInWithPopupCredential() {
-  return signInWithCredential(auth, window.popup.popupCred);
+  return signInWithCredential(auth, popupCred);
 }
 
 export async function linkWithErrorCredential() {
-  await linkWithCredential(auth.currentUser, window.popup.errorCred);
+  await linkWithCredential(auth.currentUser, errorCred);
 }
 
 // These below are not technically popup functions but they're helpers for
@@ -93,7 +93,7 @@ export async function tryToSignInUnverified(email) {
       )
     );
   } catch (e) {
-    window.popup.errorCred = FacebookAuthProvider.credentialFromError(e);
+    errorCred = FacebookAuthProvider.credentialFromError(e);
     throw e;
   }
 }

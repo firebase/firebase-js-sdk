@@ -60,9 +60,6 @@ setTimeout(() => {
       before(async function () {
         this.timeout(20000); // Starting browsers can be slow.
         await DRIVER.start(browser);
-
-        // Prime for the first test.
-        await DRIVER.reset();
       });
 
       after(async () => {
@@ -72,11 +69,8 @@ setTimeout(() => {
       // It's assumed that the tests will start with a clean slate (i.e.
       // no storage).
       beforeEach(async () => {
-        await DRIVER.injectConfigAndInitAuth();
-      });
-
-      afterEach(async () => {
         await DRIVER.reset();
+        await DRIVER.injectConfigAndInitAuth();
       });
 
       for (const { title, generator } of SUITES) {
