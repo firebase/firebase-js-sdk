@@ -120,16 +120,10 @@ export async function createFirestoreCompatProject() {
         '@firebase/app': '0.x'
       };
 
-      compatPkgJson.files = ['dist', 'memory', 'bundle'];
+      compatPkgJson.files = ['dist'];
 
       return `${JSON.stringify(compatPkgJson, null, 2)}\n`;
     }
-  );
-
-  // update bundle/package.json
-  await transformFile(
-    resolve(FIRESTORE_COMPAT_DEST, 'bundle/package.json'),
-    async content => content.replace(/\.\.\/\.\.\/dist\/compat/g, '../dist')
   );
 }
 
