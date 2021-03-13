@@ -18,9 +18,6 @@
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy';
 import pkg from './compat/package.json';
-import bundlePkg from './compat/bundle/package.json';
-import memoryPkg from './compat/memory/package.json';
-import memoryBundlePkg from './compat/memory/bundle/package.json';
 import path from 'path';
 import { getImportPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
@@ -29,8 +26,7 @@ const util = require('./rollup.shared');
 export default [
   {
     input: {
-      index: './compat/index.node.ts',
-      bundle: './compat/index.bundle.ts'
+      index: './compat/index.node.ts'
     },
     output: {
       dir: 'dist/compat/node-esm2017',
@@ -61,8 +57,7 @@ export default [
   },
   {
     input: {
-      index: path.resolve('./compat', pkg['main-esm2017']),
-      bundle: path.resolve('./compat/bundle', bundlePkg['main-esm2017'])
+      index: path.resolve('./compat', pkg['main-esm2017'])
     },
     output: [
       {

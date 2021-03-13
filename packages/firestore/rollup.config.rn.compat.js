@@ -22,8 +22,7 @@ export default [
   // Create main build
   {
     input: {
-      index: './compat/index.ts',
-      bundle: './compat/index.bundle.ts'
+      index: './compat/index.ts'
     },
     output: {
       dir: 'dist/compat/rn',

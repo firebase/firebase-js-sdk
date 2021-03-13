@@ -1,8 +1,5 @@
 import pkg from './compat/package.json';
 import path from 'path';
-import memoryPkg from './compat/memory/package.json';
-import bundlePkg from './compat/bundle/package.json';
-import memoryBundlePkg from './compat/memory/bundle/package.json';
 import { getImportPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 /**
@@ -28,8 +25,7 @@ export default [
   // Create main build
   {
     input: {
-      index: './compat/index.ts',
-      bundle: './compat/index.bundle.ts'
+      index: './compat/index.ts'
     },
     output: {
       dir: 'dist/compat/esm2017',
@@ -55,8 +51,7 @@ export default [
   // Convert main build to ES5
   {
     input: {
-      index: path.resolve('./compat', pkg['esm2017']),
-      bundle: path.resolve('./compat/bundle', bundlePkg['esm2017'])
+      index: path.resolve('./compat', pkg['esm2017'])
     },
     output: [
       {
