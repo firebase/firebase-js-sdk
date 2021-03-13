@@ -36,6 +36,13 @@ export const enum ComponentType {
   VERSION = 'VERSION'
 }
 
+export interface InstanceFactoryOptions {
+  instanceIdentifier?: string;
+  options?: {};
+}
+
+export type InitializeOptions = InstanceFactoryOptions;
+
 /**
  * Factory to create an instance of type T, given a ComponentContainer.
  * ComponentContainer is the IOC container that provides {@link Provider}
@@ -46,7 +53,7 @@ export const enum ComponentType {
  */
 export type InstanceFactory<T extends Name> = (
   container: ComponentContainer,
-  instanceIdentifier?: string
+  options: InstanceFactoryOptions
 ) => NameServiceMapping[T];
 
 export interface Dictionary {

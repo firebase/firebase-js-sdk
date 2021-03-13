@@ -41,16 +41,13 @@ declare module '@firebase/component' {
 }
 
 const factory: InstanceFactory<'analytics-compat'> = (
-  container: ComponentContainer,
-  regionOrCustomDomain?: string
+  container: ComponentContainer
 ) => {
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
   const analyticsServiceExp = container
     .getProvider('analytics-exp')
-    .getImmediate({
-      identifier: regionOrCustomDomain
-    });
+    .getImmediate();
 
   return new AnalyticsService(app as FirebaseApp, analyticsServiceExp);
 };

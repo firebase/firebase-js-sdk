@@ -19,45 +19,39 @@ import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import {
   Component,
   ComponentContainer,
-  ComponentType,
-  InstanceFactoryOptions
+  ComponentType
 } from '@firebase/component';
-import { RemoteConfigCompatImpl } from './remoteConfig';
+import { PerformanceCompatImpl } from './performance';
 import { name as packageName, version } from '../package.json';
-import { RemoteConfig as RemoteConfigCompat } from '@firebase/remote-config-types';
+import { FirebasePerformance as FirebasePerformanceCompat } from '@firebase/performance-types';
 
-// TODO: move it to remote-config-types package
+// TODO: move it to the future performance-compat-types package
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'remote-config-compat': RemoteConfigCompat;
+    'performance-compat': FirebasePerformanceCompat;
   }
 }
 
-function registerRemoteConfigCompat(
-  firebaseInstance: _FirebaseNamespace
-): void {
+function registerPerformanceCompat(firebaseInstance: _FirebaseNamespace): void {
   firebaseInstance.INTERNAL.registerComponent(
     new Component(
-      'remote-config-compat',
-      remoteConfigFactory,
+      'performance-compat',
+      performanceFactory,
       ComponentType.PUBLIC
-    ).setMultipleInstances(true)
+    )
   );
 
   firebaseInstance.registerVersion(packageName, version);
 }
 
-function remoteConfigFactory(
-  container: ComponentContainer,
-  { instanceIdentifier: namespace }: InstanceFactoryOptions
-): RemoteConfigCompatImpl {
+function performanceFactory(
+  container: ComponentContainer
+): PerformanceCompatImpl {
   const app = container.getProvider('app-compat').getImmediate();
-  // The following call will always succeed because rc `import {...} from '@firebase/remote-config-exp'`
-  const remoteConfig = container.getProvider('remote-config-exp').getImmediate({
-    identifier: namespace
-  });
+  // The following call will always succeed.
+  const performance = container.getProvider('performance-exp').getImmediate();
 
-  return new RemoteConfigCompatImpl(app, remoteConfig);
+  return new PerformanceCompatImpl(app, performance);
 }
 
-registerRemoteConfigCompat(firebase as _FirebaseNamespace);
+registerPerformanceCompat(firebase as _FirebaseNamespace);

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,12 @@
  * limitations under the License.
  */
 
-export { Component } from './src/component';
-export { ComponentContainer } from './src/component_container';
-export { Provider } from './src/provider';
-export {
-  ComponentType,
-  InstanceFactory,
-  InstantiationMode,
-  NameServiceMapping,
-  Name,
-  InstanceFactoryOptions
-} from './src/types';
+import { use } from 'chai';
+import { restore } from 'sinon';
+import * as sinonChai from 'sinon-chai';
+
+use(sinonChai);
+
+afterEach(async () => {
+  restore();
+});
