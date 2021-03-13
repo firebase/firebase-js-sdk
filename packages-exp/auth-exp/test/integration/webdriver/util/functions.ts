@@ -59,3 +59,11 @@ export enum CoreFunction {
   AUTH_SNAPSHOT = 'core.authSnap',
   SIGN_OUT = 'core.signOut'
 }
+
+/** Available persistence functions within the browser. See static/persistence.js */
+export enum PersistenceFunction {
+  CLEAR_PERSISTENCE = 'persistence.clearPersistence',
+  LOCAL_STORAGE_SNAP = 'persistence.localStorageSnap',
+  SESSION_STORAGE_SNAP = 'persistence.sessionStorageSnap',
+  INDEXED_DB_SNAP = 'persistence.indexedDBSnap'
+}
