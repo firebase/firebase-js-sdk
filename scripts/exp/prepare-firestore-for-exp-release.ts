@@ -95,8 +95,8 @@ export async function createFirestoreCompatProject() {
     rmdirSync(FIRESTORE_COMPAT_DEST, { recursive: true });
   }
 
-  copyRescursiveSync(FIRESTORE_COMPAT_SRC, FIRESTORE_COMPAT_DEST);
-  copyRescursiveSync(
+  copyRecursiveSync(FIRESTORE_COMPAT_SRC, FIRESTORE_COMPAT_DEST);
+  copyRecursiveSync(
     FIRESTORE_COMPAT_BINARY_SRC,
     FIRESTORE_COMPAT_BINARY_DEST,
     /* include d.ts files*/ true
@@ -146,7 +146,7 @@ export async function createFirestoreCompatProject() {
   );
 }
 
-function copyRescursiveSync(
+function copyRecursiveSync(
   src: string,
   dest: string,
   includeTs: boolean = false
@@ -160,7 +160,7 @@ function copyRescursiveSync(
   if (isDirectory) {
     mkdirSync(dest);
     for (const item of readdirSync(src)) {
-      copyRescursiveSync(resolve(src, item), resolve(dest, item), includeTs);
+      copyRecursiveSync(resolve(src, item), resolve(dest, item), includeTs);
     }
   } else {
     // do not copy source file
