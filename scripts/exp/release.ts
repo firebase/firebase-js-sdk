@@ -66,7 +66,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     await prepareStorageForRelease();
     await prepareDatabaseForRelease();
     /**
-     * build packages
+     * build packages except for the umbrella package (firebase) which will be built after firestore/storage/database compat packages are created
      */
     await buildPackages();
 
@@ -74,6 +74,11 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * Create compat packages for Firestore, Database and Storage
      */
     await createFirestoreCompatProject();
+
+    /**
+     * build firebase
+     */
+    await buildFirebasePackage();
 
     // path to exp packages
     let packagePaths = await mapWorkspaceToPackages([
@@ -291,6 +296,13 @@ async function buildPackages() {
     rmdirSync(installationsDistDirPath, { recursive: true });
   }
 
+  spinner.stopAndPersist({
+    symbol: '✅'
+  });
+}
+
+async function buildFirebasePackage() {
+  const spinner = ora(' Building firebase').start();
   // Build firebase-exp
   await spawn(
     'yarn',
@@ -300,7 +312,6 @@ async function buildPackages() {
       stdio: 'inherit'
     }
   );
-
   spinner.stopAndPersist({
     symbol: '✅'
   });
