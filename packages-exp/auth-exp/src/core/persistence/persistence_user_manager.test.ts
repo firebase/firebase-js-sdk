@@ -23,7 +23,12 @@ import * as sinonChai from 'sinon-chai';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
-import { PersistenceInternal, PersistenceType, StorageEventListener } from './';
+import {
+  PersistenceInternal,
+  PersistenceType,
+  PersistenceValue,
+  StorageEventListener
+} from './';
 import { inMemoryPersistence } from './in_memory';
 import { KeyName, PersistenceUserManager } from './persistence_user_manager';
 
@@ -64,19 +69,78 @@ describe('core/persistence/persistence_user_manager', () => {
       expect(manager.persistence).to.eq(_getInstance(inMemoryPersistence));
     });
 
+    it('chooses the first one available', async () => {
+      const a = makePersistence();
+      const b = makePersistence();
+      const c = makePersistence();
+      const search = [a.persistence, b.persistence, c.persistence];
+      const auth = await testAuth();
+      a.stub._isAvailable.resolves(false);
+      a.stub._get.onFirstCall().resolves(testUser(auth, 'uid').toJSON());
+      b.stub._isAvailable.resolves(true);
+
+      const out = await PersistenceUserManager.create(auth, search);
+      expect(a.stub._isAvailable).to.have.been.calledOnce;
+      expect(b.stub._isAvailable).to.have.been.calledOnce;
+      expect(c.stub._isAvailable).to.not.have.been.called;
+
+      // a should not be chosen since it is not available (despite having a user).
+      expect(out.persistence).to.eq(b.persistence);
+    });
+
     it('searches in order for a user', async () => {
       const a = makePersistence();
       const b = makePersistence();
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
       const auth = await testAuth();
-      b.stub._get.returns(Promise.resolve(testUser(auth, 'uid').toJSON()));
+      const user = testUser(auth, 'uid');
+      a.stub._isAvailable.resolves(true);
+      a.stub._get.resolves(user.toJSON());
+      b.stub._get.resolves(testUser(auth, 'wrong-uid').toJSON());
 
       const out = await PersistenceUserManager.create(auth, search);
-      expect(out.persistence).to.eq(b.persistence);
       expect(a.stub._get).to.have.been.calledOnce;
-      expect(b.stub._get).to.have.been.calledOnce;
+      expect(b.stub._get).not.to.have.been.called;
       expect(c.stub._get).not.to.have.been.called;
+
+      expect(out.persistence).to.eq(a.persistence);
+      expect((await out.getCurrentUser())!.uid).to.eq(user.uid);
+    });
+
+    it('migrate found user to the selected persistence and clear others', async () => {
+      const a = makePersistence();
+      const b = makePersistence();
+      const c = makePersistence();
+      const search = [a.persistence, b.persistence, c.persistence];
+      const auth = await testAuth();
+      const user = testUser(auth, 'uid');
+      a.stub._isAvailable.resolves(true);
+      b.stub._get.resolves(user.toJSON());
+      c.stub._get.resolves(testUser(auth, 'wrong-uid').toJSON());
+
+      let persistedUserInA: PersistenceValue | null = null;
+      a.stub._set.callsFake(async (_, value) => {
+        persistedUserInA = value;
+      });
+      a.stub._get.callsFake(async () => persistedUserInA);
+
+      const out = await PersistenceUserManager.create(auth, search);
+      expect(a.stub._set).to.have.been.calledOnceWith(
+        'firebase:authUser:test-api-key:test-app',
+        user.toJSON()
+      );
+      expect(b.stub._set).to.not.have.been.called;
+      expect(c.stub._set).to.not.have.been.called;
+      expect(b.stub._remove).to.have.been.calledOnceWith(
+        'firebase:authUser:test-api-key:test-app'
+      );
+      expect(c.stub._remove).to.have.been.calledOnceWith(
+        'firebase:authUser:test-api-key:test-app'
+      );
+
+      expect(out.persistence).to.eq(a.persistence);
+      expect((await out.getCurrentUser())!.uid).to.eq(user.uid);
     });
 
     it('uses default user key if none provided', async () => {
@@ -99,13 +163,17 @@ describe('core/persistence/persistence_user_manager', () => {
       );
     });
 
-    it('returns zeroth persistence if all else fails', async () => {
+    it('returns in-memory persistence if all else fails', async () => {
       const a = makePersistence();
       const b = makePersistence();
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
+      a.stub._isAvailable.resolves(false);
+      b.stub._isAvailable.resolves(false);
+      c.stub._isAvailable.resolves(false);
+
       const out = await PersistenceUserManager.create(auth, search);
-      expect(out.persistence).to.eq(a.persistence);
+      expect(out.persistence).to.eq(_getInstance(inMemoryPersistence));
       expect(a.stub._get).to.have.been.calledOnce;
       expect(b.stub._get).to.have.been.calledOnce;
       expect(c.stub._get).to.have.been.called;
@@ -118,6 +186,7 @@ describe('core/persistence/persistence_user_manager', () => {
 
     beforeEach(async () => {
       const { persistence, stub } = makePersistence(PersistenceType.SESSION);
+      stub._isAvailable.resolves(true);
       persistenceStub = stub;
       manager = await PersistenceUserManager.create(auth, [persistence]);
     });
