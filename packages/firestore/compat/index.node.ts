@@ -22,8 +22,8 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { name, version } from '../package.json';
 import { Firestore, IndexedDbPersistenceProvider } from '../src/api/database';
 
-import { configureForFirebase } from './config';
 import { registerBundle } from './bundle';
+import { configureForFirebase } from './config';
 
 import '../register-module';
 
