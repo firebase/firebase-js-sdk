@@ -17,7 +17,7 @@
 
 import { FieldPath as PublicFieldPath } from '@firebase/firestore-types';
 
-import { FieldPath as ExpFieldPath } from '../exp/field_path';
+import { FieldPath as ExpFieldPath } from '../../exp/index';
 import { FieldPath as InternalFieldPath } from '../model/path';
 
 import { Compat } from './compat';

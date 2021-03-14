@@ -45,10 +45,9 @@ import {
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
 
-import { DatabaseId } from '../core/database_info';
-import { LoadBundleTask } from '../exp/bundle';
-import { Bytes } from '../exp/bytes';
 import {
+  LoadBundleTask,
+  Bytes,
   clearIndexedDbPersistence,
   disableNetwork,
   enableIndexedDbPersistence,
@@ -57,10 +56,8 @@ import {
   ensureFirestoreConfigured,
   FirebaseFirestore as ExpFirebaseFirestore,
   useFirestoreEmulator,
-  waitForPendingWrites
-} from '../exp/database';
-import { FieldPath as ExpFieldPath } from '../exp/field_path';
-import {
+  waitForPendingWrites,
+  FieldPath as ExpFieldPath,
   limit,
   limitToLast,
   where,
@@ -69,9 +66,7 @@ import {
   startAt,
   query,
   endBefore,
-  endAt
-} from '../exp/query';
-import {
+  endAt,
   doc,
   collection,
   collectionGroup,
@@ -79,9 +74,7 @@ import {
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference,
   DocumentReference as ExpDocumentReference,
-  refEqual
-} from '../exp/reference';
-import {
+  refEqual,
   addDoc,
   deleteDoc,
   executeWrite,
@@ -95,21 +88,20 @@ import {
   onSnapshotsInSync,
   setDoc,
   updateDoc,
-  Unsubscribe
-} from '../exp/reference_impl';
-import {
+  Unsubscribe,
   DocumentChange as ExpDocumentChange,
   DocumentSnapshot as ExpDocumentSnapshot,
   QueryDocumentSnapshot as ExpQueryDocumentSnapshot,
   QuerySnapshot as ExpQuerySnapshot,
   snapshotEqual,
-  SnapshotMetadata
-} from '../exp/snapshot';
-import {
+  SnapshotMetadata,
   runTransaction,
-  Transaction as ExpTransaction
-} from '../exp/transaction';
-import { WriteBatch as ExpWriteBatch } from '../exp/write_batch';
+  Transaction as ExpTransaction,
+  WriteBatch as ExpWriteBatch,
+  AbstractUserDataWriter
+} from '../../exp/index'; // import from the exp public API
+import { DatabaseId } from '../core/database_info';
+import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
@@ -131,8 +123,6 @@ import {
   NextFn,
   PartialObserver
 } from './observer';
-import { UntypedFirestoreDataConverter } from './user_data_reader';
-import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.

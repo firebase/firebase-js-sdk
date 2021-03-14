@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
   LimitType,
@@ -36,6 +35,7 @@ import {
   Target
 } from '../core/target';
 import { TargetId } from '../core/types';
+import { Timestamp } from '../lite/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
