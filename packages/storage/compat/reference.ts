@@ -31,6 +31,7 @@ import {
   _Reference,
   _FbsBlob
 } from '../exp/index'; // import from the exp public API
+
 import { UploadTaskCompat } from './task';
 import { ListResultCompat } from './list';
 import { StorageServiceCompat } from './service';

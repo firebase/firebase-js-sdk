@@ -16,6 +16,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c rollup.config.js && yarn build:exp",
     "build:exp": "rollup -c rollup.config.exp.js ; yarn api-report",
+    "build:compat": "rollup -c rollup.config.compat.js",
     "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p test:browser lint",

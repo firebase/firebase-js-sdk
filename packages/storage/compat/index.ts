@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { StringFormat } from '../src/implementation/string';
 import { TaskEvent, TaskState } from '../src/implementation/taskenums';
@@ -81,7 +81,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
   instance.registerVersion(name, version);
 }
 
-registerStorage(firebase as _FirebaseNamespace);
+registerStorage((firebase as unknown) as _FirebaseNamespace);
 
 /**
  * Define extension behavior for `registerStorage`
