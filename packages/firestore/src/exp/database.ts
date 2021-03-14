@@ -155,6 +155,9 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   return _getProvider(app, 'firestore-exp').getImmediate() as FirebaseFirestore;
 }
 
+/**
+ * @internal
+ */
 export function ensureFirestoreConfigured(
   firestore: FirebaseFirestore
 ): FirestoreClient {

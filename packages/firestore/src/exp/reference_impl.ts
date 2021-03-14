@@ -24,14 +24,6 @@ import {
   PartialObserver
 } from '../api/observer';
 import {
-  newUserDataReader,
-  ParsedUpdateData,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
-import {
   firestoreClientAddSnapshotsInSyncListener,
   firestoreClientGetDocumentFromLocalCache,
   firestoreClientGetDocumentsFromLocalCache,
@@ -54,6 +46,14 @@ import {
   UpdateData
 } from '../lite/reference';
 import { applyFirestoreDataConverter } from '../lite/reference_impl';
+import {
+  newUserDataReader,
+  ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs
+} from '../lite/user_data_reader';
+import { AbstractUserDataWriter } from '../lite/user_data_writer';
 import { Document } from '../model/document';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
@@ -760,7 +760,10 @@ export function onSnapshotsInSync(
   return firestoreClientAddSnapshotsInSyncListener(client, observer);
 }
 
-/** Locally writes `mutations` on the async queue. */
+/**
+ * Locally writes `mutations` on the async queue.
+ * @internal
+ */
 export function executeWrite(
   firestore: FirebaseFirestore,
   mutations: Mutation[]

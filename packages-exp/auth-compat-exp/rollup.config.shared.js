@@ -75,7 +75,8 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
         extend: true,
         name: 'firebase',
         globals: {
-          '@firebase/app-compat': 'firebase'
+          '@firebase/app-compat': 'firebase',
+          '@firebase/app': 'firebase.INTERNAL.modularAPIs'
         },
         /**
          * use iife to avoid below error in the old Safari browser
@@ -97,7 +98,7 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
             }`
       },
       plugins: [...es5BuildPlugins, uglify()],
-      external: ['@firebase/app-compat']
+      external: ['@firebase/app-compat', '@firebase/app']
     }
   ];
 }

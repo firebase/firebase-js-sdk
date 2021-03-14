@@ -82,12 +82,16 @@ const nodeDeps = [...browserDeps, 'util', 'path'];
 
 /** Resolves the external dependencies for the browser build. */
 exports.resolveBrowserExterns = function (id) {
-  return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+  return [...browserDeps, '@firebase/firestore'].some(
+    dep => id === dep || id.startsWith(`${dep}/`)
+  );
 };
 
 /** Resolves the external dependencies for the Node build. */
 exports.resolveNodeExterns = function (id) {
-  return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
+  return [...nodeDeps, '@firebase/firestore'].some(
+    dep => id === dep || id.startsWith(`${dep}/`)
+  );
 };
 
 /** Breaks the build if there is a circular dependency. */
@@ -99,7 +103,10 @@ exports.onwarn = function (warning, defaultWarn) {
 };
 
 const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
+
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
+// manually add `_delegate` because we don't have typings for the compat package
+publicIdentifiers.add('_delegate');
 
 /**
  * Transformers that remove calls to `debugAssert` and messages for 'fail` and
@@ -110,6 +117,16 @@ const removeAssertTransformer = service => ({
   after: []
 });
 exports.removeAssertTransformer = removeAssertTransformer;
+
+/**
+ * Transformer that coverts import paths that match `exp/index` to `@firebase/firestore`
+ * and `lite/index` to `@firebase/firestore/lite`
+ */
+const importTransformer = service => ({
+  before: [removeAsserts(service.getProgram())],
+  after: []
+});
+exports.importTransformer = importTransformer;
 
 /**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
@@ -292,6 +309,50 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
         cacheDir: tmp.dirSync()
       }),
       sourcemaps()
+    ];
+  }
+};
+
+exports.es2017PluginsCompat = function (
+  platform,
+  pathTransformer,
+  mangled = false
+) {
+  if (mangled) {
+    return [
+      alias(generateAliasConfig(platform)),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017'
+          }
+        },
+        cacheDir: tmp.dirSync(),
+        abortOnError: false,
+        transformers: [
+          removeAssertAndPrefixInternalTransformer,
+          pathTransformer
+        ]
+      }),
+      json({ preferConst: true }),
+      terser(manglePrivatePropertiesOptions)
+    ];
+  } else {
+    return [
+      alias(generateAliasConfig(platform)),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017'
+          }
+        },
+        cacheDir: tmp.dirSync(),
+        abortOnError: false,
+        transformers: [removeAssertTransformer, pathTransformer]
+      }),
+      json({ preferConst: true })
     ];
   }
 };

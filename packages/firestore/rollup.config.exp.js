@@ -69,6 +69,7 @@ const browserPlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
+      clean: true,
       abortOnError: false,
       transformers: [
         util.removeAssertAndPrefixInternalTransformer,
