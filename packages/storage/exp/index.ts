@@ -61,13 +61,19 @@ import {
   listAll as listAllInternal,
   getDownloadURL as getDownloadURLInternal,
   deleteObject as deleteObjectInternal,
-  Reference
+  Reference,
+  _getChild as _getChildInternal
 } from '../src/reference';
 
 /**
  * Public types.
  */
 export * from './public-types';
+
+export { Location as _Location } from '../src/implementation/location';
+export { UploadTask as _UploadTask } from '../src/task';
+export type { Reference as _Reference } from '../src/reference';
+export { FbsBlob as _FbsBlob } from '../src/implementation/blob';
 
 /**
  * Uploads data to this object's location.
@@ -264,6 +270,13 @@ export function ref(
     serviceOrRef as StorageServiceInternal | Reference,
     pathOrUrl
   );
+}
+
+/**
+ * @internal
+ */
+export function _getChild(ref: StorageReference, childPath: string): Reference {
+  return _getChildInternal(ref as Reference, childPath);
 }
 
 export { StringFormat } from '../src/implementation/string';
