@@ -18,7 +18,7 @@
 import * as types from '@firebase/storage-types';
 import { FirebaseApp } from '@firebase/app-types';
 
-import { StorageService, ref, _Location } from '../exp/index'; // import from the exp public API
+import { StorageService, ref, _Location } from '../exp/api'; // import from the exp public API
 import { ReferenceCompat } from './reference';
 import { isUrl } from '../src/service';
 import { invalidArgument } from '../src/implementation/error';

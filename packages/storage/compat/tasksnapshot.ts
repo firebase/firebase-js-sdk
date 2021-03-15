@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { UploadTaskSnapshot } from '../exp/index';
+import { UploadTaskSnapshot } from '../exp/api';
 import { ReferenceCompat } from './reference';
 import { UploadTaskCompat } from './task';
 import * as types from '@firebase/storage-types';

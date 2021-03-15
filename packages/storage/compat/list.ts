@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ListResult } from '../exp/index';
+import { ListResult } from '../exp/api';
 import * as types from '@firebase/storage-types';
 import { ReferenceCompat } from './reference';
 import { StorageServiceCompat } from './service';

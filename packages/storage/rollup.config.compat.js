@@ -36,7 +36,7 @@ const es5BuildPlugins = [
     transformers: [
       getImportPathTransformer({
         // ../exp/index
-        pattern: /^.*exp\/index$/g,
+        pattern: /^.*exp\/api$/g,
         template: ['@firebase/storage']
       })
     ]
@@ -74,7 +74,7 @@ const es2017BuildPlugins = [
     transformers: [
       getImportPathTransformer({
         // ../exp/index
-        pattern: /^.*exp\/index$/g,
+        pattern: /^.*exp\/api$/g,
         template: ['@firebase/storage']
       })
     ],

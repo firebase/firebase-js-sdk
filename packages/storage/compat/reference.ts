@@ -30,7 +30,7 @@ import {
   _getChild,
   _Reference,
   _FbsBlob
-} from '../exp/index'; // import from the exp public API
+} from '../exp/api'; // import from the exp public API
 
 import { UploadTaskCompat } from './task';
 import { ListResultCompat } from './list';
