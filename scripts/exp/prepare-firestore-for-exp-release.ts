@@ -17,12 +17,8 @@
 
 import { resolve } from 'path';
 import { projectRoot, readPackageJson } from '../utils';
-import { writeFileSync, existsSync, rmdirSync } from 'fs';
-import {
-  copyRecursiveSync,
-  createCompatProject,
-  transformFile
-} from './prepare-util';
+import { writeFileSync } from 'fs';
+import { createCompatProject } from './prepare-util';
 
 const packagePath = `${projectRoot}/packages/firestore`;
 

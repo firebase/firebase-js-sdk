@@ -16,19 +16,10 @@
  */
 
 import { projectRoot, readPackageJson } from '../utils';
-import {
-  writeFile as _writeFile,
-  readFile as _readFile,
-  existsSync,
-  rmdirSync
-} from 'fs';
+import { writeFile as _writeFile, readFile as _readFile } from 'fs';
 import { resolve } from 'path';
 import { promisify } from 'util';
-import {
-  copyRecursiveSync,
-  createCompatProject,
-  transformFile
-} from './prepare-util';
+import { createCompatProject } from './prepare-util';
 
 const writeFile = promisify(_writeFile);
 const packagePath = `${projectRoot}/packages/storage`;
