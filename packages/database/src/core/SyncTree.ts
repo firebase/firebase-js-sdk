@@ -51,7 +51,7 @@ import {
   syncPointViewForQuery
 } from './SyncPoint';
 import {
-  WriteTree,
+  newWriteTree,
   writeTreeAddMerge,
   writeTreeAddOverwrite,
   writeTreeCalcCompleteEventCache,
@@ -126,7 +126,7 @@ export class SyncTree {
   /**
    * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
    */
-  pendingWriteTree_ = new WriteTree();
+  pendingWriteTree_ = newWriteTree();
 
   readonly tagToQueryMap: Map<number, string> = new Map();
   readonly queryToTagMap: Map<string, number> = new Map();
