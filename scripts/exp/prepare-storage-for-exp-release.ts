@@ -16,8 +16,19 @@
  */
 
 import { projectRoot, readPackageJson } from '../utils';
-import { writeFile as _writeFile, readFile as _readFile } from 'fs';
+import {
+  writeFile as _writeFile,
+  readFile as _readFile,
+  existsSync,
+  rmdirSync
+} from 'fs';
+import { resolve } from 'path';
 import { promisify } from 'util';
+import {
+  copyRecursiveSync,
+  createCompatProject,
+  transformFile
+} from './prepare-util';
 
 const writeFile = promisify(_writeFile);
 const packagePath = `${projectRoot}/packages/storage`;
@@ -59,4 +70,23 @@ export async function prepare() {
     `${JSON.stringify(packageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
+}
+
+export async function createStorageCompatProject() {
+  const STORAGE_SRC = resolve(projectRoot, 'packages/storage');
+  const STORAGE_COMPAT_SRC = resolve(projectRoot, 'packages/storage/compat');
+  const STORAGE_COMPAT_DEST = resolve(
+    projectRoot,
+    'packages-exp/storage-compat'
+  );
+  const STORAGE_COMPAT_BINARY_SRC = resolve(STORAGE_SRC, 'dist/compat');
+  const STORAGE_COMPAT_BINARY_DEST = resolve(STORAGE_COMPAT_DEST, 'dist');
+
+  createCompatProject({
+    srcDir: STORAGE_SRC,
+    compatSrcDir: STORAGE_COMPAT_SRC,
+    compatDestDir: STORAGE_COMPAT_DEST,
+    compatBinarySrcDir: STORAGE_COMPAT_BINARY_SRC,
+    compatBinaryDestDir: STORAGE_COMPAT_BINARY_DEST
+  });
 }
