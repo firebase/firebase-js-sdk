@@ -24,7 +24,8 @@ import {
   Component,
   ComponentType,
   InstanceFactory,
-  ComponentContainer
+  ComponentContainer,
+  InstanceFactoryOptions
 } from '@firebase/component';
 import { Functions as FunctionsServiceExp } from '@firebase/functions-exp';
 
@@ -38,7 +39,7 @@ declare module '@firebase/component' {
 
 const factory: InstanceFactory<'functions-compat'> = (
   container: ComponentContainer,
-  regionOrCustomDomain?: string
+  { instanceIdentifier: regionOrCustomDomain }: InstanceFactoryOptions
 ) => {
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
