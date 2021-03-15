@@ -27,7 +27,11 @@ import {
   ComponentContainer,
   InstanceFactoryOptions
 } from '@firebase/component';
-import { Functions as FunctionsServiceExp } from '@firebase/functions-exp';
+import {
+  Functions as FunctionsServiceExp,
+  HttpsCallableOptions,
+  HttpsCallable
+} from '@firebase/functions-exp';
 
 const DEFAULT_REGION = 'us-central1';
 
@@ -37,6 +41,14 @@ declare module '@firebase/component' {
     'functions-compat': FunctionsService;
     'functions-exp': FunctionsServiceExp;
   }
+}
+
+declare module '@firebase/functions-exp' {
+  export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
+    functionsInstance: FunctionsService | FunctionsServiceExp,
+    name: string,
+    options?: HttpsCallableOptions
+  ): HttpsCallable<RequestData, ResponseData>;
 }
 
 const factory: InstanceFactory<'functions-compat'> = (
