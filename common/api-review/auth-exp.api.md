@@ -216,8 +216,10 @@ export class EmailAuthProvider implements AuthProvider {
     readonly providerId = ProviderId.PASSWORD;
 }
 
+// Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.d.ts
+//
 // @public
-export class FacebookAuthProvider extends OAuthProvider {
+export class FacebookAuthProvider extends BaseOAuthProvider {
     constructor();
     static credential(accessToken: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
@@ -255,7 +257,7 @@ export function getMultiFactorResolver(auth: Auth, error: MultiFactorError_2): M
 export function getRedirectResult(auth: Auth, resolver?: PopupRedirectResolver): Promise<UserCredential | null>;
 
 // @public
-export class GithubAuthProvider extends OAuthProvider {
+export class GithubAuthProvider extends BaseOAuthProvider {
     constructor();
     static credential(accessToken: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
@@ -265,7 +267,7 @@ export class GithubAuthProvider extends OAuthProvider {
 }
 
 // @public
-export class GoogleAuthProvider extends OAuthProvider {
+export class GoogleAuthProvider extends BaseOAuthProvider {
     constructor();
     static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
@@ -380,23 +382,13 @@ export interface OAuthCredentialOptions {
 }
 
 // @public
-export class OAuthProvider implements AuthProvider {
-    constructor(providerId: string);
-    addScope(scope: string): AuthProvider;
+export class OAuthProvider extends BaseOAuthProvider {
     credential(params: OAuthCredentialOptions): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     // (undocumented)
     static credentialFromJSON(json: object | string): OAuthCredential;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    // @internal (undocumented)
-    defaultLanguageCode: string | null;
-    getCustomParameters(): CustomParameters;
-    getScopes(): string[];
-    // (undocumented)
-    readonly providerId: string;
-    setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider;
-    setDefaultLanguage(languageCode: string | null): void;
-}
+    }
 
 // @public
 export function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
@@ -566,6 +558,19 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
 // @public
 export function reload(user: User): Promise<void>;
 
+// Warning: (ae-forgotten-export) The symbol "FederatedAuthProvider" needs to be exported by the entry point index.d.ts
+//
+// @public
+export class SAMLAuthProvider extends FederatedAuthProvider {
+    constructor(providerId: string);
+    // (undocumented)
+    static credentialFromError(error: FirebaseError): AuthCredential | null;
+    // (undocumented)
+    static credentialFromJSON(json: string | object): AuthCredential;
+    // (undocumented)
+    static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
+    }
+
 // @public
 export function sendEmailVerification(user: User, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
 
@@ -626,7 +631,7 @@ export function signInWithRedirect(auth: Auth, provider: AuthProvider, resolver?
 export function signOut(auth: Auth): Promise<void>;
 
 // @public
-export class TwitterAuthProvider extends OAuthProvider {
+export class TwitterAuthProvider extends BaseOAuthProvider {
     constructor();
     static credential(token: string, secret: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
