@@ -204,19 +204,6 @@ async function buildPackages() {
       'lerna',
       'run',
       '--scope',
-      // We replace `@firebase/app-exp` with `@firebase/app` during compilation, so we need to
-      // compile @firebase/app first to make rollup happy though it's not an actual dependency.
-      '@firebase/app',
-      '--scope',
-      // the same reason above
-      '@firebase/functions',
-      '--scope',
-      // the same reason above
-      '@firebase/remote-config',
-      '--scope',
-      // the same reason above
-      '@firebase/analytics',
-      '--scope',
       '@firebase/util',
       '--scope',
       '@firebase/component',
