@@ -676,8 +676,8 @@ export function writeTreeRefCalcCompleteEventCache(
   includeHiddenWrites?: boolean
 ): Node | null {
   return writeTreeCalcCompleteEventCache(
-    writeTreeRef.writeTree_,
-    writeTreeRef.treePath_,
+    writeTreeRef.writeTree,
+    writeTreeRef.treePath,
     completeServerCache,
     writeIdsToExclude,
     includeHiddenWrites
@@ -694,8 +694,8 @@ export function writeTreeRefCalcCompleteEventChildren(
   completeServerChildren: ChildrenNode | null
 ): ChildrenNode {
   return writeTreeCalcCompleteEventChildren(
-    writeTreeRef.writeTree_,
-    writeTreeRef.treePath_,
+    writeTreeRef.writeTree,
+    writeTreeRef.treePath,
     completeServerChildren
   ) as ChildrenNode;
 }
@@ -723,8 +723,8 @@ export function writeTreeRefCalcEventCacheAfterServerOverwrite(
   existingServerSnap: Node | null
 ): Node | null {
   return writeTreeCalcEventCacheAfterServerOverwrite(
-    writeTreeRef.writeTree_,
-    writeTreeRef.treePath_,
+    writeTreeRef.writeTree,
+    writeTreeRef.treePath,
     path,
     existingEventSnap,
     existingServerSnap
@@ -742,8 +742,8 @@ export function writeTreeRefShadowingWrite(
   path: Path
 ): Node | null {
   return writeTreeShadowingWrite(
-    writeTreeRef.writeTree_,
-    pathChild(writeTreeRef.treePath_, path)
+    writeTreeRef.writeTree,
+    pathChild(writeTreeRef.treePath, path)
   );
 }
 
@@ -760,8 +760,8 @@ export function writeTreeRefCalcIndexedSlice(
   index: Index
 ): NamedNode[] {
   return writeTreeCalcIndexedSlice(
-    writeTreeRef.writeTree_,
-    writeTreeRef.treePath_,
+    writeTreeRef.writeTree,
+    writeTreeRef.treePath,
     completeServerData,
     startPost,
     count,
@@ -780,8 +780,8 @@ export function writeTreeRefCalcCompleteChild(
   existingServerCache: CacheNode
 ): Node | null {
   return writeTreeCalcCompleteChild(
-    writeTreeRef.writeTree_,
-    writeTreeRef.treePath_,
+    writeTreeRef.writeTree,
+    writeTreeRef.treePath,
     childKey,
     existingServerCache
   );
@@ -794,10 +794,20 @@ export function writeTreeRefChild(
   writeTreeRef: WriteTreeRef,
   childName: string
 ): WriteTreeRef {
-  return new WriteTreeRef(
-    pathChild(writeTreeRef.treePath_, childName),
-    writeTreeRef.writeTree_
+  return newWriteTreeRef(
+    pathChild(writeTreeRef.treePath, childName),
+    writeTreeRef.writeTree
   );
+}
+
+export function newWriteTreeRef(
+  path: Path,
+  writeTree: WriteTree
+): WriteTreeRef {
+  return {
+    treePath: path,
+    writeTree: writeTree
+  };
 }
 
 /**
@@ -805,12 +815,12 @@ export function writeTreeRefChild(
  * just proxy to the underlying WriteTree.
  *
  */
-export class WriteTreeRef {
+export interface WriteTreeRef {
   /**
    * The path to this particular write tree ref. Used for calling methods on writeTree_ while exposing a simpler
    * interface to callers.
    */
-  readonly treePath_: Path;
+  readonly treePath: Path;
 
   /**
    * * A reference to the actual tree of write data. All methods are pass-through to the tree, but with the appropriate
@@ -819,10 +829,5 @@ export class WriteTreeRef {
    * This lets us make cheap references to points in the tree for sync points without having to copy and maintain all of
    * the data.
    */
-  readonly writeTree_: WriteTree;
-
-  constructor(path: Path, writeTree: WriteTree) {
-    this.treePath_ = path;
-    this.writeTree_ = writeTree;
-  }
+  readonly writeTree: WriteTree;
 }
