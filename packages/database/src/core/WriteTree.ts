@@ -814,7 +814,7 @@ export function newWriteTreeRef(
 ): WriteTreeRef {
   return {
     treePath: path,
-    writeTree: writeTree
+    writeTree
   };
 }
 
