@@ -22,16 +22,12 @@ import {
   InstanceFactory
 } from '@firebase/component';
 
-import { FirebaseApp } from '@firebase/app-compat';
-import { FirebaseMessaging } from '@firebase/messaging-exp';
 import { MessagingCompat } from './messaging-compat';
 import { _registerComponent } from '@firebase/app-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app-compat': FirebaseApp;
     'messaging-compat': MessagingCompat;
-    'messaging-exp': FirebaseMessaging;
   }
 }
 

@@ -31,9 +31,6 @@ import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 import { onBackgroundMessage } from '@firebase/messaging-exp/sw';
 
 export class MessagingCompat implements _FirebaseService {
-  readonly app!: AppCompat;
-  readonly messaging!: FirebaseMessaging;
-
   swRegistration?: ServiceWorkerRegistration;
   vapidKey?: string;
 
@@ -47,7 +44,7 @@ export class MessagingCompat implements _FirebaseService {
     | Observer<MessagePayload>
     | null = null;
 
-  constructor(app: AppCompat, messaging: FirebaseMessaging) {
+  constructor(readonly app: AppCompat, readonly messaging: FirebaseMessaging) {
     this.app = app;
     this.messaging = messaging;
   }
