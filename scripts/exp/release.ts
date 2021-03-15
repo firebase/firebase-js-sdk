@@ -273,7 +273,7 @@ async function buildPackages() {
   // Storage
   await spawn(
     'yarn',
-    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
