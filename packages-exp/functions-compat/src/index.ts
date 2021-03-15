@@ -19,7 +19,15 @@ import firebase from '@firebase/app-compat';
 import { name, version } from '../package.json';
 import { registerFunctions } from './register';
 import * as types from '@firebase/functions-types';
+import { Functions as FunctionsServiceExp } from '@firebase/functions-exp';
 
+declare module '@firebase/functions-exp' {
+  export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
+    functionsInstance: types.FirebaseFunctions | FunctionsServiceExp,
+    name: string,
+    options?: HttpsCallableOptions
+  ): HttpsCallable<RequestData, ResponseData>;
+}
 registerFunctions();
 firebase.registerVersion(name, version);
 
