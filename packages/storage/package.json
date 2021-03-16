@@ -12,9 +12,10 @@
     "exp/dist"
   ],
   "scripts": {
+    "bundle": "rollup -c",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c rollup.config.js && yarn build:exp",
+    "build": "run-p 'bundle rollup.config.js' build:exp build:compat",
     "build:exp": "rollup -c rollup.config.exp.js ; yarn api-report",
     "build:compat": "rollup -c rollup.config.compat.js",
     "build:exp:release": "run-p build:exp build:compat",

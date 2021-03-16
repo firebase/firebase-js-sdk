@@ -18,7 +18,6 @@
 import {
   _registerComponent,
   registerVersion,
-  _getProvider,
   SDK_VERSION
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';

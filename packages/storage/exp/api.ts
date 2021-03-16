@@ -16,7 +16,6 @@
  */
 
 import {
-  _registerComponent,
   _getProvider,
   FirebaseApp
   // eslint-disable-next-line import/no-extraneous-dependencies
