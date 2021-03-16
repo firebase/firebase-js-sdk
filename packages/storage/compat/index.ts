@@ -50,8 +50,6 @@ function factory(
     .getProvider('storage-exp')
     .getImmediate({ identifier: url });
 
-  // TODO: get StorageService instance from component framework instead
-  // of creating a new one.
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
     storageExp

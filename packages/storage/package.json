@@ -30,6 +30,7 @@
     "test:browser:compat": "karma start --single-run --compat",
     "test:browser:exp": "karma start --single-run --exp",
     "test:browser": "karma start --single-run",
+    "test:debug": "karma start --browser=Chrome",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input exp/dist/storage-public.d.ts --output exp/dist/storage-public.d.ts"
   },
