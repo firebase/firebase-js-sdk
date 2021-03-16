@@ -24,6 +24,8 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
+const nodeInternals = ['fs', 'path'];
+
 export default [
   {
     input: 'test/test-inputs/subsetExports.ts',
@@ -49,5 +51,33 @@ export default [
       })
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'cli.ts',
+    output: [
+      {
+        file: 'dist/cli.js',
+        format: 'cjs',
+        sourcemap: false
+      }
+    ],
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017',
+            module: 'es2015'
+          }
+        }
+      }),
+      json({
+        preferConst: true
+      })
+    ],
+    external: id =>
+      [...deps, ...nodeInternals].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      )
   }
 ];

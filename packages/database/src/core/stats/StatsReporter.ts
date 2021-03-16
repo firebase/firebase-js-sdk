@@ -30,12 +30,9 @@ const FIRST_STATS_MAX_TIME = 30 * 1000;
 // We'll continue to report stats on average every 5 minutes.
 const REPORT_STATS_INTERVAL = 5 * 60 * 1000;
 
-/**
- * @constructor
- */
 export class StatsReporter {
   private statsListener_: StatsListener;
-  private statsToReport_: { [k: string]: boolean } = {};
+  statsToReport_: { [k: string]: boolean } = {};
 
   /**
    * @param collection
@@ -48,10 +45,6 @@ export class StatsReporter {
       FIRST_STATS_MIN_TIME +
       (FIRST_STATS_MAX_TIME - FIRST_STATS_MIN_TIME) * Math.random();
     setTimeoutNonBlocking(this.reportStats_.bind(this), Math.floor(timeout));
-  }
-
-  includeStat(stat: string) {
-    this.statsToReport_[stat] = true;
   }
 
   private reportStats_() {
@@ -76,4 +69,11 @@ export class StatsReporter {
       Math.floor(Math.random() * 2 * REPORT_STATS_INTERVAL)
     );
   }
+}
+
+export function statsReporterIncludeStat(
+  reporter: StatsReporter,
+  stat: string
+) {
+  reporter.statsToReport_[stat] = true;
 }

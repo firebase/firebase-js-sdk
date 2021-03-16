@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
@@ -23,7 +24,7 @@ import { DataSnapshot } from './src/api/DataSnapshot';
 import { Query } from './src/api/Query';
 import { Reference } from './src/api/Reference';
 import { enableLogging } from './src/core/util/util';
-import { RepoManager } from './src/core/RepoManager';
+import { repoManagerDatabaseFromApp } from './src/core/RepoManager';
 import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
@@ -43,17 +44,13 @@ export function registerDatabase(instance: FirebaseNamespace) {
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'database',
-      (container, url) => {
+      (container, { instanceIdentifier: url }) => {
         /* Dependencies */
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
 
-        return RepoManager.getInstance().databaseFromApp(
-          app,
-          authProvider,
-          url
-        );
+        return repoManagerDatabaseFromApp(app, authProvider, url, undefined);
       },
       ComponentType.PUBLIC
     )

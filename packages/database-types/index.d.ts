@@ -71,6 +71,7 @@ type EventType =
   | 'child_removed';
 
 export interface Query {
+  endBefore(value: number | string | boolean | null, key?: string): Query;
   endAt(value: number | string | boolean | null, key?: string): Query;
   equalTo(value: number | string | boolean | null, key?: string): Query;
   isEqual(other: Query | null): boolean;
@@ -100,6 +101,7 @@ export interface Query {
   orderByValue(): Query;
   ref: Reference;
   startAt(value: number | string | boolean | null, key?: string): Query;
+  startAfter(value: number | string | boolean | null, key?: string): Query;
   toJSON(): Object;
   toString(): string;
 }

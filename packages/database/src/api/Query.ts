@@ -17,34 +17,54 @@
 
 import {
   assert,
+  Deferred,
   errorPrefix,
   validateArgCount,
   validateCallback,
-  validateContextObject,
-  Deferred
+  validateContextObject
 } from '@firebase/util';
 import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
 import { PathIndex } from '../core/snap/indexes/PathIndex';
-import { MIN_NAME, MAX_NAME, ObjectToUniqueKey } from '../core/util/util';
-import { Path } from '../core/util/Path';
+import { MAX_NAME, MIN_NAME, ObjectToUniqueKey } from '../core/util/util';
+import {
+  Path,
+  pathEquals,
+  pathIsEmpty,
+  pathToUrlEncodedString
+} from '../core/util/Path';
 import {
   isValidPriority,
   validateEventType,
-  validatePathString,
   validateFirebaseDataArg,
-  validateKey
+  validateKey,
+  validatePathString
 } from '../core/util/validation';
 
 import {
-  ValueEventRegistration,
   ChildEventRegistration,
-  EventRegistration
+  EventRegistration,
+  ValueEventRegistration
 } from '../core/view/EventRegistration';
 
-import { Repo } from '../core/Repo';
-import { QueryParams } from '../core/view/QueryParams';
+import {
+  Repo,
+  repoAddEventCallbackForQuery,
+  repoGetValue,
+  repoRemoveEventCallbackForQuery
+} from '../core/Repo';
+import {
+  QueryParams,
+  queryParamsEndAt,
+  queryParamsEndBefore,
+  queryParamsGetQueryObject,
+  queryParamsLimitToFirst,
+  queryParamsLimitToLast,
+  queryParamsOrderBy,
+  queryParamsStartAfter,
+  queryParamsStartAt
+} from '../core/view/QueryParams';
 import { Reference } from './Reference';
 import { DataSnapshot } from './DataSnapshot';
 
@@ -79,8 +99,6 @@ export class Query {
 
   /**
    * Validates start/end values for queries.
-   * @param {!QueryParams} params
-   * @private
    */
   private static validateQueryEndpoints_(params: QueryParams) {
     let startNode = null;
@@ -97,14 +115,11 @@ export class Query {
         'Query: When ordering by key, you may only pass one argument to ' +
         'startAt(), endAt(), or equalTo().';
       const wrongArgTypeError =
-        'Query: When ordering by key, the argument passed to startAt(), endAt(),' +
-        'or equalTo() must be a string.';
+        'Query: When ordering by key, the argument passed to startAt(), startAfter(), ' +
+        'endAt(), endBefore(), or equalTo() must be a string.';
       if (params.hasStart()) {
         const startName = params.getIndexStartName();
-        if (
-          startName !== MIN_NAME &&
-          !(params.hasStartAfter() && startName === MAX_NAME)
-        ) {
+        if (startName !== MIN_NAME) {
           throw new Error(tooManyArgsError);
         } else if (typeof startNode !== 'string') {
           throw new Error(wrongArgTypeError);
@@ -112,10 +127,7 @@ export class Query {
       }
       if (params.hasEnd()) {
         const endName = params.getIndexEndName();
-        if (
-          endName !== MAX_NAME &&
-          !(params.hasEndBefore() && endName === MIN_NAME)
-        ) {
+        if (endName !== MAX_NAME) {
           throw new Error(tooManyArgsError);
         } else if (typeof endNode !== 'string') {
           throw new Error(wrongArgTypeError);
@@ -128,7 +140,8 @@ export class Query {
       ) {
         throw new Error(
           'Query: When ordering by priority, the first argument passed to startAt(), ' +
-            'endAt(), or equalTo() must be a valid priority value (null, a number, or a string).'
+            'startAfter() endAt(), endBefore(), or equalTo() must be a valid priority value ' +
+            '(null, a number, or a string).'
         );
       }
     } else {
@@ -142,8 +155,8 @@ export class Query {
         (endNode != null && typeof endNode === 'object')
       ) {
         throw new Error(
-          'Query: First argument passed to startAt(), endAt(), or equalTo() cannot be ' +
-            'an object.'
+          'Query: First argument passed to startAt(), startAfter(), endAt(), endBefore(), or ' +
+            'equalTo() cannot be an object.'
         );
       }
     }
@@ -151,8 +164,6 @@ export class Query {
 
   /**
    * Validates that limit* has been called with the correct combination of parameters
-   * @param {!QueryParams} params
-   * @private
    */
   private static validateLimit_(params: QueryParams) {
     if (
@@ -162,15 +173,14 @@ export class Query {
       !params.hasAnchoredLimit()
     ) {
       throw new Error(
-        "Query: Can't combine startAt(), endAt(), and limit(). Use limitToFirst() or limitToLast() instead."
+        "Query: Can't combine startAt(), startAfter(), endAt(), endBefore(), and limit(). Use " +
+          'limitToFirst() or limitToLast() instead.'
       );
     }
   }
 
   /**
    * Validates that no other order by call has been made
-   * @param {!string} fnName
-   * @private
    */
   private validateNoPreviousOrderByCall_(fnName: string) {
     if (this.orderByCalled_ === true) {
@@ -178,16 +188,10 @@ export class Query {
     }
   }
 
-  /**
-   * @return {!QueryParams}
-   */
   getQueryParams(): QueryParams {
     return this.queryParams_;
   }
 
-  /**
-   * @return {!Reference}
-   */
   getRef(): Reference {
     validateArgCount('Query.ref', 0, 0, arguments.length);
     // This is a slight hack. We cannot goog.require('fb.api.Firebase'), since Firebase requires fb.api.Query.
@@ -196,13 +200,6 @@ export class Query {
     return new Query.__referenceConstructor(this.repo, this.path) as Reference;
   }
 
-  /**
-   * @param {!string} eventType
-   * @param {!function(DataSnapshot, string=)} callback
-   * @param {(function(Error)|Object)=} cancelCallbackOrContext
-   * @param {Object=} context
-   * @return {!function(DataSnapshot, string=)}
-   */
   on(
     eventType: string,
     callback: SnapshotCallback,
@@ -229,12 +226,6 @@ export class Query {
     return callback;
   }
 
-  /**
-   * @param {!function(!DataSnapshot)} callback
-   * @param {?function(Error)} cancelCallback
-   * @param {?Object} context
-   * @protected
-   */
   protected onValueEvent(
     callback: (a: DataSnapshot) => void,
     cancelCallback: ((a: Error) => void) | null,
@@ -245,15 +236,9 @@ export class Query {
       cancelCallback || null,
       context || null
     );
-    this.repo.addEventCallbackForQuery(this, container);
+    repoAddEventCallbackForQuery(this.repo, this, container);
   }
 
-  /**
-   * @param {!Object.<string, !function(!DataSnapshot, ?string)>} callbacks
-   * @param {?function(Error)} cancelCallback
-   * @param {?Object} context
-   * @protected
-   */
   onChildEvent(
     callbacks: { [k: string]: SnapshotCallback },
     cancelCallback: ((a: Error) => unknown) | null,
@@ -264,14 +249,9 @@ export class Query {
       cancelCallback,
       context
     );
-    this.repo.addEventCallbackForQuery(this, container);
+    repoAddEventCallbackForQuery(this.repo, this, container);
   }
 
-  /**
-   * @param {string=} eventType
-   * @param {(function(!DataSnapshot, ?string=))=} callback
-   * @param {Object=} context
-   */
   off(
     eventType?: string,
     callback?: SnapshotCallback,
@@ -298,23 +278,18 @@ export class Query {
       }
       container = new ChildEventRegistration(callbacks, null, context || null);
     }
-    this.repo.removeEventCallbackForQuery(this, container);
+    repoRemoveEventCallbackForQuery(this.repo, this, container);
   }
 
   /**
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return this.repo.getValue(this);
+    return repoGetValue(this.repo, this);
   }
 
   /**
    * Attaches a listener, waits for the first event, and then removes the listener
-   * @param {!string} eventType
-   * @param {!function(!DataSnapshot, string=)} userCallback
-   * @param failureCallbackOrContext
-   * @param context
-   * @return {!firebase.Promise}
    */
   once(
     eventType: string,
@@ -373,8 +348,6 @@ export class Query {
 
   /**
    * Set a limit and anchor it to the start of the window.
-   * @param {!number} limit
-   * @return {!Query}
    */
   limitToFirst(limit: number): Query {
     validateArgCount('Query.limitToFirst', 1, 1, arguments.length);
@@ -397,15 +370,13 @@ export class Query {
     return new Query(
       this.repo,
       this.path,
-      this.queryParams_.limitToFirst(limit),
+      queryParamsLimitToFirst(this.queryParams_, limit),
       this.orderByCalled_
     );
   }
 
   /**
    * Set a limit and anchor it to the end of the window.
-   * @param {!number} limit
-   * @return {!Query}
    */
   limitToLast(limit: number): Query {
     validateArgCount('Query.limitToLast', 1, 1, arguments.length);
@@ -428,15 +399,13 @@ export class Query {
     return new Query(
       this.repo,
       this.path,
-      this.queryParams_.limitToLast(limit),
+      queryParamsLimitToLast(this.queryParams_, limit),
       this.orderByCalled_
     );
   }
 
   /**
    * Given a child path, return a new query ordered by the specified grandchild path.
-   * @param {!string} path
-   * @return {!Query}
    */
   orderByChild(path: string): Query {
     validateArgCount('Query.orderByChild', 1, 1, arguments.length);
@@ -456,13 +425,13 @@ export class Query {
     validatePathString('Query.orderByChild', 1, path, false);
     this.validateNoPreviousOrderByCall_('Query.orderByChild');
     const parsedPath = new Path(path);
-    if (parsedPath.isEmpty()) {
+    if (pathIsEmpty(parsedPath)) {
       throw new Error(
         'Query.orderByChild: cannot pass in empty path.  Use Query.orderByValue() instead.'
       );
     }
     const index = new PathIndex(parsedPath);
-    const newParams = this.queryParams_.orderBy(index);
+    const newParams = queryParamsOrderBy(this.queryParams_, index);
     Query.validateQueryEndpoints_(newParams);
 
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
@@ -470,45 +439,37 @@ export class Query {
 
   /**
    * Return a new query ordered by the KeyIndex
-   * @return {!Query}
    */
   orderByKey(): Query {
     validateArgCount('Query.orderByKey', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByKey');
-    const newParams = this.queryParams_.orderBy(KEY_INDEX);
+    const newParams = queryParamsOrderBy(this.queryParams_, KEY_INDEX);
     Query.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
   }
 
   /**
    * Return a new query ordered by the PriorityIndex
-   * @return {!Query}
    */
   orderByPriority(): Query {
     validateArgCount('Query.orderByPriority', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByPriority');
-    const newParams = this.queryParams_.orderBy(PRIORITY_INDEX);
+    const newParams = queryParamsOrderBy(this.queryParams_, PRIORITY_INDEX);
     Query.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
   }
 
   /**
    * Return a new query ordered by the ValueIndex
-   * @return {!Query}
    */
   orderByValue(): Query {
     validateArgCount('Query.orderByValue', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByValue');
-    const newParams = this.queryParams_.orderBy(VALUE_INDEX);
+    const newParams = queryParamsOrderBy(this.queryParams_, VALUE_INDEX);
     Query.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
   }
 
-  /**
-   * @param {number|string|boolean|null} value
-   * @param {?string=} name
-   * @return {!Query}
-   */
   startAt(
     value: number | string | boolean | null = null,
     name?: string | null
@@ -517,7 +478,7 @@ export class Query {
     validateFirebaseDataArg('Query.startAt', 1, value, this.path, true);
     validateKey('Query.startAt', 2, name, true);
 
-    const newParams = this.queryParams_.startAt(value, name);
+    const newParams = queryParamsStartAt(this.queryParams_, value, name);
     Query.validateLimit_(newParams);
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasStart()) {
@@ -544,7 +505,7 @@ export class Query {
     validateFirebaseDataArg('Query.startAfter', 1, value, this.path, false);
     validateKey('Query.startAfter', 2, name, true);
 
-    const newParams = this.queryParams_.startAfter(value, name);
+    const newParams = queryParamsStartAfter(this.queryParams_, value, name);
     Query.validateLimit_(newParams);
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasStart()) {
@@ -557,11 +518,6 @@ export class Query {
     return new Query(this.repo, this.path, newParams, this.orderByCalled_);
   }
 
-  /**
-   * @param {number|string|boolean|null} value
-   * @param {?string=} name
-   * @return {!Query}
-   */
   endAt(
     value: number | string | boolean | null = null,
     name?: string | null
@@ -570,7 +526,7 @@ export class Query {
     validateFirebaseDataArg('Query.endAt', 1, value, this.path, true);
     validateKey('Query.endAt', 2, name, true);
 
-    const newParams = this.queryParams_.endAt(value, name);
+    const newParams = queryParamsEndAt(this.queryParams_, value, name);
     Query.validateLimit_(newParams);
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasEnd()) {
@@ -591,7 +547,7 @@ export class Query {
     validateFirebaseDataArg('Query.endBefore', 1, value, this.path, false);
     validateKey('Query.endBefore', 2, name, true);
 
-    const newParams = this.queryParams_.endBefore(value, name);
+    const newParams = queryParamsEndBefore(this.queryParams_, value, name);
     Query.validateLimit_(newParams);
     Query.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasEnd()) {
@@ -607,9 +563,6 @@ export class Query {
   /**
    * Load the selection of children with exactly the specified value, and, optionally,
    * the specified name.
-   * @param {number|string|boolean|null} value
-   * @param {string=} name
-   * @return {!Query}
    */
   equalTo(value: number | string | boolean | null, name?: string) {
     validateArgCount('Query.equalTo', 1, 2, arguments.length);
@@ -617,13 +570,13 @@ export class Query {
     validateKey('Query.equalTo', 2, name, true);
     if (this.queryParams_.hasStart()) {
       throw new Error(
-        'Query.equalTo: Starting point was already set (by another call to startAt or ' +
+        'Query.equalTo: Starting point was already set (by another call to startAt/startAfter or ' +
           'equalTo).'
       );
     }
     if (this.queryParams_.hasEnd()) {
       throw new Error(
-        'Query.equalTo: Ending point was already set (by another call to endAt or ' +
+        'Query.equalTo: Ending point was already set (by another call to endAt/endBefore or ' +
           'equalTo).'
       );
     }
@@ -631,12 +584,12 @@ export class Query {
   }
 
   /**
-   * @return {!string} URL for this location.
+   * @return URL for this location.
    */
   toString(): string {
     validateArgCount('Query.toString', 0, 0, arguments.length);
 
-    return this.repo.toString() + this.path.toUrlEncodedString();
+    return this.repo.toString() + pathToUrlEncodedString(this.path);
   }
 
   // Do not create public documentation. This is intended to make JSON serialization work but is otherwise unnecessary
@@ -649,15 +602,11 @@ export class Query {
 
   /**
    * An object representation of the query parameters used by this Query.
-   * @return {!Object}
    */
   queryObject(): object {
-    return this.queryParams_.getQueryObject();
+    return queryParamsGetQueryObject(this.queryParams_);
   }
 
-  /**
-   * @return {!string}
-   */
   queryIdentifier(): string {
     const obj = this.queryObject();
     const id = ObjectToUniqueKey(obj);
@@ -666,8 +615,6 @@ export class Query {
 
   /**
    * Return true if this query and the provided query are equivalent; otherwise, return false.
-   * @param {Query} other
-   * @return {boolean}
    */
   isEqual(other: Query): boolean {
     validateArgCount('Query.isEqual', 1, 1, arguments.length);
@@ -678,7 +625,7 @@ export class Query {
     }
 
     const sameRepo = this.repo === other.repo;
-    const samePath = this.path.equals(other.path);
+    const samePath = pathEquals(this.path, other.path);
     const sameQueryIdentifier =
       this.queryIdentifier() === other.queryIdentifier();
 
@@ -687,11 +634,8 @@ export class Query {
 
   /**
    * Helper used by .on and .once to extract the context and or cancel arguments.
-   * @param {!string} fnName The function name (on or once)
-   * @param {(function(Error)|Object)=} cancelOrContext
-   * @param {Object=} context
-   * @return {{cancel: ?function(Error), context: ?Object}}
-   * @private
+   * @param fnName The function name (on or once)
+   *
    */
   private static getCancelAndContextArgs_(
     fnName: string,

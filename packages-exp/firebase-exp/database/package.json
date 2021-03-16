@@ -1,0 +1,8 @@
+{
+    "name": "firebase-exp/database",
+    "main": "dist/index.cjs.js",
+    "browser": "dist/index.esm.js",
+    "module": "dist/index.esm.js",
+    "typings": "dist/database/index.d.ts"
+  }
+  

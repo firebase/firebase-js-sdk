@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { assert } from '@firebase/util';
 import { Path } from '../util/Path';
 
 /**
@@ -33,76 +32,47 @@ export enum OperationType {
  * @interface
  */
 export interface Operation {
-  /**
-   * @type {!OperationSource}
-   */
   source: OperationSource;
 
-  /**
-   * @type {!OperationType}
-   */
   type: OperationType;
 
-  /**
-   * @type {!Path}
-   */
   path: Path;
 
-  /**
-   * @param {string} childName
-   * @return {?Operation}
-   */
   operationForChild(childName: string): Operation | null;
 }
 
-/**
- * @param {boolean} fromUser
- * @param {boolean} fromServer
- * @param {?string} queryId
- * @param {boolean} tagged
- * @constructor
- */
-export class OperationSource {
-  constructor(
-    public fromUser: boolean,
-    public fromServer: boolean,
-    public queryId: string | null,
-    public tagged: boolean
-  ) {
-    assert(!tagged || fromServer, 'Tagged queries must be from server.');
-  }
-  /**
-   * @const
-   * @type {!OperationSource}
-   */
-  static User = new OperationSource(
-    /*fromUser=*/ true,
-    false,
-    null,
-    /*tagged=*/ false
-  );
+export interface OperationSource {
+  fromUser: boolean;
+  fromServer: boolean;
+  queryId: string | null;
+  tagged: boolean;
+}
 
-  /**
-   * @const
-   * @type {!OperationSource}
-   */
-  static Server = new OperationSource(
-    false,
-    /*fromServer=*/ true,
-    null,
-    /*tagged=*/ false
-  );
+export function newOperationSourceUser(): OperationSource {
+  return {
+    fromUser: true,
+    fromServer: false,
+    queryId: null,
+    tagged: false
+  };
+}
 
-  /**
-   * @param {string} queryId
-   * @return {!OperationSource}
-   */
-  static forServerTaggedQuery = function (queryId: string): OperationSource {
-    return new OperationSource(
-      false,
-      /*fromServer=*/ true,
-      queryId,
-      /*tagged=*/ true
-    );
+export function newOperationSourceServer(): OperationSource {
+  return {
+    fromUser: false,
+    fromServer: true,
+    queryId: null,
+    tagged: false
+  };
+}
+
+export function newOperationSourceServerTaggedQuery(
+  queryId: string
+): OperationSource {
+  return {
+    fromUser: false,
+    fromServer: true,
+    queryId,
+    tagged: true
   };
 }

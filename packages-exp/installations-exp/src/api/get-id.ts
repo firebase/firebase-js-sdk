@@ -18,7 +18,7 @@
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseInstallations } from '../interfaces/public-types';
 
 /**
  * Creates a Firebase Installation if there isn't one for the app and

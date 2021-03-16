@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
+import { Timestamp } from '../lite/timestamp';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
 
@@ -132,13 +132,10 @@ export class MutationBatch {
         maybeDoc = applyMutationToLocalView(
           mutation,
           maybeDoc,
-          maybeDoc,
           this.localWriteTime
         );
       }
     }
-
-    const baseDoc = maybeDoc;
 
     // Second, apply all user-provided mutations.
     for (const mutation of this.mutations) {
@@ -146,7 +143,6 @@ export class MutationBatch {
         maybeDoc = applyMutationToLocalView(
           mutation,
           maybeDoc,
-          baseDoc,
           this.localWriteTime
         );
       }

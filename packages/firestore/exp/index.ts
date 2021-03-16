@@ -32,8 +32,17 @@ export {
   disableNetwork,
   enableNetwork,
   terminate,
-  useFirestoreEmulator
+  useFirestoreEmulator,
+  loadBundle,
+  namedQuery,
+  ensureFirestoreConfigured
 } from '../src/exp/database';
+
+export {
+  LoadBundleTask,
+  LoadBundleTaskProgress,
+  TaskState
+} from '../src/exp/bundle';
 
 export { Settings, PersistenceSettings } from '../src/exp/settings';
 
@@ -79,12 +88,11 @@ export {
   WhereFilterOp
 } from '../src/exp/query';
 
-export { Unsubscribe } from '../src/exp/reference_impl';
+export { Unsubscribe, SnapshotListenOptions } from '../src/exp/reference_impl';
 
 export { runTransaction, Transaction } from '../src/exp/transaction';
 
 export {
-  SnapshotListenOptions,
   getDoc,
   getDocFromCache,
   getDocFromServer,
@@ -96,7 +104,8 @@ export {
   setDoc,
   updateDoc,
   deleteDoc,
-  addDoc
+  addDoc,
+  executeWrite
 } from '../src/exp/reference_impl';
 
 export { FieldValue } from '../src/exp/field_value';
@@ -122,3 +131,5 @@ export { Timestamp } from '../src/exp/timestamp';
 export { CACHE_SIZE_UNLIMITED } from '../src/exp/database';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+
+export { AbstractUserDataWriter } from '../src/lite/user_data_writer';

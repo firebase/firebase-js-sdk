@@ -1,5 +1,20 @@
 #Unreleased
 
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [[`ec95df3d0`](https://github.com/firebase/firebase-js-sdk/commit/ec95df3d07e5f091f2a7f7327e46417f64d04b4e)]:
+  - @firebase/util@0.4.0
+  - @firebase/component@0.2.1
+
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`6afe42613`](https://github.com/firebase/firebase-js-sdk/commit/6afe42613ed3d7a842d378dc1a09a795811db2ac)]:
+  - @firebase/component@0.2.0
+
 ## 0.4.2
 
 ### Patch Changes

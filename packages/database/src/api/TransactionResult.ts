@@ -21,10 +21,6 @@ import { validateArgCount } from '@firebase/util';
 export class TransactionResult {
   /**
    * A type for the resolve value of Firebase.transaction.
-   * @constructor
-   * @dict
-   * @param {boolean} committed
-   * @param {DataSnapshot} snapshot
    */
   constructor(public committed: boolean, public snapshot: DataSnapshot) {}
 

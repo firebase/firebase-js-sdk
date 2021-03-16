@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-import {
-  httpsCallable as httpsCallableExp,
-  useFunctionsEmulator as useFunctionsEmulatorExp
-} from '@firebase/functions-exp';
 import { FirebaseFunctions, HttpsCallable } from '@firebase/functions-types';
 import {
+  httpsCallable as httpsCallableExp,
+  useFunctionsEmulator as useFunctionsEmulatorExp,
   HttpsCallableOptions,
   Functions as FunctionsServiceExp
-} from '@firebase/functions-types-exp';
-import { FirebaseApp } from '@firebase/app-types';
+} from '@firebase/functions-exp';
+import { FirebaseApp } from '@firebase/app-compat';
 import { FirebaseError } from '@firebase/util';
 
 export class FunctionsService implements FirebaseFunctions {

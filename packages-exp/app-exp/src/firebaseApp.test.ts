@@ -19,7 +19,6 @@ import { expect } from 'chai';
 import '../test/setup';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ComponentContainer } from '@firebase/component';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 
 describe('FirebaseAppNext', () => {
   it('has various accessors', () => {
@@ -71,7 +70,7 @@ describe('FirebaseAppNext', () => {
     );
 
     expect(() => app.name).to.not.throw();
-    ((app as unknown) as _FirebaseAppInternal).isDeleted = true;
+    ((app as unknown) as FirebaseAppImpl).isDeleted = true;
 
     expect(() => {
       app.name;

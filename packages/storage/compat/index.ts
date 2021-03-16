@@ -28,7 +28,8 @@ import * as types from '@firebase/storage-types';
 import {
   Component,
   ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  InstanceFactoryOptions
 } from '@firebase/component';
 
 import { name, version } from '../package.json';
@@ -40,7 +41,7 @@ const STORAGE_TYPE = 'storage';
 
 function factory(
   container: ComponentContainer,
-  url?: string
+  { instanceIdentifier: url }: InstanceFactoryOptions
 ): types.FirebaseStorage {
   // Dependencies
   // TODO: This should eventually be 'app-compat'
@@ -88,7 +89,7 @@ registerStorage(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     storage?: {
-      (app?: FirebaseApp): types.FirebaseStorage;
+      (app?: FirebaseApp, url?: string): types.FirebaseStorage;
       Storage: typeof types.FirebaseStorage;
 
       StringFormat: {

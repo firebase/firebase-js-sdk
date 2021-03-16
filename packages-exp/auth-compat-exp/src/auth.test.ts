@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import * as impl from '@firebase/auth-exp/internal';
-import { Config } from '@firebase/auth-types-exp';
+import { FirebaseApp } from '@firebase/app-compat';
+import * as exp from '@firebase/auth-exp/internal';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Auth } from './auth';
+import { CompatPopupRedirectResolver } from './popup_redirect';
 
 use(sinonChai);
 
@@ -29,13 +29,13 @@ use(sinonChai);
 // of the auth compat layer are more complicated: these tests cover those
 describe('auth compat', () => {
   context('redirect persistence key storage', () => {
-    let underlyingAuth: impl.AuthImpl;
+    let underlyingAuth: exp.AuthImpl;
     let app: FirebaseApp;
     beforeEach(() => {
       app = { options: { apiKey: 'api-key' } } as FirebaseApp;
-      underlyingAuth = new impl.AuthImpl(app, {
+      underlyingAuth = new exp.AuthImpl(app, {
         apiKey: 'api-key'
-      } as Config);
+      } as exp.Config);
       sinon.stub(underlyingAuth, '_initializeWithPersistence');
     });
 
@@ -43,12 +43,22 @@ describe('auth compat', () => {
       sinon.restore;
     });
 
-    it('saves the persistence into session storage if available', () => {
-      const authCompat = new Auth(app, underlyingAuth);
+    it('saves the persistence into session storage if available', async () => {
       if (typeof self !== 'undefined') {
+        underlyingAuth._initializationPromise = Promise.resolve();
         sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
+        sinon
+          .stub(underlyingAuth, '_initializationPromise')
+          .value(Promise.resolve());
+        sinon.stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            CompatPopupRedirectResolver
+          ),
+          '_openRedirect'
+        );
+        const authCompat = new Auth(app, underlyingAuth);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        authCompat.signInWithRedirect(new impl.GoogleAuthProvider());
+        await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
         expect(
           sessionStorage.getItem('firebase:persistence:api-key:undefined')
         ).to.eq('TEST');
@@ -67,10 +77,10 @@ describe('auth compat', () => {
           underlyingAuth._initializeWithPersistence
         ).to.have.been.calledWith(
           [
-            impl._getInstance(impl.inMemoryPersistence),
-            impl._getInstance(impl.indexedDBLocalPersistence)
+            exp._getInstance(exp.inMemoryPersistence),
+            exp._getInstance(exp.indexedDBLocalPersistence)
           ],
-          impl.browserPopupRedirectResolver
+          CompatPopupRedirectResolver
         );
       }
     });

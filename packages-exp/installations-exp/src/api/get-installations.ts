@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
-import { _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseInstallations } from '../interfaces/public-types';
 
 /**
  * Returns an instance of FirebaseInstallations associated with the given FirebaseApp instance.

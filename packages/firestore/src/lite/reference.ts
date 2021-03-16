@@ -138,10 +138,18 @@ export class DocumentReference<T = DocumentData> {
    * instance, the provided converter will convert between Firestore data and
    * your custom type `U`.
    *
-   * @param converter - Converts objects to and from Firestore.
+   * Passing in `null` as the converter parameter removes the current
+   * converter.
+   *
+   * @param converter - Converts objects to and from Firestore. Passing in
+   * `null` removes the current converter.
    * @returns A `DocumentReference<U>` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U> {
+  withConverter(converter: null): DocumentReference<DocumentData>;
+  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+  withConverter<U>(
+    converter: FirestoreDataConverter<U> | null
+  ): DocumentReference<U> {
     return new DocumentReference<U>(this.firestore, converter, this._key);
   }
 }
@@ -180,7 +188,9 @@ export class Query<T = DocumentData> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `Query<U>` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U> {
+  withConverter(converter: null): Query<DocumentData>;
+  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+  withConverter<U>(converter: FirestoreDataConverter<U> | null): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
   }
 }
@@ -240,8 +250,12 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `CollectionReference<U>` that uses the provided converter.
    */
+  withConverter(converter: null): CollectionReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
+  ): CollectionReference<U>;
+  withConverter<U>(
+    converter: FirestoreDataConverter<U> | null
   ): CollectionReference<U> {
     return new CollectionReference<U>(this.firestore, converter, this._path);
   }

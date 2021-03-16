@@ -19,7 +19,7 @@ import { CacheNode } from './CacheNode';
 import { NamedNode, Node } from '../snap/Node';
 import { Index } from '../snap/indexes/Index';
 import { WriteTreeRef } from '../WriteTree';
-import { ViewCache } from './ViewCache';
+import { ViewCache, viewCacheGetCompleteServerSnap } from './ViewCache';
 
 /**
  * Since updates to filtered nodes might require nodes to be pulled in from "outside" the node, this interface
@@ -30,18 +30,8 @@ import { ViewCache } from './ViewCache';
  * @interface
  */
 export interface CompleteChildSource {
-  /**
-   * @param {!string} childKey
-   * @return {?Node}
-   */
   getCompleteChild(childKey: string): Node | null;
 
-  /**
-   * @param {!Index} index
-   * @param {!NamedNode} child
-   * @param {boolean} reverse
-   * @return {?NamedNode}
-   */
   getChildAfterChild(
     index: Index,
     child: NamedNode,
@@ -51,10 +41,6 @@ export interface CompleteChildSource {
 
 /**
  * An implementation of CompleteChildSource that never returns any additional children
- *
- * @private
- * @constructor
- * @implements CompleteChildSource
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export class NoCompleteChildSource_ implements CompleteChildSource {
@@ -79,24 +65,14 @@ export class NoCompleteChildSource_ implements CompleteChildSource {
 
 /**
  * Singleton instance.
- * @const
- * @type {!CompleteChildSource}
  */
 export const NO_COMPLETE_CHILD_SOURCE = new NoCompleteChildSource_();
 
 /**
  * An implementation of CompleteChildSource that uses a WriteTree in addition to any other server data or
  * old event caches available to calculate complete children.
- *
- *
- * @implements CompleteChildSource
  */
 export class WriteTreeCompleteChildSource implements CompleteChildSource {
-  /**
-   * @param {!WriteTreeRef} writes_
-   * @param {!ViewCache} viewCache_
-   * @param {?Node} optCompleteServerCache_
-   */
   constructor(
     private writes_: WriteTreeRef,
     private viewCache_: ViewCache,
@@ -107,14 +83,14 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
    * @inheritDoc
    */
   getCompleteChild(childKey: string): Node | null {
-    const node = this.viewCache_.getEventCache();
+    const node = this.viewCache_.eventCache;
     if (node.isCompleteForChild(childKey)) {
       return node.getNode().getImmediateChild(childKey);
     } else {
       const serverNode =
         this.optCompleteServerCache_ != null
           ? new CacheNode(this.optCompleteServerCache_, true, false)
-          : this.viewCache_.getServerCache();
+          : this.viewCache_.serverCache;
       return this.writes_.calcCompleteChild(childKey, serverNode);
     }
   }
@@ -130,7 +106,7 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
     const completeServerData =
       this.optCompleteServerCache_ != null
         ? this.optCompleteServerCache_
-        : this.viewCache_.getCompleteServerSnap();
+        : viewCacheGetCompleteServerSnap(this.viewCache_);
     const nodes = this.writes_.calcIndexedSlice(
       completeServerData,
       child,

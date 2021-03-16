@@ -34,7 +34,8 @@ import {
   DEFAULT_API_TIMEOUT_MS,
   Endpoint,
   HttpHeader,
-  HttpMethod
+  HttpMethod,
+  _addTidIfNecessary
 } from './';
 import { ServerError } from './errors';
 
@@ -117,6 +118,27 @@ describe('api/_performApiRequest', () => {
         FirebaseError,
         'auth/email-already-in-use'
       );
+      expect(mock.calls[0].request).to.eql(request);
+    });
+
+    it('should translate server success with errorMessage into auth error', async () => {
+      const response = {
+        errorMessage: ServerError.FEDERATED_USER_ID_ALREADY_LINKED,
+        idToken: 'foo-bar'
+      };
+      const mock = mockEndpoint(Endpoint.SIGN_IN_WITH_IDP, response, 200);
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_IN_WITH_IDP,
+        request
+      );
+      await expect(promise)
+        .to.be.rejectedWith(FirebaseError, 'auth/credential-already-in-use')
+        .eventually.with.deep.property('customData', {
+          appName: 'test-app',
+          _tokenResponse: response
+        });
       expect(mock.calls[0].request).to.eql(request);
     });
 
@@ -362,11 +384,60 @@ describe('api/_performApiRequest', () => {
 
     it('works properly with an emulated environment', () => {
       (auth.config as ConfigInternal).emulator = {
-        url: 'http://localhost:5000'
+        url: 'http://localhost:5000/'
       };
       expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'http://localhost:5000/host/path?query=test'
       );
+    });
+  });
+
+  context('_addTidIfNecessary', () => {
+    it('adds the tenant ID if it is not already defined', () => {
+      auth.tenantId = 'auth-tenant-id';
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' })
+      ).to.eql({
+        tenantId: 'auth-tenant-id',
+        foo: 'bar'
+      });
+    });
+
+    it('does not overwrite the tenant ID if already supplied', () => {
+      auth.tenantId = 'auth-tenant-id';
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, {
+          foo: 'bar',
+          tenantId: 'request-tenant-id'
+        })
+      ).to.eql({
+        tenantId: 'request-tenant-id',
+        foo: 'bar'
+      });
+    });
+
+    it('leaves tenant id on the request even if not specified on auth', () => {
+      auth.tenantId = null;
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, {
+          foo: 'bar',
+          tenantId: 'request-tenant-id'
+        })
+      ).to.eql({
+        tenantId: 'request-tenant-id',
+        foo: 'bar'
+      });
+    });
+
+    it('does not attach the tenant ID at all if not specified', () => {
+      auth.tenantId = null;
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' })
+      )
+        .to.eql({
+          foo: 'bar'
+        })
+        .and.not.have.property('tenantId');
     });
   });
 });

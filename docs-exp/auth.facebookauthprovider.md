@@ -4,7 +4,7 @@
 
 ## FacebookAuthProvider class
 
-Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.FACEBOOK](./auth-types.providerid.facebook.md)<!-- -->.
+Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.FACEBOOK](./auth.providerid.facebook.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -63,14 +63,14 @@ const token = credential.accessToken;
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [FACEBOOK\_SIGN\_IN\_METHOD](./auth.facebookauthprovider.facebook_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.FACEBOOK](./auth-types.signinmethod.facebook.md)<!-- -->. |
-|  [PROVIDER\_ID](./auth.facebookauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.FACEBOOK](./auth-types.providerid.facebook.md)<!-- -->. |
+|  [FACEBOOK\_SIGN\_IN\_METHOD](./auth.facebookauthprovider.facebook_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.FACEBOOK](./auth.signinmethod.facebook.md)<!-- -->. |
+|  [PROVIDER\_ID](./auth.facebookauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.FACEBOOK](./auth.providerid.facebook.md)<!-- -->. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [credential(accessToken)](./auth.facebookauthprovider.credential.md) | <code>static</code> | Creates a credential for Facebook. |
-|  [credentialFromError(error)](./auth.facebookauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth-types.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
-|  [credentialFromResult(userCredential)](./auth.facebookauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth-types.usercredential.md)<!-- -->. |
+|  [credentialFromError(error)](./auth.facebookauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
+|  [credentialFromResult(userCredential)](./auth.facebookauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->. |
 

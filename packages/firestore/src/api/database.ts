@@ -45,9 +45,9 @@ import {
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
 
-import { DatabaseId } from '../core/database_info';
-import { Bytes } from '../exp/bytes';
 import {
+  LoadBundleTask,
+  Bytes,
   clearIndexedDbPersistence,
   disableNetwork,
   enableIndexedDbPersistence,
@@ -56,10 +56,8 @@ import {
   ensureFirestoreConfigured,
   FirebaseFirestore as ExpFirebaseFirestore,
   useFirestoreEmulator,
-  waitForPendingWrites
-} from '../exp/database';
-import { FieldPath as ExpFieldPath } from '../exp/field_path';
-import {
+  waitForPendingWrites,
+  FieldPath as ExpFieldPath,
   limit,
   limitToLast,
   where,
@@ -68,9 +66,7 @@ import {
   startAt,
   query,
   endBefore,
-  endAt
-} from '../exp/query';
-import {
+  endAt,
   doc,
   collection,
   collectionGroup,
@@ -78,9 +74,7 @@ import {
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference,
   DocumentReference as ExpDocumentReference,
-  refEqual
-} from '../exp/reference';
-import {
+  refEqual,
   addDoc,
   deleteDoc,
   executeWrite,
@@ -94,20 +88,20 @@ import {
   onSnapshotsInSync,
   setDoc,
   updateDoc,
-  Unsubscribe
-} from '../exp/reference_impl';
-import {
+  Unsubscribe,
   DocumentChange as ExpDocumentChange,
   DocumentSnapshot as ExpDocumentSnapshot,
+  QueryDocumentSnapshot as ExpQueryDocumentSnapshot,
   QuerySnapshot as ExpQuerySnapshot,
   snapshotEqual,
-  SnapshotMetadata
-} from '../exp/snapshot';
-import {
+  SnapshotMetadata,
   runTransaction,
-  Transaction as ExpTransaction
-} from '../exp/transaction';
-import { WriteBatch as ExpWriteBatch } from '../exp/write_batch';
+  Transaction as ExpTransaction,
+  WriteBatch as ExpWriteBatch,
+  AbstractUserDataWriter
+} from '../../exp/index'; // import from the exp public API
+import { DatabaseId } from '../core/database_info';
+import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
@@ -121,7 +115,6 @@ import {
 import { setLogLevel as setClientLogLevel } from '../util/log';
 
 import { Blob } from './blob';
-import { LoadBundleTask } from './bundle';
 import { Compat } from './compat';
 import {
   CompleteFn,
@@ -130,8 +123,6 @@ import {
   NextFn,
   PartialObserver
 } from './observer';
-import { UntypedFirestoreDataConverter } from './user_data_reader';
-import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
@@ -276,8 +267,10 @@ export class Firestore
   }
 
   terminate(): Promise<void> {
-    (this.app as _FirebaseApp)._removeServiceInstance('firestore');
-    (this.app as _FirebaseApp)._removeServiceInstance('firestore-exp');
+    if (this._appCompat) {
+      (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore');
+      (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore-exp');
+    }
     return this._delegate._delete();
   }
 
@@ -553,6 +546,86 @@ export class WriteBatch
 }
 
 /**
+ * Wraps a `PublicFirestoreDataConverter` translating the types from the
+ * experimental SDK into corresponding types from the Classic SDK before passing
+ * them to the wrapped converter.
+ */
+class FirestoreDataConverter<U>
+  extends Compat<PublicFirestoreDataConverter<U>>
+  implements UntypedFirestoreDataConverter<U> {
+  private static readonly INSTANCES = new WeakMap();
+
+  private constructor(
+    private readonly _firestore: Firestore,
+    private readonly _userDataWriter: UserDataWriter,
+    delegate: PublicFirestoreDataConverter<U>
+  ) {
+    super(delegate);
+  }
+
+  fromFirestore(
+    snapshot: ExpQueryDocumentSnapshot,
+    options?: PublicSnapshotOptions
+  ): U {
+    const expSnapshot = new ExpQueryDocumentSnapshot(
+      this._firestore._delegate,
+      this._userDataWriter,
+      snapshot._key,
+      snapshot._document,
+      snapshot.metadata,
+      /* converter= */ null
+    );
+    return this._delegate.fromFirestore(
+      new QueryDocumentSnapshot(this._firestore, expSnapshot),
+      options ?? {}
+    );
+  }
+
+  toFirestore(modelObject: U): PublicDocumentData;
+  toFirestore(
+    modelObject: Partial<U>,
+    options: PublicSetOptions
+  ): PublicDocumentData;
+  toFirestore(
+    modelObject: U | Partial<U>,
+    options?: PublicSetOptions
+  ): PublicDocumentData {
+    if (!options) {
+      return this._delegate.toFirestore(modelObject as U);
+    } else {
+      return this._delegate.toFirestore(modelObject, options);
+    }
+  }
+
+  // Use the same instance of `FirestoreDataConverter` for the given instances
+  // of `Firestore` and `PublicFirestoreDataConverter` so that isEqual() will
+  // compare equal for two objects created with the same converter instance.
+  static getInstance<U>(
+    firestore: Firestore,
+    converter: PublicFirestoreDataConverter<U>
+  ): FirestoreDataConverter<U> {
+    const converterMapByFirestore = FirestoreDataConverter.INSTANCES;
+    let untypedConverterByConverter = converterMapByFirestore.get(firestore);
+    if (!untypedConverterByConverter) {
+      untypedConverterByConverter = new WeakMap();
+      converterMapByFirestore.set(firestore, untypedConverterByConverter);
+    }
+
+    let instance = untypedConverterByConverter.get(converter);
+    if (!instance) {
+      instance = new FirestoreDataConverter(
+        firestore,
+        new UserDataWriter(firestore),
+        converter
+      );
+      untypedConverterByConverter.set(converter, instance);
+    }
+
+    return instance;
+  }
+}
+
+/**
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = PublicDocumentData>
@@ -747,14 +820,20 @@ export class DocumentReference<T = PublicDocumentData>
     );
   }
 
+  withConverter(converter: null): PublicDocumentReference<PublicDocumentData>;
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
+  ): PublicDocumentReference<U>;
+  withConverter<U>(
+    converter: PublicFirestoreDataConverter<U> | null
   ): PublicDocumentReference<U> {
     return new DocumentReference<U>(
       this.firestore,
-      this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
-      )
+      converter
+        ? this._delegate.withConverter(
+            FirestoreDataConverter.getInstance(this.firestore, converter)
+          )
+        : (this._delegate.withConverter(null) as ExpDocumentReference<U>)
     );
   }
 }
@@ -1058,12 +1137,18 @@ export class Query<T = PublicDocumentData>
     return onSnapshot(this._delegate, options, observer);
   }
 
-  withConverter<U>(converter: PublicFirestoreDataConverter<U>): Query<U> {
+  withConverter(converter: null): Query<PublicDocumentData>;
+  withConverter<U>(converter: PublicFirestoreDataConverter<U>): Query<U>;
+  withConverter<U>(
+    converter: PublicFirestoreDataConverter<U> | null
+  ): Query<U> {
     return new Query<U>(
       this.firestore,
-      this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
-      )
+      converter
+        ? this._delegate.withConverter(
+            FirestoreDataConverter.getInstance(this.firestore, converter)
+          )
+        : (this._delegate.withConverter(null) as ExpQuery<U>)
     );
   }
 }
@@ -1200,14 +1285,20 @@ export class CollectionReference<T = PublicDocumentData>
     return refEqual(this._delegate, other._delegate);
   }
 
+  withConverter(converter: null): CollectionReference<PublicDocumentData>;
   withConverter<U>(
     converter: PublicFirestoreDataConverter<U>
+  ): CollectionReference<U>;
+  withConverter<U>(
+    converter: PublicFirestoreDataConverter<U> | null
   ): CollectionReference<U> {
     return new CollectionReference<U>(
       this.firestore,
-      this._delegate.withConverter(
-        converter as UntypedFirestoreDataConverter<U>
-      )
+      converter
+        ? this._delegate.withConverter(
+            FirestoreDataConverter.getInstance(this.firestore, converter)
+          )
+        : (this._delegate.withConverter(null) as ExpCollectionReference<U>)
     );
   }
 }

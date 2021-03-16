@@ -4,16 +4,48 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { Functions } from '@firebase/functions-types-exp';
-import { HttpsCallable } from '@firebase/functions-types-exp';
-import { HttpsCallableOptions } from '@firebase/functions-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseError } from '@firebase/util';
+
+// @public
+export interface Functions {
+    app: FirebaseApp;
+    customDomain: string | null;
+    region: string;
+}
+
+// @public
+export interface FunctionsError extends FirebaseError {
+    readonly code: FunctionsErrorCode;
+    readonly details?: unknown;
+}
+
+// @public
+export type FunctionsErrorCode = 'ok' | 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
 // @public
 export function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;
 
 // @public
-export function httpsCallable(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
+export interface HttpsCallable<RequestData = unknown, ResponseData = unknown> {
+    // (undocumented)
+    (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
+}
+
+// @public
+export function httpsCallable<RequestData = unknown, ResponseData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData>;
+
+// @public
+export interface HttpsCallableOptions {
+    // (undocumented)
+    timeout?: number;
+}
+
+// @public
+export interface HttpsCallableResult<ResponseData = unknown> {
+    // (undocumented)
+    readonly data: ResponseData;
+}
 
 // @public
 export function useFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;

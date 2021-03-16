@@ -15,12 +15,19 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  ActionCodeInfo,
+  ActionCodeOperation,
+  ActionCodeSettings,
+  Auth,
+  OperationType,
+  UserCredential
+} from '../../model/public_types';
 
 import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
 import { signUp } from '../../api/authentication/sign_up';
-import { MultiFactorInfo } from '../../mfa/mfa_info';
+import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _assert } from '../util/assert';
@@ -57,17 +64,17 @@ import { AuthErrorCode } from '../errors';
  *
  * @param auth - The Auth instance.
  * @param email - The user's email address.
- * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
  * @public
  */
 export async function sendPasswordResetEmail(
-  auth: externs.Auth,
+  auth: Auth,
   email: string,
-  actionCodeSettings?: externs.ActionCodeSettings
+  actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
   const request: authentication.PasswordResetRequest = {
-    requestType: externs.ActionCodeOperation.PASSWORD_RESET,
+    requestType: ActionCodeOperation.PASSWORD_RESET,
     email
   };
   if (actionCodeSettings) {
@@ -87,7 +94,7 @@ export async function sendPasswordResetEmail(
  * @public
  */
 export async function confirmPasswordReset(
-  auth: externs.Auth,
+  auth: Auth,
   oobCode: string,
   newPassword: string
 ): Promise<void> {
@@ -107,7 +114,7 @@ export async function confirmPasswordReset(
  * @public
  */
 export async function applyActionCode(
-  auth: externs.Auth,
+  auth: Auth,
   oobCode: string
 ): Promise<void> {
   await account.applyActionCode(auth, { oobCode });
@@ -124,9 +131,9 @@ export async function applyActionCode(
  * @public
  */
 export async function checkActionCode(
-  auth: externs.Auth,
+  auth: Auth,
   oobCode: string
-): Promise<externs.ActionCodeInfo> {
+): Promise<ActionCodeInfo> {
   const response = await account.resetPassword(auth, { oobCode });
 
   // Email could be empty only if the request type is EMAIL_SIGNIN or
@@ -138,12 +145,12 @@ export async function checkActionCode(
   const operation = response.requestType;
   _assert(operation, auth, AuthErrorCode.INTERNAL_ERROR);
   switch (operation) {
-    case externs.ActionCodeOperation.EMAIL_SIGNIN:
+    case ActionCodeOperation.EMAIL_SIGNIN:
       break;
-    case externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL:
+    case ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL:
       _assert(response.newEmail, auth, AuthErrorCode.INTERNAL_ERROR);
       break;
-    case externs.ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION:
+    case ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION:
       _assert(response.mfaInfo, auth, AuthErrorCode.INTERNAL_ERROR);
     // fall through
     default:
@@ -151,9 +158,9 @@ export async function checkActionCode(
   }
 
   // The multi-factor info for revert second factor addition
-  let multiFactorInfo: MultiFactorInfo | null = null;
+  let multiFactorInfo: MultiFactorInfoImpl | null = null;
   if (response.mfaInfo) {
-    multiFactorInfo = MultiFactorInfo._fromServerResponse(
+    multiFactorInfo = MultiFactorInfoImpl._fromServerResponse(
       _castAuth(auth),
       response.mfaInfo
     );
@@ -162,13 +169,11 @@ export async function checkActionCode(
   return {
     data: {
       email:
-        (response.requestType ===
-        externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
+        (response.requestType === ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
           ? response.newEmail
           : response.email) || null,
       previousEmail:
-        (response.requestType ===
-        externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
+        (response.requestType === ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
           ? response.email
           : response.newEmail) || null,
       multiFactorInfo
@@ -188,7 +193,7 @@ export async function checkActionCode(
  * @public
  */
 export async function verifyPasswordResetCode(
-  auth: externs.Auth,
+  auth: Auth,
   code: string
 ): Promise<string> {
   const { data } = await checkActionCode(auth, code);
@@ -214,10 +219,10 @@ export async function verifyPasswordResetCode(
  * @public
  */
 export async function createUserWithEmailAndPassword(
-  auth: externs.Auth,
+  auth: Auth,
   email: string,
   password: string
-): Promise<externs.UserCredential> {
+): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
   const response = await signUp(auth, {
     returnSecureToken: true,
@@ -227,7 +232,7 @@ export async function createUserWithEmailAndPassword(
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
     authInternal,
-    externs.OperationType.SIGN_IN,
+    OperationType.SIGN_IN,
     response
   );
   await authInternal._updateCurrentUser(userCredential.user);
@@ -252,10 +257,10 @@ export async function createUserWithEmailAndPassword(
  * @public
  */
 export function signInWithEmailAndPassword(
-  auth: externs.Auth,
+  auth: Auth,
   email: string,
   password: string
-): Promise<externs.UserCredential> {
+): Promise<UserCredential> {
   return signInWithCredential(
     auth,
     EmailAuthProvider.credential(email, password)

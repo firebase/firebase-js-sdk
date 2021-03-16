@@ -9,14 +9,14 @@ Completes the password reset process, given a confirmation code and new password
 <b>Signature:</b>
 
 ```typescript
-export declare function confirmPasswordReset(auth: externs.Auth, oobCode: string, newPassword: string): Promise<void>;
+export declare function confirmPasswordReset(auth: Auth, oobCode: string, newPassword: string): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
 |  oobCode | string | A confirmation code sent to the user. |
 |  newPassword | string | The new password. |
 

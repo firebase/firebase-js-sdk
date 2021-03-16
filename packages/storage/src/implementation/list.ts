@@ -19,7 +19,7 @@
  * @fileoverview Documentation for the listOptions and listResult format
  */
 import { Location } from './location';
-import * as json from './json';
+import { jsonObjectOrNull } from './json';
 import { ListResult } from '../list';
 import { StorageService } from '../service';
 
@@ -58,7 +58,7 @@ function fromBackendResponse(
   if (resource[PREFIXES_KEY]) {
     for (const path of resource[PREFIXES_KEY]) {
       const pathWithoutTrailingSlash = path.replace(/\/$/, '');
-      const reference = service.makeStorageReference(
+      const reference = service._makeStorageReference(
         new Location(bucket, pathWithoutTrailingSlash)
       );
       listResult.prefixes.push(reference);
@@ -67,7 +67,7 @@ function fromBackendResponse(
 
   if (resource[ITEMS_KEY]) {
     for (const item of resource[ITEMS_KEY]) {
-      const reference = service.makeStorageReference(
+      const reference = service._makeStorageReference(
         new Location(bucket, item['name'])
       );
       listResult.items.push(reference);
@@ -81,7 +81,7 @@ export function fromResponseString(
   bucket: string,
   resourceString: string
 ): ListResult | null {
-  const obj = json.jsonObjectOrNull(resourceString);
+  const obj = jsonObjectOrNull(resourceString);
   if (obj === null) {
     return null;
   }

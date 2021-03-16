@@ -287,9 +287,7 @@ export function createFirebaseNamespaceCore(
 
   function onLog(logCallback: LogCallback | null, options?: LogOptions): void {
     if (logCallback !== null && typeof logCallback !== 'function') {
-      throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT, {
-        appName: name
-      });
+      throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT);
     }
     setUserLogHandler(logCallback, options);
   }

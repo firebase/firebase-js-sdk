@@ -16,7 +16,7 @@ export declare function getFirestore(app: FirebaseApp): FirebaseFirestore;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) | The  instance that the returned Firestore instance is associated with. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The  instance that the returned Firestore instance is associated with. |
 
 <b>Returns:</b>
 

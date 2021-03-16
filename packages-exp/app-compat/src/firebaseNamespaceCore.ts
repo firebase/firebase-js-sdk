@@ -15,18 +15,14 @@
  * limitations under the License.
  */
 
-import {
-  FirebaseApp,
-  FirebaseOptions,
-  FirebaseNamespace
-} from '@firebase/app-types'; // TODO: create @firebase/app-types-compat before the official release
+import { FirebaseApp, FirebaseOptions } from './public-types';
 import {
   _FirebaseNamespace,
-  FirebaseService,
+  _FirebaseService,
   FirebaseServiceNamespace
-} from '@firebase/app-types/private';
+} from './types';
 import * as modularAPIs from '@firebase/app-exp';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
+import { _FirebaseAppInternal as _FirebaseAppExp } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { deepExtend, contains } from '@firebase/util';
@@ -43,13 +39,13 @@ import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
  */
 export function createFirebaseNamespaceCore(
   firebaseAppImpl: typeof FirebaseAppImpl | typeof FirebaseAppLiteImpl
-): FirebaseNamespace {
+): _FirebaseNamespace {
   const apps: { [name: string]: FirebaseApp } = {};
   // // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // const components = new Map<string, Component<any>>();
 
   // A namespace is a plain JavaScript Object.
-  const namespace: FirebaseNamespace = {
+  const namespace: _FirebaseNamespace = {
     // Hack to prevent Babel from modifying the object returned
     // as the firebase namespace.
     // @ts-ignore
@@ -121,8 +117,8 @@ export function createFirebaseNamespaceCore(
     const app = modularAPIs.initializeApp(
       options,
       rawConfig
-    ) as _FirebaseAppInternal;
-    const appCompat = new firebaseAppImpl(app, namespace as _FirebaseNamespace);
+    ) as _FirebaseAppExp;
+    const appCompat = new firebaseAppImpl(app, namespace);
     apps[app.name] = appCompat;
     return appCompat;
   }
@@ -137,7 +133,7 @@ export function createFirebaseNamespaceCore(
 
   function registerComponentCompat(
     component: Component
-  ): FirebaseServiceNamespace<FirebaseService> | null {
+  ): FirebaseServiceNamespace<_FirebaseService> | null {
     const componentName = component.name;
     if (
       modularAPIs._registerComponent(component) &&
@@ -147,7 +143,7 @@ export function createFirebaseNamespaceCore(
       // The Service namespace is an accessor function ...
       const serviceNamespace = (
         appArg: FirebaseApp = app()
-      ): FirebaseService => {
+      ): _FirebaseService => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof (appArg as any)[componentName] !== 'function') {
           // Invalid argument.

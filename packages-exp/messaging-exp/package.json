@@ -7,7 +7,8 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "sw": "dist/index.sw.esm5.js",
+  "typings": "dist/index.d.ts",
+  "sw": "dist/index.sw.esm2017.js",
   "files": [
     "dist"
   ],
@@ -28,22 +29,20 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@firebase/app-exp": "0.x",
-    "@firebase/app-types-exp": "0.x"
+    "@firebase/app-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.1.21",
+    "@firebase/component": "0.2.1",
     "@firebase/installations-exp": "0.0.900",
-    "@firebase/messaging-types-exp": "0.0.900",
-    "@firebase/util": "0.3.4",
+    "@firebase/util": "0.4.0",
     "idb": "3.0.2",
-    "tslib": "^1.11.1"
+    "tslib": "^2.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.29.0",
     "ts-essentials": "7.0.1",
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   },
   "repository": {
     "directory": "packages/messaging",
@@ -52,6 +51,5 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  },
-  "typings": "dist/index.d.ts"
+  }
 }

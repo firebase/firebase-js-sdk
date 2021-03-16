@@ -18,28 +18,32 @@
 import { Unsubscribe } from '@firebase/util';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { _assert } from '../util/assert';
+import { AuthErrorCode } from '../errors';
 
 interface TokenListener {
   (tok: string | null): unknown;
 }
 
-export class AuthInternal implements FirebaseAuthInternal {
+export class AuthInterop implements FirebaseAuthInternal {
   private readonly internalListeners: Map<
     TokenListener,
     Unsubscribe
   > = new Map();
 
-  constructor(private readonly auth: Auth) {}
+  constructor(private readonly auth: AuthInternal) {}
 
   getUid(): string | null {
+    this.assertAuthConfigured();
     return this.auth.currentUser?.uid || null;
   }
 
   async getToken(
     forceRefresh?: boolean
   ): Promise<{ accessToken: string } | null> {
+    this.assertAuthConfigured();
     await this.auth._initializationPromise;
     if (!this.auth.currentUser) {
       return null;
@@ -50,18 +54,22 @@ export class AuthInternal implements FirebaseAuthInternal {
   }
 
   addAuthTokenListener(listener: TokenListener): void {
+    this.assertAuthConfigured();
     if (this.internalListeners.has(listener)) {
       return;
     }
 
     const unsubscribe = this.auth.onIdTokenChanged(user => {
-      listener((user as User | null)?.stsTokenManager.accessToken || null);
+      listener(
+        (user as UserInternal | null)?.stsTokenManager.accessToken || null
+      );
     });
     this.internalListeners.set(listener, unsubscribe);
     this.updateProactiveRefresh();
   }
 
   removeAuthTokenListener(listener: TokenListener): void {
+    this.assertAuthConfigured();
     const unsubscribe = this.internalListeners.get(listener);
     if (!unsubscribe) {
       return;
@@ -70,6 +78,13 @@ export class AuthInternal implements FirebaseAuthInternal {
     this.internalListeners.delete(listener);
     unsubscribe();
     this.updateProactiveRefresh();
+  }
+
+  private assertAuthConfigured(): void {
+    _assert(
+      this.auth._initializationPromise,
+      AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
+    );
   }
 
   private updateProactiveRefresh(): void {

@@ -9,7 +9,7 @@ Creates a credential for Facebook.
 <b>Signature:</b>
 
 ```typescript
-static credential(accessToken: string): externs.OAuthCredential;
+static credential(accessToken: string): OAuthCredential;
 ```
 
 ## Parameters
@@ -20,7 +20,7 @@ static credential(accessToken: string): externs.OAuthCredential;
 
 <b>Returns:</b>
 
-externs.[OAuthCredential](./auth-types.oauthcredential.md)
+[OAuthCredential](./auth.oauthcredential.md)
 
 ## Example
 

@@ -28,7 +28,12 @@ import { resolve } from 'path';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
-import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
+import {
+  prepare as prepareFirestoreForRelease,
+  createFirestoreCompatProject
+} from './prepare-firestore-for-exp-release';
+import { prepare as prepareStorageForRelease } from './prepare-storage-for-exp-release';
+import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
 
 const prompt = createPromptModule();
@@ -55,14 +60,25 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     );
 
     /**
-     * Update fields in package.json and stuff
+     * Update fields in package.json and create compat packages (e.g. packages-exp/firestore-compat)
      */
     await prepareFirestoreForRelease();
-
+    await prepareStorageForRelease();
+    await prepareDatabaseForRelease();
     /**
-     * build packages
+     * build packages except for the umbrella package (firebase) which will be built after firestore/storage/database compat packages are created
      */
     await buildPackages();
+
+    /**
+     * Create compat packages for Firestore, Database and Storage
+     */
+    await createFirestoreCompatProject();
+
+    /**
+     * build firebase
+     */
+    await buildFirebasePackage();
 
     // path to exp packages
     let packagePaths = await mapWorkspaceToPackages([
@@ -70,6 +86,8 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     ]);
 
     packagePaths.push(`${projectRoot}/packages/firestore`);
+    packagePaths.push(`${projectRoot}/packages/storage`);
+    packagePaths.push(`${projectRoot}/packages/database`);
 
     /**
      * It does 2 things:
@@ -140,10 +158,10 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * Do not push to remote if it's a dryrun
      */
     if (!dryRun) {
-      const { commitAndPush } = await prompt([
+      const { shouldCommitAndPush } = await prompt([
         {
           type: 'confirm',
-          name: 'commitAndPush',
+          name: 'shouldCommitAndPush',
           message:
             'Do you want to commit and push the exp version update to remote?',
           default: true
@@ -152,7 +170,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       /**
        * push to github
        */
-      if (commitAndPush) {
+      if (shouldCommitAndPush) {
         await commitAndPush(versions);
       }
     }
@@ -192,6 +210,9 @@ async function buildPackages() {
       // the same reason above
       '@firebase/remote-config',
       '--scope',
+      // the same reason above
+      '@firebase/analytics',
+      '--scope',
       '@firebase/util',
       '--scope',
       '@firebase/component',
@@ -226,7 +247,7 @@ async function buildPackages() {
   );
 
   // Build exp packages developed in place
-  // Firestore
+  // Firestore and firestore-compat
   await spawn(
     'yarn',
     ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
@@ -245,6 +266,26 @@ async function buildPackages() {
     }
   );
 
+  // Storage
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Database
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
   // remove packages/installations/dist, otherwise packages that depend on packages-exp/installations-exp (e.g. Perf, FCM)
   // will incorrectly reference packages/installations.
   const installationsDistDirPath = resolve(
@@ -255,6 +296,13 @@ async function buildPackages() {
     rmdirSync(installationsDistDirPath, { recursive: true });
   }
 
+  spinner.stopAndPersist({
+    symbol: '✅'
+  });
+}
+
+async function buildFirebasePackage() {
+  const spinner = ora(' Building firebase').start();
   // Build firebase-exp
   await spawn(
     'yarn',
@@ -264,7 +312,6 @@ async function buildPackages() {
       stdio: 'inherit'
     }
   );
-
   spinner.stopAndPersist({
     symbol: '✅'
   });
@@ -409,7 +456,7 @@ async function updatePackageJsons(
 }
 
 async function commitAndPush(versions: Map<string, string>) {
-  await exec('git add */package.json yarn.lock');
+  await exec('git add packages-exp/firebase-exp/package.json yarn.lock');
 
   const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME);
   await exec(

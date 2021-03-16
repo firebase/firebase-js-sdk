@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { UserMetadata as UserMetadataType } from '../../model/public_types';
 
 import { utcTimestampToDateString } from '../util/time';
 
-export class UserMetadata implements externs.UserMetadata {
+export class UserMetadata implements UserMetadataType {
   creationTime?: string;
   lastSignInTime?: string;
 

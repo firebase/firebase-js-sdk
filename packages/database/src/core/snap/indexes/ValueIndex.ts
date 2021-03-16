@@ -20,11 +20,6 @@ import { NamedNode, Node } from '../Node';
 import { nameCompare } from '../../util/util';
 import { nodeFromJSON } from '../nodeFromJSON';
 
-/**
- * @constructor
- * @extends {Index}
- * @private
- */
 export class ValueIndex extends Index {
   /**
    * @inheritDoc
@@ -68,18 +63,13 @@ export class ValueIndex extends Index {
     return (NamedNode as any).MAX;
   }
 
-  /**
-   * @param {*} indexValue
-   * @param {string} name
-   * @return {!NamedNode}
-   */
   makePost(indexValue: object, name: string): NamedNode {
     const valueNode = nodeFromJSON(indexValue);
     return new NamedNode(name, valueNode);
   }
 
   /**
-   * @return {!string} String representation for inclusion in a query spec
+   * @return String representation for inclusion in a query spec
    */
   toString(): string {
     return '.value';

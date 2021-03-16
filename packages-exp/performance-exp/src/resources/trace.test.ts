@@ -21,7 +21,7 @@ import { expect } from 'chai';
 import { Api, setupApi } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
 import { PerformanceController } from '../controllers/perf';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
 import '../../test/setup';

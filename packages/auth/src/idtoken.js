@@ -21,6 +21,7 @@
 
 goog.provide('fireauth.IdToken');
 
+goog.require('goog.crypt');
 goog.require('goog.crypt.base64');
 
 
@@ -244,7 +245,9 @@ fireauth.IdToken.parseIdTokenClaims = function(tokenString) {
     jsonInfo += '.';
   }
   try {
-    const token = JSON.parse(goog.crypt.base64.decodeString(jsonInfo, true));
+    const decodedClaims = goog.crypt.utf8ByteArrayToString(
+        goog.crypt.base64.decodeStringToByteArray(jsonInfo));
+    const token = JSON.parse(decodedClaims);
     return /** @type {?Object} */ (token);
   } catch (e) {}
   return null;

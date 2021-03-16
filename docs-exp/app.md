@@ -23,6 +23,14 @@ This package coordinates the communication between the different Firebase compon
 |  [registerVersion(libraryKeyOrName, version, variant)](./app.registerversion.md) | Registers a library's name and version for platform logging purposes. |
 |  [setLogLevel(logLevel)](./app.setloglevel.md) | Sets log level for all Firebase SDKs.<!-- -->All of the log types above the current log level are captured (i.e. if you set the log level to <code>info</code>, errors are logged, but <code>debug</code> and <code>verbose</code> logs are not). |
 
+## Interfaces
+
+|  Interface | Description |
+|  --- | --- |
+|  [FirebaseApp](./app.firebaseapp.md) | A FirebaseApp holds the initialization information for a collection of services.<!-- -->Do not call this constructor directly. Instead, use [initializeApp()](./app.initializeapp.md) to create an app. |
+|  [FirebaseAppConfig](./app.firebaseappconfig.md) | Configuration options given to [initializeApp()](./app.initializeapp.md) |
+|  [FirebaseOptions](./app.firebaseoptions.md) | Firebase configuration object |
+
 ## Variables
 
 |  Variable | Description |

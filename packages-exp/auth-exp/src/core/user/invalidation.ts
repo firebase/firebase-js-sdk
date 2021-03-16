@@ -17,11 +17,11 @@
 
 import { FirebaseError } from '@firebase/util';
 
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 
 export async function _logoutIfInvalidated<T>(
-  user: User,
+  user: UserInternal,
   promise: Promise<T>,
   bypassAuthState = false
 ): Promise<T> {

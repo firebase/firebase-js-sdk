@@ -9,14 +9,14 @@ Updates the user's password.
 <b>Signature:</b>
 
 ```typescript
-export declare function updatePassword(user: externs.User, newPassword: string): Promise<void>;
+export declare function updatePassword(user: User, newPassword: string): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
+|  user | [User](./auth.user.md) | The user. |
 |  newPassword | string | The new password. |
 
 <b>Returns:</b>

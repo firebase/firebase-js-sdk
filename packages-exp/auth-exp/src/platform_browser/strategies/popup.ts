@@ -15,27 +15,32 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  AuthProvider,
+  PopupRedirectResolver,
+  User,
+  UserCredential
+} from '../../model/public_types';
 
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
-import { OAuthProvider } from '../../core/providers/oauth';
 import { _assert, debugAssert, _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
   AuthEventType,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
-import { User } from '../../model/user';
-import { _withDefaultResolver } from '../popup_redirect';
+import { UserInternal } from '../../model/user';
+import { _withDefaultResolver } from '../../core/util/resolver';
 import { AuthPopup } from '../util/popup';
-import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
+import { AbstractPopupRedirectOperation } from '../../core/strategies/abstract_popup_redirect_operation';
+import { FederatedAuthProvider } from '../../core/providers/federated';
 
 /*
  * The event timeout is the same on mobile and desktop, no need for Delay.
- * @internal
  */
 export const enum _Timeout {
   AUTH_EVENT = 2000
@@ -65,20 +70,20 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * @param auth - The Auth instance.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  *
  * @public
  */
 export async function signInWithPopup(
-  auth: externs.Auth,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
-): Promise<externs.UserCredential> {
+  auth: Auth,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
@@ -113,19 +118,19 @@ export async function signInWithPopup(
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
  */
 export async function reauthenticateWithPopup(
-  user: externs.User,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
-): Promise<externs.UserCredential> {
-  const userInternal = user as User;
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<UserCredential> {
+  const userInternal = user as UserInternal;
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     userInternal.auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
@@ -160,19 +165,19 @@ export async function reauthenticateWithPopup(
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
  */
 export async function linkWithPopup(
-  user: externs.User,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
-): Promise<externs.UserCredential> {
-  const userInternal = user as User;
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
+): Promise<UserCredential> {
+  const userInternal = user as UserInternal;
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     userInternal.auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
@@ -193,7 +198,6 @@ export async function linkWithPopup(
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
  *
- * @internal
  */
 class PopupOperation extends AbstractPopupRedirectOperation {
   // Only one popup is ever shown at once. The lifecycle of the current popup
@@ -203,11 +207,11 @@ class PopupOperation extends AbstractPopupRedirectOperation {
   private pollId: number | null = null;
 
   constructor(
-    auth: Auth,
+    auth: AuthInternal,
     filter: AuthEventType,
-    private readonly provider: externs.AuthProvider,
-    resolver: PopupRedirectResolver,
-    user?: User
+    private readonly provider: AuthProvider,
+    resolver: PopupRedirectResolverInternal,
+    user?: UserInternal
   ) {
     super(auth, filter, resolver, user);
     if (PopupOperation.currentPopupAction) {
@@ -217,7 +221,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     PopupOperation.currentPopupAction = this;
   }
 
-  async executeNotNull(): Promise<externs.UserCredential> {
+  async executeNotNull(): Promise<UserCredential> {
     const result = await this.execute();
     _assert(result, this.auth, AuthErrorCode.INTERNAL_ERROR);
     return result;
@@ -237,13 +241,17 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     );
     this.authWindow.associatedEvent = eventId;
 
-    // Check for web storage support _after_ the popup is loaded. Checking for
-    // web storage is slow (on the order of a second or so). Rather than
-    // waiting on that before opening the window, optimistically open the popup
+    // Check for web storage support and origin validation _after_ the popup is
+    // loaded. These operations are slow (~1 second or so) Rather than
+    // waiting on them before opening the window, optimistically open the popup
     // and check for storage support at the same time. If storage support is
     // not available, this will cause the whole thing to reject properly. It
     // will also close the popup, but since the promise has already rejected,
     // the popup closed by user poll will reject into the void.
+    this.resolver._originValidation(this.auth).catch(e => {
+      this.reject(e);
+    });
+
     this.resolver._isIframeWebStorageSupported(this.auth, isSupported => {
       if (!isSupported) {
         this.reject(

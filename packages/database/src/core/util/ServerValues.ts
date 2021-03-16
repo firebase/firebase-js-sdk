@@ -16,13 +16,13 @@
  */
 
 import { assert } from '@firebase/util';
-import { Path } from './Path';
+import { Path, pathChild } from './Path';
 import { LeafNode } from '../snap/LeafNode';
 import { nodeFromJSON } from '../snap/nodeFromJSON';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { Node } from '../snap/Node';
 import { ChildrenNode } from '../snap/ChildrenNode';
-import { SyncTree } from '../SyncTree';
+import { SyncTree, syncTreeCalcCompleteEventCache } from '../SyncTree';
 import { Indexable } from './misc';
 
 /* It's critical for performance that we do not calculate actual values from a SyncTree
@@ -60,19 +60,17 @@ class DeferredValueProvider implements ValueProvider {
   }
 
   getImmediateChild(childName: string): ValueProvider {
-    const childPath = this.path_.child(childName);
+    const childPath = pathChild(this.path_, childName);
     return new DeferredValueProvider(this.syncTree_, childPath);
   }
 
   node(): Node {
-    return this.syncTree_.calcCompleteEventCache(this.path_);
+    return syncTreeCalcCompleteEventCache(this.syncTree_, this.path_);
   }
 }
 
 /**
  * Generate placeholders for deferred values.
- * @param {?Object} values
- * @return {!Object}
  */
 export const generateWithValues = function (
   values: {
@@ -87,9 +85,6 @@ export const generateWithValues = function (
 /**
  * Value to use when firing local events. When writing server values, fire
  * local events with an approximate value, otherwise return value as-is.
- * @param {(Object|string|number|boolean)} value
- * @param {!Object} serverValues
- * @return {!(string|number|boolean)}
  */
 export const resolveDeferredLeafValue = function (
   value: { [k: string]: unknown } | string | number | boolean,
@@ -160,11 +155,9 @@ const resolveComplexDeferredValue = function (
 /**
  * Recursively replace all deferred values and priorities in the tree with the
  * specified generated replacement values.
- * @param {!Path} path path to which write is relative
- * @param {!Node} node new data written at path
- * @param {!SyncTree} syncTree current data
- * @param {!Object} serverValues
- * @return {!SparseSnapshotTree}
+ * @param path path to which write is relative
+ * @param node new data written at path
+ * @param syncTree current data
  */
 export const resolveDeferredValueTree = function (
   path: Path,
@@ -183,9 +176,6 @@ export const resolveDeferredValueTree = function (
  * Recursively replace all deferred values and priorities in the node with the
  * specified generated replacement values.  If there are no server values in the node,
  * it'll be returned as-is.
- * @param {!Node} node
- * @param {!Object} serverValues
- * @return {!Node}
  */
 export const resolveDeferredValueSnapshot = function (
   node: Node,

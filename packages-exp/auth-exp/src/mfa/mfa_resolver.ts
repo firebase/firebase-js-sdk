@@ -15,35 +15,40 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  MultiFactorResolver,
+  OperationType,
+  UserCredential
+} from '../model/public_types';
 
 import { _castAuth } from '../core/auth/auth_impl';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { _assert, _fail } from '../core/util/assert';
-import { UserCredential } from '../model/user';
-import { MultiFactorAssertion } from './mfa_assertion';
+import { UserCredentialInternal } from '../model/user';
+import { MultiFactorAssertionImpl } from './mfa_assertion';
 import { MultiFactorError } from './mfa_error';
-import { MultiFactorInfo } from './mfa_info';
-import { MultiFactorSession } from './mfa_session';
+import { MultiFactorInfoImpl } from './mfa_info';
+import { MultiFactorSessionImpl } from './mfa_session';
 
-export class MultiFactorResolver implements externs.MultiFactorResolver {
+export class MultiFactorResolverImpl implements MultiFactorResolver {
   private constructor(
-    readonly session: MultiFactorSession,
-    readonly hints: MultiFactorInfo[],
+    readonly session: MultiFactorSessionImpl,
+    readonly hints: MultiFactorInfoImpl[],
     private readonly signInResolver: (
-      assertion: MultiFactorAssertion
-    ) => Promise<UserCredential>
+      assertion: MultiFactorAssertionImpl
+    ) => Promise<UserCredentialInternal>
   ) {}
 
   /** @internal */
   static _fromError(
-    authExtern: externs.Auth,
+    authExtern: Auth,
     error: MultiFactorError
-  ): MultiFactorResolver {
+  ): MultiFactorResolverImpl {
     const auth = _castAuth(authExtern);
     const hints = (error.serverResponse.mfaInfo || []).map(enrollment =>
-      MultiFactorInfo._fromServerResponse(auth, enrollment)
+      MultiFactorInfoImpl._fromServerResponse(auth, enrollment)
     );
 
     _assert(
@@ -51,14 +56,16 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
       auth,
       AuthErrorCode.INTERNAL_ERROR
     );
-    const session = MultiFactorSession._fromMfaPendingCredential(
+    const session = MultiFactorSessionImpl._fromMfaPendingCredential(
       error.serverResponse.mfaPendingCredential
     );
 
-    return new MultiFactorResolver(
+    return new MultiFactorResolverImpl(
       session,
       hints,
-      async (assertion: MultiFactorAssertion): Promise<UserCredential> => {
+      async (
+        assertion: MultiFactorAssertionImpl
+      ): Promise<UserCredentialInternal> => {
         const mfaResponse = await assertion._process(auth, session);
         // Clear out the unneeded fields from the old login response
         delete error.serverResponse.mfaInfo;
@@ -73,7 +80,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
 
         // TODO: we should collapse this switch statement into UserCredentialImpl._forOperation and have it support the SIGN_IN case
         switch (error.operationType) {
-          case externs.OperationType.SIGN_IN:
+          case OperationType.SIGN_IN:
             const userCredential = await UserCredentialImpl._fromIdTokenResponse(
               auth,
               error.operationType,
@@ -81,7 +88,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
             );
             await auth._updateCurrentUser(userCredential.user);
             return userCredential;
-          case externs.OperationType.REAUTHENTICATE:
+          case OperationType.REAUTHENTICATE:
             _assert(error.user, auth, AuthErrorCode.INTERNAL_ERROR);
             return UserCredentialImpl._forOperation(
               error.user,
@@ -96,27 +103,27 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
   }
 
   async resolveSignIn(
-    assertionExtern: externs.MultiFactorAssertion
-  ): Promise<externs.UserCredential> {
-    const assertion = assertionExtern as MultiFactorAssertion;
+    assertionExtern: MultiFactorAssertionImpl
+  ): Promise<UserCredential> {
+    const assertion = assertionExtern as MultiFactorAssertionImpl;
     return this.signInResolver(assertion);
   }
 }
 
 /**
- * Provides a {@link @firebase/auth-types#MultiFactorResolver} suitable for completion of a
+ * Provides a {@link MultiFactorResolver} suitable for completion of a
  * multi-factor flow.
  *
  * @param auth - The auth instance.
- * @param error - The {@link @firebase/auth-types#MultiFactorError} raised during a sign-in, or
+ * @param error - The {@link MultiFactorError} raised during a sign-in, or
  * reauthentication operation.
  *
  * @public
  */
 export function getMultiFactorResolver(
-  auth: externs.Auth,
-  error: externs.MultiFactorError
-): externs.MultiFactorResolver {
+  auth: Auth,
+  error: MultiFactorError
+): MultiFactorResolver {
   const errorInternal = error as MultiFactorError;
   _assert(error.operationType, auth, AuthErrorCode.ARGUMENT_ERROR);
   _assert(
@@ -125,5 +132,5 @@ export function getMultiFactorResolver(
     AuthErrorCode.ARGUMENT_ERROR
   );
 
-  return MultiFactorResolver._fromError(auth, errorInternal);
+  return MultiFactorResolverImpl._fromError(auth, errorInternal);
 }

@@ -9,7 +9,9 @@
   "esm2017": "dist/index.esm2017.js",
   "typings": "dist/installations-compat.d.ts",
   "license": "Apache-2.0",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -24,11 +26,7 @@
     "type-check": "tsc -p . --noEmit",
     "serve": "yarn serve:build && yarn serve:host",
     "serve:build": "rollup -c test-app/rollup.config.js",
-    "serve:host": "http-server -c-1 test-app",
-    "api-report": "api-extractor run --local --verbose",
-    "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn build && yarn doc"
+    "serve:host": "http-server -c-1 test-app"
   },
   "repository": {
     "directory": "packages-exp/installations-compat",
@@ -41,22 +39,21 @@
   "devDependencies": {
     "@firebase/app-compat": "0.0.900",
     "rollup": "2.33.2",
-    "@rollup/plugin-commonjs": "15.1.0",
+    "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-node-resolve": "11.2.0",
     "rollup-plugin-typescript2": "0.29.0",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
     "@firebase/installations-exp": "0.0.900",
-    "@firebase/installations-types-exp": "0.0.900",
-    "@firebase/util": "0.3.4",
-    "@firebase/component": "0.1.21",
+    "@firebase/util": "0.4.0",
+    "@firebase/component": "0.2.1",
     "idb": "3.0.2",
-    "tslib": "^1.11.1"
+    "tslib": "^2.0.0"
   }
 }

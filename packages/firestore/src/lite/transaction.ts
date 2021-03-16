@@ -16,13 +16,6 @@
  */
 
 import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs,
-  UserDataReader
-} from '../api/user_data_reader';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { TransactionRunner } from '../core/transaction_runner';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
@@ -40,6 +33,13 @@ import {
   LiteUserDataWriter
 } from './reference_impl';
 import { DocumentSnapshot } from './snapshot';
+import {
+  newUserDataReader,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
+  UserDataReader
+} from './user_data_reader';
 import { validateReference } from './write_batch';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the

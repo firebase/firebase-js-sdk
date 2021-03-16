@@ -74,9 +74,6 @@ export function createTestApp() {
 /**
  * Gets or creates a root node to the test namespace. All calls sharing the
  * value of opt_i will share an app context.
- * @param {number=} i
- * @param {string=} ref
- * @return {Reference}
  */
 export function getRootNode(i = 0, ref?: string) {
   if (i + 1 > numDatabases) {
@@ -95,8 +92,6 @@ export function getRootNode(i = 0, ref?: string) {
 /**
  * Create multiple refs to the same top level
  * push key - each on it's own Firebase.Context.
- * @param {int=} numNodes
- * @return {Reference|Array<Reference>}
  */
 export function getRandomNode(numNodes?): Reference | Reference[] {
   if (numNodes === undefined) {
@@ -122,7 +117,7 @@ export function getQueryValue(query: Query) {
 }
 
 export function pause(milliseconds: number) {
-  return new Promise(resolve => {
+  return new Promise<void>(resolve => {
     setTimeout(() => resolve(), milliseconds);
   });
 }

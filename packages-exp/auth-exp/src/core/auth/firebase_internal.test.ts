@@ -15,20 +15,24 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { FirebaseError } from '@firebase/util';
+import { expect, use } from 'chai';
 import * as sinon from 'sinon';
+import * as chaiAsPromised from 'chai-as-promised';
 
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { AuthInternal } from './firebase_internal';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { AuthInterop } from './firebase_internal';
+
+use(chaiAsPromised);
 
 describe('core/auth/firebase_internal', () => {
-  let auth: Auth;
-  let authInternal: AuthInternal;
+  let auth: AuthInternal;
+  let authInternal: AuthInterop;
   beforeEach(async () => {
     auth = await testAuth();
-    authInternal = new AuthInternal(auth);
+    authInternal = new AuthInterop(auth);
   });
 
   afterEach(() => {
@@ -44,6 +48,16 @@ describe('core/auth/firebase_internal', () => {
       const user = testUser(auth, 'uid');
       await auth._updateCurrentUser(user);
       expect(authInternal.getUid()).to.eq('uid');
+    });
+
+    it('errors if Auth is not initialized', () => {
+      delete ((auth as unknown) as Record<string, unknown>)[
+        '_initializationPromise'
+      ];
+      expect(() => authInternal.getUid()).to.throw(
+        FirebaseError,
+        'auth/dependent-sdk-initialized-before-auth'
+      );
     });
   });
 
@@ -62,11 +76,21 @@ describe('core/auth/firebase_internal', () => {
         accessToken: 'access-token'
       });
     });
+
+    it('errors if Auth is not initialized', async () => {
+      delete ((auth as unknown) as Record<string, unknown>)[
+        '_initializationPromise'
+      ];
+      await expect(authInternal.getToken()).to.be.rejectedWith(
+        FirebaseError,
+        'auth/dependent-sdk-initialized-before-auth'
+      );
+    });
   });
 
   context('token listeners', () => {
     let isProactiveRefresh = false;
-    let user: User;
+    let user: UserInternal;
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', undefined, true);
@@ -114,6 +138,16 @@ describe('core/auth/firebase_internal', () => {
         await user.getIdToken(true);
 
         expect(tokenCount).to.eq(5);
+      });
+
+      it('errors if Auth is not initialized', () => {
+        delete ((auth as unknown) as Record<string, unknown>)[
+          '_initializationPromise'
+        ];
+        expect(() => authInternal.addAuthTokenListener(() => {})).to.throw(
+          FirebaseError,
+          'auth/dependent-sdk-initialized-before-auth'
+        );
       });
     });
 
@@ -167,6 +201,16 @@ describe('core/auth/firebase_internal', () => {
 
         authInternal.addAuthTokenListener(listenerB);
         expect(isProactiveRefresh).to.be.true;
+      });
+
+      it('errors if Auth is not initialized', () => {
+        delete ((auth as unknown) as Record<string, unknown>)[
+          '_initializationPromise'
+        ];
+        expect(() => authInternal.removeAuthTokenListener(() => {})).to.throw(
+          FirebaseError,
+          'auth/dependent-sdk-initialized-before-auth'
+        );
       });
     });
   });

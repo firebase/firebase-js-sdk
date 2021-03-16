@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
   LimitType,
@@ -36,6 +35,7 @@ import {
   Target
 } from '../core/target';
 import { TargetId } from '../core/types';
+import { Timestamp } from '../lite/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -81,7 +81,6 @@ import {
   Target as ProtoTarget,
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
-  Value as ProtoValue,
   Write as ProtoWrite,
   WriteResult as ProtoWriteResult
 } from '../protos/firestore_proto_api';
@@ -698,11 +697,7 @@ function fromWriteResult(
     version = fromVersion(commitTime);
   }
 
-  let transformResults: ProtoValue[] | null = null;
-  if (proto.transformResults && proto.transformResults.length > 0) {
-    transformResults = proto.transformResults;
-  }
-  return new MutationResult(version, transformResults);
+  return new MutationResult(version, proto.transformResults || []);
 }
 
 export function fromWriteResults(

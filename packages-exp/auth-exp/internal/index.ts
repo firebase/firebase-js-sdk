@@ -22,16 +22,24 @@ export * from '../index';
 
 export { SignInWithIdpResponse } from '../src/api/authentication/idp';
 export { AuthErrorCode } from '../src/core/errors';
-export { Persistence } from '../src/core/persistence';
+export { PersistenceInternal } from '../src/core/persistence';
 export { _persistenceKeyName } from '../src/core/persistence/persistence_user_manager';
 export { UserImpl } from '../src/core/user/user_impl';
 export { _getInstance } from '../src/core/util/instantiator';
-export { UserCredential, UserParameters } from '../src/model/user';
+export {
+  PopupRedirectResolverInternal,
+  EventManager,
+  AuthEventType
+} from '../src/model/popup_redirect';
+export { UserCredentialInternal, UserParameters } from '../src/model/user';
 export { registerAuth } from '../src/core/auth/register';
-export { DefaultConfig, AuthImpl } from '../src/core/auth/auth_impl';
+export { DefaultConfig, AuthImpl, _castAuth } from '../src/core/auth/auth_impl';
 
 export { ClientPlatform, _getClientVersion } from '../src/core/util/version';
 
 export { _generateEventId } from '../src/core/util/event_id';
 
 export { _fail, _assert } from '../src/core/util/assert';
+export { AuthPopup } from '../src/platform_browser/util/popup';
+export { _getRedirectResult } from '../src/platform_browser/strategies/redirect';
+export { cordovaPopupRedirectResolver } from '../src/platform_cordova/popup_redirect/popup_redirect';

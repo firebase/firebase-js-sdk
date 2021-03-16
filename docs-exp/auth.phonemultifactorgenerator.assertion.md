@@ -4,23 +4,23 @@
 
 ## PhoneMultiFactorGenerator.assertion() method
 
-Provides a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) to confirm ownership of the phone second factor.
+Provides a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md) to confirm ownership of the phone second factor.
 
 <b>Signature:</b>
 
 ```typescript
-static assertion(credential: externs.PhoneAuthCredential): externs.PhoneMultiFactorAssertion;
+static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  credential | externs.[PhoneAuthCredential](./auth-types.phoneauthcredential.md) |  |
+|  credential | [PhoneAuthCredential](./auth.phoneauthcredential.md) |  |
 
 <b>Returns:</b>
 
-externs.[PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)
+[PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md)
 
-A [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) which can be used with [MultiFactorResolver.resolveSignIn()](./auth-types.multifactorresolver.resolvesignin.md)
+A [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md) which can be used with [MultiFactorResolver.resolveSignIn()](./auth.multifactorresolver.resolvesignin.md)
 

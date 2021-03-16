@@ -4,10 +4,10 @@
 
 ## inMemoryPersistence variable
 
-An implementation of [Persistence](./auth-types.persistence.md) of type 'NONE'.
+An implementation of [Persistence](./auth.persistence.md) of type 'NONE'.
 
 <b>Signature:</b>
 
 ```typescript
-inMemoryPersistence: externs.Persistence
+inMemoryPersistence: Persistence
 ```

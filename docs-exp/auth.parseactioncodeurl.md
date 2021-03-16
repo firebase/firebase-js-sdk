@@ -4,23 +4,20 @@
 
 ## parseActionCodeURL() function
 
-Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md) if the link is valid, otherwise returns null.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function parseActionCodeURL(link: string): externs.ActionCodeURL | null;
+export declare function parseActionCodeURL(link: string): ActionCodeURL | null;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  link | string | The email action link string. |
+|  link | string |  |
 
 <b>Returns:</b>
 
-externs.[ActionCodeURL](./auth-types.actioncodeurl.md) \| null
-
-The ActionCodeURL object, or null if the link is invalid.
+[ActionCodeURL](./auth.actioncodeurl.md) \| null
 

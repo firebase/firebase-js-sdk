@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
+import { ProviderId } from '../../../model/public_types';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
@@ -25,17 +25,20 @@ import * as mockFetch from '../../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../../api';
 import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
 import { PhoneAuthCredential } from '../../../core/credentials/phone';
-import { MultiFactorSession } from '../../../mfa/mfa_session';
+import { MultiFactorSessionImpl } from '../../../mfa/mfa_session';
 import { PhoneAuthProvider } from '../../providers/phone';
-import { PhoneMultiFactorAssertion, PhoneMultiFactorGenerator } from './phone';
+import {
+  PhoneMultiFactorAssertionImpl,
+  PhoneMultiFactorGenerator
+} from './phone';
 
 use(chaiAsPromised);
 
 describe('platform_browser/mfa/phone', () => {
   let auth: TestAuth;
   let credential: PhoneAuthCredential;
-  let assertion: PhoneMultiFactorAssertion;
-  let session: MultiFactorSession;
+  let assertion: PhoneMultiFactorAssertionImpl;
+  let session: MultiFactorSessionImpl;
 
   const serverResponse: FinalizeMfaResponse = {
     idToken: 'final-id-token',
@@ -49,13 +52,13 @@ describe('platform_browser/mfa/phone', () => {
       'verification-id',
       'verification-code'
     );
-    assertion = PhoneMultiFactorAssertion._fromCredential(credential);
+    assertion = PhoneMultiFactorAssertionImpl._fromCredential(credential);
   });
   afterEach(mockFetch.tearDown);
 
   describe('enroll', () => {
     beforeEach(() => {
-      session = MultiFactorSession._fromIdtoken('enrollment-id-token');
+      session = MultiFactorSessionImpl._fromIdtoken('enrollment-id-token');
     });
 
     it('should finalize the MFA enrollment', async () => {
@@ -102,7 +105,7 @@ describe('platform_browser/mfa/phone', () => {
 
   describe('sign_in', () => {
     beforeEach(() => {
-      session = MultiFactorSession._fromMfaPendingCredential(
+      session = MultiFactorSessionImpl._fromMfaPendingCredential(
         'mfa-pending-credential'
       );
     });

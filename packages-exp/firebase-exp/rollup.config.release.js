@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
+import alias from '@rollup/plugin-alias';
+import appPkg from './app/package.json';
+import commonjs from '@rollup/plugin-commonjs';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
+import json from '@rollup/plugin-json';
+import pkg from './package.json';
 import { resolve } from 'path';
 import resolveModule from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import sourcemaps from 'rollup-plugin-sourcemaps';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
-import alias from '@rollup/plugin-alias';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
-import json from '@rollup/plugin-json';
-import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
-import pkg from './package.json';
-import appPkg from './app/package.json';
 
 // remove -exp from dependencies name
 const deps = Object.keys(pkg.dependencies || {}).map(name =>
@@ -125,6 +125,76 @@ const componentBuilds = pkg.components
     // It is needed for handling sub modules, for example firestore/lite which should produce firebase-firestore-lite.js
     // Otherwise, we will create a directory with '/' in the name.
     const componentName = component.replace('/', '-');
+
+    if (component === 'messaging') {
+      return [
+        {
+          input: `${component}/index.ts`,
+          output: [
+            {
+              file: resolve(component, pkg.main),
+              format: 'cjs',
+              sourcemap: true
+            },
+            {
+              file: resolve(component, pkg.module),
+              format: 'es',
+              sourcemap: true
+            }
+          ],
+          plugins: [...plugins, typescriptPlugin],
+          external: id =>
+            deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+        },
+        {
+          input: `${component}/index.ts`,
+          output: createUmdOutputConfig(
+            `firebase-${componentName}.js`,
+            componentName
+          ),
+          plugins: [
+            ...plugins,
+            typescriptPluginUMD,
+            /**
+             * Hack to bundle @firebase/installations-exp
+             */
+            alias({
+              entries: [
+                {
+                  find: '@firebase/installations',
+                  replacement: '@firebase/installations-exp'
+                }
+              ]
+            })
+          ],
+          external: ['@firebase/app']
+        },
+        {
+          input: `${component}/index.sw.ts`,
+          output: createUmdOutputConfig(
+            `firebase-${componentName}-sw.js`,
+            componentName
+          ),
+          plugins: [
+            ...plugins,
+            typescriptPluginUMD,
+            /**
+             * Hack to bundle @firebase/installations-exp
+             */
+            alias({
+              entries: [
+                {
+                  find: '@firebase/installations',
+                  replacement: '@firebase/installations-exp'
+                }
+              ]
+            })
+          ],
+          external: ['@firebase/app']
+        }
+      ];
+    }
+
     return [
       {
         input: `${component}/index.ts`,

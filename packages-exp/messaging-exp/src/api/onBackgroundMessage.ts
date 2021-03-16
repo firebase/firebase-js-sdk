@@ -18,7 +18,7 @@
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
-import { MessagePayload } from '@firebase/messaging-types-exp';
+import { MessagePayload } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
 import { SwController } from '../listeners/sw-controller';
 
@@ -26,7 +26,7 @@ export function onBackgroundMessage(
   messaging: MessagingService,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
-  if (!!navigator) {
+  if (self.document !== undefined) {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
   }
 

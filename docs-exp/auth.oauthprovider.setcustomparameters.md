@@ -9,7 +9,7 @@ Sets the OAuth custom parameters to pass in an OAuth request for popup and redir
 <b>Signature:</b>
 
 ```typescript
-setCustomParameters(customOAuthParameters: CustomParameters): externs.AuthProvider;
+setCustomParameters(customOAuthParameters: CustomParameters): AuthProvider;
 ```
 
 ## Parameters
@@ -20,7 +20,7 @@ setCustomParameters(customOAuthParameters: CustomParameters): externs.AuthProvid
 
 <b>Returns:</b>
 
-externs.[AuthProvider](./auth-types.authprovider.md)
+[AuthProvider](./auth.authprovider.md)
 
 ## Remarks
 

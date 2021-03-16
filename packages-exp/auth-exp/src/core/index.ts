@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Auth, NextOrObserver, Persistence, User } from '../model/public_types';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 export { debugErrorMap, prodErrorMap } from './errors';
@@ -37,14 +37,14 @@ export { debugErrorMap, prodErrorMap } from './errors';
  * ```
  *
  * @param auth - The Auth instance.
- * @param persistence - The {@link @firebase/auth-types#Persistence} to use.
+ * @param persistence - The {@link Persistence} to use.
  * @returns A promise that resolves once the persistence change has completed
  *
  * @public
  */
 export function setPersistence(
-  auth: externs.Auth,
-  persistence: externs.Persistence
+  auth: Auth,
+  persistence: Persistence
 ): Promise<void> {
   return auth.setPersistence(persistence);
 }
@@ -60,8 +60,8 @@ export function setPersistence(
  * @public
  */
 export function onIdTokenChanged(
-  auth: externs.Auth,
-  nextOrObserver: externs.NextOrObserver<externs.User>,
+  auth: Auth,
+  nextOrObserver: NextOrObserver<User>,
   error?: ErrorFn,
   completed?: CompleteFn
 ): Unsubscribe {
@@ -81,8 +81,8 @@ export function onIdTokenChanged(
  * @public
  */
 export function onAuthStateChanged(
-  auth: externs.Auth,
-  nextOrObserver: externs.NextOrObserver<externs.User>,
+  auth: Auth,
+  nextOrObserver: NextOrObserver<User>,
   error?: ErrorFn,
   completed?: CompleteFn
 ): Unsubscribe {
@@ -95,12 +95,12 @@ export function onAuthStateChanged(
  *
  * @public
  */
-export function useDeviceLanguage(auth: externs.Auth): void {
+export function useDeviceLanguage(auth: Auth): void {
   auth.useDeviceLanguage();
 }
 /**
- * Asynchronously sets the provided user as {@link @firebase/auth-types#Auth.currentUser} on the
- * {@link @firebase/auth-types#Auth} instance.
+ * Asynchronously sets the provided user as {@link Auth.currentUser} on the
+ * {@link Auth} instance.
  *
  * @remarks
  * A new instance copy of the user provided will be made and set as currentUser.
@@ -112,13 +112,13 @@ export function useDeviceLanguage(auth: externs.Auth): void {
  * project.
  *
  * @param auth - The Auth instance.
- * @param user - The new {@link @firebase/auth-types#User}.
+ * @param user - The new {@link User}.
  *
  * @public
  */
 export function updateCurrentUser(
-  auth: externs.Auth,
-  user: externs.User | null
+  auth: Auth,
+  user: User | null
 ): Promise<void> {
   return auth.updateCurrentUser(user);
 }
@@ -129,11 +129,12 @@ export function updateCurrentUser(
  *
  * @public
  */
-export function signOut(auth: externs.Auth): Promise<void> {
+export function signOut(auth: Auth): Promise<void> {
   return auth.signOut();
 }
 
 export { initializeAuth } from './auth/initialize';
+export { useAuthEmulator } from './auth/emulator';
 
 // credentials
 export { AuthCredential } from './credentials';
@@ -147,13 +148,11 @@ export { inMemoryPersistence } from './persistence/in_memory';
 // providers
 export { EmailAuthProvider } from './providers/email';
 export { FacebookAuthProvider } from './providers/facebook';
+export { CustomParameters } from './providers/federated';
 export { GoogleAuthProvider } from './providers/google';
 export { GithubAuthProvider } from './providers/github';
-export {
-  OAuthProvider,
-  CustomParameters,
-  OAuthCredentialOptions
-} from './providers/oauth';
+export { OAuthProvider, OAuthCredentialOptions } from './providers/oauth';
+export { SAMLAuthProvider } from './providers/saml';
 export { TwitterAuthProvider } from './providers/twitter';
 
 // strategies
@@ -211,6 +210,6 @@ export { reload } from './user/reload';
  *
  * @public
  */
-export async function deleteUser(user: externs.User): Promise<void> {
+export async function deleteUser(user: User): Promise<void> {
   return user.delete();
 }

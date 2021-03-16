@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FunctionsErrorCode } from '@firebase/functions-types-exp';
+import { FunctionsErrorCode } from './public-types';
 import { decode } from './serializer';
 import { HttpResponseBody } from './service';
 import { FirebaseError } from '@firebase/util';

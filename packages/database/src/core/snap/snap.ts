@@ -27,10 +27,6 @@ export function setMaxNode(val: Node) {
   MAX_NODE = val;
 }
 
-/**
- * @param {(!string|!number)} priority
- * @return {!string}
- */
 export const priorityHashText = function (priority: string | number): string {
   if (typeof priority === 'number') {
     return 'number:' + doubleToIEEE754String(priority);
@@ -41,8 +37,6 @@ export const priorityHashText = function (priority: string | number): string {
 
 /**
  * Validates that a priority snapshot Node is valid.
- *
- * @param {!Node} priorityNode
  */
 export const validatePriorityNode = function (priorityNode: Node) {
   if (priorityNode.isLeafNode()) {

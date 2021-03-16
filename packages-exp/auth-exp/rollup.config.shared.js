@@ -93,6 +93,19 @@ export function getConfig({ isReleaseBuild }) {
       external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
     },
     /**
+     * Cordova Builds
+     */
+    {
+      input: {
+        index: 'index.cordova.ts',
+        internal: 'internal/index.ts'
+      },
+      output: [{ dir: 'dist/cordova', format: 'es', sourcemap: true }],
+      plugins: es5BuildPlugins,
+      external: id =>
+        [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
+    },
+    /**
      * React Native Builds
      */
     {

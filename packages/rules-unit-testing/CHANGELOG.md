@@ -1,5 +1,66 @@
 # @firebase/rules-unit-testing
 
+## 1.2.4
+
+### Patch Changes
+
+- Updated dependencies [[`ec95df3d0`](https://github.com/firebase/firebase-js-sdk/commit/ec95df3d07e5f091f2a7f7327e46417f64d04b4e), [`b6080a857`](https://github.com/firebase/firebase-js-sdk/commit/b6080a857b1b56e10db041e6357acd69154e31fb)]:
+  - @firebase/util@0.4.0
+  - firebase@8.3.0
+
+## 1.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`d4ba8daa2`](https://github.com/firebase/firebase-js-sdk/commit/d4ba8daa298ec00f1800374e2bc5c6200575a233)]:
+  - firebase@8.2.10
+
+## 1.2.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.2.9
+
+## 1.2.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.2.8
+
+## 1.2.0
+
+### Minor Changes
+
+- [`97f26b716`](https://github.com/firebase/firebase-js-sdk/commit/97f26b7168a2765618c7469f5ed1bf86b7c4ee7e) [#4388](https://github.com/firebase/firebase-js-sdk/pull/4388) - Add port configuration and discovery methods to rules-unit-testing.
+
+### Patch Changes
+
+- Updated dependencies [[`05614aa86`](https://github.com/firebase/firebase-js-sdk/commit/05614aa86614994b69df154bd6ce34861fae37a5)]:
+  - firebase@8.2.7
+
+## 1.1.11
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.2.6
+
+## 1.1.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.2.5
+
+## 1.1.9
+
+### Patch Changes
+
+- Updated dependencies [[`92a7f4345`](https://github.com/firebase/firebase-js-sdk/commit/92a7f434536051bedd00bc1be7e774174378aa7d)]:
+  - firebase@8.2.4
+
 ## 1.1.8
 
 ### Patch Changes

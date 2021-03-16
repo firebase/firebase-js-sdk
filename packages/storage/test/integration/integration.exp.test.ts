@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp, deleteApp } from '@firebase/app-exp';
+import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app-exp';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { getAuth, signInAnonymously } from '@firebase/auth-exp';
 import {
@@ -34,8 +34,7 @@ import {
 
 import { use, expect } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { StorageService } from '../../src/service';
+import * as types from '../../exp/public-types';
 
 use(chaiAsPromised);
 
@@ -49,7 +48,7 @@ export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 
 describe('FirebaseStorage Exp', () => {
   let app: FirebaseApp;
-  let storage: StorageService;
+  let storage: types.StorageService;
 
   beforeEach(async () => {
     app = initializeApp({

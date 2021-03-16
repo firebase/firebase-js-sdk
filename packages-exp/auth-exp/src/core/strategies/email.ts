@@ -15,14 +15,19 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  ActionCodeOperation,
+  ActionCodeSettings,
+  Auth,
+  User
+} from '../../model/public_types';
 
 import {
   createAuthUri,
   CreateAuthUriRequest
 } from '../../api/authentication/create_auth_uri';
 import * as api from '../../api/authentication/email_and_password';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 
@@ -32,8 +37,8 @@ import { _setActionCodeSettingsOnRequest } from './action_code_settings';
  * @remarks
  * This is useful to differentiate methods of sign-in for the same provider, eg.
  * {@link EmailAuthProvider} which has 2 methods of sign-in,
- * {@link @firebase/auth-types#SignInMethod.EMAIL_PASSWORD} and
- * {@link @firebase/auth-types#SignInMethod.EMAIL_LINK} .
+ * {@link SignInMethod.EMAIL_PASSWORD} and
+ * {@link SignInMethod.EMAIL_LINK} .
  *
  * @param auth - The Auth instance.
  * @param email - The user's email address.
@@ -41,7 +46,7 @@ import { _setActionCodeSettingsOnRequest } from './action_code_settings';
  * @public
  */
 export async function fetchSignInMethodsForEmail(
-  auth: externs.Auth,
+  auth: Auth,
   email: string
 ): Promise<string[]> {
   // createAuthUri returns an error if continue URI is not http or https.
@@ -84,18 +89,18 @@ export async function fetchSignInMethodsForEmail(
  * ```
  *
  * @param user - The user.
- * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
  * @public
  */
 export async function sendEmailVerification(
-  user: externs.User,
-  actionCodeSettings?: externs.ActionCodeSettings | null
+  user: User,
+  actionCodeSettings?: ActionCodeSettings | null
 ): Promise<void> {
-  const userInternal = user as User;
+  const userInternal = user as UserInternal;
   const idToken = await user.getIdToken();
   const request: api.VerifyEmailRequest = {
-    requestType: externs.ActionCodeOperation.VERIFY_EMAIL,
+    requestType: ActionCodeOperation.VERIFY_EMAIL,
     idToken
   };
   if (actionCodeSettings) {
@@ -143,19 +148,19 @@ export async function sendEmailVerification(
  *
  * @param user - The user.
  * @param newEmail - The new email address to be verified before update.
- * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
  * @public
  */
 export async function verifyBeforeUpdateEmail(
-  user: externs.User,
+  user: User,
   newEmail: string,
-  actionCodeSettings?: externs.ActionCodeSettings | null
+  actionCodeSettings?: ActionCodeSettings | null
 ): Promise<void> {
-  const userInternal = user as User;
+  const userInternal = user as UserInternal;
   const idToken = await user.getIdToken();
   const request: api.VerifyAndChangeEmailRequest = {
-    requestType: externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
+    requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
     idToken,
     newEmail
   };

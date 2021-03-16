@@ -16,33 +16,23 @@
  */
 
 import { assert } from '@firebase/util';
-import { nameCompare, MAX_NAME } from '../../util/util';
+import { MAX_NAME, nameCompare } from '../../util/util';
 import { Index } from './Index';
 import { ChildrenNode, MAX_NODE } from '../ChildrenNode';
 import { NamedNode, Node } from '../Node';
 import { nodeFromJSON } from '../nodeFromJSON';
-import { Path } from '../../util/Path';
+import { Path, pathGetFront, pathIsEmpty, pathSlice } from '../../util/Path';
 
-/**
- * @param {!Path} indexPath
- * @constructor
- * @extends {Index}
- */
 export class PathIndex extends Index {
   constructor(private indexPath_: Path) {
     super();
 
     assert(
-      !indexPath_.isEmpty() && indexPath_.getFront() !== '.priority',
+      !pathIsEmpty(indexPath_) && pathGetFront(indexPath_) !== '.priority',
       "Can't create PathIndex with empty path or .priority key"
     );
   }
 
-  /**
-   * @param {!Node} snap
-   * @return {!Node}
-   * @protected
-   */
   protected extractChild(snap: Node): Node {
     return snap.getChild(this.indexPath_);
   }
@@ -92,6 +82,6 @@ export class PathIndex extends Index {
    * @inheritDoc
    */
   toString(): string {
-    return this.indexPath_.slice().join('/');
+    return pathSlice(this.indexPath_, 0).join('/');
   }
 }

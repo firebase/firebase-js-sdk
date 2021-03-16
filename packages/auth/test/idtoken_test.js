@@ -149,6 +149,34 @@ var tokenCustomClaim = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5j' +
 
 // "iss": "https://securetoken.google.com/projectId",
 // "name": "John Doe",
+// "role": "Админ",  // <---- Note non-ascii characters here
+// "aud": "projectId",
+// "auth_time": 1522715325,
+// "sub": "nep2uwNCK4PqjvoKjb0InVJHlGi1",
+// "iat": 1522776807,
+// "exp": 1522780575,
+// "email": "testuser@gmail.com",
+// "email_verified": true,
+// "firebase": {
+//   "identities": {
+//     "email": [
+//       "testuser@gmail.com"
+//     ]
+//   },
+//   "sign_in_provider": "custom"
+// }
+var tokenCustomClaimWithUnicodeChar = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRv' +
+    'a2VuLmdvb2dsZS5jb20vcHJvamVjdElkIiwibmFtZSI6IkpvaG4gRG9lIiwicm9sZSI6ItC' +
+    'Q0LTQvNC40L0iLCJhdWQiOiJwcm9qZWN0SWQiLCJhdXRoX3RpbWUiOjE1MjI3MTUzMjUsIn' +
+    'N1YiI6Im5lcDJ1d05DSzRQcWp2b0tqYjBJblZKSGxHaTEiLCJpYXQiOjE1MjI3NzY4MDcsI' +
+    'mV4cCI6MTUyMjc4MDU3NSwiZW1haWwiOiJ0ZXN0dXNlckBnbWFpbC5jb20iLCJlbWFpbF92' +
+    'ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJlbWFpbCI6WyJ0ZXN' +
+    '0dXNlckBnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJjdXN0b20ifX0=.SIGNA' +
+    'TURE';
+
+
+// "iss": "https://securetoken.google.com/projectId",
+// "name": "John Doe",
 // "aud": "projectId",
 // "auth_time": 1522715325,
 // "sub": "nep2uwNCK4PqjvoKjb0InVJHlGi1",
@@ -401,6 +429,34 @@ function testParseIdTokenClaims_customClaims() {
             ]
           },
           'sign_in_provider': 'password'
+        }
+      },
+      tokenJSON);
+}
+
+
+function testParseIdTokenClaims_tokenCustomClaimWithUnicodeChar() {
+  const tokenJSON = fireauth.IdToken.parseIdTokenClaims(
+      tokenCustomClaimWithUnicodeChar);
+  assertObjectEquals(
+      {
+        'iss': 'https://securetoken.google.com/projectId',
+        'name': 'John Doe',
+        'role': 'Админ',
+        'aud': 'projectId',
+        'auth_time': 1522715325,
+        'sub': 'nep2uwNCK4PqjvoKjb0InVJHlGi1',
+        'iat': 1522776807,
+        'exp': 1522780575,
+        'email': "testuser@gmail.com",
+        'email_verified': true,
+        'firebase': {
+          'identities': {
+            'email': [
+              'testuser@gmail.com'
+            ]
+          },
+          'sign_in_provider': 'custom'
         }
       },
       tokenJSON);
