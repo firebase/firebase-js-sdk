@@ -29,7 +29,6 @@ import {
   documentVersionMap
 } from './collections';
 import { MutableDocument } from './document';
-import { DocumentKey } from './document_key';
 import {
   applyMutationToLocalView,
   applyMutationToRemoteDocument,
