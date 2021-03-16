@@ -29,6 +29,8 @@ import {
 } from '@firebase/component';
 import { Functions as FunctionsServiceExp } from '@firebase/functions-exp';
 
+const DEFAULT_REGION = 'us-central1';
+
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'app-compat': FirebaseApp;
@@ -46,7 +48,7 @@ const factory: InstanceFactory<'functions-compat'> = (
   const functionsServiceExp = container
     .getProvider('functions-exp')
     .getImmediate({
-      identifier: regionOrCustomDomain
+      identifier: regionOrCustomDomain ?? DEFAULT_REGION
     });
 
   return new FunctionsService(app, functionsServiceExp);
