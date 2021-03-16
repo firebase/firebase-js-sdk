@@ -28,13 +28,6 @@ import { ConfirmationResult, RecaptchaVerifier, UserCredential } from '@firebase
 
 use(chaiAsPromised);
 
-// NOTE: These tests don't use a real phone number. In order to run these tests
-// you must whitelist the following phone numbers as "testing" numbers in the
-// auth console
-// https://console.firebase.google.com/u/0/project/_/authentication/providers
-//   • +1 (555) 555-1000, SMS code 123456
-//   • +1 (555) 555-2000, SMS code 654321
-
 const PHONE_A = {
   phoneNumber: '+15555551000',
   code: '123456'
