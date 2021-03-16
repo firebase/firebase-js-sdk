@@ -69,7 +69,7 @@ export async function createAnonAccount(): Promise<{
 }> {
   const url = `${getEmulatorUrl()}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-key`;
   const response = await (
-    await FetchProvider.fetch()(url, {
+    await doFetch(url, {
       method: 'POST',
       body: '{}',
       headers: { 'Content-Type': 'application/json' }
