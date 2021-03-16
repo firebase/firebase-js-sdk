@@ -43,9 +43,7 @@ export async function getPhoneVerificationCodes(): Promise<
   Record<string, VerificationSession>
 > {
   const url = buildEmulatorUrlForPath('verificationCodes');
-  const response: VerificationCodesResponse = await (
-    await doFetch(url)
-  ).json();
+  const response: VerificationCodesResponse = await (await doFetch(url)).json();
 
   return response.verificationCodes.reduce((accum, session) => {
     accum[session.sessionInfo] = session;
@@ -55,9 +53,7 @@ export async function getPhoneVerificationCodes(): Promise<
 
 export async function getOobCodes(): Promise<OobCodeSession[]> {
   const url = buildEmulatorUrlForPath('oobCodes');
-  const response: OobCodesResponse = await (
-    await doFetch(url)
-  ).json();
+  const response: OobCodesResponse = await (await doFetch(url)).json();
   return response.oobCodes;
 }
 
@@ -93,5 +89,8 @@ function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
     return fetch(url, request);
   }
 
-  return fetchImpl.default(url, request as fetchImpl.RequestInit) as unknown as ReturnType<typeof fetch>;
+  return (fetchImpl.default(
+    url,
+    request as fetchImpl.RequestInit
+  ) as unknown) as ReturnType<typeof fetch>;
 }

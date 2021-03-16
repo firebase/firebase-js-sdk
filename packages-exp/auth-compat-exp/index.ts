@@ -24,7 +24,26 @@ import {
   InstantiationMode
 } from '@firebase/component';
 
-import { EmailAuthProvider, EmailAuthProvider_Instance, FacebookAuthProvider, FacebookAuthProvider_Instance, FirebaseAuth, GithubAuthProvider, GithubAuthProvider_Instance, GoogleAuthProvider, GoogleAuthProvider_Instance, OAuthProvider, PhoneAuthProvider, PhoneAuthProvider_Instance, PhoneMultiFactorGenerator, RecaptchaVerifier, RecaptchaVerifier_Instance, SAMLAuthProvider, TwitterAuthProvider, TwitterAuthProvider_Instance } from '@firebase/auth-types';
+import {
+  EmailAuthProvider,
+  EmailAuthProvider_Instance,
+  FacebookAuthProvider,
+  FacebookAuthProvider_Instance,
+  FirebaseAuth,
+  GithubAuthProvider,
+  GithubAuthProvider_Instance,
+  GoogleAuthProvider,
+  GoogleAuthProvider_Instance,
+  OAuthProvider,
+  PhoneAuthProvider,
+  PhoneAuthProvider_Instance,
+  PhoneMultiFactorGenerator,
+  RecaptchaVerifier,
+  RecaptchaVerifier_Instance,
+  SAMLAuthProvider,
+  TwitterAuthProvider,
+  TwitterAuthProvider_Instance
+} from '@firebase/auth-types';
 import { version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';

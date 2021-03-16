@@ -34,9 +34,7 @@ const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
 
 process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs", "target": "es6"}';
 
-let testConfig = [
-  'src/**/*.test.ts',
-];
+let testConfig = ['src/**/*.test.ts'];
 
 if (argv.integration) {
   testConfig = ['test/integration/flows/**.test.ts'];

@@ -18,11 +18,14 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-
 import firebase from '@firebase/app-compat';
 import '@firebase/auth-compat';
 import { FirebaseError } from '@firebase/util';
-import { cleanUpTestInstance, initializeTestInstance, randomEmail } from '../../helpers/helpers';
+import {
+  cleanUpTestInstance,
+  initializeTestInstance,
+  randomEmail
+} from '../../helpers/helpers';
 
 use(chaiAsPromised);
 
@@ -61,18 +64,16 @@ describe('Integration test: anonymous auth', () => {
 
     it('anonymous / email-password accounts remain independent', async () => {
       let anonCred = await firebase.auth().signInAnonymously();
-      const emailCred = await firebase.auth().createUserWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const emailCred = await firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, 'password');
       expect(emailCred.user!.uid).not.to.eql(anonCred.user!.uid);
 
       await firebase.auth().signOut();
       anonCred = await firebase.auth().signInAnonymously();
-      const emailSignIn =  await firebase.auth().signInWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const emailSignIn = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       expect(emailCred.user!.uid).to.eql(emailSignIn.user!.uid);
       expect(emailSignIn.user!.uid).not.to.eql(anonCred.user!.uid);
     });
@@ -84,30 +85,34 @@ describe('Integration test: anonymous auth', () => {
 
       await firebase.auth().signOut();
 
-      const { user: emailPassUser } = await firebase.auth().signInWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const {
+        user: emailPassUser
+      } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
       expect(emailPassUser!.uid).to.eq(anonUser!.uid);
     });
 
     it('account can be linked using email and password', async () => {
       const { user: anonUser } = await firebase.auth().signInAnonymously();
-      const cred = firebase.auth.EmailAuthProvider.credential(email, 'password');
-      await anonUser!.linkWithCredential(cred);
-      await firebase.auth().signOut();
-
-      const { user: emailPassUser } = await firebase.auth().signInWithEmailAndPassword(
+      const cred = firebase.auth.EmailAuthProvider.credential(
         email,
         'password'
       );
+      await anonUser!.linkWithCredential(cred);
+      await firebase.auth().signOut();
+
+      const {
+        user: emailPassUser
+      } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
       expect(emailPassUser!.uid).to.eq(anonUser!.uid);
     });
 
     it('account cannot be linked with existing email/password', async () => {
       await firebase.auth().createUserWithEmailAndPassword(email, 'password');
       const { user: anonUser } = await firebase.auth().signInAnonymously();
-      const cred = firebase.auth.EmailAuthProvider.credential(email, 'password');
+      const cred = firebase.auth.EmailAuthProvider.credential(
+        email,
+        'password'
+      );
       await expect(anonUser!.linkWithCredential(cred)).to.be.rejectedWith(
         FirebaseError,
         'auth/email-already-in-use'
