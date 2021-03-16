@@ -18,14 +18,9 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { UserCredential } from '@firebase/auth-exp';
 import { expect } from 'chai';
-import { User } from '../../../internal';
 import { createAnonAccount } from '../../helpers/integration/emulator_rest_helpers';
 import { API_KEY } from '../../helpers/integration/settings';
-import {
-  AnonFunction,
-  CoreFunction,
-  PersistenceFunction
-} from './util/functions';
+import { AnonFunction, PersistenceFunction } from './util/functions';
 import { browserDescribe } from './util/test_runner';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
