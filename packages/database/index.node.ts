@@ -17,12 +17,11 @@
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { Database } from './src/api/Database';
+import { Database, repoManagerDatabaseFromApp } from './src/api/Database';
 import { DataSnapshot } from './src/api/DataSnapshot';
 import { Query } from './src/api/Query';
 import { Reference } from './src/api/Reference';
 import { enableLogging } from './src/core/util/util';
-import { repoManagerDatabaseFromApp } from './src/core/RepoManager';
 import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import * as types from '@firebase/database-types';

@@ -20,9 +20,8 @@ import { TransactionResult } from './TransactionResult';
 import { warn } from '../core/util/util';
 import { nextPushId } from '../core/util/NextPushId';
 import { Query } from './Query';
+import { Node } from '../core/snap/Node';
 import {
-  Repo,
-  repoGetDatabase,
   repoServerTime,
   repoSetWithPriority,
   repoStartTransaction,
@@ -51,9 +50,10 @@ import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
+import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 
 export interface ReferenceConstructor {
-  new (repo: Repo, path: Path): Reference;
+  new (database: Database, path: Path): Reference;
 }
 
 export class Reference extends Query {
@@ -67,15 +67,8 @@ export class Reference extends Query {
    *
    * Externally - this is the firebase.database.Reference type.
    */
-  constructor(repo: Repo, path: Path) {
-    if (!(repo instanceof Repo)) {
-      throw new Error(
-        'new Reference() no longer supported - use app.database().'
-      );
-    }
-
-    // call Query's constructor, passing in the repo and path.
-    super(repo, path, new QueryParams(), false);
+  constructor(database: Database, path: Path) {
+    super(database, path, new QueryParams(), false);
   }
 
   /** @return {?string} */
@@ -101,7 +94,7 @@ export class Reference extends Query {
       }
     }
 
-    return new Reference(this.repo, pathChild(this.path, pathString));
+    return new Reference(this.database, pathChild(this.path, pathString));
   }
 
   /** @return {?Reference} */
@@ -109,7 +102,9 @@ export class Reference extends Query {
     validateArgCount('Reference.parent', 0, 0, arguments.length);
 
     const parentPath = pathParent(this.path);
-    return parentPath === null ? null : new Reference(this.repo, parentPath);
+    return parentPath === null
+      ? null
+      : new Reference(this.database, parentPath);
   }
 
   /** @return {!Reference} */
@@ -121,11 +116,6 @@ export class Reference extends Query {
       ref = ref.getParent();
     }
     return ref;
-  }
-
-  /** @return {!Database} */
-  databaseProp(): Database {
-    return repoGetDatabase(this.repo);
   }
 
   set(
@@ -260,25 +250,39 @@ export class Reference extends Query {
       deferred.promise.catch(() => {});
     }
 
-    const promiseComplete = function (
-      error: Error,
-      committed: boolean,
-      snapshot: DataSnapshot
-    ) {
+    const promiseComplete = (error: Error, committed: boolean, node: Node) => {
       if (error) {
         deferred.reject(error);
+        if (typeof onComplete === 'function') {
+          onComplete(error, committed, null);
+        }
       } else {
+        const snapshot = new DataSnapshot(
+          node,
+          new Reference(this.database, this.path),
+          PRIORITY_INDEX
+        );
         deferred.resolve(new TransactionResult(committed, snapshot));
-      }
-      if (typeof onComplete === 'function') {
-        onComplete(error, committed, snapshot);
+        if (typeof onComplete === 'function') {
+          onComplete(null, committed, snapshot);
+        }
       }
     };
+
+    // Add a watch to make sure we get server updates.
+    const valueCallback = function () {};
+    const watchRef = new Reference(this.database, this.path);
+    watchRef.on('value', valueCallback);
+    const unwatcher = function () {
+      watchRef.off('value', valueCallback);
+    };
+
     repoStartTransaction(
       this.repo,
       this.path,
       transactionUpdate,
       promiseComplete,
+      unwatcher,
       applyLocally
     );
 
@@ -342,10 +346,6 @@ export class Reference extends Query {
   onDisconnect(): OnDisconnect {
     validateWritablePath('Reference.onDisconnect', this.path);
     return new OnDisconnect(this.repo, this.path);
-  }
-
-  get database(): Database {
-    return this.databaseProp();
   }
 
   get key(): string | null {

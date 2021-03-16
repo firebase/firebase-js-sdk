@@ -28,6 +28,13 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
+function onWarn(warning, defaultWarn) {
+  if (warning.code === 'CIRCULAR_DEPENDENCY') {
+    throw new Error(warning);
+  }
+  defaultWarn(warning);
+}
+
 /**
  * ES5 Builds
  */
@@ -53,7 +60,8 @@ const es5Builds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   },
   /**
    * Browser Builds
@@ -71,7 +79,8 @@ const es5Builds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 
@@ -109,7 +118,8 @@ const es2017Builds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 
