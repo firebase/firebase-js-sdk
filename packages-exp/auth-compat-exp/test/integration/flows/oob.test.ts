@@ -73,10 +73,9 @@ describe('Integration test: oob codes', () => {
     }
 
     it('allows user to sign in', async () => {
-      const { user, operationType } = await firebase.auth().signInWithEmailLink(
-        email,
-        oobSession.oobLink
-      );
+      const { user, operationType } = await firebase
+        .auth()
+        .signInWithEmailLink(email, oobSession.oobLink);
 
       expect(operationType).to.eq('signIn');
       expect(user).to.eq(firebase.auth().currentUser);
@@ -91,7 +90,10 @@ describe('Integration test: oob codes', () => {
         email,
         oobSession.oobLink
       );
-      const { user, operationType } = await firebase.auth().signInWithCredential(cred);
+      const {
+        user,
+        operationType
+      } = await firebase.auth().signInWithCredential(cred);
 
       expect(operationType).to.eq('signIn');
       expect(user).to.eq(firebase.auth().currentUser);
@@ -106,10 +108,15 @@ describe('Integration test: oob codes', () => {
         email,
         oobSession.oobLink
       );
-      const { user: oldUser } = await firebase.auth().signInWithCredential(cred);
+      const { user: oldUser } = await firebase
+        .auth()
+        .signInWithCredential(cred);
 
       const reauthSession = await sendEmailLink();
-      cred = firebase.auth.EmailAuthProvider.credentialWithLink(email, reauthSession.oobLink);
+      cred = firebase.auth.EmailAuthProvider.credentialWithLink(
+        email,
+        reauthSession.oobLink
+      );
       const {
         user: newUser,
         operationType
@@ -125,7 +132,9 @@ describe('Integration test: oob codes', () => {
         email,
         oobSession.oobLink
       );
-      const { user: oldUser } = await firebase.auth().signInWithCredential(cred);
+      const { user: oldUser } = await firebase
+        .auth()
+        .signInWithCredential(cred);
 
       const newEmail = randomEmail();
       const reauthSession = await sendEmailLink(newEmail);
@@ -144,11 +153,16 @@ describe('Integration test: oob codes', () => {
         email,
         oobSession.oobLink
       );
-      const { user: oldUser } = await firebase.auth().signInWithCredential(cred);
+      const { user: oldUser } = await firebase
+        .auth()
+        .signInWithCredential(cred);
 
       await oldUser!.delete();
       const reauthSession = await sendEmailLink(email);
-      cred = firebase.auth.EmailAuthProvider.credentialWithLink(email, reauthSession.oobLink);
+      cred = firebase.auth.EmailAuthProvider.credentialWithLink(
+        email,
+        reauthSession.oobLink
+      );
       await expect(
         oldUser!.reauthenticateWithCredential(cred)
       ).to.be.rejectedWith(FirebaseError, 'auth/user-mismatch');
@@ -163,9 +177,10 @@ describe('Integration test: oob codes', () => {
       const { user: original } = await firebase.auth().signInAnonymously();
 
       expect(original!.isAnonymous).to.be.true;
-      const { user: linked, operationType } = await original!.linkWithCredential(
-        cred
-      );
+      const {
+        user: linked,
+        operationType
+      } = await original!.linkWithCredential(cred);
 
       expect(operationType).to.eq('link');
       expect(linked!.uid).to.eq(original!.uid);
@@ -212,23 +227,23 @@ describe('Integration test: oob codes', () => {
     it('code can only be used once', async () => {
       const link = oobSession.oobLink;
       await firebase.auth().signInWithEmailLink(email, link);
-      await expect(firebase.auth().signInWithEmailLink(email, link)).to.be.rejectedWith(
-        FirebaseError,
-        'auth/invalid-action-code'
-      );
+      await expect(
+        firebase.auth().signInWithEmailLink(email, link)
+      ).to.be.rejectedWith(FirebaseError, 'auth/invalid-action-code');
     });
 
     it('fetchSignInMethodsForEmail returns the correct values', async () => {
-      const { user } = await firebase.auth().signInWithEmailLink(
-        email,
-        oobSession.oobLink
-      );
+      const { user } = await firebase
+        .auth()
+        .signInWithEmailLink(email, oobSession.oobLink);
       expect(await firebase.auth().fetchSignInMethodsForEmail(email)).to.eql([
         'emailLink'
       ]);
 
       await user!.updatePassword('password');
-      const updatedMethods = await firebase.auth().fetchSignInMethodsForEmail(email);
+      const updatedMethods = await firebase
+        .auth()
+        .fetchSignInMethodsForEmail(email);
       expect(updatedMethods).to.have.length(2);
       expect(updatedMethods).to.include('emailLink');
       expect(updatedMethods).to.include('password');
@@ -244,10 +259,9 @@ describe('Integration test: oob codes', () => {
 
   it('can be used to verify email', async () => {
     // Create an unverified user
-    const { user } = await firebase.auth().createUserWithEmailAndPassword(
-      email,
-      'password'
-    );
+    const { user } = await firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, 'password');
     expect(user!.emailVerified).to.be.false;
     expect(await firebase.auth().fetchSignInMethodsForEmail(email)).to.eql([
       'password'
@@ -261,10 +275,9 @@ describe('Integration test: oob codes', () => {
   });
 
   it('can be used to initiate password reset', async () => {
-    const { user: original } = await firebase.auth().createUserWithEmailAndPassword(
-      email,
-      'password'
-    );
+    const {
+      user: original
+    } = await firebase.auth().createUserWithEmailAndPassword(email, 'password');
     await original!.sendEmailVerification(); // Can only reset verified user emails
     await firebase.auth().applyActionCode((await code(email)).oobCode);
 
@@ -275,10 +288,9 @@ describe('Integration test: oob codes', () => {
     await firebase.auth().confirmPasswordReset(oobCode, 'new-password');
 
     // Make sure the new password works and the old one doesn't
-    const { user } = await firebase.auth().signInWithEmailAndPassword(
-      email,
-      'new-password'
-    );
+    const { user } = await firebase
+      .auth()
+      .signInWithEmailAndPassword(email, 'new-password');
     expect(user!.uid).to.eq(original!.uid);
     expect(user!.emailVerified).to.be.true;
     expect(await firebase.auth().fetchSignInMethodsForEmail(email)).to.eql([
@@ -297,10 +309,9 @@ describe('Integration test: oob codes', () => {
 
     // Create an initial user with the basic email
     await firebase.auth().sendSignInLinkToEmail(email, BASE_SETTINGS);
-    const { user } = await firebase.auth().signInWithEmailLink(
-      email,
-      (await code(email)).oobLink
-    );
+    const { user } = await firebase
+      .auth()
+      .signInWithEmailLink(email, (await code(email)).oobLink);
     await user!.verifyBeforeUpdateEmail(updatedEmail, BASE_SETTINGS);
     expect(user!.email).to.eq(email);
 
@@ -315,10 +326,11 @@ describe('Integration test: oob codes', () => {
     await expect(
       firebase.auth().signInWithEmailAndPassword(email, 'password')
     ).to.be.rejectedWith(FirebaseError, 'auth/alskdjf');
-    const { user: newSignIn } = await firebase.auth().signInWithEmailAndPassword(
-      updatedEmail,
-      'password'
-    );
+    const {
+      user: newSignIn
+    } = await firebase
+      .auth()
+      .signInWithEmailAndPassword(updatedEmail, 'password');
     expect(newSignIn!.uid).to.eq(user!.uid);
   });
 });

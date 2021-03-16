@@ -49,9 +49,11 @@ describe('Integration test: headless IdP', () => {
   });
 
   it('signs in with an OAuth token', async () => {
-    const cred = await firebase.auth().signInWithCredential(
-      firebase.auth.GoogleAuthProvider.credential(oauthIdToken)
-    );
+    const cred = await firebase
+      .auth()
+      .signInWithCredential(
+        firebase.auth.GoogleAuthProvider.credential(oauthIdToken)
+      );
     expect(firebase.auth().currentUser).to.eq(cred.user);
     expect(cred.operationType).to.eq('signIn');
 
@@ -70,7 +72,9 @@ describe('Integration test: headless IdP', () => {
   });
 
   it('allows the user to update profile', async () => {
-    const credential = firebase.auth.GithubAuthProvider.credential(oauthIdToken);
+    const credential = firebase.auth.GithubAuthProvider.credential(
+      oauthIdToken
+    );
     const { user } = await firebase.auth().signInWithCredential(credential);
 
     await user!.updateProfile({
@@ -87,11 +91,15 @@ describe('Integration test: headless IdP', () => {
     // Sign in again and double check; look at current user this time
     await firebase.auth().signInWithCredential(credential);
     expect(firebase.auth().currentUser!.displayName).to.eq('David Copperfield');
-    expect(firebase.auth().currentUser!.photoURL).to.eq('http://photo.test/david.png');
+    expect(firebase.auth().currentUser!.photoURL).to.eq(
+      'http://photo.test/david.png'
+    );
   });
 
   it('allows the user to change the email', async () => {
-    const credential = firebase.auth.FacebookAuthProvider.credential(oauthIdToken);
+    const credential = firebase.auth.FacebookAuthProvider.credential(
+      oauthIdToken
+    );
     const { user } = await firebase.auth().signInWithCredential(credential);
 
     expect(user!.email).to.eq(email);
@@ -112,7 +120,9 @@ describe('Integration test: headless IdP', () => {
   });
 
   it('allows the user to set a password', async () => {
-    const credential = firebase.auth.GoogleAuthProvider.credential(oauthIdToken);
+    const credential = firebase.auth.GoogleAuthProvider.credential(
+      oauthIdToken
+    );
     const { user } = await firebase.auth().signInWithCredential(credential);
 
     expect(user!.providerData.length).to.eq(1);
@@ -165,7 +175,9 @@ describe('Integration test: headless IdP', () => {
     );
 
     // Link and then test everything
-    const { user } = await firebase.auth().signInWithCredential(facebookCredential);
+    const { user } = await firebase
+      .auth()
+      .signInWithCredential(facebookCredential);
     await user!.linkWithCredential(googleCredential);
     expect(user!.email).to.eq(facebookEmail);
     expect(user!.emailVerified).to.be.false;
@@ -187,22 +199,27 @@ describe('Integration test: headless IdP', () => {
   });
 
   it('IdP account takes over unverified email', async () => {
-    const credential = firebase.auth.GoogleAuthProvider.credential(oauthIdToken);
-    const { user: emailUser } = await firebase.auth().createUserWithEmailAndPassword(
-      email,
-      'password'
+    const credential = firebase.auth.GoogleAuthProvider.credential(
+      oauthIdToken
     );
+    const {
+      user: emailUser
+    } = await firebase.auth().createUserWithEmailAndPassword(email, 'password');
 
     // Check early state
     expect(emailUser!.emailVerified).to.be.false;
 
     // Sign in with the credential and expect auto-linking
-    const { user: googleUser } = await firebase.auth().signInWithCredential(credential);
+    const { user: googleUser } = await firebase
+      .auth()
+      .signInWithCredential(credential);
     expect(googleUser!.uid).to.eq(emailUser!.uid);
     expect(googleUser!.emailVerified).to.be.true;
     expect(firebase.auth().currentUser).to.eq(googleUser);
     expect(googleUser!.providerData.length).to.eq(1);
-    expect(firebase.auth().currentUser!.providerData[0]!.providerId).to.eq('google.com');
+    expect(firebase.auth().currentUser!.providerData[0]!.providerId).to.eq(
+      'google.com'
+    );
 
     // Signing in with password no longer works
     await expect(
@@ -228,18 +245,18 @@ describe('Integration test: headless IdP', () => {
     );
 
     // First sign in with Google
-    const { user: initialUser } = await firebase.auth().signInWithCredential(
-      googleCredential
-    );
+    const { user: initialUser } = await firebase
+      .auth()
+      .signInWithCredential(googleCredential);
     expect(initialUser!.providerData.length).to.eq(1);
     expect(initialUser!.providerData[0]!.providerId).to.eq('google.com');
 
     await firebase.auth().signOut();
 
     // Now with GitHub
-    const { user: githubUser } = await firebase.auth().signInWithCredential(
-      githubCredential
-    );
+    const { user: githubUser } = await firebase
+      .auth()
+      .signInWithCredential(githubCredential);
     expect(githubUser!.uid).to.eq(initialUser!.uid);
     expect(githubUser!.providerData.length).to.eq(2);
     expect(githubUser!.providerData.map(p => p!.providerId)).to.have.members([
@@ -250,9 +267,9 @@ describe('Integration test: headless IdP', () => {
     await firebase.auth().signOut();
 
     // Sign in once again with the initial credential
-    const { user: googleUser } = await firebase.auth().signInWithCredential(
-      googleCredential
-    );
+    const { user: googleUser } = await firebase
+      .auth()
+      .signInWithCredential(googleCredential);
     expect(googleUser!.uid).to.eq(initialUser!.uid);
     expect(googleUser!.providerData.length).to.eq(2);
     expect(googleUser!.providerData.map(p => p!.providerId)).to.have.members([

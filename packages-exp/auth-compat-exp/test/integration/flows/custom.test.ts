@@ -95,8 +95,12 @@ describe('Integration test: custom auth', () => {
   });
 
   it('sign in can be called twice successively', async () => {
-    const { user: userA } = await firebase.auth().signInWithCustomToken(customToken);
-    const { user: userB } = await firebase.auth().signInWithCustomToken(customToken);
+    const { user: userA } = await firebase
+      .auth()
+      .signInWithCustomToken(customToken);
+    const { user: userB } = await firebase
+      .auth()
+      .signInWithCustomToken(customToken);
     expect(userA!.uid).to.eq(userB!.uid);
   });
 
@@ -125,7 +129,9 @@ describe('Integration test: custom auth', () => {
 
   it('signing in will not override anonymous user', async () => {
     const { user: anonUser } = await firebase.auth().signInAnonymously();
-    const { user: customUser } = await firebase.auth().signInWithCustomToken(customToken);
+    const { user: customUser } = await firebase
+      .auth()
+      .signInWithCustomToken(customToken);
     expect(firebase.auth().currentUser).to.eql(customUser);
     expect(customUser!.uid).not.to.eql(anonUser!.uid);
   });
@@ -143,59 +149,61 @@ describe('Integration test: custom auth', () => {
 
     it('custom / email-password accounts remain independent', async () => {
       let customCred = await firebase.auth().signInWithCustomToken(customToken);
-      const emailCred = await firebase.auth().createUserWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const emailCred = await firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, 'password');
       expect(emailCred.user!.uid).not.to.eql(customCred.user!.uid);
 
       await firebase.auth().signOut();
       customCred = await firebase.auth().signInWithCustomToken(customToken);
-      const emailSignIn = await firebase.auth().signInWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const emailSignIn = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       expect(emailCred.user!.uid).to.eql(emailSignIn.user!.uid);
       expect(emailSignIn.user!.uid).not.to.eql(customCred.user!.uid);
     });
 
     it('account can have email / password attached', async () => {
-      const { user: customUser } = await firebase.auth().signInWithCustomToken(
-        customToken
-      );
+      const { user: customUser } = await firebase
+        .auth()
+        .signInWithCustomToken(customToken);
       await customUser!.updateEmail(email);
       await customUser!.updatePassword('password');
 
       await firebase.auth().signOut();
 
-      const { user: emailPassUser } = await firebase.auth().signInWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const {
+        user: emailPassUser
+      } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
       expect(emailPassUser!.uid).to.eq(customUser!.uid);
     });
 
     it('account can be linked using email and password', async () => {
-      const { user: customUser } = await firebase.auth().signInWithCustomToken(
-        customToken
-      );
-      const cred = firebase.auth.EmailAuthProvider.credential(email, 'password');
-      await customUser!.linkWithCredential(cred);
-      await firebase.auth().signOut();
-
-      const { user: emailPassUser } = await firebase.auth().signInWithEmailAndPassword(
+      const { user: customUser } = await firebase
+        .auth()
+        .signInWithCustomToken(customToken);
+      const cred = firebase.auth.EmailAuthProvider.credential(
         email,
         'password'
       );
+      await customUser!.linkWithCredential(cred);
+      await firebase.auth().signOut();
+
+      const {
+        user: emailPassUser
+      } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
       expect(emailPassUser!.uid).to.eq(customUser!.uid);
     });
 
     it('account cannot be linked with existing email/password', async () => {
       await firebase.auth().createUserWithEmailAndPassword(email, 'password');
-      const { user: customUser } = await firebase.auth().signInWithCustomToken(
-        customToken
+      const { user: customUser } = await firebase
+        .auth()
+        .signInWithCustomToken(customToken);
+      const cred = firebase.auth.EmailAuthProvider.credential(
+        email,
+        'password'
       );
-      const cred = firebase.auth.EmailAuthProvider.credential(email, 'password');
       await expect(customUser!.linkWithCredential(cred)).to.be.rejectedWith(
         FirebaseError,
         'auth/email-already-in-use'

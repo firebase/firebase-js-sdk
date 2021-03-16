@@ -39,10 +39,9 @@ describe('Integration test: email/password auth', () => {
   afterEach(() => cleanUpTestInstance());
 
   it('allows user to sign up', async () => {
-    const userCred = await firebase.auth().createUserWithEmailAndPassword(
-      email,
-      'password'
-    );
+    const userCred = await firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, 'password');
     expect(firebase.auth().currentUser).to.eq(userCred.user);
     expect(userCred.operationType).to.eq('signIn');
 
@@ -71,18 +70,16 @@ describe('Integration test: email/password auth', () => {
     let signUpCred: UserCredential;
 
     beforeEach(async () => {
-      signUpCred = await firebase.auth().createUserWithEmailAndPassword(
-        email,
-        'password'
-      );
+      signUpCred = await firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, 'password');
       await firebase.auth().signOut();
     });
 
     it('allows the user to sign in with signInWithEmailAndPassword', async () => {
-      const signInCred = await firebase.auth().signInWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const signInCred = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       expect(firebase.auth().currentUser).to.eq(signInCred.user);
 
       expect(signInCred.operationType).to.eq('signIn');
@@ -93,7 +90,10 @@ describe('Integration test: email/password auth', () => {
     });
 
     it('allows the user to sign in with signInWithCredential', async () => {
-      const credential = firebase.auth.EmailAuthProvider.credential(email, 'password');
+      const credential = firebase.auth.EmailAuthProvider.credential(
+        email,
+        'password'
+      );
       const signInCred = await firebase.auth().signInWithCredential(credential);
       expect(firebase.auth().currentUser).to.eq(signInCred.user);
 
@@ -105,7 +105,9 @@ describe('Integration test: email/password auth', () => {
     });
 
     it('allows the user to update profile', async () => {
-      let { user } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
+      let { user } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       await user!.updateProfile({
         displayName: 'Display Name',
         photoURL: 'photo-url'
@@ -115,16 +117,17 @@ describe('Integration test: email/password auth', () => {
 
       await firebase.auth().signOut();
 
-      user = (await firebase.auth().signInWithEmailAndPassword(email, 'password')).user;
+      user = (
+        await firebase.auth().signInWithEmailAndPassword(email, 'password')
+      ).user;
       expect(user!.displayName).to.eq('Display Name');
       expect(user!.photoURL).to.eq('photo-url');
     });
 
     it('allows the user to delete the account', async () => {
-      const { user } = await firebase.auth().signInWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const { user } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       await user!.delete();
 
       await expect(user!.reload()).to.be.rejectedWith(
@@ -139,14 +142,12 @@ describe('Integration test: email/password auth', () => {
     });
 
     it('sign in can be called twice successively', async () => {
-      const { user: userA } = await firebase.auth().signInWithEmailAndPassword(
-        email,
-        'password'
-      );
-      const { user: userB } = await firebase.auth().signInWithEmailAndPassword(
-        email,
-        'password'
-      );
+      const { user: userA } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
+      const { user: userB } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       expect(userA!.uid).to.eq(userB!.uid);
     });
   });
