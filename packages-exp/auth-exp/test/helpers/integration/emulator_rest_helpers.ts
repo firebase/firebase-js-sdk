@@ -15,19 +15,8 @@
  * limitations under the License.
  */
 
-import { FetchProvider } from '../../../src/core/util/fetch_provider';
 import * as fetchImpl from 'node-fetch';
 import { getAppConfig, getEmulatorUrl } from './settings';
-
-if (typeof document !== 'undefined') {
-  FetchProvider.initialize(fetch);
-} else {
-  FetchProvider.initialize(
-    (fetchImpl.default as unknown) as typeof fetch,
-    (fetchImpl.Headers as unknown) as typeof Headers,
-    (fetchImpl.Response as unknown) as typeof Response
-  );
-}
 
 export interface VerificationSession {
   code: string;
@@ -54,9 +43,7 @@ export async function getPhoneVerificationCodes(): Promise<
   Record<string, VerificationSession>
 > {
   const url = buildEmulatorUrlForPath('verificationCodes');
-  const response: VerificationCodesResponse = await (
-    await FetchProvider.fetch()(url)
-  ).json();
+  const response: VerificationCodesResponse = await (await doFetch(url)).json();
 
   return response.verificationCodes.reduce((accum, session) => {
     accum[session.sessionInfo] = session;
@@ -66,15 +53,13 @@ export async function getPhoneVerificationCodes(): Promise<
 
 export async function getOobCodes(): Promise<OobCodeSession[]> {
   const url = buildEmulatorUrlForPath('oobCodes');
-  const response: OobCodesResponse = await (
-    await FetchProvider.fetch()(url)
-  ).json();
+  const response: OobCodesResponse = await (await doFetch(url)).json();
   return response.oobCodes;
 }
 
 export async function resetEmulator(): Promise<void> {
   const url = buildEmulatorUrlForPath('accounts');
-  await FetchProvider.fetch()(url, { method: 'DELETE' });
+  await doFetch(url, { method: 'DELETE' });
 }
 
 export async function createAnonAccount(): Promise<{
@@ -84,7 +69,7 @@ export async function createAnonAccount(): Promise<{
 }> {
   const url = `${getEmulatorUrl()}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-key`;
   const response = await (
-    await FetchProvider.fetch()(url, {
+    await doFetch(url, {
       method: 'POST',
       body: '{}',
       headers: { 'Content-Type': 'application/json' }
@@ -97,4 +82,15 @@ function buildEmulatorUrlForPath(endpoint: string): string {
   const emulatorBaseUrl = getEmulatorUrl();
   const projectId = getAppConfig().projectId;
   return `${emulatorBaseUrl}/emulator/v1/projects/${projectId}/${endpoint}`;
+}
+
+function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
+  if (typeof document !== 'undefined') {
+    return fetch(url, request);
+  }
+
+  return (fetchImpl.default(
+    url,
+    request as fetchImpl.RequestInit
+  ) as unknown) as ReturnType<typeof fetch>;
 }

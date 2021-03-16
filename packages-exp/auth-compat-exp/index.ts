@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable camelcase */
+
 import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-exp';
@@ -24,13 +26,32 @@ import {
   InstantiationMode
 } from '@firebase/component';
 
-import { FirebaseAuth } from '@firebase/auth-types';
+import {
+  EmailAuthProvider,
+  EmailAuthProvider_Instance,
+  FacebookAuthProvider,
+  FacebookAuthProvider_Instance,
+  FirebaseAuth,
+  GithubAuthProvider,
+  GithubAuthProvider_Instance,
+  GoogleAuthProvider,
+  GoogleAuthProvider_Instance,
+  OAuthProvider,
+  PhoneAuthProvider,
+  PhoneAuthProvider_Instance,
+  PhoneMultiFactorGenerator,
+  RecaptchaVerifier,
+  RecaptchaVerifier_Instance,
+  SAMLAuthProvider,
+  TwitterAuthProvider,
+  TwitterAuthProvider_Instance
+} from '@firebase/auth-types';
 import { version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';
-import { PhoneAuthProvider } from './src/phone_auth_provider';
+import { PhoneAuthProvider as CompatAuthProvider } from './src/phone_auth_provider';
 import { _getClientPlatform } from './src/platform';
-import { RecaptchaVerifier } from './src/recaptcha_verifier';
+import { RecaptchaVerifier as CompatRecaptchaVerifier } from './src/recaptcha_verifier';
 
 const AUTH_TYPE = 'auth';
 
@@ -44,6 +65,24 @@ declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
     auth: {
       (app?: FirebaseApp): FirebaseAuth;
+      Auth: typeof FirebaseAuth;
+      EmailAuthProvider: typeof EmailAuthProvider;
+      EmailAuthProvider_Instance: typeof EmailAuthProvider_Instance;
+      FacebookAuthProvider: typeof FacebookAuthProvider;
+      FacebookAuthProvider_Instance: typeof FacebookAuthProvider_Instance;
+      GithubAuthProvider: typeof GithubAuthProvider;
+      GithubAuthProvider_Instance: typeof GithubAuthProvider_Instance;
+      GoogleAuthProvider: typeof GoogleAuthProvider;
+      GoogleAuthProvider_Instance: typeof GoogleAuthProvider_Instance;
+      OAuthProvider: typeof OAuthProvider;
+      SAMLAuthProvider: typeof SAMLAuthProvider;
+      PhoneAuthProvider: typeof PhoneAuthProvider;
+      PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
+      PhoneMultiFactorGenerator: typeof PhoneMultiFactorGenerator;
+      RecaptchaVerifier: typeof RecaptchaVerifier;
+      RecaptchaVerifier_Instance: typeof RecaptchaVerifier_Instance;
+      TwitterAuthProvider: typeof TwitterAuthProvider;
+      TwitterAuthProvider_Instance: typeof TwitterAuthProvider_Instance;
     };
   }
   interface FirebaseApp {
@@ -84,9 +123,9 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
         GoogleAuthProvider: impl.GoogleAuthProvider,
         OAuthProvider: impl.OAuthProvider,
         //   SAMLAuthProvider,
-        PhoneAuthProvider,
+        PhoneAuthProvider: CompatAuthProvider,
         PhoneMultiFactorGenerator: impl.PhoneMultiFactorGenerator,
-        RecaptchaVerifier,
+        RecaptchaVerifier: CompatRecaptchaVerifier,
         TwitterAuthProvider: impl.TwitterAuthProvider,
         Auth: {
           Persistence
