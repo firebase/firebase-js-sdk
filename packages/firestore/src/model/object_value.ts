@@ -185,7 +185,7 @@ export class ObjectValue {
   ): { mapValue: ProtoMapValue } | null {
     let modified = false;
 
-    const existingValue = this.extractNestedValue(
+    const existingValue = ObjectValue.extractNestedValue(
       this.partialValue,
       currentPath
     );

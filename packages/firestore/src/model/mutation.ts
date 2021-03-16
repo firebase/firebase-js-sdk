@@ -410,9 +410,10 @@ function applySetMutationToLocalView(
   document: MutableDocument,
   localWriteTime: Timestamp
 ): void {
-  if (!preconditionIsValidForDocument(mutation.precondition, document)) {
-    return;
-  }
+  debugAssert(
+    mutation.precondition.isNone,
+    'SetMutations should not have preconditions outside of Transactions'
+  );
 
   const newData = mutation.value.clone();
   const transformResults = localTransformResults(
@@ -625,12 +626,14 @@ function applyDeleteMutationToLocalView(
     document.key.isEqual(mutation.key),
     'Can only apply mutation to document with same key'
   );
+  debugAssert(
+    mutation.precondition.isNone,
+    'DeleteMutions should not have preconditions outside of Transactions'
+  );
 
-  if (preconditionIsValidForDocument(mutation.precondition, document)) {
-    // We don't call `setHasLocalMutations()` since we want to be backwards
-    // compatible with the existing SDK behavior.
-    document.convertToNoDocument(SnapshotVersion.min());
-  }
+  // We don't call `setHasLocalMutations()` since we want to be backwards
+  // compatible with the existing SDK behavior.
+  document.convertToNoDocument(SnapshotVersion.min());
 }
 
 /**
