@@ -44,7 +44,8 @@ function createUmdOutputConfig(output) {
     extend: true,
     name: GLOBAL_NAME,
     globals: {
-      '@firebase/app-compat': GLOBAL_NAME
+      '@firebase/app-compat': GLOBAL_NAME,
+      '@firebase/app': `${GLOBAL_NAME}.INTERNAL.modularAPIs`
     },
 
     /**
@@ -86,23 +87,23 @@ const appBuilds = [
   /**
    * App Browser Builds
    */
-  // {
-  //   input: `${__dirname}/app/index.ts`,
-  //   output: [
-  //     {
-  //       file: resolve(__dirname, 'app', appPkg.main),
-  //       format: 'cjs',
-  //       sourcemap: true
-  //     },
-  //     {
-  //       file: resolve(__dirname, 'app', appPkg.module),
-  //       format: 'es',
-  //       sourcemap: true
-  //     }
-  //   ],
-  //   plugins: [...plugins, typescriptPlugin],
-  //   external
-  // },
+  {
+    input: `${__dirname}/app/index.ts`,
+    output: [
+      {
+        file: resolve(__dirname, 'app', appPkg.main),
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: resolve(__dirname, 'app', appPkg.module),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [...plugins, typescriptPlugin],
+    external
+  },
   /**
    * App UMD Builds
    */
@@ -118,11 +119,14 @@ const appBuilds = [
       ...plugins,
       typescriptPlugin,
       alias({
-        entries: {
-          '@firebase/app': '@firebase/app-exp'
-        }
-      }),
-      uglify()
+        entries: [
+          {
+            find: '@firebase/app',
+            replacement: '@firebase/app-exp'
+          }
+        ]
+      })
+      // uglify()
     ]
   }
 ];
@@ -153,8 +157,24 @@ const componentBuilds = compatPkg.components
       {
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
-        plugins: [...plugins, typescriptPlugin, uglify()],
-        external: ['@firebase/app-compat']
+        plugins: [
+          ...plugins,
+          typescriptPlugin,
+          alias({
+            entries: [
+              {
+                find: `@firebase/${component}`,
+                replacement: `@firebase/${component}-exp`
+              },
+              {
+                find: '@firebase/installations',
+                replacement: '@firebase/installations-exp'
+              }
+            ]
+          })
+          // uglify()
+        ],
+        external: ['@firebase/app-compat', '@firebase/app']
       }
     ];
   })
@@ -272,4 +292,5 @@ const completeBuilds = [
 ];
 
 // export default [...appBuilds, ...componentBuilds, ...completeBuilds];
-export default [...appBuilds];
+export default [...appBuilds, ...componentBuilds];
+// export default [...appBuilds];

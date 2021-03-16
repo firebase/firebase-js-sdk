@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { firebase, _FirebaseNamespace } from '@firebase/app-compat';
+import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import { name, version } from '../package.json';
 import { AnalyticsService } from './service';
 import {
