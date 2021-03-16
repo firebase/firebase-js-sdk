@@ -40,7 +40,7 @@ export function registerFunctions(
 
   function factory(
     container: ComponentContainer,
-    options?: InstanceFactoryOptions
+    { instanceIdentifier: regionOrCustomDomain }: InstanceFactoryOptions
   ): Service {
     // Dependencies
     const app = container.getProvider('app').getImmediate();
@@ -52,8 +52,7 @@ export function registerFunctions(
       app,
       authProvider,
       messagingProvider,
-      // regionOrCustomDomain
-      options?.instanceIdentifier,
+      regionOrCustomDomain,
       fetchImpl
     );
   }

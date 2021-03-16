@@ -41,7 +41,7 @@ const STORAGE_TYPE = 'storage';
 
 function factory(
   container: ComponentContainer,
-  options?: InstanceFactoryOptions
+  { instanceIdentifier: url }: InstanceFactoryOptions
 ): types.FirebaseStorage {
   // Dependencies
   // TODO: This should eventually be 'app-compat'
@@ -56,7 +56,7 @@ function factory(
       app,
       authProvider,
       new XhrIoPool(),
-      options?.instanceIdentifier, // url
+      url,
       firebase.SDK_VERSION
     )
   );

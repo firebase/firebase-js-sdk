@@ -60,7 +60,7 @@ export function registerRemoteConfig(
 
   function remoteConfigFactory(
     container: ComponentContainer,
-    options?: InstanceFactoryOptions
+    { instanceIdentifier: namespace }: InstanceFactoryOptions
   ): RemoteConfig {
     /* Dependencies */
     // getImmediate for FirebaseApp will always succeed
@@ -84,7 +84,7 @@ export function registerRemoteConfig(
     if (!appId) {
       throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_APP_ID);
     }
-    const namespace = options?.instanceIdentifier || 'firebase';
+    namespace = namespace || 'firebase';
 
     const storage = new Storage(appId, app.name, namespace);
     const storageCache = new StorageCache(storage);

@@ -298,7 +298,7 @@ export function getStorage(
 
 function factory(
   container: ComponentContainer,
-  options?: InstanceFactoryOptions
+  { instanceIdentifier: url }: InstanceFactoryOptions
 ): StorageService {
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
@@ -307,7 +307,7 @@ function factory(
     app,
     authProvider,
     new XhrIoPool(),
-    options?.instanceIdentifier, // url
+    url,
     SDK_VERSION
   );
 }
