@@ -29,7 +29,8 @@ import { PersistenceTransaction } from './persistence_transaction';
  * Represents a document change to be applied to remote document cache.
  */
 interface RemoteDocumentChange {
-  // The document in this change, null if it is a removal from the cache.
+  // The document in this change. Contains an invalid document if it is a
+  // removed from the cache.
   readonly document: MutableDocument;
   // The timestamp when this change is read.
   readonly readTime: SnapshotVersion | null;
@@ -121,8 +122,8 @@ export abstract class RemoteDocumentChangeBuffer {
    * @param transaction - The transaction in which to perform any persistence
    *     operations.
    * @param documentKey - The key of the entry to look up.
-   * @returns The cached Document or NoDocument entry, or null if we have
-   *     nothing cached.
+   * @returns The cached document or an invalid document if we have nothing
+   * cached.
    */
   getEntry(
     transaction: PersistenceTransaction,
@@ -144,9 +145,8 @@ export abstract class RemoteDocumentChangeBuffer {
    * @param transaction - The transaction in which to perform any persistence
    *     operations.
    * @param documentKeys - The keys of the entries to look up.
-   * @returns A map of cached `Document`s or `NoDocument`s, indexed by key. If
-   *     an entry cannot be found, the corresponding key will be mapped to a
-   *     null value.
+   * @returns A map of cached documents, indexed by key. If an entry cannot be
+   *     found, the corresponding key will be mapped to an invalid document.
    */
   getEntries(
     transaction: PersistenceTransaction,

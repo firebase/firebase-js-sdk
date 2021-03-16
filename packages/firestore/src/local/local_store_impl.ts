@@ -574,13 +574,13 @@ export function localStoreApplyRemoteEventToLocalCache(
 
       return PersistencePromise.waitFor(promises)
         .next(() => documentBuffer.apply(txn))
-        .next(() => {
+        .next(() =>
           localStoreImpl.localDocuments.applyLocalViewToDocuments(
             txn,
             changedDocs
-          );
-          return changedDocs;
-        });
+          )
+        )
+        .next(() => changedDocs);
     })
     .then(changedDocs => {
       localStoreImpl.targetDataByTarget = newTargetDataByTargetMap;
@@ -1255,13 +1255,13 @@ export async function localStoreApplyBundledDocuments(
                 umbrellaTargetData.targetId
               )
             )
-            .next(() => {
+            .next(() =>
               localStoreImpl.localDocuments.applyLocalViewToDocuments(
                 txn,
                 changedDocs
-              );
-              return changedDocs;
-            });
+              )
+            )
+            .next(() => changedDocs);
         });
     }
   );

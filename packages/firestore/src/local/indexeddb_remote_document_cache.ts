@@ -135,8 +135,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
    * Looks up an entry in the cache.
    *
    * @param documentKey - The key of the entry to look up.
-   * @returns The cached MaybeDocument entry and its size, or null if we have
-   * nothing cached.
+   * @returns The cached document entry and its size.
    */
   getSizedEntry(
     transaction: PersistenceTransaction,
@@ -172,9 +171,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
    * Looks up several entries in the cache.
    *
    * @param documentKeys - The set of keys entries to look up.
-   * @returns A map of MaybeDocuments indexed by key (if a document cannot be
-   *     found, the key will be mapped to null) and a map of sizes indexed by
-   *     key (zero if the key cannot be found).
+   * @returns A map of documents indexed by key and a map of sizes indexed by
+   *     key (zero if the document does not exist).
    */
   getSizedEntries(
     transaction: PersistenceTransaction,
@@ -552,7 +550,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
       .next(({ documents, sizeMap }) => {
         // Note: `getAllFromCache` returns two maps instead of a single map from
         // keys to `DocumentSizeEntry`s. This is to allow returning the
-        // `NullableMaybeDocumentMap` directly, without a conversion.
+        // `MutableDocumentMap` directly, without a conversion.
         sizeMap.forEach((documentKey, size) => {
           this.documentSizes.set(documentKey, size);
         });

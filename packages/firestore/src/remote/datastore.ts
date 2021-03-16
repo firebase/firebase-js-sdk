@@ -39,7 +39,7 @@ import {
 } from './persistent_stream';
 import {
   fromDocument,
-  fromMaybeDocument,
+  fromBatchGetDocumentsResponse,
   getEncodedDatabaseId,
   JsonProtoSerializer,
   toMutation,
@@ -174,7 +174,7 @@ export async function invokeBatchGetDocumentsRpc(
 
   const docs = new Map<string, Document>();
   response.forEach(proto => {
-    const doc = fromMaybeDocument(datastoreImpl.serializer, proto);
+    const doc = fromBatchGetDocumentsResponse(datastoreImpl.serializer, proto);
     docs.set(doc.key.toString(), doc);
   });
   const result: Document[] = [];

@@ -58,7 +58,7 @@ export class BundleConverterImpl implements BundleConverter {
   }
 
   /**
-   * Converts a BundleDocument to a MaybeDocument.
+   * Converts a BundleDocument to a MutableDocument.
    */
   toMutableDocument(bundledDoc: BundledDocument): MutableDocument {
     if (bundledDoc.metadata.exists) {

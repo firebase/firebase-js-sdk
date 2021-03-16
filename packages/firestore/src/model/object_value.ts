@@ -74,10 +74,10 @@ export class ObjectValue {
    * Returns the value at the given path or null.
    *
    * @param path - the path to search
-   * @returns The value at the path or if there it doesn't exist.
+   * @returns The value at the path or null if the path is not set.
    */
   field(path: FieldPath): ProtoValue | null {
-    return this.extractNestedValue(this.buildProto(), path);
+    return ObjectValue.extractNestedValue(this.buildProto(), path);
   }
 
   /** Returns the full protobuf representation. */
@@ -232,7 +232,7 @@ export class ObjectValue {
     return this.partialValue;
   }
 
-  private extractNestedValue(
+  private static extractNestedValue(
     proto: ProtoValue,
     path: FieldPath
   ): ProtoValue | null {

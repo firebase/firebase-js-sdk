@@ -446,7 +446,7 @@ function fromMissing(
   return MutableDocument.newNoDocument(key, version);
 }
 
-export function fromMaybeDocument(
+export function fromBatchGetDocumentsResponse(
   serializer: JsonProtoSerializer,
   result: ProtoBatchGetDocumentsResponse
 ): MutableDocument {

@@ -145,10 +145,7 @@ export class Precondition {
   }
 }
 
-/**
- * Returns true if the preconditions is valid for the given document
- * (or null if no document is available).
- */
+/** Returns true if the preconditions is valid for the given document. */
 export function preconditionIsValidForDocument(
   precondition: Precondition,
   document: MutableDocument
@@ -205,7 +202,7 @@ export function preconditionIsValidForDocument(
  *
  * ## Subclassing Notes
  *
- * Every type of mutation need to implement its own applyToRemoteDocument() and
+ * Every type of mutation needs to implement its own applyToRemoteDocument() and
  * applyToLocalView() to implement the actual behavior of applying the mutation
  * to some source document (see `applySetMutationToRemoteDocument()` for an
  * example).
@@ -218,18 +215,16 @@ export abstract class Mutation {
 }
 
 /**
- * Applies this mutation to the given Document for the purposes of computing a
+ * Applies this mutation to the given document for the purposes of computing a
  * new remote document. If the input document doesn't match the expected state
  * (e.g. it is invalid or outdated), the document state may transition to
  * unknown.
  *
  * @param mutation - The mutation to apply.
- * @param document - The document to mutate. The input document can be null if
- *     the client has no knowledge of the pre-mutation state of the document.
+ * @param document - The document to mutate. The input document can be an
+ *     invalid document if the client has no knowledge of the pre-mutation state
+ *     of the document.
  * @param mutationResult - The result of applying the mutation from the backend.
- * @returns The mutated document. The returned document may be an
- *     UnknownDocument if the mutation could not be applied to the locally
- *     cached base document.
  */
 export function applyMutationToRemoteDocument(
   mutation: Mutation,
@@ -256,12 +251,11 @@ export function applyMutationToRemoteDocument(
  * match the expected state, the document is not modified.
  *
  * @param mutation - The mutation to apply.
- * @param document - The document to mutate. The input document can be null if
- *     the client has no knowledge of the pre-mutation state of the document.
+ * @param document - The document to mutate. The input document can be an
+ *     invalid document if the client has no knowledge of the pre-mutation state
+ *     of the document.
  * @param localWriteTime - A timestamp indicating the local write time of the
  *     batch this mutation is a part of.
- * @returns The mutated document. The returned document may be null, but only
- *     if maybeDoc was null and the mutation would not create a new document.
  */
 export function applyMutationToLocalView(
   mutation: Mutation,
@@ -467,7 +461,7 @@ function applyPatchMutationToRemoteDocument(
   if (!preconditionIsValidForDocument(mutation.precondition, document)) {
     // Since the mutation was not rejected, we know that the precondition
     // matched on the backend. We therefore must not have the expected version
-    // of the document in our cache and return an UnknownDocument with the
+    // of the document in our cache and convert to an UnknownDocument with a
     // known updateTime.
     document.convertToUnknownDocument(mutationResult.version);
     return;
@@ -569,20 +563,20 @@ function serverTransformResults(
  * @param fieldTransforms - The field transforms to apply the result to.
  * @param localWriteTime - The local time of the mutation (used to
  *     generate ServerTimestampValues).
- * @param document - The current state of the document after applying all
+ * @param mutableDocument - The current state of the document after applying all
  *     previous mutations.
  * @returns The transform results list.
  */
 function localTransformResults(
   fieldTransforms: FieldTransform[],
   localWriteTime: Timestamp,
-  document: MutableDocument
+  mutableDocument: MutableDocument
 ): Map<FieldPath, ProtoValue> {
   const transformResults = new Map<FieldPath, ProtoValue>();
   for (const fieldTransform of fieldTransforms) {
     const transform = fieldTransform.transform;
 
-    const previousValue = document.data.field(fieldTransform.field);
+    const previousValue = mutableDocument.data.field(fieldTransform.field);
     transformResults.set(
       fieldTransform.field,
       applyTransformOperationToLocalView(
@@ -633,6 +627,8 @@ function applyDeleteMutationToLocalView(
   );
 
   if (preconditionIsValidForDocument(mutation.precondition, document)) {
+    // We don't call `setHasLocalMutations()` since we want to be backwards
+    // compatible with the existing SDK behavior.
     document.convertToNoDocument(SnapshotVersion.min());
   }
 }
