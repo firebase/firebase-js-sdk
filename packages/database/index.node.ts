@@ -30,7 +30,11 @@ import { setSDKVersion } from './src/core/version';
 import { CONSTANTS, isNodeSdk } from '@firebase/util';
 import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
 import { Client } from 'faye-websocket';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstanceFactoryOptions
+} from '@firebase/component';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
 import { name, version } from './package.json';
@@ -84,13 +88,18 @@ export function registerDatabase(instance: FirebaseNamespace) {
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'database',
-      (container, { instanceIdentifier: url }) => {
+      (container, options?: InstanceFactoryOptions) => {
         /* Dependencies */
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
 
-        return repoManagerDatabaseFromApp(app, authProvider, url, undefined);
+        return repoManagerDatabaseFromApp(
+          app,
+          authProvider,
+          options?.instanceIdentifier, // url
+          undefined
+        );
       },
       ComponentType.PUBLIC
     )

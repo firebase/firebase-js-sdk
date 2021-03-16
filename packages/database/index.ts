@@ -30,7 +30,11 @@ import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
 import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstanceFactoryOptions
+} from '@firebase/component';
 
 import { name, version } from './package.json';
 
@@ -44,13 +48,18 @@ export function registerDatabase(instance: FirebaseNamespace) {
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'database',
-      (container, { instanceIdentifier: url }) => {
+      (container, options: InstanceFactoryOptions) => {
         /* Dependencies */
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
 
-        return repoManagerDatabaseFromApp(app, authProvider, url, undefined);
+        return repoManagerDatabaseFromApp(
+          app,
+          authProvider,
+          options?.instanceIdentifier, // url
+          undefined
+        );
       },
       ComponentType.PUBLIC
     )

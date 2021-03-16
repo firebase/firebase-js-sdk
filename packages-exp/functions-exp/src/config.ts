@@ -21,16 +21,15 @@ import {
   Component,
   ComponentType,
   ComponentContainer,
-  InstanceFactory
+  InstanceFactory,
+  InstanceFactoryOptions
 } from '@firebase/component';
 import { FUNCTIONS_TYPE } from './constants';
-
-export const DEFAULT_REGION = 'us-central1';
 
 export function registerFunctions(fetchImpl: typeof fetch): void {
   const factory: InstanceFactory<'functions'> = (
     container: ComponentContainer,
-    { instanceIdentifier: regionOrCustomDomain }
+    options?: InstanceFactoryOptions
   ) => {
     // Dependencies
     const app = container.getProvider('app-exp').getImmediate();
@@ -42,7 +41,8 @@ export function registerFunctions(fetchImpl: typeof fetch): void {
       app,
       authProvider,
       messagingProvider,
-      regionOrCustomDomain,
+      // regionOrCustomDomain
+      options?.instanceIdentifier,
       fetchImpl
     );
   };

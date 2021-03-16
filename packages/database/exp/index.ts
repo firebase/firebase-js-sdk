@@ -17,7 +17,11 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstanceFactoryOptions
+} from '@firebase/component';
 
 import { version } from '../package.json';
 import { FirebaseDatabase } from '../src/exp/Database';
@@ -35,10 +39,14 @@ function registerDatabase(): void {
   _registerComponent(
     new Component(
       'database-exp',
-      (container, { instanceIdentifier: url }) => {
+      (container, options?: InstanceFactoryOptions) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
-        return new FirebaseDatabase(app, authProvider, url);
+        return new FirebaseDatabase(
+          app,
+          authProvider,
+          options?.instanceIdentifier // url
+        );
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

@@ -91,7 +91,7 @@ export function trace(
 
 const factory: InstanceFactory<'performance-exp'> = (
   container: ComponentContainer,
-  { options: settings }: { options?: PerformanceSettings }
+  instanceFactoryOptions?: { options?: PerformanceSettings }
 ) => {
   // Dependencies
   const app = container.getProvider('app-exp').getImmediate();
@@ -107,7 +107,7 @@ const factory: InstanceFactory<'performance-exp'> = (
   }
   setupApi(window);
   const perfInstance = new PerformanceController(app, installations);
-  perfInstance._init(settings);
+  perfInstance._init(instanceFactoryOptions.options);
 
   return perfInstance;
 };
