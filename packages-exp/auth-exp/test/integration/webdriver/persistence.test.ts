@@ -169,7 +169,7 @@ browserDescribe('WebDriver persistence test', driver => {
       await driver.waitForAuthInit();
 
       // User from localStorage should be picked up.
-      const user = await driver.call<User>(CoreFunction.USER_SNAPSHOT);
+      const user = await driver.getUserSnapshot();
       expect(user.uid).eql(persistedUser.uid);
 
       // User should be migrated to indexedDB, and the key in localStorage should be deleted.
@@ -195,7 +195,7 @@ browserDescribe('WebDriver persistence test', driver => {
       await driver.waitForAuthInit();
 
       // User from indexedDB should be picked up.
-      const user = await driver.call<User>(CoreFunction.USER_SNAPSHOT);
+      const user = await driver.getUserSnapshot();
       expect(user.uid).eql(uid);
 
       // User should be migrated to localStorage, and the key in indexedDB should be deleted.
@@ -220,7 +220,7 @@ browserDescribe('WebDriver persistence test', driver => {
       await driver.waitForAuthInit();
 
       // User from localStorage should be picked up.
-      const user = await driver.call<User>(CoreFunction.USER_SNAPSHOT);
+      const user = await driver.getUserSnapshot();
       expect(user.uid).eql(persistedUser.uid);
 
       // Both storage should be cleared.
