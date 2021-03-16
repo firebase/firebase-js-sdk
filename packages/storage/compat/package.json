@@ -8,6 +8,6 @@
     "module": "../dist/compat/esm5/index.js",
     "esm2017": "../dist/compat/esm2017/index.js",
     "license": "Apache-2.0",
-    "typings": "../dist/compat/esm5/packages/firestore/compat/index.d.ts"
+    "typings": "../dist/compat/esm5/compat/index.d.ts"
   }
   

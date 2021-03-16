@@ -60,7 +60,10 @@ const es5Builds = [
       }
     ],
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
@@ -96,7 +99,10 @@ const es2017Builds = [
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
