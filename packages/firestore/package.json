@@ -11,13 +11,13 @@
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
     "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js' build:lite build:exp",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
-    "prebuild:release": "yarn prebuild",
     "build:release": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
+    "build:compat": "run-p 'bundle ./rollup.config.browser.compat.js' 'bundle ./rollup.config.node.compat.js' 'bundle ./rollup.config.rn.compat.js'",
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
-    "build:exp:release": "yarn build:exp && yarn build:lite",
+    "build:exp:release": "yarn build:exp && yarn build:lite && yarn build:compat",
     "postbuild:exp:release": "node ../../scripts/exp/remove-exp.js dist/exp/index.d.ts && node ../../scripts/exp/remove-exp.js dist/lite/index.d.ts",
     "build:browser": "rollup -c rollup.config.browser.js",
     "predev": "yarn prebuild",
@@ -104,7 +104,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/firestore/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

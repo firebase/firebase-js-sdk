@@ -68,6 +68,7 @@ function writePackageJson(sdkVariant: 'exp' | 'lite'): void {
 function loadApiExtractorConfig(
   typescriptDtsPath: string,
   rollupDtsPath: string,
+  untrimmedRollupDtsPath: string,
   dtsRollupEnabled: boolean,
   apiReportEnabled: boolean
 ): ExtractorConfig {
@@ -77,7 +78,8 @@ function loadApiExtractorConfig(
     mainEntryPointFilePath: typescriptDtsPath,
     'dtsRollup': {
       'enabled': dtsRollupEnabled,
-      publicTrimmedFilePath: rollupDtsPath
+      publicTrimmedFilePath: rollupDtsPath,
+      untrimmedFilePath: untrimmedRollupDtsPath
     },
     'tsdocMetadata': {
       'enabled': false
@@ -124,6 +126,15 @@ export async function generateApi(sdkVariant: 'exp' | 'lite'): Promise<void> {
     __dirname,
     `../dist/${sdkVariant}/private.d.ts`
   );
+  
+  // A "bundled" version of our d.ts files that includes all public and private
+  // types, but also include exports marked as @internal
+  // This file is used by @firebase/firestore-compat to use internal exports
+  const untrimmedRollupDtsPath: string = path.resolve(
+    __dirname,
+    `../dist/${sdkVariant}/internal.d.ts`
+  );
+
   // A customer-facing d.ts file that only include the public APIs
   const publicDtsPath: string = path.resolve(
     __dirname,
@@ -139,6 +150,7 @@ export async function generateApi(sdkVariant: 'exp' | 'lite'): Promise<void> {
   let extractorConfig = loadApiExtractorConfig(
     typescriptDtsPath,
     rollupDtsPath,
+    untrimmedRollupDtsPath,
     /* dtsRollupEnabled= */ true,
     /* apiReportEnabled= */ false
   );
@@ -155,6 +167,7 @@ export async function generateApi(sdkVariant: 'exp' | 'lite'): Promise<void> {
   extractorConfig = loadApiExtractorConfig(
     publicDtsPath,
     rollupDtsPath,
+    untrimmedRollupDtsPath,
     /* dtsRollupEnabled= */ false,
     /* apiReportEnabled= */ true
   );

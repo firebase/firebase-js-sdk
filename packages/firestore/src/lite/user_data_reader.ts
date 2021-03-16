@@ -21,12 +21,9 @@ import {
   SetOptions
 } from '@firebase/firestore-types';
 
+import { Compat } from '../api/compat';
+import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
-import { Bytes } from '../lite/bytes';
-import { FirebaseFirestore } from '../lite/database';
-import { FieldPath } from '../lite/field_path';
-import { FieldValue } from '../lite/field_value';
-import { DocumentReference } from '../lite/reference';
 import { DocumentKey } from '../model/document_key';
 import { FieldMask } from '../model/field_mask';
 import {
@@ -61,9 +58,12 @@ import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 
-import { Compat } from './compat';
+import { Bytes } from './bytes';
+import { FirebaseFirestore } from './database';
+import { FieldPath } from './field_path';
+import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
-import { ParseContext } from './parse_context';
+import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;

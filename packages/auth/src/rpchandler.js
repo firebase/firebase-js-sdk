@@ -905,7 +905,7 @@ fireauth.RpcHandler.prototype.requestAuthEndpoint_ = function(
   uri.setParameterValue('key', this.getApiKey());
   // Check whether to append cachebuster to request.
   if (opt_cachebuster) {
-    uri.setParameterValue('cb', goog.now().toString());
+    uri.setParameterValue('cb', Date.now().toString());
   }
   // Firebase allows GET endpoints.
   var isGet = httpMethod == fireauth.RpcHandler.HttpMethod.GET;
