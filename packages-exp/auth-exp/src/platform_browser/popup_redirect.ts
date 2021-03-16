@@ -37,6 +37,7 @@ import { browserSessionPersistence } from './persistence/session_storage';
 import { _open, AuthPopup } from './util/popup';
 import { _getRedirectResult } from './strategies/redirect';
 import { _getRedirectUrl } from '../core/util/handler';
+import { _isIOS, _isMobileBrowser, _isSafari } from '../core/util/browser';
 
 /**
  * The special web storage event
@@ -160,6 +161,11 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
     }
 
     return this.originValidationPromises[key];
+  }
+
+  get _shouldInitProactively(): boolean {
+    // Mobile browsers and Safari need to optimistically initialize
+    return _isMobileBrowser() || _isSafari() || _isIOS();
   }
 
   _completeRedirectFn = _getRedirectResult;

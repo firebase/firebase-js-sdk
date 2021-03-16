@@ -117,7 +117,7 @@ export function getQueryValue(query: Query) {
 }
 
 export function pause(milliseconds: number) {
-  return new Promise(resolve => {
+  return new Promise<void>(resolve => {
     setTimeout(() => resolve(), milliseconds);
   });
 }

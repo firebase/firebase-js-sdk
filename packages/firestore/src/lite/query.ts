@@ -16,11 +16,6 @@
  */
 
 import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  parseQueryValue,
-  UserDataReader
-} from '../api/user_data_reader';
 import { DatabaseId } from '../core/database_info';
 import {
   findFilterOperator,
@@ -61,6 +56,11 @@ import {
 import { FieldPath } from './field_path';
 import { DocumentReference, Query } from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
+import {
+  newUserDataReader,
+  parseQueryValue,
+  UserDataReader
+} from './user_data_reader';
 
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery

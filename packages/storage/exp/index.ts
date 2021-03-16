@@ -33,7 +33,8 @@ import {
   Component,
   ComponentType,
   ComponentContainer,
-  Provider
+  Provider,
+  InstanceFactoryOptions
 } from '@firebase/component';
 
 import { name, version } from '../package.json';
@@ -295,7 +296,10 @@ export function getStorage(
   return storageInstance;
 }
 
-function factory(container: ComponentContainer, url?: string): StorageService {
+function factory(
+  container: ComponentContainer,
+  { instanceIdentifier: url }: InstanceFactoryOptions
+): StorageService {
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
 

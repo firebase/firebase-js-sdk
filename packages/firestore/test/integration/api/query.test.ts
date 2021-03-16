@@ -1173,7 +1173,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const query = ref.where('data', '==', data);
 
       for (let i = 0; i < 2; ++i) {
-        const deferred = new Deferred();
+        const deferred = new Deferred<void>();
         const unsubscribe = query.onSnapshot(snapshot => {
           expect(snapshot.size).to.equal(1);
           deferred.resolve();

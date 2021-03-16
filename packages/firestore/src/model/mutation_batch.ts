@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
+import { Timestamp } from '../lite/timestamp';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
 

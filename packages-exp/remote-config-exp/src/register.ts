@@ -22,7 +22,8 @@ import {
 import {
   Component,
   ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  InstanceFactoryOptions
 } from '@firebase/component';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 import { RemoteConfig } from './public_types';
@@ -53,7 +54,7 @@ export function registerRemoteConfig(): void {
 
   function remoteConfigFactory(
     container: ComponentContainer,
-    namespace?: string
+    { instanceIdentifier: namespace }: InstanceFactoryOptions
   ): RemoteConfig {
     /* Dependencies */
     // getImmediate for FirebaseApp will always succeed

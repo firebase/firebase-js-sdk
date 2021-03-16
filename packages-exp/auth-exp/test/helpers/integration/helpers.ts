@@ -15,18 +15,14 @@
  * limitations under the License.
  */
 
+import * as sinon from 'sinon';
 import { deleteApp, initializeApp } from '@firebase/app-exp';
 import { Auth, User } from '../../../src/model/public_types';
 
-import { getAuth } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
+import { getAuth, useAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../../config/project.json');
-
-export const PROJECT_ID = PROJECT_CONFIG.projectId;
-export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
-export const API_KEY = PROJECT_CONFIG.apiKey;
+import { getAppConfig, getEmulatorUrl } from './settings';
+import { resetEmulator } from './emulator_rest_helpers';
 
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
@@ -36,16 +32,22 @@ export function randomEmail(): string {
   return `${_generateEventId('test.email.')}@test.com`;
 }
 
-export function getTestInstance(): Auth {
-  const app = initializeApp({
-    apiKey: API_KEY,
-    projectId: PROJECT_ID,
-    authDomain: AUTH_DOMAIN
-  });
+export function getTestInstance(requireEmulator = false): Auth {
+  const app = initializeApp(getAppConfig());
 
   const createdUsers: User[] = [];
   const auth = getAuth(app) as IntegrationTestAuth;
   auth.settings.appVerificationDisabledForTesting = true;
+  const emulatorUrl = getEmulatorUrl();
+
+  if (emulatorUrl) {
+    const stub = stubConsoleToSilenceEmulatorWarnings();
+    useAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
+    stub.restore();
+  } else if (requireEmulator) {
+    /* Emulator wasn't configured but test must use emulator */
+    throw new Error('Test may only be run using the Auth Emulator!');
+  }
 
   auth.onAuthStateChanged(user => {
     if (user) {
@@ -54,12 +56,17 @@ export function getTestInstance(): Auth {
   });
 
   auth.cleanUp = async () => {
-    // Clear out any new users that were created in the course of the test
-    for (const user of createdUsers) {
-      try {
-        await user.delete();
-      } catch {
-        // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+    // If we're in an emulated environment, the emulator will clean up for us
+    if (emulatorUrl) {
+      await resetEmulator();
+    } else {
+      // Clear out any new users that were created in the course of the test
+      for (const user of createdUsers) {
+        try {
+          await user.delete();
+        } catch {
+          // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+        }
       }
     }
 
@@ -72,4 +79,17 @@ export function getTestInstance(): Auth {
 export async function cleanUpTestInstance(auth: Auth): Promise<void> {
   await auth.signOut();
   await (auth as IntegrationTestAuth).cleanUp();
+}
+
+function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
+  const originalConsoleInfo = console.info.bind(console);
+  return sinon.stub(console, 'info').callsFake((...args: unknown[]) => {
+    if (
+      !JSON.stringify(args[0]).includes(
+        'WARNING: You are using the Auth Emulator'
+      )
+    ) {
+      originalConsoleInfo(...args);
+    }
+  });
 }

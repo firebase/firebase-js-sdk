@@ -4,7 +4,7 @@
 
 ## GithubAuthProvider class
 
-Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.GITHUB](./auth-types.providerid.github.md)<!-- -->.
+Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.GITHUB](./auth.providerid.github.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -67,14 +67,14 @@ const token = credential.accessToken;
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [GITHUB\_SIGN\_IN\_METHOD](./auth.githubauthprovider.github_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.GITHUB](./auth-types.signinmethod.github.md)<!-- -->. |
-|  [PROVIDER\_ID](./auth.githubauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.GITHUB](./auth-types.providerid.github.md)<!-- -->. |
+|  [GITHUB\_SIGN\_IN\_METHOD](./auth.githubauthprovider.github_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.GITHUB](./auth.signinmethod.github.md)<!-- -->. |
+|  [PROVIDER\_ID](./auth.githubauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.GITHUB](./auth.providerid.github.md)<!-- -->. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [credential(accessToken)](./auth.githubauthprovider.credential.md) | <code>static</code> | Creates a credential for Github. |
-|  [credentialFromError(error)](./auth.githubauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth-types.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
-|  [credentialFromResult(userCredential)](./auth.githubauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth-types.usercredential.md)<!-- -->. |
+|  [credentialFromError(error)](./auth.githubauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
+|  [credentialFromResult(userCredential)](./auth.githubauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->. |
 

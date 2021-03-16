@@ -4,10 +4,10 @@
 
 ## EmailAuthProvider.PROVIDER\_ID property
 
-Always set to [ProviderId.PASSWORD](./auth-types.providerid.password.md)<!-- -->, even for email link.
+Always set to [ProviderId.PASSWORD](./auth.providerid.password.md)<!-- -->, even for email link.
 
 <b>Signature:</b>
 
 ```typescript
-static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
+static readonly PROVIDER_ID = ProviderId.PASSWORD;
 ```

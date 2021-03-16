@@ -21,13 +21,6 @@ import { expect } from 'chai';
 import { Blob } from '../../src/api/blob';
 import { DocumentReference } from '../../src/api/database';
 import { Timestamp } from '../../src/api/timestamp';
-import {
-  DeleteFieldValueImpl,
-  parseQueryValue,
-  parseSetData,
-  parseUpdateData,
-  UserDataReader
-} from '../../src/api/user_data_reader';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
@@ -54,6 +47,13 @@ import {
   View,
   ViewChange
 } from '../../src/core/view';
+import {
+  DeleteFieldValueImpl,
+  parseQueryValue,
+  parseSetData,
+  parseUpdateData,
+  UserDataReader
+} from '../../src/lite/user_data_reader';
 import { LocalViewChanges } from '../../src/local/local_view_changes';
 import { TargetData, TargetPurpose } from '../../src/local/target_data';
 import {

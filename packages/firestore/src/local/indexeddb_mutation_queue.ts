@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { isCollectionGroupQuery, isDocumentQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
+import { Timestamp } from '../lite/timestamp';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';

@@ -40,23 +40,21 @@ export function toByteStreamReaderHelper(
   );
   let readFrom = 0;
   const reader: ReadableStreamReader<Uint8Array> = {
-    async read(): Promise<ReadableStreamReadResult<Uint8Array>> {
+    async read(): Promise<ReadableStreamDefaultReadResult<Uint8Array>> {
       if (readFrom < source.byteLength) {
         const result = {
           value: source.slice(readFrom, readFrom + bytesPerRead),
           done: false
-        };
+        } as const;
         readFrom += bytesPerRead;
         return result;
       }
 
-      // TypesScript's lib.dom.d.ts doesn't have proper typings of
-      // ReadableStreamReadResult yet.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return { done: true } as any;
+      return { done: true };
     },
     async cancel(): Promise<void> {},
-    releaseLock() {}
+    releaseLock() {},
+    closed: Promise.reject('unimplemented')
   };
   return reader;
 }

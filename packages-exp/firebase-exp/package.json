@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.900.15",
+  "version": "0.900.17",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -40,10 +40,10 @@
     "@firebase/app-exp": "0.0.900",
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
-    "@firebase/database": "0.9.4",
+    "@firebase/database": "0.9.5",
     "@firebase/functions-exp": "0.0.900",
-    "@firebase/firestore": "2.1.7",
-    "@firebase/storage": "0.4.3",
+    "@firebase/firestore": "2.2.0",
+    "@firebase/storage": "0.4.4",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
     "@firebase/messaging-exp": "0.0.900"
@@ -52,15 +52,15 @@
     "rollup": "2.35.1",
     "@rollup/plugin-commonjs": "17.1.0",
     "rollup-plugin-license": "2.2.0",
-    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-node-resolve": "11.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.29.0",
     "rollup-plugin-uglify": "6.0.4",
     "gulp": "4.0.2",
-    "gulp-sourcemaps": "2.6.5",
+    "gulp-sourcemaps": "3.0.0",
     "gulp-concat": "2.6.1",
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   },
   "components": [
     "analytics",

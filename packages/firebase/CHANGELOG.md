@@ -1,5 +1,32 @@
 # firebase
 
+## 8.3.0
+
+### Minor Changes
+
+- [`b6080a857`](https://github.com/firebase/firebase-js-sdk/commit/b6080a857b1b56e10db041e6357acd69154e31fb) [#4577](https://github.com/firebase/firebase-js-sdk/pull/4577) - Added support to remove a FirestoreDataConverter on a Firestore reference by calling `withConverter(null)`
+
+### Patch Changes
+
+- Updated dependencies [[`ec95df3d0`](https://github.com/firebase/firebase-js-sdk/commit/ec95df3d07e5f091f2a7f7327e46417f64d04b4e), [`b6080a857`](https://github.com/firebase/firebase-js-sdk/commit/b6080a857b1b56e10db041e6357acd69154e31fb)]:
+  - @firebase/util@0.4.0
+  - @firebase/firestore@2.2.0
+  - @firebase/analytics@0.6.5
+  - @firebase/app@0.6.16
+  - @firebase/database@0.9.5
+  - @firebase/installations@0.4.21
+  - @firebase/messaging@0.7.5
+  - @firebase/performance@0.4.7
+  - @firebase/remote-config@0.1.32
+  - @firebase/storage@0.4.4
+  - @firebase/functions@0.6.3
+
+## 8.2.10
+
+### Patch Changes
+
+- [`d4ba8daa2`](https://github.com/firebase/firebase-js-sdk/commit/d4ba8daa298ec00f1800374e2bc5c6200575a233) [#4469](https://github.com/firebase/firebase-js-sdk/pull/4469) - Change the `eventParams` argument in the signature of `analytics().logEvent()` to be optional.
+
 ## 8.2.9
 
 ### Patch Changes

@@ -23,7 +23,10 @@ import {
   pathGetBack,
   pathGetFront,
   pathSlice,
-  ValidationPath
+  ValidationPath,
+  validationPathPop,
+  validationPathPush,
+  validationPathToErrorString
 } from './Path';
 import {
   contains,
@@ -119,20 +122,26 @@ export const validateFirebaseData = function (
     path_ instanceof Path ? new ValidationPath(path_, errorPrefix) : path_;
 
   if (data === undefined) {
-    throw new Error(errorPrefix + 'contains undefined ' + path.toErrorString());
+    throw new Error(
+      errorPrefix + 'contains undefined ' + validationPathToErrorString(path)
+    );
   }
   if (typeof data === 'function') {
     throw new Error(
       errorPrefix +
         'contains a function ' +
-        path.toErrorString() +
+        validationPathToErrorString(path) +
         ' with contents = ' +
         data.toString()
     );
   }
   if (isInvalidJSONNumber(data)) {
     throw new Error(
-      errorPrefix + 'contains ' + data.toString() + ' ' + path.toErrorString()
+      errorPrefix +
+        'contains ' +
+        data.toString() +
+        ' ' +
+        validationPathToErrorString(path)
     );
   }
 
@@ -147,7 +156,7 @@ export const validateFirebaseData = function (
         'contains a string greater than ' +
         MAX_LEAF_SIZE_ +
         ' utf8 bytes ' +
-        path.toErrorString() +
+        validationPathToErrorString(path) +
         " ('" +
         data.substring(0, 50) +
         "...')"
@@ -170,23 +179,23 @@ export const validateFirebaseData = function (
               ' contains an invalid key (' +
               key +
               ') ' +
-              path.toErrorString() +
+              validationPathToErrorString(path) +
               '.  Keys must be non-empty strings ' +
               'and can\'t contain ".", "#", "$", "/", "[", or "]"'
           );
         }
       }
 
-      path.push(key);
+      validationPathPush(path, key);
       validateFirebaseData(errorPrefix, value, path);
-      path.pop();
+      validationPathPop(path);
     });
 
     if (hasDotValue && hasActualChild) {
       throw new Error(
         errorPrefix +
           ' contains ".value" child ' +
-          path.toErrorString() +
+          validationPathToErrorString(path) +
           ' in addition to actual children.'
       );
     }

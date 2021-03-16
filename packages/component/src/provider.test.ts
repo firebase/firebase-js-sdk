@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import { fake, SinonSpy } from 'sinon';
 import { ComponentContainer } from './component_container';
 import { FirebaseService } from '@firebase/app-types/private';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { _FirebaseService } from '@firebase/app-exp';
 import { Provider } from './provider';
 import { getFakeApp, getFakeComponent } from '../test/util';
@@ -100,6 +101,34 @@ describe('Provider', () => {
     expect(() => provider.setComponent(component)).to.not.throw();
   });
 
+  describe('initialize()', () => {
+    it('throws if the provider is already initialized', () => {
+      provider.setComponent(getFakeComponent('test', () => ({})));
+      provider.initialize();
+
+      expect(() => provider.initialize()).to.throw();
+    });
+
+    it('throws if the component has not been registered', () => {
+      expect(() => provider.initialize()).to.throw();
+    });
+
+    it('accepts an options parameter and passes it to the instance factory', () => {
+      const options = {
+        configurable: true,
+        test: true
+      };
+      provider.setComponent(
+        getFakeComponent('test', (_container, opts) => ({
+          options: opts.options
+        }))
+      );
+      const instance = provider.initialize({ options });
+
+      expect((instance as any).options).to.deep.equal(options);
+    });
+  });
+
   describe('Provider (multipleInstances = false)', () => {
     describe('getImmediate()', () => {
       it('throws if the service is not available', () => {
@@ -154,7 +183,7 @@ describe('Provider', () => {
       });
     });
 
-    describe('provideFactory()', () => {
+    describe('setComponent()', () => {
       it('instantiates the service if there is a pending promise and the service is eager', () => {
         // create a pending promise
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -319,7 +348,7 @@ describe('Provider', () => {
       });
     });
 
-    describe('provideFactory()', () => {
+    describe('setComponent()', () => {
       it('instantiates services for the pending promises for all instance identifiers', async () => {
         /* eslint-disable @typescript-eslint/no-floating-promises */
         // create 3 promises for 3 different identifiers

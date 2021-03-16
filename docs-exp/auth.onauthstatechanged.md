@@ -9,15 +9,15 @@ Adds an observer for changes to the user's sign-in state.
 <b>Signature:</b>
 
 ```typescript
-export declare function onAuthStateChanged(auth: externs.Auth, nextOrObserver: externs.NextOrObserver<externs.User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
+export declare function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
-|  nextOrObserver | externs.[NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;externs.[User](./auth-types.user.md)<!-- -->&gt; | callback triggered on change. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
+|  nextOrObserver | NextOrObserver&lt;[User](./auth.user.md)<!-- -->&gt; | callback triggered on change. |
 |  error | ErrorFn | callback triggered on error. |
 |  completed | CompleteFn | callback triggered when observer is removed. |
 

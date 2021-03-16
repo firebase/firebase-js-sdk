@@ -52,6 +52,7 @@ const INITIAL_EVENT_TIMEOUT_MS = 500;
 
 class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
   readonly _redirectPersistence = browserSessionPersistence;
+  readonly _shouldInitProactively = true; // This is lightweight for Cordova
   private readonly eventManagers = new Map<string, CordovaAuthEventManager>();
 
   _completeRedirectFn = _getRedirectResult;

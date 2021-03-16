@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '../index';
+import {
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary,
+  _performSignInRequest
+} from '../index';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
 import { Auth } from '../../model/public_types';
 
 export interface SignInWithIdpRequest {
   requestUri: string;
-  postBody: string | null;
+  postBody?: string;
   sessionId?: string;
   tenantId?: string;
   returnSecureToken: boolean;
@@ -47,6 +52,6 @@ export async function signInWithIdp(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_IN_WITH_IDP,
-    request
+    _addTidIfNecessary(auth, request)
   );
 }

@@ -25,7 +25,7 @@ import { FirebaseError } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
-import { OAuthProvider } from './oauth';
+import { BaseOAuthProvider } from './oauth';
 
 /**
  * Provider for generating an {@link OAuthCredential} for {@link ProviderId.FACEBOOK}.
@@ -66,7 +66,7 @@ import { OAuthProvider } from './oauth';
  *
  * @public
  */
-export class FacebookAuthProvider extends OAuthProvider {
+export class FacebookAuthProvider extends BaseOAuthProvider {
   /** Always set to {@link SignInMethod.FACEBOOK}. */
   static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
   /** Always set to {@link ProviderId.FACEBOOK}. */

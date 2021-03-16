@@ -58,20 +58,58 @@ export function useAuthEmulator(
     AuthErrorCode.INVALID_EMULATOR_SCHEME
   );
 
-  const parsedUrl = new URL(url);
   const disableWarnings = !!options?.disableWarnings;
 
-  // Store the normalized URL whose path is always nonempty (i.e. containing at least a single '/').
-  authInternal.config.emulator = { url: parsedUrl.toString() };
+  const protocol = extractProtocol(url);
+  const { host, port } = extractHostAndPort(url);
+  const portStr = port === null ? '' : `:${port}`;
+
+  // Always replace path with "/" (even if input url had no path at all, or had a different one).
+  authInternal.config.emulator = { url: `${protocol}//${host}${portStr}/` };
   authInternal.settings.appVerificationDisabledForTesting = true;
   authInternal.emulatorConfig = Object.freeze({
-    host: parsedUrl.hostname,
-    port: parsedUrl.port ? Number(parsedUrl.port) : null,
-    protocol: parsedUrl.protocol.replace(':', ''),
+    host,
+    port,
+    protocol: protocol.replace(':', ''),
     options: Object.freeze({ disableWarnings })
   });
 
   emitEmulatorWarning(disableWarnings);
+}
+
+function extractProtocol(url: string): string {
+  const protocolEnd = url.indexOf(':');
+  return protocolEnd < 0 ? '' : url.substr(0, protocolEnd + 1);
+}
+
+function extractHostAndPort(
+  url: string
+): { host: string; port: number | null } {
+  const protocol = extractProtocol(url);
+  const authority = /(\/\/)?([^?#/]+)/.exec(url.substr(protocol.length)); // Between // and /, ? or #.
+  if (!authority) {
+    return { host: '', port: null };
+  }
+  const hostAndPort = authority[2].split('@').pop() || ''; // Strip out "username:password@".
+  const bracketedIPv6 = /^(\[[^\]]+\])(:|$)/.exec(hostAndPort);
+  if (bracketedIPv6) {
+    const host = bracketedIPv6[1];
+    return { host, port: parsePort(hostAndPort.substr(host.length + 1)) };
+  } else {
+    const [host, port] = hostAndPort.split(':');
+    return { host, port: parsePort(port) };
+  }
+}
+
+function parsePort(portStr: string): number | null {
+  if (!portStr) {
+    return null;
+  }
+  const port = Number(portStr);
+  if (isNaN(port)) {
+    return null;
+  }
+  return port;
 }
 
 function emitEmulatorWarning(disableBanner: boolean): void {

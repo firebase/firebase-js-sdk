@@ -15,11 +15,19 @@
  * limitations under the License.
  */
 
+import { resolve } from 'path';
 import { projectRoot, readPackageJson } from '../utils';
-import { writeFile as _writeFile, readFile as _readFile } from 'fs';
-import { promisify } from 'util';
+import {
+  writeFileSync,
+  statSync,
+  readFileSync,
+  existsSync,
+  rmdirSync,
+  readdirSync,
+  mkdirSync,
+  copyFileSync
+} from 'fs';
 
-const writeFile = promisify(_writeFile);
 const packagePath = `${projectRoot}/packages/firestore`;
 
 /**
@@ -65,9 +73,91 @@ export async function prepare() {
   ];
 
   // update package.json files
-  await writeFile(
+  writeFileSync(
     `${packagePath}/package.json`,
     `${JSON.stringify(packageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
+}
+
+const FIRESTORE_SRC = resolve(projectRoot, 'packages/firestore');
+const FIRESTORE_COMPAT_SRC = resolve(projectRoot, 'packages/firestore/compat');
+const FIRESTORE_COMPAT_DEST = resolve(
+  projectRoot,
+  'packages-exp/firestore-compat'
+);
+const FIRESTORE_COMPAT_BINARY_SRC = resolve(FIRESTORE_SRC, 'dist/compat');
+const FIRESTORE_COMPAT_BINARY_DEST = resolve(FIRESTORE_COMPAT_DEST, 'dist');
+
+export async function createFirestoreCompatProject() {
+  // remove the dir if it exists
+  if (existsSync(FIRESTORE_COMPAT_DEST)) {
+    rmdirSync(FIRESTORE_COMPAT_DEST, { recursive: true });
+  }
+
+  copyRecursiveSync(FIRESTORE_COMPAT_SRC, FIRESTORE_COMPAT_DEST);
+  copyRecursiveSync(
+    FIRESTORE_COMPAT_BINARY_SRC,
+    FIRESTORE_COMPAT_BINARY_DEST,
+    /* include d.ts files*/ true
+  );
+
+  // update root package.json
+  await transformFile(
+    resolve(FIRESTORE_COMPAT_DEST, 'package.json'),
+    async content => {
+      const updatedContent = content.replace(/\.\.\/dist\/compat/g, './dist');
+      const compatPkgJson = JSON.parse(updatedContent);
+
+      const firestorePkgJson = await readPackageJson(FIRESTORE_SRC);
+
+      compatPkgJson.dependencies = {
+        ...firestorePkgJson.dependencies,
+        '@firebase/firestore': '0.0.900'
+      };
+
+      compatPkgJson.peerDependencies = {
+        '@firebase/app': '0.x'
+      };
+
+      compatPkgJson.files = ['dist'];
+
+      return `${JSON.stringify(compatPkgJson, null, 2)}\n`;
+    }
+  );
+}
+
+function copyRecursiveSync(
+  src: string,
+  dest: string,
+  includeTs: boolean = false
+) {
+  if (!existsSync(src)) {
+    return;
+  }
+
+  const srcStat = statSync(src);
+  const isDirectory = srcStat.isDirectory();
+  if (isDirectory) {
+    mkdirSync(dest);
+    for (const item of readdirSync(src)) {
+      copyRecursiveSync(resolve(src, item), resolve(dest, item), includeTs);
+    }
+  } else {
+    // do not copy source file
+    if (src.includes('.ts') && !includeTs) {
+      return;
+    }
+
+    copyFileSync(src, dest);
+  }
+}
+
+async function transformFile(
+  path: string,
+  transformer: (content: string) => Promise<string>
+) {
+  let content = readFileSync(path, 'utf8');
+
+  writeFileSync(path, await transformer(content), { encoding: 'utf8' });
 }

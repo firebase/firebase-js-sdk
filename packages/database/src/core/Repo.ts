@@ -35,7 +35,20 @@ import {
   sparseSnapshotTreeForget,
   sparseSnapshotTreeRemember
 } from './SparseSnapshotTree';
-import { SyncTree } from './SyncTree';
+import {
+  SyncTree,
+  syncTreeAckUserWrite,
+  syncTreeAddEventRegistration,
+  syncTreeApplyServerMerge,
+  syncTreeApplyServerOverwrite,
+  syncTreeApplyTaggedQueryMerge,
+  syncTreeApplyTaggedQueryOverwrite,
+  syncTreeApplyUserMerge,
+  syncTreeApplyUserOverwrite,
+  syncTreeCalcCompleteEventCache,
+  syncTreeGetServerValue,
+  syncTreeRemoveEventRegistration
+} from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
 import {
   assert,
@@ -59,7 +72,7 @@ import {
   statsManagerGetCollection,
   statsManagerGetOrCreateReporter
 } from './stats/StatsManager';
-import { StatsReporter } from './stats/StatsReporter';
+import { StatsReporter, statsReporterIncludeStat } from './stats/StatsReporter';
 import { StatsListener } from './stats/StatsListener';
 import {
   EventQueue,
@@ -79,7 +92,17 @@ import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
 import { Node } from './snap/Node';
 import { Indexable } from './util/misc';
-import { Tree } from './util/Tree';
+import {
+  Tree,
+  treeForEachAncestor,
+  treeForEachChild,
+  treeForEachDescendant,
+  treeGetPath,
+  treeGetValue,
+  treeHasChildren,
+  treeSetValue,
+  treeSubTree
+} from './util/Tree';
 import { isValidPriority, validateFirebaseData } from './util/validation';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
@@ -262,7 +285,11 @@ export function repoStart(repo: Repo): void {
       // This is possibly a hack, but we have different semantics for .info endpoints. We don't raise null events
       // on initial data...
       if (!node.isEmpty()) {
-        infoEvents = repo.infoSyncTree_.applyServerOverwrite(query.path, node);
+        infoEvents = syncTreeApplyServerOverwrite(
+          repo.infoSyncTree_,
+          query.path,
+          node
+        );
         setTimeout(() => {
           onComplete('ok');
         }, 0);
@@ -333,14 +360,16 @@ function repoOnDataUpdate(
         data as { [k: string]: unknown },
         (raw: unknown) => nodeFromJSON(raw)
       );
-      events = repo.serverSyncTree_.applyTaggedQueryMerge(
+      events = syncTreeApplyTaggedQueryMerge(
+        repo.serverSyncTree_,
         path,
         taggedChildren,
         tag
       );
     } else {
       const taggedSnap = nodeFromJSON(data);
-      events = repo.serverSyncTree_.applyTaggedQueryOverwrite(
+      events = syncTreeApplyTaggedQueryOverwrite(
+        repo.serverSyncTree_,
         path,
         taggedSnap,
         tag
@@ -351,10 +380,14 @@ function repoOnDataUpdate(
       data as { [k: string]: unknown },
       (raw: unknown) => nodeFromJSON(raw)
     );
-    events = repo.serverSyncTree_.applyServerMerge(path, changedChildren);
+    events = syncTreeApplyServerMerge(
+      repo.serverSyncTree_,
+      path,
+      changedChildren
+    );
   } else {
     const snap = nodeFromJSON(data);
-    events = repo.serverSyncTree_.applyServerOverwrite(path, snap);
+    events = syncTreeApplyServerOverwrite(repo.serverSyncTree_, path, snap);
   }
   let affectedPath = path;
   if (events.length > 0) {
@@ -390,7 +423,11 @@ function repoUpdateInfo(repo: Repo, pathString: string, value: unknown): void {
   const path = new Path('/.info/' + pathString);
   const newNode = nodeFromJSON(value);
   repo.infoData_.updateSnapshot(path, newNode);
-  const events = repo.infoSyncTree_.applyServerOverwrite(path, newNode);
+  const events = syncTreeApplyServerOverwrite(
+    repo.infoSyncTree_,
+    path,
+    newNode
+  );
   eventQueueRaiseEventsForChangedPath(repo.eventQueue_, path, events);
 }
 
@@ -415,7 +452,7 @@ function repoGetNextWriteId(repo: Repo): number {
  */
 export function repoGetValue(repo: Repo, query: Query): Promise<DataSnapshot> {
   // Only active queries are cached. There is no persisted cache.
-  const cached = repo.serverSyncTree_.getServerValue(query);
+  const cached = syncTreeGetServerValue(repo.serverSyncTree_, query);
   if (cached != null) {
     return Promise.resolve(
       new DataSnapshot(
@@ -428,7 +465,8 @@ export function repoGetValue(repo: Repo, query: Query): Promise<DataSnapshot> {
   return repo.server_.get(query).then(
     payload => {
       const node = nodeFromJSON(payload as string);
-      const events = repo.serverSyncTree_.applyServerOverwrite(
+      const events = syncTreeApplyServerOverwrite(
+        repo.serverSyncTree_,
         query.path,
         node
       );
@@ -465,7 +503,7 @@ export function repoSetWithPriority(
   // (b) store unresolved paths on JSON parse
   const serverValues = repoGenerateServerValues(repo);
   const newNodeUnresolved = nodeFromJSON(newVal, newPriority);
-  const existing = repo.serverSyncTree_.calcCompleteEventCache(path);
+  const existing = syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path);
   const newNode = resolveDeferredValueSnapshot(
     newNodeUnresolved,
     existing,
@@ -473,7 +511,8 @@ export function repoSetWithPriority(
   );
 
   const writeId = repoGetNextWriteId(repo);
-  const events = repo.serverSyncTree_.applyUserOverwrite(
+  const events = syncTreeApplyUserOverwrite(
+    repo.serverSyncTree_,
     path,
     newNode,
     writeId,
@@ -489,7 +528,11 @@ export function repoSetWithPriority(
         warn('set at ' + path + ' failed: ' + status);
       }
 
-      const clearEvents = repo.serverSyncTree_.ackUserWrite(writeId, !success);
+      const clearEvents = syncTreeAckUserWrite(
+        repo.serverSyncTree_,
+        writeId,
+        !success
+      );
       eventQueueRaiseEventsForChangedPath(repo.eventQueue_, path, clearEvents);
       repoCallOnCompleteCallback(repo, onComplete, status, errorReason);
     }
@@ -524,7 +567,8 @@ export function repoUpdate(
 
   if (!empty) {
     const writeId = repoGetNextWriteId(repo);
-    const events = repo.serverSyncTree_.applyUserMerge(
+    const events = syncTreeApplyUserMerge(
+      repo.serverSyncTree_,
       path,
       changedChildren,
       writeId
@@ -539,7 +583,8 @@ export function repoUpdate(
           warn('update at ' + path + ' failed: ' + status);
         }
 
-        const clearEvents = repo.serverSyncTree_.ackUserWrite(
+        const clearEvents = syncTreeAckUserWrite(
+          repo.serverSyncTree_,
           writeId,
           !success
         );
@@ -598,7 +643,7 @@ function repoRunOnDisconnectEvents(repo: Repo): void {
     newEmptyPath(),
     (path, snap) => {
       events = events.concat(
-        repo.serverSyncTree_.applyServerOverwrite(path, snap)
+        syncTreeApplyServerOverwrite(repo.serverSyncTree_, path, snap)
       );
       const affectedPath = repoAbortTransactions(repo, path);
       repoRerunTransactions(repo, affectedPath);
@@ -699,9 +744,14 @@ export function repoAddEventCallbackForQuery(
 ): void {
   let events;
   if (pathGetFront(query.path) === '.info') {
-    events = repo.infoSyncTree_.addEventRegistration(query, eventRegistration);
+    events = syncTreeAddEventRegistration(
+      repo.infoSyncTree_,
+      query,
+      eventRegistration
+    );
   } else {
-    events = repo.serverSyncTree_.addEventRegistration(
+    events = syncTreeAddEventRegistration(
+      repo.serverSyncTree_,
       query,
       eventRegistration
     );
@@ -718,12 +768,14 @@ export function repoRemoveEventCallbackForQuery(
   // a little bit by handling the return values anyways.
   let events;
   if (pathGetFront(query.path) === '.info') {
-    events = repo.infoSyncTree_.removeEventRegistration(
+    events = syncTreeRemoveEventRegistration(
+      repo.infoSyncTree_,
       query,
       eventRegistration
     );
   } else {
-    events = repo.serverSyncTree_.removeEventRegistration(
+    events = syncTreeRemoveEventRegistration(
+      repo.serverSyncTree_,
       query,
       eventRegistration
     );
@@ -776,7 +828,7 @@ export function repoStats(repo: Repo, showDelta: boolean = false): void {
 
 export function repoStatsIncrementCounter(repo: Repo, metric: string): void {
   repo.stats_.incrementCounter(metric);
-  repo.statsReporter_.includeStat(metric);
+  statsReporterIncludeStat(repo.statsReporter_, metric);
 }
 
 function repoLog(repo: Repo, ...varArgs: unknown[]): void {
@@ -895,11 +947,11 @@ export function repoStartTransaction(
 
     // Mark as run and add to our queue.
     transaction.status = TransactionStatus.RUN;
-    const queueNode = repo.transactionQueueTree_.subTree(path);
-    const nodeQueue = queueNode.getValue() || [];
+    const queueNode = treeSubTree(repo.transactionQueueTree_, path);
+    const nodeQueue = treeGetValue(queueNode) || [];
     nodeQueue.push(transaction);
 
-    queueNode.setValue(nodeQueue);
+    treeSetValue(queueNode, nodeQueue);
 
     // Update visibleData and raise events
     // Note: We intentionally raise events after updating all of our
@@ -920,7 +972,7 @@ export function repoStartTransaction(
       );
     } else {
       const currentNode =
-        repo.serverSyncTree_.calcCompleteEventCache(path) ||
+        syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path) ||
         ChildrenNode.EMPTY_NODE;
       priorityForNode = currentNode.getPriority().val();
     }
@@ -936,7 +988,8 @@ export function repoStartTransaction(
     transaction.currentOutputSnapshotResolved = newNode;
     transaction.currentWriteId = repoGetNextWriteId(repo);
 
-    const events = repo.serverSyncTree_.applyUserOverwrite(
+    const events = syncTreeApplyUserOverwrite(
+      repo.serverSyncTree_,
       path,
       newNode,
       transaction.currentWriteId,
@@ -957,7 +1010,7 @@ function repoGetLatestState(
   excludeSets?: number[]
 ): Node {
   return (
-    repo.serverSyncTree_.calcCompleteEventCache(path, excludeSets) ||
+    syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path, excludeSets) ||
     ChildrenNode.EMPTY_NODE
   );
 }
@@ -980,7 +1033,7 @@ function repoSendReadyTransactions(
     repoPruneCompletedTransactionsBelowNode(repo, node);
   }
 
-  if (node.getValue() !== null) {
+  if (treeGetValue(node)) {
     const queue = repoBuildTransactionQueue(repo, node);
     assert(queue.length > 0, 'Sending zero length transaction queue');
 
@@ -990,10 +1043,10 @@ function repoSendReadyTransactions(
 
     // If they're all run (and not sent), we can send them.  Else, we must wait.
     if (allRun) {
-      repoSendTransactionQueue(repo, node.path(), queue);
+      repoSendTransactionQueue(repo, treeGetPath(node), queue);
     }
-  } else if (node.hasChildren()) {
-    node.forEachChild(childNode => {
+  } else if (treeHasChildren(node)) {
+    treeForEachChild(node, childNode => {
       repoSendReadyTransactions(repo, childNode);
     });
   }
@@ -1056,7 +1109,7 @@ function repoSendTransactionQueue(
         for (let i = 0; i < queue.length; i++) {
           queue[i].status = TransactionStatus.COMPLETED;
           events = events.concat(
-            repo.serverSyncTree_.ackUserWrite(queue[i].currentWriteId)
+            syncTreeAckUserWrite(repo.serverSyncTree_, queue[i].currentWriteId)
           );
           if (queue[i].onComplete) {
             // We never unset the output snapshot, and given that this
@@ -1074,7 +1127,7 @@ function repoSendTransactionQueue(
         // Now remove the completed transactions.
         repoPruneCompletedTransactionsBelowNode(
           repo,
-          repo.transactionQueueTree_.subTree(path)
+          treeSubTree(repo.transactionQueueTree_, path)
         );
         // There may be pending transactions that we can now send.
         repoSendReadyTransactions(repo, repo.transactionQueueTree_);
@@ -1128,7 +1181,7 @@ function repoRerunTransactions(repo: Repo, changedPath: Path): Path {
     repo,
     changedPath
   );
-  const path = rootMostTransactionNode.path();
+  const path = treeGetPath(rootMostTransactionNode);
 
   const queue = repoBuildTransactionQueue(repo, rootMostTransactionNode);
   repoRerunTransactionQueue(repo, queue, path);
@@ -1178,14 +1231,22 @@ function repoRerunTransactionQueue(
       abortTransaction = true;
       abortReason = transaction.abortReason;
       events = events.concat(
-        repo.serverSyncTree_.ackUserWrite(transaction.currentWriteId, true)
+        syncTreeAckUserWrite(
+          repo.serverSyncTree_,
+          transaction.currentWriteId,
+          true
+        )
       );
     } else if (transaction.status === TransactionStatus.RUN) {
       if (transaction.retryCount >= MAX_TRANSACTION_RETRIES) {
         abortTransaction = true;
         abortReason = 'maxretry';
         events = events.concat(
-          repo.serverSyncTree_.ackUserWrite(transaction.currentWriteId, true)
+          syncTreeAckUserWrite(
+            repo.serverSyncTree_,
+            transaction.currentWriteId,
+            true
+          )
         );
       } else {
         // This code reruns a transaction
@@ -1226,7 +1287,8 @@ function repoRerunTransactionQueue(
           // Mutates setsToIgnore in place
           setsToIgnore.splice(setsToIgnore.indexOf(oldWriteId), 1);
           events = events.concat(
-            repo.serverSyncTree_.applyUserOverwrite(
+            syncTreeApplyUserOverwrite(
+              repo.serverSyncTree_,
               transaction.path,
               newNodeResolved,
               transaction.currentWriteId,
@@ -1234,13 +1296,17 @@ function repoRerunTransactionQueue(
             )
           );
           events = events.concat(
-            repo.serverSyncTree_.ackUserWrite(oldWriteId, true)
+            syncTreeAckUserWrite(repo.serverSyncTree_, oldWriteId, true)
           );
         } else {
           abortTransaction = true;
           abortReason = 'nodata';
           events = events.concat(
-            repo.serverSyncTree_.ackUserWrite(transaction.currentWriteId, true)
+            syncTreeAckUserWrite(
+              repo.serverSyncTree_,
+              transaction.currentWriteId,
+              true
+            )
           );
         }
       }
@@ -1304,8 +1370,8 @@ function repoGetAncestorTransactionNode(
   // find a node with pending transactions.
   let transactionNode = repo.transactionQueueTree_;
   front = pathGetFront(path);
-  while (front !== null && transactionNode.getValue() === null) {
-    transactionNode = transactionNode.subTree(front);
+  while (front !== null && treeGetValue(transactionNode) === undefined) {
+    transactionNode = treeSubTree(transactionNode, front);
     path = pathPopFront(path);
     front = pathGetFront(path);
   }
@@ -1333,9 +1399,7 @@ function repoBuildTransactionQueue(
   );
 
   // Sort them by the order the transactions were created.
-  transactionQueue.sort((a, b) => {
-    return a.order - b.order;
-  });
+  transactionQueue.sort((a, b) => a.order - b.order);
 
   return transactionQueue;
 }
@@ -1345,14 +1409,14 @@ function repoAggregateTransactionQueuesForNode(
   node: Tree<Transaction[]>,
   queue: Transaction[]
 ): void {
-  const nodeQueue = node.getValue();
-  if (nodeQueue !== null) {
+  const nodeQueue = treeGetValue(node);
+  if (nodeQueue) {
     for (let i = 0; i < nodeQueue.length; i++) {
       queue.push(nodeQueue[i]);
     }
   }
 
-  node.forEachChild(child => {
+  treeForEachChild(node, child => {
     repoAggregateTransactionQueuesForNode(repo, child, queue);
   });
 }
@@ -1364,7 +1428,7 @@ function repoPruneCompletedTransactionsBelowNode(
   repo: Repo,
   node: Tree<Transaction[]>
 ): void {
-  const queue = node.getValue();
+  const queue = treeGetValue(node);
   if (queue) {
     let to = 0;
     for (let from = 0; from < queue.length; from++) {
@@ -1374,10 +1438,10 @@ function repoPruneCompletedTransactionsBelowNode(
       }
     }
     queue.length = to;
-    node.setValue(queue.length > 0 ? queue : null);
+    treeSetValue(node, queue.length > 0 ? queue : undefined);
   }
 
-  node.forEachChild(childNode => {
+  treeForEachChild(node, childNode => {
     repoPruneCompletedTransactionsBelowNode(repo, childNode);
   });
 }
@@ -1390,17 +1454,17 @@ function repoPruneCompletedTransactionsBelowNode(
  * @param path Path for which we want to abort related transactions.
  */
 function repoAbortTransactions(repo: Repo, path: Path): Path {
-  const affectedPath = repoGetAncestorTransactionNode(repo, path).path();
+  const affectedPath = treeGetPath(repoGetAncestorTransactionNode(repo, path));
 
-  const transactionNode = repo.transactionQueueTree_.subTree(path);
+  const transactionNode = treeSubTree(repo.transactionQueueTree_, path);
 
-  transactionNode.forEachAncestor((node: Tree<Transaction[]>) => {
+  treeForEachAncestor(transactionNode, (node: Tree<Transaction[]>) => {
     repoAbortTransactionsOnNode(repo, node);
   });
 
   repoAbortTransactionsOnNode(repo, transactionNode);
 
-  transactionNode.forEachDescendant((node: Tree<Transaction[]>) => {
+  treeForEachDescendant(transactionNode, (node: Tree<Transaction[]>) => {
     repoAbortTransactionsOnNode(repo, node);
   });
 
@@ -1416,8 +1480,8 @@ function repoAbortTransactionsOnNode(
   repo: Repo,
   node: Tree<Transaction[]>
 ): void {
-  const queue = node.getValue();
-  if (queue !== null) {
+  const queue = treeGetValue(node);
+  if (queue) {
     // Queue up the callbacks and fire them after cleaning up all of our
     // transaction state, since the callback could trigger more transactions
     // or sets.
@@ -1447,7 +1511,11 @@ function repoAbortTransactionsOnNode(
         // We can abort it immediately.
         queue[i].unwatcher();
         events = events.concat(
-          repo.serverSyncTree_.ackUserWrite(queue[i].currentWriteId, true)
+          syncTreeAckUserWrite(
+            repo.serverSyncTree_,
+            queue[i].currentWriteId,
+            true
+          )
         );
         if (queue[i].onComplete) {
           const snapshot: DataSnapshot | null = null;
@@ -1459,14 +1527,18 @@ function repoAbortTransactionsOnNode(
     }
     if (lastSent === -1) {
       // We're not waiting for any sent transactions.  We can clear the queue.
-      node.setValue(null);
+      treeSetValue(node, undefined);
     } else {
       // Remove the transactions we aborted.
       queue.length = lastSent + 1;
     }
 
     // Now fire the callbacks.
-    eventQueueRaiseEventsForChangedPath(repo.eventQueue_, node.path(), events);
+    eventQueueRaiseEventsForChangedPath(
+      repo.eventQueue_,
+      treeGetPath(node),
+      events
+    );
     for (let i = 0; i < callbacks.length; i++) {
       exceptionGuard(callbacks[i]);
     }

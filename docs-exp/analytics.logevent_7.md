@@ -21,10 +21,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'login
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'login' |  |
-|  eventParams | { method?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['method'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { method?: [EventParams](./analytics.eventparams.md)<!-- -->\['method'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

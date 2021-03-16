@@ -16,10 +16,12 @@ export declare function onMessage(messaging: FirebaseMessaging, nextOrObserver: 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | FirebaseMessaging | : the messaging instance. |
-|  nextOrObserver | NextFn&lt;MessagePayload&gt; \| Observer&lt;MessagePayload&gt; | This function, or observer object with <code>next</code> defined, is called when a message is received and the user is currently viewing your page.  To stop listening for messages execute this returned function. |
+|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | the messaging instance. |
+|  nextOrObserver | NextFn&lt;[MessagePayload](./messaging.messagepayload.md)<!-- -->&gt; \| Observer&lt;[MessagePayload](./messaging.messagepayload.md)<!-- -->&gt; | This function, or observer object with <code>next</code> defined, is called when a message is received and the user is currently viewing your page. |
 
 <b>Returns:</b>
 
 Unsubscribe
+
+To stop listening for messages execute this returned function.
 

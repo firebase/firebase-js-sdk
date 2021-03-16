@@ -4,10 +4,10 @@
 
 ## PhoneAuthProvider.PHONE\_SIGN\_IN\_METHOD property
 
-Always set to [SignInMethod.PHONE](./auth-types.signinmethod.phone.md)<!-- -->.
+Always set to [SignInMethod.PHONE](./auth.signinmethod.phone.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
+static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
 ```

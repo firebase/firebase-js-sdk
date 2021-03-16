@@ -21,15 +21,6 @@ import {
 } from '@firebase/firestore-types';
 
 import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  ParsedUpdateData,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs,
-  UntypedFirestoreDataConverter
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
 import { hasLimitToLast } from '../core/query';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
@@ -59,6 +50,15 @@ import {
   QueryDocumentSnapshot,
   QuerySnapshot
 } from './snapshot';
+import {
+  newUserDataReader,
+  ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
+  UntypedFirestoreDataConverter
+} from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * Converts custom model object of type T into DocumentData by applying the

@@ -23,51 +23,54 @@ import { Node } from '../snap/Node';
  *
  * serverSnap is the cached server data, eventSnap is the cached event data (server data plus any local writes).
  */
-export class ViewCache {
-  constructor(
-    private readonly eventCache_: CacheNode,
-    private readonly serverCache_: CacheNode
-  ) {}
+export interface ViewCache {
+  readonly eventCache: CacheNode;
+  readonly serverCache: CacheNode;
+}
 
-  updateEventSnap(
-    eventSnap: Node,
-    complete: boolean,
-    filtered: boolean
-  ): ViewCache {
-    return new ViewCache(
-      new CacheNode(eventSnap, complete, filtered),
-      this.serverCache_
-    );
-  }
+export function newViewCache(
+  eventCache: CacheNode,
+  serverCache: CacheNode
+): ViewCache {
+  return { eventCache, serverCache };
+}
 
-  updateServerSnap(
-    serverSnap: Node,
-    complete: boolean,
-    filtered: boolean
-  ): ViewCache {
-    return new ViewCache(
-      this.eventCache_,
-      new CacheNode(serverSnap, complete, filtered)
-    );
-  }
+export function viewCacheUpdateEventSnap(
+  viewCache: ViewCache,
+  eventSnap: Node,
+  complete: boolean,
+  filtered: boolean
+): ViewCache {
+  return newViewCache(
+    new CacheNode(eventSnap, complete, filtered),
+    viewCache.serverCache
+  );
+}
 
-  getEventCache(): CacheNode {
-    return this.eventCache_;
-  }
+export function viewCacheUpdateServerSnap(
+  viewCache: ViewCache,
+  serverSnap: Node,
+  complete: boolean,
+  filtered: boolean
+): ViewCache {
+  return newViewCache(
+    viewCache.eventCache,
+    new CacheNode(serverSnap, complete, filtered)
+  );
+}
 
-  getCompleteEventSnap(): Node | null {
-    return this.eventCache_.isFullyInitialized()
-      ? this.eventCache_.getNode()
-      : null;
-  }
+export function viewCacheGetCompleteEventSnap(
+  viewCache: ViewCache
+): Node | null {
+  return viewCache.eventCache.isFullyInitialized()
+    ? viewCache.eventCache.getNode()
+    : null;
+}
 
-  getServerCache(): CacheNode {
-    return this.serverCache_;
-  }
-
-  getCompleteServerSnap(): Node | null {
-    return this.serverCache_.isFullyInitialized()
-      ? this.serverCache_.getNode()
-      : null;
-  }
+export function viewCacheGetCompleteServerSnap(
+  viewCache: ViewCache
+): Node | null {
+  return viewCache.serverCache.isFullyInitialized()
+    ? viewCache.serverCache.getNode()
+    : null;
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
+import { Timestamp } from '../lite/timestamp';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { Serializer, toDouble, toInteger } from '../remote/number_serializer';
 import { debugAssert } from '../util/assert';

@@ -9,9 +9,12 @@ A utility class to parse email action URLs such as password reset, email verific
 <b>Signature:</b>
 
 ```typescript
-export declare class ActionCodeURL implements externs.ActionCodeURL 
+export declare class ActionCodeURL 
 ```
-<b>Implements:</b> externs.[ActionCodeURL](./auth-types.actioncodeurl.md)
+
+## Remarks
+
+The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `ActionCodeURL` class.
 
 ## Properties
 
@@ -21,7 +24,7 @@ export declare class ActionCodeURL implements externs.ActionCodeURL
 |  [code](./auth.actioncodeurl.code.md) |  | string | The action code of the email action link. |
 |  [continueUrl](./auth.actioncodeurl.continueurl.md) |  | string \| null | The continue URL of the email action link. Null if not provided. |
 |  [languageCode](./auth.actioncodeurl.languagecode.md) |  | string \| null | The language code of the email action link. Null if not provided. |
-|  [operation](./auth.actioncodeurl.operation.md) |  | externs.[ActionCodeOperation](./auth-types.actioncodeoperation.md) | The action performed by the email action link. It returns from one of the types from [ActionCodeInfo](./auth-types.actioncodeinfo.md) |
+|  [operation](./auth.actioncodeurl.operation.md) |  | [ActionCodeOperation](./auth.actioncodeoperation.md) | The action performed by the email action link. It returns from one of the types from [ActionCodeInfo](./auth.actioncodeinfo.md) |
 |  [tenantId](./auth.actioncodeurl.tenantid.md) |  | string \| null | The tenant ID of the email action link. Null if the email action is from the parent project. |
 
 ## Methods

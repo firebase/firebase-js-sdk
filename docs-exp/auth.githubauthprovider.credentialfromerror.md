@@ -4,12 +4,12 @@
 
 ## GithubAuthProvider.credentialFromError() method
 
-Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth-types.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation.
+Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation.
 
 <b>Signature:</b>
 
 ```typescript
-static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
+static credentialFromError(error: FirebaseError): OAuthCredential | null;
 ```
 
 ## Parameters
@@ -20,5 +20,5 @@ static credentialFromError(error: FirebaseError): externs.OAuthCredential | null
 
 <b>Returns:</b>
 
-externs.[OAuthCredential](./auth-types.oauthcredential.md) \| null
+[OAuthCredential](./auth.oauthcredential.md) \| null
 

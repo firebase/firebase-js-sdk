@@ -48,7 +48,7 @@ import {
 } from '../core/util/validation';
 import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
 
-import { SyncPoint } from '../core/SyncPoint';
+import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
 
@@ -368,4 +368,4 @@ export class Reference extends Query {
  * dependency issues
  */
 Query.__referenceConstructor = Reference;
-SyncPoint.__referenceConstructor = Reference;
+syncPointSetReferenceConstructor(Reference);

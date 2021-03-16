@@ -46,6 +46,7 @@ import { PopupRedirectResolverInternal } from '../model/popup_redirect';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { UserInternal } from '../model/user';
 import { _createError } from '../core/util/assert';
+import { makeMockPopupRedirectResolver } from '../../test/helpers/mock_popup_redirect_resolver';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -189,6 +190,28 @@ describe('core/auth/initializeAuth', () => {
         .returns(Promise.resolve(user.toJSON()));
       await initAndWait(inMemoryPersistence);
       expect(reload._reloadWithoutSaving).not.to.have.been.called;
+    });
+
+    it('does not early-initialize the resolver if _shouldInitProactively is false', async () => {
+      const popupRedirectResolver = makeMockPopupRedirectResolver();
+      const resolverInternal: PopupRedirectResolverInternal = _getInstance(
+        popupRedirectResolver
+      );
+      sinon.stub(resolverInternal, '_shouldInitProactively').value(false);
+      sinon.spy(resolverInternal, '_initialize');
+      await initAndWait(inMemoryPersistence, popupRedirectResolver);
+      expect(resolverInternal._initialize).not.to.have.been.called;
+    });
+
+    it('early-initializes the resolver if _shouldInitProactively is true', async () => {
+      const popupRedirectResolver = makeMockPopupRedirectResolver();
+      const resolverInternal: PopupRedirectResolverInternal = _getInstance(
+        popupRedirectResolver
+      );
+      sinon.stub(resolverInternal, '_shouldInitProactively').value(true);
+      sinon.spy(resolverInternal, '_initialize');
+      await initAndWait(inMemoryPersistence, popupRedirectResolver);
+      expect(resolverInternal._initialize).to.have.been.called;
     });
 
     it('reloads non-redirect users', async () => {

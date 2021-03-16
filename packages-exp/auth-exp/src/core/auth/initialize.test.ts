@@ -117,6 +117,7 @@ describe('core/auth/initialize', () => {
       cb(true);
     }
     async _originValidation(): Promise<void> {}
+    _shouldInitProactively = false;
     async _completeRedirectFn(
       _auth: Auth,
       _resolver: PopupRedirectResolver,

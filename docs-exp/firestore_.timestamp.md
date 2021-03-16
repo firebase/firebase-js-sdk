@@ -8,7 +8,7 @@ A `Timestamp` represents a point in time independent of any time zone or calenda
 
 It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.
 
- https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto
+For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->.
 
 <b>Signature:</b>
 

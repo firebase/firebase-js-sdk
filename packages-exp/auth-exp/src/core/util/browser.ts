@@ -92,7 +92,7 @@ export function _isFirefox(ua = getUA()): boolean {
   return /firefox\//i.test(ua);
 }
 
-export function _isSafari(userAgent: string): boolean {
+export function _isSafari(userAgent = getUA()): boolean {
   const ua = userAgent.toLowerCase();
   return (
     ua.includes('safari/') &&

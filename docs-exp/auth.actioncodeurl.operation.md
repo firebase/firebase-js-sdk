@@ -4,10 +4,10 @@
 
 ## ActionCodeURL.operation property
 
-The action performed by the email action link. It returns from one of the types from [ActionCodeInfo](./auth-types.actioncodeinfo.md)
+The action performed by the email action link. It returns from one of the types from [ActionCodeInfo](./auth.actioncodeinfo.md)
 
 <b>Signature:</b>
 
 ```typescript
-readonly operation: externs.ActionCodeOperation;
+readonly operation: ActionCodeOperation;
 ```

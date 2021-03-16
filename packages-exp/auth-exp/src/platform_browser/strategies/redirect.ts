@@ -23,7 +23,6 @@ import {
   UserCredential
 } from '../../model/public_types';
 
-import { OAuthProvider } from '../../core';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
@@ -32,7 +31,11 @@ import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
 import { _withDefaultResolver } from '../../core/util/resolver';
-import { RedirectAction } from '../../core/strategies/redirect';
+import {
+  RedirectAction,
+  _setPendingRedirectStatus
+} from '../../core/strategies/redirect';
+import { FederatedAuthProvider } from '../../core/providers/federated';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.
@@ -88,12 +91,15 @@ export async function _signInWithRedirect(
 ): Promise<void | never> {
   const authInternal = _castAuth(auth);
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
 
-  return _withDefaultResolver(authInternal, resolver)._openRedirect(
+  const resolverInternal = _withDefaultResolver(authInternal, resolver);
+  await _setPendingRedirectStatus(resolverInternal, authInternal);
+
+  return resolverInternal._openRedirect(
     authInternal,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
@@ -146,13 +152,14 @@ export async function _reauthenticateWithRedirect(
 ): Promise<void | never> {
   const userInternal = user as UserInternal;
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     userInternal.auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
 
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
+  await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
 
   const eventId = await prepareUserForRedirect(userInternal);
   return resolverInternal._openRedirect(
@@ -202,15 +209,16 @@ export async function _linkWithRedirect(
 ): Promise<void | never> {
   const userInternal = user as UserInternal;
   _assert(
-    provider instanceof OAuthProvider,
+    provider instanceof FederatedAuthProvider,
     userInternal.auth,
     AuthErrorCode.ARGUMENT_ERROR
   );
 
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
-
   await _assertLinkedStatus(false, userInternal, provider.providerId);
+  await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
+
   const eventId = await prepareUserForRedirect(userInternal);
   return resolverInternal._openRedirect(
     userInternal.auth,

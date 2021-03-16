@@ -23,10 +23,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_t
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'add\_to\_cart' \| 'add\_to\_wishlist' \| 'remove\_from\_cart' |  |
-|  eventParams | { currency?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['currency'\]; value?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['value'\]; items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { currency?: [EventParams](./analytics.eventparams.md)<!-- -->\['currency'\]; value?: [EventParams](./analytics.eventparams.md)<!-- -->\['value'\]; items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

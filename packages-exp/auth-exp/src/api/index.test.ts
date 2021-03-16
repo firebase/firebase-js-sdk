@@ -34,7 +34,8 @@ import {
   DEFAULT_API_TIMEOUT_MS,
   Endpoint,
   HttpHeader,
-  HttpMethod
+  HttpMethod,
+  _addTidIfNecessary
 } from './';
 import { ServerError } from './errors';
 
@@ -388,6 +389,55 @@ describe('api/_performApiRequest', () => {
       expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'http://localhost:5000/host/path?query=test'
       );
+    });
+  });
+
+  context('_addTidIfNecessary', () => {
+    it('adds the tenant ID if it is not already defined', () => {
+      auth.tenantId = 'auth-tenant-id';
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' })
+      ).to.eql({
+        tenantId: 'auth-tenant-id',
+        foo: 'bar'
+      });
+    });
+
+    it('does not overwrite the tenant ID if already supplied', () => {
+      auth.tenantId = 'auth-tenant-id';
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, {
+          foo: 'bar',
+          tenantId: 'request-tenant-id'
+        })
+      ).to.eql({
+        tenantId: 'request-tenant-id',
+        foo: 'bar'
+      });
+    });
+
+    it('leaves tenant id on the request even if not specified on auth', () => {
+      auth.tenantId = null;
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, {
+          foo: 'bar',
+          tenantId: 'request-tenant-id'
+        })
+      ).to.eql({
+        tenantId: 'request-tenant-id',
+        foo: 'bar'
+      });
+    });
+
+    it('does not attach the tenant ID at all if not specified', () => {
+      auth.tenantId = null;
+      expect(
+        _addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' })
+      )
+        .to.eql({
+          foo: 'bar'
+        })
+        .and.not.have.property('tenantId');
     });
   });
 });

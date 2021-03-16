@@ -9,14 +9,14 @@ Updates the user's email address.
 <b>Signature:</b>
 
 ```typescript
-export declare function updateEmail(user: externs.User, newEmail: string): Promise<void>;
+export declare function updateEmail(user: User, newEmail: string): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
+|  user | [User](./auth.user.md) | The user. |
 |  newEmail | string | The new email address. |
 
 <b>Returns:</b>

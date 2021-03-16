@@ -126,11 +126,45 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
       );
     });
   });
+
+  context('_shouldInitProactively', () => {
+    it('returns true if platform may be cordova', () => {
+      sinon.stub(platform, '_isLikelyCordova').returns(true);
+      expect(compatResolver._shouldInitProactively).to.be.true;
+    });
+
+    it('returns true if cordova is false but browser value is true', () => {
+      sinon
+        .stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            exp.browserPopupRedirectResolver
+          ),
+          '_shouldInitProactively'
+        )
+        .value(true);
+      sinon.stub(platform, '_isLikelyCordova').returns(false);
+      expect(compatResolver._shouldInitProactively).to.be.true;
+    });
+
+    it('returns false if not cordova and not browser early init', () => {
+      sinon
+        .stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            exp.browserPopupRedirectResolver
+          ),
+          '_shouldInitProactively'
+        )
+        .value(false);
+      sinon.stub(platform, '_isLikelyCordova').returns(false);
+      expect(compatResolver._shouldInitProactively).to.be.false;
+    });
+  });
 });
 
 class FakeResolver implements exp.PopupRedirectResolverInternal {
   _completeRedirectFn = async (): Promise<null> => null;
   _redirectPersistence = exp.inMemoryPersistence;
+  _shouldInitProactively = true;
 
   _initialize(): Promise<exp.EventManager> {
     throw new Error('Method not implemented.');

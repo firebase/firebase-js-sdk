@@ -162,8 +162,13 @@ export function _getClientPlatform(): impl.ClientPlatform {
   return impl.ClientPlatform.BROWSER;
 }
 
+/** Quick check that indicates the platform *may* be Cordova */
+export function _isLikelyCordova(): boolean {
+  return _isAndroidOrIosCordovaScheme() && typeof document !== 'undefined';
+}
+
 export async function _isCordova(): Promise<boolean> {
-  if (!_isAndroidOrIosCordovaScheme() || typeof document === 'undefined') {
+  if (!_isLikelyCordova()) {
     return false;
   }
 

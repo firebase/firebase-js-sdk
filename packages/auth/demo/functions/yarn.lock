@@ -52,10 +52,10 @@
   dependencies:
     tslib "^1.11.1"
 
-"@google-cloud/common@^3.5.0":
-  version "3.5.0"
-  resolved "https://registry.npmjs.org/@google-cloud/common/-/common-3.5.0.tgz#0959e769e8075a06eb0823cc567eef00fd0c2d02"
-  integrity sha512-10d7ZAvKhq47L271AqvHEd8KzJqGU45TY+rwM2Z3JHuB070FeTi7oJJd7elfrnKaEvaktw3hH2wKnRWxk/3oWQ==
+"@google-cloud/common@^3.6.0":
+  version "3.6.0"
+  resolved "https://registry.npmjs.org/@google-cloud/common/-/common-3.6.0.tgz#c2f6da5f79279a4a9ac7c71fc02d582beab98e8b"
+  integrity sha512-aHIFTqJZmeTNO9md8XxV+ywuvXF3xBm5WNmgWeeCK+XN5X+kGW0WEX94wGwj+/MdOnrVf4dL2RvSIt9J5yJG6Q==
   dependencies:
     "@google-cloud/projectify" "^2.0.0"
     "@google-cloud/promisify" "^2.0.0"
@@ -63,18 +63,19 @@
     duplexify "^4.1.1"
     ent "^2.2.0"
     extend "^3.0.2"
-    google-auth-library "^6.1.1"
+    google-auth-library "^7.0.2"
     retry-request "^4.1.1"
     teeny-request "^7.0.0"
 
 "@google-cloud/firestore@^4.5.0":
-  version "4.9.2"
-  resolved "https://registry.npmjs.org/@google-cloud/firestore/-/firestore-4.9.2.tgz#733cfe15c2ef7bb188cf02931bc9b74894353ace"
-  integrity sha512-sbPs7N1iPTG1++htc3KIcGbDmQm8oVNt7DIqIjR8ozNn4KlgFEpWWPg1SoA6aGkDBKPnownSdvtI9XJH1xMANQ==
+  version "4.9.7"
+  resolved "https://registry.npmjs.org/@google-cloud/firestore/-/firestore-4.9.7.tgz#8fb9080ba0f6e074013412835b60db926515d139"
+  integrity sha512-s5W6rRxD5y3Oe3KJUNztIy4eIi9dBwJU36jd/QM3L8frpCuSh1fn6z0BD8IAV0AirQAg6aOzSlcwAwd/yeXCkw==
   dependencies:
     fast-deep-equal "^3.1.1"
     functional-red-black-tree "^1.0.1"
     google-gax "^2.9.2"
+    protobufjs "^6.8.6"
 
 "@google-cloud/paginator@^3.0.0":
   version "3.0.5"
@@ -95,11 +96,11 @@
   integrity sha512-d4VSA86eL/AFTe5xtyZX+ePUjE8dIFu2T8zmdeNBSa5/kNgXPCx/o/wbFNHAGLJdGnk1vddRuMESD9HbOC8irw==
 
 "@google-cloud/storage@^5.3.0":
-  version "5.7.4"
-  resolved "https://registry.npmjs.org/@google-cloud/storage/-/storage-5.7.4.tgz#de79c569a2b296e7c85d9141812fbe107a66c1ef"
-  integrity sha512-fynB3kDT+lhx71laML+LtUs/w9Ezcf+SVAsaP0fhAyPQzOc0kp43uYTymYCvF9GffYR7jcy6yqYifeMSU9VEVA==
+  version "5.8.1"
+  resolved "https://registry.npmjs.org/@google-cloud/storage/-/storage-5.8.1.tgz#00e627723614bcf97e6e29f9a59ec39339171847"
+  integrity sha512-qP8gCJ2myyMN3JMJN12d82Oo8VBSDO8vO4/x56dtQZX9+WISqcagurntnJVyFX885tIOtS97bsyv8qR1xv6HMg==
   dependencies:
-    "@google-cloud/common" "^3.5.0"
+    "@google-cloud/common" "^3.6.0"
     "@google-cloud/paginator" "^3.0.0"
     "@google-cloud/promisify" "^2.0.0"
     arrify "^2.0.0"
@@ -109,7 +110,7 @@
     duplexify "^4.0.0"
     extend "^3.0.2"
     gaxios "^4.0.0"
-    gcs-resumable-upload "^3.1.0"
+    gcs-resumable-upload "^3.1.3"
     get-stream "^6.0.0"
     hash-stream-validation "^0.2.2"
     mime "^2.2.0"
@@ -122,9 +123,9 @@
     xdg-basedir "^4.0.0"
 
 "@grpc/grpc-js@~1.2.0":
-  version "1.2.6"
-  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.2.6.tgz#579c433ab9b9dda8a62080db1ac0c86dce58bbaa"
-  integrity sha512-wfYwFy7CvVEmBKzeDX1kQQYrv5NBpe8Z+VwXipFvqof3lCXKch7k+4T3grKtptaH5GQ5KP9iKwPr9hMDSynIUw==
+  version "1.2.10"
+  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.2.10.tgz#f316d29a45fcc324e923d593cb849d292b1ed598"
+  integrity sha512-wj6GkNiorWYaPiIZ767xImmw7avMMVUweTvPFg4mJWOxz2180DKwfuxhJJZ7rpc1+7D3mX/v8vJdxTuIo71Ieg==
   dependencies:
     "@types/node" ">=12.12.47"
     google-auth-library "^6.1.1"
@@ -240,24 +241,24 @@
   integrity sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==
 
 "@types/node@*", "@types/node@>=12.12.47":
-  version "14.14.25"
-  resolved "https://registry.npmjs.org/@types/node/-/node-14.14.25.tgz#15967a7b577ff81383f9b888aa6705d43fbbae93"
-  integrity sha512-EPpXLOVqDvisVxtlbvzfyqSsFeQxltFbluZNRndIb8tr9KiBnYNLzrc1N3pyKUCww2RNrfHDViqDWWE1LCJQtQ==
+  version "14.14.33"
+  resolved "https://registry.npmjs.org/@types/node/-/node-14.14.33.tgz#9e4f8c64345522e4e8ce77b334a8aaa64e2b6c78"
+  integrity sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==
 
 "@types/node@^10.10.0":
-  version "10.17.51"
-  resolved "https://registry.npmjs.org/@types/node/-/node-10.17.51.tgz#639538575befbcf3d3861f95c41de8e47124d674"
-  integrity sha512-KANw+MkL626tq90l++hGelbl67irOJzGhUJk6a1Bt8QHOeh9tztJx+L0AqttraWKinmZn7Qi5lJZJzx45Gq0dg==
+  version "10.17.55"
+  resolved "https://registry.npmjs.org/@types/node/-/node-10.17.55.tgz#a147f282edec679b894d4694edb5abeb595fecbd"
+  integrity sha512-koZJ89uLZufDvToeWO5BrC4CR4OUfHnUz2qoPs/daQH6qq3IN62QFxCTZ+bKaCE0xaoCAJYE4AXre8AbghCrhg==
 
 "@types/node@^13.7.0":
-  version "13.13.41"
-  resolved "https://registry.npmjs.org/@types/node/-/node-13.13.41.tgz#045a4981318d31a581650ce70f340a32c3461198"
-  integrity sha512-qLT9IvHiXJfdrje9VmsLzun7cQ65obsBTmtU3EOnCSLFOoSHx1hpiRHoBnpdbyFqnzqdUUIv81JcEJQCB8un9g==
+  version "13.13.46"
+  resolved "https://registry.npmjs.org/@types/node/-/node-13.13.46.tgz#5471e176f3fa15e018dea7992072bf8ca208a3a6"
+  integrity sha512-dqpbzK/KDsOlEt+oyB3rv+u1IxlLFziZu/Z0adfRKoelkr+sTd6QcgiQC+HWq/vkYkHwG5ot2LxgV05aAjnhcg==
 
 "@types/qs@*":
-  version "6.9.5"
-  resolved "https://registry.npmjs.org/@types/qs/-/qs-6.9.5.tgz#434711bdd49eb5ee69d90c1d67c354a9a8ecb18b"
-  integrity sha512-/JHkVHtx/REVG0VVToGRGH2+23hsYLHdyG+GrvoUGlGAd0ErauXDyvHtRI/7H7mzLm+tBCKA7pfcpkQ1lf58iQ==
+  version "6.9.6"
+  resolved "https://registry.npmjs.org/@types/qs/-/qs-6.9.6.tgz#df9c3c8b31a247ec315e6996566be3171df4b3b1"
+  integrity sha512-0/HnwIfW4ki2D8L8c9GVcG5I72s9jP5GSLVF0VIXDW00kmIpA6O33G7a8n59Tmh7Nz0WUC3rSb7PTY/sdW2JzA==
 
 "@types/range-parser@*":
   version "1.2.3"
@@ -610,9 +611,9 @@ functional-red-black-tree@^1.0.1:
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
 gaxios@^4.0.0:
-  version "4.1.0"
-  resolved "https://registry.npmjs.org/gaxios/-/gaxios-4.1.0.tgz#e8ad466db5a4383c70b9d63bfd14dfaa87eb0099"
-  integrity sha512-vb0to8xzGnA2qcgywAjtshOKKVDf2eQhJoiL6fHhgW5tVN7wNk7egnYIO9zotfn3lQ3De1VPdf7V5/BWfCtCmg==
+  version "4.2.0"
+  resolved "https://registry.npmjs.org/gaxios/-/gaxios-4.2.0.tgz#33bdc4fc241fc33b8915a4b8c07cfb368b932e46"
+  integrity sha512-Ms7fNifGv0XVU+6eIyL9LB7RVESeML9+cMvkwGS70xyD6w2Z80wl6RiqiJ9k1KFlJCUTQqFFc8tXmPQfSKUe8g==
   dependencies:
     abort-controller "^3.0.0"
     extend "^3.0.2"
@@ -628,16 +629,16 @@ gcp-metadata@^4.2.0:
     gaxios "^4.0.0"
     json-bigint "^1.0.0"
 
-gcs-resumable-upload@^3.1.0:
-  version "3.1.2"
-  resolved "https://registry.npmjs.org/gcs-resumable-upload/-/gcs-resumable-upload-3.1.2.tgz#74ba51d791da397da6c856eabda7d059af724998"
-  integrity sha512-VKWP3Xju1JmNX3N4ossnGp3DfIRZjOsMj8sDGPBGnvn8YSruCOVGQBvELfStfIFPybScv/e5sEdWx/qzfnS3+w==
+gcs-resumable-upload@^3.1.3:
+  version "3.1.3"
+  resolved "https://registry.npmjs.org/gcs-resumable-upload/-/gcs-resumable-upload-3.1.3.tgz#1e38e1339600b85812e6430a5ab455453c64cce3"
+  integrity sha512-LjVrv6YVH0XqBr/iBW0JgRA1ndxhK6zfEFFJR4im51QVTj/4sInOXimY2evDZuSZ75D3bHxTaQAdXRukMc1y+w==
   dependencies:
     abort-controller "^3.0.0"
     configstore "^5.0.0"
     extend "^3.0.2"
     gaxios "^4.0.0"
-    google-auth-library "^6.0.0"
+    google-auth-library "^7.0.0"
     pumpify "^2.0.0"
     stream-events "^1.0.4"
 
@@ -646,7 +647,7 @@ get-stream@^6.0.0:
   resolved "https://registry.npmjs.org/get-stream/-/get-stream-6.0.0.tgz#3e0012cb6827319da2706e601a1583e8629a6718"
   integrity sha512-A1B3Bh1UmL0bidM/YX2NsCOTnGJePL9rO/M+Mw3m9f2gUpfokS0hi5Eah0WSUEWZdZhIZtMjkIYS7mDfOqNHbg==
 
-google-auth-library@^6.0.0, google-auth-library@^6.1.1, google-auth-library@^6.1.3:
+google-auth-library@^6.1.1:
   version "6.1.6"
   resolved "https://registry.npmjs.org/google-auth-library/-/google-auth-library-6.1.6.tgz#deacdcdb883d9ed6bac78bb5d79a078877fdf572"
   integrity sha512-Q+ZjUEvLQj/lrVHF/IQwRo6p3s8Nc44Zk/DALsN+ac3T4HY/g/3rrufkgtl+nZ1TW7DNAw5cTChdVp4apUXVgQ==
@@ -661,10 +662,25 @@ google-auth-library@^6.0.0, google-auth-library@^6.1.1, google-auth-library@^6.1
     jws "^4.0.0"
     lru-cache "^6.0.0"
 
+google-auth-library@^7.0.0, google-auth-library@^7.0.2:
+  version "7.0.2"
+  resolved "https://registry.npmjs.org/google-auth-library/-/google-auth-library-7.0.2.tgz#cab6fc7f94ebecc97be6133d6519d9946ccf3e9d"
+  integrity sha512-vjyNZR3pDLC0u7GHLfj+Hw9tGprrJwoMwkYGqURCXYITjCrP9HprOyxVV+KekdLgATtWGuDkQG2MTh0qpUPUgg==
+  dependencies:
+    arrify "^2.0.0"
+    base64-js "^1.3.0"
+    ecdsa-sig-formatter "^1.0.11"
+    fast-text-encoding "^1.0.0"
+    gaxios "^4.0.0"
+    gcp-metadata "^4.2.0"
+    gtoken "^5.0.4"
+    jws "^4.0.0"
+    lru-cache "^6.0.0"
+
 google-gax@^2.9.2:
-  version "2.10.2"
-  resolved "https://registry.npmjs.org/google-gax/-/google-gax-2.10.2.tgz#6d3dc047140e57987d0a2c2d9791faac9bc959b1"
-  integrity sha512-adECud3d5jsk24SvPkKQG3Kw1szpy4We0OqKfsdBHKWlSWhdY4hVQEOG7iBBp469Zm327fzz7NZz8BMLOYZJHg==
+  version "2.11.0"
+  resolved "https://registry.npmjs.org/google-gax/-/google-gax-2.11.0.tgz#7219de6558747680489985de1bf769e46ec0771c"
+  integrity sha512-aZMjCMw4wVssxplkO9Pq77zCHiYecvTYY51HeKOti0LLHaNrRo96F8h8NIA4hcWeh2u6COFX3YFmZyxrARXlGA==
   dependencies:
     "@grpc/grpc-js" "~1.2.0"
     "@grpc/proto-loader" "^0.5.1"
@@ -672,7 +688,7 @@ google-gax@^2.9.2:
     abort-controller "^3.0.0"
     duplexify "^4.0.0"
     fast-text-encoding "^1.0.3"
-    google-auth-library "^6.1.3"
+    google-auth-library "^7.0.2"
     is-stream-ended "^0.1.4"
     node-fetch "^2.6.1"
     protobufjs "^6.10.2"
@@ -686,9 +702,9 @@ google-p12-pem@^3.0.3:
     node-forge "^0.10.0"
 
 graceful-fs@^4.1.2:
-  version "4.2.5"
-  resolved "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.5.tgz#bc18864a6c9fc7b303f2e2abdb9155ad178fbe29"
-  integrity sha512-kBBSQbz2K0Nyn+31j/w36fUfxkBW9/gfwRWdUY1ULReH3iokVJgddZAFcD1D0xlgTmFxJCbUkUclAlc6/IDJkw==
+  version "4.2.6"
+  resolved "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.6.tgz#ff040b2b0853b23c3d31027523706f1885d76bee"
+  integrity sha512-nTnJ528pbqxYanhpDYsi4Rd8MAeaBA67+RZ10CM1m3bTAVFEDcd5AuA4a6W5YkGZ1iNXHzZz8T6TBKLeBuNriQ==
 
 gtoken@^5.0.4:
   version "5.2.1"
@@ -893,9 +909,9 @@ lodash.once@^4.0.0:
   integrity sha1-DdOXEhPHxW34gJd9UEyI+0cal6w=
 
 lodash@^4.17.14:
-  version "4.17.20"
-  resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
-  integrity sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA==
+  version "4.17.21"
+  resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 long@^4.0.0:
   version "4.0.0"
@@ -931,17 +947,17 @@ methods@~1.1.2:
   resolved "https://registry.npmjs.org/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
   integrity sha1-VSmk1nZUE07cxSZmVoNbD4Ua/O4=
 
-mime-db@1.45.0, "mime-db@>= 1.43.0 < 2":
-  version "1.45.0"
-  resolved "https://registry.npmjs.org/mime-db/-/mime-db-1.45.0.tgz#cceeda21ccd7c3a745eba2decd55d4b73e7879ea"
-  integrity sha512-CkqLUxUk15hofLoLyljJSrukZi8mAtgd+yE5uO4tqRZsdsAJKv0O+rFMhVDRJgozy+yG6md5KwuXhD4ocIoP+w==
+mime-db@1.46.0, "mime-db@>= 1.43.0 < 2":
+  version "1.46.0"
+  resolved "https://registry.npmjs.org/mime-db/-/mime-db-1.46.0.tgz#6267748a7f799594de3cbc8cde91def349661cee"
+  integrity sha512-svXaP8UQRZ5K7or+ZmfNhg2xX3yKDMUzqadsSqi4NCH/KomcH75MAMYAGVlvXn4+b/xOPhS3I2uHKRUzvjY7BQ==
 
 mime-types@^2.0.8, mime-types@~2.1.24:
-  version "2.1.28"
-  resolved "https://registry.npmjs.org/mime-types/-/mime-types-2.1.28.tgz#1160c4757eab2c5363888e005273ecf79d2a0ecd"
-  integrity sha512-0TO2yJ5YHYr7M2zzT7gDU1tbwHxEUWBCLt0lscSNpcdAfFyJOVEpRYNS7EXVcTLNj/25QO8gulHC5JtTzSE2UQ==
+  version "2.1.29"
+  resolved "https://registry.npmjs.org/mime-types/-/mime-types-2.1.29.tgz#1d4ab77da64b91f5f72489df29236563754bb1b2"
+  integrity sha512-Y/jMt/S5sR9OaqteJtslsFZKWOIIqMACsJSiHghlCAyhf7jfVYjKBmLiX8OgpWeW+fjJ2b+Az69aPFPkUOY6xQ==
   dependencies:
-    mime-db "1.45.0"
+    mime-db "1.46.0"
 
 mime@1.6.0:
   version "1.6.0"
@@ -949,9 +965,9 @@ mime@1.6.0:
   integrity sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==
 
 mime@^2.2.0:
-  version "2.5.0"
-  resolved "https://registry.npmjs.org/mime/-/mime-2.5.0.tgz#2b4af934401779806ee98026bb42e8c1ae1876b1"
-  integrity sha512-ft3WayFSFUVBuJj7BMLKAQcSlItKtfjsKDDsii3rqFDAZ7t11zRe8ASw/GlmivGwVUYtwkQrxiGGpL6gFvB0ag==
+  version "2.5.2"
+  resolved "https://registry.npmjs.org/mime/-/mime-2.5.2.tgz#6e3dc6cc2b9510643830e5f19d5cb753da5eeabe"
+  integrity sha512-tqkh47FzKeCPD2PUiPB6pkbMzsCasjxAfC62/Wap5qrUWcb+sFasXUC5I3gYM5iBM8v/Qpn4UK0x+j0iHyFPDg==
 
 mimic-fn@^2.1.0:
   version "2.1.0"

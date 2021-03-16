@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { UntypedFirestoreDataConverter } from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite/field_path';
@@ -26,6 +24,8 @@ import {
   fieldPathFromArgument,
   FirestoreDataConverter as LiteFirestoreDataConverter
 } from '../lite/snapshot';
+import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
+import { AbstractUserDataWriter } from '../lite/user_data_writer';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail } from '../util/assert';

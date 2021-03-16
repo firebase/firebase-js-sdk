@@ -4,10 +4,10 @@
 
 ## GithubAuthProvider.PROVIDER\_ID property
 
-Always set to [ProviderId.GITHUB](./auth-types.providerid.github.md)<!-- -->.
+Always set to [ProviderId.GITHUB](./auth.providerid.github.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static readonly PROVIDER_ID = externs.ProviderId.GITHUB;
+static readonly PROVIDER_ID = ProviderId.GITHUB;
 ```

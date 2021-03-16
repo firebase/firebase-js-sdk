@@ -4,6 +4,7 @@
 
 ## PhoneAuthCredential.toJSON() method
 
+Returns a JSON-serializable representation of this object.
 
 <b>Signature:</b>
 
@@ -13,4 +14,6 @@ toJSON(): object;
 <b>Returns:</b>
 
 object
+
+a JSON-serializable representation of this object.
 

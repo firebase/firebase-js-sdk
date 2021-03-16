@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { BundledDocuments, NamedQuery, BundleConverter } from '../core/bundle';
 import { newQueryForPath, Query, queryToTarget } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
+import { Timestamp } from '../lite/timestamp';
 import {
   documentKeySet,
   DocumentKeySet,
