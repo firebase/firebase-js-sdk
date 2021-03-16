@@ -246,9 +246,9 @@ export function applyMutationToRemoteDocument(
 }
 
 /**
- * Applies this mutation to the given document or null for the purposes of
- * computing the new local view of a document. If the input document doesn't
- * match the expected state, the document is not modified.
+ * Applies this mutation to the given document for the purposes of computing
+ * the new local view of a document. If the input document doesn't match the
+ * expected state, the document is not modified.
  *
  * @param mutation - The mutation to apply.
  * @param document - The document to mutate. The input document can be an

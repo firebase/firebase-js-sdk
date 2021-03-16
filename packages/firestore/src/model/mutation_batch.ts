@@ -64,15 +64,13 @@ export class MutationBatch {
 
   /**
    * Applies all the mutations in this MutationBatch to the specified document
-   * to create a new remote document
+   * to compute the state of the remote document
    *
-   * @param docKey - The key of the document to apply mutations to.
    * @param document - The document to apply mutations to.
    * @param batchResult - The result of applying the MutationBatch to the
    * backend.
    */
   applyToRemoteDocument(
-    docKey: DocumentKey,
     document: MutableDocument,
     batchResult: MutationBatchResult
   ): void {
@@ -86,7 +84,7 @@ export class MutationBatch {
 
     for (let i = 0; i < this.mutations.length; i++) {
       const mutation = this.mutations[i];
-      if (mutation.key.isEqual(docKey)) {
+      if (mutation.key.isEqual(document.key)) {
         const mutationResult = mutationResults[i];
         applyMutationToRemoteDocument(mutation, document, mutationResult);
       }

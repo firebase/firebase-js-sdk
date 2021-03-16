@@ -1035,7 +1035,7 @@ function applyWriteToRemoteDocuments(
           'ackVersions should contain every doc in the write.'
         );
         if (doc.version.compareTo(ackVersion!) < 0) {
-          batch.applyToRemoteDocument(docKey, doc, batchResult);
+          batch.applyToRemoteDocument(doc, batchResult);
           if (doc.isValidDocument()) {
             // We use the commitVersion as the readTime rather than the
             // document's updateTime since the updateTime is not advanced
