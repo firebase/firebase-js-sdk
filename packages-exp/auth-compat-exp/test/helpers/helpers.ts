@@ -17,6 +17,8 @@
 
 import * as sinon from 'sinon';
 import firebase from '@firebase/app-compat';
+import '../..';
+
 import * as exp from '@firebase/auth-exp/internal';
 import {
   getAppConfig,
