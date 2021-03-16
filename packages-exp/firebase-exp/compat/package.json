@@ -6,6 +6,7 @@
     "react-native": "dist/index.rn.cjs.js",
     "typings": "index.d.ts",
     "components": [
-        "app"
+        "app",
+        "analytics"
     ]
 }
