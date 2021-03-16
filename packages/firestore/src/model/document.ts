@@ -259,7 +259,7 @@ export class MutableDocument implements Document {
 
   setHasCommittedMutations(): MutableDocument {
     debugAssert(
-      !this.isValidDocument(),
+      this.isValidDocument(),
       'Invalid documents cannot have committed mutations'
     );
     this.documentState = DocumentState.HAS_COMMITTED_MUTATIONS;
