@@ -77,6 +77,22 @@ export async function resetEmulator(): Promise<void> {
   await FetchProvider.fetch()(url, { method: 'DELETE' });
 }
 
+export async function createAnonAccount(): Promise<{
+  localId: string;
+  idToken: string;
+  refreshToken: string;
+}> {
+  const url = `${getEmulatorUrl()}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-key`;
+  const response = await (
+    await FetchProvider.fetch()(url, {
+      method: 'POST',
+      body: '{}',
+      headers: { 'Content-Type': 'application/json' }
+    })
+  ).json();
+  return response;
+}
+
 function buildEmulatorUrlForPath(endpoint: string): string {
   const emulatorBaseUrl = getEmulatorUrl();
   const projectId = getAppConfig().projectId;
