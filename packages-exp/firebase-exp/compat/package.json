@@ -9,6 +9,7 @@
         "app",
         "analytics",
         "auth",
-        "functions"
+        "functions",
+        "messaging"
     ]
 }

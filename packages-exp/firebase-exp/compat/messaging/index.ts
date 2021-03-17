@@ -15,10 +15,4 @@
  * limitations under the License.
  */
 
-import { name, version } from '../package.json';
-
-import firebase from '@firebase/app-compat';
-import { registerMessagingCompat } from './registerMessagingCompat';
-
-registerMessagingCompat();
-firebase.registerVersion(name, version);
+import '@firebase/messaging-compat';

@@ -49,7 +49,8 @@
     "@firebase/storage": "0.4.4",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
-    "@firebase/messaging-exp": "0.0.900"
+    "@firebase/messaging-exp": "0.0.900",
+    "@firebase/messaging-compat": "0.0.900"
   },
   "devDependencies": {
     "rollup": "2.35.1",

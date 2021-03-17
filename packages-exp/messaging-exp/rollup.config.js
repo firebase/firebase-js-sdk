@@ -63,21 +63,16 @@ const es2017BuildPlugins = [
 
 const es2017Builds = [
   {
-    input: 'src/index.ts',
+    input: {
+      index: 'src/index.ts',
+      sw: 'src/index.sw.ts'
+    },
     output: {
-      file: pkg.esm2017,
+      dir: 'dist/esm2017',
       format: 'es',
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-
-  // sw builds
-  {
-    input: 'src/index.sw.ts',
-    output: { file: pkg.sw, format: 'es', sourcemap: true },
-    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

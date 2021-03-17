@@ -21,9 +21,8 @@ import {
   ComponentType,
   InstanceFactory
 } from '@firebase/component';
-
+import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import { MessagingCompat } from './messaging-compat';
-import { _registerComponent } from '@firebase/app-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -41,7 +40,7 @@ const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
 };
 
 export function registerMessagingCompat(): void {
-  _registerComponent(
+  (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'messaging-compat',
       messagingCompatFactory,

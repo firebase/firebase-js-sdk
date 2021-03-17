@@ -21,9 +21,10 @@ import pkg from './package.json';
 import typescript from 'typescript';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
 
 /**
  * ES5 Builds
@@ -40,10 +41,13 @@ const es5BuildPlugins = [
 
 const es5Builds = [
   {
-    input: 'src/index.ts',
+    input: {
+      index: 'src/index.ts',
+      sw: 'src/index.sw.ts'
+    },
     output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      { dir: 'dist/cjs', format: 'cjs', sourcemap: true },
+      { dir: 'dist/esm5', format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     treeshake: {
@@ -73,9 +77,12 @@ const es2017BuildPlugins = [
 
 const es2017Builds = [
   {
-    input: 'src/index.ts',
+    input: {
+      index: 'src/index.ts',
+      sw: 'src/index.sw.ts'
+    },
     output: {
-      file: pkg.esm2017,
+      dir: 'dist/esm2017',
       format: 'es',
       sourcemap: true
     },
@@ -84,17 +91,6 @@ const es2017Builds = [
       moduleSideEffects: (id, external) => id === '@firebase/installations'
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-
-  // sw builds
-  {
-    input: 'src/index.sw.ts',
-    output: { file: pkg.sw, format: 'es', sourcemap: true },
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    treeshake: {
-      moduleSideEffects: (id, external) => id === '@firebase/installations'
-    }
   }
 ];
 

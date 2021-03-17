@@ -4,11 +4,11 @@
   "version": "0.0.900",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm5/index.js",
+  "esm2017": "dist/esm2017/index.js",
   "typings": "dist/index.d.ts",
-  "sw": "dist/index.sw.esm2017.js",
+  "sw": "dist/esm2017/sw.js",
   "files": [
     "dist"
   ],
