@@ -38,7 +38,6 @@ import { ANALYTICS_TYPE } from './constants';
 import {
   AnalyticsService,
   initializationPromisesMap,
-  _initializeAnalyticsForApp,
   wrappedGtagFunction
 } from './factory';
 import { logger } from './logger';
@@ -90,7 +89,7 @@ export function getAnalytics(app: FirebaseApp = getApp()): Analytics {
  */
 export function initializeAnalytics(
   app: FirebaseApp,
-  options?: AnalyticsOptions
+  options: AnalyticsOptions = {}
 ): Analytics {
   // Dependencies
   const analyticsProvider: Provider<'analytics-exp'> = _getProvider(
@@ -100,13 +99,7 @@ export function initializeAnalytics(
   if (analyticsProvider.isInitialized()) {
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
   }
-  const analyticsInstance = analyticsProvider.getImmediate();
-  // do init settings stuff here
-  const installations = _getProvider(
-    app,
-    'installations-exp-internal'
-  ).getImmediate();
-  _initializeAnalyticsForApp(app, installations, options);
+  const analyticsInstance = analyticsProvider.initialize({ options });
   return analyticsInstance;
 }
 

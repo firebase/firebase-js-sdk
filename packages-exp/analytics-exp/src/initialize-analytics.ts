@@ -65,7 +65,7 @@ async function validateIndexedDB(): Promise<boolean> {
  *
  * @returns Measurement ID.
  */
-export async function _initializeAnalytics(
+export async function initializeAnalytics(
   app: FirebaseApp,
   dynamicConfigPromisesList: Array<
     Promise<DynamicConfig | MinimalDynamicConfig>
@@ -123,7 +123,6 @@ export async function _initializeAnalytics(
   // We keep it together with other initialization logic for better code structure.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (gtagCore as any)('js', new Date());
-
   // User config added first. We don't want users to accidentally overwrite
   // base Firebase config properties.
   const configProperties: Record<string, unknown> = options?.config ?? {};

@@ -18,7 +18,7 @@ export interface AnalyticsCallOptions {
 
 // @public
 export interface AnalyticsOptions {
-    config: GtagConfigParams | EventParams;
+    config?: GtagConfigParams | EventParams;
 }
 
 // @public

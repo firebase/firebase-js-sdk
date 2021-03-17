@@ -21,7 +21,7 @@ import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
-import { _initializeAnalytics } from './initialize-analytics';
+import { initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 
@@ -136,7 +136,7 @@ export function getGlobalVars(): {
  */
 export function settings(options: SettingsOptions): void {
   if (globalInitDone) {
-    throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED_SETTINGS);
+    throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
   }
   if (options.dataLayerName) {
     dataLayerName = options.dataLayerName;
@@ -174,7 +174,11 @@ function warnOnBrowserContextMismatch(): void {
  * Analytics instance factory.
  * @internal
  */
-export function factory(app: FirebaseApp): AnalyticsService {
+export function factory(
+  app: FirebaseApp,
+  installations: _FirebaseInstallationsInternal,
+  options?: AnalyticsOptions
+): AnalyticsService {
   warnOnBrowserContextMismatch();
   const appId = app.options.appId;
   if (!appId) {
@@ -215,23 +219,9 @@ export function factory(app: FirebaseApp): AnalyticsService {
 
     globalInitDone = true;
   }
-
-  const analyticsInstance: AnalyticsService = new AnalyticsService(app);
-  return analyticsInstance;
-}
-
-/**
- * Starts async initializations for this app.
- */
-export function _initializeAnalyticsForApp(
-  app: FirebaseApp,
-  installations: _FirebaseInstallationsInternal,
-  options?: AnalyticsOptions
-): void {
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  // Factory will have thrown if options has no appId.
-  initializationPromisesMap[app.options.appId!] = _initializeAnalytics(
+  initializationPromisesMap[appId] = initializeAnalytics(
     app,
     dynamicConfigPromisesList,
     measurementIdToAppId,
@@ -240,4 +230,8 @@ export function _initializeAnalyticsForApp(
     dataLayerName,
     options
   );
+
+  const analyticsInstance: AnalyticsService = new AnalyticsService(app);
+
+  return analyticsInstance;
 }

@@ -106,7 +106,7 @@ export interface AnalyticsOptions {
   /**
    * Params to be passed in the initial gtag config call during analytics initialization.
    */
-  config: GtagConfigParams | EventParams;
+  config?: GtagConfigParams | EventParams;
 }
 
 /**
