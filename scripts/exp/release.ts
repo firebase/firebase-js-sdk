@@ -38,6 +38,7 @@ import {
 } from './prepare-storage-for-exp-release';
 import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
+import { addCompatToFirebasePkgJson } from './prepare-util';
 
 const prompt = createPromptModule();
 const argv = yargs
@@ -78,6 +79,14 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      */
     await createFirestoreCompatProject();
     await createStorageCompatProject();
+
+    /**
+     * Add firestore-compat, database-compat and storage-compat to the dependencies array of firebase-exp
+     */
+    await addCompatToFirebasePkgJson([
+      '@firebase/firestore-compat',
+      '@firebase/storage-compat'
+    ]);
 
     /**
      * build firebase
