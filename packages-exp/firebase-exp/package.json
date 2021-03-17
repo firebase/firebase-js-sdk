@@ -40,10 +40,10 @@
     "@firebase/app-exp": "0.0.900",
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
-    "@firebase/database": "0.9.5",
+    "@firebase/database": "0.9.6",
     "@firebase/functions-exp": "0.0.900",
-    "@firebase/firestore": "2.2.0",
-    "@firebase/storage": "0.4.4",
+    "@firebase/firestore": "2.2.1",
+    "@firebase/storage": "0.4.5",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
     "@firebase/messaging-exp": "0.0.900"
