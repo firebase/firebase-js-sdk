@@ -135,7 +135,7 @@ export function createFirebaseNamespaceCore(
     component: Component
   ): FirebaseServiceNamespace<_FirebaseService> | null {
     const componentName = component.name;
-    const componentNameWithCompat = componentName.replace('-compat', '');
+    const componentNameWithoutCompat = componentName.replace('-compat', '');
     if (
       modularAPIs._registerComponent(component) &&
       component.type === ComponentType.PUBLIC
@@ -146,7 +146,7 @@ export function createFirebaseNamespaceCore(
         appArg: FirebaseApp = app()
       ): _FirebaseService => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (typeof (appArg as any)[componentNameWithCompat] !== 'function') {
+        if (typeof (appArg as any)[componentNameWithoutCompat] !== 'function') {
           // Invalid argument.
           // This happens in the following case: firebase.storage('gs:/')
           throw ERROR_FACTORY.create(AppError.INVALID_APP_ARGUMENT, {
@@ -156,7 +156,7 @@ export function createFirebaseNamespaceCore(
 
         // Forward service instance lookup to the FirebaseApp.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (appArg as any)[componentNameWithCompat]();
+        return (appArg as any)[componentNameWithoutCompat]();
       };
 
       // ... and a container for service-level properties.
@@ -165,11 +165,11 @@ export function createFirebaseNamespaceCore(
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (namespace as any)[componentNameWithCompat] = serviceNamespace;
+      (namespace as any)[componentNameWithoutCompat] = serviceNamespace;
 
       // Patch the FirebaseAppImpl prototype
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (firebaseAppImpl.prototype as any)[componentNameWithCompat] =
+      (firebaseAppImpl.prototype as any)[componentNameWithoutCompat] =
         // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
         // option added to the no-explicit-any rule when ESlint releases it.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -184,7 +184,7 @@ export function createFirebaseNamespaceCore(
 
     return component.type === ComponentType.PUBLIC
       ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (namespace as any)[componentNameWithCompat]
+        (namespace as any)[componentNameWithoutCompat]
       : null;
   }
 
