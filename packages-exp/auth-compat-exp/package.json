@@ -22,7 +22,10 @@
     "test:all": "run-p test:browser test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --file ../auth-exp/src/platform_browser/iframe/gapi.iframes.ts --config ../../config/mocharc.node.js"
+    "test:browser:integration": "karma start --single-run --integration",
+    "test:node": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts",
+    "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
+    "test:integration": "run-s test:browser:integration test:node:integration"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x"
@@ -32,6 +35,7 @@
     "@firebase/auth-exp": "0.0.900",
     "@firebase/component": "0.2.1",
     "@firebase/util": "0.4.0",
+    "node-fetch": "2.6.1",
     "tslib": "^2.0.0"
   },
   "license": "Apache-2.0",

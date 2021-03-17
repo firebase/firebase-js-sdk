@@ -64,6 +64,9 @@ export enum CoreFunction {
 export enum PersistenceFunction {
   CLEAR_PERSISTENCE = 'persistence.clearPersistence',
   LOCAL_STORAGE_SNAP = 'persistence.localStorageSnap',
+  LOCAL_STORAGE_SET = 'persistence.localStorageSet',
   SESSION_STORAGE_SNAP = 'persistence.sessionStorageSnap',
-  INDEXED_DB_SNAP = 'persistence.indexedDBSnap'
+  SESSION_STORAGE_SET = 'persistence.sessionStorageSet',
+  INDEXED_DB_SNAP = 'persistence.indexedDBSnap',
+  MAKE_INDEXED_DB_READONLY = 'persistence.makeIndexedDBReadonly'
 }

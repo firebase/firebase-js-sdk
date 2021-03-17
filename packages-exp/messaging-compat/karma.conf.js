@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-module.exports = {
-  extends: '../../config/.eslintrc.js',
-  ignorePatterns: ['scripts/'],
-  parserOptions: {
-    project: 'tsconfig.json',
-    // to make vscode-eslint work with monorepo
-    // https://github.com/typescript-eslint/typescript-eslint/issues/251#issuecomment-463943250
-    tsconfigRootDir: __dirname
-  }
+const karmaBase = require('../../config/karma.base');
+
+const files = ['test/**/*'];
+
+module.exports = function (config) {
+  const karmaConfig = {
+    ...karmaBase,
+    files,
+    frameworks: ['mocha']
+  };
+
+  config.set(karmaConfig);
 };
+
+module.exports.files = files;

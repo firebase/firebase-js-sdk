@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -14,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const path = require('path');
 
 module.exports = {
   extends: '../../config/.eslintrc.js',
-  ignorePatterns: ['scripts/'],
   parserOptions: {
     project: 'tsconfig.json',
     // to make vscode-eslint work with monorepo
