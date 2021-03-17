@@ -57,11 +57,12 @@ export enum CoreFunction {
   AWAIT_AUTH_INIT = 'core.authInit',
   USER_SNAPSHOT = 'core.userSnap',
   AUTH_SNAPSHOT = 'core.authSnap',
-  SIGN_OUT = 'core.signOut'
+  SIGN_OUT = 'core.signOut',
+  AWAIT_LEGACY_AUTH_INIT = 'core.legacyAuthInit',
+  LEGACY_USER_SNAPSHOT = 'core.legacyUserSnap'
 }
 
 /** Available persistence functions within the browser. See static/persistence.js */
-
 export enum PersistenceFunction {
   CLEAR_PERSISTENCE = 'persistence.clearPersistence',
   LOCAL_STORAGE_SNAP = 'persistence.localStorageSnap',

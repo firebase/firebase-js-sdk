@@ -20,7 +20,11 @@ import { UserCredential } from '@firebase/auth-exp';
 import { expect } from 'chai';
 import { createAnonAccount } from '../../helpers/integration/emulator_rest_helpers';
 import { API_KEY } from '../../helpers/integration/settings';
-import { AnonFunction, PersistenceFunction } from './util/functions';
+import {
+  AnonFunction,
+  CoreFunction,
+  PersistenceFunction
+} from './util/functions';
 import { browserDescribe } from './util/test_runner';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -315,5 +319,95 @@ browserDescribe('WebDriver persistence test', driver => {
     });
   });
 
-  // TODO: Compatibility tests (e.g. sign in with JS SDK and should stay logged in with TS SDK).
+  context('persistence compatibility with legacy SDK', () => {
+    it('stays logged in when switching to legacy SDK and then back', async () => {
+      const cred: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+      const uid = cred.user.uid;
+
+      await driver.webDriver.navigate().refresh();
+      await driver.injectConfigAndInitLegacySDK();
+      await driver.waitForLegacyAuthInit();
+      const user = await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT);
+      expect(user).to.include({ uid });
+
+      await driver.webDriver.navigate().refresh();
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+      // User should be picked up from indexedDB after refresh.
+      expect((await driver.getUserSnapshot()).uid).to.eql(uid);
+    });
+
+    it('stays logged in when switching from legacy SDK and then back', async () => {
+      await driver.webDriver.navigate().refresh();
+      await driver.injectConfigAndInitLegacySDK();
+      await driver.waitForLegacyAuthInit();
+
+      const result = await driver.call<{ user: { uid: string } }>(
+        'legacyAuth.signInAnonymously'
+      );
+      const uid = result.user.uid;
+      const persisted1 = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
+
+      await driver.webDriver.navigate().refresh();
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+      // User should be picked up from indexedDB after refresh.
+      expect((await driver.getUserSnapshot()).uid).to.eql(uid);
+      const persisted2 = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
+
+      await driver.webDriver.navigate().refresh();
+      await driver.injectConfigAndInitLegacySDK();
+      await driver.waitForLegacyAuthInit();
+      const user = await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT);
+      if (!user) {
+        expect(
+          persisted2,
+          'user is not recognized by legacy SDK, possibly due to fields being different'
+        ).to.eql(persisted1);
+      } else {
+        expect(user).to.include({ uid }); // and again in legacy SDK
+      }
+    });
+
+    it('stays logged in when switching from legacy SDK and then back (no indexedDB support)', async () => {
+      await driver.webDriver.navigate().refresh();
+      // Simulate browsers that do not support indexedDB.
+      await driver.webDriver.executeScript('delete window.indexedDB');
+      await driver.injectConfigAndInitLegacySDK();
+      await driver.waitForLegacyAuthInit();
+
+      const result = await driver.call<{ user: { uid: string } }>(
+        'legacyAuth.signInAnonymously'
+      );
+      const uid = result.user.uid;
+      const persisted1 = await driver.call(
+        PersistenceFunction.LOCAL_STORAGE_SNAP
+      );
+
+      await driver.webDriver.navigate().refresh();
+      await driver.webDriver.executeScript('delete window.indexedDB');
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+      // User should be picked up from localStorage after refresh.
+      expect((await driver.getUserSnapshot()).uid).to.eql(uid);
+      const persisted2 = await driver.call(
+        PersistenceFunction.LOCAL_STORAGE_SNAP
+      );
+
+      await driver.webDriver.navigate().refresh();
+      await driver.injectConfigAndInitLegacySDK();
+      await driver.waitForLegacyAuthInit();
+      const user = await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT);
+      if (!user) {
+        expect(
+          persisted2,
+          'user is not recognized by legacy SDK, possibly due to fields being different'
+        ).to.eql(persisted1);
+      } else {
+        expect(user).to.include({ uid }); // and again in legacy SDK
+      }
+    });
+  });
 });
