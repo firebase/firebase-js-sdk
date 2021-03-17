@@ -15,13 +15,10 @@
  * limitations under the License.
  */
 
-module.exports = {
-  extends: '../../config/.eslintrc.js',
-  ignorePatterns: ['scripts/'],
-  parserOptions: {
-    project: 'tsconfig.json',
-    // to make vscode-eslint work with monorepo
-    // https://github.com/typescript-eslint/typescript-eslint/issues/251#issuecomment-463943250
-    tsconfigRootDir: __dirname
-  }
-};
+import { name, version } from '../package.json';
+
+import { firebase } from '@firebase/app-compat';
+import { registerMessagingCompat } from './registerMessagingCompat';
+
+registerMessagingCompat();
+firebase.registerVersion(name, version);

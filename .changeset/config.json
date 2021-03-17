@@ -23,6 +23,7 @@
     "@firebase/installations-exp",
     "@firebase/installations-compat",
     "@firebase/messaging-exp",
+    "@firebase/messaging-compat",
     "@firebase/performance-exp",
     "@firebase/performance-compat",
     "@firebase/remote-config-exp",
