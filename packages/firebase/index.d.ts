@@ -8168,7 +8168,9 @@ declare namespace firebase.firestore {
      * @param collectionPath A slash-separated path to a collection.
      * @return The `CollectionReference` instance.
      */
-    collection(collectionPath: string): CollectionReference<DocumentData>;
+    collection<T = DocumentData>(
+      collectionPath: string
+    ): CollectionReference<T>;
 
     /**
      * Gets a `DocumentReference` instance that refers to the document at the
@@ -8177,7 +8179,7 @@ declare namespace firebase.firestore {
      * @param documentPath A slash-separated path to a document.
      * @return The `DocumentReference` instance.
      */
-    doc(documentPath: string): DocumentReference<DocumentData>;
+    doc<T = DocumentData>(documentPath: string): DocumentReference<T>;
 
     /**
      * Creates and returns a new Query that includes all documents in the
@@ -8189,7 +8191,7 @@ declare namespace firebase.firestore {
      * will be included. Cannot contain a slash.
      * @return The created Query.
      */
-    collectionGroup(collectionId: string): Query<DocumentData>;
+    collectionGroup<T = DocumentData>(collectionId: string): Query<T>;
 
     /**
      * Executes the given `updateFunction` and then attempts to commit the changes

@@ -65,11 +65,11 @@ export class FirebaseFirestore {
 
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
-  collection(collectionPath: string): CollectionReference<DocumentData>;
+  collection<T = DocumentData>(collectionPath: string): CollectionReference<T>;
 
-  doc(documentPath: string): DocumentReference<DocumentData>;
+  doc<T = DocumentData>(documentPath: string): DocumentReference<T>;
 
-  collectionGroup(collectionId: string): Query<DocumentData>;
+  collectionGroup<T = DocumentData>(collectionId: string): Query<T>;
 
   runTransaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>
@@ -243,7 +243,7 @@ export class DocumentReference<T = DocumentData> {
   readonly parent: CollectionReference<T>;
   readonly path: string;
 
-  collection(collectionPath: string): CollectionReference<DocumentData>;
+  collection(collectionPath: string): CollectionReference<T>;
 
   isEqual(other: DocumentReference<T>): boolean;
 
