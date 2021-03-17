@@ -52,6 +52,23 @@ export class AuthDriver {
 
   async stop(): Promise<void> {
     authTestServer.stop();
+    if (process.env.WEBDRIVER_BROWSER_LOGS) {
+      await this.webDriver
+        .manage()
+        .logs()
+        .get('browser')
+        .then(
+          logs => {
+            for (const { level, message } of logs) {
+              console.log(level.name, message);
+            }
+          },
+          () =>
+            console.log(
+              'Failed to dump browser logs (this is normal for Firefox).'
+            )
+        );
+    }
     await this.webDriver.quit();
   }
 

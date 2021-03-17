@@ -71,13 +71,14 @@ export class Auth
 
     this.auth._updateErrorMap(exp.debugErrorMap);
 
+    // Only use a popup/redirect resolver in browser environments
+    const resolver =
+      typeof window !== 'undefined' ? CompatPopupRedirectResolver : undefined;
+
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.auth._initializeWithPersistence(
-      hierarchy,
-      CompatPopupRedirectResolver
-    );
+    this.auth._initializeWithPersistence(hierarchy, resolver);
   }
 
   get emulatorConfig(): compat.EmulatorConfig | null {

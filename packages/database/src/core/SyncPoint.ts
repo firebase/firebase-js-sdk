@@ -29,7 +29,11 @@ import {
   viewRemoveEventRegistration
 } from './view/View';
 import { Operation } from './operation/Operation';
-import { WriteTreeRef } from './WriteTree';
+import {
+  WriteTreeRef,
+  writeTreeRefCalcCompleteEventCache,
+  writeTreeRefCalcCompleteEventChildren
+} from './WriteTree';
 import { Query } from '../api/Query';
 import { EventRegistration } from './view/EventRegistration';
 import { Node } from './snap/Node';
@@ -127,14 +131,18 @@ export function syncPointGetView(
   const view = syncPoint.views.get(queryId);
   if (!view) {
     // TODO: make writesCache take flag for complete server node
-    let eventCache = writesCache.calcCompleteEventCache(
+    let eventCache = writeTreeRefCalcCompleteEventCache(
+      writesCache,
       serverCacheComplete ? serverCache : null
     );
     let eventCacheComplete = false;
     if (eventCache) {
       eventCacheComplete = true;
     } else if (serverCache instanceof ChildrenNode) {
-      eventCache = writesCache.calcCompleteEventChildren(serverCache);
+      eventCache = writeTreeRefCalcCompleteEventChildren(
+        writesCache,
+        serverCache
+      );
       eventCacheComplete = false;
     } else {
       eventCache = ChildrenNode.EMPTY_NODE;
