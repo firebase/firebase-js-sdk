@@ -19,6 +19,22 @@ import { name, version } from '../package.json';
 
 import firebase from '@firebase/app-compat';
 import { registerMessagingCompat } from './registerMessagingCompat';
+import { MessagingCompat } from './messaging-compat';
 
 registerMessagingCompat();
 firebase.registerVersion(name, version);
+
+/**
+ * Define extension behavior of `registerMessaging`
+ */
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    messaging: {
+      (app?: FirebaseApp): MessagingCompat;
+      isSupported(): boolean;
+    };
+  }
+  interface FirebaseApp {
+    messaging(): MessagingCompat;
+  }
+}

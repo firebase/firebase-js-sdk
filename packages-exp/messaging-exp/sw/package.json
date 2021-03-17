@@ -4,10 +4,7 @@
     "version": "0.0.900",
     "description": "",
     "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-    "main": "../dist/cjs/sw.js",
-    "module": "../dist/esm5/sw.js",
-    "esm2017": "../dist/esm2017/sw.js",
-    "typings": "../dist/esm5/index.sw.d.ts",
+    "module": "../dist/index.sw.esm2017.js",
     "files": [
       "dist"
     ]

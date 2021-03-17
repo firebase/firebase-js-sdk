@@ -18,6 +18,19 @@
 import firebase from '@firebase/app-compat';
 import { name, version } from '../package.json';
 import { registerFunctions } from './register';
+import * as types from '@firebase/functions-types';
 
 registerFunctions();
 firebase.registerVersion(name, version);
+
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    functions?: {
+      (app?: FirebaseApp): types.FirebaseFunctions;
+      Functions: typeof types.FirebaseFunctions;
+    };
+  }
+  interface FirebaseApp {
+    functions?(regionOrCustomDomain?: string): types.FirebaseFunctions;
+  }
+}

@@ -41,13 +41,10 @@ const es5BuildPlugins = [
 
 const es5Builds = [
   {
-    input: {
-      index: 'src/index.ts',
-      sw: 'src/index.sw.ts'
-    },
+    input: 'src/index.ts',
     output: [
-      { dir: 'dist/cjs', format: 'cjs', sourcemap: true },
-      { dir: 'dist/esm5', format: 'es', sourcemap: true }
+      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     treeshake: {
@@ -77,12 +74,9 @@ const es2017BuildPlugins = [
 
 const es2017Builds = [
   {
-    input: {
-      index: 'src/index.ts',
-      sw: 'src/index.sw.ts'
-    },
+    input: 'src/index.ts',
     output: {
-      dir: 'dist/esm2017',
+      file: pkg.esm2017,
       format: 'es',
       sourcemap: true
     },
@@ -91,6 +85,17 @@ const es2017Builds = [
       moduleSideEffects: (id, external) => id === '@firebase/installations'
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+
+  // sw builds
+  {
+    input: 'src/index.sw.ts',
+    output: { file: pkg.sw, format: 'es', sourcemap: true },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: (id, external) => id === '@firebase/installations'
+    }
   }
 ];
 
