@@ -97,12 +97,12 @@ export async function _savePersistenceForRedirect(
   }
 }
 
-export function _getPersistenceFromRedirect(
+export function _getPersistencesFromRedirect(
   auth: AuthInternal
-): exp.Persistence | null {
+): exp.Persistence[] {
   const win = getSelfWindow();
   if (!win?.sessionStorage) {
-    return null;
+    return [];
   }
 
   const key = exp._persistenceKeyName(
@@ -113,16 +113,14 @@ export function _getPersistenceFromRedirect(
   const persistence = win.sessionStorage.getItem(key);
 
   switch (persistence) {
-    case exp.inMemoryPersistence.type:
-      return exp.inMemoryPersistence;
-    case exp.indexedDBLocalPersistence.type:
-      return exp.indexedDBLocalPersistence;
-    case exp.browserSessionPersistence.type:
-      return exp.browserSessionPersistence;
-    case exp.browserLocalPersistence.type:
-      return exp.browserLocalPersistence;
+    case Persistence.NONE:
+      return [exp.inMemoryPersistence];
+    case Persistence.LOCAL:
+      return [exp.indexedDBLocalPersistence, exp.browserSessionPersistence];
+    case Persistence.SESSION:
+      return [exp.browserSessionPersistence];
     default:
-      return null;
+      return [];
   }
 }
 

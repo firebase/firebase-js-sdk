@@ -82,7 +82,7 @@ export class PersistenceUserManager {
   }
 
   async setPersistence(newPersistence: PersistenceInternal): Promise<void> {
-    if (this.persistence.type === newPersistence.type) {
+    if (this.persistence === newPersistence) {
       return;
     }
 
