@@ -10,6 +10,7 @@
         "analytics",
         "auth",
         "functions",
-        "messaging"
+        "messaging",
+        "performance"
     ]
 }

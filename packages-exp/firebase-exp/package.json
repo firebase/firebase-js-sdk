@@ -48,6 +48,7 @@
     "@firebase/firestore": "2.2.0",
     "@firebase/storage": "0.4.4",
     "@firebase/performance-exp": "0.0.900",
+    "@firebase/performance-compat": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
     "@firebase/messaging-exp": "0.0.900",
     "@firebase/messaging-compat": "0.0.900"
