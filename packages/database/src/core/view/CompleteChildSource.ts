@@ -18,7 +18,11 @@
 import { CacheNode } from './CacheNode';
 import { NamedNode, Node } from '../snap/Node';
 import { Index } from '../snap/indexes/Index';
-import { WriteTreeRef } from '../WriteTree';
+import {
+  WriteTreeRef,
+  writeTreeRefCalcCompleteChild,
+  writeTreeRefCalcIndexedSlice
+} from '../WriteTree';
 import { ViewCache, viewCacheGetCompleteServerSnap } from './ViewCache';
 
 /**
@@ -91,7 +95,7 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
         this.optCompleteServerCache_ != null
           ? new CacheNode(this.optCompleteServerCache_, true, false)
           : this.viewCache_.serverCache;
-      return this.writes_.calcCompleteChild(childKey, serverNode);
+      return writeTreeRefCalcCompleteChild(this.writes_, childKey, serverNode);
     }
   }
 
@@ -107,7 +111,8 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
       this.optCompleteServerCache_ != null
         ? this.optCompleteServerCache_
         : viewCacheGetCompleteServerSnap(this.viewCache_);
-    const nodes = this.writes_.calcIndexedSlice(
+    const nodes = writeTreeRefCalcIndexedSlice(
+      this.writes_,
       completeServerData,
       child,
       1,

@@ -57,7 +57,7 @@ import { Reference } from './reference';
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
  * upload and manage callbacks for various events.
- * @public
+ * @internal
  */
 export class UploadTask {
   private _ref: Reference;

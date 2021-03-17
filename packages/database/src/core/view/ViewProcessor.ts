@@ -46,7 +46,14 @@ import {
   viewCacheUpdateServerSnap
 } from './ViewCache';
 import { NodeFilter } from './filter/NodeFilter';
-import { WriteTreeRef } from '../WriteTree';
+import {
+  WriteTreeRef,
+  writeTreeRefCalcCompleteChild,
+  writeTreeRefCalcCompleteEventCache,
+  writeTreeRefCalcCompleteEventChildren,
+  writeTreeRefCalcEventCacheAfterServerOverwrite,
+  writeTreeRefShadowingWrite
+} from '../WriteTree';
 import { Overwrite } from '../operation/Overwrite';
 import { Merge } from '../operation/Merge';
 import { AckUserWrite } from '../operation/AckUserWrite';
@@ -217,7 +224,7 @@ function viewProcessorGenerateEventCacheAfterServerEvent(
   accumulator: ChildChangeAccumulator
 ): ViewCache {
   const oldEventSnap = viewCache.eventCache;
-  if (writesCache.shadowingWrite(changePath) != null) {
+  if (writeTreeRefShadowingWrite(writesCache, changePath) != null) {
     // we have a shadowing write, ignore changes
     return viewCache;
   } else {
@@ -237,7 +244,8 @@ function viewProcessorGenerateEventCacheAfterServerEvent(
           serverCache instanceof ChildrenNode
             ? serverCache
             : ChildrenNode.EMPTY_NODE;
-        const completeEventChildren = writesCache.calcCompleteEventChildren(
+        const completeEventChildren = writeTreeRefCalcCompleteEventChildren(
+          writesCache,
           completeChildren
         );
         newEventCache = viewProcessor.filter.updateFullNode(
@@ -246,7 +254,8 @@ function viewProcessorGenerateEventCacheAfterServerEvent(
           accumulator
         );
       } else {
-        const completeNode = writesCache.calcCompleteEventCache(
+        const completeNode = writeTreeRefCalcCompleteEventCache(
+          writesCache,
           viewCacheGetCompleteServerSnap(viewCache)
         );
         newEventCache = viewProcessor.filter.updateFullNode(
@@ -265,7 +274,8 @@ function viewProcessorGenerateEventCacheAfterServerEvent(
         const oldEventNode = oldEventSnap.getNode();
         serverNode = viewCache.serverCache.getNode();
         // we might have overwrites for this priority
-        const updatedPriority = writesCache.calcEventCacheAfterServerOverwrite(
+        const updatedPriority = writeTreeRefCalcEventCacheAfterServerOverwrite(
+          writesCache,
           changePath,
           oldEventNode,
           serverNode
@@ -285,7 +295,8 @@ function viewProcessorGenerateEventCacheAfterServerEvent(
         let newEventChild;
         if (oldEventSnap.isCompleteForChild(childKey)) {
           serverNode = viewCache.serverCache.getNode();
-          const eventChildUpdate = writesCache.calcEventCacheAfterServerOverwrite(
+          const eventChildUpdate = writeTreeRefCalcEventCacheAfterServerOverwrite(
+            writesCache,
             changePath,
             oldEventSnap.getNode(),
             serverNode
@@ -300,7 +311,8 @@ function viewProcessorGenerateEventCacheAfterServerEvent(
             newEventChild = oldEventSnap.getNode().getImmediateChild(childKey);
           }
         } else {
-          newEventChild = writesCache.calcCompleteChild(
+          newEventChild = writeTreeRefCalcCompleteChild(
+            writesCache,
             childKey,
             viewCache.serverCache
           );
@@ -661,7 +673,7 @@ function viewProcessorAckUserWrite(
   completeCache: Node | null,
   accumulator: ChildChangeAccumulator
 ): ViewCache {
-  if (writesCache.shadowingWrite(ackPath) != null) {
+  if (writeTreeRefShadowingWrite(writesCache, ackPath) != null) {
     return viewCache;
   }
 
@@ -765,7 +777,7 @@ function viewProcessorRevertUserWrite(
   accumulator: ChildChangeAccumulator
 ): ViewCache {
   let complete;
-  if (writesCache.shadowingWrite(path) != null) {
+  if (writeTreeRefShadowingWrite(writesCache, path) != null) {
     return viewCache;
   } else {
     const source = new WriteTreeCompleteChildSource(
@@ -778,7 +790,8 @@ function viewProcessorRevertUserWrite(
     if (pathIsEmpty(path) || pathGetFront(path) === '.priority') {
       let newNode;
       if (viewCache.serverCache.isFullyInitialized()) {
-        newNode = writesCache.calcCompleteEventCache(
+        newNode = writeTreeRefCalcCompleteEventCache(
+          writesCache,
           viewCacheGetCompleteServerSnap(viewCache)
         );
       } else {
@@ -787,7 +800,8 @@ function viewProcessorRevertUserWrite(
           serverChildren instanceof ChildrenNode,
           'serverChildren would be complete if leaf node'
         );
-        newNode = writesCache.calcCompleteEventChildren(
+        newNode = writeTreeRefCalcCompleteEventChildren(
+          writesCache,
           serverChildren as ChildrenNode
         );
       }
@@ -799,7 +813,8 @@ function viewProcessorRevertUserWrite(
       );
     } else {
       const childKey = pathGetFront(path);
-      let newChild = writesCache.calcCompleteChild(
+      let newChild = writeTreeRefCalcCompleteChild(
+        writesCache,
         childKey,
         viewCache.serverCache
       );
@@ -836,7 +851,8 @@ function viewProcessorRevertUserWrite(
         viewCache.serverCache.isFullyInitialized()
       ) {
         // We might have reverted all child writes. Maybe the old event was a leaf node
-        complete = writesCache.calcCompleteEventCache(
+        complete = writeTreeRefCalcCompleteEventCache(
+          writesCache,
           viewCacheGetCompleteServerSnap(viewCache)
         );
         if (complete.isLeafNode()) {
@@ -850,7 +866,7 @@ function viewProcessorRevertUserWrite(
     }
     complete =
       viewCache.serverCache.isFullyInitialized() ||
-      writesCache.shadowingWrite(newEmptyPath()) != null;
+      writeTreeRefShadowingWrite(writesCache, newEmptyPath()) != null;
     return viewCacheUpdateEventSnap(
       viewCache,
       newEventCache,
