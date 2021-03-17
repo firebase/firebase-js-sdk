@@ -16,11 +16,12 @@
  */
 
 import * as types from '@firebase/storage-types';
-import { StorageService, isUrl, ref } from '../src/service';
-import { Location } from '../src/implementation/location';
-import { ReferenceCompat } from './reference';
-import { invalidArgument } from '../src/implementation/error';
 import { FirebaseApp } from '@firebase/app-types';
+
+import { StorageService, ref, _Location } from '../exp/api'; // import from the exp public API
+import { ReferenceCompat } from './reference';
+import { isUrl } from '../src/service';
+import { invalidArgument } from '../src/implementation/error';
 
 /**
  * A service that provides firebaseStorage.Reference instances.
@@ -70,7 +71,7 @@ export class StorageServiceCompat implements types.FirebaseStorage {
       );
     }
     try {
-      Location.makeFromUrl(url);
+      _Location.makeFromUrl(url);
     } catch (e) {
       throw invalidArgument(
         'refFromUrl() expected a valid full URL but got an invalid one.'

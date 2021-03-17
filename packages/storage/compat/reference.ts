@@ -16,29 +16,34 @@
  */
 
 import {
-  Reference,
-  _getChild,
+  StorageReference,
   uploadBytesResumable,
   list,
   listAll,
   getDownloadURL,
   getMetadata,
   updateMetadata,
-  deleteObject
-} from '../src/reference';
-import * as types from '@firebase/storage-types';
-import { Metadata } from '../src/metadata';
-import { dataFromString, StringFormat } from '../src/implementation/string';
+  deleteObject,
+  UploadTask,
+  StringFormat,
+  _UploadTask,
+  _getChild,
+  _Reference,
+  _FbsBlob
+} from '../exp/api'; // import from the exp public API
+
 import { UploadTaskCompat } from './task';
 import { ListResultCompat } from './list';
 import { StorageServiceCompat } from './service';
+
+import * as types from '@firebase/storage-types';
+import { Metadata } from '../src/metadata';
+import { dataFromString } from '../src/implementation/string';
 import { invalidRootOperation } from '../src/implementation/error';
-import { UploadTask } from '../src/task';
-import { FbsBlob } from '../src/implementation/blob';
 
 export class ReferenceCompat implements types.Reference {
   constructor(
-    private readonly _delegate: Reference,
+    private readonly _delegate: StorageReference,
     public storage: StorageServiceCompat
   ) {}
 
@@ -120,11 +125,11 @@ export class ReferenceCompat implements types.Reference {
       metadataClone['contentType'] = data.contentType;
     }
     return new UploadTaskCompat(
-      new UploadTask(
-        this._delegate,
-        new FbsBlob(data.data, true),
+      new _UploadTask(
+        this._delegate as _Reference,
+        new _FbsBlob(data.data, true),
         metadataClone
-      ),
+      ) as UploadTask,
       this
     );
   }
@@ -172,7 +177,7 @@ export class ReferenceCompat implements types.Reference {
    * can be used to get the rest of the results.
    */
   list(options?: types.ListOptions | null): Promise<types.ListResult> {
-    return list(this._delegate, options).then(
+    return list(this._delegate, options || undefined).then(
       r => new ListResultCompat(r, this.storage)
     );
   }
@@ -222,7 +227,7 @@ export class ReferenceCompat implements types.Reference {
   }
 
   private _throwIfRoot(name: string): void {
-    if (this._delegate._location.path === '') {
+    if ((this._delegate as _Reference)._location.path === '') {
       throw invalidRootOperation(name);
     }
   }
