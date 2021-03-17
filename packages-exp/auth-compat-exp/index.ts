@@ -29,10 +29,9 @@ import { version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';
 import { PhoneAuthProvider } from './src/phone_auth_provider';
-import { _getClientPlatform } from './src/platform';
 import { RecaptchaVerifier } from './src/recaptcha_verifier';
 
-const AUTH_TYPE = 'auth';
+const AUTH_TYPE = 'auth-compat';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -101,5 +100,4 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
   instance.registerVersion('auth', version);
 }
 
-impl.registerAuth(_getClientPlatform());
 registerAuthCompat(firebase as _FirebaseNamespace);

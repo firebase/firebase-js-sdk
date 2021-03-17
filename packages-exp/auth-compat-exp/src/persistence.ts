@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { AuthInternal } from '@firebase/auth-exp/dist/esm5/src/model/auth';
 import * as exp from '@firebase/auth-exp/internal';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
 import { _isWebStorageSupported, _isWorker } from './platform';
@@ -82,7 +81,7 @@ export function _validatePersistenceArgument(
 }
 
 export async function _savePersistenceForRedirect(
-  auth: AuthInternal
+  auth: exp.AuthInternal
 ): Promise<void> {
   await auth._initializationPromise;
 
@@ -98,7 +97,7 @@ export async function _savePersistenceForRedirect(
 }
 
 export function _getPersistenceFromRedirect(
-  auth: AuthInternal
+  auth: exp.AuthInternal
 ): exp.Persistence | null {
   const win = getSelfWindow();
   if (!win?.sessionStorage) {

@@ -51,7 +51,10 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
       input: 'index.ts',
       output: [{ file: pkg.module, format: 'esm', sourcemap: true }],
       plugins: es5BuildPlugins,
-      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+      treeshake: {
+        moduleSideEffects: false
+      }
     },
     /**
      * Node.js Build
@@ -60,7 +63,10 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
       input: 'index.node.ts',
       output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
       plugins: es5BuildPlugins,
-      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+      treeshake: {
+        moduleSideEffects: false
+      }
     },
     /**
      * UMD build
@@ -131,7 +137,10 @@ export function getEs2017Builds(additionalTypescriptPlugins = {}) {
         sourcemap: true
       },
       plugins: es2017BuildPlugins,
-      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+      treeshake: {
+        moduleSideEffects: false
+      }
     }
   ];
 }
