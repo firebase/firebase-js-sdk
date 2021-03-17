@@ -69,7 +69,15 @@ function createUmdOutputConfig(output) {
   };
 }
 
-const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
+const plugins = [
+  sourcemaps(),
+  resolveModule({
+    // hack to find firestore-compat and storage-compat
+    moduleDirectories: ['node_modules', resolve(__dirname, '../..')]
+  }),
+  json(),
+  commonjs()
+];
 
 const typescriptPlugin = rollupTypescriptPlugin({
   typescript,
@@ -85,7 +93,7 @@ const typescriptPlugin = rollupTypescriptPlugin({
  */
 const appBuilds = [
   /**
-   * App Browser Builds
+   * App NPM Builds
    */
   {
     input: `${__dirname}/app/index.ts`,
@@ -169,6 +177,11 @@ const componentBuilds = compatPkg.components
               {
                 find: '@firebase/installations',
                 replacement: '@firebase/installations-exp'
+              },
+              {
+                // hack to locate firestore-compat
+                find: '@firebase/firestore-compat',
+                replacement: 'firestore-compat'
               }
             ]
           })
