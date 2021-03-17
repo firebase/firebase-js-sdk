@@ -128,12 +128,12 @@ export function getDoc<T>(
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
       hardAssert(result.length === 1, 'Expected a single document result');
-      const maybeDocument = result[0];
+      const document = result[0];
       return new DocumentSnapshot<T>(
         reference.firestore,
         userDataWriter,
         reference._key,
-        maybeDocument.isFoundDocument() ? maybeDocument : null,
+        document.isFoundDocument() ? document : null,
         reference._converter
       );
     }

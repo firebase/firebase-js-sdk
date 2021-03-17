@@ -217,7 +217,7 @@ export abstract class Mutation {
 /**
  * Applies this mutation to the given document for the purposes of computing a
  * new remote document. If the input document doesn't match the expected state
- * (e.g. it is invalid or outdated), the document state may transition to
+ * (e.g. it is invalid or outdated), the document type may transition to
  * unknown.
  *
  * @param mutation - The mutation to apply.

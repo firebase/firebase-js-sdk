@@ -23,6 +23,10 @@ import { ObjectValue } from './object_value';
 import { FieldPath } from './path';
 import { valueCompare } from './values';
 
+/**
+ * Whether the document represents an existing document, a document that is
+ * known to exist or a document whose state or existence is unknown.
+ */
 const enum DocumentType {
   /**
    * Represents the initial state of a MutableDocument when only the document
