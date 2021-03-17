@@ -35,7 +35,7 @@
     "@firebase/storage-types": "0.3.13",
     "@firebase/util": "0.4.0",
     "@firebase/component": "0.2.1",
-    "tslib": "^2.0.0"
+    "tslib": "^2.1.0"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
