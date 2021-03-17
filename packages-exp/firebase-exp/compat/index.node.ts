@@ -20,7 +20,7 @@ import { name, version } from '../package.json';
 
 import './auth';
 // import './database';
-// import './firestore';
+import './firestore';
 import './functions';
 
 firebase.registerVersion(name, version, 'compat-node');

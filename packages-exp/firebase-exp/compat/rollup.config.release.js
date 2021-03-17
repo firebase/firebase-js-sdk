@@ -309,6 +309,4 @@ const completeBuilds = [
   }
 ];
 
-// export default [...appBuilds, ...componentBuilds, ...completeBuilds];
-export default [...appBuilds, ...componentBuilds];
-// export default [...appBuilds];
+export default [...appBuilds, ...componentBuilds, ...completeBuilds];

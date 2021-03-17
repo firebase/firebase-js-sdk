@@ -32,10 +32,10 @@ import { name, version } from '../package.json';
 
 import './auth';
 // import './database';
-// import './firestore';
+import './firestore';
 import './functions';
 import './messaging';
-// import './storage';
+import './storage';
 import './performance';
 import './analytics';
 import './remote-config';
