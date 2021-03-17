@@ -13,6 +13,7 @@
         "messaging",
         "performance",
         "remote-config",
-        "firestore"
+        "firestore",
+        "storage"
     ]
 }

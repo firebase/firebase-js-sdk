@@ -182,6 +182,11 @@ const componentBuilds = compatPkg.components
                 // hack to locate firestore-compat
                 find: '@firebase/firestore-compat',
                 replacement: 'firestore-compat'
+              },
+              {
+                // hack to locate storage-compat
+                find: '@firebase/storage-compat',
+                replacement: 'storage-compat'
               }
             ]
           })
