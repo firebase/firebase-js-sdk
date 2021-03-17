@@ -75,7 +75,7 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
     it('logEvent() sends correct network request.', async () => {
       app = initializeApp(config);
       logEvent(initializeAnalytics(app), 'login', { method: 'email' });
-      async function checkForEventCalls(): Promise<number> {
+      async function checkForEventCalls(): Promise<PerformanceEntry[]> {
         await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
         const resources = performance.getEntriesByType('resource');
         const callsWithEvent = resources.filter(
@@ -86,11 +86,12 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
         if (callsWithEvent.length === 0) {
           return checkForEventCalls();
         } else {
-          return callsWithEvent.length;
+          return callsWithEvent;
         }
       }
-      const eventCallCount = await checkForEventCalls();
-      expect(eventCallCount).to.equal(1);
+      const eventCalls = await checkForEventCalls();
+      expect(eventCalls.length).to.equal(1);
+      expect(eventCalls[0].name).to.include('method=email');
     });
     it('getAnalytics() does not throw if called after initializeAnalytics().', async () => {
       const analyticsInstance = getAnalytics(app);

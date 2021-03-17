@@ -48,7 +48,7 @@ function stubFetch(): void {
   fetchStub.returns(Promise.resolve(mockResponse));
 }
 
-describe('initializeIds()', () => {
+describe('initializeAnalytics()', () => {
   const gtagStub: SinonStub = stub();
   const dynamicPromisesList: Array<Promise<DynamicConfig>> = [];
   const measurementIdToAppId: { [key: string]: string } = {};
@@ -77,6 +77,24 @@ describe('initializeIds()', () => {
       'firebase_id': fakeFid,
       'origin': 'firebase',
       update: true
+    });
+  });
+  it('calls gtag config with options if provided', async () => {
+    stubFetch();
+    await initializeAnalytics(
+      app,
+      dynamicPromisesList,
+      measurementIdToAppId,
+      fakeInstallations,
+      gtagStub,
+      'dataLayer',
+      { config: { 'send_page_view': false } }
+    );
+    expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
+      'firebase_id': fakeFid,
+      'origin': 'firebase',
+      update: true,
+      'send_page_view': false
     });
   });
   it('puts dynamic fetch promise into dynamic promises list', async () => {
