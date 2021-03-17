@@ -7,7 +7,7 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm5/index.js",
   "esm2017": "dist/esm2017/index.js",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/messaging-exp.d.ts",
   "sw": "dist/esm2017/sw.js",
   "files": [
     "dist"
