@@ -8,6 +8,7 @@
     "components": [
         "app",
         "analytics",
-        "auth"
+        "auth",
+        "functions"
     ]
 }

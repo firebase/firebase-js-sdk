@@ -15,7 +15,4 @@
  * limitations under the License.
  */
 
-/**
- * Type constant for Firebase Functions.
- */
-export const FUNCTIONS_TYPE = 'functions-exp';
+import '@firebase/functions-compat';

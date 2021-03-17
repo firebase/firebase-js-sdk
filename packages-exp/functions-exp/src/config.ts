@@ -26,7 +26,7 @@ import {
 import { FUNCTIONS_TYPE } from './constants';
 
 export function registerFunctions(fetchImpl: typeof fetch): void {
-  const factory: InstanceFactory<'functions'> = (
+  const factory: InstanceFactory<'functions-exp'> = (
     container: ComponentContainer,
     { instanceIdentifier: regionOrCustomDomain }
   ) => {

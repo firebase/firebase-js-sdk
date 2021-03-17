@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { firebase } from '@firebase/app-compat';
+import firebase from '@firebase/app-compat';
 import { name, version } from '../package.json';
 import { registerFunctions } from './register';
 
