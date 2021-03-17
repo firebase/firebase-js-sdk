@@ -36,9 +36,9 @@ import './auth';
 import './functions';
 import './messaging';
 // import './storage';
-// import './performance';
+import './performance';
 import './analytics';
-// import './remote-config';
+import './remote-config';
 
 firebase.registerVersion(name, version, 'compat-cdn');
 
