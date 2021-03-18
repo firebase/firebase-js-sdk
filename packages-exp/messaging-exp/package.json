@@ -33,7 +33,7 @@
     "@firebase/app-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.2.1",
+    "@firebase/component": "0.3.0",
     "@firebase/installations-exp": "0.0.900",
     "@firebase/util": "0.4.0",
     "idb": "3.0.2",

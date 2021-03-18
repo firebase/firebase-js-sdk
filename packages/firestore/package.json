@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -63,7 +63,7 @@
     "memory-bundle/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.2.1",
+    "@firebase/component": "0.3.0",
     "@firebase/firestore-types": "2.2.0",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.4.0",
@@ -78,7 +78,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.16",
+    "@firebase/app": "0.6.17",
     "@rollup/plugin-alias": "3.1.1",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "11.2.0",

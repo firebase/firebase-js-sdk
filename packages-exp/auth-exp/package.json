@@ -49,7 +49,7 @@
     "@firebase/app-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.2.1",
+    "@firebase/component": "0.3.0",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.4.0",
     "node-fetch": "2.6.1",

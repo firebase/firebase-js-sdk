@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@firebase/messaging-exp": "0.0.900",
-    "@firebase/component": "0.2.1",
+    "@firebase/component": "0.3.0",
     "@firebase/installations-exp": "0.0.900",
     "@firebase/util": "0.4.0",
     "tslib": "^2.1.0"
