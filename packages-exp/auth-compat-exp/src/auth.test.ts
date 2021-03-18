@@ -63,7 +63,10 @@ describe('auth compat', () => {
         );
         providerStub.isInitialized.returns(true);
         providerStub.getImmediate.returns(underlyingAuth);
-        const authCompat = new Auth(app, providerStub as unknown as Provider<'auth-exp'>);
+        const authCompat = new Auth(
+          app,
+          (providerStub as unknown) as Provider<'auth-exp'>
+        );
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
         expect(
@@ -80,17 +83,15 @@ describe('auth compat', () => {
         );
         providerStub.isInitialized.returns(false);
         providerStub.initialize.returns(underlyingAuth);
-        new Auth(app, providerStub as unknown as Provider<'auth-exp'>);
+        new Auth(app, (providerStub as unknown) as Provider<'auth-exp'>);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        expect(
-          providerStub.initialize
-        ).to.have.been.calledWith({
+        expect(providerStub.initialize).to.have.been.calledWith({
           options: {
             popupRedirectResolver: CompatPopupRedirectResolver,
             persistence: [
               exp.inMemoryPersistence,
               exp.indexedDBLocalPersistence,
-              exp.browserLocalPersistence,
+              exp.browserLocalPersistence
             ]
           }
         });

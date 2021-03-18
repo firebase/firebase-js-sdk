@@ -19,11 +19,7 @@ import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import { Provider } from '@firebase/component';
-import {
-  ErrorFn,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
+import { ErrorFn, Observer, Unsubscribe } from '@firebase/util';
 
 import {
   _validatePersistenceArgument,
@@ -88,10 +84,12 @@ export class Auth
     // Only use a popup/redirect resolver in browser environments
     const resolver =
       typeof window !== 'undefined' ? CompatPopupRedirectResolver : undefined;
-    this.auth = provider.initialize({ options: {
-      persistence: persistences,
-      popupRedirectResolver: resolver,
-    } }) as exp.AuthImpl;
+    this.auth = provider.initialize({
+      options: {
+        persistence: persistences,
+        popupRedirectResolver: resolver
+      }
+    }) as exp.AuthImpl;
 
     this.auth._updateErrorMap(exp.debugErrorMap);
   }

@@ -98,18 +98,14 @@ export async function _savePersistenceForRedirect(
 
 export function _getPersistencesFromRedirect(
   apiKey: string,
-  appName: string,
+  appName: string
 ): exp.Persistence[] {
   const win = getSelfWindow();
   if (!win?.sessionStorage) {
     return [];
   }
 
-  const key = exp._persistenceKeyName(
-    PERSISTENCE_KEY,
-    apiKey,
-    appName
-  );
+  const key = exp._persistenceKeyName(PERSISTENCE_KEY, apiKey, appName);
   const persistence = win.sessionStorage.getItem(key);
 
   switch (persistence) {
