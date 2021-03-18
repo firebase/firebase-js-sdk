@@ -32,7 +32,7 @@
     "@firebase/remote-config-exp": "0.0.900",
     "@firebase/util": "0.4.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.2.1",
+    "@firebase/component": "0.3.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {

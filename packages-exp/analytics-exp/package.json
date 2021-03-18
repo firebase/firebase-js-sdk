@@ -35,7 +35,7 @@
     "@firebase/installations-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.4.0",
-    "@firebase/component": "0.2.1",
+    "@firebase/component": "0.3.0",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

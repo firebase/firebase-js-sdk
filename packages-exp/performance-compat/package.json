@@ -8,7 +8,9 @@
   "browser": "dist/index.esm5.js",
   "module": "dist/index.esm5.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
@@ -29,10 +31,10 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/performance-exp": "0.0.900", 
+    "@firebase/performance-exp": "0.0.900",
     "@firebase/util": "0.4.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.2.1",
+    "@firebase/component": "0.3.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
