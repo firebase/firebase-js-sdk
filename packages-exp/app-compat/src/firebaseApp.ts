@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from './public-types';
+import { FirebaseOptions } from './public-types';
 import {
   Component,
   ComponentContainer,
@@ -31,6 +31,7 @@ import {
 } from '@firebase/app-exp';
 import { _FirebaseService, _FirebaseNamespace } from './types';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseApp {
   /**
    * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
