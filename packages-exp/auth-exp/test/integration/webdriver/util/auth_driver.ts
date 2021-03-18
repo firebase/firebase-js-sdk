@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Auth, User } from '@firebase/auth-exp';
+import { Auth, User, Persistence } from '@firebase/auth-exp';
 import { Builder, Condition, WebDriver } from 'selenium-webdriver';
 import { resetEmulator } from '../../../helpers/integration/emulator_rest_helpers';
 import {
@@ -29,6 +29,7 @@ import { JsLoadCondition } from './js_load_condition';
 import { authTestServer } from './test_server';
 
 const START_FUNCTION = 'startAuth';
+const START_LEGACY_SDK_FUNCTION = 'startLegacySDK';
 const PASSED_ARGS = '...Array.prototype.slice.call(arguments, 0, -1)';
 
 type DriverCallResult =
@@ -129,6 +130,10 @@ export class AuthDriver {
     return this.call(CoreFunction.AWAIT_AUTH_INIT);
   }
 
+  async waitForLegacyAuthInit(): Promise<void> {
+    return this.call(CoreFunction.AWAIT_LEGACY_AUTH_INIT);
+  }
+
   async reinitOnRedirect(): Promise<void> {
     // In this unique case we don't know when the page is back; check for the
     // presence of the core module
@@ -149,7 +154,7 @@ export class AuthDriver {
     await this.waitForAuthInit();
   }
 
-  async injectConfigAndInitAuth(): Promise<void> {
+  private async injectConfig(): Promise<void> {
     if (!USE_EMULATOR) {
       throw new Error(
         'Local testing against emulator requested, but ' +
@@ -166,7 +171,18 @@ export class AuthDriver {
       };
       window.emulatorUrl = '${getEmulatorUrl()}';
     `);
+  }
+
+  async injectConfigAndInitAuth(): Promise<void> {
+    await this.injectConfig();
     await this.call(START_FUNCTION);
+  }
+
+  async injectConfigAndInitLegacySDK(
+    persistence: Persistence['type'] = 'LOCAL'
+  ): Promise<void> {
+    await this.injectConfig();
+    await this.call(START_LEGACY_SDK_FUNCTION, persistence);
   }
 
   async selectPopupWindow(): Promise<void> {

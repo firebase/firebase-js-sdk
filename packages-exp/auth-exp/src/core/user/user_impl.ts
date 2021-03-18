@@ -218,7 +218,13 @@ export class UserImpl implements UserInternal {
       // Redirect event ID must be maintained in case there is a pending
       // redirect event.
       _redirectEventId: this._redirectEventId,
-      ...this.metadata.toJSON()
+      ...this.metadata.toJSON(),
+
+      // Required for compatibility with the legacy SDK (go/firebase-auth-sdk-persistence-parsing):
+      apiKey: this.auth.config.apiKey,
+      appName: this.auth.name
+      // Missing authDomain will be tolerated by the legacy SDK.
+      // stsTokenManager.apiKey isn't actually required (despite the legacy SDK persisting it).
     };
   }
 

@@ -32,6 +32,7 @@ window.email = email;
 window.persistence = persistence;
 
 window.auth = null;
+window.legacyAuth = null;
 
 // The config and emulator URL are injected by the test. The test framework
 // calls this function after that injection.
@@ -40,4 +41,28 @@ window.startAuth = async () => {
   const auth = getAuth(app);
   useAuthEmulator(auth, emulatorUrl);
   window.auth = auth;
+};
+
+window.startLegacySDK = async persistence => {
+  return new Promise((resolve, reject) => {
+    const appScript = document.createElement('script');
+    // TODO: Find some way to make the tests work without Internet.
+    appScript.src = 'https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js';
+    appScript.onerror = reject;
+    document.head.appendChild(appScript);
+
+    const authScript = document.createElement('script');
+    authScript.src =
+      'https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js';
+    authScript.onerror = reject;
+    authScript.onload = function () {
+      firebase.initializeApp(firebaseConfig);
+      const legacyAuth = firebase.auth();
+      legacyAuth.useEmulator(emulatorUrl);
+      legacyAuth.setPersistence(persistence.toLowerCase());
+      window.legacyAuth = legacyAuth;
+      resolve();
+    };
+    document.head.appendChild(authScript);
+  });
 };
