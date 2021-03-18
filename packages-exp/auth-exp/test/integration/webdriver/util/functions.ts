@@ -63,6 +63,7 @@ export enum CoreFunction {
 }
 
 /** Available persistence functions within the browser. See static/persistence.js */
+
 export enum PersistenceFunction {
   CLEAR_PERSISTENCE = 'persistence.clearPersistence',
   LOCAL_STORAGE_SNAP = 'persistence.localStorageSnap',

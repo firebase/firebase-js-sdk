@@ -74,9 +74,10 @@ function generateAliasConfig(platform) {
 }
 exports.generateAliasConfig = generateAliasConfig;
 
-const browserDeps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const browserDeps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
 
 const nodeDeps = [...browserDeps, 'util', 'path'];
 

@@ -31,7 +31,8 @@ export function getFakeApp(): FirebaseApp {
       appId: '1:777777777777:web:d93b5ca1475efe57'
     },
     automaticDataCollectionEnabled: true,
-    delete: async () => {}
+    delete: async () => {},
+    messaging: (() => null as unknown) as FirebaseApp['messaging']
   };
 }
 

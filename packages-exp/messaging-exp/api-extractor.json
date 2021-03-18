@@ -3,6 +3,8 @@
   // Point it to your entry point d.ts file.
   "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
   "dtsRollup": {
-    "enabled": true
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
+    "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts"
   }
 }

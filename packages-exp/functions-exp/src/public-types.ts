@@ -144,6 +144,6 @@ export interface FunctionsError extends FirebaseError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'functions': Functions;
+    'functions-exp': Functions;
   }
 }

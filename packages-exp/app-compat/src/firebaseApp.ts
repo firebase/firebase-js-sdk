@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from './public-types';
+import { FirebaseOptions } from './public-types';
 import {
   Component,
   ComponentContainer,
@@ -31,11 +31,34 @@ import {
 } from '@firebase/app-exp';
 import { _FirebaseService, _FirebaseNamespace } from './types';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _FirebaseApp {
+  /**
+   * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
+   * App.
+   */
+  name: string;
+
+  /**
+   * The (read-only) configuration options from the app initialization.
+   */
+  options: FirebaseOptions;
+
+  /**
+   * The settable config flag for GDPR opt-in/opt-out
+   */
+  automaticDataCollectionEnabled: boolean;
+
+  /**
+   * Make the given App unusable and free resources.
+   */
+  delete(): Promise<void>;
+}
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
-export class FirebaseAppImpl implements FirebaseApp {
+export class FirebaseAppImpl implements _FirebaseApp {
   private container: ComponentContainer;
 
   constructor(
