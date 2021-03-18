@@ -62,6 +62,12 @@ const firestoreNamespace = {
   CACHE_SIZE_UNLIMITED
 };
 
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'firestore-compat': Firestore;
+  }
+}
+
 /**
  * Configures Firestore as part of the Firebase SDK by calling registerComponent.
  *
@@ -78,7 +84,7 @@ export function configureForFirebase(
 ): void {
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
-      'firestore',
+      'firestore-compat',
       container => {
         const app = container.getProvider('app-compat').getImmediate()!;
         const firestoreExp = container

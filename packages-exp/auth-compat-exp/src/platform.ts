@@ -149,19 +149,6 @@ export function _isPopupRedirectSupported(): boolean {
   );
 }
 
-export function _getClientPlatform(): impl.ClientPlatform {
-  if (isNode()) {
-    return impl.ClientPlatform.NODE;
-  }
-  if (isReactNative()) {
-    return impl.ClientPlatform.REACT_NATIVE;
-  }
-  if (_isWorker()) {
-    return impl.ClientPlatform.WORKER;
-  }
-  return impl.ClientPlatform.BROWSER;
-}
-
 /** Quick check that indicates the platform *may* be Cordova */
 export function _isLikelyCordova(): boolean {
   return _isAndroidOrIosCordovaScheme() && typeof document !== 'undefined';

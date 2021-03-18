@@ -6,8 +6,8 @@
     "main": "../dist/compat/node-cjs/index.js",
     "main-esm2017": "../dist/compat/node-esm2017/index.js",
     "react-native": "../dist/compat/rn/index.js",
-    "browser": "../dist/compat/esm5/index.js",
-    "module": "../dist/compat/esm5/index.js",
+    "browser": "../dist/compat/esm2017/index.js",
+    "module": "../dist/compat/esm2017/index.js",
     "esm2017": "../dist/compat/esm2017/index.js",
     "license": "Apache-2.0",
     "typings": "../dist/compat/esm5/packages/firestore/compat/index.d.ts"

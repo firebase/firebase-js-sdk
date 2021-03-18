@@ -21,9 +21,10 @@ import pkg from './package.json';
 import typescript from 'typescript';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
 
 /**
  * ES5 Builds

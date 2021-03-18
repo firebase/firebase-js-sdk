@@ -42,7 +42,7 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
   },
-  "typings": "dist/analytics-compat-public.d.ts",
+  "typings": "dist/src/index.d.ts",
   "dependencies": {
     "@firebase/component": "0.2.1",
     "@firebase/analytics-exp": "0.0.900",

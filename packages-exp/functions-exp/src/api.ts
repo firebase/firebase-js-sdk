@@ -42,7 +42,7 @@ export function getFunctions(
   regionOrCustomDomain: string = DEFAULT_REGION
 ): Functions {
   // Dependencies
-  const functionsProvider: Provider<'functions'> = _getProvider(
+  const functionsProvider: Provider<'functions-exp'> = _getProvider(
     app,
     FUNCTIONS_TYPE
   );

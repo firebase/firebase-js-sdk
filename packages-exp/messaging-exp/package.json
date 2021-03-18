@@ -17,7 +17,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/'{app-exp,messaging-exp}' --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "run-p test:karma type-check lint ",
     "test:integration": "run-p test:karma type-check lint && cd ../../integration/messaging && npm run-script test",
@@ -25,7 +25,8 @@
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "api-report": "api-extractor run --local --verbose",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/messaging-exp-public.d.ts"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
