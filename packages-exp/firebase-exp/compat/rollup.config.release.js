@@ -80,6 +80,10 @@ const plugins = [
 ];
 
 const typescriptPlugin = rollupTypescriptPlugin({
+  typescript
+});
+
+const typescriptPluginUMD = rollupTypescriptPlugin({
   typescript,
   tsconfigOverride: {
     compilerOptions: {
@@ -125,7 +129,7 @@ const appBuilds = [
     },
     plugins: [
       ...plugins,
-      typescriptPlugin,
+      typescriptPluginUMD,
       alias({
         entries: [
           {
@@ -167,7 +171,7 @@ const componentBuilds = compatPkg.components
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
         plugins: [
           ...plugins,
-          typescriptPlugin,
+          typescriptPluginUMD,
           alias({
             entries: [
               {
@@ -214,7 +218,7 @@ const completeBuilds = [
         sourcemap: true
       }
     ],
-    plugins: [...plugins, typescriptPlugin],
+    plugins: [...plugins, typescriptPluginUMD],
     external
   },
   {
@@ -225,7 +229,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPlugin, uglify()]
+    plugins: [...plugins, typescriptPluginUMD, uglify()]
   },
   /**
    * App Node.js Builds
@@ -237,7 +241,7 @@ const completeBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [...plugins, typescriptPlugin],
+    plugins: [...plugins, typescriptPluginUMD],
     external
   },
   /**
@@ -250,7 +254,7 @@ const completeBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [...plugins, typescriptPlugin],
+    plugins: [...plugins, typescriptPluginUMD],
     external
   },
   /**
@@ -269,7 +273,7 @@ const completeBuilds = [
       resolveModule({
         mainFields: ['lite', 'module', 'main']
       }),
-      typescriptPlugin,
+      typescriptPluginUMD,
       json(),
       commonjs(),
       uglify()
