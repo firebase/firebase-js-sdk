@@ -28,6 +28,8 @@ import { isNativeBlob, isNativeBlobDefined, isString } from './type';
  * @param opt_elideCopy - If true, doesn't copy mutable input data
  *     (e.g. Uint8Arrays). Pass true only if you know the objects will not be
  *     modified after this blob's construction.
+ *
+ * @internal
  */
 export class FbsBlob {
   private data_!: Blob | Uint8Array;

@@ -115,7 +115,7 @@ describe('Firebase Storage > Upload Task', () => {
     h1();
     h2();
 
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       task.on(
         TaskEvent.STATE_CHANGED,
         undefined,
@@ -136,7 +136,7 @@ describe('Firebase Storage > Upload Task', () => {
       new Reference(storageService, testLocation),
       smallBlob
     );
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       task.on(TaskEvent.STATE_CHANGED, {
         error: () => {
           assert.fail('Unexpected upload failure');

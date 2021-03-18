@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 import {
   CompleteFn,
   FirebaseError,
@@ -29,11 +29,12 @@ import {
  * A Firebase Storage instance.
  * @public
  */
-export interface StorageService {
+export interface StorageService extends _FirebaseService {
   /**
    * FirebaseApp associated with this StorageService instance.
    */
   readonly app: FirebaseApp;
+
   /**
    * The maximum time to retry uploads in milliseconds.
    */
