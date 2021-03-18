@@ -21,7 +21,6 @@ import commonjs from '@rollup/plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import { uglify } from 'rollup-plugin-uglify';
 import { terser } from 'rollup-plugin-terser';
 import json from '@rollup/plugin-json';
 import pkg from '../package.json';
@@ -137,8 +136,8 @@ const appBuilds = [
             replacement: '@firebase/app-exp'
           }
         ]
-      })
-      // uglify()
+      }),
+      terser()
     ]
   }
 ];
@@ -193,8 +192,8 @@ const componentBuilds = compatPkg.components
                 replacement: 'storage-compat'
               }
             ]
-          })
-          // uglify()
+          }),
+          terser()
         ],
         external: ['@firebase/app-compat', '@firebase/app']
       }
@@ -229,7 +228,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPluginUMD, uglify()]
+    plugins: [...plugins, typescriptPluginUMD, terser()]
   },
   /**
    * App Node.js Builds
@@ -276,7 +275,7 @@ const completeBuilds = [
       typescriptPluginUMD,
       json(),
       commonjs(),
-      uglify()
+      terser()
     ]
   },
   /**
