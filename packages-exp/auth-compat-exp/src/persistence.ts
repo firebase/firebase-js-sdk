@@ -21,9 +21,9 @@ import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
 import { _isWebStorageSupported, _isWorker } from './platform';
 
 export const Persistence = {
-  LOCAL: 'LOCAL',
-  NONE: 'NONE',
-  SESSION: 'SESSION'
+  LOCAL: 'local',
+  NONE: 'none',
+  SESSION: 'session'
 };
 
 const _assert: typeof exp._assert = exp._assert;
