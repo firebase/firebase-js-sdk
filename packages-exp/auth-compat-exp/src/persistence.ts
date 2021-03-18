@@ -97,7 +97,8 @@ export async function _savePersistenceForRedirect(
 }
 
 export function _getPersistencesFromRedirect(
-  auth: exp.AuthInternal
+  apiKey: string,
+  appName: string,
 ): exp.Persistence[] {
   const win = getSelfWindow();
   if (!win?.sessionStorage) {
@@ -106,8 +107,8 @@ export function _getPersistencesFromRedirect(
 
   const key = exp._persistenceKeyName(
     PERSISTENCE_KEY,
-    auth.config.apiKey,
-    auth.name
+    apiKey,
+    appName
   );
   const persistence = win.sessionStorage.getItem(key);
 
