@@ -15,7 +15,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report && typings:public",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
     "build:deps": "lerna run --scope @firebase/analytics-exp --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
