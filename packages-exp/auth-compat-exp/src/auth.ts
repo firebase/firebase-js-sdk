@@ -49,9 +49,6 @@ export class Auth
     }
 
     const { apiKey } = app.options;
-    // if (this.auth._deleted) {
-    //   return;
-    // }
     // TODO: platform needs to be determined using heuristics
     _assert(apiKey, exp.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
