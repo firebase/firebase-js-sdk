@@ -61,17 +61,22 @@ export class Auth
       appName: app.name
     });
 
-    // Note this is slightly different behavior: in this case, the stored
-    // persistence is checked *first* rather than last. This is because we want
-    // to prefer stored persistence type in the hierarchy.
-    const persistences = _getPersistencesFromRedirect(apiKey, app.name);
+    let persistences: exp.Persistence[] = [exp.inMemoryPersistence];
 
-    for (const persistence of [
-      exp.indexedDBLocalPersistence,
-      exp.browserLocalPersistence
-    ]) {
-      if (!persistences.includes(persistence)) {
-        persistences.push(persistence);
+    // Only deal with persistences in web environments
+    if (typeof window !== 'undefined') {
+      // Note this is slightly different behavior: in this case, the stored
+      // persistence is checked *first* rather than last. This is because we want
+      // to prefer stored persistence type in the hierarchy.
+      persistences = _getPersistencesFromRedirect(apiKey, app.name);
+
+      for (const persistence of [
+        exp.indexedDBLocalPersistence,
+        exp.browserLocalPersistence
+      ]) {
+        if (!persistences.includes(persistence)) {
+          persistences.push(persistence);
+        }
       }
     }
 

@@ -65,7 +65,7 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
       plugins: es5BuildPlugins,
       external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
       treeshake: {
-        moduleSideEffects: false
+        moduleSideEffects: true
       }
     },
     /**

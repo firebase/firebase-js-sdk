@@ -136,7 +136,7 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       .setMultipleInstances(false)
   );
 
-  instance.registerVersion('auth', version);
+  instance.registerVersion('auth-compat', version);
 }
 
 registerAuthCompat(firebase as _FirebaseNamespace);
