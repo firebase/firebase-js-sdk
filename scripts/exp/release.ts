@@ -32,7 +32,10 @@ import {
   prepare as prepareFirestoreForRelease,
   createFirestoreCompatProject
 } from './prepare-firestore-for-exp-release';
-import { prepare as prepareStorageForRelease } from './prepare-storage-for-exp-release';
+import {
+  createStorageCompatProject,
+  prepare as prepareStorageForRelease
+} from './prepare-storage-for-exp-release';
 import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
 
@@ -74,6 +77,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      * Create compat packages for Firestore, Database and Storage
      */
     await createFirestoreCompatProject();
+    await createStorageCompatProject();
 
     /**
      * build firebase
@@ -200,19 +204,6 @@ async function buildPackages() {
       'lerna',
       'run',
       '--scope',
-      // We replace `@firebase/app-exp` with `@firebase/app` during compilation, so we need to
-      // compile @firebase/app first to make rollup happy though it's not an actual dependency.
-      '@firebase/app',
-      '--scope',
-      // the same reason above
-      '@firebase/functions',
-      '--scope',
-      // the same reason above
-      '@firebase/remote-config',
-      '--scope',
-      // the same reason above
-      '@firebase/analytics',
-      '--scope',
       '@firebase/util',
       '--scope',
       '@firebase/component',
@@ -269,7 +260,7 @@ async function buildPackages() {
   // Storage
   await spawn(
     'yarn',
-    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'

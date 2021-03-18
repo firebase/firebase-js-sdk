@@ -15,15 +15,14 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { StringFormat } from '../src/implementation/string';
 import { TaskEvent, TaskState } from '../src/implementation/taskenums';
 
-import { XhrIoPool } from '../src/implementation/xhriopool';
 import { ReferenceCompat } from './reference';
 import { StorageServiceCompat } from './service';
-import { StorageService } from '../src/service';
 import * as types from '@firebase/storage-types';
 import {
   Component,
@@ -33,6 +32,8 @@ import {
 } from '@firebase/component';
 
 import { name, version } from '../package.json';
+
+import '../register-module';
 
 /**
  * Type constant for Firebase Storage.
@@ -44,21 +45,14 @@ function factory(
   { instanceIdentifier: url }: InstanceFactoryOptions
 ): types.FirebaseStorage {
   // Dependencies
-  // TODO: This should eventually be 'app-compat'
-  const app = container.getProvider('app').getImmediate();
-  const authProvider = container.getProvider('auth-internal');
+  const app = container.getProvider('app-compat').getImmediate();
+  const storageExp = container
+    .getProvider('storage-exp')
+    .getImmediate({ identifier: url });
 
-  // TODO: get StorageService instance from component framework instead
-  // of creating a new one.
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(
-      app,
-      authProvider,
-      new XhrIoPool(),
-      url,
-      firebase.SDK_VERSION
-    )
+    storageExp
   );
   return storageServiceCompat;
 }
@@ -69,7 +63,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
     TaskState,
     TaskEvent,
     StringFormat,
-    Storage: StorageService,
+    Storage: StorageServiceCompat,
     Reference: ReferenceCompat
   };
   instance.INTERNAL.registerComponent(
@@ -81,7 +75,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
   instance.registerVersion(name, version);
 }
 
-registerStorage(firebase as _FirebaseNamespace);
+registerStorage((firebase as unknown) as _FirebaseNamespace);
 
 /**
  * Define extension behavior for `registerStorage`

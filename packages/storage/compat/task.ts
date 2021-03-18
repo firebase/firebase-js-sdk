@@ -15,20 +15,16 @@
  * limitations under the License.
  */
 
-import { UploadTask } from '../src/task';
-import { UploadTaskSnapshotCompat } from './tasksnapshot';
-import { TaskEvent } from '../src/implementation/taskenums';
-import * as types from '@firebase/storage-types';
 import {
-  StorageObserver,
-  ErrorFn,
-  CompleteFn,
-  Subscribe,
-  Unsubscribe
-} from '../src/implementation/observer';
-import { UploadTaskSnapshot } from '../src/tasksnapshot';
+  UploadTask,
+  FirebaseStorageError,
+  UploadTaskSnapshot,
+  TaskEvent,
+  StorageObserver
+} from '../exp/api';
+import { UploadTaskSnapshotCompat } from './tasksnapshot';
 import { ReferenceCompat } from './reference';
-import { FirebaseStorageError } from '../src/implementation/error';
+import * as types from '@firebase/storage-types';
 
 export class UploadTaskCompat implements types.UploadTask {
   constructor(
@@ -68,8 +64,8 @@ export class UploadTaskCompat implements types.UploadTask {
       | types.StorageObserver<UploadTaskSnapshotCompat>
       | null
       | ((a: UploadTaskSnapshotCompat) => unknown),
-    error?: ErrorFn | null,
-    completed?: CompleteFn | null
+    error?: (error: FirebaseStorageError) => void | null,
+    completed?: () => void | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshotCompat> {
     let wrappedNextOrObserver:
       | StorageObserver<UploadTaskSnapshot>
@@ -102,3 +98,33 @@ export class UploadTaskCompat implements types.UploadTask {
     );
   }
 }
+
+/**
+ * Subscribes to an event stream.
+ */
+export type Subscribe<T> = (
+  next?: NextFn<T> | StorageObserver<T>,
+  error?: ErrorFn,
+  complete?: CompleteFn
+) => Unsubscribe;
+
+/**
+ * Unsubscribes from a stream.
+ */
+export type Unsubscribe = () => void;
+
+/**
+ * Function that is called once for each value in a stream of values.
+ */
+export type NextFn<T> = (value: T) => void;
+
+/**
+ * A function that is called with a `FirebaseStorageError`
+ * if the event stream ends due to an error.
+ */
+export type ErrorFn = (error: FirebaseStorageError) => void;
+
+/**
+ * A function that is called if the event stream ends normally.
+ */
+export type CompleteFn = () => void;
