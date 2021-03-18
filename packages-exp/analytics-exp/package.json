@@ -15,7 +15,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
     "build:deps": "lerna run --scope @firebase/analytics-exp --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
@@ -26,7 +26,8 @@
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
-    "build:doc": "yarn build && yarn doc"
+    "build:doc": "yarn build && yarn doc",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/analytics-exp-public.d.ts"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x"
@@ -56,7 +57,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/analytics-exp-public.d.ts",
+  "typings": "dist/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

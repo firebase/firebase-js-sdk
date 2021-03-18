@@ -55,3 +55,14 @@ function performanceFactory(
 }
 
 registerPerformanceCompat(firebase as _FirebaseNamespace);
+
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    performance?: {
+      (app?: FirebaseApp): FirebasePerformanceCompat;
+    };
+  }
+  interface FirebaseApp {
+    performance?(): FirebasePerformanceCompat;
+  }
+}

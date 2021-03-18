@@ -18,6 +18,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app-compat';
 import { FirebaseNamespace } from '@firebase/app-types';
+import * as types from '@firebase/firestore-types';
 
 import { name, version } from '../package.json';
 import { Firestore, IndexedDbPersistenceProvider } from '../src/api/database';
@@ -42,3 +43,29 @@ export function registerFirestore(instance: FirebaseNamespace): void {
 
 registerFirestore((firebase as unknown) as FirebaseNamespace);
 registerBundle(Firestore);
+
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    firestore: {
+      (app?: FirebaseApp): types.FirebaseFirestore;
+      Blob: typeof types.Blob;
+      CollectionReference: typeof types.CollectionReference;
+      DocumentReference: typeof types.DocumentReference;
+      DocumentSnapshot: typeof types.DocumentSnapshot;
+      FieldPath: typeof types.FieldPath;
+      FieldValue: typeof types.FieldValue;
+      Firestore: typeof types.FirebaseFirestore;
+      GeoPoint: typeof types.GeoPoint;
+      Query: typeof types.Query;
+      QueryDocumentSnapshot: typeof types.QueryDocumentSnapshot;
+      QuerySnapshot: typeof types.QuerySnapshot;
+      Timestamp: typeof types.Timestamp;
+      Transaction: typeof types.Transaction;
+      WriteBatch: typeof types.WriteBatch;
+      setLogLevel: typeof types.setLogLevel;
+    };
+  }
+  interface FirebaseApp {
+    firestore?(): types.FirebaseFirestore;
+  }
+}

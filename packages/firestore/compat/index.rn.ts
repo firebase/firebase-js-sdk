@@ -25,8 +25,6 @@ import { Firestore, IndexedDbPersistenceProvider } from '../src/api/database';
 import { registerBundle } from './bundle';
 import { configureForFirebase } from './config';
 
-import '../register-module';
-
 /**
  * Registers the main Firestore ReactNative build with the components framework.
  * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
