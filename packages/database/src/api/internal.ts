@@ -18,7 +18,6 @@
 import { WebSocketConnection } from '../realtime/WebSocketConnection';
 import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
 import { Reference } from './Reference';
-import { repoManagerDatabaseFromApp } from '../core/RepoManager';
 import { setSDKVersion } from '../core/version';
 import { FirebaseApp } from '@firebase/app-types';
 import {
@@ -37,6 +36,7 @@ import {
   repoStats,
   repoStatsIncrementCounter
 } from '../core/Repo';
+import { repoManagerDatabaseFromApp } from './Database';
 
 /**
  * INTERNAL methods for internal-use only (tests, etc.).

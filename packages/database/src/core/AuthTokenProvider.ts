@@ -22,7 +22,7 @@ import {
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { log, warn } from './util/util';
-import { FirebaseAppLike } from './RepoManager';
+import { FirebaseAppLike } from '../api/Database';
 
 export interface AuthTokenProvider {
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;

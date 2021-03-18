@@ -246,7 +246,7 @@ export function syncPointRemoveEventRegistration(
   if (hadCompleteView && !syncPointHasCompleteView(syncPoint)) {
     // We removed our last complete view.
     removed.push(
-      new (syncPointGetReferenceConstructor())(query.repo, query.path)
+      new (syncPointGetReferenceConstructor())(query.database, query.path)
     );
   }
 
