@@ -61,6 +61,7 @@ export enum CoreFunction {
 }
 
 /** Available persistence functions within the browser. See static/persistence.js */
+
 export enum PersistenceFunction {
   CLEAR_PERSISTENCE = 'persistence.clearPersistence',
   LOCAL_STORAGE_SNAP = 'persistence.localStorageSnap',
@@ -68,5 +69,9 @@ export enum PersistenceFunction {
   SESSION_STORAGE_SNAP = 'persistence.sessionStorageSnap',
   SESSION_STORAGE_SET = 'persistence.sessionStorageSet',
   INDEXED_DB_SNAP = 'persistence.indexedDBSnap',
-  MAKE_INDEXED_DB_READONLY = 'persistence.makeIndexedDBReadonly'
+  MAKE_INDEXED_DB_READONLY = 'persistence.makeIndexedDBReadonly',
+  SET_PERSISTENCE_MEMORY = 'persistence.setPersistenceMemory',
+  SET_PERSISTENCE_SESSION = 'persistence.setPersistenceSession',
+  SET_PERSISTENCE_INDEXED_DB = 'persistence.setPersistenceIndexedDB',
+  SET_PERSISTENCE_LOCAL_STORAGE = 'persistence.setPersistenceLocalStorage'
 }

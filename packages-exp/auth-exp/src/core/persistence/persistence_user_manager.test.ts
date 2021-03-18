@@ -227,12 +227,9 @@ describe('core/persistence/persistence_user_manager', () => {
     });
 
     describe('#setPersistence', () => {
-      it('returns immediately if types match', async () => {
-        const { persistence: nextPersistence } = makePersistence(
-          PersistenceType.SESSION
-        );
+      it('returns immediately if persistence is not changed', async () => {
         const spy = sinon.spy(manager, 'getCurrentUser');
-        await manager.setPersistence(nextPersistence);
+        await manager.setPersistence(manager.persistence);
         expect(spy).not.to.have.been.called;
         spy.restore();
       });
@@ -249,6 +246,29 @@ describe('core/persistence/persistence_user_manager', () => {
         await manager.setPersistence(nextPersistence);
         expect(persistenceStub._get).to.have.been.called;
         expect(persistenceStub._remove).to.have.been.called;
+        expect(nextStub._set).to.have.been.calledWith(
+          'firebase:authUser:test-api-key:test-app',
+          user.toJSON()
+        );
+      });
+
+      it('migrates user for a different persistence even if .type matches', async () => {
+        const { persistence, stub } = makePersistence(PersistenceType.LOCAL);
+        await manager.setPersistence(persistence);
+        const auth = await testAuth();
+        const user = testUser(auth, 'uid');
+        stub._get.returns(Promise.resolve(user.toJSON()));
+
+        const {
+          persistence: nextPersistence,
+          stub: nextStub
+        } = makePersistence(PersistenceType.LOCAL);
+
+        // This should migrate the user even if both has type LOCAL. For example, developer may want
+        // to switch from localStorage to indexedDB (both type LOCAL) and we should honor that.
+        await manager.setPersistence(nextPersistence);
+        expect(stub._get).to.have.been.called;
+        expect(stub._remove).to.have.been.called;
         expect(nextStub._set).to.have.been.calledWith(
           'firebase:authUser:test-api-key:test-app',
           user.toJSON()
