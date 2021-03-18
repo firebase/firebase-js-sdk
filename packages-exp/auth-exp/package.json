@@ -12,7 +12,8 @@
   "esm2017": "dist/esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
   "files": [
-    "dist"
+    "dist",
+    "internal/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
