@@ -39,7 +39,7 @@ let testConfig = ['src/**/*.test.ts'];
 if (argv.integration) {
   testConfig = ['test/integration/flows/**.test.ts'];
 } else if (argv.webdriver) {
-  testConfig = ['test/integration/webdriver/**.test.ts', '--delay'];
+  testConfig = ['../auth-exp/test/integration/webdriver/anonymous.test.ts', '--delay'];
 }
 
 let args = [
