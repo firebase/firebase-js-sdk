@@ -22,12 +22,13 @@ import {
   querystring,
   Deferred
 } from '@firebase/util';
-import { logWrapper, warn } from './util/util';
 
-import { ServerActions } from './ServerActions';
-import { RepoInfo } from './RepoInfo';
-import { AuthTokenProvider } from './AuthTokenProvider';
 import { Query } from '../api/Query';
+
+import { AuthTokenProvider } from './AuthTokenProvider';
+import { RepoInfo } from './RepoInfo';
+import { ServerActions } from './ServerActions';
+import { logWrapper, warn } from './util/util';
 import { queryParamsToRestQueryStringParameters } from './view/QueryParams';
 
 /**

@@ -15,10 +15,18 @@
  * limitations under the License.
  */
 
-import { CacheNode } from './view/CacheNode';
-import { ChildrenNode } from './snap/ChildrenNode';
 import { assert } from '@firebase/util';
-import { newViewCache } from './view/ViewCache';
+
+import { Query } from '../api/Query';
+import { ReferenceConstructor } from '../api/Reference';
+
+import { Operation } from './operation/Operation';
+import { ChildrenNode } from './snap/ChildrenNode';
+import { Node } from './snap/Node';
+import { Path } from './util/Path';
+import { CacheNode } from './view/CacheNode';
+import { Event } from './view/Event';
+import { EventRegistration } from './view/EventRegistration';
 import {
   View,
   viewAddEventRegistration,
@@ -28,18 +36,12 @@ import {
   viewIsEmpty,
   viewRemoveEventRegistration
 } from './view/View';
-import { Operation } from './operation/Operation';
+import { newViewCache } from './view/ViewCache';
 import {
   WriteTreeRef,
   writeTreeRefCalcCompleteEventCache,
   writeTreeRefCalcCompleteEventChildren
 } from './WriteTree';
-import { Query } from '../api/Query';
-import { EventRegistration } from './view/EventRegistration';
-import { Node } from './snap/Node';
-import { Path } from './util/Path';
-import { Event } from './view/Event';
-import { ReferenceConstructor } from '../api/Reference';
 
 let referenceConstructor: ReferenceConstructor;
 

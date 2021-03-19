@@ -16,10 +16,10 @@
  */
 
 import { assert } from '@firebase/util';
-import { each, errorForServerCode } from './util/util';
+
+import { Query } from '../api/Query';
+
 import { AckUserWrite } from './operation/AckUserWrite';
-import { ChildrenNode } from './snap/ChildrenNode';
-import { ImmutableTree } from './util/ImmutableTree';
 import { ListenComplete } from './operation/ListenComplete';
 import { Merge } from './operation/Merge';
 import {
@@ -29,13 +29,8 @@ import {
   Operation
 } from './operation/Operation';
 import { Overwrite } from './operation/Overwrite';
-import {
-  newEmptyPath,
-  newRelativePath,
-  Path,
-  pathGetFront,
-  pathIsEmpty
-} from './util/Path';
+import { ChildrenNode } from './snap/ChildrenNode';
+import { Node } from './snap/Node';
 import {
   SyncPoint,
   syncPointAddEventRegistration,
@@ -50,6 +45,19 @@ import {
   syncPointViewExistsForQuery,
   syncPointViewForQuery
 } from './SyncPoint';
+import { ImmutableTree } from './util/ImmutableTree';
+import {
+  newEmptyPath,
+  newRelativePath,
+  Path,
+  pathGetFront,
+  pathIsEmpty
+} from './util/Path';
+import { each, errorForServerCode } from './util/util';
+import { CacheNode } from './view/CacheNode';
+import { Event } from './view/Event';
+import { EventRegistration } from './view/EventRegistration';
+import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
 import {
   newWriteTree,
   writeTreeAddMerge,
@@ -61,12 +69,6 @@ import {
   writeTreeRefChild,
   writeTreeRemoveWrite
 } from './WriteTree';
-import { Query } from '../api/Query';
-import { Node } from './snap/Node';
-import { Event } from './view/Event';
-import { EventRegistration } from './view/EventRegistration';
-import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
-import { CacheNode } from './view/CacheNode';
 
 /**
  * @typedef {{

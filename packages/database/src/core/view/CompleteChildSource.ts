@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { CacheNode } from './CacheNode';
-import { NamedNode, Node } from '../snap/Node';
 import { Index } from '../snap/indexes/Index';
+import { NamedNode, Node } from '../snap/Node';
 import {
   WriteTreeRef,
   writeTreeRefCalcCompleteChild,
   writeTreeRefCalcIndexedSlice
 } from '../WriteTree';
+
+import { CacheNode } from './CacheNode';
 import { ViewCache, viewCacheGetCompleteServerSnap } from './ViewCache';
 
 /**

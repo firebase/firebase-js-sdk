@@ -15,21 +15,24 @@
  * limitations under the License.
  */
 
+import firebase from '@firebase/app';
 import { expect } from 'chai';
+
 import { Reference } from '../src/api/Reference';
+import { hijackHash } from '../src/api/test_access';
+
+import {
+  EventAccumulator,
+  EventAccumulatorFactory
+} from './helpers/EventAccumulator';
+import { eventTestHelper } from './helpers/events';
 import {
   canCreateExtraConnections,
   getFreshRepoFromReference,
   getRandomNode,
   getVal
 } from './helpers/util';
-import { eventTestHelper } from './helpers/events';
-import {
-  EventAccumulator,
-  EventAccumulatorFactory
-} from './helpers/EventAccumulator';
-import { hijackHash } from '../src/api/test_access';
-import firebase from '@firebase/app';
+
 import '../index';
 
 describe('Transaction Tests', () => {

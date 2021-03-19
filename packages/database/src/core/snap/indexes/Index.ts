@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Node, NamedNode } from '../Node';
-import { MIN_NAME } from '../../util/util';
 import { Comparator } from '../../util/SortedMap';
+import { MIN_NAME } from '../../util/util';
+import { Node, NamedNode } from '../Node';
 
 export abstract class Index {
   abstract compare(a: NamedNode, b: NamedNode): number;

@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import { OnDisconnect } from './onDisconnect';
-import { TransactionResult } from './TransactionResult';
-import { warn } from '../core/util/util';
-import { nextPushId } from '../core/util/NextPushId';
-import { Query } from './Query';
-import { Node } from '../core/snap/Node';
+import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
+
 import {
   repoServerTime,
   repoSetWithPriority,
   repoStartTransaction,
   repoUpdate
 } from '../core/Repo';
+import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
+import { Node } from '../core/snap/Node';
+import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
+import { nextPushId } from '../core/util/NextPushId';
 import {
   Path,
   pathChild,
@@ -35,7 +35,7 @@ import {
   pathIsEmpty,
   pathParent
 } from '../core/util/Path';
-import { QueryParams } from '../core/view/QueryParams';
+import { warn } from '../core/util/util';
 import {
   validateBoolean,
   validateFirebaseDataArg,
@@ -45,12 +45,13 @@ import {
   validateRootPathString,
   validateWritablePath
 } from '../core/util/validation';
-import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
+import { QueryParams } from '../core/view/QueryParams';
 
-import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
-import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
+import { OnDisconnect } from './onDisconnect';
+import { Query } from './Query';
+import { TransactionResult } from './TransactionResult';
 
 export interface ReferenceConstructor {
   new (database: Database, path: Path): Reference;

@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { Index } from './Index';
-import { NamedNode, Node } from '../Node';
 import { nameCompare } from '../../util/util';
+import { NamedNode, Node } from '../Node';
 import { nodeFromJSON } from '../nodeFromJSON';
+
+import { Index } from './Index';
 
 export class ValueIndex extends Index {
   /**

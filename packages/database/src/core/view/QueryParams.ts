@@ -16,17 +16,19 @@
  */
 
 import { assert, stringify } from '@firebase/util';
-import { MIN_NAME, MAX_NAME } from '../util/util';
-import { predecessor, successor } from '../util/NextPushId';
+
+import { Index } from '../snap/indexes/Index';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
+import { PathIndex } from '../snap/indexes/PathIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
-import { PathIndex } from '../snap/indexes/PathIndex';
+import { predecessor, successor } from '../util/NextPushId';
+import { MIN_NAME, MAX_NAME } from '../util/util';
+
 import { IndexedFilter } from './filter/IndexedFilter';
 import { LimitedFilter } from './filter/LimitedFilter';
-import { RangedFilter } from './filter/RangedFilter';
 import { NodeFilter } from './filter/NodeFilter';
-import { Index } from '../snap/indexes/Index';
+import { RangedFilter } from './filter/RangedFilter';
 
 /**
  * Wire Protocol Constants

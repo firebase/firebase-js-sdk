@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-import { Operation, OperationType } from '../operation/Operation';
 import { assert, assertionError } from '@firebase/util';
-import { ChildChangeAccumulator } from './ChildChangeAccumulator';
-import { Change, changeValue } from './Change';
+
+import { AckUserWrite } from '../operation/AckUserWrite';
+import { Merge } from '../operation/Merge';
+import { Operation, OperationType } from '../operation/Operation';
+import { Overwrite } from '../operation/Overwrite';
 import { ChildrenNode } from '../snap/ChildrenNode';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
+import { Node } from '../snap/Node';
 import { ImmutableTree } from '../util/ImmutableTree';
 import {
   newEmptyPath,
@@ -34,19 +37,6 @@ import {
   pathPopFront
 } from '../util/Path';
 import {
-  CompleteChildSource,
-  NO_COMPLETE_CHILD_SOURCE,
-  WriteTreeCompleteChildSource
-} from './CompleteChildSource';
-import {
-  ViewCache,
-  viewCacheGetCompleteEventSnap,
-  viewCacheGetCompleteServerSnap,
-  viewCacheUpdateEventSnap,
-  viewCacheUpdateServerSnap
-} from './ViewCache';
-import { NodeFilter } from './filter/NodeFilter';
-import {
   WriteTreeRef,
   writeTreeRefCalcCompleteChild,
   writeTreeRefCalcCompleteEventCache,
@@ -54,10 +44,22 @@ import {
   writeTreeRefCalcEventCacheAfterServerOverwrite,
   writeTreeRefShadowingWrite
 } from '../WriteTree';
-import { Overwrite } from '../operation/Overwrite';
-import { Merge } from '../operation/Merge';
-import { AckUserWrite } from '../operation/AckUserWrite';
-import { Node } from '../snap/Node';
+
+import { Change, changeValue } from './Change';
+import { ChildChangeAccumulator } from './ChildChangeAccumulator';
+import {
+  CompleteChildSource,
+  NO_COMPLETE_CHILD_SOURCE,
+  WriteTreeCompleteChildSource
+} from './CompleteChildSource';
+import { NodeFilter } from './filter/NodeFilter';
+import {
+  ViewCache,
+  viewCacheGetCompleteEventSnap,
+  viewCacheGetCompleteServerSnap,
+  viewCacheUpdateEventSnap,
+  viewCacheUpdateServerSnap
+} from './ViewCache';
 
 export interface ProcessorResult {
   readonly viewCache: ViewCache;

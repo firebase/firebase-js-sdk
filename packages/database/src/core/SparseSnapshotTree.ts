@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Path, pathGetFront, pathIsEmpty, pathPopFront } from './util/Path';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { Node } from './snap/Node';
+import { Path, pathGetFront, pathIsEmpty, pathPopFront } from './util/Path';
 
 /**
  * Helper class to store a sparse set of snapshots.

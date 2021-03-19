@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
-import { Index } from './Index';
-import { Node, NamedNode } from '../Node';
-import { nameCompare, MAX_NAME } from '../../util/util';
 import { assert, assertionError } from '@firebase/util';
+
+import { nameCompare, MAX_NAME } from '../../util/util';
 import { ChildrenNode } from '../ChildrenNode';
+import { Node, NamedNode } from '../Node';
+
+import { Index } from './Index';
 
 let __EMPTY_NODE: ChildrenNode;
 

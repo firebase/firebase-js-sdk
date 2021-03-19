@@ -15,6 +15,11 @@
  * limitations under the License.
  */
 
+import { base64Encode, isNodeSdk, stringify } from '@firebase/util';
+
+import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
+import { StatsCollection } from '../core/stats/StatsCollection';
+import { statsManagerGetCollection } from '../core/stats/StatsManager';
 import {
   executeWhenDOMReady,
   isChromeExtensionContentScript,
@@ -24,8 +29,7 @@ import {
   LUIDGenerator,
   splitStringBySize
 } from '../core/util/util';
-import { statsManagerGetCollection } from '../core/stats/StatsManager';
-import { PacketReceiver } from './polling/PacketReceiver';
+
 import {
   APPLICATION_ID_PARAM,
   FORGE_DOMAIN_RE,
@@ -37,11 +41,8 @@ import {
   TRANSPORT_SESSION_PARAM,
   VERSION_PARAM
 } from './Constants';
-import { base64Encode, isNodeSdk, stringify } from '@firebase/util';
-
+import { PacketReceiver } from './polling/PacketReceiver';
 import { Transport } from './Transport';
-import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
-import { StatsCollection } from '../core/stats/StatsCollection';
 
 // URL query parameters associated with longpolling
 export const FIREBASE_LONGPOLL_START_PARAM = 'start';

@@ -16,10 +16,11 @@
  */
 
 import { assert, contains } from '@firebase/util';
+
+import { Indexable } from '../util/misc';
 import { doubleToIEEE754String } from '../util/util';
 
 import { Node } from './Node';
-import { Indexable } from '../util/misc';
 
 let MAX_NODE: Node;
 

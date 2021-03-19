@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { EventEmitter } from './EventEmitter';
 import { assert } from '@firebase/util';
+
+import { EventEmitter } from './EventEmitter';
 
 declare const document: Document;
 
