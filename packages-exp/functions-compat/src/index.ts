@@ -15,21 +15,28 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app-compat';
+import firebase, {
+  FirebaseApp as FirebaseAppCompat
+} from '@firebase/app-compat';
 import { name, version } from '../package.json';
 import { registerFunctions } from './register';
 import { FirebaseFunctions as FunctionsCompat } from '@firebase/functions-types';
-import { Functions as FunctionsExp } from '@firebase/functions-exp';
+import { Functions as FirebaseFunctionsExp } from '@firebase/functions-exp';
 
 declare module '@firebase/functions-exp' {
+  export function getFunctions(
+    app: FirebaseAppCompat,
+    regionOrCustomDomain?: string
+  ): FirebaseFunctionsExp;
+
   export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
-    functionsInstance: FunctionsCompat | FunctionsExp,
+    functionsInstance: FunctionsCompat,
     name: string,
     options?: HttpsCallableOptions
   ): HttpsCallable<RequestData, ResponseData>;
 
   export function useFunctionsEmulator(
-    functionsInstance: FunctionsCompat | FunctionsExp,
+    functionsInstance: FunctionsCompat,
     host: string,
     port: number
   ): void;

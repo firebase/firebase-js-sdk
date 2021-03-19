@@ -4,7 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
 // @public

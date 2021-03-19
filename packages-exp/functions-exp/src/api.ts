@@ -44,7 +44,7 @@ export function getFunctions(
 ): Functions {
   // Dependencies
   const functionsProvider: Provider<'functions-exp'> = _getProvider(
-    app,
+    getExpInstance(app),
     FUNCTIONS_TYPE
   );
   const functionsInstance = functionsProvider.getImmediate({

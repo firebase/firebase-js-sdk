@@ -23,6 +23,7 @@
 import { FirebaseApp, FirebaseNamespace } from './public-types';
 import { Compat } from '@firebase/util';
 import { Component, ComponentContainer } from '@firebase/component';
+import { FirebaseApp as FirebaseAppExp } from '@firebase/app-exp';
 
 export interface FirebaseServiceInternals {
   /**
@@ -32,11 +33,22 @@ export interface FirebaseServiceInternals {
   delete(): Promise<void>;
 }
 
+/**
+ * Public type for exp Firebase Service - can't use _FirebaseService from
+ * @firebase/app-exp because it requires _delete, which isn't visible on the
+ * public instance. The -compat packages can only see the public properties
+ * of the _delegate exp instance.
+ */
+interface FirebaseServiceExp {
+  app: FirebaseAppExp;
+}
+
 // Services are exposed through instances - each of which is associated with a
 // FirebaseApp.
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseService extends Compat<unknown> {
   app: FirebaseApp;
+  _delegate: FirebaseServiceExp;
   INTERNAL?: FirebaseServiceInternals;
 }
 
