@@ -36,6 +36,7 @@ export interface FirebaseServiceInternals {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseService {
   app: FirebaseApp;
+  _delegate: unknown;
   INTERNAL?: FirebaseServiceInternals;
 }
 
