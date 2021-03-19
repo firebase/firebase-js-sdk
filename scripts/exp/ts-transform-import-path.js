@@ -49,45 +49,88 @@ export const importPathTransformer = () => ({
 
 function transformImportPath({ pattern, template }) {
   return context => file => {
-    return visitNodeAndChildren(file, context, { pattern, template });
+    const firstPass = visitNodeAndChildren(
+      file,
+      context,
+      { pattern, template },
+      transformDeclareNode
+    );
+    return visitNodeAndChildren(
+      firstPass,
+      context,
+      { pattern, template },
+      transformImportExportNode
+    );
   };
 }
 
-function visitNodeAndChildren(node, context, { pattern, template }) {
+function visitNodeAndChildren(
+  node,
+  context,
+  { pattern, template },
+  nodeTransformer
+) {
   return ts.visitEachChild(
-    visitNode(node, { pattern, template }),
+    nodeTransformer(node, { pattern, template }),
     childNode =>
-      visitNodeAndChildren(childNode, context, { pattern, template }),
+      visitNodeAndChildren(
+        childNode,
+        context,
+        { pattern, template },
+        nodeTransformer
+      ),
     context
   );
 }
 
-function visitNode(node, { pattern, template }) {
-  let importPath;
+function replacePath(pathString, pattern, template) {
+  const pathStringWithoutQuotes = pathString.substr(1, pathString.length - 2);
+
+  const captures = pattern.exec(pathStringWithoutQuotes);
+
+  if (captures) {
+    const newNameFragments = [];
+    for (const fragment of template) {
+      if (typeof fragment === 'number') {
+        newNameFragments.push(captures[fragment]);
+      } else if (typeof fragment === 'string') {
+        newNameFragments.push(fragment);
+      } else {
+        throw Error(`unrecognized fragment: ${fragment}`);
+      }
+    }
+    return newNameFragments.join('');
+  }
+
+  return null;
+}
+
+function transformDeclareNode(node, { pattern, template }) {
+  if (ts.isModuleDeclaration(node) && node.name) {
+    const importPathWithQuotes = node.name.getText();
+
+    const newName = replacePath(importPathWithQuotes, pattern, template);
+    if (newName) {
+      const newNode = ts.getMutableClone(node);
+      newNode.name = ts.createLiteral(newName);
+      return newNode;
+    }
+    return node;
+  }
+
+  return node;
+}
+
+function transformImportExportNode(node, { pattern, template }) {
   if (
     (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
     node.moduleSpecifier
   ) {
     const importPathWithQuotes = node.moduleSpecifier.getText();
-    importPath = importPathWithQuotes.substr(
-      1,
-      importPathWithQuotes.length - 2
-    );
 
-    const captures = pattern.exec(importPath);
+    const newName = replacePath(importPathWithQuotes, pattern, template);
 
-    if (captures) {
-      const newNameFragments = [];
-      for (const fragment of template) {
-        if (typeof fragment === 'number') {
-          newNameFragments.push(captures[fragment]);
-        } else if (typeof fragment === 'string') {
-          newNameFragments.push(fragment);
-        } else {
-          throw Error(`unrecognized fragment: ${fragment}`);
-        }
-      }
-      const newName = newNameFragments.join('');
+    if (newName) {
       const newNode = ts.getMutableClone(node);
       newNode.moduleSpecifier = ts.createLiteral(newName);
       return newNode;
