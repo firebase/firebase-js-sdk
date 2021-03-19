@@ -40,7 +40,6 @@ import {
   WriteBatch,
   setLogLevel
 } from '../src/api/database';
-
 import { FieldPath } from '../src/api/field_path';
 import { FieldValue } from '../src/api/field_value';
 
