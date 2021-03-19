@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
 import {
   newQueryForCollectionGroup,
   newQueryForPath,
@@ -33,6 +32,7 @@ import {
 } from '../util/input_validation';
 import { AutoId } from '../util/misc';
 
+import { Compat } from './compat';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';
 import { FirestoreDataConverter } from './snapshot';

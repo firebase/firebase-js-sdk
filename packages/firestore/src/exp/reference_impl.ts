@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
 import {
   CompleteFn,
   ErrorFn,
@@ -35,6 +34,7 @@ import {
 import { newQueryForPath, Query as InternalQuery } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { Bytes } from '../lite/bytes';
+import { Compat } from '../lite/compat';
 import { FieldPath } from '../lite/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite/query';
 import {

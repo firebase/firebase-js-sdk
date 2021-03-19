@@ -20,6 +20,8 @@
  * contains a reference to the API type in the firestore-exp API. All internal
  * code unwraps these references, which allows us to only use firestore-exp
  * types in the SDK.
+ *
+ * @internal
  */
 export abstract class Compat<T> {
   constructor(readonly _delegate: T) {}
