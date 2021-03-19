@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
+import { Compat } from './compat';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { TransactionRunner } from '../core/transaction_runner';
 import { Document, MaybeDocument, NoDocument } from '../model/document';

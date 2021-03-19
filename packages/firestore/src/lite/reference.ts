@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
+import { Compat } from './compat';
 import {
   newQueryForCollectionGroup,
   newQueryForPath,

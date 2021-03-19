@@ -23,10 +23,9 @@ import {
   deleteField,
   FieldValue as FieldValue1,
   increment,
-  serverTimestamp
+  serverTimestamp,
+  Compat
 } from '../../exp/index';
-
-import { Compat } from './compat';
 
 export class FieldValue
   extends Compat<FieldValue1>

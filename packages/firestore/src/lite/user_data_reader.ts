@@ -21,7 +21,7 @@ import {
   SetOptions
 } from '@firebase/firestore-types';
 
-import { Compat } from '../api/compat';
+import { Compat } from './compat';
 import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';

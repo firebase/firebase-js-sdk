@@ -133,3 +133,5 @@ export { CACHE_SIZE_UNLIMITED } from '../src/exp/database';
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
 
 export { AbstractUserDataWriter } from '../src/lite/user_data_writer';
+
+export { Compat } from '../src/lite/compat';

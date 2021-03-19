@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
+import { Compat } from './compat';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { invokeCommitRpc } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';

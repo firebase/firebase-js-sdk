@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
+import { Compat } from './compat';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath } from '../model/path';

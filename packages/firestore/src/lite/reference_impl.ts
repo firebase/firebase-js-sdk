@@ -20,7 +20,7 @@ import {
   SetOptions as PublicSetOptions
 } from '@firebase/firestore-types';
 
-import { Compat } from '../api/compat';
+import { Compat } from './compat';
 import { hasLimitToLast } from '../core/query';
 import { Document } from '../model/document';
 import { DeleteMutation, Precondition } from '../model/mutation';
