@@ -134,7 +134,7 @@ function dbPromise(dbRequest) {
       reject(dbRequest.error);
     });
     dbRequest.addEventListener('blocked', () => {
-      reject(dbRequest.error || 'blocked');
+      reject('blocked');
     });
   });
 }

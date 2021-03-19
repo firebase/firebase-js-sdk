@@ -410,4 +410,35 @@ browserDescribe('WebDriver persistence test', driver => {
       }
     });
   });
+
+  context.only('persistence sync across windows and tabs', () => {
+    it('sync current user across windows', async () => {
+      const cred: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+      const uid = cred.user.uid;
+      await driver.webDriver.executeScript('window.open(".");');
+      await driver.selectPopupWindow();
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+      const userInPopup = await driver.getUserSnapshot();
+      expect(userInPopup).not.to.be.null;
+      expect(userInPopup.uid).to.equal(uid);
+
+      await driver.call(CoreFunction.SIGN_OUT);
+      expect(await driver.getUserSnapshot()).to.be.null;
+      await driver.selectMainWindow({ noWait: true });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      expect(await driver.getUserSnapshot()).to.be.null;
+
+      const cred2: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+      const uid2 = cred2.user.uid;
+
+      await driver.selectPopupWindow();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
+    });
+  });
 });
