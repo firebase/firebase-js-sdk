@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../../api/Query';
+import { Logger, LogLevel } from '@firebase/logger';
 import {
   assert,
   base64,
@@ -24,8 +24,9 @@ import {
   stringify,
   isNodeSdk
 } from '@firebase/util';
+
+import { Query } from '../../api/Query';
 import { SessionStorage } from '../storage/storage';
-import { Logger, LogLevel } from '@firebase/logger';
 
 declare const window: Window;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

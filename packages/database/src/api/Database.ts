@@ -14,25 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseApp } from '@firebase/app-types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseApp as FirebaseAppExp } from '@firebase/app-exp';
-import { safeGet, validateArgCount } from '@firebase/util';
-import { fatal, log } from '../core/util/util';
-import { parseRepoInfo } from '../core/util/libs/parser';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseService } from '@firebase/app-types/private';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { pathIsEmpty, newEmptyPath } from '../core/util/Path';
-import { Reference } from './Reference';
-import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
-import { validateUrl } from '../core/util/validation';
-import { FirebaseService } from '@firebase/app-types/private';
-import { RepoInfo } from '../core/RepoInfo';
+import { safeGet, validateArgCount } from '@firebase/util';
+
 import {
   AuthTokenProvider,
   EmulatorAdminTokenProvider,
   FirebaseAuthTokenProvider
 } from '../core/AuthTokenProvider';
+import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
+import { RepoInfo } from '../core/RepoInfo';
+import { parseRepoInfo } from '../core/util/libs/parser';
+import { pathIsEmpty, newEmptyPath } from '../core/util/Path';
+import { fatal, log } from '../core/util/util';
+import { validateUrl } from '../core/util/validation';
+
+import { Reference } from './Reference';
 
 /**
  * This variable is also defined in the firebase node.js admin SDK. Before

@@ -16,10 +16,12 @@
  */
 
 import { contains } from '@firebase/util';
-import { setTimeoutNonBlocking, each } from '../util/util';
-import { StatsListener } from './StatsListener';
-import { StatsCollection } from './StatsCollection';
+
 import { ServerActions } from '../ServerActions';
+import { setTimeoutNonBlocking, each } from '../util/util';
+
+import { StatsCollection } from './StatsCollection';
+import { StatsListener } from './StatsListener';
 
 // Assuming some apps may have a short amount of time on page, and a bulk of firebase operations probably
 // happen on page load, we try to report our first set of stats pretty quickly, but we wait at least 10

@@ -16,8 +16,8 @@
  */
 
 import { ChildrenNode } from './snap/ChildrenNode';
-import { Path } from './util/Path';
 import { Node } from './snap/Node';
+import { Path } from './util/Path';
 
 /**
  * Mutable object which basically just stores a reference to the "latest" immutable snapshot.

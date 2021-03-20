@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { CacheNode } from './CacheNode';
 import { Node } from '../snap/Node';
+
+import { CacheNode } from './CacheNode';
 
 /**
  * Stores the data we have cached for a view.

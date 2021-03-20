@@ -18,9 +18,9 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app-exp';
 import { expect } from 'chai';
-import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 
 import { getDatabase } from '../../exp/index';
+import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });

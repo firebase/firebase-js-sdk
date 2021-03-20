@@ -29,17 +29,16 @@ import {
   Deferred
 } from '@firebase/util';
 
-import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
-import { Path } from './util/Path';
-import { VisibilityMonitor } from './util/VisibilityMonitor';
-import { OnlineMonitor } from './util/OnlineMonitor';
-
+import { Query } from '../api/Query';
 import { Connection } from '../realtime/Connection';
 
-import { ServerActions } from './ServerActions';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
-import { Query } from '../api/Query';
+import { ServerActions } from './ServerActions';
+import { OnlineMonitor } from './util/OnlineMonitor';
+import { Path } from './util/Path';
+import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
+import { VisibilityMonitor } from './util/VisibilityMonitor';
 import { SDK_VERSION } from './version';
 
 const RECONNECT_MIN_DELAY = 1000;

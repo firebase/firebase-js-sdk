@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-import { NamedNode, Node } from '../snap/Node';
-import { Change, ChangeType, changeChildMoved } from './Change';
 import { assertionError } from '@firebase/util';
+
 import { Query } from '../../api/Query';
 import { Index } from '../snap/indexes/Index';
-import { EventRegistration } from './EventRegistration';
+import { NamedNode, Node } from '../snap/Node';
+
+import { Change, ChangeType, changeChildMoved } from './Change';
 import { Event } from './Event';
+import { EventRegistration } from './EventRegistration';
 
 /**
  * An EventGenerator is used to convert "raw" changes (Change) as computed by the

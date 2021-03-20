@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import { BrowserPollConnection } from './BrowserPollConnection';
-import { WebSocketConnection } from './WebSocketConnection';
-import { warn } from '../core/util/util';
-import { TransportConstructor } from './Transport';
 import { RepoInfo } from '../core/RepoInfo';
+import { warn } from '../core/util/util';
+
+import { BrowserPollConnection } from './BrowserPollConnection';
+import { TransportConstructor } from './Transport';
+import { WebSocketConnection } from './WebSocketConnection';
 
 /**
  * Currently simplistic, this class manages what transport a Connection should use at various stages of its

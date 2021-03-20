@@ -17,10 +17,11 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { _FirebaseService, _getProvider, FirebaseApp } from '@firebase/app-exp';
-import { Reference } from '../api/Reference';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Database, repoManagerDatabaseFromApp } from '../api/Database';
 import { Provider } from '@firebase/component';
+
+import { Database, repoManagerDatabaseFromApp } from '../api/Database';
+import { Reference } from '../api/Reference';
 
 /**
  * Class representing a Firebase Realtime Database.

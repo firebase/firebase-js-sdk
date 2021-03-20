@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { Operation, OperationSource, OperationType } from './Operation';
-import { newEmptyPath, Path, pathIsEmpty, pathPopFront } from '../util/Path';
 import { Node } from '../snap/Node';
+import { newEmptyPath, Path, pathIsEmpty, pathPopFront } from '../util/Path';
+
+import { Operation, OperationSource, OperationType } from './Operation';
 
 export class Overwrite implements Operation {
   /** @inheritDoc */

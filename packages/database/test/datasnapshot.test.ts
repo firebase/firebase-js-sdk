@@ -16,11 +16,13 @@
  */
 
 import { expect } from 'chai';
-import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
-import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
-import { getRandomNode } from './helpers/util';
+
 import { DataSnapshot } from '../src/api/DataSnapshot';
 import { Reference } from '../src/api/Reference';
+import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
+import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
+
+import { getRandomNode } from './helpers/util';
 
 describe('DataSnapshot Tests', () => {
   /** @return {!DataSnapshot} */

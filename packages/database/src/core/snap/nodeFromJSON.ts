@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-import { ChildrenNode } from './ChildrenNode';
-import { LeafNode } from './LeafNode';
-import { NamedNode, Node } from './Node';
 import { contains, assert } from '@firebase/util';
 
-import { buildChildSet } from './childSet';
-import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
-import { IndexMap } from './IndexMap';
-import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
+import { Indexable } from '../util/misc';
 import { SortedMap } from '../util/SortedMap';
 import { each } from '../util/util';
-import { Indexable } from '../util/misc';
+
+import { ChildrenNode } from './ChildrenNode';
+import { buildChildSet } from './childSet';
+import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
+import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
+import { IndexMap } from './IndexMap';
+import { LeafNode } from './LeafNode';
+import { NamedNode, Node } from './Node';
 
 const USE_HINZE = true;
 

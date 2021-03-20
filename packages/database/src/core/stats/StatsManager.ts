@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { StatsCollection } from './StatsCollection';
 import { RepoInfo } from '../RepoInfo';
+
+import { StatsCollection } from './StatsCollection';
 
 const collections: { [k: string]: StatsCollection } = {};
 const reporters: { [k: string]: unknown } = {};

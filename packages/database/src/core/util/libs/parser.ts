@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Path } from '../Path';
 import { RepoInfo } from '../../RepoInfo';
+import { Path } from '../Path';
 import { warnIfPageIsSecure, warn, fatal } from '../util';
 
 function decodePath(pathString: string): string {

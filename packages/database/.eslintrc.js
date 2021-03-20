@@ -30,7 +30,22 @@ module.exports = {
     'no-restricted-properties': 'off',
     'no-restricted-globals': 'off',
     'no-throw-literal': 'off',
-    'id-blacklist': 'off'
+    'id-blacklist': 'off',
+    'import/order': [
+      'error',
+      {
+        'groups': [
+          'builtin',
+          'external',
+          'internal',
+          'parent',
+          'sibling',
+          'index'
+        ],
+        'newlines-between': 'always',
+        'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
+      }
+    ]
   },
   overrides: [
     {

@@ -15,6 +15,11 @@
  * limitations under the License.
  */
 
+import { assert } from '@firebase/util';
+
+import { ChildrenNode } from './snap/ChildrenNode';
+import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
+import { NamedNode, Node } from './snap/Node';
 import { ImmutableTree } from './util/ImmutableTree';
 import {
   newEmptyPath,
@@ -23,10 +28,6 @@ import {
   pathChild,
   pathIsEmpty
 } from './util/Path';
-import { NamedNode, Node } from './snap/Node';
-import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
-import { assert } from '@firebase/util';
-import { ChildrenNode } from './snap/ChildrenNode';
 import { each } from './util/util';
 
 /**
