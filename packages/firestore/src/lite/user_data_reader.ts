@@ -21,7 +21,6 @@ import {
   SetOptions
 } from '@firebase/firestore-types';
 
-import { Compat } from '../api/compat';
 import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
@@ -59,6 +58,7 @@ import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { Bytes } from './bytes';
+import { Compat } from './compat';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';

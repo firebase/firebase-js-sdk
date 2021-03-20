@@ -20,7 +20,6 @@ import {
   SetOptions as PublicSetOptions
 } from '@firebase/firestore-types';
 
-import { Compat } from '../api/compat';
 import { hasLimitToLast } from '../core/query';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
@@ -33,6 +32,7 @@ import { ByteString } from '../util/byte_string';
 import { cast } from '../util/input_validation';
 
 import { Bytes } from './bytes';
+import { Compat } from './compat';
 import { getDatastore } from './components';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';

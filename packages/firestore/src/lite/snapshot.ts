@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { arrayEquals } from '../util/misc';
 
+import { Compat } from './compat';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';
 import {

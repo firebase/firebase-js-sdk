@@ -24,10 +24,8 @@ import { Component, ComponentType } from '@firebase/component';
 import {
   FirebaseFirestore,
   CACHE_SIZE_UNLIMITED,
-  FieldPath,
   GeoPoint,
-  Timestamp,
-  FieldValue
+  Timestamp
 } from '../exp/index'; // import from the exp public API
 import { Blob } from '../src/api/blob';
 import {
@@ -42,6 +40,8 @@ import {
   WriteBatch,
   setLogLevel
 } from '../src/api/database';
+import { FieldPath } from '../src/api/field_path';
+import { FieldValue } from '../src/api/field_value';
 
 const firestoreNamespace = {
   Firestore,

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
 import { DatabaseId } from '../core/database_info';
 import {
   findFilterOperator,
@@ -53,6 +52,7 @@ import {
   valueDescription
 } from '../util/input_validation';
 
+import { Compat } from './compat';
 import { FieldPath } from './field_path';
 import { DocumentReference, Query } from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { invokeCommitRpc } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
+import { Compat } from './compat';
 import { getDatastore } from './components';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { TransactionRunner } from '../core/transaction_runner';
 import { fail } from '../util/assert';
@@ -23,6 +22,7 @@ import { newAsyncQueue } from '../util/async_queue_impl';
 import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
+import { Compat } from './compat';
 import { getDatastore } from './components';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';

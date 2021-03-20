@@ -98,7 +98,8 @@ import {
   runTransaction,
   Transaction as ExpTransaction,
   WriteBatch as ExpWriteBatch,
-  AbstractUserDataWriter
+  AbstractUserDataWriter,
+  Compat
 } from '../../exp/index'; // import from the exp public API
 import { DatabaseId } from '../core/database_info';
 import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
@@ -115,7 +116,6 @@ import {
 import { setLogLevel as setClientLogLevel } from '../util/log';
 
 import { Blob } from './blob';
-import { Compat } from './compat';
 import {
   CompleteFn,
   ErrorFn,
