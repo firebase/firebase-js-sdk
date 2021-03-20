@@ -83,10 +83,8 @@ import {
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { RepoInfo } from './RepoInfo';
-import { Database } from '../api/Database';
-import { DataSnapshot } from '../api/DataSnapshot';
 import { ServerActions } from './ServerActions';
-import { Query } from '../api/Query';
+
 import { EventRegistration } from './view/EventRegistration';
 import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
@@ -105,9 +103,8 @@ import {
 } from './util/Tree';
 import { isValidPriority, validateFirebaseData } from './util/validation';
 import { ChildrenNode } from './snap/ChildrenNode';
-import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
-import { Reference } from '../api/Reference';
-import { FirebaseAppLike } from './RepoManager';
+import { FirebaseAppLike } from '../api/Database';
+import { Query } from '../api/Query';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -143,7 +140,11 @@ const enum TransactionStatus {
 interface Transaction {
   path: Path;
   update: (a: unknown) => unknown;
-  onComplete: (a: Error | null, b: boolean, c: DataSnapshot | null) => void;
+  onComplete: (
+    error: Error | null,
+    committed: boolean,
+    node: Node | null
+  ) => void;
   status: TransactionStatus;
   order: number;
   applyLocally: boolean;
@@ -175,7 +176,6 @@ export class Repo {
   statsReporter_: StatsReporter;
   infoData_: SnapshotHolder;
   interceptServerDataCallback_: ((a: string, b: unknown) => void) | null = null;
-  __database: Database;
 
   /** A list of data pieces and paths to be set when this client disconnects. */
   onDisconnect_ = newSparseSnapshotTree();
@@ -450,17 +450,11 @@ function repoGetNextWriteId(repo: Repo): number {
  *
  * @param query - The query to surface a value for.
  */
-export function repoGetValue(repo: Repo, query: Query): Promise<DataSnapshot> {
+export function repoGetValue(repo: Repo, query: Query): Promise<Node> {
   // Only active queries are cached. There is no persisted cache.
   const cached = syncTreeGetServerValue(repo.serverSyncTree_, query);
   if (cached != null) {
-    return Promise.resolve(
-      new DataSnapshot(
-        cached,
-        query.getRef(),
-        query.getQueryParams().getIndex()
-      )
-    );
+    return Promise.resolve(cached);
   }
   return repo.server_.get(query).then(
     payload => {
@@ -471,13 +465,7 @@ export function repoGetValue(repo: Repo, query: Query): Promise<DataSnapshot> {
         node
       );
       eventQueueRaiseEventsAtPath(repo.eventQueue_, query.path, events);
-      return Promise.resolve(
-        new DataSnapshot(
-          node,
-          query.getRef(),
-          query.getQueryParams().getIndex()
-        )
-      );
+      return Promise.resolve(node);
     },
     err => {
       repoLog(repo, 'get for query ' + stringify(query) + ' failed: ' + err);
@@ -866,10 +854,6 @@ export function repoCallOnCompleteCallback(
   }
 }
 
-export function repoGetDatabase(repo: Repo): Database {
-  return repo.__database || (repo.__database = new Database(repo));
-}
-
 /**
  * Creates a new transaction, adds it to the transactions we're tracking, and
  * sends it to the server if possible.
@@ -877,24 +861,19 @@ export function repoGetDatabase(repo: Repo): Database {
  * @param path Path at which to do transaction.
  * @param transactionUpdate Update callback.
  * @param onComplete Completion callback.
+ * @param unwatcher Function that will be called when the transaction no longer
+ * need data updates for `path`.
  * @param applyLocally Whether or not to make intermediate results visible
  */
 export function repoStartTransaction(
   repo: Repo,
   path: Path,
   transactionUpdate: (a: unknown) => unknown,
-  onComplete: ((a: Error, b: boolean, c: DataSnapshot) => void) | null,
+  onComplete: ((error: Error, committed: boolean, node: Node) => void) | null,
+  unwatcher: () => void,
   applyLocally: boolean
 ): void {
   repoLog(repo, 'transaction on ' + path);
-
-  // Add a watch to make sure we get server updates.
-  const valueCallback = function () {};
-  const watchRef = new Reference(repo, path);
-  watchRef.on('value', valueCallback);
-  const unwatcher = function () {
-    watchRef.off('value', valueCallback);
-  };
 
   // Initialize transaction.
   const transaction: Transaction = {
@@ -931,12 +910,7 @@ export function repoStartTransaction(
     transaction.currentOutputSnapshotResolved = null;
     if (transaction.onComplete) {
       // We just set the input snapshot, so this cast should be safe
-      const snapshot = new DataSnapshot(
-        transaction.currentInputSnapshot,
-        new Reference(repo, transaction.path),
-        PRIORITY_INDEX
-      );
-      transaction.onComplete(null, false, snapshot);
+      transaction.onComplete(null, false, transaction.currentInputSnapshot);
     }
   } else {
     validateFirebaseData(
@@ -1114,11 +1088,12 @@ function repoSendTransactionQueue(
           if (queue[i].onComplete) {
             // We never unset the output snapshot, and given that this
             // transaction is complete, it should be set
-            const node = queue[i].currentOutputSnapshotResolved as Node;
-            const ref = new Reference(repo, queue[i].path);
-            const snapshot = new DataSnapshot(node, ref, PRIORITY_INDEX);
-            callbacks.push(
-              queue[i].onComplete.bind(null, null, true, snapshot)
+            callbacks.push(() =>
+              queue[i].onComplete(
+                null,
+                true,
+                queue[i].currentOutputSnapshotResolved
+              )
             );
           }
           queue[i].unwatcher();
@@ -1326,14 +1301,12 @@ function repoRerunTransactionQueue(
 
       if (queue[i].onComplete) {
         if (abortReason === 'nodata') {
-          const ref = new Reference(repo, queue[i].path);
-          // We set this field immediately, so it's safe to cast to an actual snapshot
-          const lastInput /** @type {!Node} */ = queue[i].currentInputSnapshot;
-          const snapshot = new DataSnapshot(lastInput, ref, PRIORITY_INDEX);
-          callbacks.push(queue[i].onComplete.bind(null, null, false, snapshot));
+          callbacks.push(() =>
+            queue[i].onComplete(null, false, queue[i].currentInputSnapshot)
+          );
         } else {
-          callbacks.push(
-            queue[i].onComplete.bind(null, new Error(abortReason), false, null)
+          callbacks.push(() =>
+            queue[i].onComplete(new Error(abortReason), false, null)
           );
         }
       }
@@ -1518,9 +1491,8 @@ function repoAbortTransactionsOnNode(
           )
         );
         if (queue[i].onComplete) {
-          const snapshot: DataSnapshot | null = null;
           callbacks.push(
-            queue[i].onComplete.bind(null, new Error('set'), false, snapshot)
+            queue[i].onComplete.bind(null, new Error('set'), false, null)
           );
         }
       }

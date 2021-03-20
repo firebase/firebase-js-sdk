@@ -26,8 +26,18 @@ export function authInit() {
   });
 }
 
+export function legacyAuthInit() {
+  return new Promise(resolve => {
+    legacyAuth.onAuthStateChanged(() => resolve());
+  });
+}
+
 export async function userSnap() {
   return auth.currentUser;
+}
+
+export async function legacyUserSnap() {
+  return legacyAuth.currentUser;
 }
 
 export async function authSnap() {

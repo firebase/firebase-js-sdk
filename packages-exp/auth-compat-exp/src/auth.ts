@@ -18,17 +18,12 @@
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import {
-  ErrorFn,
-  isIndexedDBAvailable,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
+import { ErrorFn, Observer, Unsubscribe } from '@firebase/util';
 
 import {
   _validatePersistenceArgument,
   Persistence,
-  _getPersistenceFromRedirect,
+  _getPersistencesFromRedirect,
   _savePersistenceForRedirect
 } from './persistence';
 import { _isPopupRedirectSupported } from './platform';
@@ -54,12 +49,18 @@ export class Auth
 
     // Note this is slightly different behavior: in this case, the stored
     // persistence is checked *first* rather than last. This is because we want
-    // the fallback (if no user is found) to be the stored persistence type
-    const storedPersistence = _getPersistenceFromRedirect(this.auth);
-    const persistences = storedPersistence ? [storedPersistence] : [];
-    persistences.push(exp.indexedDBLocalPersistence);
+    // to prefer stored persistence type in the hierarchy.
+    const persistences = _getPersistencesFromRedirect(this.auth);
 
-    // TODO(avolkovi): Implement proper persistence fallback
+    for (const persistence of [
+      exp.indexedDBLocalPersistence,
+      exp.browserLocalPersistence
+    ]) {
+      if (!persistences.includes(persistence)) {
+        persistences.push(persistence);
+      }
+    }
+
     const hierarchy = persistences.map<exp.PersistenceInternal>(
       exp._getInstance
     );
@@ -199,28 +200,29 @@ export class Auth
     );
   }
   async setPersistence(persistence: string): Promise<void> {
-    function convertPersistence(
-      auth: exp.Auth,
-      persistenceCompat: string
-    ): exp.Persistence {
-      _validatePersistenceArgument(auth, persistence);
-      switch (persistenceCompat) {
-        case Persistence.SESSION:
-          return exp.browserSessionPersistence;
-        case Persistence.LOCAL:
-          return isIndexedDBAvailable()
-            ? exp.indexedDBLocalPersistence
-            : exp.browserLocalPersistence;
-        case Persistence.NONE:
-          return exp.inMemoryPersistence;
-        default:
-          return exp._fail(exp.AuthErrorCode.ARGUMENT_ERROR, {
-            appName: auth.name
-          });
-      }
+    _validatePersistenceArgument(this.auth, persistence);
+    let converted;
+    switch (persistence) {
+      case Persistence.SESSION:
+        converted = exp.browserSessionPersistence;
+        break;
+      case Persistence.LOCAL:
+        // Not using isIndexedDBAvailable() since it only checks if indexedDB is defined.
+        const isIndexedDBFullySupported = await (exp.indexedDBLocalPersistence as exp.PersistenceInternal)._isAvailable();
+        converted = isIndexedDBFullySupported
+          ? exp.indexedDBLocalPersistence
+          : exp.browserLocalPersistence;
+        break;
+      case Persistence.NONE:
+        converted = exp.inMemoryPersistence;
+        break;
+      default:
+        return exp._fail(exp.AuthErrorCode.ARGUMENT_ERROR, {
+          appName: this.auth.name
+        });
     }
 
-    return this.auth.setPersistence(convertPersistence(this.auth, persistence));
+    return this.auth.setPersistence(converted);
   }
 
   signInAndRetrieveDataWithCredential(

@@ -67,8 +67,9 @@ import {
 } from '../core/view/QueryParams';
 import { Reference } from './Reference';
 import { DataSnapshot } from './DataSnapshot';
+import { Database } from './Database';
 
-let __referenceConstructor: new (repo: Repo, path: Path) => Query;
+let __referenceConstructor: new (database: Database, path: Path) => Query;
 
 export interface SnapshotCallback {
   (a: DataSnapshot, b?: string | null): unknown;
@@ -90,12 +91,16 @@ export class Query {
     return __referenceConstructor;
   }
 
+  readonly repo: Repo;
+
   constructor(
-    public repo: Repo,
+    public database: Database,
     public path: Path,
     private queryParams_: QueryParams,
     private orderByCalled_: boolean
-  ) {}
+  ) {
+    this.repo = database.repo_;
+  }
 
   /**
    * Validates start/end values for queries.
@@ -197,7 +202,10 @@ export class Query {
     // This is a slight hack. We cannot goog.require('fb.api.Firebase'), since Firebase requires fb.api.Query.
     // However, we will always export 'Firebase' to the global namespace, so it's guaranteed to exist by the time this
     // method gets called.
-    return new Query.__referenceConstructor(this.repo, this.path) as Reference;
+    return new Query.__referenceConstructor(
+      this.database,
+      this.path
+    ) as Reference;
   }
 
   on(
@@ -285,7 +293,10 @@ export class Query {
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return repoGetValue(this.repo, this);
+    return repoGetValue(this.repo, this).then(
+      node =>
+        new DataSnapshot(node, this.getRef(), this.getQueryParams().getIndex())
+    );
   }
 
   /**
@@ -368,7 +379,7 @@ export class Query {
     }
 
     return new Query(
-      this.repo,
+      this.database,
       this.path,
       queryParamsLimitToFirst(this.queryParams_, limit),
       this.orderByCalled_
@@ -397,7 +408,7 @@ export class Query {
     }
 
     return new Query(
-      this.repo,
+      this.database,
       this.path,
       queryParamsLimitToLast(this.queryParams_, limit),
       this.orderByCalled_
@@ -434,7 +445,12 @@ export class Query {
     const newParams = queryParamsOrderBy(this.queryParams_, index);
     Query.validateQueryEndpoints_(newParams);
 
-    return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
+    return new Query(
+      this.database,
+      this.path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
   }
 
   /**
@@ -445,7 +461,12 @@ export class Query {
     this.validateNoPreviousOrderByCall_('Query.orderByKey');
     const newParams = queryParamsOrderBy(this.queryParams_, KEY_INDEX);
     Query.validateQueryEndpoints_(newParams);
-    return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
+    return new Query(
+      this.database,
+      this.path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
   }
 
   /**
@@ -456,7 +477,12 @@ export class Query {
     this.validateNoPreviousOrderByCall_('Query.orderByPriority');
     const newParams = queryParamsOrderBy(this.queryParams_, PRIORITY_INDEX);
     Query.validateQueryEndpoints_(newParams);
-    return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
+    return new Query(
+      this.database,
+      this.path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
   }
 
   /**
@@ -467,7 +493,12 @@ export class Query {
     this.validateNoPreviousOrderByCall_('Query.orderByValue');
     const newParams = queryParamsOrderBy(this.queryParams_, VALUE_INDEX);
     Query.validateQueryEndpoints_(newParams);
-    return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
+    return new Query(
+      this.database,
+      this.path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
   }
 
   startAt(
@@ -494,7 +525,7 @@ export class Query {
       name = null;
     }
 
-    return new Query(this.repo, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, this.path, newParams, this.orderByCalled_);
   }
 
   startAfter(
@@ -515,7 +546,7 @@ export class Query {
       );
     }
 
-    return new Query(this.repo, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, this.path, newParams, this.orderByCalled_);
   }
 
   endAt(
@@ -536,7 +567,7 @@ export class Query {
       );
     }
 
-    return new Query(this.repo, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, this.path, newParams, this.orderByCalled_);
   }
 
   endBefore(
@@ -557,7 +588,7 @@ export class Query {
       );
     }
 
-    return new Query(this.repo, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, this.path, newParams, this.orderByCalled_);
   }
 
   /**

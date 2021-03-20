@@ -69,7 +69,7 @@ describe('auth compat', () => {
       if (typeof self !== 'undefined') {
         sessionStorage.setItem(
           'firebase:persistence:api-key:undefined',
-          'NONE'
+          'none'
         );
         new Auth(app, underlyingAuth);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -78,7 +78,8 @@ describe('auth compat', () => {
         ).to.have.been.calledWith(
           [
             exp._getInstance(exp.inMemoryPersistence),
-            exp._getInstance(exp.indexedDBLocalPersistence)
+            exp._getInstance(exp.indexedDBLocalPersistence),
+            exp._getInstance(exp.browserLocalPersistence)
           ],
           CompatPopupRedirectResolver
         );

@@ -24,9 +24,17 @@ import { importPathTransformer } from '../../scripts/exp/ts-transform-import-pat
 import expPkg from './exp/package.json';
 import pkg from './package.json';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
+
+function onWarn(warning, defaultWarn) {
+  if (warning.code === 'CIRCULAR_DEPENDENCY') {
+    throw new Error(warning);
+  }
+  defaultWarn(warning);
+}
 
 /**
  * ES5 Builds
@@ -53,7 +61,8 @@ const es5Builds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   },
   /**
    * Browser Builds
@@ -71,7 +80,8 @@ const es5Builds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 
@@ -109,7 +119,8 @@ const es2017Builds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 

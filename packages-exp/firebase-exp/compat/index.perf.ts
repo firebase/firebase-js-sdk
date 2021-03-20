@@ -16,7 +16,7 @@
  */
 
 import firebase from './app';
-// import './performance';
+import './performance';
 import { name, version } from '../package.json';
 
 firebase.registerVersion(name, version, 'compat-lite');

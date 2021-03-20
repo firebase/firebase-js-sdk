@@ -29,7 +29,7 @@ import { RemoteConfig as RemoteConfigCompat } from '@firebase/remote-config-type
 // TODO: move it to remote-config-types package
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'remote-config-compat': RemoteConfigCompat;
+    'remoteConfig-compat': RemoteConfigCompat;
   }
 }
 
@@ -38,7 +38,7 @@ function registerRemoteConfigCompat(
 ): void {
   firebaseInstance.INTERNAL.registerComponent(
     new Component(
-      'remote-config-compat',
+      'remoteConfig-compat',
       remoteConfigFactory,
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
@@ -61,3 +61,14 @@ function remoteConfigFactory(
 }
 
 registerRemoteConfigCompat(firebase as _FirebaseNamespace);
+
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    remoteConfig?: {
+      (app?: FirebaseApp): RemoteConfigCompat;
+    };
+  }
+  interface FirebaseApp {
+    remoteConfig(): RemoteConfigCompat;
+  }
+}

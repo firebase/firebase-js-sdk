@@ -26,7 +26,7 @@ import {
   copyFileSync,
   rmdirSync
 } from 'fs';
-import { readPackageJson } from '../utils';
+import { projectRoot, readPackageJson } from '../utils';
 
 export interface CompatConfig {
   srcDir: string;
@@ -76,6 +76,26 @@ export async function createCompatProject(config: CompatConfig) {
 
     return `${JSON.stringify(compatPkgJson, null, 2)}\n`;
   });
+}
+
+const FIREBASE_EXP_DIR = `${projectRoot}/packages-exp/firebase-exp`;
+export async function addCompatToFirebasePkgJson(compatPkgNames: string[]) {
+  const compatDeps: Record<string, string> = {};
+  for (const pkgName of compatPkgNames) {
+    compatDeps[pkgName] = '0.0.900';
+  }
+
+  const firebasePkgJson = await readPackageJson(FIREBASE_EXP_DIR);
+  firebasePkgJson.dependencies = {
+    ...firebasePkgJson.dependencies,
+    ...compatDeps
+  };
+
+  writeFileSync(
+    `${FIREBASE_EXP_DIR}/package.json`,
+    `${JSON.stringify(firebasePkgJson, null, 2)}\n`,
+    { encoding: 'utf-8' }
+  );
 }
 
 export function copyRecursiveSync(

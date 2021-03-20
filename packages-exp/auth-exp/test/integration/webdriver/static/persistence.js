@@ -14,6 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  indexedDBLocalPersistence,
+  inMemoryPersistence
+} from '@firebase/auth-exp';
 
 const INDEXED_DB_NAME = 'firebaseLocalStorageDb';
 
@@ -25,9 +31,14 @@ const sessionStorage = window.sessionStorage;
 export async function clearPersistence() {
   sessionStorage.clear();
   localStorage.clear();
-  return dbPromise(indexedDB.deleteDatabase(INDEXED_DB_NAME)).catch(
-    () => undefined
-  );
+  // HACK: Deleting databases in Firefox sometimes take a few seconds. Let's just return early.
+  return withTimeout(
+    1000,
+    dbPromise(indexedDB.deleteDatabase(INDEXED_DB_NAME))
+  ).catch(e => {
+    console.error(e);
+    return;
+  });
 }
 
 export async function localStorageSnap() {
@@ -62,6 +73,22 @@ export async function indexedDBSnap() {
     result[key] = value;
   }
   return result;
+}
+
+export async function setPersistenceMemory() {
+  return auth.setPersistence(inMemoryPersistence);
+}
+
+export async function setPersistenceSession() {
+  return auth.setPersistence(browserSessionPersistence);
+}
+
+export async function setPersistenceLocalStorage() {
+  return auth.setPersistence(browserLocalPersistence);
+}
+
+export async function setPersistenceIndexedDB() {
+  return auth.setPersistence(indexedDBLocalPersistence);
 }
 
 // Mock functions for testing edge cases
@@ -110,4 +137,13 @@ function dbPromise(dbRequest) {
       reject(dbRequest.error || 'blocked');
     });
   });
+}
+
+function withTimeout(ms, promise) {
+  return Promise.race([
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('operation timed out')), ms)
+    ),
+    promise
+  ]);
 }

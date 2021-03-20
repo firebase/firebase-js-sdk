@@ -15,15 +15,14 @@
  * limitations under the License.
  */
 
-import { AuthInternal } from '@firebase/auth-exp/dist/esm5/src/model/auth';
 import * as exp from '@firebase/auth-exp/internal';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
 import { _isWebStorageSupported, _isWorker } from './platform';
 
 export const Persistence = {
-  LOCAL: 'LOCAL',
-  NONE: 'NONE',
-  SESSION: 'SESSION'
+  LOCAL: 'local',
+  NONE: 'none',
+  SESSION: 'session'
 };
 
 const _assert: typeof exp._assert = exp._assert;
@@ -82,7 +81,7 @@ export function _validatePersistenceArgument(
 }
 
 export async function _savePersistenceForRedirect(
-  auth: AuthInternal
+  auth: exp.AuthInternal
 ): Promise<void> {
   await auth._initializationPromise;
 
@@ -97,12 +96,12 @@ export async function _savePersistenceForRedirect(
   }
 }
 
-export function _getPersistenceFromRedirect(
-  auth: AuthInternal
-): exp.Persistence | null {
+export function _getPersistencesFromRedirect(
+  auth: exp.AuthInternal
+): exp.Persistence[] {
   const win = getSelfWindow();
   if (!win?.sessionStorage) {
-    return null;
+    return [];
   }
 
   const key = exp._persistenceKeyName(
@@ -113,16 +112,14 @@ export function _getPersistenceFromRedirect(
   const persistence = win.sessionStorage.getItem(key);
 
   switch (persistence) {
-    case exp.inMemoryPersistence.type:
-      return exp.inMemoryPersistence;
-    case exp.indexedDBLocalPersistence.type:
-      return exp.indexedDBLocalPersistence;
-    case exp.browserSessionPersistence.type:
-      return exp.browserSessionPersistence;
-    case exp.browserLocalPersistence.type:
-      return exp.browserLocalPersistence;
+    case Persistence.NONE:
+      return [exp.inMemoryPersistence];
+    case Persistence.LOCAL:
+      return [exp.indexedDBLocalPersistence, exp.browserSessionPersistence];
+    case Persistence.SESSION:
+      return [exp.browserSessionPersistence];
     default:
-      return null;
+      return [];
   }
 }
 

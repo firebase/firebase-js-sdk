@@ -33,8 +33,6 @@ import {
 
 import { name, version } from '../package.json';
 
-import '../register-module';
-
 /**
  * Type constant for Firebase Storage.
  */
@@ -80,7 +78,7 @@ registerStorage((firebase as unknown) as _FirebaseNamespace);
 /**
  * Define extension behavior for `registerStorage`
  */
-declare module '@firebase/app-types' {
+declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
     storage?: {
       (app?: FirebaseApp, url?: string): types.FirebaseStorage;

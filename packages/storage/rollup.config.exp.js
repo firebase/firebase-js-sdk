@@ -23,9 +23,10 @@ import pkg from './package.json';
 import path from 'path';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-).concat('@firebase/app-exp');
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
 
 const plugins = [
   typescriptPlugin({
