@@ -19,11 +19,11 @@ interface CompatService<T> {
   _delegate?: T;
 }
 
-export function getExpInstance<ExpService>(
+export function getModularInstance<ExpService>(
   service: CompatService<ExpService> | ExpService
 ): ExpService {
-  if ((service as { [key: string]: unknown })._delegate) {
-    return (service as { [key: string]: unknown })._delegate as ExpService;
+  if ((service as CompatService<ExpService>)._delegate) {
+    return (service as CompatService<ExpService>)._delegate as ExpService;
   } else {
     return service as ExpService;
   }
