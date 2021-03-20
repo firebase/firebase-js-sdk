@@ -28,10 +28,10 @@ import {
   DocumentMap,
   DocumentVersionMap,
   documentVersionMap,
-  maybeDocumentMap,
-  MaybeDocumentMap
+  mutableDocumentMap,
+  MutableDocumentMap
 } from '../model/collections';
-import { MaybeDocument, NoDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   extractMutationBaseValue,
@@ -95,12 +95,12 @@ const RESUME_TOKEN_MAX_AGE_MICROS = 5 * 60 * 1e6;
 /** The result of a write to the local store. */
 export interface LocalWriteResult {
   batchId: BatchId;
-  changes: MaybeDocumentMap;
+  changes: DocumentMap;
 }
 
 /** The result of a user-change operation in the local store. */
 export interface UserChangeResult {
-  readonly affectedDocuments: MaybeDocumentMap;
+  readonly affectedDocuments: DocumentMap;
   readonly removedBatchIds: BatchId[];
   readonly addedBatchIds: BatchId[];
 }
@@ -298,7 +298,7 @@ export function localStoreWriteLocally(
   const localWriteTime = Timestamp.now();
   const keys = mutations.reduce((keys, m) => keys.add(m.key), documentKeySet());
 
-  let existingDocs: MaybeDocumentMap;
+  let existingDocs: DocumentMap;
 
   return localStoreImpl.persistence
     .runTransaction('Locally write mutations', 'readwrite', txn => {
@@ -320,7 +320,7 @@ export function localStoreWriteLocally(
           for (const mutation of mutations) {
             const baseValue = extractMutationBaseValue(
               mutation,
-              existingDocs.get(mutation.key)
+              existingDocs.get(mutation.key)!
             );
             if (baseValue != null) {
               // NOTE: The base state should only be applied if there's some
@@ -330,7 +330,7 @@ export function localStoreWriteLocally(
                 new PatchMutation(
                   mutation.key,
                   baseValue,
-                  extractFieldMask(baseValue.proto.mapValue!),
+                  extractFieldMask(baseValue.toProto().mapValue!),
                   Precondition.exists(true)
                 )
               );
@@ -346,8 +346,8 @@ export function localStoreWriteLocally(
         });
     })
     .then(batch => {
-      const changes = batch.applyToLocalDocumentSet(existingDocs);
-      return { batchId: batch.batchId, changes };
+      batch.applyToLocalDocumentSet(existingDocs);
+      return { batchId: batch.batchId, changes: existingDocs };
     });
 }
 
@@ -368,7 +368,7 @@ export function localStoreWriteLocally(
 export function localStoreAcknowledgeBatch(
   localStore: LocalStore,
   batchResult: MutationBatchResult
-): Promise<MaybeDocumentMap> {
+): Promise<DocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'Acknowledge batch',
@@ -400,7 +400,7 @@ export function localStoreAcknowledgeBatch(
 export function localStoreRejectBatch(
   localStore: LocalStore,
   batchId: BatchId
-): Promise<MaybeDocumentMap> {
+): Promise<DocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'Reject batch',
@@ -465,7 +465,7 @@ export function localStoreGetLastRemoteSnapshotVersion(
 export function localStoreApplyRemoteEventToLocalCache(
   localStore: LocalStore,
   remoteEvent: RemoteEvent
-): Promise<MaybeDocumentMap> {
+): Promise<DocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const remoteVersion = remoteEvent.snapshotVersion;
   let newTargetDataByTargetMap = localStoreImpl.targetDataByTarget;
@@ -522,7 +522,7 @@ export function localStoreApplyRemoteEventToLocalCache(
         }
       });
 
-      let changedDocs = maybeDocumentMap();
+      let changedDocs = mutableDocumentMap();
       remoteEvent.documentUpdates.forEach((key, doc) => {
         if (remoteEvent.resolvedLimboDocuments.has(key)) {
           promises.push(
@@ -574,12 +574,13 @@ export function localStoreApplyRemoteEventToLocalCache(
 
       return PersistencePromise.waitFor(promises)
         .next(() => documentBuffer.apply(txn))
-        .next(() => {
-          return localStoreImpl.localDocuments.getLocalViewOfDocuments(
+        .next(() =>
+          localStoreImpl.localDocuments.applyLocalViewToDocuments(
             txn,
             changedDocs
-          );
-        });
+          )
+        )
+        .next(() => changedDocs);
     })
     .then(changedDocs => {
       localStoreImpl.targetDataByTarget = newTargetDataByTargetMap;
@@ -606,35 +607,32 @@ export function localStoreApplyRemoteEventToLocalCache(
 function populateDocumentChangeBuffer(
   txn: PersistenceTransaction,
   documentBuffer: RemoteDocumentChangeBuffer,
-  documents: MaybeDocumentMap,
+  documents: MutableDocumentMap,
   globalVersion: SnapshotVersion,
   // TODO(wuandy): We could add `readTime` to MaybeDocument instead to remove
   // this parameter.
   documentVersions: DocumentVersionMap | undefined
-): PersistencePromise<MaybeDocumentMap> {
+): PersistencePromise<MutableDocumentMap> {
   let updatedKeys = documentKeySet();
   documents.forEach(k => (updatedKeys = updatedKeys.add(k)));
   return documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
-    let changedDocs = maybeDocumentMap();
+    let changedDocs = mutableDocumentMap();
     documents.forEach((key, doc) => {
-      const existingDoc = existingDocs.get(key);
+      const existingDoc = existingDocs.get(key)!;
       const docReadTime = documentVersions?.get(key) || globalVersion;
 
       // Note: The order of the steps below is important, since we want
       // to ensure that rejected limbo resolutions (which fabricate
       // NoDocuments with SnapshotVersion.min()) never add documents to
       // cache.
-      if (
-        doc instanceof NoDocument &&
-        doc.version.isEqual(SnapshotVersion.min())
-      ) {
+      if (doc.isNoDocument() && doc.version.isEqual(SnapshotVersion.min())) {
         // NoDocuments with SnapshotVersion.min() are used in manufactured
         // events. We remove these documents from cache since we lost
         // access.
         documentBuffer.removeEntry(key, docReadTime);
         changedDocs = changedDocs.insert(key, doc);
       } else if (
-        existingDoc == null ||
+        !existingDoc.isValidDocument() ||
         doc.version.compareTo(existingDoc.version) > 0 ||
         (doc.version.compareTo(existingDoc.version) === 0 &&
           existingDoc.hasPendingWrites)
@@ -818,7 +816,7 @@ export function localStoreGetNextMutationBatch(
 export function localStoreReadDocument(
   localStore: LocalStore,
   key: DocumentKey
-): Promise<MaybeDocument | null> {
+): Promise<Document> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'read document',
@@ -1029,28 +1027,16 @@ function applyWriteToRemoteDocuments(
   let promiseChain = PersistencePromise.resolve();
   docKeys.forEach(docKey => {
     promiseChain = promiseChain
-      .next(() => {
-        return documentBuffer.getEntry(txn, docKey);
-      })
-      .next((remoteDoc: MaybeDocument | null) => {
-        let doc = remoteDoc;
+      .next(() => documentBuffer.getEntry(txn, docKey))
+      .next(doc => {
         const ackVersion = batchResult.docVersions.get(docKey);
         hardAssert(
           ackVersion !== null,
           'ackVersions should contain every doc in the write.'
         );
-        if (!doc || doc.version.compareTo(ackVersion!) < 0) {
-          doc = batch.applyToRemoteDocument(docKey, doc, batchResult);
-          if (!doc) {
-            debugAssert(
-              !remoteDoc,
-              'Mutation batch ' +
-                batch +
-                ' applied to document ' +
-                remoteDoc +
-                ' resulted in null'
-            );
-          } else {
+        if (doc.version.compareTo(ackVersion!) < 0) {
+          batch.applyToRemoteDocument(doc, batchResult);
+          if (doc.isValidDocument()) {
             // We use the commitVersion as the readTime rather than the
             // document's updateTime since the updateTime is not advanced
             // for updates that do not modify the underlying document.
@@ -1069,7 +1055,7 @@ function applyWriteToRemoteDocuments(
 export function localStoreLookupMutationDocuments(
   localStore: LocalStore,
   batchId: BatchId
-): Promise<MaybeDocumentMap | null> {
+): Promise<DocumentMap | null> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const mutationQueueImpl = debugCast(
     localStoreImpl.mutationQueue,
@@ -1084,9 +1070,9 @@ export function localStoreLookupMutationDocuments(
           return localStoreImpl.localDocuments.getDocuments(
             txn,
             keys
-          ) as PersistencePromise<MaybeDocumentMap | null>;
+          ) as PersistencePromise<DocumentMap | null>;
         } else {
-          return PersistencePromise.resolve<MaybeDocumentMap | null>(null);
+          return PersistencePromise.resolve<DocumentMap | null>(null);
         }
       });
     }
@@ -1151,7 +1137,7 @@ export function localStoreGetCachedTarget(
 // PORTING NOTE: Multi-Tab only.
 export function localStoreGetNewDocumentChanges(
   localStore: LocalStore
-): Promise<MaybeDocumentMap> {
+): Promise<DocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence
     .runTransaction('Get new document changes', 'readonly', txn =>
@@ -1214,10 +1200,10 @@ export async function localStoreApplyBundledDocuments(
   bundleConverter: BundleConverter,
   documents: BundledDocuments,
   bundleName: string
-): Promise<MaybeDocumentMap> {
+): Promise<DocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   let documentKeys = documentKeySet();
-  let documentMap = maybeDocumentMap();
+  let documentMap = mutableDocumentMap();
   let versionMap = documentVersionMap();
   for (const bundleDoc of documents) {
     const documentKey = bundleConverter.toDocumentKey(bundleDoc.metadata.name!);
@@ -1226,7 +1212,7 @@ export async function localStoreApplyBundledDocuments(
     }
     documentMap = documentMap.insert(
       documentKey,
-      bundleConverter.toMaybeDocument(bundleDoc)
+      bundleConverter.toMutableDocument(bundleDoc)
     );
     versionMap = versionMap.insert(
       documentKey,
@@ -1270,11 +1256,12 @@ export async function localStoreApplyBundledDocuments(
               )
             )
             .next(() =>
-              localStoreImpl.localDocuments.getLocalViewOfDocuments(
+              localStoreImpl.localDocuments.applyLocalViewToDocuments(
                 txn,
                 changedDocs
               )
-            );
+            )
+            .next(() => changedDocs);
         });
     }
   );

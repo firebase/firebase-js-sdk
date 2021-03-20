@@ -19,13 +19,11 @@ import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
-  DocumentMap,
-  documentMap,
   DocumentSizeEntry,
-  NullableMaybeDocumentMap,
-  nullableMaybeDocumentMap
+  MutableDocumentMap,
+  mutableDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
@@ -36,7 +34,7 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
-export type DocumentSizer = (doc: MaybeDocument) => number;
+export type DocumentSizer = (doc: Document) => number;
 
 /** Miscellaneous collection types / constants. */
 interface MemoryRemoteDocumentCacheEntry extends DocumentSizeEntry {
@@ -86,7 +84,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
    */
   addEntry(
     transaction: PersistenceTransaction,
-    doc: MaybeDocument,
+    doc: MutableDocument,
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
     debugAssert(
@@ -100,7 +98,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     const currentSize = this.sizer(doc);
 
     this.docs = this.docs.insert(key, {
-      maybeDocument: doc,
+      document: doc.clone(),
       size: currentSize,
       readTime
     });
@@ -130,19 +128,28 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
+  ): PersistencePromise<MutableDocument> {
     const entry = this.docs.get(documentKey);
-    return PersistencePromise.resolve(entry ? entry.maybeDocument : null);
+    return PersistencePromise.resolve(
+      entry
+        ? entry.document.clone()
+        : MutableDocument.newInvalidDocument(documentKey)
+    );
   }
 
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap> {
-    let results = nullableMaybeDocumentMap();
+  ): PersistencePromise<MutableDocumentMap> {
+    let results = mutableDocumentMap();
     documentKeys.forEach(documentKey => {
       const entry = this.docs.get(documentKey);
-      results = results.insert(documentKey, entry ? entry.maybeDocument : null);
+      results = results.insert(
+        documentKey,
+        entry
+          ? entry.document.clone()
+          : MutableDocument.newInvalidDocument(documentKey)
+      );
     });
     return PersistencePromise.resolve(results);
   }
@@ -151,12 +158,12 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query,
     sinceReadTime: SnapshotVersion
-  ): PersistencePromise<DocumentMap> {
+  ): PersistencePromise<MutableDocumentMap> {
     debugAssert(
       !isCollectionGroupQuery(query),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
-    let results = documentMap();
+    let results = mutableDocumentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
@@ -165,7 +172,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     while (iterator.hasNext()) {
       const {
         key,
-        value: { maybeDocument, readTime }
+        value: { document, readTime }
       } = iterator.getNext();
       if (!query.path.isPrefixOf(key.path)) {
         break;
@@ -173,12 +180,10 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
       if (readTime.compareTo(sinceReadTime) <= 0) {
         continue;
       }
-      if (
-        maybeDocument instanceof Document &&
-        queryMatches(query, maybeDocument)
-      ) {
-        results = results.insert(maybeDocument.key, maybeDocument);
+      if (!queryMatches(query, document)) {
+        continue;
       }
+      results = results.insert(document.key, document.clone());
     }
     return PersistencePromise.resolve(results);
   }
@@ -231,11 +236,11 @@ class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
     this.changes.forEach((key, doc) => {
-      if (doc && doc.maybeDocument) {
+      if (doc.document.isValidDocument()) {
         promises.push(
           this.documentCache.addEntry(
             transaction,
-            doc.maybeDocument!,
+            doc.document,
             this.getReadTime(key)
           )
         );
@@ -249,14 +254,14 @@ class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   protected getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
+  ): PersistencePromise<MutableDocument> {
     return this.documentCache.getEntry(transaction, documentKey);
   }
 
   protected getAllFromCache(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap> {
+  ): PersistencePromise<MutableDocumentMap> {
     return this.documentCache.getEntries(transaction, documentKeys);
   }
 }

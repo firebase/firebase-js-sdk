@@ -37,7 +37,7 @@ import {
 import { TargetId } from '../core/types';
 import { Timestamp } from '../lite/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldMask } from '../model/field_mask';
 import {
@@ -379,13 +379,13 @@ export function toMutationDocument(
 ): ProtoDocument {
   return {
     name: toName(serializer, key),
-    fields: fields.proto.mapValue.fields
+    fields: fields.toProto().mapValue.fields
   };
 }
 
 export function toDocument(
   serializer: JsonProtoSerializer,
-  document: Document
+  document: MutableDocument
 ): ProtoDocument {
   debugAssert(
     !document.hasLocalMutations,
@@ -393,7 +393,7 @@ export function toDocument(
   );
   return {
     name: toName(serializer, document.key),
-    fields: document.toProto().mapValue.fields,
+    fields: document.data.toProto().mapValue.fields,
     updateTime: toTimestamp(serializer, document.version.toTimestamp())
   };
 }
@@ -402,19 +402,21 @@ export function fromDocument(
   serializer: JsonProtoSerializer,
   document: ProtoDocument,
   hasCommittedMutations?: boolean
-): Document {
+): MutableDocument {
   const key = fromName(serializer, document.name!);
   const version = fromVersion(document.updateTime!);
   const data = new ObjectValue({ mapValue: { fields: document.fields } });
-  return new Document(key, version, data, {
-    hasCommittedMutations: !!hasCommittedMutations
-  });
+  const result = MutableDocument.newFoundDocument(key, version, data);
+  if (hasCommittedMutations) {
+    result.setHasCommittedMutations();
+  }
+  return hasCommittedMutations ? result.setHasCommittedMutations() : result;
 }
 
 function fromFound(
   serializer: JsonProtoSerializer,
   doc: ProtoBatchGetDocumentsResponse
-): Document {
+): MutableDocument {
   hardAssert(
     !!doc.found,
     'Tried to deserialize a found document from a missing document.'
@@ -424,13 +426,13 @@ function fromFound(
   const key = fromName(serializer, doc.found.name);
   const version = fromVersion(doc.found.updateTime);
   const data = new ObjectValue({ mapValue: { fields: doc.found.fields } });
-  return new Document(key, version, data, {});
+  return MutableDocument.newFoundDocument(key, version, data);
 }
 
 function fromMissing(
   serializer: JsonProtoSerializer,
   result: ProtoBatchGetDocumentsResponse
-): NoDocument {
+): MutableDocument {
   hardAssert(
     !!result.missing,
     'Tried to deserialize a missing document from a found document.'
@@ -441,13 +443,13 @@ function fromMissing(
   );
   const key = fromName(serializer, result.missing);
   const version = fromVersion(result.readTime);
-  return new NoDocument(key, version);
+  return MutableDocument.newNoDocument(key, version);
 }
 
-export function fromMaybeDocument(
+export function fromBatchGetDocumentsResponse(
   serializer: JsonProtoSerializer,
   result: ProtoBatchGetDocumentsResponse
-): MaybeDocument {
+): MutableDocument {
   if ('found' in result) {
     return fromFound(serializer, result);
   } else if ('missing' in result) {
@@ -493,7 +495,7 @@ export function fromWatchChange(
     const data = new ObjectValue({
       mapValue: { fields: entityChange.document.fields }
     });
-    const doc = new Document(key, version, data, {});
+    const doc = MutableDocument.newFoundDocument(key, version, data);
     const updatedTargetIds = entityChange.targetIds || [];
     const removedTargetIds = entityChange.removedTargetIds || [];
     watchChange = new DocumentWatchChange(
@@ -510,7 +512,7 @@ export function fromWatchChange(
     const version = docDelete.readTime
       ? fromVersion(docDelete.readTime)
       : SnapshotVersion.min();
-    const doc = new NoDocument(key, version);
+    const doc = MutableDocument.newNoDocument(key, version);
     const removedTargetIds = docDelete.removedTargetIds || [];
     watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
   } else if ('documentRemove' in change) {

@@ -17,15 +17,10 @@
 
 import { expect } from 'chai';
 
-import {
-  extractFieldMask,
-  ObjectValue,
-  ObjectValueBuilder
-} from '../../../src/model/object_value';
+import { extractFieldMask, ObjectValue } from '../../../src/model/object_value';
 import { TypeOrder } from '../../../src/model/type_order';
 import { typeOrder } from '../../../src/model/values';
-import * as api from '../../../src/protos/firestore_proto_api';
-import { wrap, wrapObject, field, mask } from '../../util/helpers';
+import { field, mask, wrap, wrapObject } from '../../util/helpers';
 
 describe('ObjectValue', () => {
   it('can extract fields', () => {
@@ -62,48 +57,35 @@ describe('ObjectValue', () => {
 
   it('can overwrite existing fields', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
+    objValue.set(field('foo'), wrap('new-foo-value'));
 
-    const objValue2 = setField(objValue, 'foo', wrap('new-foo-value'));
-    assertObjectEquals(objValue, {
-      foo: 'foo-value'
-    }); // unmodified original
-    assertObjectEquals(objValue2, { foo: 'new-foo-value' });
+    assertObjectEquals(objValue, { foo: 'new-foo-value' });
   });
 
   it('can add new fields', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
+    objValue.set(field('bar'), wrap('bar-value'));
 
-    const objValue2 = setField(objValue, 'bar', wrap('bar-value'));
     assertObjectEquals(objValue, {
-      foo: 'foo-value'
-    }); // unmodified original
-    assertObjectEquals(objValue2, {
       foo: 'foo-value',
       bar: 'bar-value'
     });
   });
 
   it('can add multiple new fields', () => {
-    let objValue = ObjectValue.empty();
-    objValue = new ObjectValueBuilder(objValue)
-      .set(field('a'), wrap('a'))
-      .build();
-    objValue = new ObjectValueBuilder(objValue)
-      .set(field('b'), wrap('b'))
-      .set(field('c'), wrap('c'))
-      .build();
+    const objValue = ObjectValue.empty();
+    objValue.set(field('a'), wrap('a'));
+    objValue.set(field('b'), wrap('b'));
+    objValue.set(field('c'), wrap('c'));
 
     assertObjectEquals(objValue, { a: 'a', b: 'b', c: 'c' });
   });
 
   it('can implicitly create objects', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
+    objValue.set(field('a.b'), wrap('b-value'));
 
-    const objValue2 = setField(objValue, 'a.b', wrap('b-value'));
     assertObjectEquals(objValue, {
-      foo: 'foo-value'
-    }); // unmodified original
-    assertObjectEquals(objValue2, {
       foo: 'foo-value',
       a: { b: 'b-value' }
     });
@@ -111,35 +93,25 @@ describe('ObjectValue', () => {
 
   it('can overwrite primitive values to create objects', () => {
     const objValue = wrapObject({ foo: 'foo-value' });
+    objValue.set(field('foo.bar'), wrap('bar-value'));
 
-    const objValue2 = setField(objValue, 'foo.bar', wrap('bar-value'));
-    assertObjectEquals(objValue, {
-      foo: 'foo-value'
-    }); // unmodified original
-    assertObjectEquals(objValue2, { foo: { bar: 'bar-value' } });
+    assertObjectEquals(objValue, { foo: { bar: 'bar-value' } });
   });
 
   it('can add to nested objects', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' } });
+    objValue.set(field('foo.baz'), wrap('baz-value'));
 
-    const objValue2 = setField(objValue, 'foo.baz', wrap('baz-value'));
     assertObjectEquals(objValue, {
-      foo: { bar: 'bar-value' }
-    }); // unmodified original
-    assertObjectEquals(objValue2, {
       foo: { bar: 'bar-value', baz: 'baz-value' }
     });
   });
 
   it('can delete keys', () => {
     const objValue = wrapObject({ foo: 'foo-value', bar: 'bar-value' });
+    objValue.delete(field('foo'));
 
-    const objValue2 = deleteField(objValue, 'foo');
-    assertObjectEquals(objValue, {
-      foo: 'foo-value',
-      bar: 'bar-value'
-    }); // unmodified original
-    assertObjectEquals(objValue2, { bar: 'bar-value' });
+    assertObjectEquals(objValue, { bar: 'bar-value' });
   });
 
   it('can delete nested keys', () => {
@@ -147,55 +119,39 @@ describe('ObjectValue', () => {
       foo: { bar: 'bar-value', baz: 'baz-value' }
     });
 
-    const objValue2 = deleteField(objValue, 'foo.bar');
-    assertObjectEquals(objValue, {
-      foo: { bar: 'bar-value', baz: 'baz-value' }
-    }); // unmodified original
-    assertObjectEquals(objValue2, { foo: { baz: 'baz-value' } });
+    objValue.delete(field('foo.bar'));
+    assertObjectEquals(objValue, { foo: { baz: 'baz-value' } });
   });
 
   it('can delete added keys', () => {
-    let objValue = wrapObject({});
-
-    objValue = new ObjectValueBuilder(objValue)
-      .set(field('a'), wrap('a'))
-      .delete(field('a'))
-      .build();
-
+    const objValue = wrapObject({});
+    objValue.set(field('a'), wrap('a'));
+    objValue.delete(field('a'));
     assertObjectEquals(objValue, {});
   });
 
   it('can delete, resulting in empty object', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' } });
-
-    const objValue2 = deleteField(objValue, 'foo.bar');
-    assertObjectEquals(objValue, {
-      foo: { bar: 'bar-value' }
-    }); // unmodified original
-    assertObjectEquals(objValue2, { foo: {} });
+    objValue.delete(field('foo.bar'));
+    assertObjectEquals(objValue, { foo: {} });
   });
 
   it('will not delete nested keys on primitive values', () => {
     const objValue = wrapObject({ foo: { bar: 'bar-value' }, a: 1 });
+    objValue.delete(field('foo.baz'));
+    objValue.delete(field('foo.bar.baz'));
+    objValue.delete(field('a.b'));
 
     const expected = { foo: { bar: 'bar-value' }, a: 1 };
-    const objValue2 = deleteField(objValue, 'foo.baz');
-    const objValue3 = deleteField(objValue, 'foo.bar.baz');
-    const objValue4 = deleteField(objValue, 'a.b');
     assertObjectEquals(objValue, expected);
-    assertObjectEquals(objValue2, expected);
-    assertObjectEquals(objValue3, expected);
-    assertObjectEquals(objValue4, expected);
   });
 
   it('can delete multiple fields', () => {
-    let objValue = wrapObject({ a: 'a', b: 'a', c: 'c' });
+    const objValue = wrapObject({ a: 'a', b: 'a', c: 'c' });
 
-    objValue = new ObjectValueBuilder(objValue).delete(field('a')).build();
-    objValue = new ObjectValueBuilder(objValue)
-      .delete(field('b'))
-      .delete(field('c'))
-      .build();
+    objValue.delete(field('a'));
+    objValue.delete(field('b'));
+    objValue.delete(field('c'));
 
     assertObjectEquals(objValue, {});
   });
@@ -214,26 +170,9 @@ describe('ObjectValue', () => {
       'map.nested.d',
       'emptymap'
     );
-    const actualMask = extractFieldMask(objValue.proto.mapValue!);
+    const actualMask = extractFieldMask(objValue.toProto().mapValue);
     expect(actualMask.isEqual(expectedMask)).to.be.true;
   });
-
-  function setField(
-    objectValue: ObjectValue,
-    fieldPath: string,
-    value: api.Value
-  ): ObjectValue {
-    return new ObjectValueBuilder(objectValue)
-      .set(field(fieldPath), value)
-      .build();
-  }
-
-  function deleteField(
-    objectValue: ObjectValue,
-    fieldPath: string
-  ): ObjectValue {
-    return new ObjectValueBuilder(objectValue).delete(field(fieldPath)).build();
-  }
 
   function assertObjectEquals(
     objValue: ObjectValue,

@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
-import { MaybeDocument } from '../../../src/model/document';
+import { MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**
@@ -31,15 +31,15 @@ export class TestRemoteDocumentChangeBuffer {
     public buffer: RemoteDocumentChangeBuffer
   ) {}
 
-  addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
-    this.buffer.addEntry(maybeDocument, readTime);
+  addEntry(document: MutableDocument, readTime: SnapshotVersion): void {
+    this.buffer.addEntry(document, readTime);
   }
 
   removeEntry(key: DocumentKey): void {
     this.buffer.removeEntry(key);
   }
 
-  getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
+  getEntry(documentKey: DocumentKey): Promise<MutableDocument> {
     return this.persistence.runTransaction('getEntry', 'readonly', txn => {
       return this.buffer.getEntry(txn, documentKey);
     });

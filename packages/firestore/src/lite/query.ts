@@ -577,7 +577,7 @@ export function newQueryBoundFromDocument(
     if (orderBy.field.isKeyField()) {
       components.push(refValue(databaseId, doc.key));
     } else {
-      const value = doc.field(orderBy.field);
+      const value = doc.data.field(orderBy.field);
       if (isServerTimestamp(value)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,

@@ -37,7 +37,7 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
-import { Document, MaybeDocument } from '../../../src/model/document';
+import { MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
   Mutation,
@@ -239,22 +239,21 @@ function genericLruGarbageCollectorTests(
     );
   }
 
-  function nextTestDocument(): Document {
+  function nextTestDocument(): MutableDocument {
     const key = nextTestDocumentKey();
-    return new Document(
+    return MutableDocument.newFoundDocument(
       key,
       version(1000),
       wrapObject({
         foo: 3,
         bar: false
-      }),
-      {}
+      })
     );
   }
 
   function saveDocument(
     txn: PersistenceTransaction,
-    doc: MaybeDocument
+    doc: MutableDocument
   ): PersistencePromise<void> {
     const changeBuffer = documentCache.newChangeBuffer();
     return changeBuffer.getEntry(txn, doc.key).next(() => {
@@ -529,7 +528,7 @@ function genericLruGarbageCollectorTests(
       toBeRemoved.forEach(docKey => {
         p = p.next(() => {
           return documentCache.getEntry(txn, docKey).next(maybeDoc => {
-            expect(maybeDoc).to.be.null;
+            expect(maybeDoc.isValidDocument()).to.be.false;
           });
         });
       });
@@ -779,14 +778,13 @@ function genericLruGarbageCollectorTests(
       'Update a doc in the middle target',
       'readwrite',
       txn => {
-        const doc = new Document(
+        const doc = MutableDocument.newFoundDocument(
           middleDocToUpdate,
           version(2000),
           wrapObject({
             foo: 4,
             bar: true
-          }),
-          {}
+          })
         );
         return saveDocument(txn, doc).next(() => {
           return updateTargetInTransaction(txn, middleTarget);
@@ -839,7 +837,7 @@ function genericLruGarbageCollectorTests(
         p = p
           .next(() => documentCache.getEntry(txn, key))
           .next(maybeDoc => {
-            expect(maybeDoc).to.be.null;
+            expect(maybeDoc.isValidDocument()).to.be.false;
           });
       });
       expectedRetained.forEach(key => {
