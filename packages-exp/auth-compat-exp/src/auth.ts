@@ -219,7 +219,9 @@ export class Auth
         break;
       case Persistence.LOCAL:
         // Not using isIndexedDBAvailable() since it only checks if indexedDB is defined.
-        const isIndexedDBFullySupported = await exp._getInstance<exp.PersistenceInternal>(exp.indexedDBLocalPersistence)._isAvailable();
+        const isIndexedDBFullySupported = await exp
+          ._getInstance<exp.PersistenceInternal>(exp.indexedDBLocalPersistence)
+          ._isAvailable();
         converted = isIndexedDBFullySupported
           ? exp.indexedDBLocalPersistence
           : exp.browserLocalPersistence;
@@ -333,7 +335,7 @@ export class Auth
     return this.auth._delete();
   }
   private linkUnderlyingAuth(): void {
-    (this.auth as unknown as ReverseWrapper<Auth>).wrapped = () => this;
+    ((this.auth as unknown) as ReverseWrapper<Auth>).wrapped = () => this;
   }
 }
 

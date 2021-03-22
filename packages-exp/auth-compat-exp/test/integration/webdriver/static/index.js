@@ -39,13 +39,15 @@ window.legacyAuth = null;
 window.startAuth = async () => {
   // Make sure we haven't confused our firebase with the old firebase
   if (!firebase.SDK_VERSION.startsWith('0.9')) {
-    throw new Error('Using legacy SDK version instead of compat version ' + firebase.SDK_VERSION);
+    throw new Error(
+      'Using legacy SDK version instead of compat version ' +
+        firebase.SDK_VERSION
+    );
   }
   firebase.initializeApp(firebaseConfig);
   firebase.auth().useEmulator(emulatorUrl);
   window.compat = firebase;
 };
-
 
 window.startLegacySDK = async persistence => {
   return new Promise((resolve, reject) => {
@@ -63,7 +65,12 @@ window.startLegacySDK = async persistence => {
       window.firebase.initializeApp(firebaseConfig);
       // Make sure the firebase variable here is the legacy SDK
       if (window.firebase.SDK_VERSION !== '8.3.0') {
-        reject(new Error('Not using correct legacy version; using ' + window.firebase.SDK_VERSION));
+        reject(
+          new Error(
+            'Not using correct legacy version; using ' +
+              window.firebase.SDK_VERSION
+          )
+        );
       }
       const legacyAuth = window.firebase.auth();
       legacyAuth.useEmulator(emulatorUrl);
@@ -74,4 +81,3 @@ window.startLegacySDK = async persistence => {
     document.head.appendChild(authScript);
   });
 };
-

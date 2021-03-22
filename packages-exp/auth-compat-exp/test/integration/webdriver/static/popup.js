@@ -33,13 +33,15 @@ export function idpPopup(optProvider) {
 }
 
 export function idpReauthPopup() {
-  popupPromise = compat.auth().currentUser.reauthenticateWithPopup(
-    new compat.auth.GoogleAuthProvider()
-  );
+  popupPromise = compat
+    .auth()
+    .currentUser.reauthenticateWithPopup(new compat.auth.GoogleAuthProvider());
 }
 
 export function idpLinkPopup() {
-  popupPromise = compat.auth().currentUser.linkWithPopup(new compat.auth.GoogleAuthProvider());
+  popupPromise = compat
+    .auth()
+    .currentUser.linkWithPopup(new compat.auth.GoogleAuthProvider());
 }
 
 export function popupResult() {
@@ -64,20 +66,24 @@ export async function linkWithErrorCredential() {
 // the popup tests.
 
 export function createFakeGoogleUser(email) {
-  return compat.auth().signInWithCredential(
-    compat.auth.GoogleAuthProvider.credential(
-      `{"sub": "__${email}__", "email": "${email}", "email_verified": true}`
-    )
-  );
+  return compat
+    .auth()
+    .signInWithCredential(
+      compat.auth.GoogleAuthProvider.credential(
+        `{"sub": "__${email}__", "email": "${email}", "email_verified": true}`
+      )
+    );
 }
 
 export async function tryToSignInUnverified(email) {
   try {
-    await compat.auth().signInWithCredential(
-      compat.auth.FacebookAuthProvider.credential(
-        `{"sub": "$$${email}$$", "email": "${email}", "email_verified": false}`
-      )
-    );
+    await compat
+      .auth()
+      .signInWithCredential(
+        compat.auth.FacebookAuthProvider.credential(
+          `{"sub": "$$${email}$$", "email": "${email}", "email_verified": false}`
+        )
+      );
   } catch (e) {
     errorCred = e.credential;
     throw e;

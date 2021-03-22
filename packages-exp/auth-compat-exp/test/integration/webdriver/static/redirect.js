@@ -26,11 +26,17 @@ export function idpRedirect(optProvider) {
 }
 
 export function idpReauthRedirect() {
-  compat.auth().currentUser.reauthenticateWithRedirect(new compat.auth.GoogleAuthProvider());
+  compat
+    .auth()
+    .currentUser.reauthenticateWithRedirect(
+      new compat.auth.GoogleAuthProvider()
+    );
 }
 
 export function idpLinkRedirect() {
-  compat.auth().currentUser.linkWithRedirect(new compat.auth.GoogleAuthProvider());
+  compat
+    .auth()
+    .currentUser.linkWithRedirect(new compat.auth.GoogleAuthProvider());
 }
 
 export function redirectResult() {
@@ -55,20 +61,24 @@ export async function linkWithErrorCredential() {
 // the redirect tests.
 
 export function createFakeGoogleUser(email) {
-  return compat.auth().signInWithCredential(
-    compat.auth.GoogleAuthProvider.credential(
-      `{"sub": "__${email}__", "email": "${email}", "email_verified": true}`
-    )
-  );
+  return compat
+    .auth()
+    .signInWithCredential(
+      compat.auth.GoogleAuthProvider.credential(
+        `{"sub": "__${email}__", "email": "${email}", "email_verified": true}`
+      )
+    );
 }
 
 export async function tryToSignInUnverified(email) {
   try {
-    await compat.auth().signInWithCredential(
-      compat.auth.FacebookAuthProvider.credential(
-        `{"sub": "$$${email}$$", "email": "${email}", "email_verified": false}`
-      )
-    );
+    await compat
+      .auth()
+      .signInWithCredential(
+        compat.auth.FacebookAuthProvider.credential(
+          `{"sub": "$$${email}$$", "email": "${email}", "email_verified": false}`
+        )
+      );
   } catch (e) {
     errorCred = e.credential;
     throw e;
