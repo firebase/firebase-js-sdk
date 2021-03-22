@@ -18,7 +18,6 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import firebase from '@firebase/app-compat';
-import '@firebase/auth-compat';
 
 import * as chaiAsPromised from 'chai-as-promised';
 import {
