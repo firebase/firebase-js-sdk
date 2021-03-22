@@ -32,7 +32,8 @@ declare module '@firebase/component' {
   }
 }
 
-// anonymous async function is used to workaround ts(1378)
+// Top-level 'await' requires the 'module' option is set to 'esnext' or 'system', and the 'target'
+// option is set to 'es2017' or higher. Therefor use non-anonymous async function here.
 void (async () => {
   if (!(await isSwSupported())) {
     throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
