@@ -22,22 +22,30 @@ export function reset() {
 
 export function authInit() {
   return new Promise(resolve => {
-    firebase.auth().onAuthStateChanged(user => {
-      console.error('Init resolution', user);
+    compat.auth().onAuthStateChanged(user => {
       resolve();
     });
   });
 }
 
+export function legacyAuthInit() {
+  return new Promise(resolve => {
+    legacyAuth.onAuthStateChanged(() => resolve());
+  });
+}
+
 export async function userSnap() {
-  console.error('User snap', firebase.auth().currentUser);
-  return firebase.auth().currentUser;
+  return compat.auth().currentUser;
+}
+
+export async function legacyUserSnap() {
+  return legacyAuth.currentUser;
 }
 
 export async function authSnap() {
-  return firebase.auth();
+  return compat.auth();
 }
 
 export function signOut() {
-  return firebase.auth().signOut();
+  return compat.auth().signOut();
 }

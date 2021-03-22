@@ -219,7 +219,7 @@ export class Auth
         break;
       case Persistence.LOCAL:
         // Not using isIndexedDBAvailable() since it only checks if indexedDB is defined.
-        const isIndexedDBFullySupported = await (exp.indexedDBLocalPersistence as exp.PersistenceInternal)._isAvailable();
+        const isIndexedDBFullySupported = await exp._getInstance<exp.PersistenceInternal>(exp.indexedDBLocalPersistence)._isAvailable();
         converted = isIndexedDBFullySupported
           ? exp.indexedDBLocalPersistence
           : exp.browserLocalPersistence;

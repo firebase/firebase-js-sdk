@@ -129,7 +129,7 @@ browserDescribe('WebDriver persistence test', driver => {
       expect(await driver.getUserSnapshot()).to.contain({ uid });
     });
 
-    it('fall back to in-memory if neither indexedDB or localStorage is present', async () => {
+    it.only('fall back to in-memory if neither indexedDB or localStorage is present', async () => {
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support indexedDB or localStorage.
       await driver.webDriver.executeScript(
@@ -137,7 +137,6 @@ browserDescribe('WebDriver persistence test', driver => {
       );
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-
       const cred: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
       );
@@ -279,6 +278,14 @@ browserDescribe('WebDriver persistence test', driver => {
     });
 
     it('migrates user when switching from indexedDB to localStorage', async () => {
+      // This test only works in the modular SDK: the compat package does not
+      // make the distinction between indexedDB and local storage (both are just
+      // 'local').
+      if (driver.isCompatLayer()) {
+        console.warn('Skipping indexedDB to local migration in compat test');
+        return;
+      }
+
       await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
       const user = await driver.getUserSnapshot();
 

@@ -18,5 +18,5 @@
 const TEST_PASSWORD = 'password';
 
 export function createUser(email) {
-  return firebase.auth().createUserWithEmailAndPassword(email, TEST_PASSWORD);
+  return compat.auth().createUserWithEmailAndPassword(email, TEST_PASSWORD);
 }

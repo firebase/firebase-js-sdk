@@ -16,6 +16,5 @@
  */
 
 export async function anonymousSignIn() {
-  console.error('hi');
-  return firebase.auth().signInAnonymously();
+  return compat.auth().signInAnonymously();
 }
