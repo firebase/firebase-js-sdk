@@ -15,20 +15,10 @@
  * limitations under the License.
  */
 
-export function isSupported(): boolean {
-  if (self && 'ServiceWorkerGlobalScope' in self) {
-    // Running in ServiceWorker context
-    return isSWControllerSupported();
-  } else {
-    // Assume we are in the window context.
-    return isWindowControllerSupported();
-  }
-}
-
 /**
  * Checks to see if the required APIs exist.
  */
-function isWindowControllerSupported(): boolean {
+export function isWindowSupported(): boolean {
   return (
     'indexedDB' in window &&
     indexedDB !== null &&
@@ -45,7 +35,7 @@ function isWindowControllerSupported(): boolean {
 /**
  * Checks to see if the required APIs exist within SW Context.
  */
-function isSWControllerSupported(): boolean {
+export function isSwSupported(): boolean {
   return (
     'indexedDB' in self &&
     indexedDB !== null &&

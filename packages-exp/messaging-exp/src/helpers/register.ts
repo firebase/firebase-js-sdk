@@ -21,19 +21,13 @@ import {
   ComponentType,
   InstanceFactory
 } from '@firebase/component';
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 import { MessagingService } from '../messaging-service';
 import { _registerComponent } from '@firebase/app-exp';
-import { isSupported } from './isSupported';
 
 const messagingFactory: InstanceFactory<'messaging-exp'> = (
   container: ComponentContainer
 ) => {
-  if (!isSupported()) {
-    throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-  }
-
   return new MessagingService(
     container.getProvider('app-exp').getImmediate(),
     container.getProvider('installations-exp-internal').getImmediate(),
