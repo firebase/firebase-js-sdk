@@ -129,7 +129,7 @@ browserDescribe('WebDriver persistence test', driver => {
       expect(await driver.getUserSnapshot()).to.contain({ uid });
     });
 
-    it.only('fall back to in-memory if neither indexedDB or localStorage is present', async () => {
+    it('fall back to in-memory if neither indexedDB or localStorage is present', async () => {
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support indexedDB or localStorage.
       await driver.webDriver.executeScript(

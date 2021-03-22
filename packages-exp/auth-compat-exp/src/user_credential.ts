@@ -42,7 +42,7 @@ function modifyError(auth: exp.Auth, e: FirebaseError): void {
     const mfaErr = e as compat.MultiFactorError;
     mfaErr.resolver = new MultiFactorResolver(
       auth,
-      exp.getMultiFactorResolver(auth, e as any)
+      exp.getMultiFactorResolver(auth, e as exp.MultiFactorError)
     );
   } else if (response) {
     const credential = credentialFromObject(e);
@@ -120,7 +120,7 @@ function credentialFromObject(
       }
       // TODO(avolkovi): uncomment this and get it working with SAML & OIDC
       if (pendingToken) {
-        if (providerId.indexOf('saml.') == 0) {
+        if (providerId.startsWith('saml.')) {
           return exp.SAMLAuthCredential._create(providerId, pendingToken);
         } else {
           // OIDC and non-default providers excluding Twitter.
