@@ -20,7 +20,7 @@ import '@firebase/installations-exp';
 import { ERROR_FACTORY, ErrorCode } from './util/errors';
 
 import { FirebaseMessaging } from './interfaces/public-types';
-import { isWindowSupported } from './helpers/check-browser-env';
+import { isWindowSupported } from './api/isSupported';
 import { registerMessaging } from './helpers/register';
 
 export {
@@ -28,9 +28,9 @@ export {
   deleteToken,
   onMessage,
   getMessaging,
-  onBackgroundMessage,
-  isSupported
+  onBackgroundMessage
 } from './api';
+export { isWindowSupported as isSupported } from './api/isSupported';
 export * from './interfaces/public-types';
 
 declare module '@firebase/component' {
@@ -39,8 +39,11 @@ declare module '@firebase/component' {
   }
 }
 
-if (!isWindowSupported()) {
-  throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-}
+// anonymous async function is used to workaround ts(1378)
+void (async () => {
+  if (!(await isWindowSupported())) {
+    throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+  }
+})();
 
 registerMessaging();

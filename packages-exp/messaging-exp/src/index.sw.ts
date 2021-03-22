@@ -20,10 +20,11 @@ import '@firebase/installations-exp';
 import { ERROR_FACTORY, ErrorCode } from './util/errors';
 
 import { FirebaseMessaging } from './interfaces/public-types';
-import { isSwSupported } from './helpers/check-browser-env';
+import { isSwSupported } from './api/isSupported';
 import { registerMessaging } from './helpers/register';
 
-export { onBackgroundMessage, getMessaging, isSupported } from './api';
+export { onBackgroundMessage, getMessaging } from './api';
+export { isSwSupported as isSupported } from './api/isSupported';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -31,8 +32,11 @@ declare module '@firebase/component' {
   }
 }
 
-if (!isSwSupported()) {
-  throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-}
+// anonymous async function is used to workaround ts(1378)
+void (async () => {
+  if (!(await isSwSupported())) {
+    throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+  }
+})();
 
 registerMessaging();

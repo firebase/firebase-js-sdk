@@ -15,14 +15,30 @@
  * limitations under the License.
  */
 
-import { isSwSupported, isWindowSupported } from '../helpers/check-browser-env';
+export async function isWindowSupported(): Promise<boolean> {
+  return (
+    'indexedDB' in window &&
+    indexedDB !== null &&
+    navigator.cookieEnabled &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    'fetch' in window &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
+}
 
-export async function isSupported(): Promise<boolean> {
-  if (self && 'ServiceWorkerGlobalScope' in self) {
-    // Running in ServiceWorker context
-    return isWindowSupported();
-  } else {
-    // Assume we are in the window context.
-    return isSwSupported();
-  }
+/**
+ * Checks to see if the required APIs exist within SW Context.
+ */
+export async function isSwSupported(): Promise<boolean> {
+  return (
+    'indexedDB' in self &&
+    indexedDB !== null &&
+    'PushManager' in self &&
+    'Notification' in self &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
 }
