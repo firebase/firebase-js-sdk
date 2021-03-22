@@ -18,7 +18,9 @@
 import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import { FirebaseError } from '@firebase/util';
+import { Auth } from './auth';
 import { User } from './user';
+import { unwrap, wrapped } from './wrap';
 
 const enum CredentialFrom {
   ERROR = 'credentialFromError',
@@ -39,7 +41,7 @@ function modifyError(
   const response = (e.customData as exp.TaggedWithTokenResponse|undefined)?._tokenResponse as unknown as Record<string, string>;
   if (e.code === 'auth/multi-factor-auth-required') {
     const mfaErr = e as compat.MultiFactorError;
-    mfaErr.resolver = exp.getMultiFactorResolver(auth, e as any);
+    mfaErr.resolver = new MultiFactorResolver(auth, exp.getMultiFactorResolver(auth, e as any));
   } else if (response) {
     const credential = credentialFromObject(e);
     const credErr = e as compat.AuthError;
@@ -110,7 +112,7 @@ function credentialFromObject(object: FirebaseError|exp.UserCredential): exp.Aut
       // TODO(avolkovi): uncomment this and get it working with SAML & OIDC
       if (pendingToken) {
         if (providerId.indexOf('saml.') == 0) {
-          return exp.SAMLAuthProvider.credential(providerId, pendingToken);
+          return exp.SAMLAuthCredential._create(providerId, pendingToken);
         } else {
           // OIDC and non-default providers excluding Twitter.
           return exp.OAuthCredential._fromParams(
@@ -168,4 +170,23 @@ export async function convertConfirmationResult(
     confirm: (verificationCode: string) =>
       convertCredential(auth, confirmationResultExp.confirm(verificationCode))
   };
+}
+
+class MultiFactorResolver implements compat.MultiFactorResolver {
+  readonly auth: Auth;
+  constructor(auth: exp.Auth, private readonly resolver: exp.MultiFactorResolver) {
+    this.auth = wrapped(auth);
+  }
+
+  get session(): compat.MultiFactorSession {
+    return this.resolver.session;
+  }
+
+  get hints(): compat.MultiFactorInfo[] {
+    return this.resolver.hints;
+  }
+
+  resolveSignIn(assertion: compat.MultiFactorAssertion): Promise<compat.UserCredential> {
+    return convertCredential(unwrap(this.auth), this.resolver.resolveSignIn(assertion as exp.MultiFactorAssertion));
+  }
 }

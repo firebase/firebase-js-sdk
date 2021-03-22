@@ -44,3 +44,4 @@ export { AuthPopup } from '../src/platform_browser/util/popup';
 export { _getRedirectResult } from '../src/platform_browser/strategies/redirect';
 export { cordovaPopupRedirectResolver } from '../src/platform_cordova/popup_redirect/popup_redirect';
 export { FetchProvider } from '../src/core/util/fetch_provider';
+export { SAMLAuthCredential } from '../src/core/credentials/saml';
