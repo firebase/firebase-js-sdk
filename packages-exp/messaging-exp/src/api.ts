@@ -23,6 +23,7 @@ import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
 import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
+import { isSupported as _isSupported } from './api/isSupported';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
 import { getModularInstance } from '@firebase/util';
@@ -135,4 +136,11 @@ export function onBackgroundMessage(
 ): Unsubscribe {
   messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
+}
+
+/**
+ * Checks if the current browser is supported.
+ */
+export async function isSupported(): Promise<boolean> {
+  return _isSupported();
 }

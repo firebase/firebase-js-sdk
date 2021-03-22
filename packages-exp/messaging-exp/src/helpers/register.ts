@@ -27,17 +27,9 @@ import { isSwSupported, isWindowSupported } from '../api/isSupported';
 import { MessagingService } from '../messaging-service';
 import { _registerComponent } from '@firebase/app-exp';
 
-const messagingFactory: InstanceFactory<'messaging-exp'> = (
+const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
   container: ComponentContainer
 ) => {
-  return new MessagingService(
-    container.getProvider('app-exp').getImmediate(),
-    container.getProvider('installations-exp-internal').getImmediate(),
-    container.getProvider('analytics-internal')
-  );
-};
-
-export function registerWindowMessaging(): void {
   // Top-level 'await' requires 'module' option set to 'esnext' or 'system', and 'target' option
   // set to 'es2017' or higher. For compatibility, use async expression here.
   void (async () => {
@@ -46,19 +38,39 @@ export function registerWindowMessaging(): void {
     }
   })();
 
-  _registerComponent(
-    new Component('messaging-exp', messagingFactory, ComponentType.PUBLIC)
+  return new MessagingService(
+    container.getProvider('app-exp').getImmediate(),
+    container.getProvider('installations-exp-internal').getImmediate(),
+    container.getProvider('analytics-internal')
   );
-}
+};
 
-export function registerSwMessaging(): void {
+const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
+  container: ComponentContainer
+) => {
+  // Top-level 'await' requires 'module' option set to 'esnext' or 'system', and 'target' option
+  // set to 'es2017' or higher. For compatibility, use async expression here.
   void (async () => {
     if (!(await isSwSupported())) {
       throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
     }
   })();
 
+  return new MessagingService(
+    container.getProvider('app-exp').getImmediate(),
+    container.getProvider('installations-exp-internal').getImmediate(),
+    container.getProvider('analytics-internal')
+  );
+};
+
+export function registerWindowMessaging(): void {
   _registerComponent(
-    new Component('messaging-exp', messagingFactory, ComponentType.PUBLIC)
+    new Component('messaging-exp', WindowMessagingFactory, ComponentType.PUBLIC)
+  );
+}
+
+export function registerSwMessaging(): void {
+  _registerComponent(
+    new Component('messaging-exp', SwMessagingFactory, ComponentType.PUBLIC)
   );
 }
