@@ -33,12 +33,10 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
-import { unwrap, Wrapper } from './wrap';
 
 const _assert: typeof exp._assert = exp._assert;
 
-export class Auth
-  implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService {
+export class Auth implements compat.FirebaseAuth, _FirebaseService {
   // private readonly auth: impl.AuthImpl;
 
   constructor(readonly app: FirebaseApp, readonly _delegate: exp.AuthImpl) {
@@ -277,7 +275,7 @@ export class Auth
       exp.signInWithPhoneNumber(
         this._delegate,
         phoneNumber,
-        unwrap(applicationVerifier)
+        applicationVerifier
       )
     );
   }
@@ -313,7 +311,9 @@ export class Auth
     );
   }
   updateCurrentUser(user: compat.User | null): Promise<void> {
-    return this._delegate.updateCurrentUser(unwrap(user));
+    // remove ts-ignore once overloads are defined for exp functions to accept compat objects
+    // @ts-ignore
+    return this._delegate.updateCurrentUser(user);
   }
   verifyPasswordResetCode(code: string): Promise<string> {
     return exp.verifyPasswordResetCode(this._delegate, code);
