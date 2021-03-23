@@ -78,7 +78,10 @@ function credentialFromObject(
     return null;
   }
 
-  let provider: Pick<typeof exp.OAuthProvider, 'credentialFromResult' | 'credentialFromError'>;
+  let provider: Pick<
+    typeof exp.OAuthProvider,
+    'credentialFromResult' | 'credentialFromError'
+  >;
   switch (providerId) {
     case exp.ProviderId.GOOGLE:
       provider = exp.GoogleAuthProvider;
@@ -130,7 +133,9 @@ function credentialFromObject(
       });
   }
 
-  return object instanceof FirebaseError ? provider.credentialFromError(object) : provider.credentialFromResult(object);
+  return object instanceof FirebaseError
+    ? provider.credentialFromError(object)
+    : provider.credentialFromResult(object);
 }
 
 export async function convertCredential(
