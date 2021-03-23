@@ -24,25 +24,27 @@ import {
   _FirebaseAppInternal as FirebaseAppExp
 } from '@firebase/app-exp';
 import { Component, ComponentType, Name } from '@firebase/component';
+import { Compat } from '@firebase/util';
 
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
-export class FirebaseAppLiteImpl implements FirebaseApp {
+export class FirebaseAppLiteImpl
+  implements FirebaseApp, Compat<FirebaseAppExp> {
   constructor(
-    private readonly app: FirebaseAppExp,
+    readonly _delegate: FirebaseAppExp,
     private readonly firebase: _FirebaseNamespace
   ) {
     // add itself to container
     _addComponent(
-      app,
+      _delegate,
       new Component('app-compat', () => this, ComponentType.PUBLIC)
     );
   }
 
   get automaticDataCollectionEnabled(): boolean {
-    return this.app.automaticDataCollectionEnabled;
+    return this._delegate.automaticDataCollectionEnabled;
   }
 
   set automaticDataCollectionEnabled(val) {
@@ -50,16 +52,16 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
   }
 
   get name(): string {
-    return this.app.name;
+    return this._delegate.name;
   }
 
   get options(): FirebaseOptions {
-    return this.app.options;
+    return this._delegate.options;
   }
 
   delete(): Promise<void> {
     this.firebase.INTERNAL.removeApp(this.name);
-    return deleteApp(this.app);
+    return deleteApp(this._delegate);
   }
 
   /**
@@ -80,10 +82,10 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
   ): _FirebaseService {
-    this.app.checkDestroyed();
+    this._delegate.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (this.app.container.getProvider(name as Name).getImmediate({
+    return (this._delegate.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
     }) as unknown) as _FirebaseService;
   }

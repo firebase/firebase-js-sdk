@@ -30,9 +30,10 @@ import {
   _FirebaseAppInternal as _FirebaseAppExp
 } from '@firebase/app-exp';
 import { _FirebaseService, _FirebaseNamespace } from './types';
+import { Compat } from '@firebase/util';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _FirebaseApp {
+export interface _FirebaseApp extends Compat<_FirebaseAppExp> {
   /**
    * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
    * App.
@@ -62,41 +63,41 @@ export class FirebaseAppImpl implements _FirebaseApp {
   private container: ComponentContainer;
 
   constructor(
-    private readonly app: _FirebaseAppExp,
+    readonly _delegate: _FirebaseAppExp,
     private readonly firebase: _FirebaseNamespace
   ) {
     // add itself to container
     _addComponent(
-      app,
+      _delegate,
       new Component('app-compat', () => this, ComponentType.PUBLIC)
     );
 
-    this.container = app.container;
+    this.container = _delegate.container;
   }
 
   get automaticDataCollectionEnabled(): boolean {
-    return this.app.automaticDataCollectionEnabled;
+    return this._delegate.automaticDataCollectionEnabled;
   }
 
   set automaticDataCollectionEnabled(val) {
-    this.app.automaticDataCollectionEnabled = val;
+    this._delegate.automaticDataCollectionEnabled = val;
   }
 
   get name(): string {
-    return this.app.name;
+    return this._delegate.name;
   }
 
   get options(): FirebaseOptions {
-    return this.app.options;
+    return this._delegate.options;
   }
 
   delete(): Promise<void> {
     return new Promise<void>(resolve => {
-      this.app.checkDestroyed();
+      this._delegate.checkDestroyed();
       resolve();
     }).then(() => {
       this.firebase.INTERNAL.removeApp(this.name);
-      return deleteApp(this.app);
+      return deleteApp(this._delegate);
     });
   }
 
@@ -118,10 +119,10 @@ export class FirebaseAppImpl implements _FirebaseApp {
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
   ): _FirebaseService {
-    this.app.checkDestroyed();
+    this._delegate.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (this.app.container.getProvider(name as Name).getImmediate({
+    return (this._delegate.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
     }) as unknown) as _FirebaseService;
   }
@@ -140,7 +141,7 @@ export class FirebaseAppImpl implements _FirebaseApp {
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
   ): void {
-    this.app.container
+    this._delegate.container
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .getProvider(name as any)
       .clearInstance(instanceIdentifier);
@@ -151,11 +152,11 @@ export class FirebaseAppImpl implements _FirebaseApp {
    * @internal
    */
   _addComponent(component: Component): void {
-    _addComponent(this.app, component);
+    _addComponent(this._delegate, component);
   }
 
   _addOrOverwriteComponent(component: Component): void {
-    _addOrOverwriteComponent(this.app, component);
+    _addOrOverwriteComponent(this._delegate, component);
   }
 
   toJSON(): object {
