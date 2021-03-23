@@ -411,7 +411,43 @@ browserDescribe('WebDriver persistence test', driver => {
     });
   });
 
-  context.only('persistence sync across windows and tabs', () => {
+  context('persistence sync across windows and tabs', () => {
+    it('sync current user across windows in legacy SDK', async () => {
+      await driver.webDriver.navigate().refresh();
+      await driver.injectConfigAndInitLegacySDK();
+      await driver.waitForLegacyAuthInit();
+
+      const result = await driver.call<{ user: { uid: string } }>(
+        'legacyAuth.signInAnonymously'
+      );
+      const uid = result.user.uid;
+      await driver.webDriver.executeScript('window.open(".");');
+      await driver.selectPopupWindow();
+      await driver.injectConfigAndInitLegacySDK();
+      await driver.waitForLegacyAuthInit();
+
+      const userInPopup = await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT);
+      expect(userInPopup).not.to.be.null;
+      expect(userInPopup).to.contain({ uid });
+
+      await driver.call('legacyAuth.signOut');
+      expect(await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT)).to.be.null;
+      await driver.selectMainWindow({ noWait: true });
+      await driver.pause(500);
+      expect(await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT)).to.be.null;
+
+      const result2 = await driver.call<{ user: { uid: string } }>(
+        'legacyAuth.signInAnonymously'
+      );
+      const uid2 = result2.user.uid;
+
+      await driver.selectPopupWindow();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      expect(await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT)).to.contain({
+        uid: uid2
+      });
+    });
+
     it('sync current user across windows', async () => {
       const cred: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
