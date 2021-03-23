@@ -34,14 +34,14 @@ export function getImportPathTransformer({ pattern, template }) {
 export const importPathTransformer = () => ({
   before: [
     transformImportPath({
-      pattern: /^(@firebase.*)-exp(.*)$/g,
+      pattern: /^(@firebase.*)-exp(.*)$/,
       template: [1, 2]
     })
   ],
   after: [],
   afterDeclarations: [
     transformImportPath({
-      pattern: /^(@firebase.*)-exp(.*)$/g,
+      pattern: /^(@firebase.*)-exp(.*)$/,
       template: [1, 2]
     })
   ]
@@ -49,17 +49,11 @@ export const importPathTransformer = () => ({
 
 function transformImportPath({ pattern, template }) {
   return context => file => {
-    const firstPass = visitNodeAndChildren(
+    return visitNodeAndChildren(
       file,
       context,
       { pattern, template },
-      transformDeclareNode
-    );
-    return visitNodeAndChildren(
-      firstPass,
-      context,
-      { pattern, template },
-      transformImportExportNode
+      transformNode
     );
   };
 }
@@ -105,34 +99,25 @@ function replacePath(pathString, pattern, template) {
   return null;
 }
 
-function transformDeclareNode(node, { pattern, template }) {
-  if (ts.isModuleDeclaration(node) && node.name) {
-    const importPathWithQuotes = node.name.getText();
-
-    const newName = replacePath(importPathWithQuotes, pattern, template);
-    if (newName) {
-      const newNode = ts.getMutableClone(node);
-      newNode.name = ts.createLiteral(newName);
-      return newNode;
-    }
-    return node;
-  }
-
-  return node;
-}
-
-function transformImportExportNode(node, { pattern, template }) {
+function transformNode(node, { pattern, template }) {
   if (
     (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
     node.moduleSpecifier
   ) {
     const importPathWithQuotes = node.moduleSpecifier.getText();
-
     const newName = replacePath(importPathWithQuotes, pattern, template);
 
     if (newName) {
       const newNode = ts.getMutableClone(node);
       newNode.moduleSpecifier = ts.createLiteral(newName);
+      return newNode;
+    }
+  } else if (ts.isModuleDeclaration(node) && node.name) {
+    const importPathWithQuotes = node.name.getText();
+    const newName = replacePath(importPathWithQuotes, pattern, template);
+    if (newName) {
+      const newNode = ts.getMutableClone(node);
+      newNode.name = ts.createLiteral(newName);
       return newNode;
     }
   }
