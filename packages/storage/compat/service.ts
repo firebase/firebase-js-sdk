@@ -22,12 +22,14 @@ import { StorageService, ref, _Location } from '../exp/api'; // import from the 
 import { ReferenceCompat } from './reference';
 import { isUrl } from '../src/service';
 import { invalidArgument } from '../src/implementation/error';
+import { Compat } from '@firebase/util';
 
 /**
  * A service that provides firebaseStorage.Reference instances.
  * @param opt_url gs:// url to a custom Storage Bucket
  */
-export class StorageServiceCompat implements types.FirebaseStorage {
+export class StorageServiceCompat
+  implements types.FirebaseStorage, Compat<StorageService> {
   constructor(public app: FirebaseApp, readonly _delegate: StorageService) {}
 
   INTERNAL = {
