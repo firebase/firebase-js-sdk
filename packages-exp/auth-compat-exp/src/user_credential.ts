@@ -22,18 +22,13 @@ import { Auth } from './auth';
 import { User } from './user';
 import { unwrap, wrapped } from './wrap';
 
-const enum CredentialFrom {
-  ERROR = 'credentialFromError',
-  RESULT = 'credentialFromResult'
-}
-
 function credentialFromResponse(
   userCredential: exp.UserCredentialInternal
 ): exp.AuthCredential | null {
   return credentialFromObject(userCredential);
 }
 
-function modifyError(auth: exp.Auth, e: FirebaseError): void {
+function attachExtraErrorFields(auth: exp.Auth, e: FirebaseError): void {
   // The response contains all fields from the server which may or may not
   // actually match the underlying type
   const response = ((e.customData as exp.TaggedWithTokenResponse | undefined)
@@ -66,11 +61,6 @@ function credentialFromObject(
     return null;
   }
 
-  const fn =
-    object instanceof FirebaseError
-      ? CredentialFrom.ERROR
-      : CredentialFrom.RESULT;
-
   // Handle phone Auth credential responses, as they have a different format
   // from other backend responses (i.e. no providerId). This is also only the
   // case for user credentials (does not work for errors).
@@ -88,20 +78,20 @@ function credentialFromObject(
     return null;
   }
 
-  // We know for a fact that the function will match the value type
-  // (based on the declaration of fn). We will therefore cast object to a
-  // meaningless type to bypass the type system
-  const castObject = object as exp.UserCredential & FirebaseError;
-
+  let provider: Pick<typeof exp.OAuthProvider, 'credentialFromResult' | 'credentialFromError'>;
   switch (providerId) {
     case exp.ProviderId.GOOGLE:
-      return exp.GoogleAuthProvider[fn](castObject);
+      provider = exp.GoogleAuthProvider;
+      break;
     case exp.ProviderId.FACEBOOK:
-      return exp.FacebookAuthProvider[fn](castObject);
+      provider = exp.FacebookAuthProvider;
+      break;
     case exp.ProviderId.GITHUB:
-      return exp.GithubAuthProvider[fn](castObject);
+      provider = exp.GithubAuthProvider;
+      break;
     case exp.ProviderId.TWITTER:
-      return exp.TwitterAuthProvider[fn](castObject);
+      provider = exp.TwitterAuthProvider;
+      break;
     default:
       const {
         oauthIdToken,
@@ -139,6 +129,8 @@ function credentialFromObject(
         rawNonce: nonce
       });
   }
+
+  return object instanceof FirebaseError ? provider.credentialFromError(object) : provider.credentialFromResult(object);
 }
 
 export async function convertCredential(
@@ -150,7 +142,7 @@ export async function convertCredential(
     credential = await credentialPromise;
   } catch (e) {
     if (e instanceof FirebaseError) {
-      modifyError(auth, e);
+      attachExtraErrorFields(auth, e);
     }
     throw e;
   }
