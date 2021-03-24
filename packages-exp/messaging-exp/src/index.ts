@@ -39,11 +39,12 @@ declare module '@firebase/component' {
   }
 }
 
-// Top-level 'await' requires the 'module' option is set to 'esnext' or 'system', and the 'target'
-// option is set to 'es2017' or higher. Therefor use non-anonymous async function here.
+// Top-level 'await' requires 'module' option set to 'esnext' or 'system', and 'target' option
+// set to 'es2017' or higher. For compatibility, use async expression here.
 void (async () => {
   if (!(await isWindowSupported())) {
     throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
   }
 })();
+
 registerMessaging();
