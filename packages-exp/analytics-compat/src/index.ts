@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
+import firebase, {
+  _FirebaseNamespace,
+  FirebaseApp
+} from '@firebase/app-compat';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { name, version } from '../package.json';
 import { AnalyticsService } from './service';
@@ -25,7 +28,6 @@ import {
   ComponentType,
   InstanceFactory
 } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types';
 import {
   settings as settingsExp,
   isSupported as isSupportedExp
