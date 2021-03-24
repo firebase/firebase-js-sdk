@@ -15,20 +15,14 @@
  * limitations under the License.
  */
 
-/** Forward direction wrapper from Compat --unwrap-> Exp */
-export interface Wrapper<T> {
-  unwrap(): T;
-}
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-/** Reverse direction wrapper from Exp --wrapped--> Compat */
-export interface ReverseWrapper<T> {
-  wrapped(): T;
-}
-
-export function unwrap<T>(object: unknown): T {
-  return (object as Wrapper<T>).unwrap();
-}
-
-export function wrapped<T>(object: unknown): T {
-  return (object as ReverseWrapper<T>).wrapped();
-}
+// This is run from the auth-exp package.json
+export default {
+  input: ['test/integration/webdriver/static/index.js'],
+  output: {
+    file: 'test/integration/webdriver/static/dist/bundle.js',
+    format: 'esm'
+  },
+  plugins: [nodeResolve()]
+};

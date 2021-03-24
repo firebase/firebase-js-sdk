@@ -15,20 +15,6 @@
  * limitations under the License.
  */
 
-/** Forward direction wrapper from Compat --unwrap-> Exp */
-export interface Wrapper<T> {
-  unwrap(): T;
-}
-
-/** Reverse direction wrapper from Exp --wrapped--> Compat */
-export interface ReverseWrapper<T> {
-  wrapped(): T;
-}
-
-export function unwrap<T>(object: unknown): T {
-  return (object as Wrapper<T>).unwrap();
-}
-
-export function wrapped<T>(object: unknown): T {
-  return (object as ReverseWrapper<T>).wrapped();
+export async function anonymousSignIn() {
+  return compat.auth().signInAnonymously();
 }

@@ -34,7 +34,7 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
-import { unwrap, Wrapper } from './wrap';
+import { ReverseWrapper, unwrap, Wrapper } from './wrap';
 
 const _assert: typeof exp._assert = exp._assert;
 
@@ -45,6 +45,7 @@ export class Auth
   constructor(readonly app: FirebaseApp, provider: Provider<'auth-exp'>) {
     if (provider.isInitialized()) {
       this.auth = provider.getImmediate() as exp.AuthImpl;
+      this.linkUnderlyingAuth();
       return;
     }
 
@@ -89,6 +90,7 @@ export class Auth
     }) as exp.AuthImpl;
 
     this.auth._updateErrorMap(exp.debugErrorMap);
+    this.linkUnderlyingAuth();
   }
 
   get emulatorConfig(): compat.EmulatorConfig | null {
@@ -217,7 +219,9 @@ export class Auth
         break;
       case Persistence.LOCAL:
         // Not using isIndexedDBAvailable() since it only checks if indexedDB is defined.
-        const isIndexedDBFullySupported = await (exp.indexedDBLocalPersistence as exp.PersistenceInternal)._isAvailable();
+        const isIndexedDBFullySupported = await exp
+          ._getInstance<exp.PersistenceInternal>(exp.indexedDBLocalPersistence)
+          ._isAvailable();
         converted = isIndexedDBFullySupported
           ? exp.indexedDBLocalPersistence
           : exp.browserLocalPersistence;
@@ -329,6 +333,9 @@ export class Auth
   }
   _delete(): Promise<void> {
     return this.auth._delete();
+  }
+  private linkUnderlyingAuth(): void {
+    ((this.auth as unknown) as ReverseWrapper<Auth>).wrapped = () => this;
   }
 }
 

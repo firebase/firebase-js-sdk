@@ -217,4 +217,8 @@ export class AuthDriver {
     await this.webDriver.close();
     return this.selectMainWindow();
   }
+
+  isCompatLayer(): boolean {
+    return process.env.COMPAT_LAYER === 'true';
+  }
 }

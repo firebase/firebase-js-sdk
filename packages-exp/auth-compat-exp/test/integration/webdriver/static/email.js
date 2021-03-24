@@ -15,20 +15,8 @@
  * limitations under the License.
  */
 
-/** Forward direction wrapper from Compat --unwrap-> Exp */
-export interface Wrapper<T> {
-  unwrap(): T;
-}
+const TEST_PASSWORD = 'password';
 
-/** Reverse direction wrapper from Exp --wrapped--> Compat */
-export interface ReverseWrapper<T> {
-  wrapped(): T;
-}
-
-export function unwrap<T>(object: unknown): T {
-  return (object as Wrapper<T>).unwrap();
-}
-
-export function wrapped<T>(object: unknown): T {
-  return (object as ReverseWrapper<T>).wrapped();
+export function createUser(email) {
+  return compat.auth().createUserWithEmailAndPassword(email, TEST_PASSWORD);
 }
