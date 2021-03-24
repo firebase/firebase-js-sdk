@@ -89,7 +89,7 @@ export class PhoneMultiFactorGenerator {
    */
   static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion {
     return PhoneMultiFactorAssertionImpl._fromCredential(
-      credential as PhoneAuthCredential
+      credential
     );
   }
 }

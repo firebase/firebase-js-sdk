@@ -46,6 +46,7 @@ import {
 import { UserInternal } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
+import { getModularInstance } from '@firebase/util';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
@@ -98,13 +99,14 @@ export async function signInWithPhoneNumber(
   phoneNumber: string,
   appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
+  const authInternal = _castAuth(auth);
   const verificationId = await _verifyPhoneNumber(
-    _castAuth(auth),
+    authInternal,
     phoneNumber,
     appVerifier as ApplicationVerifierInternal
   );
   return new ConfirmationResultImpl(verificationId, cred =>
-    signInWithCredential(auth, cred)
+    signInWithCredential(authInternal, cred)
   );
 }
 
@@ -122,7 +124,7 @@ export async function linkWithPhoneNumber(
   phoneNumber: string,
   appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   await _assertLinkedStatus(false, userInternal, ProviderId.PHONE);
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
@@ -130,7 +132,7 @@ export async function linkWithPhoneNumber(
     appVerifier as ApplicationVerifierInternal
   );
   return new ConfirmationResultImpl(verificationId, cred =>
-    linkWithCredential(user, cred)
+    linkWithCredential(userInternal, cred)
   );
 }
 
@@ -150,14 +152,14 @@ export async function reauthenticateWithPhoneNumber(
   phoneNumber: string,
   appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
     phoneNumber,
     appVerifier as ApplicationVerifierInternal
   );
   return new ConfirmationResultImpl(verificationId, cred =>
-    reauthenticateWithCredential(user, cred)
+    reauthenticateWithCredential(userInternal, cred)
   );
 }
 
@@ -265,5 +267,5 @@ export async function updatePhoneNumber(
   user: User,
   credential: PhoneAuthCredential
 ): Promise<void> {
-  await _link(user as UserInternal, credential as PhoneAuthCredential);
+  await _link(getModularInstance(user) as UserInternal, credential);
 }

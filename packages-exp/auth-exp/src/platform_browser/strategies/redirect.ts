@@ -36,6 +36,7 @@ import {
   _setPendingRedirectStatus
 } from '../../core/strategies/redirect';
 import { FederatedAuthProvider } from '../../core/providers/federated';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.
@@ -150,7 +151,7 @@ export async function _reauthenticateWithRedirect(
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<void | never> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   _assert(
     provider instanceof FederatedAuthProvider,
     userInternal.auth,
@@ -207,7 +208,7 @@ export async function _linkWithRedirect(
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<void | never> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   _assert(
     provider instanceof FederatedAuthProvider,
     userInternal.auth,

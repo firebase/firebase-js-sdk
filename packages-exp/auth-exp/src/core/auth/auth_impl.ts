@@ -34,6 +34,7 @@ import {
 import {
   createSubscribe,
   ErrorFactory,
+  getModularInstance,
   Observer,
   Subscribe
 } from '@firebase/util';
@@ -556,12 +557,13 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 }
 
 /**
- * Method to be used to cast down to our private implmentation of Auth
+ * Method to be used to cast down to our private implmentation of Auth.
+ * It will also handle unwrapping from the compat type if necessary
  *
  * @param auth Auth object passed in from developer
  */
 export function _castAuth(auth: Auth): AuthInternal {
-  return (auth as unknown) as AuthInternal;
+  return getModularInstance(auth) as AuthInternal;
 }
 
 /** Helper class to wrap subscriber logic */

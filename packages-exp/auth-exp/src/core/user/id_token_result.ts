@@ -16,7 +16,7 @@
  */
 
 import { IdTokenResult, ParsedToken, User } from '../../model/public_types';
-import { base64Decode } from '@firebase/util';
+import { base64Decode, getModularInstance } from '@firebase/util';
 
 import { UserInternal } from '../../model/user';
 import { _assert } from '../util/assert';
@@ -37,7 +37,7 @@ import { AuthErrorCode } from '../errors';
  * @public
  */
 export function getIdToken(user: User, forceRefresh = false): Promise<string> {
-  return user.getIdToken(forceRefresh);
+  return getModularInstance(user).getIdToken(forceRefresh);
 }
 
 /**
@@ -56,8 +56,8 @@ export async function getIdTokenResult(
   user: User,
   forceRefresh = false
 ): Promise<IdTokenResult> {
-  const userInternal = user as UserInternal;
-  const token = await user.getIdToken(forceRefresh);
+  const userInternal = getModularInstance(user) as UserInternal;
+  const token = await userInternal.getIdToken(forceRefresh);
   const claims = _parseToken(token);
 
   _assert(
