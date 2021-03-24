@@ -28,6 +28,9 @@ const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const TEST_DOMAINS = ['valid-vapid-key'];
 const TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS = 120000;
 
+// Getting and deleting token is the entry step of using FM SDK. Let it run first and fail quickly.
+require('./test-token-delete');
+
 describe('Firebase Messaging Integration Tests > Test Foreground Receive', function () {
   this.retries(2);
   let globalWebDriver;
