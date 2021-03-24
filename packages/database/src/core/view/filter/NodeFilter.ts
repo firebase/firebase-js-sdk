@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
+import { Index } from '../../snap/indexes/Index';
 import { Node } from '../../snap/Node';
 import { Path } from '../../util/Path';
-import { CompleteChildSource } from '../CompleteChildSource';
 import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
-import { Index } from '../../snap/indexes/Index';
+import { CompleteChildSource } from '../CompleteChildSource';
 
 /**
  * NodeFilter is used to update nodes and complete children of nodes while applying queries on the fly and keeping

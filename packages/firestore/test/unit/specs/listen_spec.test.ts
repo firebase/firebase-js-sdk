@@ -115,12 +115,9 @@ describeSpec('Listens:', [], () => {
 
   specTest("Doesn't include unknown documents in cached result", [], () => {
     const query1 = query('collection');
-    const existingDoc = doc(
-      'collection/exists',
-      0,
-      { key: 'a' },
-      { hasLocalMutations: true }
-    );
+    const existingDoc = doc('collection/exists', 0, {
+      key: 'a'
+    }).setHasLocalMutations();
     return spec()
       .userSets('collection/exists', { key: 'a' })
       .userPatches('collection/unknown', { key: 'b' })
@@ -1489,12 +1486,9 @@ describeSpec('Listens:', [], () => {
   specTest('onSnapshotsInSync fires for metadata changes', [], () => {
     const query1 = query('collection');
     const docAv1 = doc('collection/a', 1000, { v: 1 });
-    const docAv2Local = doc(
-      'collection/a',
-      1000,
-      { v: 2 },
-      { hasLocalMutations: true }
-    );
+    const docAv2Local = doc('collection/a', 1000, {
+      v: 2
+    }).setHasLocalMutations();
     const docAv2 = doc('collection/a', 2000, { v: 2 });
 
     return spec()
@@ -1525,12 +1519,9 @@ describeSpec('Listens:', [], () => {
       const query1 = query('collection');
       const query2 = query('collection/a');
       const docAv1 = doc('collection/a', 1000, { v: 1 });
-      const docAv2Local = doc(
-        'collection/a',
-        1000,
-        { v: 2 },
-        { hasLocalMutations: true }
-      );
+      const docAv2Local = doc('collection/a', 1000, {
+        v: 2
+      }).setHasLocalMutations();
       const docAv2 = doc('collection/a', 2000, { v: 2 });
 
       return spec()
@@ -1569,24 +1560,15 @@ describeSpec('Listens:', [], () => {
   specTest('onSnapshotsInSync fires for multiple listeners', [], () => {
     const query1 = query('collection');
     const docAv1 = doc('collection/a', 1000, { v: 1 });
-    const docAv2Local = doc(
-      'collection/a',
-      1000,
-      { v: 2 },
-      { hasLocalMutations: true }
-    );
-    const docAv3Local = doc(
-      'collection/a',
-      1000,
-      { v: 3 },
-      { hasLocalMutations: true }
-    );
-    const docAv4Local = doc(
-      'collection/a',
-      1000,
-      { v: 4 },
-      { hasLocalMutations: true }
-    );
+    const docAv2Local = doc('collection/a', 1000, {
+      v: 2
+    }).setHasLocalMutations();
+    const docAv3Local = doc('collection/a', 1000, {
+      v: 3
+    }).setHasLocalMutations();
+    const docAv4Local = doc('collection/a', 1000, {
+      v: 4
+    }).setHasLocalMutations();
 
     return spec()
       .userListens(query1)

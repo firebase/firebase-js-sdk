@@ -18,6 +18,7 @@
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
+import { Provider } from '@firebase/component';
 import { ErrorFn, Observer, Unsubscribe } from '@firebase/util';
 
 import {
@@ -37,47 +38,55 @@ import {
 const _assert: typeof exp._assert = exp._assert;
 
 export class Auth implements compat.FirebaseAuth, _FirebaseService {
-  // private readonly auth: impl.AuthImpl;
+  readonly _delegate: exp.AuthImpl;
 
-  constructor(readonly app: FirebaseApp, readonly _delegate: exp.AuthImpl) {
-    const { apiKey } = app.options;
-    if (this._delegate._deleted) {
+  constructor(readonly app: FirebaseApp, provider: Provider<'auth-exp'>) {
+    if (provider.isInitialized()) {
+      this._delegate = provider.getImmediate() as exp.AuthImpl;
       return;
     }
 
-    // Note this is slightly different behavior: in this case, the stored
-    // persistence is checked *first* rather than last. This is because we want
-    // to prefer stored persistence type in the hierarchy.
-    const persistences = _getPersistencesFromRedirect(this._delegate);
+    const { apiKey } = app.options;
+    // TODO: platform needs to be determined using heuristics
+    _assert(apiKey, exp.AuthErrorCode.INVALID_API_KEY, {
+      appName: app.name
+    });
 
-    for (const persistence of [
-      exp.indexedDBLocalPersistence,
-      exp.browserLocalPersistence
-    ]) {
-      if (!persistences.includes(persistence)) {
-        persistences.push(persistence);
+    let persistences: exp.Persistence[] = [exp.inMemoryPersistence];
+
+    // Only deal with persistences in web environments
+    if (typeof window !== 'undefined') {
+      // Note this is slightly different behavior: in this case, the stored
+      // persistence is checked *first* rather than last. This is because we want
+      // to prefer stored persistence type in the hierarchy.
+      persistences = _getPersistencesFromRedirect(apiKey, app.name);
+
+      for (const persistence of [
+        exp.indexedDBLocalPersistence,
+        exp.browserLocalPersistence
+      ]) {
+        if (!persistences.includes(persistence)) {
+          persistences.push(persistence);
+        }
       }
     }
-
-    const hierarchy = persistences.map<exp.PersistenceInternal>(
-      exp._getInstance
-    );
 
     // TODO: platform needs to be determined using heuristics
     _assert(apiKey, exp.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
 
-    this._delegate._updateErrorMap(exp.debugErrorMap);
-
     // Only use a popup/redirect resolver in browser environments
     const resolver =
       typeof window !== 'undefined' ? CompatPopupRedirectResolver : undefined;
+    this._delegate = provider.initialize({
+      options: {
+        persistence: persistences,
+        popupRedirectResolver: resolver
+      }
+    }) as exp.AuthImpl;
 
-    // This promise is intended to float; auth initialization happens in the
-    // background, meanwhile the auth object may be used by the app.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._delegate._initializeWithPersistence(hierarchy, resolver);
+    this._delegate._updateErrorMap(exp.debugErrorMap);
   }
 
   get emulatorConfig(): compat.EmulatorConfig | null {

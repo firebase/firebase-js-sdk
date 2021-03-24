@@ -278,7 +278,7 @@ export class DocumentSnapshot<
       return this._converter.fromFirestore(snapshot, options);
     } else {
       return this._userDataWriter.convertValue(
-        this._document.toProto(),
+        this._document.data.toProto(),
         options.serverTimestamps
       ) as T;
     }
@@ -304,9 +304,9 @@ export class DocumentSnapshot<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get(fieldPath: string | FieldPath, options: SnapshotOptions = {}): any {
     if (this._document) {
-      const value = this._document
-        .data()
-        .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
+      const value = this._document.data.field(
+        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
+      );
       if (value !== null) {
         return this._userDataWriter.convertValue(
           value,

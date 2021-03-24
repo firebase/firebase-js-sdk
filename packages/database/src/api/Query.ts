@@ -23,30 +23,6 @@ import {
   validateCallback,
   validateContextObject
 } from '@firebase/util';
-import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
-import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
-import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
-import { PathIndex } from '../core/snap/indexes/PathIndex';
-import { MAX_NAME, MIN_NAME, ObjectToUniqueKey } from '../core/util/util';
-import {
-  Path,
-  pathEquals,
-  pathIsEmpty,
-  pathToUrlEncodedString
-} from '../core/util/Path';
-import {
-  isValidPriority,
-  validateEventType,
-  validateFirebaseDataArg,
-  validateKey,
-  validatePathString
-} from '../core/util/validation';
-
-import {
-  ChildEventRegistration,
-  EventRegistration,
-  ValueEventRegistration
-} from '../core/view/EventRegistration';
 
 import {
   Repo,
@@ -54,6 +30,29 @@ import {
   repoGetValue,
   repoRemoveEventCallbackForQuery
 } from '../core/Repo';
+import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
+import { PathIndex } from '../core/snap/indexes/PathIndex';
+import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
+import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
+import {
+  Path,
+  pathEquals,
+  pathIsEmpty,
+  pathToUrlEncodedString
+} from '../core/util/Path';
+import { MAX_NAME, MIN_NAME, ObjectToUniqueKey } from '../core/util/util';
+import {
+  isValidPriority,
+  validateEventType,
+  validateFirebaseDataArg,
+  validateKey,
+  validatePathString
+} from '../core/util/validation';
+import {
+  ChildEventRegistration,
+  EventRegistration,
+  ValueEventRegistration
+} from '../core/view/EventRegistration';
 import {
   QueryParams,
   queryParamsEndAt,
@@ -65,9 +64,10 @@ import {
   queryParamsStartAfter,
   queryParamsStartAt
 } from '../core/view/QueryParams';
-import { Reference } from './Reference';
-import { DataSnapshot } from './DataSnapshot';
+
 import { Database } from './Database';
+import { DataSnapshot } from './DataSnapshot';
+import { Reference } from './Reference';
 
 let __referenceConstructor: new (database: Database, path: Path) => Query;
 

@@ -30,7 +30,7 @@ import { QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
 import { documentKeySet, DocumentMap } from '../../../src/model/collections';
-import { MaybeDocument } from '../../../src/model/document';
+import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
 import { debugAssert } from '../../../src/util/assert';
@@ -42,18 +42,14 @@ const TEST_TARGET_ID = 1;
 
 const MATCHING_DOC_A = doc('coll/a', 1, { matches: true, order: 1 });
 const NON_MATCHING_DOC_A = doc('coll/a', 1, { matches: false, order: 1 });
-const PENDING_MATCHING_DOC_A = doc(
-  'coll/a',
-  1,
-  { matches: true, order: 1 },
-  { hasLocalMutations: true }
-);
-const PENDING_NON_MATCHING_DOC_A = doc(
-  'coll/a',
-  1,
-  { matches: false, order: 1 },
-  { hasLocalMutations: true }
-);
+const PENDING_MATCHING_DOC_A = doc('coll/a', 1, {
+  matches: true,
+  order: 1
+}).setHasLocalMutations();
+const PENDING_NON_MATCHING_DOC_A = doc('coll/a', 1, {
+  matches: false,
+  order: 1
+}).setHasLocalMutations();
 const UPDATED_DOC_A = doc('coll/a', 11, { matches: true, order: 1 });
 const MATCHING_DOC_B = doc('coll/b', 1, { matches: true, order: 2 });
 const UPDATED_MATCHING_DOC_B = doc('coll/b', 11, { matches: true, order: 2 });
@@ -106,7 +102,7 @@ describe('QueryEngine', () => {
   }
 
   /** Adds the provided documents to the remote document cache.  */
-  function addDocument(...docs: MaybeDocument[]): Promise<void> {
+  function addDocument(...docs: MutableDocument[]): Promise<void> {
     return persistence.runTransaction('addDocument', 'readwrite', txn => {
       const changeBuffer = remoteDocumentCache.newChangeBuffer();
       for (const doc of docs) {
@@ -389,9 +385,7 @@ describe('QueryEngine', () => {
     await persistQueryMapping(key('coll/a'), key('coll/b'));
 
     // Update "coll/a" but make sure it still sorts before "coll/b"
-    await addDocument(
-      doc('coll/a', 1, { order: 2 }, { hasLocalMutations: true })
-    );
+    await addDocument(doc('coll/a', 1, { order: 2 }).setHasLocalMutations());
 
     // Since the last document in the limit didn't change (and hence we know
     // that all documents written prior to query execution still sort after
@@ -400,16 +394,13 @@ describe('QueryEngine', () => {
       runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [
-      doc('coll/a', 1, { order: 2 }, { hasLocalMutations: true }),
+      doc('coll/a', 1, { order: 2 }).setHasLocalMutations(),
       doc('coll/b', 1, { order: 3 })
     ]);
   });
 });
 
-function verifyResult(
-  actualDocs: DocumentSet,
-  expectedDocs: MaybeDocument[]
-): void {
+function verifyResult(actualDocs: DocumentSet, expectedDocs: Document[]): void {
   for (const doc of expectedDocs) {
     expect(actualDocs.has(doc.key)).to.equal(
       true,

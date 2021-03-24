@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { ChildrenNode } from '../src/core/snap/ChildrenNode';
+
 import {
   CompoundWrite,
   compoundWriteAddWrite,
@@ -28,6 +28,7 @@ import {
   compoundWriteIsEmpty,
   compoundWriteRemoveWrite
 } from '../src/core/CompoundWrite';
+import { ChildrenNode } from '../src/core/snap/ChildrenNode';
 import { LeafNode } from '../src/core/snap/LeafNode';
 import { NamedNode } from '../src/core/snap/Node';
 import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';

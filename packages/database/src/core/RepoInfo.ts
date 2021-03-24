@@ -16,8 +16,10 @@
  */
 
 import { assert } from '@firebase/util';
-import { PersistentStorage } from './storage/storage';
+
 import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
+
+import { PersistentStorage } from './storage/storage';
 import { each } from './util/util';
 
 /**

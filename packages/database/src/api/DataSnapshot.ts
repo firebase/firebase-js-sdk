@@ -16,13 +16,15 @@
  */
 
 import { validateArgCount, validateCallback } from '@firebase/util';
-import { validatePathString } from '../core/util/validation';
-import { Path } from '../core/util/Path';
+
+import { ChildrenNode } from '../core/snap/ChildrenNode';
+import { Index } from '../core/snap/indexes/Index';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { Node } from '../core/snap/Node';
+import { Path } from '../core/util/Path';
+import { validatePathString } from '../core/util/validation';
+
 import { Reference } from './Reference';
-import { Index } from '../core/snap/indexes/Index';
-import { ChildrenNode } from '../core/snap/ChildrenNode';
 
 /**
  * Class representing a firebase data snapshot.  It wraps a SnapshotNode and

@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-import { RangedFilter } from './RangedFilter';
-import { ChildrenNode } from '../../snap/ChildrenNode';
-import { NamedNode, Node } from '../../snap/Node';
 import { assert } from '@firebase/util';
+
+import { ChildrenNode } from '../../snap/ChildrenNode';
+import { Index } from '../../snap/indexes/Index';
+import { NamedNode, Node } from '../../snap/Node';
+import { Path } from '../../util/Path';
 import {
   changeChildAdded,
   changeChildChanged,
   changeChildRemoved
 } from '../Change';
-import { NodeFilter } from './NodeFilter';
-import { Index } from '../../snap/indexes/Index';
-import { IndexedFilter } from './IndexedFilter';
-import { QueryParams } from '../QueryParams';
-import { Path } from '../../util/Path';
-import { CompleteChildSource } from '../CompleteChildSource';
 import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
+import { CompleteChildSource } from '../CompleteChildSource';
+import { QueryParams } from '../QueryParams';
+
+import { IndexedFilter } from './IndexedFilter';
+import { NodeFilter } from './NodeFilter';
+import { RangedFilter } from './RangedFilter';
 
 /**
  * Applies a limit and a range to a node and uses RangedFilter to do the heavy lifting where possible

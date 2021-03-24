@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { StatsCollection } from './StatsCollection';
 import { each } from '../util/util';
+
+import { StatsCollection } from './StatsCollection';
 
 /**
  * Returns the delta from the previous call to get stats.

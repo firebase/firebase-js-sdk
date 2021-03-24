@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { assert, assertionError } from '@firebase/util';
+
 import {
   Change,
   ChangeType,
@@ -22,7 +24,6 @@ import {
   changeChildChanged,
   changeChildRemoved
 } from './Change';
-import { assert, assertionError } from '@firebase/util';
 
 export class ChildChangeAccumulator {
   private readonly changeMap: Map<string, Change> = new Map();

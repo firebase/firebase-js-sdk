@@ -16,8 +16,10 @@
  */
 
 import { expect } from 'chai';
-import { repoInfoForConnectionTest } from './helpers/util';
+
 import { Connection } from '../src/realtime/Connection';
+
+import { repoInfoForConnectionTest } from './helpers/util';
 
 describe('Connection', () => {
   it('return the session id', done => {

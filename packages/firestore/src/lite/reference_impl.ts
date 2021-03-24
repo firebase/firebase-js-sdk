@@ -22,7 +22,6 @@ import {
 import { getModularInstance } from '@firebase/util';
 
 import { hasLimitToLast } from '../core/query';
-import { Document } from '../model/document';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
   invokeBatchGetDocumentsRpc,
@@ -129,12 +128,12 @@ export function getDoc<T>(
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
       hardAssert(result.length === 1, 'Expected a single document result');
-      const maybeDocument = result[0];
+      const document = result[0];
       return new DocumentSnapshot<T>(
         reference.firestore,
         userDataWriter,
         reference._key,
-        maybeDocument instanceof Document ? maybeDocument : null,
+        document.isFoundDocument() ? document : null,
         reference._converter
       );
     }

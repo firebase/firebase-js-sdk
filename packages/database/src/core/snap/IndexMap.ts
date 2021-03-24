@@ -16,13 +16,14 @@
  */
 
 import { assert, contains, map, safeGet } from '@firebase/util';
-import { buildChildSet } from './childSet';
 
-import { NamedNode, Node } from './Node';
-import { PRIORITY_INDEX } from './indexes/PriorityIndex';
-import { KEY_INDEX } from './indexes/KeyIndex';
 import { SortedMap } from '../util/SortedMap';
+
+import { buildChildSet } from './childSet';
 import { Index } from './indexes/Index';
+import { KEY_INDEX } from './indexes/KeyIndex';
+import { PRIORITY_INDEX } from './indexes/PriorityIndex';
+import { NamedNode, Node } from './Node';
 
 let _defaultIndexMap: IndexMap;
 

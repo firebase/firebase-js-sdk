@@ -72,7 +72,6 @@ import {
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
-import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { JsonObject } from '../../../src/model/object_value';
@@ -163,6 +162,11 @@ import {
 } from './spec_test_components';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
+
+interface DocumentOptions {
+  hasLocalMutations?: boolean;
+  hasCommittedMutations?: boolean;
+}
 
 export function parseQuery(querySpec: string | SpecQuery): Query {
   if (typeof querySpec === 'string') {
@@ -628,10 +632,14 @@ abstract class TestRunner {
         ? doc(
             watchEntity.doc.key,
             watchEntity.doc.version,
-            watchEntity.doc.value,
-            watchEntity.doc.options
+            watchEntity.doc.value
           )
         : deletedDoc(watchEntity.doc.key, watchEntity.doc.version);
+      if (watchEntity.doc.options?.hasCommittedMutations) {
+        document.setHasCommittedMutations();
+      } else if (watchEntity.doc.options?.hasLocalMutations) {
+        document.setHasLocalMutations();
+      }
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
@@ -1140,14 +1148,15 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
+    const document = doc(change.key, change.version, change.value || {});
+    if (change.options?.hasCommittedMutations) {
+      document.setHasCommittedMutations();
+    } else if (change.options?.hasLocalMutations) {
+      document.setHasLocalMutations();
+    }
     return {
       type,
-      doc: doc(
-        change.key,
-        change.version,
-        change.value || {},
-        change.options || {}
-      )
+      doc: document
     };
   }
 }

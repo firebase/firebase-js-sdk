@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import { Operation, OperationSource, OperationType } from './Operation';
-import { Overwrite } from './Overwrite';
+import { assert } from '@firebase/util';
+
+import { Node } from '../snap/Node';
+import { ImmutableTree } from '../util/ImmutableTree';
 import {
   newEmptyPath,
   Path,
@@ -24,9 +26,9 @@ import {
   pathIsEmpty,
   pathPopFront
 } from '../util/Path';
-import { assert } from '@firebase/util';
-import { ImmutableTree } from '../util/ImmutableTree';
-import { Node } from '../snap/Node';
+
+import { Operation, OperationSource, OperationType } from './Operation';
+import { Overwrite } from './Overwrite';
 
 export class Merge implements Operation {
   /** @inheritDoc */

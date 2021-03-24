@@ -17,13 +17,16 @@
 
 declare let MozWebSocket: WebSocket;
 
-import firebase from '@firebase/app';
 import '../../index';
-import { Reference } from '../../src/api/Reference';
-import { Query } from '../../src/api/Query';
-import { ConnectionTarget } from '../../src/api/test_access';
+
+import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
+
+import { Query } from '../../src/api/Query';
+import { Reference } from '../../src/api/Reference';
+import { ConnectionTarget } from '../../src/api/test_access';
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
 

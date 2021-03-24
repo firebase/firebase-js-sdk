@@ -15,15 +15,26 @@
  * limitations under the License.
  */
 
-import { IndexedFilter } from './filter/IndexedFilter';
-import {
-  newViewProcessor,
-  ViewProcessor,
-  viewProcessorApplyOperation,
-  viewProcessorAssertIndexed
-} from './ViewProcessor';
+import { assert } from '@firebase/util';
+
+import { Query } from '../../api/Query';
+import { Operation, OperationType } from '../operation/Operation';
 import { ChildrenNode } from '../snap/ChildrenNode';
+import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
+import { Node } from '../snap/Node';
+import { Path, pathGetFront, pathIsEmpty } from '../util/Path';
+import { WriteTreeRef } from '../WriteTree';
+
 import { CacheNode } from './CacheNode';
+import { Change, changeChildAdded, changeValue } from './Change';
+import { CancelEvent, Event } from './Event';
+import {
+  EventGenerator,
+  eventGeneratorGenerateEventsForChanges
+} from './EventGenerator';
+import { EventRegistration } from './EventRegistration';
+import { IndexedFilter } from './filter/IndexedFilter';
+import { queryParamsGetNodeFilter } from './QueryParams';
 import {
   newViewCache,
   ViewCache,
@@ -31,20 +42,11 @@ import {
   viewCacheGetCompleteServerSnap
 } from './ViewCache';
 import {
-  EventGenerator,
-  eventGeneratorGenerateEventsForChanges
-} from './EventGenerator';
-import { assert } from '@firebase/util';
-import { Operation, OperationType } from '../operation/Operation';
-import { Change, changeChildAdded, changeValue } from './Change';
-import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
-import { Query } from '../../api/Query';
-import { EventRegistration } from './EventRegistration';
-import { Node } from '../snap/Node';
-import { Path, pathGetFront, pathIsEmpty } from '../util/Path';
-import { WriteTreeRef } from '../WriteTree';
-import { CancelEvent, Event } from './Event';
-import { queryParamsGetNodeFilter } from './QueryParams';
+  newViewProcessor,
+  ViewProcessor,
+  viewProcessorApplyOperation,
+  viewProcessorAssertIndexed
+} from './ViewProcessor';
 
 /**
  * A view represents a specific location and query that has 1 or more event registrations.

@@ -23,7 +23,7 @@ import {
   localStoreSaveNamedQuery
 } from '../local/local_store_impl';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
-import { MaybeDocument, NoDocument } from '../model/document';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   BundleMetadata as ProtoBundleMetadata,
@@ -58,9 +58,9 @@ export class BundleConverterImpl implements BundleConverter {
   }
 
   /**
-   * Converts a BundleDocument to a MaybeDocument.
+   * Converts a BundleDocument to a MutableDocument.
    */
-  toMaybeDocument(bundledDoc: BundledDocument): MaybeDocument {
+  toMutableDocument(bundledDoc: BundledDocument): MutableDocument {
     if (bundledDoc.metadata.exists) {
       debugAssert(
         !!bundledDoc.document,
@@ -68,7 +68,7 @@ export class BundleConverterImpl implements BundleConverter {
       );
       return fromDocument(this.serializer, bundledDoc.document!, false);
     } else {
-      return new NoDocument(
+      return MutableDocument.newNoDocument(
         this.toDocumentKey(bundledDoc.metadata.name!),
         this.toSnapshotVersion(bundledDoc.metadata.readTime!)
       );

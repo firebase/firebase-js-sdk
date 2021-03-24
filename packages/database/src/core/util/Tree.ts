@@ -16,8 +16,8 @@
  */
 
 import { contains, safeGet } from '@firebase/util';
-import { Path, pathGetFront, pathPopFront } from './Path';
 
+import { Path, pathGetFront, pathPopFront } from './Path';
 import { each } from './util';
 
 /**
