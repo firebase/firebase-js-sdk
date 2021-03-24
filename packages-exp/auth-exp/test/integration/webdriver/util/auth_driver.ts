@@ -27,6 +27,7 @@ import {
 import { CoreFunction } from './functions';
 import { JsLoadCondition } from './js_load_condition';
 import { authTestServer } from './test_server';
+export { By, until } from 'selenium-webdriver';
 
 export const START_FUNCTION = 'startAuth';
 const START_LEGACY_SDK_FUNCTION = 'startLegacySDK';
