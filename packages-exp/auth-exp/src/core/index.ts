@@ -73,7 +73,11 @@ export function onIdTokenChanged(
   error?: ErrorFn,
   completed?: CompleteFn
 ): Unsubscribe {
-  return getModularInstance(auth).onIdTokenChanged(nextOrObserver, error, completed);
+  return getModularInstance(auth).onIdTokenChanged(
+    nextOrObserver,
+    error,
+    completed
+  );
 }
 /**
  * Adds an observer for changes to the user's sign-in state.
@@ -94,7 +98,11 @@ export function onAuthStateChanged(
   error?: ErrorFn,
   completed?: CompleteFn
 ): Unsubscribe {
-  return getModularInstance(auth).onAuthStateChanged(nextOrObserver, error, completed);
+  return getModularInstance(auth).onAuthStateChanged(
+    nextOrObserver,
+    error,
+    completed
+  );
 }
 /**
  * Sets the current language to the default device/browser preference.

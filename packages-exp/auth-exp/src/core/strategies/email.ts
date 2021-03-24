@@ -59,7 +59,10 @@ export async function fetchSignInMethodsForEmail(
     continueUri
   };
 
-  const { signinMethods } = await createAuthUri(getModularInstance(auth), request);
+  const { signinMethods } = await createAuthUri(
+    getModularInstance(auth),
+    request
+  );
 
   return signinMethods || [];
 }

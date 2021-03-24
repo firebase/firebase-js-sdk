@@ -92,7 +92,11 @@ export async function updateProfile(
  * @public
  */
 export function updateEmail(user: User, newEmail: string): Promise<void> {
-  return updateEmailOrPassword(getModularInstance(user) as UserInternal, newEmail, null);
+  return updateEmailOrPassword(
+    getModularInstance(user) as UserInternal,
+    newEmail,
+    null
+  );
 }
 
 /**
@@ -109,7 +113,11 @@ export function updateEmail(user: User, newEmail: string): Promise<void> {
  * @public
  */
 export function updatePassword(user: User, newPassword: string): Promise<void> {
-  return updateEmailOrPassword(getModularInstance(user) as UserInternal, null, newPassword);
+  return updateEmailOrPassword(
+    getModularInstance(user) as UserInternal,
+    null,
+    newPassword
+  );
 }
 
 async function updateEmailOrPassword(
