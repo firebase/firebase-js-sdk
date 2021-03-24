@@ -16,8 +16,9 @@
  */
 
 import { FieldPath as PublicFieldPath } from '@firebase/firestore-types';
+import { Compat, getModularInstance } from '@firebase/util';
 
-import { FieldPath as ExpFieldPath, Compat } from '../../exp/index';
+import { FieldPath as ExpFieldPath } from '../../exp/index';
 import { FieldPath as InternalFieldPath } from '../model/path';
 
 // The objects that are a part of this API are exposed to third-parties as
@@ -29,7 +30,8 @@ import { FieldPath as InternalFieldPath } from '../model/path';
  * single field name (referring to a top-level field in the document), or a list
  * of field names (referring to a nested field in the document).
  */
-export class FieldPath extends Compat<ExpFieldPath> implements PublicFieldPath {
+export class FieldPath implements PublicFieldPath, Compat<ExpFieldPath> {
+  readonly _delegate: ExpFieldPath;
   /**
    * Creates a FieldPath from the provided field names. If more than one field
    * name is provided, the path will point to a nested field in a document.
@@ -37,7 +39,7 @@ export class FieldPath extends Compat<ExpFieldPath> implements PublicFieldPath {
    * @param fieldNames - A list of field names.
    */
   constructor(...fieldNames: string[]) {
-    super(new ExpFieldPath(...fieldNames));
+    this._delegate = new ExpFieldPath(...fieldNames);
   }
 
   static documentId(): FieldPath {
@@ -51,9 +53,7 @@ export class FieldPath extends Compat<ExpFieldPath> implements PublicFieldPath {
   }
 
   isEqual(other: PublicFieldPath): boolean {
-    if (other instanceof Compat) {
-      other = other._delegate;
-    }
+    other = getModularInstance(other);
 
     if (!(other instanceof ExpFieldPath)) {
       return false;

@@ -22,7 +22,7 @@ export interface Compat<T> {
 export function getModularInstance<ExpService>(
   service: Compat<ExpService> | ExpService
 ): ExpService {
-  if ((service as Compat<ExpService>)._delegate) {
+  if (service && (service as Compat<ExpService>)._delegate) {
     return (service as Compat<ExpService>)._delegate;
   } else {
     return service as ExpService;

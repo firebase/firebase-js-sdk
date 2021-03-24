@@ -44,6 +44,7 @@ import {
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
+import { Compat, getModularInstance } from '@firebase/util';
 
 import {
   LoadBundleTask,
@@ -98,8 +99,7 @@ import {
   runTransaction,
   Transaction as ExpTransaction,
   WriteBatch as ExpWriteBatch,
-  AbstractUserDataWriter,
-  Compat
+  AbstractUserDataWriter
 } from '../../exp/index'; // import from the exp public API
 import { DatabaseId } from '../core/database_info';
 import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
@@ -195,16 +195,13 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
  * to the functional API of firestore-exp.
  */
 export class Firestore
-  extends Compat<ExpFirebaseFirestore>
-  implements PublicFirestore, FirebaseService {
+  implements PublicFirestore, FirebaseService, Compat<ExpFirebaseFirestore> {
   _appCompat?: FirebaseApp;
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    delegate: ExpFirebaseFirestore,
+    readonly _delegate: ExpFirebaseFirestore,
     private _persistenceProvider: PersistenceProvider
   ) {
-    super(delegate);
-
     if (!(databaseIdOrApp instanceof DatabaseId)) {
       this._appCompat = databaseIdOrApp as FirebaseApp;
     }
@@ -386,16 +383,13 @@ export function setLogLevel(level: PublicLogLevel): void {
 /**
  * A reference to a transaction.
  */
-export class Transaction
-  extends Compat<ExpTransaction>
-  implements PublicTransaction {
+export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
   private _userDataWriter: UserDataWriter;
 
   constructor(
     private readonly _firestore: Firestore,
-    delegate: ExpTransaction
+    readonly _delegate: ExpTransaction
   ) {
-    super(delegate);
     this._userDataWriter = new UserDataWriter(_firestore);
   }
 
@@ -480,9 +474,8 @@ export class Transaction
   }
 }
 
-export class WriteBatch
-  extends Compat<ExpWriteBatch>
-  implements PublicWriteBatch {
+export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
+  constructor(readonly _delegate: ExpWriteBatch) {}
   set<T>(
     documentRef: DocumentReference<T>,
     data: Partial<T>,
@@ -551,17 +544,16 @@ export class WriteBatch
  * them to the wrapped converter.
  */
 class FirestoreDataConverter<U>
-  extends Compat<PublicFirestoreDataConverter<U>>
-  implements UntypedFirestoreDataConverter<U> {
+  implements
+    UntypedFirestoreDataConverter<U>,
+    Compat<PublicFirestoreDataConverter<U>> {
   private static readonly INSTANCES = new WeakMap();
 
   private constructor(
     private readonly _firestore: Firestore,
     private readonly _userDataWriter: UserDataWriter,
-    delegate: PublicFirestoreDataConverter<U>
-  ) {
-    super(delegate);
-  }
+    readonly _delegate: PublicFirestoreDataConverter<U>
+  ) {}
 
   fromFirestore(
     snapshot: ExpQueryDocumentSnapshot,
@@ -629,15 +621,13 @@ class FirestoreDataConverter<U>
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = PublicDocumentData>
-  extends Compat<ExpDocumentReference<T>>
-  implements PublicDocumentReference<T> {
+  implements PublicDocumentReference<T>, Compat<ExpDocumentReference<T>> {
   private _userDataWriter: UserDataWriter;
 
   constructor(
     readonly firestore: Firestore,
-    delegate: ExpDocumentReference<T>
+    readonly _delegate: ExpDocumentReference<T>
   ) {
-    super(delegate);
     this._userDataWriter = new UserDataWriter(firestore);
   }
 
@@ -705,9 +695,7 @@ export class DocumentReference<T = PublicDocumentData>
   }
 
   isEqual(other: PublicDocumentReference<T>): boolean {
-    if (other instanceof Compat) {
-      other = other._delegate;
-    }
+    other = getModularInstance<PublicDocumentReference<T>>(other);
 
     if (!(other instanceof ExpDocumentReference)) {
       return false;
@@ -917,14 +905,11 @@ export function wrapObserver<CompatType, ExpType>(
 export interface SnapshotOptions extends PublicSnapshotOptions {}
 
 export class DocumentSnapshot<T = PublicDocumentData>
-  extends Compat<ExpDocumentSnapshot<T>>
-  implements PublicDocumentSnapshot<T> {
+  implements PublicDocumentSnapshot<T>, Compat<ExpDocumentSnapshot<T>> {
   constructor(
     private readonly _firestore: Firestore,
-    delegate: ExpDocumentSnapshot<T>
-  ) {
-    super(delegate);
-  }
+    readonly _delegate: ExpDocumentSnapshot<T>
+  ) {}
 
   get ref(): DocumentReference<T> {
     return new DocumentReference<T>(this._firestore, this._delegate.ref);
@@ -974,12 +959,10 @@ export class QueryDocumentSnapshot<T = PublicDocumentData>
 }
 
 export class Query<T = PublicDocumentData>
-  extends Compat<ExpQuery<T>>
-  implements PublicQuery<T> {
+  implements PublicQuery<T>, Compat<ExpQuery<T>> {
   private readonly _userDataWriter: UserDataWriter;
 
-  constructor(readonly firestore: Firestore, delegate: ExpQuery<T>) {
-    super(delegate);
+  constructor(readonly firestore: Firestore, readonly _delegate: ExpQuery<T>) {
     this._userDataWriter = new UserDataWriter(firestore);
   }
 
@@ -1154,14 +1137,11 @@ export class Query<T = PublicDocumentData>
 }
 
 export class DocumentChange<T = PublicDocumentData>
-  extends Compat<ExpDocumentChange<T>>
-  implements PublicDocumentChange<T> {
+  implements PublicDocumentChange<T>, Compat<ExpDocumentChange<T>> {
   constructor(
     private readonly _firestore: Firestore,
-    delegate: ExpDocumentChange<T>
-  ) {
-    super(delegate);
-  }
+    readonly _delegate: ExpDocumentChange<T>
+  ) {}
 
   get type(): PublicDocumentChangeType {
     return this._delegate.type;
@@ -1181,11 +1161,11 @@ export class DocumentChange<T = PublicDocumentData>
 }
 
 export class QuerySnapshot<T = PublicDocumentData>
-  extends Compat<ExpQuerySnapshot<T>>
-  implements PublicQuerySnapshot<T> {
-  constructor(readonly _firestore: Firestore, delegate: ExpQuerySnapshot<T>) {
-    super(delegate);
-  }
+  implements PublicQuerySnapshot<T>, Compat<ExpQuerySnapshot<T>> {
+  constructor(
+    readonly _firestore: Firestore,
+    readonly _delegate: ExpQuerySnapshot<T>
+  ) {}
 
   get query(): Query<T> {
     return new Query(this._firestore, this._delegate.query);
@@ -1306,8 +1286,5 @@ export class CollectionReference<T = PublicDocumentData>
 function castReference<T>(
   documentRef: PublicDocumentReference<T>
 ): ExpDocumentReference<T> {
-  if (documentRef instanceof Compat) {
-    documentRef = documentRef._delegate;
-  }
   return cast<ExpDocumentReference<T>>(documentRef, ExpDocumentReference);
 }
