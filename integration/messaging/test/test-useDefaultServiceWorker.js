@@ -27,8 +27,6 @@ const TEST_SUITE_TIMEOUT_MS = 70000;
 describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' by default`, function () {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
 
-  this.retries(3);
-
   let globalWebDriver;
 
   before(async function () {

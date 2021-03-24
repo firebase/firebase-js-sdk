@@ -23,12 +23,12 @@ const retrieveToken = require('./utils/retrieveToken');
 const seleniumAssistant = require('selenium-assistant');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
-const TEST_SUITE_TIMEOUT_MS = 100000;
+const TEST_SUITE_TIMEOUT_MS = 20000;
 const TEST_DOMAIN = 'valid-vapid-key';
 
 describe('Firebase Messaging Integration Tests > get and delete token', function () {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
-  this.retries(3);
+  this.retries(2);
   let globalWebDriver;
 
   before(async function () {
