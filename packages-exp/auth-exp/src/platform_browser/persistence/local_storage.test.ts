@@ -143,6 +143,22 @@ describe('platform_browser/persistence/local_storage', () => {
           expect(callback).to.have.been.calledWith(newValue);
         });
 
+        it('should trigger on storage event for the same key after local change', async () => {
+          await persistence._set(key, newValue);
+          await new Promise(resolve => setTimeout(resolve, 100)); // wait after the event trigger
+          callback.resetHistory();
+
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key,
+              oldValue: JSON.stringify(newValue),
+              newValue: null
+            })
+          );
+
+          expect(callback).to.have.been.calledOnceWith(null);
+        });
+
         it('should not trigger after unsubscribe', () => {
           persistence._removeListener(key, callback);
           window.dispatchEvent(

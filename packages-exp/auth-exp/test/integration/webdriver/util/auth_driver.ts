@@ -28,7 +28,7 @@ import { CoreFunction } from './functions';
 import { JsLoadCondition } from './js_load_condition';
 import { authTestServer } from './test_server';
 
-const START_FUNCTION = 'startAuth';
+export const START_FUNCTION = 'startAuth';
 const START_LEGACY_SDK_FUNCTION = 'startLegacySDK';
 const PASSED_ARGS = '...Array.prototype.slice.call(arguments, 0, -1)';
 
