@@ -413,7 +413,7 @@ browserDescribe('WebDriver persistence test', driver => {
     });
   });
 
-  context.only('persistence sync across windows and tabs', () => {
+  context('persistence sync across windows and tabs', () => {
     it('sync current user across windows with indexedDB', async () => {
       const cred: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
