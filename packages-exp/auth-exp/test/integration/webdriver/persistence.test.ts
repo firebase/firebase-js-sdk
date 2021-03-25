@@ -431,7 +431,7 @@ browserDescribe('WebDriver persistence test', driver => {
       await driver.call(CoreFunction.SIGN_OUT);
       expect(await driver.getUserSnapshot()).to.be.null;
       await driver.selectMainWindow({ noWait: true });
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await driver.pause(500);
       expect(await driver.getUserSnapshot()).to.be.null;
 
       const cred2: UserCredential = await driver.call(
@@ -440,7 +440,7 @@ browserDescribe('WebDriver persistence test', driver => {
       const uid2 = cred2.user.uid;
 
       await driver.selectPopupWindow();
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await driver.pause(500);
       expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
 
@@ -468,7 +468,7 @@ browserDescribe('WebDriver persistence test', driver => {
       await driver.call(CoreFunction.SIGN_OUT);
       expect(await driver.getUserSnapshot()).to.be.null;
       await driver.selectMainWindow({ noWait: true });
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await driver.pause(500);
       expect(await driver.getUserSnapshot()).to.be.null;
 
       const cred2: UserCredential = await driver.call(
@@ -477,7 +477,7 @@ browserDescribe('WebDriver persistence test', driver => {
       const uid2 = cred2.user.uid;
 
       await driver.selectPopupWindow();
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await driver.pause(500);
       expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
   });
