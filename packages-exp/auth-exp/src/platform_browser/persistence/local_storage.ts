@@ -28,6 +28,7 @@ import {
 import {
   PersistenceInternal as InternalPersistence,
   PersistenceType,
+  PersistenceValue,
   StorageEventListener
 } from '../../core/persistence';
 import { BrowserPersistenceClass } from './browser';
@@ -238,6 +239,24 @@ class BrowserLocalPersistence
       this.detachListener();
       this.stopPolling();
     }
+  }
+
+  // Update local cache on base operations:
+
+  async _set(key: string, value: PersistenceValue): Promise<void> {
+    await super._set(key, value);
+    this.localCache[key] = JSON.stringify(value);
+  }
+
+  async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
+    const value = await super._get<T>(key);
+    this.localCache[key] = JSON.stringify(value);
+    return value;
+  }
+
+  async _remove(key: string): Promise<void> {
+    await super._remove(key);
+    delete this.localCache[key];
   }
 }
 

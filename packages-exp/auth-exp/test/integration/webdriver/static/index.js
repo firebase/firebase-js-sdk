@@ -49,20 +49,21 @@ window.startLegacySDK = async persistence => {
     // TODO: Find some way to make the tests work without Internet.
     appScript.src = 'https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js';
     appScript.onerror = reject;
-    document.head.appendChild(appScript);
-
-    const authScript = document.createElement('script');
-    authScript.src =
-      'https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js';
-    authScript.onerror = reject;
-    authScript.onload = function () {
-      firebase.initializeApp(firebaseConfig);
-      const legacyAuth = firebase.auth();
-      legacyAuth.useEmulator(emulatorUrl);
-      legacyAuth.setPersistence(persistence.toLowerCase());
-      window.legacyAuth = legacyAuth;
-      resolve();
+    appScript.onload = () => {
+      const authScript = document.createElement('script');
+      authScript.src =
+        'https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js';
+      authScript.onerror = reject;
+      authScript.onload = () => {
+        firebase.initializeApp(firebaseConfig);
+        const legacyAuth = firebase.auth();
+        legacyAuth.useEmulator(emulatorUrl);
+        legacyAuth.setPersistence(persistence.toLowerCase());
+        window.legacyAuth = legacyAuth;
+        resolve();
+      };
+      document.head.appendChild(authScript);
     };
-    document.head.appendChild(authScript);
+    document.head.appendChild(appScript);
   });
 };
