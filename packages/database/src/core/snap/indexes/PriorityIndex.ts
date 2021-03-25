@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { Index } from './Index';
 import { nameCompare, MAX_NAME } from '../../util/util';
-import { NamedNode, Node } from '../Node';
 import { LeafNode } from '../LeafNode';
+import { NamedNode, Node } from '../Node';
+
+import { Index } from './Index';
 
 let nodeFromJSON: (a: unknown) => Node;
 let MAX_NODE: Node;

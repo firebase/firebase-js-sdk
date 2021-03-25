@@ -16,6 +16,15 @@
  */
 
 import {
+  contains,
+  errorPrefix as errorPrefixFxn,
+  safeGet,
+  stringLength
+} from '@firebase/util';
+
+import { RepoInfo } from '../RepoInfo';
+
+import {
   Path,
   pathChild,
   pathCompare,
@@ -28,15 +37,7 @@ import {
   validationPathPush,
   validationPathToErrorString
 } from './Path';
-import {
-  contains,
-  errorPrefix as errorPrefixFxn,
-  safeGet,
-  stringLength
-} from '@firebase/util';
 import { each, isInvalidJSONNumber } from './util';
-
-import { RepoInfo } from '../RepoInfo';
 
 /**
  * True for invalid Firebase keys

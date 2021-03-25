@@ -19,7 +19,8 @@ import {
   Auth,
   MultiFactorResolver,
   OperationType,
-  UserCredential
+  UserCredential,
+  MultiFactorError
 } from '../model/public_types';
 
 import { _castAuth } from '../core/auth/auth_impl';
@@ -28,7 +29,7 @@ import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { _assert, _fail } from '../core/util/assert';
 import { UserCredentialInternal } from '../model/user';
 import { MultiFactorAssertionImpl } from './mfa_assertion';
-import { MultiFactorError } from './mfa_error';
+import { MultiFactorError as MultiFactorErrorInternal } from './mfa_error';
 import { MultiFactorInfoImpl } from './mfa_info';
 import { MultiFactorSessionImpl } from './mfa_session';
 
@@ -44,7 +45,7 @@ export class MultiFactorResolverImpl implements MultiFactorResolver {
   /** @internal */
   static _fromError(
     authExtern: Auth,
-    error: MultiFactorError
+    error: MultiFactorErrorInternal
   ): MultiFactorResolverImpl {
     const auth = _castAuth(authExtern);
     const hints = (error.serverResponse.mfaInfo || []).map(enrollment =>
@@ -124,7 +125,7 @@ export function getMultiFactorResolver(
   auth: Auth,
   error: MultiFactorError
 ): MultiFactorResolver {
-  const errorInternal = error as MultiFactorError;
+  const errorInternal = error as MultiFactorErrorInternal;
   _assert(error.operationType, auth, AuthErrorCode.ARGUMENT_ERROR);
   _assert(
     errorInternal.serverResponse?.mfaPendingCredential,

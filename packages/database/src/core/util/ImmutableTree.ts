@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { SortedMap } from './SortedMap';
 import {
   newEmptyPath,
   Path,
@@ -24,6 +23,7 @@ import {
   pathIsEmpty,
   pathPopFront
 } from './Path';
+import { SortedMap } from './SortedMap';
 import { each, stringCompare } from './util';
 
 let emptyChildrenSingleton: SortedMap<string, ImmutableTree<null>>;

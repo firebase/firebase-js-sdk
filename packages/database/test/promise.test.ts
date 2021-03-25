@@ -16,8 +16,10 @@
  */
 
 import { expect } from 'chai';
-import { getRandomNode, getRootNode } from './helpers/util';
+
 import { Reference } from '../src/api/Reference';
+
+import { getRandomNode, getRootNode } from './helpers/util';
 
 /**
  * This test suite is super flakey, random test fail at random times for

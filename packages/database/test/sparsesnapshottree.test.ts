@@ -16,6 +16,9 @@
  */
 
 import { expect } from 'chai';
+
+import { ChildrenNode } from '../src/core/snap/ChildrenNode';
+import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
 import {
   newSparseSnapshotTree,
   sparseSnapshotTreeFind,
@@ -25,8 +28,6 @@ import {
   sparseSnapshotTreeRemember
 } from '../src/core/SparseSnapshotTree';
 import { newEmptyPath, Path } from '../src/core/util/Path';
-import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
-import { ChildrenNode } from '../src/core/snap/ChildrenNode';
 
 describe('SparseSnapshotTree Tests', () => {
   it('Basic remember and find.', () => {

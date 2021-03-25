@@ -18,16 +18,6 @@
 import { assert, assertionError, safeGet } from '@firebase/util';
 
 import {
-  newEmptyPath,
-  newRelativePath,
-  Path,
-  pathChild,
-  pathContains,
-  pathGetFront,
-  pathIsEmpty,
-  pathPopFront
-} from './util/Path';
-import {
   CompoundWrite,
   compoundWriteAddWrite,
   compoundWriteAddWrites,
@@ -39,12 +29,22 @@ import {
   compoundWriteIsEmpty,
   compoundWriteRemoveWrite
 } from './CompoundWrite';
-import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { ChildrenNode } from './snap/ChildrenNode';
-import { NamedNode, Node } from './snap/Node';
-import { CacheNode } from './view/CacheNode';
 import { Index } from './snap/indexes/Index';
+import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
+import { NamedNode, Node } from './snap/Node';
+import {
+  newEmptyPath,
+  newRelativePath,
+  Path,
+  pathChild,
+  pathContains,
+  pathGetFront,
+  pathIsEmpty,
+  pathPopFront
+} from './util/Path';
 import { each } from './util/util';
+import { CacheNode } from './view/CacheNode';
 
 /**
  * Defines a single user-initiated write operation. May be the result of a set(), transaction(), or update() call. In

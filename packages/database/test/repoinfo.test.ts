@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { testRepoInfo } from './helpers/util';
+import { expect } from 'chai';
+
+import { repoInfoConnectionURL } from '../src/core/RepoInfo';
 import {
   LAST_SESSION_PARAM,
   LONG_POLLING,
@@ -23,8 +25,8 @@ import {
   VERSION_PARAM,
   WEBSOCKET
 } from '../src/realtime/Constants';
-import { expect } from 'chai';
-import { repoInfoConnectionURL } from '../src/core/RepoInfo';
+
+import { testRepoInfo } from './helpers/util';
 
 describe('RepoInfo', () => {
   it('should return the correct URL', () => {

@@ -229,4 +229,8 @@ export class AuthDriver {
       await this.webDriver.switchTo().window(handles[handles.length - 1]);
     }
   }
+
+  isCompatLayer(): boolean {
+    return process.env.COMPAT_LAYER === 'true';
+  }
 }

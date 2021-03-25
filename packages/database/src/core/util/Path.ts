@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { nameCompare } from './util';
 import { stringLength } from '@firebase/util';
+
+import { nameCompare } from './util';
 
 /** Maximum key depth. */
 const MAX_PATH_DEPTH = 32;

@@ -33,8 +33,8 @@ describe('Document', () => {
     };
     const document = doc('rooms/Eros', 1, data);
 
-    const value = document.data();
-    expect(value.proto).to.deep.equal(
+    const value = document.data;
+    expect(value.toProto()).to.deep.equal(
       wrap({
         desc: 'Discuss all the project related stuff',
         owner: 'Jonny'
@@ -49,12 +49,12 @@ describe('Document', () => {
       desc: 'Discuss all the project related stuff',
       owner: { name: 'Jonny', title: 'scallywag' }
     };
-    const document = doc('rooms/Eros', 1, data, { hasLocalMutations: true });
+    const document = doc('rooms/Eros', 1, data).setHasLocalMutations();
 
-    expect(document.field(field('desc'))).to.deep.equal(
+    expect(document.data.field(field('desc'))).to.deep.equal(
       wrap('Discuss all the project related stuff')
     );
-    expect(document.field(field('owner.title'))).to.deep.equal(
+    expect(document.data.field(field('owner.title'))).to.deep.equal(
       wrap('scallywag')
     );
     expect(document.hasLocalMutations).to.equal(true);
@@ -76,8 +76,8 @@ describe('Document', () => {
     );
     expectNotEqual(doc('a/b', 1, { foo: 'bar' }), doc('a/b', 1, { foo: 100 }));
     expectNotEqual(
-      doc('a/b', 1, { foo: 'bar' }, { hasLocalMutations: true }),
-      doc('a/b', 1, { foo: 'bar' }, { hasLocalMutations: false })
+      doc('a/b', 1, { foo: 'bar' }).setHasLocalMutations(),
+      doc('a/b', 1, { foo: 'bar' })
     );
   });
 });

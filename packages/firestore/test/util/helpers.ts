@@ -59,16 +59,13 @@ import { TargetData, TargetPurpose } from '../../src/local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
-  MaybeDocumentMap,
-  maybeDocumentMap
+  documentMap,
+  DocumentMap
 } from '../../src/model/collections';
 import {
   compareDocumentsByField,
   Document,
-  DocumentOptions,
-  MaybeDocument,
-  NoDocument,
-  UnknownDocument
+  MutableDocument
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
@@ -150,29 +147,37 @@ export function ref(key: string, offset?: number): DocumentReference {
 export function doc(
   keyStr: string,
   ver: TestSnapshotVersion,
-  json: JsonObject<unknown>,
-  options: DocumentOptions = {}
-): Document {
-  return new Document(key(keyStr), version(ver), wrapObject(json), options);
+  jsonOrObjectValue: JsonObject<unknown> | ObjectValue
+): MutableDocument {
+  return MutableDocument.newFoundDocument(
+    key(keyStr),
+    version(ver),
+    jsonOrObjectValue instanceof ObjectValue
+      ? jsonOrObjectValue
+      : wrapObject(jsonOrObjectValue)
+  );
 }
 
 export function deletedDoc(
   keyStr: string,
-  ver: TestSnapshotVersion,
-  options: DocumentOptions = {}
-): NoDocument {
-  return new NoDocument(key(keyStr), version(ver), options);
+  ver: TestSnapshotVersion
+): MutableDocument {
+  return MutableDocument.newNoDocument(key(keyStr), version(ver));
 }
 
 export function unknownDoc(
   keyStr: string,
   ver: TestSnapshotVersion
-): UnknownDocument {
-  return new UnknownDocument(key(keyStr), version(ver));
+): MutableDocument {
+  return MutableDocument.newUnknownDocument(key(keyStr), version(ver));
 }
 
-export function removedDoc(keyStr: string): NoDocument {
-  return new NoDocument(key(keyStr), SnapshotVersion.min());
+export function removedDoc(keyStr: string): MutableDocument {
+  return MutableDocument.newNoDocument(key(keyStr), SnapshotVersion.min());
+}
+
+export function invalidDoc(keyStr: string): MutableDocument {
+  return MutableDocument.newInvalidDocument(key(keyStr));
 }
 
 export function wrap(value: unknown): api.Value {
@@ -194,9 +199,7 @@ export function key(path: string): DocumentKey {
   return new DocumentKey(new ResourcePath(splitPath(path, '/')));
 }
 
-export function keys(
-  ...documents: Array<MaybeDocument | string>
-): DocumentKeySet {
+export function keys(...documents: Array<Document | string>): DocumentKeySet {
   let keys = documentKeySet();
   for (const doc of documents) {
     keys = keys.add(typeof doc === 'string' ? key(doc) : doc.key);
@@ -350,7 +353,7 @@ export function noChangeEvent(
 }
 
 export function docAddedRemoteEvent(
-  docOrDocs: MaybeDocument | MaybeDocument[],
+  docOrDocs: MutableDocument | MutableDocument[],
   updatedInTargets?: TargetId[],
   removedFromTargets?: TargetId[],
   activeTargets?: TargetId[]
@@ -382,7 +385,7 @@ export function docAddedRemoteEvent(
 
   for (const doc of docs) {
     debugAssert(
-      !(doc instanceof Document) || !doc.hasLocalMutations,
+      !doc.hasLocalMutations,
       "Docs from remote updates shouldn't have local changes."
     );
     const docChange = new DocumentWatchChange(
@@ -399,13 +402,13 @@ export function docAddedRemoteEvent(
 }
 
 export function docUpdateRemoteEvent(
-  doc: MaybeDocument,
+  doc: MutableDocument,
   updatedInTargets?: TargetId[],
   removedFromTargets?: TargetId[],
   limboTargets?: TargetId[]
 ): RemoteEvent {
   debugAssert(
-    !(doc instanceof Document) || !doc.hasLocalMutations,
+    !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
   const docChange = new DocumentWatchChange(
@@ -433,7 +436,7 @@ export class TestBundledDocuments {
 }
 
 export function bundledDocuments(
-  documents: MaybeDocument[],
+  documents: MutableDocument[],
   queryNames?: string[][],
   bundleName?: string
 ): TestBundledDocuments {
@@ -442,11 +445,10 @@ export function bundledDocuments(
       metadata: {
         name: toName(JSON_SERIALIZER, d.key),
         readTime: toVersion(JSON_SERIALIZER, d.version),
-        exists: d instanceof Document,
+        exists: d.isFoundDocument(),
         queries: queryNames ? queryNames[index] : undefined
       },
-      document:
-        d instanceof Document ? toDocument(JSON_SERIALIZER, d) : undefined
+      document: d.isFoundDocument() ? toDocument(JSON_SERIALIZER, d) : undefined
     };
   });
 
@@ -500,9 +502,9 @@ export function bundleMetadata(
 
 export function updateMapping(
   snapshotVersion: SnapshotVersion,
-  added: Array<Document | string>,
-  modified: Array<Document | string>,
-  removed: Array<MaybeDocument | string>,
+  added: Array<MutableDocument | string>,
+  modified: Array<MutableDocument | string>,
+  removed: Array<MutableDocument | string>,
   current?: boolean
 ): TargetChange {
   let addedDocuments = documentKeySet();
@@ -510,15 +512,18 @@ export function updateMapping(
   let removedDocuments = documentKeySet();
 
   added.forEach(docOrKey => {
-    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
+    const k =
+      docOrKey instanceof MutableDocument ? docOrKey.key : key(docOrKey);
     addedDocuments = addedDocuments.add(k);
   });
   modified.forEach(docOrKey => {
-    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
+    const k =
+      docOrKey instanceof MutableDocument ? docOrKey.key : key(docOrKey);
     modifiedDocuments = modifiedDocuments.add(k);
   });
   removed.forEach(docOrKey => {
-    const k = docOrKey instanceof MaybeDocument ? docOrKey.key : key(docOrKey);
+    const k =
+      docOrKey instanceof MutableDocument ? docOrKey.key : key(docOrKey);
     removedDocuments = removedDocuments.add(k);
   });
 
@@ -532,7 +537,7 @@ export function updateMapping(
 }
 
 export function addTargetMapping(
-  ...docsOrKeys: Array<Document | string>
+  ...docsOrKeys: Array<MutableDocument | string>
 ): TargetChange {
   return updateMapping(
     SnapshotVersion.min(),
@@ -544,7 +549,7 @@ export function addTargetMapping(
 }
 
 export function ackTarget(
-  ...docsOrKeys: Array<Document | string>
+  ...docsOrKeys: Array<MutableDocument | string>
 ): TargetChange {
   return updateMapping(
     SnapshotVersion.min(),
@@ -664,15 +669,15 @@ export function mapAsArray<K, V>(
  */
 export function documentUpdates(
   ...docsOrKeys: Array<Document | DocumentKey>
-): MaybeDocumentMap {
-  let changes = maybeDocumentMap();
+): DocumentMap {
+  let changes = documentMap();
   for (const docOrKey of docsOrKeys) {
-    if (docOrKey instanceof Document) {
+    if (docOrKey instanceof MutableDocument) {
       changes = changes.insert(docOrKey.key, docOrKey);
     } else if (docOrKey instanceof DocumentKey) {
       changes = changes.insert(
         docOrKey,
-        new NoDocument(docOrKey, SnapshotVersion.min())
+        MutableDocument.newNoDocument(docOrKey, SnapshotVersion.min())
       );
     }
   }
@@ -708,7 +713,7 @@ export function documentSet(...args: unknown[]): DocumentSet {
   }
   for (const doc of args) {
     debugAssert(
-      doc instanceof Document,
+      doc instanceof MutableDocument,
       'Bad argument, expected Document: ' + doc
     );
     docSet = docSet.add(doc);

@@ -298,7 +298,7 @@ export class FieldFilter extends Filter {
   }
 
   matches(doc: Document): boolean {
-    const other = doc.field(this.field);
+    const other = doc.data.field(this.field);
     // Types do not have to match in NOT_EQUAL filters.
     if (this.op === Operator.NOT_EQUAL) {
       return (
@@ -459,7 +459,7 @@ export class ArrayContainsFilter extends FieldFilter {
   }
 
   matches(doc: Document): boolean {
-    const other = doc.field(this.field);
+    const other = doc.data.field(this.field);
     return isArray(other) && arrayValueContains(other.arrayValue, this.value);
   }
 }
@@ -472,7 +472,7 @@ export class InFilter extends FieldFilter {
   }
 
   matches(doc: Document): boolean {
-    const other = doc.field(this.field);
+    const other = doc.data.field(this.field);
     return other !== null && arrayValueContains(this.value.arrayValue!, other);
   }
 }
@@ -490,7 +490,7 @@ export class NotInFilter extends FieldFilter {
     ) {
       return false;
     }
-    const other = doc.field(this.field);
+    const other = doc.data.field(this.field);
     return other !== null && !arrayValueContains(this.value.arrayValue!, other);
   }
 }
@@ -503,7 +503,7 @@ export class ArrayContainsAnyFilter extends FieldFilter {
   }
 
   matches(doc: Document): boolean {
-    const other = doc.field(this.field);
+    const other = doc.data.field(this.field);
     if (!isArray(other) || !other.arrayValue.values) {
       return false;
     }
@@ -588,7 +588,7 @@ export function sortsBeforeDocument(
         doc.key
       );
     } else {
-      const docValue = doc.field(orderByComponent.field);
+      const docValue = doc.data.field(orderByComponent.field);
       debugAssert(
         docValue !== null,
         'Field should exist since document matched the orderBy already.'

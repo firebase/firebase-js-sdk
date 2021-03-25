@@ -32,7 +32,7 @@ import {
   Precondition,
   SetMutation
 } from '../model/mutation';
-import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
+import { ObjectValue } from '../model/object_value';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import {
   ArrayRemoveTransformOperation,
@@ -578,7 +578,7 @@ export function parseUpdateData(
   validatePlainObject('Data must be an object, but it was:', context, input);
 
   const fieldMaskPaths: InternalFieldPath[] = [];
-  const updateData = new ObjectValueBuilder();
+  const updateData = ObjectValue.empty();
   forEach(input as Dict<unknown>, (key, value) => {
     const path = fieldPathFromDotSeparatedString(methodName, key, targetDoc);
 
@@ -602,11 +602,7 @@ export function parseUpdateData(
   });
 
   const mask = new FieldMask(fieldMaskPaths);
-  return new ParsedUpdateData(
-    updateData.build(),
-    mask,
-    context.fieldTransforms
-  );
+  return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
 }
 
 /** Parse update data from a list of field/value arguments. */
@@ -645,7 +641,7 @@ export function parseUpdateVarargs(
   }
 
   const fieldMaskPaths: InternalFieldPath[] = [];
-  const updateData = new ObjectValueBuilder();
+  const updateData = ObjectValue.empty();
 
   // We iterate in reverse order to pick the last value for a field if the
   // user specified the field multiple times.
@@ -675,11 +671,7 @@ export function parseUpdateVarargs(
   }
 
   const mask = new FieldMask(fieldMaskPaths);
-  return new ParsedUpdateData(
-    updateData.build(),
-    mask,
-    context.fieldTransforms
-  );
+  return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
 }
 
 /**

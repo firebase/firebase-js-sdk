@@ -23,7 +23,7 @@ import { Query } from '../../../src/exp/reference';
 import { ExpUserDataWriter } from '../../../src/exp/reference_impl';
 import { QuerySnapshot } from '../../../src/exp/snapshot';
 import { documentKeySet } from '../../../src/model/collections';
-import { Document } from '../../../src/model/document';
+import { MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { firestore } from '../../util/api_helpers';
 import {
@@ -38,8 +38,8 @@ import {
 describe('DocumentChange:', () => {
   function expectPositions(
     query: InternalQuery,
-    initialDocs: Document[],
-    updates: Array<Document | DocumentKey>
+    initialDocs: MutableDocument[],
+    updates: Array<MutableDocument | DocumentKey>
   ): void {
     const view = new View(query, documentKeySet());
     const initialSnapshot = applyDocChanges(view, ...initialDocs).snapshot!;
@@ -133,8 +133,8 @@ describe('DocumentChange:', () => {
   it('positions are correct for randomly chosen examples', () => {
     const query1 = query('c', orderBy('sort'));
     for (let run = 0; run < 100; run++) {
-      const initialDocs: Document[] = [];
-      const updates: Array<DocumentKey | Document> = [];
+      const initialDocs: MutableDocument[] = [];
+      const updates: Array<DocumentKey | MutableDocument> = [];
       const numDocs = 100;
       for (let i = 0; i < numDocs; i++) {
         // Skip 20% of the docs

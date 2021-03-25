@@ -17,17 +17,18 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Reference } from '../src/api/Reference';
+import * as _ from 'lodash';
+
 import { DataSnapshot } from '../src/api/DataSnapshot';
 import { Query } from '../src/api/Query';
-import '../src/core/snap/ChildrenNode';
-import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
+import { Reference } from '../src/api/Reference';
+import { INTEGER_32_MAX, INTEGER_32_MIN } from '../src/core/util/util';
+
 import {
   EventAccumulator,
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
-import * as _ from 'lodash';
-import { INTEGER_32_MAX, INTEGER_32_MIN } from '../src/core/util/util';
+import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
 
 use(chaiAsPromised);
 

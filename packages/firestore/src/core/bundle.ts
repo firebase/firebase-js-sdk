@@ -17,8 +17,8 @@
 
 import { LoadBundleTaskProgress } from '@firebase/firestore-types';
 
-import { MaybeDocumentMap } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { DocumentMap } from '../model/collections';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { BundledDocumentMetadata as ProtoBundledDocumentMetadata } from '../protos/firestore_bundle_proto';
 import {
@@ -46,7 +46,7 @@ export type BundledDocuments = BundledDocument[];
 export class BundleLoadResult {
   constructor(
     readonly progress: LoadBundleTaskProgress,
-    readonly changedDocs: MaybeDocumentMap
+    readonly changedDocs: DocumentMap
   ) {}
 }
 
@@ -89,9 +89,9 @@ export interface BundleConverter {
   toDocumentKey(name: string): DocumentKey;
 
   /**
-   * Converts a BundleDocument to a MaybeDocument.
+   * Converts a BundleDocument to a MutableDocument.
    */
-  toMaybeDocument(bundledDoc: BundledDocument): MaybeDocument;
+  toMutableDocument(bundledDoc: BundledDocument): MutableDocument;
 
   toSnapshotVersion(time: ApiTimestamp): SnapshotVersion;
 }

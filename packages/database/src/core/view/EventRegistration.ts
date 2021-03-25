@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import { DataSnapshot } from '../../api/DataSnapshot';
-import { DataEvent, CancelEvent, Event, EventType } from './Event';
 import { contains, assert } from '@firebase/util';
 
-import { Path } from '../util/Path';
-import { Change } from './Change';
+import { DataSnapshot } from '../../api/DataSnapshot';
 import { Query } from '../../api/Query';
+import { Path } from '../util/Path';
+
+import { Change } from './Change';
+import { DataEvent, CancelEvent, Event, EventType } from './Event';
 
 /**
  * An EventRegistration is basically an event type ('value', 'child_added', etc.) and a callback

@@ -33,11 +33,7 @@ import {
 } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
-import {
-  Document,
-  MaybeDocument,
-  NoDocument
-} from '../../../src/model/document';
+import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
@@ -593,12 +589,12 @@ export class SpecBuilder {
    * with no document for NoDocument. This is translated into normal watch
    * messages.
    */
-  ackLimbo(version: TestSnapshotVersion, doc: Document | NoDocument): this {
+  ackLimbo(version: TestSnapshotVersion, doc: Document): this {
     const query = newQueryForPath(doc.key.path);
     this.watchAcks(query);
-    if (doc instanceof Document) {
+    if (doc.isFoundDocument()) {
       this.watchSends({ affects: [query] }, doc);
-    } else if (doc instanceof NoDocument) {
+    } else if (doc.isNoDocument()) {
       // Don't send any updates
     } else {
       fail('Unknown parameter: ' + doc);
@@ -613,7 +609,7 @@ export class SpecBuilder {
    * with either a document or with no document for NoDocument. This is
    * translated into normal watch messages.
    */
-  watchRemovesLimboTarget(doc: Document | NoDocument): this {
+  watchRemovesLimboTarget(doc: Document): this {
     const query = newQueryForPath(doc.key.path);
     this.watchRemoves(query);
     return this;
@@ -719,7 +715,7 @@ export class SpecBuilder {
 
   watchSends(
     targets: { affects?: Query[]; removed?: Query[] },
-    ...docs: MaybeDocument[]
+    ...docs: Document[]
   ): this {
     this.nextStep();
     const affects =
@@ -1042,13 +1038,13 @@ export class SpecBuilder {
     return spec;
   }
 
-  private static docToSpec(doc: MaybeDocument): SpecDocument {
-    if (doc instanceof Document) {
+  private static docToSpec(doc: Document): SpecDocument {
+    if (doc.isFoundDocument()) {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
         value: userDataWriter.convertValue(
-          doc.toProto()
+          doc.data.toProto()
         ) as JsonObject<unknown>,
         options: {
           hasLocalMutations: doc.hasLocalMutations,

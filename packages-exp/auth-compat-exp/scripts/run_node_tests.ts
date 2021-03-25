@@ -33,13 +33,14 @@ const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
 const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
 
 process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs", "target": "es6"}';
+process.env.COMPAT_LAYER = 'true';
 
 let testConfig = ['src/**/*.test.ts'];
 
 if (argv.integration) {
   testConfig = ['test/integration/flows/**.test.ts'];
 } else if (argv.webdriver) {
-  testConfig = ['test/integration/webdriver/**.test.ts', '--delay'];
+  testConfig = ['../auth-exp/test/integration/webdriver/*.test.ts', '--delay'];
 }
 
 let args = [

@@ -17,6 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-compat';
 import * as exp from '@firebase/auth-exp/internal';
+import { Provider } from '@firebase/component';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -31,12 +32,16 @@ describe('auth compat', () => {
   context('redirect persistence key storage', () => {
     let underlyingAuth: exp.AuthImpl;
     let app: FirebaseApp;
+    let providerStub: sinon.SinonStubbedInstance<Provider<'auth-exp'>>;
+
     beforeEach(() => {
       app = { options: { apiKey: 'api-key' } } as FirebaseApp;
       underlyingAuth = new exp.AuthImpl(app, {
         apiKey: 'api-key'
       } as exp.Config);
       sinon.stub(underlyingAuth, '_initializeWithPersistence');
+
+      providerStub = sinon.createStubInstance(Provider);
     });
 
     afterEach(() => {
@@ -56,7 +61,12 @@ describe('auth compat', () => {
           ),
           '_openRedirect'
         );
-        const authCompat = new Auth(app, underlyingAuth);
+        providerStub.isInitialized.returns(true);
+        providerStub.getImmediate.returns(underlyingAuth);
+        const authCompat = new Auth(
+          app,
+          (providerStub as unknown) as Provider<'auth-exp'>
+        );
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
         expect(
@@ -71,18 +81,20 @@ describe('auth compat', () => {
           'firebase:persistence:api-key:undefined',
           'none'
         );
-        new Auth(app, underlyingAuth);
+        providerStub.isInitialized.returns(false);
+        providerStub.initialize.returns(underlyingAuth);
+        new Auth(app, (providerStub as unknown) as Provider<'auth-exp'>);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        expect(
-          underlyingAuth._initializeWithPersistence
-        ).to.have.been.calledWith(
-          [
-            exp._getInstance(exp.inMemoryPersistence),
-            exp._getInstance(exp.indexedDBLocalPersistence),
-            exp._getInstance(exp.browserLocalPersistence)
-          ],
-          CompatPopupRedirectResolver
-        );
+        expect(providerStub.initialize).to.have.been.calledWith({
+          options: {
+            popupRedirectResolver: CompatPopupRedirectResolver,
+            persistence: [
+              exp.inMemoryPersistence,
+              exp.indexedDBLocalPersistence,
+              exp.browserLocalPersistence
+            ]
+          }
+        });
       }
     });
   });

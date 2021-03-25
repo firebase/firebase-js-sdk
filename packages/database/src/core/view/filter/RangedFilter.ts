@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 
-import { IndexedFilter } from './IndexedFilter';
-import { PRIORITY_INDEX } from '../../snap/indexes/PriorityIndex';
 import { NamedNode, Node } from '../../../core/snap/Node';
 import { ChildrenNode } from '../../snap/ChildrenNode';
-import { NodeFilter } from './NodeFilter';
-import { QueryParams } from '../QueryParams';
 import { Index } from '../../snap/indexes/Index';
+import { PRIORITY_INDEX } from '../../snap/indexes/PriorityIndex';
 import { Path } from '../../util/Path';
-import { CompleteChildSource } from '../CompleteChildSource';
 import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
+import { CompleteChildSource } from '../CompleteChildSource';
+import { QueryParams } from '../QueryParams';
+
+import { IndexedFilter } from './IndexedFilter';
+import { NodeFilter } from './NodeFilter';
 
 /**
  * Filters nodes by range and uses an IndexFilter to track any changes after filtering the node

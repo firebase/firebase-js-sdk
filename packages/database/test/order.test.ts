@@ -16,10 +16,12 @@
  */
 
 import { expect } from 'chai';
-import { getRandomNode } from './helpers/util';
+
 import { Reference } from '../src/api/Reference';
+
 import { EventAccumulator } from './helpers/EventAccumulator';
 import { eventTestHelper } from './helpers/events';
+import { getRandomNode } from './helpers/util';
 
 describe('Order Tests', () => {
   // Kind of a hack, but a lot of these tests are written such that they'll fail if run before we're
