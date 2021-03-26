@@ -54,7 +54,8 @@
     "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
-    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts"
+    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
+    "ol": "ts-node-script scripts/exp/create-overloads.ts -i packages-exp/auth-exp/dist/auth-exp-public.d.ts -m Auth -r AuthCompat --moduleToEnhance @firebase/auth"
   },
   "repository": {
     "type": "git",
