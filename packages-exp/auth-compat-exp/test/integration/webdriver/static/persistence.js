@@ -14,12 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  browserLocalPersistence,
-  browserSessionPersistence,
-  indexedDBLocalPersistence,
-  inMemoryPersistence
-} from '@firebase/auth-exp';
 
 const INDEXED_DB_NAME = 'firebaseLocalStorageDb';
 
@@ -76,19 +70,19 @@ export async function indexedDBSnap() {
 }
 
 export async function setPersistenceMemory() {
-  return auth.setPersistence(inMemoryPersistence);
+  return compat.auth().setPersistence('none');
 }
 
 export async function setPersistenceSession() {
-  return auth.setPersistence(browserSessionPersistence);
+  return compat.auth().setPersistence('session');
 }
 
 export async function setPersistenceLocalStorage() {
-  return auth.setPersistence(browserLocalPersistence);
+  return compat.auth().setPersistence('local');
 }
 
 export async function setPersistenceIndexedDB() {
-  return auth.setPersistence(indexedDBLocalPersistence);
+  return compat.auth().setPersistence('local');
 }
 
 // Mock functions for testing edge cases
@@ -134,7 +128,7 @@ function dbPromise(dbRequest) {
       reject(dbRequest.error);
     });
     dbRequest.addEventListener('blocked', () => {
-      reject('blocked');
+      reject(dbRequest.error || 'blocked');
     });
   });
 }

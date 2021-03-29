@@ -16,13 +16,13 @@
  */
 
 import * as redirect from './redirect';
+import firebase from '@firebase/app-compat';
+import '@firebase/auth-compat';
 import * as anonymous from './anonymous';
 import * as core from './core';
 import * as popup from './popup';
 import * as email from './email';
 import * as persistence from './persistence';
-import { initializeApp } from '@firebase/app-exp';
-import { getAuth, useAuthEmulator } from '@firebase/auth-exp';
 
 window.core = core;
 window.anonymous = anonymous;
@@ -31,16 +31,22 @@ window.popup = popup;
 window.email = email;
 window.persistence = persistence;
 
-window.auth = null;
+window.compat = null;
 window.legacyAuth = null;
 
 // The config and emulator URL are injected by the test. The test framework
 // calls this function after that injection.
 window.startAuth = async () => {
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  useAuthEmulator(auth, emulatorUrl);
-  window.auth = auth;
+  // Make sure we haven't confused our firebase with the old firebase
+  if (!firebase.SDK_VERSION.startsWith('0.9')) {
+    throw new Error(
+      'Using legacy SDK version instead of compat version ' +
+        firebase.SDK_VERSION
+    );
+  }
+  firebase.initializeApp(firebaseConfig);
+  firebase.auth().useEmulator(emulatorUrl);
+  window.compat = firebase;
 };
 
 window.startLegacySDK = async persistence => {
@@ -49,21 +55,29 @@ window.startLegacySDK = async persistence => {
     // TODO: Find some way to make the tests work without Internet.
     appScript.src = 'https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js';
     appScript.onerror = reject;
-    appScript.onload = () => {
-      const authScript = document.createElement('script');
-      authScript.src =
-        'https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js';
-      authScript.onerror = reject;
-      authScript.onload = () => {
-        firebase.initializeApp(firebaseConfig);
-        const legacyAuth = firebase.auth();
-        legacyAuth.useEmulator(emulatorUrl);
-        legacyAuth.setPersistence(persistence.toLowerCase());
-        window.legacyAuth = legacyAuth;
-        resolve();
-      };
-      document.head.appendChild(authScript);
-    };
     document.head.appendChild(appScript);
+
+    const authScript = document.createElement('script');
+    authScript.src =
+      'https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js';
+    authScript.onerror = reject;
+    authScript.onload = function () {
+      window.firebase.initializeApp(firebaseConfig);
+      // Make sure the firebase variable here is the legacy SDK
+      if (window.firebase.SDK_VERSION !== '8.3.0') {
+        reject(
+          new Error(
+            'Not using correct legacy version; using ' +
+              window.firebase.SDK_VERSION
+          )
+        );
+      }
+      const legacyAuth = window.firebase.auth();
+      legacyAuth.useEmulator(emulatorUrl);
+      legacyAuth.setPersistence(persistence.toLowerCase());
+      window.legacyAuth = legacyAuth;
+      resolve();
+    };
+    document.head.appendChild(authScript);
   });
 };

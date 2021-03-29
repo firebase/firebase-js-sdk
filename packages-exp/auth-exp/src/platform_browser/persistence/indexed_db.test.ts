@@ -34,6 +34,7 @@ import { Receiver } from '../messagechannel/receiver';
 import { Sender } from '../messagechannel/sender';
 import * as workerUtil from '../util/worker';
 import {
+  _deleteObject,
   indexedDBLocalPersistence,
   _clearDatabase,
   _openDatabase,
@@ -133,6 +134,18 @@ describe('platform_browser/persistence/indexed_db', () => {
       await waitUntilPoll(clock);
 
       expect(callback).to.have.been.calledWith(newValue);
+    });
+
+    it('should trigger the listener when the key is removed', async () => {
+      await _putObject(db, key, newValue);
+      await waitUntilPoll(clock);
+      callback.resetHistory();
+
+      await _deleteObject(db, key);
+
+      await waitUntilPoll(clock);
+
+      expect(callback).to.have.been.calledOnceWith(null);
     });
 
     it('should not trigger the listener when a different key changes', async () => {

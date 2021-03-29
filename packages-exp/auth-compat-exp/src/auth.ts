@@ -34,15 +34,18 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
+import { ReverseWrapper, unwrap, Wrapper } from './wrap';
 
 const _assert: typeof exp._assert = exp._assert;
 
-export class Auth implements compat.FirebaseAuth, _FirebaseService {
+export class Auth
+  implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService {
   readonly _delegate: exp.AuthImpl;
 
   constructor(readonly app: FirebaseApp, provider: Provider<'auth-exp'>) {
     if (provider.isInitialized()) {
       this._delegate = provider.getImmediate() as exp.AuthImpl;
+      this.linkUnderlyingAuth();
       return;
     }
 
@@ -87,6 +90,7 @@ export class Auth implements compat.FirebaseAuth, _FirebaseService {
     }) as exp.AuthImpl;
 
     this._delegate._updateErrorMap(exp.debugErrorMap);
+    this.linkUnderlyingAuth();
   }
 
   get emulatorConfig(): compat.EmulatorConfig | null {
@@ -215,7 +219,9 @@ export class Auth implements compat.FirebaseAuth, _FirebaseService {
         break;
       case Persistence.LOCAL:
         // Not using isIndexedDBAvailable() since it only checks if indexedDB is defined.
-        const isIndexedDBFullySupported = await (exp.indexedDBLocalPersistence as exp.PersistenceInternal)._isAvailable();
+        const isIndexedDBFullySupported = await exp
+          ._getInstance<exp.PersistenceInternal>(exp.indexedDBLocalPersistence)
+          ._isAvailable();
         converted = isIndexedDBFullySupported
           ? exp.indexedDBLocalPersistence
           : exp.browserLocalPersistence;
@@ -284,7 +290,7 @@ export class Auth implements compat.FirebaseAuth, _FirebaseService {
       exp.signInWithPhoneNumber(
         this._delegate,
         phoneNumber,
-        applicationVerifier
+        unwrap(applicationVerifier)
       )
     );
   }
@@ -322,7 +328,7 @@ export class Auth implements compat.FirebaseAuth, _FirebaseService {
   updateCurrentUser(user: compat.User | null): Promise<void> {
     // remove ts-ignore once overloads are defined for exp functions to accept compat objects
     // @ts-ignore
-    return this._delegate.updateCurrentUser(user);
+    return this._delegate.updateCurrentUser(unwrap(user));
   }
   verifyPasswordResetCode(code: string): Promise<string> {
     return exp.verifyPasswordResetCode(this._delegate, code);
@@ -332,6 +338,9 @@ export class Auth implements compat.FirebaseAuth, _FirebaseService {
   }
   _delete(): Promise<void> {
     return this._delegate._delete();
+  }
+  private linkUnderlyingAuth(): void {
+    ((this._delegate as unknown) as ReverseWrapper<Auth>).wrapped = () => this;
   }
 }
 

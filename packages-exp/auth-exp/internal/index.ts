@@ -38,9 +38,10 @@ export { DefaultConfig, AuthImpl, _castAuth } from '../src/core/auth/auth_impl';
 export { ClientPlatform, _getClientVersion } from '../src/core/util/version';
 
 export { _generateEventId } from '../src/core/util/event_id';
-
+export { TaggedWithTokenResponse } from '../src/model/id_token';
 export { _fail, _assert } from '../src/core/util/assert';
 export { AuthPopup } from '../src/platform_browser/util/popup';
 export { _getRedirectResult } from '../src/platform_browser/strategies/redirect';
 export { cordovaPopupRedirectResolver } from '../src/platform_cordova/popup_redirect/popup_redirect';
 export { FetchProvider } from '../src/core/util/fetch_provider';
+export { SAMLAuthCredential } from '../src/core/credentials/saml';
