@@ -108,16 +108,37 @@ function transformNode(node, { pattern, template }) {
     const newName = replacePath(importPathWithQuotes, pattern, template);
 
     if (newName) {
-      const newNode = ts.getMutableClone(node);
-      newNode.moduleSpecifier = ts.createLiteral(newName);
-      return newNode;
+      if (ts.isImportDeclaration(node)) {
+        return ts.factory.updateImportDeclaration(
+          node,
+          node.decorators,
+          node.modifiers,
+          node.importClause,
+          ts.factory.createStringLiteral(newName) // moduleSpecifier
+        );
+      } else if (ts.isExportDeclaration(node)) {
+        return ts.factory.updateExportDeclaration(
+          node,
+          node.decorators,
+          node.modifiers,
+          node.isTypeOnly,
+          node.exportClause,
+          ts.factory.createStringLiteral(newName) // moduleSpecifier
+        );
+      }
+      // Just in case.
+      return node;
     }
   } else if (ts.isModuleDeclaration(node) && node.name) {
     const importPathWithQuotes = node.name.getText();
     const newName = replacePath(importPathWithQuotes, pattern, template);
     if (newName) {
-      const newNode = ts.getMutableClone(node);
-      newNode.name = ts.createLiteral(newName);
+      const newNode = ts.factory.updateModuleDeclaration(
+        node,
+        node.decorators,
+        node.modifiers,
+        ts.factory.createStringLiteral(newName) // name
+      );
       return newNode;
     }
   }
