@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import {
   trace,
   FirebasePerformance,
@@ -23,7 +22,7 @@ import {
   PerformanceTrace
 } from '@firebase/performance-exp';
 import { FirebasePerformance as FirebasePerformanceCompat } from '@firebase/performance-types';
-import { _FirebaseService } from '@firebase/app-compat';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 
 export class PerformanceCompatImpl
   implements FirebasePerformanceCompat, _FirebaseService {
