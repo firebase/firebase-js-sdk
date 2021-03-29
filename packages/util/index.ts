@@ -33,3 +33,4 @@ export * from './src/utf8';
 export * from './src/exponential_backoff';
 export * from './src/formatters';
 export * from './src/compat';
+export * from './src/exp';

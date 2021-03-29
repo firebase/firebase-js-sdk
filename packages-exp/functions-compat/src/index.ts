@@ -18,15 +18,21 @@
 import firebase from '@firebase/app-compat';
 import { name, version } from '../package.json';
 import { registerFunctions } from './register';
-import * as types from '@firebase/functions-types';
-import { Functions as FunctionsServiceExp } from '@firebase/functions-exp';
+import { FirebaseFunctions as FunctionsCompat } from '@firebase/functions-types';
+import { Functions as FunctionsExp } from '@firebase/functions-exp';
 
 declare module '@firebase/functions-exp' {
   export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
-    functionsInstance: types.FirebaseFunctions | FunctionsServiceExp,
+    functionsInstance: FunctionsCompat | FunctionsExp,
     name: string,
     options?: HttpsCallableOptions
   ): HttpsCallable<RequestData, ResponseData>;
+
+  export function useFunctionsEmulator(
+    functionsInstance: FunctionsCompat | FunctionsExp,
+    host: string,
+    port: number
+  ): void;
 }
 registerFunctions();
 firebase.registerVersion(name, version);
@@ -34,11 +40,11 @@ firebase.registerVersion(name, version);
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
     functions?: {
-      (app?: FirebaseApp): types.FirebaseFunctions;
-      Functions: typeof types.FirebaseFunctions;
+      (app?: FirebaseApp): FunctionsCompat;
+      Functions: typeof FunctionsCompat;
     };
   }
   interface FirebaseApp {
-    functions?(regionOrCustomDomain?: string): types.FirebaseFunctions;
+    functions?(regionOrCustomDomain?: string): FunctionsCompat;
   }
 }

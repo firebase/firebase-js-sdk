@@ -26,6 +26,7 @@ import {
   useFunctionsEmulator as _useFunctionsEmulator,
   httpsCallable as _httpsCallable
 } from './service';
+import { getExpInstance } from '@firebase/util';
 
 export * from './public-types';
 
@@ -66,7 +67,11 @@ export function useFunctionsEmulator(
   host: string,
   port: number
 ): void {
-  _useFunctionsEmulator(functionsInstance as FunctionsService, host, port);
+  _useFunctionsEmulator(
+    getExpInstance<FunctionsService>(functionsInstance as FunctionsService),
+    host,
+    port
+  );
 }
 
 /**
@@ -80,7 +85,7 @@ export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData> {
   return _httpsCallable<RequestData, ResponseData>(
-    functionsInstance as FunctionsService,
+    getExpInstance<FunctionsService>(functionsInstance as FunctionsService),
     name,
     options
   );
