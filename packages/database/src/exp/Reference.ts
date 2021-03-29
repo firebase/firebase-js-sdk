@@ -62,6 +62,7 @@ export interface ThenableReference
     Pick<Promise<Reference>, 'then' | 'catch'> {}
 
 export function child(ref: Reference, path: string): Reference {
+  // TODO: Accept Compat class
   return new Reference(ref._repo, pathChild(ref._path, path));
 }
 
