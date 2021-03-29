@@ -16,15 +16,34 @@
  */
 
 import { Query } from './Query';
+import { Repo } from '../core/Repo';
+import {
+  Path,
+  pathChild,
+  pathGetBack,
+  pathIsEmpty,
+  pathParent
+} from '../core/util/Path';
 
 export class Reference extends Query {
-  private constructor() {
+  root: Reference;
+
+  constructor(readonly _repo: Repo, readonly _path: Path) {
     super();
   }
 
-  key: string | null;
-  parent: Reference | null;
-  root: Reference;
+  get key(): string | null {
+    if (pathIsEmpty(this._path)) {
+      return null;
+    } else {
+      return pathGetBack(this._path);
+    }
+  }
+
+  get parent(): Reference | null {
+    const parentPath = pathParent(this._path);
+    return parentPath === null ? null : new Reference(this._repo, parentPath);
+  }
 }
 
 export interface OnDisconnect {
@@ -43,8 +62,7 @@ export interface ThenableReference
     Pick<Promise<Reference>, 'then' | 'catch'> {}
 
 export function child(ref: Reference, path: string): Reference {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  return new Reference(ref._repo, pathChild(ref._path, path));
 }
 
 export function onDisconnect(ref: Reference): OnDisconnect {

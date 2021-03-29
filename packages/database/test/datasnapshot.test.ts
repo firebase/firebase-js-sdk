@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { DataSnapshot as ExpDataSnapshot } from '../src/exp/DataSnapshot';
+import { Reference as ExpReference } from '../src/exp/Reference';
 import { expect } from 'chai';
 import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
 import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
@@ -26,7 +28,13 @@ describe('DataSnapshot Tests', () => {
   /** @return {!DataSnapshot} */
   const snapshotForJSON = function (json) {
     const dummyRef = getRandomNode() as Reference;
-    return new DataSnapshot(nodeFromJSON(json), dummyRef, PRIORITY_INDEX);
+    return new DataSnapshot(
+      new ExpDataSnapshot(
+        nodeFromJSON(json),
+        new ExpReference(dummyRef.repo, dummyRef.path),
+        PRIORITY_INDEX
+      )
+    );
   };
 
   it('DataSnapshot.hasChildren() works.', () => {

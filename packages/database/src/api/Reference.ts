@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { DataSnapshot as ExpDataSnapshot } from '../exp/DataSnapshot';
+import { Node } from '../core/snap/Node';
+import { Reference as ExpReference } from '../exp/Reference';
 import { OnDisconnect } from './onDisconnect';
 import { TransactionResult } from './TransactionResult';
 import { warn } from '../core/util/util';
@@ -51,6 +54,7 @@ import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
+import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 
 export interface ReferenceConstructor {
   new (repo: Repo, path: Path): Reference;
@@ -232,7 +236,11 @@ export class Reference extends Query {
 
   transaction(
     transactionUpdate: (a: unknown) => unknown,
-    onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
+    onComplete?: (
+      error: Error | null,
+      committed: boolean,
+      dataSnapshot: DataSnapshot | null
+    ) => void,
     applyLocally?: boolean
   ): Promise<TransactionResult> {
     validateArgCount('Reference.transaction', 1, 3, arguments.length);
@@ -260,18 +268,26 @@ export class Reference extends Query {
       deferred.promise.catch(() => {});
     }
 
-    const promiseComplete = function (
+    const promiseComplete = (
       error: Error,
       committed: boolean,
-      snapshot: DataSnapshot
-    ) {
+      node: Node | null
+    ) => {
+      let dataSnapshot: DataSnapshot | null = null;
       if (error) {
         deferred.reject(error);
       } else {
-        deferred.resolve(new TransactionResult(committed, snapshot));
+        dataSnapshot = new DataSnapshot(
+          new ExpDataSnapshot(
+            node,
+            new ExpReference(this.repo, this.path),
+            PRIORITY_INDEX
+          )
+        );
+        deferred.resolve(new TransactionResult(committed, dataSnapshot));
       }
       if (typeof onComplete === 'function') {
-        onComplete(error, committed, snapshot);
+        onComplete(error, committed, dataSnapshot);
       }
     };
     repoStartTransaction(

@@ -15,13 +15,40 @@
  * limitations under the License.
  */
 
-import { DataSnapshot } from '../../api/DataSnapshot';
+import { DataSnapshot as ExpDataSnapshot } from '../../exp/DataSnapshot';
+import { Reference as ExpReference } from '../../exp/Reference';
 import { DataEvent, CancelEvent, Event, EventType } from './Event';
 import { contains, assert } from '@firebase/util';
 
 import { Path } from '../util/Path';
 import { Change } from './Change';
-import { Query } from '../../api/Query';
+import { Query, SnapshotCallback } from '../../api/Query';
+import { DataSnapshot } from '../../api/DataSnapshot';
+
+/**
+ * A wrapper class that converts events from the database@exp SDK to the legacy
+ * Database SDK. Events are not converted directly as event registration relies
+ * on reference comparison of the original user callback (see `matches()`).
+ */
+export class ExpSnapshotCallback {
+  constructor(private readonly _userCallback: SnapshotCallback) {}
+
+  callback(
+    thisArg: unknown,
+    expDataSnapshot: ExpDataSnapshot,
+    previousChildName?: string | null
+  ): unknown {
+    return this._userCallback.call(
+      thisArg,
+      new DataSnapshot(expDataSnapshot),
+      previousChildName
+    );
+  }
+
+  matches(exp: ExpSnapshotCallback): boolean {
+    return this._userCallback === exp._userCallback;
+  }
+}
 
 /**
  * An EventRegistration is basically an event type ('value', 'child_added', etc.) and a callback
@@ -64,7 +91,7 @@ export interface EventRegistration {
  */
 export class ValueEventRegistration implements EventRegistration {
   constructor(
-    private callback_: ((d: DataSnapshot) => void) | null,
+    private callback_: ExpSnapshotCallback | null,
     private cancelCallback_: ((e: Error) => void) | null,
     private context_: {} | null
   ) {}
@@ -84,7 +111,11 @@ export class ValueEventRegistration implements EventRegistration {
     return new DataEvent(
       'value',
       this,
-      new DataSnapshot(change.snapshotNode, query.getRef(), index)
+      new ExpDataSnapshot(
+        change.snapshotNode,
+        new ExpReference(query.getRef().repo, query.getRef().path),
+        index
+      )
     );
   }
 
@@ -106,7 +137,7 @@ export class ValueEventRegistration implements EventRegistration {
     } else {
       const cb = this.callback_;
       return function () {
-        cb.call(ctx, (eventData as DataEvent).snapshot);
+        cb.callback(ctx, (eventData as DataEvent).snapshot);
       };
     }
   }
@@ -133,7 +164,8 @@ export class ValueEventRegistration implements EventRegistration {
       return true;
     } else {
       return (
-        other.callback_ === this.callback_ && other.context_ === this.context_
+        other.callback_.matches(this.callback_) &&
+        other.context_ === this.context_
       );
     }
   }
@@ -155,7 +187,7 @@ export class ValueEventRegistration implements EventRegistration {
 export class ChildEventRegistration implements EventRegistration {
   constructor(
     private callbacks_: {
-      [k: string]: (d: DataSnapshot, s?: string | null) => void;
+      [child: string]: ExpSnapshotCallback;
     } | null,
     private cancelCallback_: ((e: Error) => void) | null,
     private context_?: {}
@@ -193,7 +225,11 @@ export class ChildEventRegistration implements EventRegistration {
     return new DataEvent(
       change.type as EventType,
       this,
-      new DataSnapshot(change.snapshotNode, ref, index),
+      new ExpDataSnapshot(
+        change.snapshotNode,
+        new ExpReference(ref.repo, ref.path),
+        index
+      ),
       change.prevName
     );
   }
@@ -216,7 +252,7 @@ export class ChildEventRegistration implements EventRegistration {
     } else {
       const cb = this.callbacks_[(eventData as DataEvent).eventType];
       return function () {
-        cb.call(
+        cb.callback(
           ctx,
           (eventData as DataEvent).snapshot,
           (eventData as DataEvent).prevName
@@ -249,7 +285,7 @@ export class ChildEventRegistration implements EventRegistration {
               thisKey === otherKey &&
               (!other.callbacks_[otherKey] ||
                 !this.callbacks_[thisKey] ||
-                other.callbacks_[otherKey] === this.callbacks_[thisKey])
+                other.callbacks_[otherKey].matches(this.callbacks_[thisKey]))
             );
           } else {
             // Exact match on each key.
