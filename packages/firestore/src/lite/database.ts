@@ -66,7 +66,7 @@ export class FirebaseFirestore implements FirestoreService {
   // all components have shut down.
   private _terminateTask?: Promise<void>;
 
-  private _app?: FirebaseApp;
+  _app?: FirebaseApp;
 
   /** @hideconstructor */
   constructor(

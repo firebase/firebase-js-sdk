@@ -178,6 +178,7 @@ export function configureFirestore(firestore: FirebaseFirestore): void {
 
   const databaseInfo = makeDatabaseInfo(
     firestore._databaseId,
+    firestore._app?.options.appId || '',
     firestore._persistenceKey,
     settings
   );
