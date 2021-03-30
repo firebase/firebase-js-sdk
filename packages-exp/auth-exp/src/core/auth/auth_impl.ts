@@ -296,15 +296,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async updateCurrentUser(userExtern: User | null): Promise<void> {
-    // The public updateCurrentUser method needs to make a copy of the user,
-    // and also needs to verify that the app matches
+    // The public updateCurrentUser method needs to make a copy of the user
     const user = userExtern as UserInternal | null;
-    _assert(
-      !user || user.auth.name === this.name,
-      this,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
-
     return this._updateCurrentUser(user && user._clone());
   }
 
