@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { DataSnapshot as ExpDataSnapshot } from '../exp/DataSnapshot';
+import { Reference as ExpReference } from '../exp/Reference';
 import {
   assert,
   Deferred,
@@ -45,6 +47,7 @@ import {
 import {
   ChildEventRegistration,
   EventRegistration,
+  ExpSnapshotCallback,
   ValueEventRegistration
 } from '../core/view/EventRegistration';
 
@@ -71,7 +74,7 @@ import { DataSnapshot } from './DataSnapshot';
 let __referenceConstructor: new (repo: Repo, path: Path) => Query;
 
 export interface SnapshotCallback {
-  (a: DataSnapshot, b?: string | null): unknown;
+  (dataSnapshot: DataSnapshot, previousChildName?: string | null): unknown;
 }
 
 /**
@@ -215,19 +218,19 @@ export class Query {
       cancelCallbackOrContext,
       context
     );
-
+    const expCallback = new ExpSnapshotCallback(callback);
     if (eventType === 'value') {
-      this.onValueEvent(callback, ret.cancel, ret.context);
+      this.onValueEvent(expCallback, ret.cancel, ret.context);
     } else {
-      const callbacks: { [k: string]: typeof callback } = {};
-      callbacks[eventType] = callback;
+      const callbacks: { [k: string]: ExpSnapshotCallback } = {};
+      callbacks[eventType] = expCallback;
       this.onChildEvent(callbacks, ret.cancel, ret.context);
     }
     return callback;
   }
 
   protected onValueEvent(
-    callback: (a: DataSnapshot) => void,
+    callback: ExpSnapshotCallback,
     cancelCallback: ((a: Error) => void) | null,
     context: object | null
   ) {
@@ -239,8 +242,8 @@ export class Query {
     repoAddEventCallbackForQuery(this.repo, this, container);
   }
 
-  onChildEvent(
-    callbacks: { [k: string]: SnapshotCallback },
+  protected onChildEvent(
+    callbacks: { [k: string]: ExpSnapshotCallback },
     cancelCallback: ((a: Error) => unknown) | null,
     context: object | null
   ) {
@@ -261,20 +264,20 @@ export class Query {
     validateEventType('Query.off', 1, eventType, true);
     validateCallback('Query.off', 2, callback, true);
     validateContextObject('Query.off', 3, context, true);
-
     let container: EventRegistration | null = null;
-    let callbacks: { [k: string]: typeof callback } | null = null;
+    let callbacks: { [k: string]: ExpSnapshotCallback } | null = null;
+
+    const expCallback = callback ? new ExpSnapshotCallback(callback) : null;
     if (eventType === 'value') {
-      const valueCallback = callback || null;
       container = new ValueEventRegistration(
-        valueCallback,
+        expCallback,
         null,
         context || null
       );
     } else if (eventType) {
       if (callback) {
         callbacks = {};
-        callbacks[eventType] = callback;
+        callbacks[eventType] = expCallback;
       }
       container = new ChildEventRegistration(callbacks, null, context || null);
     }
@@ -285,7 +288,15 @@ export class Query {
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return repoGetValue(this.repo, this);
+    return repoGetValue(this.repo, this).then(node => {
+      return new DataSnapshot(
+        new ExpDataSnapshot(
+          node,
+          new ExpReference(this.getRef().repo, this.getRef().path),
+          this.getQueryParams().getIndex()
+        )
+      );
+    });
   }
 
   /**

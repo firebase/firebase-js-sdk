@@ -18,7 +18,7 @@
 import { stringify } from '@firebase/util';
 import { Path } from '../util/Path';
 import { EventRegistration } from './EventRegistration';
-import { DataSnapshot } from '../../api/DataSnapshot';
+import { DataSnapshot as ExpDataSnapshot } from '../../exp/DataSnapshot';
 
 /**
  * Encapsulates the data needed to raise an event
@@ -54,7 +54,7 @@ export class DataEvent implements Event {
   constructor(
     public eventType: EventType,
     public eventRegistration: EventRegistration,
-    public snapshot: DataSnapshot,
+    public snapshot: ExpDataSnapshot,
     public prevName?: string | null
   ) {}
 
@@ -62,11 +62,11 @@ export class DataEvent implements Event {
    * @inheritDoc
    */
   getPath(): Path {
-    const ref = this.snapshot.getRef();
+    const ref = this.snapshot.ref;
     if (this.eventType === 'value') {
-      return ref.path;
+      return ref._path;
     } else {
-      return ref.getParent().path;
+      return ref.parent._path;
     }
   }
 

@@ -105,7 +105,6 @@ import {
 } from './util/Tree';
 import { isValidPriority, validateFirebaseData } from './util/validation';
 import { ChildrenNode } from './snap/ChildrenNode';
-import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { Reference } from '../api/Reference';
 import { FirebaseAppLike } from './RepoManager';
 
@@ -143,7 +142,7 @@ const enum TransactionStatus {
 interface Transaction {
   path: Path;
   update: (a: unknown) => unknown;
-  onComplete: (a: Error | null, b: boolean, c: DataSnapshot | null) => void;
+  onComplete: (error: Error, committed: boolean, node: Node | null) => void;
   status: TransactionStatus;
   order: number;
   applyLocally: boolean;
@@ -450,17 +449,11 @@ function repoGetNextWriteId(repo: Repo): number {
  *
  * @param query - The query to surface a value for.
  */
-export function repoGetValue(repo: Repo, query: Query): Promise<DataSnapshot> {
+export function repoGetValue(repo: Repo, query: Query): Promise<Node> {
   // Only active queries are cached. There is no persisted cache.
   const cached = syncTreeGetServerValue(repo.serverSyncTree_, query);
   if (cached != null) {
-    return Promise.resolve(
-      new DataSnapshot(
-        cached,
-        query.getRef(),
-        query.getQueryParams().getIndex()
-      )
-    );
+    return Promise.resolve(cached);
   }
   return repo.server_.get(query).then(
     payload => {
@@ -471,13 +464,7 @@ export function repoGetValue(repo: Repo, query: Query): Promise<DataSnapshot> {
         node
       );
       eventQueueRaiseEventsAtPath(repo.eventQueue_, query.path, events);
-      return Promise.resolve(
-        new DataSnapshot(
-          node,
-          query.getRef(),
-          query.getQueryParams().getIndex()
-        )
-      );
+      return Promise.resolve(node);
     },
     err => {
       repoLog(repo, 'get for query ' + stringify(query) + ' failed: ' + err);
@@ -883,7 +870,9 @@ export function repoStartTransaction(
   repo: Repo,
   path: Path,
   transactionUpdate: (a: unknown) => unknown,
-  onComplete: ((a: Error, b: boolean, c: DataSnapshot) => void) | null,
+  onComplete:
+    | ((error: Error, committed: boolean, node: Node | null) => void)
+    | null,
   applyLocally: boolean
 ): void {
   repoLog(repo, 'transaction on ' + path);
@@ -930,13 +919,7 @@ export function repoStartTransaction(
     transaction.currentOutputSnapshotRaw = null;
     transaction.currentOutputSnapshotResolved = null;
     if (transaction.onComplete) {
-      // We just set the input snapshot, so this cast should be safe
-      const snapshot = new DataSnapshot(
-        transaction.currentInputSnapshot,
-        new Reference(repo, transaction.path),
-        PRIORITY_INDEX
-      );
-      transaction.onComplete(null, false, snapshot);
+      transaction.onComplete(null, false, transaction.currentInputSnapshot);
     }
   } else {
     validateFirebaseData(
@@ -1115,11 +1098,7 @@ function repoSendTransactionQueue(
             // We never unset the output snapshot, and given that this
             // transaction is complete, it should be set
             const node = queue[i].currentOutputSnapshotResolved as Node;
-            const ref = new Reference(repo, queue[i].path);
-            const snapshot = new DataSnapshot(node, ref, PRIORITY_INDEX);
-            callbacks.push(
-              queue[i].onComplete.bind(null, null, true, snapshot)
-            );
+            callbacks.push(() => queue[i].onComplete(null, true, node));
           }
           queue[i].unwatcher();
         }
@@ -1329,11 +1308,10 @@ function repoRerunTransactionQueue(
           const ref = new Reference(repo, queue[i].path);
           // We set this field immediately, so it's safe to cast to an actual snapshot
           const lastInput /** @type {!Node} */ = queue[i].currentInputSnapshot;
-          const snapshot = new DataSnapshot(lastInput, ref, PRIORITY_INDEX);
-          callbacks.push(queue[i].onComplete.bind(null, null, false, snapshot));
+          callbacks.push(() => queue[i].onComplete(null, false, lastInput));
         } else {
-          callbacks.push(
-            queue[i].onComplete.bind(null, new Error(abortReason), false, null)
+          callbacks.push(() =>
+            queue[i].onComplete(new Error(abortReason), false, null)
           );
         }
       }
