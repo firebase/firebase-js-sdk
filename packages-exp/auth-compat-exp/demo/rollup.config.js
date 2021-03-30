@@ -28,7 +28,7 @@ const plugins = [
     typescript,
     include: ['../**/*.ts']
   }),
-  json(),
+  json()
 ];
 
 /**
