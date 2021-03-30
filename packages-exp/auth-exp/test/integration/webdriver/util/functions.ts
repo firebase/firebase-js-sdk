@@ -63,7 +63,6 @@ export enum CoreFunction {
 }
 
 /** Available persistence functions within the browser. See static/persistence.js */
-
 export enum PersistenceFunction {
   CLEAR_PERSISTENCE = 'persistence.clearPersistence',
   LOCAL_STORAGE_SNAP = 'persistence.localStorageSnap',
@@ -76,4 +75,9 @@ export enum PersistenceFunction {
   SET_PERSISTENCE_SESSION = 'persistence.setPersistenceSession',
   SET_PERSISTENCE_INDEXED_DB = 'persistence.setPersistenceIndexedDB',
   SET_PERSISTENCE_LOCAL_STORAGE = 'persistence.setPersistenceLocalStorage'
+}
+
+/** Available firebase UI functions (only for compat tests) */
+export enum UiFunction {
+  START = 'ui.startUi'
 }
