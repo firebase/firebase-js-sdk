@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 0.4.1
+
+### Patch Changes
+
+- [`de5f90501`](https://github.com/firebase/firebase-js-sdk/commit/de5f9050137acc9ed1490082e5aa429b5de3cb2a) [#4673](https://github.com/firebase/firebase-js-sdk/pull/4673) - Added a utility function and type for compat interop API
+
 ## 0.4.0
 
 ### Minor Changes
