@@ -17,7 +17,7 @@
 
 import { child, Reference } from './Reference';
 import { Node } from '../core/snap/Node';
-import { Index } from '../core/snap/indexes';
+import { Index } from '../core/snap/indexes/Index';
 import { Path } from '../core/util/Path';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { ChildrenNode } from '../core/snap/ChildrenNode';
