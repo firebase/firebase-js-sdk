@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
-import {
-  FirebaseAnalytics,
-  AnalyticsCallOptions
-} from '@firebase/analytics-types';
+import firebase, {
+  _FirebaseNamespace,
+  FirebaseApp
+} from '@firebase/app-compat';
+import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { name, version } from '../package.json';
 import { AnalyticsService } from './service';
 import {
@@ -28,19 +28,11 @@ import {
   ComponentType,
   InstanceFactory
 } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types';
 import {
   settings as settingsExp,
   isSupported as isSupportedExp
 } from '@firebase/analytics-exp';
 import { EventName } from './constants';
-declare module '@firebase/analytics-exp' {
-  export function setUserId(
-    analyticsInstance: FirebaseAnalytics,
-    userId: string,
-    options?: AnalyticsCallOptions
-  ): void;
-}
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
