@@ -31,7 +31,7 @@ import {
   EmailAuthProvider_Instance,
   FacebookAuthProvider,
   FacebookAuthProvider_Instance,
-  FirebaseAuth,
+  FirebaseAuth as AuthCompat,
   GithubAuthProvider,
   GithubAuthProvider_Instance,
   GoogleAuthProvider,
@@ -56,15 +56,15 @@ const AUTH_TYPE = 'auth-compat';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'auth-compat': FirebaseAuth;
+    'auth-compat': AuthCompat;
   }
 }
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
     auth: {
-      (app?: FirebaseApp): FirebaseAuth;
-      Auth: typeof FirebaseAuth;
+      (app?: FirebaseApp): AuthCompat;
+      Auth: typeof AuthCompat;
       EmailAuthProvider: typeof EmailAuthProvider;
       EmailAuthProvider_Instance: typeof EmailAuthProvider_Instance;
       FacebookAuthProvider: typeof FacebookAuthProvider;
@@ -85,7 +85,7 @@ declare module '@firebase/app-compat' {
     };
   }
   interface FirebaseApp {
-    auth?(): FirebaseAuth;
+    auth?(): AuthCompat;
   }
 }
 

@@ -17,12 +17,11 @@
 
 import * as yargs from 'yargs';
 import * as ts from 'typescript';
-import { fs } from 'mz';
+import * as fs from 'fs';
 
 /**
  * TODO:
  *  - accept an array of (match, replacement)
- *  - import types from the source d.ts
  */
 const argv = yargs
   .options({
@@ -34,6 +33,11 @@ const argv = yargs
     output: {
       alias: 'o',
       default: 'out.d.ts'
+    },
+    append: {
+      alias: 'a',
+      type: 'boolean',
+      default: false
     },
     match: {
       alias: 'm',
@@ -55,6 +59,7 @@ const argv = yargs
 interface Options {
   input: string;
   output: string;
+  append: boolean;
   match: string;
   replacement: string;
   moduleToEnhance: string;
@@ -63,43 +68,60 @@ interface Options {
 function createOverloads({
   input,
   output,
+  append,
   match,
   replacement,
   moduleToEnhance
 }: Options) {
-  console.log('create over loads');
   const compilerOptions = {};
   const host = ts.createCompilerHost(compilerOptions);
   const program = ts.createProgram([input], compilerOptions, host);
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(input)!;
 
-  const overloads: ts.Statement[] = [];
-
   const result = ts.transform<ts.SourceFile>(sourceFile, [
     keepPublicFunctionsTransformer.bind(
       undefined,
+      program,
       match,
       replacement,
-      moduleToEnhance,
-      overloads
+      moduleToEnhance
     )
   ]);
 
   const transformedSourceFile = result.transformed[0];
   const content = printer.printFile(transformedSourceFile);
 
-  fs.writeFileSync(output, content);
+  // if append, append to the output file
+  if (append) {
+    if (!fs.existsSync(output)) {
+      throw Error(
+        `${output} doesn't exist. Please provide path to an existing file when using the -a option`
+      );
+    }
+    const stat = fs.statSync(output);
+    if (!stat.isFile()) {
+      throw Error(
+        `${output} is not a file. Please provide path to an existing file when using the -a option`
+      );
+    }
+
+    fs.appendFileSync(output, `\n${content}`);
+  } else {
+    fs.writeFileSync(output, content);
+  }
 }
 
 function keepPublicFunctionsTransformer(
+  program: ts.Program,
   match: string,
   replacement: string,
   moduleNameToEnhance: string,
-  overloads: ts.Statement[],
   context: ts.TransformationContext
 ): ts.Transformer<ts.SourceFile> {
   return (sourceFile: ts.SourceFile) => {
+    const typeChecker = program.getTypeChecker();
+    const overloads: ts.Statement[] = [];
     function visit(node: ts.Node): ts.Node {
       if (ts.isFunctionDeclaration(node)) {
         // return early if the function doesn't have any parameter of the type we are looking for
@@ -172,6 +194,28 @@ function keepPublicFunctionsTransformer(
     }
 
     const transformed = visitNodeAndChildren(sourceFile);
+
+    const typesToImport: Set<string> = new Set();
+    // find types referenced in overloads. we need to import them.
+    for (const overload of overloads) {
+      findTypes(typeChecker, overload, transformed, typesToImport, [
+        replacement
+      ]);
+    }
+
+    const importStatement = ts.createImportDeclaration(
+      undefined,
+      undefined,
+      ts.createImportClause(
+        undefined,
+        ts.createNamedImports(
+          Array.from(typesToImport).map(typeName =>
+            ts.createImportSpecifier(undefined, ts.createIdentifier(typeName))
+          )
+        )
+      ),
+      ts.createLiteral(moduleNameToEnhance)
+    );
     const moduleToEnhance = ts.createModuleDeclaration(
       undefined,
       [ts.createModifier(ts.SyntaxKind.DeclareKeyword)],
@@ -179,8 +223,67 @@ function keepPublicFunctionsTransformer(
       ts.createModuleBlock(overloads)
     );
 
-    return ts.updateSourceFileNode(transformed, [moduleToEnhance]);
+    return ts.updateSourceFileNode(transformed, [
+      importStatement,
+      moduleToEnhance
+    ]);
   };
+}
+
+const BUILTIN_TYPES = [
+  'string',
+  'number',
+  'boolean',
+  'unknown',
+  'any',
+  'void',
+  'null',
+  'undefined',
+  'never',
+  'Object',
+  'object',
+  'Promise'
+];
+
+// find all types (except for the built-ins and primitives) referenced in the function declaration
+function findTypes(
+  typeCheck: ts.TypeChecker,
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  types: Set<string>,
+  excludes: string[] = []
+): void {
+  const typesToIgnore = [...BUILTIN_TYPES, ...excludes];
+
+  function findTypesRecursively(node: ts.Node): void {
+    if (ts.isTypeReferenceNode(node)) {
+      let typeName = node.typeName.getText(sourceFile);
+      if (ts.isIdentifier(node.typeName)) {
+        typeName = node.typeName.text;
+
+        // early return here otherwise getSymbolAtLocation may throw for synthetic nodes we created
+        if (typesToIgnore.includes(typeName)) {
+          return;
+        }
+        const symbol = typeCheck.getSymbolAtLocation(node.typeName);
+        const declaration = symbol?.declarations[0];
+
+        // ignore type parameters.
+        if (declaration && ts.isTypeParameterDeclaration(declaration)) {
+          return;
+        }
+      }
+
+      // include the type if it's not in the excludes list or a builtin type
+      if (!typesToIgnore.includes(typeName)) {
+        types.add(typeName);
+      }
+    }
+
+    ts.forEachChild(node, findTypesRecursively);
+  }
+
+  findTypesRecursively(node);
 }
 
 createOverloads(argv);
