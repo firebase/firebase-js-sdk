@@ -21,7 +21,6 @@ import {
   EventParams,
   FirebaseAnalytics
 } from '@firebase/analytics-types';
-import { FirebaseApp } from '@firebase/app-types';
 import {
   Analytics as AnalyticsServiceExp,
   logEvent as logEventExp,
@@ -30,11 +29,12 @@ import {
   setUserId as setUserIdExp,
   setUserProperties as setUserPropertiesExp
 } from '@firebase/analytics-exp';
+import { _FirebaseService, FirebaseApp } from '@firebase/app-compat';
 
-export class AnalyticsService implements FirebaseAnalytics {
+export class AnalyticsService implements FirebaseAnalytics, _FirebaseService {
   constructor(
     public app: FirebaseApp,
-    private _analyticsServiceExp: AnalyticsServiceExp
+    readonly _delegate: AnalyticsServiceExp
   ) {}
 
   logEvent(
@@ -42,30 +42,25 @@ export class AnalyticsService implements FirebaseAnalytics {
     eventParams?: EventParams | CustomParams,
     options?: AnalyticsCallOptions
   ): void {
-    logEventExp(
-      this._analyticsServiceExp,
-      eventName as '',
-      eventParams,
-      options
-    );
+    logEventExp(this._delegate, eventName as '', eventParams, options);
   }
 
   setCurrentScreen(screenName: string, options?: AnalyticsCallOptions): void {
-    setCurrentScreenExp(this._analyticsServiceExp, screenName, options);
+    setCurrentScreenExp(this._delegate, screenName, options);
   }
 
   setUserId(id: string, options?: AnalyticsCallOptions): void {
-    setUserIdExp(this._analyticsServiceExp, id, options);
+    setUserIdExp(this._delegate, id, options);
   }
 
   setUserProperties(
     properties: CustomParams,
     options?: AnalyticsCallOptions
   ): void {
-    setUserPropertiesExp(this._analyticsServiceExp, properties, options);
+    setUserPropertiesExp(this._delegate, properties, options);
   }
 
   setAnalyticsCollectionEnabled(enabled: boolean): void {
-    setAnalyticsCollectionEnabledExp(this._analyticsServiceExp, enabled);
+    setAnalyticsCollectionEnabledExp(this._delegate, enabled);
   }
 }

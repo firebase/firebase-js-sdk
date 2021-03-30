@@ -16,6 +16,7 @@
  */
 
 import { assert, isMobileCordova } from '@firebase/util';
+
 import { EventEmitter } from './EventEmitter';
 
 /**

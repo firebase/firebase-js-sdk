@@ -31,7 +31,8 @@ import { name as packageName, version } from './package.json';
 import {
   Component,
   ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  InstanceFactoryOptions
 } from '@firebase/component';
 
 // Facilitates debugging by enabling settings changes without rebuilding asset.
@@ -59,7 +60,7 @@ export function registerRemoteConfig(
 
   function remoteConfigFactory(
     container: ComponentContainer,
-    namespace?: string
+    { instanceIdentifier: namespace }: InstanceFactoryOptions
   ): RemoteConfig {
     /* Dependencies */
     // getImmediate for FirebaseApp will always succeed

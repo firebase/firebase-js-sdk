@@ -82,6 +82,15 @@ describe('Integration test: phone auth', () => {
     document.body.removeChild(fakeRecaptchaContainer);
   });
 
+  function resetVerifier(): void {
+    verifier.clear();
+    verifier = new RecaptchaVerifier(
+      fakeRecaptchaContainer,
+      undefined as any,
+      auth
+    );
+  }
+
   /** If in the emulator, search for the code in the API */
   async function code(
     crOrId: ConfirmationResult | string,
@@ -126,17 +135,40 @@ describe('Integration test: phone auth', () => {
     expect(auth.currentUser!.phoneNumber).to.be.null;
   });
 
+  it('anonymous users can upgrade using phone number', async () => {
+    const { user } = await signInAnonymously(auth);
+    const { uid: anonId } = user;
+
+    const provider = new PhoneAuthProvider(auth);
+    const verificationId = await provider.verifyPhoneNumber(
+      PHONE_B.phoneNumber,
+      verifier
+    );
+
+    await updatePhoneNumber(
+      user,
+      PhoneAuthProvider.credential(
+        verificationId,
+        await code(verificationId, PHONE_B.code)
+      )
+    );
+    expect(user.phoneNumber).to.eq(PHONE_B.phoneNumber);
+
+    await auth.signOut();
+    resetVerifier();
+
+    const cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier);
+    const { user: secondSignIn } = await cr.confirm(
+      await code(cr, PHONE_B.code)
+    );
+    expect(secondSignIn.uid).to.eq(anonId);
+    expect(secondSignIn.isAnonymous).to.be.false;
+    expect(secondSignIn.providerData[0].phoneNumber).to.eq(PHONE_B.phoneNumber);
+    expect(secondSignIn.providerData[0].providerId).to.eq('phone');
+  });
+
   context('with already-created user', () => {
     let signUpCred: UserCredential;
-
-    function resetVerifier(): void {
-      verifier.clear();
-      verifier = new RecaptchaVerifier(
-        fakeRecaptchaContainer,
-        undefined as any,
-        auth
-      );
-    }
 
     beforeEach(async () => {
       const cr = await signInWithPhoneNumber(

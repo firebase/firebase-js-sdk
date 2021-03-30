@@ -128,7 +128,6 @@ export function initializeFirestore(
     );
   }
 
-  const firestore = provider.getImmediate() as FirebaseFirestore;
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
@@ -140,8 +139,7 @@ export function initializeFirestore(
     );
   }
 
-  firestore._setSettings(settings);
-  return firestore;
+  return provider.initialize({ options: settings });
 }
 
 /**
@@ -157,6 +155,9 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   return _getProvider(app, 'firestore-exp').getImmediate() as FirebaseFirestore;
 }
 
+/**
+ * @internal
+ */
 export function ensureFirestoreConfigured(
   firestore: FirebaseFirestore
 ): FirestoreClient {
@@ -177,6 +178,7 @@ export function configureFirestore(firestore: FirebaseFirestore): void {
 
   const databaseInfo = makeDatabaseInfo(
     firestore._databaseId,
+    firestore._app?.options.appId || '',
     firestore._persistenceKey,
     settings
   );

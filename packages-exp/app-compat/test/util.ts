@@ -20,6 +20,7 @@ import { FirebaseApp } from '../src/public-types';
 import { ComponentType, Component } from '@firebase/component';
 
 export class TestService implements _FirebaseService {
+  readonly _delegate = {};
   constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   get app(): FirebaseApp {

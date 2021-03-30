@@ -53,7 +53,8 @@
     "api-report": "lerna run --scope @firebase/*-exp --scope @firebase/firestore --scope @firebase/storage --scope @firebase/storage-types --scope @firebase/database api-report",
     "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
-    "sa": "ts-node-script repo-scripts/size-analysis/cli.ts"
+    "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
+    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts"
   },
   "repository": {
     "type": "git",
@@ -89,8 +90,8 @@
     "@typescript-eslint/eslint-plugin": "4.11.1",
     "@typescript-eslint/eslint-plugin-tslint": "4.11.1",
     "@typescript-eslint/parser": "4.11.1",
-    "api-documenter-me": "0.1.0",
-    "api-extractor-me": "0.1.1",
+    "api-documenter-me": "0.1.1",
+    "api-extractor-me": "0.1.2",
     "babel-loader": "8.2.2",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",

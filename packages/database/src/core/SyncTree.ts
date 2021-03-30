@@ -16,10 +16,10 @@
  */
 
 import { assert } from '@firebase/util';
-import { each, errorForServerCode } from './util/util';
+
+import { EventRegistration, Query } from '../api/Reference';
+
 import { AckUserWrite } from './operation/AckUserWrite';
-import { ChildrenNode } from './snap/ChildrenNode';
-import { ImmutableTree } from './util/ImmutableTree';
 import { ListenComplete } from './operation/ListenComplete';
 import { Merge } from './operation/Merge';
 import {
@@ -29,13 +29,8 @@ import {
   Operation
 } from './operation/Operation';
 import { Overwrite } from './operation/Overwrite';
-import {
-  newEmptyPath,
-  newRelativePath,
-  Path,
-  pathGetFront,
-  pathIsEmpty
-} from './util/Path';
+import { ChildrenNode } from './snap/ChildrenNode';
+import { Node } from './snap/Node';
 import {
   SyncPoint,
   syncPointAddEventRegistration,
@@ -50,13 +45,29 @@ import {
   syncPointViewExistsForQuery,
   syncPointViewForQuery
 } from './SyncPoint';
-import { WriteTree, WriteTreeRef } from './WriteTree';
-import { Query } from '../api/Query';
-import { Node } from './snap/Node';
-import { Event } from './view/Event';
-import { EventRegistration } from './view/EventRegistration';
-import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
+import { ImmutableTree } from './util/ImmutableTree';
+import {
+  newEmptyPath,
+  newRelativePath,
+  Path,
+  pathGetFront,
+  pathIsEmpty
+} from './util/Path';
+import { each, errorForServerCode } from './util/util';
 import { CacheNode } from './view/CacheNode';
+import { Event } from './view/Event';
+import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
+import {
+  newWriteTree,
+  writeTreeAddMerge,
+  writeTreeAddOverwrite,
+  writeTreeCalcCompleteEventCache,
+  writeTreeChildWrites,
+  writeTreeGetWrite,
+  WriteTreeRef,
+  writeTreeRefChild,
+  writeTreeRemoveWrite
+} from './WriteTree';
 
 /**
  * @typedef {{
@@ -116,7 +127,7 @@ export class SyncTree {
   /**
    * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
    */
-  pendingWriteTree_ = new WriteTree();
+  pendingWriteTree_ = newWriteTree();
 
   readonly tagToQueryMap: Map<number, string> = new Map();
   readonly queryToTagMap: Map<string, number> = new Map();
@@ -141,7 +152,13 @@ export function syncTreeApplyUserOverwrite(
   visible?: boolean
 ): Event[] {
   // Record pending write.
-  syncTree.pendingWriteTree_.addOverwrite(path, newData, writeId, visible);
+  writeTreeAddOverwrite(
+    syncTree.pendingWriteTree_,
+    path,
+    newData,
+    writeId,
+    visible
+  );
 
   if (!visible) {
     return [];
@@ -165,7 +182,7 @@ export function syncTreeApplyUserMerge(
   writeId: number
 ): Event[] {
   // Record pending merge.
-  syncTree.pendingWriteTree_.addMerge(path, changedChildren, writeId);
+  writeTreeAddMerge(syncTree.pendingWriteTree_, path, changedChildren, writeId);
 
   const changeTree = ImmutableTree.fromObject(changedChildren);
 
@@ -186,8 +203,11 @@ export function syncTreeAckUserWrite(
   writeId: number,
   revert: boolean = false
 ) {
-  const write = syncTree.pendingWriteTree_.getWrite(writeId);
-  const needToReevaluate = syncTree.pendingWriteTree_.removeWrite(writeId);
+  const write = writeTreeGetWrite(syncTree.pendingWriteTree_, writeId);
+  const needToReevaluate = writeTreeRemoveWrite(
+    syncTree.pendingWriteTree_,
+    writeId
+  );
   if (!needToReevaluate) {
     return [];
   } else {
@@ -522,7 +542,7 @@ export function syncTreeAddEventRegistration(
     syncTree.queryToTagMap.set(queryKey, tag);
     syncTree.tagToQueryMap.set(tag, queryKey);
   }
-  const writesCache = syncTree.pendingWriteTree_.childWrites(path);
+  const writesCache = writeTreeChildWrites(syncTree.pendingWriteTree_, path);
   let events = syncPointAddEventRegistration(
     syncPoint,
     query,
@@ -569,7 +589,8 @@ export function syncTreeCalcCompleteEventCache(
       }
     }
   );
-  return writeTree.calcCompleteEventCache(
+  return writeTreeCalcCompleteEventCache(
+    writeTree,
     path,
     serverCache,
     writeIdsToExclude,
@@ -602,7 +623,8 @@ export function syncTreeGetServerValue(
   const serverCacheNode: CacheNode | null = serverCacheComplete
     ? new CacheNode(serverCache, true, false)
     : null;
-  const writesCache: WriteTreeRef | null = syncTree.pendingWriteTree_.childWrites(
+  const writesCache: WriteTreeRef | null = writeTreeChildWrites(
+    syncTree.pendingWriteTree_,
     query.path
   );
   const view: View = syncPointGetView(
@@ -636,7 +658,7 @@ function syncTreeApplyOperationToSyncPoints_(
     operation,
     syncTree.syncPointTree_,
     /*serverCache=*/ null,
-    syncTree.pendingWriteTree_.childWrites(newEmptyPath())
+    writeTreeChildWrites(syncTree.pendingWriteTree_, newEmptyPath())
   );
 }
 
@@ -672,7 +694,7 @@ function syncTreeApplyOperationHelper_(
       const childServerCache = serverCache
         ? serverCache.getImmediateChild(childName)
         : null;
-      const childWritesCache = writesCache.child(childName);
+      const childWritesCache = writeTreeRefChild(writesCache, childName);
       events = events.concat(
         syncTreeApplyOperationHelper_(
           childOperation,
@@ -714,7 +736,7 @@ function syncTreeApplyOperationDescendantsHelper_(
     const childServerCache = serverCache
       ? serverCache.getImmediateChild(childName)
       : null;
-    const childWritesCache = writesCache.child(childName);
+    const childWritesCache = writeTreeRefChild(writesCache, childName);
     const childOperation = operation.operationForChild(childName);
     if (childOperation) {
       events = events.concat(
@@ -823,7 +845,10 @@ function syncTreeApplyTaggedOperation_(
 ): Event[] {
   const syncPoint = syncTree.syncPointTree_.get(queryPath);
   assert(syncPoint, "Missing sync point for query tag that we're tracking");
-  const writesCache = syncTree.pendingWriteTree_.childWrites(queryPath);
+  const writesCache = writeTreeChildWrites(
+    syncTree.pendingWriteTree_,
+    queryPath
+  );
   return syncPointApplyOperation(syncPoint, operation, writesCache, null);
 }
 

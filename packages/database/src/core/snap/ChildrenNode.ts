@@ -16,20 +16,22 @@
  */
 
 import { assert } from '@firebase/util';
-import { MAX_NAME, MIN_NAME, sha1 } from '../util/util';
+
+import { Path, pathGetFront, pathGetLength, pathPopFront } from '../util/Path';
 import { SortedMap, SortedMapIterator } from '../util/SortedMap';
-import { NamedNode, Node } from './Node';
-import { priorityHashText, setMaxNode, validatePriorityNode } from './snap';
+import { MAX_NAME, MIN_NAME, sha1 } from '../util/util';
+
+import { NAME_COMPARATOR } from './comparators';
+import { Index } from './indexes/Index';
+import { KEY_INDEX, KeyIndex } from './indexes/KeyIndex';
 import {
   PRIORITY_INDEX,
   setMaxNode as setPriorityMaxNode
 } from './indexes/PriorityIndex';
-import { KEY_INDEX, KeyIndex } from './indexes/KeyIndex';
 import { IndexMap } from './IndexMap';
 import { LeafNode } from './LeafNode';
-import { NAME_COMPARATOR } from './comparators';
-import { Index } from './indexes/Index';
-import { Path, pathGetFront, pathGetLength, pathPopFront } from '../util/Path';
+import { NamedNode, Node } from './Node';
+import { priorityHashText, setMaxNode, validatePriorityNode } from './snap';
 
 export interface ChildrenNodeConstructor {
   new (

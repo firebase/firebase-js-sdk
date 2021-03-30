@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Reference } from './Reference';
 import { DataSnapshot } from './DataSnapshot';
+import { Reference } from './Reference';
 
 export class Query {
   protected constructor() {}

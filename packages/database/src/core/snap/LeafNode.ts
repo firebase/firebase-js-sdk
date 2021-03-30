@@ -16,9 +16,8 @@
  */
 
 import { assert } from '@firebase/util';
-import { doubleToIEEE754String, sha1 } from '../util/util';
-import { priorityHashText, validatePriorityNode } from './snap';
-import { Node } from './Node';
+
+import { Indexable } from '../util/misc';
 import {
   Path,
   pathGetFront,
@@ -26,9 +25,12 @@ import {
   pathIsEmpty,
   pathPopFront
 } from '../util/Path';
-import { Index } from './indexes/Index';
+import { doubleToIEEE754String, sha1 } from '../util/util';
+
 import { ChildrenNodeConstructor } from './ChildrenNode';
-import { Indexable } from '../util/misc';
+import { Index } from './indexes/Index';
+import { Node } from './Node';
+import { priorityHashText, validatePriorityNode } from './snap';
 
 let __childrenNodeConstructor: ChildrenNodeConstructor;
 

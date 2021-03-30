@@ -18,6 +18,7 @@
 import {
   Endpoint,
   HttpMethod,
+  _addTidIfNecessary,
   _performApiRequest,
   _performSignInRequest
 } from '../index';
@@ -29,6 +30,7 @@ import { Auth } from '../../model/public_types';
 export interface SendPhoneVerificationCodeRequest {
   phoneNumber: string;
   recaptchaToken: string;
+  tenantId?: string;
 }
 
 export interface SendPhoneVerificationCodeResponse {
@@ -42,7 +44,12 @@ export async function sendPhoneVerificationCode(
   return _performApiRequest<
     SendPhoneVerificationCodeRequest,
     SendPhoneVerificationCodeResponse
-  >(auth, HttpMethod.POST, Endpoint.SEND_VERIFICATION_CODE, request);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SEND_VERIFICATION_CODE,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export interface SignInWithPhoneNumberRequest {
@@ -50,6 +57,7 @@ export interface SignInWithPhoneNumberRequest {
   phoneNumber?: string;
   sessionInfo?: string;
   code?: string;
+  tenantId?: string;
 }
 
 export interface LinkWithPhoneNumberRequest
@@ -69,7 +77,12 @@ export async function signInWithPhoneNumber(
   return _performSignInRequest<
     SignInWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, request);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export async function linkWithPhoneNumber(
@@ -79,7 +92,12 @@ export async function linkWithPhoneNumber(
   return _performSignInRequest<
     LinkWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_IN_WITH_PHONE_NUMBER, request);
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 interface VerifyPhoneNumberForExistingRequest
@@ -108,7 +126,7 @@ export async function verifyPhoneNumberForExisting(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-    apiRequest,
+    _addTidIfNecessary(auth, apiRequest),
     VERIFY_PHONE_NUMBER_FOR_EXISTING_ERROR_MAP_
   );
 }

@@ -298,7 +298,7 @@ GOOG4-RSA-SHA256`
     });
     it('Running uploads fail when the service is deleted', () => {
       const ref = service.refFromURL('gs://mybucket/image.jpg');
-      const toReturn = new Promise((resolve, reject) => {
+      const toReturn = new Promise<void>((resolve, reject) => {
         ref.put(new Blob(['a'])).on(
           TaskEvent.STATE_CHANGED,
           null,

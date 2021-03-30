@@ -26,11 +26,7 @@ import {
   stringifyQuery
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  DocumentKeySet,
-  DocumentMap,
-  MaybeDocumentMap
-} from '../model/collections';
+import { DocumentKeySet, DocumentMap } from '../model/collections';
 import { Document } from '../model/document';
 import { debugAssert } from '../util/assert';
 import { getLogLevel, LogLevel, logDebug } from '../util/log';
@@ -138,13 +134,13 @@ export class QueryEngine {
   /** Applies the query filter and sorting to the provided documents.  */
   private applyQuery(
     query: Query,
-    documents: MaybeDocumentMap
+    documents: DocumentMap
   ): SortedSet<Document> {
     // Sort the documents and re-apply the query filter since previously
     // matching documents do not necessarily still match the query.
     let queryResults = new SortedSet<Document>(newQueryComparator(query));
     documents.forEach((_, maybeDoc) => {
-      if (maybeDoc instanceof Document && queryMatches(query, maybeDoc)) {
+      if (queryMatches(query, maybeDoc)) {
         queryResults = queryResults.add(maybeDoc);
       }
     });

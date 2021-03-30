@@ -31,10 +31,10 @@
     "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/app-exp.d.ts"
   },
   "dependencies": {
-    "@firebase/util": "0.3.4",
+    "@firebase/util": "0.4.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.2.0",
-    "tslib": "^2.0.0"
+    "@firebase/component": "0.3.0",
+    "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {

@@ -16,7 +16,9 @@
  */
 
 import { expect } from 'chai';
+
 import { SortedMap, LLRBNode } from '../src/core/util/SortedMap';
+
 import { shuffle } from './helpers/util';
 
 // Many of these were adapted from the mugs source code.

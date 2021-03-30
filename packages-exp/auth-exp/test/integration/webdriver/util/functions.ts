@@ -33,11 +33,47 @@ export enum RedirectFunction {
   TRY_TO_SIGN_IN_UNVERIFIED = 'redirect.tryToSignInUnverified'
 }
 
+/** Available popup functions. See static/popup.js */
+export enum PopupFunction {
+  IDP_POPUP = 'popup.idpPopup',
+  IDP_REAUTH_POPUP = 'popup.idpReauthPopup',
+  IDP_LINK_POPUP = 'popup.idpLinkPopup',
+  POPUP_RESULT = 'popup.popupResult',
+  GENERATE_CREDENTIAL_FROM_RESULT = 'popup.generateCredentialFromResult',
+  SIGN_IN_WITH_POPUP_CREDENTIAL = 'popup.signInWithPopupCredential',
+  LINK_WITH_ERROR_CREDENTIAL = 'popup.linkWithErrorCredential',
+  CREATE_FAKE_GOOGLE_USER = 'popup.createFakeGoogleUser',
+  TRY_TO_SIGN_IN_UNVERIFIED = 'popup.tryToSignInUnverified'
+}
+
+/** Available email functions. See static/email.js */
+export enum EmailFunction {
+  CREATE_USER = 'email.createUser'
+}
+
 /** Available core functions within the browser. See static/core.js */
 export enum CoreFunction {
   RESET = 'core.reset',
   AWAIT_AUTH_INIT = 'core.authInit',
   USER_SNAPSHOT = 'core.userSnap',
   AUTH_SNAPSHOT = 'core.authSnap',
-  SIGN_OUT = 'core.signOut'
+  SIGN_OUT = 'core.signOut',
+  AWAIT_LEGACY_AUTH_INIT = 'core.legacyAuthInit',
+  LEGACY_USER_SNAPSHOT = 'core.legacyUserSnap'
+}
+
+/** Available persistence functions within the browser. See static/persistence.js */
+
+export enum PersistenceFunction {
+  CLEAR_PERSISTENCE = 'persistence.clearPersistence',
+  LOCAL_STORAGE_SNAP = 'persistence.localStorageSnap',
+  LOCAL_STORAGE_SET = 'persistence.localStorageSet',
+  SESSION_STORAGE_SNAP = 'persistence.sessionStorageSnap',
+  SESSION_STORAGE_SET = 'persistence.sessionStorageSet',
+  INDEXED_DB_SNAP = 'persistence.indexedDBSnap',
+  MAKE_INDEXED_DB_READONLY = 'persistence.makeIndexedDBReadonly',
+  SET_PERSISTENCE_MEMORY = 'persistence.setPersistenceMemory',
+  SET_PERSISTENCE_SESSION = 'persistence.setPersistenceSession',
+  SET_PERSISTENCE_INDEXED_DB = 'persistence.setPersistenceIndexedDB',
+  SET_PERSISTENCE_LOCAL_STORAGE = 'persistence.setPersistenceLocalStorage'
 }

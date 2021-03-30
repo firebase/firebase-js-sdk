@@ -15,12 +15,8 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  parseQueryValue,
-  UserDataReader
-} from '../api/user_data_reader';
+import { getModularInstance } from '@firebase/util';
+
 import { DatabaseId } from '../core/database_info';
 import {
   findFilterOperator,
@@ -61,6 +57,11 @@ import {
 import { FieldPath } from './field_path';
 import { DocumentReference, Query } from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
+import {
+  newUserDataReader,
+  parseQueryValue,
+  UserDataReader
+} from './user_data_reader';
 
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery
@@ -442,9 +443,7 @@ function newQueryBoundFromDocOrFields<T>(
   docOrFields: Array<unknown | DocumentSnapshot<T>>,
   before: boolean
 ): Bound {
-  if (docOrFields[0] instanceof Compat) {
-    docOrFields[0] = docOrFields[0]._delegate;
-  }
+  docOrFields[0] = getModularInstance(docOrFields[0]);
 
   if (docOrFields[0] instanceof DocumentSnapshot) {
     return newQueryBoundFromDocument(
@@ -577,7 +576,7 @@ export function newQueryBoundFromDocument(
     if (orderBy.field.isKeyField()) {
       components.push(refValue(databaseId, doc.key));
     } else {
-      const value = doc.field(orderBy.field);
+      const value = doc.data.field(orderBy.field);
       if (isServerTimestamp(value)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -676,9 +675,7 @@ function parseDocumentIdValue(
   query: InternalQuery,
   documentIdValue: unknown
 ): ProtoValue {
-  if (documentIdValue instanceof Compat) {
-    documentIdValue = documentIdValue._delegate;
-  }
+  documentIdValue = getModularInstance(documentIdValue);
 
   if (typeof documentIdValue === 'string') {
     if (documentIdValue === '') {

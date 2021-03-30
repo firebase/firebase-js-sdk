@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "2.1.7",
+  "version": "2.2.1",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -11,13 +11,13 @@
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
     "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js' build:lite build:exp",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
-    "prebuild:release": "yarn prebuild",
     "build:release": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
+    "build:compat": "run-p 'bundle ./rollup.config.browser.compat.js' 'bundle ./rollup.config.node.compat.js' 'bundle ./rollup.config.rn.compat.js'",
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
-    "build:exp:release": "yarn build:exp && yarn build:lite",
+    "build:exp:release": "yarn build:exp && yarn build:lite && yarn build:compat",
     "postbuild:exp:release": "node ../../scripts/exp/remove-exp.js dist/exp/index.d.ts && node ../../scripts/exp/remove-exp.js dist/lite/index.d.ts",
     "build:browser": "rollup -c rollup.config.browser.js",
     "predev": "yarn prebuild",
@@ -63,22 +63,22 @@
     "memory-bundle/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.2.0",
-    "@firebase/firestore-types": "2.1.0",
+    "@firebase/component": "0.3.0",
+    "@firebase/firestore-types": "2.2.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.4",
+    "@firebase/util": "0.4.0",
     "@firebase/webchannel-wrapper": "0.4.1",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
     "node-fetch": "2.6.1",
-    "tslib": "^2.0.0"
+    "tslib": "^2.1.0"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.15",
+    "@firebase/app": "0.6.17",
     "@rollup/plugin-alias": "3.1.1",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "11.2.0",
@@ -104,7 +104,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/firestore/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

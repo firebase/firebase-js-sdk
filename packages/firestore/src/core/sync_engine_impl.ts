@@ -45,9 +45,9 @@ import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
-  MaybeDocumentMap
+  DocumentMap
 } from '../model/collections';
-import { MaybeDocument, NoDocument } from '../model/document';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
@@ -161,7 +161,7 @@ class LimboResolution {
  */
 type ApplyDocChangesHandler = (
   queryView: QueryView,
-  changes: MaybeDocumentMap,
+  changes: DocumentMap,
   remoteEvent?: RemoteEvent
 ) => Promise<ViewSnapshot | undefined>;
 
@@ -618,12 +618,12 @@ export async function syncEngineRejectListen(
     // This is kind of a hack. Ideally, we would have a method in the local
     // store to purge a document. However, it would be tricky to keep all of
     // the local store's invariants with another method.
-    let documentUpdates = new SortedMap<DocumentKey, MaybeDocument>(
+    let documentUpdates = new SortedMap<DocumentKey, MutableDocument>(
       DocumentKey.comparator
     );
     documentUpdates = documentUpdates.insert(
       limboKey,
-      new NoDocument(limboKey, SnapshotVersion.min())
+      MutableDocument.newNoDocument(limboKey, SnapshotVersion.min())
     );
     const resolvedLimboDocuments = documentKeySet().add(limboKey);
     const event = new RemoteEvent(
@@ -1001,7 +1001,7 @@ export function syncEngineGetEnqueuedLimboDocumentResolutions(
 
 export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   syncEngine: SyncEngine,
-  changes: MaybeDocumentMap,
+  changes: DocumentMap,
   remoteEvent?: RemoteEvent
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
@@ -1052,7 +1052,7 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
 async function applyDocChanges(
   syncEngineImpl: SyncEngineImpl,
   queryView: QueryView,
-  changes: MaybeDocumentMap,
+  changes: DocumentMap,
   remoteEvent?: RemoteEvent
 ): Promise<ViewSnapshot | undefined> {
   let viewDocChanges = queryView.view.computeDocChanges(changes);

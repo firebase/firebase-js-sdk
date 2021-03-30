@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable camelcase */
+
 import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-exp';
@@ -24,14 +26,68 @@ import {
   InstantiationMode
 } from '@firebase/component';
 
+import {
+  EmailAuthProvider,
+  EmailAuthProvider_Instance,
+  FacebookAuthProvider,
+  FacebookAuthProvider_Instance,
+  FirebaseAuth,
+  GithubAuthProvider,
+  GithubAuthProvider_Instance,
+  GoogleAuthProvider,
+  GoogleAuthProvider_Instance,
+  OAuthProvider,
+  PhoneAuthProvider,
+  PhoneAuthProvider_Instance,
+  PhoneMultiFactorGenerator,
+  RecaptchaVerifier,
+  RecaptchaVerifier_Instance,
+  SAMLAuthProvider,
+  TwitterAuthProvider,
+  TwitterAuthProvider_Instance
+} from '@firebase/auth-types';
 import { version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';
-import { PhoneAuthProvider } from './src/phone_auth_provider';
-import { _getClientPlatform } from './src/platform';
-import { RecaptchaVerifier } from './src/recaptcha_verifier';
+import { PhoneAuthProvider as CompatAuthProvider } from './src/phone_auth_provider';
+import { RecaptchaVerifier as CompatRecaptchaVerifier } from './src/recaptcha_verifier';
 
-const AUTH_TYPE = 'auth';
+const AUTH_TYPE = 'auth-compat';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'auth-compat': FirebaseAuth;
+  }
+}
+
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    auth: {
+      (app?: FirebaseApp): FirebaseAuth;
+      Auth: typeof FirebaseAuth;
+      EmailAuthProvider: typeof EmailAuthProvider;
+      EmailAuthProvider_Instance: typeof EmailAuthProvider_Instance;
+      FacebookAuthProvider: typeof FacebookAuthProvider;
+      FacebookAuthProvider_Instance: typeof FacebookAuthProvider_Instance;
+      GithubAuthProvider: typeof GithubAuthProvider;
+      GithubAuthProvider_Instance: typeof GithubAuthProvider_Instance;
+      GoogleAuthProvider: typeof GoogleAuthProvider;
+      GoogleAuthProvider_Instance: typeof GoogleAuthProvider_Instance;
+      OAuthProvider: typeof OAuthProvider;
+      SAMLAuthProvider: typeof SAMLAuthProvider;
+      PhoneAuthProvider: typeof PhoneAuthProvider;
+      PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
+      PhoneMultiFactorGenerator: typeof PhoneMultiFactorGenerator;
+      RecaptchaVerifier: typeof RecaptchaVerifier;
+      RecaptchaVerifier_Instance: typeof RecaptchaVerifier_Instance;
+      TwitterAuthProvider: typeof TwitterAuthProvider;
+      TwitterAuthProvider_Instance: typeof TwitterAuthProvider_Instance;
+    };
+  }
+  interface FirebaseApp {
+    auth?(): FirebaseAuth;
+  }
+}
 
 // Create auth components to register with firebase.
 // Provides Auth public APIs.
@@ -42,8 +98,8 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-compat').getImmediate();
-        const auth = container.getProvider('auth-exp').getImmediate();
-        return new Auth(app, auth as impl.AuthImpl);
+        const authProvider = container.getProvider('auth-exp');
+        return new Auth(app, authProvider);
       },
       ComponentType.PUBLIC
     )
@@ -66,9 +122,9 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
         GoogleAuthProvider: impl.GoogleAuthProvider,
         OAuthProvider: impl.OAuthProvider,
         //   SAMLAuthProvider,
-        PhoneAuthProvider,
+        PhoneAuthProvider: CompatAuthProvider,
         PhoneMultiFactorGenerator: impl.PhoneMultiFactorGenerator,
-        RecaptchaVerifier,
+        RecaptchaVerifier: CompatRecaptchaVerifier,
         TwitterAuthProvider: impl.TwitterAuthProvider,
         Auth: {
           Persistence
@@ -80,8 +136,7 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       .setMultipleInstances(false)
   );
 
-  instance.registerVersion('auth', version);
+  instance.registerVersion('auth-compat', version);
 }
 
-impl.registerAuth(_getClientPlatform());
 registerAuthCompat(firebase as _FirebaseNamespace);

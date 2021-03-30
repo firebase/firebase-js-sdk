@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../api/Query';
+import { Query } from '../api/Reference';
 
 /**
  * Interface defining the set of actions that can be performed against the Firebase server

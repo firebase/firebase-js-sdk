@@ -27,7 +27,8 @@ import {
   updateProfile,
   Auth,
   OperationType,
-  UserCredential
+  UserCredential,
+  getAdditionalUserInfo
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { FirebaseError } from '@firebase/util';
@@ -64,6 +65,13 @@ describe('Integration test: email/password auth', () => {
     expect(user.uid).to.be.a('string');
     expect(user.email).to.eq(email);
     expect(user.emailVerified).to.be.false;
+    expect(user.providerData.length).to.eq(1);
+    expect(user.providerData[0].providerId).to.eq('password');
+    expect(user.providerData[0].email).to.eq(email);
+
+    const additionalUserInfo = getAdditionalUserInfo(userCred)!;
+    expect(additionalUserInfo.isNewUser).to.be.true;
+    expect(additionalUserInfo.providerId).to.eq('password');
   });
 
   it('errors when createUser called twice', async () => {
@@ -95,6 +103,9 @@ describe('Integration test: email/password auth', () => {
 
       expect(signInCred.operationType).to.eq(OperationType.SIGN_IN);
       expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
+      const additionalUserInfo = getAdditionalUserInfo(signInCred)!;
+      expect(additionalUserInfo.isNewUser).to.be.false;
+      expect(additionalUserInfo.providerId).to.eq('password');
     });
 
     it('allows the user to sign in with signInWithCredential', async () => {
@@ -104,6 +115,9 @@ describe('Integration test: email/password auth', () => {
 
       expect(signInCred.operationType).to.eq(OperationType.SIGN_IN);
       expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
+      const additionalUserInfo = getAdditionalUserInfo(signInCred)!;
+      expect(additionalUserInfo.isNewUser).to.be.false;
+      expect(additionalUserInfo.providerId).to.eq('password');
     });
 
     it('allows the user to update profile', async () => {

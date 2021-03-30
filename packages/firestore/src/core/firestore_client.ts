@@ -31,7 +31,7 @@ import {
   localStoreReadDocument
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
-import { Document, NoDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
@@ -498,10 +498,10 @@ async function readDocumentFromCache(
   result: Deferred<Document | null>
 ): Promise<void> {
   try {
-    const maybeDoc = await localStoreReadDocument(localStore, docKey);
-    if (maybeDoc instanceof Document) {
-      result.resolve(maybeDoc);
-    } else if (maybeDoc instanceof NoDocument) {
+    const document = await localStoreReadDocument(localStore, docKey);
+    if (document.isFoundDocument()) {
+      result.resolve(document);
+    } else if (document.isNoDocument()) {
       result.resolve(null);
     } else {
       result.reject(

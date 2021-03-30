@@ -70,8 +70,9 @@ export function initializePerformance(
     throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
   }
 
-  const perfInstance = provider.getImmediate() as PerformanceController;
-  perfInstance._init(settings);
+  const perfInstance = provider.initialize({
+    options: settings
+  }) as PerformanceController;
   return perfInstance;
 }
 
@@ -89,7 +90,8 @@ export function trace(
 }
 
 const factory: InstanceFactory<'performance-exp'> = (
-  container: ComponentContainer
+  container: ComponentContainer,
+  { options: settings }: { options?: PerformanceSettings }
 ) => {
   // Dependencies
   const app = container.getProvider('app-exp').getImmediate();
@@ -104,7 +106,10 @@ const factory: InstanceFactory<'performance-exp'> = (
     throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
   }
   setupApi(window);
-  return new PerformanceController(app, installations);
+  const perfInstance = new PerformanceController(app, installations);
+  perfInstance._init(settings);
+
+  return perfInstance;
 };
 
 function registerPerformance(): void {

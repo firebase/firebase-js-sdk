@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import { RepoInfo } from '../core/RepoInfo';
 import { PersistentConnection } from '../core/PersistentConnection';
-import { repoManagerForceRestClient } from '../core/RepoManager';
+import { RepoInfo } from '../core/RepoInfo';
 import { Connection } from '../realtime/Connection';
-import { Query } from './Query';
+
+import { repoManagerForceRestClient } from './Database';
+import { Query } from './Reference';
 
 export const DataConnection = PersistentConnection;
 

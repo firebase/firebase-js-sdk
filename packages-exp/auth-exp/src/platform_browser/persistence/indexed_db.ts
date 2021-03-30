@@ -152,7 +152,7 @@ async function getObject(
   return data === undefined ? null : data.value;
 }
 
-function deleteObject(db: IDBDatabase, key: string): Promise<void> {
+export function _deleteObject(db: IDBDatabase, key: string): Promise<void> {
   const request = getObjectStore(db, true).delete(key);
   return new DBPromise<void>(request).toPromise();
 }
@@ -317,7 +317,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       }
       const db = await _openDatabase();
       await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
-      await deleteObject(db, STORAGE_AVAILABLE_KEY);
+      await _deleteObject(db, STORAGE_AVAILABLE_KEY);
       return true;
     } catch {}
     return false;
@@ -350,7 +350,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
   async _remove(key: string): Promise<void> {
     return this._withPendingWrite(async () => {
-      await this._withRetries((db: IDBDatabase) => deleteObject(db, key));
+      await this._withRetries((db: IDBDatabase) => _deleteObject(db, key));
       delete this.localCache[key];
       return this.notifyServiceWorker(key);
     });
@@ -373,10 +373,19 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     }
 
     const keys = [];
+    const keysInResult = new Set();
     for (const { fbase_key: key, value } of result) {
+      keysInResult.add(key);
       if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
         this.notifyListeners(key, value as PersistenceValue);
         keys.push(key);
+      }
+    }
+    for (const localKey of Object.keys(this.localCache)) {
+      if (!keysInResult.has(localKey)) {
+        // Deleted
+        this.notifyListeners(localKey, null);
+        keys.push(localKey);
       }
     }
     return keys;

@@ -32,14 +32,14 @@
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
   },
   "dependencies": {
-    "tslib": "^2.0.0"
+    "tslib": "^2.1.0"
   },
   "peerDependencies": {
     "firebase": ">=8.0.0",
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "8.2.10",
+    "firebase": "8.3.1",
     "rollup": "2.35.1",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-node-resolve": "11.2.0",

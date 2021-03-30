@@ -27,6 +27,9 @@ import {
   signInWithRedirect
 } from '@firebase/auth-exp';
 
+let redirectCred = null;
+let errorCred = null;
+
 export function idpRedirect(optProvider) {
   const provider = optProvider
     ? new OAuthProvider(optProvider)
@@ -48,16 +51,16 @@ export function redirectResult() {
 
 export async function generateCredentialFromRedirectResultAndStore() {
   const result = await getRedirectResult(auth);
-  window.redirectCred = GoogleAuthProvider.credentialFromResult(result);
-  return window.redirectCred;
+  redirectCred = GoogleAuthProvider.credentialFromResult(result);
+  return redirectCred;
 }
 
 export async function signInWithRedirectCredential() {
-  return signInWithCredential(auth, window.redirectCred);
+  return signInWithCredential(auth, redirectCred);
 }
 
 export async function linkWithErrorCredential() {
-  await linkWithCredential(auth.currentUser, window.errorCred);
+  await linkWithCredential(auth.currentUser, errorCred);
 }
 
 // These below are not technically redirect functions but they're helpers for
@@ -81,7 +84,7 @@ export async function tryToSignInUnverified(email) {
       )
     );
   } catch (e) {
-    window.errorCred = FacebookAuthProvider.credentialFromError(e);
+    errorCred = FacebookAuthProvider.credentialFromError(e);
     throw e;
   }
 }

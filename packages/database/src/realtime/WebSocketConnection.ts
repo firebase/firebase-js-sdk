@@ -15,10 +15,15 @@
  * limitations under the License.
  */
 
-import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
 import { assert, isNodeSdk, jsonEval, stringify } from '@firebase/util';
-import { logWrapper, splitStringBySize } from '../core/util/util';
+
+import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
+import { StatsCollection } from '../core/stats/StatsCollection';
 import { statsManagerGetCollection } from '../core/stats/StatsManager';
+import { PersistentStorage } from '../core/storage/storage';
+import { logWrapper, splitStringBySize } from '../core/util/util';
+import { SDK_VERSION } from '../core/version';
+
 import {
   FORGE_DOMAIN_RE,
   FORGE_REF,
@@ -29,10 +34,7 @@ import {
   VERSION_PARAM,
   WEBSOCKET
 } from './Constants';
-import { PersistentStorage } from '../core/storage/storage';
 import { Transport } from './Transport';
-import { StatsCollection } from '../core/stats/StatsCollection';
-import { SDK_VERSION } from '../core/version';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const MozWebSocket: any;

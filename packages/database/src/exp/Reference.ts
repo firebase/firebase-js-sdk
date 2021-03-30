@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Query } from './Query';
 import { Repo } from '../core/Repo';
 import {
   Path,
@@ -24,6 +23,8 @@ import {
   pathIsEmpty,
   pathParent
 } from '../core/util/Path';
+
+import { Query } from './Query';
 
 export class Reference extends Query {
   root: Reference;

@@ -15,10 +15,20 @@
  * limitations under the License.
  */
 
-import { CacheNode } from './view/CacheNode';
-import { ChildrenNode } from './snap/ChildrenNode';
 import { assert } from '@firebase/util';
-import { ViewCache } from './view/ViewCache';
+
+import {
+  EventRegistration,
+  Query,
+  ReferenceConstructor
+} from '../api/Reference';
+
+import { Operation } from './operation/Operation';
+import { ChildrenNode } from './snap/ChildrenNode';
+import { Node } from './snap/Node';
+import { Path } from './util/Path';
+import { CacheNode } from './view/CacheNode';
+import { Event } from './view/Event';
 import {
   View,
   viewAddEventRegistration,
@@ -28,14 +38,12 @@ import {
   viewIsEmpty,
   viewRemoveEventRegistration
 } from './view/View';
-import { Operation } from './operation/Operation';
-import { WriteTreeRef } from './WriteTree';
-import { Query } from '../api/Query';
-import { EventRegistration } from './view/EventRegistration';
-import { Node } from './snap/Node';
-import { Path } from './util/Path';
-import { Event } from './view/Event';
-import { ReferenceConstructor } from '../api/Reference';
+import { newViewCache } from './view/ViewCache';
+import {
+  WriteTreeRef,
+  writeTreeRefCalcCompleteEventCache,
+  writeTreeRefCalcCompleteEventChildren
+} from './WriteTree';
 
 let referenceConstructor: ReferenceConstructor;
 
@@ -127,20 +135,24 @@ export function syncPointGetView(
   const view = syncPoint.views.get(queryId);
   if (!view) {
     // TODO: make writesCache take flag for complete server node
-    let eventCache = writesCache.calcCompleteEventCache(
+    let eventCache = writeTreeRefCalcCompleteEventCache(
+      writesCache,
       serverCacheComplete ? serverCache : null
     );
     let eventCacheComplete = false;
     if (eventCache) {
       eventCacheComplete = true;
     } else if (serverCache instanceof ChildrenNode) {
-      eventCache = writesCache.calcCompleteEventChildren(serverCache);
+      eventCache = writeTreeRefCalcCompleteEventChildren(
+        writesCache,
+        serverCache
+      );
       eventCacheComplete = false;
     } else {
       eventCache = ChildrenNode.EMPTY_NODE;
       eventCacheComplete = false;
     }
-    const viewCache = new ViewCache(
+    const viewCache = newViewCache(
       new CacheNode(eventCache, eventCacheComplete, false),
       new CacheNode(serverCache, serverCacheComplete, false)
     );
@@ -238,7 +250,7 @@ export function syncPointRemoveEventRegistration(
   if (hadCompleteView && !syncPointHasCompleteView(syncPoint)) {
     // We removed our last complete view.
     removed.push(
-      new (syncPointGetReferenceConstructor())(query.repo, query.path)
+      new (syncPointGetReferenceConstructor())(query.database, query.path)
     );
   }
 

@@ -16,13 +16,6 @@
  */
 
 import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
-import {
-  validateWritablePath,
-  validateFirebaseDataArg,
-  validatePriority,
-  validateFirebaseMergeDataArg
-} from '../core/util/validation';
-import { warn } from '../core/util/util';
 
 import {
   Repo,
@@ -31,8 +24,15 @@ import {
   repoOnDisconnectSetWithPriority,
   repoOnDisconnectUpdate
 } from '../core/Repo';
-import { Path } from '../core/util/Path';
 import { Indexable } from '../core/util/misc';
+import { Path } from '../core/util/Path';
+import { warn } from '../core/util/util';
+import {
+  validateWritablePath,
+  validateFirebaseDataArg,
+  validatePriority,
+  validateFirebaseMergeDataArg
+} from '../core/util/validation';
 
 export class OnDisconnect {
   constructor(private repo_: Repo, private path_: Path) {}

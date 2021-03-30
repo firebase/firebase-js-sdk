@@ -16,14 +16,16 @@
  */
 
 import { expect } from 'chai';
+
+import { Reference } from '../src/api/Reference';
+
+import { EventAccumulator } from './helpers/EventAccumulator';
 import {
   getFreshRepo,
   getRootNode,
   getRandomNode,
   getPath
 } from './helpers/util';
-import { Reference } from '../src/api/Reference';
-import { EventAccumulator } from './helpers/EventAccumulator';
 
 /**
  * We have a test that depends on leveraging two properly

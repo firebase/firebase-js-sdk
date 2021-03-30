@@ -121,7 +121,8 @@ export function onMessage(
  *
  * @returns To stop listening for messages execute this returned function
  *
- * @public
+ * make it internal to hide it from the browser entrypoint
+ * @internal
  */
 export function onBackgroundMessage(
   messaging: FirebaseMessaging,

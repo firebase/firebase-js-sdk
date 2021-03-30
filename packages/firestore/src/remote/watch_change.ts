@@ -23,9 +23,9 @@ import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
   DocumentKeySet,
-  maybeDocumentMap
+  mutableDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -64,7 +64,7 @@ export class DocumentWatchChange {
      * The new document or NoDocument if it was deleted. Is null if the
      * document went out of view without the server sending a new document.
      */
-    public newDoc: MaybeDocument | null
+    public newDoc: MutableDocument | null
   ) {}
 }
 
@@ -267,7 +267,7 @@ export class WatchChangeAggregator {
   private targetStates = new Map<TargetId, TargetState>();
 
   /** Keeps track of the documents to update since the last raised snapshot. */
-  private pendingDocumentUpdates = maybeDocumentMap();
+  private pendingDocumentUpdates = mutableDocumentMap();
 
   /** A mapping of document keys to their set of target IDs. */
   private pendingDocumentTargetMapping = documentTargetMap();
@@ -284,9 +284,9 @@ export class WatchChangeAggregator {
    */
   handleDocumentChange(docChange: DocumentWatchChange): void {
     for (const targetId of docChange.updatedTargetIds) {
-      if (docChange.newDoc instanceof Document) {
+      if (docChange.newDoc && docChange.newDoc.isFoundDocument()) {
         this.addDocumentToTarget(targetId, docChange.newDoc);
-      } else if (docChange.newDoc instanceof NoDocument) {
+      } else {
         this.removeDocumentFromTarget(
           targetId,
           docChange.key,
@@ -401,7 +401,7 @@ export class WatchChangeAggregator {
           this.removeDocumentFromTarget(
             targetId,
             key,
-            new NoDocument(key, SnapshotVersion.min())
+            MutableDocument.newNoDocument(key, SnapshotVersion.min())
           );
         } else {
           hardAssert(
@@ -449,7 +449,7 @@ export class WatchChangeAggregator {
             this.removeDocumentFromTarget(
               targetId,
               key,
-              new NoDocument(key, snapshotVersion)
+              MutableDocument.newNoDocument(key, snapshotVersion)
             );
           }
         }
@@ -497,7 +497,7 @@ export class WatchChangeAggregator {
       resolvedLimboDocuments
     );
 
-    this.pendingDocumentUpdates = maybeDocumentMap();
+    this.pendingDocumentUpdates = mutableDocumentMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
     this.pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
 
@@ -509,7 +509,7 @@ export class WatchChangeAggregator {
    * its document key to the given target's mapping.
    */
   // Visible for testing.
-  addDocumentToTarget(targetId: TargetId, document: MaybeDocument): void {
+  addDocumentToTarget(targetId: TargetId, document: MutableDocument): void {
     if (!this.isActiveTarget(targetId)) {
       return;
     }
@@ -543,7 +543,7 @@ export class WatchChangeAggregator {
   removeDocumentFromTarget(
     targetId: TargetId,
     key: DocumentKey,
-    updatedDocument: MaybeDocument | null
+    updatedDocument: MutableDocument | null
   ): void {
     if (!this.isActiveTarget(targetId)) {
       return;

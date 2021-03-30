@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { firebase, _FirebaseNamespace } from '@firebase/app-compat';
+import firebase, {
+  _FirebaseNamespace,
+  FirebaseApp
+} from '@firebase/app-compat';
+import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { name, version } from '../package.json';
 import { AnalyticsService } from './service';
 import {
@@ -24,9 +28,7 @@ import {
   ComponentType,
   InstanceFactory
 } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types';
 import {
-  Analytics as AnalyticsServiceExp,
   settings as settingsExp,
   isSupported as isSupportedExp
 } from '@firebase/analytics-exp';
@@ -34,23 +36,18 @@ import { EventName } from './constants';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app-compat': FirebaseApp;
     'analytics-compat': AnalyticsService;
-    'analytics-exp': AnalyticsServiceExp;
   }
 }
 
 const factory: InstanceFactory<'analytics-compat'> = (
-  container: ComponentContainer,
-  regionOrCustomDomain?: string
+  container: ComponentContainer
 ) => {
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
   const analyticsServiceExp = container
     .getProvider('analytics-exp')
-    .getImmediate({
-      identifier: regionOrCustomDomain
-    });
+    .getImmediate();
 
   return new AnalyticsService(app as FirebaseApp, analyticsServiceExp);
 };
@@ -72,3 +69,15 @@ export function registerAnalytics(): void {
 
 registerAnalytics();
 firebase.registerVersion(name, version);
+
+/**
+ * Define extension behavior of `registerAnalytics`
+ */
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    analytics(app?: FirebaseApp): FirebaseAnalytics;
+  }
+  interface FirebaseApp {
+    analytics(): FirebaseAnalytics;
+  }
+}

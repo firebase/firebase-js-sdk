@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
+import { expect } from 'chai';
+
+import { DataSnapshot, Reference } from '../src/api/Reference';
+import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
+import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
 import { DataSnapshot as ExpDataSnapshot } from '../src/exp/DataSnapshot';
 import { Reference as ExpReference } from '../src/exp/Reference';
-import { expect } from 'chai';
-import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
-import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
+
 import { getRandomNode } from './helpers/util';
-import { DataSnapshot } from '../src/api/DataSnapshot';
-import { Reference } from '../src/api/Reference';
 
 describe('DataSnapshot Tests', () => {
   /** @return {!DataSnapshot} */
   const snapshotForJSON = function (json) {
     const dummyRef = getRandomNode() as Reference;
     return new DataSnapshot(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {} as any,
       new ExpDataSnapshot(
         nodeFromJSON(json),
         new ExpReference(dummyRef.repo, dummyRef.path),

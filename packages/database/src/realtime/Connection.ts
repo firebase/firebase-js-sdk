@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { RepoInfo } from '../core/RepoInfo';
+import { PersistentStorage } from '../core/storage/storage';
+import { Indexable } from '../core/util/misc';
 import {
   error,
   logWrapper,
@@ -22,12 +25,10 @@ import {
   setTimeoutNonBlocking,
   warn
 } from '../core/util/util';
-import { PersistentStorage } from '../core/storage/storage';
+
 import { PROTOCOL_VERSION } from './Constants';
-import { TransportManager } from './TransportManager';
-import { RepoInfo } from '../core/RepoInfo';
 import { Transport, TransportConstructor } from './Transport';
-import { Indexable } from '../core/util/misc';
+import { TransportManager } from './TransportManager';
 
 // Abort upgrade attempt if it takes longer than 60s.
 const UPGRADE_TIMEOUT = 60000;

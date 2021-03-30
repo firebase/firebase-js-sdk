@@ -21,8 +21,10 @@ import {
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+
+import { FirebaseAppLike } from '../api/Database';
+
 import { log, warn } from './util/util';
-import { FirebaseAppLike } from './RepoManager';
 
 export interface AuthTokenProvider {
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;

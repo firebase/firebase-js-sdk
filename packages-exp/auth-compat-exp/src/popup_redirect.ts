@@ -39,23 +39,17 @@ export class CompatPopupRedirectResolver
   ) => Promise<exp.UserCredential | null> = exp._getRedirectResult;
 
   async _initialize(auth: exp.AuthImpl): Promise<exp.EventManager> {
-    if (this.underlyingResolver) {
-      return this.underlyingResolver._initialize(auth);
-    }
-
-    // We haven't yet determined whether or not we're in Cordova; go ahead
-    // and determine that state now.
-    const isCordova = await _isCordova();
-    this.underlyingResolver = isCordova ? CORDOVA_RESOLVER : BROWSER_RESOLVER;
+    await this.selectUnderlyingResolver();
     return this.assertedUnderlyingResolver._initialize(auth);
   }
 
-  _openPopup(
+  async _openPopup(
     auth: exp.AuthImpl,
     provider: exp.AuthProvider,
     authType: exp.AuthEventType,
     eventId?: string
   ): Promise<exp.AuthPopup> {
+    await this.selectUnderlyingResolver();
     return this.assertedUnderlyingResolver._openPopup(
       auth,
       provider,
@@ -64,12 +58,13 @@ export class CompatPopupRedirectResolver
     );
   }
 
-  _openRedirect(
+  async _openRedirect(
     auth: exp.AuthImpl,
     provider: exp.AuthProvider,
     authType: exp.AuthEventType,
     eventId?: string
   ): Promise<void> {
+    await this.selectUnderlyingResolver();
     return this.assertedUnderlyingResolver._openRedirect(
       auth,
       provider,
@@ -96,5 +91,16 @@ export class CompatPopupRedirectResolver
   private get assertedUnderlyingResolver(): exp.PopupRedirectResolverInternal {
     _assert(this.underlyingResolver, exp.AuthErrorCode.INTERNAL_ERROR);
     return this.underlyingResolver;
+  }
+
+  private async selectUnderlyingResolver(): Promise<void> {
+    if (this.underlyingResolver) {
+      return;
+    }
+
+    // We haven't yet determined whether or not we're in Cordova; go ahead
+    // and determine that state now.
+    const isCordova = await _isCordova();
+    this.underlyingResolver = isCordova ? CORDOVA_RESOLVER : BROWSER_RESOLVER;
   }
 }

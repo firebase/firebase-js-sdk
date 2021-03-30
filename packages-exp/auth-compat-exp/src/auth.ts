@@ -18,17 +18,13 @@
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import {
-  ErrorFn,
-  isIndexedDBAvailable,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
+import { Provider } from '@firebase/component';
+import { ErrorFn, Observer, Unsubscribe } from '@firebase/util';
 
 import {
   _validatePersistenceArgument,
   Persistence,
-  _getPersistenceFromRedirect,
+  _getPersistencesFromRedirect,
   _savePersistenceForRedirect
 } from './persistence';
 import { _isPopupRedirectSupported } from './platform';
@@ -38,87 +34,104 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
-import { unwrap, Wrapper } from './wrap';
+import { ReverseWrapper, unwrap, Wrapper } from './wrap';
 
 const _assert: typeof exp._assert = exp._assert;
 
 export class Auth
   implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService {
-  // private readonly auth: impl.AuthImpl;
+  readonly _delegate: exp.AuthImpl;
 
-  constructor(readonly app: FirebaseApp, private readonly auth: exp.AuthImpl) {
-    const { apiKey } = app.options;
-    if (this.auth._deleted) {
+  constructor(readonly app: FirebaseApp, provider: Provider<'auth-exp'>) {
+    if (provider.isInitialized()) {
+      this._delegate = provider.getImmediate() as exp.AuthImpl;
+      this.linkUnderlyingAuth();
       return;
     }
 
-    // Note this is slightly different behavior: in this case, the stored
-    // persistence is checked *first* rather than last. This is because we want
-    // the fallback (if no user is found) to be the stored persistence type
-    const storedPersistence = _getPersistenceFromRedirect(this.auth);
-    const persistences = storedPersistence ? [storedPersistence] : [];
-    persistences.push(exp.indexedDBLocalPersistence);
+    const { apiKey } = app.options;
+    // TODO: platform needs to be determined using heuristics
+    _assert(apiKey, exp.AuthErrorCode.INVALID_API_KEY, {
+      appName: app.name
+    });
 
-    // TODO(avolkovi): Implement proper persistence fallback
-    const hierarchy = persistences.map<exp.PersistenceInternal>(
-      exp._getInstance
-    );
+    let persistences: exp.Persistence[] = [exp.inMemoryPersistence];
+
+    // Only deal with persistences in web environments
+    if (typeof window !== 'undefined') {
+      // Note this is slightly different behavior: in this case, the stored
+      // persistence is checked *first* rather than last. This is because we want
+      // to prefer stored persistence type in the hierarchy.
+      persistences = _getPersistencesFromRedirect(apiKey, app.name);
+
+      for (const persistence of [
+        exp.indexedDBLocalPersistence,
+        exp.browserLocalPersistence
+      ]) {
+        if (!persistences.includes(persistence)) {
+          persistences.push(persistence);
+        }
+      }
+    }
 
     // TODO: platform needs to be determined using heuristics
     _assert(apiKey, exp.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
 
-    this.auth._updateErrorMap(exp.debugErrorMap);
+    // Only use a popup/redirect resolver in browser environments
+    const resolver =
+      typeof window !== 'undefined' ? CompatPopupRedirectResolver : undefined;
+    this._delegate = provider.initialize({
+      options: {
+        persistence: persistences,
+        popupRedirectResolver: resolver
+      }
+    }) as exp.AuthImpl;
 
-    // This promise is intended to float; auth initialization happens in the
-    // background, meanwhile the auth object may be used by the app.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.auth._initializeWithPersistence(
-      hierarchy,
-      CompatPopupRedirectResolver
-    );
+    this._delegate._updateErrorMap(exp.debugErrorMap);
+    this.linkUnderlyingAuth();
   }
 
   get emulatorConfig(): compat.EmulatorConfig | null {
-    return this.auth.emulatorConfig;
+    return this._delegate.emulatorConfig;
   }
 
   get currentUser(): compat.User | null {
-    if (!this.auth.currentUser) {
+    if (!this._delegate.currentUser) {
       return null;
     }
 
-    return User.getOrCreate(this.auth.currentUser);
+    return User.getOrCreate(this._delegate.currentUser);
   }
   get languageCode(): string | null {
-    return this.auth.languageCode;
+    return this._delegate.languageCode;
   }
   get settings(): compat.AuthSettings {
-    return this.auth.settings;
+    return this._delegate.settings;
   }
   get tenantId(): string | null {
-    return this.auth.tenantId;
+    return this._delegate.tenantId;
   }
   useDeviceLanguage(): void {
-    this.auth.useDeviceLanguage();
+    this._delegate.useDeviceLanguage();
   }
   signOut(): Promise<void> {
-    return this.auth.signOut();
+    return this._delegate.signOut();
   }
   useEmulator(url: string, options?: { disableWarnings: boolean }): void {
-    exp.useAuthEmulator(this.auth, url, options);
+    exp.useAuthEmulator(this._delegate, url, options);
   }
   applyActionCode(code: string): Promise<void> {
-    return exp.applyActionCode(this.auth, code);
+    return exp.applyActionCode(this._delegate, code);
   }
 
   checkActionCode(code: string): Promise<compat.ActionCodeInfo> {
-    return exp.checkActionCode(this.auth, code);
+    return exp.checkActionCode(this._delegate, code);
   }
 
   confirmPasswordReset(code: string, newPassword: string): Promise<void> {
-    return exp.confirmPasswordReset(this.auth, code, newPassword);
+    return exp.confirmPasswordReset(this._delegate, code, newPassword);
   }
 
   async createUserWithEmailAndPassword(
@@ -126,27 +139,27 @@ export class Auth
     password: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
-      exp.createUserWithEmailAndPassword(this.auth, email, password)
+      this._delegate,
+      exp.createUserWithEmailAndPassword(this._delegate, email, password)
     );
   }
   fetchProvidersForEmail(email: string): Promise<string[]> {
     return this.fetchSignInMethodsForEmail(email);
   }
   fetchSignInMethodsForEmail(email: string): Promise<string[]> {
-    return exp.fetchSignInMethodsForEmail(this.auth, email);
+    return exp.fetchSignInMethodsForEmail(this._delegate, email);
   }
   isSignInWithEmailLink(emailLink: string): boolean {
-    return exp.isSignInWithEmailLink(this.auth, emailLink);
+    return exp.isSignInWithEmailLink(this._delegate, emailLink);
   }
   async getRedirectResult(): Promise<compat.UserCredential> {
     _assert(
       _isPopupRedirectSupported(),
-      this.auth,
+      this._delegate,
       exp.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     const credential = await exp.getRedirectResult(
-      this.auth,
+      this._delegate,
       CompatPopupRedirectResolver
     );
     if (!credential) {
@@ -155,7 +168,7 @@ export class Auth
         user: null
       };
     }
-    return convertCredential(this.auth, Promise.resolve(credential));
+    return convertCredential(this._delegate, Promise.resolve(credential));
   }
   onAuthStateChanged(
     nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
@@ -167,7 +180,7 @@ export class Auth
       errorFn,
       completed
     );
-    return this.auth.onAuthStateChanged(next!, error, complete);
+    return this._delegate.onAuthStateChanged(next!, error, complete);
   }
   onIdTokenChanged(
     nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
@@ -179,47 +192,50 @@ export class Auth
       errorFn,
       completed
     );
-    return this.auth.onIdTokenChanged(next!, error, complete);
+    return this._delegate.onIdTokenChanged(next!, error, complete);
   }
   sendSignInLinkToEmail(
     email: string,
     actionCodeSettings: compat.ActionCodeSettings
   ): Promise<void> {
-    return exp.sendSignInLinkToEmail(this.auth, email, actionCodeSettings);
+    return exp.sendSignInLinkToEmail(this._delegate, email, actionCodeSettings);
   }
   sendPasswordResetEmail(
     email: string,
     actionCodeSettings?: compat.ActionCodeSettings | null
   ): Promise<void> {
     return exp.sendPasswordResetEmail(
-      this.auth,
+      this._delegate,
       email,
       actionCodeSettings || undefined
     );
   }
   async setPersistence(persistence: string): Promise<void> {
-    function convertPersistence(
-      auth: exp.Auth,
-      persistenceCompat: string
-    ): exp.Persistence {
-      _validatePersistenceArgument(auth, persistence);
-      switch (persistenceCompat) {
-        case Persistence.SESSION:
-          return exp.browserSessionPersistence;
-        case Persistence.LOCAL:
-          return isIndexedDBAvailable()
-            ? exp.indexedDBLocalPersistence
-            : exp.browserLocalPersistence;
-        case Persistence.NONE:
-          return exp.inMemoryPersistence;
-        default:
-          return exp._fail(exp.AuthErrorCode.ARGUMENT_ERROR, {
-            appName: auth.name
-          });
-      }
+    _validatePersistenceArgument(this._delegate, persistence);
+    let converted;
+    switch (persistence) {
+      case Persistence.SESSION:
+        converted = exp.browserSessionPersistence;
+        break;
+      case Persistence.LOCAL:
+        // Not using isIndexedDBAvailable() since it only checks if indexedDB is defined.
+        const isIndexedDBFullySupported = await exp
+          ._getInstance<exp.PersistenceInternal>(exp.indexedDBLocalPersistence)
+          ._isAvailable();
+        converted = isIndexedDBFullySupported
+          ? exp.indexedDBLocalPersistence
+          : exp.browserLocalPersistence;
+        break;
+      case Persistence.NONE:
+        converted = exp.inMemoryPersistence;
+        break;
+      default:
+        return exp._fail(exp.AuthErrorCode.ARGUMENT_ERROR, {
+          appName: this._delegate.name
+        });
     }
 
-    return this.auth.setPersistence(convertPersistence(this.auth, persistence));
+    return this._delegate.setPersistence(converted);
   }
 
   signInAndRetrieveDataWithCredential(
@@ -228,20 +244,23 @@ export class Auth
     return this.signInWithCredential(credential);
   }
   signInAnonymously(): Promise<compat.UserCredential> {
-    return convertCredential(this.auth, exp.signInAnonymously(this.auth));
+    return convertCredential(
+      this._delegate,
+      exp.signInAnonymously(this._delegate)
+    );
   }
   signInWithCredential(
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
-      exp.signInWithCredential(this.auth, credential as exp.AuthCredential)
+      this._delegate,
+      exp.signInWithCredential(this._delegate, credential as exp.AuthCredential)
     );
   }
   signInWithCustomToken(token: string): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
-      exp.signInWithCustomToken(this.auth, token)
+      this._delegate,
+      exp.signInWithCustomToken(this._delegate, token)
     );
   }
   signInWithEmailAndPassword(
@@ -249,8 +268,8 @@ export class Auth
     password: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
-      exp.signInWithEmailAndPassword(this.auth, email, password)
+      this._delegate,
+      exp.signInWithEmailAndPassword(this._delegate, email, password)
     );
   }
   signInWithEmailLink(
@@ -258,8 +277,8 @@ export class Auth
     emailLink?: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
-      exp.signInWithEmailLink(this.auth, email, emailLink)
+      this._delegate,
+      exp.signInWithEmailLink(this._delegate, email, emailLink)
     );
   }
   signInWithPhoneNumber(
@@ -267,9 +286,9 @@ export class Auth
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
-      this.auth,
+      this._delegate,
       exp.signInWithPhoneNumber(
-        this.auth,
+        this._delegate,
         phoneNumber,
         unwrap(applicationVerifier)
       )
@@ -280,13 +299,13 @@ export class Auth
   ): Promise<compat.UserCredential> {
     _assert(
       _isPopupRedirectSupported(),
-      this.auth,
+      this._delegate,
       exp.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     return convertCredential(
-      this.auth,
+      this._delegate,
       exp.signInWithPopup(
-        this.auth,
+        this._delegate,
         provider as exp.AuthProvider,
         CompatPopupRedirectResolver
       )
@@ -295,28 +314,33 @@ export class Auth
   async signInWithRedirect(provider: compat.AuthProvider): Promise<void> {
     _assert(
       _isPopupRedirectSupported(),
-      this.auth,
+      this._delegate,
       exp.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
 
-    await _savePersistenceForRedirect(this.auth);
+    await _savePersistenceForRedirect(this._delegate);
     return exp.signInWithRedirect(
-      this.auth,
+      this._delegate,
       provider as exp.AuthProvider,
       CompatPopupRedirectResolver
     );
   }
   updateCurrentUser(user: compat.User | null): Promise<void> {
-    return this.auth.updateCurrentUser(unwrap(user));
+    // remove ts-ignore once overloads are defined for exp functions to accept compat objects
+    // @ts-ignore
+    return this._delegate.updateCurrentUser(unwrap(user));
   }
   verifyPasswordResetCode(code: string): Promise<string> {
-    return exp.verifyPasswordResetCode(this.auth, code);
+    return exp.verifyPasswordResetCode(this._delegate, code);
   }
   unwrap(): exp.Auth {
-    return this.auth;
+    return this._delegate;
   }
   _delete(): Promise<void> {
-    return this.auth._delete();
+    return this._delegate._delete();
+  }
+  private linkUnderlyingAuth(): void {
+    ((this._delegate as unknown) as ReverseWrapper<Auth>).wrapped = () => this;
   }
 }
 

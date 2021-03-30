@@ -16,8 +16,8 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Auth, User } from '@firebase/auth-exp';
-import { Builder, WebDriver } from 'selenium-webdriver';
+import { Auth, User, Persistence } from '@firebase/auth-exp';
+import { Builder, Condition, WebDriver } from 'selenium-webdriver';
 import { resetEmulator } from '../../../helpers/integration/emulator_rest_helpers';
 import {
   getEmulatorUrl,
@@ -28,8 +28,18 @@ import { CoreFunction } from './functions';
 import { JsLoadCondition } from './js_load_condition';
 import { authTestServer } from './test_server';
 
-const START_FUNCTION = 'startAuth';
+export const START_FUNCTION = 'startAuth';
+const START_LEGACY_SDK_FUNCTION = 'startLegacySDK';
 const PASSED_ARGS = '...Array.prototype.slice.call(arguments, 0, -1)';
+
+type DriverCallResult =
+  | { type: 'success'; value: string /* JSON stringified */ }
+  | {
+      type: 'error';
+      fields: string /* JSON stringified */;
+      message: string;
+      stack: string;
+    };
 
 /** Helper wraper around the WebDriver object */
 export class AuthDriver {
@@ -43,6 +53,23 @@ export class AuthDriver {
 
   async stop(): Promise<void> {
     authTestServer.stop();
+    if (process.env.WEBDRIVER_BROWSER_LOGS) {
+      await this.webDriver
+        .manage()
+        .logs()
+        .get('browser')
+        .then(
+          logs => {
+            for (const { level, message } of logs) {
+              console.log(level.name, message);
+            }
+          },
+          () =>
+            console.log(
+              'Failed to dump browser logs (this is normal for Firefox).'
+            )
+        );
+    }
     await this.webDriver.quit();
   }
 
@@ -52,30 +79,27 @@ export class AuthDriver {
     // serialization which blows up the whole thing. It's okay though; this is
     // an integration test: we don't care about the internal (hidden) values of
     // these objects.
-    const {
-      type,
-      value
-    }: {
-      type: string;
-      value: string;
-    } = await this.webDriver.executeAsyncScript(
+    const result = await this.webDriver.executeAsyncScript<DriverCallResult>(
       `
       var callback = arguments[arguments.length - 1];
       ${fn}(${PASSED_ARGS}).then(result => {
         callback({type: 'success', value: JSON.stringify(result)});
       }).catch(e => {
-        callback({type: 'error', value: JSON.stringify(e)});
+        callback({type: 'error', message: e.message, stack: e.stack, fields: JSON.stringify(e)});
       });
     `,
       ...args
     );
 
-    const parsed: object = JSON.parse(value);
-    if (type === 'success') {
-      return JSON.parse(value) as T;
+    if (result.type === 'success') {
+      return JSON.parse(result.value) as T;
     } else {
-      const e = new Error('Test promise rejection');
-      Object.assign(e, parsed);
+      const e = new Error(result.message);
+      const stack = e.stack;
+      Object.assign(e, JSON.parse(result.fields));
+
+      const trimmedDriverStack = result.stack.split('at eval (')[0];
+      e.stack = `${trimmedDriverStack}\nfrom WebDriver call ${fn}(...)\n${stack}`;
       throw e;
     }
   }
@@ -106,6 +130,10 @@ export class AuthDriver {
     return this.call(CoreFunction.AWAIT_AUTH_INIT);
   }
 
+  async waitForLegacyAuthInit(): Promise<void> {
+    return this.call(CoreFunction.AWAIT_LEGACY_AUTH_INIT);
+  }
+
   async reinitOnRedirect(): Promise<void> {
     // In this unique case we don't know when the page is back; check for the
     // presence of the core module
@@ -126,7 +154,7 @@ export class AuthDriver {
     await this.waitForAuthInit();
   }
 
-  async injectConfigAndInitAuth(): Promise<void> {
+  private async injectConfig(): Promise<void> {
     if (!USE_EMULATOR) {
       throw new Error(
         'Local testing against emulator requested, but ' +
@@ -143,6 +171,66 @@ export class AuthDriver {
       };
       window.emulatorUrl = '${getEmulatorUrl()}';
     `);
+  }
+
+  async injectConfigAndInitAuth(): Promise<void> {
+    await this.injectConfig();
     await this.call(START_FUNCTION);
+  }
+
+  async injectConfigAndInitLegacySDK(
+    persistence: Persistence['type'] = 'LOCAL'
+  ): Promise<void> {
+    await this.injectConfig();
+    await this.call(START_LEGACY_SDK_FUNCTION, persistence);
+  }
+
+  async selectPopupWindow(): Promise<void> {
+    const currentWindowHandle = await this.webDriver.getWindowHandle();
+    const condition = new Condition(
+      'Waiting for popup to open',
+      async driver => {
+        return (await driver.getAllWindowHandles()).length > 1;
+      }
+    );
+    await this.webDriver.wait(condition);
+    const handles = await this.webDriver.getAllWindowHandles();
+    return this.webDriver
+      .switchTo()
+      .window(handles.find(h => h !== currentWindowHandle)!);
+  }
+
+  async selectMainWindow(options: { noWait?: boolean } = {}): Promise<void> {
+    if (!options.noWait) {
+      const condition = new Condition(
+        'Waiting for popup to close',
+        async driver => {
+          return (await driver.getAllWindowHandles()).length === 1;
+        }
+      );
+      await this.webDriver.wait(condition);
+    }
+    const handles = await this.webDriver.getAllWindowHandles();
+    return this.webDriver.switchTo().window(handles[0]);
+  }
+
+  async closePopup(): Promise<void> {
+    // This assumes the current driver is already the popup
+    await this.webDriver.close();
+    return this.selectMainWindow();
+  }
+
+  async closeExtraWindows(): Promise<void> {
+    const handles = await this.webDriver.getAllWindowHandles();
+    await this.webDriver.switchTo().window(handles[handles.length - 1]);
+    while (handles.length > 1) {
+      await this.webDriver.close();
+      handles.pop();
+      await this.webDriver.switchTo().window(handles[handles.length - 1]);
+    }
+  }
+
+  isCompatLayer(): boolean {
+    return process.env.COMPAT_LAYER === 'true';
   }
 }

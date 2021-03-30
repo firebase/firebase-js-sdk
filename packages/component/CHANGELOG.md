@@ -1,5 +1,18 @@
 # @firebase/component
 
+## 0.3.0
+
+### Minor Changes
+
+- [`5c1a83ed7`](https://github.com/firebase/firebase-js-sdk/commit/5c1a83ed70bae979322bd8751c0885d683ce4bf3) [#4595](https://github.com/firebase/firebase-js-sdk/pull/4595) - Component facotry now takes an options object. And added `Provider.initialize()` that can be used to pass an options object to the component factory.
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`ec95df3d0`](https://github.com/firebase/firebase-js-sdk/commit/ec95df3d07e5f091f2a7f7327e46417f64d04b4e)]:
+  - @firebase/util@0.4.0
+
 ## 0.2.0
 
 ### Minor Changes

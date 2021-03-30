@@ -16,25 +16,39 @@
  */
 
 import {
-  generateWithValues,
-  resolveDeferredValueSnapshot,
-  resolveDeferredValueTree
-} from './util/ServerValues';
+  assert,
+  contains,
+  isEmpty,
+  map,
+  safeGet,
+  stringify
+} from '@firebase/util';
+
+import { FirebaseAppLike } from '../api/Database';
+import { EventRegistration, Query } from '../api/Reference';
+
+import { AuthTokenProvider } from './AuthTokenProvider';
+import { PersistentConnection } from './PersistentConnection';
+import { ReadonlyRestClient } from './ReadonlyRestClient';
+import { RepoInfo } from './RepoInfo';
+import { ServerActions } from './ServerActions';
+import { ChildrenNode } from './snap/ChildrenNode';
+import { Node } from './snap/Node';
 import { nodeFromJSON } from './snap/nodeFromJSON';
-import {
-  newEmptyPath,
-  newRelativePath,
-  Path,
-  pathChild,
-  pathGetFront,
-  pathPopFront
-} from './util/Path';
+import { SnapshotHolder } from './SnapshotHolder';
 import {
   newSparseSnapshotTree,
   sparseSnapshotTreeForEachTree,
   sparseSnapshotTreeForget,
   sparseSnapshotTreeRemember
 } from './SparseSnapshotTree';
+import { StatsCollection } from './stats/StatsCollection';
+import { StatsListener } from './stats/StatsListener';
+import {
+  statsManagerGetCollection,
+  statsManagerGetOrCreateReporter
+} from './stats/StatsManager';
+import { StatsReporter, statsReporterIncludeStat } from './stats/StatsReporter';
 import {
   SyncTree,
   syncTreeAckUserWrite,
@@ -49,49 +63,20 @@ import {
   syncTreeGetServerValue,
   syncTreeRemoveEventRegistration
 } from './SyncTree';
-import { SnapshotHolder } from './SnapshotHolder';
-import {
-  assert,
-  contains,
-  isEmpty,
-  map,
-  safeGet,
-  stringify
-} from '@firebase/util';
-import {
-  beingCrawled,
-  each,
-  exceptionGuard,
-  log,
-  LUIDGenerator,
-  warn
-} from './util/util';
-
-import { AuthTokenProvider } from './AuthTokenProvider';
-import {
-  statsManagerGetCollection,
-  statsManagerGetOrCreateReporter
-} from './stats/StatsManager';
-import { StatsReporter, statsReporterIncludeStat } from './stats/StatsReporter';
-import { StatsListener } from './stats/StatsListener';
-import {
-  EventQueue,
-  eventQueueQueueEvents,
-  eventQueueRaiseEventsAtPath,
-  eventQueueRaiseEventsForChangedPath
-} from './view/EventQueue';
-import { PersistentConnection } from './PersistentConnection';
-import { ReadonlyRestClient } from './ReadonlyRestClient';
-import { RepoInfo } from './RepoInfo';
-import { Database } from '../api/Database';
-import { DataSnapshot } from '../api/DataSnapshot';
-import { ServerActions } from './ServerActions';
-import { Query } from '../api/Query';
-import { EventRegistration } from './view/EventRegistration';
-import { StatsCollection } from './stats/StatsCollection';
-import { Event } from './view/Event';
-import { Node } from './snap/Node';
 import { Indexable } from './util/misc';
+import {
+  newEmptyPath,
+  newRelativePath,
+  Path,
+  pathChild,
+  pathGetFront,
+  pathPopFront
+} from './util/Path';
+import {
+  generateWithValues,
+  resolveDeferredValueSnapshot,
+  resolveDeferredValueTree
+} from './util/ServerValues';
 import {
   Tree,
   treeForEachAncestor,
@@ -103,10 +88,22 @@ import {
   treeSetValue,
   treeSubTree
 } from './util/Tree';
+import {
+  beingCrawled,
+  each,
+  exceptionGuard,
+  log,
+  LUIDGenerator,
+  warn
+} from './util/util';
 import { isValidPriority, validateFirebaseData } from './util/validation';
-import { ChildrenNode } from './snap/ChildrenNode';
-import { Reference } from '../api/Reference';
-import { FirebaseAppLike } from './RepoManager';
+import { Event } from './view/Event';
+import {
+  EventQueue,
+  eventQueueQueueEvents,
+  eventQueueRaiseEventsAtPath,
+  eventQueueRaiseEventsForChangedPath
+} from './view/EventQueue';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -142,7 +139,11 @@ const enum TransactionStatus {
 interface Transaction {
   path: Path;
   update: (a: unknown) => unknown;
-  onComplete: (error: Error, committed: boolean, node: Node | null) => void;
+  onComplete: (
+    error: Error | null,
+    committed: boolean,
+    node: Node | null
+  ) => void;
   status: TransactionStatus;
   order: number;
   applyLocally: boolean;
@@ -174,7 +175,6 @@ export class Repo {
   statsReporter_: StatsReporter;
   infoData_: SnapshotHolder;
   interceptServerDataCallback_: ((a: string, b: unknown) => void) | null = null;
-  __database: Database;
 
   /** A list of data pieces and paths to be set when this client disconnects. */
   onDisconnect_ = newSparseSnapshotTree();
@@ -853,10 +853,6 @@ export function repoCallOnCompleteCallback(
   }
 }
 
-export function repoGetDatabase(repo: Repo): Database {
-  return repo.__database || (repo.__database = new Database(repo));
-}
-
 /**
  * Creates a new transaction, adds it to the transactions we're tracking, and
  * sends it to the server if possible.
@@ -864,26 +860,19 @@ export function repoGetDatabase(repo: Repo): Database {
  * @param path Path at which to do transaction.
  * @param transactionUpdate Update callback.
  * @param onComplete Completion callback.
+ * @param unwatcher Function that will be called when the transaction no longer
+ * need data updates for `path`.
  * @param applyLocally Whether or not to make intermediate results visible
  */
 export function repoStartTransaction(
   repo: Repo,
   path: Path,
   transactionUpdate: (a: unknown) => unknown,
-  onComplete:
-    | ((error: Error, committed: boolean, node: Node | null) => void)
-    | null,
+  onComplete: ((error: Error, committed: boolean, node: Node) => void) | null,
+  unwatcher: () => void,
   applyLocally: boolean
 ): void {
   repoLog(repo, 'transaction on ' + path);
-
-  // Add a watch to make sure we get server updates.
-  const valueCallback = function () {};
-  const watchRef = new Reference(repo, path);
-  watchRef.on('value', valueCallback);
-  const unwatcher = function () {
-    watchRef.off('value', valueCallback);
-  };
 
   // Initialize transaction.
   const transaction: Transaction = {
@@ -1097,8 +1086,13 @@ function repoSendTransactionQueue(
           if (queue[i].onComplete) {
             // We never unset the output snapshot, and given that this
             // transaction is complete, it should be set
-            const node = queue[i].currentOutputSnapshotResolved as Node;
-            callbacks.push(() => queue[i].onComplete(null, true, node));
+            callbacks.push(() =>
+              queue[i].onComplete(
+                null,
+                true,
+                queue[i].currentOutputSnapshotResolved
+              )
+            );
           }
           queue[i].unwatcher();
         }
@@ -1305,10 +1299,9 @@ function repoRerunTransactionQueue(
 
       if (queue[i].onComplete) {
         if (abortReason === 'nodata') {
-          const ref = new Reference(repo, queue[i].path);
-          // We set this field immediately, so it's safe to cast to an actual snapshot
-          const lastInput /** @type {!Node} */ = queue[i].currentInputSnapshot;
-          callbacks.push(() => queue[i].onComplete(null, false, lastInput));
+          callbacks.push(() =>
+            queue[i].onComplete(null, false, queue[i].currentInputSnapshot)
+          );
         } else {
           callbacks.push(() =>
             queue[i].onComplete(new Error(abortReason), false, null)
@@ -1496,9 +1489,8 @@ function repoAbortTransactionsOnNode(
           )
         );
         if (queue[i].onComplete) {
-          const snapshot: DataSnapshot | null = null;
           callbacks.push(
-            queue[i].onComplete.bind(null, new Error('set'), false, snapshot)
+            queue[i].onComplete.bind(null, new Error('set'), false, null)
           );
         }
       }

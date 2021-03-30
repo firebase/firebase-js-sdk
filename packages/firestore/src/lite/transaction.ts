@@ -15,17 +15,10 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs,
-  UserDataReader
-} from '../api/user_data_reader';
+import { getModularInstance } from '@firebase/util';
+
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { TransactionRunner } from '../core/transaction_runner';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { fail } from '../util/assert';
 import { newAsyncQueue } from '../util/async_queue_impl';
 import { cast } from '../util/input_validation';
@@ -40,6 +33,13 @@ import {
   LiteUserDataWriter
 } from './reference_impl';
 import { DocumentSnapshot } from './snapshot';
+import {
+  newUserDataReader,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
+  UserDataReader
+} from './user_data_reader';
 import { validateReference } from './write_batch';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
@@ -77,35 +77,33 @@ export class Transaction {
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
     const userDataWriter = new LiteUserDataWriter(this._firestore);
-    return this._transaction
-      .lookup([ref._key])
-      .then((docs: MaybeDocument[]) => {
-        if (!docs || docs.length !== 1) {
-          return fail('Mismatch in docs returned from document lookup.');
-        }
-        const doc = docs[0];
-        if (doc instanceof NoDocument) {
-          return new DocumentSnapshot(
-            this._firestore,
-            userDataWriter,
-            ref._key,
-            null,
-            ref._converter
-          );
-        } else if (doc instanceof Document) {
-          return new DocumentSnapshot(
-            this._firestore,
-            userDataWriter,
-            doc.key,
-            doc,
-            ref._converter
-          );
-        } else {
-          throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
-          );
-        }
-      });
+    return this._transaction.lookup([ref._key]).then(docs => {
+      if (!docs || docs.length !== 1) {
+        return fail('Mismatch in docs returned from document lookup.');
+      }
+      const doc = docs[0];
+      if (doc.isFoundDocument()) {
+        return new DocumentSnapshot(
+          this._firestore,
+          userDataWriter,
+          doc.key,
+          doc,
+          ref._converter
+        );
+      } else if (doc.isNoDocument()) {
+        return new DocumentSnapshot(
+          this._firestore,
+          userDataWriter,
+          ref._key,
+          null,
+          ref._converter
+        );
+      } else {
+        throw fail(
+          `BatchGetDocumentsRequest returned unexpected document: ${doc}`
+        );
+      }
+    });
   }
 
   /**
@@ -198,9 +196,7 @@ export class Transaction {
 
     // For Compat types, we have to "extract" the underlying types before
     // performing validation.
-    if (fieldOrUpdateData instanceof Compat) {
-      fieldOrUpdateData = fieldOrUpdateData._delegate;
-    }
+    fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
     let parsed;
     if (

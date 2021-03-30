@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performSignInRequest } from '../index';
+import {
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary,
+  _performSignInRequest
+} from '../index';
 import { IdTokenResponse } from '../../model/id_token';
 import { Auth } from '../../model/public_types';
 
@@ -23,6 +28,7 @@ export interface SignUpRequest {
   returnSecureToken?: boolean;
   email?: string;
   password?: string;
+  tenantId?: string;
 }
 
 export interface SignUpResponse extends IdTokenResponse {
@@ -38,6 +44,6 @@ export async function signUp(
     auth,
     HttpMethod.POST,
     Endpoint.SIGN_UP,
-    request
+    _addTidIfNecessary(auth, request)
   );
 }

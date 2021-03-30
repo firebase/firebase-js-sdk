@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { child, Reference } from './Reference';
-import { Node } from '../core/snap/Node';
-import { Index } from '../core/snap/indexes/Index';
-import { Path } from '../core/util/Path';
-import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { ChildrenNode } from '../core/snap/ChildrenNode';
+import { Index } from '../core/snap/indexes/Index';
+import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
+import { Node } from '../core/snap/Node';
+import { Path } from '../core/util/Path';
+
+import { child, Reference } from './Reference';
 
 export class DataSnapshot {
   /**

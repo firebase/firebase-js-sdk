@@ -16,6 +16,7 @@
  */
 
 import { Path } from '../util/Path';
+
 import { Index } from './indexes/Index';
 
 /**

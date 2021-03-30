@@ -19,16 +19,12 @@ import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
-  DocumentMap,
-  documentMap,
   DocumentSizeEntries,
   DocumentSizeEntry,
-  MaybeDocumentMap,
-  maybeDocumentMap,
-  nullableMaybeDocumentMap,
-  NullableMaybeDocumentMap
+  MutableDocumentMap,
+  mutableDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
@@ -127,11 +123,11 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
+  ): PersistencePromise<MutableDocument> {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
-        return this.maybeDecodeDocument(dbRemoteDoc);
+        return this.maybeDecodeDocument(documentKey, dbRemoteDoc);
       });
   }
 
@@ -139,36 +135,33 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
    * Looks up an entry in the cache.
    *
    * @param documentKey - The key of the entry to look up.
-   * @returns The cached MaybeDocument entry and its size, or null if we have
-   * nothing cached.
+   * @returns The cached document entry and its size.
    */
   getSizedEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<DocumentSizeEntry | null> {
+  ): PersistencePromise<DocumentSizeEntry> {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
-        const doc = this.maybeDecodeDocument(dbRemoteDoc);
-        return doc
-          ? {
-              maybeDocument: doc,
-              size: dbDocumentSize(dbRemoteDoc!)
-            }
-          : null;
+        const doc = this.maybeDecodeDocument(documentKey, dbRemoteDoc);
+        return {
+          document: doc,
+          size: dbDocumentSize(dbRemoteDoc)
+        };
       });
   }
 
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap> {
-    let results = nullableMaybeDocumentMap();
+  ): PersistencePromise<MutableDocumentMap> {
+    let results = mutableDocumentMap();
     return this.forEachDbEntry(
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        const doc = this.maybeDecodeDocument(dbRemoteDoc);
+        const doc = this.maybeDecodeDocument(key, dbRemoteDoc);
         results = results.insert(key, doc);
       }
     ).next(() => results);
@@ -178,31 +171,25 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
    * Looks up several entries in the cache.
    *
    * @param documentKeys - The set of keys entries to look up.
-   * @returns A map of MaybeDocuments indexed by key (if a document cannot be
-   *     found, the key will be mapped to null) and a map of sizes indexed by
-   *     key (zero if the key cannot be found).
+   * @returns A map of documents indexed by key and a map of sizes indexed by
+   *     key (zero if the document does not exist).
    */
   getSizedEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<DocumentSizeEntries> {
-    let results = nullableMaybeDocumentMap();
+    let results = mutableDocumentMap();
     let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
     return this.forEachDbEntry(
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        const doc = this.maybeDecodeDocument(dbRemoteDoc);
-        if (doc) {
-          results = results.insert(key, doc);
-          sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc!));
-        } else {
-          results = results.insert(key, null);
-          sizeMap = sizeMap.insert(key, 0);
-        }
+        const doc = this.maybeDecodeDocument(key, dbRemoteDoc);
+        results = results.insert(key, doc);
+        sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
       }
     ).next(() => {
-      return { maybeDocuments: results, sizeMap };
+      return { documents: results, sizeMap };
     });
   }
 
@@ -259,12 +246,12 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query,
     sinceReadTime: SnapshotVersion
-  ): PersistencePromise<DocumentMap> {
+  ): PersistencePromise<MutableDocumentMap> {
     debugAssert(
       !isCollectionGroupQuery(query),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
-    let results = documentMap();
+    let results = mutableDocumentMap();
 
     const immediateChildrenPathLength = query.path.length + 1;
 
@@ -298,14 +285,11 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
           return;
         }
 
-        const maybeDoc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
-        if (!query.path.isPrefixOf(maybeDoc.key.path)) {
+        const document = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
+        if (!query.path.isPrefixOf(document.key.path)) {
           control.done();
-        } else if (
-          maybeDoc instanceof Document &&
-          queryMatches(query, maybeDoc)
-        ) {
-          results = results.insert(maybeDoc.key, maybeDoc);
+        } else if (queryMatches(query, document)) {
+          results = results.insert(document.key, document);
         }
       })
       .next(() => results);
@@ -347,22 +331,21 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
    * corresponds to the format used for sentinel deletes).
    */
   private maybeDecodeDocument(
+    documentKey: DocumentKey,
     dbRemoteDoc: DbRemoteDocument | null
-  ): MaybeDocument | null {
+  ): MutableDocument {
     if (dbRemoteDoc) {
       const doc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
-      if (
-        doc instanceof NoDocument &&
-        doc.version.isEqual(SnapshotVersion.min())
-      ) {
-        // The document is a sentinel removal and should only be used in the
-        // `getNewDocumentChanges()`.
-        return null;
-      }
 
-      return doc;
+      // Whether the document is a sentinel removal and should only be used in the
+      // `getNewDocumentChanges()`
+      const isSentinelRemoval =
+        doc.isNoDocument() && doc.version.isEqual(SnapshotVersion.min());
+      if (!isSentinelRemoval) {
+        return doc;
+      }
     }
-    return null;
+    return MutableDocument.newInvalidDocument(documentKey);
   }
 }
 
@@ -389,14 +372,14 @@ export function remoteDocumentCacheGetNewDocumentChanges(
   transaction: PersistenceTransaction,
   sinceReadTime: SnapshotVersion
 ): PersistencePromise<{
-  changedDocs: MaybeDocumentMap;
+  changedDocs: MutableDocumentMap;
   readTime: SnapshotVersion;
 }> {
   const remoteDocumentCacheImpl = debugCast(
     remoteDocumentCache,
     IndexedDbRemoteDocumentCacheImpl // We only support IndexedDb in multi-tab mode.
   );
-  let changedDocs = maybeDocumentMap();
+  let changedDocs = mutableDocumentMap();
 
   let lastReadTime = toDbTimestampKey(sinceReadTime);
 
@@ -493,14 +476,14 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
         previousSize !== undefined,
         `Cannot modify a document that wasn't read (for ${key})`
       );
-      if (documentChange.maybeDocument) {
+      if (documentChange.document.isValidDocument()) {
         debugAssert(
           !this.getReadTime(key).isEqual(SnapshotVersion.min()),
           'Cannot add a document with a read time of zero'
         );
         const doc = toDbRemoteDocument(
           this.documentCache.serializer,
-          documentChange.maybeDocument,
+          documentChange.document,
           this.getReadTime(key)
         );
         collectionParents = collectionParents.add(key.path.popLast());
@@ -517,7 +500,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
           // preserved in `getNewDocumentChanges()`.
           const deletedDoc = toDbRemoteDocument(
             this.documentCache.serializer,
-            new NoDocument(key, SnapshotVersion.min()),
+            MutableDocument.newNoDocument(key, SnapshotVersion.min()),
             this.getReadTime(key)
           );
           promises.push(
@@ -546,37 +529,32 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   protected getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
+  ): PersistencePromise<MutableDocument> {
     // Record the size of everything we load from the cache so we can compute a delta later.
     return this.documentCache
       .getSizedEntry(transaction, documentKey)
       .next(getResult => {
-        if (getResult === null) {
-          this.documentSizes.set(documentKey, 0);
-          return null;
-        } else {
-          this.documentSizes.set(documentKey, getResult.size);
-          return getResult.maybeDocument;
-        }
+        this.documentSizes.set(documentKey, getResult.size);
+        return getResult.document;
       });
   }
 
   protected getAllFromCache(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap> {
+  ): PersistencePromise<MutableDocumentMap> {
     // Record the size of everything we load from the cache so we can compute
     // a delta later.
     return this.documentCache
       .getSizedEntries(transaction, documentKeys)
-      .next(({ maybeDocuments, sizeMap }) => {
+      .next(({ documents, sizeMap }) => {
         // Note: `getAllFromCache` returns two maps instead of a single map from
         // keys to `DocumentSizeEntry`s. This is to allow returning the
-        // `NullableMaybeDocumentMap` directly, without a conversion.
+        // `MutableDocumentMap` directly, without a conversion.
         sizeMap.forEach((documentKey, size) => {
           this.documentSizes.set(documentKey, size);
         });
-        return maybeDocuments;
+        return documents;
       });
   }
 }
