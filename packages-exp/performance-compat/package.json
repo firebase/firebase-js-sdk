@@ -27,8 +27,7 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@firebase/app-compat": "0.x",
-    "@firebase/app-types": "0.x"
+    "@firebase/app-compat": "0.x"
   },
   "dependencies": {
     "@firebase/performance-exp": "0.0.900",

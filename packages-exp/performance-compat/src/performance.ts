@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import {
   trace,
   FirebasePerformance,
@@ -23,32 +22,32 @@ import {
   PerformanceTrace
 } from '@firebase/performance-exp';
 import { FirebasePerformance as FirebasePerformanceCompat } from '@firebase/performance-types';
-import { FirebaseService } from '@firebase/app-types/private';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 
 export class PerformanceCompatImpl
-  implements FirebasePerformanceCompat, FirebaseService {
+  implements FirebasePerformanceCompat, _FirebaseService {
   constructor(
     public app: FirebaseApp,
-    private _performance: FirebasePerformance
+    readonly _delegate: FirebasePerformance
   ) {}
 
   get instrumentationEnabled(): boolean {
-    return this._performance.instrumentationEnabled;
+    return this._delegate.instrumentationEnabled;
   }
 
   set instrumentationEnabled(val: boolean) {
-    this._performance.instrumentationEnabled = val;
+    this._delegate.instrumentationEnabled = val;
   }
 
   get dataCollectionEnabled(): boolean {
-    return this._performance.dataCollectionEnabled;
+    return this._delegate.dataCollectionEnabled;
   }
 
   set dataCollectionEnabled(val: boolean) {
-    this._performance.dataCollectionEnabled = val;
+    this._delegate.dataCollectionEnabled = val;
   }
 
   trace(traceName: string): PerformanceTrace {
-    return trace(this._performance, traceName);
+    return trace(this._delegate, traceName);
   }
 }

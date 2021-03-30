@@ -70,6 +70,7 @@ export function getDatastore(firestore: FirestoreService): Datastore {
     logDebug(LOG_TAG, 'Initializing Datastore');
     const databaseInfo = makeDatabaseInfo(
       firestore._databaseId,
+      firestore.app.options.appId || '',
       firestore._persistenceKey,
       firestore._freezeSettings()
     );
@@ -101,11 +102,13 @@ export function removeComponents(firestore: FirestoreService): void {
 
 export function makeDatabaseInfo(
   databaseId: DatabaseId,
+  appId: string,
   persistenceKey: string,
   settings: FirestoreSettings
 ): DatabaseInfo {
   return new DatabaseInfo(
     databaseId,
+    appId,
     persistenceKey,
     settings.host,
     settings.ssl,

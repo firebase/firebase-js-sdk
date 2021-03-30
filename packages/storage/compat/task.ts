@@ -25,10 +25,11 @@ import {
 import { UploadTaskSnapshotCompat } from './tasksnapshot';
 import { ReferenceCompat } from './reference';
 import * as types from '@firebase/storage-types';
+import { Compat } from '@firebase/util';
 
-export class UploadTaskCompat implements types.UploadTask {
+export class UploadTaskCompat implements types.UploadTask, Compat<UploadTask> {
   constructor(
-    private readonly _delegate: UploadTask,
+    readonly _delegate: UploadTask,
     private readonly _ref: ReferenceCompat
   ) {}
 

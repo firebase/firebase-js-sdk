@@ -39,38 +39,38 @@ import {
 
 export class RemoteConfigCompatImpl
   implements RemoteConfigCompat, _FirebaseService {
-  constructor(public app: FirebaseApp, private _remoteConfig: RemoteConfig) {}
+  constructor(public app: FirebaseApp, readonly _delegate: RemoteConfig) {}
 
   get defaultConfig(): { [key: string]: string | number | boolean } {
-    return this._remoteConfig.defaultConfig;
+    return this._delegate.defaultConfig;
   }
 
   set defaultConfig(value: { [key: string]: string | number | boolean }) {
-    this._remoteConfig.defaultConfig = value;
+    this._delegate.defaultConfig = value;
   }
 
   get fetchTimeMillis(): number {
-    return this._remoteConfig.fetchTimeMillis;
+    return this._delegate.fetchTimeMillis;
   }
 
   get lastFetchStatus(): FetchSTatusCompat {
-    return this._remoteConfig.lastFetchStatus;
+    return this._delegate.lastFetchStatus;
   }
 
   get settings(): SettingsCompat {
-    return this._remoteConfig.settings;
+    return this._delegate.settings;
   }
 
   set settings(value: SettingsCompat) {
-    this._remoteConfig.settings = value;
+    this._delegate.settings = value;
   }
 
   activate(): Promise<boolean> {
-    return activate(this._remoteConfig);
+    return activate(this._delegate);
   }
 
   ensureInitialized(): Promise<void> {
-    return ensureInitialized(this._remoteConfig);
+    return ensureInitialized(this._delegate);
   }
 
   /**
@@ -79,36 +79,36 @@ export class RemoteConfigCompatImpl
    * {@link DEFAULT_FETCH_TIMEOUT_SECONDS}.
    */
   fetch(): Promise<void> {
-    return fetchConfig(this._remoteConfig);
+    return fetchConfig(this._delegate);
   }
 
   fetchAndActivate(): Promise<boolean> {
-    return fetchAndActivate(this._remoteConfig);
+    return fetchAndActivate(this._delegate);
   }
 
   getAll(): { [key: string]: ValueCompat } {
-    return getAll(this._remoteConfig);
+    return getAll(this._delegate);
   }
 
   getBoolean(key: string): boolean {
-    return getBoolean(this._remoteConfig, key);
+    return getBoolean(this._delegate, key);
   }
 
   getNumber(key: string): number {
-    return getNumber(this._remoteConfig, key);
+    return getNumber(this._delegate, key);
   }
 
   getString(key: string): string {
-    return getString(this._remoteConfig, key);
+    return getString(this._delegate, key);
   }
 
   getValue(key: string): ValueCompat {
-    return getValue(this._remoteConfig, key);
+    return getValue(this._delegate, key);
   }
 
   // Based on packages/firestore/src/util/log.ts but not static because we need per-instance levels
   // to differentiate 2p and 3p use-cases.
   setLogLevel(logLevel: RemoteConfigLogLevel): void {
-    setLogLevel(this._remoteConfig, logLevel);
+    setLogLevel(this._delegate, logLevel);
   }
 }
