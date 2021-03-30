@@ -61,8 +61,7 @@ window.startLegacySDK = async persistence => {
   if (window.firebase.SDK_VERSION !== '8.3.0') {
     reject(
       new Error(
-        'Not using correct legacy version; using ' +
-          window.firebase.SDK_VERSION
+        'Not using correct legacy version; using ' + window.firebase.SDK_VERSION
       )
     );
   }
@@ -71,4 +70,3 @@ window.startLegacySDK = async persistence => {
   legacyAuth.setPersistence(persistence.toLowerCase());
   window.legacyAuth = legacyAuth;
 };
-
