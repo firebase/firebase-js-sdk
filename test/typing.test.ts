@@ -15,21 +15,18 @@
  * limitations under the License.
  */
 
-import {
-  logEvent,
-  setCurrentScreen,
-  setUserId,
-  setUserProperties
-} from '../packages-exp/firebase-exp/analytics';
+import '@firebase/app-exp';
+import { setUserId } from '@firebase/analytics-exp';
 import { updateCurrentUser } from '../packages-exp/firebase-exp/auth';
+import { httpsCallable } from '@firebase/functions-exp';
 import firebase from '../packages-exp/firebase-exp/compat';
+import '@firebase/functions-compat';
 
 // Test that index.d.ts typings work in exp function signatures.
 firebase.initializeApp({});
 const oldAnalytics = firebase.analytics();
 const oldAuth = firebase.auth();
-logEvent(oldAnalytics, 'login', {});
-setCurrentScreen(oldAnalytics, 'home');
+const oldFunctions = firebase.functions();
 setUserId(oldAnalytics, 'user123');
-setUserProperties(oldAnalytics, { customProp: 'abc' });
 updateCurrentUser(oldAuth, null);
+httpsCallable(oldFunctions, 'testfunction');

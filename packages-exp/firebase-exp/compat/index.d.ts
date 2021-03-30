@@ -1486,6 +1486,16 @@ declare namespace firebase.installations {
    */
   export interface Installations {
     /**
+     * The {@link firebase.app.App app} associated with the `Installations` service
+     * instance.
+     *
+     * @example
+     * ```javascript
+     * var app = analytics.app;
+     * ```
+     */
+    app: firebase.app.App;
+    /**
      * Creates a Firebase Installation if there isn't one for the app and
      * returns the Installation ID.
      *
@@ -1524,6 +1534,16 @@ declare namespace firebase.performance {
    * {@link firebase.performance `firebase.performance()`}.
    */
   export interface Performance {
+    /**
+     * The {@link firebase.app.App app} associated with the `Performance` service
+     * instance.
+     *
+     * @example
+     * ```javascript
+     * var app = analytics.app;
+     * ```
+     */
+    app: firebase.app.App;
     /**
      * Creates an uninitialized instance of {@link firebase.performance.Trace `trace`} and returns
      * it.
@@ -1637,6 +1657,16 @@ declare namespace firebase.remoteConfig {
    * {@link firebase.remoteConfig `firebase.remoteConfig()`}.
    */
   export interface RemoteConfig {
+    /**
+     * The {@link firebase.app.App app} associated with the `Performance` service
+     * instance.
+     *
+     * @example
+     * ```javascript
+     * var app = analytics.app;
+     * ```
+     */
+    app: firebase.app.App;
     /**
      * Defines configuration for the Remote Config SDK.
      */
@@ -7378,12 +7408,6 @@ declare namespace firebase.storage {
      */
     bucket: string;
     /**
-     * @deprecated
-     * Use Reference.getDownloadURL instead. This property will be removed in a
-     * future release.
-     */
-    downloadURLs: string[];
-    /**
      * The full path of this object.
      */
     fullPath: string;
@@ -7437,7 +7461,7 @@ declare namespace firebase.storage {
      * @return A Promise that resolves if the deletion
      *     succeeded and rejects if it failed, including if the object didn't exist.
      */
-    delete(): Promise<any>;
+    delete(): Promise<void>;
     /**
      * The full path of this object.
      */
@@ -7448,14 +7472,14 @@ declare namespace firebase.storage {
      *     URL or rejects if the fetch failed, including if the object did not
      *     exist.
      */
-    getDownloadURL(): Promise<any>;
+    getDownloadURL(): Promise<string>;
     /**
      * Fetches metadata for the object at this location, if one exists.
      * @return A Promise that
      *     resolves with the metadata, or rejects if the fetch failed, including if
      *     the object did not exist.
      */
-    getMetadata(): Promise<any>;
+    getMetadata(): Promise<FullMetadata>;
     /**
      * The short name of this object, which is the last component of the full path.
      * For example, if fullPath is 'full/path/image.png', name is 'image.png'.
@@ -7516,7 +7540,9 @@ declare namespace firebase.storage {
      *     resolves with the full updated metadata or rejects if the updated failed,
      *     including if the object did not exist.
      */
-    updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
+    updateMetadata(
+      metadata: firebase.storage.SettableMetadata
+    ): Promise<FullMetadata>;
     /**
      * List all items (files) and prefixes (folders) under this storage reference.
      *
@@ -7672,7 +7698,6 @@ declare namespace firebase.storage {
      * @param url A URL in the form: <br />
      *     1) a gs:// URL, for example `gs://bucket/files/image.png` <br />
      *     2) a download URL taken from object metadata. <br />
-     *     @see {@link firebase.storage.FullMetadata.downloadURLs}
      * @return A reference for the given URL.
      */
     refFromURL(url: string): firebase.storage.Reference;
@@ -7956,12 +7981,6 @@ declare namespace firebase.storage {
      * The number of bytes that have been successfully uploaded so far.
      */
     bytesTransferred: number;
-    /**
-     * @deprecated
-     * Use Reference.getDownloadURL instead. This property will be removed in a
-     * future release.
-     */
-    downloadURL: string | null;
     /**
      * Before the upload completes, contains the metadata sent to the server.
      * After the upload completes, contains the metadata sent back from the server.
