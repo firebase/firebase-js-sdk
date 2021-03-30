@@ -18,12 +18,12 @@
 import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import firebase from '@firebase/app-compat';
-import { unwrap, Wrapper } from './wrap';
+import { Compat } from '@firebase/util';
 
 export class PhoneAuthProvider
-  implements compat.PhoneAuthProvider, Wrapper<exp.PhoneAuthProvider> {
+  implements compat.PhoneAuthProvider, Compat<exp.PhoneAuthProvider> {
   providerId = 'phone';
-  private readonly phoneProvider: exp.PhoneAuthProvider;
+  readonly _delegate: exp.PhoneAuthProvider;
 
   static PHONE_SIGN_IN_METHOD = exp.PhoneAuthProvider.PHONE_SIGN_IN_METHOD;
   static PROVIDER_ID = exp.PhoneAuthProvider.PROVIDER_ID;
@@ -38,7 +38,7 @@ export class PhoneAuthProvider
   constructor() {
     // TODO: remove ts-ignore when moving types from auth-types to auth-compat
     // @ts-ignore
-    this.phoneProvider = new exp.PhoneAuthProvider(unwrap(firebase.auth!()));
+    this._delegate = new exp.PhoneAuthProvider(unwrap(firebase.auth!()));
   }
 
   verifyPhoneNumber(
@@ -49,15 +49,15 @@ export class PhoneAuthProvider
       | compat.PhoneMultiFactorSignInInfoOptions,
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<string> {
-    return this.phoneProvider.verifyPhoneNumber(
+    return this._delegate.verifyPhoneNumber(
       // The implementation matches but the types are subtly incompatible
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       phoneInfoOptions as any,
-      unwrap(applicationVerifier)
+      applicationVerifier
     );
   }
 
   unwrap(): exp.PhoneAuthProvider {
-    return this.phoneProvider;
+    return this._delegate;
   }
 }

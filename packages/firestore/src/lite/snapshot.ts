@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
+import { Compat, getModularInstance } from '@firebase/util';
+
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { arrayEquals } from '../util/misc';
 
-import { Compat } from './compat';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';
 import {
@@ -291,12 +292,8 @@ export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,
   right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean {
-  if (left instanceof Compat) {
-    left = left._delegate;
-  }
-  if (right instanceof Compat) {
-    right = right._delegate;
-  }
+  left = getModularInstance(left);
+  right = getModularInstance(right);
 
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
@@ -326,9 +323,9 @@ export function fieldPathFromArgument(
 ): InternalFieldPath {
   if (typeof arg === 'string') {
     return fieldPathFromDotSeparatedString(methodName, arg);
-  } else if (arg instanceof Compat) {
-    return arg._delegate._internalPath;
-  } else {
+  } else if (arg instanceof FieldPath) {
     return arg._internalPath;
+  } else {
+    return arg._delegate._internalPath;
   }
 }

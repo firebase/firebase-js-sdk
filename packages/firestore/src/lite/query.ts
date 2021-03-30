@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { getModularInstance } from '@firebase/util';
+
 import { DatabaseId } from '../core/database_info';
 import {
   findFilterOperator,
@@ -52,7 +54,6 @@ import {
   valueDescription
 } from '../util/input_validation';
 
-import { Compat } from './compat';
 import { FieldPath } from './field_path';
 import { DocumentReference, Query } from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
@@ -442,9 +443,7 @@ function newQueryBoundFromDocOrFields<T>(
   docOrFields: Array<unknown | DocumentSnapshot<T>>,
   before: boolean
 ): Bound {
-  if (docOrFields[0] instanceof Compat) {
-    docOrFields[0] = docOrFields[0]._delegate;
-  }
+  docOrFields[0] = getModularInstance(docOrFields[0]);
 
   if (docOrFields[0] instanceof DocumentSnapshot) {
     return newQueryBoundFromDocument(
@@ -676,9 +675,7 @@ function parseDocumentIdValue(
   query: InternalQuery,
   documentIdValue: unknown
 ): ProtoValue {
-  if (documentIdValue instanceof Compat) {
-    documentIdValue = documentIdValue._delegate;
-  }
+  documentIdValue = getModularInstance(documentIdValue);
 
   if (typeof documentIdValue === 'string') {
     if (documentIdValue === '') {

@@ -18,6 +18,8 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import firebase from '@firebase/app-compat';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import '@firebase/auth-compat';
 
 import * as chaiAsPromised from 'chai-as-promised';
 import {

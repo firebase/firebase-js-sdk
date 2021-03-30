@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { getModularInstance } from '@firebase/util';
+
 import {
   CompleteFn,
   ErrorFn,
@@ -34,7 +36,6 @@ import {
 import { newQueryForPath, Query as InternalQuery } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { Bytes } from '../lite/bytes';
-import { Compat } from '../lite/compat';
 import { FieldPath } from '../lite/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite/query';
 import {
@@ -337,9 +338,7 @@ export function updateDoc(
 
   // For Compat types, we have to "extract" the underlying types before
   // performing validation.
-  if (fieldOrUpdateData instanceof Compat) {
-    fieldOrUpdateData = fieldOrUpdateData._delegate;
-  }
+  fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
   let parsed: ParsedUpdateData;
   if (
@@ -621,9 +620,7 @@ export function onSnapshot<T>(
   reference: Query<T> | DocumentReference<T>,
   ...args: unknown[]
 ): Unsubscribe {
-  if (reference instanceof Compat) {
-    reference = reference._delegate;
-  }
+  reference = getModularInstance(reference);
 
   let options: SnapshotListenOptions = {
     includeMetadataChanges: false
