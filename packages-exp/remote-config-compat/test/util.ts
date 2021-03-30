@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import { _FirebaseAppInternal } from '@firebase/app-exp';
 import { RemoteConfig } from '@firebase/remote-config-exp';
 
 export function getFakeApp(): FirebaseApp {
@@ -34,7 +33,7 @@ export function getFakeApp(): FirebaseApp {
     automaticDataCollectionEnabled: true,
     delete: async () => {},
     remoteConfig: (() => null as unknown) as FirebaseApp['remoteConfig'],
-    _delegate: {} as _FirebaseAppInternal
+    _delegate: {} as any
   };
 }
 

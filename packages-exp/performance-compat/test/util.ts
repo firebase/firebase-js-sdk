@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import { _FirebaseAppInternal } from '@firebase/app-exp';
 import {
   FirebasePerformance,
   PerformanceTrace
@@ -36,7 +35,7 @@ export function getFakeApp(): FirebaseApp {
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    _delegate: {} as _FirebaseAppInternal
+    _delegate: {} as any
   };
 }
 
