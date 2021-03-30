@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
+import { _FirebaseAppInternal } from '@firebase/app-exp';
 import { FirebaseInstallations } from '@firebase/installations-exp';
 
 const appName = 'testApp';
@@ -37,7 +38,8 @@ export function getFakeApp(): FirebaseApp {
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    installations: (() => null as unknown) as any
+    installations: (() => null as unknown) as any,
+    _delegate: {} as _FirebaseAppInternal
   };
 }
 

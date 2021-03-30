@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
+import { _FirebaseAppInternal } from '@firebase/app-exp';
 import { FirebaseMessaging } from '@firebase/messaging-exp';
 
 export function getFakeApp(): FirebaseApp {
@@ -32,7 +33,8 @@ export function getFakeApp(): FirebaseApp {
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    messaging: (() => null as unknown) as FirebaseApp['messaging']
+    messaging: (() => null as unknown) as FirebaseApp['messaging'],
+    _delegate: {} as _FirebaseAppInternal
   };
 }
 
