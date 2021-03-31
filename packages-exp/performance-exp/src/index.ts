@@ -27,7 +27,8 @@ import {
   _registerComponent,
   _getProvider,
   registerVersion,
-  FirebaseApp
+  FirebaseApp,
+  getApp
 } from '@firebase/app-exp';
 import {
   InstanceFactory,
@@ -47,7 +48,9 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
  * @param app - The FirebaseApp to use.
  * @public
  */
-export function getPerformance(app: FirebaseApp): FirebasePerformance {
+export function getPerformance(
+  app: FirebaseApp = getApp()
+): FirebasePerformance {
   app = getModularInstance(app);
   const provider = _getProvider(app, 'performance-exp');
   const perfInstance = provider.getImmediate() as PerformanceController;
