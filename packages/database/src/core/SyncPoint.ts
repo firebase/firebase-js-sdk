@@ -17,11 +17,7 @@
 
 import { assert } from '@firebase/util';
 
-import {
-  EventRegistration,
-  Query,
-  ReferenceConstructor
-} from '../api/Reference';
+import { ReferenceConstructor } from '../exp/Reference';
 
 import { Operation } from './operation/Operation';
 import { ChildrenNode } from './snap/ChildrenNode';
@@ -29,6 +25,7 @@ import { Node } from './snap/Node';
 import { Path } from './util/Path';
 import { CacheNode } from './view/CacheNode';
 import { Event } from './view/Event';
+import { EventRegistration, QueryContext } from './view/EventRegistration';
 import {
   View,
   viewAddEventRegistration,
@@ -126,12 +123,12 @@ export function syncPointApplyOperation(
  */
 export function syncPointGetView(
   syncPoint: SyncPoint,
-  query: Query,
+  query: QueryContext,
   writesCache: WriteTreeRef,
   serverCache: Node | null,
   serverCacheComplete: boolean
 ): View {
-  const queryId = query.queryIdentifier();
+  const queryId = query._queryIdentifier;
   const view = syncPoint.views.get(queryId);
   if (!view) {
     // TODO: make writesCache take flag for complete server node
@@ -173,7 +170,7 @@ export function syncPointGetView(
  */
 export function syncPointAddEventRegistration(
   syncPoint: SyncPoint,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration,
   writesCache: WriteTreeRef,
   serverCache: Node | null,
@@ -186,8 +183,8 @@ export function syncPointAddEventRegistration(
     serverCache,
     serverCacheComplete
   );
-  if (!syncPoint.views.has(query.queryIdentifier())) {
-    syncPoint.views.set(query.queryIdentifier(), view);
+  if (!syncPoint.views.has(query._queryIdentifier)) {
+    syncPoint.views.set(query._queryIdentifier, view);
   }
   // This is guaranteed to exist now, we just created anything that was missing
   viewAddEventRegistration(view, eventRegistration);
@@ -206,12 +203,12 @@ export function syncPointAddEventRegistration(
  */
 export function syncPointRemoveEventRegistration(
   syncPoint: SyncPoint,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration | null,
   cancelError?: Error
-): { removed: Query[]; events: Event[] } {
-  const queryId = query.queryIdentifier();
-  const removed: Query[] = [];
+): { removed: QueryContext[]; events: Event[] } {
+  const queryId = query._queryIdentifier;
+  const removed: QueryContext[] = [];
   let cancelEvents: Event[] = [];
   const hadCompleteView = syncPointHasCompleteView(syncPoint);
   if (queryId === 'default') {
@@ -224,7 +221,7 @@ export function syncPointRemoveEventRegistration(
         syncPoint.views.delete(viewQueryId);
 
         // We'll deal with complete views later.
-        if (!view.query.getQueryParams().loadsAllData()) {
+        if (!view.query._queryParams.loadsAllData()) {
           removed.push(view.query);
         }
       }
@@ -240,7 +237,7 @@ export function syncPointRemoveEventRegistration(
         syncPoint.views.delete(queryId);
 
         // We'll deal with complete views later.
-        if (!view.query.getQueryParams().loadsAllData()) {
+        if (!view.query._queryParams.loadsAllData()) {
           removed.push(view.query);
         }
       }
@@ -250,7 +247,7 @@ export function syncPointRemoveEventRegistration(
   if (hadCompleteView && !syncPointHasCompleteView(syncPoint)) {
     // We removed our last complete view.
     removed.push(
-      new (syncPointGetReferenceConstructor())(query.database, query.path)
+      new (syncPointGetReferenceConstructor())(query._repo, query._path)
     );
   }
 
@@ -260,7 +257,7 @@ export function syncPointRemoveEventRegistration(
 export function syncPointGetQueryViews(syncPoint: SyncPoint): View[] {
   const result = [];
   for (const view of syncPoint.views.values()) {
-    if (!view.query.getQueryParams().loadsAllData()) {
+    if (!view.query._queryParams.loadsAllData()) {
       result.push(view);
     }
   }
@@ -284,20 +281,20 @@ export function syncPointGetCompleteServerCache(
 
 export function syncPointViewForQuery(
   syncPoint: SyncPoint,
-  query: Query
+  query: QueryContext
 ): View | null {
-  const params = query.getQueryParams();
+  const params = query._queryParams;
   if (params.loadsAllData()) {
     return syncPointGetCompleteView(syncPoint);
   } else {
-    const queryId = query.queryIdentifier();
+    const queryId = query._queryIdentifier;
     return syncPoint.views.get(queryId);
   }
 }
 
 export function syncPointViewExistsForQuery(
   syncPoint: SyncPoint,
-  query: Query
+  query: QueryContext
 ): boolean {
   return syncPointViewForQuery(syncPoint, query) != null;
 }
@@ -308,7 +305,7 @@ export function syncPointHasCompleteView(syncPoint: SyncPoint): boolean {
 
 export function syncPointGetCompleteView(syncPoint: SyncPoint): View | null {
   for (const view of syncPoint.views.values()) {
-    if (view.query.getQueryParams().loadsAllData()) {
+    if (view.query._queryParams.loadsAllData()) {
       return view;
     }
   }

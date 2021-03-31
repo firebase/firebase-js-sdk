@@ -25,8 +25,8 @@ import {
   isNodeSdk
 } from '@firebase/util';
 
-import { Query } from '../../api/Reference';
 import { SessionStorage } from '../storage/storage';
+import { QueryContext } from '../view/EventRegistration';
 
 declare const window: Window;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -470,7 +470,7 @@ export const isWindowsStoreApp = function (): boolean {
 /**
  * Converts a server error code to a Javascript Error
  */
-export const errorForServerCode = function (code: string, query: Query): Error {
+export function errorForServerCode(code: string, query: QueryContext): Error {
   let reason = 'Unknown Error';
   if (code === 'too_big') {
     reason =
@@ -483,12 +483,12 @@ export const errorForServerCode = function (code: string, query: Query): Error {
   }
 
   const error = new Error(
-    code + ' at ' + query.path.toString() + ': ' + reason
+    code + ' at ' + query._path.toString() + ': ' + reason
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (error as any).code = code.toUpperCase();
   return error;
-};
+}
 
 /**
  * Used to test for integer-looking strings

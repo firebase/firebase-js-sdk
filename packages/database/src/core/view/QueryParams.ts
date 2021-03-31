@@ -23,7 +23,7 @@ import { PathIndex } from '../snap/indexes/PathIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
 import { predecessor, successor } from '../util/NextPushId';
-import { MIN_NAME, MAX_NAME } from '../util/util';
+import { MAX_NAME, MIN_NAME } from '../util/util';
 
 import { IndexedFilter } from './filter/IndexedFilter';
 import { LimitedFilter } from './filter/LimitedFilter';

@@ -25,7 +25,6 @@ import {
 } from '@firebase/util';
 
 import { FirebaseAppLike } from '../api/Database';
-import { EventRegistration, Query } from '../api/Reference';
 
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { PersistentConnection } from './PersistentConnection';
@@ -104,6 +103,7 @@ import {
   eventQueueRaiseEventsAtPath,
   eventQueueRaiseEventsForChangedPath
 } from './view/EventQueue';
+import { EventRegistration, QueryContext } from './view/EventRegistration';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -280,13 +280,13 @@ export function repoStart(repo: Repo): void {
   repo.infoSyncTree_ = new SyncTree({
     startListening: (query, tag, currentHashFn, onComplete) => {
       let infoEvents: Event[] = [];
-      const node = repo.infoData_.getNode(query.path);
+      const node = repo.infoData_.getNode(query._path);
       // This is possibly a hack, but we have different semantics for .info endpoints. We don't raise null events
       // on initial data...
       if (!node.isEmpty()) {
         infoEvents = syncTreeApplyServerOverwrite(
           repo.infoSyncTree_,
-          query.path,
+          query._path,
           node
         );
         setTimeout(() => {
@@ -305,7 +305,7 @@ export function repoStart(repo: Repo): void {
         const events = onComplete(status, data);
         eventQueueRaiseEventsForChangedPath(
           repo.eventQueue_,
-          query.path,
+          query._path,
           events
         );
       });
@@ -449,7 +449,7 @@ function repoGetNextWriteId(repo: Repo): number {
  *
  * @param query - The query to surface a value for.
  */
-export function repoGetValue(repo: Repo, query: Query): Promise<Node> {
+export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   // Only active queries are cached. There is no persisted cache.
   const cached = syncTreeGetServerValue(repo.serverSyncTree_, query);
   if (cached != null) {
@@ -460,10 +460,10 @@ export function repoGetValue(repo: Repo, query: Query): Promise<Node> {
       const node = nodeFromJSON(payload as string);
       const events = syncTreeApplyServerOverwrite(
         repo.serverSyncTree_,
-        query.path,
+        query._path,
         node
       );
-      eventQueueRaiseEventsAtPath(repo.eventQueue_, query.path, events);
+      eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
       return Promise.resolve(node);
     },
     err => {
@@ -726,11 +726,11 @@ export function repoOnDisconnectUpdate(
 
 export function repoAddEventCallbackForQuery(
   repo: Repo,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration
 ): void {
   let events;
-  if (pathGetFront(query.path) === '.info') {
+  if (pathGetFront(query._path) === '.info') {
     events = syncTreeAddEventRegistration(
       repo.infoSyncTree_,
       query,
@@ -743,18 +743,18 @@ export function repoAddEventCallbackForQuery(
       eventRegistration
     );
   }
-  eventQueueRaiseEventsAtPath(repo.eventQueue_, query.path, events);
+  eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
 }
 
 export function repoRemoveEventCallbackForQuery(
   repo: Repo,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration
 ): void {
   // These are guaranteed not to raise events, since we're not passing in a cancelError. However, we can future-proof
   // a little bit by handling the return values anyways.
   let events;
-  if (pathGetFront(query.path) === '.info') {
+  if (pathGetFront(query._path) === '.info') {
     events = syncTreeRemoveEventRegistration(
       repo.infoSyncTree_,
       query,
@@ -767,7 +767,7 @@ export function repoRemoveEventCallbackForQuery(
       eventRegistration
     );
   }
-  eventQueueRaiseEventsAtPath(repo.eventQueue_, query.path, events);
+  eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
 }
 
 export function repoInterrupt(repo: Repo): void {

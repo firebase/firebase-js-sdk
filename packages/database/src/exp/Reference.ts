@@ -1,6 +1,10 @@
+import { Repo } from '../core/Repo';
+import { Path } from '../core/util/Path';
+import { QueryContext } from '../core/view/EventRegistration';
+
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +19,16 @@
  * limitations under the License.
  */
 
-import { Repo } from '../core/Repo';
-import {
-  Path,
-  pathChild,
-  pathGetBack,
-  pathIsEmpty,
-  pathParent
-} from '../core/util/Path';
+export interface Query extends QueryContext {
+  readonly ref: Reference;
+  isEqual(other: Query | null): boolean;
+  toJSON(): object;
+  toString(): string;
+}
 
-import { Query } from './Query';
-
-export class Reference extends Query {
-  root: Reference;
-
-  constructor(readonly _repo: Repo, readonly _path: Path) {
-    super();
-  }
-
-  get key(): string | null {
-    if (pathIsEmpty(this._path)) {
-      return null;
-    } else {
-      return pathGetBack(this._path);
-    }
-  }
-
-  get parent(): Reference | null {
-    const parentPath = pathParent(this._path);
-    return parentPath === null ? null : new Reference(this._repo, parentPath);
-  }
+export interface Reference extends Query {
+  readonly key: string | null;
+  readonly parent: Reference | null;
 }
 
 export interface OnDisconnect {
@@ -62,49 +46,12 @@ export interface ThenableReference
   extends Reference,
     Pick<Promise<Reference>, 'then' | 'catch'> {}
 
-export function child(ref: Reference, path: string): Reference {
-  // TODO: Accept Compat class
-  return new Reference(ref._repo, pathChild(ref._path, path));
+export type Unsubscribe = () => void;
+
+export interface ListenOptions {
+  readonly onlyOnce?: boolean;
 }
 
-export function onDisconnect(ref: Reference): OnDisconnect {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
-}
-
-export function push(ref: Reference, value?: unknown): ThenableReference {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
-}
-
-export function remove(ref: Reference): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
-}
-
-export function set(ref: Reference, value: unknown): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
-}
-
-export function setPriority(
-  ref: Reference,
-  priority: string | number | null
-): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
-}
-
-export function setWithPriority(
-  ref: Reference,
-  newVal: unknown,
-  newPriority: string | number | null
-): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
-}
-
-export function update(ref: Reference, values: object): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+export interface ReferenceConstructor {
+  new (repo: Repo, path: Path): Reference;
 }

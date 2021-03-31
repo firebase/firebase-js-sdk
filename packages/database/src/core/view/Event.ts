@@ -17,9 +17,10 @@
 
 import { stringify } from '@firebase/util';
 
-import { EventRegistration } from '../../api/Reference';
-import { DataSnapshot as ExpDataSnapshot } from '../../exp/DataSnapshot';
+import { DataSnapshot as ExpDataSnapshot } from '../../exp/Reference_impl';
 import { Path } from '../util/Path';
+
+import { EventRegistration } from './EventRegistration';
 
 /**
  * Encapsulates the data needed to raise an event
@@ -37,10 +38,10 @@ export interface Event {
 
 export type EventType =
   | 'value'
-  | ' child_added'
-  | ' child_changed'
-  | ' child_moved'
-  | ' child_removed';
+  | 'child_added'
+  | 'child_changed'
+  | 'child_moved'
+  | 'child_removed';
 
 /**
  * Encapsulates the data needed to raise an event

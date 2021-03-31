@@ -64,7 +64,7 @@ export const hijackHash = function (newHash: () => string) {
 export const ConnectionTarget = RepoInfo;
 
 export const queryIdentifier = function (query: Query) {
-  return query.queryIdentifier();
+  return query._delegate._queryIdentifier;
 };
 
 /**

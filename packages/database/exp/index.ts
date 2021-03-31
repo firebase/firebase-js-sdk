@@ -27,21 +27,20 @@ export {
   getDatabase,
   goOffline,
   goOnline,
-  ref,
-  refFromURL,
   useDatabaseEmulator
 } from '../src/exp/Database';
 export {
-  OnDisconnect,
-  Reference,
-  ThenableReference
-} from '../src/exp/Reference';
-export { DataSnapshot } from '../src/exp/DataSnapshot';
-export {
-  ListenOptions,
   Query,
-  QueryConstraint,
+  Reference,
+  ListenOptions,
   Unsubscribe,
+  ThenableReference,
+  OnDisconnect
+} from '../src/exp/Reference';
+export {
+  QueryConstraint,
+  DataSnapshot,
+  EventType,
   endAt,
   endBefore,
   equalTo,
@@ -60,8 +59,10 @@ export {
   orderByValue,
   query,
   startAfter,
-  startAt
-} from '../src/exp/Query';
+  startAt,
+  ref,
+  refFromURL
+} from '../src/exp/Reference_impl';
 export { increment, serverTimestamp } from '../src/exp/ServerValue';
 export { runTransaction, TransactionOptions } from '../src/exp/Transaction';
 
