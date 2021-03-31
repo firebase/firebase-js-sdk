@@ -57,7 +57,7 @@ declare namespace firebase {
     /**
      * The name of the class of errors, which is `"FirebaseError"`.
      */
-    name: string;
+    name: 'FirebaseError';
     /**
      * A string value containing the execution backtrace when the error originally
      * occurred. This may not always be available.
@@ -5233,15 +5233,27 @@ declare namespace firebase.analytics {
 }
 
 declare namespace firebase.auth.Auth {
-  interface Persistence {
+  type Persistence = string;
+  /**
+   * An enumeration of the possible persistence mechanism types.
+   */
+  var Persistence: {
     /**
-     * Type of Persistence.
-     * - 'SESSION' is used for temporary persistence such as `sessionStorage`.
-     * - 'LOCAL' is used for long term persistence such as `localStorage` or `IndexedDB`.
-     * - 'NONE' is used for in-memory, or no persistence.
+     * Indicates that the state will be persisted even when the browser window is
+     * closed or the activity is destroyed in react-native.
      */
-    readonly type: 'SESSION' | 'LOCAL' | 'NONE';
-  }
+    LOCAL: Persistence;
+    /**
+     * Indicates that the state will only be stored in memory and will be cleared
+     * when the window or activity is refreshed.
+     */
+    NONE: Persistence;
+    /**
+     * Indicates that the state will only persist in current session/tab, relevant
+     * to web only, and will be cleared when the tab is closed.
+     */
+    SESSION: Persistence;
+  };
 }
 
 declare namespace firebase.User {
@@ -7174,16 +7186,6 @@ declare namespace firebase.messaging {
     deleteToken(): Promise<boolean>;
 
     /**
-     * To forcibly stop a registration token from being used, delete it by calling this method.
-     *
-     * @param token The token to delete.
-     * @return The promise resolves when the token has been successfully deleted.
-     *
-     * @deprecated Use deleteToken() instead.
-     */
-    deleteToken(token: string): Promise<boolean>;
-
-    /**
      * Subscribes the messaging instance to push notifications. Returns an FCM registration token
      * that can be used to send push messages to that messaging instance.
      *
@@ -7225,9 +7227,9 @@ declare namespace firebase.messaging {
      * @return To stop listening for messages execute this returned function.
      */
     onMessage(
-      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
-      error?: firebase.ErrorFn,
-      completed?: firebase.CompleteFn
+      nextOrObserver:
+        | firebase.NextFn<MessagePayload>
+        | firebase.Observer<MessagePayload>
     ): firebase.Unsubscribe;
 
     /**
@@ -7243,75 +7245,8 @@ declare namespace firebase.messaging {
     onBackgroundMessage(
       nextOrObserver:
         | firebase.NextFn<MessagePayload>
-        | firebase.Observer<MessagePayload>,
-      error?: firebase.ErrorFn,
-      completed?: firebase.CompleteFn
+        | firebase.Observer<MessagePayload>
     ): firebase.Unsubscribe;
-
-    /**
-     * You should listen for token refreshes so your web app knows when FCM has invalidated your
-     * existing token and you need to call `getToken()` to get a new token.
-     *
-     * @param
-     *     nextOrObserver This function, or observer object with `next` defined,
-     *     is called when a token refresh has occurred.
-     * @return To stop listening for token refresh events execute this returned function.
-     *
-     * @deprecated There is no need to handle token rotation.
-     */
-    onTokenRefresh(
-      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
-      error?: firebase.ErrorFn,
-      completed?: firebase.CompleteFn
-    ): firebase.Unsubscribe;
-
-    /**
-     * Notification permissions are required to send a user push messages. Calling this method
-     * displays the permission dialog to the user and resolves if the permission is granted. It is
-     * not necessary to call this method, as `getToken()` will do this automatically if required.
-     *
-     * @return The promise resolves if permission is granted. Otherwise, the promise is rejected
-     * with an error.
-     *
-     * @deprecated Use
-     * {@link https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission Notification.requestPermission()}
-     * instead.
-     */
-    requestPermission(): Promise<void>;
-
-    /**
-     * FCM directs push messages to your web page's `onMessage()` callback if the user currently has
-     * it open. Otherwise, it calls your callback passed into `setBackgroundMessageHandler()`.
-     *
-     * Your callback should return a promise that, once resolved, has shown a notification.
-     *
-     * @param callback The function to handle the push message.
-     *
-     * @deprecated onBackgroundMessage(nextOrObserver: firebase.NextFn<MessagePayload>|
-     * firebase.Observer<MessagePayload>, error?: firebase.ErrorFn,completed?: firebase.CompleteFn):
-     * firebase.Unsubscribe.
-     */
-    setBackgroundMessageHandler(
-      callback: (payload: any) => Promise<any> | void
-    ): void;
-
-    /**
-     * To use your own service worker for receiving push messages, you can pass in your service
-     * worker registration in this method.
-     *
-     * @param registration The service worker registration you wish to use for push messaging.
-     *
-     * @deprecated Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
-     * ServiceWorkerRegistration;}: Promise<string>;.
-     */
-
-    useServiceWorker(registration: ServiceWorkerRegistration): void;
-
-    /**
-     * @deprecated Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
-     * ServiceWorkerRegistration;}): Promise<string>;.
-     */
-    usePublicVapidKey(b64PublicKey: string): void;
   }
 
   /**

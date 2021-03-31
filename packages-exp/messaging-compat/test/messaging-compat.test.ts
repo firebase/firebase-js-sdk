@@ -19,12 +19,12 @@ import * as messagingModule from '@firebase/messaging-exp';
 
 import { getFakeApp, getFakeModularMessaging } from './fakes';
 
-import { MessagingCompat } from '../src/messaging-compat';
+import { MessagingCompatImpl } from '../src/messaging-compat';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 
 describe('messagingCompat', () => {
-  const messagingCompat = new MessagingCompat(
+  const messagingCompat = new MessagingCompatImpl(
     getFakeApp(),
     getFakeModularMessaging()
   );
