@@ -56,8 +56,8 @@
     "@firebase/app-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/util": "0.4.0",
-    "@firebase/component": "0.3.0",
+    "@firebase/util": "0.4.1",
+    "@firebase/component": "0.3.1",
     "idb": "3.0.2",
     "tslib": "^2.1.0"
   }

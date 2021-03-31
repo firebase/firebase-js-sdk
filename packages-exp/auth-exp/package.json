@@ -50,9 +50,9 @@
     "@firebase/app-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.3.0",
+    "@firebase/component": "0.3.1",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.4.0",
+    "@firebase/util": "0.4.1",
     "node-fetch": "2.6.1",
     "selenium-webdriver": "4.0.0-beta.1",
     "tslib": "^2.1.0"
