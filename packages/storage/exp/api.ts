@@ -53,6 +53,7 @@ import {
   _getChild as _getChildInternal
 } from '../src/reference';
 import { STORAGE_TYPE } from './constants';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Public types.
@@ -255,10 +256,14 @@ export function ref(
   serviceOrRef: StorageService | StorageReference,
   pathOrUrl?: string
 ): StorageReference | null {
-  return refInternal(
-    serviceOrRef as StorageServiceInternal | Reference,
-    pathOrUrl
-  );
+  if (serviceOrRef instanceof Reference) {
+    return refInternal(serviceOrRef as Reference, pathOrUrl);
+  } else {
+    return refInternal(
+      getModularInstance(serviceOrRef) as StorageServiceInternal,
+      pathOrUrl
+    );
+  }
 }
 
 /**
@@ -284,7 +289,7 @@ export function getStorage(
 ): StorageService {
   // Dependencies
   const storageProvider: Provider<'storage-exp'> = _getProvider(
-    app,
+    getModularInstance(app),
     STORAGE_TYPE
   );
   const storageInstance = storageProvider.getImmediate({
