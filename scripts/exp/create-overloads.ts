@@ -216,6 +216,22 @@ function keepPublicFunctionsTransformer(
       ]);
     }
 
+    // hardcode adding `import { FirebaseApp as FirebaseAppCompat } from '@firebase/app-compat'`
+    const appCompatImport = ts.createImportDeclaration(
+      undefined,
+      undefined,
+      ts.createImportClause(
+        undefined,
+        ts.createNamedImports([
+          ts.createImportSpecifier(
+            ts.createIdentifier('FirebaseApp'),
+            ts.createIdentifier('FirebaseAppCompat')
+          )
+        ])
+      ),
+      ts.createLiteral('@firebase/app-compat')
+    );
+
     const importStatement = ts.createImportDeclaration(
       undefined,
       undefined,
@@ -237,6 +253,7 @@ function keepPublicFunctionsTransformer(
     );
 
     return ts.updateSourceFileNode(transformed, [
+      appCompatImport,
       importStatement,
       moduleToEnhance
     ]);
