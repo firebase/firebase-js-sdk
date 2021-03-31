@@ -25,17 +25,18 @@ import {
   Persistence,
   PopupRedirectResolver,
   User,
-  UserCredential
-} from '../../model/public_types';
-import {
+  UserCredential,
   CompleteFn,
-  createSubscribe,
-  ErrorFactory,
   ErrorFn,
   NextFn,
-  Observer,
-  Subscribe,
   Unsubscribe
+} from '../../model/public_types';
+import {
+  createSubscribe,
+  ErrorFactory,
+  getModularInstance,
+  Observer,
+  Subscribe
 } from '@firebase/util';
 
 import { AuthInternal, ConfigInternal } from '../../model/auth';
@@ -297,15 +298,18 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
   async updateCurrentUser(userExtern: User | null): Promise<void> {
     // The public updateCurrentUser method needs to make a copy of the user,
-    // and also needs to verify that the app matches
-    const user = userExtern as UserInternal | null;
-    _assert(
-      !user || user.auth.name === this.name,
-      this,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
-
-    return this._updateCurrentUser(user && user._clone());
+    // and also check that the project matches
+    const user = userExtern
+      ? (getModularInstance(userExtern) as UserInternal)
+      : null;
+    if (user) {
+      _assert(
+        user.auth.config.apiKey === this.config.apiKey,
+        this,
+        AuthErrorCode.INVALID_AUTH
+      );
+    }
+    return this._updateCurrentUser(user && user._clone(this));
   }
 
   async _updateCurrentUser(user: User | null): Promise<void> {
@@ -555,12 +559,13 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 }
 
 /**
- * Method to be used to cast down to our private implmentation of Auth
+ * Method to be used to cast down to our private implmentation of Auth.
+ * It will also handle unwrapping from the compat type if necessary
  *
  * @param auth Auth object passed in from developer
  */
 export function _castAuth(auth: Auth): AuthInternal {
-  return (auth as unknown) as AuthInternal;
+  return getModularInstance(auth) as AuthInternal;
 }
 
 /** Helper class to wrap subscriber logic */

@@ -86,7 +86,6 @@ export interface Auth {
     readonly emulatorConfig: EmulatorConfig | null;
     languageCode: string | null;
     readonly name: string;
-    // Warning: (ae-forgotten-export) The symbol "NextOrObserver" needs to be exported by the entry point index.d.ts
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     onIdTokenChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     setPersistence(persistence: Persistence): Promise<void>;
@@ -153,6 +152,8 @@ export const browserSessionPersistence: Persistence;
 // @public
 export function checkActionCode(auth: Auth, oobCode: string): Promise<ActionCodeInfo>;
 
+export { CompleteFn }
+
 // @public
 export interface Config {
     apiHost: string;
@@ -183,6 +184,16 @@ export const debugErrorMap: AuthErrorMap;
 
 // @public
 export function deleteUser(user: User): Promise<void>;
+
+// @public (undocumented)
+export interface Dependencies {
+    // (undocumented)
+    errorMap?: AuthErrorMap;
+    // (undocumented)
+    persistence?: Persistence | Persistence[];
+    // (undocumented)
+    popupRedirectResolver?: PopupRedirectResolver;
+}
 
 // @public
 export class EmailAuthCredential extends AuthCredential {
@@ -216,6 +227,8 @@ export class EmailAuthProvider implements AuthProvider {
     readonly providerId = ProviderId.PASSWORD;
 }
 
+export { ErrorFn }
+
 // Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -248,10 +261,8 @@ export function getIdToken(user: User, forceRefresh?: boolean): Promise<string>;
 // @public
 export function getIdTokenResult(user: User, forceRefresh?: boolean): Promise<IdTokenResult>;
 
-// Warning: (ae-forgotten-export) The symbol "MultiFactorError" needs to be exported by the entry point index.d.ts
-//
 // @public
-export function getMultiFactorResolver(auth: Auth, error: MultiFactorError_2): MultiFactorResolver;
+export function getMultiFactorResolver(auth: Auth, error: MultiFactorError): MultiFactorResolver;
 
 // @public
 export function getRedirectResult(auth: Auth, resolver?: PopupRedirectResolver): Promise<UserCredential | null>;
@@ -290,8 +301,6 @@ export interface IdTokenResult {
 // @public
 export const indexedDBLocalPersistence: Persistence;
 
-// Warning: (ae-forgotten-export) The symbol "Dependencies" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
 
@@ -352,6 +361,9 @@ export interface MultiFactorUser {
     getSession(): Promise<MultiFactorSession>;
     unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
+
+// @public
+export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 // @public
 export class OAuthCredential extends AuthCredential {
@@ -644,6 +656,8 @@ export class TwitterAuthProvider extends BaseOAuthProvider {
 
 // @public
 export function unlink(user: User, providerId: ProviderId): Promise<User>;
+
+export { Unsubscribe }
 
 // @public
 export function updateCurrentUser(auth: Auth, user: User | null): Promise<void>;

@@ -35,6 +35,7 @@ import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Sends a password reset email to the given email address.
@@ -73,15 +74,16 @@ export async function sendPasswordResetEmail(
   email: string,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
+  const authModular = getModularInstance(auth);
   const request: authentication.PasswordResetRequest = {
     requestType: ActionCodeOperation.PASSWORD_RESET,
     email
   };
   if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(auth, request, actionCodeSettings);
+    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
   }
 
-  await authentication.sendPasswordResetEmail(auth, request);
+  await authentication.sendPasswordResetEmail(authModular, request);
 }
 
 /**
@@ -98,7 +100,7 @@ export async function confirmPasswordReset(
   oobCode: string,
   newPassword: string
 ): Promise<void> {
-  await account.resetPassword(auth, {
+  await account.resetPassword(getModularInstance(auth), {
     oobCode,
     newPassword
   });
@@ -117,7 +119,7 @@ export async function applyActionCode(
   auth: Auth,
   oobCode: string
 ): Promise<void> {
-  await account.applyActionCode(auth, { oobCode });
+  await account.applyActionCode(getModularInstance(auth), { oobCode });
 }
 
 /**
@@ -134,7 +136,8 @@ export async function checkActionCode(
   auth: Auth,
   oobCode: string
 ): Promise<ActionCodeInfo> {
-  const response = await account.resetPassword(auth, { oobCode });
+  const authModular = getModularInstance(auth);
+  const response = await account.resetPassword(authModular, { oobCode });
 
   // Email could be empty only if the request type is EMAIL_SIGNIN or
   // VERIFY_AND_CHANGE_EMAIL.
@@ -143,25 +146,25 @@ export async function checkActionCode(
   // Multi-factor info could not be empty if the request type is
   // REVERT_SECOND_FACTOR_ADDITION.
   const operation = response.requestType;
-  _assert(operation, auth, AuthErrorCode.INTERNAL_ERROR);
+  _assert(operation, authModular, AuthErrorCode.INTERNAL_ERROR);
   switch (operation) {
     case ActionCodeOperation.EMAIL_SIGNIN:
       break;
     case ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL:
-      _assert(response.newEmail, auth, AuthErrorCode.INTERNAL_ERROR);
+      _assert(response.newEmail, authModular, AuthErrorCode.INTERNAL_ERROR);
       break;
     case ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION:
-      _assert(response.mfaInfo, auth, AuthErrorCode.INTERNAL_ERROR);
+      _assert(response.mfaInfo, authModular, AuthErrorCode.INTERNAL_ERROR);
     // fall through
     default:
-      _assert(response.email, auth, AuthErrorCode.INTERNAL_ERROR);
+      _assert(response.email, authModular, AuthErrorCode.INTERNAL_ERROR);
   }
 
   // The multi-factor info for revert second factor addition
   let multiFactorInfo: MultiFactorInfoImpl | null = null;
   if (response.mfaInfo) {
     multiFactorInfo = MultiFactorInfoImpl._fromServerResponse(
-      _castAuth(auth),
+      _castAuth(authModular),
       response.mfaInfo
     );
   }
@@ -196,7 +199,7 @@ export async function verifyPasswordResetCode(
   auth: Auth,
   code: string
 ): Promise<string> {
-  const { data } = await checkActionCode(auth, code);
+  const { data } = await checkActionCode(getModularInstance(auth), code);
   // Email should always be present since a code was sent to it
   return data.email!;
 }
@@ -224,7 +227,7 @@ export async function createUserWithEmailAndPassword(
   password: string
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
-  const response = await signUp(auth, {
+  const response = await signUp(authInternal, {
     returnSecureToken: true,
     email,
     password
@@ -262,7 +265,7 @@ export function signInWithEmailAndPassword(
   password: string
 ): Promise<UserCredential> {
   return signInWithCredential(
-    auth,
+    getModularInstance(auth),
     EmailAuthProvider.credential(email, password)
   );
 }

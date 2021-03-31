@@ -38,6 +38,7 @@ import { _withDefaultResolver } from '../../core/util/resolver';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from '../../core/strategies/abstract_popup_redirect_operation';
 import { FederatedAuthProvider } from '../../core/providers/federated';
+import { getModularInstance } from '@firebase/util';
 
 /*
  * The event timeout is the same on mobile and desktop, no need for Delay.
@@ -128,7 +129,7 @@ export async function reauthenticateWithPopup(
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<UserCredential> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   _assert(
     provider instanceof FederatedAuthProvider,
     userInternal.auth,
@@ -175,7 +176,7 @@ export async function linkWithPopup(
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<UserCredential> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   _assert(
     provider instanceof FederatedAuthProvider,
     userInternal.auth,
