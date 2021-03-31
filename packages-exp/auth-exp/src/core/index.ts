@@ -15,8 +15,15 @@
  * limitations under the License.
  */
 
-import { Auth, NextOrObserver, Persistence, User } from '../model/public_types';
-import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
+import {
+  Auth,
+  NextOrObserver,
+  Persistence,
+  User,
+  CompleteFn,
+  ErrorFn,
+  Unsubscribe
+} from '../model/public_types';
 
 export { debugErrorMap, prodErrorMap } from './errors';
 

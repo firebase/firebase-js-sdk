@@ -13,7 +13,7 @@
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
     "build:release": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
-    "build:compat": "run-p 'bundle ./rollup.config.browser.compat.js' 'bundle ./rollup.config.node.compat.js' 'bundle ./rollup.config.rn.compat.js'",
+    "build:compat": "run-p 'bundle ./rollup.config.browser.compat.js' 'bundle ./rollup.config.node.compat.js' 'bundle ./rollup.config.rn.compat.js' && yarn add-compat-overloads",
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
@@ -47,7 +47,8 @@
     "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ./scripts/api-report.ts && yarn api-report:api-json",
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs"
+    "doc": "api-documenter markdown --input temp --output docs",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i dist/exp/index.d.ts -o dist/compat/esm5/packages/firestore/compat/index.d.ts -a -r FirebaseFirestore:types.FirebaseFirestore -r CollectionReference:types.CollectionReference -r DocumentReference:types.DocumentReference -r Query:types.Query -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/firestore"
   },
   "main": "dist/node-cjs/index.js",
   "main-esm2017": "dist/node-esm2017/index.js",

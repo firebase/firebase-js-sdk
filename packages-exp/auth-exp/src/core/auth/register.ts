@@ -16,6 +16,7 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import { Config, Dependencies } from '../../model/public_types';
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../../../package.json';

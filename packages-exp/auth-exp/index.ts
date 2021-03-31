@@ -65,7 +65,12 @@ export {
   UserInfo,
   UserMetadata,
   UserProfile,
-  PhoneInfoOptions
+  PhoneInfoOptions,
+  Dependencies,
+  NextOrObserver,
+  ErrorFn,
+  CompleteFn,
+  Unsubscribe
 } from './src/model/public_types';
 
 // Core functionality shared by all clients

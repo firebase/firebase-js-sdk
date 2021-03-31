@@ -25,17 +25,17 @@ import {
   Persistence,
   PopupRedirectResolver,
   User,
-  UserCredential
-} from '../../model/public_types';
-import {
+  UserCredential,
   CompleteFn,
-  createSubscribe,
-  ErrorFactory,
   ErrorFn,
   NextFn,
-  Observer,
-  Subscribe,
   Unsubscribe
+} from '../../model/public_types';
+import {
+  createSubscribe,
+  ErrorFactory,
+  Observer,
+  Subscribe
 } from '@firebase/util';
 
 import { AuthInternal, ConfigInternal } from '../../model/auth';

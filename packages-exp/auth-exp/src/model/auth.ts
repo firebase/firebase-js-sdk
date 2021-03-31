@@ -17,11 +17,9 @@
 
 import {
   Auth,
-  AuthErrorMap,
   AuthSettings,
   Config,
   EmulatorConfig,
-  Persistence,
   PopupRedirectResolver,
   User
 } from './public_types';
@@ -85,10 +83,4 @@ export interface AuthInternal extends Auth {
 
   useDeviceLanguage(): void;
   signOut(): Promise<void>;
-}
-
-export interface Dependencies {
-  persistence?: Persistence | Persistence[];
-  popupRedirectResolver?: PopupRedirectResolver;
-  errorMap?: AuthErrorMap;
 }

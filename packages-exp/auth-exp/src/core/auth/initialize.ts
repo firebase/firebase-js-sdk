@@ -16,9 +16,8 @@
  */
 
 import { _getProvider, FirebaseApp } from '@firebase/app-exp';
-import { Auth } from '../../model/public_types';
+import { Auth, Dependencies } from '../../model/public_types';
 
-import { Dependencies } from '../../model/auth';
 import { AuthErrorCode } from '../errors';
 import { PersistenceInternal } from '../persistence';
 import { _fail } from '../util/assert';
