@@ -64,9 +64,10 @@ function getIframeUrl(auth: AuthInternal): string {
   if (eid) {
     params.eid = eid;
   }
-
-  // TODO: do we care about frameworks? pass them as fw=
-
+  const frameworks = auth._getFrameworks();
+  if (frameworks.length) {
+    params.fw = frameworks.join(',');
+  }
   return `${url}?${querystring(params).slice(1)}`;
 }
 
