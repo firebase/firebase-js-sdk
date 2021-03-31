@@ -18,17 +18,24 @@
 import { FirebaseApp, _getProvider } from '@firebase/app-exp';
 import { FirebaseMessaging, MessagePayload } from './interfaces/public-types';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  onNotificationClick,
+  onPush,
+  onSubChange
+} from './listeners/sw-listeners';
 
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
+import { ServiceWorkerGlobalScope } from './util/sw-types';
 import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
 import { getModularInstance } from '@firebase/util';
+import { messageEventListener } from './listeners/window-listener';
 
 /**
- * Retrieves a firebase messaging instance.
+ * Retrieves a firebase messaging instance in window context.
  *
  * @returns the firebase messaging instance associated with the provided firebase app.
  *
@@ -40,6 +47,39 @@ export function getMessaging(app: FirebaseApp): FirebaseMessaging {
     app,
     'messaging-exp'
   );
+  const messaging = messagingProvider.getImmediate();
+
+  navigator.serviceWorker.addEventListener('message', e =>
+    messageEventListener(messaging as MessagingService, e)
+  );
+
+  return messaging;
+}
+
+/**
+ * Retrieves a firebase messaging instance in Service Worker context.
+ *
+ * @returns the firebase messaging instance associated with the provided firebase app.
+ *
+ * @public
+ */
+declare const self: ServiceWorkerGlobalScope;
+export function getMessagingInSw(app: FirebaseApp): FirebaseMessaging {
+  const messagingProvider: Provider<'messaging-exp'> = _getProvider(
+    app,
+    'messaging-exp'
+  );
+  const messaging = messagingProvider.getImmediate();
+
+  self.addEventListener('push', e => {
+    e.waitUntil(onPush(e, messaging as MessagingService));
+  });
+  self.addEventListener('pushsubscriptionchange', e => {
+    e.waitUntil(onSubChange(e, messaging as MessagingService));
+  });
+  self.addEventListener('notificationclick', e => {
+    e.waitUntil(onNotificationClick(e));
+  });
 
   return messagingProvider.getImmediate();
 }
