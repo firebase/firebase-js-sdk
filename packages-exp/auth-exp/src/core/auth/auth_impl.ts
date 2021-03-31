@@ -300,7 +300,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     // and also check that the project matches
     const user = userExtern as UserInternal | null;
     if (user) {
-      _assert(user.auth.config.apiKey === this.config.apiKey, this, AuthErrorCode.INVALID_AUTH);
+      _assert(
+        user.auth.config.apiKey === this.config.apiKey,
+        this,
+        AuthErrorCode.INVALID_AUTH
+      );
     }
     return this._updateCurrentUser(user && user._clone(this));
   }
