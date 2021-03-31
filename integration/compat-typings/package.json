@@ -7,17 +7,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
   },
   "dependencies": {
-    "firebase-exp": "0.900.19",
-    "@firebase/auth-types": "0.10.2",
-    "@firebase/analytics-types": "0.4.0",
-    "@firebase/app-compat": "0.0.900",
-    "@firebase/firestore-types": "2.2.0",
-    "@firebase/functions-types": "0.4.0",
-    "@firebase/installations-types": "0.3.4",
-    "@firebase/messaging-compat": "0.0.900",
-    "@firebase/performance-types": "0.0.13",
-    "@firebase/remote-config-types": "0.1.9",
-    "@firebase/storage-types": "0.3.13"
+    "firebase-exp": "0.900.19"
   },
   "devDependencies": {
     "typescript": "4.2.2"
