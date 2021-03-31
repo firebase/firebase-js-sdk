@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import { useFakeTimers } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError, getUA } from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
@@ -40,7 +40,6 @@ import {
 import { ServerError } from './errors';
 import { SDK_VERSION } from '@firebase/app-exp';
 import { _getBrowserName } from '../core/util/browser';
-import { getUA } from '@firebase/util';
 
 use(sinonChai);
 use(chaiAsPromised);
