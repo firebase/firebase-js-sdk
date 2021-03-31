@@ -34,14 +34,14 @@ export function getImportPathTransformer({ pattern, template }) {
 export const importPathTransformer = () => ({
   before: [
     transformImportPath({
-      pattern: /^(@firebase.*)-exp(.*)$/,
+      pattern: /^(@firebase.*)-exp(.*)$/g,
       template: [1, 2]
     })
   ],
   after: [],
   afterDeclarations: [
     transformImportPath({
-      pattern: /^(@firebase.*)-exp(.*)$/,
+      pattern: /^(@firebase.*)-exp(.*)$/g,
       template: [1, 2]
     })
   ]
@@ -49,96 +49,47 @@ export const importPathTransformer = () => ({
 
 function transformImportPath({ pattern, template }) {
   return context => file => {
-    return visitNodeAndChildren(
-      file,
-      context,
-      { pattern, template },
-      transformNode
-    );
+    return visitNodeAndChildren(file, context, { pattern, template });
   };
 }
 
-function visitNodeAndChildren(
-  node,
-  context,
-  { pattern, template },
-  nodeTransformer
-) {
+function visitNodeAndChildren(node, context, { pattern, template }) {
   return ts.visitEachChild(
-    nodeTransformer(node, { pattern, template }),
+    visitNode(node, { pattern, template }),
     childNode =>
-      visitNodeAndChildren(
-        childNode,
-        context,
-        { pattern, template },
-        nodeTransformer
-      ),
+      visitNodeAndChildren(childNode, context, { pattern, template }),
     context
   );
 }
 
-function replacePath(pathString, pattern, template) {
-  const pathStringWithoutQuotes = pathString.substr(1, pathString.length - 2);
-
-  const captures = pattern.exec(pathStringWithoutQuotes);
-
-  if (captures) {
-    const newNameFragments = [];
-    for (const fragment of template) {
-      if (typeof fragment === 'number') {
-        newNameFragments.push(captures[fragment]);
-      } else if (typeof fragment === 'string') {
-        newNameFragments.push(fragment);
-      } else {
-        throw Error(`unrecognized fragment: ${fragment}`);
-      }
-    }
-    return newNameFragments.join('');
-  }
-
-  return null;
-}
-
-function transformNode(node, { pattern, template }) {
+function visitNode(node, { pattern, template }) {
+  let importPath;
   if (
     (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
     node.moduleSpecifier
   ) {
     const importPathWithQuotes = node.moduleSpecifier.getText();
-    const newName = replacePath(importPathWithQuotes, pattern, template);
+    importPath = importPathWithQuotes.substr(
+      1,
+      importPathWithQuotes.length - 2
+    );
 
-    if (newName) {
-      if (ts.isImportDeclaration(node)) {
-        return ts.factory.updateImportDeclaration(
-          node,
-          node.decorators,
-          node.modifiers,
-          node.importClause,
-          ts.factory.createStringLiteral(newName) // moduleSpecifier
-        );
-      } else if (ts.isExportDeclaration(node)) {
-        return ts.factory.updateExportDeclaration(
-          node,
-          node.decorators,
-          node.modifiers,
-          node.isTypeOnly,
-          node.exportClause,
-          ts.factory.createStringLiteral(newName) // moduleSpecifier
-        );
+    const captures = pattern.exec(importPath);
+
+    if (captures) {
+      const newNameFragments = [];
+      for (const fragment of template) {
+        if (typeof fragment === 'number') {
+          newNameFragments.push(captures[fragment]);
+        } else if (typeof fragment === 'string') {
+          newNameFragments.push(fragment);
+        } else {
+          throw Error(`unrecognized fragment: ${fragment}`);
+        }
       }
-      // Just in case.
-      return node;
-    }
-  } else if (ts.isModuleDeclaration(node) && node.name) {
-    const importPathWithQuotes = node.name.getText();
-    const newName = replacePath(importPathWithQuotes, pattern, template);
-    if (newName) {
-      const newNode = ts.factory.updateModuleDeclaration(
-        node,
-        node.decorators,
-        node.modifiers,
-        ts.factory.createStringLiteral(newName) // name
-      );
+      const newName = newNameFragments.join('');
+      const newNode = ts.getMutableClone(node);
+      newNode.moduleSpecifier = ts.createLiteral(newName);
       return newNode;
     }
   }
