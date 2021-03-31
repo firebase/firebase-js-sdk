@@ -19,10 +19,6 @@ import * as yargs from 'yargs';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 
-/**
- * TODO:
- *  - accept an array of (match, replacement)
- */
 const argv = yargs
   .options({
     input: {
