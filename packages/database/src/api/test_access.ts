@@ -17,9 +17,9 @@
 
 import { PersistentConnection } from '../core/PersistentConnection';
 import { RepoInfo } from '../core/RepoInfo';
+import { repoManagerForceRestClient } from '../exp/Database';
 import { Connection } from '../realtime/Connection';
 
-import { repoManagerForceRestClient } from './Database';
 import { Query } from './Reference';
 
 export const DataConnection = PersistentConnection;

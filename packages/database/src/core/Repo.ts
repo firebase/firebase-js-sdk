@@ -24,8 +24,6 @@ import {
   stringify
 } from '@firebase/util';
 
-import { FirebaseAppLike } from '../api/Database';
-
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
@@ -188,7 +186,6 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     public forceRestClient_: boolean,
-    public app: FirebaseAppLike,
     public authTokenProvider_: AuthTokenProvider
   ) {
     // This key is intentionally not updated if RepoInfo is later changed or replaced
@@ -205,7 +202,11 @@ export class Repo {
   }
 }
 
-export function repoStart(repo: Repo): void {
+export function repoStart(
+  repo: Repo,
+  appId: string,
+  authOverride?: object
+): void {
   repo.stats_ = statsManagerGetCollection(repo.repoInfo_);
 
   if (repo.forceRestClient_ || beingCrawled()) {
@@ -225,7 +226,6 @@ export function repoStart(repo: Repo): void {
     // Minor hack: Fire onConnect immediately, since there's no actual connection.
     setTimeout(() => repoOnConnectStatus(repo, /* connectStatus= */ true), 0);
   } else {
-    const authOverride = repo.app.options['databaseAuthVariableOverride'];
     // Validate authOverride
     if (typeof authOverride !== 'undefined' && authOverride !== null) {
       if (typeof authOverride !== 'object') {
@@ -242,7 +242,7 @@ export function repoStart(repo: Repo): void {
 
     repo.persistentConnection_ = new PersistentConnection(
       repo.repoInfo_,
-      repo.app.options.appId,
+      appId,
       (
         pathString: string,
         data: unknown,
