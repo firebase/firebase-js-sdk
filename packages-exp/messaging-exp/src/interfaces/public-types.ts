@@ -56,6 +56,8 @@ export interface FirebaseMessaging {}
  */
 export type _FirebaseMessagingName = 'messaging';
 
+export { NextFn, Observer, Unsubscribe } from '@firebase/util';
+
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'messaging-exp': FirebaseMessaging;

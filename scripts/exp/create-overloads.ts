@@ -278,7 +278,8 @@ const BUILTIN_TYPES = [
   'Uint8Array',
   'ArrayBuffer',
   'Partial',
-  'Blob'
+  'Blob',
+  'ServiceWorkerRegistration'
 ];
 
 // find all types (except for the built-ins and primitives) referenced in the function declaration
