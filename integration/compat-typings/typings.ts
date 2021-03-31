@@ -16,7 +16,7 @@
  */
 
 import firebase from 'firebase-exp/compat';
-import { FirebaseAuth } from '@firebase/auth-types';
+import { FirebaseAuth, User } from '@firebase/auth-types';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { FirebaseApp } from '@firebase/app-compat';
 import {
@@ -59,6 +59,7 @@ const namespaced: {
   storageReference: firebase.storage.Reference;
   firestoreDocumentReference: firebase.firestore.DocumentReference;
   firestoreCollectionReference: firebase.firestore.CollectionReference;
+  authUser: firebase.User;
 } = {
   auth: firebase.auth(),
   analytics: firebase.analytics(),
@@ -72,7 +73,8 @@ const namespaced: {
   storage: firebase.storage(),
   storageReference: {} as firebase.storage.Reference,
   firestoreDocumentReference: {} as firebase.firestore.DocumentReference,
-  firestoreCollectionReference: {} as firebase.firestore.CollectionReference
+  firestoreCollectionReference: {} as firebase.firestore.CollectionReference,
+  authUser: {} as firebase.User
 };
 
 const compatTypes: {
@@ -89,6 +91,7 @@ const compatTypes: {
   storageReference: StorageReference;
   firestoreDocumentReference: DocumentReference;
   firestoreCollectionReference: CollectionReference;
+  authUser: User;
 } = {
   auth: namespaced.auth,
   analytics: namespaced.analytics,
@@ -102,5 +105,6 @@ const compatTypes: {
   storage: namespaced.storage,
   storageReference: namespaced.storageReference,
   firestoreDocumentReference: namespaced.firestoreDocumentReference,
-  firestoreCollectionReference: namespaced.firestoreCollectionReference
+  firestoreCollectionReference: namespaced.firestoreCollectionReference,
+  authUser: namespaced.authUser
 };
