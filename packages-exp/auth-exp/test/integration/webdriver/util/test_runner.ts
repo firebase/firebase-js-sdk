@@ -69,6 +69,7 @@ setTimeout(() => {
       // It's assumed that the tests will start with a clean slate (i.e.
       // no storage).
       beforeEach(async () => {
+        await DRIVER.closeExtraWindows();
         await DRIVER.reset();
         await DRIVER.injectConfigAndInitAuth();
       });

@@ -58,6 +58,7 @@ export class TestRestConnection extends RestConnection {
 describe('RestConnection', () => {
   const testDatabaseInfo = new DatabaseInfo(
     new DatabaseId('testproject'),
+    'test-app-id',
     'persistenceKey',
     'example.com',
     /*ssl=*/ false,
@@ -92,6 +93,7 @@ describe('RestConnection', () => {
     expect(connection.lastHeaders).to.deep.equal({
       'Authorization': 'Bearer owner',
       'Content-Type': 'text/plain',
+      'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`
     });
   });

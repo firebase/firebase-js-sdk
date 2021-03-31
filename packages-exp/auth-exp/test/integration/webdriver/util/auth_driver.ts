@@ -28,7 +28,7 @@ import { CoreFunction } from './functions';
 import { JsLoadCondition } from './js_load_condition';
 import { authTestServer } from './test_server';
 
-const START_FUNCTION = 'startAuth';
+export const START_FUNCTION = 'startAuth';
 const START_LEGACY_SDK_FUNCTION = 'startLegacySDK';
 const PASSED_ARGS = '...Array.prototype.slice.call(arguments, 0, -1)';
 
@@ -200,14 +200,16 @@ export class AuthDriver {
       .window(handles.find(h => h !== currentWindowHandle)!);
   }
 
-  async selectMainWindow(): Promise<void> {
-    const condition = new Condition(
-      'Waiting for popup to close',
-      async driver => {
-        return (await driver.getAllWindowHandles()).length === 1;
-      }
-    );
-    await this.webDriver.wait(condition);
+  async selectMainWindow(options: { noWait?: boolean } = {}): Promise<void> {
+    if (!options.noWait) {
+      const condition = new Condition(
+        'Waiting for popup to close',
+        async driver => {
+          return (await driver.getAllWindowHandles()).length === 1;
+        }
+      );
+      await this.webDriver.wait(condition);
+    }
     const handles = await this.webDriver.getAllWindowHandles();
     return this.webDriver.switchTo().window(handles[0]);
   }
@@ -216,6 +218,16 @@ export class AuthDriver {
     // This assumes the current driver is already the popup
     await this.webDriver.close();
     return this.selectMainWindow();
+  }
+
+  async closeExtraWindows(): Promise<void> {
+    const handles = await this.webDriver.getAllWindowHandles();
+    await this.webDriver.switchTo().window(handles[handles.length - 1]);
+    while (handles.length > 1) {
+      await this.webDriver.close();
+      handles.pop();
+      await this.webDriver.switchTo().window(handles[handles.length - 1]);
+    }
   }
 
   isCompatLayer(): boolean {

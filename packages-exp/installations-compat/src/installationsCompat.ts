@@ -31,19 +31,19 @@ export class InstallationsCompat
   implements FirebaseInstallationsCompat, _FirebaseService {
   constructor(
     public app: FirebaseApp,
-    private _installations: FirebaseInstallations
+    readonly _delegate: FirebaseInstallations
   ) {}
 
   getId(): Promise<string> {
-    return getId(this._installations);
+    return getId(this._delegate);
   }
   getToken(forceRefresh?: boolean): Promise<string> {
-    return getToken(this._installations, forceRefresh);
+    return getToken(this._delegate, forceRefresh);
   }
   delete(): Promise<void> {
-    return deleteInstallations(this._installations);
+    return deleteInstallations(this._delegate);
   }
   onIdChange(callback: IdChangeCallbackFn): IdChangeUnsubscribeFn {
-    return onIdChange(this._installations, callback);
+    return onIdChange(this._delegate, callback);
   }
 }

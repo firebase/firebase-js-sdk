@@ -20,11 +20,13 @@ import { UserCredential } from '@firebase/auth-exp';
 import { expect } from 'chai';
 import { createAnonAccount } from '../../helpers/integration/emulator_rest_helpers';
 import { API_KEY } from '../../helpers/integration/settings';
+import { START_FUNCTION } from './util/auth_driver';
 import {
   AnonFunction,
   CoreFunction,
   PersistenceFunction
 } from './util/functions';
+import { JsLoadCondition } from './util/js_load_condition';
 import { browserDescribe } from './util/test_runner';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -415,6 +417,75 @@ browserDescribe('WebDriver persistence test', driver => {
       } else {
         expect(user).to.include({ uid }); // and again in legacy SDK
       }
+    });
+  });
+
+  context('persistence sync across windows and tabs', () => {
+    it('sync current user across windows with indexedDB', async () => {
+      const cred: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+      const uid = cred.user.uid;
+      await driver.webDriver.executeScript('window.open(".");');
+      await driver.selectPopupWindow();
+      await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+      const userInPopup = await driver.getUserSnapshot();
+      expect(userInPopup).not.to.be.null;
+      expect(userInPopup.uid).to.equal(uid);
+
+      await driver.call(CoreFunction.SIGN_OUT);
+      expect(await driver.getUserSnapshot()).to.be.null;
+      await driver.selectMainWindow({ noWait: true });
+      await driver.pause(500);
+      expect(await driver.getUserSnapshot()).to.be.null;
+
+      const cred2: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+      const uid2 = cred2.user.uid;
+
+      await driver.selectPopupWindow();
+      await driver.pause(500);
+      expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
+    });
+
+    it('sync current user across windows with localStorage', async () => {
+      await driver.webDriver.navigate().refresh();
+      // Simulate browsers that do not support indexedDB.
+      await driver.webDriver.executeScript('delete window.indexedDB');
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+      const cred: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+      const uid = cred.user.uid;
+      await driver.webDriver.executeScript('window.open(".");');
+      await driver.selectPopupWindow();
+      await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+      // Simulate browsers that do not support indexedDB.
+      await driver.webDriver.executeScript('delete window.indexedDB');
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+      const userInPopup = await driver.getUserSnapshot();
+      expect(userInPopup).not.to.be.null;
+      expect(userInPopup.uid).to.equal(uid);
+
+      await driver.call(CoreFunction.SIGN_OUT);
+      expect(await driver.getUserSnapshot()).to.be.null;
+      await driver.selectMainWindow({ noWait: true });
+      await driver.pause(500);
+      expect(await driver.getUserSnapshot()).to.be.null;
+
+      const cred2: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+      const uid2 = cred2.user.uid;
+
+      await driver.selectPopupWindow();
+      await driver.pause(500);
+      expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
   });
 });

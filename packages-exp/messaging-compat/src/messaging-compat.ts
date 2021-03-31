@@ -43,31 +43,31 @@ export class MessagingCompat implements _FirebaseService {
     | Observer<MessagePayload>
     | null = null;
 
-  constructor(readonly app: AppCompat, readonly messaging: FirebaseMessaging) {
+  constructor(readonly app: AppCompat, readonly _delegate: FirebaseMessaging) {
     this.app = app;
-    this.messaging = messaging;
+    this._delegate = _delegate;
   }
 
   async getToken(options?: {
     vapidKey?: string;
     serviceWorkerRegistration?: ServiceWorkerRegistration;
   }): Promise<string> {
-    return getToken(this.messaging, options);
+    return getToken(this._delegate, options);
   }
 
   async deleteToken(): Promise<boolean> {
-    return deleteToken(this.messaging);
+    return deleteToken(this._delegate);
   }
 
   onMessage(
     nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
   ): Unsubscribe {
-    return onMessage(this.messaging, nextOrObserver);
+    return onMessage(this._delegate, nextOrObserver);
   }
 
   onBackgroundMessage(
     nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
   ): Unsubscribe {
-    return onBackgroundMessage(this.messaging, nextOrObserver);
+    return onBackgroundMessage(this._delegate, nextOrObserver);
   }
 }

@@ -19,6 +19,7 @@ import {
   DocumentData as PublicDocumentData,
   SetOptions as PublicSetOptions
 } from '@firebase/firestore-types';
+import { getModularInstance } from '@firebase/util';
 
 import { hasLimitToLast } from '../core/query';
 import { DeleteMutation, Precondition } from '../model/mutation';
@@ -32,7 +33,6 @@ import { ByteString } from '../util/byte_string';
 import { cast } from '../util/input_validation';
 
 import { Bytes } from './bytes';
-import { Compat } from './compat';
 import { getDatastore } from './components';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';
@@ -305,9 +305,7 @@ export function updateDoc(
 
   // For Compat types, we have to "extract" the underlying types before
   // performing validation.
-  if (fieldOrUpdateData instanceof Compat) {
-    fieldOrUpdateData = fieldOrUpdateData._delegate;
-  }
+  fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
   let parsed: ParsedUpdateData;
   if (

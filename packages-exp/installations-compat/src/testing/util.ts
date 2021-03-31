@@ -37,7 +37,8 @@ export function getFakeApp(): FirebaseApp {
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    installations: (() => null as unknown) as any
+    installations: (() => null as unknown) as any,
+    _delegate: {} as any
   };
 }
 

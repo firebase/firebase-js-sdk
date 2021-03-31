@@ -18,10 +18,11 @@ import { ListResult } from '../exp/api';
 import * as types from '@firebase/storage-types';
 import { ReferenceCompat } from './reference';
 import { StorageServiceCompat } from './service';
+import { Compat } from '@firebase/util';
 
-export class ListResultCompat implements types.ListResult {
+export class ListResultCompat implements types.ListResult, Compat<ListResult> {
   constructor(
-    private readonly _delegate: ListResult,
+    readonly _delegate: ListResult,
     private readonly _service: StorageServiceCompat
   ) {}
 
