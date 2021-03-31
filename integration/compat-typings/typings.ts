@@ -28,7 +28,7 @@ import { FirebaseFunctions } from '@firebase/functions-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
 // Get type directly from messaging package, messaging-compat does not implement
 // the current messaging API.
-import { MessagingCompat } from '../packages-exp/messaging-compat/src/messaging-compat';
+import { MessagingCompat } from '../../packages-exp/messaging-compat/src/messaging-compat';
 import { FirebasePerformance } from '@firebase/performance-types';
 import { RemoteConfig } from '@firebase/remote-config-types';
 import {
@@ -39,8 +39,10 @@ import {
 /**
  * Test namespaced types from compat/index.d.ts against the types used in
  * implementation of the actual compat services. In almost all cases the services
- * implement types found in the corresponding -types package. The only exception
- * is messaging, which has changed its public API in the compat version.
+ * implement types found in the corresponding -types package. The only exceptions
+ * are
+ * - messaging, which has changed its public API in the compat version
+ * - app-compat, which defines its FirebaseApp type in its own package
  */
 
 const namespaced: {
