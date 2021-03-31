@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { getModularInstance } from '@firebase/util';
 import {
   Auth,
   NextOrObserver,
@@ -53,7 +54,7 @@ export function setPersistence(
   auth: Auth,
   persistence: Persistence
 ): Promise<void> {
-  return auth.setPersistence(persistence);
+  return getModularInstance(auth).setPersistence(persistence);
 }
 /**
  * Adds an observer for changes to the signed-in user's ID token, which includes sign-in,
@@ -72,7 +73,11 @@ export function onIdTokenChanged(
   error?: ErrorFn,
   completed?: CompleteFn
 ): Unsubscribe {
-  return auth.onIdTokenChanged(nextOrObserver, error, completed);
+  return getModularInstance(auth).onIdTokenChanged(
+    nextOrObserver,
+    error,
+    completed
+  );
 }
 /**
  * Adds an observer for changes to the user's sign-in state.
@@ -93,7 +98,11 @@ export function onAuthStateChanged(
   error?: ErrorFn,
   completed?: CompleteFn
 ): Unsubscribe {
-  return auth.onAuthStateChanged(nextOrObserver, error, completed);
+  return getModularInstance(auth).onAuthStateChanged(
+    nextOrObserver,
+    error,
+    completed
+  );
 }
 /**
  * Sets the current language to the default device/browser preference.
@@ -103,7 +112,7 @@ export function onAuthStateChanged(
  * @public
  */
 export function useDeviceLanguage(auth: Auth): void {
-  auth.useDeviceLanguage();
+  getModularInstance(auth).useDeviceLanguage();
 }
 /**
  * Asynchronously sets the provided user as {@link Auth.currentUser} on the
@@ -127,7 +136,7 @@ export function updateCurrentUser(
   auth: Auth,
   user: User | null
 ): Promise<void> {
-  return auth.updateCurrentUser(user);
+  return getModularInstance(auth).updateCurrentUser(user);
 }
 /**
  * Signs out the current user.
@@ -137,7 +146,7 @@ export function updateCurrentUser(
  * @public
  */
 export function signOut(auth: Auth): Promise<void> {
-  return auth.signOut();
+  return getModularInstance(auth).signOut();
 }
 
 export { initializeAuth } from './auth/initialize';
@@ -218,5 +227,5 @@ export { reload } from './user/reload';
  * @public
  */
 export async function deleteUser(user: User): Promise<void> {
-  return user.delete();
+  return getModularInstance(user).delete();
 }

@@ -32,6 +32,7 @@ import { MultiFactorAssertionImpl } from './mfa_assertion';
 import { MultiFactorError as MultiFactorErrorInternal } from './mfa_error';
 import { MultiFactorInfoImpl } from './mfa_info';
 import { MultiFactorSessionImpl } from './mfa_session';
+import { getModularInstance } from '@firebase/util';
 
 export class MultiFactorResolverImpl implements MultiFactorResolver {
   private constructor(
@@ -125,13 +126,14 @@ export function getMultiFactorResolver(
   auth: Auth,
   error: MultiFactorError
 ): MultiFactorResolver {
+  const authModular = getModularInstance(auth);
   const errorInternal = error as MultiFactorErrorInternal;
-  _assert(error.operationType, auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(error.operationType, authModular, AuthErrorCode.ARGUMENT_ERROR);
   _assert(
     errorInternal.serverResponse?.mfaPendingCredential,
-    auth,
+    authModular,
     AuthErrorCode.ARGUMENT_ERROR
   );
 
-  return MultiFactorResolverImpl._fromError(auth, errorInternal);
+  return MultiFactorResolverImpl._fromError(authModular, errorInternal);
 }

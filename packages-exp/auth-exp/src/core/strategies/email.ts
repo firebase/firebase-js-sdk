@@ -30,6 +30,7 @@ import * as api from '../../api/authentication/email_and_password';
 import { UserInternal } from '../../model/user';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Gets the list of possible sign in methods for the given email address.
@@ -58,7 +59,10 @@ export async function fetchSignInMethodsForEmail(
     continueUri
   };
 
-  const { signinMethods } = await createAuthUri(auth, request);
+  const { signinMethods } = await createAuthUri(
+    getModularInstance(auth),
+    request
+  );
 
   return signinMethods || [];
 }
@@ -97,7 +101,7 @@ export async function sendEmailVerification(
   user: User,
   actionCodeSettings?: ActionCodeSettings | null
 ): Promise<void> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   const idToken = await user.getIdToken();
   const request: api.VerifyEmailRequest = {
     requestType: ActionCodeOperation.VERIFY_EMAIL,
@@ -157,7 +161,7 @@ export async function verifyBeforeUpdateEmail(
   newEmail: string,
   actionCodeSettings?: ActionCodeSettings | null
 ): Promise<void> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   const idToken = await user.getIdToken();
   const request: api.VerifyAndChangeEmailRequest = {
     requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
