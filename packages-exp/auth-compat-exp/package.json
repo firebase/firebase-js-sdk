@@ -27,7 +27,7 @@
     "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
     "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
     "test:integration": "run-s test:browser:integration test:node:integration test:webdriver",
-    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../auth-exp/dist/auth-exp-public.d.ts -o dist/auth-compat-exp/index.d.ts -a -r Auth:AuthCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/auth"
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../auth-exp/dist/auth-exp-public.d.ts -o dist/auth-compat-exp/index.d.ts -a -r Auth:types.FirebaseAuth -r User:types.User -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/auth"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x"
