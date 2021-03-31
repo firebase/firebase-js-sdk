@@ -30,6 +30,7 @@ import { _getProvider, FirebaseApp } from '@firebase/app-exp';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Retrieves a firebase messaging instance.
@@ -39,6 +40,7 @@ import { onMessage as _onMessage } from './api/onMessage';
  * @public
  */
 export function getMessaging(app: FirebaseApp): FirebaseMessaging {
+  app = getModularInstance(app);
   const messagingProvider: Provider<'messaging-exp'> = _getProvider(
     app,
     'messaging-exp'
@@ -79,6 +81,7 @@ export async function getToken(
   messaging: FirebaseMessaging,
   options?: { vapidKey?: string; swReg?: ServiceWorkerRegistration }
 ): Promise<string> {
+  messaging = getModularInstance(messaging);
   return _getToken(messaging as MessagingService, options);
 }
 
@@ -93,6 +96,7 @@ export async function getToken(
  * @public
  */
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean> {
+  messaging = getModularInstance(messaging);
   return _deleteToken(messaging as MessagingService);
 }
 
@@ -113,6 +117,7 @@ export function onMessage(
   messaging: FirebaseMessaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
+  messaging = getModularInstance(messaging);
   return _onMessage(messaging as MessagingService, nextOrObserver);
 }
 
@@ -133,5 +138,6 @@ export function onBackgroundMessage(
   messaging: FirebaseMessaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
+  messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
 }
