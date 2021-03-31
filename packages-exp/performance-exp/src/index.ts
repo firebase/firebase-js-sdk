@@ -38,6 +38,7 @@ import {
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
 import '@firebase/installations-exp';
+import { getModularInstance } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
@@ -47,6 +48,7 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
  * @public
  */
 export function getPerformance(app: FirebaseApp): FirebasePerformance {
+  app = getModularInstance(app);
   const provider = _getProvider(app, 'performance-exp');
   const perfInstance = provider.getImmediate() as PerformanceController;
   return perfInstance;
@@ -62,6 +64,7 @@ export function initializePerformance(
   app: FirebaseApp,
   settings?: PerformanceSettings
 ): FirebasePerformance {
+  app = getModularInstance(app);
   const provider = _getProvider(app, 'performance-exp');
 
   // throw if an instance was already created.
@@ -86,6 +89,7 @@ export function trace(
   performance: FirebasePerformance,
   name: string
 ): PerformanceTrace {
+  performance = getModularInstance(performance);
   return new Trace(performance as PerformanceController, name);
 }
 
