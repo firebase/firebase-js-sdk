@@ -16,7 +16,7 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import { Config } from '../../model/public_types';
+import { Config, Dependencies } from '../../model/public_types';
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../../../package.json';
@@ -25,7 +25,6 @@ import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
 import { AuthInterop } from './firebase_internal';
-import { Dependencies } from '../../model/auth';
 import { _initializeAuthInstance } from './initialize';
 
 export const enum _ComponentName {
