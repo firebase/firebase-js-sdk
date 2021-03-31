@@ -24,7 +24,8 @@ import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
 import { AuthInterop } from './firebase_internal';
-import { ConfigInternal, Dependencies } from '../../model/auth';
+import { ConfigInternal } from '../../model/auth';
+import { Dependencies } from '../../model/public_types';
 import { _initializeAuthInstance } from './initialize';
 
 export const enum _ComponentName {
