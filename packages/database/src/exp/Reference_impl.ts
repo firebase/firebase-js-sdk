@@ -23,7 +23,7 @@ import {
   repoRemoveEventCallbackForQuery
 } from '../core/Repo';
 import { ChildrenNode } from '../core/snap/ChildrenNode';
-import { Index } from '../core/snap/indexes';
+import { Index } from '../core/snap/indexes/Index';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { Node } from '../core/snap/Node';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
