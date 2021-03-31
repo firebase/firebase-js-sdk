@@ -68,19 +68,6 @@ describe('requestStsToken', () => {
     );
   });
 
-  it('should set ', async () => {
-    const mock = fetch.mock(endpoint, {
-      'access_token': 'new-access-token',
-      'expires_in': '3600',
-      'refresh_token': 'new-refresh-token'
-    });
-
-    const response = await requestStsToken(auth, 'old-refresh-token');
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
-      'testSDK/0.0.0'
-    );
-  });
-
   it('should set the framework in clientVersion if logged', async () => {
     const mock = fetch.mock(endpoint, {
       'access_token': 'new-access-token',
