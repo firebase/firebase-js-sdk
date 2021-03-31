@@ -75,7 +75,7 @@ export interface UserInternal extends User {
   ): Promise<void>;
 
   _assign(user: UserInternal): void;
-  _clone(): UserInternal;
+  _clone(auth: AuthInternal): UserInternal;
   _onReload: (cb: NextFn<APIUserInfo>) => void;
   _notifyReloadListener: NextFn<APIUserInfo>;
   _startProactiveRefresh: () => void;

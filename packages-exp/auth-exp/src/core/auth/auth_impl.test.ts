@@ -85,11 +85,11 @@ describe('core/auth/auth_impl', () => {
 
     it('public version throws if the auth is mismatched', async () => {
       const auth2 = await testAuth();
-      Object.assign(auth2, { name: 'not-the-right-auth' });
+      Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
       const user = testUser(auth2, 'uid');
       await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
         FirebaseError,
-        'auth/argument-error'
+        'auth/invalid-user-token'
       );
     });
 
