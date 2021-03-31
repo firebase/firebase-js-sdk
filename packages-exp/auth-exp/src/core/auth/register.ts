@@ -25,7 +25,7 @@ import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
 import { AuthInterop } from './firebase_internal';
-import { Dependencies } from '../../model/auth';
+import { ConfigInternal, Dependencies } from '../../model/auth';
 import { _initializeAuthInstance } from './initialize';
 
 export const enum _ComponentName {
@@ -60,9 +60,10 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const { apiKey, authDomain } = app.options;
         return (app => {
           _assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
-          const config: Config = {
+          const config: ConfigInternal = {
             apiKey,
             authDomain,
+            clientPlatform,
             apiHost: DefaultConfig.API_HOST,
             tokenApiHost: DefaultConfig.TOKEN_API_HOST,
             apiScheme: DefaultConfig.API_SCHEME,

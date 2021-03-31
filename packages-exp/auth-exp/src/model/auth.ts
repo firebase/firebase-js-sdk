@@ -30,6 +30,7 @@ import { AuthErrorCode, AuthErrorParams } from '../core/errors';
 
 import { PopupRedirectResolverInternal } from './popup_redirect';
 import { UserInternal } from './user';
+import { ClientPlatform } from '../core/util/version';
 
 export type AppName = string;
 export type ApiKey = string;
@@ -42,6 +43,11 @@ export interface ConfigInternal extends Config {
   emulator?: {
     url: string;
   };
+
+  /**
+   * @readonly
+   */
+  clientPlatform: ClientPlatform;
 }
 
 export interface AuthInternal extends Auth {
@@ -66,6 +72,9 @@ export interface AuthInternal extends Auth {
   _startProactiveRefresh(): void;
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
+  _logFramework(framework: string): void;
+  _getFrameworks(): readonly string[];
+  _getSdkClientVersion(): string;
 
   readonly name: AppName;
   readonly config: ConfigInternal;

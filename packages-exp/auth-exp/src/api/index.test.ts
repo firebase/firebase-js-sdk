@@ -38,6 +38,9 @@ import {
   _addTidIfNecessary
 } from './';
 import { ServerError } from './errors';
+import { SDK_VERSION } from '@firebase/app-exp';
+import { _getBrowserName } from '../core/util/browser';
+import { getUA } from '@firebase/util';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -89,6 +92,31 @@ describe('api/_performApiRequest', () => {
       expect(response).to.eql(serverResponse);
       expect(mock.calls[0].headers.get(HttpHeader.X_FIREBASE_LOCALE)).to.eq(
         'jp'
+      );
+    });
+
+    it('should set the framework in clientVersion if logged', async () => {
+      auth._logFramework('Mythical');
+      const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
+      const response = await _performApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      expect(response).to.eql(serverResponse);
+      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+        `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Mythical`
+      );
+
+      // If a new framework is logged, the client version header should change as well.
+      auth._logFramework('Magical');
+      const response2 = await _performApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      expect(response2).to.eql(serverResponse);
+      expect(mock.calls[1].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+        // frameworks should be sorted alphabetically
+        `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Magical,Mythical`
       );
     });
 
