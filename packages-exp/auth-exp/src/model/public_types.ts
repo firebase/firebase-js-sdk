@@ -24,6 +24,7 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
+export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
 /**
  * Enumeration of supported providers.
  *
@@ -1170,3 +1171,12 @@ export interface EmulatorConfig {
  * @public
  */
 export interface AuthErrorMap {}
+
+/**
+ * @public
+ */
+export interface Dependencies {
+  persistence?: Persistence | Persistence[];
+  popupRedirectResolver?: PopupRedirectResolver;
+  errorMap?: AuthErrorMap;
+}

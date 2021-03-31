@@ -15,10 +15,10 @@
     "bundle": "rollup -c",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "run-p 'bundle rollup.config.js' build:exp build:compat",
+    "build": "run-p 'bundle rollup.config.js' build:exp && yarn build:compat",
     "build:exp": "rollup -c rollup.config.exp.js ; yarn api-report",
-    "build:compat": "rollup -c rollup.config.compat.js",
-    "build:exp:release": "run-p build:exp build:compat",
+    "build:compat": "rollup -c rollup.config.compat.js && yarn add-compat-overloads",
+    "build:exp:release": "yarn build:exp && yarn build:compat",
     "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p test:browser lint",
@@ -32,7 +32,8 @@
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browser=Chrome",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
-    "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input exp/dist/storage-public.d.ts --output exp/dist/storage-public.d.ts"
+    "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input exp/dist/storage-public.d.ts --output exp/dist/storage-public.d.ts",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i exp/dist/storage-public.d.ts -o dist/compat/esm5/compat/index.d.ts -a -r StorageService:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
   },
   "license": "Apache-2.0",
   "dependencies": {

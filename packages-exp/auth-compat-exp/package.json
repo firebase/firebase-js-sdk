@@ -16,7 +16,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/auth-compat --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js",
+    "build:release": "rollup -c rollup.config.release.js && yarn add-compat-overloads",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
     "test:all": "run-p test:browser test:node",
@@ -26,7 +26,8 @@
     "test:node": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts",
     "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
     "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
-    "test:integration": "run-s test:browser:integration test:node:integration test:webdriver"
+    "test:integration": "run-s test:browser:integration test:node:integration test:webdriver",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../auth-exp/dist/auth-exp-public.d.ts -o dist/auth-compat-exp/index.d.ts -a -r Auth:AuthCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/auth"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x"

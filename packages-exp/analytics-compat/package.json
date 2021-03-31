@@ -35,12 +35,13 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/analytics-compat --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js",
+    "build:release": "rollup -c rollup.config.release.js && yarn add-compat-overloads",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
-    "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
+    "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../analytics-exp/dist/analytics-exp-public.d.ts -o dist/src/index.d.ts -a -r Analytics:FirebaseAnalytics -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/analytics"
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {

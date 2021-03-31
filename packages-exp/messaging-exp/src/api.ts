@@ -15,8 +15,13 @@
  * limitations under the License.
  */
 
-import { FirebaseMessaging, MessagePayload } from './interfaces/public-types';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  FirebaseMessaging,
+  MessagePayload,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from './interfaces/public-types';
 
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';

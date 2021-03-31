@@ -4,7 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
@@ -52,6 +52,8 @@ export interface MessagePayload {
     notification?: NotificationPayload;
 }
 
+export { NextFn }
+
 // @public
 export interface NotificationPayload {
     // (undocumented)
@@ -62,6 +64,8 @@ export interface NotificationPayload {
     title?: string;
 }
 
+export { Observer }
+
 // Warning: (ae-internal-missing-underscore) The name "onBackgroundMessage" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -69,6 +73,8 @@ export function onBackgroundMessage(messaging: FirebaseMessaging, nextOrObserver
 
 // @public
 export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
+
+export { Unsubscribe }
 
 
 // (No @packageDocumentation comment for this package)
