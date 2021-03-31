@@ -32,8 +32,7 @@ export function getFakeApp(): FirebaseApp {
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    messaging: (() => null as unknown) as FirebaseApp['messaging'],
-    _delegate: {} as any
+    messaging: (() => null as unknown) as FirebaseApp['messaging']
   };
 }
 
