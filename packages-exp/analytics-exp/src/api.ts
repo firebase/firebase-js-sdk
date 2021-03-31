@@ -30,7 +30,8 @@ import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable,
   areCookiesEnabled,
-  isBrowserExtension
+  isBrowserExtension,
+  getModularInstance
 } from '@firebase/util';
 import { ANALYTICS_TYPE } from './constants';
 import {
@@ -63,6 +64,7 @@ declare module '@firebase/component' {
  * @param app - The FirebaseApp to use.
  */
 export function getAnalytics(app: FirebaseApp): Analytics {
+  app = getModularInstance(app);
   // Dependencies
   const analyticsProvider: Provider<'analytics-exp'> = _getProvider(
     app,
@@ -115,6 +117,7 @@ export function setCurrentScreen(
   screenName: string,
   options?: AnalyticsCallOptions
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalSetCurrentScreen(
     wrappedGtagFunction,
     initializationPromisesMap[analyticsInstance.app.options.appId!],
@@ -136,6 +139,7 @@ export function setUserId(
   id: string,
   options?: AnalyticsCallOptions
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalSetUserId(
     wrappedGtagFunction,
     initializationPromisesMap[analyticsInstance.app.options.appId!],
@@ -154,6 +158,7 @@ export function setUserProperties(
   properties: CustomParams,
   options?: AnalyticsCallOptions
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalSetUserProperties(
     wrappedGtagFunction,
     initializationPromisesMap[analyticsInstance.app.options.appId!],
@@ -175,6 +180,7 @@ export function setAnalyticsCollectionEnabled(
   analyticsInstance: Analytics,
   enabled: boolean
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalSetAnalyticsCollectionEnabled(
     initializationPromisesMap[analyticsInstance.app.options.appId!],
     enabled
@@ -663,6 +669,7 @@ export function logEvent(
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalLogEvent(
     wrappedGtagFunction,
     initializationPromisesMap[analyticsInstance.app.options.appId!],
