@@ -39,20 +39,25 @@ const argv = yargs
       type: 'boolean',
       default: false
     },
-    match: {
-      alias: 'm',
-      type: 'string',
-      require: true
-    },
-    replacement: {
+    replace: {
       alias: 'r',
-      type: 'string',
-      require: true
+      type: 'array',
+      require: true,
+      describe: 'Use [match]:[replacement] format. e.g. -r Auth:AuthCompat'
     },
     moduleToEnhance: {
       type: 'string',
       require: true
     }
+  })
+  .coerce('replace', (args: string[]) => {
+    return args.map(arg => {
+      const [match, replacement] = arg.split(':');
+      return {
+        match,
+        replacement
+      };
+    });
   })
   .help().argv;
 
@@ -60,17 +65,20 @@ interface Options {
   input: string;
   output: string;
   append: boolean;
+  replace: ReplaceOption[];
+  moduleToEnhance: string;
+}
+
+interface ReplaceOption {
   match: string;
   replacement: string;
-  moduleToEnhance: string;
 }
 
 function createOverloads({
   input,
   output,
   append,
-  match,
-  replacement,
+  replace,
   moduleToEnhance
 }: Options) {
   const compilerOptions = {};
@@ -83,8 +91,7 @@ function createOverloads({
     keepPublicFunctionsTransformer.bind(
       undefined,
       program,
-      match,
-      replacement,
+      replace,
       moduleToEnhance
     )
   ]);
@@ -114,8 +121,7 @@ function createOverloads({
 
 function keepPublicFunctionsTransformer(
   program: ts.Program,
-  match: string,
-  replacement: string,
+  replace: ReplaceOption[],
   moduleNameToEnhance: string,
   context: ts.TransformationContext
 ): ts.Transformer<ts.SourceFile> {
@@ -127,33 +133,40 @@ function keepPublicFunctionsTransformer(
         // return early if the function doesn't have any parameter of the type we are looking for
         if (
           !node.parameters.find(param => {
-            return param.type && param.type.getText(sourceFile) === match;
+            if (param.type && ts.isTypeReferenceNode(param.type)) {
+              const typeName = param.type.typeName;
+              return replace.find(opt => typeName.getText() === opt.match);
+            }
+            return false;
           })
         ) {
           return ts.createToken(ts.SyntaxKind.WhitespaceTrivia);
         }
 
-        const variableDecl = ts.createSourceFile(
-          'tmp.ts',
-          `let a:${replacement}`,
-          ts.ScriptTarget.ES2015
-        ).statements[0] as ts.VariableStatement;
-        const typeNode = variableDecl.declarationList.declarations[0].type;
         const newParameters = node.parameters.map(param => {
-          if (param.type && param.type.getText(sourceFile) === match) {
-            return ts.updateParameter(
-              param,
-              param.decorators,
-              param.modifiers,
-              param.dotDotDotToken,
-              param.name,
-              param.questionToken,
-              typeNode,
-              param.initializer
-            );
-          } else {
-            return param;
+          if (param.type && ts.isTypeReferenceNode(param.type)) {
+            for (const replaceOption of replace) {
+              if (
+                param.type.typeName.getText(sourceFile) === replaceOption.match
+              ) {
+                return ts.updateParameter(
+                  param,
+                  param.decorators,
+                  param.modifiers,
+                  param.dotDotDotToken,
+                  param.name,
+                  param.questionToken,
+                  ts.createTypeReferenceNode(
+                    replaceOption.replacement,
+                    param.type.typeArguments
+                  ),
+                  param.initializer
+                );
+              }
+            }
           }
+
+          return param;
         });
 
         // remove comments
@@ -199,7 +212,7 @@ function keepPublicFunctionsTransformer(
     // find types referenced in overloads. we need to import them.
     for (const overload of overloads) {
       findTypes(typeChecker, overload, transformed, typesToImport, [
-        replacement
+        ...replace.map(opt => opt.replacement)
       ]);
     }
 
@@ -230,6 +243,7 @@ function keepPublicFunctionsTransformer(
   };
 }
 
+// TODO: generate the builtin types from externs, similar to packages/firestore/externs.json
 const BUILTIN_TYPES = [
   'string',
   'number',
@@ -242,7 +256,11 @@ const BUILTIN_TYPES = [
   'never',
   'Object',
   'object',
-  'Promise'
+  'Promise',
+  'ReadableStream',
+  'Uint8Array',
+  'ArrayBuffer',
+  'Partial'
 ];
 
 // find all types (except for the built-ins and primitives) referenced in the function declaration
@@ -260,23 +278,17 @@ function findTypes(
       let typeName = node.typeName.getText(sourceFile);
       if (ts.isIdentifier(node.typeName)) {
         typeName = node.typeName.text;
-
-        // early return here otherwise getSymbolAtLocation may throw for synthetic nodes we created
-        if (typesToIgnore.includes(typeName)) {
-          return;
-        }
-        const symbol = typeCheck.getSymbolAtLocation(node.typeName);
-        const declaration = symbol?.declarations[0];
-
-        // ignore type parameters.
-        if (declaration && ts.isTypeParameterDeclaration(declaration)) {
-          return;
-        }
       }
 
       // include the type if it's not in the excludes list or a builtin type
       if (!typesToIgnore.includes(typeName)) {
-        types.add(typeName);
+        const symbol = typeCheck.getSymbolAtLocation(node.typeName);
+        const declaration = symbol?.declarations[0];
+
+        // ignore type parameters.
+        if (!declaration || !ts.isTypeParameterDeclaration(declaration)) {
+          types.add(typeName);
+        }
       }
     }
 
@@ -286,4 +298,4 @@ function findTypes(
   findTypesRecursively(node);
 }
 
-createOverloads(argv);
+createOverloads(argv as Options);
