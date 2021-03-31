@@ -22,7 +22,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { version } from '../package.json';
 import { FirebaseDatabase } from '../src/exp/Database';
 
-export { getDatabase, ServerValue } from '../src/exp/Database';
+export { getDatabase } from '../src/exp/Database';
 export { enableLogging } from '../src/core/util/util';
 
 declare module '@firebase/component' {
@@ -35,7 +35,7 @@ function registerDatabase(): void {
   _registerComponent(
     new Component(
       'database-exp',
-      (container, url) => {
+      (container, { instanceIdentifier: url }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
         return new FirebaseDatabase(app, authProvider, url);
