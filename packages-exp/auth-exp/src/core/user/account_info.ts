@@ -26,11 +26,6 @@ import { UserInternal } from '../../model/user';
 import { _logoutIfInvalidated } from './invalidation';
 import { getModularInstance } from '@firebase/util';
 
-interface Profile {
-  displayName?: string | null;
-  photoURL?: string | null;
-}
-
 /**
  * Updates a user's profile data.
  *
@@ -41,7 +36,10 @@ interface Profile {
  */
 export async function updateProfile(
   user: User,
-  { displayName, photoURL: photoUrl }: Profile
+  {
+    displayName,
+    photoURL: photoUrl
+  }: { displayName?: string | null; photoURL?: string | null }
 ): Promise<void> {
   if (displayName === undefined && photoUrl === undefined) {
     return;

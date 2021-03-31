@@ -26,26 +26,7 @@ import {
   InstantiationMode
 } from '@firebase/component';
 
-import {
-  EmailAuthProvider,
-  EmailAuthProvider_Instance,
-  FacebookAuthProvider,
-  FacebookAuthProvider_Instance,
-  FirebaseAuth as AuthCompat,
-  GithubAuthProvider,
-  GithubAuthProvider_Instance,
-  GoogleAuthProvider,
-  GoogleAuthProvider_Instance,
-  OAuthProvider,
-  PhoneAuthProvider,
-  PhoneAuthProvider_Instance,
-  PhoneMultiFactorGenerator,
-  RecaptchaVerifier,
-  RecaptchaVerifier_Instance,
-  SAMLAuthProvider,
-  TwitterAuthProvider,
-  TwitterAuthProvider_Instance
-} from '@firebase/auth-types';
+import * as types from '@firebase/auth-types';
 import { version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';
@@ -56,36 +37,36 @@ const AUTH_TYPE = 'auth-compat';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'auth-compat': AuthCompat;
+    'auth-compat': types.FirebaseAuth;
   }
 }
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
     auth: {
-      (app?: FirebaseApp): AuthCompat;
-      Auth: typeof AuthCompat;
-      EmailAuthProvider: typeof EmailAuthProvider;
-      EmailAuthProvider_Instance: typeof EmailAuthProvider_Instance;
-      FacebookAuthProvider: typeof FacebookAuthProvider;
-      FacebookAuthProvider_Instance: typeof FacebookAuthProvider_Instance;
-      GithubAuthProvider: typeof GithubAuthProvider;
-      GithubAuthProvider_Instance: typeof GithubAuthProvider_Instance;
-      GoogleAuthProvider: typeof GoogleAuthProvider;
-      GoogleAuthProvider_Instance: typeof GoogleAuthProvider_Instance;
-      OAuthProvider: typeof OAuthProvider;
-      SAMLAuthProvider: typeof SAMLAuthProvider;
-      PhoneAuthProvider: typeof PhoneAuthProvider;
-      PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
-      PhoneMultiFactorGenerator: typeof PhoneMultiFactorGenerator;
-      RecaptchaVerifier: typeof RecaptchaVerifier;
-      RecaptchaVerifier_Instance: typeof RecaptchaVerifier_Instance;
-      TwitterAuthProvider: typeof TwitterAuthProvider;
-      TwitterAuthProvider_Instance: typeof TwitterAuthProvider_Instance;
+      (app?: FirebaseApp): types.FirebaseAuth;
+      Auth: typeof types.FirebaseAuth;
+      EmailAuthProvider: typeof types.EmailAuthProvider;
+      EmailAuthProvider_Instance: typeof types.EmailAuthProvider_Instance;
+      FacebookAuthProvider: typeof types.FacebookAuthProvider;
+      FacebookAuthProvider_Instance: typeof types.FacebookAuthProvider_Instance;
+      GithubAuthProvider: typeof types.GithubAuthProvider;
+      GithubAuthProvider_Instance: typeof types.GithubAuthProvider_Instance;
+      GoogleAuthProvider: typeof types.GoogleAuthProvider;
+      GoogleAuthProvider_Instance: typeof types.GoogleAuthProvider_Instance;
+      OAuthProvider: typeof types.OAuthProvider;
+      SAMLAuthProvider: typeof types.SAMLAuthProvider;
+      PhoneAuthProvider: typeof types.PhoneAuthProvider;
+      PhoneAuthProvider_Instance: typeof types.PhoneAuthProvider_Instance;
+      PhoneMultiFactorGenerator: typeof types.PhoneMultiFactorGenerator;
+      RecaptchaVerifier: typeof types.RecaptchaVerifier;
+      RecaptchaVerifier_Instance: typeof types.RecaptchaVerifier_Instance;
+      TwitterAuthProvider: typeof types.TwitterAuthProvider;
+      TwitterAuthProvider_Instance: typeof types.TwitterAuthProvider_Instance;
     };
   }
   interface FirebaseApp {
-    auth?(): AuthCompat;
+    auth?(): types.FirebaseAuth;
   }
 }
 

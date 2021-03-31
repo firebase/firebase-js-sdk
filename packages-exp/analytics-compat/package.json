@@ -45,10 +45,10 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.3.0",
+    "@firebase/component": "0.3.1",
     "@firebase/analytics-exp": "0.0.900",
     "@firebase/analytics-types": "0.4.0",
-    "@firebase/util": "0.4.0",
+    "@firebase/util": "0.4.1",
     "tslib": "^2.1.0"
   },
   "nyc": {
