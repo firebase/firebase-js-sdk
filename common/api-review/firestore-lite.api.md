@@ -47,6 +47,8 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
     get path(): string;
     // (undocumented)
     readonly type = "collection";
+    withConverter(converter: null): CollectionReference<DocumentData>;
+    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
 }
 
@@ -81,6 +83,8 @@ export class DocumentReference<T = DocumentData> {
     get parent(): CollectionReference<T>;
     get path(): string;
     readonly type = "document";
+    withConverter(converter: null): DocumentReference<DocumentData>;
+    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -195,6 +199,8 @@ export class Query<T = DocumentData> {
     protected constructor();
     readonly firestore: FirebaseFirestore;
     readonly type: 'query' | 'collection';
+    withConverter(converter: null): Query<DocumentData>;
+    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 

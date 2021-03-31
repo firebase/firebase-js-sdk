@@ -20,6 +20,7 @@ import {
   FieldPath as PublicFieldPath,
   SetOptions
 } from '@firebase/firestore-types';
+import { Compat, getModularInstance } from '@firebase/util';
 
 import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
@@ -58,7 +59,6 @@ import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { Bytes } from './bytes';
-import { Compat } from './compat';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
@@ -584,9 +584,7 @@ export function parseUpdateData(
 
     // For Compat types, we have to "extract" the underlying types before
     // performing validation.
-    if (value instanceof Compat) {
-      value = value._delegate;
-    }
+    value = getModularInstance(value);
 
     const childContext = context.childContextForFieldPath(path);
     if (value instanceof DeleteFieldValueImpl) {
@@ -652,9 +650,7 @@ export function parseUpdateVarargs(
 
       // For Compat types, we have to "extract" the underlying types before
       // performing validation.
-      if (value instanceof Compat) {
-        value = value._delegate;
-      }
+      value = getModularInstance(value);
 
       const childContext = context.childContextForFieldPath(path);
       if (value instanceof DeleteFieldValueImpl) {
@@ -715,9 +711,7 @@ export function parseData(
 ): ProtoValue | null {
   // Unwrap the API type from the Compat SDK. This will return the API type
   // from firestore-exp.
-  if (input instanceof Compat) {
-    input = input._delegate;
-  }
+  input = getModularInstance(input);
 
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
@@ -840,9 +834,7 @@ function parseScalarValue(
   value: unknown,
   context: ParseContextImpl
 ): ProtoValue | null {
-  if (value instanceof Compat) {
-    value = value._delegate;
-  }
+  value = getModularInstance(value);
 
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
@@ -947,9 +939,7 @@ export function fieldPathFromArgument(
 ): InternalFieldPath {
   // If required, replace the FieldPath Compat class with with the firestore-exp
   // FieldPath.
-  if (path instanceof Compat) {
-    path = path._delegate;
-  }
+  path = getModularInstance(path);
 
   if (path instanceof FieldPath) {
     return path._internalPath;

@@ -40,10 +40,12 @@ import * as types from '@firebase/storage-types';
 import { Metadata } from '../src/metadata';
 import { dataFromString } from '../src/implementation/string';
 import { invalidRootOperation } from '../src/implementation/error';
+import { Compat } from '@firebase/util';
 
-export class ReferenceCompat implements types.Reference {
+export class ReferenceCompat
+  implements types.Reference, Compat<StorageReference> {
   constructor(
-    private readonly _delegate: StorageReference,
+    readonly _delegate: StorageReference,
     public storage: StorageServiceCompat
   ) {}
 

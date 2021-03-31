@@ -21,6 +21,7 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from './public-types';
+import { Compat } from '@firebase/util';
 import { Component, ComponentContainer } from '@firebase/component';
 
 export interface FirebaseServiceInternals {
@@ -34,7 +35,7 @@ export interface FirebaseServiceInternals {
 // Services are exposed through instances - each of which is associated with a
 // FirebaseApp.
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _FirebaseService {
+export interface _FirebaseService extends Compat<unknown> {
   app: FirebaseApp;
   INTERNAL?: FirebaseServiceInternals;
 }

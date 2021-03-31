@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { getModularInstance } from '@firebase/util';
+
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { TransactionRunner } from '../core/transaction_runner';
 import { fail } from '../util/assert';
@@ -22,7 +24,6 @@ import { newAsyncQueue } from '../util/async_queue_impl';
 import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
-import { Compat } from './compat';
 import { getDatastore } from './components';
 import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';
@@ -195,9 +196,7 @@ export class Transaction {
 
     // For Compat types, we have to "extract" the underlying types before
     // performing validation.
-    if (fieldOrUpdateData instanceof Compat) {
-      fieldOrUpdateData = fieldOrUpdateData._delegate;
-    }
+    fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
     let parsed;
     if (

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-compat';
 import {
   FirebasePerformance,
   PerformanceTrace
@@ -34,7 +34,8 @@ export function getFakeApp(): FirebaseApp {
       appId: '1:777777777777:web:d93b5ca1475efe57'
     },
     automaticDataCollectionEnabled: true,
-    delete: async () => {}
+    delete: async () => {},
+    _delegate: {} as any
   };
 }
 

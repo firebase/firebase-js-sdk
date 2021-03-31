@@ -28,9 +28,12 @@ const getErrors = require('./utils/getErrors');
 const TEST_SUITE_TIMEOUT_MS = 70000;
 const TEST_DOMAIN = 'valid-vapid-key';
 
+// Getting and deleting token is the entry step of using FM SDK. Let it run first and fail quickly.
+require('./test-token-delete');
+
 describe('Firebase Messaging Integration Tests > update a token', function () {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
-  this.retries(3);
+  this.retries(2);
 
   let globalWebDriver;
 

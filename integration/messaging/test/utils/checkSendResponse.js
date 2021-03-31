@@ -14,15 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const expect = require('chai').expect;
 
-/**
- * A class implemented by all API types of the legacy Firestore API which
- * contains a reference to the API type in the firestore-exp API. All internal
- * code unwraps these references, which allows us to only use firestore-exp
- * types in the SDK.
- *
- * @internal
- */
-export abstract class Compat<T> {
-  constructor(readonly _delegate: T) {}
-}
+module.exports = response => {
+  expect(response).to.exist;
+  expect(response.success).to.equal(1);
+};
