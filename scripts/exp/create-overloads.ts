@@ -277,7 +277,8 @@ const BUILTIN_TYPES = [
   'ReadableStream',
   'Uint8Array',
   'ArrayBuffer',
-  'Partial'
+  'Partial',
+  'Blob'
 ];
 
 // find all types (except for the built-ins and primitives) referenced in the function declaration
