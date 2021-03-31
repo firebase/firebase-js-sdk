@@ -279,7 +279,8 @@ const BUILTIN_TYPES = [
   'ArrayBuffer',
   'Partial',
   'Blob',
-  'ServiceWorkerRegistration'
+  'ServiceWorkerRegistration',
+  'Record'
 ];
 
 // find all types (except for the built-ins and primitives) referenced in the function declaration
