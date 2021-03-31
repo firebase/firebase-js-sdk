@@ -21,6 +21,8 @@ import {
   ComponentType,
   InstanceFactory
 } from '@firebase/component';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { isSwSupported, isWindowSupported } from '../api/isSupported';
 
 import { MessagingService } from '../messaging-service';
 import { _registerComponent } from '@firebase/app-exp';
@@ -35,7 +37,27 @@ const messagingFactory: InstanceFactory<'messaging-exp'> = (
   );
 };
 
-export function registerMessaging(): void {
+export function registerWindowMessaging(): void {
+  // Top-level 'await' requires 'module' option set to 'esnext' or 'system', and 'target' option
+  // set to 'es2017' or higher. For compatibility, use async expression here.
+  void (async () => {
+    if (!(await isWindowSupported())) {
+      throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+    }
+  })();
+
+  _registerComponent(
+    new Component('messaging-exp', messagingFactory, ComponentType.PUBLIC)
+  );
+}
+
+export function registerSwMessaging(): void {
+  void (async () => {
+    if (!(await isSwSupported())) {
+      throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+    }
+  })();
+
   _registerComponent(
     new Component('messaging-exp', messagingFactory, ComponentType.PUBLIC)
   );

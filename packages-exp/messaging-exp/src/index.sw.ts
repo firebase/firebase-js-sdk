@@ -17,11 +17,9 @@
 
 import '@firebase/installations-exp';
 
-import { ERROR_FACTORY, ErrorCode } from './util/errors';
-
 import { FirebaseMessaging } from './interfaces/public-types';
 import { isSwSupported } from './api/isSupported';
-import { registerMessaging } from './helpers/register';
+import { registerSwMessaging } from './helpers/register';
 
 export { onBackgroundMessage, getMessaging } from './api';
 export { isSwSupported as isSupported } from './api/isSupported';
@@ -32,12 +30,4 @@ declare module '@firebase/component' {
   }
 }
 
-// Top-level 'await' requires 'module' option set to 'esnext' or 'system', and 'target' option
-// set to 'es2017' or higher. For compatibility, use async expression here.
-void (async () => {
-  if (!(await isSwSupported())) {
-    throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-  }
-})();
-
-registerMessaging();
+registerSwMessaging();
