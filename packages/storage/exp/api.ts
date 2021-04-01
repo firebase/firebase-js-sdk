@@ -53,6 +53,7 @@ import {
   _getChild as _getChildInternal
 } from '../src/reference';
 import { STORAGE_TYPE } from './constants';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Public types.
@@ -78,6 +79,7 @@ export function uploadBytes(
   data: Blob | Uint8Array | ArrayBuffer,
   metadata?: UploadMetadata
 ): Promise<UploadResult> {
+  ref = getModularInstance(ref);
   return uploadBytesInternal(
     ref as Reference,
     data,
@@ -101,6 +103,7 @@ export function uploadString(
   format?: string,
   metadata?: UploadMetadata
 ): Promise<UploadResult> {
+  ref = getModularInstance(ref);
   return uploadStringInternal(
     ref as Reference,
     value,
@@ -123,6 +126,7 @@ export function uploadBytesResumable(
   data: Blob | Uint8Array | ArrayBuffer,
   metadata?: UploadMetadata
 ): UploadTask {
+  ref = getModularInstance(ref);
   return uploadBytesResumableInternal(
     ref as Reference,
     data,
@@ -138,6 +142,7 @@ export function uploadBytesResumable(
  * @param ref - StorageReference to get metadata from.
  */
 export function getMetadata(ref: StorageReference): Promise<FullMetadata> {
+  ref = getModularInstance(ref);
   return getMetadataInternal(ref as Reference) as Promise<FullMetadata>;
 }
 
@@ -154,6 +159,7 @@ export function updateMetadata(
   ref: StorageReference,
   metadata: SettableMetadata
 ): Promise<FullMetadata> {
+  ref = getModularInstance(ref);
   return updateMetadataInternal(
     ref as Reference,
     metadata as Partial<MetadataInternal>
@@ -186,6 +192,7 @@ export function list(
   ref: StorageReference,
   options?: ListOptions
 ): Promise<ListResult> {
+  ref = getModularInstance(ref);
   return listInternal(ref as Reference, options);
 }
 
@@ -209,6 +216,7 @@ export function list(
  *      folder. `nextPageToken` is never returned.
  */
 export function listAll(ref: StorageReference): Promise<ListResult> {
+  ref = getModularInstance(ref);
   return listAllInternal(ref as Reference);
 }
 
@@ -219,6 +227,7 @@ export function listAll(ref: StorageReference): Promise<ListResult> {
  *     URL for this object.
  */
 export function getDownloadURL(ref: StorageReference): Promise<string> {
+  ref = getModularInstance(ref);
   return getDownloadURLInternal(ref as Reference);
 }
 
@@ -229,6 +238,7 @@ export function getDownloadURL(ref: StorageReference): Promise<string> {
  * @returns A promise that resolves if the deletion succeeds.
  */
 export function deleteObject(ref: StorageReference): Promise<void> {
+  ref = getModularInstance(ref);
   return deleteObjectInternal(ref as Reference);
 }
 
@@ -255,6 +265,7 @@ export function ref(
   serviceOrRef: StorageService | StorageReference,
   pathOrUrl?: string
 ): StorageReference | null {
+  serviceOrRef = getModularInstance(serviceOrRef);
   return refInternal(
     serviceOrRef as StorageServiceInternal | Reference,
     pathOrUrl
@@ -282,7 +293,7 @@ export function getStorage(
   app: FirebaseApp,
   bucketUrl?: string
 ): StorageService {
-  // Dependencies
+  app = getModularInstance(app);
   const storageProvider: Provider<'storage-exp'> = _getProvider(
     app,
     STORAGE_TYPE
