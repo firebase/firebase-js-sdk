@@ -20,7 +20,8 @@
     "**/dist/",
     "**/package.json",
     "/firebase*.js",
-    "/firebase*.map"
+    "/firebase*.map",
+    "compat/index.d.ts"
   ],
   "repository": {
     "type": "git",
