@@ -59,7 +59,11 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const app = container.getProvider('app-exp').getImmediate()!;
         const { apiKey, authDomain } = app.options;
         return (app => {
-          _assert(apiKey && !apiKey.includes(':'), AuthErrorCode.INVALID_API_KEY, { appName: app.name });
+          _assert(
+            apiKey && !apiKey.includes(':'),
+            AuthErrorCode.INVALID_API_KEY,
+            { appName: app.name }
+          );
           const config: ConfigInternal = {
             apiKey,
             authDomain,
