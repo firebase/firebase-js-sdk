@@ -30,6 +30,7 @@ import { _assertLinkedStatus, _link } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
+import { getModularInstance } from '@firebase/util';
 
 export async function _signInWithCredential(
   auth: AuthInternal,
@@ -87,7 +88,7 @@ export async function linkWithCredential(
   user: User,
   credential: AuthCredential
 ): Promise<UserCredential> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
 
   await _assertLinkedStatus(false, userInternal, credential.providerId);
 
@@ -110,5 +111,5 @@ export async function reauthenticateWithCredential(
   user: User,
   credential: AuthCredential
 ): Promise<UserCredential> {
-  return _reauthenticate(user as UserInternal, credential);
+  return _reauthenticate(getModularInstance(user) as UserInternal, credential);
 }

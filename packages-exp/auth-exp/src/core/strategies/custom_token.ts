@@ -42,11 +42,11 @@ export async function signInWithCustomToken(
   auth: Auth,
   customToken: string
 ): Promise<UserCredential> {
-  const response: IdTokenResponse = await getIdTokenResponse(auth, {
+  const authInternal = _castAuth(auth);
+  const response: IdTokenResponse = await getIdTokenResponse(authInternal, {
     token: customToken,
     returnSecureToken: true
   });
-  const authInternal = _castAuth(auth);
   const cred = await UserCredentialImpl._fromIdTokenResponse(
     authInternal,
     OperationType.SIGN_IN,

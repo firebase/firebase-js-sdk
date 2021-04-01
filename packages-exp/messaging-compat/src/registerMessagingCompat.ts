@@ -22,18 +22,18 @@ import {
   InstanceFactory
 } from '@firebase/component';
 import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
-import { MessagingCompat } from './messaging-compat';
+import { MessagingCompatImpl } from './messaging-compat';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-compat': MessagingCompat;
+    'messaging-compat': MessagingCompatImpl;
   }
 }
 
 const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
   container: ComponentContainer
 ) => {
-  return new MessagingCompat(
+  return new MessagingCompatImpl(
     container.getProvider('app-compat').getImmediate(),
     container.getProvider('messaging-exp').getImmediate()
   );

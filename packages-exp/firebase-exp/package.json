@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.900.19",
+  "version": "0.900.20",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -20,7 +20,8 @@
     "**/dist/",
     "**/package.json",
     "/firebase*.js",
-    "/firebase*.map"
+    "/firebase*.map",
+    "compat/index.d.ts"
   ],
   "repository": {
     "type": "git",
@@ -42,11 +43,11 @@
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/auth-compat": "0.0.900",
-    "@firebase/database": "0.9.6",
+    "@firebase/database": "0.9.7",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/functions-compat": "0.0.900",
-    "@firebase/firestore": "2.2.1",
-    "@firebase/storage": "0.4.5",
+    "@firebase/firestore": "2.2.2",
+    "@firebase/storage": "0.4.6",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/performance-compat": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",

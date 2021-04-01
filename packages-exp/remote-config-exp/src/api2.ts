@@ -17,6 +17,7 @@
 
 import { RemoteConfig } from './public_types';
 import { activate, fetchConfig } from './api';
+import { getModularInstance } from '@firebase/util';
 
 // This API is put in a separate file, so we can stub fetchConfig and activate in tests.
 // It's not possible to stub standalone functions from the same module.
@@ -34,6 +35,7 @@ import { activate, fetchConfig } from './api';
 export async function fetchAndActivate(
   remoteConfig: RemoteConfig
 ): Promise<boolean> {
+  remoteConfig = getModularInstance(remoteConfig);
   await fetchConfig(remoteConfig);
   return activate(remoteConfig);
 }

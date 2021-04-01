@@ -29,6 +29,7 @@ import { UserInternal } from '../model/user';
 import { MultiFactorAssertionImpl } from './mfa_assertion';
 import { MultiFactorInfoImpl } from './mfa_info';
 import { MultiFactorSessionImpl } from './mfa_session';
+import { getModularInstance } from '@firebase/util';
 
 export class MultiFactorUserImpl implements MultiFactorUser {
   enrolledFactors: MultiFactorInfo[] = [];
@@ -113,11 +114,12 @@ const multiFactorUserCache = new WeakMap<User, MultiFactorUser>();
  * @public
  */
 export function multiFactor(user: User): MultiFactorUser {
-  if (!multiFactorUserCache.has(user)) {
+  const userModular = getModularInstance(user);
+  if (!multiFactorUserCache.has(userModular)) {
     multiFactorUserCache.set(
-      user,
-      MultiFactorUserImpl._fromUser(user as UserInternal)
+      userModular,
+      MultiFactorUserImpl._fromUser(userModular as UserInternal)
     );
   }
-  return multiFactorUserCache.get(user)!;
+  return multiFactorUserCache.get(userModular)!;
 }

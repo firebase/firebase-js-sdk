@@ -26,6 +26,7 @@ import {
   useFunctionsEmulator as _useFunctionsEmulator,
   httpsCallable as _httpsCallable
 } from './service';
+import { getModularInstance } from '@firebase/util';
 
 export * from './public-types';
 
@@ -43,7 +44,7 @@ export function getFunctions(
 ): Functions {
   // Dependencies
   const functionsProvider: Provider<'functions-exp'> = _getProvider(
-    app,
+    getModularInstance(app),
     FUNCTIONS_TYPE
   );
   const functionsInstance = functionsProvider.getImmediate({
@@ -66,7 +67,11 @@ export function useFunctionsEmulator(
   host: string,
   port: number
 ): void {
-  _useFunctionsEmulator(functionsInstance as FunctionsService, host, port);
+  _useFunctionsEmulator(
+    getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
+    host,
+    port
+  );
 }
 
 /**
@@ -80,7 +85,7 @@ export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData> {
   return _httpsCallable<RequestData, ResponseData>(
-    functionsInstance as FunctionsService,
+    getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
     name,
     options
   );
