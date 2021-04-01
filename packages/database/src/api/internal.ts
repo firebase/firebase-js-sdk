@@ -65,9 +65,9 @@ export const setSecurityDebugCallback = function (
   ref: Reference,
   callback: (a: object) => void
 ) {
+  const connection = ref._delegate._repo.persistentConnection_;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (ref._delegate._repo
-    .persistentConnection_ as any).securityDebugCallback_ = callback;
+  (connection as any).securityDebugCallback_ = callback;
 };
 
 export const stats = function (ref: Reference, showDelta?: boolean) {
