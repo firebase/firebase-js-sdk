@@ -3,6 +3,6 @@
     "main": "dist/index.cjs.js",
     "browser": "dist/index.esm.js",
     "module": "dist/index.esm.js",
-    "typings": "dist/compat/app/index.d.ts"
+    "typings": "../index.d.ts"
   }
   

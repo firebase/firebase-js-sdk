@@ -13,6 +13,7 @@
     "firebase-namespace-integration-test",
     "firebase-firestore-integration-test",
     "firebase-messaging-integration-test",
+    "firebase-compat-typings-test",
     "@firebase/app-exp",
     "@firebase/analytics-compat",
     "@firebase/analytics-exp",

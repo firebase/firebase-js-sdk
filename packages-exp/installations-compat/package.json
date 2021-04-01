@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "@firebase/installations-exp": "0.0.900",
+    "@firebase/installations-types": "0.3.4",
     "@firebase/util": "0.4.1",
     "@firebase/component": "0.3.1",
     "idb": "3.0.2",

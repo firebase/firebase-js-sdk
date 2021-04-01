@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@firebase/performance-exp": "0.0.900",
+    "@firebase/performance-types": "0.0.13",
     "@firebase/util": "0.4.1",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.3.1",

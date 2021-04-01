@@ -29,7 +29,24 @@ import {
 } from '@firebase/messaging-exp';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
-export class MessagingCompat implements _FirebaseService {
+export interface MessagingCompat {
+  getToken(options?: {
+    vapidKey?: string;
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
+  }): Promise<string>;
+
+  deleteToken(): Promise<boolean>;
+
+  onMessage(
+    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
+  ): Unsubscribe;
+
+  onBackgroundMessage(
+    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
+  ): Unsubscribe;
+}
+
+export class MessagingCompatImpl implements MessagingCompat, _FirebaseService {
   swRegistration?: ServiceWorkerRegistration;
   vapidKey?: string;
 

@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@firebase/remote-config-exp": "0.0.900",
+    "@firebase/remote-config-types": "0.1.9",
     "@firebase/util": "0.4.1",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.3.1",
