@@ -104,7 +104,7 @@ describe('platform_browser/iframe/iframe', () => {
     await _openIframe(auth);
     expect(iframeSettings.url).to.eq(
       // fw should be a comma-separated list sorted alphabetically:
-      `https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}&fw=Magical,Mythical`
+      `https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}&fw=Magical%2CMythical`
     );
   });
 
