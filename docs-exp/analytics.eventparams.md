@@ -16,34 +16,34 @@ export interface EventParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [affiliation](./analytics.eventparams.affiliation.md) | string |  |
-|  [checkout\_option](./analytics.eventparams.checkout_option.md) | string |  |
-|  [checkout\_step](./analytics.eventparams.checkout_step.md) | number |  |
-|  [content\_id](./analytics.eventparams.content_id.md) | string |  |
-|  [content\_type](./analytics.eventparams.content_type.md) | string |  |
-|  [coupon](./analytics.eventparams.coupon.md) | string |  |
-|  [currency](./analytics.eventparams.currency.md) | string |  |
-|  [description](./analytics.eventparams.description.md) | string |  |
-|  [event\_category](./analytics.eventparams.event_category.md) | string |  |
-|  [event\_label](./analytics.eventparams.event_label.md) | string |  |
-|  [fatal](./analytics.eventparams.fatal.md) | boolean |  |
-|  [item\_list\_id](./analytics.eventparams.item_list_id.md) | string |  |
-|  [item\_list\_name](./analytics.eventparams.item_list_name.md) | string |  |
-|  [items](./analytics.eventparams.items.md) | [Item](./analytics.item.md)<!-- -->\[\] |  |
-|  [method](./analytics.eventparams.method.md) | string |  |
-|  [number](./analytics.eventparams.number.md) | string |  |
-|  [page\_location](./analytics.eventparams.page_location.md) | string |  |
-|  [page\_path](./analytics.eventparams.page_path.md) | string |  |
-|  [page\_title](./analytics.eventparams.page_title.md) | string |  |
-|  [payment\_type](./analytics.eventparams.payment_type.md) | string |  |
-|  [promotion\_id](./analytics.eventparams.promotion_id.md) | string |  |
-|  [promotion\_name](./analytics.eventparams.promotion_name.md) | string |  |
-|  [promotions](./analytics.eventparams.promotions.md) | [Promotion](./analytics.promotion.md)<!-- -->\[\] |  |
-|  [screen\_name](./analytics.eventparams.screen_name.md) | string |  |
-|  [search\_term](./analytics.eventparams.search_term.md) | string |  |
-|  [shipping\_tier](./analytics.eventparams.shipping_tier.md) | string |  |
-|  [shipping](./analytics.eventparams.shipping.md) | [Currency](./analytics.currency.md) |  |
-|  [tax](./analytics.eventparams.tax.md) | [Currency](./analytics.currency.md) |  |
-|  [transaction\_id](./analytics.eventparams.transaction_id.md) | string |  |
-|  [value](./analytics.eventparams.value.md) | number |  |
+|  [affiliation?](./analytics.eventparams.affiliation.md) | string | <i>(Optional)</i> |
+|  [checkout\_option?](./analytics.eventparams.checkout_option.md) | string | <i>(Optional)</i> |
+|  [checkout\_step?](./analytics.eventparams.checkout_step.md) | number | <i>(Optional)</i> |
+|  [content\_id?](./analytics.eventparams.content_id.md) | string | <i>(Optional)</i> |
+|  [content\_type?](./analytics.eventparams.content_type.md) | string | <i>(Optional)</i> |
+|  [coupon?](./analytics.eventparams.coupon.md) | string | <i>(Optional)</i> |
+|  [currency?](./analytics.eventparams.currency.md) | string | <i>(Optional)</i> |
+|  [description?](./analytics.eventparams.description.md) | string | <i>(Optional)</i> |
+|  [event\_category?](./analytics.eventparams.event_category.md) | string | <i>(Optional)</i> |
+|  [event\_label?](./analytics.eventparams.event_label.md) | string | <i>(Optional)</i> |
+|  [fatal?](./analytics.eventparams.fatal.md) | boolean | <i>(Optional)</i> |
+|  [item\_list\_id?](./analytics.eventparams.item_list_id.md) | string | <i>(Optional)</i> |
+|  [item\_list\_name?](./analytics.eventparams.item_list_name.md) | string | <i>(Optional)</i> |
+|  [items?](./analytics.eventparams.items.md) | [Item](./analytics.item.md)<!-- -->\[\] | <i>(Optional)</i> |
+|  [method?](./analytics.eventparams.method.md) | string | <i>(Optional)</i> |
+|  [number?](./analytics.eventparams.number.md) | string | <i>(Optional)</i> |
+|  [page\_location?](./analytics.eventparams.page_location.md) | string | <i>(Optional)</i> |
+|  [page\_path?](./analytics.eventparams.page_path.md) | string | <i>(Optional)</i> |
+|  [page\_title?](./analytics.eventparams.page_title.md) | string | <i>(Optional)</i> |
+|  [payment\_type?](./analytics.eventparams.payment_type.md) | string | <i>(Optional)</i> |
+|  [promotion\_id?](./analytics.eventparams.promotion_id.md) | string | <i>(Optional)</i> |
+|  [promotion\_name?](./analytics.eventparams.promotion_name.md) | string | <i>(Optional)</i> |
+|  [promotions?](./analytics.eventparams.promotions.md) | [Promotion](./analytics.promotion.md)<!-- -->\[\] | <i>(Optional)</i> |
+|  [screen\_name?](./analytics.eventparams.screen_name.md) | string | <i>(Optional)</i> |
+|  [search\_term?](./analytics.eventparams.search_term.md) | string | <i>(Optional)</i> |
+|  [shipping\_tier?](./analytics.eventparams.shipping_tier.md) | string | <i>(Optional)</i> |
+|  [shipping?](./analytics.eventparams.shipping.md) | [Currency](./analytics.currency.md) | <i>(Optional)</i> |
+|  [tax?](./analytics.eventparams.tax.md) | [Currency](./analytics.currency.md) | <i>(Optional)</i> |
+|  [transaction\_id?](./analytics.eventparams.transaction_id.md) | string | <i>(Optional)</i> |
+|  [value?](./analytics.eventparams.value.md) | number | <i>(Optional)</i> |
 

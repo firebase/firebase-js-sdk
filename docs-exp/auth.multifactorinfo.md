@@ -16,7 +16,7 @@ export interface MultiFactorInfo
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [displayName](./auth.multifactorinfo.displayname.md) | string \| null | The user friendly name of the current second factor. |
+|  [displayName?](./auth.multifactorinfo.displayname.md) | string \| null | <i>(Optional)</i> The user friendly name of the current second factor. |
 |  [enrollmentTime](./auth.multifactorinfo.enrollmenttime.md) | string | The enrollment date of the second factor formatted as a UTC string. |
 |  [factorId](./auth.multifactorinfo.factorid.md) | [FactorId](./auth.factorid.md) | The identifier of the second factor. |
 |  [uid](./auth.multifactorinfo.uid.md) | string | The multi-factor enrollment ID. |

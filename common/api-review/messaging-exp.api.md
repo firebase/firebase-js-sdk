@@ -4,7 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-exp';
 import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';

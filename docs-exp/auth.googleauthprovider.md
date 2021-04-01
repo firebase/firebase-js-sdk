@@ -9,9 +9,9 @@ Provider for generating an an [OAuthCredential](./auth.oauthcredential.md) for [
 <b>Signature:</b>
 
 ```typescript
-export declare class GoogleAuthProvider extends OAuthProvider 
+export declare class GoogleAuthProvider extends BaseOAuthProvider 
 ```
-<b>Extends:</b> [OAuthProvider](./auth.oauthprovider.md)
+<b>Extends:</b> BaseOAuthProvider
 
 ## Example 1
 

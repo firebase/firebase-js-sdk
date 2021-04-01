@@ -16,10 +16,10 @@ export interface SettableMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [cacheControl](./storage.settablemetadata.cachecontrol.md) | string \| undefined | Served as the 'Cache-Control' header on object download. |
-|  [contentDisposition](./storage.settablemetadata.contentdisposition.md) | string \| undefined | Served as the 'Content-Disposition' header on object download. |
-|  [contentEncoding](./storage.settablemetadata.contentencoding.md) | string \| undefined | Served as the 'Content-Encoding' header on object download. |
-|  [contentLanguage](./storage.settablemetadata.contentlanguage.md) | string \| undefined | Served as the 'Content-Language' header on object download. |
-|  [contentType](./storage.settablemetadata.contenttype.md) | string \| undefined | Served as the 'Content-Type' header on object download. |
-|  [customMetadata](./storage.settablemetadata.custommetadata.md) | { \[key: string\]: string; } \| undefined | Additional user-defined custom metadata. |
+|  [cacheControl?](./storage.settablemetadata.cachecontrol.md) | string \| undefined | <i>(Optional)</i> Served as the 'Cache-Control' header on object download. |
+|  [contentDisposition?](./storage.settablemetadata.contentdisposition.md) | string \| undefined | <i>(Optional)</i> Served as the 'Content-Disposition' header on object download. |
+|  [contentEncoding?](./storage.settablemetadata.contentencoding.md) | string \| undefined | <i>(Optional)</i> Served as the 'Content-Encoding' header on object download. |
+|  [contentLanguage?](./storage.settablemetadata.contentlanguage.md) | string \| undefined | <i>(Optional)</i> Served as the 'Content-Language' header on object download. |
+|  [contentType?](./storage.settablemetadata.contenttype.md) | string \| undefined | <i>(Optional)</i> Served as the 'Content-Type' header on object download. |
+|  [customMetadata?](./storage.settablemetadata.custommetadata.md) | { \[key: string\]: string; } \| undefined | <i>(Optional)</i> Additional user-defined custom metadata. |
 

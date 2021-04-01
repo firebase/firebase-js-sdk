@@ -16,7 +16,7 @@ export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): A
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md) |  |
-|  deps | Dependencies |  |
+|  deps | [Dependencies](./auth.dependencies.md) |  |
 
 <b>Returns:</b>
 

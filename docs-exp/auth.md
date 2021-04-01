@@ -21,6 +21,7 @@
 |  [PhoneAuthProvider](./auth.phoneauthprovider.md) | Provider for generating an [PhoneAuthCredential](./auth.phoneauthcredential.md)<!-- -->. |
 |  [PhoneMultiFactorGenerator](./auth.phonemultifactorgenerator.md) | Provider for generating a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md)<!-- -->. |
 |  [RecaptchaVerifier](./auth.recaptchaverifier.md) | An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier. |
+|  [SAMLAuthProvider](./auth.samlauthprovider.md) | An AuthProvider for SAML. |
 |  [TwitterAuthProvider](./auth.twitterauthprovider.md) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.TWITTER](./auth.providerid.twitter.md)<!-- -->. |
 
 ## Enumerations
@@ -58,7 +59,7 @@
 |  [multiFactor(user)](./auth.multifactor.md) | The [MultiFactorUser](./auth.multifactoruser.md) corresponding to the user. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.onauthstatechanged.md) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.onidtokenchanged.md) | Adds an observer for changes to the signed-in user's ID token, which includes sign-in, sign-out, and token refresh events. |
-|  [parseActionCodeURL(link)](./auth.parseactioncodeurl.md) |  |
+|  [parseActionCodeURL(link)](./auth.parseactioncodeurl.md) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md) if the link is valid, otherwise returns null. |
 |  [reauthenticateWithCredential(user, credential)](./auth.reauthenticatewithcredential.md) | Re-authenticates a user using a fresh credential. |
 |  [reauthenticateWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.reauthenticatewithphonenumber.md) | Re-authenticates a user using a fresh phne credential. |
 |  [reauthenticateWithPopup(user, provider, resolver)](./auth.reauthenticatewithpopup.md) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md) using a pop-up based OAuth flow. |
@@ -103,6 +104,7 @@
 |  [AuthSettings](./auth.authsettings.md) | Interface representing an Auth instance's settings. |
 |  [Config](./auth.config.md) | Interface representing the Auth config. |
 |  [ConfirmationResult](./auth.confirmationresult.md) | A result from a phone number sign-in, link, or reauthenticate call. |
+|  [Dependencies](./auth.dependencies.md) |  |
 |  [IdTokenResult](./auth.idtokenresult.md) | Interface representing ID token result obtained from [User.getIdTokenResult()](./auth.user.getidtokenresult.md)<!-- -->. |
 |  [MultiFactorAssertion](./auth.multifactorassertion.md) | The base class for asserting ownership of a second factor. |
 |  [MultiFactorError](./auth.multifactorerror.md) | The error thrown when the user needs to provide a second factor to sign in successfully. |
@@ -141,6 +143,7 @@
 |  Type Alias | Description |
 |  --- | --- |
 |  [CustomParameters](./auth.customparameters.md) | Map of OAuth Custom Parameters. |
+|  [NextOrObserver](./auth.nextorobserver.md) | Type definition for an event callback. |
 |  [PhoneInfoOptions](./auth.phoneinfooptions.md) | The information required to verify the ownership of a phone number. |
 |  [UserProfile](./auth.userprofile.md) | User profile used in [AdditionalUserInfo](./auth.additionaluserinfo.md)<!-- -->. |
 

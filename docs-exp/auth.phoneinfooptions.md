@@ -11,6 +11,7 @@ The information required to verify the ownership of a phone number.
 ```typescript
 export declare type PhoneInfoOptions = PhoneSingleFactorInfoOptions | PhoneMultiFactorEnrollInfoOptions | PhoneMultiFactorSignInInfoOptions;
 ```
+<b>References:</b> [PhoneSingleFactorInfoOptions](./auth.phonesinglefactorinfooptions.md)<!-- -->, [PhoneMultiFactorEnrollInfoOptions](./auth.phonemultifactorenrollinfooptions.md)<!-- -->, [PhoneMultiFactorSignInInfoOptions](./auth.phonemultifactorsignininfooptions.md)
 
 ## Remarks
 

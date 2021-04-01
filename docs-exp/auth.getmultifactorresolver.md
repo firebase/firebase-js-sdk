@@ -17,7 +17,7 @@ export declare function getMultiFactorResolver(auth: Auth, error: MultiFactorErr
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md) | The auth instance. |
-|  error | MultiFactorError | The [MultiFactorError](./auth.multifactorerror.md) raised during a sign-in, or reauthentication operation. |
+|  error | [MultiFactorError](./auth.multifactorerror.md) | The [MultiFactorError](./auth.multifactorerror.md) raised during a sign-in, or reauthentication operation. |
 
 <b>Returns:</b>
 

@@ -15,6 +15,6 @@ export interface PerformanceSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [dataCollectionEnabled](./performance.performancesettings.datacollectionenabled.md) | boolean | Whether to collect custom events. |
-|  [instrumentationEnabled](./performance.performancesettings.instrumentationenabled.md) | boolean | Whether to collect out of the box events. |
+|  [dataCollectionEnabled?](./performance.performancesettings.datacollectionenabled.md) | boolean | <i>(Optional)</i> Whether to collect custom events. |
+|  [instrumentationEnabled?](./performance.performancesettings.instrumentationenabled.md) | boolean | <i>(Optional)</i> Whether to collect out of the box events. |
 

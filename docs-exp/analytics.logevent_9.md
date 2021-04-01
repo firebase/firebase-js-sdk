@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'purchase' | 'refund', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'purchase' | 'refund', eventParams?: {
     value?: EventParams['value'];
     currency?: EventParams['currency'];
     transaction_id: EventParams['transaction_id'];
