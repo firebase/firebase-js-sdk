@@ -165,9 +165,6 @@ class BrowserLocalPersistence
   }
 
   private notifyListeners(key: string, value: string | null): void {
-    if (!this.listeners[key]) {
-      return;
-    }
     this.localCache[key] = value;
     for (const listener of Array.from(this.listeners[key])) {
       listener(value ? JSON.parse(value) : value);
@@ -209,7 +206,6 @@ class BrowserLocalPersistence
   }
 
   _addListener(key: string, listener: StorageEventListener): void {
-    this.localCache[key] = this.storage.getItem(key);
     if (Object.keys(this.listeners).length === 0) {
       // Whether browser can detect storage event when it had already been pushed to the background.
       // This may happen in some mobile browsers. A localStorage change in the foreground window
@@ -231,7 +227,6 @@ class BrowserLocalPersistence
 
       if (this.listeners[key].size === 0) {
         delete this.listeners[key];
-        delete this.localCache[key];
       }
     }
 

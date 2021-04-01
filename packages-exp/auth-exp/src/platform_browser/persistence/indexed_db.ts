@@ -127,20 +127,11 @@ export async function _putObject(
   key: string,
   value: PersistenceValue | string
 ): Promise<void> {
-  const getRequest = getObjectStore(db, false).get(key);
-  const data = await new DBPromise<DBObject | null>(getRequest).toPromise();
-  if (data) {
-    // Force an index signature on the user object
-    data.value = value as PersistedBlob;
-    const request = getObjectStore(db, true).put(data);
-    return new DBPromise<void>(request).toPromise();
-  } else {
-    const request = getObjectStore(db, true).add({
-      [DB_DATA_KEYPATH]: key,
-      value
-    });
-    return new DBPromise<void>(request).toPromise();
-  }
+  const request = getObjectStore(db, true).put({
+    [DB_DATA_KEYPATH]: key,
+    value
+  });
+  return new DBPromise<void>(request).toPromise();
 }
 
 async function getObject(
@@ -395,9 +386,6 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     key: string,
     newValue: PersistenceValue | null
   ): void {
-    if (!this.listeners[key]) {
-      return;
-    }
     this.localCache[key] = newValue;
     for (const listener of Array.from(this.listeners[key])) {
       listener(newValue);
@@ -434,7 +422,6 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
       if (this.listeners[key].size === 0) {
         delete this.listeners[key];
-        delete this.localCache[key];
       }
     }
 
