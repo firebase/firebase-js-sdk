@@ -22,7 +22,7 @@ import { QueryContext } from '../core/view/EventRegistration';
 export interface Query extends QueryContext {
   readonly ref: Reference;
   isEqual(other: Query | null): boolean;
-  toJSON(): object;
+  toJSON(): string;
   toString(): string;
 }
 

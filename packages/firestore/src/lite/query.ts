@@ -105,10 +105,10 @@ export abstract class QueryConstraint {
 }
 
 /**
- * Creates a new immutable instance of `query` that is extended to also include
+ * Creates a new immutable instance of `Query` that is extended to also include
  * additional query constraints.
  *
- * @param query - The query instance to use as a base for the new constraints.
+ * @param query - The Query instance to use as a base for the new constraints.
  * @param queryConstraints - The list of `QueryConstraint`s to apply.
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
