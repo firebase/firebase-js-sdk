@@ -34,10 +34,11 @@ import {
   repoStatsIncrementCounter
 } from '../core/Repo';
 import { setSDKVersion } from '../core/version';
+import { repoManagerDatabaseFromApp } from '../exp/Database';
 import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
 import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
-import { repoManagerDatabaseFromApp } from './Database';
+import { Database } from './Database';
 import { Reference } from './Reference';
 
 /**
@@ -129,11 +130,9 @@ export function initStandalone<T>({
   );
 
   return {
-    instance: repoManagerDatabaseFromApp(
-      app,
-      authProvider,
-      url,
-      nodeAdmin
+    instance: new Database(
+      repoManagerDatabaseFromApp(app, authProvider, url, nodeAdmin),
+      app
     ) as types.Database,
     namespace
   };

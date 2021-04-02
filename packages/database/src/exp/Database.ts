@@ -19,25 +19,225 @@
 import { _FirebaseService, _getProvider, FirebaseApp } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { getModularInstance } from '@firebase/util';
 
-import { Repo } from '../core/Repo';
+import {
+  AuthTokenProvider,
+  EmulatorAdminTokenProvider,
+  FirebaseAuthTokenProvider
+} from '../core/AuthTokenProvider';
+import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
+import { RepoInfo } from '../core/RepoInfo';
+import { parseRepoInfo } from '../core/util/libs/parser';
+import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
+import { fatal, log } from '../core/util/util';
+import { validateUrl } from '../core/util/validation';
+
+import { Reference } from './Reference';
+import { ReferenceImpl } from './Reference_impl';
+
+/**
+ * This variable is also defined in the firebase node.js admin SDK. Before
+ * modifying this definition, consult the definition in:
+ *
+ * https://github.com/firebase/firebase-admin-node
+ *
+ * and make sure the two are consistent.
+ */
+const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
+
+/**
+ * Creates and caches Repo instances.
+ */
+const repos: {
+  [appName: string]: {
+    [dbUrl: string]: Repo;
+  };
+} = {};
+
+/**
+ * If true, new Repos will be created to use ReadonlyRestClient (for testing purposes).
+ */
+let useRestClient = false;
+
+/**
+ * Update an existing repo in place to point to a new host/port.
+ */
+function repoManagerApplyEmulatorSettings(
+  repo: Repo,
+  host: string,
+  port: number
+): void {
+  repo.repoInfo_ = new RepoInfo(
+    `${host}:${port}`,
+    /* secure= */ false,
+    repo.repoInfo_.namespace,
+    repo.repoInfo_.webSocketOnly,
+    repo.repoInfo_.nodeAdmin,
+    repo.repoInfo_.persistenceKey,
+    repo.repoInfo_.includeNamespaceInQueryParams
+  );
+
+  if (repo.repoInfo_.nodeAdmin) {
+    repo.authTokenProvider_ = new EmulatorAdminTokenProvider();
+  }
+}
+
+/**
+ * This function should only ever be called to CREATE a new database instance.
+ */
+export function repoManagerDatabaseFromApp(
+  app: FirebaseApp,
+  authProvider: Provider<FirebaseAuthInternalName>,
+  url?: string,
+  nodeAdmin?: boolean
+): FirebaseDatabase {
+  let dbUrl: string | undefined = url || app.options.databaseURL;
+  if (dbUrl === undefined) {
+    if (!app.options.projectId) {
+      fatal(
+        "Can't determine Firebase Database URL. Be sure to include " +
+          ' a Project ID when calling firebase.initializeApp().'
+      );
+    }
+
+    log('Using default host for project ', app.options.projectId);
+    dbUrl = `${app.options.projectId}-default-rtdb.firebaseio.com`;
+  }
+
+  let parsedUrl = parseRepoInfo(dbUrl, nodeAdmin);
+  let repoInfo = parsedUrl.repoInfo;
+
+  let isEmulator: boolean;
+
+  let dbEmulatorHost: string | undefined = undefined;
+  if (typeof process !== 'undefined') {
+    dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
+  }
+
+  if (dbEmulatorHost) {
+    isEmulator = true;
+    dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
+    parsedUrl = parseRepoInfo(dbUrl, nodeAdmin);
+    repoInfo = parsedUrl.repoInfo;
+  } else {
+    isEmulator = !parsedUrl.repoInfo.secure;
+  }
+
+  const authTokenProvider =
+    nodeAdmin && isEmulator
+      ? new EmulatorAdminTokenProvider()
+      : new FirebaseAuthTokenProvider(app.name, app.options, authProvider);
+
+  validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
+  if (!pathIsEmpty(parsedUrl.path)) {
+    fatal(
+      'Database URL must point to the root of a Firebase Database ' +
+        '(not including a child path).'
+    );
+  }
+
+  const repo = repoManagerCreateRepo(repoInfo, app, authTokenProvider);
+  return new FirebaseDatabase(repo, app);
+}
+
+/**
+ * Remove the repo and make sure it is disconnected.
+ *
+ */
+function repoManagerDeleteRepo(repo: Repo, appName: string): void {
+  const appRepos = repos[appName];
+  // This should never happen...
+  if (!appRepos || appRepos[repo.key] !== repo) {
+    fatal(`Database ${appName}(${repo.repoInfo_}) has already been deleted.`);
+  }
+  repoInterrupt(repo);
+  delete appRepos[repo.key];
+}
+
+/**
+ * Ensures a repo doesn't already exist and then creates one using the
+ * provided app.
+ *
+ * @param repoInfo The metadata about the Repo
+ * @return The Repo object for the specified server / repoName.
+ */
+function repoManagerCreateRepo(
+  repoInfo: RepoInfo,
+  app: FirebaseApp,
+  authTokenProvider: AuthTokenProvider
+): Repo {
+  let appRepos = repos[app.name];
+
+  if (!appRepos) {
+    appRepos = {};
+    repos[app.name] = appRepos;
+  }
+
+  let repo = appRepos[repoInfo.toURLString()];
+  if (repo) {
+    fatal(
+      'Database initialized multiple times. Please make sure the format of the database URL matches with each database() call.'
+    );
+  }
+  repo = new Repo(repoInfo, useRestClient, authTokenProvider);
+  appRepos[repoInfo.toURLString()] = repo;
+
+  return repo;
+}
+
+/**
+ * Forces us to use ReadonlyRestClient instead of PersistentConnection for new Repos.
+ */
+export function repoManagerForceRestClient(forceRestClient: boolean): void {
+  useRestClient = forceRestClient;
+}
 
 /**
  * Class representing a Firebase Realtime Database.
  */
 export class FirebaseDatabase implements _FirebaseService {
   readonly 'type' = 'database';
-  _repo: Repo;
 
-  constructor(
-    readonly app: FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>,
-    databaseUrl?: string
-  ) {}
+  /** Track if the instance has been used (root or repo accessed) */
+  _instanceStarted: boolean = false;
+
+  /** Backing state for root_ */
+  private _rootInternal?: Reference;
+
+  constructor(private _repoInternal: Repo, readonly app: FirebaseApp) {}
+
+  get _repo(): Repo {
+    if (!this._instanceStarted) {
+      repoStart(
+        this._repoInternal,
+        this.app.options.appId,
+        this.app.options['databaseAuthVariableOverride']
+      );
+      this._instanceStarted = true;
+    }
+    return this._repoInternal;
+  }
+
+  get _root(): Reference {
+    if (!this._rootInternal) {
+      this._rootInternal = new ReferenceImpl(this._repo, newEmptyPath());
+    }
+    return this._rootInternal;
+  }
 
   _delete(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+    this._checkNotDeleted('delete');
+    repoManagerDeleteRepo(this._repo, this.app.name);
+    this._repoInternal = null;
+    this._rootInternal = null;
+    return Promise.resolve();
+  }
+
+  _checkNotDeleted(apiName: string) {
+    if (this._rootInternal === null) {
+      fatal('Cannot call ' + apiName + ' on a deleted database.');
+    }
   }
 }
 
@@ -64,18 +264,27 @@ export function useDatabaseEmulator(
   host: string,
   port: number
 ): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  db = getModularInstance(db);
+  db._checkNotDeleted('useEmulator');
+  if (db._instanceStarted) {
+    fatal(
+      'Cannot call useEmulator() after instance has already been initialized.'
+    );
+  }
+  // Modify the repo to apply emulator settings
+  repoManagerApplyEmulatorSettings(db._repo, host, port);
 }
 
 export function goOffline(db: FirebaseDatabase): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  db = getModularInstance(db);
+  db._checkNotDeleted('goOffline');
+  repoInterrupt(db._repo);
 }
 
 export function goOnline(db: FirebaseDatabase): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  db = getModularInstance(db);
+  db._checkNotDeleted('goOnline');
+  repoResume(db._repo);
 }
 
 export function enableLogging(

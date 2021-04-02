@@ -24,12 +24,13 @@ import { CONSTANTS, isNodeSdk } from '@firebase/util';
 import { Client } from 'faye-websocket';
 
 import { name, version } from './package.json';
-import { Database, repoManagerDatabaseFromApp } from './src/api/Database';
+import { Database } from './src/api/Database';
 import * as INTERNAL from './src/api/internal';
 import { DataSnapshot, Query, Reference } from './src/api/Reference';
 import * as TEST_ACCESS from './src/api/test_access';
 import { enableLogging } from './src/core/util/util';
 import { setSDKVersion } from './src/core/version';
+import { repoManagerDatabaseFromApp } from './src/exp/Database';
 import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
 
 setWebSocketImpl(Client);
@@ -86,8 +87,10 @@ export function registerDatabase(instance: FirebaseNamespace) {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
-
-        return repoManagerDatabaseFromApp(app, authProvider, url, undefined);
+        return new Database(
+          repoManagerDatabaseFromApp(app, authProvider, url),
+          app
+        );
       },
       ComponentType.PUBLIC
     )

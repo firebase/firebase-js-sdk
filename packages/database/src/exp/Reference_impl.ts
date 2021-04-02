@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, contains } from '@firebase/util';
+import { assert, contains, getModularInstance } from '@firebase/util';
 
 import {
   Repo,
@@ -28,6 +28,7 @@ import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { Node } from '../core/snap/Node';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { syncTreeSetReferenceConstructor } from '../core/SyncTree';
+import { parseRepoInfo } from '../core/util/libs/parser';
 import {
   Path,
   pathChild,
@@ -35,7 +36,8 @@ import {
   pathIsEmpty,
   pathParent
 } from '../core/util/Path';
-import { ObjectToUniqueKey } from '../core/util/util';
+import { fatal, ObjectToUniqueKey } from '../core/util/util';
+import { validateUrl } from '../core/util/validation';
 import { Change } from '../core/view/Change';
 import { CancelEvent, DataEvent, EventType } from '../core/view/Event';
 import {
@@ -209,12 +211,34 @@ export class DataSnapshot {
 }
 
 export function ref(db: FirebaseDatabase, path?: string): Reference {
-  return new ReferenceImpl(db._repo, new Path(path || ''));
+  db = getModularInstance(db);
+  db._checkNotDeleted('ref');
+  return path !== undefined ? child(db._root, path) : db._root;
 }
 
 export function refFromURL(db: FirebaseDatabase, url: string): Reference {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  db = getModularInstance(db);
+  db._checkNotDeleted('refFromURL');
+  const parsedURL = parseRepoInfo(url, db._repo.repoInfo_.nodeAdmin);
+  validateUrl('refFromURL', 1, parsedURL);
+
+  const repoInfo = parsedURL.repoInfo;
+  if (
+    !db._repo.repoInfo_.isCustomHost() &&
+    repoInfo.host !== db._repo.repoInfo_.host
+  ) {
+    fatal(
+      'refFromURL' +
+        ': Host name does not match the current database: ' +
+        '(found ' +
+        repoInfo.host +
+        ' but expected ' +
+        db._repo.repoInfo_.host +
+        ')'
+    );
+  }
+
+  return ref(db, parsedURL.path.toString());
 }
 
 export function child(ref: Reference, path: string): Reference {

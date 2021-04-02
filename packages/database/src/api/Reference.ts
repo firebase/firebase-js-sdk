@@ -249,7 +249,7 @@ export class Query implements Compat<QueryImpl> {
     private queryParams_: QueryParams,
     private orderByCalled_: boolean
   ) {
-    this.repo = database.repo_;
+    this.repo = database._delegate._repo;
     this._delegate = new QueryImpl(
       this.repo,
       path,
@@ -430,16 +430,21 @@ export class Query implements Compat<QueryImpl> {
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return repoGetValue(this.database.repo_, this._delegate).then(node => {
-      return new DataSnapshot(
-        this.database,
-        new ExpDataSnapshot(
-          node,
-          new ReferenceImpl(this.getRef().database.repo_, this.getRef().path),
-          this._delegate._queryParams.getIndex()
-        )
-      );
-    });
+    return repoGetValue(this.database._delegate._repo, this._delegate).then(
+      node => {
+        return new DataSnapshot(
+          this.database,
+          new ExpDataSnapshot(
+            node,
+            new ReferenceImpl(
+              this.getRef().database._delegate._repo,
+              this.getRef().path
+            ),
+            this._delegate._queryParams.getIndex()
+          )
+        );
+      }
+    );
   }
 
   /**
@@ -763,7 +768,10 @@ export class Query implements Compat<QueryImpl> {
   toString(): string {
     validateArgCount('Query.toString', 0, 0, arguments.length);
 
-    return this.database.repo_.toString() + pathToUrlEncodedString(this.path);
+    return (
+      this.database._delegate._repo.toString() +
+      pathToUrlEncodedString(this.path)
+    );
   }
 
   // Do not create public documentation. This is intended to make JSON serialization work but is otherwise unnecessary
@@ -785,7 +793,8 @@ export class Query implements Compat<QueryImpl> {
       throw new Error(error);
     }
 
-    const sameRepo = this.database.repo_ === other.database.repo_;
+    const sameRepo =
+      this.database._delegate._repo === other.database._delegate._repo;
     const samePath = pathEquals(this.path, other.path);
     const sameQueryIdentifier =
       this._delegate._queryIdentifier === other._delegate._queryIdentifier;
@@ -1051,7 +1060,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
           this.database,
           new ExpDataSnapshot(
             node,
-            new ReferenceImpl(this.database.repo_, this.path),
+            new ReferenceImpl(this.database._delegate._repo, this.path),
             PRIORITY_INDEX
           )
         );
@@ -1071,7 +1080,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     };
 
     repoStartTransaction(
-      this.database.repo_,
+      this.database._delegate._repo,
       this.path,
       transactionUpdate,
       promiseComplete,
@@ -1093,7 +1102,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
 
     const deferred = new Deferred();
     repoSetWithPriority(
-      this.database.repo_,
+      this.database._delegate._repo,
       pathChild(this.path, '.priority'),
       priority,
       null,
@@ -1108,7 +1117,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     validateFirebaseDataArg('Reference.push', 1, value, this.path, true);
     validateCallback('Reference.push', 2, onComplete, true);
 
-    const now = repoServerTime(this.database.repo_);
+    const now = repoServerTime(this.database._delegate._repo);
     const name = nextPushId(now);
 
     // push() returns a ThennableReference whose promise is fulfilled with a regular Reference.
