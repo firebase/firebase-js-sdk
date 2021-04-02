@@ -21,7 +21,7 @@ import {
   Provider,
   Name
 } from '@firebase/component';
-import { PlatformLoggerService } from './types';
+import { PlatformLoggerService, VersionService } from './types';
 
 export class PlatformLoggerServiceImpl implements PlatformLoggerService {
   constructor(private readonly container: ComponentContainer) {}
@@ -34,7 +34,7 @@ export class PlatformLoggerServiceImpl implements PlatformLoggerService {
     return providers
       .map(provider => {
         if (isVersionServiceProvider(provider)) {
-          const service = provider.getImmediate();
+          const service = provider.getImmediate() as VersionService;
           return `${service.library}/${service.version}`;
         } else {
           return null;
@@ -52,9 +52,7 @@ export class PlatformLoggerServiceImpl implements PlatformLoggerService {
  * provides VersionService. The provider is not necessarily a 'app-version'
  * provider.
  */
-function isVersionServiceProvider(
-  provider: Provider<Name>
-): provider is Provider<'app-version'> {
+function isVersionServiceProvider(provider: Provider<Name>): boolean {
   const component = provider.getComponent();
   return component?.type === ComponentType.VERSION;
 }

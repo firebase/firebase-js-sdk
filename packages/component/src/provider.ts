@@ -267,6 +267,23 @@ export class Provider<T extends Name> {
         options
       });
       this.instances.set(instanceIdentifier, instance);
+
+      /**
+       * Order is important
+       * onInstanceCreated() should be called after this.instances.set(instanceIdentifier, instance); which
+       * makes `isInitialized()` return true.
+       */
+      if (this.component.onInstanceCreated) {
+        try {
+          this.component.onInstanceCreated(
+            this.container,
+            instanceIdentifier,
+            instance
+          );
+        } catch {
+          // ignore errors in the onInstanceCreatedCallback
+        }
+      }
     }
 
     return instance || null;
@@ -293,6 +310,6 @@ function normalizeIdentifierForFactory(identifier: string): string | undefined {
   return identifier === DEFAULT_ENTRY_NAME ? undefined : identifier;
 }
 
-function isComponentEager(component: Component<Name>): boolean {
+function isComponentEager<T extends Name>(component: Component<T>): boolean {
   return component.instantiationMode === InstantiationMode.EAGER;
 }

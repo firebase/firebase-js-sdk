@@ -57,6 +57,12 @@ export type InstanceFactory<T extends Name> = (
   options: InstanceFactoryOptions
 ) => NameServiceMapping[T];
 
+export type onInstanceCreatedCallback<T extends Name> = (
+  container: ComponentContainer,
+  instanceIdentifier: string,
+  instance: NameServiceMapping[T]
+) => void;
+
 export interface Dictionary {
   [key: string]: unknown;
 }
