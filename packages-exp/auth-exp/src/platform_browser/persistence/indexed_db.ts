@@ -127,20 +127,11 @@ export async function _putObject(
   key: string,
   value: PersistenceValue | string
 ): Promise<void> {
-  const getRequest = getObjectStore(db, false).get(key);
-  const data = await new DBPromise<DBObject | null>(getRequest).toPromise();
-  if (data) {
-    // Force an index signature on the user object
-    data.value = value as PersistedBlob;
-    const request = getObjectStore(db, true).put(data);
-    return new DBPromise<void>(request).toPromise();
-  } else {
-    const request = getObjectStore(db, true).add({
-      [DB_DATA_KEYPATH]: key,
-      value
-    });
-    return new DBPromise<void>(request).toPromise();
-  }
+  const request = getObjectStore(db, true).put({
+    [DB_DATA_KEYPATH]: key,
+    value
+  });
+  return new DBPromise<void>(request).toPromise();
 }
 
 async function getObject(
@@ -382,7 +373,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       }
     }
     for (const localKey of Object.keys(this.localCache)) {
-      if (!keysInResult.has(localKey)) {
+      if (this.localCache[localKey] && !keysInResult.has(localKey)) {
         // Deleted
         this.notifyListeners(localKey, null);
         keys.push(localKey);
@@ -395,12 +386,12 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     key: string,
     newValue: PersistenceValue | null
   ): void {
-    if (!this.listeners[key]) {
-      return;
-    }
     this.localCache[key] = newValue;
-    for (const listener of Array.from(this.listeners[key])) {
-      listener(newValue);
+    const listeners = this.listeners[key];
+    if (listeners) {
+      for (const listener of Array.from(listeners)) {
+        listener(newValue);
+      }
     }
   }
 
@@ -424,7 +415,11 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     if (Object.keys(this.listeners).length === 0) {
       this.startPolling();
     }
-    this.listeners[key] = this.listeners[key] || new Set();
+    if (!this.listeners[key]) {
+      this.listeners[key] = new Set();
+      // Populate the cache to avoid spuriously triggering on first poll.
+      void this._get(key); // This can happen in the background async and we can return immediately.
+    }
     this.listeners[key].add(listener);
   }
 
@@ -434,7 +429,6 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
       if (this.listeners[key].size === 0) {
         delete this.listeners[key];
-        delete this.localCache[key];
       }
     }
 
