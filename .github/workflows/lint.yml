@@ -1,6 +1,6 @@
 name: Lint All Packages
 
-on: push
+on: [push, pull_request]
 
 jobs:
   test:
