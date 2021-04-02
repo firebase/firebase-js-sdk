@@ -16,7 +16,6 @@
  */
 
 import {
-  assert,
   Compat,
   Deferred,
   errorPrefix,
@@ -26,53 +25,35 @@ import {
 } from '@firebase/util';
 
 import {
-  Repo,
-  repoGetValue,
   repoServerTime,
   repoSetWithPriority,
   repoStartTransaction,
   repoUpdate
 } from '../core/Repo';
-import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
-import { PathIndex } from '../core/snap/indexes/PathIndex';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
-import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
 import { Node } from '../core/snap/Node';
 import { nextPushId } from '../core/util/NextPushId';
 import {
   Path,
   pathChild,
-  pathEquals,
   pathGetBack,
   pathGetFront,
   pathIsEmpty,
-  pathParent,
-  pathToUrlEncodedString
+  pathParent
 } from '../core/util/Path';
-import { MAX_NAME, MIN_NAME, warn } from '../core/util/util';
+import { warn } from '../core/util/util';
 import {
-  isValidPriority,
   validateBoolean,
   validateEventType,
   validateFirebaseDataArg,
   validateFirebaseMergeDataArg,
-  validateKey,
   validatePathString,
   validatePriority,
   validateRootPathString,
   validateWritablePath
 } from '../core/util/validation';
 import { UserCallback } from '../core/view/EventRegistration';
-import {
-  QueryParams,
-  queryParamsEndAt,
-  queryParamsEndBefore,
-  queryParamsLimitToFirst,
-  queryParamsLimitToLast,
-  queryParamsOrderBy,
-  queryParamsStartAfter,
-  queryParamsStartAt
-} from '../core/view/QueryParams';
+import { QueryParams } from '../core/view/QueryParams';
 import {
   DataSnapshot as ExpDataSnapshot,
   off,
@@ -83,7 +64,20 @@ import {
   onValue,
   QueryImpl,
   ReferenceImpl,
-  EventType
+  EventType,
+  limitToFirst,
+  query,
+  limitToLast,
+  orderByChild,
+  orderByKey,
+  orderByValue,
+  orderByPriority,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  equalTo,
+  get
 } from '../exp/Reference_impl';
 
 import { Database } from './Database';
@@ -240,122 +234,7 @@ export interface SnapshotCallback {
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
 export class Query implements Compat<QueryImpl> {
-  readonly _delegate: QueryImpl;
-  readonly repo: Repo;
-
-  constructor(
-    public database: Database,
-    public path: Path,
-    private queryParams_: QueryParams,
-    private orderByCalled_: boolean
-  ) {
-    this.repo = database._delegate._repo;
-    this._delegate = new QueryImpl(
-      this.repo,
-      path,
-      queryParams_,
-      orderByCalled_
-    );
-  }
-
-  /**
-   * Validates start/end values for queries.
-   */
-  private static validateQueryEndpoints_(params: QueryParams) {
-    let startNode = null;
-    let endNode = null;
-    if (params.hasStart()) {
-      startNode = params.getIndexStartValue();
-    }
-    if (params.hasEnd()) {
-      endNode = params.getIndexEndValue();
-    }
-
-    if (params.getIndex() === KEY_INDEX) {
-      const tooManyArgsError =
-        'Query: When ordering by key, you may only pass one argument to ' +
-        'startAt(), endAt(), or equalTo().';
-      const wrongArgTypeError =
-        'Query: When ordering by key, the argument passed to startAt(), startAfter(), ' +
-        'endAt(), endBefore(), or equalTo() must be a string.';
-      if (params.hasStart()) {
-        const startName = params.getIndexStartName();
-        if (startName !== MIN_NAME) {
-          throw new Error(tooManyArgsError);
-        } else if (typeof startNode !== 'string') {
-          throw new Error(wrongArgTypeError);
-        }
-      }
-      if (params.hasEnd()) {
-        const endName = params.getIndexEndName();
-        if (endName !== MAX_NAME) {
-          throw new Error(tooManyArgsError);
-        } else if (typeof endNode !== 'string') {
-          throw new Error(wrongArgTypeError);
-        }
-      }
-    } else if (params.getIndex() === PRIORITY_INDEX) {
-      if (
-        (startNode != null && !isValidPriority(startNode)) ||
-        (endNode != null && !isValidPriority(endNode))
-      ) {
-        throw new Error(
-          'Query: When ordering by priority, the first argument passed to startAt(), ' +
-            'startAfter() endAt(), endBefore(), or equalTo() must be a valid priority value ' +
-            '(null, a number, or a string).'
-        );
-      }
-    } else {
-      assert(
-        params.getIndex() instanceof PathIndex ||
-          params.getIndex() === VALUE_INDEX,
-        'unknown index type.'
-      );
-      if (
-        (startNode != null && typeof startNode === 'object') ||
-        (endNode != null && typeof endNode === 'object')
-      ) {
-        throw new Error(
-          'Query: First argument passed to startAt(), startAfter(), endAt(), endBefore(), or ' +
-            'equalTo() cannot be an object.'
-        );
-      }
-    }
-  }
-
-  /**
-   * Validates that limit* has been called with the correct combination of parameters
-   */
-  private static validateLimit_(params: QueryParams) {
-    if (
-      params.hasStart() &&
-      params.hasEnd() &&
-      params.hasLimit() &&
-      !params.hasAnchoredLimit()
-    ) {
-      throw new Error(
-        "Query: Can't combine startAt(), startAfter(), endAt(), endBefore(), and limit(). Use " +
-          'limitToFirst() or limitToLast() instead.'
-      );
-    }
-  }
-
-  /**
-   * Validates that no other order by call has been made
-   */
-  private validateNoPreviousOrderByCall_(fnName: string) {
-    if (this.orderByCalled_ === true) {
-      throw new Error(fnName + ": You can't combine multiple orderBy calls.");
-    }
-  }
-
-  getRef(): Reference {
-    validateArgCount('Query.ref', 0, 0, arguments.length);
-    // This is a slight hack. We cannot goog.require('fb.api.Firebase'), since Firebase requires fb.api.Query.
-    // However, we will always export 'Firebase' to the global namespace, so it's guaranteed to exist by the time this
-    // method gets called.
-    return new Reference(this.database, this.path);
-  }
+  constructor(readonly database: Database, readonly _delegate: QueryImpl) {}
 
   on(
     eventType: string,
@@ -430,21 +309,9 @@ export class Query implements Compat<QueryImpl> {
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return repoGetValue(this.database._delegate._repo, this._delegate).then(
-      node => {
-        return new DataSnapshot(
-          this.database,
-          new ExpDataSnapshot(
-            node,
-            new ReferenceImpl(
-              this.getRef().database._delegate._repo,
-              this.getRef().path
-            ),
-            this._delegate._queryParams.getIndex()
-          )
-        );
-      }
-    );
+    return get(this._delegate).then(expSnapshot => {
+      return new DataSnapshot(this.database, expSnapshot);
+    });
   }
 
   /**
@@ -457,51 +324,64 @@ export class Query implements Compat<QueryImpl> {
     context?: object | null
   ): Promise<DataSnapshot> {
     validateArgCount('Query.once', 1, 4, arguments.length);
-    validateEventType('Query.once', 1, eventType, false);
     validateCallback('Query.once', 2, userCallback, true);
 
     const ret = Query.getCancelAndContextArgs_(
-      'Query.once',
+      'Query.on',
       failureCallbackOrContext,
       context
     );
-
-    // TODO: Implement this more efficiently (in particular, use 'get' wire protocol for 'value' event)
-    // TODO: consider actually wiring the callbacks into the promise. We cannot do this without a breaking change
-    // because the API currently expects callbacks will be called synchronously if the data is cached, but this is
-    // against the Promise specification.
-    let firstCall = true;
     const deferred = new Deferred<DataSnapshot>();
-
-    // A dummy error handler in case a user wasn't expecting promises
-    deferred.promise.catch(() => {});
-
-    const onceCallback = (snapshot: DataSnapshot) => {
-      // NOTE: Even though we unsubscribe, we may get called multiple times if a single action (e.g. set() with JSON)
-      // triggers multiple events (e.g. child_added or child_changed).
-      if (firstCall) {
-        firstCall = false;
-        this.off(eventType, onceCallback);
-
-        if (userCallback) {
-          userCallback.bind(ret.context)(snapshot);
-        }
-        deferred.resolve(snapshot);
+    const valueCallback: UserCallback = (expSnapshot, previousChildName?) => {
+      const result = new DataSnapshot(this.database, expSnapshot);
+      if (userCallback) {
+        userCallback.call(ret.context, result, previousChildName);
       }
+      deferred.resolve(result);
+    };
+    valueCallback.userCallback = userCallback;
+    valueCallback.context = ret.context;
+    const cancelCallback = (error: Error) => {
+      if (ret.cancel) {
+        ret.cancel.call(ret.context, error);
+      }
+      deferred.reject(error);
     };
 
-    this.on(
-      eventType,
-      onceCallback,
-      /*cancel=*/ err => {
-        this.off(eventType, onceCallback);
+    switch (eventType) {
+      case 'value':
+        onValue(this._delegate, valueCallback, cancelCallback, {
+          onlyOnce: true
+        });
+        break;
+      case 'child_added':
+        onChildAdded(this._delegate, valueCallback, cancelCallback, {
+          onlyOnce: true
+        });
+        break;
+      case 'child_removed':
+        onChildRemoved(this._delegate, valueCallback, cancelCallback, {
+          onlyOnce: true
+        });
+        break;
+      case 'child_changed':
+        onChildChanged(this._delegate, valueCallback, cancelCallback, {
+          onlyOnce: true
+        });
+        break;
+      case 'child_moved':
+        onChildMoved(this._delegate, valueCallback, cancelCallback, {
+          onlyOnce: true
+        });
+        break;
+      default:
+        throw new Error(
+          errorPrefix('Query.once', 1, false) +
+            'must be a valid event type = "value", "child_added", "child_removed", ' +
+            '"child_changed", or "child_moved".'
+        );
+    }
 
-        if (ret.cancel) {
-          ret.cancel.bind(ret.context)(err);
-        }
-        deferred.reject(err);
-      }
-    );
     return deferred.promise;
   }
 
@@ -510,28 +390,7 @@ export class Query implements Compat<QueryImpl> {
    */
   limitToFirst(limit: number): Query {
     validateArgCount('Query.limitToFirst', 1, 1, arguments.length);
-    if (
-      typeof limit !== 'number' ||
-      Math.floor(limit) !== limit ||
-      limit <= 0
-    ) {
-      throw new Error(
-        'Query.limitToFirst: First argument must be a positive integer.'
-      );
-    }
-    if (this.queryParams_.hasLimit()) {
-      throw new Error(
-        'Query.limitToFirst: Limit was already set (by another call to limit, ' +
-          'limitToFirst, or limitToLast).'
-      );
-    }
-
-    return new Query(
-      this.database,
-      this.path,
-      queryParamsLimitToFirst(this.queryParams_, limit),
-      this.orderByCalled_
-    );
+    return new Query(this.database, query(this._delegate, limitToFirst(limit)));
   }
 
   /**
@@ -539,28 +398,7 @@ export class Query implements Compat<QueryImpl> {
    */
   limitToLast(limit: number): Query {
     validateArgCount('Query.limitToLast', 1, 1, arguments.length);
-    if (
-      typeof limit !== 'number' ||
-      Math.floor(limit) !== limit ||
-      limit <= 0
-    ) {
-      throw new Error(
-        'Query.limitToLast: First argument must be a positive integer.'
-      );
-    }
-    if (this.queryParams_.hasLimit()) {
-      throw new Error(
-        'Query.limitToLast: Limit was already set (by another call to limit, ' +
-          'limitToFirst, or limitToLast).'
-      );
-    }
-
-    return new Query(
-      this.database,
-      this.path,
-      queryParamsLimitToLast(this.queryParams_, limit),
-      this.orderByCalled_
-    );
+    return new Query(this.database, query(this._delegate, limitToLast(limit)));
   }
 
   /**
@@ -568,37 +406,7 @@ export class Query implements Compat<QueryImpl> {
    */
   orderByChild(path: string): Query {
     validateArgCount('Query.orderByChild', 1, 1, arguments.length);
-    if (path === '$key') {
-      throw new Error(
-        'Query.orderByChild: "$key" is invalid.  Use Query.orderByKey() instead.'
-      );
-    } else if (path === '$priority') {
-      throw new Error(
-        'Query.orderByChild: "$priority" is invalid.  Use Query.orderByPriority() instead.'
-      );
-    } else if (path === '$value') {
-      throw new Error(
-        'Query.orderByChild: "$value" is invalid.  Use Query.orderByValue() instead.'
-      );
-    }
-    validatePathString('Query.orderByChild', 1, path, false);
-    this.validateNoPreviousOrderByCall_('Query.orderByChild');
-    const parsedPath = new Path(path);
-    if (pathIsEmpty(parsedPath)) {
-      throw new Error(
-        'Query.orderByChild: cannot pass in empty path.  Use Query.orderByValue() instead.'
-      );
-    }
-    const index = new PathIndex(parsedPath);
-    const newParams = queryParamsOrderBy(this.queryParams_, index);
-    Query.validateQueryEndpoints_(newParams);
-
-    return new Query(
-      this.database,
-      this.path,
-      newParams,
-      /*orderByCalled=*/ true
-    );
+    return new Query(this.database, query(this._delegate, orderByChild(path)));
   }
 
   /**
@@ -606,15 +414,7 @@ export class Query implements Compat<QueryImpl> {
    */
   orderByKey(): Query {
     validateArgCount('Query.orderByKey', 0, 0, arguments.length);
-    this.validateNoPreviousOrderByCall_('Query.orderByKey');
-    const newParams = queryParamsOrderBy(this.queryParams_, KEY_INDEX);
-    Query.validateQueryEndpoints_(newParams);
-    return new Query(
-      this.database,
-      this.path,
-      newParams,
-      /*orderByCalled=*/ true
-    );
+    return new Query(this.database, query(this._delegate, orderByKey()));
   }
 
   /**
@@ -622,15 +422,7 @@ export class Query implements Compat<QueryImpl> {
    */
   orderByPriority(): Query {
     validateArgCount('Query.orderByPriority', 0, 0, arguments.length);
-    this.validateNoPreviousOrderByCall_('Query.orderByPriority');
-    const newParams = queryParamsOrderBy(this.queryParams_, PRIORITY_INDEX);
-    Query.validateQueryEndpoints_(newParams);
-    return new Query(
-      this.database,
-      this.path,
-      newParams,
-      /*orderByCalled=*/ true
-    );
+    return new Query(this.database, query(this._delegate, orderByPriority()));
   }
 
   /**
@@ -638,15 +430,7 @@ export class Query implements Compat<QueryImpl> {
    */
   orderByValue(): Query {
     validateArgCount('Query.orderByValue', 0, 0, arguments.length);
-    this.validateNoPreviousOrderByCall_('Query.orderByValue');
-    const newParams = queryParamsOrderBy(this.queryParams_, VALUE_INDEX);
-    Query.validateQueryEndpoints_(newParams);
-    return new Query(
-      this.database,
-      this.path,
-      newParams,
-      /*orderByCalled=*/ true
-    );
+    return new Query(this.database, query(this._delegate, orderByValue()));
   }
 
   startAt(
@@ -654,26 +438,10 @@ export class Query implements Compat<QueryImpl> {
     name?: string | null
   ): Query {
     validateArgCount('Query.startAt', 0, 2, arguments.length);
-    validateFirebaseDataArg('Query.startAt', 1, value, this.path, true);
-    validateKey('Query.startAt', 2, name, true);
-
-    const newParams = queryParamsStartAt(this.queryParams_, value, name);
-    Query.validateLimit_(newParams);
-    Query.validateQueryEndpoints_(newParams);
-    if (this.queryParams_.hasStart()) {
-      throw new Error(
-        'Query.startAt: Starting point was already set (by another call to startAt ' +
-          'or equalTo).'
-      );
-    }
-
-    // Calling with no params tells us to start at the beginning.
-    if (value === undefined) {
-      value = null;
-      name = null;
-    }
-
-    return new Query(this.database, this.path, newParams, this.orderByCalled_);
+    return new Query(
+      this.database,
+      query(this._delegate, startAt(value, name))
+    );
   }
 
   startAfter(
@@ -681,20 +449,10 @@ export class Query implements Compat<QueryImpl> {
     name?: string | null
   ): Query {
     validateArgCount('Query.startAfter', 0, 2, arguments.length);
-    validateFirebaseDataArg('Query.startAfter', 1, value, this.path, false);
-    validateKey('Query.startAfter', 2, name, true);
-
-    const newParams = queryParamsStartAfter(this.queryParams_, value, name);
-    Query.validateLimit_(newParams);
-    Query.validateQueryEndpoints_(newParams);
-    if (this.queryParams_.hasStart()) {
-      throw new Error(
-        'Query.startAfter: Starting point was already set (by another call to startAt, startAfter ' +
-          'or equalTo).'
-      );
-    }
-
-    return new Query(this.database, this.path, newParams, this.orderByCalled_);
+    return new Query(
+      this.database,
+      query(this._delegate, startAfter(value, name))
+    );
   }
 
   endAt(
@@ -702,20 +460,7 @@ export class Query implements Compat<QueryImpl> {
     name?: string | null
   ): Query {
     validateArgCount('Query.endAt', 0, 2, arguments.length);
-    validateFirebaseDataArg('Query.endAt', 1, value, this.path, true);
-    validateKey('Query.endAt', 2, name, true);
-
-    const newParams = queryParamsEndAt(this.queryParams_, value, name);
-    Query.validateLimit_(newParams);
-    Query.validateQueryEndpoints_(newParams);
-    if (this.queryParams_.hasEnd()) {
-      throw new Error(
-        'Query.endAt: Ending point was already set (by another call to endAt, endBefore, or ' +
-          'equalTo).'
-      );
-    }
-
-    return new Query(this.database, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, query(this._delegate, endAt(value, name)));
   }
 
   endBefore(
@@ -723,20 +468,10 @@ export class Query implements Compat<QueryImpl> {
     name?: string | null
   ): Query {
     validateArgCount('Query.endBefore', 0, 2, arguments.length);
-    validateFirebaseDataArg('Query.endBefore', 1, value, this.path, false);
-    validateKey('Query.endBefore', 2, name, true);
-
-    const newParams = queryParamsEndBefore(this.queryParams_, value, name);
-    Query.validateLimit_(newParams);
-    Query.validateQueryEndpoints_(newParams);
-    if (this.queryParams_.hasEnd()) {
-      throw new Error(
-        'Query.endBefore: Ending point was already set (by another call to endAt, endBefore, or ' +
-          'equalTo).'
-      );
-    }
-
-    return new Query(this.database, this.path, newParams, this.orderByCalled_);
+    return new Query(
+      this.database,
+      query(this._delegate, endBefore(value, name))
+    );
   }
 
   /**
@@ -745,21 +480,10 @@ export class Query implements Compat<QueryImpl> {
    */
   equalTo(value: number | string | boolean | null, name?: string) {
     validateArgCount('Query.equalTo', 1, 2, arguments.length);
-    validateFirebaseDataArg('Query.equalTo', 1, value, this.path, false);
-    validateKey('Query.equalTo', 2, name, true);
-    if (this.queryParams_.hasStart()) {
-      throw new Error(
-        'Query.equalTo: Starting point was already set (by another call to startAt/startAfter or ' +
-          'equalTo).'
-      );
-    }
-    if (this.queryParams_.hasEnd()) {
-      throw new Error(
-        'Query.equalTo: Ending point was already set (by another call to endAt/endBefore or ' +
-          'equalTo).'
-      );
-    }
-    return this.startAt(value, name).endAt(value, name);
+    return new Query(
+      this.database,
+      query(this._delegate, equalTo(value, name))
+    );
   }
 
   /**
@@ -767,11 +491,7 @@ export class Query implements Compat<QueryImpl> {
    */
   toString(): string {
     validateArgCount('Query.toString', 0, 0, arguments.length);
-
-    return (
-      this.database._delegate._repo.toString() +
-      pathToUrlEncodedString(this.path)
-    );
+    return this._delegate.toString();
   }
 
   // Do not create public documentation. This is intended to make JSON serialization work but is otherwise unnecessary
@@ -779,7 +499,7 @@ export class Query implements Compat<QueryImpl> {
   toJSON() {
     // An optional spacer argument is unnecessary for a string.
     validateArgCount('Query.toJSON', 0, 1, arguments.length);
-    return this.toString();
+    return this._delegate.toJSON();
   }
 
   /**
@@ -792,14 +512,7 @@ export class Query implements Compat<QueryImpl> {
         'Query.isEqual failed: First argument must be an instance of firebase.database.Query.';
       throw new Error(error);
     }
-
-    const sameRepo =
-      this.database._delegate._repo === other.database._delegate._repo;
-    const samePath = pathEquals(this.path, other.path);
-    const sameQueryIdentifier =
-      this._delegate._queryIdentifier === other._delegate._queryIdentifier;
-
-    return sameRepo && samePath && sameQueryIdentifier;
+    return this._delegate.isEqual(other._delegate);
   }
 
   /**
@@ -840,7 +553,7 @@ export class Query implements Compat<QueryImpl> {
   }
 
   get ref(): Reference {
-    return this.getRef();
+    return new Reference(this.database, this._delegate._path);
   }
 }
 
@@ -858,17 +571,20 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
    * Externally - this is the firebase.database.Reference type.
    */
   constructor(database: Database, path: Path) {
-    super(database, path, new QueryParams(), false);
+    super(
+      database,
+      new QueryImpl(database._delegate._repo, path, new QueryParams(), false)
+    );
   }
 
   /** @return {?string} */
   getKey(): string | null {
     validateArgCount('Reference.key', 0, 0, arguments.length);
 
-    if (pathIsEmpty(this.path)) {
+    if (pathIsEmpty(this._delegate._path)) {
       return null;
     } else {
-      return pathGetBack(this.path);
+      return pathGetBack(this._delegate._path);
     }
   }
 
@@ -877,21 +593,24 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     if (typeof pathString === 'number') {
       pathString = String(pathString);
     } else if (!(pathString instanceof Path)) {
-      if (pathGetFront(this.path) === null) {
+      if (pathGetFront(this._delegate._path) === null) {
         validateRootPathString('Reference.child', 1, pathString, false);
       } else {
         validatePathString('Reference.child', 1, pathString, false);
       }
     }
 
-    return new Reference(this.database, pathChild(this.path, pathString));
+    return new Reference(
+      this.database,
+      pathChild(this._delegate._path, pathString)
+    );
   }
 
   /** @return {?Reference} */
   getParent(): Reference | null {
     validateArgCount('Reference.parent', 0, 0, arguments.length);
 
-    const parentPath = pathParent(this.path);
+    const parentPath = pathParent(this._delegate._path);
     return parentPath === null
       ? null
       : new Reference(this.database, parentPath);
@@ -913,14 +632,20 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     onComplete?: (a: Error | null) => void
   ): Promise<unknown> {
     validateArgCount('Reference.set', 1, 2, arguments.length);
-    validateWritablePath('Reference.set', this.path);
-    validateFirebaseDataArg('Reference.set', 1, newVal, this.path, false);
+    validateWritablePath('Reference.set', this._delegate._path);
+    validateFirebaseDataArg(
+      'Reference.set',
+      1,
+      newVal,
+      this._delegate._path,
+      false
+    );
     validateCallback('Reference.set', 2, onComplete, true);
 
     const deferred = new Deferred();
     repoSetWithPriority(
-      this.repo,
-      this.path,
+      this._delegate._repo,
+      this._delegate._path,
       newVal,
       /*priority=*/ null,
       deferred.wrapCallback(onComplete)
@@ -933,7 +658,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     onComplete?: (a: Error | null) => void
   ): Promise<unknown> {
     validateArgCount('Reference.update', 1, 2, arguments.length);
-    validateWritablePath('Reference.update', this.path);
+    validateWritablePath('Reference.update', this._delegate._path);
 
     if (Array.isArray(objectToMerge)) {
       const newObjectToMerge: { [k: string]: unknown } = {};
@@ -952,14 +677,14 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
       'Reference.update',
       1,
       objectToMerge,
-      this.path,
+      this._delegate._path,
       false
     );
     validateCallback('Reference.update', 2, onComplete, true);
     const deferred = new Deferred();
     repoUpdate(
-      this.repo,
-      this.path,
+      this._delegate._repo,
+      this._delegate._path,
       objectToMerge as { [k: string]: unknown },
       deferred.wrapCallback(onComplete)
     );
@@ -972,12 +697,12 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     onComplete?: (a: Error | null) => void
   ): Promise<unknown> {
     validateArgCount('Reference.setWithPriority', 2, 3, arguments.length);
-    validateWritablePath('Reference.setWithPriority', this.path);
+    validateWritablePath('Reference.setWithPriority', this._delegate._path);
     validateFirebaseDataArg(
       'Reference.setWithPriority',
       1,
       newVal,
-      this.path,
+      this._delegate._path,
       false
     );
     validatePriority('Reference.setWithPriority', 2, newPriority, false);
@@ -993,8 +718,8 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
 
     const deferred = new Deferred();
     repoSetWithPriority(
-      this.repo,
-      this.path,
+      this._delegate._repo,
+      this._delegate._path,
       newVal,
       newPriority,
       deferred.wrapCallback(onComplete)
@@ -1004,7 +729,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
 
   remove(onComplete?: (a: Error | null) => void): Promise<unknown> {
     validateArgCount('Reference.remove', 0, 1, arguments.length);
-    validateWritablePath('Reference.remove', this.path);
+    validateWritablePath('Reference.remove', this._delegate._path);
     validateCallback('Reference.remove', 1, onComplete, true);
 
     return this.set(null, onComplete);
@@ -1020,7 +745,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     applyLocally?: boolean
   ): Promise<TransactionResult> {
     validateArgCount('Reference.transaction', 1, 3, arguments.length);
-    validateWritablePath('Reference.transaction', this.path);
+    validateWritablePath('Reference.transaction', this._delegate._path);
     validateCallback('Reference.transaction', 1, transactionUpdate, false);
     validateCallback('Reference.transaction', 2, onComplete, true);
     // NOTE: applyLocally is an internal-only option for now.  We need to decide if we want to keep it and how
@@ -1060,7 +785,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
           this.database,
           new ExpDataSnapshot(
             node,
-            new ReferenceImpl(this.database._delegate._repo, this.path),
+            new ReferenceImpl(this._delegate._repo, this._delegate._path),
             PRIORITY_INDEX
           )
         );
@@ -1073,15 +798,15 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
 
     // Add a watch to make sure we get server updates.
     const valueCallback = function () {};
-    const watchRef = new Reference(this.database, this.path);
+    const watchRef = new Reference(this.database, this._delegate._path);
     watchRef.on('value', valueCallback);
     const unwatcher = function () {
       watchRef.off('value', valueCallback);
     };
 
     repoStartTransaction(
-      this.database._delegate._repo,
-      this.path,
+      this._delegate._repo,
+      this._delegate._path,
       transactionUpdate,
       promiseComplete,
       unwatcher,
@@ -1096,14 +821,14 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     onComplete?: (a: Error | null) => void
   ): Promise<unknown> {
     validateArgCount('Reference.setPriority', 1, 2, arguments.length);
-    validateWritablePath('Reference.setPriority', this.path);
+    validateWritablePath('Reference.setPriority', this._delegate._path);
     validatePriority('Reference.setPriority', 1, priority, false);
     validateCallback('Reference.setPriority', 2, onComplete, true);
 
     const deferred = new Deferred();
     repoSetWithPriority(
-      this.database._delegate._repo,
-      pathChild(this.path, '.priority'),
+      this._delegate._repo,
+      pathChild(this._delegate._path, '.priority'),
       priority,
       null,
       deferred.wrapCallback(onComplete)
@@ -1113,11 +838,17 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
 
   push(value?: unknown, onComplete?: (a: Error | null) => void): Reference {
     validateArgCount('Reference.push', 0, 2, arguments.length);
-    validateWritablePath('Reference.push', this.path);
-    validateFirebaseDataArg('Reference.push', 1, value, this.path, true);
+    validateWritablePath('Reference.push', this._delegate._path);
+    validateFirebaseDataArg(
+      'Reference.push',
+      1,
+      value,
+      this._delegate._path,
+      true
+    );
     validateCallback('Reference.push', 2, onComplete, true);
 
-    const now = repoServerTime(this.database._delegate._repo);
+    const now = repoServerTime(this._delegate._repo);
     const name = nextPushId(now);
 
     // push() returns a ThennableReference whose promise is fulfilled with a regular Reference.
@@ -1146,8 +877,8 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
   }
 
   onDisconnect(): OnDisconnect {
-    validateWritablePath('Reference.onDisconnect', this.path);
-    return new OnDisconnect(this.repo, this.path);
+    validateWritablePath('Reference.onDisconnect', this._delegate._path);
+    return new OnDisconnect(this._delegate._repo, this._delegate._path);
   }
 
   get key(): string | null {

@@ -65,27 +65,28 @@ export const setSecurityDebugCallback = function (
   ref: Reference,
   callback: (a: object) => void
 ) {
+  const connection = ref._delegate._repo.persistentConnection_;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (ref.repo.persistentConnection_ as any).securityDebugCallback_ = callback;
+  (connection as any).securityDebugCallback_ = callback;
 };
 
 export const stats = function (ref: Reference, showDelta?: boolean) {
-  repoStats(ref.repo, showDelta);
+  repoStats(ref._delegate._repo, showDelta);
 };
 
 export const statsIncrementCounter = function (ref: Reference, metric: string) {
-  repoStatsIncrementCounter(ref.repo, metric);
+  repoStatsIncrementCounter(ref._delegate._repo, metric);
 };
 
 export const dataUpdateCount = function (ref: Reference): number {
-  return ref.repo.dataUpdateCount;
+  return ref._delegate._repo.dataUpdateCount;
 };
 
 export const interceptServerData = function (
   ref: Reference,
   callback: ((a: string, b: unknown) => void) | null
 ) {
-  return repoInterceptServerData(ref.repo, callback);
+  return repoInterceptServerData(ref._delegate._repo, callback);
 };
 
 /**

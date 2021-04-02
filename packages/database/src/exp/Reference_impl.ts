@@ -20,11 +20,15 @@ import { assert, contains, getModularInstance } from '@firebase/util';
 import {
   Repo,
   repoAddEventCallbackForQuery,
+  repoGetValue,
   repoRemoveEventCallbackForQuery
 } from '../core/Repo';
 import { ChildrenNode } from '../core/snap/ChildrenNode';
 import { Index } from '../core/snap/indexes/Index';
+import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
+import { PathIndex } from '../core/snap/indexes/PathIndex';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
+import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
 import { Node } from '../core/snap/Node';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { syncTreeSetReferenceConstructor } from '../core/SyncTree';
@@ -32,22 +36,43 @@ import { parseRepoInfo } from '../core/util/libs/parser';
 import {
   Path,
   pathChild,
+  pathEquals,
   pathGetBack,
   pathIsEmpty,
-  pathParent
+  pathParent,
+  pathToUrlEncodedString
 } from '../core/util/Path';
-import { fatal, ObjectToUniqueKey } from '../core/util/util';
-import { validateUrl } from '../core/util/validation';
+import {
+  fatal,
+  MAX_NAME,
+  MIN_NAME,
+  ObjectToUniqueKey
+} from '../core/util/util';
+import {
+  isValidPriority,
+  validateFirebaseDataArg,
+  validateKey,
+  validatePathString,
+  validateUrl
+} from '../core/util/validation';
 import { Change } from '../core/view/Change';
 import { CancelEvent, DataEvent, EventType } from '../core/view/Event';
 import {
   CallbackContext,
   EventRegistration,
-  QueryContext
+  QueryContext,
+  UserCallback
 } from '../core/view/EventRegistration';
 import {
   QueryParams,
-  queryParamsGetQueryObject
+  queryParamsEndAt,
+  queryParamsEndBefore,
+  queryParamsGetQueryObject,
+  queryParamsLimitToFirst,
+  queryParamsLimitToLast,
+  queryParamsOrderBy,
+  queryParamsStartAfter,
+  queryParamsStartAt
 } from '../core/view/QueryParams';
 
 import { FirebaseDatabase } from './Database';
@@ -68,7 +93,7 @@ export class QueryImpl implements Query, QueryContext {
     readonly _repo: Repo,
     readonly _path: Path,
     readonly _queryParams: QueryParams,
-    private readonly _orderByCalled: boolean
+    readonly _orderByCalled: boolean
   ) {}
 
   get key(): string | null {
@@ -97,18 +122,116 @@ export class QueryImpl implements Query, QueryContext {
   }
 
   isEqual(other: QueryImpl | null): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+    other = getModularInstance(other);
+    if (!(other instanceof QueryImpl)) {
+      return false;
+    }
+
+    const sameRepo = this._repo === other._repo;
+    const samePath = pathEquals(this._path, other._path);
+    const sameQueryIdentifier =
+      this._queryIdentifier === other._queryIdentifier;
+
+    return sameRepo && samePath && sameQueryIdentifier;
   }
 
-  toJSON(): object {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+  toJSON(): string {
+    return this.toString();
   }
 
   toString(): string {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {} as any;
+    return this._repo.toString() + pathToUrlEncodedString(this._path);
+  }
+}
+
+/**
+ * Validates that no other order by call has been made
+ */
+function validateNoPreviousOrderByCall(query: QueryImpl, fnName: string) {
+  if (query._orderByCalled === true) {
+    throw new Error(fnName + ": You can't combine multiple orderBy calls.");
+  }
+}
+
+/**
+ * Validates start/end values for queries.
+ */
+function validateQueryEndpoints(params: QueryParams) {
+  let startNode = null;
+  let endNode = null;
+  if (params.hasStart()) {
+    startNode = params.getIndexStartValue();
+  }
+  if (params.hasEnd()) {
+    endNode = params.getIndexEndValue();
+  }
+
+  if (params.getIndex() === KEY_INDEX) {
+    const tooManyArgsError =
+      'Query: When ordering by key, you may only pass one argument to ' +
+      'startAt(), endAt(), or equalTo().';
+    const wrongArgTypeError =
+      'Query: When ordering by key, the argument passed to startAt(), startAfter(), ' +
+      'endAt(), endBefore(), or equalTo() must be a string.';
+    if (params.hasStart()) {
+      const startName = params.getIndexStartName();
+      if (startName !== MIN_NAME) {
+        throw new Error(tooManyArgsError);
+      } else if (typeof startNode !== 'string') {
+        throw new Error(wrongArgTypeError);
+      }
+    }
+    if (params.hasEnd()) {
+      const endName = params.getIndexEndName();
+      if (endName !== MAX_NAME) {
+        throw new Error(tooManyArgsError);
+      } else if (typeof endNode !== 'string') {
+        throw new Error(wrongArgTypeError);
+      }
+    }
+  } else if (params.getIndex() === PRIORITY_INDEX) {
+    if (
+      (startNode != null && !isValidPriority(startNode)) ||
+      (endNode != null && !isValidPriority(endNode))
+    ) {
+      throw new Error(
+        'Query: When ordering by priority, the first argument passed to startAt(), ' +
+          'startAfter() endAt(), endBefore(), or equalTo() must be a valid priority value ' +
+          '(null, a number, or a string).'
+      );
+    }
+  } else {
+    assert(
+      params.getIndex() instanceof PathIndex ||
+        params.getIndex() === VALUE_INDEX,
+      'unknown index type.'
+    );
+    if (
+      (startNode != null && typeof startNode === 'object') ||
+      (endNode != null && typeof endNode === 'object')
+    ) {
+      throw new Error(
+        'Query: First argument passed to startAt(), startAfter(), endAt(), endBefore(), or ' +
+          'equalTo() cannot be an object.'
+      );
+    }
+  }
+}
+
+/**
+ * Validates that limit* has been called with the correct combination of parameters
+ */
+function validateLimit(params: QueryParams) {
+  if (
+    params.hasStart() &&
+    params.hasEnd() &&
+    params.hasLimit() &&
+    !params.hasAnchoredLimit()
+  ) {
+    throw new Error(
+      "Query: Can't combine startAt(), startAfter(), endAt(), endBefore(), and limit(). Use " +
+        'limitToFirst() or limitToLast() instead.'
+    );
   }
 }
 
@@ -289,8 +412,14 @@ export function update(ref: Reference, values: object): Promise<void> {
 }
 
 export function get(query: Query): Promise<DataSnapshot> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  const queryImpl = getModularInstance(query) as QueryImpl;
+  return repoGetValue(query._repo, queryImpl).then(node => {
+    return new DataSnapshot(
+      node,
+      new ReferenceImpl(query._repo, query._path),
+      query._queryParams.getIndex()
+    );
+  });
 }
 
 /**
@@ -488,12 +617,9 @@ export class ChildEventRegistration implements EventRegistration {
 function addEventListener(
   query: Query,
   eventType: EventType,
-  callback: (
-    snapshot: DataSnapshot,
-    previousChildName: string | null
-  ) => unknown,
-  cancelCallbackOrListenOptions: ((error: Error) => unknown) | ListenOptions,
-  options: ListenOptions
+  callback: UserCallback,
+  cancelCallbackOrListenOptions?: ((error: Error) => unknown) | ListenOptions,
+  options?: ListenOptions
 ) {
   let cancelCallback: ((error: Error) => unknown) | undefined;
   if (typeof cancelCallbackOrListenOptions === 'object') {
@@ -502,6 +628,17 @@ function addEventListener(
   }
   if (typeof cancelCallbackOrListenOptions === 'function') {
     cancelCallback = cancelCallbackOrListenOptions;
+  }
+
+  if (options && options.onlyOnce) {
+    const userCallback = callback;
+    const onceCallback: UserCallback = (dataSnapshot, previousChildName) => {
+      userCallback(dataSnapshot, previousChildName);
+      repoRemoveEventCallbackForQuery(query._repo, query, container);
+    };
+    onceCallback.userCallback = callback.userCallback;
+    onceCallback.context = callback.context;
+    callback = onceCallback;
   }
 
   const callbackContext = new CallbackContext(
@@ -734,94 +871,432 @@ export function off(
   repoRemoveEventCallbackForQuery(query._repo, query, container);
 }
 
-export interface QueryConstraint {
-  type:
-    | 'endAt'
-    | 'endBefore'
-    | 'startAt'
-    | 'startAfter'
-    | 'limitToFirst'
-    | 'limitToLast'
-    | 'orderByChild'
-    | 'orderByKey'
-    | 'orderByPriority'
-    | 'orderByValue'
-    | 'equalTo';
+/** Describes the different query constraints available in this SDK. */
+export type QueryConstraintType =
+  | 'endAt'
+  | 'endBefore'
+  | 'startAt'
+  | 'startAfter'
+  | 'limitToFirst'
+  | 'limitToLast'
+  | 'orderByChild'
+  | 'orderByKey'
+  | 'orderByPriority'
+  | 'orderByValue'
+  | 'equalTo';
+
+/**
+ * A `QueryConstraint` is used to narrow the set of documents returned by a
+ * Database query. `QueryConstraint`s are created by invoking {@link endAt},
+ * {@link endBefore}, {@link startAt}, {@link startAfter}, {@link
+ * limitToFirst}, {@link limitToLast}, {@link orderByChild},
+ * {@link orderByChild}, {@link orderByKey} , {@link orderByPriority} ,
+ * {@link orderByValue}  or {@link equalTo} and
+ * can then be passed to {@link query} to create a new query instance that
+ * also contains this `QueryConstraint`.
+ */
+export abstract class QueryConstraint {
+  /** The type of this query constraints */
+  abstract readonly type: QueryConstraintType;
+
+  /**
+   * Takes the provided `Query` and returns a copy of the `Query` with this
+   * `QueryConstraint` applied.
+   */
+  abstract _apply<T>(query: QueryImpl): QueryImpl;
+}
+
+class QueryEndAtConstraint extends QueryConstraint {
+  readonly type: 'endAt';
+
+  constructor(
+    private readonly _value: number | string | boolean | null,
+    private readonly _key?: string
+  ) {
+    super();
+  }
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateFirebaseDataArg('endAt', 1, this._value, query._path, true);
+    const newParams = queryParamsEndAt(
+      query._queryParams,
+      this._value,
+      this._key
+    );
+    validateLimit(newParams);
+    validateQueryEndpoints(newParams);
+    if (query._queryParams.hasEnd()) {
+      throw new Error(
+        'endAt: Starting point was already set (by another call to endAt, ' +
+          'endBefore or equalTo).'
+      );
+    }
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      newParams,
+      query._orderByCalled
+    );
+  }
 }
 
 export function endAt(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  validateKey('endAt', 2, key, true);
+  return new QueryEndAtConstraint(value, key);
+}
+
+class QueryEndBeforeConstraint extends QueryConstraint {
+  readonly type: 'endBefore';
+
+  constructor(
+    private readonly _value: number | string | boolean | null,
+    private readonly _key?: string
+  ) {
+    super();
+  }
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateFirebaseDataArg('endBefore', 1, this._value, query._path, false);
+    const newParams = queryParamsEndBefore(
+      query._queryParams,
+      this._value,
+      this._key
+    );
+    validateLimit(newParams);
+    validateQueryEndpoints(newParams);
+    if (query._queryParams.hasEnd()) {
+      throw new Error(
+        'endBefore: Starting point was already set (by another call to endAt, ' +
+          'endBefore or equalTo).'
+      );
+    }
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      newParams,
+      query._orderByCalled
+    );
+  }
 }
 
 export function endBefore(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  validateKey('endBefore', 2, key, true);
+  return new QueryEndBeforeConstraint(value, key);
+}
+
+class QueryStartAtConstraint extends QueryConstraint {
+  readonly type: 'startAt';
+
+  constructor(
+    private readonly _value: number | string | boolean | null,
+    private readonly _key?: string
+  ) {
+    super();
+  }
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateFirebaseDataArg('startAt', 1, this._value, query._path, true);
+    const newParams = queryParamsStartAt(
+      query._queryParams,
+      this._value,
+      this._key
+    );
+    validateLimit(newParams);
+    validateQueryEndpoints(newParams);
+    if (query._queryParams.hasStart()) {
+      throw new Error(
+        'startAt: Starting point was already set (by another call to startAt, ' +
+          'startBefore or equalTo).'
+      );
+    }
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      newParams,
+      query._orderByCalled
+    );
+  }
 }
 
 export function startAt(
-  value: number | string | boolean | null,
+  value: number | string | boolean | null = null,
   key?: string
 ): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  validateKey('startAt', 2, key, true);
+  return new QueryStartAtConstraint(value, key);
+}
+
+class QueryStartAfterConstraint extends QueryConstraint {
+  readonly type: 'startAfter';
+
+  constructor(
+    private readonly _value: number | string | boolean | null,
+    private readonly _key?: string
+  ) {
+    super();
+  }
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateFirebaseDataArg('startAfter', 1, this._value, query._path, false);
+    const newParams = queryParamsStartAfter(
+      query._queryParams,
+      this._value,
+      this._key
+    );
+    validateLimit(newParams);
+    validateQueryEndpoints(newParams);
+    if (query._queryParams.hasStart()) {
+      throw new Error(
+        'startAfter: Starting point was already set (by another call to startAt, ' +
+          'startAfter, or equalTo).'
+      );
+    }
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      newParams,
+      query._orderByCalled
+    );
+  }
 }
 
 export function startAfter(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  validateKey('startAfter', 2, key, true);
+  return new QueryStartAfterConstraint(value, key);
+}
+
+class QueryLimitToFirstConstraint extends QueryConstraint {
+  readonly type: 'limitToFirst';
+
+  constructor(private readonly _limit: number) {
+    super();
+  }
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    if (query._queryParams.hasLimit()) {
+      throw new Error(
+        'limitToFirst: Limit was already set (by another call to limitToFirst ' +
+          'or limitToLast).'
+      );
+    }
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      queryParamsLimitToFirst(query._queryParams, this._limit),
+      query._orderByCalled
+    );
+  }
 }
 
 export function limitToFirst(limit: number): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  if (typeof limit !== 'number' || Math.floor(limit) !== limit || limit <= 0) {
+    throw new Error('limitToFirst: First argument must be a positive integer.');
+  }
+  return new QueryLimitToFirstConstraint(limit);
+}
+
+class QueryLimitToLastConstraint extends QueryConstraint {
+  readonly type: 'limitToLast';
+
+  constructor(private readonly _limit: number) {
+    super();
+  }
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    if (query._queryParams.hasLimit()) {
+      throw new Error(
+        'limitToLast: Limit was already set (by another call to limitToFirst ' +
+          'or limitToLast).'
+      );
+    }
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      queryParamsLimitToLast(query._queryParams, this._limit),
+      query._orderByCalled
+    );
+  }
 }
 
 export function limitToLast(limit: number): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  if (typeof limit !== 'number' || Math.floor(limit) !== limit || limit <= 0) {
+    throw new Error('limitToLast: First argument must be a positive integer.');
+  }
+
+  return new QueryLimitToLastConstraint(limit);
+}
+
+class QueryOrderByChildConstraint extends QueryConstraint {
+  readonly type: 'orderByChild';
+
+  constructor(private readonly _path: string) {
+    super();
+  }
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateNoPreviousOrderByCall(query, 'orderByChild');
+    const parsedPath = new Path(this._path);
+    if (pathIsEmpty(parsedPath)) {
+      throw new Error(
+        'orderByChild: cannot pass in empty path. Use orderByValue() instead.'
+      );
+    }
+    const index = new PathIndex(parsedPath);
+    const newParams = queryParamsOrderBy(query._queryParams, index);
+    validateQueryEndpoints(newParams);
+
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
+  }
 }
 
 export function orderByChild(path: string): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  if (path === '$key') {
+    throw new Error(
+      'orderByChild: "$key" is invalid.  Use orderByKey() instead.'
+    );
+  } else if (path === '$priority') {
+    throw new Error(
+      'orderByChild: "$priority" is invalid.  Use orderByPriority() instead.'
+    );
+  } else if (path === '$value') {
+    throw new Error(
+      'orderByChild: "$value" is invalid.  Use orderByValue() instead.'
+    );
+  }
+  validatePathString('orderByChild', 1, path, false);
+  return new QueryOrderByChildConstraint(path);
+}
+
+class QueryOrderByKeyConstraint extends QueryConstraint {
+  readonly type: 'orderByKey';
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateNoPreviousOrderByCall(query, 'orderByKey');
+    const newParams = queryParamsOrderBy(query._queryParams, KEY_INDEX);
+    validateQueryEndpoints(newParams);
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
+  }
 }
 
 export function orderByKey(): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  return new QueryOrderByKeyConstraint();
+}
+
+class QueryOrderByPriorityConstraint extends QueryConstraint {
+  readonly type: 'orderByPriority';
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateNoPreviousOrderByCall(query, 'orderByPriority');
+    const newParams = queryParamsOrderBy(query._queryParams, PRIORITY_INDEX);
+    validateQueryEndpoints(newParams);
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
+  }
 }
 
 export function orderByPriority(): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  return new QueryOrderByPriorityConstraint();
+}
+
+class QueryOrderByValueConstraint extends QueryConstraint {
+  readonly type: 'orderByValue';
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateNoPreviousOrderByCall(query, 'orderByValue');
+    const newParams = queryParamsOrderBy(query._queryParams, VALUE_INDEX);
+    validateQueryEndpoints(newParams);
+    return new QueryImpl(
+      query._repo,
+      query._path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
+  }
 }
 
 export function orderByValue(): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  return new QueryOrderByValueConstraint();
+}
+
+class QueryEqualToValueConstraint extends QueryConstraint {
+  readonly type: 'equalTo';
+
+  constructor(
+    private readonly _value: number | string | boolean | null,
+    private readonly _key?: string
+  ) {
+    super();
+  }
+
+  _apply<T>(query: QueryImpl): QueryImpl {
+    validateFirebaseDataArg('equalTo', 1, this._value, query._path, false);
+    if (query._queryParams.hasStart()) {
+      throw new Error(
+        'equalTo: Starting point was already set (by another call to startAt/startAfter or ' +
+          'equalTo).'
+      );
+    }
+    if (query._queryParams.hasEnd()) {
+      throw new Error(
+        'equalTo: Ending point was already set (by another call to endAt/endBefore or ' +
+          'equalTo).'
+      );
+    }
+    return new QueryEndAtConstraint(this._value, this._key)._apply(
+      new QueryStartAtConstraint(this._value, this._key)._apply(query)
+    );
+  }
 }
 
 export function equalTo(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  validateKey('equalTo', 2, key, true);
+  return new QueryEqualToValueConstraint(value, key);
 }
 
-export function query(query: Query, ...constraints: QueryConstraint[]): Query {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+/**
+ * Creates a new immutable instance of `Query` that is extended to also include
+ * additional query constraints.
+ *
+ * @param query - The Query instance to use as a base for the new constraints.
+ * @param queryConstraints - The list of `QueryConstraint`s to apply.
+ * @throws if any of the provided query constraints cannot be combined with the
+ * existing or new constraints.
+ */
+export function query(
+  query: Query,
+  ...queryConstraints: QueryConstraint[]
+): QueryImpl {
+  let queryImpl = getModularInstance(query) as QueryImpl;
+  for (const constraint of queryConstraints) {
+    queryImpl = constraint._apply(queryImpl);
+  }
+  return queryImpl;
 }
 
 /**
