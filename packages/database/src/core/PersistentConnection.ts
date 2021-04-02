@@ -29,7 +29,6 @@ import {
   Deferred
 } from '@firebase/util';
 
-import { Query } from '../api/Reference';
 import { Connection } from '../realtime/Connection';
 
 import { AuthTokenProvider } from './AuthTokenProvider';
@@ -40,6 +39,7 @@ import { Path } from './util/Path';
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
 import { VisibilityMonitor } from './util/VisibilityMonitor';
 import { SDK_VERSION } from './version';
+import { QueryContext } from './view/EventRegistration';
 
 const RECONNECT_MIN_DELAY = 1000;
 const RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000; // 5 minutes in milliseconds (Case: 1858)
@@ -57,7 +57,7 @@ interface ListenSpec {
 
   hashFn(): string;
 
-  query: Query;
+  query: QueryContext;
   tag: number | null;
 }
 
@@ -190,11 +190,11 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  get(query: Query): Promise<string> {
+  get(query: QueryContext): Promise<string> {
     const deferred = new Deferred<string>();
     const request = {
-      p: query.path.toString(),
-      q: query.queryObject()
+      p: query._path.toString(),
+      q: query._queryObject
     };
     const outstandingGet = {
       action: 'g',
@@ -245,20 +245,19 @@ export class PersistentConnection extends ServerActions {
    * @inheritDoc
    */
   listen(
-    query: Query,
+    query: QueryContext,
     currentHashFn: () => string,
     tag: number | null,
     onComplete: (a: string, b: unknown) => void
   ) {
-    const queryId = query.queryIdentifier();
-    const pathString = query.path.toString();
+    const queryId = query._queryIdentifier;
+    const pathString = query._path.toString();
     this.log_('Listen called for ' + pathString + ' ' + queryId);
     if (!this.listens.has(pathString)) {
       this.listens.set(pathString, new Map());
     }
     assert(
-      query.getQueryParams().isDefault() ||
-        !query.getQueryParams().loadsAllData(),
+      query._queryParams.isDefault() || !query._queryParams.loadsAllData(),
       'listen() called for non-default but complete query'
     );
     assert(
@@ -294,8 +293,8 @@ export class PersistentConnection extends ServerActions {
 
   private sendListen_(listenSpec: ListenSpec) {
     const query = listenSpec.query;
-    const pathString = query.path.toString();
-    const queryId = query.queryIdentifier();
+    const pathString = query._path.toString();
+    const queryId = query._queryIdentifier;
     this.log_('Listen on ' + pathString + ' for ' + queryId);
     const req: { [k: string]: unknown } = { /*path*/ p: pathString };
 
@@ -303,7 +302,7 @@ export class PersistentConnection extends ServerActions {
 
     // Only bother to send query if it's non-default.
     if (listenSpec.tag) {
-      req['q'] = query.queryObject();
+      req['q'] = query._queryObject;
       req['t'] = listenSpec.tag;
     }
 
@@ -334,14 +333,14 @@ export class PersistentConnection extends ServerActions {
     });
   }
 
-  private static warnOnListenWarnings_(payload: unknown, query: Query) {
+  private static warnOnListenWarnings_(payload: unknown, query: QueryContext) {
     if (payload && typeof payload === 'object' && contains(payload, 'w')) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const warnings = safeGet(payload as any, 'w');
       if (Array.isArray(warnings) && ~warnings.indexOf('no_index')) {
         const indexSpec =
-          '".indexOn": "' + query.getQueryParams().getIndex().toString() + '"';
-        const indexPath = query.path.toString();
+          '".indexOn": "' + query._queryParams.getIndex().toString() + '"';
+        const indexPath = query._path.toString();
         warn(
           `Using an unspecified index. Your data will be downloaded and ` +
             `filtered on the client. Consider adding ${indexSpec} at ` +
@@ -419,20 +418,19 @@ export class PersistentConnection extends ServerActions {
   /**
    * @inheritDoc
    */
-  unlisten(query: Query, tag: number | null) {
-    const pathString = query.path.toString();
-    const queryId = query.queryIdentifier();
+  unlisten(query: QueryContext, tag: number | null) {
+    const pathString = query._path.toString();
+    const queryId = query._queryIdentifier;
 
     this.log_('Unlisten called for ' + pathString + ' ' + queryId);
 
     assert(
-      query.getQueryParams().isDefault() ||
-        !query.getQueryParams().loadsAllData(),
+      query._queryParams.isDefault() || !query._queryParams.loadsAllData(),
       'unlisten() called for non-default but complete query'
     );
     const listen = this.removeListen_(pathString, queryId);
     if (listen && this.connected_) {
-      this.sendUnlisten_(pathString, queryId, query.queryObject(), tag);
+      this.sendUnlisten_(pathString, queryId, query._queryObject, tag);
     }
   }
 

@@ -365,7 +365,7 @@ describe('Query Tests', () => {
   it('Query.queryIdentifier works.', () => {
     const path = getRandomNode() as Reference;
     const queryId = function (query) {
-      return query.queryIdentifier(query);
+      return query._delegate._queryIdentifier;
     };
 
     expect(queryId(path)).to.equal('default');

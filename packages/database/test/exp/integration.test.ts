@@ -20,12 +20,14 @@ import { initializeApp, deleteApp } from '@firebase/app-exp';
 import { expect } from 'chai';
 
 import {
+  get,
   getDatabase,
   goOffline,
   goOnline,
   ref,
   refFromURL
 } from '../../exp/index';
+import { set } from '../../src/exp/Reference_impl';
 import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 
 export function createTestApp() {
@@ -65,27 +67,27 @@ describe.skip('Database Tests', () => {
 
   it('Can set and ge tref', async () => {
     const db = getDatabase(defaultApp);
-    await ref(db, 'foo/bar').set('foobar');
-    const snap = await ref(db, 'foo/bar').get();
+    await set(ref(db, 'foo/bar'), 'foobar');
+    const snap = await get(ref(db, 'foo/bar'));
     expect(snap.val()).to.equal('foobar');
   });
 
   it('Can get refFromUrl', async () => {
     const db = getDatabase(defaultApp);
-    await refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`).get();
+    await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
   });
 
   it('Can goOffline/goOnline', async () => {
     const db = getDatabase(defaultApp);
     goOffline(db);
     try {
-      await ref(db, 'foo/bar').get();
+      await get(ref(db, 'foo/bar'));
       expect.fail('Should have failed since we are offline');
     } catch (e) {
       expect(e.message).to.equal('Error: Client is offline.');
     }
     goOnline(db);
-    await ref(db, 'foo/bar').get();
+    await get(ref(db, 'foo/bar'));
   });
 
   it('Can delete app', async () => {

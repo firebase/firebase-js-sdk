@@ -16,21 +16,18 @@
  */
 
 import {
+  assert,
+  Compat,
   Deferred,
+  errorPrefix,
   validateArgCount,
   validateCallback,
-  contains,
-  validateContextObject,
-  errorPrefix,
-  assert,
-  Compat
+  validateContextObject
 } from '@firebase/util';
 
 import {
   Repo,
-  repoAddEventCallbackForQuery,
   repoGetValue,
-  repoRemoveEventCallbackForQuery,
   repoServerTime,
   repoSetWithPriority,
   repoStartTransaction,
@@ -41,7 +38,6 @@ import { PathIndex } from '../core/snap/indexes/PathIndex';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
 import { Node } from '../core/snap/Node';
-import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { nextPushId } from '../core/util/NextPushId';
 import {
   Path,
@@ -53,7 +49,7 @@ import {
   pathParent,
   pathToUrlEncodedString
 } from '../core/util/Path';
-import { MAX_NAME, MIN_NAME, ObjectToUniqueKey, warn } from '../core/util/util';
+import { MAX_NAME, MIN_NAME, warn } from '../core/util/util';
 import {
   isValidPriority,
   validateBoolean,
@@ -66,30 +62,33 @@ import {
   validateRootPathString,
   validateWritablePath
 } from '../core/util/validation';
-import { Change } from '../core/view/Change';
-import { CancelEvent, DataEvent, Event, EventType } from '../core/view/Event';
+import { UserCallback } from '../core/view/EventRegistration';
 import {
   QueryParams,
   queryParamsEndAt,
   queryParamsEndBefore,
-  queryParamsGetQueryObject,
   queryParamsLimitToFirst,
   queryParamsLimitToLast,
   queryParamsOrderBy,
   queryParamsStartAfter,
   queryParamsStartAt
 } from '../core/view/QueryParams';
-import { DataSnapshot as ExpDataSnapshot } from '../exp/DataSnapshot';
-import { Reference as ExpReference } from '../exp/Reference';
+import {
+  DataSnapshot as ExpDataSnapshot,
+  off,
+  onChildAdded,
+  onChildChanged,
+  onChildMoved,
+  onChildRemoved,
+  onValue,
+  QueryImpl,
+  ReferenceImpl,
+  EventType
+} from '../exp/Reference_impl';
 
 import { Database } from './Database';
 import { OnDisconnect } from './onDisconnect';
 import { TransactionResult } from './TransactionResult';
-
-export interface ReferenceConstructor {
-  new (database: Database, path: Path): Reference;
-}
-
 /**
  * Class representing a firebase data snapshot.  It wraps a SnapshotNode and
  * surfaces the public methods (val, forEach, etc.) we want to expose.
@@ -235,299 +234,13 @@ export interface SnapshotCallback {
 }
 
 /**
- * A wrapper class that converts events from the database@exp SDK to the legacy
- * Database SDK. Events are not converted directly as event registration relies
- * on reference comparison of the original user callback (see `matches()`).
- */
-export class ExpSnapshotCallback {
-  constructor(
-    private readonly _database: Database,
-    private readonly _userCallback: SnapshotCallback
-  ) {}
-
-  callback(
-    thisArg: unknown,
-    expDataSnapshot: ExpDataSnapshot,
-    previousChildName?: string | null
-  ): unknown {
-    return this._userCallback.call(
-      thisArg,
-      new DataSnapshot(this._database, expDataSnapshot),
-      previousChildName
-    );
-  }
-
-  matches(exp: ExpSnapshotCallback): boolean {
-    return this._userCallback === exp._userCallback;
-  }
-}
-
-/**
- * An EventRegistration is basically an event type ('value', 'child_added', etc.) and a callback
- * to be notified of that type of event.
- *
- * That said, it can also contain a cancel callback to be notified if the event is canceled.  And
- * currently, this code is organized around the idea that you would register multiple child_ callbacks
- * together, as a single EventRegistration.  Though currently we don't do that.
- */
-export interface EventRegistration {
-  /**
-   * True if this container has a callback to trigger for this event type
-   */
-  respondsTo(eventType: string): boolean;
-
-  createEvent(change: Change, query: Query): Event;
-
-  /**
-   * Given event data, return a function to trigger the user's callback
-   */
-  getEventRunner(eventData: Event): () => void;
-
-  createCancelEvent(error: Error, path: Path): CancelEvent | null;
-
-  matches(other: EventRegistration): boolean;
-
-  /**
-   * False basically means this is a "dummy" callback container being used as a sentinel
-   * to remove all callback containers of a particular type.  (e.g. if the user does
-   * ref.off('value') without specifying a specific callback).
-   *
-   * (TODO: Rework this, since it's hacky)
-   *
-   */
-  hasAnyCallback(): boolean;
-}
-
-/**
- * Represents registration for 'value' events.
- */
-export class ValueEventRegistration implements EventRegistration {
-  constructor(
-    private callback_: ExpSnapshotCallback | null,
-    private cancelCallback_: ((e: Error) => void) | null,
-    private context_: {} | null
-  ) {}
-
-  /**
-   * @inheritDoc
-   */
-  respondsTo(eventType: string): boolean {
-    return eventType === 'value';
-  }
-
-  /**
-   * @inheritDoc
-   */
-  createEvent(change: Change, query: Query): DataEvent {
-    const index = query.getQueryParams().getIndex();
-    return new DataEvent(
-      'value',
-      this,
-      new ExpDataSnapshot(
-        change.snapshotNode,
-        new ExpReference(query.getRef().database.repo_, query.getRef().path),
-        index
-      )
-    );
-  }
-
-  /**
-   * @inheritDoc
-   */
-  getEventRunner(eventData: CancelEvent | DataEvent): () => void {
-    const ctx = this.context_;
-    if (eventData.getEventType() === 'cancel') {
-      assert(
-        this.cancelCallback_,
-        'Raising a cancel event on a listener with no cancel callback'
-      );
-      const cancelCB = this.cancelCallback_;
-      return function () {
-        // We know that error exists, we checked above that this is a cancel event
-        cancelCB.call(ctx, (eventData as CancelEvent).error);
-      };
-    } else {
-      const cb = this.callback_;
-      return function () {
-        cb.callback(ctx, (eventData as DataEvent).snapshot);
-      };
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  createCancelEvent(error: Error, path: Path): CancelEvent | null {
-    if (this.cancelCallback_) {
-      return new CancelEvent(this, error, path);
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  matches(other: EventRegistration): boolean {
-    if (!(other instanceof ValueEventRegistration)) {
-      return false;
-    } else if (!other.callback_ || !this.callback_) {
-      // If no callback specified, we consider it to match any callback.
-      return true;
-    } else {
-      return (
-        other.callback_.matches(this.callback_) &&
-        other.context_ === this.context_
-      );
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  hasAnyCallback(): boolean {
-    return this.callback_ !== null;
-  }
-}
-
-/**
- * Represents the registration of 1 or more child_xxx events.
- *
- * Currently, it is always exactly 1 child_xxx event, but the idea is we might let you
- * register a group of callbacks together in the future.
- */
-export class ChildEventRegistration implements EventRegistration {
-  constructor(
-    private callbacks_: {
-      [child: string]: ExpSnapshotCallback;
-    } | null,
-    private cancelCallback_: ((e: Error) => void) | null,
-    private context_?: {}
-  ) {}
-
-  /**
-   * @inheritDoc
-   */
-  respondsTo(eventType: string): boolean {
-    let eventToCheck =
-      eventType === 'children_added' ? 'child_added' : eventType;
-    eventToCheck =
-      eventToCheck === 'children_removed' ? 'child_removed' : eventToCheck;
-    return contains(this.callbacks_, eventToCheck);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  createCancelEvent(error: Error, path: Path): CancelEvent | null {
-    if (this.cancelCallback_) {
-      return new CancelEvent(this, error, path);
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  createEvent(change: Change, query: Query): DataEvent {
-    assert(change.childName != null, 'Child events should have a childName.');
-    const ref = query.getRef().child(change.childName);
-    const index = query.getQueryParams().getIndex();
-    return new DataEvent(
-      change.type as EventType,
-      this,
-      new ExpDataSnapshot(
-        change.snapshotNode,
-        new ExpReference(ref.repo, ref.path),
-        index
-      ),
-      change.prevName
-    );
-  }
-
-  /**
-   * @inheritDoc
-   */
-  getEventRunner(eventData: CancelEvent | DataEvent): () => void {
-    const ctx = this.context_;
-    if (eventData.getEventType() === 'cancel') {
-      assert(
-        this.cancelCallback_,
-        'Raising a cancel event on a listener with no cancel callback'
-      );
-      const cancelCB = this.cancelCallback_;
-      return function () {
-        // We know that error exists, we checked above that this is a cancel event
-        cancelCB.call(ctx, (eventData as CancelEvent).error);
-      };
-    } else {
-      const cb = this.callbacks_[(eventData as DataEvent).eventType];
-      return function () {
-        cb.callback(
-          ctx,
-          (eventData as DataEvent).snapshot,
-          (eventData as DataEvent).prevName
-        );
-      };
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  matches(other: EventRegistration): boolean {
-    if (other instanceof ChildEventRegistration) {
-      if (!this.callbacks_ || !other.callbacks_) {
-        return true;
-      } else if (this.context_ === other.context_) {
-        const otherKeys = Object.keys(other.callbacks_);
-        const thisKeys = Object.keys(this.callbacks_);
-        const otherCount = otherKeys.length;
-        const thisCount = thisKeys.length;
-        if (otherCount === thisCount) {
-          // If count is 1, do an exact match on eventType, if either is defined but null, it's a match.
-          // If event types don't match, not a match
-          // If count is not 1, exact match across all
-
-          if (otherCount === 1) {
-            const otherKey = otherKeys[0];
-            const thisKey = thisKeys[0];
-            return (
-              thisKey === otherKey &&
-              (!other.callbacks_[otherKey] ||
-                !this.callbacks_[thisKey] ||
-                other.callbacks_[otherKey].matches(this.callbacks_[thisKey]))
-            );
-          } else {
-            // Exact match on each key.
-            return thisKeys.every(
-              eventType =>
-                other.callbacks_[eventType] === this.callbacks_[eventType]
-            );
-          }
-        }
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  hasAnyCallback(): boolean {
-    return this.callbacks_ !== null;
-  }
-}
-
-/**
  * A Query represents a filter to be applied to a firebase location.  This object purely represents the
  * query expression (and exposes our public API to build the query).  The actual query logic is in ViewBase.js.
  *
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
-export class Query {
+export class Query implements Compat<QueryImpl> {
+  readonly _delegate: QueryImpl;
   readonly repo: Repo;
 
   constructor(
@@ -537,6 +250,12 @@ export class Query {
     private orderByCalled_: boolean
   ) {
     this.repo = database.repo_;
+    this._delegate = new QueryImpl(
+      this.repo,
+      path,
+      queryParams_,
+      orderByCalled_
+    );
   }
 
   /**
@@ -630,10 +349,6 @@ export class Query {
     }
   }
 
-  getQueryParams(): QueryParams {
-    return this.queryParams_;
-  }
-
   getRef(): Reference {
     validateArgCount('Query.ref', 0, 0, arguments.length);
     // This is a slight hack. We cannot goog.require('fb.api.Firebase'), since Firebase requires fb.api.Query.
@@ -649,7 +364,6 @@ export class Query {
     context?: object | null
   ): SnapshotCallback {
     validateArgCount('Query.on', 2, 4, arguments.length);
-    validateEventType('Query.on', 1, eventType, false);
     validateCallback('Query.on', 2, callback, false);
 
     const ret = Query.getCancelAndContextArgs_(
@@ -657,41 +371,40 @@ export class Query {
       cancelCallbackOrContext,
       context
     );
-    const expCallback = new ExpSnapshotCallback(this.database, callback);
-    if (eventType === 'value') {
-      this.onValueEvent(expCallback, ret.cancel, ret.context);
-    } else {
-      const callbacks: { [k: string]: ExpSnapshotCallback } = {};
-      callbacks[eventType] = expCallback;
-      this.onChildEvent(callbacks, ret.cancel, ret.context);
+    const valueCallback: UserCallback = (expSnapshot, previousChildName?) => {
+      callback.call(
+        ret.context,
+        new DataSnapshot(this.database, expSnapshot),
+        previousChildName
+      );
+    };
+    valueCallback.userCallback = callback;
+    valueCallback.context = ret.context;
+    const cancelCallback = ret.cancel?.bind(ret.context);
+
+    switch (eventType) {
+      case 'value':
+        onValue(this._delegate, valueCallback, cancelCallback);
+        return callback;
+      case 'child_added':
+        onChildAdded(this._delegate, valueCallback, cancelCallback);
+        return callback;
+      case 'child_removed':
+        onChildRemoved(this._delegate, valueCallback, cancelCallback);
+        return callback;
+      case 'child_changed':
+        onChildChanged(this._delegate, valueCallback, cancelCallback);
+        return callback;
+      case 'child_moved':
+        onChildMoved(this._delegate, valueCallback, cancelCallback);
+        return callback;
+      default:
+        throw new Error(
+          errorPrefix('Query.on', 1, false) +
+            'must be a valid event type = "value", "child_added", "child_removed", ' +
+            '"child_changed", or "child_moved".'
+        );
     }
-    return callback;
-  }
-
-  protected onValueEvent(
-    callback: ExpSnapshotCallback,
-    cancelCallback: ((a: Error) => void) | null,
-    context: object | null
-  ) {
-    const container = new ValueEventRegistration(
-      callback,
-      cancelCallback || null,
-      context || null
-    );
-    repoAddEventCallbackForQuery(this.database.repo_, this, container);
-  }
-
-  protected onChildEvent(
-    callbacks: { [k: string]: ExpSnapshotCallback },
-    cancelCallback: ((a: Error) => unknown) | null,
-    context: object | null
-  ) {
-    const container = new ChildEventRegistration(
-      callbacks,
-      cancelCallback,
-      context
-    );
-    repoAddEventCallbackForQuery(this.database.repo_, this, container);
   }
 
   off(
@@ -703,39 +416,27 @@ export class Query {
     validateEventType('Query.off', 1, eventType, true);
     validateCallback('Query.off', 2, callback, true);
     validateContextObject('Query.off', 3, context, true);
-    let container: EventRegistration | null = null;
-    let callbacks: { [k: string]: ExpSnapshotCallback } | null = null;
-
-    const expCallback = callback
-      ? new ExpSnapshotCallback(this.database, callback)
-      : null;
-    if (eventType === 'value') {
-      container = new ValueEventRegistration(
-        expCallback,
-        null,
-        context || null
-      );
-    } else if (eventType) {
-      if (callback) {
-        callbacks = {};
-        callbacks[eventType] = expCallback;
-      }
-      container = new ChildEventRegistration(callbacks, null, context || null);
+    if (callback) {
+      const valueCallback: UserCallback = () => {};
+      valueCallback.userCallback = callback;
+      valueCallback.context = context;
+      off(this._delegate, eventType as EventType, valueCallback);
+    } else {
+      off(this._delegate, eventType as EventType | undefined);
     }
-    repoRemoveEventCallbackForQuery(this.database.repo_, this, container);
   }
 
   /**
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return repoGetValue(this.database.repo_, this).then(node => {
+    return repoGetValue(this.database.repo_, this._delegate).then(node => {
       return new DataSnapshot(
         this.database,
         new ExpDataSnapshot(
           node,
-          new ExpReference(this.getRef().database.repo_, this.getRef().path),
-          this.getQueryParams().getIndex()
+          new ReferenceImpl(this.getRef().database.repo_, this.getRef().path),
+          this._delegate._queryParams.getIndex()
         )
       );
     });
@@ -1074,19 +775,6 @@ export class Query {
   }
 
   /**
-   * An object representation of the query parameters used by this Query.
-   */
-  queryObject(): object {
-    return queryParamsGetQueryObject(this.queryParams_);
-  }
-
-  queryIdentifier(): string {
-    const obj = this.queryObject();
-    const id = ObjectToUniqueKey(obj);
-    return id === '{}' ? 'default' : id;
-  }
-
-  /**
    * Return true if this query and the provided query are equivalent; otherwise, return false.
    */
   isEqual(other: Query): boolean {
@@ -1100,7 +788,7 @@ export class Query {
     const sameRepo = this.database.repo_ === other.database.repo_;
     const samePath = pathEquals(this.path, other.path);
     const sameQueryIdentifier =
-      this.queryIdentifier() === other.queryIdentifier();
+      this._delegate._queryIdentifier === other._delegate._queryIdentifier;
 
     return sameRepo && samePath && sameQueryIdentifier;
   }
@@ -1114,11 +802,11 @@ export class Query {
     fnName: string,
     cancelOrContext?: ((a: Error) => void) | object | null,
     context?: object | null
-  ): { cancel: ((a: Error) => void) | null; context: object | null } {
+  ): { cancel: ((a: Error) => void) | undefined; context: object | undefined } {
     const ret: {
       cancel: ((a: Error) => void) | null;
       context: object | null;
-    } = { cancel: null, context: null };
+    } = { cancel: undefined, context: undefined };
     if (cancelOrContext && context) {
       ret.cancel = cancelOrContext as (a: Error) => void;
       validateCallback(fnName, 3, ret.cancel, true);
@@ -1147,7 +835,9 @@ export class Query {
   }
 }
 
-export class Reference extends Query {
+export class Reference extends Query implements Compat<ReferenceImpl> {
+  readonly _delegate: ReferenceImpl;
+
   then: Promise<Reference>['then'];
   catch: Promise<Reference>['catch'];
 
@@ -1220,7 +910,7 @@ export class Reference extends Query {
 
     const deferred = new Deferred();
     repoSetWithPriority(
-      this.database.repo_,
+      this.repo,
       this.path,
       newVal,
       /*priority=*/ null,
@@ -1259,7 +949,7 @@ export class Reference extends Query {
     validateCallback('Reference.update', 2, onComplete, true);
     const deferred = new Deferred();
     repoUpdate(
-      this.database.repo_,
+      this.repo,
       this.path,
       objectToMerge as { [k: string]: unknown },
       deferred.wrapCallback(onComplete)
@@ -1294,7 +984,7 @@ export class Reference extends Query {
 
     const deferred = new Deferred();
     repoSetWithPriority(
-      this.database.repo_,
+      this.repo,
       this.path,
       newVal,
       newPriority,
@@ -1361,7 +1051,7 @@ export class Reference extends Query {
           this.database,
           new ExpDataSnapshot(
             node,
-            new ExpReference(this.database.repo_, this.path),
+            new ReferenceImpl(this.database.repo_, this.path),
             PRIORITY_INDEX
           )
         );
@@ -1448,7 +1138,7 @@ export class Reference extends Query {
 
   onDisconnect(): OnDisconnect {
     validateWritablePath('Reference.onDisconnect', this.path);
-    return new OnDisconnect(this.database.repo_, this.path);
+    return new OnDisconnect(this.repo, this.path);
   }
 
   get key(): string | null {
@@ -1463,11 +1153,3 @@ export class Reference extends Query {
     return this.getRoot();
   }
 }
-
-/**
- * Define reference constructor in various modules
- *
- * We are doing this here to avoid several circular
- * dependency issues
- */
-syncPointSetReferenceConstructor(Reference);

@@ -20,13 +20,14 @@ import { _FirebaseService, _getProvider, FirebaseApp } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { Reference } from '../api/Reference';
+import { Repo } from '../core/Repo';
 
 /**
  * Class representing a Firebase Realtime Database.
  */
 export class FirebaseDatabase implements _FirebaseService {
   readonly 'type' = 'database';
+  _repo: Repo;
 
   constructor(
     readonly app: FirebaseApp,
@@ -73,19 +74,6 @@ export function goOffline(db: FirebaseDatabase): void {
 }
 
 export function goOnline(db: FirebaseDatabase): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
-}
-
-export function ref(
-  db: FirebaseDatabase,
-  path?: string | Reference
-): Reference {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
-}
-
-export function refFromURL(db: FirebaseDatabase, url: string): Reference {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return {} as any;
 }
