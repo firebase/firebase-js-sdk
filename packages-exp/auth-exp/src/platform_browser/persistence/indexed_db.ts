@@ -373,7 +373,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       }
     }
     for (const localKey of Object.keys(this.localCache)) {
-      if (!keysInResult.has(localKey)) {
+      if (this.localCache[localKey] && !keysInResult.has(localKey)) {
         // Deleted
         this.notifyListeners(localKey, null);
         keys.push(localKey);
@@ -387,8 +387,11 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     newValue: PersistenceValue | null
   ): void {
     this.localCache[key] = newValue;
-    for (const listener of Array.from(this.listeners[key])) {
-      listener(newValue);
+    const listeners = this.listeners[key];
+    if (listeners) {
+      for (const listener of Array.from(listeners)) {
+        listener(newValue);
+      }
     }
   }
 
@@ -412,7 +415,11 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     if (Object.keys(this.listeners).length === 0) {
       this.startPolling();
     }
-    this.listeners[key] = this.listeners[key] || new Set();
+    if (!this.listeners[key]) {
+      this.listeners[key] = new Set();
+      // Populate the cache to avoid spuriously triggering on first poll.
+      void this._get(key); // This can happen in the background async and we can return immediately.
+    }
     this.listeners[key].add(listener);
   }
 

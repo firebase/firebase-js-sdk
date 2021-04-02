@@ -71,6 +71,7 @@ describe('core/auth/auth_impl', () => {
       apiHost: DefaultConfig.API_HOST,
       apiScheme: DefaultConfig.API_SCHEME,
       tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+      clientPlatform: ClientPlatform.BROWSER,
       sdkClientVersion: 'v'
     });
 
@@ -137,6 +138,7 @@ describe('core/auth/initializeAuth', () => {
         apiScheme: DefaultConfig.API_SCHEME,
         tokenApiHost: DefaultConfig.TOKEN_API_HOST,
         authDomain,
+        clientPlatform: ClientPlatform.BROWSER,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
 
@@ -312,6 +314,7 @@ describe('core/auth/initializeAuth', () => {
         apiHost: DefaultConfig.API_HOST,
         apiScheme: DefaultConfig.API_SCHEME,
         tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+        clientPlatform: ClientPlatform.BROWSER,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
     });

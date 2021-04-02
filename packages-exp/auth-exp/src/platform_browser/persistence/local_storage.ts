@@ -99,11 +99,6 @@ class BrowserLocalPersistence
 
     const key = event.key;
 
-    // Ignore keys that have no listeners.
-    if (!this.listeners[key]) {
-      return;
-    }
-
     // Check the mechanism how this event was detected.
     // The first event will dictate the mechanism to be used.
     if (poll) {
@@ -166,8 +161,11 @@ class BrowserLocalPersistence
 
   private notifyListeners(key: string, value: string | null): void {
     this.localCache[key] = value;
-    for (const listener of Array.from(this.listeners[key])) {
-      listener(value ? JSON.parse(value) : value);
+    const listeners = this.listeners[key];
+    if (listeners) {
+      for (const listener of Array.from(listeners)) {
+        listener(value ? JSON.parse(value) : value);
+      }
     }
   }
 
@@ -217,7 +215,11 @@ class BrowserLocalPersistence
         this.attachListener();
       }
     }
-    this.listeners[key] = this.listeners[key] || new Set();
+    if (!this.listeners[key]) {
+      this.listeners[key] = new Set();
+      // Populate the cache to avoid spuriously triggering on first poll.
+      this.localCache[key] = this.storage.getItem(key);
+    }
     this.listeners[key].add(listener);
   }
 
