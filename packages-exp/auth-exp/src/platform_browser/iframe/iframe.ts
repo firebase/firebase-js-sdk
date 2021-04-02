@@ -17,6 +17,7 @@
 
 import { SDK_VERSION } from '@firebase/app-exp';
 import { querystring } from '@firebase/util';
+import { DefaultConfig } from '../../../internal';
 
 import { AuthErrorCode } from '../../core/errors';
 import { _assert, _createError } from '../../core/util/assert';
@@ -39,6 +40,14 @@ const IFRAME_ATTRIBUTES = {
   }
 };
 
+// Map from apiHost to endpoint ID for passing into iframe. In current SDK, apiHost can be set to
+// anything (not from a list of endpoints with IDs as in legacy), so this is the closest we can get.
+const EID_FROM_APIHOST = new Map([
+  [DefaultConfig.API_HOST, 'p'], // production
+  ['staging-identitytoolkit.sandbox.googleapis.com', 's'], // staging
+  ['test-identitytoolkit.sandbox.googleapis.com', 't'] // test
+]);
+
 function getIframeUrl(auth: AuthInternal): string {
   const config = auth.config;
   _assert(config.authDomain, auth, AuthErrorCode.MISSING_AUTH_DOMAIN);
@@ -46,14 +55,19 @@ function getIframeUrl(auth: AuthInternal): string {
     ? _emulatorUrl(config, EMULATED_IFRAME_PATH)
     : `https://${auth.config.authDomain}/${IFRAME_PATH}`;
 
-  const params = {
+  const params: Record<string, string> = {
     apiKey: config.apiKey,
     appName: auth.name,
     v: SDK_VERSION
   };
-  // Can pass 'eid' as one of 'p' (production), 's' (staging), or 't' (test)
-  // TODO: do we care about frameworks? pass them as fw=
-
+  const eid = EID_FROM_APIHOST.get(auth.config.apiHost);
+  if (eid) {
+    params.eid = eid;
+  }
+  const frameworks = auth._getFrameworks();
+  if (frameworks.length) {
+    params.fw = frameworks.join(',');
+  }
   return `${url}?${querystring(params).slice(1)}`;
 }
 

@@ -26,6 +26,7 @@ import {
 } from '../index';
 import { FetchProvider } from '../../core/util/fetch_provider';
 import { Auth } from '../../model/public_types';
+import { AuthInternal } from '../../model/auth';
 
 export const enum Endpoint {
   TOKEN = '/v1/token'
@@ -56,7 +57,7 @@ export async function requestStsToken(
         'grant_type': 'refresh_token',
         'refresh_token': refreshToken
       }).slice(1);
-      const { tokenApiHost, apiKey, sdkClientVersion } = auth.config;
+      const { tokenApiHost, apiKey } = auth.config;
       const url = _getFinalTarget(
         auth,
         tokenApiHost,
@@ -67,7 +68,7 @@ export async function requestStsToken(
       return FetchProvider.fetch()(url, {
         method: HttpMethod.POST,
         headers: {
-          'X-Client-Version': sdkClientVersion,
+          'X-Client-Version': (auth as AuthInternal)._getSdkClientVersion(),
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body

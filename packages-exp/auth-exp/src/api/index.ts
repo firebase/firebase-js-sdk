@@ -23,7 +23,7 @@ import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
 import { Auth } from '../model/public_types';
-import { AuthInternal } from '../model/auth';
+import { AuthInternal, ConfigInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
@@ -104,7 +104,10 @@ export async function _performApiRequest<T, V>(
 
     const headers = new (FetchProvider.headers())();
     headers.set(HttpHeader.CONTENT_TYPE, 'application/json');
-    headers.set(HttpHeader.X_CLIENT_VERSION, auth.config.sdkClientVersion);
+    headers.set(
+      HttpHeader.X_CLIENT_VERSION,
+      (auth as AuthInternal)._getSdkClientVersion()
+    );
 
     if (auth.languageCode) {
       headers.set(HttpHeader.X_FIREBASE_LOCALE, auth.languageCode);
@@ -209,7 +212,7 @@ export function _getFinalTarget(
     return `${auth.config.apiScheme}://${base}`;
   }
 
-  return _emulatorUrl(auth.config, base);
+  return _emulatorUrl(auth.config as ConfigInternal, base);
 }
 
 class NetworkTimeout<T> {
