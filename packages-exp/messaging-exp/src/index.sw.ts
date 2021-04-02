@@ -18,7 +18,6 @@
 import '@firebase/installations-exp';
 
 import { FirebaseMessaging } from './interfaces/public-types';
-import { isSwSupported } from './api/isSupported';
 import { registerSwMessaging } from './helpers/register';
 
 export { onBackgroundMessage, getMessaging } from './api';
