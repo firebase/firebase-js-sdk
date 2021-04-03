@@ -381,13 +381,16 @@ describe('Transaction Tests', () => {
     node.child('foo').set(0);
 
     expect(firstDone).to.equal(false);
+
+    // Wait for the `onComplete` callbacks to be invoked. This is no longer
+    // happening synchronously, as the underlying database@exp implementation
+    // uses promises.
+    await ea.promise;
+
     expect(secondDone).to.equal(true);
     expect(thirdRunCount).to.equal(2);
     // Note that the set actually raises two events, one overlaid on top of the original transaction value, and a
     // second one with the re-run value from the third transaction
-
-    await ea.promise;
-
     expect(nodeSnap.val()).to.deep.equal({ foo: 0, bar: 'second' });
   });
 

@@ -67,7 +67,11 @@ export {
   refFromURL
 } from '../src/exp/Reference_impl';
 export { increment, serverTimestamp } from '../src/exp/ServerValue';
-export { runTransaction, TransactionOptions } from '../src/exp/Transaction';
+export {
+  runTransaction,
+  TransactionOptions,
+  TransactionResult
+} from '../src/exp/Transaction';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { assert, contains, getModularInstance } from '@firebase/util';
+import { assert, contains, getModularInstance, Deferred } from '@firebase/util';
 
 import {
   Repo,
   repoAddEventCallbackForQuery,
   repoGetValue,
-  repoRemoveEventCallbackForQuery
+  repoRemoveEventCallbackForQuery,
+  repoServerTime,
+  repoSetWithPriority,
+  repoUpdate
 } from '../core/Repo';
 import { ChildrenNode } from '../core/snap/ChildrenNode';
 import { Index } from '../core/snap/indexes/Index';
@@ -33,11 +36,13 @@ import { Node } from '../core/snap/Node';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { syncTreeSetReferenceConstructor } from '../core/SyncTree';
 import { parseRepoInfo } from '../core/util/libs/parser';
+import { nextPushId } from '../core/util/NextPushId';
 import {
   Path,
   pathChild,
   pathEquals,
   pathGetBack,
+  pathGetFront,
   pathIsEmpty,
   pathParent,
   pathToUrlEncodedString
@@ -51,9 +56,13 @@ import {
 import {
   isValidPriority,
   validateFirebaseDataArg,
+  validateFirebaseMergeDataArg,
   validateKey,
   validatePathString,
-  validateUrl
+  validatePriority,
+  validateRootPathString,
+  validateUrl,
+  validateWritablePath
 } from '../core/util/validation';
 import { Change } from '../core/view/Change';
 import { CancelEvent, DataEvent, EventType } from '../core/view/Event';
@@ -81,7 +90,6 @@ import {
   OnDisconnect,
   Query as Query,
   Reference as Reference,
-  ThenableReference,
   Unsubscribe
 } from './Reference';
 
@@ -236,18 +244,24 @@ function validateLimit(params: QueryParams) {
 }
 
 export class ReferenceImpl extends QueryImpl implements Reference {
-  root: Reference;
-
   /** @hideconstructor */
   constructor(repo: Repo, path: Path) {
     super(repo, path, new QueryParams(), false);
   }
 
-  get parent(): Reference | null {
+  get parent(): ReferenceImpl | null {
     const parentPath = pathParent(this._path);
     return parentPath === null
       ? null
       : new ReferenceImpl(this._repo, parentPath);
+  }
+
+  get root(): ReferenceImpl {
+    let ref: ReferenceImpl = this;
+    while (ref.parent !== null) {
+      ref = ref.parent;
+    }
+    return ref;
   }
 }
 
@@ -260,7 +274,7 @@ export class DataSnapshot {
    */
   constructor(
     readonly _node: Node,
-    readonly ref: Reference,
+    readonly ref: ReferenceImpl,
     readonly _index: Index
   ) {}
 
@@ -333,13 +347,13 @@ export class DataSnapshot {
   }
 }
 
-export function ref(db: FirebaseDatabase, path?: string): Reference {
+export function ref(db: FirebaseDatabase, path?: string): ReferenceImpl {
   db = getModularInstance(db);
   db._checkNotDeleted('ref');
   return path !== undefined ? child(db._root, path) : db._root;
 }
 
-export function refFromURL(db: FirebaseDatabase, url: string): Reference {
+export function refFromURL(db: FirebaseDatabase, url: string): ReferenceImpl {
   db = getModularInstance(db);
   db._checkNotDeleted('refFromURL');
   const parsedURL = parseRepoInfo(url, db._repo.repoInfo_.nodeAdmin);
@@ -364,8 +378,14 @@ export function refFromURL(db: FirebaseDatabase, url: string): Reference {
   return ref(db, parsedURL.path.toString());
 }
 
-export function child(ref: Reference, path: string): Reference {
-  // TODO: Accept Compat class
+export function child(ref: Reference, path: string): ReferenceImpl {
+  ref = getModularInstance(ref);
+  if (pathGetFront(ref._path) === null) {
+    // TODO(database-exp): Remove argument numbers from all error messages
+    validateRootPathString('child', 1, path, false);
+  } else {
+    validatePathString('child', 1, path, false);
+  }
   return new ReferenceImpl(ref._repo, pathChild(ref._path, path));
 }
 
@@ -374,41 +394,110 @@ export function onDisconnect(ref: Reference): OnDisconnect {
   return {} as any;
 }
 
-export function push(ref: Reference, value?: unknown): ThenableReference {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+export interface ThenableReferenceImpl
+  extends ReferenceImpl,
+    Pick<Promise<ReferenceImpl>, 'then' | 'catch'> {}
+
+export function push(ref: Reference, value?: unknown): ThenableReferenceImpl {
+  ref = getModularInstance(ref);
+  validateWritablePath('push', ref._path);
+  validateFirebaseDataArg('push', 1, value, ref._path, true);
+  const now = repoServerTime(ref._repo);
+  const name = nextPushId(now);
+
+  // push() returns a ThennableReference whose promise is fulfilled with a
+  // regular Reference. We use child() to create handles to two different
+  // references. The first is turned into a ThennableReference below by adding
+  // then() and catch() methods and is used as the return value of push(). The
+  // second remains a regular Reference and is used as the fulfilled value of
+  // the first ThennableReference.
+  const thennablePushRef: Partial<ThenableReferenceImpl> = child(ref, name);
+  const pushRef = child(ref, name);
+
+  let promise: Promise<ReferenceImpl>;
+  if (value != null) {
+    promise = set(pushRef, value).then(() => pushRef);
+  } else {
+    promise = Promise.resolve(pushRef);
+  }
+
+  thennablePushRef.then = promise.then.bind(promise);
+  thennablePushRef.catch = promise.then.bind(promise, undefined);
+  return thennablePushRef as ThenableReferenceImpl;
 }
 
 export function remove(ref: Reference): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  validateWritablePath('remove', ref._path);
+  return set(ref, null);
 }
 
 export function set(ref: Reference, value: unknown): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  ref = getModularInstance(ref);
+  validateWritablePath('set', ref._path);
+  validateFirebaseDataArg('set', 1, value, ref._path, false);
+  const deferred = new Deferred<void>();
+  repoSetWithPriority(
+    ref._repo,
+    ref._path,
+    value,
+    /*priority=*/ null,
+    deferred.wrapCallback(() => {})
+  );
+  return deferred.promise;
 }
 
 export function setPriority(
   ref: Reference,
   priority: string | number | null
 ): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  ref = getModularInstance(ref);
+  validateWritablePath('setPriority', ref._path);
+  validatePriority('setPriority', 1, priority, false);
+  const deferred = new Deferred<void>();
+  repoSetWithPriority(
+    ref._repo,
+    pathChild(ref._path, '.priority'),
+    priority,
+    null,
+    deferred.wrapCallback(() => {})
+  );
+  return deferred.promise;
 }
 
 export function setWithPriority(
   ref: Reference,
-  newVal: unknown,
-  newPriority: string | number | null
+  value: unknown,
+  priority: string | number | null
 ): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  validateWritablePath('setWithPriority', ref._path);
+  validateFirebaseDataArg('setWithPriority', 1, value, ref._path, false);
+  validatePriority('setWithPriority', 2, priority, false);
+
+  if (ref.key === '.length' || ref.key === '.keys') {
+    throw 'setWithPriority failed: ' + ref.key + ' is a read-only object.';
+  }
+
+  const deferred = new Deferred<void>();
+  repoSetWithPriority(
+    ref._repo,
+    ref._path,
+    value,
+    priority,
+    deferred.wrapCallback(() => {})
+  );
+  return deferred.promise;
 }
 
 export function update(ref: Reference, values: object): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  validateFirebaseMergeDataArg('update', 1, values, ref._path, false);
+  const deferred = new Deferred<void>();
+  repoUpdate(
+    ref._repo,
+    ref._path,
+    values as Record<string, unknown>,
+    deferred.wrapCallback(() => {})
+  );
+  return deferred.promise;
 }
 
 export function get(query: Query): Promise<DataSnapshot> {

@@ -767,6 +767,16 @@ describe('Query Tests', () => {
     expect(expected).to.equal(10);
   });
 
+  it('Raises snapshots synchronously', () => {
+    const node = getRandomNode() as Reference;
+    let newValue;
+    node.on('value', v => {
+      newValue = v.val();
+    });
+    node.set('foo');
+    expect(newValue).to.equal('foo');
+  });
+
   it('Set a limit of 5, add a bunch of nodes, ensure only last 5 items are sent from server.', async () => {
     const node = getRandomNode() as Reference;
     await node.set({});
