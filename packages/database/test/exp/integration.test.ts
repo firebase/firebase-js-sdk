@@ -94,7 +94,7 @@ describe('Database@exp Tests', () => {
     expect(snap2).to.equal('b');
   });
 
-  it('Can use once()', async () => {
+  it('Can use onlyOnce', async () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
