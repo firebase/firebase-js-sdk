@@ -27,6 +27,7 @@ import {
   goOffline
 } from '../exp/Database';
 import { ref, refFromURL } from '../exp/Reference_impl';
+import { increment, serverTimestamp } from '../exp/ServerValue';
 
 import { Reference } from './Reference';
 
@@ -35,16 +36,8 @@ import { Reference } from './Reference';
  */
 export class Database implements FirebaseService, Compat<ExpDatabase> {
   static readonly ServerValue = {
-    TIMESTAMP: {
-      '.sv': 'timestamp'
-    },
-    increment: (delta: number) => {
-      return {
-        '.sv': {
-          'increment': delta
-        }
-      };
-    }
+    TIMESTAMP: serverTimestamp(),
+    increment: (delta: number) => increment(delta)
   };
 
   /**
