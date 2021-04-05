@@ -18,7 +18,7 @@
 import '@firebase/installations-exp';
 
 import { FirebaseMessaging } from './interfaces/public-types';
-import { registerSwMessaging } from './helpers/register';
+import { registerMessagingInSw } from './helpers/register';
 
 export { onBackgroundMessage, getMessaging } from './api';
 export { isSwSupported as isSupported } from './api/isSupported';
@@ -29,4 +29,4 @@ declare module '@firebase/component' {
   }
 }
 
-registerSwMessaging();
+registerMessagingInSw();
