@@ -16,9 +16,9 @@ export interface ActionCodeSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [android](./auth.actioncodesettings.android.md) | { installApp?: boolean; minimumVersion?: string; packageName: string; } | Sets the Android package name. |
-|  [dynamicLinkDomain](./auth.actioncodesettings.dynamiclinkdomain.md) | string | When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, <code>example.page.link</code>). |
-|  [handleCodeInApp](./auth.actioncodesettings.handlecodeinapp.md) | boolean | When set to true, the action code link will be be sent as a Universal Link or Android App Link and will be opened by the app if installed. |
-|  [iOS](./auth.actioncodesettings.ios.md) | { bundleId: string; } | Sets the iOS bundle ID. |
+|  [android?](./auth.actioncodesettings.android.md) | { installApp?: boolean; minimumVersion?: string; packageName: string; } | <i>(Optional)</i> Sets the Android package name. |
+|  [dynamicLinkDomain?](./auth.actioncodesettings.dynamiclinkdomain.md) | string | <i>(Optional)</i> When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, <code>example.page.link</code>). |
+|  [handleCodeInApp?](./auth.actioncodesettings.handlecodeinapp.md) | boolean | <i>(Optional)</i> When set to true, the action code link will be be sent as a Universal Link or Android App Link and will be opened by the app if installed. |
+|  [iOS?](./auth.actioncodesettings.ios.md) | { bundleId: string; } | <i>(Optional)</i> Sets the iOS bundle ID. |
 |  [url](./auth.actioncodesettings.url.md) | string | Sets the link continue/state URL. |
 

@@ -4,6 +4,7 @@
 
 ## parseActionCodeURL() function
 
+Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md) if the link is valid, otherwise returns null.
 
 <b>Signature:</b>
 
@@ -15,9 +16,11 @@ export declare function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  link | string |  |
+|  link | string | The email action link string. |
 
 <b>Returns:</b>
 
 [ActionCodeURL](./auth.actioncodeurl.md) \| null
+
+The ActionCodeURL object, or null if the link is invalid.
 

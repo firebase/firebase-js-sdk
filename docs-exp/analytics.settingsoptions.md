@@ -16,6 +16,6 @@ export interface SettingsOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [dataLayerName](./analytics.settingsoptions.datalayername.md) | string | Sets custom name for <code>dataLayer</code> array used by gtag. |
-|  [gtagName](./analytics.settingsoptions.gtagname.md) | string | Sets custom name for <code>gtag</code> function. |
+|  [dataLayerName?](./analytics.settingsoptions.datalayername.md) | string | <i>(Optional)</i> Sets custom name for <code>dataLayer</code> array used by gtag. |
+|  [gtagName?](./analytics.settingsoptions.gtagname.md) | string | <i>(Optional)</i> Sets custom name for <code>gtag</code> function. |
 

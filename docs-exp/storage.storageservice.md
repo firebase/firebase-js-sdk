@@ -9,8 +9,9 @@ A Firebase Storage instance.
 <b>Signature:</b>
 
 ```typescript
-export interface StorageService 
+export interface StorageService extends _FirebaseService 
 ```
+<b>Extends:</b> \_FirebaseService
 
 ## Properties
 

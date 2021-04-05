@@ -32,7 +32,7 @@ export {
   AuthEventType
 } from '../src/model/popup_redirect';
 export { UserCredentialInternal, UserParameters } from '../src/model/user';
-export { AuthInternal } from '../src/model/auth';
+export { AuthInternal, ConfigInternal } from '../src/model/auth';
 export { DefaultConfig, AuthImpl, _castAuth } from '../src/core/auth/auth_impl';
 
 export { ClientPlatform, _getClientVersion } from '../src/core/util/version';

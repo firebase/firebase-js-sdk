@@ -9,9 +9,9 @@ Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [Pro
 <b>Signature:</b>
 
 ```typescript
-export declare class GithubAuthProvider extends OAuthProvider 
+export declare class GithubAuthProvider extends BaseOAuthProvider 
 ```
-<b>Extends:</b> [OAuthProvider](./auth.oauthprovider.md)
+<b>Extends:</b> BaseOAuthProvider
 
 ## Remarks
 

@@ -15,6 +15,6 @@ export interface FcmOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [analyticsLabel](./messaging.fcmoptions.analyticslabel.md) | string |  |
-|  [link](./messaging.fcmoptions.link.md) | string |  |
+|  [analyticsLabel?](./messaging.fcmoptions.analyticslabel.md) | string | <i>(Optional)</i> |
+|  [link?](./messaging.fcmoptions.link.md) | string | <i>(Optional)</i> |
 

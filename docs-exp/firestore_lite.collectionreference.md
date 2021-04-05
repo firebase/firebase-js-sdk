@@ -28,4 +28,5 @@ export declare class CollectionReference<T = DocumentData> extends Query<T>
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [withConverter(converter)](./firestore_lite.collectionreference.withconverter.md) |  | Applies a custom data converter to this CollectionReference, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.adddoc.md) with the returned <code>CollectionReference</code> instance, the provided converter will convert between Firestore data and your custom type <code>U</code>. |
+|  [withConverter(converter)](./firestore_lite.collectionreference.withconverter_1.md) |  |  |
 

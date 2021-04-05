@@ -19,7 +19,7 @@ export interface Config
 |  [apiHost](./auth.config.apihost.md) | string | The host at which the Firebase Auth backend is running. |
 |  [apiKey](./auth.config.apikey.md) | string | The API Key used to communicate with the Firebase Auth backend. |
 |  [apiScheme](./auth.config.apischeme.md) | string | The scheme used to communicate with the Firebase Auth backend. |
-|  [authDomain](./auth.config.authdomain.md) | string | The domain at which the web widgets are hosted (provided via Firebase Config). |
+|  [authDomain?](./auth.config.authdomain.md) | string | <i>(Optional)</i> The domain at which the web widgets are hosted (provided via Firebase Config). |
 |  [sdkClientVersion](./auth.config.sdkclientversion.md) | string | The SDK Client Version. |
 |  [tokenApiHost](./auth.config.tokenapihost.md) | string | The host at which the Secure Token API is running. |
 

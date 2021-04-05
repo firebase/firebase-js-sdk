@@ -9,9 +9,9 @@ Provider for generating generic [OAuthCredential](./auth.oauthcredential.md)<!--
 <b>Signature:</b>
 
 ```typescript
-export declare class OAuthProvider implements AuthProvider 
+export declare class OAuthProvider extends BaseOAuthProvider 
 ```
-<b>Implements:</b> [AuthProvider](./auth.authprovider.md)
+<b>Extends:</b> BaseOAuthProvider
 
 ## Example 1
 
@@ -55,29 +55,12 @@ const token = credential.accessToken;
 
 ```
 
-## Constructors
-
-|  Constructor | Modifiers | Description |
-|  --- | --- | --- |
-|  [(constructor)(providerId)](./auth.oauthprovider._constructor_.md) |  | Constructor for generic OAuth providers. |
-
-## Properties
-
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [providerId](./auth.oauthprovider.providerid.md) |  | string |  |
-
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [addScope(scope)](./auth.oauthprovider.addscope.md) |  | Add an OAuth scope to the credential. |
 |  [credential(params)](./auth.oauthprovider.credential.md) |  | Creates a [OAuthCredential](./auth.oauthcredential.md) from a generic OAuth provider's access token or ID token. |
 |  [credentialFromError(error)](./auth.oauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
 |  [credentialFromJSON(json)](./auth.oauthprovider.credentialfromjson.md) | <code>static</code> |  |
 |  [credentialFromResult(userCredential)](./auth.oauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->. |
-|  [getCustomParameters()](./auth.oauthprovider.getcustomparameters.md) |  | Retrieve the current list of [CustomParameters](./auth.customparameters.md)<!-- -->. |
-|  [getScopes()](./auth.oauthprovider.getscopes.md) |  | Retrieve the current list of OAuth scopes. |
-|  [setCustomParameters(customOAuthParameters)](./auth.oauthprovider.setcustomparameters.md) |  | Sets the OAuth custom parameters to pass in an OAuth request for popup and redirect sign-in operations. |
-|  [setDefaultLanguage(languageCode)](./auth.oauthprovider.setdefaultlanguage.md) |  | Set the language gode. |
 

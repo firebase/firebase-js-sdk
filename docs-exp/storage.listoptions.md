@@ -16,6 +16,6 @@ export interface ListOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [maxResults](./storage.listoptions.maxresults.md) | number \| null | If set, limits the total number of <code>prefixes</code> and <code>items</code> to return. The default and maximum maxResults is 1000. |
-|  [pageToken](./storage.listoptions.pagetoken.md) | string \| null | The <code>nextPageToken</code> from a previous call to <code>list()</code>. If provided, listing is resumed from the previous position. |
+|  [maxResults?](./storage.listoptions.maxresults.md) | number \| null | <i>(Optional)</i> If set, limits the total number of <code>prefixes</code> and <code>items</code> to return. The default and maximum maxResults is 1000. |
+|  [pageToken?](./storage.listoptions.pagetoken.md) | string \| null | <i>(Optional)</i> The <code>nextPageToken</code> from a previous call to <code>list()</code>. If provided, listing is resumed from the previous position. |
 

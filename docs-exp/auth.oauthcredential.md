@@ -21,9 +21,9 @@ Implementations specify the details about each auth provider's credential requir
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [accessToken](./auth.oauthcredential.accesstoken.md) |  | string | The OAuth access token associated with the credential if it belongs to an [OAuthProvider](./auth.oauthprovider.md)<!-- -->, such as <code>facebook.com</code>, <code>twitter.com</code>, etc. |
-|  [idToken](./auth.oauthcredential.idtoken.md) |  | string | The OAuth ID token associated with the credential if it belongs to an OIDC provider, such as <code>google.com</code>. |
-|  [secret](./auth.oauthcredential.secret.md) |  | string | The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0 provider, such as <code>twitter.com</code>. |
+|  [accessToken?](./auth.oauthcredential.accesstoken.md) |  | string | <i>(Optional)</i> The OAuth access token associated with the credential if it belongs to an [OAuthProvider](./auth.oauthprovider.md)<!-- -->, such as <code>facebook.com</code>, <code>twitter.com</code>, etc. |
+|  [idToken?](./auth.oauthcredential.idtoken.md) |  | string | <i>(Optional)</i> The OAuth ID token associated with the credential if it belongs to an OIDC provider, such as <code>google.com</code>. |
+|  [secret?](./auth.oauthcredential.secret.md) |  | string | <i>(Optional)</i> The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0 provider, such as <code>twitter.com</code>. |
 
 ## Methods
 

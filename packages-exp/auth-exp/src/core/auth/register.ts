@@ -16,7 +16,6 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import { Config, Dependencies } from '../../model/public_types';
 import {
   Component,
   ComponentType,
@@ -29,6 +28,8 @@ import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
 import { AuthInterop } from './firebase_internal';
+import { ConfigInternal } from '../../model/auth';
+import { Dependencies } from '../../model/public_types';
 import { _initializeAuthInstance } from './initialize';
 
 export const enum _ComponentName {
@@ -62,10 +63,19 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const app = container.getProvider('app-exp').getImmediate()!;
         const { apiKey, authDomain } = app.options;
         return (app => {
-          _assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
-          const config: Config = {
+          _assert(
+            apiKey && !apiKey.includes(':'),
+            AuthErrorCode.INVALID_API_KEY,
+            { appName: app.name }
+          );
+          // Auth domain is optional if IdP sign in isn't being used
+          _assert(!authDomain?.includes(':'), AuthErrorCode.ARGUMENT_ERROR, {
+            appName: app.name
+          });
+          const config: ConfigInternal = {
             apiKey,
             authDomain,
+            clientPlatform,
             apiHost: DefaultConfig.API_HOST,
             tokenApiHost: DefaultConfig.TOKEN_API_HOST,
             apiScheme: DefaultConfig.API_SCHEME,

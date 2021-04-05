@@ -99,11 +99,6 @@ class BrowserLocalPersistence
 
     const key = event.key;
 
-    // Ignore keys that have no listeners.
-    if (!this.listeners[key]) {
-      return;
-    }
-
     // Check the mechanism how this event was detected.
     // The first event will dictate the mechanism to be used.
     if (poll) {
@@ -165,12 +160,12 @@ class BrowserLocalPersistence
   }
 
   private notifyListeners(key: string, value: string | null): void {
-    if (!this.listeners[key]) {
-      return;
-    }
     this.localCache[key] = value;
-    for (const listener of Array.from(this.listeners[key])) {
-      listener(value ? JSON.parse(value) : value);
+    const listeners = this.listeners[key];
+    if (listeners) {
+      for (const listener of Array.from(listeners)) {
+        listener(value ? JSON.parse(value) : value);
+      }
     }
   }
 
@@ -209,7 +204,6 @@ class BrowserLocalPersistence
   }
 
   _addListener(key: string, listener: StorageEventListener): void {
-    this.localCache[key] = this.storage.getItem(key);
     if (Object.keys(this.listeners).length === 0) {
       // Whether browser can detect storage event when it had already been pushed to the background.
       // This may happen in some mobile browsers. A localStorage change in the foreground window
@@ -221,7 +215,11 @@ class BrowserLocalPersistence
         this.attachListener();
       }
     }
-    this.listeners[key] = this.listeners[key] || new Set();
+    if (!this.listeners[key]) {
+      this.listeners[key] = new Set();
+      // Populate the cache to avoid spuriously triggering on first poll.
+      this.localCache[key] = this.storage.getItem(key);
+    }
     this.listeners[key].add(listener);
   }
 
@@ -231,7 +229,6 @@ class BrowserLocalPersistence
 
       if (this.listeners[key].size === 0) {
         delete this.listeners[key];
-        delete this.localCache[key];
       }
     }
 

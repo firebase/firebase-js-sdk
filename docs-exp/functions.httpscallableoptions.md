@@ -16,5 +16,5 @@ export interface HttpsCallableOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [timeout](./functions.httpscallableoptions.timeout.md) | number |  |
+|  [timeout?](./functions.httpscallableoptions.timeout.md) | number | <i>(Optional)</i> |
 

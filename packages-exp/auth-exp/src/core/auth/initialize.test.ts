@@ -151,8 +151,11 @@ describe('core/auth/initialize', () => {
       await auth._initializationPromise;
 
       expect(auth.name).to.eq(fakeApp.name);
+      const expectedClientPlatform = isNode()
+        ? ClientPlatform.NODE
+        : ClientPlatform.BROWSER;
       const expectedSdkClientVersion = _getClientVersion(
-        isNode() ? ClientPlatform.NODE : ClientPlatform.BROWSER
+        expectedClientPlatform
       );
 
       expect(auth.config).to.eql({
@@ -160,6 +163,7 @@ describe('core/auth/initialize', () => {
         apiKey: 'fake-key',
         apiScheme: 'https',
         authDomain: 'fake-auth-domain',
+        clientPlatform: expectedClientPlatform,
         sdkClientVersion: expectedSdkClientVersion,
         tokenApiHost: 'securetoken.googleapis.com'
       });
