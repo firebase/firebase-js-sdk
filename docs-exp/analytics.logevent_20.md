@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_item_list', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_item_list', eventParams?: {
     items?: EventParams['items'];
     item_list_name?: EventParams['item_list_name'];
     item_list_id?: EventParams['item_list_id'];

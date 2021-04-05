@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'search' | 'view_search_results', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'search' | 'view_search_results', eventParams?: {
     search_term?: EventParams['search_term'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;

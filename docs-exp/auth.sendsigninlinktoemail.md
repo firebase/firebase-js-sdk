@@ -16,7 +16,7 @@ export declare function sendSignInLinkToEmail(auth: Auth, email: string, actionC
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | [Auth](./auth.auth.md) | The Auth instance. |
+|  auth | [Auth](./auth.auth.md) |  |
 |  email | string | The user's email address. |
 |  actionCodeSettings | [ActionCodeSettings](./auth.actioncodesettings.md) | The [ActionCodeSettings](./auth.actioncodesettings.md)<!-- -->. |
 

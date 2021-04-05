@@ -23,7 +23,7 @@ export interface FullMetadata extends UploadMetadata
 |  [generation](./storage.fullmetadata.generation.md) | string | The object's generation. [https://cloud.google.com/storage/docs/generations-preconditions](https://cloud.google.com/storage/docs/generations-preconditions) |
 |  [metageneration](./storage.fullmetadata.metageneration.md) | string | The object's metageneration. [https://cloud.google.com/storage/docs/generations-preconditions](https://cloud.google.com/storage/docs/generations-preconditions) |
 |  [name](./storage.fullmetadata.name.md) | string | The short name of this object, which is the last component of the full path. For example, if fullPath is 'full/path/image.png', name is 'image.png'. |
-|  [ref](./storage.fullmetadata.ref.md) | [StorageReference](./storage.storagereference.md) \| undefined | <code>StorageReference</code> associated with this upload. |
+|  [ref?](./storage.fullmetadata.ref.md) | [StorageReference](./storage.storagereference.md) \| undefined | <i>(Optional)</i> <code>StorageReference</code> associated with this upload. |
 |  [size](./storage.fullmetadata.size.md) | number | The size of this object, in bytes. |
 |  [timeCreated](./storage.fullmetadata.timecreated.md) | string | A date string representing when this object was created. |
 |  [updated](./storage.fullmetadata.updated.md) | string | A date string representing when this object was last updated. |

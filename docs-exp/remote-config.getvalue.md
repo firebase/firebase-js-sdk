@@ -4,7 +4,7 @@
 
 ## getValue() function
 
-Gets the  for the given key.
+Gets the [Value](./remote-config-types.value.md) for the given key.
 
 <b>Signature:</b>
 

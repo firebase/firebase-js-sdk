@@ -15,3 +15,5 @@ export declare type SetOptions = {
     readonly mergeFields?: Array<string | FieldPath>;
 };
 ```
+<b>References:</b> [FieldPath](./firestore_lite.fieldpath.md)
+

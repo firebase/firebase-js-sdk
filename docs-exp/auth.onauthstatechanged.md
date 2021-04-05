@@ -17,7 +17,7 @@ export declare function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObs
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md) | The Auth instance. |
-|  nextOrObserver | NextOrObserver&lt;[User](./auth.user.md)<!-- -->&gt; | callback triggered on change. |
+|  nextOrObserver | [NextOrObserver](./auth.nextorobserver.md)<!-- -->&lt;[User](./auth.user.md)<!-- -->&gt; | callback triggered on change. |
 |  error | ErrorFn | callback triggered on error. |
 |  completed | CompleteFn | callback triggered when observer is removed. |
 

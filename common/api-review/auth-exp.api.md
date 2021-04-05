@@ -671,10 +671,11 @@ export function updatePassword(user: User, newPassword: string): Promise<void>;
 // @public
 export function updatePhoneNumber(user: User, credential: PhoneAuthCredential): Promise<void>;
 
-// Warning: (ae-forgotten-export) The symbol "Profile" needs to be exported by the entry point index.d.ts
-//
 // @public
-export function updateProfile(user: User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
+export function updateProfile(user: User, { displayName, photoURL: photoUrl }: {
+    displayName?: string | null;
+    photoURL?: string | null;
+}): Promise<void>;
 
 // @public
 export function useAuthEmulator(auth: Auth, url: string, options?: {

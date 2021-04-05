@@ -16,7 +16,7 @@ export interface NotificationPayload
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [body](./messaging.notificationpayload.body.md) | string |  |
-|  [image](./messaging.notificationpayload.image.md) | string |  |
-|  [title](./messaging.notificationpayload.title.md) | string |  |
+|  [body?](./messaging.notificationpayload.body.md) | string | <i>(Optional)</i> |
+|  [image?](./messaging.notificationpayload.image.md) | string | <i>(Optional)</i> |
+|  [title?](./messaging.notificationpayload.title.md) | string | <i>(Optional)</i> |
 

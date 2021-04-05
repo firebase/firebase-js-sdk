@@ -9,7 +9,10 @@ Updates a user's profile data.
 <b>Signature:</b>
 
 ```typescript
-export declare function updateProfile(user: User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
+export declare function updateProfile(user: User, { displayName, photoURL: photoUrl }: {
+    displayName?: string | null;
+    photoURL?: string | null;
+}): Promise<void>;
 ```
 
 ## Parameters
@@ -17,7 +20,7 @@ export declare function updateProfile(user: User, { displayName, photoURL: photo
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  user | [User](./auth.user.md) | The user. |
-|  { displayName, photoURL: photoUrl } | Profile |  |
+|  { displayName, photoURL: photoUrl } | { displayName?: string \| null; photoURL?: string \| null; } |  |
 
 <b>Returns:</b>
 

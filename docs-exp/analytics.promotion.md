@@ -19,8 +19,8 @@ export interface Promotion
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [creative\_name](./analytics.promotion.creative_name.md) | string |  |
-|  [creative\_slot](./analytics.promotion.creative_slot.md) | string |  |
-|  [id](./analytics.promotion.id.md) | string |  |
-|  [name](./analytics.promotion.name.md) | string |  |
+|  [creative\_name?](./analytics.promotion.creative_name.md) | string | <i>(Optional)</i> |
+|  [creative\_slot?](./analytics.promotion.creative_slot.md) | string | <i>(Optional)</i> |
+|  [id?](./analytics.promotion.id.md) | string | <i>(Optional)</i> |
+|  [name?](./analytics.promotion.name.md) | string | <i>(Optional)</i> |
 

@@ -16,8 +16,8 @@ export interface ControlParams
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [event\_callback](./analytics.controlparams.event_callback.md) | () =&gt; void |  |
-|  [event\_timeout](./analytics.controlparams.event_timeout.md) | number |  |
-|  [groups](./analytics.controlparams.groups.md) | string \| string\[\] |  |
-|  [send\_to](./analytics.controlparams.send_to.md) | string \| string\[\] |  |
+|  [event\_callback?](./analytics.controlparams.event_callback.md) | () =&gt; void | <i>(Optional)</i> |
+|  [event\_timeout?](./analytics.controlparams.event_timeout.md) | number | <i>(Optional)</i> |
+|  [groups?](./analytics.controlparams.groups.md) | string \| string\[\] | <i>(Optional)</i> |
+|  [send\_to?](./analytics.controlparams.send_to.md) | string \| string\[\] | <i>(Optional)</i> |
 

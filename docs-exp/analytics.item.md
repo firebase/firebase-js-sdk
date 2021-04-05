@@ -14,30 +14,30 @@ export interface Item
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [affiliation](./analytics.item.affiliation.md) | string |  |
-|  [brand](./analytics.item.brand.md) | string |  |
-|  [category](./analytics.item.category.md) | string |  |
-|  [coupon](./analytics.item.coupon.md) | string |  |
-|  [creative\_name](./analytics.item.creative_name.md) | string |  |
-|  [creative\_slot](./analytics.item.creative_slot.md) | string |  |
-|  [discount](./analytics.item.discount.md) | [Currency](./analytics.currency.md) |  |
-|  [id](./analytics.item.id.md) | string |  |
-|  [index](./analytics.item.index.md) | number |  |
-|  [item\_brand](./analytics.item.item_brand.md) | string |  |
-|  [item\_category](./analytics.item.item_category.md) | string |  |
-|  [item\_category2](./analytics.item.item_category2.md) | string |  |
-|  [item\_category3](./analytics.item.item_category3.md) | string |  |
-|  [item\_category4](./analytics.item.item_category4.md) | string |  |
-|  [item\_category5](./analytics.item.item_category5.md) | string |  |
-|  [item\_id](./analytics.item.item_id.md) | string |  |
-|  [item\_list\_id](./analytics.item.item_list_id.md) | string |  |
-|  [item\_list\_name](./analytics.item.item_list_name.md) | string |  |
-|  [item\_name](./analytics.item.item_name.md) | string |  |
-|  [item\_variant](./analytics.item.item_variant.md) | string |  |
-|  [location\_id](./analytics.item.location_id.md) | string |  |
-|  [name](./analytics.item.name.md) | string |  |
-|  [price](./analytics.item.price.md) | [Currency](./analytics.currency.md) |  |
-|  [promotion\_id](./analytics.item.promotion_id.md) | string |  |
-|  [promotion\_name](./analytics.item.promotion_name.md) | string |  |
-|  [quantity](./analytics.item.quantity.md) | number |  |
+|  [affiliation?](./analytics.item.affiliation.md) | string | <i>(Optional)</i> |
+|  [brand?](./analytics.item.brand.md) | string | <i>(Optional)</i> |
+|  [category?](./analytics.item.category.md) | string | <i>(Optional)</i> |
+|  [coupon?](./analytics.item.coupon.md) | string | <i>(Optional)</i> |
+|  [creative\_name?](./analytics.item.creative_name.md) | string | <i>(Optional)</i> |
+|  [creative\_slot?](./analytics.item.creative_slot.md) | string | <i>(Optional)</i> |
+|  [discount?](./analytics.item.discount.md) | [Currency](./analytics.currency.md) | <i>(Optional)</i> |
+|  [id?](./analytics.item.id.md) | string | <i>(Optional)</i> |
+|  [index?](./analytics.item.index.md) | number | <i>(Optional)</i> |
+|  [item\_brand?](./analytics.item.item_brand.md) | string | <i>(Optional)</i> |
+|  [item\_category?](./analytics.item.item_category.md) | string | <i>(Optional)</i> |
+|  [item\_category2?](./analytics.item.item_category2.md) | string | <i>(Optional)</i> |
+|  [item\_category3?](./analytics.item.item_category3.md) | string | <i>(Optional)</i> |
+|  [item\_category4?](./analytics.item.item_category4.md) | string | <i>(Optional)</i> |
+|  [item\_category5?](./analytics.item.item_category5.md) | string | <i>(Optional)</i> |
+|  [item\_id?](./analytics.item.item_id.md) | string | <i>(Optional)</i> |
+|  [item\_list\_id?](./analytics.item.item_list_id.md) | string | <i>(Optional)</i> |
+|  [item\_list\_name?](./analytics.item.item_list_name.md) | string | <i>(Optional)</i> |
+|  [item\_name?](./analytics.item.item_name.md) | string | <i>(Optional)</i> |
+|  [item\_variant?](./analytics.item.item_variant.md) | string | <i>(Optional)</i> |
+|  [location\_id?](./analytics.item.location_id.md) | string | <i>(Optional)</i> |
+|  [name?](./analytics.item.name.md) | string | <i>(Optional)</i> |
+|  [price?](./analytics.item.price.md) | [Currency](./analytics.currency.md) | <i>(Optional)</i> |
+|  [promotion\_id?](./analytics.item.promotion_id.md) | string | <i>(Optional)</i> |
+|  [promotion\_name?](./analytics.item.promotion_name.md) | string | <i>(Optional)</i> |
+|  [quantity?](./analytics.item.quantity.md) | number | <i>(Optional)</i> |
 

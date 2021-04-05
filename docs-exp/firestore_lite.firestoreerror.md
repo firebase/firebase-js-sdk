@@ -20,5 +20,5 @@ export declare class FirestoreError extends Error
 |  [code](./firestore_lite.firestoreerror.code.md) |  | [FirestoreErrorCode](./firestore_lite.firestoreerrorcode.md) |  |
 |  [message](./firestore_lite.firestoreerror.message.md) |  | string |  |
 |  [name](./firestore_lite.firestoreerror.name.md) |  | string |  |
-|  [stack](./firestore_lite.firestoreerror.stack.md) |  | string |  |
+|  [stack?](./firestore_lite.firestoreerror.stack.md) |  | string | <i>(Optional)</i> |
 
