@@ -357,7 +357,7 @@ export function refFromURL(db: FirebaseDatabase, url: string): ReferenceImpl {
   db = getModularInstance(db);
   db._checkNotDeleted('refFromURL');
   const parsedURL = parseRepoInfo(url, db._repo.repoInfo_.nodeAdmin);
-  validateUrl('refFromURL', 1, parsedURL);
+  validateUrl('refFromURL', parsedURL);
 
   const repoInfo = parsedURL.repoInfo;
   if (
@@ -381,10 +381,9 @@ export function refFromURL(db: FirebaseDatabase, url: string): ReferenceImpl {
 export function child(ref: Reference, path: string): ReferenceImpl {
   ref = getModularInstance(ref);
   if (pathGetFront(ref._path) === null) {
-    // TODO(database-exp): Remove argument numbers from all error messages
-    validateRootPathString('child', 1, path, false);
+    validateRootPathString('child', 'path', path, false);
   } else {
-    validatePathString('child', 1, path, false);
+    validatePathString('child', 'path', path, false);
   }
   return new ReferenceImpl(ref._repo, pathChild(ref._path, path));
 }
@@ -401,7 +400,7 @@ export interface ThenableReferenceImpl
 export function push(ref: Reference, value?: unknown): ThenableReferenceImpl {
   ref = getModularInstance(ref);
   validateWritablePath('push', ref._path);
-  validateFirebaseDataArg('push', 1, value, ref._path, true);
+  validateFirebaseDataArg('push', value, ref._path, true);
   const now = repoServerTime(ref._repo);
   const name = nextPushId(now);
 
@@ -434,7 +433,7 @@ export function remove(ref: Reference): Promise<void> {
 export function set(ref: Reference, value: unknown): Promise<void> {
   ref = getModularInstance(ref);
   validateWritablePath('set', ref._path);
-  validateFirebaseDataArg('set', 1, value, ref._path, false);
+  validateFirebaseDataArg('set', value, ref._path, false);
   const deferred = new Deferred<void>();
   repoSetWithPriority(
     ref._repo,
@@ -452,7 +451,7 @@ export function setPriority(
 ): Promise<void> {
   ref = getModularInstance(ref);
   validateWritablePath('setPriority', ref._path);
-  validatePriority('setPriority', 1, priority, false);
+  validatePriority('setPriority', priority, false);
   const deferred = new Deferred<void>();
   repoSetWithPriority(
     ref._repo,
@@ -470,8 +469,8 @@ export function setWithPriority(
   priority: string | number | null
 ): Promise<void> {
   validateWritablePath('setWithPriority', ref._path);
-  validateFirebaseDataArg('setWithPriority', 1, value, ref._path, false);
-  validatePriority('setWithPriority', 2, priority, false);
+  validateFirebaseDataArg('setWithPriority', value, ref._path, false);
+  validatePriority('setWithPriority', priority, false);
 
   if (ref.key === '.length' || ref.key === '.keys') {
     throw 'setWithPriority failed: ' + ref.key + ' is a read-only object.';
@@ -489,7 +488,7 @@ export function setWithPriority(
 }
 
 export function update(ref: Reference, values: object): Promise<void> {
-  validateFirebaseMergeDataArg('update', 1, values, ref._path, false);
+  validateFirebaseMergeDataArg('update', values, ref._path, false);
   const deferred = new Deferred<void>();
   repoUpdate(
     ref._repo,
@@ -1006,7 +1005,7 @@ class QueryEndAtConstraint extends QueryConstraint {
   }
 
   _apply<T>(query: QueryImpl): QueryImpl {
-    validateFirebaseDataArg('endAt', 1, this._value, query._path, true);
+    validateFirebaseDataArg('endAt', this._value, query._path, true);
     const newParams = queryParamsEndAt(
       query._queryParams,
       this._value,
@@ -1033,7 +1032,7 @@ export function endAt(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint {
-  validateKey('endAt', 2, key, true);
+  validateKey('endAt', 'key', key, true);
   return new QueryEndAtConstraint(value, key);
 }
 
@@ -1048,7 +1047,7 @@ class QueryEndBeforeConstraint extends QueryConstraint {
   }
 
   _apply<T>(query: QueryImpl): QueryImpl {
-    validateFirebaseDataArg('endBefore', 1, this._value, query._path, false);
+    validateFirebaseDataArg('endBefore', this._value, query._path, false);
     const newParams = queryParamsEndBefore(
       query._queryParams,
       this._value,
@@ -1075,7 +1074,7 @@ export function endBefore(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint {
-  validateKey('endBefore', 2, key, true);
+  validateKey('endBefore', 'key', key, true);
   return new QueryEndBeforeConstraint(value, key);
 }
 
@@ -1090,7 +1089,7 @@ class QueryStartAtConstraint extends QueryConstraint {
   }
 
   _apply<T>(query: QueryImpl): QueryImpl {
-    validateFirebaseDataArg('startAt', 1, this._value, query._path, true);
+    validateFirebaseDataArg('startAt', this._value, query._path, true);
     const newParams = queryParamsStartAt(
       query._queryParams,
       this._value,
@@ -1117,7 +1116,7 @@ export function startAt(
   value: number | string | boolean | null = null,
   key?: string
 ): QueryConstraint {
-  validateKey('startAt', 2, key, true);
+  validateKey('startAt', 'key', key, true);
   return new QueryStartAtConstraint(value, key);
 }
 
@@ -1132,7 +1131,7 @@ class QueryStartAfterConstraint extends QueryConstraint {
   }
 
   _apply<T>(query: QueryImpl): QueryImpl {
-    validateFirebaseDataArg('startAfter', 1, this._value, query._path, false);
+    validateFirebaseDataArg('startAfter', this._value, query._path, false);
     const newParams = queryParamsStartAfter(
       query._queryParams,
       this._value,
@@ -1159,7 +1158,7 @@ export function startAfter(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint {
-  validateKey('startAfter', 2, key, true);
+  validateKey('startAfter', 'key', key, true);
   return new QueryStartAfterConstraint(value, key);
 }
 
@@ -1266,7 +1265,7 @@ export function orderByChild(path: string): QueryConstraint {
       'orderByChild: "$value" is invalid.  Use orderByValue() instead.'
     );
   }
-  validatePathString('orderByChild', 1, path, false);
+  validatePathString('orderByChild', 'path', path, false);
   return new QueryOrderByChildConstraint(path);
 }
 
@@ -1341,7 +1340,7 @@ class QueryEqualToValueConstraint extends QueryConstraint {
   }
 
   _apply<T>(query: QueryImpl): QueryImpl {
-    validateFirebaseDataArg('equalTo', 1, this._value, query._path, false);
+    validateFirebaseDataArg('equalTo', this._value, query._path, false);
     if (query._queryParams.hasStart()) {
       throw new Error(
         'equalTo: Starting point was already set (by another call to startAt/startAfter or ' +
@@ -1364,7 +1363,7 @@ export function equalTo(
   value: number | string | boolean | null,
   key?: string
 ): QueryConstraint {
-  validateKey('equalTo', 2, key, true);
+  validateKey('equalTo', 'key', key, true);
   return new QueryEqualToValueConstraint(value, key);
 }
 
