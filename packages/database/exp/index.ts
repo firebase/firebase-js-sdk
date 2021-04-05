@@ -37,9 +37,9 @@ export {
   Reference,
   ListenOptions,
   Unsubscribe,
-  ThenableReference,
-  OnDisconnect
+  ThenableReference
 } from '../src/exp/Reference';
+export { OnDisconnect } from '../src/exp/OnDisconnect';
 export {
   QueryConstraint,
   DataSnapshot,

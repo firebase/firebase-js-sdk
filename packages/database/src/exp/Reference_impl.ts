@@ -85,9 +85,9 @@ import {
 } from '../core/view/QueryParams';
 
 import { FirebaseDatabase } from './Database';
+import { OnDisconnect } from './OnDisconnect';
 import {
   ListenOptions,
-  OnDisconnect,
   Query as Query,
   Reference as Reference,
   Unsubscribe
@@ -390,8 +390,8 @@ export function child(ref: Reference, path: string): ReferenceImpl {
 }
 
 export function onDisconnect(ref: Reference): OnDisconnect {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  ref = getModularInstance(ref) as ReferenceImpl;
+  return new OnDisconnect(ref._repo, ref._path);
 }
 
 export interface ThenableReferenceImpl
