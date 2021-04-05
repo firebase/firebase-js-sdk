@@ -34,6 +34,7 @@ import {
 } from './helpers/util';
 
 import '../index';
+import { Deferred } from '@firebase/util';
 
 describe('Transaction Tests', () => {
   // Tests that use hijackHash() should set restoreHash to the restore function
@@ -561,6 +562,8 @@ describe('Transaction Tests', () => {
 
     await node.child('foo').set(5);
 
+    const deferred = new Deferred<void>();
+
     // 'foo' gets overwritten in the update so the transaction gets cancelled.
     node.child('foo').transaction(
       old => {
@@ -569,7 +572,7 @@ describe('Transaction Tests', () => {
       (error, committed, snapshot) => {
         expect(error.message).to.equal('set');
         expect(committed).to.equal(false);
-        fooTransactionDone = true;
+        deferred.resolve();
       }
     );
 
@@ -595,7 +598,7 @@ describe('Transaction Tests', () => {
       }
     });
 
-    expect(fooTransactionDone).to.equal(true);
+    await deferred.promise;
     expect(barTransactionDone).to.equal(false);
     restoreHash();
     restoreHash = null;
