@@ -30,7 +30,11 @@ import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
 import { RepoInfo } from '../core/RepoInfo';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
-import { fatal, log } from '../core/util/util';
+import {
+  fatal,
+  log,
+  enableLogging as enableLoggingImpl
+} from '../core/util/util';
 import { validateUrl } from '../core/util/validation';
 
 import { Reference } from './Reference';
@@ -291,6 +295,5 @@ export function enableLogging(
   logger?: boolean | ((message: string) => unknown),
   persistent?: boolean
 ): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  enableLoggingImpl(logger, persistent);
 }
