@@ -84,10 +84,10 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
     validateArgCount('database.ref', 0, 1, arguments.length);
     if (path instanceof Reference) {
       const childRef = refFromURL(this._delegate, path.toString());
-      return new Reference(this, childRef._path);
+      return new Reference(this, childRef);
     } else {
       const childRef = ref(this._delegate, path);
-      return new Reference(this, childRef._path);
+      return new Reference(this, childRef);
     }
   }
 
@@ -101,7 +101,7 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
     const apiName = 'database.refFromURL';
     validateArgCount(apiName, 1, 1, arguments.length);
     const childRef = refFromURL(this._delegate, url);
-    return new Reference(this, childRef._path);
+    return new Reference(this, childRef);
   }
 
   // Make individual repo go offline.

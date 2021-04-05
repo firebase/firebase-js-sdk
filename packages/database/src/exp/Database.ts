@@ -33,7 +33,6 @@ import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
 import { fatal, log } from '../core/util/util';
 import { validateUrl } from '../core/util/validation';
 
-import { Reference } from './Reference';
 import { ReferenceImpl } from './Reference_impl';
 
 /**
@@ -203,7 +202,7 @@ export class FirebaseDatabase implements _FirebaseService {
   _instanceStarted: boolean = false;
 
   /** Backing state for root_ */
-  private _rootInternal?: Reference;
+  private _rootInternal?: ReferenceImpl;
 
   constructor(private _repoInternal: Repo, readonly app: FirebaseApp) {}
 
@@ -219,7 +218,7 @@ export class FirebaseDatabase implements _FirebaseService {
     return this._repoInternal;
   }
 
-  get _root(): Reference {
+  get _root(): ReferenceImpl {
     if (!this._rootInternal) {
       this._rootInternal = new ReferenceImpl(this._repo, newEmptyPath());
     }

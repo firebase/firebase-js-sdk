@@ -15,10 +15,29 @@
  * limitations under the License.
  */
 
+import { getModularInstance, Deferred } from '@firebase/util';
+
+import { repoStartTransaction } from '../core/Repo';
+import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
+import { Node } from '../core/snap/Node';
+import { validateWritablePath } from '../core/util/validation';
+
 import { Reference } from './Reference';
+import { DataSnapshot, onValue, ReferenceImpl } from './Reference_impl';
 
 export interface TransactionOptions {
   readonly applyLocally?: boolean;
+}
+
+export class TransactionResult {
+  /**
+   * A type for the resolve value of Firebase.transaction.
+   */
+  constructor(readonly committed: boolean, readonly snapshot: DataSnapshot) {}
+
+  toJSON(): object {
+    return { committed: this.committed, snapshot: this.snapshot.toJSON() };
+  }
 }
 
 export function runTransaction(
@@ -26,7 +45,49 @@ export function runTransaction(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transactionUpdate: (currentData: any) => unknown,
   options?: TransactionOptions
-): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+): Promise<TransactionResult> {
+  ref = getModularInstance(ref);
+
+  validateWritablePath('Reference.transaction', ref._path);
+
+  if (ref.key === '.length' || ref.key === '.keys') {
+    throw (
+      'Reference.transaction failed: ' + ref.key + ' is a read-only object.'
+    );
+  }
+
+  const applyLocally = options?.applyLocally ?? true;
+  const deferred = new Deferred<TransactionResult>();
+
+  const promiseComplete = (
+    error: Error | null,
+    committed: boolean,
+    node: Node | null
+  ) => {
+    let dataSnapshot: DataSnapshot | null = null;
+    if (error) {
+      deferred.reject(error);
+    } else {
+      dataSnapshot = new DataSnapshot(
+        node,
+        new ReferenceImpl(ref._repo, ref._path),
+        PRIORITY_INDEX
+      );
+      deferred.resolve(new TransactionResult(committed, dataSnapshot));
+    }
+  };
+
+  // Add a watch to make sure we get server updates.
+  const unwatcher = onValue(ref, () => {});
+
+  repoStartTransaction(
+    ref._repo,
+    ref._path,
+    transactionUpdate,
+    promiseComplete,
+    unwatcher,
+    applyLocally
+  );
+
+  return deferred.promise;
 }

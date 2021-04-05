@@ -16,6 +16,7 @@
  */
 
 import firebase from '@firebase/app';
+import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
 import { Reference } from '../src/api/Reference';
@@ -381,13 +382,16 @@ describe('Transaction Tests', () => {
     node.child('foo').set(0);
 
     expect(firstDone).to.equal(false);
+
+    // Wait for the `onComplete` callbacks to be invoked. This is no longer
+    // happening synchronously, as the underlying database@exp implementation
+    // uses promises.
+    await ea.promise;
+
     expect(secondDone).to.equal(true);
     expect(thirdRunCount).to.equal(2);
     // Note that the set actually raises two events, one overlaid on top of the original transaction value, and a
     // second one with the re-run value from the third transaction
-
-    await ea.promise;
-
     expect(nodeSnap.val()).to.deep.equal({ foo: 0, bar: 'second' });
   });
 
@@ -550,13 +554,15 @@ describe('Transaction Tests', () => {
 
   it('Update should not cancel unrelated transactions', async () => {
     const node = getRandomNode() as Reference;
-    let fooTransactionDone = false;
+    const fooTransactionDone = false;
     let barTransactionDone = false;
     restoreHash = hijackHash(() => {
       return 'foobar';
     });
 
     await node.child('foo').set(5);
+
+    const deferred = new Deferred<void>();
 
     // 'foo' gets overwritten in the update so the transaction gets cancelled.
     node.child('foo').transaction(
@@ -566,7 +572,7 @@ describe('Transaction Tests', () => {
       (error, committed, snapshot) => {
         expect(error.message).to.equal('set');
         expect(committed).to.equal(false);
-        fooTransactionDone = true;
+        deferred.resolve();
       }
     );
 
@@ -592,7 +598,7 @@ describe('Transaction Tests', () => {
       }
     });
 
-    expect(fooTransactionDone).to.equal(true);
+    await deferred.promise;
     expect(barTransactionDone).to.equal(false);
     restoreHash();
     restoreHash = null;
