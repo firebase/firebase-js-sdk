@@ -16,6 +16,7 @@
  */
 
 import firebase from '@firebase/app';
+import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
 import { Reference } from '../src/api/Reference';
@@ -34,7 +35,6 @@ import {
 } from './helpers/util';
 
 import '../index';
-import { Deferred } from '@firebase/util';
 
 describe('Transaction Tests', () => {
   // Tests that use hijackHash() should set restoreHash to the restore function
@@ -554,7 +554,7 @@ describe('Transaction Tests', () => {
 
   it('Update should not cancel unrelated transactions', async () => {
     const node = getRandomNode() as Reference;
-    let fooTransactionDone = false;
+    const fooTransactionDone = false;
     let barTransactionDone = false;
     restoreHash = hijackHash(() => {
       return 'foobar';
