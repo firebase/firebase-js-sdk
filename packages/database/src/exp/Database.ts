@@ -15,8 +15,13 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _FirebaseService, _getProvider, FirebaseApp } from '@firebase/app-exp';
+import {
+  _FirebaseService,
+  _getProvider,
+  FirebaseApp,
+  getApp
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
@@ -115,7 +120,10 @@ export { ServerValue };
  * provided, the SDK connects to the default instance of the Firebase App.
  * @returns The `FirebaseDatabase` instance of the provided app.
  */
-export function getDatabase(app: FirebaseApp, url?: string): FirebaseDatabase {
+export function getDatabase(
+  app: FirebaseApp = getApp(),
+  url?: string
+): FirebaseDatabase {
   return _getProvider(app, 'database-exp').getImmediate({
     identifier: url
   }) as FirebaseDatabase;

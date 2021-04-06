@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider, FirebaseApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import { FUNCTIONS_TYPE } from './constants';
 
 import { Provider } from '@firebase/component';
@@ -39,7 +39,7 @@ export * from './public-types';
  * @public
  */
 export function getFunctions(
-  app: FirebaseApp,
+  app: FirebaseApp = getApp(),
   regionOrCustomDomain: string = DEFAULT_REGION
 ): Functions {
   // Dependencies

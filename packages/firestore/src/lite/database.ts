@@ -18,7 +18,8 @@
 import {
   _getProvider,
   _removeServiceInstance,
-  FirebaseApp
+  FirebaseApp,
+  getApp
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -205,7 +206,7 @@ export function initializeFirestore(
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp): FirebaseFirestore {
+export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
   return _getProvider(
     app,
     'firestore/lite'

@@ -26,7 +26,7 @@ import {
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
 import { deleteToken as _deleteToken } from './api/deleteToken';
-import { _getProvider, FirebaseApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
@@ -39,7 +39,7 @@ import { getModularInstance } from '@firebase/util';
  *
  * @public
  */
-export function getMessaging(app: FirebaseApp): FirebaseMessaging {
+export function getMessaging(app: FirebaseApp = getApp()): FirebaseMessaging {
   app = getModularInstance(app);
   const messagingProvider: Provider<'messaging-exp'> = _getProvider(
     app,
