@@ -24,7 +24,7 @@ export const enum ErrorCode {
   PERMISSION_DEFAULT = 'permission-default',
   PERMISSION_BLOCKED = 'permission-blocked',
   UNSUPPORTED_BROWSER = 'unsupported-browser',
-  INDEXED_DB_UNSUPPORTED = 'index-db-unsupported',
+  INDEXED_DB_UNSUPPORTED = 'indexed-db-unsupported',
   FAILED_DEFAULT_REGISTRATION = 'failed-service-worker-registration',
   TOKEN_SUBSCRIBE_FAILED = 'token-subscribe-failed',
   TOKEN_SUBSCRIBE_NO_TOKEN = 'token-subscribe-no-token',
@@ -52,7 +52,7 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.UNSUPPORTED_BROWSER]:
     "This browser doesn't support the API's required to use the firebase SDK.",
   [ErrorCode.INDEXED_DB_UNSUPPORTED]:
-    "This browser context doesn't support the idb.open (ex. Safari iFrame, Firefox Private Browsing, etc)",
+    "This browser doesn't support indexedDb.open() (ex. Safari iFrame, Firefox Private Browsing, etc)",
   [ErrorCode.FAILED_DEFAULT_REGISTRATION]:
     'We are unable to register the default service worker. {$browserErrorMessage}',
   [ErrorCode.TOKEN_SUBSCRIBE_FAILED]:
