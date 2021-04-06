@@ -23,7 +23,7 @@ import {
 } from './types';
 import * as modularAPIs from '@firebase/app-exp';
 import { _FirebaseAppInternal as _FirebaseAppExp } from '@firebase/app-exp';
-import { Component, ComponentType } from '@firebase/component';
+import { Component, ComponentType, Name } from '@firebase/component';
 
 import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
@@ -131,8 +131,8 @@ export function createFirebaseNamespaceCore(
     return Object.keys(apps).map(name => apps[name]);
   }
 
-  function registerComponentCompat(
-    component: Component
+  function registerComponentCompat<T extends Name>(
+    component: Component<T>
   ): FirebaseServiceNamespace<_FirebaseService> | null {
     const componentName = component.name;
     const componentNameWithoutCompat = componentName.replace('-compat', '');
