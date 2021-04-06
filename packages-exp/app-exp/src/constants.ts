@@ -21,17 +21,21 @@ import { name as analyticsCompatName } from '../../../packages-exp/analytics-com
 import { name as analyticsName } from '../../../packages-exp/analytics-exp/package.json';
 import { name as authName } from '../../../packages-exp/auth-exp/package.json';
 import { name as authCompatName } from '../../../packages-exp/auth-compat-exp/package.json';
-import { name as databaseName } from '../../../packages/database/package.json';
+import { name as databaseName } from '../../../packages/database/exp/package.json';
 import { name as functionsName } from '../../../packages-exp/functions-exp/package.json';
 import { name as functionsCompatName } from '../../../packages-exp/functions-compat/package.json';
 import { name as installationsName } from '../../../packages-exp/installations-exp/package.json';
 import { name as installationsCompatName } from '../../../packages-exp/installations-compat/package.json';
 import { name as messagingName } from '../../../packages-exp/messaging-exp/package.json';
+import { name as messagingCompatName } from '../../../packages-exp/messaging-compat/package.json';
 import { name as performanceName } from '../../../packages-exp/performance-exp/package.json';
+import { name as performanceCompatName } from '../../../packages-exp/performance-compat/package.json';
 import { name as remoteConfigName } from '../../../packages-exp/remote-config-exp/package.json';
 import { name as remoteConfigCompatName } from '../../../packages-exp/remote-config-compat/package.json';
 import { name as storageName } from '../../../packages/storage/package.json';
-import { name as firestoreName } from '../../../packages/firestore/package.json';
+import { name as storageCompatName } from '../../../packages/storage/compat/package.json';
+import { name as firestoreName } from '../../../packages/firestore/exp/package.json';
+import { name as firestoreCompatName } from '../../../packages/firestore/compat/package.json';
 import { name as packageName } from '../../../packages-exp/firebase-exp/package.json';
 
 /**
@@ -54,11 +58,15 @@ export const PLATFORM_LOG_STRING = {
   [installationsName]: 'fire-iid',
   [installationsCompatName]: 'fire-iid-compat',
   [messagingName]: 'fire-fcm',
+  [messagingCompatName]: 'fire-fcm-compat',
   [performanceName]: 'fire-perf',
+  [performanceCompatName]: 'fire-perf-compat',
   [remoteConfigName]: 'fire-rc',
   [remoteConfigCompatName]: 'fire-rc-compat',
   [storageName]: 'fire-gcs',
+  [storageCompatName]: 'fire-gcs-compat',
   [firestoreName]: 'fire-fst',
+  [firestoreCompatName]: 'fire-fst-compat',
   'fire-js': 'fire-js', // Platform identifier for JS SDK.
   [packageName]: 'fire-js-all'
 } as const;

@@ -1,5 +1,6 @@
 {
   "name": "@firebase/firestore-exp",
+  "version": "0.0.900",
   "description": "A tree-shakeable version of the Firestore SDK",
   "main": "../dist/exp/index.node.umd.js",
   "main-esm": "../dist/exp/index.node.esm2017.js",
