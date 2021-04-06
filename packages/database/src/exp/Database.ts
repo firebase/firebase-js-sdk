@@ -262,6 +262,16 @@ export function getDatabase(app: FirebaseApp, url?: string): FirebaseDatabase {
   }) as FirebaseDatabase;
 }
 
+/**
+ * Modify the provided instance to communicate with the Realtime Database
+ * emulator.
+ *
+ * <p>Note: This method must be called before performing any other operation.
+ *
+ * @param db - The instance to modify.
+ * @param host - The emulator host (ex: localhost)
+ * @param port - The emulator port (ex: 8080)
+ */
 export function useDatabaseEmulator(
   db: FirebaseDatabase,
   host: string,
@@ -278,20 +288,73 @@ export function useDatabaseEmulator(
   repoManagerApplyEmulatorSettings(db._repo, host, port);
 }
 
+/**
+ * Disconnects from the server (all Database operations will be completed
+ * offline).
+ *
+ * The client automatically maintains a persistent connection to the Database
+ * server, which will remain active indefinitely and reconnect when
+ * disconnected. However, the `goOffline()` and `goOnline()` methods may be used
+ * to control the client connection in cases where a persistent connection is
+ * undesirable.
+ *
+ * While offline, the client will no longer receive data updates from the
+ * Database. However, all Database operations performed locally will continue to
+ * immediately fire events, allowing your application to continue behaving
+ * normally. Additionally, each operation performed locally will automatically
+ * be queued and retried upon reconnection to the Database server.
+ *
+ * To reconnect to the Database and begin receiving remote events, see
+ * `goOnline()`.
+ *
+ * @param db - The instance to disconnect.
+ */
 export function goOffline(db: FirebaseDatabase): void {
   db = getModularInstance(db);
   db._checkNotDeleted('goOffline');
   repoInterrupt(db._repo);
 }
 
+/**
+ * Reconnects to the server and synchronizes the offline Database state
+ * with the server state.
+ *
+ * This method should be used after disabling the active connection with
+ * `goOffline()`. Once reconnected, the client will transmit the proper data
+ * and fire the appropriate events so that your client "catches up"
+ * automatically.
+ *
+ * @param db - The instance to reconnect.
+ */
 export function goOnline(db: FirebaseDatabase): void {
   db = getModularInstance(db);
   db._checkNotDeleted('goOnline');
   repoResume(db._repo);
 }
 
+/**
+ * Logs debugging information to the console.
+ *
+ * @param enabled Enables logging if `true`, disables logging if `false`.
+ * @param persistent Remembers the logging state between page refreshes if
+ * `true`.
+ */
+export function enableLogging(enabled: boolean, persistent?: boolean);
+
+/**
+ * Logs debugging information to the console.
+ *
+ * @param logger A custom logger function to control how things get logged.
+ * @param persistent Remembers the logging state between page refreshes if
+ * `true`.
+ */
 export function enableLogging(
-  logger?: boolean | ((message: string) => unknown),
+  logger?: (message: string) => unknown,
+  persistent?: boolean
+);
+
+export function enableLogging(
+  logger: boolean | ((message: string) => unknown),
   persistent?: boolean
 ): void {
   enableLoggingImpl(logger, persistent);
