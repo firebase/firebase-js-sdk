@@ -132,7 +132,7 @@ export function repoManagerDatabaseFromApp(
       ? new EmulatorAdminTokenProvider()
       : new FirebaseAuthTokenProvider(app.name, app.options, authProvider);
 
-  validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
+  validateUrl('Invalid Firebase Database URL', parsedUrl);
   if (!pathIsEmpty(parsedUrl.path)) {
     fatal(
       'Database URL must point to the root of a Firebase Database ' +

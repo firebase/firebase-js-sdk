@@ -26,7 +26,7 @@ export class OnDisconnect implements Compat<ExpOnDisconnect> {
 
   cancel(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.cancel', 0, 1, arguments.length);
-    validateCallback('OnDisconnect.cancel', 1, onComplete, true);
+    validateCallback('OnDisconnect.cancel', 'onComplete', onComplete, true);
     const result = this._delegate.cancel();
     if (onComplete) {
       result.then(
@@ -39,7 +39,7 @@ export class OnDisconnect implements Compat<ExpOnDisconnect> {
 
   remove(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.remove', 0, 1, arguments.length);
-    validateCallback('OnDisconnect.remove', 1, onComplete, true);
+    validateCallback('OnDisconnect.remove', 'onComplete', onComplete, true);
     const result = this._delegate.remove();
     if (onComplete) {
       result.then(
@@ -52,7 +52,7 @@ export class OnDisconnect implements Compat<ExpOnDisconnect> {
 
   set(value: unknown, onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.set', 1, 2, arguments.length);
-    validateCallback('OnDisconnect.set', 2, onComplete, true);
+    validateCallback('OnDisconnect.set', 'onComplete', onComplete, true);
     const result = this._delegate.set(value);
     if (onComplete) {
       result.then(
@@ -69,7 +69,12 @@ export class OnDisconnect implements Compat<ExpOnDisconnect> {
     onComplete?: (a: Error | null) => void
   ): Promise<void> {
     validateArgCount('OnDisconnect.setWithPriority', 2, 3, arguments.length);
-    validateCallback('OnDisconnect.setWithPriority', 3, onComplete, true);
+    validateCallback(
+      'OnDisconnect.setWithPriority',
+      'onComplete',
+      onComplete,
+      true
+    );
     const result = this._delegate.setWithPriority(value, priority);
     if (onComplete) {
       result.then(
@@ -96,7 +101,7 @@ export class OnDisconnect implements Compat<ExpOnDisconnect> {
           'existing data, or an Object with integer keys if you really do want to only update some of the children.'
       );
     }
-    validateCallback('OnDisconnect.update', 2, onComplete, true);
+    validateCallback('OnDisconnect.update', 'onComplete', onComplete, true);
     const result = this._delegate.update(objectToMerge);
     if (onComplete) {
       result.then(

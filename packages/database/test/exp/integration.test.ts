@@ -27,15 +27,15 @@ import {
   ref,
   refFromURL
 } from '../../exp/index';
-import { set } from '../../src/exp/Reference_impl';
+import { onValue, set } from '../../src/exp/Reference_impl';
+import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
 import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
-// TODO(database-exp): Re-enable these tests
-describe.skip('Database Tests', () => {
+describe('Database@exp Tests', () => {
   let defaultApp;
 
   beforeEach(() => {
@@ -65,7 +65,7 @@ describe.skip('Database Tests', () => {
     expect(db.app).to.equal(defaultApp);
   });
 
-  it('Can set and ge tref', async () => {
+  it('Can set and get ref', async () => {
     const db = getDatabase(defaultApp);
     await set(ref(db, 'foo/bar'), 'foobar');
     const snap = await get(ref(db, 'foo/bar'));
@@ -75,6 +75,60 @@ describe.skip('Database Tests', () => {
   it('Can get refFromUrl', async () => {
     const db = getDatabase(defaultApp);
     await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+  });
+
+  it('Can get updates', async () => {
+    const db = getDatabase(defaultApp);
+    const fooRef = ref(db, 'foo');
+
+    const ea = EventAccumulatorFactory.waitsForCount(2);
+    onValue(fooRef, snap => {
+      ea.addEvent(snap.val());
+    });
+
+    await set(fooRef, 'a');
+    await set(fooRef, 'b');
+
+    const [snap1, snap2] = await ea.promise;
+    expect(snap1).to.equal('a');
+    expect(snap2).to.equal('b');
+  });
+
+  it('Can use onlyOnce', async () => {
+    const db = getDatabase(defaultApp);
+    const fooRef = ref(db, 'foo');
+
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    onValue(
+      fooRef,
+      snap => {
+        ea.addEvent(snap.val());
+      },
+      { onlyOnce: true }
+    );
+
+    await set(fooRef, 'a');
+    await set(fooRef, 'b');
+
+    const [snap1] = await ea.promise;
+    expect(snap1).to.equal('a');
+  });
+
+  it('Can unsubscribe', async () => {
+    const db = getDatabase(defaultApp);
+    const fooRef = ref(db, 'foo');
+
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    const unsubscribe = onValue(fooRef, snap => {
+      ea.addEvent(snap.val());
+    });
+
+    await set(fooRef, 'a');
+    unsubscribe();
+    await set(fooRef, 'b');
+
+    const [snap1] = await ea.promise;
+    expect(snap1).to.equal('a');
   });
 
   it('Can goOffline/goOnline', async () => {

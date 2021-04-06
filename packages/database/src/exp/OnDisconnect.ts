@@ -60,7 +60,7 @@ export class OnDisconnect {
 
   set(value: unknown): Promise<void> {
     validateWritablePath('OnDisconnect.set', this._path);
-    validateFirebaseDataArg('OnDisconnect.set', 1, value, this._path, false);
+    validateFirebaseDataArg('OnDisconnect.set', value, this._path, false);
     const deferred = new Deferred<void>();
     repoOnDisconnectSet(
       this._repo,
@@ -78,12 +78,11 @@ export class OnDisconnect {
     validateWritablePath('OnDisconnect.setWithPriority', this._path);
     validateFirebaseDataArg(
       'OnDisconnect.setWithPriority',
-      1,
       value,
       this._path,
       false
     );
-    validatePriority('OnDisconnect.setWithPriority', 2, priority, false);
+    validatePriority('OnDisconnect.setWithPriority', priority, false);
 
     const deferred = new Deferred<void>();
     repoOnDisconnectSetWithPriority(
@@ -96,12 +95,11 @@ export class OnDisconnect {
     return deferred.promise;
   }
 
-  update(objectToMerge: Indexable): Promise<void> {
+  update(values: Indexable): Promise<void> {
     validateWritablePath('OnDisconnect.update', this._path);
     validateFirebaseMergeDataArg(
       'OnDisconnect.update',
-      1,
-      objectToMerge,
+      values,
       this._path,
       false
     );
@@ -109,7 +107,7 @@ export class OnDisconnect {
     repoOnDisconnectUpdate(
       this._repo,
       this._path,
-      objectToMerge,
+      values,
       deferred.wrapCallback(() => {})
     );
     return deferred.promise;

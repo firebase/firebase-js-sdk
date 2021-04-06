@@ -123,30 +123,27 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   /**
    * Returns a DataSnapshot of the specified child node's contents.
    *
-   * @param childPathString Path to a child.
+   * @param path Path to a child.
    * @return DataSnapshot for child node.
    */
-  child(childPathString: string): DataSnapshot {
+  child(path: string): DataSnapshot {
     validateArgCount('DataSnapshot.child', 0, 1, arguments.length);
     // Ensure the childPath is a string (can be a number)
-    childPathString = String(childPathString);
-    validatePathString('DataSnapshot.child', 1, childPathString, false);
-    return new DataSnapshot(
-      this._database,
-      this._delegate.child(childPathString)
-    );
+    path = String(path);
+    validatePathString('DataSnapshot.child', 'path', path, false);
+    return new DataSnapshot(this._database, this._delegate.child(path));
   }
 
   /**
    * Returns whether the snapshot contains a child at the specified path.
    *
-   * @param childPathString Path to a child.
+   * @param path Path to a child.
    * @return Whether the child exists.
    */
-  hasChild(childPathString: string): boolean {
+  hasChild(path: string): boolean {
     validateArgCount('DataSnapshot.hasChild', 1, 1, arguments.length);
-    validatePathString('DataSnapshot.hasChild', 1, childPathString, false);
-    return this._delegate.hasChild(childPathString);
+    validatePathString('DataSnapshot.hasChild', 'path', path, false);
+    return this._delegate.hasChild(path);
   }
 
   /**
@@ -169,7 +166,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
    */
   forEach(action: (snapshot: DataSnapshot) => boolean | void): boolean {
     validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
-    validateCallback('DataSnapshot.forEach', 1, action, false);
+    validateCallback('DataSnapshot.forEach', 'action', action, false);
     return this._delegate.forEach(expDataSnapshot =>
       action(new DataSnapshot(this._database, expDataSnapshot))
     );
@@ -231,7 +228,7 @@ export class Query implements Compat<QueryImpl> {
     context?: object | null
   ): SnapshotCallback {
     validateArgCount('Query.on', 2, 4, arguments.length);
-    validateCallback('Query.on', 2, callback, false);
+    validateCallback('Query.on', 'callback', callback, false);
 
     const ret = Query.getCancelAndContextArgs_(
       'Query.on',
@@ -267,7 +264,7 @@ export class Query implements Compat<QueryImpl> {
         return callback;
       default:
         throw new Error(
-          errorPrefix('Query.on', 1, false) +
+          errorPrefix('Query.on', 'eventType') +
             'must be a valid event type = "value", "child_added", "child_removed", ' +
             '"child_changed", or "child_moved".'
         );
@@ -280,9 +277,9 @@ export class Query implements Compat<QueryImpl> {
     context?: object | null
   ): void {
     validateArgCount('Query.off', 0, 3, arguments.length);
-    validateEventType('Query.off', 1, eventType, true);
-    validateCallback('Query.off', 2, callback, true);
-    validateContextObject('Query.off', 3, context, true);
+    validateEventType('Query.off', eventType, true);
+    validateCallback('Query.off', 'callback', callback, true);
+    validateContextObject('Query.off', 'context', context, true);
     if (callback) {
       const valueCallback: UserCallback = () => {};
       valueCallback.userCallback = callback;
@@ -307,12 +304,12 @@ export class Query implements Compat<QueryImpl> {
    */
   once(
     eventType: string,
-    userCallback?: SnapshotCallback,
+    callback?: SnapshotCallback,
     failureCallbackOrContext?: ((a: Error) => void) | object | null,
     context?: object | null
   ): Promise<DataSnapshot> {
     validateArgCount('Query.once', 1, 4, arguments.length);
-    validateCallback('Query.once', 2, userCallback, true);
+    validateCallback('Query.once', 'callback', callback, true);
 
     const ret = Query.getCancelAndContextArgs_(
       'Query.on',
@@ -322,12 +319,12 @@ export class Query implements Compat<QueryImpl> {
     const deferred = new Deferred<DataSnapshot>();
     const valueCallback: UserCallback = (expSnapshot, previousChildName?) => {
       const result = new DataSnapshot(this.database, expSnapshot);
-      if (userCallback) {
-        userCallback.call(ret.context, result, previousChildName);
+      if (callback) {
+        callback.call(ret.context, result, previousChildName);
       }
       deferred.resolve(result);
     };
-    valueCallback.userCallback = userCallback;
+    valueCallback.userCallback = callback;
     valueCallback.context = ret.context;
     const cancelCallback = (error: Error) => {
       if (ret.cancel) {
@@ -364,7 +361,7 @@ export class Query implements Compat<QueryImpl> {
         break;
       default:
         throw new Error(
-          errorPrefix('Query.once', 1, false) +
+          errorPrefix('Query.once', 'eventType') +
             'must be a valid event type = "value", "child_added", "child_removed", ' +
             '"child_changed", or "child_moved".'
         );
@@ -519,10 +516,10 @@ export class Query implements Compat<QueryImpl> {
     } = { cancel: undefined, context: undefined };
     if (cancelOrContext && context) {
       ret.cancel = cancelOrContext as (a: Error) => void;
-      validateCallback(fnName, 3, ret.cancel, true);
+      validateCallback(fnName, 'cancel', ret.cancel, true);
 
       ret.context = context;
-      validateContextObject(fnName, 4, ret.context, true);
+      validateContextObject(fnName, 'context', ret.context, true);
     } else if (cancelOrContext) {
       // we have either a cancel callback or a context.
       if (typeof cancelOrContext === 'object' && cancelOrContext !== null) {
@@ -532,7 +529,7 @@ export class Query implements Compat<QueryImpl> {
         ret.cancel = cancelOrContext as (a: Error) => void;
       } else {
         throw new Error(
-          errorPrefix(fnName, 3, true) +
+          errorPrefix(fnName, 'cancelOrContext') +
             ' must either be a cancel callback or a context object.'
         );
       }
@@ -598,7 +595,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     onComplete?: (error: Error | null) => void
   ): Promise<unknown> {
     validateArgCount('Reference.set', 1, 2, arguments.length);
-    validateCallback('Reference.set', 2, onComplete, true);
+    validateCallback('Reference.set', 'onComplete', onComplete, true);
     const result = set(this._delegate, newVal);
     if (onComplete) {
       result.then(
@@ -610,17 +607,17 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
   }
 
   update(
-    objectToMerge: object,
+    values: object,
     onComplete?: (a: Error | null) => void
   ): Promise<unknown> {
     validateArgCount('Reference.update', 1, 2, arguments.length);
 
-    if (Array.isArray(objectToMerge)) {
+    if (Array.isArray(values)) {
       const newObjectToMerge: { [k: string]: unknown } = {};
-      for (let i = 0; i < objectToMerge.length; ++i) {
-        newObjectToMerge['' + i] = objectToMerge[i];
+      for (let i = 0; i < values.length; ++i) {
+        newObjectToMerge['' + i] = values[i];
       }
-      objectToMerge = newObjectToMerge;
+      values = newObjectToMerge;
       warn(
         'Passing an Array to Firebase.update() is deprecated. ' +
           'Use set() if you want to overwrite the existing data, or ' +
@@ -629,9 +626,9 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
       );
     }
     validateWritablePath('Reference.update', this._delegate._path);
-    validateCallback('Reference.update', 2, onComplete, true);
+    validateCallback('Reference.update', 'onComplete', onComplete, true);
 
-    const result = update(this._delegate, objectToMerge);
+    const result = update(this._delegate, values);
     if (onComplete) {
       result.then(
         () => onComplete(null),
@@ -647,7 +644,12 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     onComplete?: (a: Error | null) => void
   ): Promise<unknown> {
     validateArgCount('Reference.setWithPriority', 2, 3, arguments.length);
-    validateCallback('Reference.setWithPriority', 3, onComplete, true);
+    validateCallback(
+      'Reference.setWithPriority',
+      'onComplete',
+      onComplete,
+      true
+    );
 
     const result = setWithPriority(this._delegate, newVal, newPriority);
     if (onComplete) {
@@ -661,7 +663,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
 
   remove(onComplete?: (a: Error | null) => void): Promise<unknown> {
     validateArgCount('Reference.remove', 0, 1, arguments.length);
-    validateCallback('Reference.remove', 1, onComplete, true);
+    validateCallback('Reference.remove', 'onComplete', onComplete, true);
 
     const result = remove(this._delegate);
     if (onComplete) {
@@ -683,9 +685,19 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     applyLocally?: boolean
   ): Promise<TransactionResult> {
     validateArgCount('Reference.transaction', 1, 3, arguments.length);
-    validateCallback('Reference.transaction', 1, transactionUpdate, false);
-    validateCallback('Reference.transaction', 2, onComplete, true);
-    validateBoolean('Reference.transaction', 3, applyLocally, true);
+    validateCallback(
+      'Reference.transaction',
+      'transactionUpdate',
+      transactionUpdate,
+      false
+    );
+    validateCallback('Reference.transaction', 'onComplete', onComplete, true);
+    validateBoolean(
+      'Reference.transaction',
+      'applyLocally',
+      applyLocally,
+      true
+    );
 
     const result = runTransaction(this._delegate, transactionUpdate, {
       applyLocally
@@ -715,7 +727,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     onComplete?: (a: Error | null) => void
   ): Promise<unknown> {
     validateArgCount('Reference.setPriority', 1, 2, arguments.length);
-    validateCallback('Reference.setPriority', 2, onComplete, true);
+    validateCallback('Reference.setPriority', 'onComplete', onComplete, true);
 
     const result = setPriority(this._delegate, priority);
     if (onComplete) {
@@ -729,7 +741,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
 
   push(value?: unknown, onComplete?: (a: Error | null) => void): Reference {
     validateArgCount('Reference.push', 0, 2, arguments.length);
-    validateCallback('Reference.push', 2, onComplete, true);
+    validateCallback('Reference.push', 'onComplete', onComplete, true);
 
     const expPromise = push(this._delegate, value);
     const promise = expPromise.then(
