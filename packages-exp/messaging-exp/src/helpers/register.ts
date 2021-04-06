@@ -30,13 +30,19 @@ import { _registerComponent } from '@firebase/app-exp';
 const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
   container: ComponentContainer
 ) => {
-  // Top-level 'await' requires 'module' option set to 'esnext' or 'system', and 'target' option
-  // set to 'es2017' or higher. For compatibility, use async expression here.
-  void (async () => {
-    if (!(await isWindowSupported())) {
-      throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-    }
-  })();
+  // Conscious decision to make this async check non-blocking during the messaging instance
+  // initialization phase for performance consideration. An error would be thrown latter for
+  // developer's information. Developers can then choose to import and call `isSupported` for
+  // special handling.
+  isWindowSupported()
+    .then(isSupported => {
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+      }
+    })
+    .catch(_ => {
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
+    });
 
   return new MessagingService(
     container.getProvider('app-exp').getImmediate(),
@@ -48,13 +54,19 @@ const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
 const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
   container: ComponentContainer
 ) => {
-  // Top-level 'await' requires 'module' option set to 'esnext' or 'system', and 'target' option
-  // set to 'es2017' or higher. For compatibility, use async expression here.
-  void (async () => {
-    if (!(await isSwSupported())) {
-      throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-    }
-  })();
+  // Conscious decision to make this async check non-blocking during the messaging instance
+  // initialization phase for performance consideration. An error would be thrown latter for
+  // developer's information. Developers can then choose to import and call `isSupported` for
+  // special handling.
+  isSwSupported()
+    .then(isSupported => {
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+      }
+    })
+    .catch(_ => {
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
+    });
 
   return new MessagingService(
     container.getProvider('app-exp').getImmediate(),

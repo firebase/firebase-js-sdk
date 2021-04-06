@@ -15,8 +15,21 @@
  * limitations under the License.
  */
 
+import { validateIndexedDBOpenable } from '@firebase/util';
+
 export async function isWindowSupported(): Promise<boolean> {
+  // firebase-js-sdk/issues/2393 reveals that idb#open in Safari iframe and Firefox private browsing
+  // might be prohibited to run. In these contexts, an error would be thrown during the messaging
+  // instantiating phase, informing the developers to import/call isSupported for special handling.
+  let isDBOpenable: boolean;
+  try {
+    isDBOpenable = await validateIndexedDBOpenable();
+  } catch (error) {
+    return false;
+  }
+
   return (
+    isDBOpenable &&
     'indexedDB' in window &&
     indexedDB !== null &&
     navigator.cookieEnabled &&
@@ -33,7 +46,18 @@ export async function isWindowSupported(): Promise<boolean> {
  * Checks to see if the required APIs exist within SW Context.
  */
 export async function isSwSupported(): Promise<boolean> {
+  // firebase-js-sdk/issues/2393 reveals that idb#open in Safari iframe and Firefox private browsing
+  // might be prohibited to run. In these contexts, an error would be thrown during the messaging
+  // instantiating phase, informing the developers to import/call isSupported for special handling.
+  let isDBOpenable: boolean;
+  try {
+    isDBOpenable = await validateIndexedDBOpenable();
+  } catch (error) {
+    return false;
+  }
+
   return (
+    isDBOpenable &&
     'indexedDB' in self &&
     indexedDB !== null &&
     'PushManager' in self &&
