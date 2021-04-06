@@ -471,7 +471,6 @@ export function setWithPriority(
   validateWritablePath('setWithPriority', ref._path);
   validateFirebaseDataArg('setWithPriority', value, ref._path, false);
   validatePriority('setWithPriority', priority, false);
-
   if (ref.key === '.length' || ref.key === '.keys') {
     throw 'setWithPriority failed: ' + ref.key + ' is a read-only object.';
   }
