@@ -37,7 +37,7 @@ export class TransportManager {
   }
 
   /**
-   * @param repoInfo Metadata around the namespace we're connecting to
+   * @param repoInfo - Metadata around the namespace we're connecting to
    */
   constructor(repoInfo: RepoInfo) {
     this.initTransports_(repoInfo);

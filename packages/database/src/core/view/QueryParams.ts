@@ -20,7 +20,7 @@ import { assert, stringify } from '@firebase/util';
 import { Index } from '../snap/indexes/Index';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PathIndex } from '../snap/indexes/PathIndex';
-import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
+import { PRIORITY_INDEX, PriorityIndex } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
 import { predecessor, successor } from '../util/NextPushId';
 import { MAX_NAME, MIN_NAME } from '../util/util';
@@ -78,7 +78,7 @@ export class QueryParams {
   indexStartName_ = '';
   indexEndValue_: unknown | null = null;
   indexEndName_ = '';
-  index_ = PRIORITY_INDEX;
+  index_: PriorityIndex = PRIORITY_INDEX;
 
   hasStart(): boolean {
     return this.startSet_;

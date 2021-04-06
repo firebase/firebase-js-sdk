@@ -52,10 +52,6 @@ export class LimitedFilter implements NodeFilter {
     this.limit_ = params.getLimit();
     this.reverse_ = !params.isViewFromLeft();
   }
-
-  /**
-   * @inheritDoc
-   */
   updateChild(
     snap: Node,
     key: string,
@@ -91,10 +87,6 @@ export class LimitedFilter implements NodeFilter {
       );
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   updateFullNode(
     oldSnap: Node,
     newSnap: Node,
@@ -192,32 +184,16 @@ export class LimitedFilter implements NodeFilter {
       .getIndexedFilter()
       .updateFullNode(oldSnap, filtered, optChangeAccumulator);
   }
-
-  /**
-   * @inheritDoc
-   */
   updatePriority(oldSnap: Node, newPriority: Node): Node {
     // Don't support priorities on queries
     return oldSnap;
   }
-
-  /**
-   * @inheritDoc
-   */
   filtersNodes(): boolean {
     return true;
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndexedFilter(): IndexedFilter {
     return this.rangedFilter_.getIndexedFilter();
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndex(): Index {
     return this.index_;
   }

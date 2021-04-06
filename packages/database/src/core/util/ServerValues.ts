@@ -157,9 +157,9 @@ const resolveComplexDeferredValue = function (
 /**
  * Recursively replace all deferred values and priorities in the tree with the
  * specified generated replacement values.
- * @param path path to which write is relative
- * @param node new data written at path
- * @param syncTree current data
+ * @param path - path to which write is relative
+ * @param node - new data written at path
+ * @param syncTree - current data
  */
 export const resolveDeferredValueTree = function (
   path: Path,

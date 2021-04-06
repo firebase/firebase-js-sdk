@@ -66,8 +66,8 @@ export class ChildrenNode implements Node {
   }
 
   /**
-   * @param children_ List of children of this node..
-   * @param priorityNode_ The priority of this node (as a snapshot node).
+   * @param children_ - List of children of this node..
+   * @param priorityNode_ - The priority of this node (as a snapshot node).
    */
   constructor(
     private readonly children_: SortedMap<string, Node>,
@@ -311,10 +311,6 @@ export class ChildrenNode implements Node {
       return null;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   forEachChild(
     index: Index,
     action: (key: string, node: Node) => boolean | void
@@ -387,10 +383,6 @@ export class ChildrenNode implements Node {
       return iterator;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   compareTo(other: ChildrenNode): number {
     if (this.isEmpty()) {
       if (other.isEmpty()) {
@@ -407,10 +399,6 @@ export class ChildrenNode implements Node {
       return 0;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   withIndex(indexDefinition: Index): Node {
     if (
       indexDefinition === KEY_INDEX ||
@@ -425,17 +413,9 @@ export class ChildrenNode implements Node {
       return new ChildrenNode(this.children_, this.priorityNode_, newIndexMap);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   isIndexed(index: Index): boolean {
     return index === KEY_INDEX || this.indexMap_.hasIndex(index);
   }
-
-  /**
-   * @inheritDoc
-   */
   equals(other: Node): boolean {
     if (other === this) {
       return true;

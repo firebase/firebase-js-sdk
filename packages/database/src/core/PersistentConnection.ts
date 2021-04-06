@@ -92,7 +92,6 @@ export class PersistentConnection extends ServerActions {
   private log_ = logWrapper('p:' + this.id + ':');
 
   private interruptReasons_: { [reason: string]: boolean } = {};
-  /** Map<path, Map<queryId, ListenSpec>> */
   private readonly listens: Map<
     /* path */ string,
     Map</* queryId */ string, ListenSpec>
@@ -137,9 +136,9 @@ export class PersistentConnection extends ServerActions {
   private static nextConnectionId_ = 0;
 
   /**
-   * @param repoInfo_ Data about the namespace we are connecting to
-   * @param applicationId_ The Firebase App ID for this project
-   * @param onDataUpdate_ A callback for new data from the server
+   * @param repoInfo_ - Data about the namespace we are connecting to
+   * @param applicationId_ - The Firebase App ID for this project
+   * @param onDataUpdate_ - A callback for new data from the server
    */
   constructor(
     private repoInfo_: RepoInfo,
@@ -240,10 +239,6 @@ export class PersistentConnection extends ServerActions {
 
     return deferred.promise;
   }
-
-  /**
-   * @inheritDoc
-   */
   listen(
     query: QueryContext,
     currentHashFn: () => string,
@@ -349,10 +344,6 @@ export class PersistentConnection extends ServerActions {
       }
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   refreshAuthToken(token: string) {
     this.authToken_ = token;
     this.log_('Auth token refreshed');
@@ -414,10 +405,6 @@ export class PersistentConnection extends ServerActions {
       );
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   unlisten(query: QueryContext, tag: number | null) {
     const pathString = query._path.toString();
     const queryId = query._queryIdentifier;
@@ -452,10 +439,6 @@ export class PersistentConnection extends ServerActions {
 
     this.sendRequest(action, req);
   }
-
-  /**
-   * @inheritDoc
-   */
   onDisconnectPut(
     pathString: string,
     data: unknown,
@@ -472,10 +455,6 @@ export class PersistentConnection extends ServerActions {
       });
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   onDisconnectMerge(
     pathString: string,
     data: unknown,
@@ -492,10 +471,6 @@ export class PersistentConnection extends ServerActions {
       });
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   onDisconnectCancel(
     pathString: string,
     onComplete?: (a: string, b: string) => void
@@ -531,10 +506,6 @@ export class PersistentConnection extends ServerActions {
       }
     });
   }
-
-  /**
-   * @inheritDoc
-   */
   put(
     pathString: string,
     data: unknown,
@@ -543,10 +514,6 @@ export class PersistentConnection extends ServerActions {
   ) {
     this.putInternal('p', pathString, data, onComplete, hash);
   }
-
-  /**
-   * @inheritDoc
-   */
   merge(
     pathString: string,
     data: unknown,
@@ -614,10 +581,6 @@ export class PersistentConnection extends ServerActions {
       }
     });
   }
-
-  /**
-   * @inheritDoc
-   */
   reportStats(stats: { [k: string]: unknown }) {
     // If we're not connected, we just drop the stats.
     if (this.connected_) {

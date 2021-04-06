@@ -39,10 +39,6 @@ export class Merge implements Operation {
     /** @inheritDoc */ public path: Path,
     /** @inheritDoc */ public children: ImmutableTree<Node>
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   operationForChild(childName: string): Operation {
     if (pathIsEmpty(this.path)) {
       const childTree = this.children.subtree(new Path(childName));
@@ -64,10 +60,6 @@ export class Merge implements Operation {
       return new Merge(this.source, pathPopFront(this.path), this.children);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   toString(): string {
     return (
       'Operation(' +

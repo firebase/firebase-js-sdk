@@ -90,7 +90,8 @@ import {
   ListenOptions,
   Query as Query,
   Reference as Reference,
-  Unsubscribe
+  Unsubscribe,
+  ThenableReference
 } from './Reference';
 
 export class QueryImpl implements Query, QueryContext {
@@ -281,9 +282,9 @@ export class ReferenceImpl extends QueryImpl implements Reference {
  */
 export class DataSnapshot {
   /**
-   * @param _node A SnapshotNode to wrap.
-   * @param ref The location this snapshot came from.
-   * @param _index The iteration order for this snapshot
+   * @param _node - A SnapshotNode to wrap.
+   * @param ref - The location this snapshot came from.
+   * @param _index - The iteration order for this snapshot
    * @hideconstructor
    */
   constructor(
@@ -297,9 +298,8 @@ export class DataSnapshot {
    *
    * Applications need not use priority but can order collections by
    * ordinary properties (see
-   * {@link
-   * https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
-   * Sorting and filtering data}).
+   * {@link https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data |Sorting and filtering data}
+   * ).
    */
   get priority(): string | number | null {
     // typecast here because we never return deferred values or internal priorities (MAX_PRIORITY)
@@ -537,10 +537,9 @@ export function child(parent: Reference, path: string): ReferenceImpl {
 }
 
 /**
- * Returns an `OnDisconnect` object - see {@link
- * https://firebase.google.com/docs/database/web/offline-capabilities
- * Enabling Offline Capabilities in JavaScript} for more information on how
- * to use it.
+ * Returns an `OnDisconnect` object - see
+ * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
+ * for more information on how to use it.
  *
  * @param ref - The reference to add OnDisconnect triggers for.
  */
@@ -568,22 +567,15 @@ export interface ThenableReferenceImpl
  * resulting list of items is chronologically sorted. The keys are also
  * designed to be unguessable (they contain 72 random bits of entropy).
  *
- * See {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data
- * Append to a list of data}
- * </br>See {@link
- * https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html
- *  The 2^120 Ways to Ensure Unique Identifiers}
+ * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}
+ * </br>See {@link ttps://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}
  *
  * @param parent - The parent location.
  * @param value - Optional value to be written at the generated location.
  * @returns Combined `Promise` and `Reference`; resolves when write is complete,
  * but can be used immediately as the `Reference` to the child location.
  */
-export function push(
-  parent: Reference,
-  value?: unknown
-): ThenableReferenceImpl {
+export function push(parent: Reference, value?: unknown): ThenableReference {
   parent = getModularInstance(parent);
   validateWritablePath('push', parent._path);
   validateFirebaseDataArg('push', value, parent._path, true);
@@ -678,9 +670,9 @@ export function set(ref: Reference, value: unknown): Promise<void> {
  * Sets a priority for the data at this Database location.
  *
  * Applications need not use priority but can order collections by
- * ordinary properties (see {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
- * Sorting and filtering data}).
+ * ordinary properties (see
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data | Sorting and filtering data}
+ * ).
  *
  * @param ref - The location to write to.
  * @param priority - The priority to be written (string, number, or null).
@@ -709,9 +701,9 @@ export function setPriority(
  * priority for that data.
  *
  * Applications need not use priority but can order collections by
- * ordinary properties (see {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
- * Sorting and filtering data}).
+ * ordinary properties (see
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data | Sorting and filtering data}
+ * ).
  *
  * @param ref - The location to write to.
  * @param value - The value to be written (string, number, boolean, object,
@@ -770,9 +762,8 @@ export function setWithPriority(
  *
  * Passing `null` to `update()` will remove the data at this location.
  *
- * See {@link
- * https://firebase.googleblog.com/2015/09/introducing-multi-location-updates-and_86.html
- * Introducing multi-location updates and more}.
+ * See
+ * {@link https://firebase.googleblog.com/2015/09/introducing-multi-location-updates-and_86.html | Introducing multi-location updates and more}.
  *
  * @param ref - The location to write to.
  * @param values - Object containing multiple values.
@@ -1012,8 +1003,8 @@ function addEventListener(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onValue` event will trigger once with the initial data stored at this
  * location, and then trigger again each time the data changes. The
@@ -1044,8 +1035,8 @@ export function onValue(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onValue` event will trigger once with the initial data stored at this
  * location, and then trigger again each time the data changes. The
@@ -1073,8 +1064,8 @@ export function onValue(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onValue` event will trigger once with the initial data stored at this
  * location, and then trigger again each time the data changes. The
@@ -1123,8 +1114,8 @@ export function onValue(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildAdded` event will be triggered once for each initial child at this
  * location, and it will be triggered again every time a new child is added. The
@@ -1159,8 +1150,8 @@ export function onChildAdded(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildAdded` event will be triggered once for each initial child at this
  * location, and it will be triggered again every time a new child is added. The
@@ -1192,8 +1183,8 @@ export function onChildAdded(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildAdded` event will be triggered once for each initial child at this
  * location, and it will be triggered again every time a new child is added. The
@@ -1249,8 +1240,8 @@ export function onChildAdded(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildChanged` event will be triggered when the data stored in a child
  * (or any of its descendants) changes. Note that a single `child_changed` event
@@ -1286,8 +1277,8 @@ export function onChildChanged(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildChanged` event will be triggered when the data stored in a child
  * (or any of its descendants) changes. Note that a single `child_changed` event
@@ -1320,8 +1311,8 @@ export function onChildChanged(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildChanged` event will be triggered when the data stored in a child
  * (or any of its descendants) changes. Note that a single `child_changed` event
@@ -1378,8 +1369,8 @@ export function onChildChanged(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildMoved` event will be triggered when a child's sort order changes
  * such that its position relative to its siblings changes. The `DataSnapshot`
@@ -1413,8 +1404,8 @@ export function onChildMoved(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildMoved` event will be triggered when a child's sort order changes
  * such that its position relative to its siblings changes. The `DataSnapshot`
@@ -1445,8 +1436,8 @@ export function onChildMoved(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildMoved` event will be triggered when a child's sort order changes
  * such that its position relative to its siblings changes. The `DataSnapshot`
@@ -1501,8 +1492,8 @@ export function onChildMoved(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildRemoved` event will be triggered once every time a child is
  * removed. The `DataSnapshot` passed into the callback will be the old data for
@@ -1537,8 +1528,8 @@ export function onChildRemoved(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildRemoved` event will be triggered once every time a child is
  * removed. The `DataSnapshot` passed into the callback will be the old data for
@@ -1570,8 +1561,8 @@ export function onChildRemoved(
  * This is the primary way to read data from a Database. Your callback
  * will be triggered for the initial data and again whenever the data changes.
  * Invoke the returned unsubscribe callback to stop receiving updates. See
- * {@link https://firebase.google.com/docs/database/web/retrieve-data Retrieve
- * Data on the Web} for more details.
+ * {@link https://firebase.google.com/docs/database/web/retrieve-data | Retrieve Data on the Web}
+ * for more details.
  *
  * An `onChildRemoved` event will be triggered once every time a child is
  * removed. The `DataSnapshot` passed into the callback will be the old data for
@@ -1638,10 +1629,10 @@ export { EventType };
  * callbacks.
  *
  * @param query - The query that the listener was registered with.
- * @param eventType One of the following strings: "value", "child_added",
+ * @param eventType - One of the following strings: "value", "child_added",
  * "child_changed", "child_removed", or "child_moved." If omitted, all callbacks
  * for the `Reference` will be removed.
- * @param callback The callback function that was passed to `on()` or
+ * @param callback - The callback function that was passed to `on()` or
  * `undefined` to remove all callbacks.
  */
 export function off(
@@ -1748,9 +1739,8 @@ class QueryEndAtConstraint extends QueryConstraint {
  * have exactly the specified value must also have a key name less than or equal
  * to the specified key.
  *
- * You can read more about `endAt()` in{@link
- * https://firebase.google.com/docs/database/web/lists-of-data#filtering_data
- * Filtering data}.
+ * You can read more about `endAt()` in
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#filtering_data | Filtering data}.
  *
  * @param value - The value to end at. The argument type depends on which
  * `orderBy*()` function was used in this query. Specify a value that matches
@@ -1875,9 +1865,8 @@ class QueryStartAtConstraint extends QueryConstraint {
  * have exactly the specified value must also have a key name greater than or
  * equal to the specified key.
  *
- * You can read more about `startAt()` in {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#filtering_data
- *  Filtering data}.
+ * You can read more about `startAt()` in
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#filtering_data | Filtering data}.
  *
  * @param value - The value to start at. The argument type depends on which
  * `orderBy*()` function was used in this query. Specify a value that matches
@@ -1939,7 +1928,7 @@ class QueryStartAfterConstraint extends QueryConstraint {
  * If a key is specified, then children must have a value greater than or equal
  * to the specified value and a a key name greater than the specified key.
  *
- * @param value The value to start after. The argument type depends on which
+ * @param value - The value to start after. The argument type depends on which
  * `orderBy*()` function was used in this query. Specify a value that matches
  * the `orderBy*()` type. When used in combination with `orderByKey()`, the
  * value must be a string.
@@ -1990,9 +1979,8 @@ class QueryLimitToFirstConstraint extends QueryConstraint {
  * `child_removed` events for each item that drops out of the active list so
  * that the total number stays at 100.
  *
- * You can read more about `limitToFirst()` in {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#filtering_data
- * Filtering data}.
+ * You can read more about `limitToFirst()` in
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#filtering_data | Filtering data}.
  *
  * @param limit - The maximum number of nodes to include in this query.
  */
@@ -2039,9 +2027,8 @@ class QueryLimitToLastConstraint extends QueryConstraint {
  * `child_removed` events for each item that drops out of the active list so
  * that the total number stays at 100.
  *
- * You can read more about `limitToLast()` in {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#filtering_data
- * Filtering data}.
+ * You can read more about `limitToLast()` in
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#filtering_data | Filtering data}.
  *
  * @param limit - The maximum number of nodes to include in this query.
  */
@@ -2090,12 +2077,11 @@ class QueryOrderByChildConstraint extends QueryConstraint {
  * Firebase queries allow you to order your data by any child key on the fly.
  * However, if you know in advance what your indexes will be, you can define
  * them via the .indexOn rule in your Security Rules for better performance. See
- * the {@link https://firebase.google.com/docs/database/security/indexing-data
- * .indexOn} rule for more information.
+ * the{@link https://firebase.google.com/docs/database/security/indexing-data}
+ * rule for more information.
  *
- * You can read more about `orderByChild()` in {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#sort_data
- * Sort data}.
+ * You can read more about `orderByChild()` in
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#sort_data | Sort data}.
  *
  * @param path - The path to order by.
  */
@@ -2138,9 +2124,8 @@ class QueryOrderByKeyConstraint extends QueryConstraint {
  *
  * Sorts the results of a query by their (ascending) key values.
  *
- * You can read more about `orderByKey()` in {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#sort_data
- * Sort data}.
+ * You can read more about `orderByKey()` in
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#sort_data | Sort data}.
  */
 export function orderByKey(): QueryConstraint {
   return new QueryOrderByKeyConstraint();
@@ -2166,9 +2151,9 @@ class QueryOrderByPriorityConstraint extends QueryConstraint {
  * Creates a new `QueryConstraint` that orders by priority.
  *
  * Applications need not use priority but can order collections by
- * ordinary properties (see {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#sort_data
- * Sort data} for alternatives to priority.
+ * ordinary properties (see
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#sort_data | Sort data}
+ * for alternatives to priority.
  */
 export function orderByPriority(): QueryConstraint {
   return new QueryOrderByPriorityConstraint();
@@ -2196,9 +2181,8 @@ class QueryOrderByValueConstraint extends QueryConstraint {
  * If the children of a query are all scalar values (string, number, or
  * boolean), you can order the results by their (ascending) values.
  *
- * You can read more about `orderByValue()` in {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#sort_data
- * Sort data}.
+ * You can read more about `orderByValue()` in
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#sort_data | Sort data}.
  */
 export function orderByValue(): QueryConstraint {
   return new QueryOrderByValueConstraint();
@@ -2246,9 +2230,8 @@ class QueryEqualToValueConstraint extends QueryConstraint {
  * value must also have exactly the specified key as their key name. This can be
  * used to filter result sets with many matches for the same value.
  *
- * You can read more about `equalTo()` in {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#filtering_data
- * Filtering data}.
+ * You can read more about `equalTo()` in
+ * {@link https://firebase.google.com/docs/database/web/lists-of-data#filtering_data | Filtering data}.
  *
  * @param value - The value to match for. The argument type depends on which
  * `orderBy*()` function was used in this query. Specify a value that matches

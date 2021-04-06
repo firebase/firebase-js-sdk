@@ -62,8 +62,8 @@ export class ReadonlyRestClient extends ServerActions {
   }
 
   /**
-   * @param repoInfo_ Data about the namespace we are connecting to
-   * @param onDataUpdate_ A callback for new data from the server
+   * @param repoInfo_ - Data about the namespace we are connecting to
+   * @param onDataUpdate_ - A callback for new data from the server
    */
   constructor(
     private repoInfo_: RepoInfo,

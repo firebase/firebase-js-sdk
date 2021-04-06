@@ -36,7 +36,7 @@ export class Path {
   pieceNum_: number;
 
   /**
-   * @param pathOrString Path string to parse, or another path, or the raw
+   * @param pathOrString - Path string to parse, or another path, or the raw
    * tokens array
    */
   constructor(pathOrString: string | string[], pieceNum?: number) {
@@ -264,8 +264,8 @@ export class ValidationPath {
   byteLength_: number;
 
   /**
-   * @param path Initial Path.
-   * @param errorPrefix_ Prefix for any error messages.
+   * @param path - Initial Path.
+   * @param errorPrefix_ - Prefix for any error messages.
    */
   constructor(path: Path, public errorPrefix_: string) {
     this.parts_ = pathSlice(path, 0);

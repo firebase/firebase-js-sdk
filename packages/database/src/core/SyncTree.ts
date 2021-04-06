@@ -60,6 +60,7 @@ import { EventRegistration, QueryContext } from './view/EventRegistration';
 import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
 import {
   newWriteTree,
+  WriteTree,
   writeTreeAddMerge,
   writeTreeAddOverwrite,
   writeTreeCalcCompleteEventCache,
@@ -87,18 +88,6 @@ function syncTreeGetReferenceConstructor(): ReferenceConstructor {
   return referenceConstructor;
 }
 
-/**
- * @typedef {{
- *   startListening: function(
- *     !Query,
- *     ?number,
- *     function():string,
- *     function(!string, *):!Array.<!Event>
- *   ):!Array.<!Event>,
- *
- *   stopListening: function(!Query, ?number)
- * }}
- */
 export interface ListenProvider {
   startListening(
     query: QueryContext,
@@ -145,13 +134,13 @@ export class SyncTree {
   /**
    * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
    */
-  pendingWriteTree_ = newWriteTree();
+  pendingWriteTree_: WriteTree = newWriteTree();
 
   readonly tagToQueryMap: Map<number, string> = new Map();
   readonly queryToTagMap: Map<string, number> = new Map();
 
   /**
-   * @param listenProvider_ Used by SyncTree to start / stop listening
+   * @param listenProvider_ - Used by SyncTree to start / stop listening
    *   to server data.
    */
   constructor(public listenProvider_: ListenProvider) {}
@@ -213,7 +202,7 @@ export function syncTreeApplyUserMerge(
 /**
  * Acknowledge a pending user write that was previously registered with applyUserOverwrite() or applyUserMerge().
  *
- * @param revert True if the given write failed and needs to be reverted
+ * @param revert - True if the given write failed and needs to be reverted
  * @returns Events to raise.
  */
 export function syncTreeAckUserWrite(
@@ -327,8 +316,8 @@ export function syncTreeApplyTaggedListenComplete(
  * If query is the default query, we'll check all queries for the specified eventRegistration.
  * If eventRegistration is null, we'll remove all callbacks for the specified query/queries.
  *
- * @param eventRegistration If null, all callbacks are removed.
- * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
+ * @param eventRegistration - If null, all callbacks are removed.
+ * @param cancelError - If a cancelError is provided, appropriate cancel events will be returned.
  * @returns Cancel events, if cancelError was provided.
  */
 export function syncTreeRemoveEventRegistration(
@@ -584,8 +573,8 @@ export function syncTreeAddEventRegistration(
  *
  * Note: this method will *include* hidden writes from transaction with applyLocally set to false.
  *
- * @param path The path to the data we want
- * @param writeIdsToExclude A specific set to be excluded
+ * @param path - The path to the data we want
+ * @param writeIdsToExclude - A specific set to be excluded
  */
 export function syncTreeCalcCompleteEventCache(
   syncTree: SyncTree,

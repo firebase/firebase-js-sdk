@@ -79,7 +79,7 @@ export async function removeUnusedImports(
 function hasPrivatePrefix(name: ts.Identifier): boolean {
   // Identifiers that are prefixed with an underscore are not not included in
   // the public API.
-  return name.escapedText.toString().startsWith('_');
+  return !!name.escapedText?.toString().startsWith('_');
 }
 
 /** Returns whether type identified by `name` is exported. */

@@ -64,7 +64,8 @@ import {
   setWithPriority,
   remove,
   setPriority,
-  push
+  push,
+  ThenableReferenceImpl
 } from '../exp/Reference_impl';
 import { runTransaction } from '../exp/Transaction';
 
@@ -123,7 +124,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   /**
    * Returns a DataSnapshot of the specified child node's contents.
    *
-   * @param path Path to a child.
+   * @param path - Path to a child.
    * @returns DataSnapshot for child node.
    */
   child(path: string): DataSnapshot {
@@ -137,7 +138,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   /**
    * Returns whether the snapshot contains a child at the specified path.
    *
-   * @param path Path to a child.
+   * @param path - Path to a child.
    * @returns Whether the child exists.
    */
   hasChild(path: string): boolean {
@@ -159,7 +160,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   /**
    * Iterates through child nodes and calls the specified action for each one.
    *
-   * @param action Callback function to be called
+   * @param action - Callback function to be called
    * for each child.
    * @returns True if forEach was canceled by action returning true for
    * one of the child nodes.
@@ -502,7 +503,7 @@ export class Query implements Compat<QueryImpl> {
 
   /**
    * Helper used by .on and .once to extract the context and or cancel arguments.
-   * @param fnName The function name (on or once)
+   * @param fnName - The function name (on or once)
    *
    */
   private static getCancelAndContextArgs_(
@@ -743,7 +744,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     validateArgCount('Reference.push', 0, 2, arguments.length);
     validateCallback('Reference.push', 'onComplete', onComplete, true);
 
-    const expPromise = push(this._delegate, value);
+    const expPromise = push(this._delegate, value) as ThenableReferenceImpl;
     const promise = expPromise.then(
       expRef => new Reference(this.database, expRef)
     );
