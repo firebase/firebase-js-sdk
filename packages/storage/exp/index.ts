@@ -31,7 +31,7 @@ import {
   InstanceFactoryOptions
 } from '@firebase/component';
 
-import { name, version } from './package.json';
+import { name, version } from '../package.json';
 
 import { StorageService } from './public-types';
 import { STORAGE_TYPE } from './constants';

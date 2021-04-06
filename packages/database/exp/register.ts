@@ -19,12 +19,11 @@
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
+import { name, version } from '../package.json';
 import { FirebaseDatabase } from '../src/exp/Database';
 
 export { getDatabase, ServerValue } from '../src/exp/Database';
 export { enableLogging } from '../src/core/util/util';
-
-import { name, version } from './package.json';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
