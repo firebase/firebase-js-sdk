@@ -212,7 +212,7 @@ export class LeafNode implements Node {
 
   /**
    * Returns the value of the leaf node.
-   * @return The value of the node.
+   * @returns The value of the node.
    */
   getValue(): Indexable | string | number | boolean {
     return this.value_;

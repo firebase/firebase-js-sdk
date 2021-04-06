@@ -85,7 +85,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
    * Retrieves the snapshot contents as JSON.  Returns null if the snapshot is
    * empty.
    *
-   * @return JSON representation of the DataSnapshot contents, or null if empty.
+   * @returns JSON representation of the DataSnapshot contents, or null if empty.
    */
   val(): unknown {
     validateArgCount('DataSnapshot.val', 0, 0, arguments.length);
@@ -95,7 +95,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   /**
    * Returns the snapshot contents as JSON, including priorities of node.  Suitable for exporting
    * the entire node contents.
-   * @return JSON representation of the DataSnapshot contents, or null if empty.
+   * @returns JSON representation of the DataSnapshot contents, or null if empty.
    */
   exportVal(): unknown {
     validateArgCount('DataSnapshot.exportVal', 0, 0, arguments.length);
@@ -113,7 +113,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   /**
    * Returns whether the snapshot contains a non-null value.
    *
-   * @return Whether the snapshot contains a non-null value, or is empty.
+   * @returns Whether the snapshot contains a non-null value, or is empty.
    */
   exists(): boolean {
     validateArgCount('DataSnapshot.exists', 0, 0, arguments.length);
@@ -124,7 +124,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
    * Returns a DataSnapshot of the specified child node's contents.
    *
    * @param path Path to a child.
-   * @return DataSnapshot for child node.
+   * @returns DataSnapshot for child node.
    */
   child(path: string): DataSnapshot {
     validateArgCount('DataSnapshot.child', 0, 1, arguments.length);
@@ -138,7 +138,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
    * Returns whether the snapshot contains a child at the specified path.
    *
    * @param path Path to a child.
-   * @return Whether the child exists.
+   * @returns Whether the child exists.
    */
   hasChild(path: string): boolean {
     validateArgCount('DataSnapshot.hasChild', 1, 1, arguments.length);
@@ -149,7 +149,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   /**
    * Returns the priority of the object, or null if no priority was set.
    *
-   * @return The priority.
+   * @returns The priority.
    */
   getPriority(): string | number | null {
     validateArgCount('DataSnapshot.getPriority', 0, 0, arguments.length);
@@ -161,7 +161,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
    *
    * @param action Callback function to be called
    * for each child.
-   * @return True if forEach was canceled by action returning true for
+   * @returns True if forEach was canceled by action returning true for
    * one of the child nodes.
    */
   forEach(action: (snapshot: DataSnapshot) => boolean | void): boolean {
@@ -174,7 +174,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
 
   /**
    * Returns whether this DataSnapshot has children.
-   * @return True if the DataSnapshot contains 1 or more child nodes.
+   * @returns True if the DataSnapshot contains 1 or more child nodes.
    */
   hasChildren(): boolean {
     validateArgCount('DataSnapshot.hasChildren', 0, 0, arguments.length);
@@ -187,7 +187,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
 
   /**
    * Returns the number of children for this DataSnapshot.
-   * @return The number of children that this DataSnapshot contains.
+   * @returns The number of children that this DataSnapshot contains.
    */
   numChildren(): number {
     validateArgCount('DataSnapshot.numChildren', 0, 0, arguments.length);
@@ -195,7 +195,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   }
 
   /**
-   * @return The Firebase reference for the location this snapshot's data came
+   * @returns The Firebase reference for the location this snapshot's data came
    * from.
    */
   getRef(): Reference {
@@ -472,7 +472,7 @@ export class Query implements Compat<QueryImpl> {
   }
 
   /**
-   * @return URL for this location.
+   * @returns URL for this location.
    */
   toString(): string {
     validateArgCount('Query.toString', 0, 0, arguments.length);
@@ -563,7 +563,7 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     );
   }
 
-  /** @return {?string} */
+  /** @returns {?string} */
   getKey(): string | null {
     validateArgCount('Reference.key', 0, 0, arguments.length);
     return this._delegate.key;
@@ -577,14 +577,14 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
     return new Reference(this.database, child(this._delegate, pathString));
   }
 
-  /** @return {?Reference} */
+  /** @returns {?Reference} */
   getParent(): Reference | null {
     validateArgCount('Reference.parent', 0, 0, arguments.length);
     const parent = this._delegate.parent;
     return parent ? new Reference(this.database, parent) : null;
   }
 
-  /** @return {!Reference} */
+  /** @returns {!Reference} */
   getRoot(): Reference {
     validateArgCount('Reference.root', 0, 0, arguments.length);
     return new Reference(this.database, this._delegate.root);

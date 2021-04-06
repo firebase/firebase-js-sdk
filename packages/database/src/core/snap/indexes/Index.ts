@@ -25,7 +25,7 @@ export abstract class Index {
   abstract isDefinedOn(node: Node): boolean;
 
   /**
-   * @return A standalone comparison function for
+   * @returns A standalone comparison function for
    * this index
    */
   getCompare(): Comparator<NamedNode> {
@@ -37,7 +37,7 @@ export abstract class Index {
    * it's possible that the changes are isolated to parts of the snapshot that are not indexed.
    *
    *
-   * @return True if the portion of the snapshot being indexed changed between oldNode and newNode
+   * @returns True if the portion of the snapshot being indexed changed between oldNode and newNode
    */
   indexedValueChanged(oldNode: Node, newNode: Node): boolean {
     const oldWrapped = new NamedNode(MIN_NAME, oldNode);
@@ -46,7 +46,7 @@ export abstract class Index {
   }
 
   /**
-   * @return a node wrapper that will sort equal to or less than
+   * @returns a node wrapper that will sort equal to or less than
    * any other node wrapper, using this index
    */
   minPost(): NamedNode {
@@ -55,7 +55,7 @@ export abstract class Index {
   }
 
   /**
-   * @return a node wrapper that will sort greater than or equal to
+   * @returns a node wrapper that will sort greater than or equal to
    * any other node wrapper, using this index
    */
   abstract maxPost(): NamedNode;
@@ -63,7 +63,7 @@ export abstract class Index {
   abstract makePost(indexValue: unknown, name: string): NamedNode;
 
   /**
-   * @return String representation for inclusion in a query spec
+   * @returns String representation for inclusion in a query spec
    */
   abstract toString(): string;
 }

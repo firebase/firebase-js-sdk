@@ -19,10 +19,22 @@ const SERVER_TIMESTAMP = {
   '.sv': 'timestamp'
 };
 
+/**
+ * Returns a placeholder value for auto-populating the current timestamp (time
+ * since the Unix epoch, in milliseconds) as determined by the Firebase
+ * servers.
+ */
 export function serverTimestamp(): object {
   return SERVER_TIMESTAMP;
 }
 
+/**
+ * Returns a placeholder value that can be used to atomically increment the
+ * current database value by the provided delta.
+ *
+ * @param delta the amount to modify the current value atomically.
+ * @returns A placeholder value for modifying data atomically server-side.
+ */
 export function increment(delta: number): object {
   return {
     '.sv': {

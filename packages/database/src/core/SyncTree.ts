@@ -160,7 +160,7 @@ export class SyncTree {
 /**
  * Apply the data changes for a user-generated set() or transaction() call.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyUserOverwrite(
   syncTree: SyncTree,
@@ -191,7 +191,7 @@ export function syncTreeApplyUserOverwrite(
 /**
  * Apply the data from a user-generated update() call
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyUserMerge(
   syncTree: SyncTree,
@@ -214,7 +214,7 @@ export function syncTreeApplyUserMerge(
  * Acknowledge a pending user write that was previously registered with applyUserOverwrite() or applyUserMerge().
  *
  * @param revert True if the given write failed and needs to be reverted
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeAckUserWrite(
   syncTree: SyncTree,
@@ -248,7 +248,7 @@ export function syncTreeAckUserWrite(
 /**
  * Apply new server data for the specified path..
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyServerOverwrite(
   syncTree: SyncTree,
@@ -264,7 +264,7 @@ export function syncTreeApplyServerOverwrite(
 /**
  * Apply new server data to be merged in at the specified path.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyServerMerge(
   syncTree: SyncTree,
@@ -282,7 +282,7 @@ export function syncTreeApplyServerMerge(
 /**
  * Apply a listen complete for a query
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyListenComplete(
   syncTree: SyncTree,
@@ -297,7 +297,7 @@ export function syncTreeApplyListenComplete(
 /**
  * Apply a listen complete for a tagged query
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyTaggedListenComplete(
   syncTree: SyncTree,
@@ -329,7 +329,7 @@ export function syncTreeApplyTaggedListenComplete(
  *
  * @param eventRegistration If null, all callbacks are removed.
  * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
- * @return Cancel events, if cancelError was provided.
+ * @returns Cancel events, if cancelError was provided.
  */
 export function syncTreeRemoveEventRegistration(
   syncTree: SyncTree,
@@ -437,7 +437,7 @@ export function syncTreeRemoveEventRegistration(
 /**
  * Apply new server data for the specified tagged query.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyTaggedQueryOverwrite(
   syncTree: SyncTree,
@@ -466,7 +466,7 @@ export function syncTreeApplyTaggedQueryOverwrite(
 /**
  * Apply server data to be merged in for the specified tagged query.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyTaggedQueryMerge(
   syncTree: SyncTree,
@@ -496,7 +496,7 @@ export function syncTreeApplyTaggedQueryMerge(
 /**
  * Add an event callback for the specified query.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeAddEventRegistration(
   syncTree: SyncTree,
@@ -901,7 +901,7 @@ function syncTreeCollectDistinctViewsForSubTree_(
 /**
  * Normalizes a query to a query we send the server for listening
  *
- * @return The normalized query
+ * @returns The normalized query
  */
 function syncTreeQueryForListening_(query: QueryContext): QueryContext {
   if (query._queryParams.loadsAllData() && !query._queryParams.isDefault()) {
@@ -937,7 +937,7 @@ function syncTreeGetNextQueryTag_(): number {
 /**
  * For a given new listen, manage the de-duplication of outstanding subscriptions.
  *
- * @return This method can return events to support synchronous data sources
+ * @returns This method can return events to support synchronous data sources
  */
 function syncTreeSetupListener_(
   syncTree: SyncTree,

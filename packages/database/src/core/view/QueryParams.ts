@@ -93,7 +93,7 @@ export class QueryParams {
   }
 
   /**
-   * @return True if it would return from left.
+   * @returns True if it would return from left.
    */
   isViewFromLeft(): boolean {
     if (this.viewFrom_ === '') {
@@ -158,7 +158,7 @@ export class QueryParams {
   }
 
   /**
-   * @return True if a limit has been set and it has been explicitly anchored
+   * @returns True if a limit has been set and it has been explicitly anchored
    */
   hasAnchoredLimit(): boolean {
     return this.limitSet_ && this.viewFrom_ !== '';
@@ -347,7 +347,7 @@ export function queryParamsOrderBy(
 /**
  * Returns a set of REST query string parameters representing this query.
  *
- * @return query string parameters
+ * @returns query string parameters
  */
 export function queryParamsToRestQueryStringParameters(
   queryParams: QueryParams

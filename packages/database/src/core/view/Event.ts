@@ -36,6 +36,10 @@ export interface Event {
   toString(): string;
 }
 
+/**
+ * One of the following strings: "value", "child_added", "child_changed",
+ * "child_removed", or "child_moved."
+ */
 export type EventType =
   | 'value'
   | 'child_added'

@@ -40,7 +40,7 @@ export abstract class EventEmitter {
    * To be overridden by derived classes in order to fire an initial event when
    * somebody subscribes for data.
    *
-   * @return {Array.<*>} Array of parameters to trigger initial event with.
+   * @returns {Array.<*>} Array of parameters to trigger initial event with.
    */
   abstract getInitialEvent(eventType: string): unknown[];
 

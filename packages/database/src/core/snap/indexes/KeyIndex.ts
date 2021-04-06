@@ -84,7 +84,7 @@ export class KeyIndex extends Index {
   }
 
   /**
-   * @return String representation for inclusion in a query spec
+   * @returns String representation for inclusion in a query spec
    */
   toString(): string {
     return '.key';

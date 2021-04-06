@@ -122,7 +122,7 @@ export class ImmutableTree<T> {
   }
 
   /**
-   * @return The subtree at the given path
+   * @returns The subtree at the given path
    */
   subtree(relativePath: Path): ImmutableTree<T> {
     if (pathIsEmpty(relativePath)) {
@@ -143,7 +143,7 @@ export class ImmutableTree<T> {
    *
    * @param relativePath Path to set value at.
    * @param toSet Value to set.
-   * @return Resulting tree.
+   * @returns Resulting tree.
    */
   set(relativePath: Path, toSet: T | null): ImmutableTree<T> {
     if (pathIsEmpty(relativePath)) {
@@ -161,7 +161,7 @@ export class ImmutableTree<T> {
    * Removes the value at the specified path.
    *
    * @param relativePath Path to value to remove.
-   * @return Resulting tree.
+   * @returns Resulting tree.
    */
   remove(relativePath: Path): ImmutableTree<T> {
     if (pathIsEmpty(relativePath)) {
@@ -196,7 +196,7 @@ export class ImmutableTree<T> {
    * Gets a value from the tree.
    *
    * @param relativePath Path to get value for.
-   * @return Value at path, or null.
+   * @returns Value at path, or null.
    */
   get(relativePath: Path): T | null {
     if (pathIsEmpty(relativePath)) {
@@ -217,7 +217,7 @@ export class ImmutableTree<T> {
    *
    * @param relativePath Path to replace subtree for.
    * @param newTree New tree.
-   * @return Resulting tree.
+   * @returns Resulting tree.
    */
   setTree(relativePath: Path, newTree: ImmutableTree<T>): ImmutableTree<T> {
     if (pathIsEmpty(relativePath)) {

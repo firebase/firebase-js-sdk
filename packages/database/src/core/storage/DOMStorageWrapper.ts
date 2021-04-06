@@ -48,7 +48,7 @@ export class DOMStorageWrapper {
   }
 
   /**
-   * @return The value that was stored under this key, or null
+   * @returns The value that was stored under this key, or null
    */
   get(key: string): unknown {
     const storedVal = this.domStorage_.getItem(this.prefixedName_(key));

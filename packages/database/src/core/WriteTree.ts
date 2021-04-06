@@ -150,7 +150,7 @@ export function writeTreeGetWrite(
  * Remove a write (either an overwrite or merge) that has been successfully acknowledge by the server. Recalculates
  * the tree if necessary.  We return true if it may have been visible, meaning views need to reevaluate.
  *
- * @return true if the write may have been visible (meaning we'll need to reevaluate / raise
+ * @returns true if the write may have been visible (meaning we'll need to reevaluate / raise
  * events as a result).
  */
 export function writeTreeRemoveWrite(

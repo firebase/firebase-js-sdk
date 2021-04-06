@@ -119,7 +119,7 @@ export function syncPointApplyOperation(
  * @param writesCache
  * @param serverCache
  * @param serverCacheComplete
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncPointGetView(
   syncPoint: SyncPoint,
@@ -166,7 +166,7 @@ export function syncPointGetView(
  * @param writesCache
  * @param serverCache Complete server cache, if we have it.
  * @param serverCacheComplete
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncPointAddEventRegistration(
   syncPoint: SyncPoint,
@@ -199,7 +199,7 @@ export function syncPointAddEventRegistration(
  *
  * @param eventRegistration If null, remove all callbacks.
  * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
- * @return removed queries and any cancel events
+ * @returns removed queries and any cancel events
  */
 export function syncPointRemoveEventRegistration(
   syncPoint: SyncPoint,
@@ -266,7 +266,7 @@ export function syncPointGetQueryViews(syncPoint: SyncPoint): View[] {
 
 /**
  * @param path The path to the desired complete snapshot
- * @return A complete cache, if it exists
+ * @returns A complete cache, if it exists
  */
 export function syncPointGetCompleteServerCache(
   syncPoint: SyncPoint,
