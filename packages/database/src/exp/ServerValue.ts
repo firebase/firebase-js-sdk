@@ -15,12 +15,18 @@
  * limitations under the License.
  */
 
+const SERVER_TIMESTAMP = {
+  '.sv': 'timestamp'
+};
+
 export function serverTimestamp(): object {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  return SERVER_TIMESTAMP;
 }
 
 export function increment(delta: number): object {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {} as any;
+  return {
+    '.sv': {
+      'increment': delta
+    }
+  };
 }
