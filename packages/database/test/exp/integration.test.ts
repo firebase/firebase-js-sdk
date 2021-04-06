@@ -28,8 +28,8 @@ import {
   refFromURL
 } from '../../exp/index';
 import { onValue, set } from '../../src/exp/Reference_impl';
-import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
+import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
