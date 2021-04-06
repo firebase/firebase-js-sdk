@@ -33,6 +33,7 @@ import {
 } from '../core/util/validation';
 import { UserCallback } from '../core/view/EventRegistration';
 import { QueryParams } from '../core/view/QueryParams';
+import { OnDisconnect as ExpOnDisconnect } from '../exp/OnDisconnect';
 import {
   DataSnapshot as ExpDataSnapshot,
   off,
@@ -750,7 +751,9 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
 
   onDisconnect(): OnDisconnect {
     validateWritablePath('Reference.onDisconnect', this._delegate._path);
-    return new OnDisconnect(this._delegate._repo, this._delegate._path);
+    return new OnDisconnect(
+      new ExpOnDisconnect(this._delegate._repo, this._delegate._path)
+    );
   }
 
   get key(): string | null {

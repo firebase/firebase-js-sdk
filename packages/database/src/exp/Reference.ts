@@ -31,17 +31,6 @@ export interface Reference extends Query {
   readonly parent: Reference | null;
 }
 
-export interface OnDisconnect {
-  cancel(): Promise<void>;
-  remove(): Promise<void>;
-  set(value: unknown): Promise<void>;
-  setWithPriority(
-    value: unknown,
-    priority: number | string | null
-  ): Promise<void>;
-  update(values: object): Promise<void>;
-}
-
 export interface ThenableReference
   extends Reference,
     Pick<Promise<Reference>, 'then' | 'catch'> {}
