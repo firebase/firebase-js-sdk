@@ -92,7 +92,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
     )
       /**
        * Auth can only be initialized by explicitly calling getAuth() or initializeAuth()
-       * For why we do this, See https://docs.google.com/document/d/1vy9aI-fELpL2xlREoZt12o0JNw-JVNz4OwxYd9HcT0Y/edit?resourcekey=0-A714tRurcRonkj3lDuKVCw#heading=h.wcvc4xz0pwxf
+       * For why we do this, See go/firebase-next-auth-init
        */
       .setInstantiationMode(InstantiationMode.EXPLICIT)
       /**
