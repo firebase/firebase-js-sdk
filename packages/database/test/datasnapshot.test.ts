@@ -25,7 +25,7 @@ import { DataSnapshot as ExpDataSnapshot } from '../src/exp/Reference_impl';
 import { getRandomNode } from './helpers/util';
 
 describe('DataSnapshot Tests', () => {
-  /** @return {!DataSnapshot} */
+  /** @returns {!DataSnapshot} */
   const snapshotForJSON = function (json) {
     const dummyRef = getRandomNode() as Reference;
     return new DataSnapshot(

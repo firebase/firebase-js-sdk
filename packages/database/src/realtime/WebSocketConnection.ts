@@ -102,7 +102,7 @@ export class WebSocketConnection implements Transport {
    * @param transportSessionId Optional transportSessionId if this is connecting to an existing transport
    *                                         session
    * @param lastSessionId Optional lastSessionId if there was a previous connection
-   * @return connection url
+   * @returns connection url
    */
   private static connectionURL_(
     repoInfo: RepoInfo,
@@ -288,7 +288,7 @@ export class WebSocketConnection implements Transport {
 
   /**
    * Attempts to parse a frame count out of some text. If it can't, assumes a value of 1
-   * @return Any remaining data to be process, or null if there is none
+   * @returns Any remaining data to be process, or null if there is none
    */
   private extractFrameCount_(data: string): string | null {
     assert(this.frames === null, 'We already have a frame buffer');

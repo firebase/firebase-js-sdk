@@ -64,7 +64,7 @@ export class OnDisconnect {
    * parent location, the write at this location will be canceled, though writes
    * to sibling locations will still occur.
    *
-   * @return Resolves when synchronization to the server is complete.
+   * @returns Resolves when synchronization to the server is complete.
    */
   cancel(): Promise<void> {
     const deferred = new Deferred<void>();
@@ -80,7 +80,7 @@ export class OnDisconnect {
    * Ensures the data at this location is deleted when the client is disconnected
    * (due to closing the browser, navigating to a new page, or network issues).
    *
-   * @return Resolves when synchronization to the server is complete.
+   * @returns Resolves when synchronization to the server is complete.
    */
   remove(): Promise<void> {
     validateWritablePath('OnDisconnect.remove', this._path);
@@ -111,7 +111,7 @@ export class OnDisconnect {
    *
    * @param value - The value to be written to this location on disconnect (can
    * be an object, array, string, number, boolean, or null).
-   * @return Resolves when synchronization to the Database is complete.
+   * @returns Resolves when synchronization to the Database is complete.
    */
   set(value: unknown): Promise<void> {
     validateWritablePath('OnDisconnect.set', this._path);
@@ -134,7 +134,7 @@ export class OnDisconnect {
    * @param value - The value to be written to this location on disconnect (can
    * be an object, array, string, number, boolean, or null).
    * @param priority - The priority to be written (string, number, or null).
-   * @return Resolves when synchronization to the Database is complete.
+   * @returns Resolves when synchronization to the Database is complete.
    */
   setWithPriority(
     value: unknown,
@@ -174,7 +174,7 @@ export class OnDisconnect {
    * all the child properties at the current location).
    *
    * @param values Object containing multiple values.
-   * @return Resolves when synchronization to the Database is complete.
+   * @returns Resolves when synchronization to the Database is complete.
    */
   update(values: Indexable): Promise<void> {
     validateWritablePath('OnDisconnect.update', this._path);

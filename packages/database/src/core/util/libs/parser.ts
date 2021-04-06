@@ -35,7 +35,7 @@ function decodePath(pathString: string): string {
 }
 
 /**
- * @return key value hash
+ * @returns key value hash
  */
 function decodeQuery(queryString: string): { [key: string]: string } {
   const results = {};

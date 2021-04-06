@@ -359,7 +359,7 @@ export class DataSnapshot {
    * The `exportVal()` method is similar to `val()`, except priority information
    * is included (if available), making it suitable for backing up your data.
    *
-   * @return The DataSnapshot's contents as a JavaScript value (Object,
+   * @returns The DataSnapshot's contents as a JavaScript value (Object,
    *   Array, string, number, boolean, or `null`).
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -382,7 +382,7 @@ export class DataSnapshot {
    *
    * @param action - A function that will be called for each child DataSnapshot.
    * The callback can return true to cancel further enumeration.
-   * @return true if enumeration was canceled due to your callback returning
+   * @returns true if enumeration was canceled due to your callback returning
    * true.
    */
   forEach(action: (child: DataSnapshot) => boolean | void): boolean {
@@ -403,7 +403,7 @@ export class DataSnapshot {
    * Returns true if the specified child path has (non-null) data.
    *
    * @param path - A relative path to the location of a potential child.
-   * @return `true` if data exists at the specified child path; else
+   * @returns `true` if data exists at the specified child path; else
    *  `false`.
    */
   hasChild(path: string): boolean {
@@ -421,7 +421,7 @@ export class DataSnapshot {
    * retrieved with `val()`) or it is empty (in which case, `val()` will return
    * `null`).
    *
-   * @return true if this snapshot has any children; else false.
+   * @returns true if this snapshot has any children; else false.
    */
   hasChildren(): boolean {
     if (this._node.isLeafNode()) {
@@ -446,7 +446,7 @@ export class DataSnapshot {
    * also return null, indicating that the `DataSnapshot` is empty (contains no
    * data).
    *
-   * @return The DataSnapshot's contents as a JavaScript value (Object,
+   * @returns The DataSnapshot's contents as a JavaScript value (Object,
    *   Array, string, number, boolean, or `null`).
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -464,7 +464,7 @@ export class DataSnapshot {
  * @param path - Optional path representing the location the returned
  *   `Reference` will point. If not provided, the returned `Reference` will
  *   point to the root of the Database.
- * @return If a path is provided, a `Reference`
+ * @returns If a path is provided, a `Reference`
  *   pointing to the provided path. Otherwise, a `Reference` pointing to the
  *   root of the Database.
  */
@@ -487,7 +487,7 @@ export function ref(db: FirebaseDatabase, path?: string): ReferenceImpl {
  * @param db - The database instance to obtain a reference for.
  * @param url - The Firebase URL at which the returned `Reference` will
  *   point.
- * @return A `Reference` pointing to the provided
+ * @returns A `Reference` pointing to the provided
  *   Firebase URL.
  */
 export function refFromURL(db: FirebaseDatabase, url: string): ReferenceImpl {
@@ -524,7 +524,7 @@ export function refFromURL(db: FirebaseDatabase, url: string): ReferenceImpl {
  * @param parent - The parent location.
  * @param path - A relative path from this location to the desired child
  *   location.
- * @return The specified child location.
+ * @returns The specified child location.
  */
 export function child(parent: Reference, path: string): ReferenceImpl {
   parent = getModularInstance(parent);
@@ -577,7 +577,7 @@ export interface ThenableReferenceImpl
  *
  * @param parent - The parent location.
  * @param value - Optional value to be written at the generated location.
- * @return Combined `Promise` and `Reference`; resolves when write is complete,
+ * @returns Combined `Promise` and `Reference`; resolves when write is complete,
  * but can be used immediately as the `Reference` to the child location.
  */
 export function push(
@@ -623,7 +623,7 @@ export function push(
  * asynchronously after synchronization has finished.
  *
  * @param ref - The location to remove.
- * @return Resolves when remove on server is complete.
+ * @returns Resolves when remove on server is complete.
  */
 export function remove(ref: Reference): Promise<void> {
   validateWritablePath('remove', ref._path);
@@ -657,7 +657,7 @@ export function remove(ref: Reference): Promise<void> {
  * @param ref - The location to write to.
  * @param value - The value to be written (string, number, boolean, object,
  *   array, or null).
- * @return Resolves when write to server is complete.
+ * @returns Resolves when write to server is complete.
  */
 export function set(ref: Reference, value: unknown): Promise<void> {
   ref = getModularInstance(ref);
@@ -684,7 +684,7 @@ export function set(ref: Reference, value: unknown): Promise<void> {
  *
  * @param ref - The location to write to.
  * @param priority - The priority to be written (string, number, or null).
- * @return Resolves when write to server is complete.
+ * @returns Resolves when write to server is complete.
  */
 export function setPriority(
   ref: Reference,
@@ -717,7 +717,7 @@ export function setPriority(
  * @param value - The value to be written (string, number, boolean, object,
  *   array, or null).
  * @param priority - The priority to be written (string, number, or null).
- * @return Resolves when write to server is complete.
+ * @returns Resolves when write to server is complete.
  */
 export function setWithPriority(
   ref: Reference,
@@ -776,7 +776,7 @@ export function setWithPriority(
  *
  * @param ref - The location to write to.
  * @param values - Object containing multiple values.
- * @return Resolves when update on server is complete.
+ * @returns Resolves when update on server is complete.
  */
 export function update(ref: Reference, values: object): Promise<void> {
   validateFirebaseMergeDataArg('update', values, ref._path, false);
@@ -794,7 +794,7 @@ export function update(ref: Reference, values: object): Promise<void> {
  * Gets the most up-to-date result for this query.
  *
  * @param query - The query to run.
- * @return A promise which resolves to the resulting DataSnapshot if a value is
+ * @returns A promise which resolves to the resulting DataSnapshot if a value is
  * available, or rejects if the client is unable to return a value (e.g., if the
  * server is unreachable and there is nothing cached).
  */
@@ -1030,7 +1030,7 @@ function addEventListener(
  * permission to read this data (or it had permission but has now lost it).
  * This callback will be passed an `Error` object indicating why the failure
  * occurred.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onValue(
   query: Query,
@@ -1059,7 +1059,7 @@ export function onValue(
  * callback will be passed a DataSnapshot.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onValue(
   query: Query,
@@ -1093,7 +1093,7 @@ export function onValue(
  * occurred.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onValue(
   query: Query,
@@ -1142,7 +1142,7 @@ export function onValue(
  * permission to read this data (or it had permission but has now lost it).
  * This callback will be passed an `Error` object indicating why the failure
  * occurred.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildAdded(
   query: Query,
@@ -1175,7 +1175,7 @@ export function onChildAdded(
  * the previous child, by sort order, or `null` if it is the first child.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildAdded(
   query: Query,
@@ -1213,7 +1213,7 @@ export function onChildAdded(
  * occurred.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildAdded(
   query: Query,
@@ -1269,7 +1269,7 @@ export function onChildAdded(
  * permission to read this data (or it had permission but has now lost it).
  * This callback will be passed an `Error` object indicating why the failure
  * occurred.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildChanged(
   query: Query,
@@ -1303,7 +1303,7 @@ export function onChildChanged(
  * the previous child, by sort order, or `null` if it is the first child.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildChanged(
   query: Query,
@@ -1342,7 +1342,7 @@ export function onChildChanged(
  * occurred.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildChanged(
   query: Query,
@@ -1396,7 +1396,7 @@ export function onChildChanged(
  * permission to read this data (or it had permission but has now lost it).
  * This callback will be passed an `Error` object indicating why the failure
  * occurred.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildMoved(
   query: Query,
@@ -1428,7 +1428,7 @@ export function onChildMoved(
  * the previous child, by sort order, or `null` if it is the first child.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildMoved(
   query: Query,
@@ -1465,7 +1465,7 @@ export function onChildMoved(
  * occurred.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildMoved(
   query: Query,
@@ -1523,7 +1523,7 @@ export function onChildMoved(
  * permission to read this data (or it had permission but has now lost it).
  * This callback will be passed an `Error` object indicating why the failure
  * occurred.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildRemoved(
   query: Query,
@@ -1556,7 +1556,7 @@ export function onChildRemoved(
  * the previous child, by sort order, or `null` if it is the first child.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildRemoved(
   query: Query,
@@ -1594,7 +1594,7 @@ export function onChildRemoved(
  * occurred.
  * @param options - An object that can be used to configure `onlyOnce`, which
  * then removes the listener after its first invocation.
- * @return A function that can be invoked to remove the listener.
+ * @returns A function that can be invoked to remove the listener.
  */
 export function onChildRemoved(
   query: Query,

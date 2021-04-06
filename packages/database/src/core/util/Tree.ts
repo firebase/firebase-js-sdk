@@ -53,7 +53,7 @@ export class Tree<T> {
  * Returns a sub-Tree for the given path.
  *
  * @param pathObj Path to look up.
- * @return Tree for path.
+ * @returns Tree for path.
  */
 export function treeSubTree<T>(tree: Tree<T>, pathObj: string | Path): Tree<T> {
   // TODO: Require pathObj to be Path?
@@ -76,7 +76,7 @@ export function treeSubTree<T>(tree: Tree<T>, pathObj: string | Path): Tree<T> {
 /**
  * Returns the data associated with this tree node.
  *
- * @return The data or null if no data exists.
+ * @returns The data or null if no data exists.
  */
 export function treeGetValue<T>(tree: Tree<T>): T | undefined {
   return tree.node.value;
@@ -93,14 +93,14 @@ export function treeSetValue<T>(tree: Tree<T>, value: T | undefined): void {
 }
 
 /**
- * @return Whether the tree has any children.
+ * @returns Whether the tree has any children.
  */
 export function treeHasChildren<T>(tree: Tree<T>): boolean {
   return tree.node.childCount > 0;
 }
 
 /**
- * @return Whethe rthe tree is empty (no value or children).
+ * @returns Whethe rthe tree is empty (no value or children).
  */
 export function treeIsEmpty<T>(tree: Tree<T>): boolean {
   return treeGetValue(tree) === undefined && !treeHasChildren(tree);
@@ -154,7 +154,7 @@ export function treeForEachDescendant<T>(
  * @param action Action to be called on each parent; return
  *   true to abort.
  * @param includeSelf Whether to call action on this node as well.
- * @return true if the action callback returned true.
+ * @returns true if the action callback returned true.
  */
 export function treeForEachAncestor<T>(
   tree: Tree<T>,
@@ -192,7 +192,7 @@ export function treeForEachImmediateDescendantWithValue<T>(
 }
 
 /**
- * @return The path of this tree node, as a Path.
+ * @returns The path of this tree node, as a Path.
  */
 export function treeGetPath<T>(tree: Tree<T>) {
   return new Path(

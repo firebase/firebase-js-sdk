@@ -28,34 +28,34 @@ import { Index } from './indexes/Index';
 export interface Node {
   /**
    * Whether this node is a leaf node.
-   * @return Whether this is a leaf node.
+   * @returns Whether this is a leaf node.
    */
   isLeafNode(): boolean;
 
   /**
    * Gets the priority of the node.
-   * @return The priority of the node.
+   * @returns The priority of the node.
    */
   getPriority(): Node;
 
   /**
    * Returns a duplicate node with the new priority.
    * @param newPriorityNode New priority to set for the node.
-   * @return Node with new priority.
+   * @returns Node with new priority.
    */
   updatePriority(newPriorityNode: Node): Node;
 
   /**
    * Returns the specified immediate child, or null if it doesn't exist.
    * @param childName The name of the child to retrieve.
-   * @return The retrieved child, or an empty node.
+   * @returns The retrieved child, or an empty node.
    */
   getImmediateChild(childName: string): Node;
 
   /**
    * Returns a child by path, or null if it doesn't exist.
    * @param path The path of the child to retrieve.
-   * @return The retrieved child or an empty node.
+   * @returns The retrieved child or an empty node.
    */
   getChild(path: Path): Node;
 
@@ -64,7 +64,7 @@ export interface Node {
    * @param childName The name of the child to find the predecessor of.
    * @param childNode The node to find the predecessor of.
    * @param index The index to use to determine the predecessor
-   * @return The name of the predecessor child, or null if childNode is the first child.
+   * @returns The name of the predecessor child, or null if childNode is the first child.
    */
   getPredecessorChildName(
     childName: string,
@@ -77,7 +77,7 @@ export interface Node {
    * Any value in the node will be removed.
    * @param childName The name of the child to update.
    * @param newChildNode The new child node
-   * @return The updated node.
+   * @returns The updated node.
    */
   updateImmediateChild(childName: string, newChildNode: Node): Node;
 
@@ -86,7 +86,7 @@ export interface Node {
    * be removed.
    * @param path The path of the child to update.
    * @param newChildNode The new child node, which may be an empty node
-   * @return The updated node.
+   * @returns The updated node.
    */
   updateChild(path: Path, newChildNode: Node): Node;
 
@@ -96,12 +96,12 @@ export interface Node {
   hasChild(childName: string): boolean;
 
   /**
-   * @return True if this node has no value or children.
+   * @returns True if this node has no value or children.
    */
   isEmpty(): boolean;
 
   /**
-   * @return The number of children of this node.
+   * @returns The number of children of this node.
    */
   numChildren(): number;
 
@@ -109,34 +109,34 @@ export interface Node {
    * Calls action for each child.
    * @param action Action to be called for
    * each child.  It's passed the child name and the child node.
-   * @return The first truthy value return by action, or the last falsey one
+   * @returns The first truthy value return by action, or the last falsey one
    */
   forEachChild(index: Index, action: (a: string, b: Node) => void): unknown;
 
   /**
    * @param exportFormat True for export format (also wire protocol format).
-   * @return Value of this node as JSON.
+   * @returns Value of this node as JSON.
    */
   val(exportFormat?: boolean): unknown;
 
   /**
-   * @return hash representing the node contents.
+   * @returns hash representing the node contents.
    */
   hash(): string;
 
   /**
    * @param other Another node
-   * @return -1 for less than, 0 for equal, 1 for greater than other
+   * @returns -1 for less than, 0 for equal, 1 for greater than other
    */
   compareTo(other: Node): number;
 
   /**
-   * @return Whether or not this snapshot equals other
+   * @returns Whether or not this snapshot equals other
    */
   equals(other: Node): boolean;
 
   /**
-   * @return This node, with the specified index now available
+   * @returns This node, with the specified index now available
    */
   withIndex(indexDefinition: Index): Node;
 

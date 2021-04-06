@@ -47,7 +47,7 @@ export const LUIDGenerator: () => number = (function () {
 /**
  * Sha1 hash of the input string
  * @param str The string to hash
- * @return {!string} The resulting hash
+ * @returns {!string} The resulting hash
  */
 export const sha1 = function (str: string): string {
   const utf8Bytes = stringToByteArray(str);
@@ -277,7 +277,7 @@ export const nameCompare = function (a: string, b: string): number {
 };
 
 /**
- * @return {!number} comparison result.
+ * @returns {!number} comparison result.
  */
 export const stringCompare = function (a: string, b: string): number {
   if (a === b) {
@@ -333,7 +333,7 @@ export const ObjectToUniqueKey = function (obj: unknown): string {
  * Splits a string into a number of smaller segments of maximum size
  * @param str The string
  * @param segsize The maximum number of chars in the string.
- * @return The string, split into appropriately-sized chunks
+ * @returns The string, split into appropriately-sized chunks
  */
 export const splitStringBySize = function (
   str: string,
@@ -573,7 +573,7 @@ export const callUserCallback = function (
 };
 
 /**
- * @return {boolean} true if we think we're currently being crawled.
+ * @returns {boolean} true if we think we're currently being crawled.
  */
 export const beingCrawled = function (): boolean {
   const userAgent =
@@ -611,7 +611,7 @@ export const exportPropGetter = function (
  *
  * @param fn Function to run.
  * @param time Milliseconds to wait before running.
- * @return The setTimeout() return value.
+ * @returns The setTimeout() return value.
  */
 export const setTimeoutNonBlocking = function (
   fn: () => void,

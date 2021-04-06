@@ -27,7 +27,7 @@ declare const window: Window;
  *
  * @param domStorageName Name of the underlying storage object
  *   (e.g. 'localStorage' or 'sessionStorage').
- * @return Turning off type information until a common interface is defined.
+ * @returns Turning off type information until a common interface is defined.
  */
 const createStoragefor = function (
   domStorageName: string

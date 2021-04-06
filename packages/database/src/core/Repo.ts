@@ -193,7 +193,7 @@ export class Repo {
   }
 
   /**
-   * @return The URL corresponding to the root of this Firebase.
+   * @returns The URL corresponding to the root of this Firebase.
    */
   toString(): string {
     return (
@@ -319,7 +319,7 @@ export function repoStart(
 }
 
 /**
- * @return The time in milliseconds, taking the server offset into account if we have one.
+ * @returns The time in milliseconds, taking the server offset into account if we have one.
  */
 export function repoServerTime(repo: Repo): number {
   const offsetNode = repo.infoData_.getNode(new Path('.info/serverTimeOffset'));
@@ -1147,7 +1147,7 @@ function repoSendTransactionQueue(
  * is the path at which events need to be raised for.
  *
  * @param changedPath The path in mergedData that changed.
- * @return The rootmost path that was affected by rerunning transactions.
+ * @returns The rootmost path that was affected by rerunning transactions.
  */
 function repoRerunTransactions(repo: Repo, changedPath: Path): Path {
   const rootMostTransactionNode = repoGetAncestorTransactionNode(
@@ -1329,7 +1329,7 @@ function repoRerunTransactionQueue(
  * no pending transactions on any ancestor.
  *
  * @param path The location to start at.
- * @return The rootmost node with a transaction.
+ * @returns The rootmost node with a transaction.
  */
 function repoGetAncestorTransactionNode(
   repo: Repo,
@@ -1355,7 +1355,7 @@ function repoGetAncestorTransactionNode(
  * transactionNode.
  *
  * @param transactionNode
- * @return The generated queue.
+ * @returns The generated queue.
  */
 function repoBuildTransactionQueue(
   repo: Repo,

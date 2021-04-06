@@ -69,7 +69,7 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
    * location.
    * @throws If a Reference is provided, throws if it does not belong to the
    * same project.
-   * @return Firebase reference.
+   * @returns Firebase reference.
    */
   ref(path?: string): Reference;
   ref(path?: Reference): Reference;
@@ -88,7 +88,7 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
    * Returns a reference to the root or the path specified in url.
    * We throw a exception if the url is not in the same domain as the
    * current repo.
-   * @return Firebase reference.
+   * @returns Firebase reference.
    */
   refFromURL(url: string): Reference {
     const apiName = 'database.refFromURL';

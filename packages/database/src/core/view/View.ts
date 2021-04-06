@@ -145,7 +145,7 @@ export function viewAddEventRegistration(
 /**
  * @param eventRegistration If null, remove all callbacks.
  * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
- * @return Cancel events, if cancelError was provided.
+ * @returns Cancel events, if cancelError was provided.
  */
 export function viewRemoveEventRegistration(
   view: View,

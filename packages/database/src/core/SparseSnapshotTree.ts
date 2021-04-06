@@ -39,7 +39,7 @@ export function newSparseSnapshotTree(): SparseSnapshotTree {
  * Only seems to be used in tests.
  *
  * @param path Path to look up snapshot for.
- * @return The retrieved node, or null.
+ * @returns The retrieved node, or null.
  */
 export function sparseSnapshotTreeFind(
   sparseSnapshotTree: SparseSnapshotTree,
@@ -94,7 +94,7 @@ export function sparseSnapshotTreeRemember(
  * Purge the data at path from the cache.
  *
  * @param path Path to look up snapshot for.
- * @return True if this node should now be removed.
+ * @returns True if this node should now be removed.
  */
 export function sparseSnapshotTreeForget(
   sparseSnapshotTree: SparseSnapshotTree,

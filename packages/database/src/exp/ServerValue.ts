@@ -33,7 +33,7 @@ export function serverTimestamp(): object {
  * current database value by the provided delta.
  *
  * @param delta the amount to modify the current value atomically.
- * @return A placeholder value for modifying data atomically server-side.
+ * @returns A placeholder value for modifying data atomically server-side.
  */
 export function increment(delta: number): object {
   return {

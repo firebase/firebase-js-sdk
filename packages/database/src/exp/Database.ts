@@ -163,7 +163,7 @@ function repoManagerDeleteRepo(repo: Repo, appName: string): void {
  * provided app.
  *
  * @param repoInfo The metadata about the Repo
- * @return The Repo object for the specified server / repoName.
+ * @returns The Repo object for the specified server / repoName.
  */
 function repoManagerCreateRepo(
   repoInfo: RepoInfo,

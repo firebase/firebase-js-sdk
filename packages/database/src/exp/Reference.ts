@@ -53,14 +53,14 @@ export interface Query extends QueryContext {
    * starting and ending points.
    *
    * @param other - The query to compare against.
-   * @return Whether or not the current and provided queries are equivalent.
+   * @returns Whether or not the current and provided queries are equivalent.
    */
   isEqual(other: Query | null): boolean;
 
   /**
    * Returns a JSON-serializable representation of this object.
    *
-   * @return A JSON-serializable representation of this object.
+   * @returns A JSON-serializable representation of this object.
    */
   toJSON(): string;
 
@@ -75,7 +75,7 @@ export interface Query extends QueryContext {
    * JSON-formatted data. If the location is secured (that is, not publicly
    * readable), you will get a permission-denied error.
    *
-   * @return The absolute URL for this location.
+   * @returns The absolute URL for this location.
    */
   toString(): string;
 }
