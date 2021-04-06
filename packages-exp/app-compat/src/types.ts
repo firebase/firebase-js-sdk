@@ -22,7 +22,7 @@
 
 import { FirebaseApp, FirebaseNamespace } from './public-types';
 import { Compat } from '@firebase/util';
-import { Component, ComponentContainer } from '@firebase/component';
+import { Component, ComponentContainer, Name } from '@firebase/component';
 
 export interface FirebaseServiceInternals {
   /**
@@ -72,8 +72,8 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
      * @param allowMultipleInstances Whether the registered service supports
      *   multiple instances per app. If not specified, the default is false.
      */
-    registerComponent(
-      component: Component
+    registerComponent<T extends Name>(
+      component: Component<T>
     ): FirebaseServiceNamespace<_FirebaseService> | null;
 
     /**
