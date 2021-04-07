@@ -31,14 +31,15 @@ import {
   OperationType,
   ProviderId,
   UserCredential,
-  ConfirmationResult
+  signInWithCredential,
+  ConfirmationResult,
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { FirebaseError } from '@firebase/util';
 
 import {
   cleanUpTestInstance,
-  getTestInstance
+  getTestInstance,
 } from '../../helpers/integration/helpers';
 import { getPhoneVerificationCodes } from '../../helpers/integration/emulator_rest_helpers';
 
@@ -269,6 +270,29 @@ describe('Integration test: phone auth', () => {
         await code(cr, PHONE_B.code)
       );
       await otherUser.delete();
+    });
+
+    it('handles account exists with credential errors', async () => {
+      // PHONE_A is already a user. Try to link it with an email account
+      const {user} = await signInAnonymously(auth);
+      expect(user.uid).not.to.eq(signUpCred.user.uid);
+
+      const provider = new PhoneAuthProvider(auth);
+      const verificationId = await provider.verifyPhoneNumber(PHONE_A.phoneNumber, verifier);
+      let error: FirebaseError|null = null;
+
+      try {
+        await updatePhoneNumber(user, PhoneAuthProvider.credential(verificationId, await code(verificationId, PHONE_A.code)));
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error!.customData!.phoneNumber).to.eq(PHONE_A.phoneNumber);
+      expect(error!.code).to.eq('auth/account-exists-with-different-credential');
+      const credential = PhoneAuthProvider.credentialFromError(error!);
+      expect(credential).not.be.null;
+      const errorUserCred = await signInWithCredential(auth, credential!);
+      expect(errorUserCred.user.uid).to.eq(signUpCred.user.uid);
     });
   });
 });

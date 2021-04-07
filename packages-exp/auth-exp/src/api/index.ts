@@ -145,7 +145,7 @@ export async function _performFetchWithErrorHandling<V>(
 
     const json = await response.json();
     if ('needConfirmation' in json) {
-      throw makeTaggedError(auth, AuthErrorCode.NEED_CONFIRMATION, json);
+      throw _makeTaggedError(auth, AuthErrorCode.NEED_CONFIRMATION, json);
     }
 
     if (response.ok && !('errorMessage' in json)) {
@@ -154,13 +154,13 @@ export async function _performFetchWithErrorHandling<V>(
       const errorMessage = response.ok ? json.errorMessage : json.error.message;
       const serverErrorCode = errorMessage.split(' : ')[0] as ServerError;
       if (serverErrorCode === ServerError.FEDERATED_USER_ID_ALREADY_LINKED) {
-        throw makeTaggedError(
+        throw _makeTaggedError(
           auth,
           AuthErrorCode.CREDENTIAL_ALREADY_IN_USE,
           json
         );
       } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
-        throw makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
+        throw _makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
       }
       const authError =
         errorMap[serverErrorCode] ||
@@ -238,7 +238,7 @@ interface PotentialResponse extends IdTokenResponse {
   phoneNumber?: string;
 }
 
-function makeTaggedError(
+export function _makeTaggedError(
   auth: Auth,
   code: AuthErrorCode,
   response: PotentialResponse

@@ -19,6 +19,7 @@ import {
   Endpoint,
   HttpMethod,
   _addTidIfNecessary,
+  _makeTaggedError,
   _performApiRequest,
   _performSignInRequest
 } from '../index';
@@ -89,7 +90,7 @@ export async function linkWithPhoneNumber(
   auth: Auth,
   request: LinkWithPhoneNumberRequest
 ): Promise<SignInWithPhoneNumberResponse> {
-  return _performSignInRequest<
+  const response = await _performSignInRequest<
     LinkWithPhoneNumberRequest,
     SignInWithPhoneNumberResponse
   >(
@@ -98,6 +99,10 @@ export async function linkWithPhoneNumber(
     Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
     _addTidIfNecessary(auth, request)
   );
+  if (response.temporaryProof) {
+    throw _makeTaggedError(auth, AuthErrorCode.NEED_CONFIRMATION, response);
+  }
+  return response;
 }
 
 interface VerifyPhoneNumberForExistingRequest
