@@ -359,13 +359,8 @@ export function enableLogging(enabled: boolean, persistent?: boolean);
  * Logs debugging information to the console.
  *
  * @param logger - A custom logger function to control how things get logged.
- * @param persistent - Remembers the logging state between page refreshes if
- * `true`.
  */
-export function enableLogging(
-  logger?: (message: string) => unknown,
-  persistent?: boolean
-);
+export function enableLogging(logger: (message: string) => unknown);
 
 export function enableLogging(
   logger: boolean | ((message: string) => unknown),

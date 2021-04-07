@@ -26,7 +26,7 @@ export class DataSnapshot {
 export function enableLogging(enabled: boolean, persistent?: boolean): any;
 
 // @public
-export function enableLogging(logger?: (message: string) => unknown, persistent?: boolean): any;
+export function enableLogging(logger: (message: string) => unknown): any;
 
 // @public
 export function endAt(value: number | string | boolean | null, key?: string): QueryConstraint;
@@ -50,7 +50,7 @@ export class FirebaseDatabase {
 export function get(query: Query): Promise<DataSnapshot>;
 
 // @public
-export function getDatabase(app: FirebaseApp, url?: string): FirebaseDatabase;
+export function getDatabase(app?: FirebaseApp, url?: string): FirebaseDatabase;
 
 // @public
 export function goOffline(db: FirebaseDatabase): void;
