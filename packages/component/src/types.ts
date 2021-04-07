@@ -18,8 +18,9 @@
 import { ComponentContainer } from './component_container';
 
 export const enum InstantiationMode {
-  LAZY = 'LAZY', // Currently all components are LAZY in JS SDK
-  EAGER = 'EAGER'
+  LAZY = 'LAZY', // Currently most components are LAZY in JS SDK
+  EAGER = 'EAGER', // EAGER components are initialized immediately upon registration
+  EXPLICIT = 'EXPLICIT' // component needs to be initialized explicitly by calling Provider.initialize()
 }
 
 /**
@@ -55,6 +56,12 @@ export type InstanceFactory<T extends Name> = (
   container: ComponentContainer,
   options: InstanceFactoryOptions
 ) => NameServiceMapping[T];
+
+export type onInstanceCreatedCallback<T extends Name> = (
+  container: ComponentContainer,
+  instanceIdentifier: string,
+  instance: NameServiceMapping[T]
+) => void;
 
 export interface Dictionary {
   [key: string]: unknown;
