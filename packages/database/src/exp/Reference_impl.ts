@@ -289,6 +289,7 @@ export class DataSnapshot {
    */
   constructor(
     readonly _node: Node,
+    /** The location of this DataSnapshot. */
     readonly ref: ReferenceImpl,
     readonly _index: Index
   ) {}

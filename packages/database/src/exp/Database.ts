@@ -200,6 +200,7 @@ export function repoManagerForceRestClient(forceRestClient: boolean): void {
  * Class representing a Firebase Realtime Database.
  */
 export class FirebaseDatabase implements _FirebaseService {
+  /** Represents a database instance. */
   readonly 'type' = 'database';
 
   /** Track if the instance has been used (root or repo accessed) */
@@ -209,7 +210,11 @@ export class FirebaseDatabase implements _FirebaseService {
   private _rootInternal?: ReferenceImpl;
 
   /** @hideconstructor */
-  constructor(private _repoInternal: Repo, readonly app: FirebaseApp) {}
+  constructor(
+    private _repoInternal: Repo,
+    /** The FirebaseApp associated with this Realtime Database instance. */
+    readonly app: FirebaseApp
+  ) {}
 
   get _repo(): Repo {
     if (!this._instanceStarted) {

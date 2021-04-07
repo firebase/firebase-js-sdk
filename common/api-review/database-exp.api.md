@@ -16,7 +16,6 @@ export class DataSnapshot {
     hasChildren(): boolean;
     get key(): string | null;
     get priority(): string | number | null;
-    // (undocumented)
     readonly ref: Reference;
     get size(): number;
     toJSON(): object | null;
@@ -43,9 +42,7 @@ export type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved
 
 // @public
 export class FirebaseDatabase {
-    // (undocumented)
     readonly app: FirebaseApp;
-    // (undocumented)
     readonly 'type' = "database";
 }
 
@@ -215,14 +212,10 @@ export interface TransactionOptions {
     readonly applyLocally?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export class TransactionResult {
-    constructor(committed: boolean, snapshot: DataSnapshot);
-    // (undocumented)
     readonly committed: boolean;
-    // (undocumented)
     readonly snapshot: DataSnapshot;
-    // (undocumented)
     toJSON(): object;
 }
 
