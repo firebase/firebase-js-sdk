@@ -75,13 +75,13 @@ const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
   );
 };
 
-export function registerWindowMessaging(): void {
+export function registerMessagingInWindow(): void {
   _registerComponent(
     new Component('messaging-exp', WindowMessagingFactory, ComponentType.PUBLIC)
   );
 }
 
-export function registerSwMessaging(): void {
+export function registerMessagingInSw(): void {
   _registerComponent(
     new Component('messaging-exp', SwMessagingFactory, ComponentType.PUBLIC)
   );
