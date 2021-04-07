@@ -121,7 +121,14 @@ export class PhoneAuthCredential extends AuthCredential {
     return obj;
   }
 
-  /** {@inheritdoc AuthCredential.fromJSON} */
+  /**
+   * Static method to deserialize a JSON representation of an object into an {@link  AuthCredential}.
+   *
+   * @param json - Either `object` or the stringified representation of the object. When string is
+   * provided, `JSON.parse` would be called first.
+   *
+   * @returns If the JSON input does not represent an {@link AuthCredential}, null is returned.
+   */
   static fromJSON(json: object | string): PhoneAuthCredential | null {
     if (typeof json === 'string') {
       json = JSON.parse(json);

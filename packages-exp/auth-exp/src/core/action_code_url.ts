@@ -154,7 +154,7 @@ export class ActionCodeURL {
 }
 
 /**
- * {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink}
+ * {@inheritDoc ActionCodeURL.parseLink}
  *
  * @public
  */

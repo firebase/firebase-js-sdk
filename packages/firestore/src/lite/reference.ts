@@ -39,7 +39,7 @@ import { FieldPath } from './field_path';
 import { FirestoreDataConverter } from './snapshot';
 
 /**
- * Document data (for use with {@link setDoc}) consists of fields mapped to
+ * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
  * values.
  */
 export interface DocumentData {
@@ -48,7 +48,7 @@ export interface DocumentData {
 }
 
 /**
- * Update data (for use with {@link updateDoc}) consists of field paths (e.g.
+ * Update data (for use with {@link @firebase/firestore/lite#(updateDoc:1)}) consists of field paths (e.g.
  * 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference
  * nested fields within the document.
  */
@@ -58,8 +58,8 @@ export interface UpdateData {
 }
 
 /**
- * An options object that configures the behavior of {@link setDoc}, {@link
- * WriteBatch#set} and {@link Transaction#set} calls. These calls can be
+ * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link
+ * @firebase/firestore/lite#(WriteBatch.set:1)} and {@link @firebase/firestore/lite#(Transaction.set:1)} calls. These calls can be
  * configured to perform granular merges instead of overwriting the target
  * documents in their entirety by providing a `SetOptions` with `merge: true`.
  *
@@ -135,7 +135,7 @@ export class DocumentReference<T = DocumentData> {
   /**
    * Applies a custom data converter to this `DocumentReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
-   * setDoc}, {@link getDoc}, etc. with the returned `DocumentReference`
+   * @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#getDoc}, etc. with the returned `DocumentReference`
    * instance, the provided converter will convert between Firestore data and
    * your custom type `U`.
    *

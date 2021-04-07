@@ -25,15 +25,15 @@ import {
 } from './user_data_reader';
 
 /**
- * Returns a sentinel for use with {@link updateDoc} or
- * {@link setDoc} with `{merge: true}` to mark a field for deletion.
+ * Returns a sentinel for use with {@link @firebase/firestore/lite#(updateDoc:1)} or
+ * {@link @firebase/firestore/lite#(setDoc:1)} with `{merge: true}` to mark a field for deletion.
  */
 export function deleteField(): FieldValue {
   return new DeleteFieldValueImpl('deleteField');
 }
 
 /**
- * Returns a sentinel used with {@link setDoc} or {@link updateDoc} to
+ * Returns a sentinel used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link @firebase/firestore/lite#(updateDoc:1)} to
  * include a server-generated timestamp in the written data.
  */
 export function serverTimestamp(): FieldValue {
@@ -41,8 +41,8 @@ export function serverTimestamp(): FieldValue {
 }
 
 /**
- * Returns a special value that can be used with {@link setDoc} or {@link
- * updateDoc} that tells the server to union the given elements with any array
+ * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
+ * @firebase/firestore/lite#(updateDoc:1)} that tells the server to union the given elements with any array
  * value that already exists on the server. Each specified element that doesn't
  * already exist in the array will be added to the end. If the field being
  * modified is not already an array it will be overwritten with an array
@@ -60,7 +60,7 @@ export function arrayUnion(...elements: unknown[]): FieldValue {
 
 /**
  * Returns a special value that can be used with {@link (setDoc:1)} or {@link
- * updateDoc} that tells the server to remove the given elements from any
+ * updateDoc:1} that tells the server to remove the given elements from any
  * array value that already exists on the server. All instances of each element
  * specified will be removed from the array. If the field being modified is not
  * already an array it will be overwritten with an empty array.
@@ -76,8 +76,8 @@ export function arrayRemove(...elements: unknown[]): FieldValue {
 }
 
 /**
- * Returns a special value that can be used with {@link setDoc} or {@link
- * updateDoc} that tells the server to increment the field's current value by
+ * Returns a special value that can be used with {@link @firebase/firestore/lite#(setDoc:1)} or {@link
+ * @firebase/firestore/lite#(updateDoc:1)} that tells the server to increment the field's current value by
  * the given value.
  *
  * If either the operand or the current field value uses floating point

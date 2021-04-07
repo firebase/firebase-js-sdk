@@ -88,8 +88,8 @@ export type QueryConstraintType =
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where},
- * {@link orderBy}, {@link startAt}, {@link startAfter}, {@link
- * endBefore}, {@link endAt}, {@link limit} or {@link limitToLast} and
+ * {@link orderBy}, {@link (startAt:1)}, {@link (startAfter:1)}, {@link
+ * endBefore:1}, {@link (endAt:1)}, {@link limit} or {@link limitToLast} and
  * can then be passed to {@link query} to create a new query instance that
  * also contains this `QueryConstraint`.
  */
