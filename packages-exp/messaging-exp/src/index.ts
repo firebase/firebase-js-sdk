@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { FirebaseMessaging } from './interfaces/public-types';
-import { registerMessaging } from './helpers/register';
 import '@firebase/installations-exp';
+
+import { FirebaseMessaging } from './interfaces/public-types';
+import { registerMessagingInWindow } from './helpers/register';
 
 export {
   getToken,
@@ -26,6 +27,7 @@ export {
   getMessaging,
   onBackgroundMessage
 } from './api';
+export { isWindowSupported as isSupported } from './api/isSupported';
 export * from './interfaces/public-types';
 
 declare module '@firebase/component' {
@@ -34,4 +36,4 @@ declare module '@firebase/component' {
   }
 }
 
-registerMessaging();
+registerMessagingInWindow();

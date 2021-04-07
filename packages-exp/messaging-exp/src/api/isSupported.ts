@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,14 @@
  * limitations under the License.
  */
 
-export function isSupported(): boolean {
-  if (self && 'ServiceWorkerGlobalScope' in self) {
-    // Running in ServiceWorker context
-    return isSWControllerSupported();
-  } else {
-    // Assume we are in the window context.
-    return isWindowControllerSupported();
-  }
-}
+import { validateIndexedDBOpenable } from '@firebase/util';
 
-/**
- * Checks to see if the required APIs exist.
- */
-function isWindowControllerSupported(): boolean {
+export async function isWindowSupported(): Promise<boolean> {
+  // firebase-js-sdk/issues/2393 reveals that idb#open in Safari iframe and Firefox private browsing
+  // might be prohibited to run. In these contexts, an error would be thrown during the messaging
+  // instantiating phase, informing the developers to import/call isSupported for special handling.
   return (
+    (await validateIndexedDBOpenable()) &&
     'indexedDB' in window &&
     indexedDB !== null &&
     navigator.cookieEnabled &&
@@ -45,8 +38,12 @@ function isWindowControllerSupported(): boolean {
 /**
  * Checks to see if the required APIs exist within SW Context.
  */
-function isSWControllerSupported(): boolean {
+export async function isSwSupported(): Promise<boolean> {
+  // firebase-js-sdk/issues/2393 reveals that idb#open in Safari iframe and Firefox private browsing
+  // might be prohibited to run. In these contexts, an error would be thrown during the messaging
+  // instantiating phase, informing the developers to import/call isSupported for special handling.
   return (
+    (await validateIndexedDBOpenable()) &&
     'indexedDB' in self &&
     indexedDB !== null &&
     'PushManager' in self &&
