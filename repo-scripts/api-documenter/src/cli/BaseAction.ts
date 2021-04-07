@@ -33,7 +33,7 @@ import {
   ApiItemContainerMixin,
   ApiDocumentedItem,
   IResolveDeclarationReferenceResult
-} from '@microsoft/api-extractor-model';
+} from 'api-extractor-model-me';
 
 export interface IBuildApiModelResult {
   apiModel: ApiModel;
