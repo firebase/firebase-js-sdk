@@ -19,10 +19,34 @@ import { Settings as LiteSettings } from '../lite/settings';
 
 export { DEFAULT_HOST } from '../lite/settings';
 
+/**
+ * Settings that can be passed to Firestore.enablePersistence() to configure
+ * Firestore persistence.
+ */
 export interface PersistenceSettings {
+  /**
+   * Whether to force enable persistence for the client. This cannot be used
+   * with multi-tab synchronization and is primarily intended for use with Web
+   * Workers. Setting this to `true` will enable persistence, but cause other
+   * tabs using persistence to fail.
+   */
   forceOwnership?: boolean;
 }
 
+/**
+ * Specifies custom configurations for your Cloud Firestore instance.
+ * You must set these before invoking any other methods.
+ */
 export interface Settings extends LiteSettings {
+  /**
+   * An approximate cache size threshold for the on-disk data. If the cache
+   * grows beyond this size, Firestore will start removing data that hasn't been
+   * recently used. The size is not a guarantee that the cache will stay below
+   * that size, only that if the cache exceeds the given size, cleanup will be
+   * attempted.
+   *
+   * The default value is 40 MB. The threshold must be set to at least 1 MB, and
+   * can be set to CACHE_SIZE_UNLIMITED to disable garbage collection.
+   */
   cacheSizeBytes?: number;
 }

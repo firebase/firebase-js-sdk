@@ -445,7 +445,13 @@ export declare class DocumentSnapshot<T = DocumentData> {
    * field exists in the document.
    */
   get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
+  /**
+   * Property of the `DocumentSnapshot` that provides the document's ID.
+   */
   get id(): string;
+  /**
+   * The `DocumentReference` for the document included in the `DocumentSnapshot`.
+   */
   get ref(): DocumentReference<T>;
 }
 /**
@@ -595,6 +601,10 @@ export declare abstract class FieldValue {
  */
 export declare class FirebaseFirestore {
   private constructor();
+  /**
+   * The {@link FirebaseApp} associated with this `Firestore` service
+   * instance.
+   */
   get app(): FirebaseApp;
   toJSON(): object;
 }
@@ -1784,19 +1794,69 @@ export declare class Transaction {
    * @returns A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+  /**
+   * Writes to the document referred to by the provided {@link
+   * DocumentReference}. If the document does not exist yet, it will be created.
+   *
+   * @param documentRef - A reference to the document to be set.
+   * @param data - An object of the fields and values for the document.
+   * @returns This `Transaction` instance. Used for chaining method calls.
+   */
   set<T>(documentRef: DocumentReference<T>, data: T): this;
+  /**
+   * Writes to the document referred to by the provided {@link
+   * DocumentReference}. If the document does not exist yet, it will be created.
+   * If you provide `merge` or `mergeFields`, the provided data can be merged
+   * into an existing document.
+   *
+   * @param documentRef - A reference to the document to be set.
+   * @param data - An object of the fields and values for the document.
+   * @param options - An object to configure the set behavior.
+   * @returns This `Transaction` instance. Used for chaining method calls.
+   */
   set<T>(
     documentRef: DocumentReference<T>,
     data: Partial<T>,
     options: SetOptions
   ): this;
+  /**
+     * Updates fields in the document referred to by the provided {@link
+     * DocumentReference}. The update will fail if applied to a document that does
+     * not exist.
+     * 
+     * @param documentRef - A reference to the document to be updated.
+     * @param data - An object containing the fields and values with which to
+update the document. Fields can contain dots to reference nested fields
+within the document.
+     * @returns This `Transaction` instance. Used for chaining method calls.
+     */
   update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
+  /**
+   * Updates fields in the document referred to by the provided {@link
+   * DocumentReference}. The update will fail if applied to a document that does
+   * not exist.
+   *
+   * Nested fields can be updated by providing dot-separated field path
+   * strings or by providing `FieldPath` objects.
+   *
+   * @param documentRef - A reference to the document to be updated.
+   * @param field - The first field to update.
+   * @param value - The first value.
+   * @param moreFieldsAndValues - Additional key/value pairs.
+   * @returns This `Transaction` instance. Used for chaining method calls.
+   */
   update(
     documentRef: DocumentReference<unknown>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this;
+  /**
+   * Deletes the document referred to by the provided {@link DocumentReference}.
+   *
+   * @param documentRef - A reference to the document to be deleted.
+   * @returns This `Transaction` instance. Used for chaining method calls.
+   */
   delete(documentRef: DocumentReference<unknown>): this;
 }
 export declare interface Unsubscribe {
