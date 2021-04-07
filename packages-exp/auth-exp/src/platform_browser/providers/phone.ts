@@ -148,6 +148,10 @@ export class PhoneAuthProvider {
     );
   }
 
+  /**
+   * Generates an {@link AuthCredential} from a {@link UserCredential}.
+   * @param userCredential
+   */
   static credentialFromResult(
     userCredential: UserCredential
   ): AuthCredential | null {

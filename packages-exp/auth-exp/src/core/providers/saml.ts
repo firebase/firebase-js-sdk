@@ -46,6 +46,22 @@ export class SAMLAuthProvider extends FederatedAuthProvider {
     super(providerId);
   }
 
+  /**
+   * Generates an {@link AuthCredential} from a {@link UserCredential} after a
+   * successful SAML flow completes.
+   *
+   * @remarks
+   *
+   * For example, to get an {@link AuthCredential}, you could write the
+   * following code:
+   *
+   * ```js
+   * const userCredential = await signInWithPopup(auth, samlProvider);
+   * const credential = SAMLAuthProvider.credentialFromResult(userCredential);
+   * ```
+   *
+   * @param userCredential
+   */
   static credentialFromResult(
     userCredential: UserCredential
   ): AuthCredential | null {
@@ -54,12 +70,22 @@ export class SAMLAuthProvider extends FederatedAuthProvider {
     );
   }
 
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link AuthError} which was
+   * thrown during a sign-in, link, or reauthenticate operation.
+   *
+   * @param userCredential - The user credential.
+   */
   static credentialFromError(error: FirebaseError): AuthCredential | null {
     return SAMLAuthProvider.samlCredentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );
   }
 
+  /**
+   * Creates an {@link AuthCredential} from a JSON string or a plain object.
+   * @param json A plain object or a JSON string
+   */
   static credentialFromJSON(json: string | object): AuthCredential {
     const credential = SAMLAuthCredential.fromJSON(json);
     _assert(credential, AuthErrorCode.ARGUMENT_ERROR);

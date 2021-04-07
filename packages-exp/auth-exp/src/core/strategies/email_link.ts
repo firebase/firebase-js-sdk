@@ -155,7 +155,7 @@ export async function signInWithEmailLink(
   // Check if the tenant ID in the email link matches the tenant ID on Auth
   // instance.
   _assert(
-    credential.tenantId === (authModular.tenantId || null),
+    credential._tenantId === (authModular.tenantId || null),
     authModular,
     AuthErrorCode.TENANT_ID_MISMATCH
   );
