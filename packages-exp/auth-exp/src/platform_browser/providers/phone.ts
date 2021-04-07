@@ -161,16 +161,16 @@ export class PhoneAuthProvider {
 
   /**
    * Returns an {@link AuthCredential} when passed an error.
-   * 
+   *
    * @remarks
-   * 
+   *
    * This method works for errors like
    * `auth/account-exists-with-different-credentials`. This is useful for
    * recovering when attempting to set a user's phone number but the number
    * in question is already tied to another account. For example, the following
    * code tries to update the current user's phone number, and if that
    * fails, links the user with the account associated with that number:
-   * 
+   *
    * ```js
    * const provider = new PhoneAuthProvider(auth);
    * const verificationId = await provider.verifyPhoneNumber(number, verifier);
@@ -185,15 +185,13 @@ export class PhoneAuthProvider {
    *     await linkWithCredential(auth.currentUser, cred);
    *   }
    * }
-   * 
+   *
    * // At this point, auth.currentUser.phoneNumber === number.
    * ```
-   * 
-   * @param error 
+   *
+   * @param error
    */
-  static credentialFromError(
-    error: FirebaseError
-  ): AuthCredential | null {
+  static credentialFromError(error: FirebaseError): AuthCredential | null {
     return PhoneAuthProvider.credentialFromTaggedObject(
       (error.customData || {}) as TaggedWithTokenResponse
     );
