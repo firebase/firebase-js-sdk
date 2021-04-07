@@ -40,11 +40,9 @@ import { getModularInstance } from '@firebase/util';
 import { messageEventListener } from './listeners/window-listener';
 
 /**
- * Retrieves a firebase messaging instance in window.
+ * Retrieves a firebase messaging instance.
  *
  * @returns the firebase messaging instance associated with the provided firebase app.
- *
- * @internal
  */
 export function getMessagingInWindow(
   app: FirebaseApp = getApp()
@@ -64,11 +62,10 @@ export function getMessagingInWindow(
 }
 
 /**
- * Retrieves a firebase messaging instance in Service Worker.
+ * Retrieves a firebase messaging instance.
  *
  * @returns the firebase messaging instance associated with the provided firebase app.
  *
- * @internal
  */
 declare const self: ServiceWorkerGlobalScope;
 export function getMessagingInSw(app: FirebaseApp): FirebaseMessaging {
