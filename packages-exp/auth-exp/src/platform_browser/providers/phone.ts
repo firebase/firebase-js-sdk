@@ -150,7 +150,7 @@ export class PhoneAuthProvider {
 
   /**
    * Generates an {@link AuthCredential} from a {@link UserCredential}.
-   * @param userCredential 
+   * @param userCredential
    */
   static credentialFromResult(
     userCredential: UserCredential

@@ -46,7 +46,7 @@ import { AuthImpl } from './auth_impl';
  *   popupRedirectResolver: undefined,
  * });
  * ```
- * 
+ *
  * @public
  */
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {

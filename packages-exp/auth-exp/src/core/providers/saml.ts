@@ -49,17 +49,17 @@ export class SAMLAuthProvider extends FederatedAuthProvider {
   /**
    * Generates an {@link AuthCredential} from a {@link UserCredential} after a
    * successful SAML flow ompletes.
-   * 
+   *
    * @remarks
-   * 
+   *
    * For example, to get an {@link AuthCredential}, you could write the
    * following code:
-   * 
+   *
    * ```js
    * const userCredential = await signInWithPopup(auth, samlProvider);
    * const credential = SAMLAuthProvider.credentialFromResult(userCredential);
    * ```
-   * 
+   *
    * @param userCredential
    */
   static credentialFromResult(
