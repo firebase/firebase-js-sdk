@@ -121,7 +121,7 @@ export class PhoneAuthCredential extends AuthCredential {
     return obj;
   }
 
-  /** Generates a Phone credential based on a plain object or a JSON string. */
+  /** Generates a phone credential based on a plain object or a JSON string. */
   static fromJSON(json: object | string): PhoneAuthCredential | null {
     if (typeof json === 'string') {
       json = JSON.parse(json);
