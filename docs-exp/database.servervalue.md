@@ -2,24 +2,14 @@
 
 [Home](./index.md) &gt; [@firebase/database](./database.md) &gt; [ServerValue](./database.servervalue.md)
 
-## ServerValue interface
+## ServerValue variable
 
 
 <b>Signature:</b>
 
 ```typescript
-export interface ServerValue 
+ServerValue: {
+  TIMESTAMP: object;
+  increment(delta: number): object;
+}
 ```
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [TIMESTAMP](./database.servervalue.timestamp.md) | object |  |
-
-## Methods
-
-|  Method | Description |
-|  --- | --- |
-|  [increment(delta)](./database.servervalue.increment.md) |  |
-

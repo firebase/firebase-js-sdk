@@ -4,20 +4,20 @@
 
 ## updateCurrentUser() function
 
-Asynchronously sets the provided user as [Auth.currentUser](./auth-types.auth.currentuser.md) on the [Auth](./auth-types.auth.md) instance.
+Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.currentuser.md) on the [Auth](./auth.auth.md) instance.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function updateCurrentUser(auth: externs.Auth, user: externs.User | null): Promise<void>;
+export declare function updateCurrentUser(auth: Auth, user: User | null): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
-|  user | externs.[User](./auth-types.user.md) \| null | The new [User](./auth-types.user.md)<!-- -->. |
+|  auth | [Auth](./auth.auth.md) | The Auth instance. |
+|  user | [User](./auth.user.md) \| null | The new [User](./auth.user.md)<!-- -->. |
 
 <b>Returns:</b>
 

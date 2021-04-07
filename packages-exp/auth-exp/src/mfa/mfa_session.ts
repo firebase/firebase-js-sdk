@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as externs from '@firebase/auth-types-exp';
+import { MultiFactorSession } from '../model/public_types';
 
 export const enum MultiFactorSessionType {
   ENROLL = 'enroll',
@@ -28,20 +28,20 @@ interface SerializedMultiFactorSession {
   };
 }
 
-export class MultiFactorSession implements externs.MultiFactorSession {
+export class MultiFactorSessionImpl implements MultiFactorSession {
   private constructor(
     readonly type: MultiFactorSessionType,
     readonly credential: string
   ) {}
 
-  static _fromIdtoken(idToken: string): MultiFactorSession {
-    return new MultiFactorSession(MultiFactorSessionType.ENROLL, idToken);
+  static _fromIdtoken(idToken: string): MultiFactorSessionImpl {
+    return new MultiFactorSessionImpl(MultiFactorSessionType.ENROLL, idToken);
   }
 
   static _fromMfaPendingCredential(
     mfaPendingCredential: string
-  ): MultiFactorSession {
-    return new MultiFactorSession(
+  ): MultiFactorSessionImpl {
+    return new MultiFactorSessionImpl(
       MultiFactorSessionType.SIGN_IN,
       mfaPendingCredential
     );
@@ -61,14 +61,16 @@ export class MultiFactorSession implements externs.MultiFactorSession {
 
   static fromJSON(
     obj: Partial<SerializedMultiFactorSession>
-  ): MultiFactorSession | null {
+  ): MultiFactorSessionImpl | null {
     if (obj?.multiFactorSession) {
       if (obj.multiFactorSession?.pendingCredential) {
-        return MultiFactorSession._fromMfaPendingCredential(
+        return MultiFactorSessionImpl._fromMfaPendingCredential(
           obj.multiFactorSession.pendingCredential
         );
       } else if (obj.multiFactorSession?.idToken) {
-        return MultiFactorSession._fromIdtoken(obj.multiFactorSession.idToken);
+        return MultiFactorSessionImpl._fromIdtoken(
+          obj.multiFactorSession.idToken
+        );
       }
     }
     return null;

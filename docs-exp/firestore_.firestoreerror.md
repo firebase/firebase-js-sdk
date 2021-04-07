@@ -9,8 +9,9 @@ An error returned by a Firestore operation.
 <b>Signature:</b>
 
 ```typescript
-export declare class FirestoreError 
+export declare class FirestoreError extends Error 
 ```
+<b>Extends:</b> Error
 
 ## Properties
 
@@ -19,5 +20,5 @@ export declare class FirestoreError
 |  [code](./firestore_.firestoreerror.code.md) |  | [FirestoreErrorCode](./firestore_.firestoreerrorcode.md) |  |
 |  [message](./firestore_.firestoreerror.message.md) |  | string |  |
 |  [name](./firestore_.firestoreerror.name.md) |  | string |  |
-|  [stack](./firestore_.firestoreerror.stack.md) |  | string |  |
+|  [stack?](./firestore_.firestoreerror.stack.md) |  | string | <i>(Optional)</i> |
 

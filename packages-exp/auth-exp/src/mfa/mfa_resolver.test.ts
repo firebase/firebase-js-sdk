@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import { FactorId, OperationType, ProviderId } from '@firebase/auth-types-exp';
+import { FactorId, OperationType, ProviderId } from '../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
@@ -29,11 +29,14 @@ import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
 import { PhoneAuthCredential } from '../core/credentials/phone';
 import { AuthErrorCode } from '../core/errors';
-import { User, UserCredential } from '../model/user';
-import { MultiFactorAssertion } from './mfa_assertion';
-import { PhoneMultiFactorAssertion } from '../platform_browser/mfa/assertions/phone';
+import { UserInternal, UserCredentialInternal } from '../model/user';
+import { MultiFactorAssertionImpl } from './mfa_assertion';
+import { PhoneMultiFactorAssertionImpl } from '../platform_browser/mfa/assertions/phone';
 import { MultiFactorError } from './mfa_error';
-import { getMultiFactorResolver, MultiFactorResolver } from './mfa_resolver';
+import {
+  getMultiFactorResolver,
+  MultiFactorResolverImpl
+} from './mfa_resolver';
 import { _createError } from '../core/util/assert';
 import { makeJWT } from '../../test/helpers/jwt';
 use(chaiAsPromised);
@@ -70,9 +73,9 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
   });
 
   describe('MultiFactorResolver', () => {
-    let assertion: MultiFactorAssertion;
+    let assertion: MultiFactorAssertionImpl;
     let secondFactorCredential: PhoneAuthCredential;
-    let resolver: MultiFactorResolver;
+    let resolver: MultiFactorResolverImpl;
 
     beforeEach(() => {
       mockFetch.setUp();
@@ -80,7 +83,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
         'verification-id',
         'verification-code'
       );
-      assertion = PhoneMultiFactorAssertion._fromCredential(
+      assertion = PhoneMultiFactorAssertionImpl._fromCredential(
         secondFactorCredential
       );
     });
@@ -127,13 +130,13 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
             underlyingError,
             OperationType.SIGN_IN
           );
-          resolver = MultiFactorResolver._fromError(auth, error);
+          resolver = MultiFactorResolverImpl._fromError(auth, error);
         });
 
         it('finalizes the sign in flow', async () => {
           const userCredential = (await resolver.resolveSignIn(
             assertion
-          )) as UserCredential;
+          )) as UserCredentialInternal;
           expect(userCredential.user.uid).to.eq('local-id');
           expect(await userCredential.user.getIdToken()).to.eq(finalIdToken);
           expect(userCredential.user.stsTokenManager.expirationTime).to.eq(
@@ -156,7 +159,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
       });
 
       context('reauthentication', () => {
-        let user: User;
+        let user: UserInternal;
 
         beforeEach(() => {
           user = testUser(auth, 'local-id', undefined, true);
@@ -166,13 +169,13 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
             OperationType.REAUTHENTICATE,
             user
           );
-          resolver = MultiFactorResolver._fromError(auth, error);
+          resolver = MultiFactorResolverImpl._fromError(auth, error);
         });
 
         it('finalizes the reauth flow', async () => {
           const userCredential = (await resolver.resolveSignIn(
             assertion
-          )) as UserCredential;
+          )) as UserCredentialInternal;
           expect(userCredential.user).to.eq(user);
           expect(await userCredential.user.getIdToken()).to.eq(finalIdToken);
           expect(userCredential.user.stsTokenManager.expirationTime).to.eq(
@@ -212,7 +215,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
     });
 
     context('reauthentication', () => {
-      let user: User;
+      let user: UserInternal;
 
       beforeEach(() => {
         user = testUser(auth, 'local-id', undefined, true);

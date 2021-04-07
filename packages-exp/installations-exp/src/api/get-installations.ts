@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _getProvider } from '@firebase/app-exp';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseInstallations } from '../interfaces/public-types';
 
 /**
  * Returns an instance of FirebaseInstallations associated with the given FirebaseApp instance.
  *
  * @public
  */
-export function getInstallations(app: FirebaseApp): FirebaseInstallations {
+export function getInstallations(
+  app: FirebaseApp = getApp()
+): FirebaseInstallations {
   const installationsImpl = _getProvider(
     app,
     'installations-exp'

@@ -24,7 +24,7 @@ export declare function getApp(name?: string): FirebaseApp;
 
 <b>Returns:</b>
 
-[FirebaseApp](./app-types.firebaseapp.md)
+[FirebaseApp](./app.firebaseapp.md)
 
 The app corresponding to the provided app name. If no app name is provided, the default app is returned.
 

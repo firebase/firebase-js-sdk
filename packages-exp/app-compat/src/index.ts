@@ -47,4 +47,4 @@ registerCoreComponents();
 export default firebase;
 
 export { _FirebaseNamespace, _FirebaseService } from './types';
-export { FirebaseApp } from './public-types';
+export { FirebaseApp, FirebaseNamespace } from './public-types';

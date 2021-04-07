@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import '../plugins';
-import * as externs from '@firebase/auth-types-exp';
+import { AuthProvider, PopupRedirectResolver } from '../../model/public_types';
 import { browserSessionPersistence } from '../../platform_browser/persistence/session_storage';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
   AuthEvent,
   AuthEventType,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
 import { AuthPopup } from '../../platform_browser/util/popup';
 import { _createError, _fail } from '../../core/util/assert';
@@ -43,6 +42,7 @@ import {
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { _getRedirectResult } from '../../platform_browser/strategies/redirect';
 import { _clearRedirectOutcomes } from '../../core/strategies/redirect';
+import { _cordovaWindow } from '../plugins';
 
 /**
  * How long to wait for the initial auth event before concluding no
@@ -50,13 +50,14 @@ import { _clearRedirectOutcomes } from '../../core/strategies/redirect';
  */
 const INITIAL_EVENT_TIMEOUT_MS = 500;
 
-class CordovaPopupRedirectResolver implements PopupRedirectResolver {
+class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
   readonly _redirectPersistence = browserSessionPersistence;
+  readonly _shouldInitProactively = true; // This is lightweight for Cordova
   private readonly eventManagers = new Map<string, CordovaAuthEventManager>();
 
   _completeRedirectFn = _getRedirectResult;
 
-  async _initialize(auth: Auth): Promise<CordovaAuthEventManager> {
+  async _initialize(auth: AuthInternal): Promise<CordovaAuthEventManager> {
     const key = auth._key();
     let manager = this.eventManagers.get(key);
     if (!manager) {
@@ -67,13 +68,13 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     return manager;
   }
 
-  _openPopup(auth: Auth): Promise<AuthPopup> {
+  _openPopup(auth: AuthInternal): Promise<AuthPopup> {
     _fail(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED);
   }
 
   async _openRedirect(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<void> {
@@ -95,13 +96,23 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
   }
 
   _isIframeWebStorageSupported(
-    _auth: Auth,
+    _auth: AuthInternal,
     _cb: (support: boolean) => unknown
   ): void {
     throw new Error('Method not implemented.');
   }
 
-  private attachCallbackListeners(auth: Auth, manager: AuthEventManager): void {
+  _originValidation(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  private attachCallbackListeners(
+    auth: AuthInternal,
+    manager: AuthEventManager
+  ): void {
+    // Get the global plugins
+    const { universalLinks, handleOpenUrl, BuildInfo } = _cordovaWindow();
+
     const noEventTimeout = setTimeout(async () => {
       // We didn't see that initial event. Clear any pending object and
       // dispatch no event
@@ -138,9 +149,9 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
     // For this to work, cordova-plugin-customurlscheme needs to be installed.
     // https://github.com/EddyVerbruggen/Custom-URL-scheme
     // Do not overwrite the existing developer's URL handler.
-    const existingHandleOpenUrl = window.handleOpenUrl;
+    const existingHandleOpenUrl = handleOpenUrl;
     const packagePrefix = `${BuildInfo.packageName.toLowerCase()}://`;
-    window.handleOpenUrl = async url => {
+    _cordovaWindow().handleOpenUrl = async url => {
       if (url.toLowerCase().startsWith(packagePrefix)) {
         // We want this intentionally to float
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -160,12 +171,12 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolver {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for Cordova
+ * An implementation of {@link PopupRedirectResolver} suitable for Cordova
  * based applications.
  *
  * @public
  */
-export const cordovaPopupRedirectResolver: externs.PopupRedirectResolver = CordovaPopupRedirectResolver;
+export const cordovaPopupRedirectResolver: PopupRedirectResolver = CordovaPopupRedirectResolver;
 
 function generateNoEvent(): AuthEvent {
   return {

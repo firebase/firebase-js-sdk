@@ -4,10 +4,10 @@
 
 ## EmailAuthProvider.EMAIL\_PASSWORD\_SIGN\_IN\_METHOD property
 
-Always set to [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md)<!-- -->.
+Always set to [SignInMethod.EMAIL\_PASSWORD](./auth.signinmethod.email_password.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_PASSWORD;
+static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
 ```

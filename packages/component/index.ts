@@ -23,5 +23,6 @@ export {
   InstanceFactory,
   InstantiationMode,
   NameServiceMapping,
-  Name
+  Name,
+  InstanceFactoryOptions
 } from './src/types';

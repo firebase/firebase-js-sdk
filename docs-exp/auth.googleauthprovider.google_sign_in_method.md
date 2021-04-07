@@ -4,10 +4,10 @@
 
 ## GoogleAuthProvider.GOOGLE\_SIGN\_IN\_METHOD property
 
-Always set to [SignInMethod.GOOGLE](./auth-types.signinmethod.google.md)<!-- -->.
+Always set to [SignInMethod.GOOGLE](./auth.signinmethod.google.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static readonly GOOGLE_SIGN_IN_METHOD = externs.SignInMethod.GOOGLE;
+static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
 ```

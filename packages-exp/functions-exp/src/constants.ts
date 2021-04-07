@@ -18,4 +18,4 @@
 /**
  * Type constant for Firebase Functions.
  */
-export const FUNCTIONS_TYPE = 'functions';
+export const FUNCTIONS_TYPE = 'functions-exp';

@@ -4,21 +4,19 @@
 
 ## PhoneAuthCredential class
 
-Interface that represents the credentials returned by a [PhoneAuthProvider](./auth.phoneauthprovider.md)<!-- -->.
+Represents the credentials returned by [PhoneAuthProvider](./auth.phoneauthprovider.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class PhoneAuthCredential extends AuthCredential implements externs.PhoneAuthCredential 
+export declare class PhoneAuthCredential extends AuthCredential 
 ```
 <b>Extends:</b> [AuthCredential](./auth.authcredential.md)
-
-<b>Implements:</b> externs.[PhoneAuthCredential](./auth-types.phoneauthcredential.md)
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromJSON(json)](./auth.phoneauthcredential.fromjson.md) | <code>static</code> |  |
-|  [toJSON()](./auth.phoneauthcredential.tojson.md) |  |  |
+|  [toJSON()](./auth.phoneauthcredential.tojson.md) |  | Returns a JSON-serializable representation of this object. |
 

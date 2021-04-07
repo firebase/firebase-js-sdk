@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
@@ -23,48 +23,7 @@ import { ClientPlatform } from './src/core/util/version';
 import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
-
-import {
-  // Enums
-  ActionCodeOperation,
-  FactorId,
-  OperationType,
-  ProviderId,
-  SignInMethod,
-  // Interfaces
-  ActionCodeInfo,
-  ActionCodeSettings,
-  AdditionalUserInfo,
-  ApplicationVerifier,
-  Auth,
-  AuthError,
-  AuthErrorMap,
-  AuthProvider,
-  AuthSettings,
-  Config,
-  ConfirmationResult,
-  IdTokenResult,
-  MultiFactorAssertion,
-  MultiFactorError,
-  MultiFactorInfo,
-  MultiFactorResolver,
-  MultiFactorSession,
-  MultiFactorUser,
-  ParsedToken,
-  Persistence,
-  PhoneMultiFactorAssertion,
-  PhoneMultiFactorEnrollInfoOptions,
-  PhoneMultiFactorSignInInfoOptions,
-  PhoneSingleFactorInfoOptions,
-  PopupRedirectResolver,
-  ReactNativeAsyncStorage,
-  User,
-  UserCredential,
-  UserInfo,
-  UserMetadata,
-  UserProfile,
-  PhoneInfoOptions
-} from '@firebase/auth-types-exp';
+import { Auth } from './src/model/public_types';
 
 // Public types
 export {
@@ -106,8 +65,13 @@ export {
   UserInfo,
   UserMetadata,
   UserProfile,
-  PhoneInfoOptions
-};
+  PhoneInfoOptions,
+  Dependencies,
+  NextOrObserver,
+  ErrorFn,
+  CompleteFn,
+  Unsubscribe
+} from './src/model/public_types';
 
 // Core functionality shared by all clients
 export * from './src';
@@ -154,7 +118,7 @@ export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions
  *
  * @public
  */
-export function getAuth(app: FirebaseApp): Auth {
+export function getAuth(app: FirebaseApp = getApp()): Auth {
   const provider = _getProvider(app, 'auth-exp');
 
   if (provider.isInitialized()) {

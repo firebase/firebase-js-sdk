@@ -16,12 +16,14 @@
  */
 
 import { assert } from '@firebase/util';
+
+import { Path, pathGetFront, pathIsEmpty, pathSlice } from '../../util/Path';
 import { MAX_NAME, nameCompare } from '../../util/util';
-import { Index } from './Index';
 import { ChildrenNode, MAX_NODE } from '../ChildrenNode';
 import { NamedNode, Node } from '../Node';
 import { nodeFromJSON } from '../nodeFromJSON';
-import { Path, pathGetFront, pathIsEmpty, pathSlice } from '../../util/Path';
+
+import { Index } from './Index';
 
 export class PathIndex extends Index {
   constructor(private indexPath_: Path) {

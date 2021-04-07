@@ -20,7 +20,7 @@
     "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.29.0",
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   },
   "repository": {
     "directory": "packages-exp/functions-compat",
@@ -35,7 +35,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/functions-compat --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js",
+    "build:release": "rollup -c rollup.config.release.js && yarn add-compat-overloads",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
@@ -43,16 +43,17 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
-    "test:emulator": "env FIREBASE_FUNCTIONS_HOST=http://localhost FIREBASE_FUNCTIONS_PORT=5005 run-p test:node"
+    "test:emulator": "env FIREBASE_FUNCTIONS_HOST=http://localhost FIREBASE_FUNCTIONS_PORT=5005 run-p test:node",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../functions-exp/dist/functions-exp-public.d.ts -o dist/src/index.d.ts -a -r Functions:types.FirebaseFunctions -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/functions"
   },
-  "typings": "dist/functions-compat-public.d.ts",
+  "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.2.0",
+    "@firebase/component": "0.3.1",
     "@firebase/functions-exp": "0.0.900",
-    "@firebase/functions-types-exp": "0.0.900",
+    "@firebase/functions-types": "0.4.0",
     "@firebase/messaging-types": "0.5.0",
-    "@firebase/util": "0.3.4",
-    "tslib": "^1.11.1"
+    "@firebase/util": "0.4.1",
+    "tslib": "^2.1.0"
   },
   "nyc": {
     "extension": [

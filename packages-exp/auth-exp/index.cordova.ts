@@ -22,8 +22,8 @@
  * just use index.ts
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
-import { Auth } from '@firebase/auth-types-exp';
+import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { Auth } from './src/model/public_types';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 import { initializeAuth } from './src';
@@ -49,6 +49,12 @@ export {
 import { cordovaPopupRedirectResolver } from './src/platform_cordova/popup_redirect/popup_redirect';
 
 export function getAuth(app: FirebaseApp): Auth {
+  const provider = _getProvider(app, 'auth-exp');
+
+  if (provider.isInitialized()) {
+    return provider.getImmediate();
+  }
+
   return initializeAuth(app, {
     persistence: indexedDBLocalPersistence,
     popupRedirectResolver: cordovaPopupRedirectResolver

@@ -4,10 +4,10 @@
 
 ## PhoneAuthProvider.providerId property
 
-Always set to [ProviderId.PHONE](./auth-types.providerid.phone.md)<!-- -->.
+Always set to [ProviderId.PHONE](./auth.providerid.phone.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-readonly providerId = externs.ProviderId.PHONE;
+readonly providerId = ProviderId.PHONE;
 ```

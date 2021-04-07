@@ -456,6 +456,7 @@ export function stringifyQuery(query: Query): string {
 /** Returns whether `doc` matches the constraints of `query`. */
 export function queryMatches(query: Query, doc: Document): boolean {
   return (
+    doc.isFoundDocument() &&
     queryMatchesPathAndCollectionGroup(query, doc) &&
     queryMatchesOrderBy(query, doc) &&
     queryMatchesFilters(query, doc) &&
@@ -491,7 +492,7 @@ function queryMatchesPathAndCollectionGroup(
 function queryMatchesOrderBy(query: Query, doc: Document): boolean {
   for (const orderBy of query.explicitOrderBy) {
     // order by key always matches
-    if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
+    if (!orderBy.field.isKeyField() && doc.data.field(orderBy.field) === null) {
       return false;
     }
   }

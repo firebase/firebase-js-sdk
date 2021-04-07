@@ -14,10 +14,10 @@ export declare interface Settings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [cacheSizeBytes](./firestore_lite.settings.cachesizebytes.md) | number |  |
-|  [experimentalAutoDetectLongPolling](./firestore_lite.settings.experimentalautodetectlongpolling.md) | boolean |  |
-|  [experimentalForceLongPolling](./firestore_lite.settings.experimentalforcelongpolling.md) | boolean |  |
-|  [host](./firestore_lite.settings.host.md) | string |  |
-|  [ignoreUndefinedProperties](./firestore_lite.settings.ignoreundefinedproperties.md) | boolean |  |
-|  [ssl](./firestore_lite.settings.ssl.md) | boolean |  |
+|  [cacheSizeBytes?](./firestore_lite.settings.cachesizebytes.md) | number | <i>(Optional)</i> |
+|  [experimentalAutoDetectLongPolling?](./firestore_lite.settings.experimentalautodetectlongpolling.md) | boolean | <i>(Optional)</i> |
+|  [experimentalForceLongPolling?](./firestore_lite.settings.experimentalforcelongpolling.md) | boolean | <i>(Optional)</i> |
+|  [host?](./firestore_lite.settings.host.md) | string | <i>(Optional)</i> |
+|  [ignoreUndefinedProperties?](./firestore_lite.settings.ignoreundefinedproperties.md) | boolean | <i>(Optional)</i> |
+|  [ssl?](./firestore_lite.settings.ssl.md) | boolean | <i>(Optional)</i> |
 

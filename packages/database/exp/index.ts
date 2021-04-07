@@ -35,7 +35,7 @@ function registerDatabase(): void {
   _registerComponent(
     new Component(
       'database-exp',
-      (container, url) => {
+      (container, { instanceIdentifier: url }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
         return new FirebaseDatabase(app, authProvider, url);

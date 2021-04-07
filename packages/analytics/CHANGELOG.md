@@ -1,5 +1,31 @@
 # @firebase/analytics
 
+## 0.6.7
+
+### Patch Changes
+
+- Updated dependencies [[`de5f90501`](https://github.com/firebase/firebase-js-sdk/commit/de5f9050137acc9ed1490082e5aa429b5de3cb2a)]:
+  - @firebase/util@0.4.1
+  - @firebase/component@0.3.1
+  - @firebase/installations@0.4.23
+
+## 0.6.6
+
+### Patch Changes
+
+- Updated dependencies [[`5c1a83ed7`](https://github.com/firebase/firebase-js-sdk/commit/5c1a83ed70bae979322bd8751c0885d683ce4bf3)]:
+  - @firebase/component@0.3.0
+  - @firebase/installations@0.4.22
+
+## 0.6.5
+
+### Patch Changes
+
+- Updated dependencies [[`ec95df3d0`](https://github.com/firebase/firebase-js-sdk/commit/ec95df3d07e5f091f2a7f7327e46417f64d04b4e)]:
+  - @firebase/util@0.4.0
+  - @firebase/component@0.2.1
+  - @firebase/installations@0.4.21
+
 ## 0.6.4
 
 ### Patch Changes

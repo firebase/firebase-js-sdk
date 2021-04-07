@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, FirebaseApp, _FirebaseService } from '@firebase/app-exp';
-import { Reference } from '../api/Reference';
-import { RepoManager } from '../core/RepoManager';
+import {
+  _FirebaseService,
+  _getProvider,
+  FirebaseApp,
+  getApp
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Database } from '../api/Database';
 import { Provider } from '@firebase/component';
+
+import { Database, repoManagerDatabaseFromApp } from '../api/Database';
+import { Reference } from '../api/Reference';
 
 /**
  * Class representing a Firebase Realtime Database.
@@ -36,10 +41,11 @@ export class FirebaseDatabase implements _FirebaseService {
     authProvider: Provider<FirebaseAuthInternalName>,
     databaseUrl?: string
   ) {
-    this._delegate = RepoManager.getInstance().databaseFromApp(
+    this._delegate = repoManagerDatabaseFromApp(
       this.app,
       authProvider,
-      databaseUrl
+      databaseUrl,
+      undefined
     );
   }
 
@@ -114,7 +120,10 @@ export { ServerValue };
  * provided, the SDK connects to the default instance of the Firebase App.
  * @returns The `FirebaseDatabase` instance of the provided app.
  */
-export function getDatabase(app: FirebaseApp, url?: string): FirebaseDatabase {
+export function getDatabase(
+  app: FirebaseApp = getApp(),
+  url?: string
+): FirebaseDatabase {
   return _getProvider(app, 'database-exp').getImmediate({
     identifier: url
   }) as FirebaseDatabase;

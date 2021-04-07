@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
+import { getModularInstance } from '@firebase/util';
+
 import {
   CompleteFn,
   ErrorFn,
@@ -23,14 +24,6 @@ import {
   NextFn,
   PartialObserver
 } from '../api/observer';
-import {
-  newUserDataReader,
-  ParsedUpdateData,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
 import {
   firestoreClientAddSnapshotsInSyncListener,
   firestoreClientGetDocumentFromLocalCache,
@@ -54,7 +47,14 @@ import {
   UpdateData
 } from '../lite/reference';
 import { applyFirestoreDataConverter } from '../lite/reference_impl';
-import { Document } from '../model/document';
+import {
+  newUserDataReader,
+  ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs
+} from '../lite/user_data_reader';
+import { AbstractUserDataWriter } from '../lite/user_data_writer';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -140,7 +140,7 @@ export function getDocFromCache<T>(
         reference._key,
         doc,
         new SnapshotMetadata(
-          doc instanceof Document ? doc.hasLocalMutations : false,
+          doc !== null && doc.hasLocalMutations,
           /* fromCache= */ true
         ),
         reference._converter
@@ -338,9 +338,7 @@ export function updateDoc(
 
   // For Compat types, we have to "extract" the underlying types before
   // performing validation.
-  if (fieldOrUpdateData instanceof Compat) {
-    fieldOrUpdateData = fieldOrUpdateData._delegate;
-  }
+  fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
   let parsed: ParsedUpdateData;
   if (
@@ -622,9 +620,7 @@ export function onSnapshot<T>(
   reference: Query<T> | DocumentReference<T>,
   ...args: unknown[]
 ): Unsubscribe {
-  if (reference instanceof Compat) {
-    reference = reference._delegate;
-  }
+  reference = getModularInstance(reference);
 
   let options: SnapshotListenOptions = {
     includeMetadataChanges: false
@@ -760,7 +756,10 @@ export function onSnapshotsInSync(
   return firestoreClientAddSnapshotsInSyncListener(client, observer);
 }
 
-/** Locally writes `mutations` on the async queue. */
+/**
+ * Locally writes `mutations` on the async queue.
+ * @internal
+ */
 export function executeWrite(
   firestore: FirebaseFirestore,
   mutations: Mutation[]

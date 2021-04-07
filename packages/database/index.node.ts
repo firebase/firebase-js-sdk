@@ -15,25 +15,24 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { Database } from './src/api/Database';
-import { DataSnapshot } from './src/api/DataSnapshot';
-import { Query } from './src/api/Query';
-import { Reference } from './src/api/Reference';
-import { enableLogging } from './src/core/util/util';
-import { RepoManager } from './src/core/RepoManager';
-import * as INTERNAL from './src/api/internal';
-import * as TEST_ACCESS from './src/api/test_access';
-import * as types from '@firebase/database-types';
-import { setSDKVersion } from './src/core/version';
-import { CONSTANTS, isNodeSdk } from '@firebase/util';
-import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
-import { Client } from 'faye-websocket';
-import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { Component, ComponentType } from '@firebase/component';
+import * as types from '@firebase/database-types';
+import { CONSTANTS, isNodeSdk } from '@firebase/util';
+import { Client } from 'faye-websocket';
 
 import { name, version } from './package.json';
+import { Database, repoManagerDatabaseFromApp } from './src/api/Database';
+import { DataSnapshot } from './src/api/DataSnapshot';
+import * as INTERNAL from './src/api/internal';
+import { Query } from './src/api/Query';
+import { Reference } from './src/api/Reference';
+import * as TEST_ACCESS from './src/api/test_access';
+import { enableLogging } from './src/core/util/util';
+import { setSDKVersion } from './src/core/version';
+import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
 
 setWebSocketImpl(Client);
 
@@ -84,17 +83,13 @@ export function registerDatabase(instance: FirebaseNamespace) {
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'database',
-      (container, url) => {
+      (container, { instanceIdentifier: url }) => {
         /* Dependencies */
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
 
-        return RepoManager.getInstance().databaseFromApp(
-          app,
-          authProvider,
-          url
-        );
+        return repoManagerDatabaseFromApp(app, authProvider, url, undefined);
       },
       ComponentType.PUBLIC
     )

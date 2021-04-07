@@ -15,28 +15,33 @@
  * limitations under the License.
  */
 
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
   AuthEvent,
   AuthEventType,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../../model/popup_redirect';
-import { UserCredential } from '../../model/user';
+import { UserCredentialInternal } from '../../model/user';
+import { PersistenceInternal } from '../persistence';
+import { _persistenceKeyName } from '../persistence/persistence_user_manager';
+import { _getInstance } from '../util/instantiator';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
+
+const PENDING_REDIRECT_KEY = 'pendingRedirect';
 
 // We only get one redirect outcome for any one auth, so just store it
 // in here.
 const redirectOutcomeMap: Map<
   string,
-  () => Promise<UserCredential | null>
+  () => Promise<UserCredentialInternal | null>
 > = new Map();
 
 export class RedirectAction extends AbstractPopupRedirectOperation {
   eventId = null;
 
   constructor(
-    auth: Auth,
-    resolver: PopupRedirectResolver,
+    auth: AuthInternal,
+    resolver: PopupRedirectResolverInternal,
     bypassAuthState = false
   ) {
     super(
@@ -57,11 +62,15 @@ export class RedirectAction extends AbstractPopupRedirectOperation {
    * Override the execute function; if we already have a redirect result, then
    * just return it.
    */
-  async execute(): Promise<UserCredential | null> {
+  async execute(): Promise<UserCredentialInternal | null> {
     let readyOutcome = redirectOutcomeMap.get(this.auth._key());
     if (!readyOutcome) {
       try {
-        const result = await super.execute();
+        const hasPendingRedirect = await _getAndClearPendingRedirectStatus(
+          this.resolver,
+          this.auth
+        );
+        const result = hasPendingRedirect ? await super.execute() : null;
         readyOutcome = () => Promise.resolve(result);
       } catch (e) {
         readyOutcome = () => Promise.reject(e);
@@ -98,6 +107,38 @@ export class RedirectAction extends AbstractPopupRedirectOperation {
   cleanUp(): void {}
 }
 
+export async function _getAndClearPendingRedirectStatus(
+  resolver: PopupRedirectResolverInternal,
+  auth: AuthInternal
+): Promise<boolean> {
+  const key = pendingRedirectKey(auth);
+  const hasPendingRedirect =
+    (await resolverPersistence(resolver)._get(key)) === 'true';
+  await resolverPersistence(resolver)._remove(key);
+  return hasPendingRedirect;
+}
+
+export async function _setPendingRedirectStatus(
+  resolver: PopupRedirectResolverInternal,
+  auth: AuthInternal
+): Promise<void> {
+  return resolverPersistence(resolver)._set(pendingRedirectKey(auth), 'true');
+}
+
 export function _clearRedirectOutcomes(): void {
   redirectOutcomeMap.clear();
+}
+
+function resolverPersistence(
+  resolver: PopupRedirectResolverInternal
+): PersistenceInternal {
+  return _getInstance(resolver._redirectPersistence);
+}
+
+function pendingRedirectKey(auth: AuthInternal): string {
+  return _persistenceKeyName(
+    PENDING_REDIRECT_KEY,
+    auth.config.apiKey,
+    auth.name
+  );
 }

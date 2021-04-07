@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseMessaging } from '@firebase/messaging-types-exp';
+import { FirebaseMessaging } from './interfaces/public-types';
 import { registerMessaging } from './helpers/register';
 import '@firebase/installations-exp';
 
@@ -24,9 +24,9 @@ export {
   deleteToken,
   onMessage,
   getMessaging,
-  FirebaseMessaging,
-  MessagePayload
+  onBackgroundMessage
 } from './api';
+export * from './interfaces/public-types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

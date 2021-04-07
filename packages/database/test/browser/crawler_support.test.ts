@@ -16,8 +16,8 @@
  */
 
 import { expect } from 'chai';
-import { forceRestClient } from '../../src/api/test_access';
 
+import { forceRestClient } from '../../src/api/test_access';
 import { getRandomNode, getFreshRepoFromReference } from '../helpers/util';
 
 // Some sanity checks for the ReadonlyRestClient crawler support.

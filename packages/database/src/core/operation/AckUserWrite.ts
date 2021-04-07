@@ -16,6 +16,8 @@
  */
 
 import { assert } from '@firebase/util';
+
+import { ImmutableTree } from '../util/ImmutableTree';
 import {
   newEmptyPath,
   Path,
@@ -23,8 +25,8 @@ import {
   pathIsEmpty,
   pathPopFront
 } from '../util/Path';
+
 import { newOperationSourceUser, Operation, OperationType } from './Operation';
-import { ImmutableTree } from '../util/ImmutableTree';
 
 export class AckUserWrite implements Operation {
   /** @inheritDoc */

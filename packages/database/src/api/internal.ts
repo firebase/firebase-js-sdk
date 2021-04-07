@@ -15,23 +15,30 @@
  * limitations under the License.
  */
 
-import { WebSocketConnection } from '../realtime/WebSocketConnection';
-import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
-import { Reference } from './Reference';
-import { RepoManager } from '../core/RepoManager';
-import { setSDKVersion } from '../core/version';
 import { FirebaseApp } from '@firebase/app-types';
 import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
-import * as types from '@firebase/database-types';
 import {
-  Provider,
-  ComponentContainer,
   Component,
-  ComponentType
+  ComponentContainer,
+  ComponentType,
+  Provider
 } from '@firebase/component';
+import * as types from '@firebase/database-types';
+
+import {
+  repoInterceptServerData,
+  repoStats,
+  repoStatsIncrementCounter
+} from '../core/Repo';
+import { setSDKVersion } from '../core/version';
+import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
+import { WebSocketConnection } from '../realtime/WebSocketConnection';
+
+import { repoManagerDatabaseFromApp } from './Database';
+import { Reference } from './Reference';
 
 /**
  * INTERNAL methods for internal-use only (tests, etc.).
@@ -62,11 +69,11 @@ export const setSecurityDebugCallback = function (
 };
 
 export const stats = function (ref: Reference, showDelta?: boolean) {
-  ref.repo.stats(showDelta);
+  repoStats(ref.repo, showDelta);
 };
 
 export const statsIncrementCounter = function (ref: Reference, metric: string) {
-  ref.repo.statsIncrementCounter(metric);
+  repoStatsIncrementCounter(ref.repo, metric);
 };
 
 export const dataUpdateCount = function (ref: Reference): number {
@@ -77,7 +84,7 @@ export const interceptServerData = function (
   ref: Reference,
   callback: ((a: string, b: unknown) => void) | null
 ) {
-  return ref.repo.interceptServerData_(callback);
+  return repoInterceptServerData(ref.repo, callback);
 };
 
 /**
@@ -122,7 +129,7 @@ export function initStandalone<T>({
   );
 
   return {
-    instance: RepoManager.getInstance().databaseFromApp(
+    instance: repoManagerDatabaseFromApp(
       app,
       authProvider,
       url,

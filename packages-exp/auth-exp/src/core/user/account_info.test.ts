@@ -20,13 +20,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
+import { ProviderId, UserInfo } from '../../model/public_types';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { TestAuth, testAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { updateEmail, updatePassword, updateProfile } from './account_info';
 
 use(chaiAsPromised);
@@ -42,7 +42,7 @@ const PASSWORD_PROVIDER: UserInfo = {
 };
 
 describe('core/user/profile', () => {
-  let user: User;
+  let user: UserInternal;
   let auth: TestAuth;
 
   beforeEach(async () => {

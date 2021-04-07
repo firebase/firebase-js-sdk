@@ -11,7 +11,6 @@
 |  [ActionCodeURL](./auth-types.actioncodeurl.md) | A utility class to parse email action URLs such as password reset, email verification, email link sign in, etc. |
 |  [AuthCredential](./auth-types.authcredential.md) | Interface that represents the credentials returned by an [AuthProvider](./auth-types.authprovider.md)<!-- -->. |
 |  [EmailAuthProvider](./auth-types.emailauthprovider.md) | Provider for generating [EmailAuthCredential](./auth.emailauthcredential.md)<!-- -->. |
-|  [MultiFactorResolver](./auth-types.multifactorresolver.md) | The class used to facilitate recovery from [MultiFactorError](./auth-types.multifactorerror.md) when a user needs to provide a second factor to sign in. |
 |  [OAuthCredential](./auth-types.oauthcredential.md) | Interface that represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md)<!-- -->. |
 |  [PhoneAuthCredential](./auth-types.phoneauthcredential.md) | Interface that represents the credentials returned by a [PhoneAuthProvider](./auth.phoneauthprovider.md)<!-- -->. |
 |  [PhoneAuthProvider](./auth-types.phoneauthprovider.md) | Provider for generating an [PhoneAuthCredential](./auth.phoneauthcredential.md)<!-- -->. |
@@ -52,6 +51,7 @@ When initializing Auth,  is default. |
 |  [MultiFactorAssertion](./auth-types.multifactorassertion.md) | The base class for asserting ownership of a second factor. |
 |  [MultiFactorError](./auth-types.multifactorerror.md) | The error thrown when the user needs to provide a second factor to sign in successfully. |
 |  [MultiFactorInfo](./auth-types.multifactorinfo.md) | A structure containing the information of a second factor entity. |
+|  [MultiFactorResolver](./auth-types.multifactorresolver.md) | The class used to facilitate recovery from [MultiFactorError](./auth-types.multifactorerror.md) when a user needs to provide a second factor to sign in. |
 |  [MultiFactorSession](./auth-types.multifactorsession.md) | An interface defining the multi-factor session object used for enrolling a second factor on a user or helping sign in an enrolled user with a second factor. |
 |  [MultiFactorUser](./auth-types.multifactoruser.md) | An interface that defines the multi-factor related properties and operations pertaining to a [User](./auth-types.user.md)<!-- -->. |
 |  [ParsedToken](./auth-types.parsedtoken.md) | Interface representing a parsed ID token. |

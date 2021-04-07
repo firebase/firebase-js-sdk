@@ -16,14 +16,16 @@
  */
 
 import { assert } from '@firebase/util';
-import { Path, pathChild } from './Path';
-import { LeafNode } from '../snap/LeafNode';
-import { nodeFromJSON } from '../snap/nodeFromJSON';
-import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
-import { Node } from '../snap/Node';
+
 import { ChildrenNode } from '../snap/ChildrenNode';
-import { SyncTree } from '../SyncTree';
+import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
+import { LeafNode } from '../snap/LeafNode';
+import { Node } from '../snap/Node';
+import { nodeFromJSON } from '../snap/nodeFromJSON';
+import { SyncTree, syncTreeCalcCompleteEventCache } from '../SyncTree';
+
 import { Indexable } from './misc';
+import { Path, pathChild } from './Path';
 
 /* It's critical for performance that we do not calculate actual values from a SyncTree
  * unless and until the value is needed. Because we expose both a SyncTree and Node
@@ -65,7 +67,7 @@ class DeferredValueProvider implements ValueProvider {
   }
 
   node(): Node {
-    return this.syncTree_.calcCompleteEventCache(this.path_);
+    return syncTreeCalcCompleteEventCache(this.syncTree_, this.path_);
   }
 }
 

@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { TEST_PROJECT } from './util';
 import { Reference } from '../../src/api/Reference';
 import { pathParent } from '../../src/core/util/Path';
+
+import { TEST_PROJECT } from './util';
 
 /**
  * A set of functions to clean up event handlers.

@@ -16,10 +16,10 @@ export declare function ref(storage: StorageService, url?: string): StorageRefer
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  storage | [StorageService](./storage-types.storageservice.md) | <code>StorageService</code> instance. |
+|  storage | [StorageService](./storage.storageservice.md) | <code>StorageService</code> instance. |
 |  url | string | URL. If empty, returns root reference. |
 
 <b>Returns:</b>
 
-[StorageReference](./storage-types.storagereference.md)
+[StorageReference](./storage.storagereference.md)
 

@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-static credentialFromJSON(json: object | string): externs.OAuthCredential;
+static credentialFromJSON(json: object | string): OAuthCredential;
 ```
 
 ## Parameters
@@ -18,5 +18,5 @@ static credentialFromJSON(json: object | string): externs.OAuthCredential;
 
 <b>Returns:</b>
 
-externs.[OAuthCredential](./auth-types.oauthcredential.md)
+[OAuthCredential](./auth.oauthcredential.md)
 

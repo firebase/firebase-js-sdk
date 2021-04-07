@@ -9,14 +9,18 @@ Constructs a new instance of the `RecaptchaVerifier` class
 <b>Signature:</b>
 
 ```typescript
-constructor(containerOrId: HTMLElement | string, parameters: Parameters, authExtern: externs.Auth);
+constructor(containerOrId: HTMLElement | string, parameters: Parameters, authExtern: Auth);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  containerOrId | HTMLElement \| string |  |
-|  parameters | Parameters |  |
-|  authExtern | externs.[Auth](./auth-types.auth.md) |  |
+|  containerOrId | HTMLElement \| string | The reCAPTCHA container parameter. |
+|  parameters | Parameters | The optional reCAPTCHA parameters. |
+|  authExtern | [Auth](./auth.auth.md) | The corresponding Firebase Auth instance. |
+
+## Remarks
+
+If none is provided, the default Firebase Auth instance is used. A Firebase Auth instance must be initialized with an API key, otherwise an error will be thrown.
 

@@ -16,9 +16,11 @@ export declare function deleteToken(messaging: FirebaseMessaging): Promise<boole
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | FirebaseMessaging | : the messaging instance. The promise resolves when the token has been successfully deleted. |
+|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | the messaging instance. |
 
 <b>Returns:</b>
 
 Promise&lt;boolean&gt;
+
+The promise resolves when the token has been successfully deleted.
 

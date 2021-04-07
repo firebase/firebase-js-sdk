@@ -16,16 +16,15 @@
  */
 
 import firebase, { FirebaseApp } from '@firebase/app-compat';
-import * as impl from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
-import { unwrap, Wrapper } from './wrap';
+import { Compat } from '@firebase/util';
 
-const _assert: typeof impl._assert = impl._assert;
+const _assert: typeof exp._assert = exp._assert;
 
 export class RecaptchaVerifier
-  implements compat.RecaptchaVerifier, Wrapper<externs.ApplicationVerifier> {
-  readonly verifier: externs.RecaptchaVerifier;
+  implements compat.RecaptchaVerifier, Compat<exp.ApplicationVerifier> {
+  readonly _delegate: exp.RecaptchaVerifier;
   type: string;
   constructor(
     container: HTMLElement | string,
@@ -33,30 +32,27 @@ export class RecaptchaVerifier
     app: FirebaseApp = firebase.app()
   ) {
     // API key is required for web client RPC calls.
-    _assert(app.options?.apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
+    _assert(app.options?.apiKey, exp.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
-    this.verifier = new impl.RecaptchaVerifier(
+    this._delegate = new exp.RecaptchaVerifier(
       container,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parameters as any,
 
       // TODO: remove ts-ignore when moving types from auth-types to auth-compat
       // @ts-ignore
-      unwrap(app.auth!())
+      app.auth!()
     );
-    this.type = this.verifier.type;
+    this.type = this._delegate.type;
   }
   clear(): void {
-    this.verifier.clear();
+    this._delegate.clear();
   }
   render(): Promise<number> {
-    return this.verifier.render();
+    return this._delegate.render();
   }
   verify(): Promise<string> {
-    return this.verifier.verify();
-  }
-  unwrap(): externs.ApplicationVerifier {
-    return this.verifier;
+    return this._delegate.verify();
   }
 }

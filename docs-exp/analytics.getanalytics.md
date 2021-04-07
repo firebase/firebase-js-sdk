@@ -16,9 +16,9 @@ export declare function getAnalytics(app: FirebaseApp): Analytics;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) | The FirebaseApp to use. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The FirebaseApp to use. |
 
 <b>Returns:</b>
 
-[Analytics](./analytics-types.analytics.md)
+[Analytics](./analytics.analytics.md)
 

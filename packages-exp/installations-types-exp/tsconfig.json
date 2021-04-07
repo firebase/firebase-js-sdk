@@ -1,7 +1,0 @@
-{
-  "extends": "../installations-exp/tsconfig.json",
-  "compilerOptions": {
-    "noEmit": true
-  },
-  "exclude": ["dist/**/*"]
-}

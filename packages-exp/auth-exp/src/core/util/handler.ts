@@ -16,14 +16,15 @@
  */
 
 import { SDK_VERSION } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
-import { ApiKey, AppName, Auth } from '../../model/auth';
+import { AuthProvider } from '../../model/public_types';
+import { ApiKey, AppName, AuthInternal } from '../../model/auth';
 import { AuthEventType } from '../../model/popup_redirect';
 import { AuthErrorCode } from '../errors';
-import { OAuthProvider } from '../providers/oauth';
 import { _assert } from './assert';
 import { isEmpty, querystring } from '@firebase/util';
 import { _emulatorUrl } from './emulator';
+import { FederatedAuthProvider } from '../providers/federated';
+import { BaseOAuthProvider } from '../providers/oauth';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -54,8 +55,8 @@ type WidgetParams = {
 } & { [key: string]: string | undefined };
 
 export function _getRedirectUrl(
-  auth: Auth,
-  provider: externs.AuthProvider,
+  auth: AuthInternal,
+  provider: AuthProvider,
   authType: AuthEventType,
   redirectUrl?: string,
   eventId?: string,
@@ -73,15 +74,11 @@ export function _getRedirectUrl(
     eventId
   };
 
-  if (provider instanceof OAuthProvider) {
+  if (provider instanceof FederatedAuthProvider) {
     provider.setDefaultLanguage(auth.languageCode);
     params.providerId = provider.providerId || '';
     if (!isEmpty(provider.getCustomParameters())) {
       params.customParameters = JSON.stringify(provider.getCustomParameters());
-    }
-    const scopes = provider.getScopes().filter(scope => scope !== '');
-    if (scopes.length > 0) {
-      params.scopes = scopes.join(',');
     }
 
     // TODO set additionalParams from the provider as well?
@@ -90,29 +87,30 @@ export function _getRedirectUrl(
     }
   }
 
-  if (auth.tenantId) {
-    params.tid = auth.tenantId;
+  if (provider instanceof BaseOAuthProvider) {
+    const scopes = provider.getScopes().filter(scope => scope !== '');
+    if (scopes.length > 0) {
+      params.scopes = scopes.join(',');
+    }
   }
 
-  for (const key of Object.keys(params)) {
-    if ((params as Record<string, unknown>)[key] === undefined) {
-      delete (params as Record<string, unknown>)[key];
-    }
+  if (auth.tenantId) {
+    params.tid = auth.tenantId;
   }
 
   // TODO: maybe set eid as endipointId
   // TODO: maybe set fw as Frameworks.join(",")
 
-  const url = new URL(
-    `${getHandlerBase(auth)}?${querystring(
-      params as Record<string, string | number>
-    ).slice(1)}`
-  );
-
-  return url.toString();
+  const paramsDict = params as Record<string, string | number>;
+  for (const key of Object.keys(paramsDict)) {
+    if (paramsDict[key] === undefined) {
+      delete paramsDict[key];
+    }
+  }
+  return `${getHandlerBase(auth)}?${querystring(paramsDict).slice(1)}`;
 }
 
-function getHandlerBase({ config }: Auth): string {
+function getHandlerBase({ config }: AuthInternal): string {
   if (!config.emulator) {
     return `https://${config.authDomain}/${WIDGET_PATH}`;
   }

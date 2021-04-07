@@ -19,7 +19,8 @@ import {
   InstanceFactory,
   ComponentType,
   Dictionary,
-  Name
+  Name,
+  onInstanceCreatedCallback
 } from './types';
 
 /**
@@ -33,6 +34,8 @@ export class Component<T extends Name = Name> {
   serviceProps: Dictionary = {};
 
   instantiationMode = InstantiationMode.LAZY;
+
+  onInstanceCreated: onInstanceCreatedCallback<T> | null = null;
 
   /**
    *
@@ -58,6 +61,11 @@ export class Component<T extends Name = Name> {
 
   setServiceProps(props: Dictionary): this {
     this.serviceProps = props;
+    return this;
+  }
+
+  setInstanceCreatedCallback(callback: onInstanceCreatedCallback<T>): this {
+    this.onInstanceCreated = callback;
     return this;
   }
 }

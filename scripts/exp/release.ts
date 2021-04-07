@@ -28,10 +28,17 @@ import { resolve } from 'path';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
-import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
-import { prepare as prepareStorageForRelease } from './prepare-storage-for-exp-release';
+import {
+  prepare as prepareFirestoreForRelease,
+  createFirestoreCompatProject
+} from './prepare-firestore-for-exp-release';
+import {
+  createStorageCompatProject,
+  prepare as prepareStorageForRelease
+} from './prepare-storage-for-exp-release';
 import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
+import { addCompatToFirebasePkgJson } from './prepare-util';
 
 const prompt = createPromptModule();
 const argv = yargs
@@ -57,16 +64,34 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     );
 
     /**
-     * Update fields in package.json and stuff
+     * Update fields in package.json and create compat packages (e.g. packages-exp/firestore-compat)
      */
     await prepareFirestoreForRelease();
     await prepareStorageForRelease();
     await prepareDatabaseForRelease();
-
     /**
-     * build packages
+     * build packages except for the umbrella package (firebase) which will be built after firestore/storage/database compat packages are created
      */
     await buildPackages();
+
+    /**
+     * Create compat packages for Firestore, Database and Storage
+     */
+    await createFirestoreCompatProject();
+    await createStorageCompatProject();
+
+    /**
+     * Add firestore-compat, database-compat and storage-compat to the dependencies array of firebase-exp
+     */
+    await addCompatToFirebasePkgJson([
+      '@firebase/firestore-compat',
+      '@firebase/storage-compat'
+    ]);
+
+    /**
+     * build firebase
+     */
+    await buildFirebasePackage();
 
     // path to exp packages
     let packagePaths = await mapWorkspaceToPackages([
@@ -75,7 +100,6 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
 
     packagePaths.push(`${projectRoot}/packages/firestore`);
     packagePaths.push(`${projectRoot}/packages/storage`);
-    packagePaths.push(`${projectRoot}/packages/storage-types`);
     packagePaths.push(`${projectRoot}/packages/database`);
 
     /**
@@ -189,19 +213,6 @@ async function buildPackages() {
       'lerna',
       'run',
       '--scope',
-      // We replace `@firebase/app-exp` with `@firebase/app` during compilation, so we need to
-      // compile @firebase/app first to make rollup happy though it's not an actual dependency.
-      '@firebase/app',
-      '--scope',
-      // the same reason above
-      '@firebase/functions',
-      '--scope',
-      // the same reason above
-      '@firebase/remote-config',
-      '--scope',
-      // the same reason above
-      '@firebase/analytics',
-      '--scope',
       '@firebase/util',
       '--scope',
       '@firebase/component',
@@ -236,7 +247,7 @@ async function buildPackages() {
   );
 
   // Build exp packages developed in place
-  // Firestore
+  // Firestore and firestore-compat
   await spawn(
     'yarn',
     ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
@@ -258,17 +269,7 @@ async function buildPackages() {
   // Storage
   await spawn(
     'yarn',
-    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
-    {
-      cwd: projectRoot,
-      stdio: 'inherit'
-    }
-  );
-
-  // storage-types. Remove -exp in import paths in d.ts
-  await spawn(
-    'yarn',
-    ['lerna', 'run', '--scope', '@firebase/storage-types', 'build:exp:release'],
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
@@ -295,6 +296,13 @@ async function buildPackages() {
     rmdirSync(installationsDistDirPath, { recursive: true });
   }
 
+  spinner.stopAndPersist({
+    symbol: '✅'
+  });
+}
+
+async function buildFirebasePackage() {
+  const spinner = ora(' Building firebase').start();
   // Build firebase-exp
   await spawn(
     'yarn',
@@ -304,7 +312,6 @@ async function buildPackages() {
       stdio: 'inherit'
     }
   );
-
   spinner.stopAndPersist({
     symbol: '✅'
   });

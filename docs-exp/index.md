@@ -17,6 +17,7 @@
 |  [@firebase/database](./database.md) |  |
 |  [@firebase/firestore](./firestore.md) |  |
 |  [@firebase/functions](./functions.md) |  |
+|  [@firebase/functions-compat](./functions-compat.md) |  |
 |  [@firebase/functions-types](./functions-types.md) |  |
 |  [@firebase/installations](./installations.md) |  |
 |  [@firebase/installations-types](./installations-types.md) |  |

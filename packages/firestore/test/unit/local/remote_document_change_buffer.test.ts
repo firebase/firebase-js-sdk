@@ -75,7 +75,8 @@ describe('RemoteDocumentChangeBuffer', () => {
     buffer.addEntry(newADoc, newADoc.version);
     expect(await buffer.getEntry(key('coll/a'))).to.not.be.null;
     buffer.removeEntry(newADoc.key);
-    expect(await buffer.getEntry(key('coll/a'))).to.be.null;
+    expect((await buffer.getEntry(key('coll/a'))).isValidDocument()).to.be
+      .false;
   });
 
   it('can apply changes', async () => {
@@ -101,7 +102,7 @@ describe('RemoteDocumentChangeBuffer', () => {
 
     await buffer.apply();
 
-    expect(await cache.getEntry(key('coll/a'))).to.be.null;
+    expect((await cache.getEntry(key('coll/a'))).isValidDocument()).to.be.false;
   });
 
   it('methods fail after apply.', async () => {

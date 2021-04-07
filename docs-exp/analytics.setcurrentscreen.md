@@ -16,9 +16,9 @@ export declare function setCurrentScreen(analyticsInstance: Analytics, screenNam
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) | Firebase Analytics instance. |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) | Firebase Analytics instance. |
 |  screenName | string | Screen name to set. |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

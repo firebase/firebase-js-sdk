@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
+static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
 ```

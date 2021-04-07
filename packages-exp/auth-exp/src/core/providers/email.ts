@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  ProviderId,
+  SignInMethod,
+  AuthProvider
+} from '../../model/public_types';
 
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthCredential } from '../credentials/email';
@@ -23,27 +27,72 @@ import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 
 /**
- * {@inheritdoc @firebase/auth-types#EmailAuthProvider}
+ * Provider for generating {@link EmailAuthCredential}.
  *
  * @public
  */
-export class EmailAuthProvider implements externs.EmailAuthProvider {
-  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.PROVIDER_ID} */
-  static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
-  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD} */
-  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD =
-    externs.SignInMethod.EMAIL_PASSWORD;
-  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD} */
-  static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
-  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.providerId} */
+export class EmailAuthProvider implements AuthProvider {
+  /**
+   * Always set to {@link ProviderId.PASSWORD}, even for email link.
+   */
+  static readonly PROVIDER_ID = ProviderId.PASSWORD;
+  /**
+   * Always set to {@link SignInMethod.EMAIL_PASSWORD}.
+   */
+  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
+  /**
+   * Always set to {@link SignInMethod.EMAIL_LINK}.
+   */
+  static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
+  /**
+   * Always set to {@link ProviderId.PASSWORD}, even for email link.
+   */
   readonly providerId = EmailAuthProvider.PROVIDER_ID;
 
-  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.credential} */
+  /**
+   * Initialize an {@link AuthCredential} using an email and password.
+   *
+   * @example
+   * ```javascript
+   * const authCredential = EmailAuthProvider.credential(email, password);
+   * const userCredential = await signInWithCredential(auth, authCredential);
+   * ```
+   *
+   * @example
+   * ```javascript
+   * const userCredential = await signInWithEmailAndPassword(auth, email, password);
+   * ```
+   *
+   * @param email - Email address.
+   * @param password - User account password.
+   * @returns The auth provider credential.
+   */
   static credential(email: string, password: string): EmailAuthCredential {
     return EmailAuthCredential._fromEmailAndPassword(email, password);
   }
 
-  /** {@inheritdoc @firebase/auth-types#EmailAuthProvider.credentialWithLink} */
+  /**
+   * Initialize an {@link AuthCredential} using an email and an email link after a sign in with
+   * email link operation.
+   *
+   * @example
+   * ```javascript
+   * const authCredential = EmailAuthProvider.credentialWithLink(auth, email, emailLink);
+   * const userCredential = await signInWithCredential(auth, authCredential);
+   * ```
+   *
+   * @example
+   * ```javascript
+   * await sendSignInLinkToEmail(auth, email);
+   * // Obtain emailLink from user.
+   * const userCredential = await signInWithEmailLink(auth, email, emailLink);
+   * ```
+   *
+   * @param auth - The Auth instance used to verify the link.
+   * @param email - Email address.
+   * @param emailLink - Sign-in email link.
+   * @returns - The auth provider credential.
+   */
   static credentialWithLink(
     email: string,
     emailLink: string

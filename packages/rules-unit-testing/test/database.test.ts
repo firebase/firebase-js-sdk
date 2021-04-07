@@ -128,6 +128,31 @@ describe('Testing Module Tests', function () {
       .catch(() => {});
   });
 
+  it('assertFails() if message is Permission denied', async function () {
+    const success = Promise.resolve('success');
+    const permissionDenied = Promise.reject({
+      message: 'Permission denied'
+    });
+    const otherFailure = Promise.reject('failure');
+    await firebase
+      .assertFails(success)
+      .then(() => {
+        throw new Error('Expected success to fail.');
+      })
+      .catch(() => {});
+
+    await firebase.assertFails(permissionDenied).catch(() => {
+      throw new Error('Expected permissionDenied to succeed.');
+    });
+
+    await firebase
+      .assertFails(otherFailure)
+      .then(() => {
+        throw new Error('Expected otherFailure to fail.');
+      })
+      .catch(() => {});
+  });
+
   it('discoverEmulators() finds all running emulators', async () => {
     const options = await firebase.discoverEmulators();
 

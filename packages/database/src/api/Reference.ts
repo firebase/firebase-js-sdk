@@ -15,12 +15,18 @@
  * limitations under the License.
  */
 
-import { OnDisconnect } from './onDisconnect';
-import { TransactionResult } from './TransactionResult';
-import { warn } from '../core/util/util';
+import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
+
+import {
+  repoServerTime,
+  repoSetWithPriority,
+  repoStartTransaction,
+  repoUpdate
+} from '../core/Repo';
+import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
+import { Node } from '../core/snap/Node';
+import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { nextPushId } from '../core/util/NextPushId';
-import { Query } from './Query';
-import { Repo } from '../core/Repo';
 import {
   Path,
   pathChild,
@@ -29,7 +35,7 @@ import {
   pathIsEmpty,
   pathParent
 } from '../core/util/Path';
-import { QueryParams } from '../core/view/QueryParams';
+import { warn } from '../core/util/util';
 import {
   validateBoolean,
   validateFirebaseDataArg,
@@ -39,14 +45,16 @@ import {
   validateRootPathString,
   validateWritablePath
 } from '../core/util/validation';
-import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
+import { QueryParams } from '../core/view/QueryParams';
 
-import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
+import { OnDisconnect } from './onDisconnect';
+import { Query } from './Query';
+import { TransactionResult } from './TransactionResult';
 
 export interface ReferenceConstructor {
-  new (repo: Repo, path: Path): Reference;
+  new (database: Database, path: Path): Reference;
 }
 
 export class Reference extends Query {
@@ -60,15 +68,8 @@ export class Reference extends Query {
    *
    * Externally - this is the firebase.database.Reference type.
    */
-  constructor(repo: Repo, path: Path) {
-    if (!(repo instanceof Repo)) {
-      throw new Error(
-        'new Reference() no longer supported - use app.database().'
-      );
-    }
-
-    // call Query's constructor, passing in the repo and path.
-    super(repo, path, new QueryParams(), false);
+  constructor(database: Database, path: Path) {
+    super(database, path, new QueryParams(), false);
   }
 
   /** @return {?string} */
@@ -94,7 +95,7 @@ export class Reference extends Query {
       }
     }
 
-    return new Reference(this.repo, pathChild(this.path, pathString));
+    return new Reference(this.database, pathChild(this.path, pathString));
   }
 
   /** @return {?Reference} */
@@ -102,7 +103,9 @@ export class Reference extends Query {
     validateArgCount('Reference.parent', 0, 0, arguments.length);
 
     const parentPath = pathParent(this.path);
-    return parentPath === null ? null : new Reference(this.repo, parentPath);
+    return parentPath === null
+      ? null
+      : new Reference(this.database, parentPath);
   }
 
   /** @return {!Reference} */
@@ -116,11 +119,6 @@ export class Reference extends Query {
     return ref;
   }
 
-  /** @return {!Database} */
-  databaseProp(): Database {
-    return this.repo.database;
-  }
-
   set(
     newVal: unknown,
     onComplete?: (a: Error | null) => void
@@ -131,7 +129,8 @@ export class Reference extends Query {
     validateCallback('Reference.set', 2, onComplete, true);
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
+    repoSetWithPriority(
+      this.repo,
       this.path,
       newVal,
       /*priority=*/ null,
@@ -169,7 +168,8 @@ export class Reference extends Query {
     );
     validateCallback('Reference.update', 2, onComplete, true);
     const deferred = new Deferred();
-    this.repo.update(
+    repoUpdate(
+      this.repo,
       this.path,
       objectToMerge as { [k: string]: unknown },
       deferred.wrapCallback(onComplete)
@@ -203,7 +203,8 @@ export class Reference extends Query {
     }
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
+    repoSetWithPriority(
+      this.repo,
       this.path,
       newVal,
       newPriority,
@@ -250,24 +251,39 @@ export class Reference extends Query {
       deferred.promise.catch(() => {});
     }
 
-    const promiseComplete = function (
-      error: Error,
-      committed: boolean,
-      snapshot: DataSnapshot
-    ) {
+    const promiseComplete = (error: Error, committed: boolean, node: Node) => {
       if (error) {
         deferred.reject(error);
+        if (typeof onComplete === 'function') {
+          onComplete(error, committed, null);
+        }
       } else {
+        const snapshot = new DataSnapshot(
+          node,
+          new Reference(this.database, this.path),
+          PRIORITY_INDEX
+        );
         deferred.resolve(new TransactionResult(committed, snapshot));
-      }
-      if (typeof onComplete === 'function') {
-        onComplete(error, committed, snapshot);
+        if (typeof onComplete === 'function') {
+          onComplete(null, committed, snapshot);
+        }
       }
     };
-    this.repo.startTransaction(
+
+    // Add a watch to make sure we get server updates.
+    const valueCallback = function () {};
+    const watchRef = new Reference(this.database, this.path);
+    watchRef.on('value', valueCallback);
+    const unwatcher = function () {
+      watchRef.off('value', valueCallback);
+    };
+
+    repoStartTransaction(
+      this.repo,
       this.path,
       transactionUpdate,
       promiseComplete,
+      unwatcher,
       applyLocally
     );
 
@@ -284,7 +300,8 @@ export class Reference extends Query {
     validateCallback('Reference.setPriority', 2, onComplete, true);
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(
+    repoSetWithPriority(
+      this.repo,
       pathChild(this.path, '.priority'),
       priority,
       null,
@@ -299,7 +316,7 @@ export class Reference extends Query {
     validateFirebaseDataArg('Reference.push', 1, value, this.path, true);
     validateCallback('Reference.push', 2, onComplete, true);
 
-    const now = this.repo.serverTime();
+    const now = repoServerTime(this.repo);
     const name = nextPushId(now);
 
     // push() returns a ThennableReference whose promise is fulfilled with a regular Reference.
@@ -332,10 +349,6 @@ export class Reference extends Query {
     return new OnDisconnect(this.repo, this.path);
   }
 
-  get database(): Database {
-    return this.databaseProp();
-  }
-
   get key(): string | null {
     return this.getKey();
   }
@@ -356,4 +369,4 @@ export class Reference extends Query {
  * dependency issues
  */
 Query.__referenceConstructor = Reference;
-SyncPoint.__referenceConstructor = Reference;
+syncPointSetReferenceConstructor(Reference);

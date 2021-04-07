@@ -21,10 +21,12 @@ export declare function getToken(messaging: FirebaseMessaging, options?: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | FirebaseMessaging | : the messaging instance. |
+|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | the messaging instance. |
 |  options | { vapidKey?: string; swReg?: ServiceWorkerRegistration; } |  |
 
 <b>Returns:</b>
 
 Promise&lt;string&gt;
+
+The promise resolves with an FCM registration token.
 

@@ -11,3 +11,5 @@ Any custom event name string not in the standard list of recommended event names
 ```typescript
 export declare type CustomEventName<T> = T extends EventNameString ? never : T;
 ```
+<b>References:</b> [EventNameString](./analytics.eventnamestring.md)
+

@@ -16,19 +16,21 @@
  */
 
 import { assert } from '@firebase/util';
+
+import { ChildrenNode } from '../../snap/ChildrenNode';
+import { Index } from '../../snap/indexes/Index';
+import { PRIORITY_INDEX } from '../../snap/indexes/PriorityIndex';
+import { Node } from '../../snap/Node';
+import { Path } from '../../util/Path';
 import {
   changeChildAdded,
   changeChildChanged,
   changeChildRemoved
 } from '../Change';
-import { ChildrenNode } from '../../snap/ChildrenNode';
-import { PRIORITY_INDEX } from '../../snap/indexes/PriorityIndex';
-import { NodeFilter } from './NodeFilter';
-import { Index } from '../../snap/indexes/Index';
-import { Path } from '../../util/Path';
-import { CompleteChildSource } from '../CompleteChildSource';
 import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
-import { Node } from '../../snap/Node';
+import { CompleteChildSource } from '../CompleteChildSource';
+
+import { NodeFilter } from './NodeFilter';
 
 /**
  * Doesn't really filter nodes but applies an index to the node and keeps track of any changes

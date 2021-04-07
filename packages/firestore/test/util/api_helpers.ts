@@ -52,7 +52,6 @@ import {
   SnapshotMetadata
 } from '../../src/exp/snapshot';
 import { DocumentKeySet } from '../../src/model/collections';
-import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
@@ -175,7 +174,7 @@ export function querySnapshot(
   let newDocuments: DocumentSet = new DocumentSet();
   const documentChanges: DocumentViewChange[] = [];
   Object.keys(docsToAdd).forEach(key => {
-    const docToAdd: Document = doc(path + '/' + key, 1, docsToAdd[key]);
+    const docToAdd = doc(path + '/' + key, 1, docsToAdd[key]);
     newDocuments = newDocuments.add(docToAdd);
     documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
   });

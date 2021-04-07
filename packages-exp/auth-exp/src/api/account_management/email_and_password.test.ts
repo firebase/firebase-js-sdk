@@ -53,9 +53,10 @@ describe('api/account_management/resetPassword', () => {
       email: 'test@foo.com'
     });
 
+    auth.tenantId = 'tenant-id';
     const response = await resetPassword(auth, request);
     expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -166,9 +167,10 @@ describe('api/account_management/applyActionCode', () => {
   it('should POST to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {});
 
+    auth.tenantId = 'tenant-id';
     const response = await applyActionCode(auth, request);
     expect(response).to.be.empty;
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'

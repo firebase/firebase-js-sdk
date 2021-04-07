@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_item_list', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_item_list', eventParams?: {
     items?: EventParams['items'];
     item_list_name?: EventParams['item_list_name'];
     item_list_id?: EventParams['item_list_id'];
@@ -23,10 +23,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'view\_item\_list' |  |
-|  eventParams | { items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; item\_list\_name?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['item\_list\_name'\]; item\_list\_id?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['item\_list\_id'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; item\_list\_name?: [EventParams](./analytics.eventparams.md)<!-- -->\['item\_list\_name'\]; item\_list\_id?: [EventParams](./analytics.eventparams.md)<!-- -->\['item\_list\_id'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

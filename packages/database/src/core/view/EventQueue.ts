@@ -17,6 +17,7 @@
 
 import { Path, pathContains, pathEquals } from '../util/Path';
 import { exceptionGuard, log, logger } from '../util/util';
+
 import { Event } from './Event';
 
 /**

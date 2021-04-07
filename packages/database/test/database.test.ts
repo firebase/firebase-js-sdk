@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import firebase from '@firebase/app';
+import { expect } from 'chai';
+
 import { DATABASE_ADDRESS, createTestApp } from './helpers/util';
 import '../index';
 

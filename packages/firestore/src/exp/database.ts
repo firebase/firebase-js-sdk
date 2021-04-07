@@ -18,7 +18,8 @@
 import {
   _getProvider,
   _removeServiceInstance,
-  FirebaseApp
+  FirebaseApp,
+  getApp
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -128,7 +129,6 @@ export function initializeFirestore(
     );
   }
 
-  const firestore = provider.getImmediate() as FirebaseFirestore;
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
@@ -140,8 +140,7 @@ export function initializeFirestore(
     );
   }
 
-  firestore._setSettings(settings);
-  return firestore;
+  return provider.initialize({ options: settings });
 }
 
 /**
@@ -153,10 +152,13 @@ export function initializeFirestore(
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp): FirebaseFirestore {
+export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
   return _getProvider(app, 'firestore-exp').getImmediate() as FirebaseFirestore;
 }
 
+/**
+ * @internal
+ */
 export function ensureFirestoreConfigured(
   firestore: FirebaseFirestore
 ): FirestoreClient {
@@ -177,6 +179,7 @@ export function configureFirestore(firestore: FirebaseFirestore): void {
 
   const databaseInfo = makeDatabaseInfo(
     firestore._databaseId,
+    firestore._app?.options.appId || '',
     firestore._persistenceKey,
     settings
   );

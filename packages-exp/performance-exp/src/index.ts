@@ -19,7 +19,7 @@ import {
   FirebasePerformance,
   PerformanceSettings,
   PerformanceTrace
-} from '@firebase/performance-types-exp';
+} from './public_types';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import { setupApi } from './services/api_service';
 import { PerformanceController } from './controllers/perf';
@@ -27,7 +27,8 @@ import {
   _registerComponent,
   _getProvider,
   registerVersion,
-  FirebaseApp
+  FirebaseApp,
+  getApp
 } from '@firebase/app-exp';
 import {
   InstanceFactory,
@@ -38,6 +39,7 @@ import {
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
 import '@firebase/installations-exp';
+import { getModularInstance } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
@@ -46,7 +48,10 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
  * @param app - The FirebaseApp to use.
  * @public
  */
-export function getPerformance(app: FirebaseApp): FirebasePerformance {
+export function getPerformance(
+  app: FirebaseApp = getApp()
+): FirebasePerformance {
+  app = getModularInstance(app);
   const provider = _getProvider(app, 'performance-exp');
   const perfInstance = provider.getImmediate() as PerformanceController;
   return perfInstance;
@@ -62,6 +67,7 @@ export function initializePerformance(
   app: FirebaseApp,
   settings?: PerformanceSettings
 ): FirebasePerformance {
+  app = getModularInstance(app);
   const provider = _getProvider(app, 'performance-exp');
 
   // throw if an instance was already created.
@@ -70,8 +76,9 @@ export function initializePerformance(
     throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
   }
 
-  const perfInstance = provider.getImmediate() as PerformanceController;
-  perfInstance._init(settings);
+  const perfInstance = provider.initialize({
+    options: settings
+  }) as PerformanceController;
   return perfInstance;
 }
 
@@ -85,11 +92,13 @@ export function trace(
   performance: FirebasePerformance,
   name: string
 ): PerformanceTrace {
+  performance = getModularInstance(performance);
   return new Trace(performance as PerformanceController, name);
 }
 
 const factory: InstanceFactory<'performance-exp'> = (
-  container: ComponentContainer
+  container: ComponentContainer,
+  { options: settings }: { options?: PerformanceSettings }
 ) => {
   // Dependencies
   const app = container.getProvider('app-exp').getImmediate();
@@ -104,7 +113,10 @@ const factory: InstanceFactory<'performance-exp'> = (
     throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
   }
   setupApi(window);
-  return new PerformanceController(app, installations);
+  const perfInstance = new PerformanceController(app, installations);
+  perfInstance._init(settings);
+
+  return perfInstance;
 };
 
 function registerPerformance(): void {

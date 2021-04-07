@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'share', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'share', eventParams?: {
     method?: EventParams['method'];
     content_type?: EventParams['content_type'];
     content_id?: EventParams['content_id'];
@@ -23,10 +23,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'share
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'share' |  |
-|  eventParams | { method?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['method'\]; content\_type?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['content\_type'\]; content\_id?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['content\_id'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { method?: [EventParams](./analytics.eventparams.md)<!-- -->\['method'\]; content\_type?: [EventParams](./analytics.eventparams.md)<!-- -->\['content\_type'\]; content\_id?: [EventParams](./analytics.eventparams.md)<!-- -->\['content\_id'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

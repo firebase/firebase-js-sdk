@@ -21,7 +21,8 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from './public-types';
-import { Component, ComponentContainer } from '@firebase/component';
+import { Compat } from '@firebase/util';
+import { Component, ComponentContainer, Name } from '@firebase/component';
 
 export interface FirebaseServiceInternals {
   /**
@@ -34,7 +35,7 @@ export interface FirebaseServiceInternals {
 // Services are exposed through instances - each of which is associated with a
 // FirebaseApp.
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _FirebaseService {
+export interface _FirebaseService extends Compat<unknown> {
   app: FirebaseApp;
   INTERNAL?: FirebaseServiceInternals;
 }
@@ -49,8 +50,8 @@ export interface FirebaseServiceNamespace<T extends _FirebaseService> {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _FirebaseApp extends FirebaseApp {
   container: ComponentContainer;
-  _addComponent(component: Component): void;
-  _addOrOverwriteComponent(component: Component): void;
+  _addComponent<T extends Name>(component: Component<T>): void;
+  _addOrOverwriteComponent<T extends Name>(component: Component<T>): void;
   _removeServiceInstance(name: string, instanceIdentifier?: string): void;
 }
 
@@ -71,8 +72,8 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
      * @param allowMultipleInstances Whether the registered service supports
      *   multiple instances per app. If not specified, the default is false.
      */
-    registerComponent(
-      component: Component
+    registerComponent<T extends Name>(
+      component: Component<T>
     ): FirebaseServiceNamespace<_FirebaseService> | null;
 
     /**

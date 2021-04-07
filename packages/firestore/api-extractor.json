@@ -1,4 +1,8 @@
 {
+    /**
+     * This config is used for generating the api.json file that includes all entry points, which is used to create reference docs.
+     * apiReport and d.ts rollup are handled by scripts/api-report.ts.
+     */
     "extends": "../../config/api-extractor.json",
     // Point it to your entry point d.ts file. 
     "mainEntryPointFilePath": "<projectFolder>/dist/exp/index.d.ts",
@@ -7,5 +11,11 @@
             "modulePath": "lite",
             "filePath": "<projectFolder>/dist/lite/index.d.ts"
         }
-    ]
+    ],
+    "apiReport": {
+        /**
+         * apiReport is handled by scripts/api-report.ts
+         */
+        "enabled": false
+    }
 }

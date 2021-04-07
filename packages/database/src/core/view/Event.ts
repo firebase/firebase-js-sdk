@@ -16,9 +16,11 @@
  */
 
 import { stringify } from '@firebase/util';
-import { Path } from '../util/Path';
-import { EventRegistration } from './EventRegistration';
+
 import { DataSnapshot } from '../../api/DataSnapshot';
+import { Path } from '../util/Path';
+
+import { EventRegistration } from './EventRegistration';
 
 /**
  * Encapsulates the data needed to raise an event

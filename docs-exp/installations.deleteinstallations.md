@@ -16,7 +16,7 @@ export declare function deleteInstallations(installations: FirebaseInstallations
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  installations | [FirebaseInstallations](./installations-types.firebaseinstallations.md) |  |
+|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) |  |
 
 <b>Returns:</b>
 

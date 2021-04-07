@@ -5,12 +5,19 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-exp';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 // @public
 export function deleteInstallations(installations: FirebaseInstallations): Promise<void>;
 
-export { FirebaseInstallations }
+// @public
+export interface FirebaseInstallations {
+}
+
+// @internal
+export interface _FirebaseInstallationsInternal {
+    getId(): Promise<string>;
+    getToken(forceRefresh?: boolean): Promise<string>;
+}
 
 // @public
 export function getId(installations: FirebaseInstallations): Promise<string>;

@@ -16,9 +16,11 @@
  */
 
 import { expect } from 'chai';
-import { getRandomNode } from './helpers/util';
+
 import { Database } from '../src/api/Database';
 import { Reference } from '../src/api/Reference';
+
+import { getRandomNode } from './helpers/util';
 
 describe('ServerValue tests', () => {
   it('resolves timestamps locally', async () => {

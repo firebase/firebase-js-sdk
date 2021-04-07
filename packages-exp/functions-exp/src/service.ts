@@ -20,7 +20,7 @@ import {
   HttpsCallable,
   HttpsCallableResult,
   HttpsCallableOptions
-} from '@firebase/functions-types-exp';
+} from './public-types';
 import { _errorForResponse, FunctionsError } from './error';
 import { ContextProvider } from './context';
 import { encode, decode } from './serializer';
@@ -154,14 +154,14 @@ export function useFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable(
+export function httpsCallable<RequestData, ResponseData>(
   functionsInstance: FunctionsService,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable {
-  return data => {
+): HttpsCallable<RequestData, ResponseData> {
+  return (data => {
     return call(functionsInstance, name, data, options || {});
-  };
+  }) as HttpsCallable<RequestData, ResponseData>;
 }
 
 /**

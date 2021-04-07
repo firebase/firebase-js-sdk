@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-import * as types from '@firebase/storage-types';
+import { UploadTaskSnapshot } from '../exp/api';
 import { ReferenceCompat } from './reference';
 import { UploadTaskCompat } from './task';
-import { UploadTaskSnapshot } from '../src/tasksnapshot';
+import * as types from '@firebase/storage-types';
+import { Compat } from '@firebase/util';
 
-export class UploadTaskSnapshotCompat implements types.UploadTaskSnapshot {
+export class UploadTaskSnapshotCompat
+  implements types.UploadTaskSnapshot, Compat<UploadTaskSnapshot> {
   constructor(
     readonly _delegate: UploadTaskSnapshot,
     readonly task: UploadTaskCompat,

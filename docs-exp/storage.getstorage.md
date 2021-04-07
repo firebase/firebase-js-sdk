@@ -9,7 +9,7 @@ Gets a Firebase StorageService instance for the given Firebase app.
 <b>Signature:</b>
 
 ```typescript
-export declare function getStorage(app: FirebaseApp): StorageService;
+export declare function getStorage(app: FirebaseApp, bucketUrl?: string): StorageService;
 ```
 
 ## Parameters
@@ -17,10 +17,11 @@ export declare function getStorage(app: FirebaseApp): StorageService;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | FirebaseApp | Firebase app to get Storage instance for. |
+|  bucketUrl | string | The gs:// url to your Firebase Storage Bucket. If not passed, uses the app's default Storage Bucket. |
 
 <b>Returns:</b>
 
-[StorageService](./storage-types.storageservice.md)
+[StorageService](./storage.storageservice.md)
 
 A Firebase StorageService instance.
 

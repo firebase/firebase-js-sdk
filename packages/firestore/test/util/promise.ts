@@ -16,7 +16,7 @@
  */
 
 export interface Resolver<R> {
-  (value?: R | Promise<R>): void;
+  (value: R | Promise<R>): void;
 }
 
 export interface Rejecter {

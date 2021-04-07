@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { AuthProvider, PopupRedirectResolver } from '../model/public_types';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
@@ -23,13 +23,13 @@ import { _assert, debugAssert, _fail } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
 import { _validateOrigin } from '../core/util/validate_origin';
-import { Auth } from '../model/auth';
+import { AuthInternal } from '../model/auth';
 import {
   AuthEventType,
   EventManager,
   GapiAuthEvent,
   GapiOutcome,
-  PopupRedirectResolver
+  PopupRedirectResolverInternal
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
@@ -37,6 +37,7 @@ import { browserSessionPersistence } from './persistence/session_storage';
 import { _open, AuthPopup } from './util/popup';
 import { _getRedirectResult } from './strategies/redirect';
 import { _getRedirectUrl } from '../core/util/handler';
+import { _isIOS, _isMobileBrowser, _isSafari } from '../core/util/browser';
 
 /**
  * The special web storage event
@@ -53,7 +54,7 @@ interface ManagerOrPromise {
   promise?: Promise<EventManager>;
 }
 
-class BrowserPopupRedirectResolver implements PopupRedirectResolver {
+class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
   private readonly eventManagers: Record<string, ManagerOrPromise> = {};
   private readonly iframes: Record<string, gapi.iframes.Iframe> = {};
   private readonly originValidationPromises: Record<string, Promise<void>> = {};
@@ -63,8 +64,8 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   // Wrapping in async even though we don't await anywhere in order
   // to make sure errors are raised as promise rejections
   async _openPopup(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup> {
@@ -73,7 +74,6 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
       '_initialize() not called before _openPopup()'
     );
 
-    await this.originValidation(auth);
     const url = _getRedirectUrl(
       auth,
       provider,
@@ -85,19 +85,19 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   }
 
   async _openRedirect(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<never> {
-    await this.originValidation(auth);
+    await this._originValidation(auth);
     _setWindowLocation(
       _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId)
     );
     return new Promise(() => {});
   }
 
-  _initialize(auth: Auth): Promise<EventManager> {
+  _initialize(auth: AuthInternal): Promise<EventManager> {
     const key = auth._key();
     if (this.eventManagers[key]) {
       const { manager, promise } = this.eventManagers[key];
@@ -114,7 +114,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return promise;
   }
 
-  private async initAndGetManager(auth: Auth): Promise<EventManager> {
+  private async initAndGetManager(auth: AuthInternal): Promise<EventManager> {
     const iframe = await _openIframe(auth);
     const manager = new AuthEventManager(auth);
     iframe.register<GapiAuthEvent>(
@@ -135,7 +135,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   }
 
   _isIframeWebStorageSupported(
-    auth: Auth,
+    auth: AuthInternal,
     cb: (supported: boolean) => unknown
   ): void {
     const iframe = this.iframes[auth._key()];
@@ -154,7 +154,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     );
   }
 
-  private originValidation(auth: Auth): Promise<void> {
+  _originValidation(auth: AuthInternal): Promise<void> {
     const key = auth._key();
     if (!this.originValidationPromises[key]) {
       this.originValidationPromises[key] = _validateOrigin(auth);
@@ -163,13 +163,18 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return this.originValidationPromises[key];
   }
 
+  get _shouldInitProactively(): boolean {
+    // Mobile browsers and Safari need to optimistically initialize
+    return _isMobileBrowser() || _isSafari() || _isIOS();
+  }
+
   _completeRedirectFn = _getRedirectResult;
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for browser
+ * An implementation of {@link PopupRedirectResolver} suitable for browser
  * based applications.
  *
  * @public
  */
-export const browserPopupRedirectResolver: externs.PopupRedirectResolver = BrowserPopupRedirectResolver;
+export const browserPopupRedirectResolver: PopupRedirectResolver = BrowserPopupRedirectResolver;

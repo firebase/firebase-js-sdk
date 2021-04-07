@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-import { _getProvider, FirebaseApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import {
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
-  Value as ValueType
-} from '@firebase/remote-config-types-exp';
+  Value
+} from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import { RC_COMPONENT_NAME } from './constants';
 import { ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
-import { Value } from './value';
+import { Value as ValueImpl } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
+import { getModularInstance } from '@firebase/util';
 
 /**
  *
@@ -35,7 +36,8 @@ import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
  *
  * @public
  */
-export function getRemoteConfig(app: FirebaseApp): RemoteConfig {
+export function getRemoteConfig(app: FirebaseApp = getApp()): RemoteConfig {
+  app = getModularInstance(app);
   const rcProvider = _getProvider(app, RC_COMPONENT_NAME);
   return rcProvider.getImmediate();
 }
@@ -49,7 +51,7 @@ export function getRemoteConfig(app: FirebaseApp): RemoteConfig {
  * @public
  */
 export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
-  const rc = remoteConfig as RemoteConfigImpl;
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
   const [lastSuccessfulFetchResponse, activeConfigEtag] = await Promise.all([
     rc._storage.getLastSuccessfulFetchResponse(),
     rc._storage.getActiveConfigEtag()
@@ -79,7 +81,7 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
  * @public
  */
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {
-  const rc = remoteConfig as RemoteConfigImpl;
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
   if (!rc._initializePromise) {
     rc._initializePromise = rc._storageCache.loadFromStorage().then(() => {
       rc._isInitializationComplete = true;
@@ -94,7 +96,7 @@ export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {
  * @public
  */
 export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
-  const rc = remoteConfig as RemoteConfigImpl;
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
   // Aborts the request after the given timeout, causing the fetch call to
   // reject with an AbortError.
   //
@@ -137,15 +139,15 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
  *
  * @public
  */
-export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType> {
-  const rc = remoteConfig as RemoteConfigImpl;
+export function getAll(remoteConfig: RemoteConfig): Record<string, Value> {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
   return getAllKeys(
     rc._storageCache.getActiveConfig(),
     rc.defaultConfig
   ).reduce((allConfigs, key) => {
     allConfigs[key] = getValue(remoteConfig, key);
     return allConfigs;
-  }, {} as Record<string, ValueType>);
+  }, {} as Record<string, Value>);
 }
 
 /**
@@ -160,7 +162,7 @@ export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType> {
  * @public
  */
 export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean {
-  return getValue(remoteConfig, key).asBoolean();
+  return getValue(getModularInstance(remoteConfig), key).asBoolean();
 }
 
 /**
@@ -176,7 +178,7 @@ export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean {
  * @public
  */
 export function getNumber(remoteConfig: RemoteConfig, key: string): number {
-  return getValue(remoteConfig, key).asNumber();
+  return getValue(getModularInstance(remoteConfig), key).asNumber();
 }
 
 /**
@@ -191,7 +193,7 @@ export function getNumber(remoteConfig: RemoteConfig, key: string): number {
  * @public
  */
 export function getString(remoteConfig: RemoteConfig, key: string): string {
-  return getValue(remoteConfig, key).asString();
+  return getValue(getModularInstance(remoteConfig), key).asString();
 }
 
 /**
@@ -204,8 +206,8 @@ export function getString(remoteConfig: RemoteConfig, key: string): string {
  *
  * @public
  */
-export function getValue(remoteConfig: RemoteConfig, key: string): ValueType {
-  const rc = remoteConfig as RemoteConfigImpl;
+export function getValue(remoteConfig: RemoteConfig, key: string): Value {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
   if (!rc._isInitializationComplete) {
     rc._logger.debug(
       `A value was requested for key "${key}" before SDK initialization completed.` +
@@ -214,15 +216,15 @@ export function getValue(remoteConfig: RemoteConfig, key: string): ValueType {
   }
   const activeConfig = rc._storageCache.getActiveConfig();
   if (activeConfig && activeConfig[key] !== undefined) {
-    return new Value('remote', activeConfig[key]);
+    return new ValueImpl('remote', activeConfig[key]);
   } else if (rc.defaultConfig && rc.defaultConfig[key] !== undefined) {
-    return new Value('default', String(rc.defaultConfig[key]));
+    return new ValueImpl('default', String(rc.defaultConfig[key]));
   }
   rc._logger.debug(
     `Returning static value for key "${key}".` +
       ' Define a default or remote value if this is unintentional.'
   );
-  return new Value('static');
+  return new ValueImpl('static');
 }
 
 /**
@@ -237,7 +239,7 @@ export function setLogLevel(
   remoteConfig: RemoteConfig,
   logLevel: RemoteConfigLogLevel
 ): void {
-  const rc = remoteConfig as RemoteConfigImpl;
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
   switch (logLevel) {
     case 'debug':
       rc._logger.logLevel = FirebaseLogLevel.DEBUG;
@@ -256,5 +258,3 @@ export function setLogLevel(
 function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
   return Object.keys({ ...obj1, ...obj2 });
 }
-
-export { RemoteConfig, ValueType, RemoteConfigLogLevel };

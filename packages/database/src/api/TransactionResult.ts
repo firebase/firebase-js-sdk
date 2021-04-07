@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { DataSnapshot } from './DataSnapshot';
 import { validateArgCount } from '@firebase/util';
+
+import { DataSnapshot } from './DataSnapshot';
 
 export class TransactionResult {
   /**

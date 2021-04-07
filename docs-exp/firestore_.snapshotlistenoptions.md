@@ -16,5 +16,5 @@ export declare interface SnapshotListenOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [includeMetadataChanges](./firestore_.snapshotlistenoptions.includemetadatachanges.md) | boolean | Include a change even if only the metadata of the query or of a document changed. Default is false. |
+|  [includeMetadataChanges?](./firestore_.snapshotlistenoptions.includemetadatachanges.md) | boolean | <i>(Optional)</i> Include a change even if only the metadata of the query or of a document changed. Default is false. |
 

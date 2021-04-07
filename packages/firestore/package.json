@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "2.1.7",
+  "version": "2.2.2",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -11,13 +11,13 @@
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
     "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js' build:lite build:exp",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
-    "prebuild:release": "yarn prebuild",
     "build:release": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
+    "build:compat": "run-p 'bundle ./rollup.config.browser.compat.js' 'bundle ./rollup.config.node.compat.js' 'bundle ./rollup.config.rn.compat.js' && yarn add-compat-overloads",
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
-    "build:exp:release": "yarn build:exp && yarn build:lite",
+    "build:exp:release": "yarn build:exp && yarn build:lite && yarn build:compat",
     "postbuild:exp:release": "node ../../scripts/exp/remove-exp.js dist/exp/index.d.ts && node ../../scripts/exp/remove-exp.js dist/lite/index.d.ts",
     "build:browser": "rollup -c rollup.config.browser.js",
     "predev": "yarn prebuild",
@@ -44,9 +44,11 @@
     "test:node:persistence:prod": "node ./scripts/run-tests.js --main=index.node.ts --persistence 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
-    "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ./scripts/api-report.ts",
+    "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ./scripts/api-report.ts && yarn api-report:api-json",
+    "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs"
+    "doc": "api-documenter markdown --input temp --output docs",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i dist/exp/index.d.ts -o dist/compat/esm5/packages/firestore/compat/index.d.ts -a -r FirebaseFirestore:types.FirebaseFirestore -r CollectionReference:types.CollectionReference -r DocumentReference:types.DocumentReference -r Query:types.Query -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/firestore"
   },
   "main": "dist/node-cjs/index.js",
   "main-esm2017": "dist/node-esm2017/index.js",
@@ -62,25 +64,25 @@
     "memory-bundle/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.2.0",
-    "@firebase/firestore-types": "2.1.0",
+    "@firebase/component": "0.3.1",
+    "@firebase/firestore-types": "2.2.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.4",
+    "@firebase/util": "0.4.1",
     "@firebase/webchannel-wrapper": "0.4.1",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
     "node-fetch": "2.6.1",
-    "tslib": "^1.11.1"
+    "tslib": "^2.1.0"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.15",
+    "@firebase/app": "0.6.18",
     "@rollup/plugin-alias": "3.1.1",
     "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-node-resolve": "11.2.0",
     "@types/eslint": "7.2.6",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",
@@ -93,7 +95,7 @@
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.29.0",
     "ts-node": "9.1.1",
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   },
   "repository": {
     "directory": "packages/firestore",
@@ -103,7 +105,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/firestore/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

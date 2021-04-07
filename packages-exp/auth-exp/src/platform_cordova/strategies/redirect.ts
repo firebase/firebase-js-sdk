@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  AuthProvider,
+  PopupRedirectResolver,
+  User
+} from '../../model/public_types';
 import {
   _linkWithRedirect,
   _reauthenticateWithRedirect,
@@ -23,25 +28,25 @@ import {
 } from '../../platform_browser/strategies/redirect';
 
 export function signInWithRedirect(
-  auth: externs.Auth,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+  auth: Auth,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<void> {
   return _signInWithRedirect(auth, provider, resolver) as Promise<void>;
 }
 
 export function reauthenticateWithRedirect(
-  user: externs.User,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<void> {
   return _reauthenticateWithRedirect(user, provider, resolver) as Promise<void>;
 }
 
 export function linkWithRedirect(
-  user: externs.User,
-  provider: externs.AuthProvider,
-  resolver?: externs.PopupRedirectResolver
+  user: User,
+  provider: AuthProvider,
+  resolver?: PopupRedirectResolver
 ): Promise<void> {
   return _linkWithRedirect(user, provider, resolver) as Promise<void>;
 }

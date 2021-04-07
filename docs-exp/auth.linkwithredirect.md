@@ -9,16 +9,16 @@ Links the [OAuthProvider](./auth.oauthprovider.md) to the user account using a f
 <b>Signature:</b>
 
 ```typescript
-export declare function linkWithRedirect(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<never>;
+export declare function linkWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
-|  provider | externs.[AuthProvider](./auth-types.authprovider.md) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md) will throw an error. |
-|  resolver | externs.[PopupRedirectResolver](./auth-types.popupredirectresolver.md) | An instance of [PopupRedirectResolver](./auth-types.popupredirectresolver.md)<!-- -->, optional if already supplied to [initializeAuth()](./auth.initializeauth.md) or provided by [getAuth()](./auth.getauth.md)<!-- -->. |
+|  user | [User](./auth.user.md) | The user. |
+|  provider | [AuthProvider](./auth.authprovider.md) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md) will throw an error. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md)<!-- -->, optional if already supplied to [initializeAuth()](./auth.initializeauth.md) or provided by [getAuth()](./auth.getauth.md)<!-- -->. |
 
 <b>Returns:</b>
 

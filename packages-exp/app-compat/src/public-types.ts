@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { LogCallback, LogLevelString, LogOptions } from '@firebase/logger';
-import { FirebaseAppImpl } from './firebaseApp';
+import { FirebaseAppImpl, _FirebaseApp } from './firebaseApp';
 
 export interface FirebaseOptions {
   apiKey?: string;
@@ -33,29 +33,17 @@ export interface FirebaseAppConfig {
   automaticDataCollectionEnabled?: boolean;
 }
 
-// used as type only
-export interface FirebaseApp {
-  /**
-   * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
-   * App.
-   */
-  name: string;
-
-  /**
-   * The (read-only) configuration options from the app initialization.
-   */
-  options: FirebaseOptions;
-
-  /**
-   * The settable config flag for GDPR opt-in/opt-out
-   */
-  automaticDataCollectionEnabled: boolean;
-
-  /**
-   * Make the given App unusable and free resources.
-   */
-  delete(): Promise<void>;
-}
+/**
+ * This interface will be enhanced by other products by adding e.g. firestore(), messaging() methods.
+ * As a result, FirebaseAppImpl can't directly implement it, otherwise there will be typings errors:
+ *
+ * For example, "Class 'FirebaseAppImpl' incorrectly implements interface 'FirebaseApp'.
+ * Property 'installations' is missing in type 'FirebaseAppImpl' but required in type 'FirebaseApp'"
+ *
+ * To workaround this issue, we defined a _FirebaseApp interface which is implemented by FirebaseAppImpl
+ * and let FirebaseApp extends it.
+ */
+export interface FirebaseApp extends _FirebaseApp {}
 
 export interface FirebaseNamespace {
   /**

@@ -18,7 +18,8 @@
 import {
   _getProvider,
   _removeServiceInstance,
-  FirebaseApp
+  FirebaseApp,
+  getApp
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -66,7 +67,7 @@ export class FirebaseFirestore implements FirestoreService {
   // all components have shut down.
   private _terminateTask?: Promise<void>;
 
-  private _app?: FirebaseApp;
+  _app?: FirebaseApp;
 
   /** @hideconstructor */
   constructor(
@@ -193,9 +194,7 @@ export function initializeFirestore(
     );
   }
 
-  const firestore = provider.getImmediate() as FirebaseFirestore;
-  firestore._setSettings(settings);
-  return firestore;
+  return provider.initialize({ options: settings });
 }
 
 /**
@@ -207,7 +206,7 @@ export function initializeFirestore(
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp): FirebaseFirestore {
+export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
   return _getProvider(
     app,
     'firestore/lite'

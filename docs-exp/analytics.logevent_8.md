@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'page_view', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'page_view', eventParams?: {
     page_title?: string;
     page_location?: string;
     page_path?: string;
@@ -23,10 +23,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'page_
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'page\_view' |  |
 |  eventParams | { page\_title?: string; page\_location?: string; page\_path?: string; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

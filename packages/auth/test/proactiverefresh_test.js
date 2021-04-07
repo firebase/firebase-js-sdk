@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ function setUp() {
   // Operation to practively refresh.
   operation = goog.testing.recordFunction(function() {
     // Record last run time.
-    lastTimestamp = goog.now();
+    lastTimestamp = Date.now();
     if (!forceRetryError) {
       // Do not force error retry. Resolve successfully.
       return goog.Promise.resolve();
@@ -84,7 +84,7 @@ function setUp() {
   // Operation which throws an unrecoverable error.
   unrecoverableOperation = goog.testing.recordFunction(function() {
     // Record last run time.
-    lastTimestamp = goog.now();
+    lastTimestamp = Date.now();
     // Throw unrecoverable error.
     return goog.Promise.reject(
         new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR));

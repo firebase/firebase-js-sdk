@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
+import { getModularInstance } from '@firebase/util';
+
 import {
   newQueryForCollectionGroup,
   newQueryForPath,
@@ -138,10 +139,18 @@ export class DocumentReference<T = DocumentData> {
    * instance, the provided converter will convert between Firestore data and
    * your custom type `U`.
    *
-   * @param converter - Converts objects to and from Firestore.
+   * Passing in `null` as the converter parameter removes the current
+   * converter.
+   *
+   * @param converter - Converts objects to and from Firestore. Passing in
+   * `null` removes the current converter.
    * @returns A `DocumentReference<U>` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U> {
+  withConverter(converter: null): DocumentReference<DocumentData>;
+  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+  withConverter<U>(
+    converter: FirestoreDataConverter<U> | null
+  ): DocumentReference<U> {
     return new DocumentReference<U>(this.firestore, converter, this._key);
   }
 }
@@ -180,7 +189,9 @@ export class Query<T = DocumentData> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `Query<U>` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U> {
+  withConverter(converter: null): Query<DocumentData>;
+  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+  withConverter<U>(converter: FirestoreDataConverter<U> | null): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
   }
 }
@@ -240,8 +251,12 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `CollectionReference<U>` that uses the provided converter.
    */
+  withConverter(converter: null): CollectionReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
+  ): CollectionReference<U>;
+  withConverter<U>(
+    converter: FirestoreDataConverter<U> | null
   ): CollectionReference<U> {
     return new CollectionReference<U>(this.firestore, converter, this._path);
   }
@@ -306,9 +321,7 @@ export function collection(
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData> {
-  if (parent instanceof Compat) {
-    parent = parent._delegate;
-  }
+  parent = getModularInstance(parent);
 
   validateNonEmptyArgument('collection', 'path', path);
   if (parent instanceof FirebaseFirestore) {
@@ -437,9 +450,7 @@ export function doc<T>(
   path?: string,
   ...pathSegments: string[]
 ): DocumentReference {
-  if (parent instanceof Compat) {
-    parent = parent._delegate;
-  }
+  parent = getModularInstance(parent);
 
   // We allow omission of 'pathString' but explicitly prohibit passing in both
   // 'undefined' and 'null'.
@@ -491,12 +502,8 @@ export function refEqual<T>(
   left: DocumentReference<T> | CollectionReference<T>,
   right: DocumentReference<T> | CollectionReference<T>
 ): boolean {
-  if (left instanceof Compat) {
-    left = left._delegate;
-  }
-  if (right instanceof Compat) {
-    right = right._delegate;
-  }
+  left = getModularInstance(left);
+  right = getModularInstance(right);
 
   if (
     (left instanceof DocumentReference ||
@@ -522,12 +529,8 @@ export function refEqual<T>(
  * Firestore database.
  */
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
-  if (left instanceof Compat) {
-    left = left._delegate;
-  }
-  if (right instanceof Compat) {
-    right = right._delegate;
-  }
+  left = getModularInstance(left);
+  right = getModularInstance(right);
 
   if (left instanceof Query && right instanceof Query) {
     return (

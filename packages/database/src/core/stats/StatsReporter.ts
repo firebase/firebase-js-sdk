@@ -16,10 +16,12 @@
  */
 
 import { contains } from '@firebase/util';
-import { setTimeoutNonBlocking, each } from '../util/util';
-import { StatsListener } from './StatsListener';
-import { StatsCollection } from './StatsCollection';
+
 import { ServerActions } from '../ServerActions';
+import { setTimeoutNonBlocking, each } from '../util/util';
+
+import { StatsCollection } from './StatsCollection';
+import { StatsListener } from './StatsListener';
 
 // Assuming some apps may have a short amount of time on page, and a bulk of firebase operations probably
 // happen on page load, we try to report our first set of stats pretty quickly, but we wait at least 10
@@ -32,7 +34,7 @@ const REPORT_STATS_INTERVAL = 5 * 60 * 1000;
 
 export class StatsReporter {
   private statsListener_: StatsListener;
-  private statsToReport_: { [k: string]: boolean } = {};
+  statsToReport_: { [k: string]: boolean } = {};
 
   /**
    * @param collection
@@ -45,10 +47,6 @@ export class StatsReporter {
       FIRST_STATS_MIN_TIME +
       (FIRST_STATS_MAX_TIME - FIRST_STATS_MIN_TIME) * Math.random();
     setTimeoutNonBlocking(this.reportStats_.bind(this), Math.floor(timeout));
-  }
-
-  includeStat(stat: string) {
-    this.statsToReport_[stat] = true;
   }
 
   private reportStats_() {
@@ -73,4 +71,11 @@ export class StatsReporter {
       Math.floor(Math.random() * 2 * REPORT_STATS_INTERVAL)
     );
   }
+}
+
+export function statsReporterIncludeStat(
+  reporter: StatsReporter,
+  stat: string
+) {
+  reporter.statsToReport_[stat] = true;
 }

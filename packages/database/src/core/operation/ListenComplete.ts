@@ -16,6 +16,7 @@
  */
 
 import { newEmptyPath, Path, pathIsEmpty, pathPopFront } from '../util/Path';
+
 import { Operation, OperationSource, OperationType } from './Operation';
 
 export class ListenComplete implements Operation {

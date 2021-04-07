@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Document, NoDocument } from '../../src/model/document';
 import * as api from '../../src/protos/firestore_proto_api';
 import { mapRpcCodeFromCode } from '../../src/remote/rpc_error';
 import {
@@ -51,20 +50,20 @@ export function encodeWatchChange(
     };
   }
   if (watchChange instanceof DocumentWatchChange) {
-    if (watchChange.newDoc instanceof Document) {
+    if (watchChange.newDoc?.isFoundDocument()) {
       const doc = watchChange.newDoc;
       return {
         documentChange: {
           document: {
             name: toName(serializer, doc.key),
-            fields: doc.toProto().mapValue.fields,
+            fields: doc?.data?.toProto().mapValue.fields,
             updateTime: toVersion(serializer, doc.version)
           },
           targetIds: watchChange.updatedTargetIds,
           removedTargetIds: watchChange.removedTargetIds
         }
       };
-    } else if (watchChange.newDoc instanceof NoDocument) {
+    } else if (watchChange.newDoc?.isNoDocument()) {
       const doc = watchChange.newDoc;
       return {
         documentDelete: {

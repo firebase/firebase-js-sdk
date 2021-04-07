@@ -16,9 +16,9 @@ export declare function setUserProperties(analyticsInstance: Analytics, properti
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
-|  properties | [CustomParams](./analytics-types.customparams.md) |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
+|  properties | [CustomParams](./analytics.customparams.md) |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

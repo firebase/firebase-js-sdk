@@ -14,6 +14,7 @@ export type PhoneInfoOptions =
   | PhoneMultiFactorEnrollInfoOptions
   | PhoneMultiFactorSignInInfoOptions;
 ```
+<b>References:</b> [PhoneSingleFactorInfoOptions](./auth-types.phonesinglefactorinfooptions.md)<!-- -->, [PhoneMultiFactorEnrollInfoOptions](./auth-types.phonemultifactorenrollinfooptions.md)<!-- -->, [PhoneMultiFactorSignInInfoOptions](./auth-types.phonemultifactorsignininfooptions.md)
 
 ## Remarks
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ fireauth.CacheRequest = function() {
   /** @private {?goog.Promise} The cached returned promise result. */
   this.cachedResult_ = null;
   /** @private {number} The expiration timestamp of the cached result. */
-  this.expirationTime_ = goog.now();
+  this.expirationTime_ = Date.now();
   /** @private {number} The time to live from the caching point in time. */
   this.ttl_ = 0;
   /** @private {boolean} Whether to cache errors too. */
@@ -62,7 +62,7 @@ fireauth.CacheRequest.prototype.cache =
   this.func_ = func;
   this.self_ = self;
   this.arguments_ = args;
-  this.expirationTime_ = goog.now();
+  this.expirationTime_ = Date.now();
   this.ttl_ = ttl;
   this.cacheErrors_ = !!opt_cacheErrors;
 
@@ -79,9 +79,9 @@ fireauth.CacheRequest.prototype.run = function() {
     throw new Error('No available configuration cached!');
   }
   // If the result is not cached or the cache result is outdated.
-  if (!this.cachedResult_ || goog.now() >= this.expirationTime_) {
+  if (!this.cachedResult_ || Date.now() >= this.expirationTime_) {
     // Set expiration of current request.
-    this.expirationTime_ = goog.now() + this.ttl_;
+    this.expirationTime_ = Date.now() + this.ttl_;
     // Get new result and cache it.
     this.cachedResult_ =
         this.func_.apply(this.self_, this.arguments_).then(function(result) {
@@ -93,7 +93,7 @@ fireauth.CacheRequest.prototype.run = function() {
           if (!self.cacheErrors_) {
             // Do not cache errors if errors are not to be cached.
             // This will bust the cached result. Otherwise the error is cached.
-            self.expirationTime_ = goog.now();
+            self.expirationTime_ = Date.now();
           }
           // Throw the returned error.
           throw error;
@@ -108,5 +108,5 @@ fireauth.CacheRequest.prototype.run = function() {
 fireauth.CacheRequest.prototype.purge = function() {
   // Purge the cached results.
   this.cachedResult_ = null;
-  this.expirationTime_ = goog.now();
+  this.expirationTime_ = Date.now();
 };

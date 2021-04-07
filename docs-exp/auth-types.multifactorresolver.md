@@ -2,14 +2,14 @@
 
 [Home](./index.md) &gt; [@firebase/auth-types](./auth-types.md) &gt; [MultiFactorResolver](./auth-types.multifactorresolver.md)
 
-## MultiFactorResolver class
+## MultiFactorResolver interface
 
 The class used to facilitate recovery from [MultiFactorError](./auth-types.multifactorerror.md) when a user needs to provide a second factor to sign in.
 
 <b>Signature:</b>
 
 ```typescript
-export abstract class MultiFactorResolver 
+export interface MultiFactorResolver 
 ```
 
 ## Example
@@ -57,14 +57,14 @@ const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [hints](./auth-types.multifactorresolver.hints.md) |  | [MultiFactorInfo](./auth-types.multifactorinfo.md)<!-- -->\[\] | The list of hints for the second factors needed to complete the sign-in for the current session. |
-|  [session](./auth-types.multifactorresolver.session.md) |  | [MultiFactorSession](./auth-types.multifactorsession.md) | The session identifier for the current sign-in flow, which can be used to complete the second factor sign-in. |
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [hints](./auth-types.multifactorresolver.hints.md) | [MultiFactorInfo](./auth-types.multifactorinfo.md)<!-- -->\[\] | The list of hints for the second factors needed to complete the sign-in for the current session. |
+|  [session](./auth-types.multifactorresolver.session.md) | [MultiFactorSession](./auth-types.multifactorsession.md) | The session identifier for the current sign-in flow, which can be used to complete the second factor sign-in. |
 
 ## Methods
 
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [resolveSignIn(assertion)](./auth-types.multifactorresolver.resolvesignin.md) |  | A helper function to help users complete sign in with a second factor using an [MultiFactorAssertion](./auth-types.multifactorassertion.md) confirming the user successfully completed the second factor challenge. |
+|  Method | Description |
+|  --- | --- |
+|  [resolveSignIn(assertion)](./auth-types.multifactorresolver.resolvesignin.md) | A helper function to help users complete sign in with a second factor using an [MultiFactorAssertion](./auth-types.multifactorassertion.md) confirming the user successfully completed the second factor challenge. |
 

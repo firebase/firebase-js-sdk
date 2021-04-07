@@ -4,6 +4,7 @@
 
 ## FirebasePerformance interface
 
+
 <b>Signature:</b>
 
 ```typescript

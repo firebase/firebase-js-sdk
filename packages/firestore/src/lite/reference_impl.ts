@@ -19,19 +19,9 @@ import {
   DocumentData as PublicDocumentData,
   SetOptions as PublicSetOptions
 } from '@firebase/firestore-types';
+import { getModularInstance } from '@firebase/util';
 
-import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  ParsedUpdateData,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs,
-  UntypedFirestoreDataConverter
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
 import { hasLimitToLast } from '../core/query';
-import { Document } from '../model/document';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
   invokeBatchGetDocumentsRpc,
@@ -60,6 +50,15 @@ import {
   QueryDocumentSnapshot,
   QuerySnapshot
 } from './snapshot';
+import {
+  newUserDataReader,
+  ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
+  UntypedFirestoreDataConverter
+} from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * Converts custom model object of type T into DocumentData by applying the
@@ -129,12 +128,12 @@ export function getDoc<T>(
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
       hardAssert(result.length === 1, 'Expected a single document result');
-      const maybeDocument = result[0];
+      const document = result[0];
       return new DocumentSnapshot<T>(
         reference.firestore,
         userDataWriter,
         reference._key,
-        maybeDocument instanceof Document ? maybeDocument : null,
+        document.isFoundDocument() ? document : null,
         reference._converter
       );
     }
@@ -306,9 +305,7 @@ export function updateDoc(
 
   // For Compat types, we have to "extract" the underlying types before
   // performing validation.
-  if (fieldOrUpdateData instanceof Compat) {
-    fieldOrUpdateData = fieldOrUpdateData._delegate;
-  }
+  fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
   let parsed: ParsedUpdateData;
   if (

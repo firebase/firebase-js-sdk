@@ -24,15 +24,16 @@ import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { Persistence } from '../persistence';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { PersistenceInternal } from '../persistence';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
+import { ClientPlatform } from '../util/version';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -47,8 +48,8 @@ const FAKE_APP: FirebaseApp = {
 };
 
 describe('core/auth/auth_impl', () => {
-  let auth: Auth;
-  let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
+  let auth: AuthInternal;
+  let persistenceStub: sinon.SinonStubbedInstance<PersistenceInternal>;
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
@@ -57,6 +58,7 @@ describe('core/auth/auth_impl', () => {
       apiHost: DefaultConfig.API_HOST,
       apiScheme: DefaultConfig.API_SCHEME,
       tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+      clientPlatform: ClientPlatform.BROWSER,
       sdkClientVersion: 'v'
     });
 
@@ -85,11 +87,11 @@ describe('core/auth/auth_impl', () => {
 
     it('public version throws if the auth is mismatched', async () => {
       const auth2 = await testAuth();
-      Object.assign(auth2, { name: 'not-the-right-auth' });
+      Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
       const user = testUser(auth2, 'uid');
       await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
         FirebaseError,
-        'auth/argument-error'
+        'auth/invalid-user-token'
       );
     });
 
@@ -203,7 +205,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     describe('user logs in/out, tokens refresh', () => {
-      let user: User;
+      let user: UserInternal;
       let authStateCallback: sinon.SinonSpy;
       let idTokenCallback: sinon.SinonSpy;
 
@@ -326,7 +328,7 @@ describe('core/auth/auth_impl', () => {
       });
 
       context('now logged in', () => {
-        let user: User;
+        let user: UserInternal;
 
         beforeEach(() => {
           user = testUser(auth, 'uid');
@@ -344,7 +346,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     context('previously logged in', () => {
-      let user: User;
+      let user: UserInternal;
 
       beforeEach(async () => {
         user = testUser(auth, 'uid', undefined, true);
@@ -400,9 +402,9 @@ describe('core/auth/auth_impl', () => {
           await auth._onStorageEvent();
 
           expect(auth.currentUser?.uid).to.eq(user.uid);
-          expect((auth.currentUser as User)?.stsTokenManager.accessToken).to.eq(
-            'new-access-token'
-          );
+          expect(
+            (auth.currentUser as UserInternal)?.stsTokenManager.accessToken
+          ).to.eq('new-access-token');
           expect(authStateCallback).not.to.have.been.called;
           expect(idTokenCallback).to.have.been.called;
         });
@@ -434,6 +436,7 @@ describe('core/auth/auth_impl', () => {
         apiHost: DefaultConfig.API_HOST,
         apiScheme: DefaultConfig.API_SCHEME,
         tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+        clientPlatform: ClientPlatform.BROWSER,
         sdkClientVersion: 'v'
       });
 
@@ -442,7 +445,7 @@ describe('core/auth/auth_impl', () => {
       );
       await authImpl._delete();
       await authImpl._initializeWithPersistence([
-        persistenceStub as Persistence
+        persistenceStub as PersistenceInternal
       ]);
       expect(authImpl.currentUser).to.be.null;
     });

@@ -18,7 +18,7 @@ export declare function useFunctionsEmulator(functionsInstance: Functions, host:
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  functionsInstance | [Functions](./functions-types.functions.md) |  |
+|  functionsInstance | [Functions](./functions.functions.md) |  |
 |  host | string | The emulator host (ex: localhost) |
 |  port | number | The emulator port (ex: 5001) |
 

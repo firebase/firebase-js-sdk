@@ -16,7 +16,7 @@ export declare function setAnalyticsCollectionEnabled(analyticsInstance: Analyti
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) | Firebase Analytics instance. |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) | Firebase Analytics instance. |
 |  enabled | boolean | If true, enables collection, if false, disables it. |
 
 <b>Returns:</b>

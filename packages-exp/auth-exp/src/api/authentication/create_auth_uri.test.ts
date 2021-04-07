@@ -49,9 +49,10 @@ describe('api/authentication/createAuthUri', () => {
       signinMethods: ['email']
     });
 
+    auth.tenantId = 'tenant-id';
     const response = await createAuthUri(auth, request);
     expect(response.signinMethods).to.include('email');
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'

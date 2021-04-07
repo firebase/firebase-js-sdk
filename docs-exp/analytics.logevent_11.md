@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'search' | 'view_search_results', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'search' | 'view_search_results', eventParams?: {
     search_term?: EventParams['search_term'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
@@ -21,10 +21,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'searc
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'search' \| 'view\_search\_results' |  |
-|  eventParams | { search\_term?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['search\_term'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { search\_term?: [EventParams](./analytics.eventparams.md)<!-- -->\['search\_term'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

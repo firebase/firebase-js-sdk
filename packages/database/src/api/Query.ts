@@ -23,17 +23,24 @@ import {
   validateCallback,
   validateContextObject
 } from '@firebase/util';
+
+import {
+  Repo,
+  repoAddEventCallbackForQuery,
+  repoGetValue,
+  repoRemoveEventCallbackForQuery
+} from '../core/Repo';
 import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
+import { PathIndex } from '../core/snap/indexes/PathIndex';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
-import { PathIndex } from '../core/snap/indexes/PathIndex';
-import { MAX_NAME, MIN_NAME, ObjectToUniqueKey } from '../core/util/util';
 import {
   Path,
   pathEquals,
   pathIsEmpty,
   pathToUrlEncodedString
 } from '../core/util/Path';
+import { MAX_NAME, MIN_NAME, ObjectToUniqueKey } from '../core/util/util';
 import {
   isValidPriority,
   validateEventType,
@@ -41,29 +48,28 @@ import {
   validateKey,
   validatePathString
 } from '../core/util/validation';
-
 import {
   ChildEventRegistration,
   EventRegistration,
   ValueEventRegistration
 } from '../core/view/EventRegistration';
-
-import { Repo } from '../core/Repo';
 import {
   QueryParams,
-  queryParamsLimitToFirst,
-  queryParamsLimitToLast,
-  queryParamsStartAfter,
-  queryParamsStartAt,
   queryParamsEndAt,
   queryParamsEndBefore,
   queryParamsGetQueryObject,
-  queryParamsOrderBy
+  queryParamsLimitToFirst,
+  queryParamsLimitToLast,
+  queryParamsOrderBy,
+  queryParamsStartAfter,
+  queryParamsStartAt
 } from '../core/view/QueryParams';
-import { Reference } from './Reference';
-import { DataSnapshot } from './DataSnapshot';
 
-let __referenceConstructor: new (repo: Repo, path: Path) => Query;
+import { Database } from './Database';
+import { DataSnapshot } from './DataSnapshot';
+import { Reference } from './Reference';
+
+let __referenceConstructor: new (database: Database, path: Path) => Query;
 
 export interface SnapshotCallback {
   (a: DataSnapshot, b?: string | null): unknown;
@@ -85,12 +91,16 @@ export class Query {
     return __referenceConstructor;
   }
 
+  readonly repo: Repo;
+
   constructor(
-    public repo: Repo,
+    public database: Database,
     public path: Path,
     private queryParams_: QueryParams,
     private orderByCalled_: boolean
-  ) {}
+  ) {
+    this.repo = database.repo_;
+  }
 
   /**
    * Validates start/end values for queries.
@@ -192,7 +202,10 @@ export class Query {
     // This is a slight hack. We cannot goog.require('fb.api.Firebase'), since Firebase requires fb.api.Query.
     // However, we will always export 'Firebase' to the global namespace, so it's guaranteed to exist by the time this
     // method gets called.
-    return new Query.__referenceConstructor(this.repo, this.path) as Reference;
+    return new Query.__referenceConstructor(
+      this.database,
+      this.path
+    ) as Reference;
   }
 
   on(
@@ -231,7 +244,7 @@ export class Query {
       cancelCallback || null,
       context || null
     );
-    this.repo.addEventCallbackForQuery(this, container);
+    repoAddEventCallbackForQuery(this.repo, this, container);
   }
 
   onChildEvent(
@@ -244,7 +257,7 @@ export class Query {
       cancelCallback,
       context
     );
-    this.repo.addEventCallbackForQuery(this, container);
+    repoAddEventCallbackForQuery(this.repo, this, container);
   }
 
   off(
@@ -273,14 +286,17 @@ export class Query {
       }
       container = new ChildEventRegistration(callbacks, null, context || null);
     }
-    this.repo.removeEventCallbackForQuery(this, container);
+    repoRemoveEventCallbackForQuery(this.repo, this, container);
   }
 
   /**
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return this.repo.getValue(this);
+    return repoGetValue(this.repo, this).then(
+      node =>
+        new DataSnapshot(node, this.getRef(), this.getQueryParams().getIndex())
+    );
   }
 
   /**
@@ -363,7 +379,7 @@ export class Query {
     }
 
     return new Query(
-      this.repo,
+      this.database,
       this.path,
       queryParamsLimitToFirst(this.queryParams_, limit),
       this.orderByCalled_
@@ -392,7 +408,7 @@ export class Query {
     }
 
     return new Query(
-      this.repo,
+      this.database,
       this.path,
       queryParamsLimitToLast(this.queryParams_, limit),
       this.orderByCalled_
@@ -429,7 +445,12 @@ export class Query {
     const newParams = queryParamsOrderBy(this.queryParams_, index);
     Query.validateQueryEndpoints_(newParams);
 
-    return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
+    return new Query(
+      this.database,
+      this.path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
   }
 
   /**
@@ -440,7 +461,12 @@ export class Query {
     this.validateNoPreviousOrderByCall_('Query.orderByKey');
     const newParams = queryParamsOrderBy(this.queryParams_, KEY_INDEX);
     Query.validateQueryEndpoints_(newParams);
-    return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
+    return new Query(
+      this.database,
+      this.path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
   }
 
   /**
@@ -451,7 +477,12 @@ export class Query {
     this.validateNoPreviousOrderByCall_('Query.orderByPriority');
     const newParams = queryParamsOrderBy(this.queryParams_, PRIORITY_INDEX);
     Query.validateQueryEndpoints_(newParams);
-    return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
+    return new Query(
+      this.database,
+      this.path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
   }
 
   /**
@@ -462,7 +493,12 @@ export class Query {
     this.validateNoPreviousOrderByCall_('Query.orderByValue');
     const newParams = queryParamsOrderBy(this.queryParams_, VALUE_INDEX);
     Query.validateQueryEndpoints_(newParams);
-    return new Query(this.repo, this.path, newParams, /*orderByCalled=*/ true);
+    return new Query(
+      this.database,
+      this.path,
+      newParams,
+      /*orderByCalled=*/ true
+    );
   }
 
   startAt(
@@ -489,7 +525,7 @@ export class Query {
       name = null;
     }
 
-    return new Query(this.repo, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, this.path, newParams, this.orderByCalled_);
   }
 
   startAfter(
@@ -510,7 +546,7 @@ export class Query {
       );
     }
 
-    return new Query(this.repo, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, this.path, newParams, this.orderByCalled_);
   }
 
   endAt(
@@ -531,7 +567,7 @@ export class Query {
       );
     }
 
-    return new Query(this.repo, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, this.path, newParams, this.orderByCalled_);
   }
 
   endBefore(
@@ -552,7 +588,7 @@ export class Query {
       );
     }
 
-    return new Query(this.repo, this.path, newParams, this.orderByCalled_);
+    return new Query(this.database, this.path, newParams, this.orderByCalled_);
   }
 
   /**

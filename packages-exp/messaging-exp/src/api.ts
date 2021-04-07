@@ -17,24 +17,30 @@
 
 import {
   FirebaseMessaging,
-  MessagePayload
-} from '@firebase/messaging-types-exp';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+  MessagePayload,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from './interfaces/public-types';
 
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
 import { deleteToken as _deleteToken } from './api/deleteToken';
-import { _getProvider, FirebaseApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Retrieves a firebase messaging instance.
  *
- * @return the firebase messaging instance associated with the provided firebase app.
+ * @returns the firebase messaging instance associated with the provided firebase app.
+ *
+ * @public
  */
-export function getMessaging(app: FirebaseApp): FirebaseMessaging {
+export function getMessaging(app: FirebaseApp = getApp()): FirebaseMessaging {
+  app = getModularInstance(app);
   const messagingProvider: Provider<'messaging-exp'> = _getProvider(
     app,
     'messaging-exp'
@@ -50,30 +56,32 @@ export function getMessaging(app: FirebaseApp): FirebaseMessaging {
  * If a notification permission isn't already granted, this method asks the user for permission.
  * The returned promise rejects if the user does not allow the app to show notifications.
  *
- * @param messaging: the messaging instance.
- * @param options.vapidKey The public server key provided to push services. It is used to
+ * @param messaging - the messaging instance.
+ * @param options.vapidKey - The public server key provided to push services. It is used to
  * authenticate the push subscribers to receive push messages only from sending servers that
  * hold the corresponding private key. If it is not provided, a default VAPID key is used. Note
  * that some push services (Chrome Push Service) require a non-default VAPID key. Therefore, it
  * is recommended to generate and import a VAPID key for your project with
- * {@link https://firebase.google.com/docs/cloud-messaging/js/client#configure_web_credentials_with_fcm Configure Web Credentials with FCM}.
+ * {@link https://firebase.google.com/docs/cloud-messaging/js/client#configure_web_credentials_with_fcm | Configure Web Credentials with FCM}.
  * See
- * {@link https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol The Web Push Protocol}
- * for details on web push services.}
+ * {@link https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol | The Web Push Protocol}
+ * for details on web push services.
  *
- * @param options.serviceWorkerRegistration The service worker registration for receiving push
+ * @param options.serviceWorkerRegistration - The service worker registration for receiving push
  * messaging. If the registration is not provided explicitly, you need to have a
  * `firebase-messaging-sw.js` at your root location. See
- * {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token Retrieve the current registration token}
+ * {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token | Retrieve the current registration token}
  * for more details.
  *
- * @return The promise resolves with an FCM registration token.
+ * @returns The promise resolves with an FCM registration token.
  *
+ * @public
  */
 export async function getToken(
   messaging: FirebaseMessaging,
   options?: { vapidKey?: string; swReg?: ServiceWorkerRegistration }
 ): Promise<string> {
+  messaging = getModularInstance(messaging);
   return _getToken(messaging as MessagingService, options);
 }
 
@@ -81,11 +89,14 @@ export async function getToken(
  * Deletes the registration token associated with this messaging instance and unsubscribes the
  * messaging instance from the push subscription.
  *
- * @param messaging: the messaging instance.
+ * @param messaging - the messaging instance.
  *
- * @return The promise resolves when the token has been successfully deleted.
+ * @returns The promise resolves when the token has been successfully deleted.
+ *
+ * @public
  */
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean> {
+  messaging = getModularInstance(messaging);
   return _deleteToken(messaging as MessagingService);
 }
 
@@ -95,16 +106,18 @@ export function deleteToken(messaging: FirebaseMessaging): Promise<boolean> {
  * the push message.
  *
  *
- * @param messaging: the messaging instance.
- * @param
- *     nextOrObserver This function, or observer object with `next` defined,
+ * @param messaging - the messaging instance.
+ * @param nextOrObserver - This function, or observer object with `next` defined,
  *     is called when a message is received and the user is currently viewing your page.
- * @return To stop listening for messages execute this returned function.
+ * @returns To stop listening for messages execute this returned function.
+ *
+ * @public
  */
 export function onMessage(
   messaging: FirebaseMessaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
+  messaging = getModularInstance(messaging);
   return _onMessage(messaging as MessagingService, nextOrObserver);
 }
 
@@ -112,18 +125,19 @@ export function onMessage(
  * Called when a message is received while the app is in the background. An app is considered to
  * be in the background if no active window is displayed.
  *
- * @param messaging: the messaging instance.
- * @param
- *     nextOrObserver This function, or observer object with `next` defined,
+ * @param messaging - the messaging instance.
+ * @param nextOrObserver - This function, or observer object with `next` defined,
  *     is called when a message is received and the app is currently in the background.
  *
- * @return To stop listening for messages execute this returned function
+ * @returns To stop listening for messages execute this returned function
+ *
+ * make it internal to hide it from the browser entrypoint
+ * @internal
  */
 export function onBackgroundMessage(
   messaging: FirebaseMessaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
+  messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
 }
-
-export { FirebaseMessaging, MessagePayload };

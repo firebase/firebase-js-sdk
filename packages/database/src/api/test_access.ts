@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { RepoInfo } from '../core/RepoInfo';
 import { PersistentConnection } from '../core/PersistentConnection';
-import { RepoManager } from '../core/RepoManager';
+import { RepoInfo } from '../core/RepoInfo';
 import { Connection } from '../realtime/Connection';
+
+import { repoManagerForceRestClient } from './Database';
 import { Query } from './Query';
 
 export const DataConnection = PersistentConnection;
@@ -70,5 +71,5 @@ export const queryIdentifier = function (query: Query) {
  * Forces the RepoManager to create Repos that use ReadonlyRestClient instead of PersistentConnection.
  */
 export const forceRestClient = function (forceRestClient: boolean) {
-  RepoManager.getInstance().forceRestClient(forceRestClient);
+  repoManagerForceRestClient(forceRestClient);
 };

@@ -9,19 +9,19 @@ Updates the metadata for this object.
 <b>Signature:</b>
 
 ```typescript
-export declare function updateMetadata(ref: StorageReference, metadata: Partial<Metadata>): Promise<Metadata>;
+export declare function updateMetadata(ref: StorageReference, metadata: SettableMetadata): Promise<FullMetadata>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) | StorageReference to update metadata for. |
-|  metadata | Partial&lt;[Metadata](./storage-types.metadata.md)<!-- -->&gt; | The new metadata for the object. Only values that have been explicitly set will be changed. Explicitly setting a value to null will remove the metadata. |
+|  ref | [StorageReference](./storage.storagereference.md) | StorageReference to update metadata for. |
+|  metadata | [SettableMetadata](./storage.settablemetadata.md) | The new metadata for the object. Only values that have been explicitly set will be changed. Explicitly setting a value to null will remove the metadata. |
 
 <b>Returns:</b>
 
-Promise&lt;[Metadata](./storage-types.metadata.md)<!-- -->&gt;
+Promise&lt;[FullMetadata](./storage.fullmetadata.md)<!-- -->&gt;
 
-A promise that resolves with the new metadata for this object. See `firebaseStorage.Reference.prototype.getMetadata`
+A promise that resolves with the new metadata for this object.
 
