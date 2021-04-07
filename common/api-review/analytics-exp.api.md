@@ -108,7 +108,7 @@ export interface EventParams {
 }
 
 // @public
-export function getAnalytics(app: FirebaseApp): Analytics;
+export function getAnalytics(app?: FirebaseApp): Analytics;
 
 // @public
 export function isSupported(): Promise<boolean>;

@@ -253,7 +253,7 @@ export function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<s
 export function getAdditionalUserInfo(userCredential: UserCredential): AdditionalUserInfo | null;
 
 // @public
-export function getAuth(app: FirebaseApp): Auth;
+export function getAuth(app?: FirebaseApp): Auth;
 
 // @public
 export function getIdToken(user: User, forceRefresh?: boolean): Promise<string>;
@@ -415,7 +415,7 @@ export const enum OperationType {
     SIGN_IN = "signIn"
 }
 
-// @public (undocumented)
+// @public
 export function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 // @public
@@ -438,9 +438,6 @@ export interface Persistence {
 
 // @public
 export class PhoneAuthCredential extends AuthCredential {
-    // Warning: (ae-unresolved-inheritdoc-reference) The @inheritDoc reference could not be resolved: No member was found with name "fromJSON"
-    //
-    // (undocumented)
     static fromJSON(json: object | string): PhoneAuthCredential | null;
     // @internal (undocumented)
     static _fromTokenResponse(phoneNumber: string, temporaryProof: string): PhoneAuthCredential;
@@ -590,7 +587,7 @@ export function sendEmailVerification(user: User, actionCodeSettings?: ActionCod
 export function sendPasswordResetEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
 
 // @public
-export function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
+export function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings: ActionCodeSettings): Promise<void>;
 
 // @public
 export function setPersistence(auth: Auth, persistence: Persistence): Promise<void>;

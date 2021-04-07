@@ -9,7 +9,7 @@ Sends a sign-in email link to the user with the specified email.
 <b>Signature:</b>
 
 ```typescript
-export declare function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
+export declare function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings: ActionCodeSettings): Promise<void>;
 ```
 
 ## Parameters

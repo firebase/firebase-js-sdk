@@ -54,6 +54,6 @@ if (post !== undefined) {
 |  Method | Description |
 |  --- | --- |
 |  [fromFirestore(snapshot)](./firestore_lite.firestoredataconverter.fromfirestore.md) | Called by the Firestore SDK to convert Firestore data into an object of type T. You can access your data by calling: <code>snapshot.data()</code>. |
-|  [toFirestore(modelObject)](./firestore_lite.firestoredataconverter.tofirestore.md) | Called by the Firestore SDK to convert a custom model object of type <code>T</code> into a plain Javascript object (suitable for writing directly to the Firestore database). Used with ,  and . |
-|  [toFirestore(modelObject, options)](./firestore_lite.firestoredataconverter.tofirestore_1.md) | Called by the Firestore SDK to convert a custom model object of type <code>T</code> into a plain Javascript object (suitable for writing directly to the Firestore database). Used with ,  and  with <code>merge:true</code> or <code>mergeFields</code>. |
+|  [toFirestore(modelObject)](./firestore_lite.firestoredataconverter.tofirestore.md) | Called by the Firestore SDK to convert a custom model object of type <code>T</code> into a plain Javascript object (suitable for writing directly to the Firestore database). Used with [setDoc()](./firestore_lite.setdoc.md)<!-- -->,  and . |
+|  [toFirestore(modelObject, options)](./firestore_lite.firestoredataconverter.tofirestore_1.md) | Called by the Firestore SDK to convert a custom model object of type <code>T</code> into a plain Javascript object (suitable for writing directly to the Firestore database). Used with [setDoc()](./firestore_lite.setdoc.md)<!-- -->,  and  with <code>merge:true</code> or <code>mergeFields</code>. |
 

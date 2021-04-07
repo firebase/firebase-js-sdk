@@ -4,7 +4,7 @@
 
 ## deleteField() function
 
-Returns a sentinel for use with  or  with `{merge: true}` to mark a field for deletion.
+Returns a sentinel for use with [updateDoc()](./firestore_lite.updatedoc.md) or [setDoc()](./firestore_lite.setdoc.md) with `{merge: true}` to mark a field for deletion.
 
 <b>Signature:</b>
 

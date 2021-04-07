@@ -17,9 +17,11 @@ export declare function loadBundle(firestore: FirebaseFirestore, bundleData: Rea
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  firestore | [FirebaseFirestore](./firestore_.firebasefirestore.md) | The <code>Firestore</code> instance to load bundles for for. |
-|  bundleData | ReadableStream&lt;Uint8Array&gt; \| ArrayBuffer \| string | An object representing the bundle to be loaded. Valid objects are <code>ArrayBuffer</code>, <code>ReadableStream&lt;Uint8Array&gt;</code> or <code>string</code>. A <code>LoadBundleTask</code> object, which notifies callers with progress updates, and completion or error events. It can be used as a <code>Promise&lt;LoadBundleTaskProgress&gt;</code>. |
+|  bundleData | ReadableStream&lt;Uint8Array&gt; \| ArrayBuffer \| string | An object representing the bundle to be loaded. Valid objects are <code>ArrayBuffer</code>, <code>ReadableStream&lt;Uint8Array&gt;</code> or <code>string</code>. |
 
 <b>Returns:</b>
 
 [LoadBundleTask](./firestore_.loadbundletask.md)
+
+A `LoadBundleTask` object, which notifies callers with progress updates, and completion or error events. It can be used as a `Promise<LoadBundleTaskProgress>`<!-- -->.
 

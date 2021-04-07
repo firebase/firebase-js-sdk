@@ -26,6 +26,6 @@ export declare class DocumentReference<T = DocumentData>
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [withConverter(converter)](./firestore_.documentreference.withconverter.md) |  | Applies a custom data converter to this <code>DocumentReference</code>, allowing you to use your own custom model objects with Firestore. When you call , [getDoc()](./firestore_.getdoc.md)<!-- -->, etc. with the returned <code>DocumentReference</code> instance, the provided converter will convert between Firestore data and your custom type <code>U</code>.<!-- -->Passing in <code>null</code> as the converter parameter removes the current converter. |
+|  [withConverter(converter)](./firestore_.documentreference.withconverter.md) |  | Applies a custom data converter to this <code>DocumentReference</code>, allowing you to use your own custom model objects with Firestore. When you call [setDoc()](./firestore_lite.setdoc.md)<!-- -->, [getDoc()](./firestore_lite.getdoc.md)<!-- -->, etc. with the returned <code>DocumentReference</code> instance, the provided converter will convert between Firestore data and your custom type <code>U</code>.<!-- -->Passing in <code>null</code> as the converter parameter removes the current converter. |
 |  [withConverter(converter)](./firestore_.documentreference.withconverter_1.md) |  |  |
 

@@ -4,7 +4,7 @@
 
 ## DocumentData interface
 
-Document data (for use with ) consists of fields mapped to values.
+Document data (for use with [setDoc()](./firestore_lite.setdoc.md)<!-- -->) consists of fields mapped to values.
 
 <b>Signature:</b>
 

@@ -9,7 +9,7 @@ Returns a Firebase Analytics instance for the given app.
 <b>Signature:</b>
 
 ```typescript
-export declare function getAnalytics(app: FirebaseApp): Analytics;
+export declare function getAnalytics(app?: FirebaseApp): Analytics;
 ```
 
 ## Parameters

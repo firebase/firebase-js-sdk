@@ -9,7 +9,7 @@ Returns an instance of FirebaseInstallations associated with the given FirebaseA
 <b>Signature:</b>
 
 ```typescript
-export declare function getInstallations(app: FirebaseApp): FirebaseInstallations;
+export declare function getInstallations(app?: FirebaseApp): FirebaseInstallations;
 ```
 
 ## Parameters

@@ -31,7 +31,7 @@ export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean;
 export function getNumber(remoteConfig: RemoteConfig, key: string): number;
 
 // @public (undocumented)
-export function getRemoteConfig(app: FirebaseApp): RemoteConfig;
+export function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
 
 // @public
 export function getString(remoteConfig: RemoteConfig, key: string): string;
