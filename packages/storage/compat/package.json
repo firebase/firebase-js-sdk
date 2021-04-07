@@ -3,7 +3,7 @@
     "version": "0.0.900",
     "description": "The Cloud Storage component of the Firebase JS SDK.",
     "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-    "main": "../dist/compat/node-cjs/index.js",
+    "main": "../dist/compat/cjs/index.js",
     "browser": "../dist/compat/esm5/index.js",
     "module": "../dist/compat/esm5/index.js",
     "esm2017": "../dist/compat/esm2017/index.js",

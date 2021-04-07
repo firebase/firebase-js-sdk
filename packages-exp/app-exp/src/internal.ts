@@ -39,7 +39,10 @@ export const _components = new Map<string, Component<any>>();
  *
  * @internal
  */
-export function _addComponent(app: FirebaseApp, component: Component): void {
+export function _addComponent<T extends Name>(
+  app: FirebaseApp,
+  component: Component<T>
+): void {
   try {
     (app as FirebaseAppImpl).container.addComponent(component);
   } catch (e) {
@@ -68,7 +71,9 @@ export function _addOrOverwriteComponent(
  *
  * @internal
  */
-export function _registerComponent(component: Component): boolean {
+export function _registerComponent<T extends Name>(
+  component: Component<T>
+): boolean {
   const componentName = component.name;
   if (_components.has(componentName)) {
     logger.debug(

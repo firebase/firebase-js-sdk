@@ -148,7 +148,7 @@ export class FirebaseAppImpl implements FirebaseApp {
   /**
    * @param component the component being added to this app's container
    */
-  _addComponent(component: Component): void {
+  _addComponent<T extends Name>(component: Component<T>): void {
     try {
       this.container.addComponent(component);
     } catch (e) {

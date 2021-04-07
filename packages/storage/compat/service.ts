@@ -18,9 +18,13 @@
 import * as types from '@firebase/storage-types';
 import { FirebaseApp } from '@firebase/app-types';
 
-import { StorageService, ref, _Location } from '../exp/api'; // import from the exp public API
+import { ref, _Location } from '../exp/api'; // import from the exp public API
 import { ReferenceCompat } from './reference';
-import { isUrl } from '../src/service';
+import {
+  isUrl,
+  StorageService,
+  useStorageEmulator as internalUseEmulator
+} from '../src/service';
 import { invalidArgument } from '../src/implementation/error';
 import { Compat } from '@firebase/util';
 
@@ -73,7 +77,7 @@ export class StorageServiceCompat
       );
     }
     try {
-      _Location.makeFromUrl(url);
+      _Location.makeFromUrl(url, this._delegate.host);
     } catch (e) {
       throw invalidArgument(
         'refFromUrl() expected a valid full URL but got an invalid one.'
@@ -88,5 +92,9 @@ export class StorageServiceCompat
 
   setMaxOperationRetryTime(time: number): void {
     this._delegate.maxOperationRetryTime = time;
+  }
+
+  useEmulator(host: string, port: number): void {
+    internalUseEmulator(this._delegate, host, port);
   }
 }

@@ -244,7 +244,7 @@ describe('core/user/user_impl', () => {
   });
 
   describe('_clone', () => {
-    it('copies the user to a new object', () => {
+    it('copies the user to a new object', async () => {
       const stsTokenManager = Object.assign(new StsTokenManager(), {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
@@ -263,10 +263,12 @@ describe('core/user/user_impl', () => {
         isAnonymous: true
       });
 
-      const copy = user._clone();
+      const newAuth = await testAuth();
+      const copy = user._clone(newAuth);
       expect(copy).not.to.eq(user);
       expect(copy.stsTokenManager).not.to.eq(user.stsTokenManager);
       expect(copy.toJSON()).to.eql(user.toJSON());
+      expect(copy.auth).to.eq(newAuth);
     });
   });
 });

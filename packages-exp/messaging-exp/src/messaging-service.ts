@@ -16,11 +16,10 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
-import { NextFn, Observer } from '@firebase/util';
 
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
-import { MessagePayload } from './interfaces/public-types';
+import { MessagePayload, NextFn, Observer } from './interfaces/public-types';
 import { Provider } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { extractAppConfig } from './helpers/extract-app-config';

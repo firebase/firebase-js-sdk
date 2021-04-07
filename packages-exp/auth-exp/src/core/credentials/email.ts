@@ -42,10 +42,13 @@ import { AuthCredential } from './auth_credential';
 export class EmailAuthCredential extends AuthCredential {
   /** @internal */
   private constructor(
-    readonly email: string,
-    readonly password: string,
+    /** @internal */
+    readonly _email: string,
+    /** @internal */
+    readonly _password: string,
     signInMethod: SignInMethod,
-    readonly tenantId: string | null = null
+    /** @internal */
+    readonly _tenantId: string | null = null
   ) {
     super(ProviderId.PASSWORD, signInMethod);
   }
@@ -79,10 +82,10 @@ export class EmailAuthCredential extends AuthCredential {
   /** {@inheritdoc AuthCredential.toJSON} */
   toJSON(): object {
     return {
-      email: this.email,
-      password: this.password,
+      email: this._email,
+      password: this._password,
       signInMethod: this.signInMethod,
-      tenantId: this.tenantId
+      tenantId: this._tenantId
     };
   }
 
@@ -112,13 +115,13 @@ export class EmailAuthCredential extends AuthCredential {
       case SignInMethod.EMAIL_PASSWORD:
         return signInWithPassword(auth, {
           returnSecureToken: true,
-          email: this.email,
-          password: this.password
+          email: this._email,
+          password: this._password
         });
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLink(auth, {
-          email: this.email,
-          oobCode: this.password
+          email: this._email,
+          oobCode: this._password
         });
       default:
         _fail(auth, AuthErrorCode.INTERNAL_ERROR);
@@ -135,14 +138,14 @@ export class EmailAuthCredential extends AuthCredential {
         return updateEmailPassword(auth, {
           idToken,
           returnSecureToken: true,
-          email: this.email,
-          password: this.password
+          email: this._email,
+          password: this._password
         });
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLinkForLinking(auth, {
           idToken,
-          email: this.email,
-          oobCode: this.password
+          email: this._email,
+          oobCode: this._password
         });
       default:
         _fail(auth, AuthErrorCode.INTERNAL_ERROR);

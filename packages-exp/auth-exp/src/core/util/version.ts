@@ -44,7 +44,10 @@ const enum ClientFramework {
  *
  * TODO: This should be set on the Auth object during initialization
  */
-export function _getClientVersion(clientPlatform: ClientPlatform): string {
+export function _getClientVersion(
+  clientPlatform: ClientPlatform,
+  frameworks: readonly string[] = []
+): string {
   let reportedPlatform: string;
   switch (clientPlatform) {
     case ClientPlatform.BROWSER:
@@ -60,5 +63,8 @@ export function _getClientVersion(clientPlatform: ClientPlatform): string {
     default:
       reportedPlatform = clientPlatform;
   }
-  return `${reportedPlatform}/${ClientImplementation.CORE}/${SDK_VERSION}/${ClientFramework.DEFAULT}`;
+  const reportedFrameworks = frameworks.length
+    ? frameworks.join(',')
+    : ClientFramework.DEFAULT;
+  return `${reportedPlatform}/${ClientImplementation.CORE}/${SDK_VERSION}/${reportedFrameworks}`;
 }

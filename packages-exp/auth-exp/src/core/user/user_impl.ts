@@ -135,9 +135,10 @@ export class UserImpl implements UserInternal {
     this.stsTokenManager._assign(user.stsTokenManager);
   }
 
-  _clone(): UserInternal {
+  _clone(auth: AuthInternal): UserInternal {
     return new UserImpl({
       ...this,
+      auth,
       stsTokenManager: this.stsTokenManager._clone()
     });
   }

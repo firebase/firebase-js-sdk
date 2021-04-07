@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'set_checkout_option', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'set_checkout_option', eventParams?: {
     checkout_step?: EventParams['checkout_step'];
     checkout_option?: EventParams['checkout_option'];
     [key: string]: any;

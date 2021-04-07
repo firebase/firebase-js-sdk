@@ -69,6 +69,36 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     await prepareFirestoreForRelease();
     await prepareStorageForRelease();
     await prepareDatabaseForRelease();
+
+    // path to exp packages
+    let packagePaths = await mapWorkspaceToPackages([
+      `${projectRoot}/packages-exp/*`
+    ]);
+
+    packagePaths.push(`${projectRoot}/packages/firestore`);
+    packagePaths.push(`${projectRoot}/packages/storage`);
+    packagePaths.push(`${projectRoot}/packages/database`);
+
+    packagePaths.push(`${projectRoot}/packages/firestore/compat`);
+    packagePaths.push(`${projectRoot}/packages/storage/compat`);
+
+    /**
+     * Bumps the patch version of firebase-exp package regardless if there is any update
+     * since the last release. This simplifies the script and works fine for exp packages.
+     *
+     * We do this before the build so the registerVersion will grab the correct
+     * versions from package.json for platform logging.
+     */
+    const versions = await getNewVersions(packagePaths);
+
+    await updatePackageJsons(packagePaths, versions, {
+      // Changing the package names here will break the build process.
+      // It will be done after the build.
+      removeExpInName: false,
+      updateVersions: true,
+      makePublic: true
+    });
+
     /**
      * build packages except for the umbrella package (firebase) which will be built after firestore/storage/database compat packages are created
      */
@@ -93,25 +123,15 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      */
     await buildFirebasePackage();
 
-    // path to exp packages
-    let packagePaths = await mapWorkspaceToPackages([
-      `${projectRoot}/packages-exp/*`
-    ]);
-
-    packagePaths.push(`${projectRoot}/packages/firestore`);
-    packagePaths.push(`${projectRoot}/packages/storage`);
-    packagePaths.push(`${projectRoot}/packages/database`);
-
     /**
-     * It does 2 things:
-     *
-     * 1. Bumps the patch version of firebase-exp package regardless if there is any update
-     * since the last release. This simplifies the script and works fine for exp packages.
-     *
-     * 2. Removes -exp in package names because we will publish them using
+     * Removes -exp in package names because we will publish them using
      * the existing package names under a special release tag (firebase@exp).
      */
-    const versions = await updatePackageNamesAndVersions(packagePaths);
+    await updatePackageJsons(packagePaths, versions, {
+      removeExpInName: true,
+      updateVersions: false,
+      makePublic: false
+    });
 
     let versionCheckMessage =
       '\r\nAre you sure these are the versions you want to publish?\r\n';
@@ -317,7 +337,7 @@ async function buildFirebasePackage() {
   });
 }
 
-async function updatePackageNamesAndVersions(packagePaths: string[]) {
+async function getNewVersions(packagePaths: string[]) {
   // get package name -> next version mapping
   const versions = new Map();
   for (const path of packagePaths) {
@@ -335,13 +355,6 @@ async function updatePackageNamesAndVersions(packagePaths: string[]) {
       versions.set(name, nextVersion);
     }
   }
-
-  await updatePackageJsons(packagePaths, versions, {
-    removeExpInName: true,
-    updateVersions: true,
-    makePublic: true
-  });
-
   return versions;
 }
 

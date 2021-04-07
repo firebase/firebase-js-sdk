@@ -16,7 +16,7 @@ export interface StorageObserver<T>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [complete](./storage.storageobserver.complete.md) | CompleteFn \| null |  |
-|  [error](./storage.storageobserver.error.md) | (error: [FirebaseStorageError](./storage.firebasestorageerror.md)<!-- -->) =&gt; void \| null |  |
-|  [next](./storage.storageobserver.next.md) | NextFn&lt;T&gt; \| null |  |
+|  [complete?](./storage.storageobserver.complete.md) | CompleteFn \| null | <i>(Optional)</i> |
+|  [error?](./storage.storageobserver.error.md) | (error: [FirebaseStorageError](./storage.firebasestorageerror.md)<!-- -->) =&gt; void \| null | <i>(Optional)</i> |
+|  [next?](./storage.storageobserver.next.md) | NextFn&lt;T&gt; \| null | <i>(Optional)</i> |
 

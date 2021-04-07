@@ -9,18 +9,18 @@ Applies a custom data converter to this query, allowing you to use your own cust
 <b>Signature:</b>
 
 ```typescript
-withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+withConverter(converter: null): Query<DocumentData>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md)<!-- -->&lt;U&gt; | Converts objects to and from Firestore. |
+|  converter | null | Converts objects to and from Firestore. |
 
 <b>Returns:</b>
 
-[Query](./firestore_.query.md)<!-- -->&lt;U&gt;
+[Query](./firestore_.query.md)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md)<!-- -->&gt;
 
 A `Query<U>` that uses the provided converter.
 

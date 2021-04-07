@@ -26,6 +26,7 @@ import { providerDataAsNames } from '../util/providers';
 import { _logoutIfInvalidated } from './invalidation';
 import { _reloadWithoutSaving } from './reload';
 import { UserCredentialImpl } from './user_credential_impl';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Unlinks a provider from a user account.
@@ -39,16 +40,16 @@ export async function unlink(
   user: User,
   providerId: ProviderId
 ): Promise<User> {
-  const userInternal = user as UserInternal;
+  const userInternal = getModularInstance(user) as UserInternal;
   await _assertLinkedStatus(true, userInternal, providerId);
   const { providerUserInfo } = await deleteLinkedAccounts(userInternal.auth, {
-    idToken: await user.getIdToken(),
+    idToken: await userInternal.getIdToken(),
     deleteProvider: [providerId]
   });
 
   const providersLeft = providerDataAsNames(providerUserInfo || []);
 
-  userInternal.providerData = user.providerData.filter(pd =>
+  userInternal.providerData = userInternal.providerData.filter(pd =>
     providersLeft.has(pd.providerId)
   );
   if (!providersLeft.has(ProviderId.PHONE)) {
@@ -56,7 +57,7 @@ export async function unlink(
   }
 
   await userInternal.auth._persistUserIfCurrent(userInternal);
-  return user;
+  return userInternal;
 }
 
 export async function _link(

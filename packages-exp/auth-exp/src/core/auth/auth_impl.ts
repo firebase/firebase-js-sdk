@@ -25,17 +25,18 @@ import {
   Persistence,
   PopupRedirectResolver,
   User,
-  UserCredential
-} from '../../model/public_types';
-import {
+  UserCredential,
   CompleteFn,
-  createSubscribe,
-  ErrorFactory,
   ErrorFn,
   NextFn,
-  Observer,
-  Subscribe,
   Unsubscribe
+} from '../../model/public_types';
+import {
+  createSubscribe,
+  ErrorFactory,
+  getModularInstance,
+  Observer,
+  Subscribe
 } from '@firebase/util';
 
 import { AuthInternal, ConfigInternal } from '../../model/auth';
@@ -56,6 +57,7 @@ import { _reloadWithoutSaving } from '../user/reload';
 import { _assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
+import { _getClientVersion } from '../util/version';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -106,6 +108,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     public readonly config: ConfigInternal
   ) {
     this.name = app.name;
+    this.clientVersion = config.sdkClientVersion;
   }
 
   _initializeWithPersistence(
@@ -297,15 +300,18 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
   async updateCurrentUser(userExtern: User | null): Promise<void> {
     // The public updateCurrentUser method needs to make a copy of the user,
-    // and also needs to verify that the app matches
-    const user = userExtern as UserInternal | null;
-    _assert(
-      !user || user.auth.name === this.name,
-      this,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
-
-    return this._updateCurrentUser(user && user._clone());
+    // and also check that the project matches
+    const user = userExtern
+      ? (getModularInstance(userExtern) as UserInternal)
+      : null;
+    if (user) {
+      _assert(
+        user.auth.config.apiKey === this.config.apiKey,
+        this,
+        AuthErrorCode.INVALID_AUTH
+      );
+    }
+    return this._updateCurrentUser(user && user._clone(this));
   }
 
   async _updateCurrentUser(user: User | null): Promise<void> {
@@ -552,15 +558,39 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     _assert(this.persistenceManager, this, AuthErrorCode.INTERNAL_ERROR);
     return this.persistenceManager;
   }
+
+  private frameworks: string[] = [];
+  private clientVersion: string;
+  _logFramework(framework: string): void {
+    if (this.frameworks.includes(framework)) {
+      return;
+    }
+    this.frameworks.push(framework);
+
+    // Sort alphabetically so that "FirebaseCore-web,FirebaseUI-web" and
+    // "FirebaseUI-web,FirebaseCore-web" aren't viewed as different.
+    this.frameworks.sort();
+    this.clientVersion = _getClientVersion(
+      this.config.clientPlatform,
+      this._getFrameworks()
+    );
+  }
+  _getFrameworks(): readonly string[] {
+    return this.frameworks;
+  }
+  _getSdkClientVersion(): string {
+    return this.clientVersion;
+  }
 }
 
 /**
- * Method to be used to cast down to our private implmentation of Auth
+ * Method to be used to cast down to our private implmentation of Auth.
+ * It will also handle unwrapping from the compat type if necessary
  *
  * @param auth Auth object passed in from developer
  */
 export function _castAuth(auth: Auth): AuthInternal {
-  return (auth as unknown) as AuthInternal;
+  return getModularInstance(auth) as AuthInternal;
 }
 
 /** Helper class to wrap subscriber logic */

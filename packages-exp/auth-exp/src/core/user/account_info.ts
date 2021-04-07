@@ -24,11 +24,7 @@ import {
 import { updateProfile as apiUpdateProfile } from '../../api/account_management/profile';
 import { UserInternal } from '../../model/user';
 import { _logoutIfInvalidated } from './invalidation';
-
-interface Profile {
-  displayName?: string | null;
-  photoURL?: string | null;
-}
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Updates a user's profile data.
@@ -40,14 +36,17 @@ interface Profile {
  */
 export async function updateProfile(
   user: User,
-  { displayName, photoURL: photoUrl }: Profile
+  {
+    displayName,
+    photoURL: photoUrl
+  }: { displayName?: string | null; photoURL?: string | null }
 ): Promise<void> {
   if (displayName === undefined && photoUrl === undefined) {
     return;
   }
 
-  const userInternal = user as UserInternal;
-  const idToken = await user.getIdToken();
+  const userInternal = getModularInstance(user) as UserInternal;
+  const idToken = await userInternal.getIdToken();
   const profileRequest = {
     idToken,
     displayName,
@@ -67,8 +66,8 @@ export async function updateProfile(
     ({ providerId }) => providerId === ProviderId.PASSWORD
   );
   if (passwordProvider) {
-    passwordProvider.displayName = user.displayName;
-    passwordProvider.photoURL = user.photoURL;
+    passwordProvider.displayName = userInternal.displayName;
+    passwordProvider.photoURL = userInternal.photoURL;
   }
 
   await userInternal._updateTokensIfNecessary(response);
@@ -91,7 +90,11 @@ export async function updateProfile(
  * @public
  */
 export function updateEmail(user: User, newEmail: string): Promise<void> {
-  return updateEmailOrPassword(user as UserInternal, newEmail, null);
+  return updateEmailOrPassword(
+    getModularInstance(user) as UserInternal,
+    newEmail,
+    null
+  );
 }
 
 /**
@@ -108,7 +111,11 @@ export function updateEmail(user: User, newEmail: string): Promise<void> {
  * @public
  */
 export function updatePassword(user: User, newPassword: string): Promise<void> {
-  return updateEmailOrPassword(user as UserInternal, null, newPassword);
+  return updateEmailOrPassword(
+    getModularInstance(user) as UserInternal,
+    null,
+    newPassword
+  );
 }
 
 async function updateEmailOrPassword(

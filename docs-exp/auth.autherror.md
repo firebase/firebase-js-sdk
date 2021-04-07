@@ -18,7 +18,7 @@ export interface AuthError extends FirebaseError
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [appName](./auth.autherror.appname.md) | string | The name of the Firebase App which triggered this error. |
-|  [email](./auth.autherror.email.md) | string | The email of the user's account, used for sign-in/linking. |
-|  [phoneNumber](./auth.autherror.phonenumber.md) | string | The phone number of the user's account, used for sign-in/linking. |
-|  [tenantid](./auth.autherror.tenantid.md) | string | The tenant ID being used for sign-in/linking. |
+|  [email?](./auth.autherror.email.md) | string | <i>(Optional)</i> The email of the user's account, used for sign-in/linking. |
+|  [phoneNumber?](./auth.autherror.phonenumber.md) | string | <i>(Optional)</i> The phone number of the user's account, used for sign-in/linking. |
+|  [tenantid?](./auth.autherror.tenantid.md) | string | <i>(Optional)</i> The tenant ID being used for sign-in/linking. |
 

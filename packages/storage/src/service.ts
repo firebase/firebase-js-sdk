@@ -31,6 +31,7 @@ import {
 } from '@firebase/app-exp';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
+  DEFAULT_HOST,
   DEFAULT_MAX_OPERATION_RETRY_TIME,
   DEFAULT_MAX_UPLOAD_RETRY_TIME
 } from '../src/implementation/constants';
@@ -120,12 +121,23 @@ export function ref(
   }
 }
 
-function extractBucket(config?: FirebaseOptions): Location | null {
+function extractBucket(
+  host: string,
+  config?: FirebaseOptions
+): Location | null {
   const bucketString = config?.[CONFIG_STORAGE_BUCKET_KEY];
   if (bucketString == null) {
     return null;
   }
-  return Location.makeFromBucketSpec(bucketString);
+  return Location.makeFromBucketSpec(bucketString, host);
+}
+
+export function useStorageEmulator(
+  storage: StorageService,
+  host: string,
+  port: number
+): void {
+  storage.host = `http://${host}:${port}`;
 }
 
 /**
@@ -134,7 +146,14 @@ function extractBucket(config?: FirebaseOptions): Location | null {
  * @param opt_url - gs:// url to a custom Storage Bucket
  */
 export class StorageService implements _FirebaseService {
-  readonly _bucket: Location | null = null;
+  _bucket: Location | null = null;
+  /**
+   * This string can be in the formats:
+   * - host
+   * - host:port
+   * - protocol://host:port
+   */
+  private _host: string = DEFAULT_HOST;
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
@@ -155,9 +174,27 @@ export class StorageService implements _FirebaseService {
     this._maxUploadRetryTime = DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this._requests = new Set();
     if (_url != null) {
-      this._bucket = Location.makeFromBucketSpec(_url);
+      this._bucket = Location.makeFromBucketSpec(_url, this._host);
     } else {
-      this._bucket = extractBucket(this.app.options);
+      this._bucket = extractBucket(this._host, this.app.options);
+    }
+  }
+
+  get host(): string {
+    return this._host;
+  }
+
+  /**
+   * Set host string for this service.
+   * @param host - host string in the form of host, host:port,
+   * or protocol://host:port
+   */
+  set host(host: string) {
+    this._host = host;
+    if (this._url != null) {
+      this._bucket = Location.makeFromBucketSpec(this._url, host);
+    } else {
+      this._bucket = extractBucket(host, this.app.options);
     }
   }
 

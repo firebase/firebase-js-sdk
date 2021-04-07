@@ -33,6 +33,7 @@ import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
+import { ClientPlatform } from '../util/version';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -57,6 +58,7 @@ describe('core/auth/auth_impl', () => {
       apiHost: DefaultConfig.API_HOST,
       apiScheme: DefaultConfig.API_SCHEME,
       tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+      clientPlatform: ClientPlatform.BROWSER,
       sdkClientVersion: 'v'
     });
 
@@ -85,11 +87,11 @@ describe('core/auth/auth_impl', () => {
 
     it('public version throws if the auth is mismatched', async () => {
       const auth2 = await testAuth();
-      Object.assign(auth2, { name: 'not-the-right-auth' });
+      Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
       const user = testUser(auth2, 'uid');
       await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
         FirebaseError,
-        'auth/argument-error'
+        'auth/invalid-user-token'
       );
     });
 
@@ -434,6 +436,7 @@ describe('core/auth/auth_impl', () => {
         apiHost: DefaultConfig.API_HOST,
         apiScheme: DefaultConfig.API_SCHEME,
         tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+        clientPlatform: ClientPlatform.BROWSER,
         sdkClientVersion: 'v'
       });
 

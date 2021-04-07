@@ -7471,6 +7471,27 @@ firebase-admin@9.4.2:
     "@google-cloud/firestore" "^4.5.0"
     "@google-cloud/storage" "^5.3.0"
 
+"firebase-exp@file:packages-exp/firebase-exp":
+  version "0.900.20"
+  dependencies:
+    "@firebase/analytics-compat" "0.0.900"
+    "@firebase/analytics-exp" "0.0.900"
+    "@firebase/app-compat" "0.0.900"
+    "@firebase/app-exp" "0.0.900"
+    "@firebase/auth-compat" "0.0.900"
+    "@firebase/auth-exp" "0.0.900"
+    "@firebase/database" "0.9.7"
+    "@firebase/firestore" "2.2.2"
+    "@firebase/functions-compat" "0.0.900"
+    "@firebase/functions-exp" "0.0.900"
+    "@firebase/messaging-compat" "0.0.900"
+    "@firebase/messaging-exp" "0.0.900"
+    "@firebase/performance-compat" "0.0.900"
+    "@firebase/performance-exp" "0.0.900"
+    "@firebase/remote-config-compat" "0.0.900"
+    "@firebase/remote-config-exp" "0.0.900"
+    "@firebase/storage" "0.4.6"
+
 firebase-functions@3.13.0:
   version "3.13.0"
   resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.13.0.tgz#66278dbeb45f343a179814f2b1d95b383beec5e7"

@@ -88,8 +88,6 @@ export class PhoneMultiFactorGenerator {
    * {@link MultiFactorResolver.resolveSignIn}
    */
   static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion {
-    return PhoneMultiFactorAssertionImpl._fromCredential(
-      credential as PhoneAuthCredential
-    );
+    return PhoneMultiFactorAssertionImpl._fromCredential(credential);
   }
 }

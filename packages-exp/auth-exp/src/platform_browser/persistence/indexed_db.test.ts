@@ -128,6 +128,11 @@ describe('platform_browser/persistence/indexed_db', () => {
       clock.restore();
     });
 
+    it('should not trigger a listener when there are no changes', async () => {
+      await waitUntilPoll(clock);
+      expect(callback).not.to.have.been.called;
+    });
+
     it('should trigger a listener when the key changes', async () => {
       await _putObject(db, key, newValue);
 

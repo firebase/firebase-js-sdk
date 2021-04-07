@@ -16,7 +16,7 @@ onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn,
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  nextOrObserver | NextOrObserver&lt;[User](./auth.user.md) \| null&gt; | callback triggered on change. |
+|  nextOrObserver | [NextOrObserver](./auth.nextorobserver.md)<!-- -->&lt;[User](./auth.user.md) \| null&gt; | callback triggered on change. |
 |  error | ErrorFn | callback triggered on error. |
 |  completed | CompleteFn | callback triggered when observer is removed. |
 

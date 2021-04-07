@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
@@ -65,7 +65,12 @@ export {
   UserInfo,
   UserMetadata,
   UserProfile,
-  PhoneInfoOptions
+  PhoneInfoOptions,
+  Dependencies,
+  NextOrObserver,
+  ErrorFn,
+  CompleteFn,
+  Unsubscribe
 } from './src/model/public_types';
 
 // Core functionality shared by all clients
@@ -113,7 +118,7 @@ export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions
  *
  * @public
  */
-export function getAuth(app: FirebaseApp): Auth {
+export function getAuth(app: FirebaseApp = getApp()): Auth {
   const provider = _getProvider(app, 'auth-exp');
 
   if (provider.isInitialized()) {

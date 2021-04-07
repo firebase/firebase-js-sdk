@@ -18,5 +18,5 @@ export interface FunctionsError extends FirebaseError
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [code](./functions.functionserror.code.md) | [FunctionsErrorCode](./functions.functionserrorcode.md) | A standard error code that will be returned to the client. This also determines the HTTP status code of the response, as defined in code.proto. |
-|  [details](./functions.functionserror.details.md) | unknown | Extra data to be converted to JSON and included in the error response. |
+|  [details?](./functions.functionserror.details.md) | unknown | <i>(Optional)</i> Extra data to be converted to JSON and included in the error response. |
 

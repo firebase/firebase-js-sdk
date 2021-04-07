@@ -89,6 +89,25 @@ describe('platform_browser/iframe/iframe', () => {
     expect(iframeSettings.dontclear).to.be.true;
   });
 
+  it('sets a single framework if logged', async () => {
+    auth._logFramework('Magical');
+    await _openIframe(auth);
+    expect(iframeSettings.url).to.eq(
+      `https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}&fw=Magical`
+    );
+  });
+
+  it('sets multiple frameworks comma-separated if logged', async () => {
+    auth._logFramework('Mythical');
+    auth._logFramework('Magical');
+    auth._logFramework('Magical'); // Duplicate, should be ignored
+    await _openIframe(auth);
+    expect(iframeSettings.url).to.eq(
+      // fw should be a comma-separated list sorted alphabetically:
+      `https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}&fw=Magical%2CMythical`
+    );
+  });
+
   context('on load callback', () => {
     let iframe: sinon.SinonStubbedInstance<gapi.iframes.Iframe>;
     let clearTimeoutStub: sinon.SinonStub;

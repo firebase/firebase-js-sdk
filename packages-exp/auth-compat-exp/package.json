@@ -16,7 +16,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/auth-compat --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js",
+    "build:release": "rollup -c rollup.config.release.js && yarn add-compat-overloads",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
     "test:all": "run-p test:browser test:node",
@@ -26,7 +26,8 @@
     "test:node": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts",
     "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
     "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
-    "test:integration": "run-s test:browser:integration test:node:integration test:webdriver"
+    "test:integration": "run-s test:browser:integration test:node:integration test:webdriver",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../auth-exp/dist/auth-exp-public.d.ts -o dist/auth-compat-exp/index.d.ts -a -r Auth:types.FirebaseAuth -r User:types.User -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/auth"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x"
@@ -34,8 +35,8 @@
   "dependencies": {
     "@firebase/auth-types": "0.10.2",
     "@firebase/auth-exp": "0.0.900",
-    "@firebase/component": "0.3.0",
-    "@firebase/util": "0.4.0",
+    "@firebase/component": "0.3.1",
+    "@firebase/util": "0.4.1",
     "node-fetch": "2.6.1",
     "tslib": "^2.1.0"
   },
@@ -43,7 +44,7 @@
   "devDependencies": {
     "@firebase/app-compat": "0.x",
     "@rollup/plugin-json": "4.1.0",
-    "rollup": "^2.35.1",
+    "rollup": "2.35.1",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.29.0",
     "typescript": "4.2.2"

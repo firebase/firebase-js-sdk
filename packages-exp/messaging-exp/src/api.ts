@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
+import { FirebaseApp, _getProvider, getApp } from '@firebase/app-exp';
 import { FirebaseMessaging, MessagePayload } from './interfaces/public-types';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  NextFn,
+  Observer,
+  Unsubscribe,
+  getModularInstance
+} from '@firebase/util';
 
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
 import { deleteToken as _deleteToken } from './api/deleteToken';
-import { _getProvider, FirebaseApp } from '@firebase/app-exp';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
@@ -33,7 +38,8 @@ import { onMessage as _onMessage } from './api/onMessage';
  *
  * @public
  */
-export function getMessaging(app: FirebaseApp): FirebaseMessaging {
+export function getMessaging(app: FirebaseApp = getApp()): FirebaseMessaging {
+  app = getModularInstance(app);
   const messagingProvider: Provider<'messaging-exp'> = _getProvider(
     app,
     'messaging-exp'
@@ -74,6 +80,7 @@ export async function getToken(
   messaging: FirebaseMessaging,
   options?: { vapidKey?: string; swReg?: ServiceWorkerRegistration }
 ): Promise<string> {
+  messaging = getModularInstance(messaging);
   return _getToken(messaging as MessagingService, options);
 }
 
@@ -88,6 +95,7 @@ export async function getToken(
  * @public
  */
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean> {
+  messaging = getModularInstance(messaging);
   return _deleteToken(messaging as MessagingService);
 }
 
@@ -108,6 +116,7 @@ export function onMessage(
   messaging: FirebaseMessaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
+  messaging = getModularInstance(messaging);
   return _onMessage(messaging as MessagingService, nextOrObserver);
 }
 
@@ -121,12 +130,13 @@ export function onMessage(
  *
  * @returns To stop listening for messages execute this returned function
  *
- * make it internal to hide it from the browser entrypoint
+ * make it internal to hide it from the browser entry point.
  * @internal
  */
 export function onBackgroundMessage(
   messaging: FirebaseMessaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
+  messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
 }

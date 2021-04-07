@@ -14,5 +14,5 @@ export declare interface PersistenceSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [forceOwnership](./firestore_.persistencesettings.forceownership.md) | boolean |  |
+|  [forceOwnership?](./firestore_.persistencesettings.forceownership.md) | boolean | <i>(Optional)</i> |
 

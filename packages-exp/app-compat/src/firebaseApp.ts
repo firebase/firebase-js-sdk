@@ -33,7 +33,7 @@ import { _FirebaseService, _FirebaseNamespace } from './types';
 import { Compat } from '@firebase/util';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _FirebaseApp extends Compat<_FirebaseAppExp> {
+export interface _FirebaseApp {
   /**
    * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
    * App.
@@ -59,7 +59,7 @@ export interface _FirebaseApp extends Compat<_FirebaseAppExp> {
  * Global context object for a collection of services using
  * a shared authentication state.
  */
-export class FirebaseAppImpl implements _FirebaseApp {
+export class FirebaseAppImpl implements Compat<_FirebaseAppExp>, _FirebaseApp {
   private container: ComponentContainer;
 
   constructor(

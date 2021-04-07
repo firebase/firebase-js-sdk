@@ -32,8 +32,7 @@ export function getFakeApp(): FirebaseApp {
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    remoteConfig: (() => null as unknown) as FirebaseApp['remoteConfig'],
-    _delegate: {} as any
+    remoteConfig: (() => null as unknown) as FirebaseApp['remoteConfig']
   };
 }
 

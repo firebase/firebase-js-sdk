@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { _getProvider, FirebaseApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import {
   Analytics,
   AnalyticsCallOptions,
@@ -30,7 +30,8 @@ import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable,
   areCookiesEnabled,
-  isBrowserExtension
+  isBrowserExtension,
+  getModularInstance
 } from '@firebase/util';
 import { ANALYTICS_TYPE } from './constants';
 import {
@@ -62,7 +63,8 @@ declare module '@firebase/component' {
  *
  * @param app - The FirebaseApp to use.
  */
-export function getAnalytics(app: FirebaseApp): Analytics {
+export function getAnalytics(app: FirebaseApp = getApp()): Analytics {
+  app = getModularInstance(app);
   // Dependencies
   const analyticsProvider: Provider<'analytics-exp'> = _getProvider(
     app,
@@ -115,6 +117,7 @@ export function setCurrentScreen(
   screenName: string,
   options?: AnalyticsCallOptions
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalSetCurrentScreen(
     wrappedGtagFunction,
     initializationPromisesMap[analyticsInstance.app.options.appId!],
@@ -136,6 +139,7 @@ export function setUserId(
   id: string,
   options?: AnalyticsCallOptions
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalSetUserId(
     wrappedGtagFunction,
     initializationPromisesMap[analyticsInstance.app.options.appId!],
@@ -154,6 +158,7 @@ export function setUserProperties(
   properties: CustomParams,
   options?: AnalyticsCallOptions
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalSetUserProperties(
     wrappedGtagFunction,
     initializationPromisesMap[analyticsInstance.app.options.appId!],
@@ -175,6 +180,7 @@ export function setAnalyticsCollectionEnabled(
   analyticsInstance: Analytics,
   enabled: boolean
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalSetAnalyticsCollectionEnabled(
     initializationPromisesMap[analyticsInstance.app.options.appId!],
     enabled
@@ -215,7 +221,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'add_shipping_info',
-  eventParams: {
+  eventParams?: {
     coupon?: EventParams['coupon'];
     currency?: EventParams['currency'];
     items?: EventParams['items'];
@@ -238,7 +244,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
-  eventParams: {
+  eventParams?: {
     currency?: EventParams['currency'];
     value?: EventParams['value'];
     items?: EventParams['items'];
@@ -259,7 +265,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'begin_checkout',
-  eventParams: {
+  eventParams?: {
     currency?: EventParams['currency'];
     coupon?: EventParams['coupon'];
     value?: EventParams['value'];
@@ -281,7 +287,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'checkout_progress',
-  eventParams: {
+  eventParams?: {
     currency?: EventParams['currency'];
     coupon?: EventParams['coupon'];
     value?: EventParams['value'];
@@ -305,7 +311,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'exception',
-  eventParams: {
+  eventParams?: {
     description?: EventParams['description'];
     fatal?: EventParams['fatal'];
     [key: string]: any;
@@ -325,7 +331,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'generate_lead',
-  eventParams: {
+  eventParams?: {
     value?: EventParams['value'];
     currency?: EventParams['currency'];
     transaction_id?: EventParams['transaction_id'];
@@ -346,7 +352,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'login',
-  eventParams: {
+  eventParams?: {
     method?: EventParams['method'];
     [key: string]: any;
   },
@@ -365,7 +371,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'page_view',
-  eventParams: {
+  eventParams?: {
     page_title?: string;
     page_location?: string;
     page_path?: string;
@@ -386,7 +392,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'purchase' | 'refund',
-  eventParams: {
+  eventParams?: {
     value?: EventParams['value'];
     currency?: EventParams['currency'];
     transaction_id: EventParams['transaction_id'];
@@ -412,7 +418,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'screen_view',
-  eventParams: {
+  eventParams?: {
     app_name: string;
     screen_name: EventParams['screen_name'];
     app_id?: string;
@@ -435,7 +441,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'search' | 'view_search_results',
-  eventParams: {
+  eventParams?: {
     search_term?: EventParams['search_term'];
     [key: string]: any;
   },
@@ -454,7 +460,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'select_content',
-  eventParams: {
+  eventParams?: {
     items?: EventParams['items'];
     promotions?: EventParams['promotions'];
     content_type?: EventParams['content_type'];
@@ -476,7 +482,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'select_item',
-  eventParams: {
+  eventParams?: {
     items?: EventParams['items'];
     item_list_name?: EventParams['item_list_name'];
     item_list_id?: EventParams['item_list_id'];
@@ -497,7 +503,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'select_promotion' | 'view_promotion',
-  eventParams: {
+  eventParams?: {
     items?: EventParams['items'];
     promotion_id?: EventParams['promotion_id'];
     promotion_name?: EventParams['promotion_name'];
@@ -518,7 +524,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'set_checkout_option',
-  eventParams: {
+  eventParams?: {
     checkout_step?: EventParams['checkout_step'];
     checkout_option?: EventParams['checkout_option'];
     [key: string]: any;
@@ -538,7 +544,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'share',
-  eventParams: {
+  eventParams?: {
     method?: EventParams['method'];
     content_type?: EventParams['content_type'];
     content_id?: EventParams['content_id'];
@@ -559,7 +565,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'sign_up',
-  eventParams: {
+  eventParams?: {
     method?: EventParams['method'];
     [key: string]: any;
   },
@@ -578,7 +584,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'timing_complete',
-  eventParams: {
+  eventParams?: {
     name: string;
     value: number;
     event_category?: string;
@@ -600,7 +606,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'view_cart' | 'view_item',
-  eventParams: {
+  eventParams?: {
     currency?: EventParams['currency'];
     items?: EventParams['items'];
     value?: EventParams['value'];
@@ -621,7 +627,7 @@ export function logEvent(
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'view_item_list',
-  eventParams: {
+  eventParams?: {
     items?: EventParams['items'];
     item_list_name?: EventParams['item_list_name'];
     item_list_id?: EventParams['item_list_id'];
@@ -663,6 +669,7 @@ export function logEvent(
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
 ): void {
+  analyticsInstance = getModularInstance(analyticsInstance);
   internalLogEvent(
     wrappedGtagFunction,
     initializationPromisesMap[analyticsInstance.app.options.appId!],

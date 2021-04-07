@@ -17,5 +17,5 @@ export interface UploadMetadata extends SettableMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [md5Hash](./storage.uploadmetadata.md5hash.md) | string \| undefined | A Base64-encoded MD5 hash of the object being uploaded. |
+|  [md5Hash?](./storage.uploadmetadata.md5hash.md) | string \| undefined | <i>(Optional)</i> A Base64-encoded MD5 hash of the object being uploaded. |
 

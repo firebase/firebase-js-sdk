@@ -38,7 +38,7 @@ describe('auth compat', () => {
       app = { options: { apiKey: 'api-key' } } as FirebaseApp;
       underlyingAuth = new exp.AuthImpl(app, {
         apiKey: 'api-key'
-      } as exp.Config);
+      } as exp.ConfigInternal);
       sinon.stub(underlyingAuth, '_initializeWithPersistence');
 
       providerStub = sinon.createStubInstance(Provider);

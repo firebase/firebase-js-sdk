@@ -22,17 +22,27 @@ import {
   InstanceFactory
 } from '@firebase/component';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { isSwSupported, isWindowSupported } from '../api/isSupported';
 
 import { MessagingService } from '../messaging-service';
 import { _registerComponent } from '@firebase/app-exp';
-import { isSupported } from './isSupported';
 
-const messagingFactory: InstanceFactory<'messaging-exp'> = (
+const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
   container: ComponentContainer
 ) => {
-  if (!isSupported()) {
-    throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-  }
+  // Conscious decision to make this async check non-blocking during the messaging instance
+  // initialization phase for performance consideration. An error would be thrown latter for
+  // developer's information. Developers can then choose to import and call `isSupported` for
+  // special handling.
+  isWindowSupported()
+    .then(isSupported => {
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+      }
+    })
+    .catch(_ => {
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
+    });
 
   return new MessagingService(
     container.getProvider('app-exp').getImmediate(),
@@ -41,8 +51,38 @@ const messagingFactory: InstanceFactory<'messaging-exp'> = (
   );
 };
 
-export function registerMessaging(): void {
+const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
+  container: ComponentContainer
+) => {
+  // Conscious decision to make this async check non-blocking during the messaging instance
+  // initialization phase for performance consideration. An error would be thrown latter for
+  // developer's information. Developers can then choose to import and call `isSupported` for
+  // special handling.
+  isSwSupported()
+    .then(isSupported => {
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+      }
+    })
+    .catch(_ => {
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
+    });
+
+  return new MessagingService(
+    container.getProvider('app-exp').getImmediate(),
+    container.getProvider('installations-exp-internal').getImmediate(),
+    container.getProvider('analytics-internal')
+  );
+};
+
+export function registerMessagingInWindow(): void {
   _registerComponent(
-    new Component('messaging-exp', messagingFactory, ComponentType.PUBLIC)
+    new Component('messaging-exp', WindowMessagingFactory, ComponentType.PUBLIC)
+  );
+}
+
+export function registerMessagingInSw(): void {
+  _registerComponent(
+    new Component('messaging-exp', SwMessagingFactory, ComponentType.PUBLIC)
   );
 }

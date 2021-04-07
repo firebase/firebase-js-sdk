@@ -16,7 +16,7 @@ export interface PhoneMultiFactorSignInInfoOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [multiFactorHint](./auth.phonemultifactorsignininfooptions.multifactorhint.md) | [MultiFactorInfo](./auth.multifactorinfo.md) | The [MultiFactorInfo](./auth.multifactorinfo.md) obtained via [MultiFactorResolver.hints](./auth.multifactorresolver.hints.md)<!-- -->.<!-- -->One of <code>multiFactorHint</code> or <code>multiFactorUid</code> is required. |
-|  [multiFactorUid](./auth.phonemultifactorsignininfooptions.multifactoruid.md) | string | The uid of the second factor.<!-- -->One of <code>multiFactorHint</code> or <code>multiFactorUid</code> is required. |
+|  [multiFactorHint?](./auth.phonemultifactorsignininfooptions.multifactorhint.md) | [MultiFactorInfo](./auth.multifactorinfo.md) | <i>(Optional)</i> The [MultiFactorInfo](./auth.multifactorinfo.md) obtained via [MultiFactorResolver.hints](./auth.multifactorresolver.hints.md)<!-- -->.<!-- -->One of <code>multiFactorHint</code> or <code>multiFactorUid</code> is required. |
+|  [multiFactorUid?](./auth.phonemultifactorsignininfooptions.multifactoruid.md) | string | <i>(Optional)</i> The uid of the second factor.<!-- -->One of <code>multiFactorHint</code> or <code>multiFactorUid</code> is required. |
 |  [session](./auth.phonemultifactorsignininfooptions.session.md) | [MultiFactorSession](./auth.multifactorsession.md) | The [MultiFactorSession](./auth.multifactorsession.md) obtained via [MultiFactorResolver.session](./auth.multifactorresolver.session.md)<!-- -->. |
 

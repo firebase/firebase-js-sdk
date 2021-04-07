@@ -14,10 +14,10 @@ export declare interface Settings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [cacheSizeBytes](./firestore_.settings.cachesizebytes.md) | number |  |
-|  [experimentalAutoDetectLongPolling](./firestore_.settings.experimentalautodetectlongpolling.md) | boolean |  |
-|  [experimentalForceLongPolling](./firestore_.settings.experimentalforcelongpolling.md) | boolean |  |
-|  [host](./firestore_.settings.host.md) | string |  |
-|  [ignoreUndefinedProperties](./firestore_.settings.ignoreundefinedproperties.md) | boolean |  |
-|  [ssl](./firestore_.settings.ssl.md) | boolean |  |
+|  [cacheSizeBytes?](./firestore_.settings.cachesizebytes.md) | number | <i>(Optional)</i> |
+|  [experimentalAutoDetectLongPolling?](./firestore_.settings.experimentalautodetectlongpolling.md) | boolean | <i>(Optional)</i> |
+|  [experimentalForceLongPolling?](./firestore_.settings.experimentalforcelongpolling.md) | boolean | <i>(Optional)</i> |
+|  [host?](./firestore_.settings.host.md) | string | <i>(Optional)</i> |
+|  [ignoreUndefinedProperties?](./firestore_.settings.ignoreundefinedproperties.md) | boolean | <i>(Optional)</i> |
+|  [ssl?](./firestore_.settings.ssl.md) | boolean | <i>(Optional)</i> |
 

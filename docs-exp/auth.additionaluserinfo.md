@@ -19,5 +19,5 @@ export interface AdditionalUserInfo
 |  [isNewUser](./auth.additionaluserinfo.isnewuser.md) | boolean | Whether the user is new (created via sign-up) or existing (authenticated using sign-in). |
 |  [profile](./auth.additionaluserinfo.profile.md) | Record&lt;string, unknown&gt; \| null | Map containing IDP-specific user data. |
 |  [providerId](./auth.additionaluserinfo.providerid.md) | string \| null | Identifier for the provider used to authenticate this user. |
-|  [username](./auth.additionaluserinfo.username.md) | string \| null | The username if the provider is GitHub or Twitter. |
+|  [username?](./auth.additionaluserinfo.username.md) | string \| null | <i>(Optional)</i> The username if the provider is GitHub or Twitter. |
 

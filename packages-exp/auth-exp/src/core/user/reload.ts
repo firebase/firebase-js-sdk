@@ -26,6 +26,7 @@ import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _logoutIfInvalidated } from './invalidation';
 import { UserMetadata } from './user_metadata';
+import { getModularInstance } from '@firebase/util';
 
 export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
   const auth = user.auth;
@@ -81,7 +82,7 @@ export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
  * @public
  */
 export async function reload(user: User): Promise<void> {
-  const userInternal: UserInternal = user as UserInternal;
+  const userInternal: UserInternal = getModularInstance(user) as UserInternal;
   await _reloadWithoutSaving(userInternal);
 
   // Even though the current user hasn't changed, update

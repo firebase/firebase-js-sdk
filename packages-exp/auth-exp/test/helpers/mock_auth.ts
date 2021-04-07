@@ -26,6 +26,7 @@ import { StsTokenManager } from '../../src/core/user/token_manager';
 import { UserImpl } from '../../src/core/user/user_impl';
 import { AuthInternal } from '../../src/model/auth';
 import { UserInternal } from '../../src/model/user';
+import { ClientPlatform } from '../../src/core/util/version';
 
 export const TEST_HOST = 'localhost';
 export const TEST_TOKEN_HOST = 'localhost/token';
@@ -67,6 +68,7 @@ export async function testAuth(
     apiHost: TEST_HOST,
     apiScheme: TEST_SCHEME,
     tokenApiHost: TEST_TOKEN_HOST,
+    clientPlatform: ClientPlatform.BROWSER,
     sdkClientVersion: 'testSDK/0.0.0'
   }) as TestAuth;
   auth._updateErrorMap(debugErrorMap);

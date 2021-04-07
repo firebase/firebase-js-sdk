@@ -16,6 +16,6 @@ export interface FirebaseAppConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [automaticDataCollectionEnabled](./app.firebaseappconfig.automaticdatacollectionenabled.md) | boolean | The settable config flag for GDPR opt-in/opt-out |
-|  [name](./app.firebaseappconfig.name.md) | string | custom name for the Firebase App. The default value is <code>&quot;[DEFAULT]&quot;</code>. |
+|  [automaticDataCollectionEnabled?](./app.firebaseappconfig.automaticdatacollectionenabled.md) | boolean | <i>(Optional)</i> The settable config flag for GDPR opt-in/opt-out |
+|  [name?](./app.firebaseappconfig.name.md) | string | <i>(Optional)</i> custom name for the Firebase App. The default value is <code>&quot;[DEFAULT]&quot;</code>. |
 

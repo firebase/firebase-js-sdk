@@ -33,7 +33,7 @@ export class PlatformLoggerService {
     return providers
       .map(provider => {
         if (isVersionServiceProvider(provider)) {
-          const service = provider.getImmediate();
+          const service = (provider as Provider<'app-version'>).getImmediate();
           return `${service.library}/${service.version}`;
         } else {
           return null;
@@ -51,9 +51,7 @@ export class PlatformLoggerService {
  * provides VersionService. The provider is not necessarily a 'app-version'
  * provider.
  */
-function isVersionServiceProvider(
-  provider: Provider<Name>
-): provider is Provider<'app-version'> {
+function isVersionServiceProvider(provider: Provider<Name>): boolean {
   const component = provider.getComponent();
   return component?.type === ComponentType.VERSION;
 }

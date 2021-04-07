@@ -34,7 +34,7 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
     const app = { options: { apiKey: 'api-key' } } as FirebaseApp;
     auth = new exp.AuthImpl(app, {
       apiKey: 'api-key'
-    } as exp.Config);
+    } as exp.ConfigInternal);
   });
 
   afterEach(() => {
