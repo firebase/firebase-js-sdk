@@ -22,7 +22,7 @@ import {
   InstantiationMode
 } from '@firebase/component';
 
-import { version } from '../../../package.json';
+import { name, version } from '../../../package.json';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
@@ -122,9 +122,5 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
     ).setInstantiationMode(InstantiationMode.EXPLICIT)
   );
 
-  registerVersion(
-    _ComponentName.AUTH,
-    version,
-    getVersionForPlatform(clientPlatform)
-  );
+  registerVersion(name, version, getVersionForPlatform(clientPlatform));
 }

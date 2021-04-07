@@ -84,7 +84,7 @@ const browserPlugins = function () {
 const allBuilds = [
   // Node ESM build
   {
-    input: './exp/index.ts',
+    input: './exp/index.node.ts',
     output: {
       file: path.resolve('./exp', pkg['main-esm']),
       format: 'es',
@@ -128,7 +128,7 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './exp/index.ts',
+    input: './exp/index.rn.ts',
     output: {
       file: path.resolve('./exp', pkg['react-native']),
       format: 'es',

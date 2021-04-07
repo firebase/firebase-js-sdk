@@ -53,7 +53,7 @@ const es5Builds = [
    * Node.js Build
    */
   {
-    input: 'exp/index.ts',
+    input: 'exp/index.node.ts',
     output: [
       { file: path.resolve('exp', expPkg.main), format: 'cjs', sourcemap: true }
     ],

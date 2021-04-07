@@ -27,7 +27,7 @@ import {
 } from '@firebase/component';
 
 import * as types from '@firebase/auth-types';
-import { version } from './package.json';
+import { name, version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';
 import { PhoneAuthProvider as CompatAuthProvider } from './src/phone_auth_provider';
@@ -117,7 +117,7 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       .setMultipleInstances(false)
   );
 
-  instance.registerVersion('auth-compat', version);
+  instance.registerVersion(name, version);
 }
 
 registerAuthCompat(firebase as _FirebaseNamespace);

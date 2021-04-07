@@ -15,35 +15,9 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import { Component, ComponentType } from '@firebase/component';
-
-import { version } from '../package.json';
-import { FirebaseDatabase } from '../src/exp/Database';
+import { registerDatabase } from './register';
 
 export { getDatabase, ServerValue } from '../src/exp/Database';
 export { enableLogging } from '../src/core/util/util';
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'database-exp': FirebaseDatabase;
-  }
-}
-
-function registerDatabase(): void {
-  _registerComponent(
-    new Component(
-      'database-exp',
-      (container, { instanceIdentifier: url }) => {
-        const app = container.getProvider('app-exp').getImmediate()!;
-        const authProvider = container.getProvider('auth-internal');
-        return new FirebaseDatabase(app, authProvider, url);
-      },
-      ComponentType.PUBLIC
-    ).setMultipleInstances(true)
-  );
-  registerVersion('database-exp', version, 'node');
-}
 
 registerDatabase();
