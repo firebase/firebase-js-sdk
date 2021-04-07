@@ -40,10 +40,10 @@ const ServerValue = Database.ServerValue;
  * A one off register function which returns a database based on the app and
  * passed database URL. (Used by the Admin SDK)
  *
- * @param app A valid FirebaseApp-like object
- * @param url A valid Firebase databaseURL
- * @param version custom version e.g. firebase-admin version
- * @param nodeAdmin true if the SDK is being initialized from Firebase Admin.
+ * @param app - A valid FirebaseApp-like object
+ * @param url - A valid Firebase databaseURL
+ * @param version - custom version e.g. firebase-admin version
+ * @param nodeAdmin - true if the SDK is being initialized from Firebase Admin.
  */
 export function initStandalone(
   app: FirebaseApp,

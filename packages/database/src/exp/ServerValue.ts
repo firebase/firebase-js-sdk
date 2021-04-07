@@ -32,7 +32,7 @@ export function serverTimestamp(): object {
  * Returns a placeholder value that can be used to atomically increment the
  * current database value by the provided delta.
  *
- * @param delta the amount to modify the current value atomically.
+ * @param delta - the amount to modify the current value atomically.
  * @returns A placeholder value for modifying data atomically server-side.
  */
 export function increment(delta: number): object {

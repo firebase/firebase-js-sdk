@@ -52,10 +52,10 @@ export type EventType =
  */
 export class DataEvent implements Event {
   /**
-   * @param eventType One of: value, child_added, child_changed, child_moved, child_removed
-   * @param eventRegistration The function to call to with the event data. User provided
-   * @param snapshot The data backing the event
-   * @param prevName Optional, the name of the previous child for child_* events.
+   * @param eventType - One of: value, child_added, child_changed, child_moved, child_removed
+   * @param eventRegistration - The function to call to with the event data. User provided
+   * @param snapshot - The data backing the event
+   * @param prevName - Optional, the name of the previous child for child_* events.
    */
   constructor(
     public eventType: EventType,
@@ -63,10 +63,6 @@ export class DataEvent implements Event {
     public snapshot: ExpDataSnapshot,
     public prevName?: string | null
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   getPath(): Path {
     const ref = this.snapshot.ref;
     if (this.eventType === 'value') {
@@ -75,24 +71,12 @@ export class DataEvent implements Event {
       return ref.parent._path;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   getEventType(): string {
     return this.eventType;
   }
-
-  /**
-   * @inheritDoc
-   */
   getEventRunner(): () => void {
     return this.eventRegistration.getEventRunner(this);
   }
-
-  /**
-   * @inheritDoc
-   */
   toString(): string {
     return (
       this.getPath().toString() +
@@ -110,31 +94,15 @@ export class CancelEvent implements Event {
     public error: Error,
     public path: Path
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   getPath(): Path {
     return this.path;
   }
-
-  /**
-   * @inheritDoc
-   */
   getEventType(): string {
     return 'cancel';
   }
-
-  /**
-   * @inheritDoc
-   */
   getEventRunner(): () => void {
     return this.eventRegistration.getEventRunner(this);
   }
-
-  /**
-   * @inheritDoc
-   */
   toString(): string {
     return this.path.toString() + ':cancel';
   }

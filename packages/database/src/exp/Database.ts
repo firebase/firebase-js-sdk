@@ -162,7 +162,7 @@ function repoManagerDeleteRepo(repo: Repo, appName: string): void {
  * Ensures a repo doesn't already exist and then creates one using the
  * provided app.
  *
- * @param repoInfo The metadata about the Repo
+ * @param repoInfo - The metadata about the Repo
  * @returns The Repo object for the specified server / repoName.
  */
 function repoManagerCreateRepo(
@@ -200,6 +200,7 @@ export function repoManagerForceRestClient(forceRestClient: boolean): void {
  * Class representing a Firebase Realtime Database.
  */
 export class FirebaseDatabase implements _FirebaseService {
+  /** Represents a database instance. */
   readonly 'type' = 'database';
 
   /** Track if the instance has been used (root or repo accessed) */
@@ -208,7 +209,12 @@ export class FirebaseDatabase implements _FirebaseService {
   /** Backing state for root_ */
   private _rootInternal?: ReferenceImpl;
 
-  constructor(private _repoInternal: Repo, readonly app: FirebaseApp) {}
+  /** @hideconstructor */
+  constructor(
+    private _repoInternal: Repo,
+    /** The FirebaseApp associated with this Realtime Database instance. */
+    readonly app: FirebaseApp
+  ) {}
 
   get _repo(): Repo {
     if (!this._instanceStarted) {
@@ -335,8 +341,8 @@ export function goOnline(db: FirebaseDatabase): void {
 /**
  * Logs debugging information to the console.
  *
- * @param enabled Enables logging if `true`, disables logging if `false`.
- * @param persistent Remembers the logging state between page refreshes if
+ * @param enabled - Enables logging if `true`, disables logging if `false`.
+ * @param persistent - Remembers the logging state between page refreshes if
  * `true`.
  */
 export function enableLogging(enabled: boolean, persistent?: boolean);
@@ -344,8 +350,8 @@ export function enableLogging(enabled: boolean, persistent?: boolean);
 /**
  * Logs debugging information to the console.
  *
- * @param logger A custom logger function to control how things get logged.
- * @param persistent Remembers the logging state between page refreshes if
+ * @param logger - A custom logger function to control how things get logged.
+ * @param persistent - Remembers the logging state between page refreshes if
  * `true`.
  */
 export function enableLogging(

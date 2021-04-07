@@ -93,10 +93,10 @@ export const interceptServerData = function (
  * Used by console to create a database based on the app,
  * passed database URL and a custom auth implementation.
  *
- * @param app A valid FirebaseApp-like object
- * @param url A valid Firebase databaseURL
- * @param version custom version e.g. firebase-admin version
- * @param customAuthImpl custom auth implementation
+ * @param app - A valid FirebaseApp-like object
+ * @param url - A valid Firebase databaseURL
+ * @param version - custom version e.g. firebase-admin version
+ * @param customAuthImpl - custom auth implementation
  */
 export function initStandalone<T>({
   app,

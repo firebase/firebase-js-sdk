@@ -72,7 +72,7 @@ export function writeTreeChildWrites(
 /**
  * Record a new overwrite from user code.
  *
- * @param visible This is set to false by some transactions. It should be excluded from event caches
+ * @param visible - This is set to false by some transactions. It should be excluded from event caches
  */
 export function writeTreeAddOverwrite(
   writeTree: WriteTree,
@@ -351,8 +351,8 @@ export function writeTreeGetCompleteWriteData(
  * Given optional, underlying server data, and an optional set of constraints (exclude some sets, include hidden
  * writes), attempt to calculate a complete snapshot for the given path
  *
- * @param writeIdsToExclude An optional set to be excluded
- * @param includeHiddenWrites Defaults to false, whether or not to layer on writes with visible set to false
+ * @param writeIdsToExclude - An optional set to be excluded
+ * @param includeHiddenWrites - Defaults to false, whether or not to layer on writes with visible set to false
  */
 export function writeTreeCalcCompleteEventCache(
   writeTree: WriteTree,
@@ -674,8 +674,8 @@ export interface WriteTree {
  * to get a cache that includes hidden writes, and excludes arbitrary writes. Note that customizing the returned node
  * can lead to a more expensive calculation.
  *
- * @param writeIdsToExclude Optional writes to exclude.
- * @param includeHiddenWrites Defaults to false, whether or not to layer on writes with visible set to false
+ * @param writeIdsToExclude - Optional writes to exclude.
+ * @param includeHiddenWrites - Defaults to false, whether or not to layer on writes with visible set to false
  */
 export function writeTreeRefCalcCompleteEventCache(
   writeTreeRef: WriteTreeRef,

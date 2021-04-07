@@ -42,7 +42,7 @@ function rawPath(firebaseRef: Reference) {
 
 /**
  * Creates a struct which waits for many events.
- * @param pathAndEvents an array of tuples of [Firebase, [event type strings]]
+ * @param pathAndEvents - an array of tuples of [Firebase, [event type strings]]
  */
 export function eventTestHelper(pathAndEvents, helperName?) {
   let resolve, reject;

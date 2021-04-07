@@ -24,7 +24,6 @@ import {
   repoOnDisconnectSetWithPriority,
   repoOnDisconnectUpdate
 } from '../core/Repo';
-import { Indexable } from '../core/util/misc';
 import { Path } from '../core/util/Path';
 import {
   validateFirebaseDataArg,
@@ -41,9 +40,9 @@ import {
  *
  * The `onDisconnect` class is most commonly used to manage presence in
  * applications where it is useful to detect how many clients are connected and
- * when other clients disconnect. See {@link
- * https://firebase.google.com/docs/database/web/offline-capabilities Enabling
- * Offline Capabilities in JavaScript} for more information.
+ * when other clients disconnect. See
+ * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
+ * for more information.
  *
  * To avoid problems when a connection is dropped before the requests can be
  * transferred to the Database server, these functions should be called before
@@ -54,6 +53,7 @@ import {
  * the `onDisconnect` operations each time you reconnect.
  */
 export class OnDisconnect {
+  /** @hideconstructor */
   constructor(private _repo: Repo, private _path: Path) {}
 
   /**
@@ -101,9 +101,9 @@ export class OnDisconnect {
    *
    * `set()` is especially useful for implementing "presence" systems, where a
    * value should be changed or cleared when a user disconnects so that they
-   * appear "offline" to other users. See {@link
-   * https://firebase.google.com/docs/database/web/offline-capabilities Enabling
-   * Offline Capabilities in JavaScript} for more information.
+   * appear "offline" to other users. See
+   * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
+   * for more information.
    *
    * Note that `onDisconnect` operations are only triggered once. If you want an
    * operation to occur each time a disconnect occurs, you'll need to re-establish
@@ -173,10 +173,10 @@ export class OnDisconnect {
    * only the referenced properties at the current location (instead of replacing
    * all the child properties at the current location).
    *
-   * @param values Object containing multiple values.
+   * @param values - Object containing multiple values.
    * @returns Resolves when synchronization to the Database is complete.
    */
-  update(values: Indexable): Promise<void> {
+  update(values: object): Promise<void> {
     validateWritablePath('OnDisconnect.update', this._path);
     validateFirebaseMergeDataArg(
       'OnDisconnect.update',
@@ -188,7 +188,7 @@ export class OnDisconnect {
     repoOnDisconnectUpdate(
       this._repo,
       this._path,
-      values,
+      values as Record<string, unknown>,
       deferred.wrapCallback(() => {})
     );
     return deferred.promise;

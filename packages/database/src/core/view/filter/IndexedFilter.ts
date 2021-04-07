@@ -94,10 +94,6 @@ export class IndexedFilter implements NodeFilter {
       return snap.updateImmediateChild(key, newChild).withIndex(this.index_);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   updateFullNode(
     oldSnap: Node,
     newSnap: Node,
@@ -132,10 +128,6 @@ export class IndexedFilter implements NodeFilter {
     }
     return newSnap.withIndex(this.index_);
   }
-
-  /**
-   * @inheritDoc
-   */
   updatePriority(oldSnap: Node, newPriority: Node): Node {
     if (oldSnap.isEmpty()) {
       return ChildrenNode.EMPTY_NODE;
@@ -143,24 +135,12 @@ export class IndexedFilter implements NodeFilter {
       return oldSnap.updatePriority(newPriority);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   filtersNodes(): boolean {
     return false;
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndexedFilter(): IndexedFilter {
     return this;
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndex(): Index {
     return this.index_;
   }

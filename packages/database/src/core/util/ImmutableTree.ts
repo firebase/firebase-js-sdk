@@ -72,11 +72,11 @@ export class ImmutableTree<T> {
    * Given a path and predicate, return the first node and the path to that node
    * where the predicate returns true.
    *
-   * TODO Do a perf test -- If we're creating a bunch of {path: value:} objects
-   * on the way back out, it may be better to pass down a pathSoFar obj.
+   * TODO Do a perf test -- If we're creating a bunch of `{path: value:}`
+   * objects on the way back out, it may be better to pass down a pathSoFar obj.
    *
-   * @param relativePath The remainder of the path
-   * @param predicate The predicate to satisfy to return a node
+   * @param relativePath - The remainder of the path
+   * @param predicate - The predicate to satisfy to return a node
    */
   findRootMostMatchingPathAndValue(
     relativePath: Path,
@@ -141,8 +141,8 @@ export class ImmutableTree<T> {
   /**
    * Sets a value at the specified path.
    *
-   * @param relativePath Path to set value at.
-   * @param toSet Value to set.
+   * @param relativePath - Path to set value at.
+   * @param toSet - Value to set.
    * @returns Resulting tree.
    */
   set(relativePath: Path, toSet: T | null): ImmutableTree<T> {
@@ -160,7 +160,7 @@ export class ImmutableTree<T> {
   /**
    * Removes the value at the specified path.
    *
-   * @param relativePath Path to value to remove.
+   * @param relativePath - Path to value to remove.
    * @returns Resulting tree.
    */
   remove(relativePath: Path): ImmutableTree<T> {
@@ -195,7 +195,7 @@ export class ImmutableTree<T> {
   /**
    * Gets a value from the tree.
    *
-   * @param relativePath Path to get value for.
+   * @param relativePath - Path to get value for.
    * @returns Value at path, or null.
    */
   get(relativePath: Path): T | null {
@@ -215,8 +215,8 @@ export class ImmutableTree<T> {
   /**
    * Replace the subtree at the specified path with the given new tree.
    *
-   * @param relativePath Path to replace subtree for.
-   * @param newTree New tree.
+   * @param relativePath - Path to replace subtree for.
+   * @param newTree - New tree.
    * @returns Resulting tree.
    */
   setTree(relativePath: Path, newTree: ImmutableTree<T>): ImmutableTree<T> {
@@ -330,7 +330,7 @@ export class ImmutableTree<T> {
   /**
    * Calls the given function for each node in the tree that has a value.
    *
-   * @param f A function to be called with the path from the root of the tree to
+   * @param f - A function to be called with the path from the root of the tree to
    * a node, and the value at that node. Called in depth-first order.
    */
   foreach(f: (path: Path, value: T) => void) {

@@ -115,7 +115,7 @@ export function syncPointApplyOperation(
 /**
  * Get a view for the specified query.
  *
- * @param query The query to return a view for
+ * @param query - The query to return a view for
  * @param writesCache
  * @param serverCache
  * @param serverCacheComplete
@@ -164,7 +164,7 @@ export function syncPointGetView(
  * @param query
  * @param eventRegistration
  * @param writesCache
- * @param serverCache Complete server cache, if we have it.
+ * @param serverCache - Complete server cache, if we have it.
  * @param serverCacheComplete
  * @returns Events to raise.
  */
@@ -197,8 +197,8 @@ export function syncPointAddEventRegistration(
  * If query is the default query, we'll check all views for the specified eventRegistration.
  * If eventRegistration is null, we'll remove all callbacks for the specified view(s).
  *
- * @param eventRegistration If null, remove all callbacks.
- * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
+ * @param eventRegistration - If null, remove all callbacks.
+ * @param cancelError - If a cancelError is provided, appropriate cancel events will be returned.
  * @returns removed queries and any cancel events
  */
 export function syncPointRemoveEventRegistration(
@@ -265,7 +265,7 @@ export function syncPointGetQueryViews(syncPoint: SyncPoint): View[] {
 }
 
 /**
- * @param path The path to the desired complete snapshot
+ * @param path - The path to the desired complete snapshot
  * @returns A complete cache, if it exists
  */
 export function syncPointGetCompleteServerCache(

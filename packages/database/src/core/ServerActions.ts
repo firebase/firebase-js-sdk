@@ -57,7 +57,7 @@ export abstract class ServerActions {
 
   /**
    * Refreshes the auth token for the current connection.
-   * @param token The authentication token
+   * @param token - The authentication token
    */
   refreshAuthToken(token: string) {}
 

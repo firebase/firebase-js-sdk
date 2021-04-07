@@ -54,8 +54,8 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
    *
    * <p>Note: This method must be called before performing any other operation.
    *
-   * @param host the emulator host (ex: localhost)
-   * @param port the emulator port (ex: 8080)
+   * @param host - the emulator host (ex: localhost)
+   * @param port - the emulator port (ex: 8080)
    */
   useEmulator(host: string, port: number): void {
     useDatabaseEmulator(this._delegate, host, port);
@@ -65,7 +65,7 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
    * Returns a reference to the root or to the path specified in the provided
    * argument.
    *
-   * @param path The relative string path or an existing Reference to a database
+   * @param path - The relative string path or an existing Reference to a database
    * location.
    * @throws If a Reference is provided, throws if it does not belong to the
    * same project.

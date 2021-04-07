@@ -35,6 +35,7 @@ import { nodeFromJSON } from './snap/nodeFromJSON';
 import { SnapshotHolder } from './SnapshotHolder';
 import {
   newSparseSnapshotTree,
+  SparseSnapshotTree,
   sparseSnapshotTreeForEachTree,
   sparseSnapshotTreeForget,
   sparseSnapshotTreeRemember
@@ -175,7 +176,7 @@ export class Repo {
   interceptServerDataCallback_: ((a: string, b: unknown) => void) | null = null;
 
   /** A list of data pieces and paths to be set when this client disconnects. */
-  onDisconnect_ = newSparseSnapshotTree();
+  onDisconnect_: SparseSnapshotTree = newSparseSnapshotTree();
 
   /** Stores queues of outstanding transactions for Firebase locations. */
   transactionQueueTree_ = new Tree<Transaction[]>();
@@ -857,12 +858,12 @@ export function repoCallOnCompleteCallback(
  * Creates a new transaction, adds it to the transactions we're tracking, and
  * sends it to the server if possible.
  *
- * @param path Path at which to do transaction.
- * @param transactionUpdate Update callback.
- * @param onComplete Completion callback.
- * @param unwatcher Function that will be called when the transaction no longer
+ * @param path - Path at which to do transaction.
+ * @param transactionUpdate - Update callback.
+ * @param onComplete - Completion callback.
+ * @param unwatcher - Function that will be called when the transaction no longer
  * need data updates for `path`.
- * @param applyLocally Whether or not to make intermediate results visible
+ * @param applyLocally - Whether or not to make intermediate results visible
  */
 export function repoStartTransaction(
   repo: Repo,
@@ -974,7 +975,7 @@ export function repoStartTransaction(
 }
 
 /**
- * @param excludeSets A specific set to exclude
+ * @param excludeSets - A specific set to exclude
  */
 function repoGetLatestState(
   repo: Repo,
@@ -994,7 +995,7 @@ function repoGetLatestState(
  * Externally it's called with no arguments, but it calls itself recursively
  * with a particular transactionQueueTree node to recurse through the tree.
  *
- * @param node transactionQueueTree node to start at.
+ * @param node - transactionQueueTree node to start at.
  */
 function repoSendReadyTransactions(
   repo: Repo,
@@ -1028,8 +1029,8 @@ function repoSendReadyTransactions(
  * Given a list of run transactions, send them to the server and then handle
  * the result (success or failure).
  *
- * @param path The location of the queue.
- * @param queue Queue of transactions under the specified location.
+ * @param path - The location of the queue.
+ * @param queue - Queue of transactions under the specified location.
  */
 function repoSendTransactionQueue(
   repo: Repo,
@@ -1146,7 +1147,7 @@ function repoSendTransactionQueue(
  * Return the highest path that was affected by rerunning transactions. This
  * is the path at which events need to be raised for.
  *
- * @param changedPath The path in mergedData that changed.
+ * @param changedPath - The path in mergedData that changed.
  * @returns The rootmost path that was affected by rerunning transactions.
  */
 function repoRerunTransactions(repo: Repo, changedPath: Path): Path {
@@ -1166,8 +1167,8 @@ function repoRerunTransactions(repo: Repo, changedPath: Path): Path {
  * Does all the work of rerunning transactions (as well as cleans up aborted
  * transactions and whatnot).
  *
- * @param queue The queue of transactions to run.
- * @param path The path the queue is for.
+ * @param queue - The queue of transactions to run.
+ * @param path - The path the queue is for.
  */
 function repoRerunTransactionQueue(
   repo: Repo,
@@ -1328,7 +1329,7 @@ function repoRerunTransactionQueue(
  * transaction on it, or just returns the node for the given path if there are
  * no pending transactions on any ancestor.
  *
- * @param path The location to start at.
+ * @param path - The location to start at.
  * @returns The rootmost node with a transaction.
  */
 function repoGetAncestorTransactionNode(
@@ -1422,7 +1423,7 @@ function repoPruneCompletedTransactionsBelowNode(
  * Called when doing a set() or update() since we consider them incompatible
  * with transactions.
  *
- * @param path Path for which we want to abort related transactions.
+ * @param path - Path for which we want to abort related transactions.
  */
 function repoAbortTransactions(repo: Repo, path: Path): Path {
   const affectedPath = treeGetPath(repoGetAncestorTransactionNode(repo, path));
@@ -1445,7 +1446,7 @@ function repoAbortTransactions(repo: Repo, path: Path): Path {
 /**
  * Abort transactions stored in this transaction queue node.
  *
- * @param node Node to abort transactions for.
+ * @param node - Node to abort transactions for.
  */
 function repoAbortTransactionsOnNode(
   repo: Repo,

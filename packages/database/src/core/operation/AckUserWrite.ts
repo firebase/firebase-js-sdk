@@ -36,17 +36,13 @@ export class AckUserWrite implements Operation {
   source = newOperationSourceUser();
 
   /**
-   * @param affectedTree A tree containing true for each affected path. Affected paths can't overlap.
+   * @param affectedTree - A tree containing true for each affected path. Affected paths can't overlap.
    */
   constructor(
     /** @inheritDoc */ public path: Path,
     /** @inheritDoc */ public affectedTree: ImmutableTree<boolean>,
     /** @inheritDoc */ public revert: boolean
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   operationForChild(childName: string): AckUserWrite {
     if (!pathIsEmpty(this.path)) {
       assert(

@@ -36,12 +36,19 @@ export interface TransactionOptions {
   readonly applyLocally?: boolean;
 }
 
+/**
+ * A type for the resolve value of Firebase.transaction.
+ */
 export class TransactionResult {
-  /**
-   * A type for the resolve value of Firebase.transaction.
-   */
-  constructor(readonly committed: boolean, readonly snapshot: DataSnapshot) {}
+  /** @hideconstructor */
+  constructor(
+    /** Whether the transaction was successfully committed. */
+    readonly committed: boolean,
+    /** The resulting data snapshot. */
+    readonly snapshot: DataSnapshot
+  ) {}
 
+  /** Returns a JSON-serializable representation of this object. */
   toJSON(): object {
     return { committed: this.committed, snapshot: this.snapshot.toJSON() };
   }

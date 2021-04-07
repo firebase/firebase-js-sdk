@@ -31,9 +31,8 @@ import { QueryContext } from '../core/view/EventRegistration';
  * `on*()` methods. You will only receive events and `DataSnapshot`s for the
  * subset of the data that matches your query.
  *
- * Read our documentation on {@link
- * https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
- * Sorting and filtering data} for more information.
+ * See {@link https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data}
+ * for more information.
  */
 export interface Query extends QueryContext {
   /** The `Reference` for the `Query`'s location. */
@@ -89,8 +88,7 @@ export interface Query extends QueryContext {
  *
  * Writing is done with the `set()` method and reading can be done with the
  * `on*()` method. See {@link
- * https://firebase.google.com/docs/database/web/read-and-write Read and Write
- * Data on the Web}
+ * https://firebase.google.com/docs/database/web/read-and-write}
  */
 export interface Reference extends Query {
   /**
