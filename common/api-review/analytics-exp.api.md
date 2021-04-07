@@ -6,7 +6,7 @@
 
 import { FirebaseApp } from '@firebase/app-exp';
 
-// @public (undocumented)
+// @public
 export interface Analytics {
     app: FirebaseApp;
 }
@@ -28,7 +28,7 @@ export interface ControlParams {
     send_to?: string | string[];
 }
 
-// @public (undocumented)
+// @public
 export type Currency = string | number;
 
 // @public
@@ -108,12 +108,12 @@ export interface EventParams {
 }
 
 // @public
-export function getAnalytics(app: FirebaseApp): Analytics;
+export function getAnalytics(app?: FirebaseApp): Analytics;
 
 // @public
 export function isSupported(): Promise<boolean>;
 
-// @public (undocumented)
+// @public
 export interface Item {
     // (undocumented)
     affiliation?: string;
@@ -351,7 +351,7 @@ export function logEvent<T extends string>(analyticsInstance: Analytics, eventNa
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
-// @public @deprecated (undocumented)
+// @public @deprecated
 export interface Promotion {
     // (undocumented)
     creative_name?: string;
