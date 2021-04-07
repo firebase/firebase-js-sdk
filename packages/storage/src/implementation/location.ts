@@ -53,10 +53,10 @@ export class Location {
     return '/b/' + encode(this.bucket) + '/o';
   }
 
-  static makeFromBucketSpec(bucketString: string): Location {
+  static makeFromBucketSpec(bucketString: string, host: string): Location {
     let bucketLocation;
     try {
-      bucketLocation = Location.makeFromUrl(bucketString);
+      bucketLocation = Location.makeFromUrl(bucketString, host);
     } catch (e) {
       // Not valid URL, use as-is. This lets you put bare bucket names in
       // config.
@@ -69,7 +69,7 @@ export class Location {
     }
   }
 
-  static makeFromUrl(url: string): Location {
+  static makeFromUrl(url: string, host: string): Location {
     let location: Location | null = null;
     const bucketDomain = '([A-Za-z0-9.\\-_]+)';
 
@@ -86,7 +86,7 @@ export class Location {
       loc.path_ = decodeURIComponent(loc.path);
     }
     const version = 'v[A-Za-z0-9_]+';
-    const firebaseStorageHost = DEFAULT_HOST.replace(/[.]/g, '\\.');
+    const firebaseStorageHost = host.replace(/[.]/g, '\\.');
     const firebaseStoragePath = '(/([^?#]*).*)?$';
     const firebaseStorageRegExp = new RegExp(
       `^https?://${firebaseStorageHost}/${version}/b/${bucketDomain}/o${firebaseStoragePath}`,
@@ -95,7 +95,9 @@ export class Location {
     const firebaseStorageIndices = { bucket: 1, path: 3 };
 
     const cloudStorageHost =
-      '(?:storage.googleapis.com|storage.cloud.google.com)';
+      host === DEFAULT_HOST
+        ? '(?:storage.googleapis.com|storage.cloud.google.com)'
+        : host;
     const cloudStoragePath = '([^?#]*)';
     const cloudStorageRegExp = new RegExp(
       `^https?://${cloudStorageHost}/${bucketDomain}/${cloudStoragePath}`,
