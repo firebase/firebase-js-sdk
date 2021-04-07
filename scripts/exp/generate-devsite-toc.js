@@ -35,7 +35,9 @@ for (const fileName of fs.readdirSync(REPORT_DIR)) {
    * Entry point
    */
   for (const entryPoint of report.members) {
-    const entryPointName = entryPoint.canonicalReference.replace('!', '');
+    const entryPointName = entryPoint.canonicalReference
+      .replace('!', '')
+      .replace('@firebase/', '');
     const entryPointToc = {
       title: entryPointName,
       path: `${REF_DOC_DIR}/${getFileName(
