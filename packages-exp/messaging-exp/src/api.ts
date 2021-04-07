@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, _getProvider, getApp } from '@firebase/app-exp';
 import { FirebaseMessaging, MessagePayload } from './interfaces/public-types';
 import {
   NextFn,
@@ -27,7 +27,6 @@ import {
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
 import { deleteToken as _deleteToken } from './api/deleteToken';
-import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
