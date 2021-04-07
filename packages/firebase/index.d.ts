@@ -7618,7 +7618,7 @@ declare namespace firebase.storage {
      * @param host - The emulator host (ex: localhost)
      * @param port - The emulator port (ex: 5001)
      */
-    useEmulator(host: string, port: string): void;
+    useEmulator(host: string, port: number): void;
   }
 
   /**
