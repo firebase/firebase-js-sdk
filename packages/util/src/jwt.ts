@@ -44,8 +44,8 @@ export const decode = function (token: string): DecodedToken {
 
   try {
     const parts = token.split('.');
-    header = jsonEval(base64Decode(parts[0]) || '') as object;
-    claims = jsonEval(base64Decode(parts[1]) || '') as Claims;
+    header = (parts[0] ? jsonEval(base64Decode(parts[0]) || '') : {}) as object;
+    claims = (parts[1] ? jsonEval(base64Decode(parts[1]) || '') : {}) as Claims;
     signature = parts[2];
     data = claims['d'] || {};
     delete claims['d'];
