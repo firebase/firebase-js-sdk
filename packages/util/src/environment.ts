@@ -147,7 +147,7 @@ export function isIndexedDBAvailable(): boolean {
  * This method validates browser/sw context for indexedDB by opening a dummy indexedDB database and reject
  * if errors occur during the database open operation.
  *
- * @throws exception if current  browser/sw context can't run idb.open (ex: Safari iframe, Firefox
+ * @throws exception if current browser/sw context can't run idb.open (ex: Safari iframe, Firefox
  * private browsing)
  */
 export function validateIndexedDBOpenable(): Promise<boolean> {
