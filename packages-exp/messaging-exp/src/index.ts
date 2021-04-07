@@ -18,7 +18,7 @@
 import '@firebase/installations-exp';
 
 import { FirebaseMessaging } from './interfaces/public-types';
-import { registerWindowMessaging } from './helpers/register';
+import { registerMessagingInWindow } from './helpers/register';
 
 export {
   getToken,
@@ -36,4 +36,4 @@ declare module '@firebase/component' {
   }
 }
 
-registerWindowMessaging();
+registerMessagingInWindow();

@@ -67,10 +67,12 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
   });
 
   it('should require handleCodeInApp to be true', async () => {
-    await expect(sendSignInLinkToEmail(auth, email)).to.be.rejectedWith(
-      FirebaseError,
-      'auth/argument-error).'
-    );
+    await expect(
+      sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: false,
+        url: 'continue-url'
+      })
+    ).to.be.rejectedWith(FirebaseError, 'auth/argument-error).');
   });
 
   it('should surface errors', async () => {

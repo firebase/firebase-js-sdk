@@ -15,14 +15,19 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _getProvider } from '@firebase/app-exp';
-import { FirebaseMessaging, MessagePayload } from './interfaces/public-types';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 import {
   onNotificationClick,
   onPush,
   onSubChange
 } from './listeners/sw-listeners';
+import { FirebaseApp, _getProvider, getApp } from '@firebase/app-exp';
+import { FirebaseMessaging, MessagePayload } from './interfaces/public-types';
+import {
+  NextFn,
+  Observer,
+  Unsubscribe,
+  getModularInstance
+} from '@firebase/util';
 
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
@@ -41,7 +46,9 @@ import { messageEventListener } from './listeners/window-listener';
  *
  * @public
  */
-export function getMessaging(app: FirebaseApp): FirebaseMessaging {
+export function getMessagingInWindow(
+  app: FirebaseApp = getApp()
+): FirebaseMessaging {
   app = getModularInstance(app);
   const messagingProvider: Provider<'messaging-exp'> = _getProvider(
     app,

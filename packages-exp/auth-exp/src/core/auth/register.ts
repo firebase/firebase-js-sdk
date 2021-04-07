@@ -16,9 +16,13 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstantiationMode
+} from '@firebase/component';
 
-import { version } from '../../../package.json';
+import { name, version } from '../../../package.json';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
@@ -86,6 +90,23 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
       },
       ComponentType.PUBLIC
     )
+      /**
+       * Auth can only be initialized by explicitly calling getAuth() or initializeAuth()
+       * For why we do this, See go/firebase-next-auth-init
+       */
+      .setInstantiationMode(InstantiationMode.EXPLICIT)
+      /**
+       * Because all firebase products that depend on auth depend on auth-internal directly,
+       * we need to initialize auth-internal after auth is initialized to make it available to other firebase products.
+       */
+      .setInstanceCreatedCallback(
+        (container, _instanceIdentifier, _instance) => {
+          const authInternalProvider = container.getProvider(
+            _ComponentName.AUTH_INTERNAL
+          );
+          authInternalProvider.initialize();
+        }
+      )
   );
 
   _registerComponent(
@@ -98,12 +119,8 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         return (auth => new AuthInterop(auth))(auth);
       },
       ComponentType.PRIVATE
-    )
+    ).setInstantiationMode(InstantiationMode.EXPLICIT)
   );
 
-  registerVersion(
-    _ComponentName.AUTH,
-    version,
-    getVersionForPlatform(clientPlatform)
-  );
+  registerVersion(name, version, getVersionForPlatform(clientPlatform));
 }

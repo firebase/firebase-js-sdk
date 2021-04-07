@@ -154,7 +154,8 @@ export class ActionCodeURL {
 }
 
 /**
- * {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink}
+ * Parses the email action link string and returns an {@link ActionCodeURL} if
+ * the link is valid, otherwise returns null.
  *
  * @public
  */

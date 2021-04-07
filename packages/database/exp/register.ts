@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,33 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
-import { FirebaseFirestore } from '../src/exp/database';
-import { Settings } from '../src/exp/settings';
+import { FirebaseDatabase } from '../src/exp/Database';
+
+export { getDatabase, ServerValue } from '../src/exp/Database';
+export { enableLogging } from '../src/core/util/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore-exp': FirebaseFirestore;
+    'database-exp': FirebaseDatabase;
   }
 }
 
-export function registerFirestore(variant?: string): void {
+export function registerDatabase(variant?: string): void {
   _registerComponent(
     new Component(
-      'firestore-exp',
-      (container, { options: settings }: { options?: Settings }) => {
+      'database-exp',
+      (container, { instanceIdentifier: url }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
-        const firestoreInstance = new FirebaseFirestore(
-          app,
-          container.getProvider('auth-internal')
-        );
-        if (settings) {
-          firestoreInstance._setSettings(settings);
-        }
-        return firestoreInstance;
+        const authProvider = container.getProvider('auth-internal');
+        return new FirebaseDatabase(app, authProvider, url);
       },
       ComponentType.PUBLIC
-    )
+    ).setMultipleInstances(true)
   );
   registerVersion(name, version, variant);
 }

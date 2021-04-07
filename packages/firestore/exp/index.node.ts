@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,8 @@
  * limitations under the License.
  */
 
-import '@firebase/installations-exp';
+import { registerFirestore } from './register';
 
-import { FirebaseMessaging } from './interfaces/public-types';
-import { registerMessagingInSw } from './helpers/register';
+registerFirestore('node');
 
-export { onBackgroundMessage, getMessagingInSw as getMessaging } from './api';
-export { isSwSupported as isSupported } from './api/isSupported';
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'messaging-exp': FirebaseMessaging;
-  }
-}
-
-registerMessagingInSw();
+export * from './api';

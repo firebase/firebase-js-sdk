@@ -73,7 +73,7 @@ import { getModularInstance } from '@firebase/util';
 export async function sendSignInLinkToEmail(
   auth: Auth,
   email: string,
-  actionCodeSettings?: ActionCodeSettings
+  actionCodeSettings: ActionCodeSettings
 ): Promise<void> {
   const authModular = getModularInstance(auth);
   const request: api.EmailSignInRequest = {
@@ -81,7 +81,7 @@ export async function sendSignInLinkToEmail(
     email
   };
   _assert(
-    actionCodeSettings?.handleCodeInApp,
+    actionCodeSettings.handleCodeInApp,
     authModular,
     AuthErrorCode.ARGUMENT_ERROR
   );
@@ -155,7 +155,7 @@ export async function signInWithEmailLink(
   // Check if the tenant ID in the email link matches the tenant ID on Auth
   // instance.
   _assert(
-    credential.tenantId === (authModular.tenantId || null),
+    credential._tenantId === (authModular.tenantId || null),
     authModular,
     AuthErrorCode.TENANT_ID_MISMATCH
   );

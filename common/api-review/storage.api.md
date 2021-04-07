@@ -61,7 +61,7 @@ export function getDownloadURL(ref: StorageReference): Promise<string>;
 export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 
 // @public
-export function getStorage(app: FirebaseApp, bucketUrl?: string): StorageService;
+export function getStorage(app?: FirebaseApp, bucketUrl?: string): StorageService;
 
 // @public
 export function list(ref: StorageReference, options?: ListOptions): Promise<ListResult>;
@@ -94,9 +94,9 @@ export class _Location {
     // (undocumented)
     get isRoot(): boolean;
     // (undocumented)
-    static makeFromBucketSpec(bucketString: string): _Location;
+    static makeFromBucketSpec(bucketString: string, host: string): _Location;
     // (undocumented)
-    static makeFromUrl(url: string): _Location;
+    static makeFromUrl(url: string, host: string): _Location;
     // (undocumented)
     get path(): string;
     }
@@ -252,6 +252,9 @@ export interface UploadTaskSnapshot {
     task: UploadTask;
     totalBytes: number;
 }
+
+// @public
+export function useStorageEmulator(storage: StorageService, host: string, port: number): void;
 
 
 // (No @packageDocumentation comment for this package)

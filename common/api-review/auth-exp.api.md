@@ -185,20 +185,17 @@ export const debugErrorMap: AuthErrorMap;
 // @public
 export function deleteUser(user: User): Promise<void>;
 
-// @public (undocumented)
+// @public
 export interface Dependencies {
-    // (undocumented)
     errorMap?: AuthErrorMap;
-    // (undocumented)
     persistence?: Persistence | Persistence[];
-    // (undocumented)
     popupRedirectResolver?: PopupRedirectResolver;
 }
 
 // @public
 export class EmailAuthCredential extends AuthCredential {
-    // (undocumented)
-    readonly email: string;
+    // @internal (undocumented)
+    readonly _email: string;
     // @internal (undocumented)
     static _fromEmailAndCode(email: string, oobCode: string, tenantId?: string | null): EmailAuthCredential;
     // @internal (undocumented)
@@ -210,10 +207,10 @@ export class EmailAuthCredential extends AuthCredential {
     _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse>;
     // @internal (undocumented)
     _linkToIdToken(auth: AuthInternal, idToken: string): Promise<IdTokenResponse>;
-    // (undocumented)
-    readonly password: string;
-    // (undocumented)
-    readonly tenantId: string | null;
+    // @internal (undocumented)
+    readonly _password: string;
+    // @internal (undocumented)
+    readonly _tenantId: string | null;
     toJSON(): object;
 }
 
@@ -253,7 +250,7 @@ export function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<s
 export function getAdditionalUserInfo(userCredential: UserCredential): AdditionalUserInfo | null;
 
 // @public
-export function getAuth(app: FirebaseApp): Auth;
+export function getAuth(app?: FirebaseApp): Auth;
 
 // @public
 export function getIdToken(user: User, forceRefresh?: boolean): Promise<string>;
@@ -301,7 +298,7 @@ export interface IdTokenResult {
 // @public
 export const indexedDBLocalPersistence: Persistence;
 
-// @public (undocumented)
+// @public
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
 
 // @public
@@ -397,7 +394,6 @@ export interface OAuthCredentialOptions {
 export class OAuthProvider extends BaseOAuthProvider {
     credential(params: OAuthCredentialOptions): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
-    // (undocumented)
     static credentialFromJSON(json: object | string): OAuthCredential;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
     }
@@ -415,7 +411,7 @@ export const enum OperationType {
     SIGN_IN = "signIn"
 }
 
-// @public (undocumented)
+// @public
 export function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 // @public
@@ -438,9 +434,6 @@ export interface Persistence {
 
 // @public
 export class PhoneAuthCredential extends AuthCredential {
-    // Warning: (ae-unresolved-inheritdoc-reference) The @inheritDoc reference could not be resolved: No member was found with name "fromJSON"
-    //
-    // (undocumented)
     static fromJSON(json: object | string): PhoneAuthCredential | null;
     // @internal (undocumented)
     static _fromTokenResponse(phoneNumber: string, temporaryProof: string): PhoneAuthCredential;
@@ -463,7 +456,6 @@ export class PhoneAuthCredential extends AuthCredential {
 export class PhoneAuthProvider {
     constructor(auth: Auth);
     static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
-    // (undocumented)
     static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
     static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
     static readonly PROVIDER_ID = ProviderId.PHONE;
@@ -510,23 +502,17 @@ export const prodErrorMap: AuthErrorMap;
 
 // @public
 export const enum ProviderId {
-    // (undocumented)
+    // @internal (undocumented)
     ANONYMOUS = "anonymous",
-    // (undocumented)
+    // @internal (undocumented)
     CUSTOM = "custom",
-    // (undocumented)
     FACEBOOK = "facebook.com",
-    // (undocumented)
+    // @internal (undocumented)
     FIREBASE = "firebase",
-    // (undocumented)
     GITHUB = "github.com",
-    // (undocumented)
     GOOGLE = "google.com",
-    // (undocumented)
     PASSWORD = "password",
-    // (undocumented)
     PHONE = "phone",
-    // (undocumented)
     TWITTER = "twitter.com"
 }
 
@@ -575,11 +561,8 @@ export function reload(user: User): Promise<void>;
 // @public
 export class SAMLAuthProvider extends FederatedAuthProvider {
     constructor(providerId: string);
-    // (undocumented)
     static credentialFromError(error: FirebaseError): AuthCredential | null;
-    // (undocumented)
     static credentialFromJSON(json: string | object): AuthCredential;
-    // (undocumented)
     static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
     }
 
@@ -590,7 +573,7 @@ export function sendEmailVerification(user: User, actionCodeSettings?: ActionCod
 export function sendPasswordResetEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
 
 // @public
-export function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
+export function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings: ActionCodeSettings): Promise<void>;
 
 // @public
 export function setPersistence(auth: Auth, persistence: Persistence): Promise<void>;
@@ -600,21 +583,14 @@ export function signInAnonymously(auth: Auth): Promise<UserCredential>;
 
 // @public
 export const enum SignInMethod {
-    // (undocumented)
+    // @internal (undocumented)
     ANONYMOUS = "anonymous",
-    // (undocumented)
     EMAIL_LINK = "emailLink",
-    // (undocumented)
     EMAIL_PASSWORD = "password",
-    // (undocumented)
     FACEBOOK = "facebook.com",
-    // (undocumented)
     GITHUB = "github.com",
-    // (undocumented)
     GOOGLE = "google.com",
-    // (undocumented)
     PHONE = "phone",
-    // (undocumented)
     TWITTER = "twitter.com"
 }
 
@@ -648,9 +624,7 @@ export class TwitterAuthProvider extends BaseOAuthProvider {
     static credential(token: string, secret: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    // (undocumented)
     static readonly PROVIDER_ID = ProviderId.TWITTER;
-    // (undocumented)
     static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
 }
 
