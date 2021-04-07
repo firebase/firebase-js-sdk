@@ -1203,24 +1203,24 @@ export interface AuthErrorMap {}
  *
  * There are two ways to initialize an auth instance: {@link getAuth} and
  * {@link initializeAuth}. `getAuth` initializes everything using
- * platform-specific configurations, while `initializeAuth` takes a Dependencies
- * object directly, giving you more control over what is used.
+ * platform-specific configurations, while `initializeAuth` takes a
+ * `Dependencies` object directly, giving you more control over what is used.
  *
  * @public
  */
 export interface Dependencies {
   /**
    * Which {@link Persistence} to use. If this is an array, the first
-   * Persistence that the device supports is used. The SDK will search for an
-   * existing account in order and, if one is found in a secondary Persistence,
-   * the account is moved to the primary Persistence.
+   * `Persistence` that the device supports is used. The SDK searches for an
+   * existing account in order and, if one is found in a secondary
+   * `Persistence`, the account is moved to the primary `Persistence`.
    *
    * If no persistence is provided, the SDK falls back on
    * {@link inMemoryPersistence}.
    */
   persistence?: Persistence | Persistence[];
   /**
-   * The {@link PopupRedirectResolver} to use. This value will depend on the
+   * The {@link PopupRedirectResolver} to use. This value depends on the
    * platform. Options are {@link browserPopupRedirectResolver} and
    * {@link cordovaPopupRedirectResolver}. This field is optional if neither
    * {@link signInWithPopup} or {@link signInWithRedirect} are being used.

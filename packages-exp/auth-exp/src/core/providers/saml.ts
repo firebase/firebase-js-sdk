@@ -48,7 +48,7 @@ export class SAMLAuthProvider extends FederatedAuthProvider {
 
   /**
    * Generates an {@link AuthCredential} from a {@link UserCredential} after a
-   * successful SAML flow ompletes.
+   * successful SAML flow completes.
    *
    * @remarks
    *

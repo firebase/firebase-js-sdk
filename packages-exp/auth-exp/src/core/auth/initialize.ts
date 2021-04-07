@@ -31,14 +31,14 @@ import { AuthImpl } from './auth_impl';
  * @remarks
  *
  * This function allows more control over the Auth instance than
- * {@link getAuth}. `getAuth` will use platform-specific defaults to supply
+ * {@link getAuth}. `getAuth` uses platform-specific defaults to supply
  * the {@link Dependencies}. In general, `getAuth` is the easiest way to
- * initialize Auth and will work in most cases. Use `initializeAuth` if you
+ * initialize Auth and works for most use cases. Use `initializeAuth` if you
  * need control over which persistence layer is used, or to minimize bundle
  * size if you're not using either `signInWithPopup` or `signInWithRedirect`.
  *
  * For example, if your app only uses anonymous accounts and you only want
- * accounts saved for the current session, you would initialize Auth thus:
+ * accounts saved for the current session, initialize Auth with:
  *
  * ```js
  * const auth = initializeAuth(app, {
