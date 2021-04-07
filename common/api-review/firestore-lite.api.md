@@ -245,9 +245,6 @@ export type SetOptions = {
 
 // @public
 export interface Settings {
-    cacheSizeBytes?: number;
-    experimentalAutoDetectLongPolling?: boolean;
-    experimentalForceLongPolling?: boolean;
     host?: string;
     ignoreUndefinedProperties?: boolean;
     ssl?: boolean;

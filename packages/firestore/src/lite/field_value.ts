@@ -29,7 +29,7 @@ export abstract class FieldValue {
    */
   constructor(public _methodName: string) {}
 
-  /** Compares FieldValues for equality. */
+  /** Compares `FieldValue`s for equality. */
   abstract isEqual(other: FieldValue): boolean;
   abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 }

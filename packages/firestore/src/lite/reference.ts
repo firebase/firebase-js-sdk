@@ -148,7 +148,7 @@ export class DocumentReference<T = DocumentData> {
   /**
    * Removes the current converter.
    *
-   * @param converter - `null'`removes the current converter.
+   * @param converter - `null` removes the current converter.
    * @returns A `DocumentReference<DocumentData>` that does not use a converter.
    */
   withConverter(converter: null): DocumentReference<DocumentData>;
@@ -187,7 +187,7 @@ export class Query<T = DocumentData> {
   /**
    * Removes the current converter.
    *
-   * @param converter - `null'`removes the current converter.
+   * @param converter - `null` removes the current converter.
    * @returns A `Query<DocumentData>` that does not use a converter.
    */
   withConverter(converter: null): Query<DocumentData>;
@@ -268,7 +268,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
   /**
    * Removes the current converter.
    *
-   * @param converter - `null'`removes the current converter.
+   * @param converter - `null` removes the current converter.
    * @returns A `CollectionReference<DocumentData>` that does not use a
    * converter.
    */

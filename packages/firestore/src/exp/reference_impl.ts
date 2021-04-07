@@ -418,7 +418,7 @@ export function addDoc<T>(
 }
 
 /**
- * A function returns by `onSnapshot() `that removes the listener when invoked.
+ * A function returned by `onSnapshot()` that removes the listener when invoked.
  */
 export interface Unsubscribe {
   /** Removes the listener when invoked. */

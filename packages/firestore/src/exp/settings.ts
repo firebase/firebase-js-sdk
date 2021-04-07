@@ -20,7 +20,7 @@ import { Settings as LiteSettings } from '../lite/settings';
 export { DEFAULT_HOST } from '../lite/settings';
 
 /**
- * Settings that can be passed to Firestore.enablePersistence() to configure
+ * Settings that can be passed to `enableIndexedDbPersistence()` to configure
  * Firestore persistence.
  */
 export interface PersistenceSettings {
@@ -46,7 +46,33 @@ export interface Settings extends LiteSettings {
    * attempted.
    *
    * The default value is 40 MB. The threshold must be set to at least 1 MB, and
-   * can be set to CACHE_SIZE_UNLIMITED to disable garbage collection.
+   * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
    */
   cacheSizeBytes?: number;
+
+  /**
+   * Forces the SDK’s underlying network transport (WebChannel) to use
+   * long-polling. Each response from the backend will be closed immediately
+   * after the backend sends data (by default responses are kept open in
+   * case the backend has more data to send). This avoids incompatibility
+   * issues with certain proxies, antivirus software, etc. that incorrectly
+   * buffer traffic indefinitely. Use of this option will cause some
+   * performance degradation though.
+   *
+   * This setting cannot be used with `experimentalAutoDetectLongPolling` and
+   * may be removed in a future release. If you find yourself using it to
+   * work around a specific network reliability issue, please tell us about
+   * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
+   */
+  experimentalForceLongPolling?: boolean;
+
+  /**
+   * Configures the SDK's underlying transport (WebChannel) to automatically
+   * detect if long-polling should be used. This is very similar to
+   * `experimentalForceLongPolling`, but only uses long-polling if required.
+   *
+   * This setting will likely be enabled by default in future releases and
+   * cannot be combined with `experimentalForceLongPolling`.
+   */
+  experimentalAutoDetectLongPolling?: boolean;
 }
