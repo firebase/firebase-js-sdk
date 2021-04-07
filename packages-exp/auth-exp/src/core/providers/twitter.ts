@@ -85,7 +85,9 @@ import { BaseOAuthProvider } from './oauth';
  * @public
  */
 export class TwitterAuthProvider extends BaseOAuthProvider {
+  /** Always set to {@link SignInMethod.TWITTER}. */
   static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
+  /** Always set to {@link ProviderId.TWITTER}. */
   static readonly PROVIDER_ID = ProviderId.TWITTER;
 
   constructor() {

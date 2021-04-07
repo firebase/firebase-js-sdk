@@ -31,14 +31,23 @@ export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
  * @public
  */
 export const enum ProviderId {
+  /** @internal */
   ANONYMOUS = 'anonymous',
+  /** @internal */
   CUSTOM = 'custom',
+  /** Facebook provider ID */
   FACEBOOK = 'facebook.com',
+  /** @internal */
   FIREBASE = 'firebase',
+  /** GitHub provider ID */
   GITHUB = 'github.com',
+  /** Google provider ID */
   GOOGLE = 'google.com',
+  /** Password provider */
   PASSWORD = 'password',
+  /** Phone provider */
   PHONE = 'phone',
+  /** Twitter provider ID */
   TWITTER = 'twitter.com'
 }
 
@@ -48,13 +57,21 @@ export const enum ProviderId {
  * @public
  */
 export const enum SignInMethod {
+  /** @internal */
   ANONYMOUS = 'anonymous',
+  /** Email link sign in method */
   EMAIL_LINK = 'emailLink',
+  /** Email/password sign in method */
   EMAIL_PASSWORD = 'password',
+  /** Facebook sign in method */
   FACEBOOK = 'facebook.com',
+  /** GitHub sign in method */
   GITHUB = 'github.com',
+  /** Google sign in method */
   GOOGLE = 'google.com',
+  /** Phone sign in method */
   PHONE = 'phone',
+  /** Twitter sign in method */
   TWITTER = 'twitter.com'
 }
 
@@ -1173,10 +1190,44 @@ export interface EmulatorConfig {
 export interface AuthErrorMap {}
 
 /**
+ * The dependencies that can be used to initialize an Auth instance.
+ *
+ * @remarks
+ *
+ * The modular SDK enables tree shaking by allowing explicit declarations of
+ * dependencies. For example, a web app does not need to include code that
+ * enables Cordova redirect sign in. That functionality is therefore split into
+ * {@link browserPopupRedirectResolver} and
+ * {@link cordovaPopupRedirectResolver}. The dependencies object is how Auth is
+ * configured to reduce bundle sizes.
+ *
+ * There are two ways to initialize an auth instance: {@link getAuth} and
+ * {@link initializeAuth}. `getAuth` initializes everything using
+ * platform-specific configurations, while `initializeAuth` takes a
+ * `Dependencies` object directly, giving you more control over what is used.
+ *
  * @public
  */
 export interface Dependencies {
+  /**
+   * Which {@link Persistence} to use. If this is an array, the first
+   * `Persistence` that the device supports is used. The SDK searches for an
+   * existing account in order and, if one is found in a secondary
+   * `Persistence`, the account is moved to the primary `Persistence`.
+   *
+   * If no persistence is provided, the SDK falls back on
+   * {@link inMemoryPersistence}.
+   */
   persistence?: Persistence | Persistence[];
+  /**
+   * The {@link PopupRedirectResolver} to use. This value depends on the
+   * platform. Options are {@link browserPopupRedirectResolver} and
+   * {@link cordovaPopupRedirectResolver}. This field is optional if neither
+   * {@link signInWithPopup} or {@link signInWithRedirect} are being used.
+   */
   popupRedirectResolver?: PopupRedirectResolver;
+  /**
+   * Which {@link AuthErrorMap} to use.
+   */
   errorMap?: AuthErrorMap;
 }
