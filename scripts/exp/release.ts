@@ -303,7 +303,7 @@ async function buildPackages() {
   // Database
   await spawn(
     'yarn',
-    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp'],
+    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
