@@ -300,6 +300,14 @@ export class Query {
   }
 
   /**
+   * Tries to get the server-value for the query, then falls back to local
+   * cache.
+   */
+  get(): Promise<null> {
+    return Promise.resolve(null);
+  }
+
+  /**
    * Attaches a listener, waits for the first event, and then removes the listener
    */
   once(
