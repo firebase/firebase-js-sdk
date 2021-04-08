@@ -168,7 +168,7 @@ function prunePrivateImports<
   const prunedHeritageClauses: ts.HeritageClause[] = [];
   // Additional members that are copied from the private symbols into the public
   // symbols
-  const additionalMembers: ts.NamedDeclaration[] = [];
+  const additionalMembers: ts.Node[] = [];
 
   for (const heritageClause of node.heritageClauses || []) {
     const exportedTypes: ts.ExpressionWithTypeArguments[] = [];
@@ -248,8 +248,8 @@ function convertPropertiesForEnclosingClass(
   sourceFile: ts.SourceFile,
   parentClassSymbols: ts.Symbol[],
   currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration
-): ts.NamedDeclaration[] {
-  const newMembers: ts.NamedDeclaration[] = [];
+): ts.Node[] {
+  const newMembers: ts.Node[] = [];
   // The `codefix` package is not public but it does exactly what we want. It's
   // the same package that is used by VSCode to fill in missing members, which
   // is what we are using it for in this script. `codefix` handles missing
@@ -262,10 +262,59 @@ function convertPropertiesForEnclosingClass(
     { program, host },
     /* userPreferences= */ {},
     /* importAdder= */ undefined,
-    (c: ts.ClassElement) => newMembers.push(c)
+    (missingMember: ts.ClassElement) => {
+      const originalSymbol = parentClassSymbols.find(
+        symbol =>
+          symbol.escapedName ==
+          (missingMember.name as ts.Identifier).escapedText
+      );
+      const jsDocComment = originalSymbol
+        ? extractJSDocComment(originalSymbol, newMembers)
+        : undefined;
+      if (jsDocComment) {
+        newMembers.push(jsDocComment, missingMember);
+      } else {
+        newMembers.push(missingMember);
+      }
+    }
   );
   return newMembers;
 }
+
+/** Extracts the JSDoc comment from `symbol`. */
+function extractJSDocComment(
+  symbol: ts.Symbol,
+  alreadyAddedMembers: ts.Node[]
+): ts.Node | null {
+  const overloadCount = alreadyAddedMembers.filter(
+    node =>
+      ts.isClassElement(node) &&
+      (node.name as ts.Identifier).escapedText == symbol.name
+  ).length;
+
+  // Extract the comment from the overload that we are currently processing.
+  let targetIndex = 0;
+  const comments = symbol.getDocumentationComment(undefined).filter(symbol => {
+    // Overload comments are separated by line breaks.
+    if (symbol.kind == 'lineBreak') {
+      ++targetIndex;
+      return false;
+    } else {
+      return overloadCount == targetIndex;
+    }
+  });
+
+  if (comments.length > 0) {
+    const jsDocTags = ts.getJSDocTags(symbol.declarations[overloadCount]);
+    const maybeNewline = jsDocTags?.length > 0 ? '\n' : '';
+    return ts.factory.createJSDocComment(
+      comments[0].text + maybeNewline,
+      jsDocTags
+    );
+  }
+  return null;
+}
+
 /**
  * Replaces input types of public APIs that consume non-exported types, which
  * allows us to exclude private types from the pruned definitions. Returns the

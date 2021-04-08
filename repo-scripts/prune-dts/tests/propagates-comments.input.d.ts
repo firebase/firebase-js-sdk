@@ -15,21 +15,27 @@
  * limitations under the License.
  */
 
-import { ParseContext } from '../api/parse_context';
-import { FieldTransform } from '../model/mutation';
-
-/**
- * Sentinel values that can be used when writing document fields with `set()`
- * or `update()`.
- */
-export abstract class FieldValue {
+declare class A {
+  /** a */
+  a: string;
   /**
-   * @param _methodName - The public API endpoint that returns this class.
-   * @hideconstructor
+   * b1 first line
+   *
+   * b1 second line
+   *
+   * @param b1 b1 param
+   * @returns b1 return
    */
-  constructor(public _methodName: string) {}
-
-  /** Compares `FieldValue`s for equality. */
-  abstract isEqual(other: FieldValue): boolean;
-  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
+  b(b1: string): string;
+  /**
+   * b2 first line
+   *
+   * b2 second line
+   *
+   * @param b2 b2 param
+   * @returns b2 return
+   */
+  b(b2: string): string;
 }
+export class B extends A {}
+export {};

@@ -43,6 +43,7 @@ import { FirestoreDataConverter } from './snapshot';
  * values.
  */
 export interface DocumentData {
+  /** A mapping between a field and its value. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [field: string]: any;
 }
@@ -53,6 +54,7 @@ export interface DocumentData {
  * nested fields within the document.
  */
 export interface UpdateData {
+  /** A mapping between a dot-separated field path and its value. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [fieldPath: string]: any;
 }
@@ -139,15 +141,17 @@ export class DocumentReference<T = DocumentData> {
    * instance, the provided converter will convert between Firestore data and
    * your custom type `U`.
    *
-   * Passing in `null` as the converter parameter removes the current
-   * converter.
-   *
-   * @param converter - Converts objects to and from Firestore. Passing in
-   * `null` removes the current converter.
+   * @param converter - Converts objects to and from Firestore.
    * @returns A `DocumentReference<U>` that uses the provided converter.
    */
-  withConverter(converter: null): DocumentReference<DocumentData>;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+  /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `DocumentReference<DocumentData>` that does not use a converter.
+   */
+  withConverter(converter: null): DocumentReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U> | null
   ): DocumentReference<U> {
@@ -181,6 +185,13 @@ export class Query<T = DocumentData> {
   }
 
   /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `Query<DocumentData>` that does not use a converter.
+   */
+  withConverter(converter: null): Query<DocumentData>;
+  /**
    * Applies a custom data converter to this query, allowing you to use your own
    * custom model objects with Firestore. When you call {@link getDocs} with
    * the returned query, the provided converter will convert between Firestore
@@ -189,7 +200,6 @@ export class Query<T = DocumentData> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `Query<U>` that uses the provided converter.
    */
-  withConverter(converter: null): Query<DocumentData>;
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
   withConverter<U>(converter: FirestoreDataConverter<U> | null): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
@@ -201,11 +211,12 @@ export class Query<T = DocumentData> {
  * document references, and querying for documents (using {@link query}).
  */
 export class CollectionReference<T = DocumentData> extends Query<T> {
+  /** The type of this Firestore reference. */
   readonly type = 'collection';
 
   /** @hideconstructor */
   constructor(
-    readonly firestore: FirebaseFirestore,
+    firestore: FirebaseFirestore,
     converter: FirestoreDataConverter<T> | null,
     readonly _path: ResourcePath
   ) {
@@ -251,10 +262,17 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `CollectionReference<U>` that uses the provided converter.
    */
-  withConverter(converter: null): CollectionReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;
+  /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `CollectionReference<DocumentData>` that does not use a
+   * converter.
+   */
+  withConverter(converter: null): CollectionReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U> | null
   ): CollectionReference<U> {
