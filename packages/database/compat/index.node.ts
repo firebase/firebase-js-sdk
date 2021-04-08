@@ -23,14 +23,15 @@ import * as types from '@firebase/database-types';
 import { CONSTANTS, isNodeSdk } from '@firebase/util';
 import { Client } from 'faye-websocket';
 
-import { name, version } from './package.json';
+import { enableLogging } from '../exp/index';
 import { Database } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 import * as TEST_ACCESS from '../src/api/test_access';
 import { setSDKVersion } from '../src/core/version';
-import { enableLogging } from '../exp/index';
 import { setWebSocketImpl } from '../src/realtime/WebSocketConnection';
+
+import { name, version } from './package.json';
 
 setWebSocketImpl(Client);
 

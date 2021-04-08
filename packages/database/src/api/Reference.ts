@@ -24,15 +24,6 @@ import {
   validateContextObject
 } from '@firebase/util';
 
-import { warn } from '../core/util/util';
-import {
-  validateBoolean,
-  validateEventType,
-  validatePathString,
-  validateWritablePath
-} from '../core/util/validation';
-import { UserCallback } from '../core/view/EventRegistration';
-import { QueryParams } from '../core/view/QueryParams';
 import {
   OnDisconnect as ExpOnDisconnect,
   DataSnapshot as ExpDataSnapshot,
@@ -69,6 +60,15 @@ import {
   _ReferenceImpl,
   child
 } from '../../exp/index'; // import from the exp public API
+import { warn } from '../core/util/util';
+import {
+  validateBoolean,
+  validateEventType,
+  validatePathString,
+  validateWritablePath
+} from '../core/util/validation';
+import { UserCallback } from '../core/view/EventRegistration';
+import { QueryParams } from '../core/view/QueryParams';
 import { ThenableReferenceImpl } from '../exp/Reference_impl';
 
 import { Database } from './Database';

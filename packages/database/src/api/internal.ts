@@ -28,13 +28,13 @@ import {
 } from '@firebase/component';
 import * as types from '@firebase/database-types';
 
+import { _repoManagerDatabaseFromApp } from '../../exp/index';
 import {
   repoInterceptServerData,
   repoStats,
   repoStatsIncrementCounter
 } from '../core/Repo';
 import { setSDKVersion } from '../core/version';
-import { _repoManagerDatabaseFromApp } from '../../exp/index';
 import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
 import { WebSocketConnection } from '../realtime/WebSocketConnection';
 

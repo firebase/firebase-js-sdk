@@ -20,15 +20,15 @@ import firebase, { FirebaseNamespace } from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 import * as types from '@firebase/database-types';
-import { isNodeSdk } from '@firebase/util';
 
-import { name, version } from './package.json';
+import { enableLogging } from '../exp/index';
 import { Database } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 import * as TEST_ACCESS from '../src/api/test_access';
 import { setSDKVersion } from '../src/core/version';
-import { enableLogging } from '../exp/index';
+
+import { name, version } from './package.json';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
