@@ -1,5 +1,13 @@
 # Unreleased
 
+## 0.9.8
+
+### Patch Changes
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/component@0.4.0
+  - @firebase/database-types@0.7.1
+
 ## 0.9.7
 
 ### Patch Changes
