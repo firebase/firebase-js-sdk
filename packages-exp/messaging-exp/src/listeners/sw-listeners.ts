@@ -42,125 +42,113 @@ import { sleep } from '../helpers/sleep';
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
 
-export class SwController {
-  constructor(private readonly messaging: MessagingService) {
-    self.addEventListener('push', e => {
-      e.waitUntil(this.onPush(e));
-    });
-    self.addEventListener('pushsubscriptionchange', e => {
-      e.waitUntil(this.onSubChange(e));
-    });
-    self.addEventListener('notificationclick', e => {
-      e.waitUntil(this.onNotificationClick(e));
-    });
+export async function onSubChange(
+  event: PushSubscriptionChangeEvent,
+  messaging: MessagingService
+): Promise<void> {
+  const { newSubscription } = event;
+  if (!newSubscription) {
+    // Subscription revoked, delete token
+    await deleteTokenInternal(messaging);
+    return;
   }
 
-  /**
-   * A handler for push events that shows notifications based on the content of the payload.
-   *
-   * The payload must be a JSON-encoded Object with a `notification` key. The value of the
-   * `notification` property will be used as the NotificationOptions object passed to
-   * showNotification. Additionally, the `title` property of the notification object will be used as
-   * the title.
-   *
-   * If there is no notification data in the payload then no notification will be shown.
-   */
-  async onPush(event: PushEvent): Promise<void> {
-    const internalPayload = getMessagePayloadInternal(event);
-    if (!internalPayload) {
-      // Failed to get parsed MessagePayload from the PushEvent. Skip handling the push.
-      return;
-    }
+  const tokenDetails = await dbGet(messaging.firebaseDependencies);
+  await deleteTokenInternal(messaging);
 
-    // foreground handling: eventually passed to onMessage hook
-    const clientList = await getClientList();
-    if (hasVisibleClients(clientList)) {
-      return sendMessagePayloadInternalToWindows(clientList, internalPayload);
-    }
+  messaging.vapidKey =
+    tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
+  await getTokenInternal(messaging);
+}
 
-    // background handling: display if possible and pass to onBackgroundMessage hook
-    if (!!internalPayload.notification) {
-      await showNotification(wrapInternalPayload(internalPayload));
-    }
-
-    if (!!this.messaging.onBackgroundMessageHandler) {
-      const payload = externalizePayload(internalPayload);
-
-      if (typeof this.messaging.onBackgroundMessageHandler === 'function') {
-        this.messaging.onBackgroundMessageHandler(payload);
-      } else {
-        this.messaging.onBackgroundMessageHandler.next(payload);
-      }
-    }
+export async function onPush(
+  event: PushEvent,
+  messaging: MessagingService
+): Promise<void> {
+  const internalPayload = getMessagePayloadInternal(event);
+  if (!internalPayload) {
+    // Failed to get parsed MessagePayload from the PushEvent. Skip handling the push.
+    return;
   }
 
-  async onSubChange(event: PushSubscriptionChangeEvent): Promise<void> {
-    const { newSubscription } = event;
-    if (!newSubscription) {
-      // Subscription revoked, delete token
-      await deleteTokenInternal(this.messaging);
-      return;
-    }
-
-    const tokenDetails = await dbGet(this.messaging.firebaseDependencies);
-    await deleteTokenInternal(this.messaging);
-
-    this.messaging.vapidKey =
-      tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
-    await getTokenInternal(this.messaging);
+  // foreground handling: eventually passed to onMessage hook
+  const clientList = await getClientList();
+  if (hasVisibleClients(clientList)) {
+    return sendMessagePayloadInternalToWindows(clientList, internalPayload);
   }
 
-  async onNotificationClick(event: NotificationEvent): Promise<void> {
-    const internalPayload: MessagePayloadInternal =
-      event.notification?.data?.[FCM_MSG];
+  // background handling: display if possible and pass to onBackgroundMessage hook
+  if (!!internalPayload.notification) {
+    await showNotification(wrapInternalPayload(internalPayload));
+  }
 
-    if (!internalPayload) {
-      return;
-    } else if (event.action) {
-      // User clicked on an action button. This will allow developers to act on action button clicks
-      // by using a custom onNotificationClick listener that they define.
-      return;
-    }
+  if (!messaging) {
+    return;
+  }
 
-    // Prevent other listeners from receiving the event
-    event.stopImmediatePropagation();
-    event.notification.close();
+  if (!!messaging.onBackgroundMessageHandler) {
+    const payload = externalizePayload(internalPayload);
 
-    // Note clicking on a notification with no link set will focus the Chrome's current tab.
-    const link = getLink(internalPayload);
-    if (!link) {
-      return;
-    }
-
-    // FM should only open/focus links from app's origin.
-    const url = new URL(link, self.location.href);
-    const originUrl = new URL(self.location.origin);
-
-    if (url.host !== originUrl.host) {
-      return;
-    }
-
-    let client = await getWindowClient(url);
-
-    if (!client) {
-      client = await self.clients.openWindow(link);
-
-      // Wait three seconds for the client to initialize and set up the message handler so that it
-      // can receive the message.
-      await sleep(3000);
+    if (typeof messaging.onBackgroundMessageHandler === 'function') {
+      messaging.onBackgroundMessageHandler(payload);
     } else {
-      client = await client.focus();
+      messaging.onBackgroundMessageHandler.next(payload);
     }
-
-    if (!client) {
-      // Window Client will not be returned if it's for a third party origin.
-      return;
-    }
-
-    internalPayload.messageType = MessageType.NOTIFICATION_CLICKED;
-    internalPayload.isFirebaseMessaging = true;
-    return client.postMessage(internalPayload);
   }
+}
+
+export async function onNotificationClick(
+  event: NotificationEvent
+): Promise<void> {
+  const internalPayload: MessagePayloadInternal =
+    event.notification?.data?.[FCM_MSG];
+
+  if (!internalPayload) {
+    return;
+  } else if (event.action) {
+    // User clicked on an action button. This will allow developers to act on action button clicks
+    // by using a custom onNotificationClick listener that they define.
+    return;
+  }
+
+  // Prevent other listeners from receiving the event
+  event.stopImmediatePropagation();
+  event.notification.close();
+
+  // Note clicking on a notification with no link set will focus the Chrome's current tab.
+  const link = getLink(internalPayload);
+  if (!link) {
+    return;
+  }
+
+  // FM should only open/focus links from app's origin.
+  const url = new URL(link, self.location.href);
+  const originUrl = new URL(self.location.origin);
+
+  if (url.host !== originUrl.host) {
+    return;
+  }
+
+  let client = await getWindowClient(url);
+
+  if (!client) {
+    client = await self.clients.openWindow(link);
+
+    // Wait three seconds for the client to initialize and set up the message handler so that it
+    // can receive the message.
+    await sleep(3000);
+  } else {
+    client = await client.focus();
+  }
+
+  if (!client) {
+    // Window Client will not be returned if it's for a third party origin.
+    return;
+  }
+
+  internalPayload.messageType = MessageType.NOTIFICATION_CLICKED;
+  internalPayload.isFirebaseMessaging = true;
+  return client.postMessage(internalPayload);
 }
 
 function wrapInternalPayload(
