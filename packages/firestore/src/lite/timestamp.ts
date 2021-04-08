@@ -21,6 +21,9 @@ import { primitiveComparator } from '../util/misc';
 // The earliest date supported by Firestore timestamps (0001-01-01T00:00:00Z).
 const MIN_SECONDS = -62135596800;
 
+// Number of nanoseconds in a millisecond.
+const MS_TO_NANOS = 1e6;
+
 /**
  * A `Timestamp` represents a point in time independent of any time zone or
  * calendar, represented as seconds and fractions of seconds at nanosecond
@@ -66,7 +69,7 @@ export class Timestamp {
    */
   static fromMillis(milliseconds: number): Timestamp {
     const seconds = Math.floor(milliseconds / 1000);
-    const nanos = (milliseconds - seconds * 1000) * 1e6;
+    const nanos = Math.floor((milliseconds - seconds * 1000) * MS_TO_NANOS);
     return new Timestamp(seconds, nanos);
   }
 
@@ -138,7 +141,7 @@ export class Timestamp {
    *     the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
    */
   toMillis(): number {
-    return this.seconds * 1000 + this.nanoseconds / 1e6;
+    return this.seconds * 1000 + this.nanoseconds / MS_TO_NANOS;
   }
 
   _compareTo(other: Timestamp): number {
