@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  onNotificationClick,
-  onPush,
-  onSubChange
-} from './listeners/sw-listeners';
 import { FirebaseApp, _getProvider, getApp } from '@firebase/app-exp';
 import { FirebaseMessaging, MessagePayload } from './interfaces/public-types';
 import {
@@ -28,6 +23,11 @@ import {
   Unsubscribe,
   getModularInstance
 } from '@firebase/util';
+import {
+  onNotificationClick,
+  onPush,
+  onSubChange
+} from './listeners/sw-listeners';
 
 import { MessagingService } from './messaging-service';
 import { Provider } from '@firebase/component';
@@ -36,7 +36,6 @@ import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
-import { getModularInstance } from '@firebase/util';
 import { messageEventListener } from './listeners/window-listener';
 
 /**
