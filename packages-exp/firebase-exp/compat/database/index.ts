@@ -15,8 +15,4 @@
  * limitations under the License.
  */
 
-import { registerDatabase } from './register';
-
-export * from './api';
-
-registerDatabase('node');
+import '@firebase/database-compat';

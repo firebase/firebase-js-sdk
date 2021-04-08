@@ -9,7 +9,7 @@
   "scripts": {
     "bundle": "rollup -c",
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
-    "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js' build:lite build:exp",
+    "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js' build:lite build:exp && yarn build:compat",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
     "build:release": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.node.js' 'bundle rollup.config.rn.js'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",

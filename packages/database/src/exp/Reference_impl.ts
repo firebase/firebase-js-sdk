@@ -94,6 +94,9 @@ import {
   ThenableReference
 } from './Reference';
 
+/**
+ * @internal
+ */
 export class QueryImpl implements Query, QueryContext {
   /**
    * @hideconstructor
@@ -244,6 +247,9 @@ function validateLimit(params: QueryParams) {
   }
 }
 
+/**
+ * @internal
+ */
 export class ReferenceImpl extends QueryImpl implements Reference {
   /** @hideconstructor */
   constructor(repo: Repo, path: Path) {
@@ -289,8 +295,10 @@ export class DataSnapshot {
    */
   constructor(
     readonly _node: Node,
-    /** The location of this DataSnapshot. */
-    readonly ref: ReferenceImpl,
+    /**
+     * The location of this DataSnapshot.
+     */
+    readonly ref: Reference,
     readonly _index: Index
   ) {}
 
@@ -469,7 +477,7 @@ export class DataSnapshot {
  *   pointing to the provided path. Otherwise, a `Reference` pointing to the
  *   root of the Database.
  */
-export function ref(db: FirebaseDatabase, path?: string): ReferenceImpl {
+export function ref(db: FirebaseDatabase, path?: string): Reference {
   db = getModularInstance(db);
   db._checkNotDeleted('ref');
   return path !== undefined ? child(db._root, path) : db._root;
@@ -491,7 +499,7 @@ export function ref(db: FirebaseDatabase, path?: string): ReferenceImpl {
  * @returns A `Reference` pointing to the provided
  *   Firebase URL.
  */
-export function refFromURL(db: FirebaseDatabase, url: string): ReferenceImpl {
+export function refFromURL(db: FirebaseDatabase, url: string): Reference {
   db = getModularInstance(db);
   db._checkNotDeleted('refFromURL');
   const parsedURL = parseRepoInfo(url, db._repo.repoInfo_.nodeAdmin);
@@ -527,7 +535,7 @@ export function refFromURL(db: FirebaseDatabase, url: string): ReferenceImpl {
  *   location.
  * @returns The specified child location.
  */
-export function child(parent: Reference, path: string): ReferenceImpl {
+export function child(parent: Reference, path: string): Reference {
   parent = getModularInstance(parent);
   if (pathGetFront(parent._path) === null) {
     validateRootPathString('child', 'path', path, false);
@@ -589,8 +597,11 @@ export function push(parent: Reference, value?: unknown): ThenableReference {
   // then() and catch() methods and is used as the return value of push(). The
   // second remains a regular Reference and is used as the fulfilled value of
   // the first ThennableReference.
-  const thennablePushRef: Partial<ThenableReferenceImpl> = child(parent, name);
-  const pushRef = child(parent, name);
+  const thennablePushRef: Partial<ThenableReferenceImpl> = child(
+    parent,
+    name
+  ) as ReferenceImpl;
+  const pushRef = child(parent, name) as ReferenceImpl;
 
   let promise: Promise<ReferenceImpl>;
   if (value != null) {
@@ -791,8 +802,8 @@ export function update(ref: Reference, values: object): Promise<void> {
  * server is unreachable and there is nothing cached).
  */
 export function get(query: Query): Promise<DataSnapshot> {
-  const queryImpl = getModularInstance(query) as QueryImpl;
-  return repoGetValue(query._repo, queryImpl).then(node => {
+  query = getModularInstance(query) as QueryImpl;
+  return repoGetValue(query._repo, query).then(node => {
     return new DataSnapshot(
       node,
       new ReferenceImpl(query._repo, query._path),
@@ -2262,7 +2273,7 @@ export function equalTo(
 export function query(
   query: Query,
   ...queryConstraints: QueryConstraint[]
-): QueryImpl {
+): Query {
   let queryImpl = getModularInstance(query) as QueryImpl;
   for (const constraint of queryConstraints) {
     queryImpl = constraint._apply(queryImpl);

@@ -17,61 +17,6 @@
 
 import { registerDatabase } from './register';
 
-export {
-  FirebaseDatabase,
-  enableLogging,
-  getDatabase,
-  goOffline,
-  goOnline,
-  useDatabaseEmulator
-} from '../src/exp/Database';
-export {
-  Query,
-  Reference,
-  ListenOptions,
-  Unsubscribe,
-  ThenableReference
-} from '../src/exp/Reference';
-export { OnDisconnect } from '../src/exp/OnDisconnect';
-export {
-  DataSnapshot,
-  EventType,
-  QueryConstraint,
-  QueryConstraintType,
-  endAt,
-  endBefore,
-  equalTo,
-  get,
-  limitToFirst,
-  limitToLast,
-  off,
-  onChildAdded,
-  onChildChanged,
-  onChildMoved,
-  onChildRemoved,
-  onDisconnect,
-  onValue,
-  orderByChild,
-  orderByKey,
-  orderByPriority,
-  orderByValue,
-  push,
-  query,
-  ref,
-  refFromURL,
-  remove,
-  set,
-  setPriority,
-  setWithPriority,
-  startAfter,
-  startAt,
-  update
-} from '../src/exp/Reference_impl';
-export { increment, serverTimestamp } from '../src/exp/ServerValue';
-export {
-  runTransaction,
-  TransactionOptions,
-  TransactionResult
-} from '../src/exp/Transaction';
+export * from './api';
 
 registerDatabase();
