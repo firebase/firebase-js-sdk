@@ -200,7 +200,7 @@ export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 export function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(app: FirebaseApp): FirebaseFirestore;
+export function getFirestore(app?: FirebaseApp): FirebaseFirestore;
 
 // @public
 export function increment(n: number): FieldValue;

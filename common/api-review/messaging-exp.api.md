@@ -28,13 +28,16 @@ export interface FirebaseMessaging {
 export type _FirebaseMessagingName = 'messaging';
 
 // @public
-export function getMessaging(app: FirebaseApp): FirebaseMessaging;
+export function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 
 // @public
 export function getToken(messaging: FirebaseMessaging, options?: {
     vapidKey?: string;
     swReg?: ServiceWorkerRegistration;
 }): Promise<string>;
+
+// @public
+export function isSupported(): Promise<boolean>;
 
 // @public (undocumented)
 export interface MessagePayload {
