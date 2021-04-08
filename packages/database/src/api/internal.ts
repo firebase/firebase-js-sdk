@@ -34,7 +34,7 @@ import {
   repoStatsIncrementCounter
 } from '../core/Repo';
 import { setSDKVersion } from '../core/version';
-import { repoManagerDatabaseFromApp } from '../exp/Database';
+import { _repoManagerDatabaseFromApp } from '../../exp/index';
 import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
 import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
@@ -132,7 +132,7 @@ export function initStandalone<T>({
 
   return {
     instance: new Database(
-      repoManagerDatabaseFromApp(app, authProvider, url, nodeAdmin),
+      _repoManagerDatabaseFromApp(app, authProvider, url, nodeAdmin),
       app
     ) as types.Database,
     namespace

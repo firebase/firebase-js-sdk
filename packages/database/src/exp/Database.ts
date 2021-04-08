@@ -93,6 +93,7 @@ function repoManagerApplyEmulatorSettings(
 
 /**
  * This function should only ever be called to CREATE a new database instance.
+ * @internal
  */
 export function repoManagerDatabaseFromApp(
   app: FirebaseApp,

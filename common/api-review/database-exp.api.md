@@ -50,7 +50,7 @@ export class FirebaseDatabase {
 export function get(query: Query): Promise<DataSnapshot>;
 
 // @public
-export function getDatabase(app: FirebaseApp, url?: string): FirebaseDatabase;
+export function getDatabase(app?: FirebaseApp, url?: string): FirebaseDatabase;
 
 // @public
 export function goOffline(db: FirebaseDatabase): void;

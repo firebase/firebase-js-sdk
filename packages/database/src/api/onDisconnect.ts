@@ -19,7 +19,7 @@ import { validateArgCount, validateCallback, Compat } from '@firebase/util';
 
 import { Indexable } from '../core/util/misc';
 import { warn } from '../core/util/util';
-import { OnDisconnect as ExpOnDisconnect } from '../exp/OnDisconnect';
+import { OnDisconnect as ExpOnDisconnect } from '../../exp/index';
 
 export class OnDisconnect implements Compat<ExpOnDisconnect> {
   constructor(readonly _delegate: ExpOnDisconnect) {}
