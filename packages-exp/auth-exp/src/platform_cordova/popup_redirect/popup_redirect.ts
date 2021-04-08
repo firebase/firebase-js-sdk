@@ -111,7 +111,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
     manager: AuthEventManager
   ): void {
     // Get the global plugins
-    const { universalLinks, handleOpenUrl, BuildInfo } = _cordovaWindow();
+    const { universalLinks, handleOpenURL, BuildInfo } = _cordovaWindow();
 
     const noEventTimeout = setTimeout(async () => {
       // We didn't see that initial event. Clear any pending object and
@@ -149,18 +149,18 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
     // For this to work, cordova-plugin-customurlscheme needs to be installed.
     // https://github.com/EddyVerbruggen/Custom-URL-scheme
     // Do not overwrite the existing developer's URL handler.
-    const existingHandleOpenUrl = handleOpenUrl;
+    const existingHandleOpenURL = handleOpenURL;
     const packagePrefix = `${BuildInfo.packageName.toLowerCase()}://`;
-    _cordovaWindow().handleOpenUrl = async url => {
+    _cordovaWindow().handleOpenURL = async url => {
       if (url.toLowerCase().startsWith(packagePrefix)) {
         // We want this intentionally to float
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         universalLinksCb({ url });
       }
       // Call the developer's handler if it is present.
-      if (typeof existingHandleOpenUrl === 'function') {
+      if (typeof existingHandleOpenURL === 'function') {
         try {
-          existingHandleOpenUrl(url);
+          existingHandleOpenURL(url);
         } catch (e) {
           // This is a developer error. Don't stop the flow of the SDK.
           console.error(e);
