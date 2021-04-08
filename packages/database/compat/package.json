@@ -1,7 +1,7 @@
 {
     "name": "@firebase/database-compat",
     "version": "0.0.900",
-    "description": "The Cloud Storage component of the Firebase JS SDK.",
+    "description": "The Realtime Database component of the Firebase JS SDK.",
     "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
     "main": "../dist/compat/cjs/index.js",
     "browser": "../dist/compat/esm5/index.js",

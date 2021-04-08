@@ -74,10 +74,6 @@ export function registerDatabase(instance: FirebaseNamespace) {
   );
 
   instance.registerVersion(name, version);
-
-  if (isNodeSdk()) {
-    module.exports = namespace;
-  }
 }
 
 registerDatabase(firebase);
