@@ -802,8 +802,8 @@ export function update(ref: Reference, values: object): Promise<void> {
  * server is unreachable and there is nothing cached).
  */
 export function get(query: Query): Promise<DataSnapshot> {
-  const queryImpl = getModularInstance(query) as QueryImpl;
-  return repoGetValue(query._repo, queryImpl).then(node => {
+  query = getModularInstance(query) as QueryImpl;
+  return repoGetValue(query._repo, query).then(node => {
     return new DataSnapshot(
       node,
       new ReferenceImpl(query._repo, query._path),
