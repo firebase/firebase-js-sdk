@@ -27,16 +27,15 @@ export class FirebaseStorageError extends FirebaseError {
    */
   customData: { serverResponse: string | null } = { serverResponse: null };
 
+  private readonly _baseMessage: string;
   /**
    * @param code - A StorageErrorCode string to be prefixed with 'storage/' and
    *  added to the end of the message.
    * @param message  - Error message.
    */
   constructor(code: StorageErrorCode, message: string) {
-    super(
-      prependCode(code),
-      `Firebase Storage: ${message} (${prependCode(code)})`
-    );
+    super(prependCode(code), '' /* unused error message */);
+    this._baseMessage = `Firebase Storage: ${message} (${prependCode(code)})`;
     // Without this, `instanceof FirebaseStorageError`, in tests for example,
     // returns false.
     Object.setPrototypeOf(this, FirebaseStorageError.prototype);
@@ -54,9 +53,9 @@ export class FirebaseStorageError extends FirebaseError {
    */
   get message(): string {
     if (this.customData.serverResponse) {
-      return `${this.message}\n${this.customData.serverResponse}`;
+      return `${this._baseMessage}\n${this.customData.serverResponse}`;
     } else {
-      return this.message;
+      return this._baseMessage;
     }
   }
 
