@@ -26,7 +26,7 @@ export class DataSnapshot {
 export function enableLogging(enabled: boolean, persistent?: boolean): any;
 
 // @public
-export function enableLogging(logger?: (message: string) => unknown, persistent?: boolean): any;
+export function enableLogging(logger: (message: string) => unknown): any;
 
 // @public
 export function endAt(value: number | string | boolean | null, key?: string): QueryConstraint;

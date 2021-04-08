@@ -138,6 +138,7 @@ export class FirebaseFirestore implements FirestoreService {
     return this._terminateTask;
   }
 
+  /** Returns a JSON-serializable representation of this Firestore instance. */
   toJSON(): object {
     return {
       app: this._app,

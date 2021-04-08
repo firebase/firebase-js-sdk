@@ -534,7 +534,6 @@ export function refFromURL(db: FirebaseDatabase, url: string): Reference {
  * @param path - A relative path from this location to the desired child
  *   location.
  * @returns The specified child location.
- *
  */
 export function child(parent: Reference, path: string): ReferenceImpl {
   parent = getModularInstance(parent);

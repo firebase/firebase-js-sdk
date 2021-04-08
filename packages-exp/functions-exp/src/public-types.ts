@@ -22,24 +22,32 @@ import { FirebaseError } from '@firebase/util';
  * @public
  */
 export interface HttpsCallableResult<ResponseData = unknown> {
+  /**
+   * Data returned from callable function.
+   */
   readonly data: ResponseData;
 }
 
 /**
  * An HttpsCallable is a reference to a "callable" http trigger in
  * Google Cloud Functions.
+ * @param data - Data to be passed to callable function.
  * @public
  */
-export interface HttpsCallable<RequestData = unknown, ResponseData = unknown> {
-  (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
-}
+export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (
+  data?: RequestData | null
+) => Promise<HttpsCallableResult<ResponseData>>;
 
 /**
  * HttpsCallableOptions specify metadata about how calls should be executed.
  * @public
  */
 export interface HttpsCallableOptions {
-  timeout?: number; // in millis
+  /**
+   * Time in milliseconds after which to cancel if there is no response.
+   * Default is 70000.
+   */
+  timeout?: number;
 }
 
 /**

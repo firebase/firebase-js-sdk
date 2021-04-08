@@ -40,16 +40,12 @@ export function collectionGroup(firestore: FirebaseFirestore, collectionId: stri
 
 // @public
 export class CollectionReference<T = DocumentData> extends Query<T> {
-    // (undocumented)
-    readonly firestore: FirebaseFirestore;
     get id(): string;
     get parent(): DocumentReference<DocumentData> | null;
     get path(): string;
-    // (undocumented)
     readonly type = "collection";
-    withConverter(converter: null): CollectionReference<DocumentData>;
-    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
+    withConverter(converter: null): CollectionReference<DocumentData>;
 }
 
 // @public
@@ -69,7 +65,6 @@ export function doc(reference: DocumentReference<unknown>, path: string, ...path
 
 // @public
 export interface DocumentData {
-    // (undocumented)
     [field: string]: any;
 }
 
@@ -83,9 +78,8 @@ export class DocumentReference<T = DocumentData> {
     get parent(): CollectionReference<T>;
     get path(): string;
     readonly type = "document";
-    withConverter(converter: null): DocumentReference<DocumentData>;
-    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+    withConverter(converter: null): DocumentReference<DocumentData>;
 }
 
 // @public
@@ -118,15 +112,12 @@ export class FieldPath {
 
 // @public
 export abstract class FieldValue {
-    constructor(_methodName: string);
-    // (undocumented)
     abstract isEqual(other: FieldValue): boolean;
 }
 
 // @public
 export class FirebaseFirestore {
     get app(): FirebaseApp;
-    // (undocumented)
     toJSON(): object;
 }
 
@@ -139,13 +130,9 @@ export interface FirestoreDataConverter<T> {
 
 // @public
 export class FirestoreError extends Error {
-    // (undocumented)
     readonly code: FirestoreErrorCode;
-    // (undocumented)
     readonly message: string;
-    // (undocumented)
     readonly name: string;
-    // (undocumented)
     readonly stack?: string;
 }
 
@@ -158,7 +145,6 @@ export class GeoPoint {
     isEqual(other: GeoPoint): boolean;
     get latitude(): number;
     get longitude(): number;
-    // (undocumented)
     toJSON(): {
         latitude: number;
         longitude: number;
@@ -200,7 +186,6 @@ export class Query<T = DocumentData> {
     readonly firestore: FirebaseFirestore;
     readonly type: 'query' | 'collection';
     withConverter(converter: null): Query<DocumentData>;
-    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
@@ -258,19 +243,10 @@ export type SetOptions = {
     readonly mergeFields?: Array<string | FieldPath>;
 };
 
-// @public (undocumented)
+// @public
 export interface Settings {
-    // (undocumented)
-    cacheSizeBytes?: number;
-    // (undocumented)
-    experimentalAutoDetectLongPolling?: boolean;
-    // (undocumented)
-    experimentalForceLongPolling?: boolean;
-    // (undocumented)
     host?: string;
-    // (undocumented)
     ignoreUndefinedProperties?: boolean;
-    // (undocumented)
     ssl?: boolean;
 }
 
@@ -294,23 +270,21 @@ export function terminate(firestore: FirebaseFirestore): Promise<void>;
 
 // @public
 export class Timestamp {
-    constructor(seconds: number, nanoseconds: number);
+    constructor(
+    seconds: number,
+    nanoseconds: number);
     static fromDate(date: Date): Timestamp;
     static fromMillis(milliseconds: number): Timestamp;
     isEqual(other: Timestamp): boolean;
-    // (undocumented)
     readonly nanoseconds: number;
     static now(): Timestamp;
-    // (undocumented)
     readonly seconds: number;
     toDate(): Date;
-    // (undocumented)
     toJSON(): {
         seconds: number;
         nanoseconds: number;
     };
     toMillis(): number;
-    // (undocumented)
     toString(): string;
     valueOf(): string;
 }
@@ -327,7 +301,6 @@ export class Transaction {
 
 // @public
 export interface UpdateData {
-    // (undocumented)
     [fieldPath: string]: any;
 }
 

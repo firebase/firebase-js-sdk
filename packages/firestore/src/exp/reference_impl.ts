@@ -417,7 +417,11 @@ export function addDoc<T>(
   return executeWrite(firestore, [mutation]).then(() => docRef);
 }
 
+/**
+ * A function returned by `onSnapshot()` that removes the listener when invoked.
+ */
 export interface Unsubscribe {
+  /** Removes the listener when invoked. */
   (): void;
 }
 

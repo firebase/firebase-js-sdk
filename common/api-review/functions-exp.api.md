@@ -24,26 +24,21 @@ export interface FunctionsError extends FirebaseError {
 export type FunctionsErrorCode = 'ok' | 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
 // @public
-export function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;
+export function getFunctions(app?: FirebaseApp, regionOrCustomDomain?: string): Functions;
 
 // @public
-export interface HttpsCallable<RequestData = unknown, ResponseData = unknown> {
-    // (undocumented)
-    (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
-}
+export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (data?: RequestData | null) => Promise<HttpsCallableResult<ResponseData>>;
 
 // @public
 export function httpsCallable<RequestData = unknown, ResponseData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData>;
 
 // @public
 export interface HttpsCallableOptions {
-    // (undocumented)
     timeout?: number;
 }
 
 // @public
 export interface HttpsCallableResult<ResponseData = unknown> {
-    // (undocumented)
     readonly data: ResponseData;
 }
 
