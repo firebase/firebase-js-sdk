@@ -16,7 +16,7 @@
  */
 
 /**
- * Display notification Details. They are sent through the
+ * Display notification details. They are sent through the
  * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification Send API}
  *
  * @public
@@ -87,14 +87,14 @@ export interface MessagePayload {
   from: string;
 
   /**
-   * The collapse key of the message. See more on
+   * The collapse key of the message. See
    * {@link https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages Non-collapsible and collapsible messages}
    */
   collapseKey: string;
 }
 
 /**
- * Public interface of the FirebaseMessaging SDK.
+ * Public interface of the Firebase Cloud Messaging SDK.
  *
  * @public
  */
