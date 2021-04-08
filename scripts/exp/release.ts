@@ -36,7 +36,10 @@ import {
   createStorageCompatProject,
   prepare as prepareStorageForRelease
 } from './prepare-storage-for-exp-release';
-import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
+import {
+  createDatabaseCompatProject,
+  prepare as prepareDatabaseForRelease
+} from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
 import { addCompatToFirebasePkgJson } from './prepare-util';
 
@@ -109,6 +112,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      */
     await createFirestoreCompatProject();
     await createStorageCompatProject();
+    await createDatabaseCompatProject();
 
     /**
      * Add firestore-compat, database-compat and storage-compat to the dependencies array of firebase-exp
