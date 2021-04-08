@@ -34,10 +34,11 @@ import {
   repoStatsIncrementCounter
 } from '../core/Repo';
 import { setSDKVersion } from '../core/version';
+import { repoManagerDatabaseFromApp } from '../exp/Database';
 import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
 import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
-import { repoManagerDatabaseFromApp } from './Database';
+import { Database } from './Database';
 import { Reference } from './Reference';
 
 /**
@@ -64,37 +65,38 @@ export const setSecurityDebugCallback = function (
   ref: Reference,
   callback: (a: object) => void
 ) {
+  const connection = ref._delegate._repo.persistentConnection_;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (ref.repo.persistentConnection_ as any).securityDebugCallback_ = callback;
+  (connection as any).securityDebugCallback_ = callback;
 };
 
 export const stats = function (ref: Reference, showDelta?: boolean) {
-  repoStats(ref.repo, showDelta);
+  repoStats(ref._delegate._repo, showDelta);
 };
 
 export const statsIncrementCounter = function (ref: Reference, metric: string) {
-  repoStatsIncrementCounter(ref.repo, metric);
+  repoStatsIncrementCounter(ref._delegate._repo, metric);
 };
 
 export const dataUpdateCount = function (ref: Reference): number {
-  return ref.repo.dataUpdateCount;
+  return ref._delegate._repo.dataUpdateCount;
 };
 
 export const interceptServerData = function (
   ref: Reference,
   callback: ((a: string, b: unknown) => void) | null
 ) {
-  return repoInterceptServerData(ref.repo, callback);
+  return repoInterceptServerData(ref._delegate._repo, callback);
 };
 
 /**
  * Used by console to create a database based on the app,
  * passed database URL and a custom auth implementation.
  *
- * @param app A valid FirebaseApp-like object
- * @param url A valid Firebase databaseURL
- * @param version custom version e.g. firebase-admin version
- * @param customAuthImpl custom auth implementation
+ * @param app - A valid FirebaseApp-like object
+ * @param url - A valid Firebase databaseURL
+ * @param version - custom version e.g. firebase-admin version
+ * @param customAuthImpl - custom auth implementation
  */
 export function initStandalone<T>({
   app,
@@ -129,11 +131,9 @@ export function initStandalone<T>({
   );
 
   return {
-    instance: repoManagerDatabaseFromApp(
-      app,
-      authProvider,
-      url,
-      nodeAdmin
+    instance: new Database(
+      repoManagerDatabaseFromApp(app, authProvider, url, nodeAdmin),
+      app
     ) as types.Database,
     namespace
   };

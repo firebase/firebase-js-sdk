@@ -33,9 +33,6 @@ export function setMaxNode(val: Node) {
 }
 
 export class PriorityIndex extends Index {
-  /**
-   * @inheritDoc
-   */
   compare(a: NamedNode, b: NamedNode): number {
     const aPriority = a.node.getPriority();
     const bPriority = b.node.getPriority();
@@ -46,32 +43,16 @@ export class PriorityIndex extends Index {
       return indexCmp;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   isDefinedOn(node: Node): boolean {
     return !node.getPriority().isEmpty();
   }
-
-  /**
-   * @inheritDoc
-   */
   indexedValueChanged(oldNode: Node, newNode: Node): boolean {
     return !oldNode.getPriority().equals(newNode.getPriority());
   }
-
-  /**
-   * @inheritDoc
-   */
   minPost(): NamedNode {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (NamedNode as any).MIN;
   }
-
-  /**
-   * @inheritDoc
-   */
   maxPost(): NamedNode {
     return new NamedNode(MAX_NAME, new LeafNode('[PRIORITY-POST]', MAX_NODE));
   }
@@ -82,7 +63,7 @@ export class PriorityIndex extends Index {
   }
 
   /**
-   * @return String representation for inclusion in a query spec
+   * @returns String representation for inclusion in a query spec
    */
   toString(): string {
     return '.priority';

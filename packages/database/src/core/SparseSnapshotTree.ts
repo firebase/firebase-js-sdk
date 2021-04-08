@@ -38,8 +38,8 @@ export function newSparseSnapshotTree(): SparseSnapshotTree {
  * Gets the node stored at the given path if one exists.
  * Only seems to be used in tests.
  *
- * @param path Path to look up snapshot for.
- * @return The retrieved node, or null.
+ * @param path - Path to look up snapshot for.
+ * @returns The retrieved node, or null.
  */
 export function sparseSnapshotTreeFind(
   sparseSnapshotTree: SparseSnapshotTree,
@@ -65,8 +65,8 @@ export function sparseSnapshotTreeFind(
  * Stores the given node at the specified path. If there is already a node
  * at a shallower path, it merges the new data into that snapshot node.
  *
- * @param path Path to look up snapshot for.
- * @param data The new data, or null.
+ * @param path - Path to look up snapshot for.
+ * @param data - The new data, or null.
  */
 export function sparseSnapshotTreeRemember(
   sparseSnapshotTree: SparseSnapshotTree,
@@ -93,8 +93,8 @@ export function sparseSnapshotTreeRemember(
 /**
  * Purge the data at path from the cache.
  *
- * @param path Path to look up snapshot for.
- * @return True if this node should now be removed.
+ * @param path - Path to look up snapshot for.
+ * @returns True if this node should now be removed.
  */
 export function sparseSnapshotTreeForget(
   sparseSnapshotTree: SparseSnapshotTree,
@@ -143,8 +143,8 @@ export function sparseSnapshotTreeForget(
  * Recursively iterates through all of the stored tree and calls the
  * callback on each one.
  *
- * @param prefixPath Path to look up node for.
- * @param func The function to invoke for each tree.
+ * @param prefixPath - Path to look up node for.
+ * @param func - The function to invoke for each tree.
  */
 export function sparseSnapshotTreeForEachTree(
   sparseSnapshotTree: SparseSnapshotTree,
@@ -165,7 +165,7 @@ export function sparseSnapshotTreeForEachTree(
  * Iterates through each immediate child and triggers the callback.
  * Only seems to be used in tests.
  *
- * @param func The function to invoke for each child.
+ * @param func - The function to invoke for each child.
  */
 export function sparseSnapshotTreeForEachChild(
   sparseSnapshotTree: SparseSnapshotTree,

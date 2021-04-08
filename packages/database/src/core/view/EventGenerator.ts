@@ -17,13 +17,12 @@
 
 import { assertionError } from '@firebase/util';
 
-import { Query } from '../../api/Query';
 import { Index } from '../snap/indexes/Index';
 import { NamedNode, Node } from '../snap/Node';
 
 import { Change, ChangeType, changeChildMoved } from './Change';
 import { Event } from './Event';
-import { EventRegistration } from './EventRegistration';
+import { EventRegistration, QueryContext } from './EventRegistration';
 
 /**
  * An EventGenerator is used to convert "raw" changes (Change) as computed by the
@@ -34,8 +33,8 @@ import { EventRegistration } from './EventRegistration';
 export class EventGenerator {
   index_: Index;
 
-  constructor(public query_: Query) {
-    this.index_ = this.query_.getQueryParams().getIndex();
+  constructor(public query_: QueryContext) {
+    this.index_ = this.query_._queryParams.getIndex();
   }
 }
 

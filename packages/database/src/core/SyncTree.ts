@@ -17,7 +17,7 @@
 
 import { assert } from '@firebase/util';
 
-import { Query } from '../api/Query';
+import { ReferenceConstructor } from '../exp/Reference';
 
 import { AckUserWrite } from './operation/AckUserWrite';
 import { ListenComplete } from './operation/ListenComplete';
@@ -56,10 +56,11 @@ import {
 import { each, errorForServerCode } from './util/util';
 import { CacheNode } from './view/CacheNode';
 import { Event } from './view/Event';
-import { EventRegistration } from './view/EventRegistration';
+import { EventRegistration, QueryContext } from './view/EventRegistration';
 import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
 import {
   newWriteTree,
+  WriteTree,
   writeTreeAddMerge,
   writeTreeAddOverwrite,
   writeTreeCalcCompleteEventCache,
@@ -70,27 +71,32 @@ import {
   writeTreeRemoveWrite
 } from './WriteTree';
 
-/**
- * @typedef {{
- *   startListening: function(
- *     !Query,
- *     ?number,
- *     function():string,
- *     function(!string, *):!Array.<!Event>
- *   ):!Array.<!Event>,
- *
- *   stopListening: function(!Query, ?number)
- * }}
- */
+let referenceConstructor: ReferenceConstructor;
+
+export function syncTreeSetReferenceConstructor(
+  val: ReferenceConstructor
+): void {
+  assert(
+    !referenceConstructor,
+    '__referenceConstructor has already been defined'
+  );
+  referenceConstructor = val;
+}
+
+function syncTreeGetReferenceConstructor(): ReferenceConstructor {
+  assert(referenceConstructor, 'Reference.ts has not been loaded');
+  return referenceConstructor;
+}
+
 export interface ListenProvider {
   startListening(
-    query: Query,
+    query: QueryContext,
     tag: number | null,
     hashFn: () => string,
     onComplete: (a: string, b?: unknown) => Event[]
   ): Event[];
 
-  stopListening(a: Query, b: number | null): void;
+  stopListening(a: QueryContext, b: number | null): void;
 }
 
 /**
@@ -128,13 +134,13 @@ export class SyncTree {
   /**
    * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
    */
-  pendingWriteTree_ = newWriteTree();
+  pendingWriteTree_: WriteTree = newWriteTree();
 
   readonly tagToQueryMap: Map<number, string> = new Map();
   readonly queryToTagMap: Map<string, number> = new Map();
 
   /**
-   * @param listenProvider_ Used by SyncTree to start / stop listening
+   * @param listenProvider_ - Used by SyncTree to start / stop listening
    *   to server data.
    */
   constructor(public listenProvider_: ListenProvider) {}
@@ -143,7 +149,7 @@ export class SyncTree {
 /**
  * Apply the data changes for a user-generated set() or transaction() call.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyUserOverwrite(
   syncTree: SyncTree,
@@ -174,7 +180,7 @@ export function syncTreeApplyUserOverwrite(
 /**
  * Apply the data from a user-generated update() call
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyUserMerge(
   syncTree: SyncTree,
@@ -196,8 +202,8 @@ export function syncTreeApplyUserMerge(
 /**
  * Acknowledge a pending user write that was previously registered with applyUserOverwrite() or applyUserMerge().
  *
- * @param revert True if the given write failed and needs to be reverted
- * @return Events to raise.
+ * @param revert - True if the given write failed and needs to be reverted
+ * @returns Events to raise.
  */
 export function syncTreeAckUserWrite(
   syncTree: SyncTree,
@@ -231,7 +237,7 @@ export function syncTreeAckUserWrite(
 /**
  * Apply new server data for the specified path..
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyServerOverwrite(
   syncTree: SyncTree,
@@ -247,7 +253,7 @@ export function syncTreeApplyServerOverwrite(
 /**
  * Apply new server data to be merged in at the specified path.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyServerMerge(
   syncTree: SyncTree,
@@ -265,7 +271,7 @@ export function syncTreeApplyServerMerge(
 /**
  * Apply a listen complete for a query
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyListenComplete(
   syncTree: SyncTree,
@@ -280,7 +286,7 @@ export function syncTreeApplyListenComplete(
 /**
  * Apply a listen complete for a tagged query
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyTaggedListenComplete(
   syncTree: SyncTree,
@@ -310,18 +316,18 @@ export function syncTreeApplyTaggedListenComplete(
  * If query is the default query, we'll check all queries for the specified eventRegistration.
  * If eventRegistration is null, we'll remove all callbacks for the specified query/queries.
  *
- * @param eventRegistration If null, all callbacks are removed.
- * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
- * @return Cancel events, if cancelError was provided.
+ * @param eventRegistration - If null, all callbacks are removed.
+ * @param cancelError - If a cancelError is provided, appropriate cancel events will be returned.
+ * @returns Cancel events, if cancelError was provided.
  */
 export function syncTreeRemoveEventRegistration(
   syncTree: SyncTree,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration | null,
   cancelError?: Error
 ): Event[] {
   // Find the syncPoint first. Then deal with whether or not it has matching listeners
-  const path = query.path;
+  const path = query._path;
   const maybeSyncPoint = syncTree.syncPointTree_.get(path);
   let cancelEvents: Event[] = [];
   // A removal on a default query affects all queries at that location. A removal on an indexed query, even one without
@@ -329,7 +335,7 @@ export function syncTreeRemoveEventRegistration(
   // not loadsAllData().
   if (
     maybeSyncPoint &&
-    (query.queryIdentifier() === 'default' ||
+    (query._queryIdentifier === 'default' ||
       syncPointViewExistsForQuery(maybeSyncPoint, query))
   ) {
     const removedAndEvents = syncPointRemoveEventRegistration(
@@ -352,7 +358,7 @@ export function syncTreeRemoveEventRegistration(
     const removingDefault =
       -1 !==
       removed.findIndex(query => {
-        return query.getQueryParams().loadsAllData();
+        return query._queryParams.loadsAllData();
       });
     const covered = syncTree.syncPointTree_.findOnPath(
       path,
@@ -398,7 +404,7 @@ export function syncTreeRemoveEventRegistration(
           defaultTag
         );
       } else {
-        removed.forEach((queryToRemove: Query) => {
+        removed.forEach((queryToRemove: QueryContext) => {
           const tagToRemove = syncTree.queryToTagMap.get(
             syncTreeMakeQueryKey_(queryToRemove)
           );
@@ -420,7 +426,7 @@ export function syncTreeRemoveEventRegistration(
 /**
  * Apply new server data for the specified tagged query.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyTaggedQueryOverwrite(
   syncTree: SyncTree,
@@ -449,7 +455,7 @@ export function syncTreeApplyTaggedQueryOverwrite(
 /**
  * Apply server data to be merged in for the specified tagged query.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeApplyTaggedQueryMerge(
   syncTree: SyncTree,
@@ -479,14 +485,14 @@ export function syncTreeApplyTaggedQueryMerge(
 /**
  * Add an event callback for the specified query.
  *
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncTreeAddEventRegistration(
   syncTree: SyncTree,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration
 ): Event[] {
-  const path = query.path;
+  const path = query._path;
 
   let serverCache: Node | null = null;
   let foundAncestorDefaultView = false;
@@ -532,7 +538,7 @@ export function syncTreeAddEventRegistration(
   }
 
   const viewAlreadyExists = syncPointViewExistsForQuery(syncPoint, query);
-  if (!viewAlreadyExists && !query.getQueryParams().loadsAllData()) {
+  if (!viewAlreadyExists && !query._queryParams.loadsAllData()) {
     // We need to track a tag for this query
     const queryKey = syncTreeMakeQueryKey_(query);
     assert(
@@ -567,8 +573,8 @@ export function syncTreeAddEventRegistration(
  *
  * Note: this method will *include* hidden writes from transaction with applyLocally set to false.
  *
- * @param path The path to the data we want
- * @param writeIdsToExclude A specific set to be excluded
+ * @param path - The path to the data we want
+ * @param writeIdsToExclude - A specific set to be excluded
  */
 export function syncTreeCalcCompleteEventCache(
   syncTree: SyncTree,
@@ -601,9 +607,9 @@ export function syncTreeCalcCompleteEventCache(
 
 export function syncTreeGetServerValue(
   syncTree: SyncTree,
-  query: Query
+  query: QueryContext
 ): Node | null {
-  const path = query.path;
+  const path = query._path;
   let serverCache: Node | null = null;
   // Any covering writes will necessarily be at the root, so really all we need to find is the server cache.
   // Consider optimizing this once there's a better understanding of what actual behavior will be.
@@ -626,7 +632,7 @@ export function syncTreeGetServerValue(
     : null;
   const writesCache: WriteTreeRef | null = writeTreeChildWrites(
     syncTree.pendingWriteTree_,
-    query.path
+    query._path
   );
   const view: View = syncPointGetView(
     syncPoint,
@@ -775,9 +781,9 @@ function syncTreeCreateListenerForView_(
     onComplete: (status: string): Event[] => {
       if (status === 'ok') {
         if (tag) {
-          return syncTreeApplyTaggedListenComplete(syncTree, query.path, tag);
+          return syncTreeApplyTaggedListenComplete(syncTree, query._path, tag);
         } else {
-          return syncTreeApplyListenComplete(syncTree, query.path);
+          return syncTreeApplyListenComplete(syncTree, query._path);
         }
       } else {
         // If a listen failed, kill all of the listeners here, not just the one that triggered the error.
@@ -797,7 +803,10 @@ function syncTreeCreateListenerForView_(
 /**
  * Return the tag associated with the given query.
  */
-function syncTreeTagForQuery_(syncTree: SyncTree, query: Query): number | null {
+function syncTreeTagForQuery_(
+  syncTree: SyncTree,
+  query: QueryContext
+): number | null {
   const queryKey = syncTreeMakeQueryKey_(query);
   return syncTree.queryToTagMap.get(queryKey);
 }
@@ -805,8 +814,8 @@ function syncTreeTagForQuery_(syncTree: SyncTree, query: Query): number | null {
 /**
  * Given a query, computes a "queryKey" suitable for use in our queryToTagMap_.
  */
-function syncTreeMakeQueryKey_(query: Query): string {
-  return query.path.toString() + '$' + query.queryIdentifier();
+function syncTreeMakeQueryKey_(query: QueryContext): string {
+  return query._path.toString() + '$' + query._queryIdentifier;
 }
 
 /**
@@ -881,26 +890,23 @@ function syncTreeCollectDistinctViewsForSubTree_(
 /**
  * Normalizes a query to a query we send the server for listening
  *
- * @return The normalized query
+ * @returns The normalized query
  */
-function syncTreeQueryForListening_(query: Query): Query {
-  if (
-    query.getQueryParams().loadsAllData() &&
-    !query.getQueryParams().isDefault()
-  ) {
+function syncTreeQueryForListening_(query: QueryContext): QueryContext {
+  if (query._queryParams.loadsAllData() && !query._queryParams.isDefault()) {
     // We treat queries that load all data as default queries
     // Cast is necessary because ref() technically returns Firebase which is actually fb.api.Firebase which inherits
     // from Query
-    return query.getRef()!;
+    return new (syncTreeGetReferenceConstructor())(query._repo, query._path);
   } else {
     return query;
   }
 }
 
-function syncTreeRemoveTags_(syncTree: SyncTree, queries: Query[]) {
+function syncTreeRemoveTags_(syncTree: SyncTree, queries: QueryContext[]) {
   for (let j = 0; j < queries.length; ++j) {
     const removedQuery = queries[j];
-    if (!removedQuery.getQueryParams().loadsAllData()) {
+    if (!removedQuery._queryParams.loadsAllData()) {
       // We should have a tag for this
       const removedQueryKey = syncTreeMakeQueryKey_(removedQuery);
       const removedQueryTag = syncTree.queryToTagMap.get(removedQueryKey);
@@ -920,14 +926,14 @@ function syncTreeGetNextQueryTag_(): number {
 /**
  * For a given new listen, manage the de-duplication of outstanding subscriptions.
  *
- * @return This method can return events to support synchronous data sources
+ * @returns This method can return events to support synchronous data sources
  */
 function syncTreeSetupListener_(
   syncTree: SyncTree,
-  query: Query,
+  query: QueryContext,
   view: View
 ): Event[] {
-  const path = query.path;
+  const path = query._path;
   const tag = syncTreeTagForQuery_(syncTree, query);
   const listener = syncTreeCreateListenerForView_(syncTree, view);
 
@@ -948,7 +954,7 @@ function syncTreeSetupListener_(
     );
   } else {
     // Shadow everything at or below this location, this is a default listener.
-    const queriesToStop = subtree.fold<Query[]>(
+    const queriesToStop = subtree.fold<QueryContext[]>(
       (relativePath, maybeChildSyncPoint, childMap) => {
         if (
           !pathIsEmpty(relativePath) &&
@@ -958,7 +964,7 @@ function syncTreeSetupListener_(
           return [syncPointGetCompleteView(maybeChildSyncPoint).query];
         } else {
           // No default listener here, flatten any deeper queries into an array
-          let queries: Query[] = [];
+          let queries: QueryContext[] = [];
           if (maybeChildSyncPoint) {
             queries = queries.concat(
               syncPointGetQueryViews(maybeChildSyncPoint).map(
@@ -966,7 +972,7 @@ function syncTreeSetupListener_(
               )
             );
           }
-          each(childMap, (_key: string, childQueries: Query[]) => {
+          each(childMap, (_key: string, childQueries: QueryContext[]) => {
             queries = queries.concat(childQueries);
           });
           return queries;

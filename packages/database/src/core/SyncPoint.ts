@@ -17,8 +17,7 @@
 
 import { assert } from '@firebase/util';
 
-import { Query } from '../api/Query';
-import { ReferenceConstructor } from '../api/Reference';
+import { ReferenceConstructor } from '../exp/Reference';
 
 import { Operation } from './operation/Operation';
 import { ChildrenNode } from './snap/ChildrenNode';
@@ -26,7 +25,7 @@ import { Node } from './snap/Node';
 import { Path } from './util/Path';
 import { CacheNode } from './view/CacheNode';
 import { Event } from './view/Event';
-import { EventRegistration } from './view/EventRegistration';
+import { EventRegistration, QueryContext } from './view/EventRegistration';
 import {
   View,
   viewAddEventRegistration,
@@ -116,20 +115,20 @@ export function syncPointApplyOperation(
 /**
  * Get a view for the specified query.
  *
- * @param query The query to return a view for
+ * @param query - The query to return a view for
  * @param writesCache
  * @param serverCache
  * @param serverCacheComplete
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncPointGetView(
   syncPoint: SyncPoint,
-  query: Query,
+  query: QueryContext,
   writesCache: WriteTreeRef,
   serverCache: Node | null,
   serverCacheComplete: boolean
 ): View {
-  const queryId = query.queryIdentifier();
+  const queryId = query._queryIdentifier;
   const view = syncPoint.views.get(queryId);
   if (!view) {
     // TODO: make writesCache take flag for complete server node
@@ -165,13 +164,13 @@ export function syncPointGetView(
  * @param query
  * @param eventRegistration
  * @param writesCache
- * @param serverCache Complete server cache, if we have it.
+ * @param serverCache - Complete server cache, if we have it.
  * @param serverCacheComplete
- * @return Events to raise.
+ * @returns Events to raise.
  */
 export function syncPointAddEventRegistration(
   syncPoint: SyncPoint,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration,
   writesCache: WriteTreeRef,
   serverCache: Node | null,
@@ -184,8 +183,8 @@ export function syncPointAddEventRegistration(
     serverCache,
     serverCacheComplete
   );
-  if (!syncPoint.views.has(query.queryIdentifier())) {
-    syncPoint.views.set(query.queryIdentifier(), view);
+  if (!syncPoint.views.has(query._queryIdentifier)) {
+    syncPoint.views.set(query._queryIdentifier, view);
   }
   // This is guaranteed to exist now, we just created anything that was missing
   viewAddEventRegistration(view, eventRegistration);
@@ -198,18 +197,18 @@ export function syncPointAddEventRegistration(
  * If query is the default query, we'll check all views for the specified eventRegistration.
  * If eventRegistration is null, we'll remove all callbacks for the specified view(s).
  *
- * @param eventRegistration If null, remove all callbacks.
- * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
- * @return removed queries and any cancel events
+ * @param eventRegistration - If null, remove all callbacks.
+ * @param cancelError - If a cancelError is provided, appropriate cancel events will be returned.
+ * @returns removed queries and any cancel events
  */
 export function syncPointRemoveEventRegistration(
   syncPoint: SyncPoint,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration | null,
   cancelError?: Error
-): { removed: Query[]; events: Event[] } {
-  const queryId = query.queryIdentifier();
-  const removed: Query[] = [];
+): { removed: QueryContext[]; events: Event[] } {
+  const queryId = query._queryIdentifier;
+  const removed: QueryContext[] = [];
   let cancelEvents: Event[] = [];
   const hadCompleteView = syncPointHasCompleteView(syncPoint);
   if (queryId === 'default') {
@@ -222,7 +221,7 @@ export function syncPointRemoveEventRegistration(
         syncPoint.views.delete(viewQueryId);
 
         // We'll deal with complete views later.
-        if (!view.query.getQueryParams().loadsAllData()) {
+        if (!view.query._queryParams.loadsAllData()) {
           removed.push(view.query);
         }
       }
@@ -238,7 +237,7 @@ export function syncPointRemoveEventRegistration(
         syncPoint.views.delete(queryId);
 
         // We'll deal with complete views later.
-        if (!view.query.getQueryParams().loadsAllData()) {
+        if (!view.query._queryParams.loadsAllData()) {
           removed.push(view.query);
         }
       }
@@ -248,7 +247,7 @@ export function syncPointRemoveEventRegistration(
   if (hadCompleteView && !syncPointHasCompleteView(syncPoint)) {
     // We removed our last complete view.
     removed.push(
-      new (syncPointGetReferenceConstructor())(query.database, query.path)
+      new (syncPointGetReferenceConstructor())(query._repo, query._path)
     );
   }
 
@@ -258,7 +257,7 @@ export function syncPointRemoveEventRegistration(
 export function syncPointGetQueryViews(syncPoint: SyncPoint): View[] {
   const result = [];
   for (const view of syncPoint.views.values()) {
-    if (!view.query.getQueryParams().loadsAllData()) {
+    if (!view.query._queryParams.loadsAllData()) {
       result.push(view);
     }
   }
@@ -266,8 +265,8 @@ export function syncPointGetQueryViews(syncPoint: SyncPoint): View[] {
 }
 
 /**
- * @param path The path to the desired complete snapshot
- * @return A complete cache, if it exists
+ * @param path - The path to the desired complete snapshot
+ * @returns A complete cache, if it exists
  */
 export function syncPointGetCompleteServerCache(
   syncPoint: SyncPoint,
@@ -282,20 +281,20 @@ export function syncPointGetCompleteServerCache(
 
 export function syncPointViewForQuery(
   syncPoint: SyncPoint,
-  query: Query
+  query: QueryContext
 ): View | null {
-  const params = query.getQueryParams();
+  const params = query._queryParams;
   if (params.loadsAllData()) {
     return syncPointGetCompleteView(syncPoint);
   } else {
-    const queryId = query.queryIdentifier();
+    const queryId = query._queryIdentifier;
     return syncPoint.views.get(queryId);
   }
 }
 
 export function syncPointViewExistsForQuery(
   syncPoint: SyncPoint,
-  query: Query
+  query: QueryContext
 ): boolean {
   return syncPointViewForQuery(syncPoint, query) != null;
 }
@@ -306,7 +305,7 @@ export function syncPointHasCompleteView(syncPoint: SyncPoint): boolean {
 
 export function syncPointGetCompleteView(syncPoint: SyncPoint): View | null {
   for (const view of syncPoint.views.values()) {
-    if (view.query.getQueryParams().loadsAllData()) {
+    if (view.query._queryParams.loadsAllData()) {
       return view;
     }
   }

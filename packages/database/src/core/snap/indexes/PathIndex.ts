@@ -38,17 +38,9 @@ export class PathIndex extends Index {
   protected extractChild(snap: Node): Node {
     return snap.getChild(this.indexPath_);
   }
-
-  /**
-   * @inheritDoc
-   */
   isDefinedOn(node: Node): boolean {
     return !node.getChild(this.indexPath_).isEmpty();
   }
-
-  /**
-   * @inheritDoc
-   */
   compare(a: NamedNode, b: NamedNode): number {
     const aChild = this.extractChild(a.node);
     const bChild = this.extractChild(b.node);
@@ -59,10 +51,6 @@ export class PathIndex extends Index {
       return indexCmp;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   makePost(indexValue: object, name: string): NamedNode {
     const valueNode = nodeFromJSON(indexValue);
     const node = ChildrenNode.EMPTY_NODE.updateChild(
@@ -71,18 +59,10 @@ export class PathIndex extends Index {
     );
     return new NamedNode(name, node);
   }
-
-  /**
-   * @inheritDoc
-   */
   maxPost(): NamedNode {
     const node = ChildrenNode.EMPTY_NODE.updateChild(this.indexPath_, MAX_NODE);
     return new NamedNode(MAX_NAME, node);
   }
-
-  /**
-   * @inheritDoc
-   */
   toString(): string {
     return pathSlice(this.indexPath_, 0).join('/');
   }

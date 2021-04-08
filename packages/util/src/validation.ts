@@ -53,39 +53,11 @@ export const validateArgCount = function (
  * Generates a string to prefix an error message about failed argument validation
  *
  * @param fnName The function name
- * @param argumentNumber The index of the argument
- * @param optional Whether or not the argument is optional
+ * @param argName The name of the argument
  * @return The prefix to add to the error thrown for validation.
  */
-export function errorPrefix(
-  fnName: string,
-  argumentNumber: number,
-  optional: boolean
-): string {
-  let argName = '';
-  switch (argumentNumber) {
-    case 1:
-      argName = optional ? 'first' : 'First';
-      break;
-    case 2:
-      argName = optional ? 'second' : 'Second';
-      break;
-    case 3:
-      argName = optional ? 'third' : 'Third';
-      break;
-    case 4:
-      argName = optional ? 'fourth' : 'Fourth';
-      break;
-    default:
-      throw new Error(
-        'errorPrefix called with argumentNumber > 4.  Need to update it?'
-      );
-  }
-
-  let error = fnName + ' failed: ';
-
-  error += argName + ' argument ';
-  return error;
+export function errorPrefix(fnName: string, argName: string): string {
+  return `${fnName} failed: ${argName} argument `;
 }
 
 /**
@@ -96,7 +68,6 @@ export function errorPrefix(
  */
 export function validateNamespace(
   fnName: string,
-  argumentNumber: number,
   namespace: string,
   optional: boolean
 ): void {
@@ -106,15 +77,14 @@ export function validateNamespace(
   if (typeof namespace !== 'string') {
     //TODO: I should do more validation here. We only allow certain chars in namespaces.
     throw new Error(
-      errorPrefix(fnName, argumentNumber, optional) +
-        'must be a valid firebase namespace.'
+      errorPrefix(fnName, 'namespace') + 'must be a valid firebase namespace.'
     );
   }
 }
 
 export function validateCallback(
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   // eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function,
   optional: boolean
@@ -124,15 +94,14 @@ export function validateCallback(
   }
   if (typeof callback !== 'function') {
     throw new Error(
-      errorPrefix(fnName, argumentNumber, optional) +
-        'must be a valid function.'
+      errorPrefix(fnName, argumentName) + 'must be a valid function.'
     );
   }
 }
 
 export function validateContextObject(
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   context: unknown,
   optional: boolean
 ): void {
@@ -141,8 +110,7 @@ export function validateContextObject(
   }
   if (typeof context !== 'object' || context === null) {
     throw new Error(
-      errorPrefix(fnName, argumentNumber, optional) +
-        'must be a valid context object.'
+      errorPrefix(fnName, argumentName) + 'must be a valid context object.'
     );
   }
 }

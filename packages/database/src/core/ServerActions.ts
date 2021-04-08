@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../api/Query';
+import { QueryContext } from './view/EventRegistration';
 
 /**
  * Interface defining the set of actions that can be performed against the Firebase server
@@ -25,7 +25,7 @@ import { Query } from '../api/Query';
  */
 export abstract class ServerActions {
   abstract listen(
-    query: Query,
+    query: QueryContext,
     currentHashFn: () => string,
     tag: number | null,
     onComplete: (a: string, b: unknown) => void
@@ -34,12 +34,12 @@ export abstract class ServerActions {
   /**
    * Remove a listen.
    */
-  abstract unlisten(query: Query, tag: number | null): void;
+  abstract unlisten(query: QueryContext, tag: number | null): void;
 
   /**
    * Get the server value satisfying this query.
    */
-  abstract get(query: Query): Promise<string>;
+  abstract get(query: QueryContext): Promise<string>;
 
   put(
     pathString: string,
@@ -57,7 +57,7 @@ export abstract class ServerActions {
 
   /**
    * Refreshes the auth token for the current connection.
-   * @param token The authentication token
+   * @param token - The authentication token
    */
   refreshAuthToken(token: string) {}
 

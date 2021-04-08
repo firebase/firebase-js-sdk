@@ -25,8 +25,8 @@ import {
   isNodeSdk
 } from '@firebase/util';
 
-import { Query } from '../../api/Query';
 import { SessionStorage } from '../storage/storage';
+import { QueryContext } from '../view/EventRegistration';
 
 declare const window: Window;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,8 +46,8 @@ export const LUIDGenerator: () => number = (function () {
 
 /**
  * Sha1 hash of the input string
- * @param str The string to hash
- * @return {!string} The resulting hash
+ * @param str - The string to hash
+ * @returns {!string} The resulting hash
  */
 export const sha1 = function (str: string): string {
   const utf8Bytes = stringToByteArray(str);
@@ -92,8 +92,8 @@ let firstLog_ = true;
 
 /**
  * The implementation of Firebase.enableLogging (defined here to break dependencies)
- * @param logger_ A flag to turn on logging, or a custom logger
- * @param persistent Whether or not to persist logging settings across refreshes
+ * @param logger_ - A flag to turn on logging, or a custom logger
+ * @param persistent - Whether or not to persist logging settings across refreshes
  */
 export const enableLogging = function (
   logger_?: boolean | ((a: string) => void) | null,
@@ -277,7 +277,7 @@ export const nameCompare = function (a: string, b: string): number {
 };
 
 /**
- * @return {!number} comparison result.
+ * @returns {!number} comparison result.
  */
 export const stringCompare = function (a: string, b: string): number {
   if (a === b) {
@@ -331,9 +331,9 @@ export const ObjectToUniqueKey = function (obj: unknown): string {
 
 /**
  * Splits a string into a number of smaller segments of maximum size
- * @param str The string
- * @param segsize The maximum number of chars in the string.
- * @return The string, split into appropriately-sized chunks
+ * @param str - The string
+ * @param segsize - The maximum number of chars in the string.
+ * @returns The string, split into appropriately-sized chunks
  */
 export const splitStringBySize = function (
   str: string,
@@ -359,8 +359,8 @@ export const splitStringBySize = function (
 /**
  * Apply a function to each (key, value) pair in an object or
  * apply a function to each (index, value) pair in an array
- * @param obj The object or array to iterate over
- * @param fn The function to apply
+ * @param obj - The object or array to iterate over
+ * @param fn - The function to apply
  */
 export function each(obj: object, fn: (k: string, v: unknown) => void) {
   for (const key in obj) {
@@ -372,8 +372,8 @@ export function each(obj: object, fn: (k: string, v: unknown) => void) {
 
 /**
  * Like goog.bind, but doesn't bother to create a closure if opt_context is null/undefined.
- * @param callback Callback function.
- * @param context Optional context to bind to.
+ * @param callback - Callback function.
+ * @param context - Optional context to bind to.
  *
  */
 export const bindCallback = function (
@@ -387,7 +387,7 @@ export const bindCallback = function (
  * Borrowed from http://hg.secondlife.com/llsd/src/tip/js/typedarray.js (MIT License)
  * I made one modification at the end and removed the NaN / Infinity
  * handling (since it seemed broken [caused an overflow] and we don't need it).  See MJL comments.
- * @param v A double
+ * @param v - A double
  *
  */
 export const doubleToIEEE754String = function (v: number): string {
@@ -470,7 +470,7 @@ export const isWindowsStoreApp = function (): boolean {
 /**
  * Converts a server error code to a Javascript Error
  */
-export const errorForServerCode = function (code: string, query: Query): Error {
+export function errorForServerCode(code: string, query: QueryContext): Error {
   let reason = 'Unknown Error';
   if (code === 'too_big') {
     reason =
@@ -483,12 +483,12 @@ export const errorForServerCode = function (code: string, query: Query): Error {
   }
 
   const error = new Error(
-    code + ' at ' + query.path.toString() + ': ' + reason
+    code + ' at ' + query._path.toString() + ': ' + reason
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (error as any).code = code.toUpperCase();
   return error;
-};
+}
 
 /**
  * Used to test for integer-looking strings
@@ -533,7 +533,7 @@ export const tryParseInt = function (str: string): number | null {
  * * If you're only pausing on uncaught exceptions, the debugger will only pause
  *   on us re-throwing it.
  *
- * @param fn The code to guard.
+ * @param fn - The code to guard.
  */
 export const exceptionGuard = function (fn: () => void) {
   try {
@@ -557,8 +557,8 @@ export const exceptionGuard = function (fn: () => void) {
  * 1. Turns into a no-op if opt_callback is null or undefined.
  * 2. Wraps the call inside exceptionGuard to prevent exceptions from breaking our state.
  *
- * @param callback Optional onComplete callback.
- * @param varArgs Arbitrary args to be passed to opt_onComplete
+ * @param callback - Optional onComplete callback.
+ * @param varArgs - Arbitrary args to be passed to opt_onComplete
  */
 export const callUserCallback = function (
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -573,7 +573,7 @@ export const callUserCallback = function (
 };
 
 /**
- * @return {boolean} true if we think we're currently being crawled.
+ * @returns {boolean} true if we think we're currently being crawled.
  */
 export const beingCrawled = function (): boolean {
   const userAgent =
@@ -609,9 +609,9 @@ export const exportPropGetter = function (
  *
  * It is removed with clearTimeout() as normal.
  *
- * @param fn Function to run.
- * @param time Milliseconds to wait before running.
- * @return The setTimeout() return value.
+ * @param fn - Function to run.
+ * @param time - Milliseconds to wait before running.
+ * @returns The setTimeout() return value.
  */
 export const setTimeoutNonBlocking = function (
   fn: () => void,

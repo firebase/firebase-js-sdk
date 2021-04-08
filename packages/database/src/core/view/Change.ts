@@ -31,15 +31,15 @@ export const enum ChangeType {
 }
 
 export interface Change {
-  /** @param type The event type */
+  /** @param type - The event type */
   type: ChangeType;
-  /** @param snapshotNode The data */
+  /** @param snapshotNode - The data */
   snapshotNode: Node;
-  /** @param childName The name for this child, if it's a child even */
+  /** @param childName - The name for this child, if it's a child even */
   childName?: string;
-  /** @param oldSnap Used for intermediate processing of child changed events */
+  /** @param oldSnap - Used for intermediate processing of child changed events */
   oldSnap?: Node;
-  /**  * @param prevName The name for the previous child, if applicable */
+  /**  * @param prevName - The name for the previous child, if applicable */
   prevName?: string | null;
 }
 

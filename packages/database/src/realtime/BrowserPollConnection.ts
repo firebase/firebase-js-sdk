@@ -99,12 +99,12 @@ export class BrowserPollConnection implements Transport {
   private onDisconnect_: ((a?: boolean) => void) | null;
 
   /**
-   * @param connId An identifier for this connection, used for logging
-   * @param repoInfo The info for the endpoint to send data to.
-   * @param applicationId The Firebase App ID for this project.
-   * @param transportSessionId Optional transportSessionid if we are reconnecting for an existing
+   * @param connId - An identifier for this connection, used for logging
+   * @param repoInfo - The info for the endpoint to send data to.
+   * @param applicationId - The Firebase App ID for this project.
+   * @param transportSessionId - Optional transportSessionid if we are reconnecting for an existing
    *                                         transport session
-   * @param lastSessionId Optional lastSessionId if the PersistentConnection has already created a
+   * @param lastSessionId - Optional lastSessionId if the PersistentConnection has already created a
    *                                     connection previously
    */
   constructor(
@@ -121,8 +121,8 @@ export class BrowserPollConnection implements Transport {
   }
 
   /**
-   * @param onMessage Callback when messages arrive
-   * @param onDisconnect Callback with connection lost.
+   * @param onMessage - Callback when messages arrive
+   * @param onDisconnect - Callback with connection lost.
    */
   open(onMessage: (msg: {}) => void, onDisconnect: (a?: boolean) => void) {
     this.curSegmentNum = 0;
@@ -330,7 +330,7 @@ export class BrowserPollConnection implements Transport {
   /**
    * Send the JSON object down to the server. It will need to be stringified, base64 encoded, and then
    * broken into chunks (since URLs have a small maximum length).
-   * @param data The JSON data to transmit.
+   * @param data - The JSON data to transmit.
    */
   send(data: {}) {
     const dataStr = stringify(data);

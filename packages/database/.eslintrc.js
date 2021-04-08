@@ -53,6 +53,12 @@ module.exports = {
       rules: {
         '@typescript-eslint/no-explicit-any': 'off'
       }
+    },
+    {
+      files: ['scripts/*.ts'],
+      rules: {
+        'import/no-extraneous-dependencies': 'off'
+      }
     }
   ]
 };

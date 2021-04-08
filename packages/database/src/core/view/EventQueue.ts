@@ -43,7 +43,7 @@ export class EventQueue {
 }
 
 /**
- * @param eventDataList The new events to queue.
+ * @param eventDataList - The new events to queue.
  */
 export function eventQueueQueueEvents(
   eventQueue: EventQueue,
@@ -76,8 +76,8 @@ export function eventQueueQueueEvents(
  *
  * It is assumed that the new events are all for the specified path.
  *
- * @param path The path to raise events for.
- * @param eventDataList The new events to raise.
+ * @param path - The path to raise events for.
+ * @param eventDataList - The new events to raise.
  */
 export function eventQueueRaiseEventsAtPath(
   eventQueue: EventQueue,
@@ -96,8 +96,8 @@ export function eventQueueRaiseEventsAtPath(
  *
  * It is assumed that the new events are all related (ancestor or descendant) to the specified path.
  *
- * @param changedPath The path to raise events for.
- * @param eventDataList The events to raise
+ * @param changedPath - The path to raise events for.
+ * @param eventDataList - The events to raise
  */
 export function eventQueueRaiseEventsForChangedPath(
   eventQueue: EventQueue,

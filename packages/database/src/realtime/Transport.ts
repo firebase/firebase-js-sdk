@@ -47,10 +47,10 @@ export abstract class Transport {
   abstract connId: string;
 
   /**
-   * @param connId An identifier for this connection, used for logging
-   * @param repoInfo The info for the endpoint to send data to.
-   * @param transportSessionId Optional transportSessionId if this is connecting to an existing transport session
-   * @param lastSessionId Optional lastSessionId if there was a previous connection
+   * @param connId - An identifier for this connection, used for logging
+   * @param repoInfo - The info for the endpoint to send data to.
+   * @param transportSessionId - Optional transportSessionId if this is connecting to an existing transport session
+   * @param lastSessionId - Optional lastSessionId if there was a previous connection
    * @interface
    */
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
@@ -62,8 +62,8 @@ export abstract class Transport {
   ) {}
 
   /**
-   * @param onMessage Callback when messages arrive
-   * @param onDisconnect Callback with connection lost.
+   * @param onMessage - Callback when messages arrive
+   * @param onDisconnect - Callback with connection lost.
    */
   abstract open(
     onMessage: (a: {}) => void,
@@ -75,7 +75,7 @@ export abstract class Transport {
   abstract close(): void;
 
   /**
-   * @param data The JSON data to transmit
+   * @param data - The JSON data to transmit
    */
   abstract send(data: {}): void;
 

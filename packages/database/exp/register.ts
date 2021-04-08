@@ -20,10 +20,10 @@ import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
-import { FirebaseDatabase } from '../src/exp/Database';
-
-export { getDatabase, ServerValue } from '../src/exp/Database';
-export { enableLogging } from '../src/core/util/util';
+import {
+  FirebaseDatabase,
+  repoManagerDatabaseFromApp
+} from '../src/exp/Database';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -38,7 +38,7 @@ export function registerDatabase(variant?: string): void {
       (container, { instanceIdentifier: url }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
-        return new FirebaseDatabase(app, authProvider, url);
+        return repoManagerDatabaseFromApp(app, authProvider, url);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

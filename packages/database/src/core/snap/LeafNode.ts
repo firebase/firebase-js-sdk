@@ -57,9 +57,9 @@ export class LeafNode implements Node {
   private lazyHash_: string | null = null;
 
   /**
-   * @param value_ The value to store in this leaf node. The object type is
+   * @param value_ - The value to store in this leaf node. The object type is
    * possible in the event of a deferred value
-   * @param priorityNode_ The priority of this node.
+   * @param priorityNode_ - The priority of this node.
    */
   constructor(
     private readonly value_: string | number | boolean | Indexable,
@@ -108,10 +108,6 @@ export class LeafNode implements Node {
       return LeafNode.__childrenNodeConstructor.EMPTY_NODE;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   hasChild(): boolean {
     return false;
   }
@@ -172,10 +168,6 @@ export class LeafNode implements Node {
   forEachChild(index: Index, action: (s: string, n: Node) => void): boolean {
     return false;
   }
-
-  /**
-   * @inheritDoc
-   */
   val(exportFormat?: boolean): {} {
     if (exportFormat && !this.getPriority().isEmpty()) {
       return {
@@ -212,15 +204,11 @@ export class LeafNode implements Node {
 
   /**
    * Returns the value of the leaf node.
-   * @return The value of the node.
+   * @returns The value of the node.
    */
   getValue(): Indexable | string | number | boolean {
     return this.value_;
   }
-
-  /**
-   * @inheritDoc
-   */
   compareTo(other: Node): number {
     if (other === LeafNode.__childrenNodeConstructor.EMPTY_NODE) {
       return 1;
@@ -261,28 +249,13 @@ export class LeafNode implements Node {
       return thisIndex - otherIndex;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   withIndex(): Node {
     return this;
   }
-
-  /**
-   * @inheritDoc
-   */
   isIndexed(): boolean {
     return true;
   }
-
-  /**
-   * @inheritDoc
-   */
   equals(other: Node): boolean {
-    /**
-     * @inheritDoc
-     */
     if (other === this) {
       return true;
     } else if (other.isLeafNode()) {

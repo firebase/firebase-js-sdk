@@ -23,12 +23,11 @@ import {
   Deferred
 } from '@firebase/util';
 
-import { Query } from '../api/Query';
-
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
 import { ServerActions } from './ServerActions';
 import { logWrapper, warn } from './util/util';
+import { QueryContext } from './view/EventRegistration';
 import { queryParamsToRestQueryStringParameters } from './view/QueryParams';
 
 /**
@@ -50,21 +49,21 @@ export class ReadonlyRestClient extends ServerActions {
    */
   private listens_: { [k: string]: object } = {};
 
-  static getListenId_(query: Query, tag?: number | null): string {
+  static getListenId_(query: QueryContext, tag?: number | null): string {
     if (tag !== undefined) {
       return 'tag$' + tag;
     } else {
       assert(
-        query.getQueryParams().isDefault(),
+        query._queryParams.isDefault(),
         "should have a tag if it's not a default query."
       );
-      return query.path.toString();
+      return query._path.toString();
     }
   }
 
   /**
-   * @param repoInfo_ Data about the namespace we are connecting to
-   * @param onDataUpdate_ A callback for new data from the server
+   * @param repoInfo_ - Data about the namespace we are connecting to
+   * @param onDataUpdate_ - A callback for new data from the server
    */
   constructor(
     private repoInfo_: RepoInfo,
@@ -81,15 +80,13 @@ export class ReadonlyRestClient extends ServerActions {
 
   /** @inheritDoc */
   listen(
-    query: Query,
+    query: QueryContext,
     currentHashFn: () => string,
     tag: number | null,
     onComplete: (a: string, b: unknown) => void
   ) {
-    const pathString = query.path.toString();
-    this.log_(
-      'Listen called for ' + pathString + ' ' + query.queryIdentifier()
-    );
+    const pathString = query._path.toString();
+    this.log_('Listen called for ' + pathString + ' ' + query._queryIdentifier);
 
     // Mark this listener so we can tell if it's removed.
     const listenId = ReadonlyRestClient.getListenId_(query, tag);
@@ -97,7 +94,7 @@ export class ReadonlyRestClient extends ServerActions {
     this.listens_[listenId] = thisListen;
 
     const queryStringParameters = queryParamsToRestQueryStringParameters(
-      query.getQueryParams()
+      query._queryParams
     );
 
     this.restRequest_(
@@ -132,17 +129,17 @@ export class ReadonlyRestClient extends ServerActions {
   }
 
   /** @inheritDoc */
-  unlisten(query: Query, tag: number | null) {
+  unlisten(query: QueryContext, tag: number | null) {
     const listenId = ReadonlyRestClient.getListenId_(query, tag);
     delete this.listens_[listenId];
   }
 
-  get(query: Query): Promise<string> {
+  get(query: QueryContext): Promise<string> {
     const queryStringParameters = queryParamsToRestQueryStringParameters(
-      query.getQueryParams()
+      query._queryParams
     );
 
-    const pathString = query.path.toString();
+    const pathString = query._path.toString();
 
     const deferred = new Deferred<string>();
 

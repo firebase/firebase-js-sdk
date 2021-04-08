@@ -31,13 +31,13 @@ export class DOMStorageWrapper {
   private prefix_ = 'firebase:';
 
   /**
-   * @param domStorage_ The underlying storage object (e.g. localStorage or sessionStorage)
+   * @param domStorage_ - The underlying storage object (e.g. localStorage or sessionStorage)
    */
   constructor(private domStorage_: Storage) {}
 
   /**
-   * @param key The key to save the value under
-   * @param value The value being stored, or null to remove the key.
+   * @param key - The key to save the value under
+   * @param value - The value being stored, or null to remove the key.
    */
   set(key: string, value: unknown | null) {
     if (value == null) {
@@ -48,7 +48,7 @@ export class DOMStorageWrapper {
   }
 
   /**
-   * @return The value that was stored under this key, or null
+   * @returns The value that was stored under this key, or null
    */
   get(key: string): unknown {
     const storedVal = this.domStorage_.getItem(this.prefixedName_(key));

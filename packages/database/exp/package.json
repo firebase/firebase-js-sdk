@@ -5,5 +5,5 @@
   "browser": "../dist/exp/index.esm.js",
   "module": "../dist/exp/index.esm.js",
   "esm2017": "../dist/exp/index.esm2017.js",
-  "typings": "../exp-types/index.d.ts"
+  "typings": "../dist/exp/index.d.ts"
 }

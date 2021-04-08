@@ -17,7 +17,6 @@
 
 import { assert } from '@firebase/util';
 
-import { Query } from '../../api/Query';
 import { Operation, OperationType } from '../operation/Operation';
 import { ChildrenNode } from '../snap/ChildrenNode';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
@@ -32,7 +31,7 @@ import {
   EventGenerator,
   eventGeneratorGenerateEventsForChanges
 } from './EventGenerator';
-import { EventRegistration } from './EventRegistration';
+import { EventRegistration, QueryContext } from './EventRegistration';
 import { IndexedFilter } from './filter/IndexedFilter';
 import { queryParamsGetNodeFilter } from './QueryParams';
 import {
@@ -63,8 +62,8 @@ export class View {
   eventRegistrations_: EventRegistration[] = [];
   eventGenerator_: EventGenerator;
 
-  constructor(private query_: Query, initialViewCache: ViewCache) {
-    const params = this.query_.getQueryParams();
+  constructor(private query_: QueryContext, initialViewCache: ViewCache) {
+    const params = this.query_._queryParams;
 
     const indexFilter = new IndexedFilter(params.getIndex());
     const filter = queryParamsGetNodeFilter(params);
@@ -100,7 +99,7 @@ export class View {
     this.eventGenerator_ = new EventGenerator(this.query_);
   }
 
-  get query(): Query {
+  get query(): QueryContext {
     return this.query_;
   }
 }
@@ -122,7 +121,7 @@ export function viewGetCompleteServerCache(
     // If this isn't a "loadsAllData" view, then cache isn't actually a complete cache and
     // we need to see if it contains the child we're interested in.
     if (
-      view.query.getQueryParams().loadsAllData() ||
+      view.query._queryParams.loadsAllData() ||
       (!pathIsEmpty(path) &&
         !cache.getImmediateChild(pathGetFront(path)).isEmpty())
     ) {
@@ -144,9 +143,9 @@ export function viewAddEventRegistration(
 }
 
 /**
- * @param eventRegistration If null, remove all callbacks.
- * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
- * @return Cancel events, if cancelError was provided.
+ * @param eventRegistration - If null, remove all callbacks.
+ * @param cancelError - If a cancelError is provided, appropriate cancel events will be returned.
+ * @returns Cancel events, if cancelError was provided.
  */
 export function viewRemoveEventRegistration(
   view: View,
@@ -159,7 +158,7 @@ export function viewRemoveEventRegistration(
       eventRegistration == null,
       'A cancel should cancel all event registrations.'
     );
-    const path = view.query.path;
+    const path = view.query._path;
     view.eventRegistrations_.forEach(registration => {
       const maybeEvent = registration.createCancelEvent(cancelError, path);
       if (maybeEvent) {

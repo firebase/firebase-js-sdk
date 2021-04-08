@@ -19,14 +19,23 @@
 import { initializeApp, deleteApp } from '@firebase/app-exp';
 import { expect } from 'chai';
 
-import { getDatabase } from '../../exp/index';
+import {
+  get,
+  getDatabase,
+  goOffline,
+  goOnline,
+  ref,
+  refFromURL
+} from '../../exp/index';
+import { onValue, set } from '../../src/exp/Reference_impl';
+import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
 import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
-describe('Database Tests', () => {
+describe('Database@exp Tests', () => {
   let defaultApp;
 
   beforeEach(() => {
@@ -48,7 +57,7 @@ describe('Database Tests', () => {
     const db = getDatabase(defaultApp, 'http://foo.bar.com');
     expect(db).to.be.ok;
     // The URL is assumed to be secure if no port is specified.
-    expect(db.ref().toString()).to.equal('https://foo.bar.com/');
+    expect(ref(db).toString()).to.equal('https://foo.bar.com/');
   });
 
   it('Can get app', () => {
@@ -56,35 +65,89 @@ describe('Database Tests', () => {
     expect(db.app).to.equal(defaultApp);
   });
 
-  it('Can set and ge tref', async () => {
+  it('Can set and get ref', async () => {
     const db = getDatabase(defaultApp);
-    await db.ref('foo/bar').set('foobar');
-    const snap = await db.ref('foo/bar').get();
+    await set(ref(db, 'foo/bar'), 'foobar');
+    const snap = await get(ref(db, 'foo/bar'));
     expect(snap.val()).to.equal('foobar');
   });
 
   it('Can get refFromUrl', async () => {
     const db = getDatabase(defaultApp);
-    await db.refFromURL(`${DATABASE_ADDRESS}/foo/bar`).get();
+    await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+  });
+
+  it('Can get updates', async () => {
+    const db = getDatabase(defaultApp);
+    const fooRef = ref(db, 'foo');
+
+    const ea = EventAccumulatorFactory.waitsForCount(2);
+    onValue(fooRef, snap => {
+      ea.addEvent(snap.val());
+    });
+
+    await set(fooRef, 'a');
+    await set(fooRef, 'b');
+
+    const [snap1, snap2] = await ea.promise;
+    expect(snap1).to.equal('a');
+    expect(snap2).to.equal('b');
+  });
+
+  it('Can use onlyOnce', async () => {
+    const db = getDatabase(defaultApp);
+    const fooRef = ref(db, 'foo');
+
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    onValue(
+      fooRef,
+      snap => {
+        ea.addEvent(snap.val());
+      },
+      { onlyOnce: true }
+    );
+
+    await set(fooRef, 'a');
+    await set(fooRef, 'b');
+
+    const [snap1] = await ea.promise;
+    expect(snap1).to.equal('a');
+  });
+
+  it('Can unsubscribe', async () => {
+    const db = getDatabase(defaultApp);
+    const fooRef = ref(db, 'foo');
+
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    const unsubscribe = onValue(fooRef, snap => {
+      ea.addEvent(snap.val());
+    });
+
+    await set(fooRef, 'a');
+    unsubscribe();
+    await set(fooRef, 'b');
+
+    const [snap1] = await ea.promise;
+    expect(snap1).to.equal('a');
   });
 
   it('Can goOffline/goOnline', async () => {
     const db = getDatabase(defaultApp);
-    db.goOffline();
+    goOffline(db);
     try {
-      await db.ref('foo/bar').get();
+      await get(ref(db, 'foo/bar'));
       expect.fail('Should have failed since we are offline');
     } catch (e) {
       expect(e.message).to.equal('Error: Client is offline.');
     }
-    db.goOnline();
-    await db.ref('foo/bar').get();
+    goOnline(db);
+    await get(ref(db, 'foo/bar'));
   });
 
   it('Can delete app', async () => {
     const db = getDatabase(defaultApp);
     await deleteApp(defaultApp);
-    expect(() => db.ref()).to.throw('Cannot call ref on a deleted database.');
+    expect(() => ref(db)).to.throw('Cannot call ref on a deleted database.');
     defaultApp = undefined;
   });
 });

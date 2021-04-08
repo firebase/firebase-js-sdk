@@ -7,6 +7,8 @@
     <pass-parent-env>true</pass-parent-env>
     <envs>
       <env name="TS_NODE_COMPILER_OPTIONS" value="{&quot;module&quot;:&quot;commonjs&quot;}" />
+      <env name="TS_NODE_FILES" value="true" />
+      <env name="TS_NODE_CACHE" value="NO" />
     </envs>
     <ui>bdd</ui>
     <extra-mocha-options>--require ts-node/register/type-check --require index.node.ts --timeout 5000</extra-mocha-options>

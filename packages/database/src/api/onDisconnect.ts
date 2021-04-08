@@ -15,67 +15,52 @@
  * limitations under the License.
  */
 
-import { Deferred, validateArgCount, validateCallback } from '@firebase/util';
+import { validateArgCount, validateCallback, Compat } from '@firebase/util';
 
-import {
-  Repo,
-  repoOnDisconnectCancel,
-  repoOnDisconnectSet,
-  repoOnDisconnectSetWithPriority,
-  repoOnDisconnectUpdate
-} from '../core/Repo';
 import { Indexable } from '../core/util/misc';
-import { Path } from '../core/util/Path';
 import { warn } from '../core/util/util';
-import {
-  validateWritablePath,
-  validateFirebaseDataArg,
-  validatePriority,
-  validateFirebaseMergeDataArg
-} from '../core/util/validation';
+import { OnDisconnect as ExpOnDisconnect } from '../exp/OnDisconnect';
 
-export class OnDisconnect {
-  constructor(private repo_: Repo, private path_: Path) {}
+export class OnDisconnect implements Compat<ExpOnDisconnect> {
+  constructor(readonly _delegate: ExpOnDisconnect) {}
 
   cancel(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.cancel', 0, 1, arguments.length);
-    validateCallback('OnDisconnect.cancel', 1, onComplete, true);
-    const deferred = new Deferred<void>();
-    repoOnDisconnectCancel(
-      this.repo_,
-      this.path_,
-      deferred.wrapCallback(onComplete)
-    );
-    return deferred.promise;
+    validateCallback('OnDisconnect.cancel', 'onComplete', onComplete, true);
+    const result = this._delegate.cancel();
+    if (onComplete) {
+      result.then(
+        () => onComplete(null),
+        error => onComplete(error)
+      );
+    }
+    return result;
   }
 
   remove(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.remove', 0, 1, arguments.length);
-    validateWritablePath('OnDisconnect.remove', this.path_);
-    validateCallback('OnDisconnect.remove', 1, onComplete, true);
-    const deferred = new Deferred<void>();
-    repoOnDisconnectSet(
-      this.repo_,
-      this.path_,
-      null,
-      deferred.wrapCallback(onComplete)
-    );
-    return deferred.promise;
+    validateCallback('OnDisconnect.remove', 'onComplete', onComplete, true);
+    const result = this._delegate.remove();
+    if (onComplete) {
+      result.then(
+        () => onComplete(null),
+        error => onComplete(error)
+      );
+    }
+    return result;
   }
 
   set(value: unknown, onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.set', 1, 2, arguments.length);
-    validateWritablePath('OnDisconnect.set', this.path_);
-    validateFirebaseDataArg('OnDisconnect.set', 1, value, this.path_, false);
-    validateCallback('OnDisconnect.set', 2, onComplete, true);
-    const deferred = new Deferred<void>();
-    repoOnDisconnectSet(
-      this.repo_,
-      this.path_,
-      value,
-      deferred.wrapCallback(onComplete)
-    );
-    return deferred.promise;
+    validateCallback('OnDisconnect.set', 'onComplete', onComplete, true);
+    const result = this._delegate.set(value);
+    if (onComplete) {
+      result.then(
+        () => onComplete(null),
+        error => onComplete(error)
+      );
+    }
+    return result;
   }
 
   setWithPriority(
@@ -84,26 +69,20 @@ export class OnDisconnect {
     onComplete?: (a: Error | null) => void
   ): Promise<void> {
     validateArgCount('OnDisconnect.setWithPriority', 2, 3, arguments.length);
-    validateWritablePath('OnDisconnect.setWithPriority', this.path_);
-    validateFirebaseDataArg(
+    validateCallback(
       'OnDisconnect.setWithPriority',
-      1,
-      value,
-      this.path_,
-      false
+      'onComplete',
+      onComplete,
+      true
     );
-    validatePriority('OnDisconnect.setWithPriority', 2, priority, false);
-    validateCallback('OnDisconnect.setWithPriority', 3, onComplete, true);
-
-    const deferred = new Deferred<void>();
-    repoOnDisconnectSetWithPriority(
-      this.repo_,
-      this.path_,
-      value,
-      priority,
-      deferred.wrapCallback(onComplete)
-    );
-    return deferred.promise;
+    const result = this._delegate.setWithPriority(value, priority);
+    if (onComplete) {
+      result.then(
+        () => onComplete(null),
+        error => onComplete(error)
+      );
+    }
+    return result;
   }
 
   update(
@@ -111,7 +90,6 @@ export class OnDisconnect {
     onComplete?: (a: Error | null) => void
   ): Promise<void> {
     validateArgCount('OnDisconnect.update', 1, 2, arguments.length);
-    validateWritablePath('OnDisconnect.update', this.path_);
     if (Array.isArray(objectToMerge)) {
       const newObjectToMerge: { [k: string]: unknown } = {};
       for (let i = 0; i < objectToMerge.length; ++i) {
@@ -123,21 +101,14 @@ export class OnDisconnect {
           'existing data, or an Object with integer keys if you really do want to only update some of the children.'
       );
     }
-    validateFirebaseMergeDataArg(
-      'OnDisconnect.update',
-      1,
-      objectToMerge,
-      this.path_,
-      false
-    );
-    validateCallback('OnDisconnect.update', 2, onComplete, true);
-    const deferred = new Deferred<void>();
-    repoOnDisconnectUpdate(
-      this.repo_,
-      this.path_,
-      objectToMerge,
-      deferred.wrapCallback(onComplete)
-    );
-    return deferred.promise;
+    validateCallback('OnDisconnect.update', 'onComplete', onComplete, true);
+    const result = this._delegate.update(objectToMerge);
+    if (onComplete) {
+      result.then(
+        () => onComplete(null),
+        error => onComplete(error)
+      );
+    }
+    return result;
   }
 }

@@ -212,7 +212,7 @@ export class Connection {
   }
 
   /**
-   * @param dataMsg An arbitrary data message to be sent to the server
+   * @param dataMsg - An arbitrary data message to be sent to the server
    */
   sendRequest(dataMsg: object) {
     // wrap in a data message envelope and send it on
@@ -367,7 +367,7 @@ export class Connection {
   }
 
   /**
-   * @param handshake The handshake data returned from the server
+   * @param handshake - The handshake data returned from the server
    */
   private onHandshake_(handshake: {
     ts: number;
@@ -478,7 +478,7 @@ export class Connection {
   }
 
   /**
-   * @param everConnected Whether or not the connection ever reached a server. Used to determine if
+   * @param everConnected - Whether or not the connection ever reached a server. Used to determine if
    * we should flush the host cache
    */
   private onConnectionLost_(everConnected: boolean) {

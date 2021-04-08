@@ -37,7 +37,7 @@ export class TransportManager {
   }
 
   /**
-   * @param repoInfo Metadata around the namespace we're connecting to
+   * @param repoInfo - Metadata around the namespace we're connecting to
    */
   constructor(repoInfo: RepoInfo) {
     this.initTransports_(repoInfo);
@@ -72,7 +72,7 @@ export class TransportManager {
   }
 
   /**
-   * @return The constructor for the initial transport to use
+   * @returns The constructor for the initial transport to use
    */
   initialTransport(): TransportConstructor {
     if (this.transports_.length > 0) {
@@ -83,7 +83,7 @@ export class TransportManager {
   }
 
   /**
-   * @return The constructor for the next transport, or null
+   * @returns The constructor for the next transport, or null
    */
   upgradeTransport(): TransportConstructor | null {
     if (this.transports_.length > 1) {

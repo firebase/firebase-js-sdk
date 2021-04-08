@@ -24,14 +24,12 @@ import * as types from '@firebase/database-types';
 import { isNodeSdk } from '@firebase/util';
 
 import { name, version } from './package.json';
-import { Database, repoManagerDatabaseFromApp } from './src/api/Database';
-import { DataSnapshot } from './src/api/DataSnapshot';
+import { Database } from './src/api/Database';
 import * as INTERNAL from './src/api/internal';
-import { Query } from './src/api/Query';
-import { Reference } from './src/api/Reference';
+import { DataSnapshot, Query, Reference } from './src/api/Reference';
 import * as TEST_ACCESS from './src/api/test_access';
-import { enableLogging } from './src/core/util/util';
 import { setSDKVersion } from './src/core/version';
+import { enableLogging, repoManagerDatabaseFromApp } from './src/exp/Database';
 
 const ServerValue = Database.ServerValue;
 
@@ -48,8 +46,10 @@ export function registerDatabase(instance: FirebaseNamespace) {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
-
-        return repoManagerDatabaseFromApp(app, authProvider, url, undefined);
+        return new Database(
+          repoManagerDatabaseFromApp(app, authProvider, url),
+          app
+        );
       },
       ComponentType.PUBLIC
     )
@@ -81,7 +81,7 @@ registerDatabase(firebase);
 // Types to export for the admin SDK
 export { Database, Query, Reference, enableLogging, ServerValue };
 
-export { DataSnapshot } from './src/api/DataSnapshot';
+export { DataSnapshot } from './src/api/Reference';
 export { OnDisconnect } from './src/api/onDisconnect';
 
 declare module '@firebase/app-types' {
