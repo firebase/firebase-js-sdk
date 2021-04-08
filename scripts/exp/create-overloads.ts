@@ -276,7 +276,8 @@ const BUILTIN_TYPES = [
   'Partial',
   'Blob',
   'ServiceWorkerRegistration',
-  'Record'
+  'Record',
+  'Error'
 ];
 
 // find all types (except for the built-ins and primitives) referenced in the function declaration

@@ -48,11 +48,11 @@ import {
   getFakeApp,
   getFakeInstallations
 } from '../testing/fakes/firebase-dependencies';
+import { onNotificationClick, onPush, onSubChange } from './sw-listeners';
 import { spy, stub } from 'sinon';
 
 import { MessagingService } from '../messaging-service';
 import { Stub } from '../testing/sinon-types';
-import { SwController } from './sw-controller';
 import { expect } from 'chai';
 
 const LOCAL_HOST = self.location.host;
@@ -60,7 +60,7 @@ const TEST_LINK = 'https://' + LOCAL_HOST + '/test-link.org';
 const TEST_CLICK_ACTION = 'https://' + LOCAL_HOST + '/test-click-action.org';
 
 // Add fake SW types.
-declare const self: Window & Writable<ServiceWorkerGlobalScope>;
+declare const self: ServiceWorkerGlobalScope;
 
 // internal message payload (parsed directly from the push event) that contains and only contains
 // notification payload.
@@ -115,7 +115,16 @@ describe('SwController', () => {
       getFakeInstallations(),
       getFakeAnalyticsProvider()
     );
-    new SwController(messaging);
+
+    self.addEventListener('push', e => {
+      e.waitUntil(onPush(e, messaging as MessagingService));
+    });
+    self.addEventListener('pushsubscriptionchange', e => {
+      e.waitUntil(onSubChange(e, messaging as MessagingService));
+    });
+    self.addEventListener('notificationclick', e => {
+      e.waitUntil(onNotificationClick(e));
+    });
   });
 
   afterEach(() => {

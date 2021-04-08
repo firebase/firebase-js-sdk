@@ -35,6 +35,7 @@ import {
   FirebaseStorage,
   Reference as StorageReference
 } from '@firebase/storage-types';
+import { FirebaseDatabase, Reference, Query } from '@firebase/database-types';
 
 /**
  * Test namespaced types from compat/index.d.ts against the types used in
@@ -44,38 +45,6 @@ import {
  * - messaging, which has changed its public API in the compat version
  * - app-compat, which defines its FirebaseApp type in its own package
  */
-
-const namespaced: {
-  auth: firebase.auth.Auth;
-  analytics: firebase.analytics.Analytics;
-  app: firebase.app.App;
-  firestore: firebase.firestore.Firestore;
-  functions: firebase.functions.Functions;
-  installations?: firebase.installations.Installations;
-  messaging: firebase.messaging.Messaging;
-  performance: firebase.performance.Performance;
-  remoteConfig: firebase.remoteConfig.RemoteConfig;
-  storage: firebase.storage.Storage;
-  storageReference: firebase.storage.Reference;
-  firestoreDocumentReference: firebase.firestore.DocumentReference;
-  firestoreCollectionReference: firebase.firestore.CollectionReference;
-  authUser: firebase.User;
-} = {
-  auth: firebase.auth(),
-  analytics: firebase.analytics(),
-  app: firebase.initializeApp({}),
-  firestore: firebase.firestore(),
-  functions: firebase.functions(),
-  installations: {} as firebase.installations.Installations,
-  messaging: firebase.messaging(),
-  performance: firebase.performance(),
-  remoteConfig: firebase.remoteConfig(),
-  storage: firebase.storage(),
-  storageReference: {} as firebase.storage.Reference,
-  firestoreDocumentReference: {} as firebase.firestore.DocumentReference,
-  firestoreCollectionReference: {} as firebase.firestore.CollectionReference,
-  authUser: {} as firebase.User
-};
 
 const compatTypes: {
   auth: FirebaseAuth;
@@ -92,19 +61,25 @@ const compatTypes: {
   firestoreDocumentReference: DocumentReference;
   firestoreCollectionReference: CollectionReference;
   authUser: User;
+  database: FirebaseDatabase;
+  databaseReference: Reference;
+  databaseQuery: Query;
 } = {
-  auth: namespaced.auth,
-  analytics: namespaced.analytics,
-  app: namespaced.app,
-  firestore: namespaced.firestore,
-  functions: namespaced.functions,
-  installations: namespaced.installations,
-  messaging: namespaced.messaging,
-  performance: namespaced.performance,
-  remoteConfig: namespaced.remoteConfig,
-  storage: namespaced.storage,
-  storageReference: namespaced.storageReference,
-  firestoreDocumentReference: namespaced.firestoreDocumentReference,
-  firestoreCollectionReference: namespaced.firestoreCollectionReference,
-  authUser: namespaced.authUser
+  auth: firebase.auth(),
+  analytics: firebase.analytics(),
+  app: firebase.initializeApp({}),
+  firestore: firebase.firestore(),
+  functions: firebase.functions(),
+  installations: {} as firebase.installations.Installations,
+  messaging: firebase.messaging(),
+  performance: firebase.performance(),
+  remoteConfig: firebase.remoteConfig(),
+  storage: firebase.storage(),
+  storageReference: {} as firebase.storage.Reference,
+  firestoreDocumentReference: {} as firebase.firestore.DocumentReference,
+  firestoreCollectionReference: {} as firebase.firestore.CollectionReference,
+  authUser: {} as firebase.User,
+  database: {} as firebase.database.Database,
+  databaseReference: {} as firebase.database.Reference,
+  databaseQuery: {} as firebase.database.Query
 };

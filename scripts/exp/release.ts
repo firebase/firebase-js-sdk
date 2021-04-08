@@ -36,7 +36,10 @@ import {
   createStorageCompatProject,
   prepare as prepareStorageForRelease
 } from './prepare-storage-for-exp-release';
-import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
+import {
+  createDatabaseCompatProject,
+  prepare as prepareDatabaseForRelease
+} from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
 import { addCompatToFirebasePkgJson } from './prepare-util';
 
@@ -81,6 +84,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
 
     packagePaths.push(`${projectRoot}/packages/firestore/compat`);
     packagePaths.push(`${projectRoot}/packages/storage/compat`);
+    packagePaths.push(`${projectRoot}/packages/database/compat`);
 
     /**
      * Bumps the patch version of firebase-exp package regardless if there is any update
@@ -109,13 +113,15 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      */
     await createFirestoreCompatProject();
     await createStorageCompatProject();
+    await createDatabaseCompatProject();
 
     /**
      * Add firestore-compat, database-compat and storage-compat to the dependencies array of firebase-exp
      */
     await addCompatToFirebasePkgJson([
       '@firebase/firestore-compat',
-      '@firebase/storage-compat'
+      '@firebase/storage-compat',
+      '@firebase/database-compat'
     ]);
 
     /**
@@ -299,7 +305,7 @@ async function buildPackages() {
   // Database
   await spawn(
     'yarn',
-    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp'],
+    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'

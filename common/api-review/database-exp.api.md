@@ -7,6 +7,9 @@
 import { FirebaseApp } from '@firebase/app';
 
 // @public (undocumented)
+export function child(parent: Reference, path: string): Reference;
+
+// @public
 export class DataSnapshot {
     child(path: string): DataSnapshot;
     exists(): boolean;

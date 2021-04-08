@@ -24,10 +24,12 @@ import {
   FirebaseDatabase as ExpDatabase,
   goOnline,
   useDatabaseEmulator,
-  goOffline
-} from '../exp/Database';
-import { ref, refFromURL } from '../exp/Reference_impl';
-import { increment, serverTimestamp } from '../exp/ServerValue';
+  goOffline,
+  ref,
+  refFromURL,
+  increment,
+  serverTimestamp
+} from '../../exp/index'; // import from the exp public API
 
 import { Reference } from './Reference';
 

@@ -24,17 +24,8 @@ import {
   validateContextObject
 } from '@firebase/util';
 
-import { warn } from '../core/util/util';
 import {
-  validateBoolean,
-  validateEventType,
-  validatePathString,
-  validateWritablePath
-} from '../core/util/validation';
-import { UserCallback } from '../core/view/EventRegistration';
-import { QueryParams } from '../core/view/QueryParams';
-import { OnDisconnect as ExpOnDisconnect } from '../exp/OnDisconnect';
-import {
+  OnDisconnect as ExpOnDisconnect,
   DataSnapshot as ExpDataSnapshot,
   off,
   onChildAdded,
@@ -42,8 +33,6 @@ import {
   onChildMoved,
   onChildRemoved,
   onValue,
-  QueryImpl,
-  ReferenceImpl,
   EventType,
   limitToFirst,
   query,
@@ -58,16 +47,29 @@ import {
   endBefore,
   equalTo,
   get,
-  child,
   set,
   update,
   setWithPriority,
   remove,
   setPriority,
   push,
-  ThenableReferenceImpl
-} from '../exp/Reference_impl';
-import { runTransaction } from '../exp/Transaction';
+  runTransaction,
+  Query as ExpQuery,
+  Reference as ExpReference,
+  _QueryImpl,
+  _ReferenceImpl,
+  child
+} from '../../exp/index'; // import from the exp public API
+import { warn } from '../core/util/util';
+import {
+  validateBoolean,
+  validateEventType,
+  validatePathString,
+  validateWritablePath
+} from '../core/util/validation';
+import { UserCallback } from '../core/view/EventRegistration';
+import { QueryParams } from '../core/view/QueryParams';
+import { ThenableReferenceImpl } from '../exp/Reference_impl';
 
 import { Database } from './Database';
 import { OnDisconnect } from './onDisconnect';
@@ -220,8 +222,8 @@ export interface SnapshotCallback {
  *
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
-export class Query implements Compat<QueryImpl> {
-  constructor(readonly database: Database, readonly _delegate: QueryImpl) {}
+export class Query implements Compat<ExpQuery> {
+  constructor(readonly database: Database, readonly _delegate: ExpQuery) {}
 
   on(
     eventType: string,
@@ -542,12 +544,12 @@ export class Query implements Compat<QueryImpl> {
   get ref(): Reference {
     return new Reference(
       this.database,
-      new ReferenceImpl(this._delegate._repo, this._delegate._path)
+      new _ReferenceImpl(this._delegate._repo, this._delegate._path)
     );
   }
 }
 
-export class Reference extends Query implements Compat<ReferenceImpl> {
+export class Reference extends Query implements Compat<ExpReference> {
   then: Promise<Reference>['then'];
   catch: Promise<Reference>['catch'];
 
@@ -558,10 +560,10 @@ export class Reference extends Query implements Compat<ReferenceImpl> {
    *
    * Externally - this is the firebase.database.Reference type.
    */
-  constructor(readonly database: Database, readonly _delegate: ReferenceImpl) {
+  constructor(readonly database: Database, readonly _delegate: ExpReference) {
     super(
       database,
-      new QueryImpl(_delegate._repo, _delegate._path, new QueryParams(), false)
+      new _QueryImpl(_delegate._repo, _delegate._path, new QueryParams(), false)
     );
   }
 
