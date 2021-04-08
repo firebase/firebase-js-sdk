@@ -535,7 +535,7 @@ export function refFromURL(db: FirebaseDatabase, url: string): Reference {
  *   location.
  * @returns The specified child location.
  */
-export function child(parent: Reference, path: string): ReferenceImpl {
+export function child(parent: Reference, path: string): Reference {
   parent = getModularInstance(parent);
   if (pathGetFront(parent._path) === null) {
     validateRootPathString('child', 'path', path, false);
@@ -597,8 +597,11 @@ export function push(parent: Reference, value?: unknown): ThenableReference {
   // then() and catch() methods and is used as the return value of push(). The
   // second remains a regular Reference and is used as the fulfilled value of
   // the first ThennableReference.
-  const thennablePushRef: Partial<ThenableReferenceImpl> = child(parent, name);
-  const pushRef = child(parent, name);
+  const thennablePushRef: Partial<ThenableReferenceImpl> = child(
+    parent,
+    name
+  ) as ReferenceImpl;
+  const pushRef = child(parent, name) as ReferenceImpl;
 
   let promise: Promise<ReferenceImpl>;
   if (value != null) {

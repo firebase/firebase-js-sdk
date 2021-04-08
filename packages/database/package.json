@@ -14,7 +14,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "prettier": "prettier --write '*.js' '*.ts' '@(exp|src|test)/**/*.ts'",
-    "build": "run-p build:classic build:exp && build:compat",
+    "build": "run-p build:classic build:exp && yarn build:compat",
     "build:classic": "rollup -c rollup.config.js",
     "build:exp": "rollup -c rollup.config.exp.js && yarn api-report",
     "build:compat": "rollup -c rollup.config.compat.js && yarn add-compat-overloads", 
