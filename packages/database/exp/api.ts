@@ -65,9 +65,9 @@ export {
   startAfter,
   startAt,
   update,
+  child,
   ReferenceImpl as _ReferenceImpl,
-  QueryImpl as _QueryImpl,
-  child as _child
+  QueryImpl as _QueryImpl
 } from '../src/exp/Reference_impl';
 export { increment, serverTimestamp } from '../src/exp/ServerValue';
 export {

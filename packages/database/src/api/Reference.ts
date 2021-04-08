@@ -67,7 +67,7 @@ import {
   Reference as ExpReference,
   _QueryImpl,
   _ReferenceImpl,
-  _child
+  child
 } from '../../exp/index'; // import from the exp public API
 import { ThenableReferenceImpl } from '../exp/Reference_impl';
 
@@ -578,7 +578,7 @@ export class Reference extends Query implements Compat<ExpReference> {
     if (typeof pathString === 'number') {
       pathString = String(pathString);
     }
-    return new Reference(this.database, _child(this._delegate, pathString));
+    return new Reference(this.database, child(this._delegate, pathString));
   }
 
   /** @returns {?Reference} */
