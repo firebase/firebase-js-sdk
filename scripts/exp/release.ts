@@ -84,6 +84,7 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
 
     packagePaths.push(`${projectRoot}/packages/firestore/compat`);
     packagePaths.push(`${projectRoot}/packages/storage/compat`);
+    packagePaths.push(`${projectRoot}/packages/database/compat`);
 
     /**
      * Bumps the patch version of firebase-exp package regardless if there is any update
