@@ -17,7 +17,7 @@
 
 /**
  * Display notification details. They are sent through the
- * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification Send API}
+ * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification | Send API}
  *
  * @public
  */
@@ -40,7 +40,7 @@ export interface NotificationPayload {
 
 /**
  * Options for features provided by the FCM SDK for Web. See {@link
- * https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions
+ * https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions |
  * WebpushFcmOptions}
  *
  * @public
@@ -61,7 +61,7 @@ export interface FcmOptions {
  * Message payload that contains the notification payload that is represented with
  * {@link firebase.messaging.NotificationPayload} and the data payload that contains an arbitrary
  * number of key-value pairs sent by developers through the
- * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification Send API}
+ * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification | Send API}
  *
  * @public
  */
@@ -88,7 +88,7 @@ export interface MessagePayload {
 
   /**
    * The collapse key of the message. See
-   * {@link https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages Non-collapsible and collapsible messages}
+   * {@link https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages | Non-collapsible and collapsible messages}
    */
   collapseKey: string;
 }

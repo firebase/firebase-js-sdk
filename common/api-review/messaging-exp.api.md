@@ -12,15 +12,13 @@ import { Unsubscribe } from '@firebase/util';
 // @public
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
 
-// @public (undocumented)
+// @public
 export interface FcmOptions {
-    // (undocumented)
     analyticsLabel?: string;
-    // (undocumented)
     link?: string;
 }
 
-// @public (undocumented)
+// @public
 export interface FirebaseMessaging {
 }
 
@@ -28,7 +26,7 @@ export interface FirebaseMessaging {
 export type _FirebaseMessagingName = 'messaging';
 
 // @public
-export function getMessaging(app: FirebaseApp): FirebaseMessaging;
+export function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 
 // @public
 export function getToken(messaging: FirebaseMessaging, options?: {
@@ -36,34 +34,40 @@ export function getToken(messaging: FirebaseMessaging, options?: {
     swReg?: ServiceWorkerRegistration;
 }): Promise<string>;
 
-// @public (undocumented)
+// @public
+export function isSupported(): Promise<boolean>;
+
+// @public
 export interface MessagePayload {
-    // (undocumented)
     collapseKey: string;
-    // (undocumented)
     data?: {
         [key: string]: string;
     };
-    // (undocumented)
     fcmOptions?: FcmOptions;
-    // (undocumented)
     from: string;
-    // (undocumented)
     notification?: NotificationPayload;
 }
 
+export { NextFn }
+
 // @public
 export interface NotificationPayload {
-    // (undocumented)
     body?: string;
-    // (undocumented)
     image?: string;
-    // (undocumented)
     title?: string;
 }
 
+export { Observer }
+
+// Warning: (ae-internal-missing-underscore) The name "onBackgroundMessage" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function onBackgroundMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
+
 // @public
 export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
+
+export { Unsubscribe }
 
 
 // (No @packageDocumentation comment for this package)
