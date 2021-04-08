@@ -119,7 +119,8 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
      */
     await addCompatToFirebasePkgJson([
       '@firebase/firestore-compat',
-      '@firebase/storage-compat'
+      '@firebase/storage-compat',
+      '@firebase/database-compat'
     ]);
 
     /**

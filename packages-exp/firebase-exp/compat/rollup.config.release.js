@@ -190,6 +190,11 @@ const componentBuilds = compatPkg.components
                 // hack to locate storage-compat
                 find: '@firebase/storage-compat',
                 replacement: 'storage-compat'
+              },
+              {
+                // hack to locate database-compat
+                find: '@firebase/database-compat',
+                replacement: 'database-compat'
               }
             ]
           }),
