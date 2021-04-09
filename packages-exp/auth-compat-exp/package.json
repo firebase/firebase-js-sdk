@@ -33,11 +33,12 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/auth-types": "0.10.2",
     "@firebase/auth-exp": "0.0.900",
+    "@firebase/auth-types": "0.10.2",
     "@firebase/component": "0.4.0",
     "@firebase/util": "0.4.1",
     "node-fetch": "2.6.1",
+    "selenium-webdriver": "^4.0.0-beta.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

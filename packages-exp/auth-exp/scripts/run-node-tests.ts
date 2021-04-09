@@ -49,7 +49,7 @@ if (argv.integration) {
     testConfig.push('test/integration/flows/*.local.test.ts');
   }
 } else if (argv.webdriver) {
-  testConfig = ['test/integration/webdriver/**.test.ts', '--delay'];
+  testConfig = ['test/integration/webdriver/*.test.ts', '--delay'];
 }
 
 let args = [

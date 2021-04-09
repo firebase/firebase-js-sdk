@@ -34,7 +34,7 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
-import { ReverseWrapper, unwrap, Wrapper } from './wrap';
+import { ReverseWrapper, Wrapper } from './wrap';
 
 const _assert: typeof exp._assert = exp._assert;
 
@@ -290,7 +290,7 @@ export class Auth
       exp.signInWithPhoneNumber(
         this._delegate,
         phoneNumber,
-        unwrap(applicationVerifier)
+        applicationVerifier
       )
     );
   }
@@ -328,7 +328,7 @@ export class Auth
   updateCurrentUser(user: compat.User | null): Promise<void> {
     // remove ts-ignore once overloads are defined for exp functions to accept compat objects
     // @ts-ignore
-    return this._delegate.updateCurrentUser(unwrap(user));
+    return this._delegate.updateCurrentUser(user);
   }
   verifyPasswordResetCode(code: string): Promise<string> {
     return exp.verifyPasswordResetCode(this._delegate, code);

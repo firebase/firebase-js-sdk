@@ -32,7 +32,7 @@ import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { _verifyPhoneNumber } from '../strategies/phone';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthCredential } from '../../core';
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError, getModularInstance } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 
 /**
@@ -107,7 +107,7 @@ export class PhoneAuthProvider {
     return _verifyPhoneNumber(
       this.auth,
       phoneOptions,
-      applicationVerifier as ApplicationVerifierInternal
+      getModularInstance(applicationVerifier as ApplicationVerifierInternal)
     );
   }
 
