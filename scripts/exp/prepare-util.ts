@@ -65,7 +65,7 @@ export async function createCompatProject(config: CompatConfig) {
 
     compatPkgJson.dependencies = {
       ...srcPkgJson.dependencies,
-      [srcPkgJson.name]: '0.0.900'
+      [srcPkgJson.name]: srcPkgJson.version
     };
 
     compatPkgJson.peerDependencies = {

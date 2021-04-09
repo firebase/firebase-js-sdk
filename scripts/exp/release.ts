@@ -157,10 +157,18 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       throw new Error('Version check failed');
     }
 
+    // publish all packages under packages-exp plus firestore, storage and database
+    const packagesToPublish = await mapWorkspaceToPackages([
+      `${projectRoot}/packages-exp/*`
+    ]);
+    packagePaths.push(`${projectRoot}/packages/firestore`);
+    packagePaths.push(`${projectRoot}/packages/storage`);
+    packagePaths.push(`${projectRoot}/packages/database`);
+
     /**
      * Release packages to NPM
      */
-    await publishToNpm(packagePaths, dryRun);
+    await publishToNpm(packagesToPublish, dryRun);
 
     /**
      * reset the working tree to recover package names with -exp in the package.json files,
