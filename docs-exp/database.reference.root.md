@@ -4,8 +4,10 @@
 
 ## Reference.root property
 
+The root `Reference` of the Database.
+
 <b>Signature:</b>
 
 ```typescript
-root: Reference;
+readonly root: Reference;
 ```

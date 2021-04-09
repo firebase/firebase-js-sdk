@@ -24,5 +24,5 @@ export declare class FirebaseFirestore
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [toJSON()](./firestore_lite.firebasefirestore.tojson.md) |  |  |
+|  [toJSON()](./firestore_lite.firebasefirestore.tojson.md) |  | Returns a JSON-serializable representation of this Firestore instance. |
 

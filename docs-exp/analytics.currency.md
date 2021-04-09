@@ -4,6 +4,8 @@
 
 ## Currency type
 
+Currency field used by some Analytics events.
+
 <b>Signature:</b>
 
 ```typescript

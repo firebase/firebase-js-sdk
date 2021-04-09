@@ -4,6 +4,8 @@
 
 ## MessagePayload.fcmOptions property
 
+Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)
+
 <b>Signature:</b>
 
 ```typescript

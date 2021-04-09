@@ -4,19 +4,18 @@
 
 ## OnDisconnect.cancel() method
 
+Cancels all previously queued `onDisconnect()` set or update events for this location and all children.
+
+If a write has been queued for this location via a `set()` or `update()` at a parent location, the write at this location will be canceled, though writes to sibling locations will still occur.
+
 <b>Signature:</b>
 
 ```typescript
-cancel(onComplete?: (a: Error | null) => any): Promise<void>;
+cancel(): Promise<void>;
 ```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  onComplete | (a: Error \| null) =&gt; any |  |
-
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+Resolves when synchronization to the server is complete.
 

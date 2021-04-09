@@ -4,13 +4,12 @@
 
 ## ThenableReference interface
 
+A `Promise` that can also act as a `Reference` when returned by [push()](./database.push.md)<!-- -->. The reference is available immediately and the Promise resolves as the write to the backend completes.
 
 <b>Signature:</b>
 
 ```typescript
-export interface ThenableReference
-  extends Reference,
-    Pick<Promise<Reference>, 'then' | 'catch'> 
+export declare interface ThenableReference extends Reference, Pick<Promise<Reference>, 'then' | 'catch'> 
 ```
 <b>Extends:</b> [Reference](./database.reference.md)<!-- -->, Pick&lt;Promise&lt;[Reference](./database.reference.md)<!-- -->&gt;, 'then' \| 'catch'&gt;
 

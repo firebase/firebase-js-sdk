@@ -4,6 +4,8 @@
 
 ## PhoneAuthProvider.credentialFromResult() method
 
+Generates an [AuthCredential](./auth.authcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

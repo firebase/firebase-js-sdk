@@ -4,11 +4,16 @@
 
 ## Reference interface
 
+A `Reference` represents a specific location in your Database and can be used for reading or writing data to that Database location.
+
+You can reference the root or child location in your Database by calling `ref()` or `ref("child/path")`<!-- -->.
+
+Writing is done with the `set()` method and reading can be done with the `on*()` method. See [https://firebase.google.com/docs/database/web/read-and-write](https://firebase.google.com/docs/database/web/read-and-write)
 
 <b>Signature:</b>
 
 ```typescript
-export interface Reference extends Query 
+export declare interface Reference extends Query 
 ```
 <b>Extends:</b> [Query](./database.query.md)
 
@@ -16,21 +21,7 @@ export interface Reference extends Query
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [key](./database.reference.key.md) | string \| null |  |
-|  [parent](./database.reference.parent.md) | [Reference](./database.reference.md) \| null |  |
-|  [root](./database.reference.root.md) | [Reference](./database.reference.md) |  |
-
-## Methods
-
-|  Method | Description |
-|  --- | --- |
-|  [child(path)](./database.reference.child.md) |  |
-|  [onDisconnect()](./database.reference.ondisconnect.md) |  |
-|  [push(value, onComplete)](./database.reference.push.md) |  |
-|  [remove(onComplete)](./database.reference.remove.md) |  |
-|  [set(value, onComplete)](./database.reference.set.md) |  |
-|  [setPriority(priority, onComplete)](./database.reference.setpriority.md) |  |
-|  [setWithPriority(newVal, newPriority, onComplete)](./database.reference.setwithpriority.md) |  |
-|  [transaction(transactionUpdate, onComplete, applyLocally)](./database.reference.transaction.md) |  |
-|  [update(values, onComplete)](./database.reference.update.md) |  |
+|  [key](./database.reference.key.md) | string \| null | The last part of the <code>Reference</code>'s path.<!-- -->For example, <code>&quot;ada&quot;</code> is the key for <code>https://&lt;DATABASE_NAME&gt;.firebaseio.com/users/ada</code>.<!-- -->The key of a root <code>Reference</code> is <code>null</code>. |
+|  [parent](./database.reference.parent.md) | [Reference](./database.reference.md) \| null | The parent location of a <code>Reference</code>.<!-- -->The parent of a root <code>Reference</code> is <code>null</code>. |
+|  [root](./database.reference.root.md) | [Reference](./database.reference.md) | The root <code>Reference</code> of the Database. |
 

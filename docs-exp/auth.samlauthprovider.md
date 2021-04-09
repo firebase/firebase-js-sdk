@@ -23,7 +23,7 @@ export declare class SAMLAuthProvider extends FederatedAuthProvider
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [credentialFromError(error)](./auth.samlauthprovider.credentialfromerror.md) | <code>static</code> |  |
-|  [credentialFromJSON(json)](./auth.samlauthprovider.credentialfromjson.md) | <code>static</code> |  |
-|  [credentialFromResult(userCredential)](./auth.samlauthprovider.credentialfromresult.md) | <code>static</code> |  |
+|  [credentialFromError(error)](./auth.samlauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
+|  [credentialFromJSON(json)](./auth.samlauthprovider.credentialfromjson.md) | <code>static</code> | Creates an [AuthCredential](./auth.authcredential.md) from a JSON string or a plain object. |
+|  [credentialFromResult(userCredential)](./auth.samlauthprovider.credentialfromresult.md) | <code>static</code> | Generates an [AuthCredential](./auth.authcredential.md) from a [UserCredential](./auth.usercredential.md) after a successful SAML flow completes. |
 

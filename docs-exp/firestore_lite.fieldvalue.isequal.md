@@ -4,6 +4,8 @@
 
 ## FieldValue.isEqual() method
 
+Compares `FieldValue`<!-- -->s for equality.
+
 <b>Signature:</b>
 
 ```typescript

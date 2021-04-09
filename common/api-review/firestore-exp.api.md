@@ -485,6 +485,4 @@ export class WriteBatch {
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

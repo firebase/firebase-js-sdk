@@ -4,6 +4,10 @@
 
 ## DataSnapshot.hasChildren() method
 
+Returns whether or not the `DataSnapshot` has any non-`null` child properties.
+
+You can use `hasChildren()` to determine if a `DataSnapshot` has any children. If it does, you can enumerate them using `forEach()`<!-- -->. If it doesn't, then either this snapshot contains a primitive value (which can be retrieved with `val()`<!-- -->) or it is empty (in which case, `val()` will return `null`<!-- -->).
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +16,6 @@ hasChildren(): boolean;
 <b>Returns:</b>
 
 boolean
+
+true if this snapshot has any children; else false.
 

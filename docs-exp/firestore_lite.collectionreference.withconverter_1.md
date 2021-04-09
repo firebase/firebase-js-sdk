@@ -4,19 +4,23 @@
 
 ## CollectionReference.withConverter() method
 
+Removes the current converter.
+
 <b>Signature:</b>
 
 ```typescript
-withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
+withConverter(converter: null): CollectionReference<DocumentData>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  converter | [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md)<!-- -->&lt;U&gt; |  |
+|  converter | null | <code>null</code> removes the current converter. |
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_lite.collectionreference.md)<!-- -->&lt;U&gt;
+[CollectionReference](./firestore_lite.collectionreference.md)<!-- -->&lt;[DocumentData](./firestore_lite.documentdata.md)<!-- -->&gt;
+
+A `CollectionReference<DocumentData>` that does not use a converter.
 

@@ -4,6 +4,8 @@
 
 ## FirebaseFirestore.toJSON() method
 
+Returns a JSON-serializable representation of this Firestore instance.
+
 <b>Signature:</b>
 
 ```typescript

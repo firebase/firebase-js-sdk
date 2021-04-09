@@ -4,6 +4,8 @@
 
 ## DocumentSnapshot.id property
 
+Property of the `DocumentSnapshot` that provides the document's ID.
+
 <b>Signature:</b>
 
 ```typescript

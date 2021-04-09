@@ -59,7 +59,7 @@ export interface FcmOptions {
 
 /**
  * Message payload that contains the notification payload that is represented with
- * {@link firebase.messaging.NotificationPayload} and the data payload that contains an arbitrary
+ * {@link NotificationPayload} and the data payload that contains an arbitrary
  * number of key-value pairs sent by developers through the
  * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification | Send API}
  *

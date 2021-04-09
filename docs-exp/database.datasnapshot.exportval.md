@@ -4,6 +4,10 @@
 
 ## DataSnapshot.exportVal() method
 
+Exports the entire contents of the DataSnapshot as a JavaScript object.
+
+The `exportVal()` method is similar to `val()`<!-- -->, except priority information is included (if available), making it suitable for backing up your data.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +16,6 @@ exportVal(): any;
 <b>Returns:</b>
 
 any
+
+The DataSnapshot's contents as a JavaScript value (Object, Array, string, number, boolean, or `null`<!-- -->).
 

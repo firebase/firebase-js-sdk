@@ -16,7 +16,7 @@ export declare function getPerformance(app?: FirebaseApp): FirebasePerformance;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md) | The FirebaseApp to use. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The <code>FirebaseApp</code> to use. |
 
 <b>Returns:</b>
 

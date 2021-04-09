@@ -4,22 +4,20 @@
 
 ## enableLogging() function
 
+Logs debugging information to the console.
 
 <b>Signature:</b>
 
 ```typescript
-export function enableLogging(
-  logger?: boolean | ((a: string) => any),
-  persistent?: boolean
-): any;
+export declare function enableLogging(enabled: boolean, persistent?: boolean): any;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  logger | boolean \| ((a: string) =&gt; any) |  |
-|  persistent | boolean |  |
+|  enabled | boolean | Enables logging if <code>true</code>, disables logging if <code>false</code>. |
+|  persistent | boolean | Remembers the logging state between page refreshes if <code>true</code>. |
 
 <b>Returns:</b>
 

@@ -4,21 +4,24 @@
 
 ## getDatabase() function
 
+Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md)<!-- -->. Initializes a new instance with with default settings if no instance exists or if the existing instance uses a custom database URL.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getDatabase(app: FirebaseApp, url?: string): Database;
+export declare function getDatabase(app?: FirebaseApp, url?: string): FirebaseDatabase;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | FirebaseApp |  |
-|  url | string |  |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md) instance that the returned Realtime Database instance is associated with. |
+|  url | string | The URL of the Realtime Database instance to connect to. If not provided, the SDK connects to the default instance of the Firebase App. |
 
 <b>Returns:</b>
 
-[Database](./database.database.md)
+[FirebaseDatabase](./database.firebasedatabase.md)
+
+The `FirebaseDatabase` instance of the provided app.
 

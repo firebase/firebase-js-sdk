@@ -4,6 +4,7 @@
 
 ## FcmOptions interface
 
+Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)
 
 <b>Signature:</b>
 
@@ -15,6 +16,6 @@ export interface FcmOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [analyticsLabel?](./messaging.fcmoptions.analyticslabel.md) | string | <i>(Optional)</i> |
-|  [link?](./messaging.fcmoptions.link.md) | string | <i>(Optional)</i> |
+|  [analyticsLabel?](./messaging.fcmoptions.analyticslabel.md) | string | <i>(Optional)</i> The label associated with the message's analytics data. |
+|  [link?](./messaging.fcmoptions.link.md) | string | <i>(Optional)</i> The link to open when the user clicks on the notification. |
 

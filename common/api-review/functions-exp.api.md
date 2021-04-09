@@ -46,6 +46,4 @@ export interface HttpsCallableResult<ResponseData = unknown> {
 export function useFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

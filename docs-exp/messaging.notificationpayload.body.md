@@ -4,6 +4,8 @@
 
 ## NotificationPayload.body property
 
+The notification's body text.
+
 <b>Signature:</b>
 
 ```typescript

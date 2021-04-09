@@ -257,6 +257,4 @@ export interface UploadTaskSnapshot {
 export function useStorageEmulator(storage: StorageService, host: string, port: number): void;
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

@@ -16,5 +16,5 @@ export interface HttpsCallableResult<ResponseData = unknown>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [data](./functions.httpscallableresult.data.md) | ResponseData |  |
+|  [data](./functions.httpscallableresult.data.md) | ResponseData | Data returned from callable function. |
 

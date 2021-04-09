@@ -16,13 +16,10 @@ export declare const enum ProviderId
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  ANONYMOUS | <code>&quot;anonymous&quot;</code> |  |
-|  CUSTOM | <code>&quot;custom&quot;</code> |  |
-|  FACEBOOK | <code>&quot;facebook.com&quot;</code> |  |
-|  FIREBASE | <code>&quot;firebase&quot;</code> |  |
-|  GITHUB | <code>&quot;github.com&quot;</code> |  |
-|  GOOGLE | <code>&quot;google.com&quot;</code> |  |
-|  PASSWORD | <code>&quot;password&quot;</code> |  |
-|  PHONE | <code>&quot;phone&quot;</code> |  |
-|  TWITTER | <code>&quot;twitter.com&quot;</code> |  |
+|  FACEBOOK | <code>&quot;facebook.com&quot;</code> | Facebook provider ID |
+|  GITHUB | <code>&quot;github.com&quot;</code> | GitHub provider ID |
+|  GOOGLE | <code>&quot;google.com&quot;</code> | Google provider ID |
+|  PASSWORD | <code>&quot;password&quot;</code> | Password provider |
+|  PHONE | <code>&quot;phone&quot;</code> | Phone provider |
+|  TWITTER | <code>&quot;twitter.com&quot;</code> | Twitter provider ID |
 

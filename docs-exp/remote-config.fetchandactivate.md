@@ -16,7 +16,7 @@ export declare function fetchAndActivate(remoteConfig: RemoteConfig): Promise<bo
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | The remote config instance. |
 
 <b>Returns:</b>
 

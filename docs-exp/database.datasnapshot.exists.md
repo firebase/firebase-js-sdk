@@ -4,6 +4,8 @@
 
 ## DataSnapshot.exists() method
 
+Returns true if this `DataSnapshot` contains any data. It is slightly more efficient than using `snapshot.val() !== null`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

@@ -16,7 +16,7 @@ export declare function getInstallations(app?: FirebaseApp): FirebaseInstallatio
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md) |  |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The <code>FirebaseApp</code> instance. |
 
 <b>Returns:</b>
 

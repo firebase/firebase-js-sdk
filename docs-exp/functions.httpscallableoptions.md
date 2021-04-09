@@ -16,5 +16,5 @@ export interface HttpsCallableOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [timeout?](./functions.httpscallableoptions.timeout.md) | number | <i>(Optional)</i> |
+|  [timeout?](./functions.httpscallableoptions.timeout.md) | number | <i>(Optional)</i> Time in milliseconds after which to cancel if there is no response. Default is 70000. |
 
