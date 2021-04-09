@@ -39,7 +39,7 @@ import {
   ApiEntryPoint,
   ApiStaticMixin,
   ApiEnum
-} from '@microsoft/api-extractor-model';
+} from 'api-extractor-model-me';
 import { DocEmphasisSpan } from '../nodes/DocEmphasisSpan';
 import { DocHeading } from '../nodes/DocHeading';
 import { DocTable } from '../nodes/DocTable';

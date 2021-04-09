@@ -25,7 +25,7 @@ import {
   ApiModel,
   IResolveDeclarationReferenceResult,
   ApiItem
-} from '@microsoft/api-extractor-model';
+} from 'api-extractor-model-me';
 
 import { CustomDocNodeKind } from '../nodes/CustomDocNodeKind';
 import { DocHeading } from '../nodes/DocHeading';

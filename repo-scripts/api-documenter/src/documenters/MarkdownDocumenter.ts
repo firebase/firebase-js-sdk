@@ -55,7 +55,7 @@ import {
   ApiPackage,
   ApiEntryPoint,
   ApiNamespace
-} from '@microsoft/api-extractor-model';
+} from 'api-extractor-model-me';
 
 import { CustomDocNodes } from '../nodes/CustomDocNodeKind';
 import { CustomMarkdownEmitter } from '../markdown/CustomMarkdownEmitter';

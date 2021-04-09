@@ -19,7 +19,7 @@
   "main": "lib/index.js",
   "typings": "dist/rollup.d.ts",
   "dependencies": {
-    "@microsoft/api-extractor-model": "7.12.2",
+    "api-extractor-model-me": "0.1.1",
     "@microsoft/tsdoc": "0.12.24",
     "@rushstack/node-core-library": "3.36.0",
     "@rushstack/ts-command-line": "4.7.8",
