@@ -56,8 +56,8 @@ export class UiPage {
     return this.driver.findElement(SUBMIT_BUTTON).click();
   }
 
-  async enterPhoneNumber(number: string): Promise<void> {
-    return this.fillInput(PHONE_INPUT, number);
+  async enterPhoneNumber(phoneNumber: string): Promise<void> {
+    return this.fillInput(PHONE_INPUT, phoneNumber);
   }
 
   async waitForCodeInputToBePresent(): Promise<void> {
