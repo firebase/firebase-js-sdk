@@ -44,8 +44,10 @@
     "test:node:persistence:prod": "node ./scripts/run-tests.js --main=index.node.ts --persistence 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
-    "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ./scripts/api-report.ts && yarn api-report:api-json",
+    "api-report:exp": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore --packageRoot . --typescriptDts ./dist/firestore/exp/index.d.ts --rollupDts ./dist/exp/private.d.ts --untrimmedRollupDts ./dist/exp/internal.d.ts --publicDts ./dist/exp/index.d.ts",
+    "api-report:lite": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore --packageRoot . --typescriptDts ./dist/firestore/lite/index.d.ts --rollupDts ./dist/lite/private.d.ts --untrimmedRollupDts ./dist/lite/internal.d.ts --publicDts ./dist/lite/index.d.ts",
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
+    "api-report": "run-s api-report:exp api-report:lite && yarn api-report:api-json",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i dist/exp/index.d.ts -o dist/compat/esm5/packages/firestore/compat/index.d.ts -a -r FirebaseFirestore:types.FirebaseFirestore -r CollectionReference:types.CollectionReference -r DocumentReference:types.DocumentReference -r Query:types.Query -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/firestore"
