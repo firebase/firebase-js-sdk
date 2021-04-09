@@ -4,7 +4,7 @@
 
 ## QueryConstraint class
 
-A `QueryConstraint` is used to narrow the set of documents returned by a Firestore query. `QueryConstraint`<!-- -->s are created by invoking [where()](./firestore_.where.md)<!-- -->, [orderBy()](./firestore_.orderby.md)<!-- -->, , , , , [limit()](./firestore_.limit.md) or [limitToLast()](./firestore_.limittolast.md) and can then be passed to [query()](./firestore_.query.md) to create a new query instance that also contains this `QueryConstraint`<!-- -->.
+A `QueryConstraint` is used to narrow the set of documents returned by a Firestore query. `QueryConstraint`<!-- -->s are created by invoking [where()](./firestore_.where.md)<!-- -->, [orderBy()](./firestore_.orderby.md)<!-- -->, [startAt()](./firestore_.startat.md)<!-- -->, [startAfter()](./firestore_.startafter.md)<!-- -->, , [endAt()](./firestore_.endat.md)<!-- -->, [limit()](./firestore_.limit.md) or [limitToLast()](./firestore_.limittolast.md) and can then be passed to [query()](./firestore_.query.md) to create a new query instance that also contains this `QueryConstraint`<!-- -->.
 
 <b>Signature:</b>
 

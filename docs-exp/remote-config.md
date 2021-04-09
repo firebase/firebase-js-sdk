@@ -17,7 +17,7 @@
 |  [getNumber(remoteConfig, key)](./remote-config.getnumber.md) | Gets the value for the given key as a number.<!-- -->Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>. |
 |  [getRemoteConfig(app)](./remote-config.getremoteconfig.md) |  |
 |  [getString(remoteConfig, key)](./remote-config.getstring.md) | Gets the value for the given key as a String. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>. |
-|  [getValue(remoteConfig, key)](./remote-config.getvalue.md) | Gets the [Value](./remote-config-types.value.md) for the given key. |
+|  [getValue(remoteConfig, key)](./remote-config.getvalue.md) | Gets the [Value](./remote-config.value.md) for the given key. |
 |  [setLogLevel(remoteConfig, logLevel)](./remote-config.setloglevel.md) | Defines the log level to use. |
 
 ## Interfaces

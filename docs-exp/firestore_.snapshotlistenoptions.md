@@ -4,7 +4,7 @@
 
 ## SnapshotListenOptions interface
 
-An options object that can be passed to  and  to control which types of changes to include in the result set.
+An options object that can be passed to [onSnapshot()](./firestore_.onsnapshot.md) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.docchanges.md) to control which types of changes to include in the result set.
 
 <b>Signature:</b>
 

@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export declare function getRemoteConfig(app: FirebaseApp): RemoteConfig;
+export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
 ```
 
 ## Parameters

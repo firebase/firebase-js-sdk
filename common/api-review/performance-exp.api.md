@@ -13,7 +13,7 @@ export interface FirebasePerformance {
 }
 
 // @public
-export function getPerformance(app: FirebaseApp): FirebasePerformance;
+export function getPerformance(app?: FirebaseApp): FirebasePerformance;
 
 // @public
 export function initializePerformance(app: FirebaseApp, settings?: PerformanceSettings): FirebasePerformance;

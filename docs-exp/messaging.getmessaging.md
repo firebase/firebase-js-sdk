@@ -9,7 +9,7 @@ Retrieves a firebase messaging instance.
 <b>Signature:</b>
 
 ```typescript
-export declare function getMessaging(app: FirebaseApp): FirebaseMessaging;
+export declare function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 ```
 
 ## Parameters

@@ -85,7 +85,7 @@ export class FirebaseFirestore implements FirestoreService {
   }
 
   /**
-   * The {@link FirebaseApp} associated with this `Firestore` service
+   * The {@link @firebase/app#FirebaseApp} associated with this `Firestore` service
    * instance.
    */
   get app(): FirebaseApp {
@@ -177,7 +177,7 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
  * {@link getFirestore}. If the custom settings are empty, this function is
  * equivalent to calling {@link getFirestore}.
  *
- * @param app - The {@link FirebaseApp} with which the `Firestore` instance will
+ * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
  * @returns A newly initialized Firestore instance.
@@ -200,10 +200,10 @@ export function initializeFirestore(
 
 /**
  * Returns the existing instance of Firestore that is associated with the
- * provided {@link FirebaseApp}. If no instance exists, initializes a new
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app - The {@link FirebaseApp} instance that the returned Firestore
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Firestore
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
