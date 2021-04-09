@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,31 @@
  * limitations under the License.
  */
 
-const yaml = require('js-yaml');
-const fs = require('fs');
+import * as yargs from 'yargs';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
+
+interface TocItem {
+  title: string;
+  path: string;
+  section?: TocItem[];
+}
+
+const argv = yargs
+  .options({
+    input: {
+      alias: 'i',
+      type: 'string',
+      default: 'temp'
+    }
+  })
+  .help().argv;
 
 const REF_DOC_DIR = '/docs/reference/js';
-const REPORT_DIR = './temp';
+const REPORT_DIR = path.resolve(process.cwd(), argv.input);
 
-const js = {
+const js: TocItem = {
   title: 'firebase',
   path: `${REF_DOC_DIR}/index`,
   section: []
@@ -38,7 +56,7 @@ for (const fileName of fs.readdirSync(REPORT_DIR)) {
     const entryPointName = entryPoint.canonicalReference
       .replace('!', '')
       .replace('@firebase/', '');
-    const entryPointToc = {
+    const entryPointToc: Required<TocItem> = {
       title: entryPointName,
       path: `${REF_DOC_DIR}/${getFileName(
         entryPoint,
@@ -75,7 +93,11 @@ console.log(
   )
 );
 
-function getFileName(apiMember, entryPoint, multipleEntryPoints = false) {
+function getFileName(
+  apiMember: any,
+  entryPoint: any,
+  multipleEntryPoints = false
+) {
   const entryPointName = entryPoint.canonicalReference.replace('!', '');
   const unscopedName = getUnscopedName(entryPointName);
   let entryPointPrefix = unscopedName;
@@ -102,7 +124,7 @@ function getFileName(apiMember, entryPoint, multipleEntryPoints = false) {
   }
 }
 
-function getUnscopedName(packageName) {
+function getUnscopedName(packageName: string) {
   const parts = packageName.split('/');
   if (parts.length === 1) {
     return packageName;
