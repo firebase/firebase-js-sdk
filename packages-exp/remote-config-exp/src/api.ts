@@ -31,8 +31,8 @@ import { getModularInstance } from '@firebase/util';
 
 /**
  *
- * @param app - The Firebase App instance.
- * @returns A Remote Config instance.
+ * @param app - The `FirebaseApp` instance.
+ * @returns A `RemoteConfig` instance.
  *
  * @public
  */
@@ -44,7 +44,7 @@ export function getRemoteConfig(app: FirebaseApp = getApp()): RemoteConfig {
 
 /**
  * Makes the last fetched config available to the getters.
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @returns A promise which resolves to true if the current call activated the fetched configs.
  * If the fetched configs were already activated, the promise will resolve to false.
  *
@@ -75,7 +75,7 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
 
 /**
  * Ensures the last activated config are available to the getters.
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  *
  * @returns A promise that resolves when the last activated config is available to the getters.
  * @public
@@ -92,7 +92,7 @@ export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {
 
 /**
  * Fetches and caches configuration from the Remote Config service.
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @public
  */
 export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
@@ -134,7 +134,7 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
 /**
  * Gets all config.
  *
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @returns All config.
  *
  * @public
@@ -155,7 +155,7 @@ export function getAll(remoteConfig: RemoteConfig): Record<string, Value> {
  *
  * Convenience method for calling <code>remoteConfig.getValue(key).asBoolean()</code>.
  *
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @param key - The name of the parameter.
  *
  * @returns The value for the given key as a boolean.
@@ -170,7 +170,7 @@ export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean {
  *
  * Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>.
  *
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @param key - The name of the parameter.
  *
  * @returns The value for the given key as a number.
@@ -185,7 +185,7 @@ export function getNumber(remoteConfig: RemoteConfig, key: string): number {
  * Gets the value for the given key as a string.
  * Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
  *
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @param key - The name of the parameter.
  *
  * @returns The value for the given key as a string.
@@ -199,7 +199,7 @@ export function getString(remoteConfig: RemoteConfig, key: string): string {
 /**
  * Gets the {@link @firebase/remote-config-types#Value} for the given key.
  *
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @param key - The name of the parameter.
  *
  * @returns The value for the given key.
@@ -230,7 +230,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
 /**
  * Defines the log level to use.
  *
- * @param remoteConfig - The Remote Config instance.
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @param logLevel - The log level to set.
  *
  * @public
