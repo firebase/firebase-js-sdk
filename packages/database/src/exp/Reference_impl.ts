@@ -268,6 +268,17 @@ export class ReferenceImpl extends QueryImpl implements Reference {
 
 /**
  * A `DataSnapshot` contains data from a Database location.
+ *
+ * Any time you read data from the Database, you receive the data as a
+ * `DataSnapshot`. A `DataSnapshot` is passed to the event callbacks you attach
+ * with `on()` or `once()`. You can extract the contents of the snapshot as a
+ * JavaScript object by calling the `val()` method. Alternatively, you can
+ * traverse into the snapshot by calling `child()` to return child snapshots
+ * (which you could then call `val()` on).
+ *
+ * A `DataSnapshot` is an efficiently generated, immutable copy of the data at
+ * a Database location. It cannot be modified and will never change (to modify
+ * data, you always call the `set()` method on a `Reference` directly).
  */
 export class DataSnapshot {
   /**
@@ -278,13 +289,13 @@ export class DataSnapshot {
    */
   constructor(
     readonly _node: Node,
-    /** The FOO location of this DataSnapshot. */
+    /** The location of this DataSnapshot. */
     readonly ref: ReferenceImpl,
     readonly _index: Index
   ) {}
 
   /**
-   * Gets the priority FOO value of the data in this `DataSnapshot`.
+   * Gets the priority value of the data in this `DataSnapshot`.
    *
    * Applications need not use priority but can order collections by
    * ordinary properties (see

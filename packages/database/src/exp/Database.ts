@@ -204,7 +204,7 @@ export function repoManagerForceRestClient(forceRestClient: boolean): void {
 /**
  * Class representing a Firebase Realtime Database.
  */
-export class FirebaseDatabase {
+export class FirebaseDatabase implements _FirebaseService {
   /** Represents a database instance. */
   readonly 'type' = 'database';
 
