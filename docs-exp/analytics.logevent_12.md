@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'select_content', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'select_content', eventParams?: {
     items?: EventParams['items'];
     promotions?: EventParams['promotions'];
     content_type?: EventParams['content_type'];
@@ -24,10 +24,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'selec
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'select\_content' |  |
-|  eventParams | { items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; promotions?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['promotions'\]; content\_type?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['content\_type'\]; content\_id?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['content\_id'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; promotions?: [EventParams](./analytics.eventparams.md)<!-- -->\['promotions'\]; content\_type?: [EventParams](./analytics.eventparams.md)<!-- -->\['content\_type'\]; content\_id?: [EventParams](./analytics.eventparams.md)<!-- -->\['content\_id'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

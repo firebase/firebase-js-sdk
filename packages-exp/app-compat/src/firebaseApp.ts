@@ -15,65 +15,89 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
+import { FirebaseOptions } from './public-types';
 import {
   Component,
+  ComponentContainer,
   ComponentType,
-  Name,
-  ComponentContainer
+  Name
 } from '@firebase/component';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 import {
   deleteApp,
   _addComponent,
   _addOrOverwriteComponent,
-  _DEFAULT_ENTRY_NAME
+  _DEFAULT_ENTRY_NAME,
+  _FirebaseAppInternal as _FirebaseAppExp
 } from '@firebase/app-exp';
+import { _FirebaseService, _FirebaseNamespace } from './types';
+import { Compat } from '@firebase/util';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _FirebaseApp {
+  /**
+   * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
+   * App.
+   */
+  name: string;
+
+  /**
+   * The (read-only) configuration options from the app initialization.
+   */
+  options: FirebaseOptions;
+
+  /**
+   * The settable config flag for GDPR opt-in/opt-out
+   */
+  automaticDataCollectionEnabled: boolean;
+
+  /**
+   * Make the given App unusable and free resources.
+   */
+  delete(): Promise<void>;
+}
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
-export class FirebaseAppImpl implements FirebaseApp {
-  private readonly container: ComponentContainer;
+export class FirebaseAppImpl implements Compat<_FirebaseAppExp>, _FirebaseApp {
+  private container: ComponentContainer;
 
   constructor(
-    private readonly app: _FirebaseAppInternal,
+    readonly _delegate: _FirebaseAppExp,
     private readonly firebase: _FirebaseNamespace
   ) {
     // add itself to container
-    // TODO: change the component name to 'app-compat' before the official release
-    _addComponent(app, new Component('app', () => this, ComponentType.PUBLIC));
-    this.container = app.container;
+    _addComponent(
+      _delegate,
+      new Component('app-compat', () => this, ComponentType.PUBLIC)
+    );
+
+    this.container = _delegate.container;
   }
 
   get automaticDataCollectionEnabled(): boolean {
-    return this.app.automaticDataCollectionEnabled;
+    return this._delegate.automaticDataCollectionEnabled;
   }
 
   set automaticDataCollectionEnabled(val) {
-    this.app.automaticDataCollectionEnabled = val;
+    this._delegate.automaticDataCollectionEnabled = val;
   }
 
   get name(): string {
-    return this.app.name;
+    return this._delegate.name;
   }
 
   get options(): FirebaseOptions {
-    return this.app.options;
+    return this._delegate.options;
   }
 
   delete(): Promise<void> {
-    return new Promise(resolve => {
-      this.app.checkDestroyed();
+    return new Promise<void>(resolve => {
+      this._delegate.checkDestroyed();
       resolve();
     }).then(() => {
       this.firebase.INTERNAL.removeApp(this.name);
-      return deleteApp(this.app);
+      return deleteApp(this._delegate);
     });
   }
 
@@ -94,13 +118,13 @@ export class FirebaseAppImpl implements FirebaseApp {
   _getService(
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
-  ): FirebaseService {
-    this.app.checkDestroyed();
+  ): _FirebaseService {
+    this._delegate.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (this.app.container.getProvider(name as Name).getImmediate({
+    return (this._delegate.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
-    }) as unknown) as FirebaseService;
+    }) as unknown) as _FirebaseService;
   }
 
   /**
@@ -117,7 +141,7 @@ export class FirebaseAppImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
   ): void {
-    this.app.container
+    this._delegate.container
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .getProvider(name as any)
       .clearInstance(instanceIdentifier);
@@ -128,11 +152,11 @@ export class FirebaseAppImpl implements FirebaseApp {
    * @internal
    */
   _addComponent(component: Component): void {
-    _addComponent(this.app, component);
+    _addComponent(this._delegate, component);
   }
 
   _addOrOverwriteComponent(component: Component): void {
-    _addOrOverwriteComponent(this.app, component);
+    _addOrOverwriteComponent(this._delegate, component);
   }
 
   toJSON(): object {

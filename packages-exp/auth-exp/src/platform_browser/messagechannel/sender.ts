@@ -39,7 +39,6 @@ function generateEventId(prefix = '', digits = 20): string {
 /**
  * Interface for sending messages and waiting for a completion response.
  *
- * @internal
  */
 export class Sender {
   private readonly handlers = new Set<MessageHandler>();

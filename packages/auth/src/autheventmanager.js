@@ -388,7 +388,7 @@ fireauth.AuthEventManager.prototype.unsubscribe = function(handler) {
 fireauth.AuthEventManager.prototype.hasProcessedAuthEvent_ =
     function(authEvent) {
   // Prevent duplicate event tracker from growing too large.
-  if (goog.now() - this.lastProcessedEventTime_ >=
+  if (Date.now() - this.lastProcessedEventTime_ >=
       fireauth.AuthEventManager.EVENT_DUPLICATION_CACHE_DURATION) {
     this.processedEvents_ = {};
     this.lastProcessedEventTime_ = 0;
@@ -417,7 +417,7 @@ fireauth.AuthEventManager.prototype.saveProcessedAuthEvent_ =
     this.processedEvents_[
         /** @type {string} */ (authEvent.getUid())] = true;
     // Save last processing time.
-    this.lastProcessedEventTime_ = goog.now();
+    this.lastProcessedEventTime_ = Date.now();
   }
 };
 

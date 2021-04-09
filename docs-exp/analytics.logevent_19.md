@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_cart' | 'view_item', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_cart' | 'view_item', eventParams?: {
     currency?: EventParams['currency'];
     items?: EventParams['items'];
     value?: EventParams['value'];
@@ -23,10 +23,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'view\_cart' \| 'view\_item' |  |
-|  eventParams | { currency?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['currency'\]; items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; value?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['value'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { currency?: [EventParams](./analytics.eventparams.md)<!-- -->\['currency'\]; items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; value?: [EventParams](./analytics.eventparams.md)<!-- -->\['value'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

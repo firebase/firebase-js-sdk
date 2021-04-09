@@ -15,12 +15,8 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
-import {
-  fieldPathFromDotSeparatedString,
-  UntypedFirestoreDataConverter
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
+import { Compat, getModularInstance } from '@firebase/util';
+
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath } from '../model/path';
@@ -35,6 +31,11 @@ import {
   queryEqual,
   SetOptions
 } from './reference';
+import {
+  fieldPathFromDotSeparatedString,
+  UntypedFirestoreDataConverter
+} from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type `T`
@@ -79,16 +80,16 @@ export interface FirestoreDataConverter<T> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
-   * and {@link Transaction#set}.
+   * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
+   * and {@link @firebase/firestore/lite#(Transaction.set:1)}.
    */
   toFirestore(modelObject: T): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
-   * and {@link Transaction#set} with `merge:true` or `mergeFields`.
+   * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
+   * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true` or `mergeFields`.
    */
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
@@ -173,7 +174,9 @@ export class DocumentSnapshot<T = DocumentData> {
       );
       return this._converter.fromFirestore(snapshot);
     } else {
-      return this._userDataWriter.convertValue(this._document.toProto()) as T;
+      return this._userDataWriter.convertValue(
+        this._document.data.toProto()
+      ) as T;
     }
   }
 
@@ -190,9 +193,9 @@ export class DocumentSnapshot<T = DocumentData> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get(fieldPath: string | FieldPath): any {
     if (this._document) {
-      const value = this._document
-        .data()
-        .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
+      const value = this._document.data.field(
+        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
+      );
       if (value !== null) {
         return this._userDataWriter.convertValue(value);
       }
@@ -289,12 +292,8 @@ export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,
   right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean {
-  if (left instanceof Compat) {
-    left = left._delegate;
-  }
-  if (right instanceof Compat) {
-    right = right._delegate;
-  }
+  left = getModularInstance(left);
+  right = getModularInstance(right);
 
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
@@ -324,9 +323,9 @@ export function fieldPathFromArgument(
 ): InternalFieldPath {
   if (typeof arg === 'string') {
     return fieldPathFromDotSeparatedString(methodName, arg);
-  } else if (arg instanceof Compat) {
-    return arg._delegate._internalPath;
-  } else {
+  } else if (arg instanceof FieldPath) {
     return arg._internalPath;
+  } else {
+    return arg._delegate._internalPath;
   }
 }

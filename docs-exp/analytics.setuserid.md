@@ -16,9 +16,9 @@ export declare function setUserId(analyticsInstance: Analytics, id: string, opti
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) | Firebase Analytics instance. |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) | Firebase Analytics instance. |
 |  id | string | User ID to set. |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

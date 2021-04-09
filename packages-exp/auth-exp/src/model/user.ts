@@ -15,25 +15,29 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  IdTokenResult,
+  ProviderId,
+  User,
+  UserCredential,
+  UserInfo
+} from './public_types';
 import { NextFn } from '@firebase/util';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
 import { StsTokenManager } from '../core/user/token_manager';
 import { UserMetadata } from '../core/user/user_metadata';
-import { Auth } from './auth';
+import { AuthInternal } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
 
-/** @internal */
 export type MutableUserInfo = {
-  -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
+  -readonly [K in keyof UserInfo]: UserInfo[K];
 };
 
-/** @internal */
 export interface UserParameters {
   uid: string;
-  auth: Auth;
+  auth: AuthInternal;
   stsTokenManager: StsTokenManager;
 
   displayName?: string | null;
@@ -48,72 +52,44 @@ export interface UserParameters {
   lastLoginAt?: string | null;
 }
 
-/** @internal */
-export interface User extends externs.User {
-  /** @internal */
+export interface UserInternal extends User {
   displayName: string | null;
-  /** @internal */
   email: string | null;
-  /** @internal */
   phoneNumber: string | null;
-  /** @internal */
   photoURL: string | null;
 
-  /** @internal */
-  auth: Auth;
-  /** @internal  */
-  providerId: externs.ProviderId.FIREBASE;
-  /** @internal */
+  auth: AuthInternal;
+  providerId: ProviderId.FIREBASE;
   refreshToken: string;
-  /** @internal */
   emailVerified: boolean;
-  /** @internal */
   tenantId: string | null;
-  /** @internal */
   providerData: MutableUserInfo[];
-  /** @internal */
   metadata: UserMetadata;
 
-  /** @internal */
   stsTokenManager: StsTokenManager;
-  /** @internal */
   _redirectEventId?: string;
 
-  /** @internal */
   _updateTokensIfNecessary(
     response: IdTokenResponse | FinalizeMfaResponse,
     reload?: boolean
   ): Promise<void>;
 
-  /** @internal */
-  _assign(user: User): void;
-  /** @internal */
-  _clone(): User;
-  /** @internal */
+  _assign(user: UserInternal): void;
+  _clone(auth: AuthInternal): UserInternal;
   _onReload: (cb: NextFn<APIUserInfo>) => void;
-  /** @internal */
   _notifyReloadListener: NextFn<APIUserInfo>;
-  /** @internal */
   _startProactiveRefresh: () => void;
-  /** @internal */
   _stopProactiveRefresh: () => void;
 
-  /** @internal */
   getIdToken(forceRefresh?: boolean): Promise<string>;
-  /** @internal */
-  getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
-  /** @internal */
+  getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
   reload(): Promise<void>;
-  /** @internal */
   delete(): Promise<void>;
-  /** @internal */
   toJSON(): PersistedBlob;
 }
 
-/** @internal */
-export interface UserCredential
-  extends externs.UserCredential,
+export interface UserCredentialInternal
+  extends UserCredential,
     TaggedWithTokenResponse {
-  /** @internal */
-  user: User;
+  user: UserInternal;
 }

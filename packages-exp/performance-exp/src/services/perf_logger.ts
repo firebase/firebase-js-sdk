@@ -32,7 +32,7 @@ import {
 } from './initialization_service';
 import { transportHandler } from './transport_service';
 import { SDK_VERSION } from '../constants';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { getAppId } from '../utils/app_utils';
 
 const enum ResourceType {

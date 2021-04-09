@@ -16,17 +16,26 @@
  */
 
 import { expect } from 'chai';
-import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
+
+import { DataSnapshot, Reference } from '../src/api/Reference';
 import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
+import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
+import { DataSnapshot as ExpDataSnapshot } from '../src/exp/Reference_impl';
+
 import { getRandomNode } from './helpers/util';
-import { DataSnapshot } from '../src/api/DataSnapshot';
-import { Reference } from '../src/api/Reference';
 
 describe('DataSnapshot Tests', () => {
-  /** @return {!DataSnapshot} */
+  /** @returns {!DataSnapshot} */
   const snapshotForJSON = function (json) {
     const dummyRef = getRandomNode() as Reference;
-    return new DataSnapshot(nodeFromJSON(json), dummyRef, PRIORITY_INDEX);
+    return new DataSnapshot(
+      dummyRef.database,
+      new ExpDataSnapshot(
+        nodeFromJSON(json),
+        dummyRef._delegate,
+        PRIORITY_INDEX
+      )
+    );
   };
 
   it('DataSnapshot.hasChildren() works.', () => {

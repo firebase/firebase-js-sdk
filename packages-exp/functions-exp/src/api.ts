@@ -15,34 +15,20 @@
  * limitations under the License.
  */
 
-import { _getProvider } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import { FUNCTIONS_TYPE } from './constants';
 
 import { Provider } from '@firebase/component';
-import {
-  Functions,
-  HttpsCallableOptions,
-  HttpsCallable,
-  HttpsCallableResult,
-  FunctionsError,
-  FunctionsErrorCode
-} from '@firebase/functions-types-exp';
+import { Functions, HttpsCallableOptions, HttpsCallable } from './public-types';
 import {
   FunctionsService,
   DEFAULT_REGION,
   useFunctionsEmulator as _useFunctionsEmulator,
   httpsCallable as _httpsCallable
 } from './service';
+import { getModularInstance } from '@firebase/util';
 
-export {
-  Functions,
-  HttpsCallableOptions,
-  HttpsCallable,
-  HttpsCallableResult,
-  FunctionsError,
-  FunctionsErrorCode
-};
+export * from './public-types';
 
 /**
  * Returns a Functions instance for the given app.
@@ -53,12 +39,12 @@ export {
  * @public
  */
 export function getFunctions(
-  app: FirebaseApp,
+  app: FirebaseApp = getApp(),
   regionOrCustomDomain: string = DEFAULT_REGION
 ): Functions {
   // Dependencies
-  const functionsProvider: Provider<'functions'> = _getProvider(
-    app,
+  const functionsProvider: Provider<'functions-exp'> = _getProvider(
+    getModularInstance(app),
     FUNCTIONS_TYPE
   );
   const functionsInstance = functionsProvider.getImmediate({
@@ -72,8 +58,8 @@ export function getFunctions(
  *
  * Note: this must be called before this instance has been used to do any operations.
  *
- * @param host The emulator host (ex: localhost)
- * @param port The emulator port (ex: 5001)
+ * @param host - The emulator host (ex: localhost)
+ * @param port - The emulator port (ex: 5001)
  * @public
  */
 export function useFunctionsEmulator(
@@ -81,7 +67,11 @@ export function useFunctionsEmulator(
   host: string,
   port: number
 ): void {
-  _useFunctionsEmulator(functionsInstance as FunctionsService, host, port);
+  _useFunctionsEmulator(
+    getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
+    host,
+    port
+  );
 }
 
 /**
@@ -89,10 +79,14 @@ export function useFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable(
+export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
   functionsInstance: Functions,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable {
-  return _httpsCallable(functionsInstance as FunctionsService, name, options);
+): HttpsCallable<RequestData, ResponseData> {
+  return _httpsCallable<RequestData, ResponseData>(
+    getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
+    name,
+    options
+  );
 }

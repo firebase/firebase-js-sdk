@@ -60,9 +60,9 @@ export class FirebaseAppImpl implements FirebaseApp {
     // add itself to container
     this._addComponent(new Component('app', () => this, ComponentType.PUBLIC));
     // populate ComponentContainer with existing components
-    for (const component of this.firebase_.INTERNAL.components.values()) {
-      this._addComponent(component);
-    }
+    this.firebase_.INTERNAL.components.forEach(component =>
+      this._addComponent(component)
+    );
   }
 
   get automaticDataCollectionEnabled(): boolean {
@@ -86,7 +86,7 @@ export class FirebaseAppImpl implements FirebaseApp {
   }
 
   delete(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       this.checkDestroyed_();
       resolve();
     })
@@ -148,7 +148,7 @@ export class FirebaseAppImpl implements FirebaseApp {
   /**
    * @param component the component being added to this app's container
    */
-  _addComponent(component: Component): void {
+  _addComponent<T extends Name>(component: Component<T>): void {
     try {
       this.container.addComponent(component);
     } catch (e) {

@@ -9,7 +9,16 @@
 |  Function | Description |
 |  --- | --- |
 |  [deleteToken(messaging)](./messaging.deletetoken.md) | Deletes the registration token associated with this messaging instance and unsubscribes the messaging instance from the push subscription. |
-|  [getMessaging(app)](./messaging.getmessaging.md) | Retrieves a firebase messaging instance. the firebase messaging instance associated with the provided firebase app. |
+|  [getMessaging(app)](./messaging.getmessaging.md) | Retrieves a firebase messaging instance. |
 |  [getToken(messaging, options)](./messaging.gettoken.md) | Subscribes the messaging instance to push notifications. Returns an FCM registration token that can be used to send push messages to that messaging instance.<!-- -->If a notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications. |
 |  [onMessage(messaging, nextOrObserver)](./messaging.onmessage.md) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
+
+## Interfaces
+
+|  Interface | Description |
+|  --- | --- |
+|  [FcmOptions](./messaging.fcmoptions.md) |  |
+|  [FirebaseMessaging](./messaging.firebasemessaging.md) |  |
+|  [MessagePayload](./messaging.messagepayload.md) |  |
+|  [NotificationPayload](./messaging.notificationpayload.md) | Currently supported fcm notification display parameters. Note that [https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions) defines a full list of display notification parameters. This interface we only include what the SEND API support for clarity. |
 

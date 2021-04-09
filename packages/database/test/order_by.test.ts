@@ -16,9 +16,11 @@
  */
 
 import { expect } from 'chai';
-import { getRandomNode } from './helpers/util';
-import { EventAccumulatorFactory } from './helpers/EventAccumulator';
+
 import { Reference } from '../src/api/Reference';
+
+import { EventAccumulatorFactory } from './helpers/EventAccumulator';
+import { getRandomNode } from './helpers/util';
 
 describe('.orderBy tests', () => {
   // TODO: setup spy on console.warn

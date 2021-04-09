@@ -15,17 +15,12 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
-import {
-  Document,
-  MaybeDocument,
-  NoDocument,
-  UnknownDocument
-} from '../model/document';
+import { Timestamp } from '../exp/timestamp';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import {
@@ -73,7 +68,7 @@ export class LocalSerializer {
 export function fromDbRemoteDocument(
   localSerializer: LocalSerializer,
   remoteDoc: DbRemoteDocument
-): MaybeDocument {
+): MutableDocument {
   if (remoteDoc.document) {
     return fromDocument(
       localSerializer.remoteSerializer,
@@ -83,13 +78,14 @@ export function fromDbRemoteDocument(
   } else if (remoteDoc.noDocument) {
     const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
     const version = fromDbTimestamp(remoteDoc.noDocument.readTime);
-    return new NoDocument(key, version, {
-      hasCommittedMutations: !!remoteDoc.hasCommittedMutations
-    });
+    const document = MutableDocument.newNoDocument(key, version);
+    return remoteDoc.hasCommittedMutations
+      ? document.setHasCommittedMutations()
+      : document;
   } else if (remoteDoc.unknownDocument) {
     const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
     const version = fromDbTimestamp(remoteDoc.unknownDocument.version);
-    return new UnknownDocument(key, version);
+    return MutableDocument.newUnknownDocument(key, version);
   } else {
     return fail('Unexpected DbRemoteDocument');
   }
@@ -98,14 +94,14 @@ export function fromDbRemoteDocument(
 /** Encodes a document for storage locally. */
 export function toDbRemoteDocument(
   localSerializer: LocalSerializer,
-  maybeDoc: MaybeDocument,
+  document: MutableDocument,
   readTime: SnapshotVersion
 ): DbRemoteDocument {
   const dbReadTime = toDbTimestampKey(readTime);
-  const parentPath = maybeDoc.key.path.popLast().toArray();
-  if (maybeDoc instanceof Document) {
-    const doc = toDocument(localSerializer.remoteSerializer, maybeDoc);
-    const hasCommittedMutations = maybeDoc.hasCommittedMutations;
+  const parentPath = document.key.path.popLast().toArray();
+  if (document.isFoundDocument()) {
+    const doc = toDocument(localSerializer.remoteSerializer, document);
+    const hasCommittedMutations = document.hasCommittedMutations;
     return new DbRemoteDocument(
       /* unknownDocument= */ null,
       /* noDocument= */ null,
@@ -114,10 +110,10 @@ export function toDbRemoteDocument(
       dbReadTime,
       parentPath
     );
-  } else if (maybeDoc instanceof NoDocument) {
-    const path = maybeDoc.key.path.toArray();
-    const readTime = toDbTimestamp(maybeDoc.version);
-    const hasCommittedMutations = maybeDoc.hasCommittedMutations;
+  } else if (document.isNoDocument()) {
+    const path = document.key.path.toArray();
+    const readTime = toDbTimestamp(document.version);
+    const hasCommittedMutations = document.hasCommittedMutations;
     return new DbRemoteDocument(
       /* unknownDocument= */ null,
       new DbNoDocument(path, readTime),
@@ -126,9 +122,9 @@ export function toDbRemoteDocument(
       dbReadTime,
       parentPath
     );
-  } else if (maybeDoc instanceof UnknownDocument) {
-    const path = maybeDoc.key.path.toArray();
-    const readTime = toDbTimestamp(maybeDoc.version);
+  } else if (document.isUnknownDocument()) {
+    const path = document.key.path.toArray();
+    const readTime = toDbTimestamp(document.version);
     return new DbRemoteDocument(
       new DbUnknownDocument(path, readTime),
       /* noDocument= */ null,
@@ -138,7 +134,7 @@ export function toDbRemoteDocument(
       parentPath
     );
   } else {
-    return fail('Unexpected MaybeDocument');
+    return fail('Unexpected Document ' + document);
   }
 }
 
@@ -201,19 +197,21 @@ export function fromDbMutationBatch(
   // on the SDK means that old `transform` mutations stored in IndexedDB need
   // to be updated to `update_transforms`.
   // TODO(b/174608374): Remove this code once we perform a schema migration.
-  for (let i = dbBatch.mutations.length - 1; i >= 0; --i) {
-    const mutationProto = dbBatch.mutations[i];
-    if (mutationProto?.transform !== undefined) {
+  for (let i = 0; i < dbBatch.mutations.length - 1; ++i) {
+    const currentMutation = dbBatch.mutations[i];
+    const hasTransform =
+      i + 1 < dbBatch.mutations.length &&
+      dbBatch.mutations[i + 1].transform !== undefined;
+    if (hasTransform) {
       debugAssert(
-        i >= 1 &&
-          dbBatch.mutations[i - 1].transform === undefined &&
-          dbBatch.mutations[i - 1].update !== undefined,
+        dbBatch.mutations[i].transform === undefined &&
+          dbBatch.mutations[i].update !== undefined,
         'TransformMutation should be preceded by a patch or set mutation'
       );
-      const mutationToJoin = dbBatch.mutations[i - 1];
-      mutationToJoin.updateTransforms = mutationProto.transform.fieldTransforms;
-      dbBatch.mutations.splice(i, 1);
-      --i;
+      const transformMutation = dbBatch.mutations[i + 1];
+      currentMutation.updateTransforms = transformMutation.transform!.fieldTransforms;
+      dbBatch.mutations.splice(i + 1, 1);
+      ++i;
     }
   }
 

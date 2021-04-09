@@ -134,6 +134,12 @@ describe('Timestamp', () => {
     expect(t1 >= t2).to.be.false;
   });
 
+  it('handles decimal inputs in fromMillis()', () => {
+    const actual = Timestamp.fromMillis(1000.1);
+    const expected = new Timestamp(1, 100000);
+    expect(actual.isEqual(expected)).to.be.true;
+  });
+
   it('serializes to JSON', () => {
     expect(new Timestamp(123, 456).toJSON()).to.deep.equal({
       seconds: 123,

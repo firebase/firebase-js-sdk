@@ -21,11 +21,20 @@ import typescript from 'typescript';
 import path from 'path';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-import pkg from './exp/package.json';
+import expPkg from './exp/package.json';
+import pkg from './package.json';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
+
+function onWarn(warning, defaultWarn) {
+  if (warning.code === 'CIRCULAR_DEPENDENCY') {
+    throw new Error(warning);
+  }
+  defaultWarn(warning);
+}
 
 /**
  * ES5 Builds
@@ -44,15 +53,16 @@ const es5Builds = [
    * Node.js Build
    */
   {
-    input: 'exp/index.ts',
+    input: 'exp/index.node.ts',
     output: [
-      { file: path.resolve('exp', pkg.main), format: 'cjs', sourcemap: true }
+      { file: path.resolve('exp', expPkg.main), format: 'cjs', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   },
   /**
    * Browser Builds
@@ -60,13 +70,18 @@ const es5Builds = [
   {
     input: 'exp/index.ts',
     output: [
-      { file: path.resolve('exp', pkg.module), format: 'es', sourcemap: true }
+      {
+        file: path.resolve('exp', expPkg.module),
+        format: 'es',
+        sourcemap: true
+      }
     ],
     plugins: es5BuildPlugins,
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 
@@ -94,13 +109,18 @@ const es2017Builds = [
   {
     input: 'exp/index.ts',
     output: [
-      { file: path.resolve('exp', pkg.esm2017), format: 'es', sourcemap: true }
+      {
+        file: path.resolve('exp', expPkg.esm2017),
+        format: 'es',
+        sourcemap: true
+      }
     ],
     plugins: es2017BuildPlugins,
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 

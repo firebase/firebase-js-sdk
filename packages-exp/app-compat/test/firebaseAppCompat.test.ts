@@ -18,8 +18,8 @@
 import './setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { FirebaseNamespace, FirebaseOptions } from '@firebase/app-types';
-import { _FirebaseApp, _FirebaseNamespace } from '@firebase/app-types/private';
+import { FirebaseNamespace, FirebaseOptions } from '../src/public-types';
+import { _FirebaseApp, _FirebaseNamespace } from '../src/types';
 import { _components, _clearComponents } from '@firebase/app-exp';
 import { ComponentType } from '@firebase/component';
 
@@ -133,8 +133,8 @@ function executeFirebaseTests(): void {
       const warnStub = stub(console, 'warn');
       const initialSize = _components.size;
 
-      firebase.registerVersion('@firebase/analytics', '1.2.3');
-      expect(_components.get('fire-analytics-version')).to.exist;
+      firebase.registerVersion('@firebase/app-compat', '1.2.3');
+      expect(_components.get('fire-core-compat-version')).to.exist;
       expect(_components.size).to.equal(initialSize + 1);
 
       expect(warnStub.called).to.be.false;

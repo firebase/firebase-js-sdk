@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
-import { NextFn, Observer } from '@firebase/util';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
-import { MessagePayload } from '@firebase/messaging-types-exp';
+import { MessagePayload, NextFn, Observer } from './interfaces/public-types';
 import { Provider } from '@firebase/component';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { extractAppConfig } from './helpers/extract-app-config';
 
 export class MessagingService implements _FirebaseService {

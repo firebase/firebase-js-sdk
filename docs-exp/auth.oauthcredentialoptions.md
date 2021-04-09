@@ -20,7 +20,7 @@ For ID tokens with nonce claim, the raw nonce has to also be provided.
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [accessToken](./auth.oauthcredentialoptions.accesstoken.md) | string | The OAuth access token used to initialize the [OAuthCredential](./auth.oauthcredential.md)<!-- -->. |
-|  [idToken](./auth.oauthcredentialoptions.idtoken.md) | string | The OAuth ID token used to initialize the [OAuthCredential](./auth.oauthcredential.md)<!-- -->. |
-|  [rawNonce](./auth.oauthcredentialoptions.rawnonce.md) | string | The raw nonce associated with the ID token. |
+|  [accessToken?](./auth.oauthcredentialoptions.accesstoken.md) | string | <i>(Optional)</i> The OAuth access token used to initialize the [OAuthCredential](./auth.oauthcredential.md)<!-- -->. |
+|  [idToken?](./auth.oauthcredentialoptions.idtoken.md) | string | <i>(Optional)</i> The OAuth ID token used to initialize the [OAuthCredential](./auth.oauthcredential.md)<!-- -->. |
+|  [rawNonce?](./auth.oauthcredentialoptions.rawnonce.md) | string | <i>(Optional)</i> The raw nonce associated with the ID token. |
 

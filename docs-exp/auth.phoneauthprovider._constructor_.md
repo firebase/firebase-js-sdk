@@ -9,12 +9,12 @@ Constructs a new instance of the `PhoneAuthProvider` class
 <b>Signature:</b>
 
 ```typescript
-constructor(auth: externs.Auth);
+constructor(auth: Auth);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
+|  auth | [Auth](./auth.auth.md) | The Firebase Auth instance in which sign-ins should occur. |
 

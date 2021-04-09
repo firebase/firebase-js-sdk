@@ -15,33 +15,30 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { FactorId, MultiFactorInfo } from '../model/public_types';
 import {
   PhoneMfaEnrollment,
   MfaEnrollment
 } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
 import { _fail } from '../core/util/assert';
-import { Auth } from '../model/auth';
+import { AuthInternal } from '../model/auth';
 
-export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
+export abstract class MultiFactorInfoImpl implements MultiFactorInfo {
   readonly uid: string;
   readonly displayName?: string | null;
   readonly enrollmentTime: string;
 
-  protected constructor(
-    readonly factorId: externs.FactorId,
-    response: MfaEnrollment
-  ) {
+  protected constructor(readonly factorId: FactorId, response: MfaEnrollment) {
     this.uid = response.mfaEnrollmentId;
     this.enrollmentTime = new Date(response.enrolledAt).toUTCString();
     this.displayName = response.displayName;
   }
 
   static _fromServerResponse(
-    auth: Auth,
+    auth: AuthInternal,
     enrollment: MfaEnrollment
-  ): MultiFactorInfo {
+  ): MultiFactorInfoImpl {
     if ('phoneInfo' in enrollment) {
       return PhoneMultiFactorInfo._fromServerResponse(auth, enrollment);
     }
@@ -49,16 +46,16 @@ export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
   }
 }
 
-export class PhoneMultiFactorInfo extends MultiFactorInfo {
+export class PhoneMultiFactorInfo extends MultiFactorInfoImpl {
   readonly phoneNumber: string;
 
   private constructor(response: PhoneMfaEnrollment) {
-    super(externs.FactorId.PHONE, response);
+    super(FactorId.PHONE, response);
     this.phoneNumber = response.phoneInfo;
   }
 
   static _fromServerResponse(
-    _auth: Auth,
+    _auth: AuthInternal,
     enrollment: MfaEnrollment
   ): PhoneMultiFactorInfo {
     return new PhoneMultiFactorInfo(enrollment);

@@ -4,20 +4,18 @@
 
 ## EmailAuthCredential class
 
-Interface that represents the credentials returned by [EmailAuthProvider](./auth.emailauthprovider.md) for [ProviderId.PASSWORD](./auth-types.providerid.password.md)
+Interface that represents the credentials returned by [EmailAuthProvider](./auth.emailauthprovider.md) for [ProviderId.PASSWORD](./auth.providerid.password.md)
 
 <b>Signature:</b>
 
 ```typescript
-export declare class EmailAuthCredential extends AuthCredential implements externs.AuthCredential 
+export declare class EmailAuthCredential extends AuthCredential 
 ```
 <b>Extends:</b> [AuthCredential](./auth.authcredential.md)
 
-<b>Implements:</b> externs.[AuthCredential](./auth-types.authcredential.md)
-
 ## Remarks
 
-Covers both [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md) and [SignInMethod.EMAIL\_LINK](./auth-types.signinmethod.email_link.md)<!-- -->.
+Covers both [SignInMethod.EMAIL\_PASSWORD](./auth.signinmethod.email_password.md) and [SignInMethod.EMAIL\_LINK](./auth.signinmethod.email_link.md)<!-- -->.
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `EmailAuthCredential` class.
 
@@ -33,6 +31,6 @@ The constructor for this class is marked as internal. Third-party code should no
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromJSON(json)](./auth.emailauthcredential.fromjson.md) | <code>static</code> | Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
+|  [fromJSON(json)](./auth.emailauthcredential.fromjson.md) | <code>static</code> | Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth.authcredential.md)<!-- -->. |
 |  [toJSON()](./auth.emailauthcredential.tojson.md) |  | Returns a JSON-serializable representation of this object. |
 

@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { Persistence, PersistenceType } from '../../core/persistence';
+import { PersistenceInternal, PersistenceType } from '../../core/persistence';
 import {
   SingletonInstantiator,
   _getInstance
@@ -34,6 +34,7 @@ import { Receiver } from '../messagechannel/receiver';
 import { Sender } from '../messagechannel/sender';
 import * as workerUtil from '../util/worker';
 import {
+  _deleteObject,
   indexedDBLocalPersistence,
   _clearDatabase,
   _openDatabase,
@@ -43,12 +44,14 @@ import {
 
 use(sinonChai);
 
-interface TestPersistence extends Persistence {
+interface TestPersistence extends PersistenceInternal {
   _workerInitializationPromise: Promise<void>;
 }
 
 describe('platform_browser/persistence/indexed_db', () => {
-  const persistence: Persistence = _getInstance(indexedDBLocalPersistence);
+  const persistence: PersistenceInternal = _getInstance(
+    indexedDBLocalPersistence
+  );
 
   afterEach(sinon.restore);
 
@@ -125,12 +128,29 @@ describe('platform_browser/persistence/indexed_db', () => {
       clock.restore();
     });
 
+    it('should not trigger a listener when there are no changes', async () => {
+      await waitUntilPoll(clock);
+      expect(callback).not.to.have.been.called;
+    });
+
     it('should trigger a listener when the key changes', async () => {
       await _putObject(db, key, newValue);
 
       await waitUntilPoll(clock);
 
       expect(callback).to.have.been.calledWith(newValue);
+    });
+
+    it('should trigger the listener when the key is removed', async () => {
+      await _putObject(db, key, newValue);
+      await waitUntilPoll(clock);
+      callback.resetHistory();
+
+      await _deleteObject(db, key);
+
+      await waitUntilPoll(clock);
+
+      expect(callback).to.have.been.calledOnceWith(null);
     });
 
     it('should not trigger the listener when a different key changes', async () => {
@@ -194,9 +214,7 @@ describe('platform_browser/persistence/indexed_db', () => {
         sender = new Sender(serviceWorker);
         sinon.stub(workerUtil, '_isWorker').returns(true);
         sinon.stub(workerUtil, '_getWorkerGlobalScope').returns(serviceWorker);
-        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<
-          TestPersistence
-        >)();
+        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<TestPersistence>)();
         db = await _openDatabase();
       });
 
@@ -270,9 +288,7 @@ describe('platform_browser/persistence/indexed_db', () => {
         sinon
           .stub(workerUtil, '_getServiceWorkerController')
           .returns(serviceWorker);
-        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<
-          TestPersistence
-        >)();
+        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<TestPersistence>)();
       });
 
       it('should send a ping on init', async () => {

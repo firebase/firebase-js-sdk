@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-import { assert, contains, safeGet } from '@firebase/util';
-import { Path } from './Path';
+import { contains, safeGet } from '@firebase/util';
 
+import { Path, pathGetFront, pathPopFront } from './Path';
 import { each } from './util';
 
 /**
  * Node in a Tree.
  */
-export class TreeNode<T> {
+export interface TreeNode<T> {
   // TODO: Consider making accessors that create children and value lazily or
   // separate Internal / Leaf 'types'.
-  children: { [name: string]: TreeNode<T> } = {};
-  childCount = 0;
-  value: T | null = null;
+  children: Record<string, TreeNode<T>>;
+  childCount: number;
+  value?: T;
 }
 
 /**
@@ -38,213 +38,195 @@ export class TreeNode<T> {
  */
 export class Tree<T> {
   /**
-   * @template T
-   * @param {string=} name_ Optional name of the node.
-   * @param {Tree=} parent_ Optional parent node.
-   * @param {TreeNode=} node_ Optional node to wrap.
+   * @param name - Optional name of the node.
+   * @param parent - Optional parent node.
+   * @param node - Optional node to wrap.
    */
   constructor(
-    private name_: string = '',
-    private parent_: Tree<T> | null = null,
-    private node_: TreeNode<T> = new TreeNode<T>()
+    readonly name: string = '',
+    readonly parent: Tree<T> | null = null,
+    public node: TreeNode<T> = { children: {}, childCount: 0 }
   ) {}
+}
 
-  /**
-   * Returns a sub-Tree for the given path.
-   *
-   * @param {!(string|Path)} pathObj Path to look up.
-   * @return {!Tree.<T>} Tree for path.
-   */
-  subTree(pathObj: string | Path): Tree<T> {
-    // TODO: Require pathObj to be Path?
-    let path = pathObj instanceof Path ? pathObj : new Path(pathObj);
-    let child = this as Tree<T>,
-      next = path.getFront();
-    while (next !== null) {
-      const childNode = safeGet(child.node_.children, next) || new TreeNode();
-      child = new Tree(next, child, childNode);
-      path = path.popFront();
-      next = path.getFront();
+/**
+ * Returns a sub-Tree for the given path.
+ *
+ * @param pathObj - Path to look up.
+ * @returns Tree for path.
+ */
+export function treeSubTree<T>(tree: Tree<T>, pathObj: string | Path): Tree<T> {
+  // TODO: Require pathObj to be Path?
+  let path = pathObj instanceof Path ? pathObj : new Path(pathObj);
+  let child = tree,
+    next = pathGetFront(path);
+  while (next !== null) {
+    const childNode = safeGet(child.node.children, next) || {
+      children: {},
+      childCount: 0
+    };
+    child = new Tree<T>(next, child, childNode);
+    path = pathPopFront(path);
+    next = pathGetFront(path);
+  }
+
+  return child;
+}
+
+/**
+ * Returns the data associated with this tree node.
+ *
+ * @returns The data or null if no data exists.
+ */
+export function treeGetValue<T>(tree: Tree<T>): T | undefined {
+  return tree.node.value;
+}
+
+/**
+ * Sets data to this tree node.
+ *
+ * @param value - Value to set.
+ */
+export function treeSetValue<T>(tree: Tree<T>, value: T | undefined): void {
+  tree.node.value = value;
+  treeUpdateParents(tree);
+}
+
+/**
+ * @returns Whether the tree has any children.
+ */
+export function treeHasChildren<T>(tree: Tree<T>): boolean {
+  return tree.node.childCount > 0;
+}
+
+/**
+ * @returns Whethe rthe tree is empty (no value or children).
+ */
+export function treeIsEmpty<T>(tree: Tree<T>): boolean {
+  return treeGetValue(tree) === undefined && !treeHasChildren(tree);
+}
+
+/**
+ * Calls action for each child of this tree node.
+ *
+ * @param action - Action to be called for each child.
+ */
+export function treeForEachChild<T>(
+  tree: Tree<T>,
+  action: (tree: Tree<T>) => void
+): void {
+  each(tree.node.children, (child: string, childTree: TreeNode<T>) => {
+    action(new Tree<T>(child, tree, childTree));
+  });
+}
+
+/**
+ * Does a depth-first traversal of this node's descendants, calling action for each one.
+ *
+ * @param action - Action to be called for each child.
+ * @param includeSelf - Whether to call action on this node as well. Defaults to
+ *   false.
+ * @param childrenFirst - Whether to call action on children before calling it on
+ *   parent.
+ */
+export function treeForEachDescendant<T>(
+  tree: Tree<T>,
+  action: (tree: Tree<T>) => void,
+  includeSelf?: boolean,
+  childrenFirst?: boolean
+): void {
+  if (includeSelf && !childrenFirst) {
+    action(tree);
+  }
+
+  treeForEachChild(tree, child => {
+    treeForEachDescendant(child, action, true, childrenFirst);
+  });
+
+  if (includeSelf && childrenFirst) {
+    action(tree);
+  }
+}
+
+/**
+ * Calls action on each ancestor node.
+ *
+ * @param action - Action to be called on each parent; return
+ *   true to abort.
+ * @param includeSelf - Whether to call action on this node as well.
+ * @returns true if the action callback returned true.
+ */
+export function treeForEachAncestor<T>(
+  tree: Tree<T>,
+  action: (tree: Tree<T>) => unknown,
+  includeSelf?: boolean
+): boolean {
+  let node = includeSelf ? tree : tree.parent;
+  while (node !== null) {
+    if (action(node)) {
+      return true;
     }
-
-    return child;
+    node = node.parent;
   }
+  return false;
+}
 
-  /**
-   * Returns the data associated with this tree node.
-   *
-   * @return {?T} The data or null if no data exists.
-   */
-  getValue(): T | null {
-    return this.node_.value;
-  }
-
-  /**
-   * Sets data to this tree node.
-   *
-   * @param {!T} value Value to set.
-   */
-  setValue(value: T) {
-    assert(typeof value !== 'undefined', 'Cannot set value to undefined');
-    this.node_.value = value;
-    this.updateParents_();
-  }
-
-  /**
-   * Clears the contents of the tree node (its value and all children).
-   */
-  clear() {
-    this.node_.value = null;
-    this.node_.children = {};
-    this.node_.childCount = 0;
-    this.updateParents_();
-  }
-
-  /**
-   * @return {boolean} Whether the tree has any children.
-   */
-  hasChildren(): boolean {
-    return this.node_.childCount > 0;
-  }
-
-  /**
-   * @return {boolean} Whether the tree is empty (no value or children).
-   */
-  isEmpty(): boolean {
-    return this.getValue() === null && !this.hasChildren();
-  }
-
-  /**
-   * Calls action for each child of this tree node.
-   *
-   * @param {function(!Tree.<T>)} action Action to be called for each child.
-   */
-  forEachChild(action: (tree: Tree<T>) => void) {
-    each(this.node_.children, (child: string, childTree: TreeNode<T>) => {
-      action(new Tree<T>(child, this, childTree));
-    });
-  }
-
-  /**
-   * Does a depth-first traversal of this node's descendants, calling action for each one.
-   *
-   * @param {function(!Tree.<T>)} action Action to be called for each child.
-   * @param {boolean=} includeSelf Whether to call action on this node as well. Defaults to
-   *   false.
-   * @param {boolean=} childrenFirst Whether to call action on children before calling it on
-   *   parent.
-   */
-  forEachDescendant(
-    action: (tree: Tree<T>) => void,
-    includeSelf?: boolean,
-    childrenFirst?: boolean
-  ) {
-    if (includeSelf && !childrenFirst) {
-      action(this);
+/**
+ * Does a depth-first traversal of this node's descendants.  When a descendant with a value
+ * is found, action is called on it and traversal does not continue inside the node.
+ * Action is *not* called on this node.
+ *
+ * @param action - Action to be called for each child.
+ */
+export function treeForEachImmediateDescendantWithValue<T>(
+  tree: Tree<T>,
+  action: (tree: Tree<T>) => void
+): void {
+  treeForEachChild(tree, child => {
+    if (treeGetValue(child) !== undefined) {
+      action(child);
+    } else {
+      treeForEachImmediateDescendantWithValue(child, action);
     }
+  });
+}
 
-    this.forEachChild(child => {
-      child.forEachDescendant(action, /*includeSelf=*/ true, childrenFirst);
-    });
+/**
+ * @returns The path of this tree node, as a Path.
+ */
+export function treeGetPath<T>(tree: Tree<T>) {
+  return new Path(
+    tree.parent === null
+      ? tree.name
+      : treeGetPath(tree.parent) + '/' + tree.name
+  );
+}
 
-    if (includeSelf && childrenFirst) {
-      action(this);
-    }
+/**
+ * Adds or removes this child from its parent based on whether it's empty or not.
+ */
+function treeUpdateParents<T>(tree: Tree<T>) {
+  if (tree.parent !== null) {
+    treeUpdateChild(tree.parent, tree.name, tree);
   }
+}
 
-  /**
-   * Calls action on each ancestor node.
-   *
-   * @param {function(!Tree.<T>)} action Action to be called on each parent; return
-   *   true to abort.
-   * @param {boolean=} includeSelf Whether to call action on this node as well.
-   * @return {boolean} true if the action callback returned true.
-   */
-  forEachAncestor(
-    action: (tree: Tree<T>) => unknown,
-    includeSelf?: boolean
-  ): boolean {
-    let node = includeSelf ? this : this.parent();
-    while (node !== null) {
-      if (action(node)) {
-        return true;
-      }
-      node = node.parent();
-    }
-    return false;
-  }
-
-  /**
-   * Does a depth-first traversal of this node's descendants.  When a descendant with a value
-   * is found, action is called on it and traversal does not continue inside the node.
-   * Action is *not* called on this node.
-   *
-   * @param {function(!Tree.<T>)} action Action to be called for each child.
-   */
-  forEachImmediateDescendantWithValue(action: (tree: Tree<T>) => void) {
-    this.forEachChild(child => {
-      if (child.getValue() !== null) {
-        action(child);
-      } else {
-        child.forEachImmediateDescendantWithValue(action);
-      }
-    });
-  }
-
-  /**
-   * @return {!Path} The path of this tree node, as a Path.
-   */
-  path(): Path {
-    return new Path(
-      this.parent_ === null
-        ? this.name_
-        : this.parent_.path() + '/' + this.name_
-    );
-  }
-
-  /**
-   * @return {string} The name of the tree node.
-   */
-  name(): string {
-    return this.name_;
-  }
-
-  /**
-   * @return {?Tree} The parent tree node, or null if this is the root of the tree.
-   */
-  parent(): Tree<T> | null {
-    return this.parent_;
-  }
-
-  /**
-   * Adds or removes this child from its parent based on whether it's empty or not.
-   *
-   * @private
-   */
-  private updateParents_() {
-    if (this.parent_ !== null) {
-      this.parent_.updateChild_(this.name_, this);
-    }
-  }
-
-  /**
-   * Adds or removes the passed child to this tree node, depending on whether it's empty.
-   *
-   * @param {string} childName The name of the child to update.
-   * @param {!Tree.<T>} child The child to update.
-   * @private
-   */
-  private updateChild_(childName: string, child: Tree<T>) {
-    const childEmpty = child.isEmpty();
-    const childExists = contains(this.node_.children, childName);
-    if (childEmpty && childExists) {
-      delete this.node_.children[childName];
-      this.node_.childCount--;
-      this.updateParents_();
-    } else if (!childEmpty && !childExists) {
-      this.node_.children[childName] = child.node_;
-      this.node_.childCount++;
-      this.updateParents_();
-    }
+/**
+ * Adds or removes the passed child to this tree node, depending on whether it's empty.
+ *
+ * @param childName - The name of the child to update.
+ * @param child - The child to update.
+ */
+function treeUpdateChild<T>(tree: Tree<T>, childName: string, child: Tree<T>) {
+  const childEmpty = treeIsEmpty(child);
+  const childExists = contains(tree.node.children, childName);
+  if (childEmpty && childExists) {
+    delete tree.node.children[childName];
+    tree.node.childCount--;
+    treeUpdateParents(tree);
+  } else if (!childEmpty && !childExists) {
+    tree.node.children[childName] = child.node;
+    tree.node.childCount++;
+    treeUpdateParents(tree);
   }
 }

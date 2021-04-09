@@ -15,17 +15,14 @@
  * limitations under the License.
  */
 
-import { firebase } from '@firebase/app-compat';
+import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import { name, version } from '../package.json';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations as FirebaseInstallationsCompat } from '@firebase/installations-types';
-import { FirebaseApp } from '@firebase/app-types';
 import { InstallationsCompat } from './installationsCompat';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app-compat': FirebaseApp;
     'installations-compat': FirebaseInstallationsCompat;
   }
 }
@@ -49,3 +46,15 @@ function registerInstallations(instance: _FirebaseNamespace): void {
 }
 
 registerInstallations(firebase as _FirebaseNamespace);
+
+/**
+ * Define extension behavior of `registerInstallations`
+ */
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    installations(app?: FirebaseApp): FirebaseInstallationsCompat;
+  }
+  interface FirebaseApp {
+    installations(): FirebaseInstallationsCompat;
+  }
+}

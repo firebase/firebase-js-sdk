@@ -1,4 +1,10 @@
 /**
+ * Firebase Performance Monitoring
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *
@@ -15,19 +21,20 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
 import {
   FirebasePerformance,
   PerformanceSettings,
   PerformanceTrace
-} from '@firebase/performance-types-exp';
+} from './public_types';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import { setupApi } from './services/api_service';
 import { PerformanceController } from './controllers/perf';
 import {
   _registerComponent,
   _getProvider,
-  registerVersion
+  registerVersion,
+  FirebaseApp,
+  getApp
 } from '@firebase/app-exp';
 import {
   InstanceFactory,
@@ -38,28 +45,52 @@ import {
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
 import '@firebase/installations-exp';
+import { getModularInstance } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 /**
  * Returns a FirebasePerformance instance for the given app.
- * @param app - The FirebaseApp to use.
- * @param settings - Optional settings for the Performance instance.
+ * @param app - The `FirebaseApp` to use.
  * @public
  */
 export function getPerformance(
-  app: FirebaseApp,
-  settings?: PerformanceSettings
+  app: FirebaseApp = getApp()
 ): FirebasePerformance {
+  app = getModularInstance(app);
   const provider = _getProvider(app, 'performance-exp');
   const perfInstance = provider.getImmediate() as PerformanceController;
-  perfInstance._init(settings);
   return perfInstance;
 }
 
 /**
- * Returns a new PerformanceTrace instance.
- * @param performance - The FirebasePerformance instance to use.
+ * Returns a FirebasePerformance instance for the given app. Can only be called once.
+ * @param app - The `FirebaseApp` to use.
+ * @param settings - Optional settings for the `FirebasePerformance` instance.
+ * @public
+ */
+export function initializePerformance(
+  app: FirebaseApp,
+  settings?: PerformanceSettings
+): FirebasePerformance {
+  app = getModularInstance(app);
+  const provider = _getProvider(app, 'performance-exp');
+
+  // throw if an instance was already created.
+  // It could happen if initializePerformance() is called more than once, or getPerformance() is called first.
+  if (provider.isInitialized()) {
+    throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+  }
+
+  const perfInstance = provider.initialize({
+    options: settings
+  }) as PerformanceController;
+  return perfInstance;
+}
+
+/**
+ * Returns a new `PerformanceTrace` instance.
+ * @param performance - The `FirebasePerformance` instance to use.
  * @param name - The name of the trace.
  * @public
  */
@@ -67,11 +98,13 @@ export function trace(
   performance: FirebasePerformance,
   name: string
 ): PerformanceTrace {
+  performance = getModularInstance(performance);
   return new Trace(performance as PerformanceController, name);
 }
 
 const factory: InstanceFactory<'performance-exp'> = (
-  container: ComponentContainer
+  container: ComponentContainer,
+  { options: settings }: { options?: PerformanceSettings }
 ) => {
   // Dependencies
   const app = container.getProvider('app-exp').getImmediate();
@@ -86,7 +119,10 @@ const factory: InstanceFactory<'performance-exp'> = (
     throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
   }
   setupApi(window);
-  return new PerformanceController(app, installations);
+  const perfInstance = new PerformanceController(app, installations);
+  perfInstance._init(settings);
+
+  return perfInstance;
 };
 
 function registerPerformance(): void {

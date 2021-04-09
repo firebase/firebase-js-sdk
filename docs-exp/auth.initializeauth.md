@@ -8,17 +8,17 @@
 <b>Signature:</b>
 
 ```typescript
-export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): externs.Auth;
+export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
-|  deps | Dependencies |  |
+|  app | [FirebaseApp](./app.firebaseapp.md) |  |
+|  deps | [Dependencies](./auth.dependencies.md) |  |
 
 <b>Returns:</b>
 
-externs.[Auth](./auth-types.auth.md)
+[Auth](./auth.auth.md)
 

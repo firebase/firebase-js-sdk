@@ -16,7 +16,7 @@ export declare function onIdChange(installations: FirebaseInstallations, callbac
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  installations | [FirebaseInstallations](./installations-types.firebaseinstallations.md) |  |
+|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) |  |
 |  callback | [IdChangeCallbackFn](./installations.idchangecallbackfn.md) |  |
 
 <b>Returns:</b>

@@ -15,25 +15,15 @@
  * limitations under the License.
  */
 
-import {
-  Gtag,
-  SettingsOptions,
-  DynamicConfig,
-  MinimalDynamicConfig,
-  Analytics
-} from '@firebase/analytics-types-exp';
-import {
-  insertScriptTag,
-  getOrCreateDataLayer,
-  wrapOrCreateGtag,
-  findGtagScriptOnPage
-} from './helpers';
+import { SettingsOptions, Analytics } from './public-types';
+import { Gtag, DynamicConfig, MinimalDynamicConfig } from './types';
+import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
 import { initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 
 /**
  * Analytics Service class.
@@ -60,9 +50,9 @@ export let initializationPromisesMap: {
  * wait on all these to be complete in order to determine if it can selectively
  * wait for only certain initialization (FID) promises or if it must wait for all.
  */
-let dynamicConfigPromisesList: Array<Promise<
-  DynamicConfig | MinimalDynamicConfig
->> = [];
+let dynamicConfigPromisesList: Array<
+  Promise<DynamicConfig | MinimalDynamicConfig>
+> = [];
 
 /**
  * Maps fetched measurementIds to appId. Populated when the app's dynamic config
@@ -214,10 +204,6 @@ export function factory(
     // Steps here should only be done once per page: creation or wrapping
     // of dataLayer and global gtag function.
 
-    // Detect if user has already put the gtag <script> tag on this page.
-    if (!findGtagScriptOnPage()) {
-      insertScriptTag(dataLayerName);
-    }
     getOrCreateDataLayer(dataLayerName);
 
     const { wrappedGtag, gtagCore } = wrapOrCreateGtag(
@@ -239,7 +225,8 @@ export function factory(
     dynamicConfigPromisesList,
     measurementIdToAppId,
     installations,
-    gtagCoreFunction
+    gtagCoreFunction,
+    dataLayerName
   );
 
   const analyticsInstance: AnalyticsService = new AnalyticsService(app);

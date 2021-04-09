@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { GeoPoint } from '../exp/geo_point';
+export { GeoPoint } from '../../exp/index';

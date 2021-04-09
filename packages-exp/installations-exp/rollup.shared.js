@@ -16,7 +16,10 @@
  */
 import pkg from './package.json';
 
-const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
+const deps = [
+  ...Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies }),
+  '@firebase/app'
+];
 
 /**
  * ES5 Builds

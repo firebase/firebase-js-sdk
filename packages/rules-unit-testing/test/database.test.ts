@@ -128,6 +128,50 @@ describe('Testing Module Tests', function () {
       .catch(() => {});
   });
 
+  it('assertFails() if message is Permission denied', async function () {
+    const success = Promise.resolve('success');
+    const permissionDenied = Promise.reject({
+      message: 'Permission denied'
+    });
+    const otherFailure = Promise.reject('failure');
+    await firebase
+      .assertFails(success)
+      .then(() => {
+        throw new Error('Expected success to fail.');
+      })
+      .catch(() => {});
+
+    await firebase.assertFails(permissionDenied).catch(() => {
+      throw new Error('Expected permissionDenied to succeed.');
+    });
+
+    await firebase
+      .assertFails(otherFailure)
+      .then(() => {
+        throw new Error('Expected otherFailure to fail.');
+      })
+      .catch(() => {});
+  });
+
+  it('discoverEmulators() finds all running emulators', async () => {
+    const options = await firebase.discoverEmulators();
+
+    expect(options).to.deep.equal({
+      database: {
+        host: 'localhost',
+        port: 9002
+      },
+      firestore: {
+        host: 'localhost',
+        port: 9003
+      },
+      hub: {
+        host: 'localhost',
+        port: 4400
+      }
+    });
+  });
+
   it('initializeTestApp() with auth=null does not set access token', async function () {
     const app = firebase.initializeTestApp({
       projectId: 'foo',

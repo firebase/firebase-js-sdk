@@ -21,9 +21,10 @@ import typescript from 'typescript';
 import pkg from './package.json';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
 
 /**
  * ES5 Builds

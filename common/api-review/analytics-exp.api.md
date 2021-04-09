@@ -4,35 +4,170 @@
 
 ```ts
 
-import { Analytics } from '@firebase/analytics-types-exp';
-import { AnalyticsCallOptions } from '@firebase/analytics-types-exp';
-import { ControlParams } from '@firebase/analytics-types-exp';
-import { CustomParams } from '@firebase/analytics-types-exp';
-import { EventNameString } from '@firebase/analytics-types-exp';
-import { EventParams } from '@firebase/analytics-types-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { Item } from '@firebase/analytics-types-exp';
-import { Promotion } from '@firebase/analytics-types-exp';
-import { SettingsOptions } from '@firebase/analytics-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 
-export { Analytics }
+// @public
+export interface Analytics {
+    app: FirebaseApp;
+}
 
-export { ControlParams }
+// @public
+export interface AnalyticsCallOptions {
+    global: boolean;
+}
+
+// @public
+export interface ControlParams {
+    // (undocumented)
+    event_callback?: () => void;
+    // (undocumented)
+    event_timeout?: number;
+    // (undocumented)
+    groups?: string | string[];
+    // (undocumented)
+    send_to?: string | string[];
+}
+
+// @public
+export type Currency = string | number;
 
 // @public
 export type CustomEventName<T> = T extends EventNameString ? never : T;
 
-export { CustomParams }
-
-export { EventParams }
+// @public
+export interface CustomParams {
+    // (undocumented)
+    [key: string]: unknown;
+}
 
 // @public
-export function getAnalytics(app: FirebaseApp): Analytics;
+export type EventNameString = 'add_payment_info' | 'add_shipping_info' | 'add_to_cart' | 'add_to_wishlist' | 'begin_checkout' | 'checkout_progress' | 'exception' | 'generate_lead' | 'login' | 'page_view' | 'purchase' | 'refund' | 'remove_from_cart' | 'screen_view' | 'search' | 'select_content' | 'select_item' | 'select_promotion' | 'set_checkout_option' | 'share' | 'sign_up' | 'timing_complete' | 'view_cart' | 'view_item' | 'view_item_list' | 'view_promotion' | 'view_search_results';
+
+// @public
+export interface EventParams {
+    // (undocumented)
+    affiliation?: string;
+    // (undocumented)
+    checkout_option?: string;
+    // (undocumented)
+    checkout_step?: number;
+    // (undocumented)
+    content_id?: string;
+    // (undocumented)
+    content_type?: string;
+    // (undocumented)
+    coupon?: string;
+    // (undocumented)
+    currency?: string;
+    // (undocumented)
+    description?: string;
+    // (undocumented)
+    event_category?: string;
+    // (undocumented)
+    event_label?: string;
+    // (undocumented)
+    fatal?: boolean;
+    // (undocumented)
+    item_list_id?: string;
+    // (undocumented)
+    item_list_name?: string;
+    // (undocumented)
+    items?: Item[];
+    // (undocumented)
+    method?: string;
+    // (undocumented)
+    number?: string;
+    // (undocumented)
+    page_location?: string;
+    // (undocumented)
+    page_path?: string;
+    // (undocumented)
+    page_title?: string;
+    // (undocumented)
+    payment_type?: string;
+    // (undocumented)
+    promotion_id?: string;
+    // (undocumented)
+    promotion_name?: string;
+    // (undocumented)
+    promotions?: Promotion[];
+    // (undocumented)
+    screen_name?: string;
+    // (undocumented)
+    search_term?: string;
+    // (undocumented)
+    shipping?: Currency;
+    // (undocumented)
+    shipping_tier?: string;
+    // (undocumented)
+    tax?: Currency;
+    // (undocumented)
+    transaction_id?: string;
+    // (undocumented)
+    value?: number;
+}
+
+// @public
+export function getAnalytics(app?: FirebaseApp): Analytics;
 
 // @public
 export function isSupported(): Promise<boolean>;
 
-export { Item }
+// @public
+export interface Item {
+    // (undocumented)
+    affiliation?: string;
+    // @deprecated (undocumented)
+    brand?: string;
+    // @deprecated (undocumented)
+    category?: string;
+    // (undocumented)
+    coupon?: string;
+    // (undocumented)
+    creative_name?: string;
+    // (undocumented)
+    creative_slot?: string;
+    // (undocumented)
+    discount?: Currency;
+    // @deprecated (undocumented)
+    id?: string;
+    // (undocumented)
+    index?: number;
+    // (undocumented)
+    item_brand?: string;
+    // (undocumented)
+    item_category?: string;
+    // (undocumented)
+    item_category2?: string;
+    // (undocumented)
+    item_category3?: string;
+    // (undocumented)
+    item_category4?: string;
+    // (undocumented)
+    item_category5?: string;
+    // (undocumented)
+    item_id?: string;
+    // (undocumented)
+    item_list_id?: string;
+    // (undocumented)
+    item_list_name?: string;
+    // (undocumented)
+    item_name?: string;
+    // (undocumented)
+    item_variant?: string;
+    // (undocumented)
+    location_id?: string;
+    // @deprecated (undocumented)
+    name?: string;
+    // (undocumented)
+    price?: Currency;
+    // (undocumented)
+    promotion_id?: string;
+    // (undocumented)
+    promotion_name?: string;
+    // (undocumented)
+    quantity?: number;
+}
 
 // @public
 export function logEvent(analyticsInstance: Analytics, eventName: 'add_payment_info', eventParams?: {
@@ -45,7 +180,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'add_payment_i
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'add_shipping_info', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'add_shipping_info', eventParams?: {
     coupon?: EventParams['coupon'];
     currency?: EventParams['currency'];
     items?: EventParams['items'];
@@ -55,7 +190,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'add_shipping_
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart', eventParams?: {
     currency?: EventParams['currency'];
     value?: EventParams['value'];
     items?: EventParams['items'];
@@ -63,7 +198,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'add_to_cart' 
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'begin_checkout', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'begin_checkout', eventParams?: {
     currency?: EventParams['currency'];
     coupon?: EventParams['coupon'];
     value?: EventParams['value'];
@@ -72,7 +207,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'begin_checkou
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'checkout_progress', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'checkout_progress', eventParams?: {
     currency?: EventParams['currency'];
     coupon?: EventParams['coupon'];
     value?: EventParams['value'];
@@ -83,14 +218,14 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'checkout_prog
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'exception', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'exception', eventParams?: {
     description?: EventParams['description'];
     fatal?: EventParams['fatal'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'generate_lead', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'generate_lead', eventParams?: {
     value?: EventParams['value'];
     currency?: EventParams['currency'];
     transaction_id?: EventParams['transaction_id'];
@@ -98,13 +233,13 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'generate_lead
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'login', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'login', eventParams?: {
     method?: EventParams['method'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'page_view', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'page_view', eventParams?: {
     page_title?: string;
     page_location?: string;
     page_path?: string;
@@ -112,7 +247,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'page_view', e
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'purchase' | 'refund', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'purchase' | 'refund', eventParams?: {
     value?: EventParams['value'];
     currency?: EventParams['currency'];
     transaction_id: EventParams['transaction_id'];
@@ -125,7 +260,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'purchase' | '
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'screen_view', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'screen_view', eventParams?: {
     app_name: string;
     screen_name: EventParams['screen_name'];
     app_id?: string;
@@ -135,13 +270,13 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'screen_view',
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'search' | 'view_search_results', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'search' | 'view_search_results', eventParams?: {
     search_term?: EventParams['search_term'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'select_content', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'select_content', eventParams?: {
     items?: EventParams['items'];
     promotions?: EventParams['promotions'];
     content_type?: EventParams['content_type'];
@@ -150,7 +285,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'select_conten
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'select_item', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'select_item', eventParams?: {
     items?: EventParams['items'];
     item_list_name?: EventParams['item_list_name'];
     item_list_id?: EventParams['item_list_id'];
@@ -158,7 +293,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'select_item',
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'select_promotion' | 'view_promotion', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'select_promotion' | 'view_promotion', eventParams?: {
     items?: EventParams['items'];
     promotion_id?: EventParams['promotion_id'];
     promotion_name?: EventParams['promotion_name'];
@@ -166,14 +301,14 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'select_promot
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'set_checkout_option', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'set_checkout_option', eventParams?: {
     checkout_step?: EventParams['checkout_step'];
     checkout_option?: EventParams['checkout_option'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'share', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'share', eventParams?: {
     method?: EventParams['method'];
     content_type?: EventParams['content_type'];
     content_id?: EventParams['content_id'];
@@ -181,13 +316,13 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'share', event
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'sign_up', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'sign_up', eventParams?: {
     method?: EventParams['method'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'timing_complete', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'timing_complete', eventParams?: {
     name: string;
     value: number;
     event_category?: string;
@@ -196,7 +331,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'timing_comple
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'view_cart' | 'view_item', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'view_cart' | 'view_item', eventParams?: {
     currency?: EventParams['currency'];
     items?: EventParams['items'];
     value?: EventParams['value'];
@@ -204,7 +339,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'view_cart' | 
 }, options?: AnalyticsCallOptions): void;
 
 // @public
-export function logEvent(analyticsInstance: Analytics, eventName: 'view_item_list', eventParams: {
+export function logEvent(analyticsInstance: Analytics, eventName: 'view_item_list', eventParams?: {
     items?: EventParams['items'];
     item_list_name?: EventParams['item_list_name'];
     item_list_id?: EventParams['item_list_id'];
@@ -216,7 +351,17 @@ export function logEvent<T extends string>(analyticsInstance: Analytics, eventNa
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
-export { Promotion }
+// @public @deprecated
+export interface Promotion {
+    // (undocumented)
+    creative_name?: string;
+    // (undocumented)
+    creative_slot?: string;
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    name?: string;
+}
 
 // @public
 export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enabled: boolean): void;
@@ -227,7 +372,11 @@ export function setCurrentScreen(analyticsInstance: Analytics, screenName: strin
 // @public
 export function settings(options: SettingsOptions): void;
 
-export { SettingsOptions }
+// @public
+export interface SettingsOptions {
+    dataLayerName?: string;
+    gtagName?: string;
+}
 
 // @public
 export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;

@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
-import { DataLayer, Gtag, DynamicConfig } from '@firebase/analytics-types-exp';
+import { DataLayer, Gtag, DynamicConfig } from './types';
 import {
   getOrCreateDataLayer,
   insertScriptTag,
@@ -57,10 +57,11 @@ describe('Gtag wrapping functions', () => {
 
   it('insertScriptIfNeeded inserts script tag', () => {
     expect(findGtagScriptOnPage()).to.be.null;
-    insertScriptTag('customDataLayerName');
+    insertScriptTag('customDataLayerName', fakeMeasurementId);
     const scriptTag = findGtagScriptOnPage();
     expect(scriptTag).to.not.be.null;
     expect(scriptTag!.src).to.contain(`l=customDataLayerName`);
+    expect(scriptTag!.src).to.contain(`id=${fakeMeasurementId}`);
   });
 
   describe('wrapOrCreateGtag() when user has not previously inserted a gtag script tag on this page', () => {

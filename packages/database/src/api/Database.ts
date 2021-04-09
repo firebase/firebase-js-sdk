@@ -14,184 +14,99 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line import/no-extraneous-dependencies
 
-import { fatal } from '../core/util/util';
-import { parseRepoInfo } from '../core/util/libs/parser';
-import { Path } from '../core/util/Path';
-import { Reference } from './Reference';
-import { Repo } from '../core/Repo';
-import { RepoManager } from '../core/RepoManager';
-import { validateArgCount } from '@firebase/util';
-import { validateUrl } from '../core/util/validation';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
+import { validateArgCount, Compat } from '@firebase/util';
+
+import {
+  FirebaseDatabase as ExpDatabase,
+  goOnline,
+  useDatabaseEmulator,
+  goOffline,
+  ref,
+  refFromURL,
+  increment,
+  serverTimestamp
+} from '../../exp/index'; // import from the exp public API
+
+import { Reference } from './Reference';
 
 /**
  * Class representing a firebase database.
- * @implements {FirebaseService}
  */
-export class Database implements FirebaseService {
-  /** Track if the instance has been used (root or repo accessed) */
-  private instanceStarted_: boolean = false;
-
-  /** Backing state for root_ */
-  private rootInternal_?: Reference;
-
+export class Database implements FirebaseService, Compat<ExpDatabase> {
   static readonly ServerValue = {
-    TIMESTAMP: {
-      '.sv': 'timestamp'
-    },
-    increment: (delta: number) => {
-      return {
-        '.sv': {
-          'increment': delta
-        }
-      };
-    }
+    TIMESTAMP: serverTimestamp(),
+    increment: (delta: number) => increment(delta)
   };
 
   /**
    * The constructor should not be called by users of our public API.
-   * @param {!Repo} repoInternal_
    */
-  constructor(private repoInternal_: Repo) {
-    if (!(repoInternal_ instanceof Repo)) {
-      fatal(
-        "Don't call new Database() directly - please use firebase.database()."
-      );
-    }
-  }
+  constructor(readonly _delegate: ExpDatabase, readonly app: FirebaseApp) {}
 
   INTERNAL = {
-    delete: async () => {
-      this.checkDeleted_('delete');
-      RepoManager.getInstance().deleteRepo(this.repo_);
-      this.repoInternal_ = null;
-      this.rootInternal_ = null;
-    }
+    delete: () => this._delegate._delete()
   };
-
-  private get repo_(): Repo {
-    if (!this.instanceStarted_) {
-      this.repoInternal_.start();
-      this.instanceStarted_ = true;
-    }
-    return this.repoInternal_;
-  }
-
-  get root_(): Reference {
-    if (!this.rootInternal_) {
-      this.rootInternal_ = new Reference(this.repo_, Path.Empty);
-    }
-
-    return this.rootInternal_;
-  }
-
-  get app(): FirebaseApp {
-    return this.repo_.app as FirebaseApp;
-  }
 
   /**
    * Modify this instance to communicate with the Realtime Database emulator.
    *
    * <p>Note: This method must be called before performing any other operation.
    *
-   * @param host the emulator host (ex: localhost)
-   * @param port the emulator port (ex: 8080)
+   * @param host - the emulator host (ex: localhost)
+   * @param port - the emulator port (ex: 8080)
    */
   useEmulator(host: string, port: number): void {
-    this.checkDeleted_('useEmulator');
-    if (this.instanceStarted_) {
-      fatal(
-        'Cannot call useEmulator() after instance has already been initialized.'
-      );
-      return;
-    }
-
-    // Modify the repo to apply emulator settings
-    RepoManager.getInstance().applyEmulatorSettings(
-      this.repoInternal_,
-      host,
-      port
-    );
+    useDatabaseEmulator(this._delegate, host, port);
   }
 
   /**
    * Returns a reference to the root or to the path specified in the provided
    * argument.
    *
-   * @param {string|Reference=} path The relative string path or an existing
-   * Reference to a database location.
+   * @param path - The relative string path or an existing Reference to a database
+   * location.
    * @throws If a Reference is provided, throws if it does not belong to the
    * same project.
-   * @return {!Reference} Firebase reference.
+   * @returns Firebase reference.
    */
   ref(path?: string): Reference;
   ref(path?: Reference): Reference;
   ref(path?: string | Reference): Reference {
-    this.checkDeleted_('ref');
     validateArgCount('database.ref', 0, 1, arguments.length);
-
     if (path instanceof Reference) {
-      return this.refFromURL(path.toString());
+      const childRef = refFromURL(this._delegate, path.toString());
+      return new Reference(this, childRef);
+    } else {
+      const childRef = ref(this._delegate, path);
+      return new Reference(this, childRef);
     }
-
-    return path !== undefined ? this.root_.child(path) : this.root_;
   }
 
   /**
    * Returns a reference to the root or the path specified in url.
    * We throw a exception if the url is not in the same domain as the
    * current repo.
-   * @param {string} url
-   * @return {!Reference} Firebase reference.
+   * @returns Firebase reference.
    */
   refFromURL(url: string): Reference {
-    /** @const {string} */
     const apiName = 'database.refFromURL';
-    this.checkDeleted_(apiName);
     validateArgCount(apiName, 1, 1, arguments.length);
-    const parsedURL = parseRepoInfo(url, this.repo_.repoInfo_.nodeAdmin);
-    validateUrl(apiName, 1, parsedURL);
-
-    const repoInfo = parsedURL.repoInfo;
-    if (
-      !this.repo_.repoInfo_.isCustomHost() &&
-      repoInfo.host !== this.repo_.repoInfo_.host
-    ) {
-      fatal(
-        apiName +
-          ': Host name does not match the current database: ' +
-          '(found ' +
-          repoInfo.host +
-          ' but expected ' +
-          this.repo_.repoInfo_.host +
-          ')'
-      );
-    }
-
-    return this.ref(parsedURL.path.toString());
-  }
-
-  /**
-   * @param {string} apiName
-   */
-  private checkDeleted_(apiName: string) {
-    if (this.repoInternal_ === null) {
-      fatal('Cannot call ' + apiName + ' on a deleted database.');
-    }
+    const childRef = refFromURL(this._delegate, url);
+    return new Reference(this, childRef);
   }
 
   // Make individual repo go offline.
   goOffline(): void {
     validateArgCount('database.goOffline', 0, 0, arguments.length);
-    this.checkDeleted_('goOffline');
-    this.repo_.interrupt();
+    return goOffline(this._delegate);
   }
 
   goOnline(): void {
     validateArgCount('database.goOnline', 0, 0, arguments.length);
-    this.checkDeleted_('goOnline');
-    this.repo_.resume();
+    return goOnline(this._delegate);
   }
 }

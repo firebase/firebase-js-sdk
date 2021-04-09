@@ -21,7 +21,6 @@ import { stub } from 'sinon';
 import { RemoteConfigCompatImpl } from './remoteConfig';
 import { getFakeApp, getFakeModularRemoteConfig } from '../test/util';
 import * as modularApi from '@firebase/remote-config-exp';
-import { Value } from '@firebase/remote-config-types-exp';
 
 describe('Remote Config Compat', () => {
   let remoteConfig!: RemoteConfigCompatImpl;
@@ -134,7 +133,7 @@ describe('Remote Config Compat', () => {
   });
 
   it('getValue() calls modular getValue()', () => {
-    const fakeValue = {} as Value;
+    const fakeValue = {} as modularApi.Value;
     const modularGetValue = stub(modularApi, 'getValue').callsFake(
       () => fakeValue
     );

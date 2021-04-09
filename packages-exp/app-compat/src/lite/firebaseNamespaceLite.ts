@@ -15,12 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseServiceNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
+import { FirebaseNamespace } from '../public-types';
+import { FirebaseServiceNamespace, _FirebaseService } from '../types';
 import { FirebaseAppLiteImpl } from './firebaseAppLite';
 import { createFirebaseNamespaceCore } from '../firebaseNamespaceCore';
 import { Component, ComponentType } from '@firebase/component';
@@ -30,9 +26,8 @@ export function createFirebaseNamespaceLite(): FirebaseNamespace {
 
   namespace.SDK_VERSION = `${namespace.SDK_VERSION}_LITE`;
 
-  const registerComponent = (namespace as _FirebaseNamespace).INTERNAL
-    .registerComponent;
-  (namespace as _FirebaseNamespace).INTERNAL.registerComponent = registerComponentForLite;
+  const registerComponent = namespace.INTERNAL.registerComponent;
+  namespace.INTERNAL.registerComponent = registerComponentForLite;
 
   /**
    * This is a special implementation, so it only works with performance.
@@ -41,7 +36,7 @@ export function createFirebaseNamespaceLite(): FirebaseNamespace {
   function registerComponentForLite(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     component: Component<any>
-  ): FirebaseServiceNamespace<FirebaseService> | null {
+  ): FirebaseServiceNamespace<_FirebaseService> | null {
     // only allow performance to register with firebase lite
     if (
       component.type === ComponentType.PUBLIC &&

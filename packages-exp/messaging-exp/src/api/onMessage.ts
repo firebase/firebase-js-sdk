@@ -16,11 +16,14 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
-import { MessagePayload } from '@firebase/messaging-types-exp';
+import {
+  MessagePayload,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
-import { messageEventListener } from '../listeners/messageEventListener';
 
 export function onMessage(
   messaging: MessagingService,
@@ -29,10 +32,6 @@ export function onMessage(
   if (!navigator) {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
-
-  navigator.serviceWorker.addEventListener('message', e =>
-    messageEventListener(messaging, e)
-  );
 
   messaging.onMessageHandler = nextOrObserver;
 

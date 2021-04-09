@@ -18,11 +18,16 @@
 /**
  * @fileoverview Functions to create and manipulate URLs for the server API.
  */
-import { DEFAULT_HOST } from './constants';
 import { UrlParams } from './requestinfo';
 
-export function makeUrl(urlPart: string): string {
-  return `https://${DEFAULT_HOST}/v0${urlPart}`;
+export function makeUrl(urlPart: string, host: string): string {
+  const protocolMatch = host.match(/^(\w+):\/\/.+/);
+  const protocol = protocolMatch?.[1];
+  let origin = host;
+  if (protocol == null) {
+    origin = `https://${host}`;
+  }
+  return `${origin}/v0${urlPart}`;
 }
 
 export function makeQueryString(params: UrlParams): string {

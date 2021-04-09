@@ -4,10 +4,10 @@
 
 ## GithubAuthProvider.GITHUB\_SIGN\_IN\_METHOD property
 
-Always set to [SignInMethod.GITHUB](./auth-types.signinmethod.github.md)<!-- -->.
+Always set to [SignInMethod.GITHUB](./auth.signinmethod.github.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static readonly GITHUB_SIGN_IN_METHOD = externs.SignInMethod.GITHUB;
+static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
 ```

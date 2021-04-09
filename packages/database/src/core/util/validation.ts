@@ -15,53 +15,52 @@
  * limitations under the License.
  */
 
-import { Path, ValidationPath } from './Path';
 import {
   contains,
-  safeGet,
   errorPrefix as errorPrefixFxn,
+  safeGet,
   stringLength
 } from '@firebase/util';
-import { isInvalidJSONNumber, each } from './util';
 
 import { RepoInfo } from '../RepoInfo';
 
+import {
+  Path,
+  pathChild,
+  pathCompare,
+  pathContains,
+  pathGetBack,
+  pathGetFront,
+  pathSlice,
+  ValidationPath,
+  validationPathPop,
+  validationPathPush,
+  validationPathToErrorString
+} from './Path';
+import { each, isInvalidJSONNumber } from './util';
+
 /**
  * True for invalid Firebase keys
- * @type {RegExp}
- * @private
  */
 export const INVALID_KEY_REGEX_ = /[\[\].#$\/\u0000-\u001F\u007F]/;
 
 /**
  * True for invalid Firebase paths.
  * Allows '/' in paths.
- * @type {RegExp}
- * @private
  */
 export const INVALID_PATH_REGEX_ = /[\[\].#$\u0000-\u001F\u007F]/;
 
 /**
  * Maximum number of characters to allow in leaf value
- * @type {number}
- * @private
  */
 export const MAX_LEAF_SIZE_ = 10 * 1024 * 1024;
 
-/**
- * @param {*} key
- * @return {boolean}
- */
 export const isValidKey = function (key: unknown): boolean {
   return (
     typeof key === 'string' && key.length !== 0 && !INVALID_KEY_REGEX_.test(key)
   );
 };
 
-/**
- * @param {string} pathString
- * @return {boolean}
- */
 export const isValidPathString = function (pathString: string): boolean {
   return (
     typeof pathString === 'string' &&
@@ -70,10 +69,6 @@ export const isValidPathString = function (pathString: string): boolean {
   );
 };
 
-/**
- * @param {string} pathString
- * @return {boolean}
- */
 export const isValidRootPathString = function (pathString: string): boolean {
   if (pathString) {
     // Allow '/.info/' at the beginning.
@@ -83,10 +78,6 @@ export const isValidRootPathString = function (pathString: string): boolean {
   return isValidPathString(pathString);
 };
 
-/**
- * @param {*} priority
- * @return {boolean}
- */
 export const isValidPriority = function (priority: unknown): boolean {
   return (
     priority === null ||
@@ -101,37 +92,22 @@ export const isValidPriority = function (priority: unknown): boolean {
 
 /**
  * Pre-validate a datum passed as an argument to Firebase function.
- *
- * @param {string} fnName
- * @param {number} argumentNumber
- * @param {*} data
- * @param {!Path} path
- * @param {boolean} optional
  */
 export const validateFirebaseDataArg = function (
   fnName: string,
-  argumentNumber: number,
-  data: unknown,
+  value: unknown,
   path: Path,
   optional: boolean
 ) {
-  if (optional && data === undefined) {
+  if (optional && value === undefined) {
     return;
   }
 
-  validateFirebaseData(
-    errorPrefixFxn(fnName, argumentNumber, optional),
-    data,
-    path
-  );
+  validateFirebaseData(errorPrefixFxn(fnName, 'value'), value, path);
 };
 
 /**
  * Validate a data object client-side before sending to server.
- *
- * @param {string} errorPrefix
- * @param {*} data
- * @param {!Path|!ValidationPath} path_
  */
 export const validateFirebaseData = function (
   errorPrefix: string,
@@ -142,20 +118,26 @@ export const validateFirebaseData = function (
     path_ instanceof Path ? new ValidationPath(path_, errorPrefix) : path_;
 
   if (data === undefined) {
-    throw new Error(errorPrefix + 'contains undefined ' + path.toErrorString());
+    throw new Error(
+      errorPrefix + 'contains undefined ' + validationPathToErrorString(path)
+    );
   }
   if (typeof data === 'function') {
     throw new Error(
       errorPrefix +
         'contains a function ' +
-        path.toErrorString() +
+        validationPathToErrorString(path) +
         ' with contents = ' +
         data.toString()
     );
   }
   if (isInvalidJSONNumber(data)) {
     throw new Error(
-      errorPrefix + 'contains ' + data.toString() + ' ' + path.toErrorString()
+      errorPrefix +
+        'contains ' +
+        data.toString() +
+        ' ' +
+        validationPathToErrorString(path)
     );
   }
 
@@ -170,7 +152,7 @@ export const validateFirebaseData = function (
         'contains a string greater than ' +
         MAX_LEAF_SIZE_ +
         ' utf8 bytes ' +
-        path.toErrorString() +
+        validationPathToErrorString(path) +
         " ('" +
         data.substring(0, 50) +
         "...')"
@@ -193,23 +175,23 @@ export const validateFirebaseData = function (
               ' contains an invalid key (' +
               key +
               ') ' +
-              path.toErrorString() +
+              validationPathToErrorString(path) +
               '.  Keys must be non-empty strings ' +
               'and can\'t contain ".", "#", "$", "/", "[", or "]"'
           );
         }
       }
 
-      path.push(key);
+      validationPathPush(path, key);
       validateFirebaseData(errorPrefix, value, path);
-      path.pop();
+      validationPathPop(path);
     });
 
     if (hasDotValue && hasActualChild) {
       throw new Error(
         errorPrefix +
           ' contains ".value" child ' +
-          path.toErrorString() +
+          validationPathToErrorString(path) +
           ' in addition to actual children.'
       );
     }
@@ -218,18 +200,15 @@ export const validateFirebaseData = function (
 
 /**
  * Pre-validate paths passed in the firebase function.
- *
- * @param {string} errorPrefix
- * @param {Array<!Path>} mergePaths
  */
 export const validateFirebaseMergePaths = function (
   errorPrefix: string,
   mergePaths: Path[]
 ) {
-  let i, curPath;
+  let i, curPath: Path;
   for (i = 0; i < mergePaths.length; i++) {
     curPath = mergePaths[i];
-    const keys = curPath.slice();
+    const keys = pathSlice(curPath);
     for (let j = 0; j < keys.length; j++) {
       if (keys[j] === '.priority' && j === keys.length - 1) {
         // .priority is OK
@@ -250,11 +229,11 @@ export const validateFirebaseMergePaths = function (
   // Check that update keys are not descendants of each other.
   // We rely on the property that sorting guarantees that ancestors come
   // right before descendants.
-  mergePaths.sort(Path.comparePaths);
+  mergePaths.sort(pathCompare);
   let prevPath: Path | null = null;
   for (i = 0; i < mergePaths.length; i++) {
     curPath = mergePaths[i];
-    if (prevPath !== null && prevPath.contains(curPath)) {
+    if (prevPath !== null && pathContains(prevPath, curPath)) {
       throw new Error(
         errorPrefix +
           'contains a path ' +
@@ -270,16 +249,9 @@ export const validateFirebaseMergePaths = function (
 /**
  * pre-validate an object passed as an argument to firebase function (
  * must be an object - e.g. for firebase.update()).
- *
- * @param {string} fnName
- * @param {number} argumentNumber
- * @param {*} data
- * @param {!Path} path
- * @param {boolean} optional
  */
 export const validateFirebaseMergeDataArg = function (
   fnName: string,
-  argumentNumber: number,
   data: unknown,
   path: Path,
   optional: boolean
@@ -288,7 +260,7 @@ export const validateFirebaseMergeDataArg = function (
     return;
   }
 
-  const errorPrefix = errorPrefixFxn(fnName, argumentNumber, optional);
+  const errorPrefix = errorPrefixFxn(fnName, 'values');
 
   if (!(data && typeof data === 'object') || Array.isArray(data)) {
     throw new Error(
@@ -299,8 +271,8 @@ export const validateFirebaseMergeDataArg = function (
   const mergePaths: Path[] = [];
   each(data, (key: string, value: unknown) => {
     const curPath = new Path(key);
-    validateFirebaseData(errorPrefix, value, path.child(curPath));
-    if (curPath.getBack() === '.priority') {
+    validateFirebaseData(errorPrefix, value, pathChild(path, curPath));
+    if (pathGetBack(curPath) === '.priority') {
       if (!isValidPriority(value)) {
         throw new Error(
           errorPrefix +
@@ -318,7 +290,6 @@ export const validateFirebaseMergeDataArg = function (
 
 export const validatePriority = function (
   fnName: string,
-  argumentNumber: number,
   priority: unknown,
   optional: boolean
 ) {
@@ -327,7 +298,7 @@ export const validatePriority = function (
   }
   if (isInvalidJSONNumber(priority)) {
     throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, optional) +
+      errorPrefixFxn(fnName, 'priority') +
         'is ' +
         priority.toString() +
         ', but must be a valid Firebase priority (a string, finite number, ' +
@@ -337,7 +308,7 @@ export const validatePriority = function (
   // Special case to allow importing data with a .sv.
   if (!isValidPriority(priority)) {
     throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, optional) +
+      errorPrefixFxn(fnName, 'priority') +
         'must be a valid Firebase priority ' +
         '(a string, finite number, server value, or null).'
     );
@@ -346,7 +317,6 @@ export const validatePriority = function (
 
 export const validateEventType = function (
   fnName: string,
-  argumentNumber: number,
   eventType: string,
   optional: boolean
 ) {
@@ -363,7 +333,7 @@ export const validateEventType = function (
       break;
     default:
       throw new Error(
-        errorPrefixFxn(fnName, argumentNumber, optional) +
+        errorPrefixFxn(fnName, 'eventType') +
           'must be a valid event type = "value", "child_added", "child_removed", ' +
           '"child_changed", or "child_moved".'
       );
@@ -372,7 +342,7 @@ export const validateEventType = function (
 
 export const validateKey = function (
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   key: string,
   optional: boolean
 ) {
@@ -381,7 +351,7 @@ export const validateKey = function (
   }
   if (!isValidKey(key)) {
     throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, optional) +
+      errorPrefixFxn(fnName, argumentName) +
         'was an invalid key = "' +
         key +
         '".  Firebase keys must be non-empty strings and ' +
@@ -392,7 +362,7 @@ export const validateKey = function (
 
 export const validatePathString = function (
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   pathString: string,
   optional: boolean
 ) {
@@ -402,7 +372,7 @@ export const validatePathString = function (
 
   if (!isValidPathString(pathString)) {
     throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, optional) +
+      errorPrefixFxn(fnName, argumentName) +
         'was an invalid path = "' +
         pathString +
         '". Paths must be non-empty strings and ' +
@@ -413,7 +383,7 @@ export const validatePathString = function (
 
 export const validateRootPathString = function (
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   pathString: string,
   optional: boolean
 ) {
@@ -422,18 +392,17 @@ export const validateRootPathString = function (
     pathString = pathString.replace(/^\/*\.info(\/|$)/, '/');
   }
 
-  validatePathString(fnName, argumentNumber, pathString, optional);
+  validatePathString(fnName, argumentName, pathString, optional);
 };
 
 export const validateWritablePath = function (fnName: string, path: Path) {
-  if (path.getFront() === '.info') {
+  if (pathGetFront(path) === '.info') {
     throw new Error(fnName + " failed = Can't modify data under /.info/");
   }
 };
 
 export const validateUrl = function (
   fnName: string,
-  argumentNumber: number,
   parsedUrl: { repoInfo: RepoInfo; path: Path }
 ) {
   // TODO = Validate server better.
@@ -446,33 +415,16 @@ export const validateUrl = function (
     (pathString.length !== 0 && !isValidRootPathString(pathString))
   ) {
     throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, false) +
+      errorPrefixFxn(fnName, 'url') +
         'must be a valid firebase URL and ' +
         'the path can\'t contain ".", "#", "$", "[", or "]".'
     );
   }
 };
 
-export const validateCredential = function (
-  fnName: string,
-  argumentNumber: number,
-  cred: unknown,
-  optional: boolean
-) {
-  if (optional && cred === undefined) {
-    return;
-  }
-  if (!(typeof cred === 'string')) {
-    throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, optional) +
-        'must be a valid credential (a string).'
-    );
-  }
-};
-
 export const validateBoolean = function (
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   bool: unknown,
   optional: boolean
 ) {
@@ -481,14 +433,14 @@ export const validateBoolean = function (
   }
   if (typeof bool !== 'boolean') {
     throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, optional) + 'must be a boolean.'
+      errorPrefixFxn(fnName, argumentName) + 'must be a boolean.'
     );
   }
 };
 
 export const validateString = function (
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   string: unknown,
   optional: boolean
 ) {
@@ -497,15 +449,14 @@ export const validateString = function (
   }
   if (!(typeof string === 'string')) {
     throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, optional) +
-        'must be a valid string.'
+      errorPrefixFxn(fnName, argumentName) + 'must be a valid string.'
     );
   }
 };
 
 export const validateObject = function (
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   obj: unknown,
   optional: boolean
 ) {
@@ -514,15 +465,14 @@ export const validateObject = function (
   }
   if (!(obj && typeof obj === 'object') || obj === null) {
     throw new Error(
-      errorPrefixFxn(fnName, argumentNumber, optional) +
-        'must be a valid object.'
+      errorPrefixFxn(fnName, argumentName) + 'must be a valid object.'
     );
   }
 };
 
 export const validateObjectContainsKey = function (
   fnName: string,
-  argumentNumber: number,
+  argumentName: string,
   obj: unknown,
   key: string,
   optional: boolean,
@@ -537,7 +487,7 @@ export const validateObjectContainsKey = function (
       return;
     } else {
       throw new Error(
-        errorPrefixFxn(fnName, argumentNumber, optional) +
+        errorPrefixFxn(fnName, argumentName) +
           'must contain the key "' +
           key +
           '"'
@@ -557,7 +507,7 @@ export const validateObjectContainsKey = function (
     ) {
       if (optional) {
         throw new Error(
-          errorPrefixFxn(fnName, argumentNumber, optional) +
+          errorPrefixFxn(fnName, argumentName) +
             'contains invalid value for key "' +
             key +
             '" (must be of type "' +
@@ -566,7 +516,7 @@ export const validateObjectContainsKey = function (
         );
       } else {
         throw new Error(
-          errorPrefixFxn(fnName, argumentNumber, optional) +
+          errorPrefixFxn(fnName, argumentName) +
             'must contain the key "' +
             key +
             '" with type "' +

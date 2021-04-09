@@ -21,8 +21,8 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
+import { AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { _logoutIfInvalidated } from './invalidation';
 import { _createError } from '../util/assert';
@@ -30,8 +30,8 @@ import { _createError } from '../util/assert';
 use(chaiAsPromised);
 
 describe('core/user/invalidation', () => {
-  let user: User;
-  let auth: Auth;
+  let user: UserInternal;
+  let auth: AuthInternal;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -81,7 +81,7 @@ describe('core/user/invalidation', () => {
   });
 
   context('with another logged in user', () => {
-    let user2: User;
+    let user2: UserInternal;
 
     beforeEach(async () => {
       user2 = testUser(auth, 'uid2');

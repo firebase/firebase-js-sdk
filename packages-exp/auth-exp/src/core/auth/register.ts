@@ -16,15 +16,21 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import * as externs from '@firebase/auth-types-exp';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstantiationMode
+} from '@firebase/component';
 
-import { version } from '../../../package.json';
+import { name, version } from '../../../package.json';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
-import { AuthInternal } from './firebase_internal';
+import { AuthInterop } from './firebase_internal';
+import { ConfigInternal } from '../../model/auth';
+import { Dependencies } from '../../model/public_types';
+import { _initializeAuthInstance } from './initialize';
 
 export const enum _ComponentName {
   AUTH = 'auth-exp',
@@ -41,6 +47,8 @@ function getVersionForPlatform(
       return 'rn';
     case ClientPlatform.WORKER:
       return 'webworker';
+    case ClientPlatform.CORDOVA:
+      return 'cordova';
     default:
       return undefined;
   }
@@ -51,24 +59,54 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
   _registerComponent(
     new Component(
       _ComponentName.AUTH,
-      container => {
+      (container, { options: deps }: { options?: Dependencies }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const { apiKey, authDomain } = app.options;
         return (app => {
-          _assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
-          const config: externs.Config = {
+          _assert(
+            apiKey && !apiKey.includes(':'),
+            AuthErrorCode.INVALID_API_KEY,
+            { appName: app.name }
+          );
+          // Auth domain is optional if IdP sign in isn't being used
+          _assert(!authDomain?.includes(':'), AuthErrorCode.ARGUMENT_ERROR, {
+            appName: app.name
+          });
+          const config: ConfigInternal = {
             apiKey,
             authDomain,
+            clientPlatform,
             apiHost: DefaultConfig.API_HOST,
             tokenApiHost: DefaultConfig.TOKEN_API_HOST,
             apiScheme: DefaultConfig.API_SCHEME,
             sdkClientVersion: _getClientVersion(clientPlatform)
           };
-          return new AuthImpl(app, config);
+
+          const authInstance = new AuthImpl(app, config);
+          _initializeAuthInstance(authInstance, deps);
+
+          return authInstance;
         })(app);
       },
       ComponentType.PUBLIC
     )
+      /**
+       * Auth can only be initialized by explicitly calling getAuth() or initializeAuth()
+       * For why we do this, See go/firebase-next-auth-init
+       */
+      .setInstantiationMode(InstantiationMode.EXPLICIT)
+      /**
+       * Because all firebase products that depend on auth depend on auth-internal directly,
+       * we need to initialize auth-internal after auth is initialized to make it available to other firebase products.
+       */
+      .setInstanceCreatedCallback(
+        (container, _instanceIdentifier, _instance) => {
+          const authInternalProvider = container.getProvider(
+            _ComponentName.AUTH_INTERNAL
+          );
+          authInternalProvider.initialize();
+        }
+      )
   );
 
   _registerComponent(
@@ -78,15 +116,11 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const auth = _castAuth(
           container.getProvider(_ComponentName.AUTH).getImmediate()!
         );
-        return (auth => new AuthInternal(auth))(auth);
+        return (auth => new AuthInterop(auth))(auth);
       },
       ComponentType.PRIVATE
-    )
+    ).setInstantiationMode(InstantiationMode.EXPLICIT)
   );
 
-  registerVersion(
-    _ComponentName.AUTH,
-    version,
-    getVersionForPlatform(clientPlatform)
-  );
+  registerVersion(name, version, getVersionForPlatform(clientPlatform));
 }

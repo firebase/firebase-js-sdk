@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import * as impl from '@firebase/auth-exp/internal';
-import { Config } from '@firebase/auth-types-exp';
+import { FirebaseApp } from '@firebase/app-compat';
+import * as exp from '@firebase/auth-exp/internal';
+import { Provider } from '@firebase/component';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Auth } from './auth';
+import { CompatPopupRedirectResolver } from './popup_redirect';
 
 use(sinonChai);
 
@@ -29,26 +30,45 @@ use(sinonChai);
 // of the auth compat layer are more complicated: these tests cover those
 describe('auth compat', () => {
   context('redirect persistence key storage', () => {
-    let underlyingAuth: impl.AuthImpl;
+    let underlyingAuth: exp.AuthImpl;
     let app: FirebaseApp;
+    let providerStub: sinon.SinonStubbedInstance<Provider<'auth-exp'>>;
+
     beforeEach(() => {
       app = { options: { apiKey: 'api-key' } } as FirebaseApp;
-      underlyingAuth = new impl.AuthImpl(app, {
+      underlyingAuth = new exp.AuthImpl(app, {
         apiKey: 'api-key'
-      } as Config);
+      } as exp.ConfigInternal);
       sinon.stub(underlyingAuth, '_initializeWithPersistence');
+
+      providerStub = sinon.createStubInstance(Provider);
     });
 
     afterEach(() => {
       sinon.restore;
     });
 
-    it('saves the persistence into session storage if available', () => {
-      const authCompat = new Auth(app, underlyingAuth);
+    it('saves the persistence into session storage if available', async () => {
       if (typeof self !== 'undefined') {
+        underlyingAuth._initializationPromise = Promise.resolve();
         sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
+        sinon
+          .stub(underlyingAuth, '_initializationPromise')
+          .value(Promise.resolve());
+        sinon.stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            CompatPopupRedirectResolver
+          ),
+          '_openRedirect'
+        );
+        providerStub.isInitialized.returns(true);
+        providerStub.getImmediate.returns(underlyingAuth);
+        const authCompat = new Auth(
+          app,
+          (providerStub as unknown) as Provider<'auth-exp'>
+        );
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        authCompat.signInWithRedirect(new impl.GoogleAuthProvider());
+        await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
         expect(
           sessionStorage.getItem('firebase:persistence:api-key:undefined')
         ).to.eq('TEST');
@@ -59,19 +79,22 @@ describe('auth compat', () => {
       if (typeof self !== 'undefined') {
         sessionStorage.setItem(
           'firebase:persistence:api-key:undefined',
-          'NONE'
+          'none'
         );
-        new Auth(app, underlyingAuth);
+        providerStub.isInitialized.returns(false);
+        providerStub.initialize.returns(underlyingAuth);
+        new Auth(app, (providerStub as unknown) as Provider<'auth-exp'>);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        expect(
-          underlyingAuth._initializeWithPersistence
-        ).to.have.been.calledWith(
-          [
-            impl._getInstance(impl.inMemoryPersistence),
-            impl._getInstance(impl.indexedDBLocalPersistence)
-          ],
-          impl.browserPopupRedirectResolver
-        );
+        expect(providerStub.initialize).to.have.been.calledWith({
+          options: {
+            popupRedirectResolver: CompatPopupRedirectResolver,
+            persistence: [
+              exp.inMemoryPersistence,
+              exp.indexedDBLocalPersistence,
+              exp.browserLocalPersistence
+            ]
+          }
+        });
       }
     });
   });

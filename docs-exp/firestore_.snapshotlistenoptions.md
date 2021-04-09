@@ -4,7 +4,7 @@
 
 ## SnapshotListenOptions interface
 
-An options object that can be passed to  and  to control which types of changes to include in the result set.
+An options object that can be passed to [onSnapshot()](./firestore_.onsnapshot.md) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.docchanges.md) to control which types of changes to include in the result set.
 
 <b>Signature:</b>
 
@@ -16,5 +16,5 @@ export declare interface SnapshotListenOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [includeMetadataChanges](./firestore_.snapshotlistenoptions.includemetadatachanges.md) | boolean | Include a change even if only the metadata of the query or of a document changed. Default is false. |
+|  [includeMetadataChanges?](./firestore_.snapshotlistenoptions.includemetadatachanges.md) | boolean | <i>(Optional)</i> Include a change even if only the metadata of the query or of a document changed. Default is false. |
 

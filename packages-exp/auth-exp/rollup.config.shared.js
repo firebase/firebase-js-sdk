@@ -22,9 +22,10 @@ import typescript from 'typescript';
 import pkg from './package.json';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
 
 /**
  * Common plugins for all builds
@@ -91,6 +92,19 @@ export function getConfig({ isReleaseBuild }) {
       output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
       plugins: es5BuildPlugins,
       external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    },
+    /**
+     * Cordova Builds
+     */
+    {
+      input: {
+        index: 'index.cordova.ts',
+        internal: 'internal/index.ts'
+      },
+      output: [{ dir: 'dist/cordova', format: 'es', sourcemap: true }],
+      plugins: es5BuildPlugins,
+      external: id =>
+        [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
     },
     /**
      * React Native Builds

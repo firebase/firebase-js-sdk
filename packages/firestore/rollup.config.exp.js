@@ -54,7 +54,7 @@ const nodePlugins = function () {
       ]
     }),
     replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../src/protos')
+      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
     })
   ];
 };
@@ -69,6 +69,7 @@ const browserPlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
+      clean: true,
       abortOnError: false,
       transformers: [
         util.removeAssertAndPrefixInternalTransformer,
@@ -83,7 +84,7 @@ const browserPlugins = function () {
 const allBuilds = [
   // Node ESM build
   {
-    input: './exp/index.ts',
+    input: './exp/index.node.ts',
     output: {
       file: path.resolve('./exp', pkg['main-esm']),
       format: 'es',
@@ -127,7 +128,7 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './exp/index.ts',
+    input: './exp/index.rn.ts',
     output: {
       file: path.resolve('./exp', pkg['react-native']),
       format: 'es',

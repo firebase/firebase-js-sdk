@@ -16,7 +16,7 @@ export declare function getDownloadURL(ref: StorageReference): Promise<string>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ref | [StorageReference](./storage-types.storagereference.md) |  |
+|  ref | [StorageReference](./storage.storagereference.md) |  |
 
 <b>Returns:</b>
 

@@ -15,14 +15,8 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs,
-  UserDataReader
-} from '../api/user_data_reader';
+import { Compat, getModularInstance } from '@firebase/util';
+
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { invokeCommitRpc } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';
@@ -33,13 +27,20 @@ import { FirebaseFirestore } from './database';
 import { FieldPath } from './field_path';
 import { DocumentReference, SetOptions, UpdateData } from './reference';
 import { applyFirestoreDataConverter } from './reference_impl';
+import {
+  newUserDataReader,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
+  UserDataReader
+} from './user_data_reader';
 
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.
  *
  * A `WriteBatch` object can be acquired by calling {@link writeBatch}. It
  * provides methods for adding writes to the write batch. None of the writes
- * will be committed (or visible locally) until {@link WriteBatch#commit} is
+ * will be committed (or visible locally) until {@link WriteBatch.commit} is
  * called.
  */
 export class WriteBatch {
@@ -151,9 +152,7 @@ export class WriteBatch {
 
     // For Compat types, we have to "extract" the underlying types before
     // performing validation.
-    if (fieldOrUpdateData instanceof Compat) {
-      fieldOrUpdateData = fieldOrUpdateData._delegate;
-    }
+    fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
     let parsed;
     if (
@@ -235,9 +234,8 @@ export function validateReference<T>(
   documentRef: DocumentReference<T> | Compat<DocumentReference<T>>,
   firestore: FirebaseFirestore
 ): DocumentReference<T> {
-  if (documentRef instanceof Compat) {
-    documentRef = documentRef._delegate;
-  }
+  documentRef = getModularInstance(documentRef);
+
   if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,

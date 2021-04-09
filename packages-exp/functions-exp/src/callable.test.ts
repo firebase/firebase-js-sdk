@@ -16,8 +16,8 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { FunctionsErrorCode } from '@firebase/functions-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
+import { FunctionsErrorCode } from './public-types';
 import {
   Provider,
   ComponentContainer,
@@ -86,7 +86,10 @@ describe('Firebase Functions > Call', () => {
       null: null
     };
 
-    const func = httpsCallable(functions, 'dataTest');
+    const func = httpsCallable<
+      Record<string, any>,
+      { message: string; code: number; long: number }
+    >(functions, 'dataTest');
     const result = await func(data);
 
     expect(result.data).to.deep.equal({
@@ -98,7 +101,7 @@ describe('Firebase Functions > Call', () => {
 
   it('scalars', async () => {
     const functions = createTestService(app, region);
-    const func = httpsCallable(functions, 'scalarTest');
+    const func = httpsCallable<number, number>(functions, 'scalarTest');
     const result = await func(17);
     expect(result.data).to.equal(76);
   });

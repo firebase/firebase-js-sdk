@@ -25,10 +25,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_p
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'add\_payment\_info' |  |
-|  eventParams | { coupon?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['coupon'\]; currency?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['currency'\]; items?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['items'\]; payment\_type?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['payment\_type'\]; value?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['value'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { coupon?: [EventParams](./analytics.eventparams.md)<!-- -->\['coupon'\]; currency?: [EventParams](./analytics.eventparams.md)<!-- -->\['currency'\]; items?: [EventParams](./analytics.eventparams.md)<!-- -->\['items'\]; payment\_type?: [EventParams](./analytics.eventparams.md)<!-- -->\['payment\_type'\]; value?: [EventParams](./analytics.eventparams.md)<!-- -->\['value'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

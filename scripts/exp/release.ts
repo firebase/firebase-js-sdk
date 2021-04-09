@@ -28,10 +28,20 @@ import { resolve } from 'path';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
-import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
-import { prepare as prepareStorageForRelease } from './prepare-storage-for-exp-release';
-import { prepare as prepareDatabaseForRelease } from './prepare-database-for-exp-release';
+import {
+  prepare as prepareFirestoreForRelease,
+  createFirestoreCompatProject
+} from './prepare-firestore-for-exp-release';
+import {
+  createStorageCompatProject,
+  prepare as prepareStorageForRelease
+} from './prepare-storage-for-exp-release';
+import {
+  createDatabaseCompatProject,
+  prepare as prepareDatabaseForRelease
+} from './prepare-database-for-exp-release';
 import * as yargs from 'yargs';
+import { addCompatToFirebasePkgJson } from './prepare-util';
 
 const prompt = createPromptModule();
 const argv = yargs
@@ -57,16 +67,11 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     );
 
     /**
-     * Update fields in package.json and stuff
+     * Update fields in package.json and create compat packages (e.g. packages-exp/firestore-compat)
      */
     await prepareFirestoreForRelease();
     await prepareStorageForRelease();
     await prepareDatabaseForRelease();
-
-    /**
-     * build packages
-     */
-    await buildPackages();
 
     // path to exp packages
     let packagePaths = await mapWorkspaceToPackages([
@@ -75,19 +80,64 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
 
     packagePaths.push(`${projectRoot}/packages/firestore`);
     packagePaths.push(`${projectRoot}/packages/storage`);
-    packagePaths.push(`${projectRoot}/packages/storage-types`);
     packagePaths.push(`${projectRoot}/packages/database`);
 
+    packagePaths.push(`${projectRoot}/packages/firestore/compat`);
+    packagePaths.push(`${projectRoot}/packages/storage/compat`);
+    packagePaths.push(`${projectRoot}/packages/database/compat`);
+
     /**
-     * It does 2 things:
-     *
-     * 1. Bumps the patch version of firebase-exp package regardless if there is any update
+     * Bumps the patch version of firebase-exp package regardless if there is any update
      * since the last release. This simplifies the script and works fine for exp packages.
      *
-     * 2. Removes -exp in package names because we will publish them using
+     * We do this before the build so the registerVersion will grab the correct
+     * versions from package.json for platform logging.
+     */
+    const versions = await getNewVersions(packagePaths);
+
+    await updatePackageJsons(packagePaths, versions, {
+      // Changing the package names here will break the build process.
+      // It will be done after the build.
+      removeExpInName: false,
+      updateVersions: true,
+      makePublic: true
+    });
+
+    /**
+     * build packages except for the umbrella package (firebase) which will be built after firestore/storage/database compat packages are created
+     */
+    await buildPackages();
+
+    /**
+     * Create compat packages for Firestore, Database and Storage
+     */
+    await createFirestoreCompatProject();
+    await createStorageCompatProject();
+    await createDatabaseCompatProject();
+
+    /**
+     * Add firestore-compat, database-compat and storage-compat to the dependencies array of firebase-exp
+     */
+    await addCompatToFirebasePkgJson([
+      '@firebase/firestore-compat',
+      '@firebase/storage-compat',
+      '@firebase/database-compat'
+    ]);
+
+    /**
+     * build firebase
+     */
+    await buildFirebasePackage();
+
+    /**
+     * Removes -exp in package names because we will publish them using
      * the existing package names under a special release tag (firebase@exp).
      */
-    const versions = await updatePackageNamesAndVersions(packagePaths);
+    await updatePackageJsons(packagePaths, versions, {
+      removeExpInName: true,
+      updateVersions: false,
+      makePublic: false
+    });
 
     let versionCheckMessage =
       '\r\nAre you sure these are the versions you want to publish?\r\n';
@@ -107,10 +157,19 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
       throw new Error('Version check failed');
     }
 
+    // publish all packages under packages-exp plus firestore, storage and database
+    const packagesToPublish = await mapWorkspaceToPackages([
+      `${projectRoot}/packages-exp/*`
+    ]);
+
+    packagesToPublish.push(`${projectRoot}/packages/firestore`);
+    packagesToPublish.push(`${projectRoot}/packages/storage`);
+    packagesToPublish.push(`${projectRoot}/packages/database`);
+
     /**
      * Release packages to NPM
      */
-    await publishToNpm(packagePaths, dryRun);
+    await publishToNpm(packagesToPublish, dryRun);
 
     /**
      * reset the working tree to recover package names with -exp in the package.json files,
@@ -189,19 +248,6 @@ async function buildPackages() {
       'lerna',
       'run',
       '--scope',
-      // We replace `@firebase/app-exp` with `@firebase/app` during compilation, so we need to
-      // compile @firebase/app first to make rollup happy though it's not an actual dependency.
-      '@firebase/app',
-      '--scope',
-      // the same reason above
-      '@firebase/functions',
-      '--scope',
-      // the same reason above
-      '@firebase/remote-config',
-      '--scope',
-      // the same reason above
-      '@firebase/analytics',
-      '--scope',
       '@firebase/util',
       '--scope',
       '@firebase/component',
@@ -236,7 +282,7 @@ async function buildPackages() {
   );
 
   // Build exp packages developed in place
-  // Firestore
+  // Firestore and firestore-compat
   await spawn(
     'yarn',
     ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
@@ -258,17 +304,7 @@ async function buildPackages() {
   // Storage
   await spawn(
     'yarn',
-    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
-    {
-      cwd: projectRoot,
-      stdio: 'inherit'
-    }
-  );
-
-  // storage-types. Remove -exp in import paths in d.ts
-  await spawn(
-    'yarn',
-    ['lerna', 'run', '--scope', '@firebase/storage-types', 'build:exp:release'],
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
@@ -278,7 +314,7 @@ async function buildPackages() {
   // Database
   await spawn(
     'yarn',
-    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp'],
+    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
@@ -295,6 +331,13 @@ async function buildPackages() {
     rmdirSync(installationsDistDirPath, { recursive: true });
   }
 
+  spinner.stopAndPersist({
+    symbol: '✅'
+  });
+}
+
+async function buildFirebasePackage() {
+  const spinner = ora(' Building firebase').start();
   // Build firebase-exp
   await spawn(
     'yarn',
@@ -304,13 +347,12 @@ async function buildPackages() {
       stdio: 'inherit'
     }
   );
-
   spinner.stopAndPersist({
     symbol: '✅'
   });
 }
 
-async function updatePackageNamesAndVersions(packagePaths: string[]) {
+async function getNewVersions(packagePaths: string[]) {
   // get package name -> next version mapping
   const versions = new Map();
   for (const path of packagePaths) {
@@ -328,13 +370,6 @@ async function updatePackageNamesAndVersions(packagePaths: string[]) {
       versions.set(name, nextVersion);
     }
   }
-
-  await updatePackageJsons(packagePaths, versions, {
-    removeExpInName: true,
-    updateVersions: true,
-    makePublic: true
-  });
-
   return versions;
 }
 

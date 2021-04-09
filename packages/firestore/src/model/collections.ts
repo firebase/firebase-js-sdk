@@ -21,34 +21,25 @@ import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
-import { Document, MaybeDocument } from './document';
+import { Document, MutableDocument } from './document';
 import { DocumentKey } from './document_key';
 
 /** Miscellaneous collection types / constants. */
 export interface DocumentSizeEntry {
-  maybeDocument: MaybeDocument;
+  document: MutableDocument;
   size: number;
 }
 
-export type MaybeDocumentMap = SortedMap<DocumentKey, MaybeDocument>;
-const EMPTY_MAYBE_DOCUMENT_MAP = new SortedMap<DocumentKey, MaybeDocument>(
+export type MutableDocumentMap = SortedMap<DocumentKey, MutableDocument>;
+const EMPTY_MUTABLE_DOCUMENT_MAP = new SortedMap<DocumentKey, MutableDocument>(
   DocumentKey.comparator
 );
-export function maybeDocumentMap(): MaybeDocumentMap {
-  return EMPTY_MAYBE_DOCUMENT_MAP;
-}
-
-export type NullableMaybeDocumentMap = SortedMap<
-  DocumentKey,
-  MaybeDocument | null
->;
-
-export function nullableMaybeDocumentMap(): NullableMaybeDocumentMap {
-  return maybeDocumentMap();
+export function mutableDocumentMap(): MutableDocumentMap {
+  return EMPTY_MUTABLE_DOCUMENT_MAP;
 }
 
 export interface DocumentSizeEntries {
-  maybeDocuments: NullableMaybeDocumentMap;
+  documents: MutableDocumentMap;
   sizeMap: SortedMap<DocumentKey, number>;
 }
 

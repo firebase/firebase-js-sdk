@@ -18,6 +18,8 @@
 import { projectRoot, readPackageJson } from '../utils';
 import { writeFile as _writeFile, readFile as _readFile } from 'fs';
 import { promisify } from 'util';
+import { resolve } from 'path';
+import { createCompatProject } from './prepare-util';
 
 const writeFile = promisify(_writeFile);
 const packagePath = `${projectRoot}/packages/database`;
@@ -39,8 +41,7 @@ export async function prepare() {
   packageJson.version = '0.0.900';
 
   packageJson.peerDependencies = {
-    '@firebase/app-exp': '0.x',
-    '@firebase/app-types-exp': '0.x'
+    '@firebase/app-exp': '0.x'
   };
 
   packageJson.main = expPackageJson.main.replace('../', '');
@@ -59,4 +60,23 @@ export async function prepare() {
     `${JSON.stringify(packageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
+}
+
+export async function createDatabaseCompatProject() {
+  const DATABASE_SRC = resolve(projectRoot, 'packages/database');
+  const DATABASE_COMPAT_SRC = resolve(projectRoot, 'packages/database/compat');
+  const DATABASE_COMPAT_DEST = resolve(
+    projectRoot,
+    'packages-exp/database-compat'
+  );
+  const DATABASE_COMPAT_BINARY_SRC = resolve(DATABASE_SRC, 'dist/compat');
+  const DATABASE_COMPAT_BINARY_DEST = resolve(DATABASE_COMPAT_DEST, 'dist');
+
+  createCompatProject({
+    srcDir: DATABASE_SRC,
+    compatSrcDir: DATABASE_COMPAT_SRC,
+    compatDestDir: DATABASE_COMPAT_DEST,
+    compatBinarySrcDir: DATABASE_COMPAT_BINARY_SRC,
+    compatBinaryDestDir: DATABASE_COMPAT_BINARY_DEST
+  });
 }

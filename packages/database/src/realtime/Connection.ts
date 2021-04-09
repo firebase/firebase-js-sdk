@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { RepoInfo } from '../core/RepoInfo';
+import { PersistentStorage } from '../core/storage/storage';
+import { Indexable } from '../core/util/misc';
 import {
   error,
   logWrapper,
@@ -22,12 +25,10 @@ import {
   setTimeoutNonBlocking,
   warn
 } from '../core/util/util';
-import { PersistentStorage } from '../core/storage/storage';
+
 import { PROTOCOL_VERSION } from './Constants';
-import { TransportManager } from './TransportManager';
-import { RepoInfo } from '../core/RepoInfo';
 import { Transport, TransportConstructor } from './Transport';
-import { Indexable } from '../core/util/misc';
+import { TransportManager } from './TransportManager';
 
 // Abort upgrade attempt if it takes longer than 60s.
 const UPGRADE_TIMEOUT = 60000;
@@ -63,8 +64,6 @@ const SERVER_HELLO = 'h';
 /**
  * Creates a new real-time connection to the server using whichever method works
  * best in the current browser.
- *
- * @constructor
  */
 export class Connection {
   connectionCount = 0;
@@ -111,7 +110,6 @@ export class Connection {
 
   /**
    * Starts a connection attempt
-   * @private
    */
   private start_(): void {
     const conn = this.transportManager_.initialTransport();
@@ -182,10 +180,6 @@ export class Connection {
     }
   }
 
-  /**
-   * @return {!string}
-   * @private
-   */
   private nextTransportId_(): string {
     return 'c:' + this.id + ':' + this.connectionCount++;
   }
@@ -218,8 +212,7 @@ export class Connection {
   }
 
   /**
-   *
-   * @param {Object} dataMsg An arbitrary data message to be sent to the server
+   * @param dataMsg - An arbitrary data message to be sent to the server
    */
   sendRequest(dataMsg: object) {
     // wrap in a data message envelope and send it on
@@ -374,9 +367,7 @@ export class Connection {
   }
 
   /**
-   *
-   * @param {Object} handshake The handshake data returned from the server
-   * @private
+   * @param handshake - The handshake data returned from the server
    */
   private onHandshake_(handshake: {
     ts: number;
@@ -388,7 +379,7 @@ export class Connection {
     const version = handshake.v;
     const host = handshake.h;
     this.sessionId = handshake.s;
-    this.repoInfo_.updateHost(host);
+    this.repoInfo_.host = host;
     // if we've already closed the connection, then don't bother trying to progress further
     if (this.state_ === RealtimeState.CONNECTING) {
       this.conn_.start();
@@ -435,7 +426,7 @@ export class Connection {
 
   private onReset_(host: string) {
     this.log_('Reset packet received.  New host: ' + host);
-    this.repoInfo_.updateHost(host);
+    this.repoInfo_.host = host;
     // TODO: if we're already "connected", we need to trigger a disconnect at the next layer up.
     // We don't currently support resets after the connection has already been established
     if (this.state_ === RealtimeState.CONNECTED) {
@@ -487,10 +478,8 @@ export class Connection {
   }
 
   /**
-   *
-   * @param {boolean} everConnected Whether or not the connection ever reached a server. Used to determine if
+   * @param everConnected - Whether or not the connection ever reached a server. Used to determine if
    * we should flush the host cache
-   * @private
    */
   private onConnectionLost_(everConnected: boolean) {
     this.conn_ = null;
@@ -512,11 +501,6 @@ export class Connection {
     this.close();
   }
 
-  /**
-   *
-   * @param {string} reason
-   * @private
-   */
   private onConnectionShutdown_(reason: string) {
     this.log_('Connection shutdown command received. Shutting down...');
 
@@ -557,10 +541,6 @@ export class Connection {
     }
   }
 
-  /**
-   *
-   * @private
-   */
   private closeConnections_() {
     this.log_('Shutting down all connections');
     if (this.conn_) {

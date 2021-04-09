@@ -19,7 +19,6 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 import { MessagingService } from '../messaging-service';
 import { getTokenInternal } from '../internals/token-manager';
-import { messageEventListener } from '../listeners/messageEventListener';
 import { updateSwReg } from '../helpers/updateSwReg';
 import { updateVapidKey } from '../helpers/updateVapidKey';
 
@@ -33,10 +32,6 @@ export async function getToken(
   if (!navigator) {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
-
-  navigator.serviceWorker.addEventListener('message', e =>
-    messageEventListener(messaging, e)
-  );
 
   if (Notification.permission === 'default') {
     await Notification.requestPermission();

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseOptions, FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseOptions, FirebaseApp } from '@firebase/app-exp';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';

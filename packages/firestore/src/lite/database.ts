@@ -15,9 +15,13 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import {
+  _getProvider,
+  _removeServiceInstance,
+  FirebaseApp,
+  getApp
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
@@ -63,7 +67,7 @@ export class FirebaseFirestore implements FirestoreService {
   // all components have shut down.
   private _terminateTask?: Promise<void>;
 
-  private _app?: FirebaseApp;
+  _app?: FirebaseApp;
 
   /** @hideconstructor */
   constructor(
@@ -81,7 +85,7 @@ export class FirebaseFirestore implements FirestoreService {
   }
 
   /**
-   * The {@link FirebaseApp} associated with this `Firestore` service
+   * The {@link @firebase/app#FirebaseApp} associated with this `Firestore` service
    * instance.
    */
   get app(): FirebaseApp {
@@ -134,6 +138,7 @@ export class FirebaseFirestore implements FirestoreService {
     return this._terminateTask;
   }
 
+  /** Returns a JSON-serializable representation of this Firestore instance. */
   toJSON(): object {
     return {
       app: this._app,
@@ -172,7 +177,7 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
  * {@link getFirestore}. If the custom settings are empty, this function is
  * equivalent to calling {@link getFirestore}.
  *
- * @param app - The {@link FirebaseApp} with which the `Firestore` instance will
+ * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
  * @returns A newly initialized Firestore instance.
@@ -181,24 +186,28 @@ export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
 ): FirebaseFirestore {
-  const firestore = _getProvider(
-    app,
-    'firestore/lite'
-  ).getImmediate() as FirebaseFirestore;
-  firestore._setSettings(settings);
-  return firestore;
+  const provider = _getProvider(app, 'firestore/lite');
+
+  if (provider.isInitialized()) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'Firestore can only be initialized once per app.'
+    );
+  }
+
+  return provider.initialize({ options: settings });
 }
 
 /**
  * Returns the existing instance of Firestore that is associated with the
- * provided {@link FirebaseApp}. If no instance exists, initializes a new
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app - The {@link FirebaseApp} instance that the returned Firestore
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Firestore
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp): FirebaseFirestore {
+export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
   return _getProvider(
     app,
     'firestore/lite'

@@ -4,18 +4,17 @@
 
 ## PhoneMultiFactorGenerator class
 
-Provider for generating a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->.
+Provider for generating a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class PhoneMultiFactorGenerator implements externs.PhoneMultiFactorGenerator 
+export declare class PhoneMultiFactorGenerator 
 ```
-<b>Implements:</b> externs.[PhoneMultiFactorGenerator](./auth-types.phonemultifactorgenerator.md)
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [assertion(credential)](./auth.phonemultifactorgenerator.assertion.md) | <code>static</code> | Provides a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) to confirm ownership of the phone second factor. |
+|  [assertion(credential)](./auth.phonemultifactorgenerator.assertion.md) | <code>static</code> | Provides a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md) to confirm ownership of the phone second factor. |
 

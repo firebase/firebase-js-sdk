@@ -23,14 +23,14 @@ import { FirebaseError } from '@firebase/util';
 import * as utils from '@firebase/util';
 
 import { _open, AuthPopup } from './popup';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { testAuth } from '../../../test/helpers/mock_auth';
 
 use(sinonChai);
 
 describe('platform_browser/util/popup', () => {
   let windowOpenStub: sinon.SinonStub;
-  let auth: Auth;
+  let auth: AuthInternal;
   let popupStub: sinon.SinonStubbedInstance<Window>;
 
   function setUA(ua: string): void {

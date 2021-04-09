@@ -18,8 +18,9 @@
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
-import { version } from '../package.json';
+import { name, version } from '../package.json';
 import { FirebaseFirestore } from '../src/exp/database';
+import { Settings } from '../src/exp/settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -27,19 +28,23 @@ declare module '@firebase/component' {
   }
 }
 
-export function registerFirestore(): void {
+export function registerFirestore(variant?: string): void {
   _registerComponent(
     new Component(
       'firestore-exp',
-      container => {
+      (container, { options: settings }: { options?: Settings }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
-        return ((app, auth) => new FirebaseFirestore(app, auth))(
+        const firestoreInstance = new FirebaseFirestore(
           app,
           container.getProvider('auth-internal')
         );
+        if (settings) {
+          firestoreInstance._setSettings(settings);
+        }
+        return firestoreInstance;
       },
       ComponentType.PUBLIC
     )
   );
-  registerVersion('firestore-exp', version, 'node');
+  registerVersion(name, version, variant);
 }

@@ -9,22 +9,14 @@
 |  Package | Description |
 |  --- | --- |
 |  [@firebase/analytics](./analytics.md) |  |
-|  [@firebase/analytics-types](./analytics-types.md) |  |
 |  [@firebase/app](./app.md) | Firebase App |
-|  [@firebase/app-types](./app-types.md) |  |
 |  [@firebase/auth](./auth.md) |  |
-|  [@firebase/auth-types](./auth-types.md) |  |
 |  [@firebase/database](./database.md) |  |
 |  [@firebase/firestore](./firestore.md) |  |
 |  [@firebase/functions](./functions.md) |  |
-|  [@firebase/functions-types](./functions-types.md) |  |
 |  [@firebase/installations](./installations.md) |  |
-|  [@firebase/installations-types](./installations-types.md) |  |
 |  [@firebase/messaging](./messaging.md) |  |
 |  [@firebase/performance](./performance.md) |  |
-|  [@firebase/performance-types](./performance-types.md) |  |
 |  [@firebase/remote-config](./remote-config.md) |  |
-|  [@firebase/remote-config-types](./remote-config-types.md) |  |
 |  [@firebase/storage](./storage.md) |  |
-|  [@firebase/storage-types](./storage-types.md) |  |
 

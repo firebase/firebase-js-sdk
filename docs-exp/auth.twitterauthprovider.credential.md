@@ -9,7 +9,7 @@ Creates a credential for Twitter.
 <b>Signature:</b>
 
 ```typescript
-static credential(token: string, secret: string): externs.OAuthCredential;
+static credential(token: string, secret: string): OAuthCredential;
 ```
 
 ## Parameters
@@ -21,5 +21,5 @@ static credential(token: string, secret: string): externs.OAuthCredential;
 
 <b>Returns:</b>
 
-externs.[OAuthCredential](./auth-types.oauthcredential.md)
+[OAuthCredential](./auth.oauthcredential.md)
 

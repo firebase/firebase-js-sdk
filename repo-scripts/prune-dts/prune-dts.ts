@@ -39,9 +39,10 @@ export function pruneDts(inputLocation: string, outputLocation: string): void {
   const program = ts.createProgram([inputLocation], compilerOptions, host);
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(inputLocation)!;
-  const result: ts.TransformationResult<ts.SourceFile> = ts.transform<
-    ts.SourceFile
-  >(sourceFile, [dropPrivateApiTransformer.bind(null, program, host)]);
+  const result: ts.TransformationResult<ts.SourceFile> = ts.transform<ts.SourceFile>(
+    sourceFile,
+    [dropPrivateApiTransformer.bind(null, program, host)]
+  );
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
 
   const content = printer.printFile(transformedSourceFile);
@@ -78,7 +79,7 @@ export async function removeUnusedImports(
 function hasPrivatePrefix(name: ts.Identifier): boolean {
   // Identifiers that are prefixed with an underscore are not not included in
   // the public API.
-  return name.escapedText.toString().startsWith('_');
+  return !!name.escapedText?.toString().startsWith('_');
 }
 
 /** Returns whether type identified by `name` is exported. */
@@ -87,6 +88,15 @@ function isExported(
   sourceFile: ts.SourceFile,
   name: ts.Identifier
 ): boolean {
+  // Check is this is a public symbol (e.g. part of the DOM library)
+  const sourceFileNames = typeChecker
+    .getSymbolAtLocation(name)
+    ?.declarations?.map(d => d.getSourceFile().fileName);
+  if (sourceFileNames?.find(s => s.indexOf('typescript/lib') != -1)) {
+    return true;
+  }
+
+  // Check is this is part of the exported symbols of the SDK module
   const allExportedSymbols = typeChecker.getExportsOfModule(
     typeChecker.getSymbolAtLocation(sourceFile)!
   );
@@ -158,7 +168,7 @@ function prunePrivateImports<
   const prunedHeritageClauses: ts.HeritageClause[] = [];
   // Additional members that are copied from the private symbols into the public
   // symbols
-  const additionalMembers: ts.NamedDeclaration[] = [];
+  const additionalMembers: ts.Node[] = [];
 
   for (const heritageClause of node.heritageClauses || []) {
     const exportedTypes: ts.ExpressionWithTypeArguments[] = [];
@@ -238,9 +248,9 @@ function convertPropertiesForEnclosingClass(
   sourceFile: ts.SourceFile,
   parentClassSymbols: ts.Symbol[],
   currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration
-): ts.NamedDeclaration[] {
-  const newMembers: ts.NamedDeclaration[] = [];
-  // The `codefix` package is not public but it does exactly what we want. It's 
+): ts.Node[] {
+  const newMembers: ts.Node[] = [];
+  // The `codefix` package is not public but it does exactly what we want. It's
   // the same package that is used by VSCode to fill in missing members, which
   // is what we are using it for in this script. `codefix` handles missing
   // properties, methods and correctly deduces generics.
@@ -252,10 +262,59 @@ function convertPropertiesForEnclosingClass(
     { program, host },
     /* userPreferences= */ {},
     /* importAdder= */ undefined,
-    (c: ts.ClassElement) => newMembers.push(c)
+    (missingMember: ts.ClassElement) => {
+      const originalSymbol = parentClassSymbols.find(
+        symbol =>
+          symbol.escapedName ==
+          (missingMember.name as ts.Identifier).escapedText
+      );
+      const jsDocComment = originalSymbol
+        ? extractJSDocComment(originalSymbol, newMembers)
+        : undefined;
+      if (jsDocComment) {
+        newMembers.push(jsDocComment, missingMember);
+      } else {
+        newMembers.push(missingMember);
+      }
+    }
   );
   return newMembers;
 }
+
+/** Extracts the JSDoc comment from `symbol`. */
+function extractJSDocComment(
+  symbol: ts.Symbol,
+  alreadyAddedMembers: ts.Node[]
+): ts.Node | null {
+  const overloadCount = alreadyAddedMembers.filter(
+    node =>
+      ts.isClassElement(node) &&
+      (node.name as ts.Identifier).escapedText == symbol.name
+  ).length;
+
+  // Extract the comment from the overload that we are currently processing.
+  let targetIndex = 0;
+  const comments = symbol.getDocumentationComment(undefined).filter(symbol => {
+    // Overload comments are separated by line breaks.
+    if (symbol.kind == 'lineBreak') {
+      ++targetIndex;
+      return false;
+    } else {
+      return overloadCount == targetIndex;
+    }
+  });
+
+  if (comments.length > 0) {
+    const jsDocTags = ts.getJSDocTags(symbol.declarations[overloadCount]);
+    const maybeNewline = jsDocTags?.length > 0 ? '\n' : '';
+    return ts.factory.createJSDocComment(
+      comments[0].text + maybeNewline,
+      jsDocTags
+    );
+  }
+  return null;
+}
+
 /**
  * Replaces input types of public APIs that consume non-exported types, which
  * allows us to exclude private types from the pruned definitions. Returns the
@@ -277,6 +336,12 @@ function extractExportedSymbol(
   typeName: ts.Node
 ): ts.Symbol | undefined {
   if (!ts.isIdentifier(typeName)) {
+    return undefined;
+  }
+
+  if (isExported(typeChecker, sourceFile, typeName)) {
+    // Don't replace the type reference if the type is already part of the
+    // public API.
     return undefined;
   }
 
@@ -309,7 +374,7 @@ function extractExportedSymbol(
             if (ts.isIdentifier(type.expression)) {
               const subclassName = type.expression.escapedText;
               if (subclassName === localSymbolName) {
-                // TODO: We may need to change this to return a Union type if 
+                // TODO: We may need to change this to return a Union type if
                 // more than one public type corresponds to the private type.
                 return symbol;
               }

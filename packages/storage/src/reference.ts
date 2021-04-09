@@ -31,7 +31,7 @@ import {
   deleteObject as requestsDeleteObject,
   multipartUpload
 } from './implementation/requests';
-import { ListOptions } from '@firebase/storage-types/exp';
+import { ListOptions } from '../exp/public-types';
 import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
 import { StorageService } from './service';
@@ -43,7 +43,7 @@ import { UploadResult } from './tasksnapshot';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
- * @public
+ * @internal
  * @param _location - An fbs.location, or the URL at
  *     which to base this object, in one of the following forms:
  *         gs://<bucket>/<object-path>
@@ -60,7 +60,7 @@ export class Reference {
     if (location instanceof Location) {
       this._location = location;
     } else {
-      this._location = Location.makeFromUrl(location);
+      this._location = Location.makeFromUrl(location, _service.host);
     }
   }
 
@@ -404,6 +404,7 @@ export async function deleteObject(ref: Reference): Promise<void> {
  * @returns A reference to the object obtained by
  * appending childPath, removing any duplicate, beginning, or trailing
  * slashes.
+ *
  */
 export function _getChild(ref: Reference, childPath: string): Reference {
   const newPath = child(ref._location.path, childPath);

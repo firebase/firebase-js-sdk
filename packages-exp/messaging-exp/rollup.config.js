@@ -72,12 +72,11 @@ const es2017Builds = [
     plugins: es2017BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
-
   // sw builds
   {
     input: 'src/index.sw.ts',
     output: { file: pkg.sw, format: 'es', sourcemap: true },
-    plugins: es5BuildPlugins,
+    plugins: es2017BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

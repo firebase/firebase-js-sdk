@@ -16,10 +16,12 @@
  */
 
 import { expect } from 'chai';
-import { getRandomNode } from './helpers/util';
+
 import { Reference } from '../src/api/Reference';
+
 import { EventAccumulator } from './helpers/EventAccumulator';
 import { eventTestHelper } from './helpers/events';
+import { getRandomNode } from './helpers/util';
 
 describe('Order Tests', () => {
   // Kind of a hack, but a lot of these tests are written such that they'll fail if run before we're
@@ -27,7 +29,7 @@ describe('Order Tests', () => {
   // arrive in that order.  But if we aren't connected yet, the "reconnection" code will send them
   // in the opposite order.
   beforeEach(() => {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       const ref = getRandomNode() as Reference;
       let connected = false;
       ref.root.child('.info/connected').on('value', s => {

@@ -51,7 +51,10 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
       input: 'index.ts',
       output: [{ file: pkg.module, format: 'esm', sourcemap: true }],
       plugins: es5BuildPlugins,
-      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+      treeshake: {
+        moduleSideEffects: false
+      }
     },
     /**
      * Node.js Build
@@ -60,7 +63,10 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
       input: 'index.node.ts',
       output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
       plugins: es5BuildPlugins,
-      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+      treeshake: {
+        moduleSideEffects: true
+      }
     },
     /**
      * UMD build
@@ -75,7 +81,8 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
         extend: true,
         name: 'firebase',
         globals: {
-          '@firebase/app-compat': 'firebase'
+          '@firebase/app-compat': 'firebase',
+          '@firebase/app': 'firebase.INTERNAL.modularAPIs'
         },
         /**
          * use iife to avoid below error in the old Safari browser
@@ -97,7 +104,7 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
             }`
       },
       plugins: [...es5BuildPlugins, uglify()],
-      external: ['@firebase/app-compat']
+      external: ['@firebase/app-compat', '@firebase/app']
     }
   ];
 }
@@ -130,7 +137,10 @@ export function getEs2017Builds(additionalTypescriptPlugins = {}) {
         sourcemap: true
       },
       plugins: es2017BuildPlugins,
-      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+      external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+      treeshake: {
+        moduleSideEffects: false
+      }
     }
   ];
 }

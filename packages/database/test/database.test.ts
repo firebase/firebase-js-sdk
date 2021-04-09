@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import firebase from '@firebase/app';
+import { expect } from 'chai';
+
 import { DATABASE_ADDRESS, createTestApp } from './helpers/util';
 import '../index';
 
@@ -35,12 +36,6 @@ describe('Database Tests', () => {
     const db = (firebase as any).database();
     expect(db).to.not.be.undefined;
     expect(db).not.to.be.null;
-  });
-
-  it('Illegal to call constructor', () => {
-    expect(() => {
-      const db = new (firebase as any).database.Database('url');
-    }).to.throw(/don't call new Database/i);
   });
 
   it('Can get database with custom URL', () => {
@@ -65,7 +60,7 @@ describe('Database Tests', () => {
   it('Can get database with multi-region URL', () => {
     const db = defaultApp.database('http://foo.euw1.firebasedatabase.app');
     expect(db).to.be.ok;
-    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal(
       'https://foo.euw1.firebasedatabase.app/'
     );
@@ -74,7 +69,7 @@ describe('Database Tests', () => {
   it('Can get database with upper case URL', () => {
     const db = defaultApp.database('http://fOO.EUW1.firebaseDATABASE.app');
     expect(db).to.be.ok;
-    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal(
       'https://foo.euw1.firebasedatabase.app/'
     );
@@ -101,7 +96,7 @@ describe('Database Tests', () => {
   it('Can get database with a upper case localhost URL and ns', () => {
     const db = defaultApp.database('http://LOCALHOST?ns=foo');
     expect(db).to.be.ok;
-    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
@@ -122,14 +117,14 @@ describe('Database Tests', () => {
   it('Can read ns query param', () => {
     const db = defaultApp.database('http://localhost:80/?ns=foo&unused=true');
     expect(db).to.be.ok;
-    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal('http://localhost:80/');
   });
 
   it('Reads ns query param even when subdomain is set', () => {
     const db = defaultApp.database('http://bar.firebaseio.com?ns=foo');
     expect(db).to.be.ok;
-    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db._delegate._repo.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal('https://bar.firebaseio.com/');
   });
 
@@ -137,8 +132,8 @@ describe('Database Tests', () => {
     process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = 'localhost:9000';
     const db = defaultApp.database('https://bar.firebaseio.com');
     expect(db).to.be.ok;
-    expect(db.repo_.repoInfo_.namespace).to.equal('bar');
-    expect(db.repo_.repoInfo_.host).to.equal('localhost:9000');
+    expect(db._delegate._repo.repoInfo_.namespace).to.equal('bar');
+    expect(db._delegate._repo.repoInfo_.host).to.equal('localhost:9000');
     delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
   });
 
@@ -153,10 +148,10 @@ describe('Database Tests', () => {
     process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = 'localhost:9000';
     const db1 = defaultApp.database('http://foo1.bar.com');
     const db2 = defaultApp.database('http://foo2.bar.com');
-    expect(db1.repo_.repoInfo_.toURLString()).to.equal(
+    expect(db1._delegate._repo.repoInfo_.toURLString()).to.equal(
       'http://localhost:9000/?ns=foo1'
     );
-    expect(db2.repo_.repoInfo_.toURLString()).to.equal(
+    expect(db2._delegate._repo.repoInfo_.toURLString()).to.equal(
       'http://localhost:9000/?ns=foo2'
     );
     delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];

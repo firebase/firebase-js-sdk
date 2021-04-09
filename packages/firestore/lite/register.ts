@@ -20,6 +20,7 @@ import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../package.json';
 import { FirebaseFirestore } from '../src/lite/database';
+import { Settings } from '../src/lite/settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -31,12 +32,16 @@ export function registerFirestore(): void {
   _registerComponent(
     new Component(
       'firestore/lite',
-      container => {
+      (container, { options: settings }: { options?: Settings }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
-        return ((app, auth) => new FirebaseFirestore(app, auth))(
+        const firestoreInstance = new FirebaseFirestore(
           app,
           container.getProvider('auth-internal')
         );
+        if (settings) {
+          firestoreInstance._setSettings(settings);
+        }
+        return firestoreInstance;
       },
       ComponentType.PUBLIC
     )

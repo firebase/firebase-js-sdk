@@ -4,10 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { LogLevel } from '@firebase/remote-config-types-exp';
-import { RemoteConfig } from '@firebase/remote-config-types-exp';
-import { Value } from '@firebase/remote-config-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 
 // @public
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
@@ -22,6 +19,9 @@ export function fetchAndActivate(remoteConfig: RemoteConfig): Promise<boolean>;
 export function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 
 // @public
+export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+// @public
 export function getAll(remoteConfig: RemoteConfig): Record<string, Value>;
 
 // @public
@@ -31,7 +31,7 @@ export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean;
 export function getNumber(remoteConfig: RemoteConfig, key: string): number;
 
 // @public (undocumented)
-export function getRemoteConfig(app: FirebaseApp): RemoteConfig;
+export function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
 
 // @public
 export function getString(remoteConfig: RemoteConfig, key: string): string;
@@ -40,7 +40,37 @@ export function getString(remoteConfig: RemoteConfig, key: string): string;
 export function getValue(remoteConfig: RemoteConfig, key: string): Value;
 
 // @public
+export type LogLevel = 'debug' | 'error' | 'silent';
+
+// @public
+export interface RemoteConfig {
+    defaultConfig: {
+        [key: string]: string | number | boolean;
+    };
+    fetchTimeMillis: number;
+    lastFetchStatus: FetchStatus;
+    settings: Settings;
+}
+
+// @public
 export function setLogLevel(remoteConfig: RemoteConfig, logLevel: LogLevel): void;
+
+// @public
+export interface Settings {
+    fetchTimeoutMillis: number;
+    minimumFetchIntervalMillis: number;
+}
+
+// @public
+export interface Value {
+    asBoolean(): boolean;
+    asNumber(): number;
+    asString(): string;
+    getSource(): ValueSource;
+}
+
+// @public
+export type ValueSource = 'static' | 'default' | 'remote';
 
 
 // (No @packageDocumentation comment for this package)

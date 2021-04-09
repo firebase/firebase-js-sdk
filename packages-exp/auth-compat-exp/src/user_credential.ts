@@ -15,38 +15,86 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+import { Auth } from './auth';
 import { User } from './user';
+import { unwrap, wrapped } from './wrap';
 
 function credentialFromResponse(
-  userCredential: impl.UserCredential
-): externs.AuthCredential | null {
-  const { providerId, _tokenResponse } = userCredential;
+  userCredential: exp.UserCredentialInternal
+): exp.AuthCredential | null {
+  return credentialFromObject(userCredential);
+}
+
+function attachExtraErrorFields(auth: exp.Auth, e: FirebaseError): void {
+  // The response contains all fields from the server which may or may not
+  // actually match the underlying type
+  const response = ((e.customData as exp.TaggedWithTokenResponse | undefined)
+    ?._tokenResponse as unknown) as Record<string, string>;
+  if (e.code === 'auth/multi-factor-auth-required') {
+    const mfaErr = e as compat.MultiFactorError;
+    mfaErr.resolver = new MultiFactorResolver(
+      auth,
+      exp.getMultiFactorResolver(auth, e as exp.MultiFactorError)
+    );
+  } else if (response) {
+    const credential = credentialFromObject(e);
+    const credErr = e as compat.AuthError;
+    if (credential) {
+      credErr.credential = credential;
+      credErr.tenantId = response.tenantId || undefined;
+      credErr.email = response.email || undefined;
+      credErr.phoneNumber = response.phoneNumber || undefined;
+    }
+  }
+}
+
+function credentialFromObject(
+  object: FirebaseError | exp.UserCredential
+): exp.AuthCredential | null {
+  const { _tokenResponse } = (object instanceof FirebaseError
+    ? object.customData
+    : object) as exp.TaggedWithTokenResponse;
   if (!_tokenResponse) {
     return null;
   }
+
   // Handle phone Auth credential responses, as they have a different format
-  // from other backend responses (i.e. no providerId).
-  if ('temporaryProof' in _tokenResponse && 'phoneNumber' in _tokenResponse) {
-    return impl.PhoneAuthProvider.credentialFromResult(userCredential);
+  // from other backend responses (i.e. no providerId). This is also only the
+  // case for user credentials (does not work for errors).
+  if (!(object instanceof FirebaseError)) {
+    if ('temporaryProof' in _tokenResponse && 'phoneNumber' in _tokenResponse) {
+      return exp.PhoneAuthProvider.credentialFromResult(object);
+    }
   }
+
+  const providerId = _tokenResponse.providerId;
+
   // Email and password is not supported as there is no situation where the
   // server would return the password to the client.
-  if (!providerId || providerId === externs.ProviderId.PASSWORD) {
+  if (!providerId || providerId === exp.ProviderId.PASSWORD) {
     return null;
   }
 
+  let provider: Pick<
+    typeof exp.OAuthProvider,
+    'credentialFromResult' | 'credentialFromError'
+  >;
   switch (providerId) {
-    case externs.ProviderId.GOOGLE:
-      return impl.GoogleAuthProvider.credentialFromResult(userCredential);
-    case externs.ProviderId.FACEBOOK:
-      return impl.FacebookAuthProvider.credentialFromResult(userCredential!);
-    case externs.ProviderId.GITHUB:
-      return impl.GithubAuthProvider.credentialFromResult(userCredential!);
-    case externs.ProviderId.TWITTER:
-      return impl.TwitterAuthProvider.credentialFromResult(userCredential);
+    case exp.ProviderId.GOOGLE:
+      provider = exp.GoogleAuthProvider;
+      break;
+    case exp.ProviderId.FACEBOOK:
+      provider = exp.FacebookAuthProvider;
+      break;
+    case exp.ProviderId.GITHUB:
+      provider = exp.GithubAuthProvider;
+      break;
+    case exp.ProviderId.TWITTER:
+      provider = exp.TwitterAuthProvider;
+      break;
     default:
       const {
         oauthIdToken,
@@ -54,7 +102,7 @@ function credentialFromResponse(
         oauthTokenSecret,
         pendingToken,
         nonce
-      } = _tokenResponse as impl.SignInWithIdpResponse;
+      } = _tokenResponse as exp.SignInWithIdpResponse;
       if (
         !oauthAccessToken &&
         !oauthTokenSecret &&
@@ -64,57 +112,62 @@ function credentialFromResponse(
         return null;
       }
       // TODO(avolkovi): uncomment this and get it working with SAML & OIDC
-      // if (pendingToken) {
-      //   if (providerId.indexOf(compat.constants.SAML_PREFIX) == 0) {
-      //     return new impl.SAMLAuthCredential(providerId, pendingToken);
-      //   } else {
-      //     // OIDC and non-default providers excluding Twitter.
-      //     return new impl.OAuthCredential(
-      //       providerId,
-      //       {
-      //         pendingToken,
-      //         idToken: oauthIdToken,
-      //         accessToken: oauthAccessToken
-      //       },
-      //       providerId);
-      //   }
-      // }
-      return new impl.OAuthProvider(providerId).credential({
+      if (pendingToken) {
+        if (providerId.startsWith('saml.')) {
+          return exp.SAMLAuthCredential._create(providerId, pendingToken);
+        } else {
+          // OIDC and non-default providers excluding Twitter.
+          return exp.OAuthCredential._fromParams({
+            providerId,
+            signInMethod: providerId,
+            pendingToken,
+            idToken: oauthIdToken,
+            accessToken: oauthAccessToken
+          });
+        }
+      }
+      return new exp.OAuthProvider(providerId).credential({
         idToken: oauthIdToken,
         accessToken: oauthAccessToken,
         rawNonce: nonce
       });
   }
+
+  return object instanceof FirebaseError
+    ? provider.credentialFromError(object)
+    : provider.credentialFromResult(object);
 }
 
 export async function convertCredential(
-  auth: externs.Auth,
-  credentialPromise: Promise<externs.UserCredential>
+  auth: exp.Auth,
+  credentialPromise: Promise<exp.UserCredential>
 ): Promise<compat.UserCredential> {
-  let credential: externs.UserCredential;
+  let credential: exp.UserCredential;
   try {
     credential = await credentialPromise;
   } catch (e) {
-    if (e.code === 'auth/multi-factor-auth-required') {
-      e.resolver = impl.getMultiFactorResolver(auth, e);
+    if (e instanceof FirebaseError) {
+      attachExtraErrorFields(auth, e);
     }
     throw e;
   }
-  const { operationType, user } = await credential;
+  const { operationType, user } = credential;
 
   return {
     operationType,
-    credential: credentialFromResponse(credential as impl.UserCredential),
-    additionalUserInfo: impl.getAdditionalUserInfo(
-      credential as impl.UserCredential
+    credential: credentialFromResponse(
+      credential as exp.UserCredentialInternal
+    ),
+    additionalUserInfo: exp.getAdditionalUserInfo(
+      credential as exp.UserCredential
     ),
     user: User.getOrCreate(user)
   };
 }
 
 export async function convertConfirmationResult(
-  auth: externs.Auth,
-  confirmationResultPromise: Promise<externs.ConfirmationResult>
+  auth: exp.Auth,
+  confirmationResultPromise: Promise<exp.ConfirmationResult>
 ): Promise<compat.ConfirmationResult> {
   const confirmationResultExp = await confirmationResultPromise;
   return {
@@ -122,4 +175,31 @@ export async function convertConfirmationResult(
     confirm: (verificationCode: string) =>
       convertCredential(auth, confirmationResultExp.confirm(verificationCode))
   };
+}
+
+class MultiFactorResolver implements compat.MultiFactorResolver {
+  readonly auth: Auth;
+  constructor(
+    auth: exp.Auth,
+    private readonly resolver: exp.MultiFactorResolver
+  ) {
+    this.auth = wrapped(auth);
+  }
+
+  get session(): compat.MultiFactorSession {
+    return this.resolver.session;
+  }
+
+  get hints(): compat.MultiFactorInfo[] {
+    return this.resolver.hints;
+  }
+
+  resolveSignIn(
+    assertion: compat.MultiFactorAssertion
+  ): Promise<compat.UserCredential> {
+    return convertCredential(
+      unwrap(this.auth),
+      this.resolver.resolveSignIn(assertion as exp.MultiFactorAssertion)
+    );
+  }
 }

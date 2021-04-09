@@ -15,13 +15,76 @@
  * limitations under the License.
  */
 
-import { DataSnapshot } from '../../api/DataSnapshot';
-import { DataEvent, CancelEvent, Event, EventType } from './Event';
-import { contains, assert } from '@firebase/util';
+import { assert } from '@firebase/util';
 
+import { DataSnapshot } from '../../exp/Reference_impl';
+import { Repo } from '../Repo';
 import { Path } from '../util/Path';
+
 import { Change } from './Change';
-import { Query } from '../../api/Query';
+import { CancelEvent, Event } from './Event';
+import { QueryParams } from './QueryParams';
+
+/**
+ * A user callback. Callbacks issues from the Legacy SDK maintain references
+ *  to the original user-issued callbacks, which allows equality
+ * comparison by reference even though this callbacks are wrapped before
+ * they can be passed to the firebase@exp SDK.
+ */
+export interface UserCallback {
+  (dataSnapshot: DataSnapshot, previousChildName?: string | null): unknown;
+  userCallback?: unknown;
+  context?: object | null;
+}
+
+/**
+ * A wrapper class that converts events from the database@exp SDK to the legacy
+ * Database SDK. Events are not converted directly as event registration relies
+ * on reference comparison of the original user callback (see `matches()`) and
+ * relies on equality of the legacy SDK's `context` object.
+ */
+export class CallbackContext {
+  constructor(
+    private readonly snapshotCallback: UserCallback,
+    private readonly cancelCallback?: (error: Error) => unknown
+  ) {}
+
+  onValue(
+    expDataSnapshot: DataSnapshot,
+    previousChildName?: string | null
+  ): void {
+    this.snapshotCallback.call(null, expDataSnapshot, previousChildName);
+  }
+
+  onCancel(error: Error): void {
+    assert(
+      this.hasCancelCallback,
+      'Raising a cancel event on a listener with no cancel callback'
+    );
+    return this.cancelCallback.call(null, error);
+  }
+
+  get hasCancelCallback(): boolean {
+    return !!this.cancelCallback;
+  }
+
+  matches(other: CallbackContext): boolean {
+    return (
+      this.snapshotCallback === other.snapshotCallback ||
+      (this.snapshotCallback.userCallback ===
+        other.snapshotCallback.userCallback &&
+        this.snapshotCallback.context === other.snapshotCallback.context)
+    );
+  }
+}
+
+export interface QueryContext {
+  readonly _queryIdentifier: string;
+  readonly _queryObject: object;
+  readonly _repo: Repo;
+  readonly _path: Path;
+  readonly _queryParams: QueryParams;
+}
 
 /**
  * An EventRegistration is basically an event type ('value', 'child_added', etc.) and a callback
@@ -34,36 +97,18 @@ import { Query } from '../../api/Query';
 export interface EventRegistration {
   /**
    * True if this container has a callback to trigger for this event type
-   * @param {!string} eventType
-   * @return {boolean}
    */
   respondsTo(eventType: string): boolean;
 
-  /**
-   * @param {!Change} change
-   * @param {!Query} query
-   * @return {!Event}
-   */
-  createEvent(change: Change, query: Query): Event;
+  createEvent(change: Change, query: QueryContext): Event;
 
   /**
    * Given event data, return a function to trigger the user's callback
-   * @param {!Event} eventData
-   * @return {function()}
    */
   getEventRunner(eventData: Event): () => void;
 
-  /**
-   * @param {!Error} error
-   * @param {!Path} path
-   * @return {?CancelEvent}
-   */
   createCancelEvent(error: Error, path: Path): CancelEvent | null;
 
-  /**
-   * @param {!EventRegistration} other
-   * @return {boolean}
-   */
   matches(other: EventRegistration): boolean;
 
   /**
@@ -73,234 +118,6 @@ export interface EventRegistration {
    *
    * (TODO: Rework this, since it's hacky)
    *
-   * @return {boolean}
    */
   hasAnyCallback(): boolean;
-}
-
-/**
- * Represents registration for 'value' events.
- */
-export class ValueEventRegistration implements EventRegistration {
-  /**
-   * @param {?function(!DataSnapshot)} callback_
-   * @param {?function(Error)} cancelCallback_
-   * @param {?Object} context_
-   */
-  constructor(
-    private callback_: ((d: DataSnapshot) => void) | null,
-    private cancelCallback_: ((e: Error) => void) | null,
-    private context_: {} | null
-  ) {}
-
-  /**
-   * @inheritDoc
-   */
-  respondsTo(eventType: string): boolean {
-    return eventType === 'value';
-  }
-
-  /**
-   * @inheritDoc
-   */
-  createEvent(change: Change, query: Query): DataEvent {
-    const index = query.getQueryParams().getIndex();
-    return new DataEvent(
-      'value',
-      this,
-      new DataSnapshot(change.snapshotNode, query.getRef(), index)
-    );
-  }
-
-  /**
-   * @inheritDoc
-   */
-  getEventRunner(eventData: CancelEvent | DataEvent): () => void {
-    const ctx = this.context_;
-    if (eventData.getEventType() === 'cancel') {
-      assert(
-        this.cancelCallback_,
-        'Raising a cancel event on a listener with no cancel callback'
-      );
-      const cancelCB = this.cancelCallback_;
-      return function () {
-        // We know that error exists, we checked above that this is a cancel event
-        cancelCB.call(ctx, (eventData as CancelEvent).error);
-      };
-    } else {
-      const cb = this.callback_;
-      return function () {
-        cb.call(ctx, (eventData as DataEvent).snapshot);
-      };
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  createCancelEvent(error: Error, path: Path): CancelEvent | null {
-    if (this.cancelCallback_) {
-      return new CancelEvent(this, error, path);
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  matches(other: EventRegistration): boolean {
-    if (!(other instanceof ValueEventRegistration)) {
-      return false;
-    } else if (!other.callback_ || !this.callback_) {
-      // If no callback specified, we consider it to match any callback.
-      return true;
-    } else {
-      return (
-        other.callback_ === this.callback_ && other.context_ === this.context_
-      );
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  hasAnyCallback(): boolean {
-    return this.callback_ !== null;
-  }
-}
-
-/**
- * Represents the registration of 1 or more child_xxx events.
- *
- * Currently, it is always exactly 1 child_xxx event, but the idea is we might let you
- * register a group of callbacks together in the future.
- *
- * @constructor
- * @implements {EventRegistration}
- */
-export class ChildEventRegistration implements EventRegistration {
-  /**
-   * @param {?Object.<string, function(!DataSnapshot, ?string=)>} callbacks_
-   * @param {?function(Error)} cancelCallback_
-   * @param {Object=} context_
-   */
-  constructor(
-    private callbacks_: {
-      [k: string]: (d: DataSnapshot, s?: string | null) => void;
-    } | null,
-    private cancelCallback_: ((e: Error) => void) | null,
-    private context_?: {}
-  ) {}
-
-  /**
-   * @inheritDoc
-   */
-  respondsTo(eventType: string): boolean {
-    let eventToCheck =
-      eventType === 'children_added' ? 'child_added' : eventType;
-    eventToCheck =
-      eventToCheck === 'children_removed' ? 'child_removed' : eventToCheck;
-    return contains(this.callbacks_, eventToCheck);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  createCancelEvent(error: Error, path: Path): CancelEvent | null {
-    if (this.cancelCallback_) {
-      return new CancelEvent(this, error, path);
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  createEvent(change: Change, query: Query): DataEvent {
-    assert(change.childName != null, 'Child events should have a childName.');
-    const ref = query.getRef().child(/** @type {!string} */ change.childName);
-    const index = query.getQueryParams().getIndex();
-    return new DataEvent(
-      change.type as EventType,
-      this,
-      new DataSnapshot(change.snapshotNode, ref, index),
-      change.prevName
-    );
-  }
-
-  /**
-   * @inheritDoc
-   */
-  getEventRunner(eventData: CancelEvent | DataEvent): () => void {
-    const ctx = this.context_;
-    if (eventData.getEventType() === 'cancel') {
-      assert(
-        this.cancelCallback_,
-        'Raising a cancel event on a listener with no cancel callback'
-      );
-      const cancelCB = this.cancelCallback_;
-      return function () {
-        // We know that error exists, we checked above that this is a cancel event
-        cancelCB.call(ctx, (eventData as CancelEvent).error);
-      };
-    } else {
-      const cb = this.callbacks_[(eventData as DataEvent).eventType];
-      return function () {
-        cb.call(
-          ctx,
-          (eventData as DataEvent).snapshot,
-          (eventData as DataEvent).prevName
-        );
-      };
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  matches(other: EventRegistration): boolean {
-    if (other instanceof ChildEventRegistration) {
-      if (!this.callbacks_ || !other.callbacks_) {
-        return true;
-      } else if (this.context_ === other.context_) {
-        const otherKeys = Object.keys(other.callbacks_);
-        const thisKeys = Object.keys(this.callbacks_);
-        const otherCount = otherKeys.length;
-        const thisCount = thisKeys.length;
-        if (otherCount === thisCount) {
-          // If count is 1, do an exact match on eventType, if either is defined but null, it's a match.
-          // If event types don't match, not a match
-          // If count is not 1, exact match across all
-
-          if (otherCount === 1) {
-            const otherKey = otherKeys[0];
-            const thisKey = thisKeys[0];
-            return (
-              thisKey === otherKey &&
-              (!other.callbacks_[otherKey] ||
-                !this.callbacks_[thisKey] ||
-                other.callbacks_[otherKey] === this.callbacks_[thisKey])
-            );
-          } else {
-            // Exact match on each key.
-            return thisKeys.every(
-              eventType =>
-                other.callbacks_[eventType] === this.callbacks_[eventType]
-            );
-          }
-        }
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * @inheritDoc
-   */
-  hasAnyCallback(): boolean {
-    return this.callbacks_ !== null;
-  }
 }

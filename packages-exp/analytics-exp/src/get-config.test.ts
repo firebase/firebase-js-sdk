@@ -26,10 +26,7 @@ import {
 } from './get-config';
 import { DYNAMIC_CONFIG_URL } from './constants';
 import { getFakeApp } from '../testing/get-fake-firebase-services';
-import {
-  DynamicConfig,
-  MinimalDynamicConfig
-} from '@firebase/analytics-types-exp';
+import { DynamicConfig, MinimalDynamicConfig } from './types';
 import { AnalyticsError } from './errors';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';

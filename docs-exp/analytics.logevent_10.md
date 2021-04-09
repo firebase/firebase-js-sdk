@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'screen_view', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'screen_view', eventParams?: {
     app_name: string;
     screen_name: EventParams['screen_name'];
     app_id?: string;
@@ -25,10 +25,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'scree
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'screen\_view' |  |
-|  eventParams | { app\_name: string; screen\_name: [EventParams](./analytics-types.eventparams.md)<!-- -->\['screen\_name'\]; app\_id?: string; app\_version?: string; app\_installer\_id?: string; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { app\_name: string; screen\_name: [EventParams](./analytics.eventparams.md)<!-- -->\['screen\_name'\]; app\_id?: string; app\_version?: string; app\_installer\_id?: string; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

@@ -6,21 +6,21 @@
 
 Retrieves a firebase messaging instance.
 
- the firebase messaging instance associated with the provided firebase app.
-
 <b>Signature:</b>
 
 ```typescript
-export declare function getMessaging(app: FirebaseApp): FirebaseMessaging;
+export declare function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
+|  app | [FirebaseApp](./app.firebaseapp.md) |  |
 
 <b>Returns:</b>
 
-FirebaseMessaging
+[FirebaseMessaging](./messaging.firebasemessaging.md)
+
+the firebase messaging instance associated with the provided firebase app.
 

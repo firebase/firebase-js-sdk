@@ -11,7 +11,7 @@ List of recommended event parameters can be found in [the gtag.js reference docu
 <b>Signature:</b>
 
 ```typescript
-export declare function logEvent(analyticsInstance: Analytics, eventName: 'exception', eventParams: {
+export declare function logEvent(analyticsInstance: Analytics, eventName: 'exception', eventParams?: {
     description?: EventParams['description'];
     fatal?: EventParams['fatal'];
     [key: string]: any;
@@ -22,10 +22,10 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'excep
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  analyticsInstance | [Analytics](./analytics-types.analytics.md) |  |
+|  analyticsInstance | [Analytics](./analytics.analytics.md) |  |
 |  eventName | 'exception' |  |
-|  eventParams | { description?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['description'\]; fatal?: [EventParams](./analytics-types.eventparams.md)<!-- -->\['fatal'\]; \[key: string\]: any; } |  |
-|  options | [AnalyticsCallOptions](./analytics-types.analyticscalloptions.md) |  |
+|  eventParams | { description?: [EventParams](./analytics.eventparams.md)<!-- -->\['description'\]; fatal?: [EventParams](./analytics.eventparams.md)<!-- -->\['fatal'\]; \[key: string\]: any; } |  |
+|  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md) |  |
 
 <b>Returns:</b>
 

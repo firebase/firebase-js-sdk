@@ -15,136 +15,163 @@
  * limitations under the License.
  */
 
-import { Path } from './util/Path';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { Node } from './snap/Node';
+import { Path, pathGetFront, pathIsEmpty, pathPopFront } from './util/Path';
 
 /**
  * Helper class to store a sparse set of snapshots.
  */
-export class SparseSnapshotTree {
-  private value: Node | null = null;
+export interface SparseSnapshotTree {
+  value: Node | null;
+  readonly children: Map<string, SparseSnapshotTree>;
+}
 
-  private readonly children: Map<string, SparseSnapshotTree> = new Map();
+export function newSparseSnapshotTree(): SparseSnapshotTree {
+  return {
+    value: null,
+    children: new Map()
+  };
+}
 
-  /**
-   * Gets the node stored at the given path if one exists.
-   *
-   * @param path Path to look up snapshot for.
-   * @return The retrieved node, or null.
-   */
-  find(path: Path): Node | null {
-    if (this.value != null) {
-      return this.value.getChild(path);
-    } else if (!path.isEmpty() && this.children.size > 0) {
-      const childKey = path.getFront();
-      path = path.popFront();
-      if (this.children.has(childKey)) {
-        const childTree = this.children.get(childKey);
-        return childTree.find(path);
-      } else {
-        return null;
-      }
+/**
+ * Gets the node stored at the given path if one exists.
+ * Only seems to be used in tests.
+ *
+ * @param path - Path to look up snapshot for.
+ * @returns The retrieved node, or null.
+ */
+export function sparseSnapshotTreeFind(
+  sparseSnapshotTree: SparseSnapshotTree,
+  path: Path
+): Node | null {
+  if (sparseSnapshotTree.value != null) {
+    return sparseSnapshotTree.value.getChild(path);
+  } else if (!pathIsEmpty(path) && sparseSnapshotTree.children.size > 0) {
+    const childKey = pathGetFront(path);
+    path = pathPopFront(path);
+    if (sparseSnapshotTree.children.has(childKey)) {
+      const childTree = sparseSnapshotTree.children.get(childKey);
+      return sparseSnapshotTreeFind(childTree, path);
     } else {
       return null;
     }
+  } else {
+    return null;
   }
+}
 
-  /**
-   * Stores the given node at the specified path. If there is already a node
-   * at a shallower path, it merges the new data into that snapshot node.
-   *
-   * @param path Path to look up snapshot for.
-   * @param data The new data, or null.
-   */
-  remember(path: Path, data: Node) {
-    if (path.isEmpty()) {
-      this.value = data;
-      this.children.clear();
-    } else if (this.value !== null) {
-      this.value = this.value.updateChild(path, data);
-    } else {
-      const childKey = path.getFront();
-      if (!this.children.has(childKey)) {
-        this.children.set(childKey, new SparseSnapshotTree());
-      }
-
-      const child = this.children.get(childKey);
-      path = path.popFront();
-      child.remember(path, data);
+/**
+ * Stores the given node at the specified path. If there is already a node
+ * at a shallower path, it merges the new data into that snapshot node.
+ *
+ * @param path - Path to look up snapshot for.
+ * @param data - The new data, or null.
+ */
+export function sparseSnapshotTreeRemember(
+  sparseSnapshotTree: SparseSnapshotTree,
+  path: Path,
+  data: Node
+): void {
+  if (pathIsEmpty(path)) {
+    sparseSnapshotTree.value = data;
+    sparseSnapshotTree.children.clear();
+  } else if (sparseSnapshotTree.value !== null) {
+    sparseSnapshotTree.value = sparseSnapshotTree.value.updateChild(path, data);
+  } else {
+    const childKey = pathGetFront(path);
+    if (!sparseSnapshotTree.children.has(childKey)) {
+      sparseSnapshotTree.children.set(childKey, newSparseSnapshotTree());
     }
+
+    const child = sparseSnapshotTree.children.get(childKey);
+    path = pathPopFront(path);
+    sparseSnapshotTreeRemember(child, path, data);
   }
+}
 
-  /**
-   * Purge the data at path from the cache.
-   *
-   * @param path Path to look up snapshot for.
-   * @return True if this node should now be removed.
-   */
-  forget(path: Path): boolean {
-    if (path.isEmpty()) {
-      this.value = null;
-      this.children.clear();
-      return true;
-    } else {
-      if (this.value !== null) {
-        if (this.value.isLeafNode()) {
-          // We're trying to forget a node that doesn't exist
-          return false;
-        } else {
-          const value = this.value;
-          this.value = null;
-
-          const self = this;
-          value.forEachChild(PRIORITY_INDEX, (key, tree) => {
-            self.remember(new Path(key), tree);
-          });
-
-          return this.forget(path);
-        }
-      } else if (this.children.size > 0) {
-        const childKey = path.getFront();
-        path = path.popFront();
-        if (this.children.has(childKey)) {
-          const safeToRemove = this.children.get(childKey).forget(path);
-          if (safeToRemove) {
-            this.children.delete(childKey);
-          }
-        }
-
-        return this.children.size === 0;
+/**
+ * Purge the data at path from the cache.
+ *
+ * @param path - Path to look up snapshot for.
+ * @returns True if this node should now be removed.
+ */
+export function sparseSnapshotTreeForget(
+  sparseSnapshotTree: SparseSnapshotTree,
+  path: Path
+): boolean {
+  if (pathIsEmpty(path)) {
+    sparseSnapshotTree.value = null;
+    sparseSnapshotTree.children.clear();
+    return true;
+  } else {
+    if (sparseSnapshotTree.value !== null) {
+      if (sparseSnapshotTree.value.isLeafNode()) {
+        // We're trying to forget a node that doesn't exist
+        return false;
       } else {
-        return true;
+        const value = sparseSnapshotTree.value;
+        sparseSnapshotTree.value = null;
+
+        value.forEachChild(PRIORITY_INDEX, (key, tree) => {
+          sparseSnapshotTreeRemember(sparseSnapshotTree, new Path(key), tree);
+        });
+
+        return sparseSnapshotTreeForget(sparseSnapshotTree, path);
       }
-    }
-  }
+    } else if (sparseSnapshotTree.children.size > 0) {
+      const childKey = pathGetFront(path);
+      path = pathPopFront(path);
+      if (sparseSnapshotTree.children.has(childKey)) {
+        const safeToRemove = sparseSnapshotTreeForget(
+          sparseSnapshotTree.children.get(childKey),
+          path
+        );
+        if (safeToRemove) {
+          sparseSnapshotTree.children.delete(childKey);
+        }
+      }
 
-  /**
-   * Recursively iterates through all of the stored tree and calls the
-   * callback on each one.
-   *
-   * @param prefixPath Path to look up node for.
-   * @param func The function to invoke for each tree.
-   */
-  forEachTree(prefixPath: Path, func: (a: Path, b: Node) => unknown) {
-    if (this.value !== null) {
-      func(prefixPath, this.value);
+      return sparseSnapshotTree.children.size === 0;
     } else {
-      this.forEachChild((key, tree) => {
-        const path = new Path(prefixPath.toString() + '/' + key);
-        tree.forEachTree(path, func);
-      });
+      return true;
     }
   }
+}
 
-  /**
-   * Iterates through each immediate child and triggers the callback.
-   *
-   * @param func The function to invoke for each child.
-   */
-  forEachChild(func: (a: string, b: SparseSnapshotTree) => void) {
-    this.children.forEach((tree, key) => {
-      func(key, tree);
+/**
+ * Recursively iterates through all of the stored tree and calls the
+ * callback on each one.
+ *
+ * @param prefixPath - Path to look up node for.
+ * @param func - The function to invoke for each tree.
+ */
+export function sparseSnapshotTreeForEachTree(
+  sparseSnapshotTree: SparseSnapshotTree,
+  prefixPath: Path,
+  func: (a: Path, b: Node) => unknown
+): void {
+  if (sparseSnapshotTree.value !== null) {
+    func(prefixPath, sparseSnapshotTree.value);
+  } else {
+    sparseSnapshotTreeForEachChild(sparseSnapshotTree, (key, tree) => {
+      const path = new Path(prefixPath.toString() + '/' + key);
+      sparseSnapshotTreeForEachTree(tree, path, func);
     });
   }
+}
+
+/**
+ * Iterates through each immediate child and triggers the callback.
+ * Only seems to be used in tests.
+ *
+ * @param func - The function to invoke for each child.
+ */
+export function sparseSnapshotTreeForEachChild(
+  sparseSnapshotTree: SparseSnapshotTree,
+  func: (a: string, b: SparseSnapshotTree) => void
+): void {
+  sparseSnapshotTree.children.forEach((tree, key) => {
+    func(key, tree);
+  });
 }

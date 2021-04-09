@@ -15,49 +15,129 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  PhoneInfoOptions,
+  ProviderId,
+  SignInMethod,
+  ApplicationVerifier,
+  UserCredential
+} from '../../model/public_types';
 
 import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
-import { ApplicationVerifier } from '../../model/application_verifier';
-import { Auth } from '../../model/auth';
-import { UserCredential } from '../../model/user';
+import { ApplicationVerifierInternal as ApplicationVerifierInternal } from '../../model/application_verifier';
+import { AuthInternal as AuthInternal } from '../../model/auth';
+import { UserCredentialInternal as UserCredentialInternal } from '../../model/user';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
-import { AuthErrorCode } from '../../core/errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
-import { _assert, _fail } from '../../core/util/assert';
 import { _castAuth } from '../../core/auth/auth_impl';
+import { AuthCredential } from '../../core';
+import { FirebaseError, getModularInstance } from '@firebase/util';
+import { TaggedWithTokenResponse } from '../../model/id_token';
 
 /**
- * {@inheritdoc @firebase/auth-types#PhoneAuthProvider}
+ * Provider for generating an {@link PhoneAuthCredential}.
+ *
+ * @example
+ * ```javascript
+ * // 'recaptcha-container' is the ID of an element in the DOM.
+ * const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
+ * const provider = new PhoneAuthProvider(auth);
+ * const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
+ * // Obtain the verificationCode from the user.
+ * const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+ * const userCredential = await signInWithCredential(auth, phoneCredential);
+ * ```
+ *
  * @public
  */
-export class PhoneAuthProvider implements externs.PhoneAuthProvider {
-  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.PROVIDER_ID} */
-  static readonly PROVIDER_ID = externs.ProviderId.PHONE;
-  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.PHONE_SIGN_IN_METHOD} */
-  static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
+export class PhoneAuthProvider {
+  /** Always set to {@link ProviderId.PHONE}. */
+  static readonly PROVIDER_ID = ProviderId.PHONE;
+  /** Always set to {@link SignInMethod.PHONE}. */
+  static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
 
-  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.providerId} */
+  /** Always set to {@link ProviderId.PHONE}. */
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
-  private readonly auth: Auth;
+  private readonly auth: AuthInternal;
 
-  constructor(auth: externs.Auth) {
+  /**
+   * @param auth - The Firebase Auth instance in which sign-ins should occur.
+   *
+   */
+  constructor(auth: Auth) {
     this.auth = _castAuth(auth);
   }
 
-  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.verifyPhoneNumber} */
+  /**
+   *
+   * Starts a phone number authentication flow by sending a verification code to the given phone
+   * number.
+   *
+   * @example
+   * ```javascript
+   * const provider = new PhoneAuthProvider(auth);
+   * const verificationId = await provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
+   * // Obtain verificationCode from the user.
+   * const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+   * const userCredential = await signInWithCredential(auth, authCredential);
+   * ```
+   *
+   * @example
+   * An alternative flow is provided using the `signInWithPhoneNumber` method.
+   * ```javascript
+   * const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+   * // Obtain verificationCode from the user.
+   * const userCredential = confirmationResult.confirm(verificationCode);
+   * ```
+   *
+   * @param phoneInfoOptions - The user's {@link PhoneInfoOptions}. The phone number should be in
+   * E.164 format (e.g. +16505550101).
+   * @param applicationVerifier - For abuse prevention, this method also requires a
+   * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
+   * {@link RecaptchaVerifier}.
+   *
+   * @returns A Promise for a verification ID that can be passed to
+   * {@link PhoneAuthProvider.credential} to identify this flow..
+   */
   verifyPhoneNumber(
-    phoneOptions: externs.PhoneInfoOptions | string,
-    applicationVerifier: externs.ApplicationVerifier
+    phoneOptions: PhoneInfoOptions | string,
+    applicationVerifier: ApplicationVerifier
   ): Promise<string> {
     return _verifyPhoneNumber(
       this.auth,
       phoneOptions,
-      applicationVerifier as ApplicationVerifier
+      getModularInstance(applicationVerifier as ApplicationVerifierInternal)
     );
   }
 
-  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.credential} */
+  /**
+   * Creates a phone auth credential, given the verification ID from
+   * {@link PhoneAuthProvider.verifyPhoneNumber} and the code that was sent to the user's
+   * mobile device.
+   *
+   * @example
+   * ```javascript
+   * const provider = new PhoneAuthProvider(auth);
+   * const verificationId = provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
+   * // Obtain verificationCode from the user.
+   * const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+   * const userCredential = signInWithCredential(auth, authCredential);
+   * ```
+   *
+   * @example
+   * An alternative flow is provided using the `signInWithPhoneNumber` method.
+   * ```javascript
+   * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+   * // Obtain verificationCode from the user.
+   * const userCredential = await confirmationResult.confirm(verificationCode);
+   * ```
+   *
+   * @param verificationId - The verification ID returned from {@link PhoneAuthProvider.verifyPhoneNumber}.
+   * @param verificationCode - The verification code sent to the user's mobile device.
+   *
+   * @returns The auth provider credential.
+   */
   static credential(
     verificationId: string,
     verificationCode: string
@@ -68,26 +148,71 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     );
   }
 
+  /**
+   * Generates an {@link AuthCredential} from a {@link UserCredential}.
+   * @param userCredential
+   */
   static credentialFromResult(
-    userCredential: externs.UserCredential
-  ): externs.AuthCredential | null {
-    const credential = userCredential as UserCredential;
-    _assert(
-      credential._tokenResponse,
-      credential.user.auth,
-      AuthErrorCode.ARGUMENT_ERROR
+    userCredential: UserCredential
+  ): AuthCredential | null {
+    const credential = userCredential as UserCredentialInternal;
+    return PhoneAuthProvider.credentialFromTaggedObject(credential);
+  }
+
+  /**
+   * Returns an {@link AuthCredential} when passed an error.
+   *
+   * @remarks
+   *
+   * This method works for errors like
+   * `auth/account-exists-with-different-credentials`. This is useful for
+   * recovering when attempting to set a user's phone number but the number
+   * in question is already tied to another account. For example, the following
+   * code tries to update the current user's phone number, and if that
+   * fails, links the user with the account associated with that number:
+   *
+   * ```js
+   * const provider = new PhoneAuthProvider(auth);
+   * const verificationId = await provider.verifyPhoneNumber(number, verifier);
+   * try {
+   *   const code = ''; // Prompt the user for the verification code
+   *   await updatePhoneNumber(
+   *       auth.currentUser,
+   *       PhoneAuthProvider.credential(verificationId, code));
+   * } catch (e) {
+   *   if (e.code === 'auth/account-exists-with-different-credential') {
+   *     const cred = PhoneAuthProvider.credentialFromError(e);
+   *     await linkWithCredential(auth.currentUser, cred);
+   *   }
+   * }
+   *
+   * // At this point, auth.currentUser.phoneNumber === number.
+   * ```
+   *
+   * @param error
+   */
+  static credentialFromError(error: FirebaseError): AuthCredential | null {
+    return PhoneAuthProvider.credentialFromTaggedObject(
+      (error.customData || {}) as TaggedWithTokenResponse
     );
+  }
+
+  private static credentialFromTaggedObject({
+    _tokenResponse: tokenResponse
+  }: TaggedWithTokenResponse): AuthCredential | null {
+    if (!tokenResponse) {
+      return null;
+    }
     const {
       phoneNumber,
       temporaryProof
-    } = credential._tokenResponse as SignInWithPhoneNumberResponse;
+    } = tokenResponse as SignInWithPhoneNumberResponse;
     if (phoneNumber && temporaryProof) {
       return PhoneAuthCredential._fromTokenResponse(
         phoneNumber,
         temporaryProof
       );
     }
-
-    _fail(credential.user.auth, AuthErrorCode.ARGUMENT_ERROR);
+    return null;
   }
 }

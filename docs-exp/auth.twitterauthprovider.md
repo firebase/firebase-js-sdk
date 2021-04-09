@@ -4,14 +4,14 @@
 
 ## TwitterAuthProvider class
 
-Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.TWITTER](./auth-types.providerid.twitter.md)<!-- -->.
+Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.TWITTER](./auth.providerid.twitter.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class TwitterAuthProvider extends OAuthProvider 
+export declare class TwitterAuthProvider extends BaseOAuthProvider 
 ```
-<b>Extends:</b> [OAuthProvider](./auth.oauthprovider.md)
+<b>Extends:</b> BaseOAuthProvider
 
 ## Example 1
 
@@ -71,6 +71,6 @@ const secret = credential.secret;
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [credential(token, secret)](./auth.twitterauthprovider.credential.md) | <code>static</code> | Creates a credential for Twitter. |
-|  [credentialFromError(error)](./auth.twitterauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth-types.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
-|  [credentialFromResult(userCredential)](./auth.twitterauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth-types.usercredential.md)<!-- -->. |
+|  [credentialFromError(error)](./auth.twitterauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
+|  [credentialFromResult(userCredential)](./auth.twitterauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->. |
 

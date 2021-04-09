@@ -43,6 +43,7 @@ export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueueImpl {
 export function getDefaultDatabaseInfo(): DatabaseInfo {
   return new DatabaseInfo(
     new DatabaseId(DEFAULT_PROJECT_ID),
+    'test-app-id',
     'persistenceKey',
     DEFAULT_SETTINGS.host!,
     !!DEFAULT_SETTINGS.ssl,

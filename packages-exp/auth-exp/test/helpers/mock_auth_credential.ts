@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import { ProviderId, SignInMethod } from '../../src/model/public_types';
 
 import { PhoneOrOauthTokenResponse } from '../../src/api/authentication/mfa';
 import { AuthCredential } from '../../src/core/credentials';
-import { Auth } from '../../src/model/auth';
+import { AuthInternal } from '../../src/model/auth';
 import { IdTokenResponse } from '../../src/model/id_token';
 
 export class MockAuthCredential implements AuthCredential {
@@ -36,18 +36,22 @@ export class MockAuthCredential implements AuthCredential {
     throw new Error('Method not implemented.');
   }
 
-  async _getIdTokenResponse(_auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+  async _getIdTokenResponse(
+    _auth: AuthInternal
+  ): Promise<PhoneOrOauthTokenResponse> {
     throw new Error('Method not implemented.');
   }
 
   async _linkToIdToken(
-    _auth: Auth,
+    _auth: AuthInternal,
     _idToken: string
   ): Promise<IdTokenResponse> {
     throw new Error('Method not implemented.');
   }
 
-  async _getReauthenticationResolver(_auth: Auth): Promise<IdTokenResponse> {
+  async _getReauthenticationResolver(
+    _auth: AuthInternal
+  ): Promise<IdTokenResponse> {
     throw new Error('Method not implemented.');
   }
 }

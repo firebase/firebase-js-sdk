@@ -1,4 +1,10 @@
 /**
+ * Firebase Cloud Messaging
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2017 Google LLC
  *
@@ -15,11 +21,20 @@
  * limitations under the License.
  */
 
-import { FirebaseMessaging } from '@firebase/messaging-types-exp';
-import { registerMessaging } from './helpers/register';
 import '@firebase/installations-exp';
 
-export { getToken, deleteToken, onMessage, getMessaging } from './api';
+import { FirebaseMessaging } from './interfaces/public-types';
+import { registerMessagingInWindow } from './helpers/register';
+
+export {
+  getToken,
+  deleteToken,
+  onMessage,
+  getMessagingInWindow as getMessaging,
+  onBackgroundMessage
+} from './api';
+export { isWindowSupported as isSupported } from './api/isSupported';
+export * from './interfaces/public-types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -27,4 +42,4 @@ declare module '@firebase/component' {
   }
 }
 
-registerMessaging();
+registerMessagingInWindow();

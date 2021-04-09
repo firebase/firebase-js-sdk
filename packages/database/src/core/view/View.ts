@@ -15,22 +15,37 @@
  * limitations under the License.
  */
 
-import { IndexedFilter } from './filter/IndexedFilter';
-import { ViewProcessor } from './ViewProcessor';
-import { ChildrenNode } from '../snap/ChildrenNode';
-import { CacheNode } from './CacheNode';
-import { ViewCache } from './ViewCache';
-import { EventGenerator } from './EventGenerator';
 import { assert } from '@firebase/util';
+
 import { Operation, OperationType } from '../operation/Operation';
-import { Change } from './Change';
+import { ChildrenNode } from '../snap/ChildrenNode';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
-import { Query } from '../../api/Query';
-import { EventRegistration } from './EventRegistration';
 import { Node } from '../snap/Node';
-import { Path } from '../util/Path';
+import { Path, pathGetFront, pathIsEmpty } from '../util/Path';
 import { WriteTreeRef } from '../WriteTree';
+
+import { CacheNode } from './CacheNode';
+import { Change, changeChildAdded, changeValue } from './Change';
 import { CancelEvent, Event } from './Event';
+import {
+  EventGenerator,
+  eventGeneratorGenerateEventsForChanges
+} from './EventGenerator';
+import { EventRegistration, QueryContext } from './EventRegistration';
+import { IndexedFilter } from './filter/IndexedFilter';
+import { queryParamsGetNodeFilter } from './QueryParams';
+import {
+  newViewCache,
+  ViewCache,
+  viewCacheGetCompleteEventSnap,
+  viewCacheGetCompleteServerSnap
+} from './ViewCache';
+import {
+  newViewProcessor,
+  ViewProcessor,
+  viewProcessorApplyOperation,
+  viewProcessorAssertIndexed
+} from './ViewProcessor';
 
 /**
  * A view represents a specific location and query that has 1 or more event registrations.
@@ -40,33 +55,23 @@ import { CancelEvent, Event } from './Event';
  *  - Maintains a cache of the data visible for this location/query.
  *  - Applies new operations (via applyOperation), updates the cache, and based on the event
  *    registrations returns the set of events to be raised.
- * @constructor
  */
 export class View {
-  private processor_: ViewProcessor;
-  private viewCache_: ViewCache;
-  private eventRegistrations_: EventRegistration[] = [];
-  private eventGenerator_: EventGenerator;
+  processor_: ViewProcessor;
+  viewCache_: ViewCache;
+  eventRegistrations_: EventRegistration[] = [];
+  eventGenerator_: EventGenerator;
 
-  /**
-   *
-   * @param {!Query} query_
-   * @param {!ViewCache} initialViewCache
-   */
-  constructor(private query_: Query, initialViewCache: ViewCache) {
-    const params = this.query_.getQueryParams();
+  constructor(private query_: QueryContext, initialViewCache: ViewCache) {
+    const params = this.query_._queryParams;
 
     const indexFilter = new IndexedFilter(params.getIndex());
-    const filter = params.getNodeFilter();
+    const filter = queryParamsGetNodeFilter(params);
 
-    /**
-     * @type {ViewProcessor}
-     * @private
-     */
-    this.processor_ = new ViewProcessor(filter);
+    this.processor_ = newViewProcessor(filter);
 
-    const initialServerCache = initialViewCache.getServerCache();
-    const initialEventCache = initialViewCache.getEventCache();
+    const initialServerCache = initialViewCache.serverCache;
+    const initialEventCache = initialViewCache.eventCache;
 
     // Don't filter server node with other filter than index, wait for tagged listen
     const serverSnap = indexFilter.updateFullNode(
@@ -90,203 +95,182 @@ export class View {
       filter.filtersNodes()
     );
 
-    /**
-     * @type {!ViewCache}
-     * @private
-     */
-    this.viewCache_ = new ViewCache(newEventCache, newServerCache);
-
-    /**
-     * @type {!EventGenerator}
-     * @private
-     */
+    this.viewCache_ = newViewCache(newEventCache, newServerCache);
     this.eventGenerator_ = new EventGenerator(this.query_);
   }
 
-  /**
-   * @return {!Query}
-   */
-  getQuery(): Query {
+  get query(): QueryContext {
     return this.query_;
   }
+}
 
-  /**
-   * @return {?Node}
-   */
-  getServerCache(): Node | null {
-    return this.viewCache_.getServerCache().getNode();
-  }
+export function viewGetServerCache(view: View): Node | null {
+  return view.viewCache_.serverCache.getNode();
+}
 
-  /**
-   * @param {!Path} path
-   * @return {?Node}
-   */
-  getCompleteServerCache(path: Path): Node | null {
-    const cache = this.viewCache_.getCompleteServerSnap();
-    if (cache) {
-      // If this isn't a "loadsAllData" view, then cache isn't actually a complete cache and
-      // we need to see if it contains the child we're interested in.
-      if (
-        this.query_.getQueryParams().loadsAllData() ||
-        (!path.isEmpty() && !cache.getImmediateChild(path.getFront()).isEmpty())
-      ) {
-        return cache.getChild(path);
-      }
-    }
-    return null;
-  }
+export function viewGetCompleteNode(view: View): Node | null {
+  return viewCacheGetCompleteEventSnap(view.viewCache_);
+}
 
-  /**
-   * @return {boolean}
-   */
-  isEmpty(): boolean {
-    return this.eventRegistrations_.length === 0;
-  }
-
-  /**
-   * @param {!EventRegistration} eventRegistration
-   */
-  addEventRegistration(eventRegistration: EventRegistration) {
-    this.eventRegistrations_.push(eventRegistration);
-  }
-
-  /**
-   * @param {?EventRegistration} eventRegistration If null, remove all callbacks.
-   * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
-   * @return {!Array.<!Event>} Cancel events, if cancelError was provided.
-   */
-  removeEventRegistration(
-    eventRegistration: EventRegistration | null,
-    cancelError?: Error
-  ): Event[] {
-    const cancelEvents: CancelEvent[] = [];
-    if (cancelError) {
-      assert(
-        eventRegistration == null,
-        'A cancel should cancel all event registrations.'
-      );
-      const path = this.query_.path;
-      this.eventRegistrations_.forEach(registration => {
-        cancelError /** @type {!Error} */ = cancelError;
-        const maybeEvent = registration.createCancelEvent(cancelError, path);
-        if (maybeEvent) {
-          cancelEvents.push(maybeEvent);
-        }
-      });
-    }
-
-    if (eventRegistration) {
-      let remaining = [];
-      for (let i = 0; i < this.eventRegistrations_.length; ++i) {
-        const existing = this.eventRegistrations_[i];
-        if (!existing.matches(eventRegistration)) {
-          remaining.push(existing);
-        } else if (eventRegistration.hasAnyCallback()) {
-          // We're removing just this one
-          remaining = remaining.concat(this.eventRegistrations_.slice(i + 1));
-          break;
-        }
-      }
-      this.eventRegistrations_ = remaining;
-    } else {
-      this.eventRegistrations_ = [];
-    }
-    return cancelEvents;
-  }
-
-  /**
-   * Applies the given Operation, updates our cache, and returns the appropriate events.
-   *
-   * @param {!Operation} operation
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} completeServerCache
-   * @return {!Array.<!Event>}
-   */
-  applyOperation(
-    operation: Operation,
-    writesCache: WriteTreeRef,
-    completeServerCache: Node | null
-  ): Event[] {
+export function viewGetCompleteServerCache(
+  view: View,
+  path: Path
+): Node | null {
+  const cache = viewCacheGetCompleteServerSnap(view.viewCache_);
+  if (cache) {
+    // If this isn't a "loadsAllData" view, then cache isn't actually a complete cache and
+    // we need to see if it contains the child we're interested in.
     if (
-      operation.type === OperationType.MERGE &&
-      operation.source.queryId !== null
+      view.query._queryParams.loadsAllData() ||
+      (!pathIsEmpty(path) &&
+        !cache.getImmediateChild(pathGetFront(path)).isEmpty())
     ) {
-      assert(
-        this.viewCache_.getCompleteServerSnap(),
-        'We should always have a full cache before handling merges'
-      );
-      assert(
-        this.viewCache_.getCompleteEventSnap(),
-        'Missing event cache, even though we have a server cache'
-      );
+      return cache.getChild(path);
     }
+  }
+  return null;
+}
 
-    const oldViewCache = this.viewCache_;
-    const result = this.processor_.applyOperation(
-      oldViewCache,
-      operation,
-      writesCache,
-      completeServerCache
-    );
-    this.processor_.assertIndexed(result.viewCache);
+export function viewIsEmpty(view: View): boolean {
+  return view.eventRegistrations_.length === 0;
+}
 
+export function viewAddEventRegistration(
+  view: View,
+  eventRegistration: EventRegistration
+) {
+  view.eventRegistrations_.push(eventRegistration);
+}
+
+/**
+ * @param eventRegistration - If null, remove all callbacks.
+ * @param cancelError - If a cancelError is provided, appropriate cancel events will be returned.
+ * @returns Cancel events, if cancelError was provided.
+ */
+export function viewRemoveEventRegistration(
+  view: View,
+  eventRegistration: EventRegistration | null,
+  cancelError?: Error
+): Event[] {
+  const cancelEvents: CancelEvent[] = [];
+  if (cancelError) {
     assert(
-      result.viewCache.getServerCache().isFullyInitialized() ||
-        !oldViewCache.getServerCache().isFullyInitialized(),
-      'Once a server snap is complete, it should never go back'
+      eventRegistration == null,
+      'A cancel should cancel all event registrations.'
     );
-
-    this.viewCache_ = result.viewCache;
-
-    return this.generateEventsForChanges_(
-      result.changes,
-      result.viewCache.getEventCache().getNode(),
-      null
-    );
+    const path = view.query._path;
+    view.eventRegistrations_.forEach(registration => {
+      const maybeEvent = registration.createCancelEvent(cancelError, path);
+      if (maybeEvent) {
+        cancelEvents.push(maybeEvent);
+      }
+    });
   }
 
-  /**
-   * @param {!EventRegistration} registration
-   * @return {!Array.<!Event>}
-   */
-  getInitialEvents(registration: EventRegistration): Event[] {
-    const eventSnap = this.viewCache_.getEventCache();
-    const initialChanges: Change[] = [];
-    if (!eventSnap.getNode().isLeafNode()) {
-      const eventNode = eventSnap.getNode() as ChildrenNode;
-      eventNode.forEachChild(PRIORITY_INDEX, (key, childNode) => {
-        initialChanges.push(Change.childAddedChange(key, childNode));
-      });
+  if (eventRegistration) {
+    let remaining = [];
+    for (let i = 0; i < view.eventRegistrations_.length; ++i) {
+      const existing = view.eventRegistrations_[i];
+      if (!existing.matches(eventRegistration)) {
+        remaining.push(existing);
+      } else if (eventRegistration.hasAnyCallback()) {
+        // We're removing just this one
+        remaining = remaining.concat(view.eventRegistrations_.slice(i + 1));
+        break;
+      }
     }
-    if (eventSnap.isFullyInitialized()) {
-      initialChanges.push(Change.valueChange(eventSnap.getNode()));
-    }
-    return this.generateEventsForChanges_(
-      initialChanges,
-      eventSnap.getNode(),
-      registration
+    view.eventRegistrations_ = remaining;
+  } else {
+    view.eventRegistrations_ = [];
+  }
+  return cancelEvents;
+}
+
+/**
+ * Applies the given Operation, updates our cache, and returns the appropriate events.
+ */
+export function viewApplyOperation(
+  view: View,
+  operation: Operation,
+  writesCache: WriteTreeRef,
+  completeServerCache: Node | null
+): Event[] {
+  if (
+    operation.type === OperationType.MERGE &&
+    operation.source.queryId !== null
+  ) {
+    assert(
+      viewCacheGetCompleteServerSnap(view.viewCache_),
+      'We should always have a full cache before handling merges'
+    );
+    assert(
+      viewCacheGetCompleteEventSnap(view.viewCache_),
+      'Missing event cache, even though we have a server cache'
     );
   }
 
-  /**
-   * @private
-   * @param {!Array.<!Change>} changes
-   * @param {!Node} eventCache
-   * @param {EventRegistration=} eventRegistration
-   * @return {!Array.<!Event>}
-   */
-  generateEventsForChanges_(
-    changes: Change[],
-    eventCache: Node,
-    eventRegistration?: EventRegistration
-  ): Event[] {
-    const registrations = eventRegistration
-      ? [eventRegistration]
-      : this.eventRegistrations_;
-    return this.eventGenerator_.generateEventsForChanges(
-      changes,
-      eventCache,
-      registrations
-    );
+  const oldViewCache = view.viewCache_;
+  const result = viewProcessorApplyOperation(
+    view.processor_,
+    oldViewCache,
+    operation,
+    writesCache,
+    completeServerCache
+  );
+  viewProcessorAssertIndexed(view.processor_, result.viewCache);
+
+  assert(
+    result.viewCache.serverCache.isFullyInitialized() ||
+      !oldViewCache.serverCache.isFullyInitialized(),
+    'Once a server snap is complete, it should never go back'
+  );
+
+  view.viewCache_ = result.viewCache;
+
+  return viewGenerateEventsForChanges_(
+    view,
+    result.changes,
+    result.viewCache.eventCache.getNode(),
+    null
+  );
+}
+
+export function viewGetInitialEvents(
+  view: View,
+  registration: EventRegistration
+): Event[] {
+  const eventSnap = view.viewCache_.eventCache;
+  const initialChanges: Change[] = [];
+  if (!eventSnap.getNode().isLeafNode()) {
+    const eventNode = eventSnap.getNode() as ChildrenNode;
+    eventNode.forEachChild(PRIORITY_INDEX, (key, childNode) => {
+      initialChanges.push(changeChildAdded(key, childNode));
+    });
   }
+  if (eventSnap.isFullyInitialized()) {
+    initialChanges.push(changeValue(eventSnap.getNode()));
+  }
+  return viewGenerateEventsForChanges_(
+    view,
+    initialChanges,
+    eventSnap.getNode(),
+    registration
+  );
+}
+
+function viewGenerateEventsForChanges_(
+  view: View,
+  changes: Change[],
+  eventCache: Node,
+  eventRegistration?: EventRegistration
+): Event[] {
+  const registrations = eventRegistration
+    ? [eventRegistration]
+    : view.eventRegistrations_;
+  return eventGeneratorGenerateEventsForChanges(
+    view.eventGenerator_,
+    changes,
+    eventCache,
+    registrations
+  );
 }

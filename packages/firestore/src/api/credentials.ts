@@ -34,6 +34,7 @@ export interface FirstPartyCredentialsSettings {
   ['type']: 'gapi';
   ['client']: unknown;
   ['sessionIndex']: string;
+  ['iamToken']: string | null;
 }
 
 export interface ProviderCredentialsSettings {
@@ -292,7 +293,11 @@ export class FirstPartyToken implements Token {
   type = 'FirstParty' as TokenType;
   user = User.FIRST_PARTY;
 
-  constructor(private gapi: Gapi, private sessionIndex: string) {}
+  constructor(
+    private gapi: Gapi,
+    private sessionIndex: string,
+    private iamToken: string | null
+  ) {}
 
   get authHeaders(): { [header: string]: string } {
     const headers: { [header: string]: string } = {
@@ -302,6 +307,9 @@ export class FirstPartyToken implements Token {
     const authHeader = this.gapi['auth']['getAuthHeaderValueForFirstParty']([]);
     if (authHeader) {
       headers['Authorization'] = authHeader;
+    }
+    if (this.iamToken) {
+      headers['X-Goog-Iam-Authorization-Token'] = this.iamToken;
     }
     return headers;
   }
@@ -313,10 +321,16 @@ export class FirstPartyToken implements Token {
  * to applications hosted by Google.
  */
 export class FirstPartyCredentialsProvider implements CredentialsProvider {
-  constructor(private gapi: Gapi, private sessionIndex: string) {}
+  constructor(
+    private gapi: Gapi,
+    private sessionIndex: string,
+    private iamToken: string | null
+  ) {}
 
   getToken(): Promise<Token | null> {
-    return Promise.resolve(new FirstPartyToken(this.gapi, this.sessionIndex));
+    return Promise.resolve(
+      new FirstPartyToken(this.gapi, this.sessionIndex, this.iamToken)
+    );
   }
 
   setChangeListener(changeListener: CredentialChangeListener): void {
@@ -355,7 +369,8 @@ export function makeCredentialsProvider(
       );
       return new FirstPartyCredentialsProvider(
         client,
-        credentials['sessionIndex'] || '0'
+        credentials['sessionIndex'] || '0',
+        credentials['iamToken'] || null
       );
 
     case 'provider':

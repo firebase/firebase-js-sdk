@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-import { ApiKey, AppName, Auth } from '../../model/auth';
-import { User } from '../../model/user';
-import { PersistedBlob, Persistence } from '../persistence';
+import { ApiKey, AppName, AuthInternal } from '../../model/auth';
+import { UserInternal } from '../../model/user';
+import { PersistedBlob, PersistenceInternal } from '../persistence';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
 
 export const enum KeyName {
   AUTH_USER = 'authUser',
+  AUTH_EVENT = 'authEvent',
   REDIRECT_USER = 'redirectUser',
   PERSISTENCE_USER = 'persistence'
 }
@@ -45,8 +46,8 @@ export class PersistenceUserManager {
   private readonly boundEventHandler: () => void;
 
   private constructor(
-    public persistence: Persistence,
-    private readonly auth: Auth,
+    public persistence: PersistenceInternal,
+    private readonly auth: AuthInternal,
     private readonly userKey: string
   ) {
     const { config, name } = this.auth;
@@ -60,11 +61,11 @@ export class PersistenceUserManager {
     this.persistence._addListener(this.fullUserKey, this.boundEventHandler);
   }
 
-  setCurrentUser(user: User): Promise<void> {
+  setCurrentUser(user: UserInternal): Promise<void> {
     return this.persistence._set(this.fullUserKey, user.toJSON());
   }
 
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(): Promise<UserInternal | null> {
     const blob = await this.persistence._get<PersistedBlob>(this.fullUserKey);
     return blob ? UserImpl._fromJSON(this.auth, blob) : null;
   }
@@ -80,8 +81,8 @@ export class PersistenceUserManager {
     );
   }
 
-  async setPersistence(newPersistence: Persistence): Promise<void> {
-    if (this.persistence.type === newPersistence.type) {
+  async setPersistence(newPersistence: PersistenceInternal): Promise<void> {
+    if (this.persistence === newPersistence) {
       return;
     }
 
@@ -100,8 +101,8 @@ export class PersistenceUserManager {
   }
 
   static async create(
-    auth: Auth,
-    persistenceHierarchy: Persistence[],
+    auth: AuthInternal,
+    persistenceHierarchy: PersistenceInternal[],
     userKey = KeyName.AUTH_USER
   ): Promise<PersistenceUserManager> {
     if (!persistenceHierarchy.length) {
@@ -112,19 +113,52 @@ export class PersistenceUserManager {
       );
     }
 
-    const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
+    // Use the first persistence that supports a full read-write roundtrip (or fallback to memory).
+    let chosenPersistence = _getInstance<PersistenceInternal>(
+      inMemoryPersistence
+    );
     for (const persistence of persistenceHierarchy) {
-      if (await persistence._get(key)) {
-        return new PersistenceUserManager(persistence, auth, userKey);
+      if (await persistence._isAvailable()) {
+        chosenPersistence = persistence;
+        break;
       }
     }
 
-    // Check all the available storage options.
-    // TODO: Migrate from local storage to indexedDB
-    // TODO: Clear other forms once one is found
+    // However, attempt to migrate users stored in other persistences (in the hierarchy order).
+    let userToMigrate: UserInternal | null = null;
+    const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
+    for (const persistence of persistenceHierarchy) {
+      // We attempt to call _get without checking _isAvailable since here we don't care if the full
+      // round-trip (read+write) is supported. We'll take the first one that we can read or give up.
+      try {
+        const blob = await persistence._get<PersistedBlob>(key); // throws if unsupported
+        if (blob) {
+          const user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
+          if (persistence !== chosenPersistence) {
+            userToMigrate = user;
+          }
+          break;
+        }
+      } catch {}
+    }
 
-    // All else failed, fall back to zeroth persistence
-    // TODO: Modify this to support non-browser devices
-    return new PersistenceUserManager(persistenceHierarchy[0], auth, userKey);
+    if (userToMigrate) {
+      // This normally shouldn't throw since chosenPersistence.isAvailable() is true, but if it does
+      // we'll just let it bubble to surface the error.
+      await chosenPersistence._set(key, userToMigrate.toJSON());
+    }
+
+    // Attempt to clear the key in other persistences but ignore errors. This helps prevent issues
+    // such as users getting stuck with a previous account after signing out and refreshing the tab.
+    await Promise.all(
+      persistenceHierarchy.map(async persistence => {
+        if (persistence !== chosenPersistence) {
+          try {
+            await persistence._remove(key);
+          } catch {}
+        }
+      })
+    );
+    return new PersistenceUserManager(chosenPersistence, auth, userKey);
   }
 }
