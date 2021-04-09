@@ -456,6 +456,7 @@ export class PhoneAuthCredential extends AuthCredential {
 export class PhoneAuthProvider {
     constructor(auth: Auth);
     static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
+    static credentialFromError(error: FirebaseError): AuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
     static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
     static readonly PROVIDER_ID = ProviderId.PHONE;
