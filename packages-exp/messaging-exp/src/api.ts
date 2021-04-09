@@ -39,9 +39,11 @@ import { onMessage as _onMessage } from './api/onMessage';
 import { messageEventListener } from './listeners/window-listener';
 
 /**
- * Retrieves a firebase messaging instance.
+ * Retrieves a Firebase Cloud Messaging instance.
  *
- * @returns the firebase messaging instance associated with the provided firebase app.
+ * @returns The Firebase Cloud Messaging instance associated with the provided firebase app.
+ *
+ * @public
  */
 export function getMessagingInWindow(
   app: FirebaseApp = getApp()
@@ -88,18 +90,19 @@ export function getMessagingInSw(app: FirebaseApp): FirebaseMessaging {
 }
 
 /**
- * Subscribes the messaging instance to push notifications. Returns an FCM registration token
- * that can be used to send push messages to that messaging instance.
+ * Subscribes the `FirebaseMessaging` instance to push notifications. Returns an Firebase Cloud
+ * Messaging registration token that can be used to send push messages to that `FirebaseMessaging`
+ * instance.
  *
- * If a notification permission isn't already granted, this method asks the user for permission.
- * The returned promise rejects if the user does not allow the app to show notifications.
+ * If a notification permission isn't already granted, this method asks the user for permission. The
+ * returned promise rejects if the user does not allow the app to show notifications.
  *
- * @param messaging - the messaging instance.
+ * @param messaging - The `FirebaseMessaging` instance.
  * @param options.vapidKey - The public server key provided to push services. It is used to
- * authenticate the push subscribers to receive push messages only from sending servers that
- * hold the corresponding private key. If it is not provided, a default VAPID key is used. Note
- * that some push services (Chrome Push Service) require a non-default VAPID key. Therefore, it
- * is recommended to generate and import a VAPID key for your project with
+ * authenticate the push subscribers to receive push messages only from sending servers that hold
+ * the corresponding private key. If it is not provided, a default VAPID key is used. Note that some
+ * push services (Chrome Push Service) require a non-default VAPID key. Therefore, it is recommended
+ * to generate and import a VAPID key for your project with
  * {@link https://firebase.google.com/docs/cloud-messaging/js/client#configure_web_credentials_with_fcm | Configure Web Credentials with FCM}.
  * See
  * {@link https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol | The Web Push Protocol}
@@ -124,10 +127,10 @@ export async function getToken(
 }
 
 /**
- * Deletes the registration token associated with this messaging instance and unsubscribes the
- * messaging instance from the push subscription.
+ * Deletes the registration token associated with this `FirebaseMessaging` instance and unsubscribes
+ * the `FirebaseMessaging` instance from the push subscription.
  *
- * @param messaging - the messaging instance.
+ * @param messaging - The `FirebaseMessaging` instance.
  *
  * @returns The promise resolves when the token has been successfully deleted.
  *
@@ -144,7 +147,7 @@ export function deleteToken(messaging: FirebaseMessaging): Promise<boolean> {
  * the push message.
  *
  *
- * @param messaging - the messaging instance.
+ * @param messaging - The `FirebaseMessaging` instance.
  * @param nextOrObserver - This function, or observer object with `next` defined,
  *     is called when a message is received and the user is currently viewing your page.
  * @returns To stop listening for messages execute this returned function.
@@ -160,12 +163,12 @@ export function onMessage(
 }
 
 /**
- * Called when a message is received while the app is in the background. An app is considered to
- * be in the background if no active window is displayed.
+ * Called when a message is received while the app is in the background. An app is considered to be
+ * in the background if no active window is displayed.
  *
- * @param messaging - the messaging instance.
- * @param nextOrObserver - This function, or observer object with `next` defined,
- *     is called when a message is received and the app is currently in the background.
+ * @param messaging - The `FirebaseMessaging` instance.
+ * @param nextOrObserver - This function, or observer object with `next` defined, is called when a
+ * message is received and the app is currently in the background.
  *
  * @returns To stop listening for messages execute this returned function
  *
