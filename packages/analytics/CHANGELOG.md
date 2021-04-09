@@ -1,5 +1,13 @@
 # @firebase/analytics
 
+## 0.6.8
+
+### Patch Changes
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/component@0.4.0
+  - @firebase/installations@0.4.24
+
 ## 0.6.7
 
 ### Patch Changes

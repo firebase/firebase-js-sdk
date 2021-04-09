@@ -40,7 +40,7 @@ import firebase from './app';
 import { name, version } from '../package.json';
 
 import './auth';
-// import './database';
+import './database';
 import './firestore';
 import './functions';
 import './messaging';

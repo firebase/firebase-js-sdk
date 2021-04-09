@@ -1,5 +1,11 @@
 # @firebase/component
 
+## 0.4.0
+
+### Minor Changes
+
+- [`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3) [#4714](https://github.com/firebase/firebase-js-sdk/pull/4714) - Support new instantiation mode `EXPLICIT`
+
 ## 0.3.1
 
 ### Patch Changes

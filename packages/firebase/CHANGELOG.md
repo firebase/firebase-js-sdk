@@ -1,5 +1,22 @@
 # firebase
 
+## 8.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/app-types@0.6.2
+  - @firebase/app@0.6.19
+  - @firebase/analytics@0.6.8
+  - @firebase/database@0.9.8
+  - @firebase/firestore@2.2.3
+  - @firebase/functions@0.6.6
+  - @firebase/installations@0.4.24
+  - @firebase/messaging@0.7.8
+  - @firebase/performance@0.4.10
+  - @firebase/remote-config@0.1.35
+  - @firebase/storage@0.4.7
+
 ## 8.3.2
 
 ### Patch Changes
