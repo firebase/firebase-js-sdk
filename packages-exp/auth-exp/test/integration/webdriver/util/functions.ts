@@ -80,5 +80,5 @@ export enum PersistenceFunction {
 /** Available firebase UI functions (only for compat tests) */
 export enum UiFunction {
   LOAD = 'ui.loadUiCode',
-  START = 'ui.startUi',
+  START = 'ui.startUi'
 }
