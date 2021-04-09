@@ -168,7 +168,7 @@ export class AuthDriver {
       window.firebaseConfig = {
         apiKey: 'emulator-api-key',
         projectId: '${PROJECT_ID}',
-        authDomain: 'http://localhost/emulator',
+        authDomain: 'localhost/emulator',
       };
       window.emulatorUrl = '${getEmulatorUrl()}';
     `);

@@ -42,6 +42,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await driver.reinitOnRedirect();
   }
 
+  context('yes', () => {
   it('allows anonymous sign in', async () => {
     const page = await startUi();
     await page.clickGuestSignIn();
@@ -173,5 +174,5 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
 
     await waitForLoggedInPage();
     expect((await driver.getUserSnapshot()).uid).to.eq(snap.uid);
-  });
+  });});
 });
