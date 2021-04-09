@@ -17,29 +17,6 @@
 
 import { loadCss, loadScript } from './lazy_load';
 
-let uiConfig;
-
-function useBasicUiConfig() {
-  uiConfig = {
-    signInSuccessUrl: '/logged_in.html',
-    signInOptions: [
-      // Leave the lines as is for the providers you want to offer your users.
-      compat.auth.GoogleAuthProvider.PROVIDER_ID,
-      compat.auth.FacebookAuthProvider.PROVIDER_ID,
-      compat.auth.TwitterAuthProvider.PROVIDER_ID,
-      compat.auth.GithubAuthProvider.PROVIDER_ID,
-      compat.auth.EmailAuthProvider.PROVIDER_ID,
-      compat.auth.PhoneAuthProvider.PROVIDER_ID,
-      firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
-    ]
-  };
-}
-
-export async function usePopupUiConfig() {
-  useBasicUiConfig();
-  uiConfig.signInFlow = 'popup';
-}
-
 export async function loadUiCode() {
   await loadScript(
     'https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.js'
@@ -49,13 +26,23 @@ export async function loadUiCode() {
   );
 }
 
-export async function startUi() {
+export async function startUi(signInFlow = 'redirect') {
   // Hacky hack hack
   window.firebase = compat;
 
-  if (!uiConfig) {
-    useBasicUiConfig();
-  }
+  const uiConfig = {
+    signInSuccessUrl: '/logged_in.html',
+    signInFlow,
+    signInOptions: [
+      compat.auth.GoogleAuthProvider.PROVIDER_ID,
+      compat.auth.FacebookAuthProvider.PROVIDER_ID,
+      compat.auth.TwitterAuthProvider.PROVIDER_ID,
+      compat.auth.GithubAuthProvider.PROVIDER_ID,
+      compat.auth.EmailAuthProvider.PROVIDER_ID,
+      compat.auth.PhoneAuthProvider.PROVIDER_ID,
+      firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
+    ]
+  };
 
   // Initialize the FirebaseUI Widget using Firebase.
   const ui = new firebaseui.auth.AuthUI(compat.auth());

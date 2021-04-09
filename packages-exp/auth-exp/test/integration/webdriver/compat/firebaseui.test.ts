@@ -32,8 +32,8 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await driver.call(UiFunction.LOAD);
   });
 
-  async function startUi(): Promise<UiPage> {
-    await driver.call(UiFunction.START);
+  async function startUi(signInFlow = 'redirect'): Promise<UiPage> {
+    await driver.call(UiFunction.START, signInFlow);
     return new UiPage(driver.webDriver);
   }
 
@@ -42,12 +42,11 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await driver.reinitOnRedirect();
   }
 
-  context('yes', () => {
   it('allows anonymous sign in', async () => {
     const page = await startUi();
     await page.clickGuestSignIn();
     await waitForLoggedInPage();
-    const snap: User = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as User;
     expect(snap.isAnonymous).to.be.true;
     expect(snap.uid).to.be.a('string');
   });
@@ -71,7 +70,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await driver.call(UiFunction.LOAD);
     await startUi();
     await waitForLoggedInPage();
-    const snap: User = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as User;
     expect(snap.isAnonymous).to.be.false;
     expect(snap.displayName).to.eq('Bob Test');
     expect(snap.email).to.eq('bob@bob.test');
@@ -81,8 +80,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
   });
 
   it('allows google popup sign in', async () => {
-    await driver.call(UiFunction.USE_POPUP_CONFIG);
-    const page = await startUi();
+    const page = await startUi('popup');
     await page.clickGoogleSignIn();
     const widget = new IdPPage(driver.webDriver);
     await driver.selectPopupWindow();
@@ -99,7 +97,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     // Now we're back. Firebase UI should handle the redirect result handoff
     await driver.selectMainWindow();
     await waitForLoggedInPage();
-    const snap: User = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as User;
     expect(snap.isAnonymous).to.be.false;
     expect(snap.displayName).to.eq('Bob Test');
     expect(snap.email).to.eq('bob@bob.test');
@@ -137,7 +135,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await page.clickSubmit();
 
     await waitForLoggedInPage();
-    const snap: User = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as User;
     expect(snap.isAnonymous).to.be.false;
     expect(snap.phoneNumber).to.eq(`+1${phoneNumber}`);
     expect(snap.uid).to.be.a('string');
@@ -154,7 +152,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await page.clickSubmit();
 
     await waitForLoggedInPage();
-    const snap: User = (await driver.getUserSnapshot()) as User;
+    const snap = (await driver.getUserSnapshot()) as User;
     expect(snap.isAnonymous).to.be.false;
     expect(snap.displayName).to.eq('Foo Test');
     expect(snap.email).to.eq('foo@foo.test');
@@ -174,5 +172,5 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
 
     await waitForLoggedInPage();
     expect((await driver.getUserSnapshot()).uid).to.eq(snap.uid);
-  });});
+  });
 });

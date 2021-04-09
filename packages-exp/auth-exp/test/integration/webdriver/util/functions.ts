@@ -81,5 +81,4 @@ export enum PersistenceFunction {
 export enum UiFunction {
   LOAD = 'ui.loadUiCode',
   START = 'ui.startUi',
-  USE_POPUP_CONFIG = 'ui.usePopupUiConfig'
 }

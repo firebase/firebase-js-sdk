@@ -290,7 +290,7 @@ export class Auth
       exp.signInWithPhoneNumber(
         this._delegate,
         phoneNumber,
-        applicationVerifier,
+        applicationVerifier
       )
     );
   }

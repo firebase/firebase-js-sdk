@@ -103,7 +103,7 @@ export async function signInWithPhoneNumber(
   const verificationId = await _verifyPhoneNumber(
     authInternal,
     phoneNumber,
-    getModularInstance(appVerifier as ApplicationVerifierInternal),
+    getModularInstance(appVerifier as ApplicationVerifierInternal)
   );
   return new ConfirmationResultImpl(verificationId, cred =>
     signInWithCredential(authInternal, cred)
