@@ -23,7 +23,7 @@ import { FirebaseInstallations } from '../interfaces/public-types';
 /**
  * Creates a Firebase Installation if there isn't one for the app and
  * returns the Installation ID.
- * @param installations - The Installations instance
+ * @param installations - The Installations instance.
  *
  * @public
  */

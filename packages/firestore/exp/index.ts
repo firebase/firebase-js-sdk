@@ -1,5 +1,5 @@
 /**
- * Firebase Cloud Firestore
+ * Cloud Firestore
  *
  * @packageDocumentation
  */

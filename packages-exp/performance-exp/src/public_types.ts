@@ -16,7 +16,7 @@
  */
 
 /**
- * Defines configuration options for the Performance Monitoring SDK
+ * Defines configuration options for the Performance Monitoring SDK.
  *
  * @public
  */
@@ -46,7 +46,7 @@ export interface FirebasePerformance {
 }
 
 /**
- * The interface representing a Trace
+ * The interface representing a `Trace`.
  *
  * @public
  */
