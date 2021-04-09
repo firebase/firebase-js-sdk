@@ -31,8 +31,8 @@ import { getModularInstance } from '@firebase/util';
 
 /**
  *
- * @param app - the firebase app instance
- * @returns a remote config instance
+ * @param app - The `FirebaseApp` instance.
+ * @returns A `RemoteConfig` instance.
  *
  * @public
  */
@@ -44,7 +44,7 @@ export function getRemoteConfig(app: FirebaseApp = getApp()): RemoteConfig {
 
 /**
  * Makes the last fetched config available to the getters.
- * @param remoteConfig - the remote config instance
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @returns A promise which resolves to true if the current call activated the fetched configs.
  * If the fetched configs were already activated, the promise will resolve to false.
  *
@@ -75,9 +75,9 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
 
 /**
  * Ensures the last activated config are available to the getters.
- * @param remoteConfig - the remote config instance
+ * @param remoteConfig - The `RemoteConfig` instance.
  *
- * @returns A promise that resolves when the last activated config is available to the getters
+ * @returns A promise that resolves when the last activated config is available to the getters.
  * @public
  */
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {
@@ -92,7 +92,7 @@ export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {
 
 /**
  * Fetches and caches configuration from the Remote Config service.
- * @param remoteConfig - the remote config instance
+ * @param remoteConfig - The `RemoteConfig` instance.
  * @public
  */
 export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
@@ -134,8 +134,8 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
 /**
  * Gets all config.
  *
- * @param remoteConfig - the remote config instance
- * @returns all config
+ * @param remoteConfig - The `RemoteConfig` instance.
+ * @returns All config.
  *
  * @public
  */
@@ -155,10 +155,10 @@ export function getAll(remoteConfig: RemoteConfig): Record<string, Value> {
  *
  * Convenience method for calling <code>remoteConfig.getValue(key).asBoolean()</code>.
  *
- * @param remoteConfig - the remote config instance
- * @param key - the name of the parameter
+ * @param remoteConfig - The `RemoteConfig` instance.
+ * @param key - The name of the parameter.
  *
- * @returns the value for the given key as a boolean
+ * @returns The value for the given key as a boolean.
  * @public
  */
 export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean {
@@ -170,10 +170,10 @@ export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean {
  *
  * Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>.
  *
- * @param remoteConfig - the remote config instance
- * @param key - the name of the parameter
+ * @param remoteConfig - The `RemoteConfig` instance.
+ * @param key - The name of the parameter.
  *
- * @returns the value for the given key as a number
+ * @returns The value for the given key as a number.
  *
  * @public
  */
@@ -182,13 +182,13 @@ export function getNumber(remoteConfig: RemoteConfig, key: string): number {
 }
 
 /**
- * Gets the value for the given key as a String.
+ * Gets the value for the given key as a string.
  * Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
  *
- * @param remoteConfig - the remote config instance
- * @param key - the name of the parameter
+ * @param remoteConfig - The `RemoteConfig` instance.
+ * @param key - The name of the parameter.
  *
- * @returns the value for the given key as a String
+ * @returns The value for the given key as a string.
  *
  * @public
  */
@@ -199,10 +199,10 @@ export function getString(remoteConfig: RemoteConfig, key: string): string {
 /**
  * Gets the {@link Value} for the given key.
  *
- * @param remoteConfig - the remote config instance
- * @param key - the name of the parameter
+ * @param remoteConfig - The `RemoteConfig` instance.
+ * @param key - The name of the parameter.
  *
- * @returns the value for the given key
+ * @returns The value for the given key.
  *
  * @public
  */
@@ -230,8 +230,8 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
 /**
  * Defines the log level to use.
  *
- * @param remoteConfig - the remote config instance
- * @param logLevel - the log level to set
+ * @param remoteConfig - The `RemoteConfig` instance.
+ * @param logLevel - The log level to set.
  *
  * @public
  */

@@ -1,4 +1,10 @@
 /**
+ * Firebase Realtime Database
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *

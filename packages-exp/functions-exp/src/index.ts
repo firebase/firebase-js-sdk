@@ -1,4 +1,10 @@
 /**
+ * Cloud Functions for Firebase
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2017 Google LLC
  *

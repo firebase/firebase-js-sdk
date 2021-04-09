@@ -25,6 +25,8 @@ import { FirebaseInstallations } from '../interfaces/public-types';
 
 /**
  * Returns an Installation auth token, identifying the current Firebase Installation.
+ * @param installations - The `Installations` instance.
+ * @param forceRefresh - Force refresh regardless of token expiration.
  *
  * @public
  */
