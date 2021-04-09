@@ -393,8 +393,7 @@ async function publishToNpm(packagePaths: string[], dryRun = false) {
 }
 
 async function publishPackage(packagePath: string, dryRun: boolean) {
-  // const args = ['publish', '--access', 'public', '--tag', 'exp'];
-  const args = ['pack'];
+  const args = ['publish', '--access', 'public', '--tag', 'exp'];
   if (dryRun) {
     args.push('--dry-run');
   }
