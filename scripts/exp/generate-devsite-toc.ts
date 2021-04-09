@@ -41,8 +41,7 @@ const REPORT_DIR = path.resolve(process.cwd(), argv.input);
 
 const js: TocItem = {
   title: 'firebase',
-  path: `${REF_DOC_DIR}/index`,
-  section: []
+  path: `${REF_DOC_DIR}/index`
 };
 const toc = [js];
 
