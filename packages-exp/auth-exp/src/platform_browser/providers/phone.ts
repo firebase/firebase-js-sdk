@@ -29,11 +29,11 @@ import { ApplicationVerifierInternal as ApplicationVerifierInternal } from '../.
 import { AuthInternal as AuthInternal } from '../../model/auth';
 import { UserCredentialInternal as UserCredentialInternal } from '../../model/user';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
-import { AuthErrorCode } from '../../core/errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
-import { _assert, _fail } from '../../core/util/assert';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthCredential } from '../../core';
+import { FirebaseError } from '@firebase/util';
+import { TaggedWithTokenResponse } from '../../model/id_token';
 
 /**
  * Provider for generating an {@link PhoneAuthCredential}.
@@ -156,22 +156,63 @@ export class PhoneAuthProvider {
     userCredential: UserCredential
   ): AuthCredential | null {
     const credential = userCredential as UserCredentialInternal;
-    _assert(
-      credential._tokenResponse,
-      credential.user.auth,
-      AuthErrorCode.ARGUMENT_ERROR
+    return PhoneAuthProvider.credentialFromTaggedObject(credential);
+  }
+
+  /**
+   * Returns an {@link AuthCredential} when passed an error.
+   *
+   * @remarks
+   *
+   * This method works for errors like
+   * `auth/account-exists-with-different-credentials`. This is useful for
+   * recovering when attempting to set a user's phone number but the number
+   * in question is already tied to another account. For example, the following
+   * code tries to update the current user's phone number, and if that
+   * fails, links the user with the account associated with that number:
+   *
+   * ```js
+   * const provider = new PhoneAuthProvider(auth);
+   * const verificationId = await provider.verifyPhoneNumber(number, verifier);
+   * try {
+   *   const code = ''; // Prompt the user for the verification code
+   *   await updatePhoneNumber(
+   *       auth.currentUser,
+   *       PhoneAuthProvider.credential(verificationId, code));
+   * } catch (e) {
+   *   if (e.code === 'auth/account-exists-with-different-credential') {
+   *     const cred = PhoneAuthProvider.credentialFromError(e);
+   *     await linkWithCredential(auth.currentUser, cred);
+   *   }
+   * }
+   *
+   * // At this point, auth.currentUser.phoneNumber === number.
+   * ```
+   *
+   * @param error
+   */
+  static credentialFromError(error: FirebaseError): AuthCredential | null {
+    return PhoneAuthProvider.credentialFromTaggedObject(
+      (error.customData || {}) as TaggedWithTokenResponse
     );
+  }
+
+  private static credentialFromTaggedObject({
+    _tokenResponse: tokenResponse
+  }: TaggedWithTokenResponse): AuthCredential | null {
+    if (!tokenResponse) {
+      return null;
+    }
     const {
       phoneNumber,
       temporaryProof
-    } = credential._tokenResponse as SignInWithPhoneNumberResponse;
+    } = tokenResponse as SignInWithPhoneNumberResponse;
     if (phoneNumber && temporaryProof) {
       return PhoneAuthCredential._fromTokenResponse(
         phoneNumber,
         temporaryProof
       );
     }
-
-    _fail(credential.user.auth, AuthErrorCode.ARGUMENT_ERROR);
+    return null;
   }
 }

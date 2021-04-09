@@ -12,15 +12,13 @@ import { Unsubscribe } from '@firebase/util';
 // @public
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
 
-// @public (undocumented)
+// @public
 export interface FcmOptions {
-    // (undocumented)
     analyticsLabel?: string;
-    // (undocumented)
     link?: string;
 }
 
-// @public (undocumented)
+// @public
 export interface FirebaseMessaging {
 }
 
@@ -28,7 +26,7 @@ export interface FirebaseMessaging {
 export type _FirebaseMessagingName = 'messaging';
 
 // @public
-export function getMessaging(app: FirebaseApp): FirebaseMessaging;
+export function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 
 // @public
 export function getToken(messaging: FirebaseMessaging, options?: {
@@ -36,19 +34,17 @@ export function getToken(messaging: FirebaseMessaging, options?: {
     swReg?: ServiceWorkerRegistration;
 }): Promise<string>;
 
-// @public (undocumented)
+// @public
+export function isSupported(): Promise<boolean>;
+
+// @public
 export interface MessagePayload {
-    // (undocumented)
     collapseKey: string;
-    // (undocumented)
     data?: {
         [key: string]: string;
     };
-    // (undocumented)
     fcmOptions?: FcmOptions;
-    // (undocumented)
     from: string;
-    // (undocumented)
     notification?: NotificationPayload;
 }
 
@@ -56,11 +52,8 @@ export { NextFn }
 
 // @public
 export interface NotificationPayload {
-    // (undocumented)
     body?: string;
-    // (undocumented)
     image?: string;
-    // (undocumented)
     title?: string;
 }
 

@@ -4,7 +4,7 @@
 
 ## FirestoreDataConverter.toFirestore() method
 
-Called by the Firestore SDK to convert a custom model object of type `T` into a plain JavaScript object (suitable for writing directly to the Firestore database). Used with ,  and  with `merge:true` or `mergeFields`<!-- -->.
+Called by the Firestore SDK to convert a custom model object of type `T` into a plain JavaScript object (suitable for writing directly to the Firestore database). Used with [setDoc()](./firestore_.setdoc.md)<!-- -->,  and  with `merge:true` or `mergeFields`<!-- -->.
 
 <b>Signature:</b>
 

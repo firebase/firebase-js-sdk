@@ -197,7 +197,7 @@ export function getString(remoteConfig: RemoteConfig, key: string): string {
 }
 
 /**
- * Gets the {@link @firebase/remote-config-types#Value} for the given key.
+ * Gets the {@link Value} for the given key.
  *
  * @param remoteConfig - the remote config instance
  * @param key - the name of the parameter

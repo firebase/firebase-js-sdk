@@ -36,7 +36,7 @@ const SAML_PROVIDER_PREFIX = 'saml.';
 export class SAMLAuthProvider extends FederatedAuthProvider {
   /**
    * Constructor. The providerId must start with "saml."
-   * @param providerId
+   * @param - providerId
    */
   constructor(providerId: string) {
     _assert(

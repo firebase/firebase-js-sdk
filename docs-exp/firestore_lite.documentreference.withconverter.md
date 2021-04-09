@@ -4,7 +4,7 @@
 
 ## DocumentReference.withConverter() method
 
-Applies a custom data converter to this `DocumentReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call , [getDoc()](./firestore_.getdoc.md)<!-- -->, etc. with the returned `DocumentReference` instance, the provided converter will convert between Firestore data and your custom type `U`<!-- -->.
+Applies a custom data converter to this `DocumentReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [setDoc()](./firestore_lite.setdoc.md)<!-- -->, [getDoc()](./firestore_lite.getdoc.md)<!-- -->, etc. with the returned `DocumentReference` instance, the provided converter will convert between Firestore data and your custom type `U`<!-- -->.
 
 Passing in `null` as the converter parameter removes the current converter.
 

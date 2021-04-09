@@ -16,7 +16,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Settings
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md) | The  with which the <code>Firestore</code> instance will be associated. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The [FirebaseApp](./app.firebaseapp.md) with which the <code>Firestore</code> instance will be associated. |
 |  settings | [Settings](./firestore_.settings.md) | A settings object to configure the <code>Firestore</code> instance. |
 
 <b>Returns:</b>

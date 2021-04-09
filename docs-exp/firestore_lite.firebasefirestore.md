@@ -18,7 +18,7 @@ export declare class FirebaseFirestore
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [app](./firestore_lite.firebasefirestore.app.md) |  | [FirebaseApp](./app.firebaseapp.md) | The  associated with this <code>Firestore</code> service instance. |
+|  [app](./firestore_lite.firebasefirestore.app.md) |  | [FirebaseApp](./app.firebaseapp.md) | The [FirebaseApp](./app.firebaseapp.md) associated with this <code>Firestore</code> service instance. |
 
 ## Methods
 

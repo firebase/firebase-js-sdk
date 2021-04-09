@@ -4,7 +4,7 @@
 
 ## arrayUnion() function
 
-Returns a special value that can be used with  or  that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements.
+Returns a special value that can be used with [setDoc()](./firestore_lite.setdoc.md) or [updateDoc()](./firestore_lite.updatedoc.md) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements.
 
 <b>Signature:</b>
 
