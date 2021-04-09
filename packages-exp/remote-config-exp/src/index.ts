@@ -1,4 +1,10 @@
 /**
+ * Firebase Remote Config
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *
