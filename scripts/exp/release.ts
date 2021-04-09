@@ -161,9 +161,10 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     const packagesToPublish = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
-    packagePaths.push(`${projectRoot}/packages/firestore`);
-    packagePaths.push(`${projectRoot}/packages/storage`);
-    packagePaths.push(`${projectRoot}/packages/database`);
+
+    packagesToPublish.push(`${projectRoot}/packages/firestore`);
+    packagesToPublish.push(`${projectRoot}/packages/storage`);
+    packagesToPublish.push(`${projectRoot}/packages/database`);
 
     /**
      * Release packages to NPM
