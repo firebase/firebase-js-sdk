@@ -54,6 +54,17 @@ export async function prepare() {
   delete packageJson['main-esm2017'];
   delete packageJson['esm2017'];
 
+  // Add exports field. These need to be relative paths so start with './';
+  packageJson.exports = {
+    main: expPackageJson.main.replace('../', './'),
+    module: expPackageJson.module.replace('../', './'),
+    browser: expPackageJson.browser.replace('../', './'),
+    'react-native': expPackageJson['react-native'].replace('../', './'),
+    node: expPackageJson.main.replace('../', './'),
+    default: expPackageJson.browser.replace('../', './')
+    // No esm5 build for Firestore?
+  };
+
   packageJson.typings = expPackageJson.typings.replace('../', '');
 
   // include files to be published
