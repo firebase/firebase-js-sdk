@@ -63,8 +63,8 @@ const secret = credential.secret;
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [PROVIDER\_ID](./auth.twitterauthprovider.provider_id.md) | <code>static</code> | (not declared) |  |
-|  [TWITTER\_SIGN\_IN\_METHOD](./auth.twitterauthprovider.twitter_sign_in_method.md) | <code>static</code> | (not declared) |  |
+|  [PROVIDER\_ID](./auth.twitterauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.TWITTER](./auth.providerid.twitter.md)<!-- -->. |
+|  [TWITTER\_SIGN\_IN\_METHOD](./auth.twitterauthprovider.twitter_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.TWITTER](./auth.signinmethod.twitter.md)<!-- -->. |
 
 ## Methods
 

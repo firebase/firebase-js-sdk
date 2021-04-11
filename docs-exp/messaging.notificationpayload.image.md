@@ -4,6 +4,8 @@
 
 ## NotificationPayload.image property
 
+The URL of an image that is downloaded on the device and displayed in the notification.
+
 <b>Signature:</b>
 
 ```typescript

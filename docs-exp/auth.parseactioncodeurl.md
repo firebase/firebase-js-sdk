@@ -16,11 +16,9 @@ export declare function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  link | string | The email action link string. |
+|  link | string |  |
 
 <b>Returns:</b>
 
 [ActionCodeURL](./auth.actioncodeurl.md) \| null
-
-The ActionCodeURL object, or null if the link is invalid.
 

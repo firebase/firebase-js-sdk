@@ -4,19 +4,16 @@
 
 ## OnDisconnect.remove() method
 
+Ensures the data at this location is deleted when the client is disconnected (due to closing the browser, navigating to a new page, or network issues).
+
 <b>Signature:</b>
 
 ```typescript
-remove(onComplete?: (a: Error | null) => any): Promise<void>;
+remove(): Promise<void>;
 ```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  onComplete | (a: Error \| null) =&gt; any |  |
-
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+Resolves when synchronization to the server is complete.
 

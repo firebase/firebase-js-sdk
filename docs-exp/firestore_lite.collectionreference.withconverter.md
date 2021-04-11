@@ -9,18 +9,18 @@ Applies a custom data converter to this CollectionReference, allowing you to use
 <b>Signature:</b>
 
 ```typescript
-withConverter(converter: null): CollectionReference<DocumentData>;
+withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  converter | null | Converts objects to and from Firestore. |
+|  converter | [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md)<!-- -->&lt;U&gt; | Converts objects to and from Firestore. |
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_lite.collectionreference.md)<!-- -->&lt;[DocumentData](./firestore_lite.documentdata.md)<!-- -->&gt;
+[CollectionReference](./firestore_lite.collectionreference.md)<!-- -->&lt;U&gt;
 
 A `CollectionReference<U>` that uses the provided converter.
 

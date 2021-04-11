@@ -4,6 +4,7 @@
 
 ## initializeAuth() function
 
+Initializes an Auth instance with fine-grained control over [Dependencies](./auth.dependencies.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -21,4 +22,18 @@ export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): A
 <b>Returns:</b>
 
 [Auth](./auth.auth.md)
+
+## Remarks
+
+This function allows more control over the Auth instance than [getAuth()](./auth.getauth.md)<!-- -->. `getAuth` uses platform-specific defaults to supply the [Dependencies](./auth.dependencies.md)<!-- -->. In general, `getAuth` is the easiest way to initialize Auth and works for most use cases. Use `initializeAuth` if you need control over which persistence layer is used, or to minimize bundle size if you're not using either `signInWithPopup` or `signInWithRedirect`<!-- -->.
+
+For example, if your app only uses anonymous accounts and you only want accounts saved for the current session, initialize Auth with:
+
+```js
+const auth = initializeAuth(app, {
+  persistence: browserSessionPersistence,
+  popupRedirectResolver: undefined,
+});
+
+```
 

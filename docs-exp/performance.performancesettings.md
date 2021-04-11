@@ -4,6 +4,7 @@
 
 ## PerformanceSettings interface
 
+Defines configuration options for the Performance Monitoring SDK.
 
 <b>Signature:</b>
 

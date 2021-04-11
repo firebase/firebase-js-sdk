@@ -4,6 +4,8 @@
 
 ## SAMLAuthProvider.credentialFromResult() method
 
+Generates an [AuthCredential](./auth.authcredential.md) from a [UserCredential](./auth.usercredential.md) after a successful SAML flow completes.
+
 <b>Signature:</b>
 
 ```typescript
@@ -19,4 +21,14 @@ static credentialFromResult(userCredential: UserCredential): AuthCredential | nu
 <b>Returns:</b>
 
 [AuthCredential](./auth.authcredential.md) \| null
+
+## Remarks
+
+For example, to get an [AuthCredential](./auth.authcredential.md)<!-- -->, you could write the following code:
+
+```js
+const userCredential = await signInWithPopup(auth, samlProvider);
+const credential = SAMLAuthProvider.credentialFromResult(userCredential);
+
+```
 

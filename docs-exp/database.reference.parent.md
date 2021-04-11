@@ -4,8 +4,12 @@
 
 ## Reference.parent property
 
+The parent location of a `Reference`<!-- -->.
+
+The parent of a root `Reference` is `null`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-parent: Reference | null;
+readonly parent: Reference | null;
 ```

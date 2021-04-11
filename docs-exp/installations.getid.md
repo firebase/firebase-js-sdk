@@ -16,7 +16,7 @@ export declare function getId(installations: FirebaseInstallations): Promise<str
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) |  |
+|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) | The <code>Installations</code> instance. |
 
 <b>Returns:</b>
 

@@ -4,6 +4,8 @@
 
 ## HttpsCallableOptions.timeout property
 
+Time in milliseconds after which to cancel if there is no response. Default is 70000.
+
 <b>Signature:</b>
 
 ```typescript

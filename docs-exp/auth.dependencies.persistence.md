@@ -4,6 +4,10 @@
 
 ## Dependencies.persistence property
 
+Which [Persistence](./auth.persistence.md) to use. If this is an array, the first `Persistence` that the device supports is used. The SDK searches for an existing account in order and, if one is found in a secondary `Persistence`<!-- -->, the account is moved to the primary `Persistence`<!-- -->.
+
+If no persistence is provided, the SDK falls back on [inMemoryPersistence](./auth.inmemorypersistence.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

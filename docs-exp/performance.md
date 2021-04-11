@@ -4,19 +4,21 @@
 
 ## performance package
 
+Firebase Performance Monitoring
+
 ## Functions
 
 |  Function | Description |
 |  --- | --- |
 |  [getPerformance(app)](./performance.getperformance.md) | Returns a FirebasePerformance instance for the given app. |
 |  [initializePerformance(app, settings)](./performance.initializeperformance.md) | Returns a FirebasePerformance instance for the given app. Can only be called once. |
-|  [trace(performance, name)](./performance.trace.md) | Returns a new PerformanceTrace instance. |
+|  [trace(performance, name)](./performance.trace.md) | Returns a new <code>PerformanceTrace</code> instance. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [FirebasePerformance](./performance.firebaseperformance.md) |  |
-|  [PerformanceSettings](./performance.performancesettings.md) |  |
-|  [PerformanceTrace](./performance.performancetrace.md) |  |
+|  [FirebasePerformance](./performance.firebaseperformance.md) | The Firebase Performance Monitoring service interface. |
+|  [PerformanceSettings](./performance.performancesettings.md) | Defines configuration options for the Performance Monitoring SDK. |
+|  [PerformanceTrace](./performance.performancetrace.md) | The interface representing a <code>Trace</code>. |
 

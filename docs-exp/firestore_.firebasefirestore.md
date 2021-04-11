@@ -18,11 +18,11 @@ export declare class FirebaseFirestore
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [app](./firestore_.firebasefirestore.app.md) |  | [FirebaseApp](./app.firebaseapp.md) |  |
+|  [app](./firestore_.firebasefirestore.app.md) |  | [FirebaseApp](./app.firebaseapp.md) | The [FirebaseApp](./app.firebaseapp.md) associated with this <code>Firestore</code> service instance. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [toJSON()](./firestore_.firebasefirestore.tojson.md) |  |  |
+|  [toJSON()](./firestore_.firebasefirestore.tojson.md) |  | Returns a JSON-serializable representation of this Firestore instance. |
 

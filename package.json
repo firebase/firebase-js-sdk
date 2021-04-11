@@ -54,7 +54,8 @@
     "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
-    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts"
+    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
+    "toc-devsite": "ts-node-script scripts/exp/generate-devsite-toc.ts -i temp"
   },
   "repository": {
     "type": "git",
@@ -87,6 +88,7 @@
     "@types/sinon-chai": "3.2.5",
     "@types/tmp": "0.2.0",
     "@types/yargs": "16.0.0",
+    "@types/js-yaml": "4.0.0",
     "@typescript-eslint/eslint-plugin": "4.11.1",
     "@typescript-eslint/eslint-plugin-tslint": "4.11.1",
     "@typescript-eslint/parser": "4.11.1",

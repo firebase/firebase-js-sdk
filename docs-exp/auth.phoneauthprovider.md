@@ -45,6 +45,7 @@ const userCredential = await signInWithCredential(auth, phoneCredential);
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [credential(verificationId, verificationCode)](./auth.phoneauthprovider.credential.md) | <code>static</code> | Creates a phone auth credential, given the verification ID from [PhoneAuthProvider.verifyPhoneNumber()](./auth.phoneauthprovider.verifyphonenumber.md) and the code that was sent to the user's mobile device. |
-|  [credentialFromResult(userCredential)](./auth.phoneauthprovider.credentialfromresult.md) | <code>static</code> |  |
+|  [credentialFromError(error)](./auth.phoneauthprovider.credentialfromerror.md) | <code>static</code> | Returns an [AuthCredential](./auth.authcredential.md) when passed an error. |
+|  [credentialFromResult(userCredential)](./auth.phoneauthprovider.credentialfromresult.md) | <code>static</code> | Generates an [AuthCredential](./auth.authcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->. |
 |  [verifyPhoneNumber(phoneOptions, applicationVerifier)](./auth.phoneauthprovider.verifyphonenumber.md) |  | Starts a phone number authentication flow by sending a verification code to the given phone number. |
 

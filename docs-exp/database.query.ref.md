@@ -4,8 +4,10 @@
 
 ## Query.ref property
 
+The `Reference` for the `Query`<!-- -->'s location.
+
 <b>Signature:</b>
 
 ```typescript
-ref: Reference;
+readonly ref: Reference;
 ```

@@ -18,12 +18,12 @@ export declare function getBoolean(remoteConfig: RemoteConfig, key: string): boo
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
-|  key | string | the name of the parameter |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | The <code>RemoteConfig</code> instance. |
+|  key | string | The name of the parameter. |
 
 <b>Returns:</b>
 
 boolean
 
-the value for the given key as a boolean
+The value for the given key as a boolean.
 

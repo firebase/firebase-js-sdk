@@ -70,6 +70,4 @@ export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<M
 export { Unsubscribe }
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

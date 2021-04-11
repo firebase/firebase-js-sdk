@@ -4,6 +4,8 @@
 
 ## Settings.ignoreUndefinedProperties property
 
+Whether to skip nested properties that are set to `undefined` during object serialization. If set to `true`<!-- -->, these properties are skipped and not written to Firestore. If set to `false` or omitted, the SDK throws an exception when it encounters properties of type `undefined`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

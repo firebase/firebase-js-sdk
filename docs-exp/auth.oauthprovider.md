@@ -61,6 +61,6 @@ const token = credential.accessToken;
 |  --- | --- | --- |
 |  [credential(params)](./auth.oauthprovider.credential.md) |  | Creates a [OAuthCredential](./auth.oauthcredential.md) from a generic OAuth provider's access token or ID token. |
 |  [credentialFromError(error)](./auth.oauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
-|  [credentialFromJSON(json)](./auth.oauthprovider.credentialfromjson.md) | <code>static</code> |  |
+|  [credentialFromJSON(json)](./auth.oauthprovider.credentialfromjson.md) | <code>static</code> | Creates an [OAuthCredential](./auth.oauthcredential.md) from a JSON string or a plain object. |
 |  [credentialFromResult(userCredential)](./auth.oauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth.usercredential.md)<!-- -->. |
 

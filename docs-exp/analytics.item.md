@@ -4,6 +4,8 @@
 
 ## Item interface
 
+Item field used by some Analytics events.
+
 <b>Signature:</b>
 
 ```typescript

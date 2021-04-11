@@ -73,6 +73,4 @@ export interface Value {
 export type ValueSource = 'static' | 'default' | 'remote';
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

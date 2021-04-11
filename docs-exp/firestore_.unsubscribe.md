@@ -4,6 +4,8 @@
 
 ## Unsubscribe interface
 
+A function returned by `onSnapshot()` that removes the listener when invoked.
+
 <b>Signature:</b>
 
 ```typescript

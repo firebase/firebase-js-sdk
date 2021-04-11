@@ -4,6 +4,7 @@
 
 ## FirebaseMessaging interface
 
+Public interface of the Firebase Cloud Messaging SDK.
 
 <b>Signature:</b>
 

@@ -4,6 +4,8 @@
 
 ## Settings.host property
 
+The hostname to connect to.
+
 <b>Signature:</b>
 
 ```typescript

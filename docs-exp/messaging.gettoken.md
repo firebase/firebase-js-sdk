@@ -4,7 +4,7 @@
 
 ## getToken() function
 
-Subscribes the messaging instance to push notifications. Returns an FCM registration token that can be used to send push messages to that messaging instance.
+Subscribes the `FirebaseMessaging` instance to push notifications. Returns an Firebase Cloud Messaging registration token that can be used to send push messages to that `FirebaseMessaging` instance.
 
 If a notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications.
 
@@ -21,7 +21,7 @@ export declare function getToken(messaging: FirebaseMessaging, options?: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | the messaging instance. |
+|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | The <code>FirebaseMessaging</code> instance. |
 |  options | { vapidKey?: string; swReg?: ServiceWorkerRegistration; } |  |
 
 <b>Returns:</b>

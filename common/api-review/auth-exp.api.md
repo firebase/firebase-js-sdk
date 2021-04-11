@@ -708,6 +708,4 @@ export function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCode
 export function verifyPasswordResetCode(auth: Auth, code: string): Promise<string>;
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

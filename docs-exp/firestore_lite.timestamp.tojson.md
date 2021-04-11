@@ -4,6 +4,8 @@
 
 ## Timestamp.toJSON() method
 
+Returns a JSON-serializable representation of this Timestamp.
+
 <b>Signature:</b>
 
 ```typescript

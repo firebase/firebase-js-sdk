@@ -9,6 +9,8 @@
 > Use Item instead.
 > 
 
+Field previously used by some Analytics events.
+
 <b>Signature:</b>
 
 ```typescript

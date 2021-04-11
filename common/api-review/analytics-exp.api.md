@@ -385,6 +385,4 @@ export function setUserId(analyticsInstance: Analytics, id: string, options?: An
 export function setUserProperties(analyticsInstance: Analytics, properties: CustomParams, options?: AnalyticsCallOptions): void;
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

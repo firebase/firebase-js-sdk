@@ -4,6 +4,8 @@
 
 ## Timestamp.seconds property
 
+The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,6 +4,12 @@
 
 ## Query.isEqual() method
 
+Returns whether or not the current and provided queries represent the same location, have the same query parameters, and are from the same instance of `FirebaseApp`<!-- -->.
+
+Two `Reference` objects are equivalent if they represent the same location and are from the same instance of `FirebaseApp`<!-- -->.
+
+Two `Query` objects are equivalent if they represent the same location, have the same query parameters, and are from the same instance of `FirebaseApp`<!-- -->. Equivalent queries share the same sort order, limits, and starting and ending points.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +20,11 @@ isEqual(other: Query | null): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  other | [Query](./database.query.md) \| null |  |
+|  other | [Query](./database.query.md) \| null | The query to compare against. |
 
 <b>Returns:</b>
 
 boolean
+
+Whether or not the current and provided queries are equivalent.
 

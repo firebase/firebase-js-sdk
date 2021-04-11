@@ -4,6 +4,8 @@
 
 ## Settings.ssl property
 
+Whether to use SSL when connecting.
+
 <b>Signature:</b>
 
 ```typescript

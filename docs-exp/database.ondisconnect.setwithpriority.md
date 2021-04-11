@@ -4,25 +4,24 @@
 
 ## OnDisconnect.setWithPriority() method
 
+Ensures the data at this location is set to the specified value and priority when the client is disconnected (due to closing the browser, navigating to a new page, or network issues).
+
 <b>Signature:</b>
 
 ```typescript
-setWithPriority(
-    value: any,
-    priority: number | string | null,
-    onComplete?: (a: Error | null) => any
-  ): Promise<any>;
+setWithPriority(value: unknown, priority: number | string | null): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | any |  |
-|  priority | number \| string \| null |  |
-|  onComplete | (a: Error \| null) =&gt; any |  |
+|  value | unknown | The value to be written to this location on disconnect (can be an object, array, string, number, boolean, or null). |
+|  priority | number \| string \| null | The priority to be written (string, number, or null). |
 
 <b>Returns:</b>
 
-Promise&lt;any&gt;
+Promise&lt;void&gt;
+
+Resolves when synchronization to the Database is complete.
 

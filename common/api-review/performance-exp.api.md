@@ -6,7 +6,7 @@
 
 import { FirebaseApp } from '@firebase/app-exp';
 
-// @public (undocumented)
+// @public
 export interface FirebasePerformance {
     dataCollectionEnabled: boolean;
     instrumentationEnabled: boolean;
@@ -18,13 +18,13 @@ export function getPerformance(app?: FirebaseApp): FirebasePerformance;
 // @public
 export function initializePerformance(app: FirebaseApp, settings?: PerformanceSettings): FirebasePerformance;
 
-// @public (undocumented)
+// @public
 export interface PerformanceSettings {
     dataCollectionEnabled?: boolean;
     instrumentationEnabled?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface PerformanceTrace {
     getAttribute(attr: string): string | undefined;
     getAttributes(): {
@@ -50,7 +50,5 @@ export interface PerformanceTrace {
 // @public
 export function trace(performance: FirebasePerformance, name: string): PerformanceTrace;
 
-
-// (No @packageDocumentation comment for this package)
 
 ```

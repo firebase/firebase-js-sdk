@@ -4,20 +4,27 @@
 
 ## OnDisconnect.set() method
 
+Ensures the data at this location is set to the specified value when the client is disconnected (due to closing the browser, navigating to a new page, or network issues).
+
+`set()` is especially useful for implementing "presence" systems, where a value should be changed or cleared when a user disconnects so that they appear "offline" to other users. See [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities) for more information.
+
+Note that `onDisconnect` operations are only triggered once. If you want an operation to occur each time a disconnect occurs, you'll need to re-establish the `onDisconnect` operations each time.
+
 <b>Signature:</b>
 
 ```typescript
-set(value: any, onComplete?: (a: Error | null) => any): Promise<void>;
+set(value: unknown): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | any |  |
-|  onComplete | (a: Error \| null) =&gt; any |  |
+|  value | unknown | The value to be written to this location on disconnect (can be an object, array, string, number, boolean, or null). |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+Resolves when synchronization to the Database is complete.
 
