@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -17,7 +17,7 @@
     "build": "run-p build:classic build:exp && yarn build:compat",
     "build:classic": "rollup -c rollup.config.js",
     "build:exp": "rollup -c rollup.config.exp.js && yarn api-report",
-    "build:compat": "rollup -c rollup.config.compat.js && yarn add-compat-overloads", 
+    "build:compat": "rollup -c rollup.config.compat.js && yarn add-compat-overloads",
     "build:exp:release": "yarn build:exp && yarn build:compat",
     "build:deps": "lerna run --scope @firebase/'{app,database}' --include-dependencies build",
     "dev": "rollup -c -w",
@@ -36,16 +36,16 @@
   "license": "Apache-2.0",
   "peerDependencies": {},
   "dependencies": {
-    "@firebase/database-types": "0.7.1",
+    "@firebase/database-types": "0.7.2",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.4.1",
-    "@firebase/component": "0.4.0",
+    "@firebase/util": "1.0.0",
+    "@firebase/component": "0.4.1",
     "@firebase/auth-interop-types": "0.1.5",
     "faye-websocket": "0.11.3",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.19",
+    "@firebase/app": "0.6.20",
     "@firebase/app-types": "0.6.2",
     "rollup": "2.35.1",
     "rollup-plugin-typescript2": "0.29.0",
