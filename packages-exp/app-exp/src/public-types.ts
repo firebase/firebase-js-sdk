@@ -73,7 +73,9 @@ export interface FirebaseApp {
  * Firebase configuration object. Contains a set of parameters required by
  * services in order to successfully communicate with Firebase server APIs
  * and to associate client data with your Firebase project and
- * Firebase application.
+ * Firebase application. Typically this object is populated by the Firebase
+ * console at project setup. See also:
+ * [Learn about the Firebase config object](https://firebase.google.com/docs/web/setup#config-object).
  */
 export interface FirebaseOptions {
   /**
@@ -110,7 +112,8 @@ export interface FirebaseOptions {
   appId?: string;
   /**
    * An ID automatically created when you enable Analytics in your
-   * Firebase project and register a web app.
+   * Firebase project and register a web app. In versions 7.20.0
+   * and higher, this parameter is optional.
    */
   measurementId?: string;
 }
