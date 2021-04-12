@@ -21,7 +21,8 @@ import { name as analyticsCompatName } from '../../../packages-exp/analytics-com
 import { name as analyticsName } from '../../../packages-exp/analytics-exp/package.json';
 import { name as authName } from '../../../packages-exp/auth-exp/package.json';
 import { name as authCompatName } from '../../../packages-exp/auth-compat-exp/package.json';
-import { name as databaseName } from '../../../packages/database/exp/package.json';
+import { name as databaseName } from '../../../packages/database/package.json';
+import { name as databaseCompatName } from '../../../packages/database/compat/package.json';
 import { name as functionsName } from '../../../packages-exp/functions-exp/package.json';
 import { name as functionsCompatName } from '../../../packages-exp/functions-compat/package.json';
 import { name as installationsName } from '../../../packages-exp/installations-exp/package.json';
@@ -34,7 +35,7 @@ import { name as remoteConfigName } from '../../../packages-exp/remote-config-ex
 import { name as remoteConfigCompatName } from '../../../packages-exp/remote-config-compat/package.json';
 import { name as storageName } from '../../../packages/storage/package.json';
 import { name as storageCompatName } from '../../../packages/storage/compat/package.json';
-import { name as firestoreName } from '../../../packages/firestore/exp/package.json';
+import { name as firestoreName } from '../../../packages/firestore/package.json';
 import { name as firestoreCompatName } from '../../../packages/firestore/compat/package.json';
 import { name as packageName } from '../../../packages-exp/firebase-exp/package.json';
 
@@ -53,6 +54,7 @@ export const PLATFORM_LOG_STRING = {
   [authName]: 'fire-auth',
   [authCompatName]: 'fire-auth-compat',
   [databaseName]: 'fire-rtdb',
+  [databaseCompatName]: 'fire-rtdb-compat',
   [functionsName]: 'fire-fn',
   [functionsCompatName]: 'fire-fn-compat',
   [installationsName]: 'fire-iid',
