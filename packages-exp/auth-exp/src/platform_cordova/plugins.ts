@@ -42,7 +42,7 @@ export interface CordovaWindow extends Window {
     readonly displayName: string;
   };
 
-  handleOpenUrl(url: string): void;
+  handleOpenURL(url: string): void;
 }
 
 export interface InAppBrowserRef {

@@ -228,10 +228,10 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       });
     });
 
-    context('when using global handleOpenUrl callback', () => {
+    context('when using global handleOpenURL callback', () => {
       it('ignores inbound callbacks that are not for this app', async () => {
         await resolver._initialize(auth);
-        win.handleOpenUrl(`${NOT_PACKAGE_NAME}://foo`);
+        win.handleOpenURL(`${NOT_PACKAGE_NAME}://foo`);
 
         // Clear timeout is called in the handler so we can check that
         expect(win.clearTimeout).not.to.have.been.called;
@@ -239,7 +239,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
       it('passes through callback if package name matches', async () => {
         await resolver._initialize(auth);
-        win.handleOpenUrl(`${PACKAGE_NAME}://foo`);
+        win.handleOpenURL(`${PACKAGE_NAME}://foo`);
         expect(win.clearTimeout).to.have.been.calledWith(NO_EVENT_TIMER_ID);
       });
 
@@ -256,7 +256,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
         const promise = event(await resolver._initialize(auth));
         eventsStubs._eventFromPartialAndUrl!.returns(finalEvent as AuthEvent);
-        win.handleOpenUrl(`${PACKAGE_NAME}://foo`);
+        win.handleOpenURL(`${PACKAGE_NAME}://foo`);
         expect(await promise).to.eq(finalEvent);
         expect(events._eventFromPartialAndUrl).to.have.been.calledWith(
           { type: AuthEventType.REAUTH_VIA_REDIRECT },
@@ -264,24 +264,24 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
         );
       });
 
-      it('calls the dev existing handleOpenUrl function', async () => {
-        const oldHandleOpenUrl = sinon.stub();
-        win.handleOpenUrl = oldHandleOpenUrl;
+      it('calls the dev existing handleOpenURL function', async () => {
+        const oldHandleOpenURL = sinon.stub();
+        win.handleOpenURL = oldHandleOpenURL;
 
         await resolver._initialize(auth);
-        win.handleOpenUrl(`${PACKAGE_NAME}://foo`);
-        expect(oldHandleOpenUrl).to.have.been.calledWith(
+        win.handleOpenURL(`${PACKAGE_NAME}://foo`);
+        expect(oldHandleOpenURL).to.have.been.calledWith(
           `${PACKAGE_NAME}://foo`
         );
       });
 
-      it('calls the dev existing handleOpenUrl function for other package', async () => {
-        const oldHandleOpenUrl = sinon.stub();
-        win.handleOpenUrl = oldHandleOpenUrl;
+      it('calls the dev existing handleOpenURL function for other package', async () => {
+        const oldHandleOpenURL = sinon.stub();
+        win.handleOpenURL = oldHandleOpenURL;
 
         await resolver._initialize(auth);
-        win.handleOpenUrl(`${NOT_PACKAGE_NAME}://foo`);
-        expect(oldHandleOpenUrl).to.have.been.calledWith(
+        win.handleOpenURL(`${NOT_PACKAGE_NAME}://foo`);
+        expect(oldHandleOpenURL).to.have.been.calledWith(
           `${NOT_PACKAGE_NAME}://foo`
         );
       });
