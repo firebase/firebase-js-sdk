@@ -39,7 +39,7 @@
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "8.3.3",
+    "firebase": "8.4.0",
     "rollup": "2.35.1",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-node-resolve": "11.2.0",
