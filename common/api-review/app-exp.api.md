@@ -58,21 +58,13 @@ export interface _FirebaseAppInternal extends FirebaseApp {
 
 // @public
 export interface FirebaseOptions {
-    // (undocumented)
     apiKey?: string;
-    // (undocumented)
     appId?: string;
-    // (undocumented)
     authDomain?: string;
-    // (undocumented)
     databaseURL?: string;
-    // (undocumented)
     measurementId?: string;
-    // (undocumented)
     messagingSenderId?: string;
-    // (undocumented)
     projectId?: string;
-    // (undocumented)
     storageBucket?: string;
 }
 
