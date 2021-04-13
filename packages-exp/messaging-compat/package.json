@@ -6,8 +6,8 @@
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "browser": "dist/index.esm2017.js",
+  "module": "dist/index.esm2017.js",
   "typings": "dist/src/index.d.ts",
   "sw": "dist/index.sw.esm2017.js",
   "files": [
@@ -51,5 +51,6 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  }
+  },
+  "esm5": "dist/index.esm.js"
 }

@@ -4,9 +4,8 @@
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "browser": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "module": "dist/index.esm2017.js",
+  "browser": "dist/index.esm2017.js",
   "typings": "dist/src/index.d.ts",
   "license": "Apache-2.0",
   "files": [
@@ -60,5 +59,6 @@
     "@firebase/component": "0.4.1",
     "idb": "3.0.2",
     "tslib": "^2.1.0"
-  }
+  },
+  "esm5": "dist/index.esm.js"
 }

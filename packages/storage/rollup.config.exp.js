@@ -28,7 +28,32 @@ const deps = [
   '@firebase/app'
 ];
 
-const plugins = [
+const es5Plugins = [
+  typescriptPlugin({
+    typescript,
+    abortOnError: false,
+    transformers: [importPathTransformer]
+  }),
+  json()
+];
+
+const es5Builds = [
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkgExp.esm5),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es5Plugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
+  }
+];
+
+const es2017Plugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -42,7 +67,7 @@ const plugins = [
   json({ preferConst: true })
 ];
 
-const browserBuilds = [
+const es2017Builds = [
   {
     input: './exp/index.ts',
     output: [
@@ -57,7 +82,7 @@ const browserBuilds = [
         sourcemap: true
       }
     ],
-    plugins,
+    plugins: es2017Plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
@@ -66,4 +91,4 @@ const browserBuilds = [
 ];
 
 // eslint-disable-next-line import/no-default-export
-export default browserBuilds;
+export default [...es5Builds, ...es2017Builds];

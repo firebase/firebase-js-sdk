@@ -49,7 +49,7 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
      */
     {
       input: 'index.ts',
-      output: [{ file: pkg.module, format: 'esm', sourcemap: true }],
+      output: [{ file: pkg.esm5, format: 'esm', sourcemap: true }],
       plugins: es5BuildPlugins,
       external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
       treeshake: {
@@ -132,7 +132,7 @@ export function getEs2017Builds(additionalTypescriptPlugins = {}) {
     {
       input: 'index.ts',
       output: {
-        file: pkg.esm2017,
+        file: pkg.browser,
         format: 'es',
         sourcemap: true
       },
