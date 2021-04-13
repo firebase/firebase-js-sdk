@@ -241,7 +241,7 @@ const completeBuilds = [
     plugins: [
       sourcemaps(),
       resolveModule({
-        mainFields: ['lite-esm2017', 'esm2017', 'module', 'main']
+        mainFields: ['lite', 'module', 'main']
       }),
       rollupTypescriptPlugin({
         typescript,

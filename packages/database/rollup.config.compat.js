@@ -127,7 +127,7 @@ const es2017Builds = [
     input: 'compat/index.ts',
     output: [
       {
-        file: path.resolve('compat', compatPkg.esm2017),
+        file: path.resolve('compat', compatPkg.browser),
         format: 'es',
         sourcemap: true
       }

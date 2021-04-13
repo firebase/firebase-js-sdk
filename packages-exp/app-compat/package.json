@@ -8,7 +8,7 @@
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
   "lite": "dist/index.lite.js",
-  "lite-esm2017": "dist/index.lite.esm2017.js",
+  "lite-esm5": "dist/index.lite.esm5.js",
   "files": [
     "dist"
   ],

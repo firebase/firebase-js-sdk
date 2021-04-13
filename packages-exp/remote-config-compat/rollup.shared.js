@@ -43,7 +43,7 @@ export const es2017BuildsNoPlugin = [
   {
     input: 'src/index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },

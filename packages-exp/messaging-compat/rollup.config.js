@@ -65,7 +65,7 @@ const es2017Builds = [
   {
     input: 'src/index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
