@@ -5,8 +5,9 @@
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
   "typings": "dist/index.d.ts",
   "sw": "dist/index.sw.esm2017.js",
   "files": [
@@ -61,6 +62,5 @@
     "sw": "./dist/index.sw.esm2017.js",
     "node": "./dist/index.cjs.js",
     "default": "./dist/index.esm2017.js"
-  },
-  "esm5": "dist/index.esm.js"
+  }
 }
