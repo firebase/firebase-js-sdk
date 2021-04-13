@@ -48,6 +48,7 @@ export async function prepare() {
   packageJson.main = expPackageJson.main.replace('./', 'exp/');
   packageJson.module = expPackageJson.module.replace('./', 'exp/');
   packageJson.browser = expPackageJson.browser.replace('./', 'exp/');
+  packageJson.esm5 = expPackageJson.esm5.replace('./', 'exp/');
   delete packageJson['esm2017'];
 
   packageJson.typings = expPackageJson.typings.replace('./', 'exp/');
