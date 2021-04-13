@@ -63,7 +63,7 @@ export default [
   {
     input: {
       index: pkg['esm2017'],
-      bundle: path.resolve('./bundle', bundlePkg['esm2017'])
+      bundle: path.resolve('./bundle', bundlePkg['browser'])
     },
     output: [
       {
@@ -101,8 +101,8 @@ export default [
   // Convert memory build to ES5
   {
     input: {
-      index: path.resolve('./memory', memoryPkg['esm2017']),
-      bundle: path.resolve('./bundle', memoryBundlePkg['esm2017'])
+      index: path.resolve('./memory', memoryPkg['browser']),
+      bundle: path.resolve('./bundle', memoryBundlePkg['browser'])
     },
     output: [
       {
