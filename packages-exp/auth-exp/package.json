@@ -6,10 +6,9 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
   "react-native": "dist/rn/index.js",
-  "browser": "dist/esm5/index.js",
+  "browser": "dist/esm2017/index.js",
   "cordova": "dist/cordova/index.esm5.js",
-  "module": "dist/esm5/index.js",
-  "esm2017": "dist/esm2017/index.js",
+  "module": "dist/esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
   "files": [
     "dist",
@@ -81,5 +80,6 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  }
+  },
+  "esm5": "dist/esm5/index.js"
 }

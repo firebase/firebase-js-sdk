@@ -5,9 +5,8 @@
   "description": "FirebaseAuth compatibility package that uses API style compatible with Firebase@7 and prior versions",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "browser": "dist/index.esm2017.js",
+  "module": "dist/index.esm2017.js",
   "files": [
     "dist"
   ],
@@ -64,5 +63,6 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  }
+  },
+  "esm5": "dist/index.esm.js"
 }
