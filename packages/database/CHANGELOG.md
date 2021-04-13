@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.9.10
+
+### Patch Changes
+
+- [`74fa5064a`](https://github.com/firebase/firebase-js-sdk/commit/74fa5064ae6a183b229975dc858c5ee0f567d0d4) [#4777](https://github.com/firebase/firebase-js-sdk/pull/4777) - Fix a build issue that caused SDK breakage.
+
 ## 0.9.9
 
 ### Patch Changes
