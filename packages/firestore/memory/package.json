@@ -4,8 +4,8 @@
   "main": "../dist/memory/node-cjs/index.js",
   "main-esm2017": "../dist/memory/node-esm2017/index.js",
   "react-native": "../dist/memory/rn/index.js",
-  "browser": "../dist/memory/esm2017/index.js",
-  "module": "../dist/memory/esm2017/index.js",
-  "esm5": "../dist/memory/esm5/index.js",
+  "browser": "../dist/memory/esm5/index.js",
+  "module": "../dist/memory/esm5/index.js",
+  "esm2017": "../dist/memory/esm2017/index.js",
   "typings": "../dist/index.d.ts"
 }
