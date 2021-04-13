@@ -71,7 +71,7 @@ const es5Builds = [
     input: 'exp/index.ts',
     output: [
       {
-        file: path.resolve('exp', expPkg.module),
+        file: path.resolve('exp', expPkg.esm5),
         format: 'es',
         sourcemap: true
       }
