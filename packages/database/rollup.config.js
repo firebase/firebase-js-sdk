@@ -50,7 +50,10 @@ const es5Builds = [
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn
+    onwarn: onWarn,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   /**
    * Browser Builds
@@ -60,7 +63,10 @@ const es5Builds = [
     output: [{ file: pkg.module, format: 'es', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn
+    onwarn: onWarn,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
@@ -88,7 +94,10 @@ const es2017Builds = [
     output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
     plugins: es2017BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn
+    onwarn: onWarn,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
