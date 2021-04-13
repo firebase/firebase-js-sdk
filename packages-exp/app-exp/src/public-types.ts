@@ -75,7 +75,7 @@ export interface FirebaseApp {
  * and to associate client data with your Firebase project and
  * Firebase application. Typically this object is populated by the Firebase
  * console at project setup. See also:
- * [Learn about the Firebase config object](https://firebase.google.com/docs/web/setup#config-object).
+ * {@link https://firebase.google.com/docs/web/setup#config-object | Learn about the Firebase config object}.
  */
 export interface FirebaseOptions {
   /**
