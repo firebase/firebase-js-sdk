@@ -43,7 +43,7 @@ export function getEs5Builds(additionalTypescriptPlugins = {}) {
      */
     {
       input: 'src/index.ts',
-      output: [{ file: pkg.module, format: 'es', sourcemap: true }],
+      output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
       plugins: es5BuildPlugins,
       external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
     },
