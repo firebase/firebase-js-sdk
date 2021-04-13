@@ -52,14 +52,5 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  },
-  "exports": {
-    "main": "./dist/index.cjs.js",
-    "esm5": "./dist/index.esm.js",
-    "browser": "./dist/index.esm2017.js",
-    "module": "./dist/index.esm2017.js",
-    "sw": "./dist/index.sw.esm2017.js",
-    "node": "./dist/index.cjs.js",
-    "default": "./dist/index.esm2017.js"
   }
 }

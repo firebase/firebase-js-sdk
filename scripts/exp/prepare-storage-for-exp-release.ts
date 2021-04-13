@@ -50,16 +50,6 @@ export async function prepare() {
   packageJson.browser = expPackageJson.browser.replace('./', 'exp/');
   delete packageJson['esm2017'];
 
-  // Add exports field. These need to be relative paths so start with './';
-  packageJson.exports = {
-    main: expPackageJson.main.replace('../', './'),
-    module: expPackageJson.module.replace('../', './'),
-    browser: expPackageJson.browser.replace('../', './'),
-    node: expPackageJson.main.replace('../', './'),
-    default: expPackageJson.browser.replace('../', './')
-    // No esm5 build for Storage?
-  };
-
   packageJson.typings = expPackageJson.typings.replace('./', 'exp/');
 
   // include files to be published

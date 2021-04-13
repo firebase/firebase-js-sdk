@@ -45,21 +45,9 @@ export async function prepare() {
   };
 
   packageJson.main = expPackageJson.main.replace('../', '');
-
   packageJson.module = expPackageJson.module.replace('../', '');
   packageJson.browser = expPackageJson.browser.replace('../', '');
-  packageJson.esm5 = expPackageJson.esm5.replace('../', '');
-
-  // Add exports field. These need to be relative paths so start with './';
-  packageJson.exports = {
-    main: expPackageJson.main.replace('../', './'),
-    // Again, these are esm2017 now.
-    module: expPackageJson.module.replace('../', './'),
-    browser: expPackageJson.browser.replace('../', './'),
-    esm5: expPackageJson.esm5.replace('../', './'),
-    node: expPackageJson.main.replace('../', './'),
-    default: expPackageJson.browser.replace('../', './')
-  };
+  packageJson.esm2017 = expPackageJson.esm2017.replace('../', '');
 
   packageJson.typings = expPackageJson.typings.replace('../', '');
 
