@@ -8,15 +8,15 @@
 
 |  Package | Description |
 |  --- | --- |
-|  [@firebase/analytics](./analytics.md) |  |
+|  [@firebase/analytics](./analytics.md) | Firebase Analytics |
 |  [@firebase/app](./app.md) | Firebase App |
-|  [@firebase/auth](./auth.md) |  |
-|  [@firebase/database](./database.md) |  |
-|  [@firebase/firestore](./firestore.md) |  |
-|  [@firebase/functions](./functions.md) |  |
-|  [@firebase/installations](./installations.md) |  |
-|  [@firebase/messaging](./messaging.md) |  |
-|  [@firebase/performance](./performance.md) |  |
-|  [@firebase/remote-config](./remote-config.md) |  |
-|  [@firebase/storage](./storage.md) |  |
+|  [@firebase/auth](./auth.md) | Firebase Authentication |
+|  [@firebase/database](./database.md) | Firebase Realtime Database |
+|  [@firebase/firestore](./firestore.md) | Cloud Firestore |
+|  [@firebase/functions](./functions.md) | Cloud Functions for Firebase |
+|  [@firebase/installations](./installations.md) | Firebase Installations |
+|  [@firebase/messaging](./messaging.md) | Firebase Cloud Messaging |
+|  [@firebase/performance](./performance.md) | Firebase Performance Monitoring |
+|  [@firebase/remote-config](./remote-config.md) | Firebase Remote Config |
+|  [@firebase/storage](./storage.md) | Cloud Storage for Firebase |
 

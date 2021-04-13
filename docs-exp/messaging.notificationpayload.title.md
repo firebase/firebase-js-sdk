@@ -4,6 +4,8 @@
 
 ## NotificationPayload.title property
 
+The notification's title.
+
 <b>Signature:</b>
 
 ```typescript

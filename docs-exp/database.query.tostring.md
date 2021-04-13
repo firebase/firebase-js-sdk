@@ -4,6 +4,12 @@
 
 ## Query.toString() method
 
+Gets the absolute URL for this location.
+
+The `toString()` method returns a URL that is ready to be put into a browser, curl command, or a `refFromURL()` call. Since all of those expect the URL to be url-encoded, `toString()` returns an encoded URL.
+
+Append '.json' to the returned URL when typed into a browser to download JSON-formatted data. If the location is secured (that is, not publicly readable), you will get a permission-denied error.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +18,6 @@ toString(): string;
 <b>Returns:</b>
 
 string
+
+The absolute URL for this location.
 

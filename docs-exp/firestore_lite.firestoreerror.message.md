@@ -4,6 +4,8 @@
 
 ## FirestoreError.message property
 
+A custom error description.
+
 <b>Signature:</b>
 
 ```typescript

@@ -24,9 +24,9 @@ export declare class DocumentSnapshot<T = DocumentData>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [id](./firestore_.documentsnapshot.id.md) |  | string |  |
+|  [id](./firestore_.documentsnapshot.id.md) |  | string | Property of the <code>DocumentSnapshot</code> that provides the document's ID. |
 |  [metadata](./firestore_.documentsnapshot.metadata.md) |  | [SnapshotMetadata](./firestore_.snapshotmetadata.md) | Metadata about the <code>DocumentSnapshot</code>, including information about its source and local modifications. |
-|  [ref](./firestore_.documentsnapshot.ref.md) |  | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; |  |
+|  [ref](./firestore_.documentsnapshot.ref.md) |  | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; | The <code>DocumentReference</code> for the document included in the <code>DocumentSnapshot</code>. |
 
 ## Methods
 

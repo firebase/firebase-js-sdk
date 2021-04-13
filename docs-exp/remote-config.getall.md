@@ -16,11 +16,11 @@ export declare function getAll(remoteConfig: RemoteConfig): Record<string, Value
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | The <code>RemoteConfig</code> instance. |
 
 <b>Returns:</b>
 
 Record&lt;string, [Value](./remote-config.value.md)<!-- -->&gt;
 
-all config
+All config.
 

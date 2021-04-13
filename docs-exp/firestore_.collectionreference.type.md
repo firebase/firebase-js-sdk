@@ -4,6 +4,8 @@
 
 ## CollectionReference.type property
 
+The type of this Firestore reference.
+
 <b>Signature:</b>
 
 ```typescript

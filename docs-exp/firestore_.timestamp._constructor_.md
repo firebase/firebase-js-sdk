@@ -9,7 +9,9 @@ Creates a new timestamp.
 <b>Signature:</b>
 
 ```typescript
-constructor(seconds: number, nanoseconds: number);
+constructor(
+    seconds: number, 
+    nanoseconds: number);
 ```
 
 ## Parameters

@@ -4,6 +4,8 @@
 
 ## Dependencies.popupRedirectResolver property
 
+The [PopupRedirectResolver](./auth.popupredirectresolver.md) to use. This value depends on the platform. Options are [browserPopupRedirectResolver](./auth.browserpopupredirectresolver.md) and . This field is optional if neither [signInWithPopup()](./auth.signinwithpopup.md) or [signInWithRedirect()](./auth.signinwithredirect.md) are being used.
+
 <b>Signature:</b>
 
 ```typescript

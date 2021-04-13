@@ -4,6 +4,8 @@
 
 ## MessagePayload.from property
 
+The sender of this message.
+
 <b>Signature:</b>
 
 ```typescript

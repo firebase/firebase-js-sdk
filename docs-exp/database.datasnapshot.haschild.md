@@ -4,6 +4,8 @@
 
 ## DataSnapshot.hasChild() method
 
+Returns true if the specified child path has (non-null) data.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ hasChild(path: string): boolean;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  path | string |  |
+|  path | string | A relative path to the location of a potential child. |
 
 <b>Returns:</b>
 
 boolean
+
+`true` if data exists at the specified child path; else `false`<!-- -->.
 

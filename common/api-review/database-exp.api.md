@@ -232,6 +232,4 @@ export function update(ref: Reference, values: object): Promise<void>;
 export function useDatabaseEmulator(db: FirebaseDatabase, host: string, port: number): void;
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

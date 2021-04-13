@@ -4,12 +4,12 @@
 
 ## getMessaging() function
 
-Retrieves a firebase messaging instance.
+Retrieves a Firebase Cloud Messaging instance.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getMessaging(app?: FirebaseApp): FirebaseMessaging;
+export declare function getMessagingInWindow(app?: FirebaseApp): FirebaseMessaging;
 ```
 
 ## Parameters
@@ -22,5 +22,5 @@ export declare function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 
 [FirebaseMessaging](./messaging.firebasemessaging.md)
 
-the firebase messaging instance associated with the provided firebase app.
+The Firebase Cloud Messaging instance associated with the provided firebase app.
 

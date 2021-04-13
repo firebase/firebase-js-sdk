@@ -4,6 +4,8 @@
 
 ## HttpsCallableResult.data property
 
+Data returned from callable function.
+
 <b>Signature:</b>
 
 ```typescript

@@ -6,23 +6,21 @@
 
 Applies a custom data converter to this `DocumentReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [setDoc()](./firestore_lite.setdoc.md)<!-- -->, [getDoc()](./firestore_lite.getdoc.md)<!-- -->, etc. with the returned `DocumentReference` instance, the provided converter will convert between Firestore data and your custom type `U`<!-- -->.
 
-Passing in `null` as the converter parameter removes the current converter.
-
 <b>Signature:</b>
 
 ```typescript
-withConverter(converter: null): DocumentReference<DocumentData>;
+withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  converter | null | Converts objects to and from Firestore. Passing in <code>null</code> removes the current converter. |
+|  converter | [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md)<!-- -->&lt;U&gt; | Converts objects to and from Firestore. |
 
 <b>Returns:</b>
 
-[DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;[DocumentData](./firestore_lite.documentdata.md)<!-- -->&gt;
+[DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;U&gt;
 
 A `DocumentReference<U>` that uses the provided converter.
 

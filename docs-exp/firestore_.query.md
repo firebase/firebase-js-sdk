@@ -4,7 +4,7 @@
 
 ## query() function
 
-Creates a new immutable instance of `query` that is extended to also include additional query constraints.
+Creates a new immutable instance of `Query` that is extended to also include additional query constraints.
 
 <b>Signature:</b>
 
@@ -16,7 +16,7 @@ export declare function query<T>(query: Query<T>, ...queryConstraints: QueryCons
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; | The query instance to use as a base for the new constraints. |
+|  query | [Query](./firestore_.query.md)<!-- -->&lt;T&gt; | The Query instance to use as a base for the new constraints. |
 |  queryConstraints | [QueryConstraint](./firestore_.queryconstraint.md)<!-- -->\[\] | The list of <code>QueryConstraint</code>s to apply. |
 
 <b>Returns:</b>

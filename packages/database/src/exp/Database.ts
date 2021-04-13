@@ -258,11 +258,11 @@ export class FirebaseDatabase implements _FirebaseService {
 
 /**
  * Returns the instance of the Realtime Database SDK that is associated
- * with the provided {@link FirebaseApp}. Initializes a new instance with
+ * with the provided {@link @firebase/app#FirebaseApp}. Initializes a new instance with
  * with default settings if no instance exists or if the existing instance uses
  * a custom database URL.
  *
- * @param app - The {@link FirebaseApp} instance that the returned Realtime
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Realtime
  * Database instance is associated with.
  * @param url - The URL of the Realtime Database instance to connect to. If not
  * provided, the SDK connects to the default instance of the Firebase App.

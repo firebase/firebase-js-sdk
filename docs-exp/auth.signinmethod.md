@@ -16,12 +16,11 @@ export declare const enum SignInMethod
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  ANONYMOUS | <code>&quot;anonymous&quot;</code> |  |
-|  EMAIL\_LINK | <code>&quot;emailLink&quot;</code> |  |
-|  EMAIL\_PASSWORD | <code>&quot;password&quot;</code> |  |
-|  FACEBOOK | <code>&quot;facebook.com&quot;</code> |  |
-|  GITHUB | <code>&quot;github.com&quot;</code> |  |
-|  GOOGLE | <code>&quot;google.com&quot;</code> |  |
-|  PHONE | <code>&quot;phone&quot;</code> |  |
-|  TWITTER | <code>&quot;twitter.com&quot;</code> |  |
+|  EMAIL\_LINK | <code>&quot;emailLink&quot;</code> | Email link sign in method |
+|  EMAIL\_PASSWORD | <code>&quot;password&quot;</code> | Email/password sign in method |
+|  FACEBOOK | <code>&quot;facebook.com&quot;</code> | Facebook sign in method |
+|  GITHUB | <code>&quot;github.com&quot;</code> | GitHub sign in method |
+|  GOOGLE | <code>&quot;google.com&quot;</code> | Google sign in method |
+|  PHONE | <code>&quot;phone&quot;</code> | Phone sign in method |
+|  TWITTER | <code>&quot;twitter.com&quot;</code> | Twitter sign in method |
 

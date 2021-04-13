@@ -4,6 +4,8 @@
 
 ## FcmOptions.analyticsLabel property
 
+The label associated with the message's analytics data.
+
 <b>Signature:</b>
 
 ```typescript

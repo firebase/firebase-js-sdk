@@ -16,8 +16,8 @@ export declare function getToken(installations: FirebaseInstallations, forceRefr
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) |  |
-|  forceRefresh | boolean |  |
+|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) | The <code>Installations</code> instance. |
+|  forceRefresh | boolean | Force refresh regardless of token expiration. |
 
 <b>Returns:</b>
 

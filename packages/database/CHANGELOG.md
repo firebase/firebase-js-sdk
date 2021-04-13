@@ -1,5 +1,16 @@
 # Unreleased
 
+## 0.9.9
+
+### Patch Changes
+
+- [`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda) [#4720](https://github.com/firebase/firebase-js-sdk/pull/4720) - Internal changes to Database and Validation APIs.
+
+- Updated dependencies [[`e46ebb743`](https://github.com/firebase/firebase-js-sdk/commit/e46ebb743f670f3b7d2160164addeddf918fb0cb), [`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda)]:
+  - @firebase/database-types@0.7.2
+  - @firebase/util@1.0.0
+  - @firebase/component@0.4.1
+
 ## 0.9.8
 
 ### Patch Changes

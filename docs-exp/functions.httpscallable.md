@@ -2,12 +2,14 @@
 
 [Home](./index.md) &gt; [@firebase/functions](./functions.md) &gt; [HttpsCallable](./functions.httpscallable.md)
 
-## HttpsCallable interface
+## HttpsCallable type
 
 An HttpsCallable is a reference to a "callable" http trigger in Google Cloud Functions.
 
 <b>Signature:</b>
 
 ```typescript
-export interface HttpsCallable<RequestData = unknown, ResponseData = unknown> 
+export declare type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (data?: RequestData | null) => Promise<HttpsCallableResult<ResponseData>>;
 ```
+<b>References:</b> [HttpsCallableResult](./functions.httpscallableresult.md)
+

@@ -4,6 +4,8 @@
 
 ## FirestoreError.stack property
 
+The stack of the error.
+
 <b>Signature:</b>
 
 ```typescript

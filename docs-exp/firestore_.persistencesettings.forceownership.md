@@ -4,6 +4,8 @@
 
 ## PersistenceSettings.forceOwnership property
 
+Whether to force enable persistence for the client. This cannot be used with multi-tab synchronization and is primarily intended for use with Web Workers. Setting this to `true` will enable persistence, but cause other tabs using persistence to fail.
+
 <b>Signature:</b>
 
 ```typescript

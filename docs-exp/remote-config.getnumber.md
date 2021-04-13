@@ -18,12 +18,12 @@ export declare function getNumber(remoteConfig: RemoteConfig, key: string): numb
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
-|  key | string | the name of the parameter |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | The <code>RemoteConfig</code> instance. |
+|  key | string | The name of the parameter. |
 
 <b>Returns:</b>
 
 number
 
-the value for the given key as a number
+The value for the given key as a number.
 

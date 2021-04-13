@@ -4,6 +4,8 @@
 
 ## auth package
 
+Firebase Authentication
+
 ## Classes
 
 |  Class | Description |
@@ -50,7 +52,7 @@
 |  [getIdTokenResult(user, forceRefresh)](./auth.getidtokenresult.md) | Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service. |
 |  [getMultiFactorResolver(auth, error)](./auth.getmultifactorresolver.md) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.getredirectresult.md) | Returns a [UserCredential](./auth.usercredential.md) from the redirect-based sign-in flow. |
-|  [initializeAuth(app, deps)](./auth.initializeauth.md) |  |
+|  [initializeAuth(app, deps)](./auth.initializeauth.md) | Initializes an Auth instance with fine-grained control over [Dependencies](./auth.dependencies.md)<!-- -->. |
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.issigninwithemaillink.md) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.signinwithemaillink.md)<!-- -->. |
 |  [linkWithCredential(user, credential)](./auth.linkwithcredential.md) | Links the user account with the given credentials. |
 |  [linkWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.linkwithphonenumber.md) | Links the user account with the given phone number. |
@@ -104,7 +106,7 @@
 |  [AuthSettings](./auth.authsettings.md) | Interface representing an Auth instance's settings. |
 |  [Config](./auth.config.md) | Interface representing the Auth config. |
 |  [ConfirmationResult](./auth.confirmationresult.md) | A result from a phone number sign-in, link, or reauthenticate call. |
-|  [Dependencies](./auth.dependencies.md) |  |
+|  [Dependencies](./auth.dependencies.md) | The dependencies that can be used to initialize an Auth instance. |
 |  [IdTokenResult](./auth.idtokenresult.md) | Interface representing ID token result obtained from [User.getIdTokenResult()](./auth.user.getidtokenresult.md)<!-- -->. |
 |  [MultiFactorAssertion](./auth.multifactorassertion.md) | The base class for asserting ownership of a second factor. |
 |  [MultiFactorError](./auth.multifactorerror.md) | The error thrown when the user needs to provide a second factor to sign in successfully. |

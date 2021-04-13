@@ -4,6 +4,8 @@
 
 ## GeoPoint.toJSON() method
 
+Returns a JSON-serializable representation of this GeoPoint.
+
 <b>Signature:</b>
 
 ```typescript

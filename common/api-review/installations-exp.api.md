@@ -38,6 +38,4 @@ export type IdChangeUnsubscribeFn = () => void;
 export function onIdChange(installations: FirebaseInstallations, callback: IdChangeCallbackFn): IdChangeUnsubscribeFn;
 
 
-// (No @packageDocumentation comment for this package)
-
 ```

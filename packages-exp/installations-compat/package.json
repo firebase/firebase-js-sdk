@@ -52,8 +52,8 @@
   "dependencies": {
     "@firebase/installations-exp": "0.0.900",
     "@firebase/installations-types": "0.3.4",
-    "@firebase/util": "0.4.1",
-    "@firebase/component": "0.4.0",
+    "@firebase/util": "1.0.0",
+    "@firebase/component": "0.4.1",
     "idb": "3.0.2",
     "tslib": "^2.1.0"
   }

@@ -4,7 +4,7 @@
 
 ## trace() function
 
-Returns a new PerformanceTrace instance.
+Returns a new `PerformanceTrace` instance.
 
 <b>Signature:</b>
 
@@ -16,7 +16,7 @@ export declare function trace(performance: FirebasePerformance, name: string): P
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  performance | [FirebasePerformance](./performance.firebaseperformance.md) | The FirebasePerformance instance to use. |
+|  performance | [FirebasePerformance](./performance.firebaseperformance.md) | The <code>FirebasePerformance</code> instance to use. |
 |  name | string | The name of the trace. |
 
 <b>Returns:</b>

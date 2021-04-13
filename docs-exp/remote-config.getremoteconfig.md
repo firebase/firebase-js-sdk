@@ -14,11 +14,11 @@ export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md) | the firebase app instance |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The <code>FirebaseApp</code> instance. |
 
 <b>Returns:</b>
 
 [RemoteConfig](./remote-config.remoteconfig.md)
 
-a remote config instance
+A `RemoteConfig` instance.
 

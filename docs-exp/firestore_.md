@@ -77,7 +77,7 @@
 |  [onSnapshotsInSync(firestore, observer)](./firestore_.onsnapshotsinsync.md) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use SnapshotMetadata in the individual listeners to determine if a snapshot is from the cache or the server. |
 |  [onSnapshotsInSync(firestore, onSync)](./firestore_.onsnapshotsinsync_1.md) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use SnapshotMetadata in the individual listeners to determine if a snapshot is from the cache or the server. |
 |  [orderBy(fieldPath, directionStr)](./firestore_.orderby.md) | Creates a <code>QueryConstraint</code> that sorts the query result by the specified field, optionally in descending order instead of ascending. |
-|  [query(query, queryConstraints)](./firestore_.query.md) | Creates a new immutable instance of <code>query</code> that is extended to also include additional query constraints. |
+|  [query(query, queryConstraints)](./firestore_.query.md) | Creates a new immutable instance of <code>Query</code> that is extended to also include additional query constraints. |
 |  [queryEqual(left, right)](./firestore_.queryequal.md) | Returns true if the provided queries point to the same collection and apply the same constraints. |
 |  [refEqual(left, right)](./firestore_.refequal.md) | Returns true if the provided references are equal. |
 |  [runTransaction(firestore, updateFunction)](./firestore_.runtransaction.md) | Executes the given <code>updateFunction</code> and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the <code>updateFunction</code>. If it fails to commit after 5 attempts, the transaction fails.<!-- -->The maximum number of writes allowed in a single transaction is 500. |
@@ -106,11 +106,11 @@
 |  [DocumentData](./firestore_.documentdata.md) | Document data (for use with [setDoc()](./firestore_lite.setdoc.md)<!-- -->) consists of fields mapped to values. |
 |  [FirestoreDataConverter](./firestore_.firestoredataconverter.md) | Converter used by <code>withConverter()</code> to transform user objects of type <code>T</code> into Firestore data.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
 |  [LoadBundleTaskProgress](./firestore_.loadbundletaskprogress.md) | Represents a progress update or a final state from loading bundles. |
-|  [PersistenceSettings](./firestore_.persistencesettings.md) |  |
-|  [Settings](./firestore_.settings.md) |  |
+|  [PersistenceSettings](./firestore_.persistencesettings.md) | Settings that can be passed to <code>enableIndexedDbPersistence()</code> to configure Firestore persistence. |
+|  [Settings](./firestore_.settings.md) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md) | An options object that can be passed to [onSnapshot()](./firestore_.onsnapshot.md) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.docchanges.md) to control which types of changes to include in the result set. |
 |  [SnapshotOptions](./firestore_.snapshotoptions.md) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
-|  [Unsubscribe](./firestore_.unsubscribe.md) |  |
+|  [Unsubscribe](./firestore_.unsubscribe.md) | A function returned by <code>onSnapshot()</code> that removes the listener when invoked. |
 |  [UpdateData](./firestore_.updatedata.md) | Update data (for use with [updateDoc()](./firestore_lite.updatedoc.md)<!-- -->) consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. |
 
 ## Variables

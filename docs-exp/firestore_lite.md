@@ -54,7 +54,7 @@
 |  [limit(limit)](./firestore_lite.limit.md) | Creates a <code>QueryConstraint</code> that only returns the first matching documents. |
 |  [limitToLast(limit)](./firestore_lite.limittolast.md) | Creates a <code>QueryConstraint</code> that only returns the last matching documents.<!-- -->You must specify at least one <code>orderBy</code> clause for <code>limitToLast</code> queries, otherwise an exception will be thrown during execution. |
 |  [orderBy(fieldPath, directionStr)](./firestore_lite.orderby.md) | Creates a <code>QueryConstraint</code> that sorts the query result by the specified field, optionally in descending order instead of ascending. |
-|  [query(query, queryConstraints)](./firestore_lite.query.md) | Creates a new immutable instance of <code>query</code> that is extended to also include additional query constraints. |
+|  [query(query, queryConstraints)](./firestore_lite.query.md) | Creates a new immutable instance of <code>Query</code> that is extended to also include additional query constraints. |
 |  [queryEqual(left, right)](./firestore_lite.queryequal.md) | Returns true if the provided queries point to the same collection and apply the same constraints. |
 |  [refEqual(left, right)](./firestore_lite.refequal.md) | Returns true if the provided references are equal. |
 |  [runTransaction(firestore, updateFunction)](./firestore_lite.runtransaction.md) | Executes the given <code>updateFunction</code> and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the <code>updateFunction</code>. If it fails to commit after 5 attempts, the transaction fails.<!-- -->The maximum number of writes allowed in a single transaction is 500. |
@@ -80,7 +80,7 @@
 |  --- | --- |
 |  [DocumentData](./firestore_lite.documentdata.md) | Document data (for use with [setDoc()](./firestore_lite.setdoc.md)<!-- -->) consists of fields mapped to values. |
 |  [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md) | Converter used by <code>withConverter()</code> to transform user objects of type <code>T</code> into Firestore data.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
-|  [Settings](./firestore_lite.settings.md) |  |
+|  [Settings](./firestore_lite.settings.md) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [UpdateData](./firestore_lite.updatedata.md) | Update data (for use with [updateDoc()](./firestore_lite.updatedoc.md)<!-- -->) consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. |
 
 ## Type Aliases

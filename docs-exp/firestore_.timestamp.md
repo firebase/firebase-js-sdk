@@ -26,8 +26,8 @@ export declare class Timestamp
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [nanoseconds](./firestore_.timestamp.nanoseconds.md) |  | number |  |
-|  [seconds](./firestore_.timestamp.seconds.md) |  | number |  |
+|  [nanoseconds](./firestore_.timestamp.nanoseconds.md) |  | number | The fractions of a second at nanosecond resolution.\* |
+|  [seconds](./firestore_.timestamp.seconds.md) |  | number | The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. |
 
 ## Methods
 
@@ -38,8 +38,8 @@ export declare class Timestamp
 |  [isEqual(other)](./firestore_.timestamp.isequal.md) |  | Returns true if this <code>Timestamp</code> is equal to the provided one. |
 |  [now()](./firestore_.timestamp.now.md) | <code>static</code> | Creates a new timestamp with the current date, with millisecond precision. |
 |  [toDate()](./firestore_.timestamp.todate.md) |  | Converts a <code>Timestamp</code> to a JavaScript <code>Date</code> object. This conversion causes a loss of precision since <code>Date</code> objects only support millisecond precision. |
-|  [toJSON()](./firestore_.timestamp.tojson.md) |  |  |
+|  [toJSON()](./firestore_.timestamp.tojson.md) |  | Returns a JSON-serializable representation of this Timestamp. |
 |  [toMillis()](./firestore_.timestamp.tomillis.md) |  | Converts a <code>Timestamp</code> to a numeric timestamp (in milliseconds since epoch). This operation causes a loss of precision. |
-|  [toString()](./firestore_.timestamp.tostring.md) |  |  |
+|  [toString()](./firestore_.timestamp.tostring.md) |  | Returns a textual representation of this Timestamp. |
 |  [valueOf()](./firestore_.timestamp.valueof.md) |  | Converts this object to a primitive string, which allows Timestamp objects to be compared using the <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code> and <code>&gt;</code> operators. |
 

@@ -4,6 +4,8 @@
 
 ## firestore package
 
+Cloud Firestore
+
 |  Entry Point | Description |
 |  --- | --- |
 |  [/](./firestore_.md) |  |

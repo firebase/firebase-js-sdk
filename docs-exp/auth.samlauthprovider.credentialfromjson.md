@@ -4,6 +4,8 @@
 
 ## SAMLAuthProvider.credentialFromJSON() method
 
+Creates an [AuthCredential](./auth.authcredential.md) from a JSON string or a plain object.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ static credentialFromJSON(json: string | object): AuthCredential;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  json | string \| object |  |
+|  json | string \| object | A plain object or a JSON string |
 
 <b>Returns:</b>
 

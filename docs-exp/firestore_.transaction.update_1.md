@@ -4,6 +4,10 @@
 
 ## Transaction.update() method
 
+Updates fields in the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. The update will fail if applied to a document that does not exist.
+
+Nested fields can be updated by providing dot-separated field path strings or by providing `FieldPath` objects.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,12 +18,14 @@ update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;unknown&gt; |  |
-|  field | string \| [FieldPath](./firestore_.fieldpath.md) |  |
-|  value | unknown |  |
-|  moreFieldsAndValues | unknown\[\] |  |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;unknown&gt; | A reference to the document to be updated. |
+|  field | string \| [FieldPath](./firestore_.fieldpath.md) | The first field to update. |
+|  value | unknown | The first value. |
+|  moreFieldsAndValues | unknown\[\] | Additional key/value pairs. |
 
 <b>Returns:</b>
 
 this
+
+This `Transaction` instance. Used for chaining method calls.
 
