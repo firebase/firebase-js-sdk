@@ -304,7 +304,7 @@ export class FirstPartyToken implements Token {
   ) {}
 
   /** Gets an authorization token, using a provided factory function, or falling back to First Party GAPI. */
-  private getAuthToken() {
+  private getAuthToken(): string | null {
     if (this.authTokenFactory) {
       return this.authTokenFactory();
     } else {
