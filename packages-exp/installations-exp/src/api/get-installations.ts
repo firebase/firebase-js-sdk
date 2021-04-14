@@ -20,6 +20,7 @@ import { FirebaseInstallations } from '../interfaces/public-types';
 
 /**
  * Returns an instance of FirebaseInstallations associated with the given FirebaseApp instance.
+ * @param app - The `FirebaseApp` instance.
  *
  * @public
  */

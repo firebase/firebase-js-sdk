@@ -4,6 +4,8 @@
 
 ## MessagePayload.collapseKey property
 
+The collapse key of the message. See [Non-collapsible and collapsible messages](https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages)
+
 <b>Signature:</b>
 
 ```typescript

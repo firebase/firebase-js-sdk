@@ -17,10 +17,10 @@
 
 import { PersistentConnection } from '../core/PersistentConnection';
 import { RepoInfo } from '../core/RepoInfo';
+import { repoManagerForceRestClient } from '../exp/Database';
 import { Connection } from '../realtime/Connection';
 
-import { repoManagerForceRestClient } from './Database';
-import { Query } from './Query';
+import { Query } from './Reference';
 
 export const DataConnection = PersistentConnection;
 
@@ -64,7 +64,7 @@ export const hijackHash = function (newHash: () => string) {
 export const ConnectionTarget = RepoInfo;
 
 export const queryIdentifier = function (query: Query) {
-  return query.queryIdentifier();
+  return query._delegate._queryIdentifier;
 };
 
 /**

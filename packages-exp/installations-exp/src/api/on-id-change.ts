@@ -35,6 +35,9 @@ export type IdChangeUnsubscribeFn = () => void;
 /**
  * Sets a new callback that will get called when Installation ID changes.
  * Returns an unsubscribe function that will remove the callback when called.
+ * @param installations - The `Installations` instance.
+ * @param callback - The callback function that is invoked when FID changes.
+ * @returns A function that can be called to unsubscribe.
  *
  * @public
  */

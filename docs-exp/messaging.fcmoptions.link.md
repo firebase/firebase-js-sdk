@@ -4,6 +4,8 @@
 
 ## FcmOptions.link property
 
+The link to open when the user clicks on the notification.
+
 <b>Signature:</b>
 
 ```typescript

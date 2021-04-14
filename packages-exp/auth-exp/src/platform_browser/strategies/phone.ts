@@ -103,7 +103,7 @@ export async function signInWithPhoneNumber(
   const verificationId = await _verifyPhoneNumber(
     authInternal,
     phoneNumber,
-    appVerifier as ApplicationVerifierInternal
+    getModularInstance(appVerifier as ApplicationVerifierInternal)
   );
   return new ConfirmationResultImpl(verificationId, cred =>
     signInWithCredential(authInternal, cred)
@@ -129,7 +129,7 @@ export async function linkWithPhoneNumber(
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
     phoneNumber,
-    appVerifier as ApplicationVerifierInternal
+    getModularInstance(appVerifier as ApplicationVerifierInternal)
   );
   return new ConfirmationResultImpl(verificationId, cred =>
     linkWithCredential(userInternal, cred)
@@ -156,7 +156,7 @@ export async function reauthenticateWithPhoneNumber(
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
     phoneNumber,
-    appVerifier as ApplicationVerifierInternal
+    getModularInstance(appVerifier as ApplicationVerifierInternal)
   );
   return new ConfirmationResultImpl(verificationId, cred =>
     reauthenticateWithCredential(userInternal, cred)

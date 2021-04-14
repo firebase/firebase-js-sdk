@@ -36,7 +36,7 @@ export class Path {
   pieceNum_: number;
 
   /**
-   * @param pathOrString Path string to parse, or another path, or the raw
+   * @param pathOrString - Path string to parse, or another path, or the raw
    * tokens array
    */
   constructor(pathOrString: string | string[], pieceNum?: number) {
@@ -85,7 +85,7 @@ export function pathGetFront(path: Path): string | null {
 }
 
 /**
- * @return The number of segments in this path
+ * @returns The number of segments in this path
  */
 export function pathGetLength(path: Path): number {
   return path.pieces_.length - path.pieceNum_;
@@ -162,14 +162,14 @@ export function pathChild(path: Path, childPathObj: string | Path): Path {
 }
 
 /**
- * @return True if there are no segments in this path
+ * @returns True if there are no segments in this path
  */
 export function pathIsEmpty(path: Path): boolean {
   return path.pieceNum_ >= path.pieces_.length;
 }
 
 /**
- * @return The path from outerPath to innerPath
+ * @returns The path from outerPath to innerPath
  */
 export function newRelativePath(outerPath: Path, innerPath: Path): Path {
   const outer = pathGetFront(outerPath),
@@ -191,7 +191,7 @@ export function newRelativePath(outerPath: Path, innerPath: Path): Path {
 }
 
 /**
- * @return -1, 0, 1 if left is less, equal, or greater than the right.
+ * @returns -1, 0, 1 if left is less, equal, or greater than the right.
  */
 export function pathCompare(left: Path, right: Path): number {
   const leftKeys = pathSlice(left, 0);
@@ -209,7 +209,7 @@ export function pathCompare(left: Path, right: Path): number {
 }
 
 /**
- * @return true if paths are the same.
+ * @returns true if paths are the same.
  */
 export function pathEquals(path: Path, other: Path): boolean {
   if (pathGetLength(path) !== pathGetLength(other)) {
@@ -230,7 +230,7 @@ export function pathEquals(path: Path, other: Path): boolean {
 }
 
 /**
- * @return True if this path is a parent (or the same as) other
+ * @returns True if this path is a parent (or the same as) other
  */
 export function pathContains(path: Path, other: Path): boolean {
   let i = path.pieceNum_;
@@ -264,8 +264,8 @@ export class ValidationPath {
   byteLength_: number;
 
   /**
-   * @param path Initial Path.
-   * @param errorPrefix_ Prefix for any error messages.
+   * @param path - Initial Path.
+   * @param errorPrefix_ - Prefix for any error messages.
    */
   constructor(path: Path, public errorPrefix_: string) {
     this.parts_ = pathSlice(path, 0);

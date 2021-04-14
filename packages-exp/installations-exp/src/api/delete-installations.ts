@@ -24,6 +24,7 @@ import { FirebaseInstallations } from '../interfaces/public-types';
 
 /**
  * Deletes the Firebase Installation and all associated data.
+ * @param installations - The `Installations` instance.
  *
  * @public
  */

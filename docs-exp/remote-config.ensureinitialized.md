@@ -16,11 +16,11 @@ export declare function ensureInitialized(remoteConfig: RemoteConfig): Promise<v
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | The <code>RemoteConfig</code> instance. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
 
-A promise that resolves when the last activated config is available to the getters
+A promise that resolves when the last activated config is available to the getters.
 

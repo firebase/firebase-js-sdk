@@ -16,8 +16,8 @@ export declare function initializePerformance(app: FirebaseApp, settings?: Perfo
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md) | The FirebaseApp to use. |
-|  settings | [PerformanceSettings](./performance.performancesettings.md) | Optional settings for the Performance instance. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The <code>FirebaseApp</code> to use. |
+|  settings | [PerformanceSettings](./performance.performancesettings.md) | Optional settings for the <code>FirebasePerformance</code> instance. |
 
 <b>Returns:</b>
 

@@ -17,8 +17,8 @@ export declare class FirestoreError extends Error
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [code](./firestore_lite.firestoreerror.code.md) |  | [FirestoreErrorCode](./firestore_lite.firestoreerrorcode.md) |  |
-|  [message](./firestore_lite.firestoreerror.message.md) |  | string |  |
-|  [name](./firestore_lite.firestoreerror.name.md) |  | string |  |
-|  [stack?](./firestore_lite.firestoreerror.stack.md) |  | string | <i>(Optional)</i> |
+|  [code](./firestore_lite.firestoreerror.code.md) |  | [FirestoreErrorCode](./firestore_lite.firestoreerrorcode.md) | The backend error code associated with this error. |
+|  [message](./firestore_lite.firestoreerror.message.md) |  | string | A custom error description. |
+|  [name](./firestore_lite.firestoreerror.name.md) |  | string | The custom name for all FirestoreErrors. |
+|  [stack?](./firestore_lite.firestoreerror.stack.md) |  | string | <i>(Optional)</i> The stack of the error. |
 

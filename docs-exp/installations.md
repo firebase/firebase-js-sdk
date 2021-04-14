@@ -4,6 +4,8 @@
 
 ## installations package
 
+Firebase Installations
+
 ## Functions
 
 |  Function | Description |

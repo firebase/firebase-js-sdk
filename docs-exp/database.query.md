@@ -4,37 +4,29 @@
 
 ## Query interface
 
+A `Query` sorts and filters the data at a Database location so only a subset of the child data is included. This can be used to order a collection of data by some attribute (for example, height of dinosaurs) as well as to restrict a large list of items (for example, chat messages) down to a number suitable for synchronizing to the client. Queries are created by chaining together one or more of the filter methods defined here.
+
+Just as with a `Reference`<!-- -->, you can receive data from a `Query` by using the `on*()` methods. You will only receive events and `DataSnapshot`<!-- -->s for the subset of the data that matches your query.
+
+See [https://firebase.google.com/docs/database/web/lists-of-data\#sorting\_and\_filtering\_data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data) for more information.
 
 <b>Signature:</b>
 
 ```typescript
-export interface Query 
+export declare interface Query 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [ref](./database.query.ref.md) | [Reference](./database.reference.md) |  |
+|  [ref](./database.query.ref.md) | [Reference](./database.reference.md) | The <code>Reference</code> for the <code>Query</code>'s location. |
 
 ## Methods
 
 |  Method | Description |
 |  --- | --- |
-|  [endAt(value, key)](./database.query.endat.md) |  |
-|  [equalTo(value, key)](./database.query.equalto.md) |  |
-|  [get()](./database.query.get.md) |  |
-|  [isEqual(other)](./database.query.isequal.md) |  |
-|  [limitToFirst(limit)](./database.query.limittofirst.md) |  |
-|  [limitToLast(limit)](./database.query.limittolast.md) |  |
-|  [off(eventType, callback, context)](./database.query.off.md) |  |
-|  [on(eventType, callback, cancelCallbackOrContext, context)](./database.query.on.md) |  |
-|  [once(eventType, successCallback, failureCallbackOrContext, context)](./database.query.once.md) |  |
-|  [orderByChild(path)](./database.query.orderbychild.md) |  |
-|  [orderByKey()](./database.query.orderbykey.md) |  |
-|  [orderByPriority()](./database.query.orderbypriority.md) |  |
-|  [orderByValue()](./database.query.orderbyvalue.md) |  |
-|  [startAt(value, key)](./database.query.startat.md) |  |
-|  [toJSON()](./database.query.tojson.md) |  |
-|  [toString()](./database.query.tostring.md) |  |
+|  [isEqual(other)](./database.query.isequal.md) | Returns whether or not the current and provided queries represent the same location, have the same query parameters, and are from the same instance of <code>FirebaseApp</code>.<!-- -->Two <code>Reference</code> objects are equivalent if they represent the same location and are from the same instance of <code>FirebaseApp</code>.<!-- -->Two <code>Query</code> objects are equivalent if they represent the same location, have the same query parameters, and are from the same instance of <code>FirebaseApp</code>. Equivalent queries share the same sort order, limits, and starting and ending points. |
+|  [toJSON()](./database.query.tojson.md) | Returns a JSON-serializable representation of this object. |
+|  [toString()](./database.query.tostring.md) | Gets the absolute URL for this location.<!-- -->The <code>toString()</code> method returns a URL that is ready to be put into a browser, curl command, or a <code>refFromURL()</code> call. Since all of those expect the URL to be url-encoded, <code>toString()</code> returns an encoded URL.<!-- -->Append '.json' to the returned URL when typed into a browser to download JSON-formatted data. If the location is secured (that is, not publicly readable), you will get a permission-denied error. |
 

@@ -73,12 +73,12 @@ export class WebSocketConnection implements Transport {
   private nodeAdmin: boolean;
 
   /**
-   * @param connId identifier for this transport
-   * @param repoInfo The info for the websocket endpoint.
-   * @param applicationId The Firebase App ID for this project.
-   * @param transportSessionId Optional transportSessionId if this is connecting to an existing transport
+   * @param connId - identifier for this transport
+   * @param repoInfo - The info for the websocket endpoint.
+   * @param applicationId - The Firebase App ID for this project.
+   * @param transportSessionId - Optional transportSessionId if this is connecting to an existing transport
    *                                         session
-   * @param lastSessionId Optional lastSessionId if there was a previous connection
+   * @param lastSessionId - Optional lastSessionId if there was a previous connection
    */
   constructor(
     public connId: string,
@@ -98,11 +98,11 @@ export class WebSocketConnection implements Transport {
   }
 
   /**
-   * @param repoInfo The info for the websocket endpoint.
-   * @param transportSessionId Optional transportSessionId if this is connecting to an existing transport
+   * @param repoInfo - The info for the websocket endpoint.
+   * @param transportSessionId - Optional transportSessionId if this is connecting to an existing transport
    *                                         session
-   * @param lastSessionId Optional lastSessionId if there was a previous connection
-   * @return connection url
+   * @param lastSessionId - Optional lastSessionId if there was a previous connection
+   * @returns connection url
    */
   private static connectionURL_(
     repoInfo: RepoInfo,
@@ -130,8 +130,8 @@ export class WebSocketConnection implements Transport {
   }
 
   /**
-   * @param onMessage Callback when messages arrive
-   * @param onDisconnect Callback with connection lost.
+   * @param onMessage - Callback when messages arrive
+   * @param onDisconnect - Callback with connection lost.
    */
   open(onMessage: (msg: {}) => void, onDisconnect: (a?: boolean) => void) {
     this.onDisconnect = onDisconnect;
@@ -279,7 +279,7 @@ export class WebSocketConnection implements Transport {
   }
 
   /**
-   * @param frameCount The number of frames we are expecting from the server
+   * @param frameCount - The number of frames we are expecting from the server
    */
   private handleNewFrameCount_(frameCount: number) {
     this.totalFrames = frameCount;
@@ -288,7 +288,7 @@ export class WebSocketConnection implements Transport {
 
   /**
    * Attempts to parse a frame count out of some text. If it can't, assumes a value of 1
-   * @return Any remaining data to be process, or null if there is none
+   * @returns Any remaining data to be process, or null if there is none
    */
   private extractFrameCount_(data: string): string | null {
     assert(this.frames === null, 'We already have a frame buffer');
@@ -307,7 +307,7 @@ export class WebSocketConnection implements Transport {
 
   /**
    * Process a websocket frame that has arrived from the server.
-   * @param mess The frame data
+   * @param mess - The frame data
    */
   handleIncomingFrame(mess: { [k: string]: unknown }) {
     if (this.mySock === null) {
@@ -333,7 +333,7 @@ export class WebSocketConnection implements Transport {
 
   /**
    * Send a message to the server
-   * @param data The JSON object to transmit
+   * @param data - The JSON object to transmit
    */
   send(data: {}) {
     this.resetKeepAlive();
@@ -414,7 +414,7 @@ export class WebSocketConnection implements Transport {
   /**
    * Send a string over the websocket.
    *
-   * @param str String to send.
+   * @param str - String to send.
    */
   private sendString_(str: string) {
     // Firefox seems to sometimes throw exceptions (NS_ERROR_UNEXPECTED) from websocket .send()

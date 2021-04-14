@@ -1,5 +1,35 @@
 # @firebase/rules-unit-testing
 
+## 1.2.9
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.4.1
+
+## 1.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda), [`5ae73656d`](https://github.com/firebase/firebase-js-sdk/commit/5ae73656d976fa724ea6ca86d496e9531c95b29c)]:
+  - firebase@8.4.0
+  - @firebase/util@1.0.0
+  - @firebase/component@0.4.1
+
+## 1.2.7
+
+### Patch Changes
+
+- [`5ad7ff2ae`](https://github.com/firebase/firebase-js-sdk/commit/5ad7ff2ae955c297556223e6cb3ad9d4b897f664) [#4713](https://github.com/firebase/firebase-js-sdk/pull/4713) - Fix assertFails not correctly catching RTDB permission denied errors (#4667).
+
+* [`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3) [#4714](https://github.com/firebase/firebase-js-sdk/pull/4714) - Internal typing changes
+
+- [`5ef703143`](https://github.com/firebase/firebase-js-sdk/commit/5ef7031430bb3d451682e0a3cd9cbba5e9d6cef7) [#4717](https://github.com/firebase/firebase-js-sdk/pull/4717) (fixes [#4716](https://github.com/firebase/firebase-js-sdk/issues/4716)) - Depend on @firebase/component directly to fix the use with Yarn Plug'n'Play
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/component@0.4.0
+  - firebase@8.3.3
+
 ## 1.2.6
 
 ### Patch Changes

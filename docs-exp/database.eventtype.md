@@ -4,14 +4,10 @@
 
 ## EventType type
 
+One of the following strings: "value", "child\_added", "child\_changed", "child\_removed", or "child\_moved."
 
 <b>Signature:</b>
 
 ```typescript
-type EventType =
-  | 'value'
-  | 'child_added'
-  | 'child_changed'
-  | 'child_moved'
-  | 'child_removed';
+export declare type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
 ```

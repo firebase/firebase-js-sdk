@@ -4,6 +4,8 @@
 
 ## FirebaseFirestore.app property
 
+The [FirebaseApp](./app.firebaseapp.md) associated with this `Firestore` service instance.
+
 <b>Signature:</b>
 
 ```typescript

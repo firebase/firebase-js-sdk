@@ -1,5 +1,20 @@
 # @firebase/installations
 
+## 0.4.25
+
+### Patch Changes
+
+- Updated dependencies [[`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda)]:
+  - @firebase/util@1.0.0
+  - @firebase/component@0.4.1
+
+## 0.4.24
+
+### Patch Changes
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/component@0.4.0
+
 ## 0.4.23
 
 ### Patch Changes

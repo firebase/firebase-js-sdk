@@ -4,6 +4,8 @@
 
 ## Timestamp.nanoseconds property
 
+The fractions of a second at nanosecond resolution.\*
+
 <b>Signature:</b>
 
 ```typescript

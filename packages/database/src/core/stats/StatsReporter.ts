@@ -36,10 +36,6 @@ export class StatsReporter {
   private statsListener_: StatsListener;
   statsToReport_: { [k: string]: boolean } = {};
 
-  /**
-   * @param collection
-   * @param server_
-   */
   constructor(collection: StatsCollection, private server_: ServerActions) {
     this.statsListener_ = new StatsListener(collection);
 

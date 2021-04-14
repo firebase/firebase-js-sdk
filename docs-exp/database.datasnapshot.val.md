@@ -4,6 +4,10 @@
 
 ## DataSnapshot.val() method
 
+Extracts a JavaScript value from a `DataSnapshot`<!-- -->.
+
+Depending on the data in a `DataSnapshot`<!-- -->, the `val()` method may return a scalar type (string, number, or boolean), an array, or an object. It may also return null, indicating that the `DataSnapshot` is empty (contains no data).
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +16,6 @@ val(): any;
 <b>Returns:</b>
 
 any
+
+The DataSnapshot's contents as a JavaScript value (Object, Array, string, number, boolean, or `null`<!-- -->).
 

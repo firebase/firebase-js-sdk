@@ -4,6 +4,8 @@
 
 ## PersistenceSettings interface
 
+Settings that can be passed to `enableIndexedDbPersistence()` to configure Firestore persistence.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,5 +16,5 @@ export declare interface PersistenceSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [forceOwnership?](./firestore_.persistencesettings.forceownership.md) | boolean | <i>(Optional)</i> |
+|  [forceOwnership?](./firestore_.persistencesettings.forceownership.md) | boolean | <i>(Optional)</i> Whether to force enable persistence for the client. This cannot be used with multi-tab synchronization and is primarily intended for use with Web Workers. Setting this to <code>true</code> will enable persistence, but cause other tabs using persistence to fail. |
 

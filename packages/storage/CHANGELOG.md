@@ -1,5 +1,26 @@
 #Unreleased
 
+## 0.5.0
+
+### Minor Changes
+
+- [`5ae73656d`](https://github.com/firebase/firebase-js-sdk/commit/5ae73656d976fa724ea6ca86d496e9531c95b29c) [#4346](https://github.com/firebase/firebase-js-sdk/pull/4346) - Add `storage().useEmulator()` method to enable emulator mode for storage, allowing users
+  to set a storage emulator host and port.
+
+### Patch Changes
+
+- Updated dependencies [[`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda), [`5ae73656d`](https://github.com/firebase/firebase-js-sdk/commit/5ae73656d976fa724ea6ca86d496e9531c95b29c)]:
+  - @firebase/util@1.0.0
+  - @firebase/storage-types@0.4.0
+  - @firebase/component@0.4.1
+
+## 0.4.7
+
+### Patch Changes
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/component@0.4.0
+
 ## 0.4.6
 
 ### Patch Changes

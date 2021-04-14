@@ -4,7 +4,7 @@
 
 ## NotificationPayload interface
 
-Currently supported fcm notification display parameters. Note that [https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions) defines a full list of display notification parameters. This interface we only include what the SEND API support for clarity.
+Display notification details. They are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)
 
 <b>Signature:</b>
 
@@ -16,7 +16,7 @@ export interface NotificationPayload
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [body?](./messaging.notificationpayload.body.md) | string | <i>(Optional)</i> |
-|  [image?](./messaging.notificationpayload.image.md) | string | <i>(Optional)</i> |
-|  [title?](./messaging.notificationpayload.title.md) | string | <i>(Optional)</i> |
+|  [body?](./messaging.notificationpayload.body.md) | string | <i>(Optional)</i> The notification's body text. |
+|  [image?](./messaging.notificationpayload.image.md) | string | <i>(Optional)</i> The URL of an image that is downloaded on the device and displayed in the notification. |
+|  [title?](./messaging.notificationpayload.title.md) | string | <i>(Optional)</i> The notification's title. |
 

@@ -24,9 +24,6 @@ import {
   stringify
 } from '@firebase/util';
 
-import { FirebaseAppLike } from '../api/Database';
-import { Query } from '../api/Query';
-
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
@@ -38,6 +35,7 @@ import { nodeFromJSON } from './snap/nodeFromJSON';
 import { SnapshotHolder } from './SnapshotHolder';
 import {
   newSparseSnapshotTree,
+  SparseSnapshotTree,
   sparseSnapshotTreeForEachTree,
   sparseSnapshotTreeForget,
   sparseSnapshotTreeRemember
@@ -104,7 +102,7 @@ import {
   eventQueueRaiseEventsAtPath,
   eventQueueRaiseEventsForChangedPath
 } from './view/EventQueue';
-import { EventRegistration } from './view/EventRegistration';
+import { EventRegistration, QueryContext } from './view/EventRegistration';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -178,7 +176,7 @@ export class Repo {
   interceptServerDataCallback_: ((a: string, b: unknown) => void) | null = null;
 
   /** A list of data pieces and paths to be set when this client disconnects. */
-  onDisconnect_ = newSparseSnapshotTree();
+  onDisconnect_: SparseSnapshotTree = newSparseSnapshotTree();
 
   /** Stores queues of outstanding transactions for Firebase locations. */
   transactionQueueTree_ = new Tree<Transaction[]>();
@@ -189,7 +187,6 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     public forceRestClient_: boolean,
-    public app: FirebaseAppLike,
     public authTokenProvider_: AuthTokenProvider
   ) {
     // This key is intentionally not updated if RepoInfo is later changed or replaced
@@ -197,7 +194,7 @@ export class Repo {
   }
 
   /**
-   * @return The URL corresponding to the root of this Firebase.
+   * @returns The URL corresponding to the root of this Firebase.
    */
   toString(): string {
     return (
@@ -206,7 +203,11 @@ export class Repo {
   }
 }
 
-export function repoStart(repo: Repo): void {
+export function repoStart(
+  repo: Repo,
+  appId: string,
+  authOverride?: object
+): void {
   repo.stats_ = statsManagerGetCollection(repo.repoInfo_);
 
   if (repo.forceRestClient_ || beingCrawled()) {
@@ -226,7 +227,6 @@ export function repoStart(repo: Repo): void {
     // Minor hack: Fire onConnect immediately, since there's no actual connection.
     setTimeout(() => repoOnConnectStatus(repo, /* connectStatus= */ true), 0);
   } else {
-    const authOverride = repo.app.options['databaseAuthVariableOverride'];
     // Validate authOverride
     if (typeof authOverride !== 'undefined' && authOverride !== null) {
       if (typeof authOverride !== 'object') {
@@ -243,7 +243,7 @@ export function repoStart(repo: Repo): void {
 
     repo.persistentConnection_ = new PersistentConnection(
       repo.repoInfo_,
-      repo.app.options.appId,
+      appId,
       (
         pathString: string,
         data: unknown,
@@ -281,13 +281,13 @@ export function repoStart(repo: Repo): void {
   repo.infoSyncTree_ = new SyncTree({
     startListening: (query, tag, currentHashFn, onComplete) => {
       let infoEvents: Event[] = [];
-      const node = repo.infoData_.getNode(query.path);
+      const node = repo.infoData_.getNode(query._path);
       // This is possibly a hack, but we have different semantics for .info endpoints. We don't raise null events
       // on initial data...
       if (!node.isEmpty()) {
         infoEvents = syncTreeApplyServerOverwrite(
           repo.infoSyncTree_,
-          query.path,
+          query._path,
           node
         );
         setTimeout(() => {
@@ -306,7 +306,7 @@ export function repoStart(repo: Repo): void {
         const events = onComplete(status, data);
         eventQueueRaiseEventsForChangedPath(
           repo.eventQueue_,
-          query.path,
+          query._path,
           events
         );
       });
@@ -320,7 +320,7 @@ export function repoStart(repo: Repo): void {
 }
 
 /**
- * @return The time in milliseconds, taking the server offset into account if we have one.
+ * @returns The time in milliseconds, taking the server offset into account if we have one.
  */
 export function repoServerTime(repo: Repo): number {
   const offsetNode = repo.infoData_.getNode(new Path('.info/serverTimeOffset'));
@@ -450,7 +450,7 @@ function repoGetNextWriteId(repo: Repo): number {
  *
  * @param query - The query to surface a value for.
  */
-export function repoGetValue(repo: Repo, query: Query): Promise<Node> {
+export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   // Only active queries are cached. There is no persisted cache.
   const cached = syncTreeGetServerValue(repo.serverSyncTree_, query);
   if (cached != null) {
@@ -461,10 +461,10 @@ export function repoGetValue(repo: Repo, query: Query): Promise<Node> {
       const node = nodeFromJSON(payload as string);
       const events = syncTreeApplyServerOverwrite(
         repo.serverSyncTree_,
-        query.path,
+        query._path,
         node
       );
-      eventQueueRaiseEventsAtPath(repo.eventQueue_, query.path, events);
+      eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
       return Promise.resolve(node);
     },
     err => {
@@ -727,11 +727,11 @@ export function repoOnDisconnectUpdate(
 
 export function repoAddEventCallbackForQuery(
   repo: Repo,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration
 ): void {
   let events;
-  if (pathGetFront(query.path) === '.info') {
+  if (pathGetFront(query._path) === '.info') {
     events = syncTreeAddEventRegistration(
       repo.infoSyncTree_,
       query,
@@ -744,18 +744,18 @@ export function repoAddEventCallbackForQuery(
       eventRegistration
     );
   }
-  eventQueueRaiseEventsAtPath(repo.eventQueue_, query.path, events);
+  eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
 }
 
 export function repoRemoveEventCallbackForQuery(
   repo: Repo,
-  query: Query,
+  query: QueryContext,
   eventRegistration: EventRegistration
 ): void {
   // These are guaranteed not to raise events, since we're not passing in a cancelError. However, we can future-proof
   // a little bit by handling the return values anyways.
   let events;
-  if (pathGetFront(query.path) === '.info') {
+  if (pathGetFront(query._path) === '.info') {
     events = syncTreeRemoveEventRegistration(
       repo.infoSyncTree_,
       query,
@@ -768,7 +768,7 @@ export function repoRemoveEventCallbackForQuery(
       eventRegistration
     );
   }
-  eventQueueRaiseEventsAtPath(repo.eventQueue_, query.path, events);
+  eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
 }
 
 export function repoInterrupt(repo: Repo): void {
@@ -858,12 +858,12 @@ export function repoCallOnCompleteCallback(
  * Creates a new transaction, adds it to the transactions we're tracking, and
  * sends it to the server if possible.
  *
- * @param path Path at which to do transaction.
- * @param transactionUpdate Update callback.
- * @param onComplete Completion callback.
- * @param unwatcher Function that will be called when the transaction no longer
+ * @param path - Path at which to do transaction.
+ * @param transactionUpdate - Update callback.
+ * @param onComplete - Completion callback.
+ * @param unwatcher - Function that will be called when the transaction no longer
  * need data updates for `path`.
- * @param applyLocally Whether or not to make intermediate results visible
+ * @param applyLocally - Whether or not to make intermediate results visible
  */
 export function repoStartTransaction(
   repo: Repo,
@@ -909,7 +909,6 @@ export function repoStartTransaction(
     transaction.currentOutputSnapshotRaw = null;
     transaction.currentOutputSnapshotResolved = null;
     if (transaction.onComplete) {
-      // We just set the input snapshot, so this cast should be safe
       transaction.onComplete(null, false, transaction.currentInputSnapshot);
     }
   } else {
@@ -976,7 +975,7 @@ export function repoStartTransaction(
 }
 
 /**
- * @param excludeSets A specific set to exclude
+ * @param excludeSets - A specific set to exclude
  */
 function repoGetLatestState(
   repo: Repo,
@@ -996,7 +995,7 @@ function repoGetLatestState(
  * Externally it's called with no arguments, but it calls itself recursively
  * with a particular transactionQueueTree node to recurse through the tree.
  *
- * @param node transactionQueueTree node to start at.
+ * @param node - transactionQueueTree node to start at.
  */
 function repoSendReadyTransactions(
   repo: Repo,
@@ -1030,8 +1029,8 @@ function repoSendReadyTransactions(
  * Given a list of run transactions, send them to the server and then handle
  * the result (success or failure).
  *
- * @param path The location of the queue.
- * @param queue Queue of transactions under the specified location.
+ * @param path - The location of the queue.
+ * @param queue - Queue of transactions under the specified location.
  */
 function repoSendTransactionQueue(
   repo: Repo,
@@ -1148,8 +1147,8 @@ function repoSendTransactionQueue(
  * Return the highest path that was affected by rerunning transactions. This
  * is the path at which events need to be raised for.
  *
- * @param changedPath The path in mergedData that changed.
- * @return The rootmost path that was affected by rerunning transactions.
+ * @param changedPath - The path in mergedData that changed.
+ * @returns The rootmost path that was affected by rerunning transactions.
  */
 function repoRerunTransactions(repo: Repo, changedPath: Path): Path {
   const rootMostTransactionNode = repoGetAncestorTransactionNode(
@@ -1168,8 +1167,8 @@ function repoRerunTransactions(repo: Repo, changedPath: Path): Path {
  * Does all the work of rerunning transactions (as well as cleans up aborted
  * transactions and whatnot).
  *
- * @param queue The queue of transactions to run.
- * @param path The path the queue is for.
+ * @param queue - The queue of transactions to run.
+ * @param path - The path the queue is for.
  */
 function repoRerunTransactionQueue(
   repo: Repo,
@@ -1330,8 +1329,8 @@ function repoRerunTransactionQueue(
  * transaction on it, or just returns the node for the given path if there are
  * no pending transactions on any ancestor.
  *
- * @param path The location to start at.
- * @return The rootmost node with a transaction.
+ * @param path - The location to start at.
+ * @returns The rootmost node with a transaction.
  */
 function repoGetAncestorTransactionNode(
   repo: Repo,
@@ -1357,7 +1356,7 @@ function repoGetAncestorTransactionNode(
  * transactionNode.
  *
  * @param transactionNode
- * @return The generated queue.
+ * @returns The generated queue.
  */
 function repoBuildTransactionQueue(
   repo: Repo,
@@ -1424,7 +1423,7 @@ function repoPruneCompletedTransactionsBelowNode(
  * Called when doing a set() or update() since we consider them incompatible
  * with transactions.
  *
- * @param path Path for which we want to abort related transactions.
+ * @param path - Path for which we want to abort related transactions.
  */
 function repoAbortTransactions(repo: Repo, path: Path): Path {
   const affectedPath = treeGetPath(repoGetAncestorTransactionNode(repo, path));
@@ -1447,7 +1446,7 @@ function repoAbortTransactions(repo: Repo, path: Path): Path {
 /**
  * Abort transactions stored in this transaction queue node.
  *
- * @param node Node to abort transactions for.
+ * @param node - Node to abort transactions for.
  */
 function repoAbortTransactionsOnNode(
   repo: Repo,

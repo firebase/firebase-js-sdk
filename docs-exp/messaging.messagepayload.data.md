@@ -4,6 +4,8 @@
 
 ## MessagePayload.data property
 
+Arbitrary key/value payload.
+
 <b>Signature:</b>
 
 ```typescript

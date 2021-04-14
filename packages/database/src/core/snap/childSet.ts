@@ -52,11 +52,11 @@ class Base12Num {
  * Uses the algorithm described in the paper linked here:
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.46.1458
  *
- * @param childList Unsorted list of children
- * @param cmp The comparison method to be used
- * @param keyFn An optional function to extract K from a node wrapper, if K's
+ * @param childList - Unsorted list of children
+ * @param cmp - The comparison method to be used
+ * @param keyFn - An optional function to extract K from a node wrapper, if K's
  * type is not NamedNode
- * @param mapSortFn An optional override for comparator used by the generated sorted map
+ * @param mapSortFn - An optional override for comparator used by the generated sorted map
  */
 export const buildChildSet = function <K, V>(
   childList: NamedNode[],

@@ -39,27 +39,29 @@ import { FieldPath } from './field_path';
 import { FirestoreDataConverter } from './snapshot';
 
 /**
- * Document data (for use with {@link setDoc}) consists of fields mapped to
+ * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
  * values.
  */
 export interface DocumentData {
+  /** A mapping between a field and its value. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [field: string]: any;
 }
 
 /**
- * Update data (for use with {@link updateDoc}) consists of field paths (e.g.
+ * Update data (for use with {@link @firebase/firestore/lite#(updateDoc:1)}) consists of field paths (e.g.
  * 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference
  * nested fields within the document.
  */
 export interface UpdateData {
+  /** A mapping between a dot-separated field path and its value. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [fieldPath: string]: any;
 }
 
 /**
- * An options object that configures the behavior of {@link setDoc}, {@link
- * WriteBatch#set} and {@link Transaction#set} calls. These calls can be
+ * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link
+ * @firebase/firestore/lite#(WriteBatch.set:1)} and {@link @firebase/firestore/lite#(Transaction.set:1)} calls. These calls can be
  * configured to perform granular merges instead of overwriting the target
  * documents in their entirety by providing a `SetOptions` with `merge: true`.
  *
@@ -135,19 +137,21 @@ export class DocumentReference<T = DocumentData> {
   /**
    * Applies a custom data converter to this `DocumentReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
-   * setDoc}, {@link getDoc}, etc. with the returned `DocumentReference`
+   * @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#getDoc}, etc. with the returned `DocumentReference`
    * instance, the provided converter will convert between Firestore data and
    * your custom type `U`.
    *
-   * Passing in `null` as the converter parameter removes the current
-   * converter.
-   *
-   * @param converter - Converts objects to and from Firestore. Passing in
-   * `null` removes the current converter.
+   * @param converter - Converts objects to and from Firestore.
    * @returns A `DocumentReference<U>` that uses the provided converter.
    */
-  withConverter(converter: null): DocumentReference<DocumentData>;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+  /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `DocumentReference<DocumentData>` that does not use a converter.
+   */
+  withConverter(converter: null): DocumentReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U> | null
   ): DocumentReference<U> {
@@ -181,6 +185,13 @@ export class Query<T = DocumentData> {
   }
 
   /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `Query<DocumentData>` that does not use a converter.
+   */
+  withConverter(converter: null): Query<DocumentData>;
+  /**
    * Applies a custom data converter to this query, allowing you to use your own
    * custom model objects with Firestore. When you call {@link getDocs} with
    * the returned query, the provided converter will convert between Firestore
@@ -189,7 +200,6 @@ export class Query<T = DocumentData> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `Query<U>` that uses the provided converter.
    */
-  withConverter(converter: null): Query<DocumentData>;
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
   withConverter<U>(converter: FirestoreDataConverter<U> | null): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
@@ -201,11 +211,12 @@ export class Query<T = DocumentData> {
  * document references, and querying for documents (using {@link query}).
  */
 export class CollectionReference<T = DocumentData> extends Query<T> {
+  /** The type of this Firestore reference. */
   readonly type = 'collection';
 
   /** @hideconstructor */
   constructor(
-    readonly firestore: FirebaseFirestore,
+    firestore: FirebaseFirestore,
     converter: FirestoreDataConverter<T> | null,
     readonly _path: ResourcePath
   ) {
@@ -251,10 +262,17 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `CollectionReference<U>` that uses the provided converter.
    */
-  withConverter(converter: null): CollectionReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;
+  /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `CollectionReference<DocumentData>` that does not use a
+   * converter.
+   */
+  withConverter(converter: null): CollectionReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U> | null
   ): CollectionReference<U> {

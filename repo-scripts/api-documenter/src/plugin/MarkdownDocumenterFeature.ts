@@ -18,7 +18,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
 // See LICENSE in the project root for license information.
 
-import { ApiItem, ApiModel } from '@microsoft/api-extractor-model';
+import { ApiItem, ApiModel } from 'api-extractor-model-me';
 import { TypeUuid } from '@rushstack/node-core-library';
 import { PluginFeature } from './PluginFeature';
 import { MarkdownDocumenterAccessor } from './MarkdownDocumenterAccessor';

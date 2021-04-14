@@ -19,14 +19,6 @@ Covers both [SignInMethod.EMAIL\_PASSWORD](./auth.signinmethod.email_password.md
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `EmailAuthCredential` class.
 
-## Properties
-
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [email](./auth.emailauthcredential.email.md) |  | string |  |
-|  [password](./auth.emailauthcredential.password.md) |  | string |  |
-|  [tenantId](./auth.emailauthcredential.tenantid.md) |  | string \| null |  |
-
 ## Methods
 
 |  Method | Modifiers | Description |

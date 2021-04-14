@@ -4,6 +4,7 @@
 
 ## PerformanceTrace interface
 
+The interface representing a `Trace`<!-- -->.
 
 <b>Signature:</b>
 

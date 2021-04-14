@@ -4,19 +4,19 @@
 
 ## getFirestore() function
 
-Returns the existing instance of Firestore that is associated with the provided . If no instance exists, initializes a new instance with default settings.
+Returns the existing instance of Firestore that is associated with the provided [FirebaseApp](./app.firebaseapp.md)<!-- -->. If no instance exists, initializes a new instance with default settings.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getFirestore(app: FirebaseApp): FirebaseFirestore;
+export declare function getFirestore(app?: FirebaseApp): FirebaseFirestore;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md) | The  instance that the returned Firestore instance is associated with. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The [FirebaseApp](./app.firebaseapp.md) instance that the returned Firestore instance is associated with. |
 
 <b>Returns:</b>
 

@@ -1,5 +1,53 @@
 # firebase
 
+## 8.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`74fa5064a`](https://github.com/firebase/firebase-js-sdk/commit/74fa5064ae6a183b229975dc858c5ee0f567d0d4)]:
+  - @firebase/database@0.9.10
+
+## 8.4.0
+
+### Minor Changes
+
+- [`5ae73656d`](https://github.com/firebase/firebase-js-sdk/commit/5ae73656d976fa724ea6ca86d496e9531c95b29c) [#4346](https://github.com/firebase/firebase-js-sdk/pull/4346) - Add `storage().useEmulator()` method to enable emulator mode for storage, allowing users
+  to set a storage emulator host and port.
+
+### Patch Changes
+
+- [`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda) [#4720](https://github.com/firebase/firebase-js-sdk/pull/4720) - Internal changes to Database and Validation APIs.
+
+- Updated dependencies [[`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda), [`6db185be5`](https://github.com/firebase/firebase-js-sdk/commit/6db185be5ed297ba2a8b6c0a098319131da7b552), [`5ae73656d`](https://github.com/firebase/firebase-js-sdk/commit/5ae73656d976fa724ea6ca86d496e9531c95b29c)]:
+  - @firebase/util@1.0.0
+  - @firebase/database@0.9.9
+  - @firebase/firestore@2.2.4
+  - @firebase/storage@0.5.0
+  - @firebase/analytics@0.6.9
+  - @firebase/app@0.6.20
+  - @firebase/installations@0.4.25
+  - @firebase/messaging@0.7.9
+  - @firebase/performance@0.4.11
+  - @firebase/remote-config@0.1.36
+  - @firebase/functions@0.6.7
+
+## 8.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/app-types@0.6.2
+  - @firebase/app@0.6.19
+  - @firebase/analytics@0.6.8
+  - @firebase/database@0.9.8
+  - @firebase/firestore@2.2.3
+  - @firebase/functions@0.6.6
+  - @firebase/installations@0.4.24
+  - @firebase/messaging@0.7.8
+  - @firebase/performance@0.4.10
+  - @firebase/remote-config@0.1.35
+  - @firebase/storage@0.4.7
+
 ## 8.3.2
 
 ### Patch Changes

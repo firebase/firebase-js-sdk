@@ -4,7 +4,7 @@
 
 ## getValue() function
 
-Gets the [Value](./remote-config-types.value.md) for the given key.
+Gets the [Value](./remote-config.value.md) for the given key.
 
 <b>Signature:</b>
 
@@ -16,12 +16,12 @@ export declare function getValue(remoteConfig: RemoteConfig, key: string): Value
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
-|  key | string | the name of the parameter |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | The <code>RemoteConfig</code> instance. |
+|  key | string | The name of the parameter. |
 
 <b>Returns:</b>
 
 [Value](./remote-config.value.md)
 
-the value for the given key
+The value for the given key.
 

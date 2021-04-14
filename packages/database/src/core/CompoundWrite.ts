@@ -85,9 +85,9 @@ export function compoundWriteAddWrites(
  * Will remove a write at the given path and deeper paths. This will <em>not</em> modify a write at a higher
  * location, which must be removed by calling this method with that path.
  *
- * @param compoundWrite The CompoundWrite to remove.
- * @param path The path at which a write and all deeper writes should be removed
- * @return The new CompoundWrite with the removed path
+ * @param compoundWrite - The CompoundWrite to remove.
+ * @param path - The path at which a write and all deeper writes should be removed
+ * @returns The new CompoundWrite with the removed path
  */
 export function compoundWriteRemoveWrite(
   compoundWrite: CompoundWrite,
@@ -108,9 +108,9 @@ export function compoundWriteRemoveWrite(
  * Returns whether this CompoundWrite will fully overwrite a node at a given location and can therefore be
  * considered "complete".
  *
- * @param compoundWrite The CompoundWrite to check.
- * @param path The path to check for
- * @return Whether there is a complete write at that path
+ * @param compoundWrite - The CompoundWrite to check.
+ * @param path - The path to check for
+ * @returns Whether there is a complete write at that path
  */
 export function compoundWriteHasCompleteWrite(
   compoundWrite: CompoundWrite,
@@ -123,9 +123,9 @@ export function compoundWriteHasCompleteWrite(
  * Returns a node for a path if and only if the node is a "complete" overwrite at that path. This will not aggregate
  * writes from deeper paths, but will return child nodes from a more shallow path.
  *
- * @param compoundWrite The CompoundWrite to get the node from.
- * @param path The path to get a complete write
- * @return The node if complete at that path, or null otherwise.
+ * @param compoundWrite - The CompoundWrite to get the node from.
+ * @param path - The path to get a complete write
+ * @returns The node if complete at that path, or null otherwise.
  */
 export function compoundWriteGetCompleteNode(
   compoundWrite: CompoundWrite,
@@ -144,8 +144,8 @@ export function compoundWriteGetCompleteNode(
 /**
  * Returns all children that are guaranteed to be a complete overwrite.
  *
- * @param compoundWrite The CompoundWrite to get children from.
- * @return A list of all complete children.
+ * @param compoundWrite - The CompoundWrite to get children from.
+ * @returns A list of all complete children.
  */
 export function compoundWriteGetCompleteChildren(
   compoundWrite: CompoundWrite
@@ -192,7 +192,7 @@ export function compoundWriteChildCompoundWrite(
 
 /**
  * Returns true if this CompoundWrite is empty and therefore does not modify any nodes.
- * @return Whether this CompoundWrite is empty
+ * @returns Whether this CompoundWrite is empty
  */
 export function compoundWriteIsEmpty(compoundWrite: CompoundWrite): boolean {
   return compoundWrite.writeTree_.isEmpty();
@@ -201,8 +201,8 @@ export function compoundWriteIsEmpty(compoundWrite: CompoundWrite): boolean {
 /**
  * Applies this CompoundWrite to a node. The node is returned with all writes from this CompoundWrite applied to the
  * node
- * @param node The node to apply this CompoundWrite to
- * @return The node with all writes applied
+ * @param node - The node to apply this CompoundWrite to
+ * @returns The node with all writes applied
  */
 export function compoundWriteApply(
   compoundWrite: CompoundWrite,

@@ -4,8 +4,10 @@
 
 ## DataSnapshot.ref property
 
+The location of this DataSnapshot.
+
 <b>Signature:</b>
 
 ```typescript
-ref: Reference;
+readonly ref: Reference;
 ```

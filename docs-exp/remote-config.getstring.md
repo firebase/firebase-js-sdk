@@ -4,7 +4,7 @@
 
 ## getString() function
 
-Gets the value for the given key as a String. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
+Gets the value for the given key as a string. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
 
 <b>Signature:</b>
 
@@ -16,12 +16,12 @@ export declare function getString(remoteConfig: RemoteConfig, key: string): stri
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
-|  key | string | the name of the parameter |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | The <code>RemoteConfig</code> instance. |
+|  key | string | The name of the parameter. |
 
 <b>Returns:</b>
 
 string
 
-the value for the given key as a String
+The value for the given key as a string.
 

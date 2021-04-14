@@ -16,10 +16,12 @@ export declare function onIdChange(installations: FirebaseInstallations, callbac
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) |  |
-|  callback | [IdChangeCallbackFn](./installations.idchangecallbackfn.md) |  |
+|  installations | [FirebaseInstallations](./installations.firebaseinstallations.md) | The <code>Installations</code> instance. |
+|  callback | [IdChangeCallbackFn](./installations.idchangecallbackfn.md) | The callback function that is invoked when FID changes. |
 
 <b>Returns:</b>
 
 [IdChangeUnsubscribeFn](./installations.idchangeunsubscribefn.md)
+
+A function that can be called to unsubscribe.
 

@@ -23,9 +23,9 @@ import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
-import { Query } from '../../src/api/Query';
-import { Reference } from '../../src/api/Reference';
+import { Query, Reference } from '../../src/api/Reference';
 import { ConnectionTarget } from '../../src/api/test_access';
+import { Path } from '../../src/core/util/Path';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
@@ -141,13 +141,13 @@ export function shuffle(arr, randFn = Math.random) {
 let freshRepoId = 1;
 const activeFreshApps = [];
 
-export function getFreshRepo(path) {
+export function getFreshRepo(path: Path) {
   const app = firebase.initializeApp(
     { databaseURL: DATABASE_URL },
     'ISOLATED_REPO_' + freshRepoId++
   );
   activeFreshApps.push(app);
-  return (app as any).database().ref(path);
+  return (app as any).database().ref(path.toString());
 }
 
 export function getFreshRepoFromReference(ref) {

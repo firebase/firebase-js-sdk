@@ -4,6 +4,8 @@
 
 ## storage package
 
+Cloud Storage for Firebase
+
 ## Functions
 
 |  Function | Description |
@@ -20,6 +22,7 @@
 |  [uploadBytes(ref, data, metadata)](./storage.uploadbytes.md) | Uploads data to this object's location. The upload is not resumable. |
 |  [uploadBytesResumable(ref, data, metadata)](./storage.uploadbytesresumable.md) | Uploads data to this object's location. The upload can be paused and resumed, and exposes progress updates. |
 |  [uploadString(ref, value, format, metadata)](./storage.uploadstring.md) | Uploads a string to this object's location. The upload is not resumable. |
+|  [useStorageEmulator(storage, host, port)](./storage.usestorageemulator.md) | Modify this <code>StorageService</code> instance to communicate with the Cloud Storage emulator. |
 
 ## Interfaces
 

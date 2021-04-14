@@ -60,10 +60,6 @@ export class RangedFilter implements NodeFilter {
       this.index_.compare(node, this.getEndPost()) <= 0
     );
   }
-
-  /**
-   * @inheritDoc
-   */
   updateChild(
     snap: Node,
     key: string,
@@ -84,10 +80,6 @@ export class RangedFilter implements NodeFilter {
       optChangeAccumulator
     );
   }
-
-  /**
-   * @inheritDoc
-   */
   updateFullNode(
     oldSnap: Node,
     newSnap: Node,
@@ -112,32 +104,16 @@ export class RangedFilter implements NodeFilter {
       optChangeAccumulator
     );
   }
-
-  /**
-   * @inheritDoc
-   */
   updatePriority(oldSnap: Node, newPriority: Node): Node {
     // Don't support priorities on queries
     return oldSnap;
   }
-
-  /**
-   * @inheritDoc
-   */
   filtersNodes(): boolean {
     return true;
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndexedFilter(): IndexedFilter {
     return this.indexedFilter_;
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndex(): Index {
     return this.index_;
   }

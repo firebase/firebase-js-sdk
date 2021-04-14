@@ -1,4 +1,10 @@
 /**
+ * Firebase Performance Monitoring
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *
@@ -45,7 +51,7 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 /**
  * Returns a FirebasePerformance instance for the given app.
- * @param app - The FirebaseApp to use.
+ * @param app - The `FirebaseApp` to use.
  * @public
  */
 export function getPerformance(
@@ -59,8 +65,8 @@ export function getPerformance(
 
 /**
  * Returns a FirebasePerformance instance for the given app. Can only be called once.
- * @param app - The FirebaseApp to use.
- * @param settings - Optional settings for the Performance instance.
+ * @param app - The `FirebaseApp` to use.
+ * @param settings - Optional settings for the `FirebasePerformance` instance.
  * @public
  */
 export function initializePerformance(
@@ -83,8 +89,8 @@ export function initializePerformance(
 }
 
 /**
- * Returns a new PerformanceTrace instance.
- * @param performance - The FirebasePerformance instance to use.
+ * Returns a new `PerformanceTrace` instance.
+ * @param performance - The `FirebasePerformance` instance to use.
  * @param name - The name of the trace.
  * @public
  */

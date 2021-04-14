@@ -16,7 +16,7 @@ export declare function onMessage(messaging: FirebaseMessaging, nextOrObserver: 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | the messaging instance. |
+|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | The <code>FirebaseMessaging</code> instance. |
 |  nextOrObserver | NextFn&lt;[MessagePayload](./messaging.messagepayload.md)<!-- -->&gt; \| Observer&lt;[MessagePayload](./messaging.messagepayload.md)<!-- -->&gt; | This function, or observer object with <code>next</code> defined, is called when a message is received and the user is currently viewing your page. |
 
 <b>Returns:</b>

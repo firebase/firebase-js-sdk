@@ -49,16 +49,9 @@ export interface CompleteChildSource {
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export class NoCompleteChildSource_ implements CompleteChildSource {
-  /**
-   * @inheritDoc
-   */
   getCompleteChild(childKey?: string): Node | null {
     return null;
   }
-
-  /**
-   * @inheritDoc
-   */
   getChildAfterChild(
     index?: Index,
     child?: NamedNode,
@@ -83,10 +76,6 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
     private viewCache_: ViewCache,
     private optCompleteServerCache_: Node | null = null
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   getCompleteChild(childKey: string): Node | null {
     const node = this.viewCache_.eventCache;
     if (node.isCompleteForChild(childKey)) {
@@ -99,10 +88,6 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
       return writeTreeRefCalcCompleteChild(this.writes_, childKey, serverNode);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   getChildAfterChild(
     index: Index,
     child: NamedNode,

@@ -17,7 +17,7 @@
 
 import { validateArgCount } from '@firebase/util';
 
-import { DataSnapshot } from './DataSnapshot';
+import { DataSnapshot } from './Reference';
 
 export class TransactionResult {
   /**

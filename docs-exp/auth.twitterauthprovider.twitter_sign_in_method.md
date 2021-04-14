@@ -4,6 +4,8 @@
 
 ## TwitterAuthProvider.TWITTER\_SIGN\_IN\_METHOD property
 
+Always set to [SignInMethod.TWITTER](./auth.signinmethod.twitter.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

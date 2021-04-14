@@ -20,10 +20,10 @@ import { assert, stringify } from '@firebase/util';
 import { Index } from '../snap/indexes/Index';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PathIndex } from '../snap/indexes/PathIndex';
-import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
+import { PRIORITY_INDEX, PriorityIndex } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
 import { predecessor, successor } from '../util/NextPushId';
-import { MIN_NAME, MAX_NAME } from '../util/util';
+import { MAX_NAME, MIN_NAME } from '../util/util';
 
 import { IndexedFilter } from './filter/IndexedFilter';
 import { LimitedFilter } from './filter/LimitedFilter';
@@ -78,7 +78,7 @@ export class QueryParams {
   indexStartName_ = '';
   indexEndValue_: unknown | null = null;
   indexEndName_ = '';
-  index_ = PRIORITY_INDEX;
+  index_: PriorityIndex = PRIORITY_INDEX;
 
   hasStart(): boolean {
     return this.startSet_;
@@ -93,7 +93,7 @@ export class QueryParams {
   }
 
   /**
-   * @return True if it would return from left.
+   * @returns True if it would return from left.
    */
   isViewFromLeft(): boolean {
     if (this.viewFrom_ === '') {
@@ -158,7 +158,7 @@ export class QueryParams {
   }
 
   /**
-   * @return True if a limit has been set and it has been explicitly anchored
+   * @returns True if a limit has been set and it has been explicitly anchored
    */
   hasAnchoredLimit(): boolean {
     return this.limitSet_ && this.viewFrom_ !== '';
@@ -347,7 +347,7 @@ export function queryParamsOrderBy(
 /**
  * Returns a set of REST query string parameters representing this query.
  *
- * @return query string parameters
+ * @returns query string parameters
  */
 export function queryParamsToRestQueryStringParameters(
   queryParams: QueryParams

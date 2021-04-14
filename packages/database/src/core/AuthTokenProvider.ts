@@ -22,8 +22,6 @@ import {
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { FirebaseAppLike } from '../api/Database';
-
 import { log, warn } from './util/util';
 
 export interface AuthTokenProvider {
@@ -39,7 +37,8 @@ export interface AuthTokenProvider {
 export class FirebaseAuthTokenProvider implements AuthTokenProvider {
   private auth_: FirebaseAuthInternal | null = null;
   constructor(
-    private app_: FirebaseAppLike,
+    private appName_: string,
+    private firebaseOptions_: object,
     private authProvider_: Provider<FirebaseAuthInternalName>
   ) {
     this.auth_ = authProvider_.getImmediate({ optional: true });
@@ -87,15 +86,15 @@ export class FirebaseAuthTokenProvider implements AuthTokenProvider {
   notifyForInvalidToken(): void {
     let errorMessage =
       'Provided authentication credentials for the app named "' +
-      this.app_.name +
+      this.appName_ +
       '" are invalid. This usually indicates your app was not ' +
       'initialized correctly. ';
-    if ('credential' in this.app_.options) {
+    if ('credential' in this.firebaseOptions_) {
       errorMessage +=
         'Make sure the "credential" property provided to initializeApp() ' +
         'is authorized to access the specified "databaseURL" and is from the correct ' +
         'project.';
-    } else if ('serviceAccount' in this.app_.options) {
+    } else if ('serviceAccount' in this.firebaseOptions_) {
       errorMessage +=
         'Make sure the "serviceAccount" property provided to initializeApp() ' +
         'is authorized to access the specified "databaseURL" and is from the correct ' +

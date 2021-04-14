@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.0.0
+
+### Major Changes
+
+- [`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda) [#4720](https://github.com/firebase/firebase-js-sdk/pull/4720) - Internal changes to Database and Validation APIs.
+
 ## 0.4.1
 
 ### Patch Changes

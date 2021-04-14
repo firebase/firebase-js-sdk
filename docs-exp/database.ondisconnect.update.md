@@ -4,20 +4,27 @@
 
 ## OnDisconnect.update() method
 
+Writes multiple values at this location when the client is disconnected (due to closing the browser, navigating to a new page, or network issues).
+
+The `values` argument contains multiple property-value pairs that will be written to the Database together. Each child property can either be a simple property (for example, "name") or a relative path (for example, "name/first") from the current location to the data to update.
+
+As opposed to the `set()` method, `update()` can be use to selectively update only the referenced properties at the current location (instead of replacing all the child properties at the current location).
+
 <b>Signature:</b>
 
 ```typescript
-update(values: object, onComplete?: (a: Error | null) => any): Promise<any>;
+update(values: object): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | object |  |
-|  onComplete | (a: Error \| null) =&gt; any |  |
+|  values | object | Object containing multiple values. |
 
 <b>Returns:</b>
 
-Promise&lt;any&gt;
+Promise&lt;void&gt;
+
+Resolves when synchronization to the Database is complete.
 

@@ -5,9 +5,8 @@
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.esm5.js",
-  "module": "dist/index.esm5.js",
-  "esm2017": "dist/index.esm2017.js",
+  "browser": "dist/index.esm2017.js",
+  "module": "dist/index.esm2017.js",
   "files": [
     "dist"
   ],
@@ -48,11 +47,11 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.3.1",
+    "@firebase/component": "0.4.1",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/functions-types": "0.4.0",
     "@firebase/messaging-types": "0.5.0",
-    "@firebase/util": "0.4.1",
+    "@firebase/util": "1.0.0",
     "tslib": "^2.1.0"
   },
   "nyc": {
@@ -60,5 +59,6 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  }
+  },
+  "esm5": "dist/index.esm5.js"
 }

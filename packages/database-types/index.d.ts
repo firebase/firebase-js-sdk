@@ -88,7 +88,7 @@ export interface Query {
     callback: (a: DataSnapshot, b?: string | null) => any,
     cancelCallbackOrContext?: ((a: Error) => any) | Object | null,
     context?: Object | null
-  ): (a: DataSnapshot, b?: string | null) => any;
+  ): (a: DataSnapshot | null, b?: string | null) => any;
   once(
     eventType: EventType,
     successCallback?: (a: DataSnapshot, b?: string | null) => any,

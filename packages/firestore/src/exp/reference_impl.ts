@@ -65,8 +65,8 @@ import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
 import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
 
 /**
- * An options object that can be passed to {@link onSnapshot} and {@link
- * QuerySnapshot#docChanges} to control which types of changes to include in the
+ * An options object that can be passed to {@link (onSnapshot:1)} and {@link
+ * QuerySnapshot.docChanges} to control which types of changes to include in the
  * result set.
  */
 export interface SnapshotListenOptions {
@@ -417,7 +417,11 @@ export function addDoc<T>(
   return executeWrite(firestore, [mutation]).then(() => docRef);
 }
 
+/**
+ * A function returned by `onSnapshot()` that removes the listener when invoked.
+ */
 export interface Unsubscribe {
+  /** Removes the listener when invoked. */
   (): void;
 }
 

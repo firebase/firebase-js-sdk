@@ -1,5 +1,22 @@
 # @firebase/firestore
 
+## 2.2.4
+
+### Patch Changes
+
+- [`6db185be5`](https://github.com/firebase/firebase-js-sdk/commit/6db185be5ed297ba2a8b6c0a098319131da7b552) [#4745](https://github.com/firebase/firebase-js-sdk/pull/4745) - Fixed a bug where decimal inputs to `Timestamp.fromMillis()` calculated incorrectly due to floating point precision loss
+
+- Updated dependencies [[`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda)]:
+  - @firebase/util@1.0.0
+  - @firebase/component@0.4.1
+
+## 2.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/component@0.4.0
+
 ## 2.2.2
 
 ### Patch Changes

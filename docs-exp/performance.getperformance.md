@@ -9,14 +9,14 @@ Returns a FirebasePerformance instance for the given app.
 <b>Signature:</b>
 
 ```typescript
-export declare function getPerformance(app: FirebaseApp): FirebasePerformance;
+export declare function getPerformance(app?: FirebaseApp): FirebasePerformance;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md) | The FirebaseApp to use. |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The <code>FirebaseApp</code> to use. |
 
 <b>Returns:</b>
 

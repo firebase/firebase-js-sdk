@@ -17,7 +17,6 @@
 
 import { registerDatabase } from './register';
 
-export { getDatabase, ServerValue } from '../src/exp/Database';
-export { enableLogging } from '../src/core/util/util';
+export * from './api';
 
 registerDatabase('node');

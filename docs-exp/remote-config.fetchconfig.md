@@ -16,7 +16,7 @@ export declare function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | the remote config instance |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md) | The <code>RemoteConfig</code> instance. |
 
 <b>Returns:</b>
 

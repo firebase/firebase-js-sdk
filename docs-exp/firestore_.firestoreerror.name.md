@@ -4,6 +4,8 @@
 
 ## FirestoreError.name property
 
+The custom name for all FirestoreErrors.
+
 <b>Signature:</b>
 
 ```typescript

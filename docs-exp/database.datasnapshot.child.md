@@ -4,6 +4,10 @@
 
 ## DataSnapshot.child() method
 
+Gets another `DataSnapshot` for the location at the specified relative path.
+
+Passing a relative path to the `child()` method of a DataSnapshot returns another `DataSnapshot` for the location at the specified relative path. The relative path can either be a simple child name (for example, "ada") or a deeper, slash-separated path (for example, "ada/name/first"). If the child location has no data, an empty `DataSnapshot` (that is, a `DataSnapshot` whose value is `null`<!-- -->) is returned.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +18,7 @@ child(path: string): DataSnapshot;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  path | string |  |
+|  path | string | A relative path to the location of child data. |
 
 <b>Returns:</b>
 

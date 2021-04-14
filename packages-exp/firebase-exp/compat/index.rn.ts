@@ -19,7 +19,7 @@ import firebase from './app';
 import { name, version } from '../package.json';
 
 import './auth';
-// import './database';
+import './database';
 // // TODO(b/158625454): Storage doesn't actually work by default in RN (it uses
 // //  `atob`). We should provide a RN build that works out of the box.
 // import './storage';

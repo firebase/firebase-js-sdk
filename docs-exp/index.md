@@ -8,24 +8,15 @@
 
 |  Package | Description |
 |  --- | --- |
-|  [@firebase/analytics](./analytics.md) |  |
-|  [@firebase/analytics-types](./analytics-types.md) |  |
+|  [@firebase/analytics](./analytics.md) | Firebase Analytics |
 |  [@firebase/app](./app.md) | Firebase App |
-|  [@firebase/app-types](./app-types.md) |  |
-|  [@firebase/auth](./auth.md) |  |
-|  [@firebase/auth-types](./auth-types.md) |  |
-|  [@firebase/database](./database.md) |  |
-|  [@firebase/firestore](./firestore.md) |  |
-|  [@firebase/functions](./functions.md) |  |
-|  [@firebase/functions-compat](./functions-compat.md) |  |
-|  [@firebase/functions-types](./functions-types.md) |  |
-|  [@firebase/installations](./installations.md) |  |
-|  [@firebase/installations-types](./installations-types.md) |  |
-|  [@firebase/messaging](./messaging.md) |  |
-|  [@firebase/performance](./performance.md) |  |
-|  [@firebase/performance-types](./performance-types.md) |  |
-|  [@firebase/remote-config](./remote-config.md) |  |
-|  [@firebase/remote-config-types](./remote-config-types.md) |  |
-|  [@firebase/storage](./storage.md) |  |
-|  [@firebase/storage-types](./storage-types.md) |  |
+|  [@firebase/auth](./auth.md) | Firebase Authentication |
+|  [@firebase/database](./database.md) | Firebase Realtime Database |
+|  [@firebase/firestore](./firestore.md) | Cloud Firestore |
+|  [@firebase/functions](./functions.md) | Cloud Functions for Firebase |
+|  [@firebase/installations](./installations.md) | Firebase Installations |
+|  [@firebase/messaging](./messaging.md) | Firebase Cloud Messaging |
+|  [@firebase/performance](./performance.md) | Firebase Performance Monitoring |
+|  [@firebase/remote-config](./remote-config.md) | Firebase Remote Config |
+|  [@firebase/storage](./storage.md) | Cloud Storage for Firebase |
 

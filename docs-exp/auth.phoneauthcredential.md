@@ -17,6 +17,6 @@ export declare class PhoneAuthCredential extends AuthCredential
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromJSON(json)](./auth.phoneauthcredential.fromjson.md) | <code>static</code> |  |
+|  [fromJSON(json)](./auth.phoneauthcredential.fromjson.md) | <code>static</code> | Generates a phone credential based on a plain object or a JSON string. |
 |  [toJSON()](./auth.phoneauthcredential.tojson.md) |  | Returns a JSON-serializable representation of this object. |
 

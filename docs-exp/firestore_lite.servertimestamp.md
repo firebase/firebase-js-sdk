@@ -4,7 +4,7 @@
 
 ## serverTimestamp() function
 
-Returns a sentinel used with  or  to include a server-generated timestamp in the written data.
+Returns a sentinel used with [setDoc()](./firestore_lite.setdoc.md) or [updateDoc()](./firestore_lite.updatedoc.md) to include a server-generated timestamp in the written data.
 
 <b>Signature:</b>
 

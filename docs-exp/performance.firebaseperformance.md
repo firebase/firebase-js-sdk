@@ -4,6 +4,7 @@
 
 ## FirebasePerformance interface
 
+The Firebase Performance Monitoring service interface.
 
 <b>Signature:</b>
 

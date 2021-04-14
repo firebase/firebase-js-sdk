@@ -1,4 +1,10 @@
 /**
+ * Cloud Storage for Firebase
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *

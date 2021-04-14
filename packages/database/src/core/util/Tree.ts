@@ -38,9 +38,9 @@ export interface TreeNode<T> {
  */
 export class Tree<T> {
   /**
-   * @param name Optional name of the node.
-   * @param parent Optional parent node.
-   * @param node Optional node to wrap.
+   * @param name - Optional name of the node.
+   * @param parent - Optional parent node.
+   * @param node - Optional node to wrap.
    */
   constructor(
     readonly name: string = '',
@@ -52,8 +52,8 @@ export class Tree<T> {
 /**
  * Returns a sub-Tree for the given path.
  *
- * @param pathObj Path to look up.
- * @return Tree for path.
+ * @param pathObj - Path to look up.
+ * @returns Tree for path.
  */
 export function treeSubTree<T>(tree: Tree<T>, pathObj: string | Path): Tree<T> {
   // TODO: Require pathObj to be Path?
@@ -76,7 +76,7 @@ export function treeSubTree<T>(tree: Tree<T>, pathObj: string | Path): Tree<T> {
 /**
  * Returns the data associated with this tree node.
  *
- * @return The data or null if no data exists.
+ * @returns The data or null if no data exists.
  */
 export function treeGetValue<T>(tree: Tree<T>): T | undefined {
   return tree.node.value;
@@ -85,7 +85,7 @@ export function treeGetValue<T>(tree: Tree<T>): T | undefined {
 /**
  * Sets data to this tree node.
  *
- * @param value Value to set.
+ * @param value - Value to set.
  */
 export function treeSetValue<T>(tree: Tree<T>, value: T | undefined): void {
   tree.node.value = value;
@@ -93,14 +93,14 @@ export function treeSetValue<T>(tree: Tree<T>, value: T | undefined): void {
 }
 
 /**
- * @return Whether the tree has any children.
+ * @returns Whether the tree has any children.
  */
 export function treeHasChildren<T>(tree: Tree<T>): boolean {
   return tree.node.childCount > 0;
 }
 
 /**
- * @return Whethe rthe tree is empty (no value or children).
+ * @returns Whethe rthe tree is empty (no value or children).
  */
 export function treeIsEmpty<T>(tree: Tree<T>): boolean {
   return treeGetValue(tree) === undefined && !treeHasChildren(tree);
@@ -109,7 +109,7 @@ export function treeIsEmpty<T>(tree: Tree<T>): boolean {
 /**
  * Calls action for each child of this tree node.
  *
- * @param action Action to be called for each child.
+ * @param action - Action to be called for each child.
  */
 export function treeForEachChild<T>(
   tree: Tree<T>,
@@ -123,10 +123,10 @@ export function treeForEachChild<T>(
 /**
  * Does a depth-first traversal of this node's descendants, calling action for each one.
  *
- * @param action Action to be called for each child.
- * @param includeSelf Whether to call action on this node as well. Defaults to
+ * @param action - Action to be called for each child.
+ * @param includeSelf - Whether to call action on this node as well. Defaults to
  *   false.
- * @param childrenFirst Whether to call action on children before calling it on
+ * @param childrenFirst - Whether to call action on children before calling it on
  *   parent.
  */
 export function treeForEachDescendant<T>(
@@ -151,10 +151,10 @@ export function treeForEachDescendant<T>(
 /**
  * Calls action on each ancestor node.
  *
- * @param action Action to be called on each parent; return
+ * @param action - Action to be called on each parent; return
  *   true to abort.
- * @param includeSelf Whether to call action on this node as well.
- * @return true if the action callback returned true.
+ * @param includeSelf - Whether to call action on this node as well.
+ * @returns true if the action callback returned true.
  */
 export function treeForEachAncestor<T>(
   tree: Tree<T>,
@@ -176,7 +176,7 @@ export function treeForEachAncestor<T>(
  * is found, action is called on it and traversal does not continue inside the node.
  * Action is *not* called on this node.
  *
- * @param action Action to be called for each child.
+ * @param action - Action to be called for each child.
  */
 export function treeForEachImmediateDescendantWithValue<T>(
   tree: Tree<T>,
@@ -192,7 +192,7 @@ export function treeForEachImmediateDescendantWithValue<T>(
 }
 
 /**
- * @return The path of this tree node, as a Path.
+ * @returns The path of this tree node, as a Path.
  */
 export function treeGetPath<T>(tree: Tree<T>) {
   return new Path(
@@ -214,8 +214,8 @@ function treeUpdateParents<T>(tree: Tree<T>) {
 /**
  * Adds or removes the passed child to this tree node, depending on whether it's empty.
  *
- * @param childName The name of the child to update.
- * @param child The child to update.
+ * @param childName - The name of the child to update.
+ * @param child - The child to update.
  */
 function treeUpdateChild<T>(tree: Tree<T>, childName: string, child: Tree<T>) {
   const childEmpty = treeIsEmpty(child);

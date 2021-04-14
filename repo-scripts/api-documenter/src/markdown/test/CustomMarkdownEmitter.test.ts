@@ -38,7 +38,7 @@ import { DocTable } from '../../nodes/DocTable';
 import { DocTableRow } from '../../nodes/DocTableRow';
 import { DocTableCell } from '../../nodes/DocTableCell';
 import { CustomMarkdownEmitter } from '../CustomMarkdownEmitter';
-import { ApiModel, ApiItem } from '@microsoft/api-extractor-model';
+import { ApiModel, ApiItem } from 'api-extractor-model-me';
 import { expect, use } from 'chai';
 import { jestSnapshotPlugin } from 'mocha-chai-jest-snapshot';
 

@@ -53,6 +53,15 @@ async function generateDocs(forDevsite: boolean = false) {
     }
   );
 
+  // build database-exp
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp'],
+    {
+      stdio: 'inherit'
+    }
+  );
+
   // generate public typings for firestore
   await spawn(
     'yarn',

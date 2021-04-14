@@ -5,11 +5,10 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "private": true,
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm5.js",
-  "module": "dist/index.esm5.js",
-  "esm2017": "dist/index.esm2017.js",
+  "browser": "dist/index.esm2017.js",
+  "module": "dist/index.esm2017.js",
   "lite": "dist/index.lite.js",
-  "lite-esm2017": "dist/index.lite.esm2017.js",
+  "lite-esm5": "dist/index.lite.esm5.js",
   "files": [
     "dist"
   ],
@@ -30,9 +29,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/app-exp": "0.0.900",
-    "@firebase/util": "0.4.1",
+    "@firebase/util": "1.0.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.3.1",
+    "@firebase/component": "0.4.1",
     "tslib": "^2.1.0",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
@@ -58,5 +57,6 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  }
+  },
+  "esm5": "dist/index.esm5.js"
 }

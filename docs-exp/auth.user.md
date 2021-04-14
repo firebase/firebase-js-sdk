@@ -18,7 +18,7 @@ export interface User extends UserInfo
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [emailVerified](./auth.user.emailverified.md) | boolean | Whether the email has been verified with [sendEmailVerification()](./auth.sendemailverification.md) and [applyActionCode()](./auth.applyactioncode.md)<!-- -->. |
-|  [isAnonymous](./auth.user.isanonymous.md) | boolean | Whether the user is authenticated using the [ProviderId.ANONYMOUS](./auth.providerid.anonymous.md) provider. |
+|  [isAnonymous](./auth.user.isanonymous.md) | boolean | Whether the user is authenticated using the  provider. |
 |  [metadata](./auth.user.metadata.md) | [UserMetadata](./auth.usermetadata.md) | Additional metadata around user creation and sign-in times. |
 |  [providerData](./auth.user.providerdata.md) | [UserInfo](./auth.userinfo.md)<!-- -->\[\] | Additional per provider such as displayName and profile information. |
 |  [refreshToken](./auth.user.refreshtoken.md) | string | Refresh token used to reauthenticate the user. Avoid using this directly and prefer [User.getIdToken()](./auth.user.getidtoken.md) to refresh the ID token instead. |

@@ -4,6 +4,8 @@
 
 ## DocumentSnapshot.ref property
 
+The `DocumentReference` for the document included in the `DocumentSnapshot`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

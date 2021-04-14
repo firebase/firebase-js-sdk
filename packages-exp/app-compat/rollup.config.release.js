@@ -44,7 +44,7 @@ const es5Builds = [
     input: 'src/index.ts',
     output: [
       { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      { file: pkg.esm5, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
@@ -55,7 +55,7 @@ const es5Builds = [
   {
     input: 'src/index.lite.ts',
     output: {
-      file: pkg.lite,
+      file: pkg['lite-esm5'],
       format: 'es',
       sourcemap: true
     },
@@ -94,7 +94,7 @@ const es2017Builds = [
   {
     input: 'src/index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
@@ -107,7 +107,7 @@ const es2017Builds = [
   {
     input: 'src/index.lite.ts',
     output: {
-      file: pkg['lite-esm2017'],
+      file: pkg.lite,
       format: 'es',
       sourcemap: true
     },

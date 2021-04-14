@@ -4,6 +4,8 @@
 
 ## Dependencies.errorMap property
 
+Which [AuthErrorMap](./auth.autherrormap.md) to use.
+
 <b>Signature:</b>
 
 ```typescript

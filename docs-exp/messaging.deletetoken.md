@@ -4,7 +4,7 @@
 
 ## deleteToken() function
 
-Deletes the registration token associated with this messaging instance and unsubscribes the messaging instance from the push subscription.
+Deletes the registration token associated with this `FirebaseMessaging` instance and unsubscribes the `FirebaseMessaging` instance from the push subscription.
 
 <b>Signature:</b>
 
@@ -16,7 +16,7 @@ export declare function deleteToken(messaging: FirebaseMessaging): Promise<boole
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | the messaging instance. |
+|  messaging | [FirebaseMessaging](./messaging.firebasemessaging.md) | The <code>FirebaseMessaging</code> instance. |
 
 <b>Returns:</b>
 

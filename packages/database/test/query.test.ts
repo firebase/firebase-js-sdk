@@ -19,9 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as _ from 'lodash';
 
-import { DataSnapshot } from '../src/api/DataSnapshot';
-import { Query } from '../src/api/Query';
-import { Reference } from '../src/api/Reference';
+import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 import { INTEGER_32_MAX, INTEGER_32_MIN } from '../src/core/util/util';
 
 import {
@@ -367,7 +365,7 @@ describe('Query Tests', () => {
   it('Query.queryIdentifier works.', () => {
     const path = getRandomNode() as Reference;
     const queryId = function (query) {
-      return query.queryIdentifier(query);
+      return query._delegate._queryIdentifier;
     };
 
     expect(queryId(path)).to.equal('default');
@@ -767,6 +765,16 @@ describe('Query Tests', () => {
     });
 
     expect(expected).to.equal(10);
+  });
+
+  it('Raises snapshots synchronously', () => {
+    const node = getRandomNode() as Reference;
+    let newValue;
+    node.on('value', v => {
+      newValue = v.val();
+    });
+    node.set('foo');
+    expect(newValue).to.equal('foo');
   });
 
   it('Set a limit of 5, add a bunch of nodes, ensure only last 5 items are sent from server.', async () => {
@@ -2477,7 +2485,7 @@ describe('Query Tests', () => {
   });
 
   function dumpListens(node: Query) {
-    const listens: Map<string, Map<string, unknown>> = (node.repo
+    const listens: Map<string, Map<string, unknown>> = (node._delegate._repo
       .persistentConnection_ as any).listens;
     const nodePath = getPath(node);
     const listenPaths = [];
@@ -3196,7 +3204,7 @@ describe('Query Tests', () => {
 
   it('get reads node from cache when not connected', async () => {
     const node = getRandomNode() as Reference;
-    const node2 = getFreshRepo(node.path);
+    const node2 = getFreshRepo(node._delegate._path);
     try {
       await node2.set({ foo: 'bar' });
       const onSnapshot = await new Promise((resolve, _) => {
@@ -3218,7 +3226,7 @@ describe('Query Tests', () => {
 
   it('get reads child node from cache when not connected', async () => {
     const node = getRandomNode() as Reference;
-    const node2 = getFreshRepo(node.path);
+    const node2 = getFreshRepo(node._delegate._path);
     try {
       await node2.set({ foo: 'bar' });
       const onSnapshot = await new Promise((resolve, _) => {
@@ -3238,7 +3246,7 @@ describe('Query Tests', () => {
 
   it('get reads parent node from cache when not connected', async () => {
     const node = getRandomNode() as Reference;
-    const node2 = getFreshRepo(node.path);
+    const node2 = getFreshRepo(node._delegate._path);
     try {
       await node2.set({ foo: 'bar' });
       await node2.child('baz').set(1);
@@ -3259,7 +3267,7 @@ describe('Query Tests', () => {
 
   it('get with pending node writes when not connected', async () => {
     const node = getRandomNode() as Reference;
-    const node2 = getFreshRepo(node.path);
+    const node2 = getFreshRepo(node._delegate._path);
     try {
       await node2.set({ foo: 'bar' });
       const onSnapshot = await new Promise((resolve, _) => {
@@ -3280,7 +3288,7 @@ describe('Query Tests', () => {
 
   it('get with pending child writes when not connected', async () => {
     const node = getRandomNode() as Reference;
-    const node2 = getFreshRepo(node.path);
+    const node2 = getFreshRepo(node._delegate._path);
     try {
       await node2.set({ foo: 'bar' });
       const onSnapshot = await new Promise((resolve, _) => {
@@ -3301,7 +3309,7 @@ describe('Query Tests', () => {
 
   it('get with pending parent writes when not connected', async () => {
     const node = getRandomNode() as Reference;
-    const node2 = getFreshRepo(node.path);
+    const node2 = getFreshRepo(node._delegate._path);
     try {
       await node2.set({ foo: 'bar' });
       const onSnapshot = await new Promise((resolve, _) => {
@@ -3346,7 +3354,7 @@ describe('Query Tests', () => {
 
   it('get does not cache sibling data', async () => {
     const reader = getRandomNode() as Reference;
-    const writer = getFreshRepo(reader.path);
+    const writer = getFreshRepo(reader._delegate._path);
     await writer.set({
       foo: { cached: { data: '1' }, notCached: { data: '2' } }
     });

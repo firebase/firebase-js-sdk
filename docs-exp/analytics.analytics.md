@@ -4,6 +4,8 @@
 
 ## Analytics interface
 
+The Firebase Analytics service interface.
+
 <b>Signature:</b>
 
 ```typescript

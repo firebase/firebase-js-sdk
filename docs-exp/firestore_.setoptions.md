@@ -4,7 +4,7 @@
 
 ## SetOptions type
 
-An options object that configures the behavior of ,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
+An options object that configures the behavior of [setDoc()](./firestore_lite.setdoc.md)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
 
 <b>Signature:</b>
 
