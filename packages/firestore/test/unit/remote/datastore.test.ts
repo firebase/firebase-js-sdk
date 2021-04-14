@@ -21,7 +21,12 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { Connection, Stream } from '../../../src/remote/connection';
-import { Datastore, newDatastore, invokeCommitRpc, invokeBatchGetDocumentsRpc } from '../../../src/remote/datastore';
+import {
+  Datastore,
+  newDatastore,
+  invokeCommitRpc,
+  invokeBatchGetDocumentsRpc
+} from '../../../src/remote/datastore';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { DatabaseId } from '../../../src/core/database_info';
 
@@ -32,14 +37,13 @@ use(chaiAsPromised);
 // `invokeRPC()` and `invokeStreamingRPC()`.
 describe('Datastore', () => {
   class MockConnection implements Connection {
-
     invokeRPC<Req, Resp>(
       rpcName: string,
       path: string,
       request: Req,
       token: Token | null
     ): Promise<Resp> {
-      throw new Error("MockConnection.invokeRPC() must be replaced");
+      throw new Error('MockConnection.invokeRPC() must be replaced');
     }
 
     invokeStreamingRPC<Req, Resp>(
@@ -48,14 +52,14 @@ describe('Datastore', () => {
       request: Req,
       token: Token | null
     ): Promise<Resp[]> {
-      throw new Error("MockConnection.invokeStreamingRPC() must be replaced");
+      throw new Error('MockConnection.invokeStreamingRPC() must be replaced');
     }
 
     openStream<Req, Resp>(
       rpcName: string,
       token: Token | null
     ): Stream<Req, Resp> {
-      throw new Error("MockConnection.openStream() must be replaced");
+      throw new Error('MockConnection.openStream() must be replaced');
     }
   }
 
@@ -66,7 +70,10 @@ describe('Datastore', () => {
     }
   }
 
-  const serializer = new JsonProtoSerializer(new DatabaseId('test-project'), /* useProto3Json= */ false);
+  const serializer = new JsonProtoSerializer(
+    new DatabaseId('test-project'),
+    /* useProto3Json= */ false
+  );
 
   async function invokeDatastoreImplInvokeRpc(datastore: Datastore) {
     // Since we cannot access the `DatastoreImpl` class directly, invoke its
@@ -82,12 +89,20 @@ describe('Datastore', () => {
   }
 
   it('newDatastore() returns an an instance of Datastore', () => {
-    const datastore = newDatastore(new EmptyCredentialsProvider(), new MockConnection(), serializer);
+    const datastore = newDatastore(
+      new EmptyCredentialsProvider(),
+      new MockConnection(),
+      serializer
+    );
     expect(datastore).to.be.an.instanceof(Datastore);
   });
 
   it('DatastoreImpl.invokeRPC() fails if terminated', async () => {
-    const datastore = newDatastore(new EmptyCredentialsProvider(), new MockConnection(), serializer);
+    const datastore = newDatastore(
+      new EmptyCredentialsProvider(),
+      new MockConnection(),
+      serializer
+    );
     datastore.terminate();
     await expect(invokeDatastoreImplInvokeRpc(datastore))
       .to.eventually.be.rejectedWith(/terminated/i)
@@ -96,7 +111,8 @@ describe('Datastore', () => {
 
   it('DatastoreImpl.invokeRPC() rethrows a FirestoreError', async () => {
     const connection = new MockConnection();
-    connection.invokeRPC = () => Promise.reject(new FirestoreError(Code.ABORTED, 'zzyzx'));
+    connection.invokeRPC = () =>
+      Promise.reject(new FirestoreError(Code.ABORTED, 'zzyzx'));
     const credentials = new MockCredentialsProvider();
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeRpc(datastore))
@@ -118,7 +134,8 @@ describe('Datastore', () => {
 
   it('DatastoreImpl.invokeRPC() invalidates the token if unauthenticated', async () => {
     const connection = new MockConnection();
-    connection.invokeRPC = () => Promise.reject(new FirestoreError(Code.UNAUTHENTICATED, 'zzyzx'));
+    connection.invokeRPC = () =>
+      Promise.reject(new FirestoreError(Code.UNAUTHENTICATED, 'zzyzx'));
     const credentials = new MockCredentialsProvider();
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeRpc(datastore))
@@ -128,7 +145,11 @@ describe('Datastore', () => {
   });
 
   it('DatastoreImpl.invokeStreamingRPC() fails if terminated', async () => {
-    const datastore = newDatastore(new EmptyCredentialsProvider(), new MockConnection(), serializer);
+    const datastore = newDatastore(
+      new EmptyCredentialsProvider(),
+      new MockConnection(),
+      serializer
+    );
     datastore.terminate();
     await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
       .to.eventually.be.rejectedWith(/terminated/i)
@@ -137,7 +158,8 @@ describe('Datastore', () => {
 
   it('DatastoreImpl.invokeStreamingRPC() rethrows a FirestoreError', async () => {
     const connection = new MockConnection();
-    connection.invokeStreamingRPC = () => Promise.reject(new FirestoreError(Code.ABORTED, 'zzyzx'));
+    connection.invokeStreamingRPC = () =>
+      Promise.reject(new FirestoreError(Code.ABORTED, 'zzyzx'));
     const credentials = new MockCredentialsProvider();
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
@@ -159,7 +181,8 @@ describe('Datastore', () => {
 
   it('DatastoreImpl.invokeStreamingRPC() invalidates the token if unauthenticated', async () => {
     const connection = new MockConnection();
-    connection.invokeStreamingRPC = () => Promise.reject(new FirestoreError(Code.UNAUTHENTICATED, 'zzyzx'));
+    connection.invokeStreamingRPC = () =>
+      Promise.reject(new FirestoreError(Code.UNAUTHENTICATED, 'zzyzx'));
     const credentials = new MockCredentialsProvider();
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
@@ -167,5 +190,4 @@ describe('Datastore', () => {
       .and.have.property('code', Code.UNAUTHENTICATED);
     expect(credentials.invalidateTokenInvoked).to.be.true;
   });
-
 });

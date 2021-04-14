@@ -105,10 +105,7 @@ class DatastoreImpl extends Datastore {
           }
           throw error;
         } else {
-          throw new FirestoreError(
-            Code.UNKNOWN,
-            error.toString()
-          );
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
         }
       });
   }
@@ -137,10 +134,7 @@ class DatastoreImpl extends Datastore {
           }
           throw error;
         } else {
-          throw new FirestoreError(
-            Code.UNKNOWN,
-            error.toString()
-          );
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
         }
       });
   }
