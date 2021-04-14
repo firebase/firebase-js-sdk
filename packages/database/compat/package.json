@@ -8,6 +8,6 @@
     "module": "../dist/compat/esm2017/index.js",
     "esm5": "../dist/compat/esm5/index.js",
     "license": "Apache-2.0",
-    "typings": "../dist/compat/esm2017/packages/database/compat/index.d.ts"
+    "typings": "../dist/compat/esm2017/compat/index.d.ts"
   }
   

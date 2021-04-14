@@ -33,7 +33,7 @@
     "test:debug": "karma start --browser=Chrome",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input exp/dist/storage-public.d.ts --output exp/dist/storage-public.d.ts",
-    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i exp/dist/storage-public.d.ts -o dist/compat/esm5/compat/index.d.ts -a -r StorageService:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i exp/dist/storage-public.d.ts -o dist/compat/esm2017/compat/index.d.ts -a -r StorageService:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
   },
   "license": "Apache-2.0",
   "dependencies": {
