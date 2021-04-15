@@ -18,8 +18,8 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { Code, FirestoreError } from '../../../src/util/error';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
+import { DatabaseId } from '../../../src/core/database_info';
 import { Connection, Stream } from '../../../src/remote/connection';
 import {
   Datastore,
@@ -28,7 +28,7 @@ import {
   invokeBatchGetDocumentsRpc
 } from '../../../src/remote/datastore';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
-import { DatabaseId } from '../../../src/core/database_info';
+import { Code, FirestoreError } from '../../../src/util/error';
 
 use(chaiAsPromised);
 
@@ -75,13 +75,17 @@ describe('Datastore', () => {
     /* useProto3Json= */ false
   );
 
-  async function invokeDatastoreImplInvokeRpc(datastore: Datastore) {
+  async function invokeDatastoreImplInvokeRpc(
+    datastore: Datastore
+  ): Promise<void> {
     // Since we cannot access the `DatastoreImpl` class directly, invoke its
     // `invokeRPC()` method indirectly via `invokeCommitRpc()`.
     await invokeCommitRpc(datastore, /* mutations= */ []);
   }
 
-  async function invokeDatastoreImplInvokeStreamingRPC(datastore: Datastore) {
+  async function invokeDatastoreImplInvokeStreamingRPC(
+    datastore: Datastore
+  ): Promise<void> {
     // Since we cannot access the `DatastoreImpl` class directly, invoke its
     // `invokeStreamingRPC()` method indirectly via
     // `invokeBatchGetDocumentsRpc()`.
