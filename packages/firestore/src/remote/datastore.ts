@@ -132,7 +132,7 @@ class DatastoreImpl extends Datastore {
   }
 
   terminate(): void {
-    this.terminated = false;
+    this.terminated = true;
   }
 }
 
