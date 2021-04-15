@@ -5,6 +5,7 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseIdToken } from '@firebase/util';
 
 // @public (undocumented)
 export function child(parent: Reference, path: string): Reference;
@@ -229,7 +230,9 @@ export type Unsubscribe = () => void;
 export function update(ref: Reference, values: object): Promise<void>;
 
 // @public
-export function useDatabaseEmulator(db: FirebaseDatabase, host: string, port: number): void;
+export function useDatabaseEmulator(db: FirebaseDatabase, host: string, port: number, options?: {
+    mockUserToken?: Partial<FirebaseIdToken>;
+}): void;
 
 
 ```
