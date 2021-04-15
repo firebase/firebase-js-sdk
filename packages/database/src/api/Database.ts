@@ -18,7 +18,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import { validateArgCount, Compat } from '@firebase/util';
+import { validateArgCount, Compat, FirebaseIdToken } from '@firebase/util';
 
 import {
   FirebaseDatabase as ExpDatabase,
@@ -58,9 +58,16 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
    *
    * @param host - the emulator host (ex: localhost)
    * @param port - the emulator port (ex: 8080)
+   * @param options.mockUserToken - Optional: The mock token to use (for unit testing Security Rules)
    */
-  useEmulator(host: string, port: number): void {
-    useDatabaseEmulator(this._delegate, host, port);
+  useEmulator(
+    host: string,
+    port: number,
+    options: {
+      mockUserToken?: Partial<FirebaseIdToken>;
+    } = {}
+  ): void {
+    useDatabaseEmulator(this._delegate, host, port, options);
   }
 
   /**
