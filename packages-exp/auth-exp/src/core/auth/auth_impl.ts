@@ -562,7 +562,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private frameworks: string[] = [];
   private clientVersion: string;
   _logFramework(framework: string): void {
-    if (this.frameworks.includes(framework)) {
+    if (!framework || this.frameworks.includes(framework)) {
       return;
     }
     this.frameworks.push(framework);

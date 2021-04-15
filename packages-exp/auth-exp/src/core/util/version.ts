@@ -31,18 +31,8 @@ export const enum ClientPlatform {
   WORKER = 'Worker'
 }
 
-const enum ClientFramework {
-  // No other framework used.
-  DEFAULT = 'FirebaseCore-web',
-  // Firebase Auth used with FirebaseUI-web.
-  // TODO: Pass this in when used in conjunction with FirebaseUI
-  FIREBASEUI = 'FirebaseUI-web'
-}
-
 /*
  * Determine the SDK version string
- *
- * TODO: This should be set on the Auth object during initialization
  */
 export function _getClientVersion(
   clientPlatform: ClientPlatform,
@@ -65,6 +55,6 @@ export function _getClientVersion(
   }
   const reportedFrameworks = frameworks.length
     ? frameworks.join(',')
-    : ClientFramework.DEFAULT;
+    : 'FirebaseCore-web'; /* default value if no other framework is used */
   return `${reportedPlatform}/${ClientImplementation.CORE}/${SDK_VERSION}/${reportedFrameworks}`;
 }
