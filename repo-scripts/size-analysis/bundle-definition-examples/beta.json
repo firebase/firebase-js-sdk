@@ -1,0 +1,308 @@
+[
+    {
+        "name": "app-v9",
+        "desecription": "@firebase/app v9",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "app-v8",
+        "description": "@firebase/app v8",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "rc-v9",
+        "desecription": "@firebase/remote-config v9",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/remote-config",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getRemoteConfig", "fetchAndActivate", "getValue"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "rc-v8",
+        "description": "@firebase/remote-config v8",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            },
+            {
+                "packageName": "@firebase/remote-config",
+                "versionOrTag": "latest",
+                "imports": [
+                    "side effect import"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "fcm-v9",
+        "desecription": "@firebase/messaging v9",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/messaging",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getMessaging", "getToken"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "fcm-v8",
+        "description": "@firebase/messaging v8",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            },
+            {
+                "packageName": "@firebase/messaging",
+                "versionOrTag": "latest",
+                "imports": [
+                    "side effect import"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "auth-v9",
+        "desecription": "@firebase/auth v9",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/auth",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeAuth", "indexedDBLocalPersistence", "onAuthStateChanged"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "auth-v8",
+        "description": "@firebase/auth v8",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            },
+            {
+                "packageName": "@firebase/auth",
+                "versionOrTag": "latest",
+                "imports": [
+                    "side effect import"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "firestore-v9",
+        "desecription": "@firebase/firestore v9",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/firestore",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getFirestore", "doc", "getDoc"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "firestore-v8",
+        "description": "@firebase/firestore v8",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            },
+            {
+                "packageName": "@firebase/firestore",
+                "versionOrTag": "latest",
+                "imports": [
+                    "side effect import"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "storage-v9",
+        "desecription": "@firebase/storage v9",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/storage",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getStorage", "ref", "getDownloadURL"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "storage-v8",
+        "description": "@firebase/storage v8",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            },
+            {
+                "packageName": "@firebase/storage",
+                "versionOrTag": "latest",
+                "imports": [
+                    "side effect import"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "database-v9",
+        "desecription": "@firebase/database v9",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/database",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getDatabase", "ref", "get"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "database-v8",
+        "description": "@firebase/database v8",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            },
+            {
+                "packageName": "@firebase/database",
+                "versionOrTag": "latest",
+                "imports": [
+                    "side effect import"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "perf-v9",
+        "desecription": "@firebase/performance v9",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/performance",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getPerformance"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "perf-v8",
+        "description": "@firebase/performance v8",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "latest",
+                "imports": [
+                    "default import"
+                ]
+            },
+            {
+                "packageName": "@firebase/performance",
+                "versionOrTag": "latest",
+                "imports": [
+                    "side effect import"
+                ]
+            }
+        ]
+    }
+]

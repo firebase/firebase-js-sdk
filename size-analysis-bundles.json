@@ -1,0 +1,431 @@
+[
+  {
+    "name": "app-v9",
+    "description": "",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 10814,
+        "gzipSize": 3489
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeApp"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "app-v8",
+    "description": "@firebase/app v8",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 16192,
+        "gzipSize": 5396
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "latest",
+        "imports": [
+          "default import"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "rc-v9",
+    "description": "",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 23076,
+        "gzipSize": 7133
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeApp"
+        ]
+      },
+      {
+        "packageName": "@firebase/remote-config",
+        "versionOrTag": "exp",
+        "imports": [
+          "getRemoteConfig",
+          "fetchAndActivate",
+          "getValue"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "rc-v8",
+    "description": "@firebase/remote-config v8",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 41368,
+        "gzipSize": 12528
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "latest",
+        "imports": [
+          "default import"
+        ]
+      },
+      {
+        "packageName": "@firebase/remote-config",
+        "versionOrTag": "latest",
+        "imports": [
+          "side effect import"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "fcm-v9",
+    "description": "",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 35498,
+        "gzipSize": 10513
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeApp"
+        ]
+      },
+      {
+        "packageName": "@firebase/messaging",
+        "versionOrTag": "exp",
+        "imports": [
+          "getMessaging",
+          "getToken"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "fcm-v8",
+    "description": "@firebase/messaging v8",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 46329,
+        "gzipSize": 13489
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "latest",
+        "imports": [
+          "default import"
+        ]
+      },
+      {
+        "packageName": "@firebase/messaging",
+        "versionOrTag": "latest",
+        "imports": [
+          "side effect import"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "auth-v9",
+    "description": "",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 53847,
+        "gzipSize": 15907
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeApp"
+        ]
+      },
+      {
+        "packageName": "@firebase/auth",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeAuth",
+          "indexedDBLocalPersistence",
+          "onAuthStateChanged"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "auth-v8",
+    "description": "@firebase/auth v8",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 197008,
+        "gzipSize": 61554
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "latest",
+        "imports": [
+          "default import"
+        ]
+      },
+      {
+        "packageName": "@firebase/auth",
+        "versionOrTag": "latest",
+        "imports": [
+          "side effect import"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "firestore-v9",
+    "description": "",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 170561,
+        "gzipSize": 53186
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeApp"
+        ]
+      },
+      {
+        "packageName": "@firebase/firestore",
+        "versionOrTag": "exp",
+        "imports": [
+          "getFirestore",
+          "doc",
+          "getDoc"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "firestore-v8",
+    "description": "@firebase/firestore v8",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 281369,
+        "gzipSize": 82297
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "latest",
+        "imports": [
+          "default import"
+        ]
+      },
+      {
+        "packageName": "@firebase/firestore",
+        "versionOrTag": "latest",
+        "imports": [
+          "side effect import"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "storage-v9",
+    "description": "",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 26495,
+        "gzipSize": 8500
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeApp"
+        ]
+      },
+      {
+        "packageName": "@firebase/storage",
+        "versionOrTag": "exp",
+        "imports": [
+          "getStorage",
+          "ref",
+          "getDownloadURL"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "storage-v8",
+    "description": "@firebase/storage v8",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 52073,
+        "gzipSize": 15496
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "latest",
+        "imports": [
+          "default import"
+        ]
+      },
+      {
+        "packageName": "@firebase/storage",
+        "versionOrTag": "latest",
+        "imports": [
+          "side effect import"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "database-v9",
+    "description": "",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 139398,
+        "gzipSize": 39778
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeApp"
+        ]
+      },
+      {
+        "packageName": "@firebase/database",
+        "versionOrTag": "exp",
+        "imports": [
+          "getDatabase",
+          "ref",
+          "get"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "database-v8",
+    "description": "@firebase/database v8",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 185052,
+        "gzipSize": 51087
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "latest",
+        "imports": [
+          "default import"
+        ]
+      },
+      {
+        "packageName": "@firebase/database",
+        "versionOrTag": "latest",
+        "imports": [
+          "side effect import"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "perf-v9",
+    "description": "",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 40747,
+        "gzipSize": 12424
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "exp",
+        "imports": [
+          "initializeApp"
+        ]
+      },
+      {
+        "packageName": "@firebase/performance",
+        "versionOrTag": "exp",
+        "imports": [
+          "getPerformance"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "perf-v8",
+    "description": "@firebase/performance v8",
+    "results": [
+      {
+        "bundler": "rollup",
+        "size": 46007,
+        "gzipSize": 14140
+      }
+    ],
+    "dependencies": [
+      {
+        "packageName": "@firebase/app",
+        "versionOrTag": "latest",
+        "imports": [
+          "default import"
+        ]
+      },
+      {
+        "packageName": "@firebase/performance",
+        "versionOrTag": "latest",
+        "imports": [
+          "side effect import"
+        ]
+      }
+    ]
+  }
+]
