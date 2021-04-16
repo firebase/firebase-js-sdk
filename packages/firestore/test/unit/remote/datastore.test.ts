@@ -32,7 +32,7 @@ import { Code, FirestoreError } from '../../../src/util/error';
 
 use(chaiAsPromised);
 
-// TODO: Improve the coverage of these tests.
+// TODO(b/185584343): Improve the coverage of these tests.
 // At the time of writing, the tests only cover the error handling in
 // `invokeRPC()` and `invokeStreamingRPC()`.
 describe('Datastore', () => {
