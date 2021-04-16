@@ -109,8 +109,11 @@ describe('Datastore', () => {
     );
     datastore.terminate();
     await expect(invokeDatastoreImplInvokeRpc(datastore))
-      .to.eventually.be.rejectedWith(/terminated/i)
-      .and.have.property('code', Code.FAILED_PRECONDITION);
+      .to.eventually.be.rejectedWith(/terminated/)
+      .and.include({
+        'name': 'FirebaseError',
+        'code': Code.FAILED_PRECONDITION
+      });
   });
 
   it('DatastoreImpl.invokeRPC() rethrows a FirestoreError', async () => {
@@ -121,7 +124,10 @@ describe('Datastore', () => {
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeRpc(datastore))
       .to.eventually.be.rejectedWith('zzyzx')
-      .and.have.property('code', Code.ABORTED);
+      .and.include({
+        'name': 'FirebaseError',
+        'code': Code.ABORTED
+      });
     expect(credentials.invalidateTokenInvoked).to.be.false;
   });
 
@@ -132,7 +138,10 @@ describe('Datastore', () => {
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeRpc(datastore))
       .to.eventually.be.rejectedWith('zzyzx')
-      .and.have.property('code', Code.UNKNOWN);
+      .and.include({
+        'name': 'FirebaseError',
+        'code': Code.UNKNOWN
+      });
     expect(credentials.invalidateTokenInvoked).to.be.false;
   });
 
@@ -144,7 +153,10 @@ describe('Datastore', () => {
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeRpc(datastore))
       .to.eventually.be.rejectedWith('zzyzx')
-      .and.have.property('code', Code.UNAUTHENTICATED);
+      .and.include({
+        'name': 'FirebaseError',
+        'code': Code.UNAUTHENTICATED
+      });
     expect(credentials.invalidateTokenInvoked).to.be.true;
   });
 
@@ -156,8 +168,11 @@ describe('Datastore', () => {
     );
     datastore.terminate();
     await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
-      .to.eventually.be.rejectedWith(/terminated/i)
-      .and.have.property('code', Code.FAILED_PRECONDITION);
+      .to.eventually.be.rejectedWith(/terminated/)
+      .and.include({
+        'name': 'FirebaseError',
+        'code': Code.FAILED_PRECONDITION
+      });
   });
 
   it('DatastoreImpl.invokeStreamingRPC() rethrows a FirestoreError', async () => {
@@ -168,7 +183,10 @@ describe('Datastore', () => {
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
       .to.eventually.be.rejectedWith('zzyzx')
-      .and.have.property('code', Code.ABORTED);
+      .and.include({
+        'name': 'FirebaseError',
+        'code': Code.ABORTED
+      });
     expect(credentials.invalidateTokenInvoked).to.be.false;
   });
 
@@ -179,7 +197,10 @@ describe('Datastore', () => {
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
       .to.eventually.be.rejectedWith('zzyzx')
-      .and.have.property('code', Code.UNKNOWN);
+      .and.include({
+        'name': 'FirebaseError',
+        'code': Code.UNKNOWN
+      });
     expect(credentials.invalidateTokenInvoked).to.be.false;
   });
 
@@ -191,7 +212,10 @@ describe('Datastore', () => {
     const datastore = newDatastore(credentials, connection, serializer);
     await expect(invokeDatastoreImplInvokeStreamingRPC(datastore))
       .to.eventually.be.rejectedWith('zzyzx')
-      .and.have.property('code', Code.UNAUTHENTICATED);
+      .and.include({
+        'name': 'FirebaseError',
+        'code': Code.UNAUTHENTICATED
+      });
     expect(credentials.invalidateTokenInvoked).to.be.true;
   });
 });
