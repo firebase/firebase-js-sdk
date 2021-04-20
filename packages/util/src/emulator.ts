@@ -105,7 +105,7 @@ export function createMockUserToken(
     type: 'JWT'
   };
 
-  const project = projectId || 'fake-project';
+  const project = projectId || 'demo-project';
   const iat = token.iat || 0;
   const uid = token.uid || token.user_id;
   if (!uid) {
