@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { registerDatabase } from './register';
-import { setWebSocketImpl } from '../src/realtime/WebSocketConnection';
 import { Client } from 'faye-websocket';
+
+import { setWebSocketImpl } from '../src/realtime/WebSocketConnection';
+
+import { registerDatabase } from './register';
 
 setWebSocketImpl(Client);
 
