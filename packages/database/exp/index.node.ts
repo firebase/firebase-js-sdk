@@ -16,6 +16,10 @@
  */
 
 import { registerDatabase } from './register';
+import { setWebSocketImpl } from '../src/realtime/WebSocketConnection';
+import { Client } from 'faye-websocket';
+
+setWebSocketImpl(Client);
 
 export * from './api';
 
