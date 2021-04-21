@@ -98,7 +98,10 @@ export class DocumentReference<T = DocumentData> {
   /** @hideconstructor */
   constructor(
     firestore: FirebaseFirestore,
-    readonly _converter: FirestoreDataConverter<T> | null,
+    /**
+     * If provided, the `FirestoreDataConverter` associated with this instance.
+     */
+    readonly converter: FirestoreDataConverter<T> | null,
     readonly _key: DocumentKey
   ) {
     this.firestore = firestore;
@@ -129,7 +132,7 @@ export class DocumentReference<T = DocumentData> {
   get parent(): CollectionReference<T> {
     return new CollectionReference<T>(
       this.firestore,
-      this._converter,
+      this.converter,
       this._key.path.popLast()
     );
   }
@@ -178,7 +181,10 @@ export class Query<T = DocumentData> {
   /** @hideconstructor protected */
   constructor(
     firestore: FirebaseFirestore,
-    readonly _converter: FirestoreDataConverter<T> | null,
+    /**
+     * If provided, the `FirestoreDataConverter` associated with this instance.
+     */
+    readonly converter: FirestoreDataConverter<T> | null,
     readonly _query: InternalQuery
   ) {
     this.firestore = firestore;
@@ -502,7 +508,7 @@ export function doc<T>(
     validateDocumentPath(absolutePath);
     return new DocumentReference(
       parent.firestore,
-      parent instanceof CollectionReference ? parent._converter : null,
+      parent instanceof CollectionReference ? parent.converter : null,
       new DocumentKey(absolutePath)
     );
   }
@@ -531,7 +537,7 @@ export function refEqual<T>(
     return (
       left.firestore === right.firestore &&
       left.path === right.path &&
-      left._converter === right._converter
+      left.converter === right.converter
     );
   }
   return false;
@@ -554,7 +560,7 @@ export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
     return (
       left.firestore === right.firestore &&
       queryEquals(left._query, right._query) &&
-      left._converter === right._converter
+      left.converter === right.converter
     );
   }
   return false;

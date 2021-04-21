@@ -147,7 +147,7 @@ class QueryFilterConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithAddedFilter(query._query, filter)
     );
   }
@@ -205,7 +205,7 @@ class QueryOrderByConstraint extends QueryConstraint {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithAddedOrderBy(query._query, orderBy)
     );
   }
@@ -247,7 +247,7 @@ class QueryLimitConstraint extends QueryConstraint {
   _apply<T>(query: Query<T>): Query<T> {
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithLimit(query._query, this._limit, this._limitType)
     );
   }
@@ -296,7 +296,7 @@ class QueryStartAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithStartAt(query._query, bound)
     );
   }
@@ -378,7 +378,7 @@ class QueryEndAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithEndAt(query._query, bound)
     );
   }

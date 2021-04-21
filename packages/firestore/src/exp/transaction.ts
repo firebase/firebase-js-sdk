@@ -66,7 +66,7 @@ export class Transaction extends LiteTransaction {
               /* hasPendingWrites= */ false,
               /* fromCache= */ false
             ),
-            ref._converter
+            ref.converter
           )
       );
   }

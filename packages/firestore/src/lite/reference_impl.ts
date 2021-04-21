@@ -134,7 +134,7 @@ export function getDoc<T>(
         userDataWriter,
         reference._key,
         document.isFoundDocument() ? document : null,
-        reference._converter
+        reference.converter
       );
     }
   );
@@ -166,7 +166,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
           userDataWriter,
           doc.key,
           doc,
-          query._converter
+          query.converter
         )
     );
 
@@ -227,7 +227,7 @@ export function setDoc<T>(
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const convertedValue = applyFirestoreDataConverter(
-    reference._converter,
+    reference.converter,
     data,
     options
   );
@@ -237,7 +237,7 @@ export function setDoc<T>(
     'setDoc',
     reference._key,
     convertedValue,
-    reference._converter !== null,
+    reference.converter !== null,
     options
   );
 
@@ -378,10 +378,7 @@ export function addDoc<T>(
   reference = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(reference);
 
-  const convertedValue = applyFirestoreDataConverter(
-    reference._converter,
-    data
-  );
+  const convertedValue = applyFirestoreDataConverter(reference.converter, data);
 
   const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
@@ -389,7 +386,7 @@ export function addDoc<T>(
     'addDoc',
     docRef._key,
     convertedValue,
-    docRef._converter !== null,
+    docRef.converter !== null,
     {}
   );
 
