@@ -72,12 +72,12 @@ const browserPlugins = function () {
       clean: true,
       abortOnError: false,
       transformers: [
-        util.removeAssertAndPrefixInternalTransformer,
+        //   util.removeAssertAndPrefixInternalTransformer,
         importPathTransformer
       ]
     }),
-    json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
+    json({ preferConst: true })
+    //  terser(util.manglePrivatePropertiesOptions)
   ];
 };
 

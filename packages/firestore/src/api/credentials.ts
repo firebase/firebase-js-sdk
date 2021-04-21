@@ -178,18 +178,13 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     } else {
       // if auth is not available, invoke tokenListener once with null token
       this.tokenListener(null);
-      authProvider.get().then(
-        auth => {
-          this.auth = auth;
-          if (this.tokenListener) {
-            // tokenListener can be removed by removeChangeListener()
-            this.auth.addAuthTokenListener(this.tokenListener);
-          }
-        },
-        () => {
-          /* this.authProvider.get() never rejects */
+      authProvider.onInit(auth => {
+        this.auth = auth;
+        if (this.tokenListener) {
+          // tokenListener can be removed by removeChangeListener()
+          this.auth.addAuthTokenListener(this.tokenListener);
         }
-      );
+      });
     }
   }
 
