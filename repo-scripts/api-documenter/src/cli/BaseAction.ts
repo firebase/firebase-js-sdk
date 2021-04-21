@@ -76,7 +76,7 @@ export abstract class BaseAction extends CommandLineAction {
         `Add suffix to interface and class names in the file path.` +
         `For example, packageA.myinterface_i.md for MyInterface interface, ` +
         `Add packageA.myclass_c.md for MyClass class.` +
-        `This is to avoid name conflict in case packageA also has, for example, a namespace with the same name in lowercase.` +
+        `This is to avoid name conflict in case packageA also has, for example, an entry point with the same name in lowercase.` +
         `This option is specifically designed for the Admin SDK where such case occurs.`
     });
   }
