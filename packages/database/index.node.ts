@@ -123,8 +123,10 @@ try {
   // @firebase/app when used together with the js sdk. More detail:
   // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
   // eslint-disable-next-line import/no-extraneous-dependencies, @typescript-eslint/no-require-imports
-  const firebase = require('@firebase/app').default;
-  registerDatabase(firebase);
+  const firebase = require('@firebase/app').default; // Only present for v8, undefined for v9 (should skip).
+  if (firebase) {
+    registerDatabase(firebase);
+  }
 } catch (err) {
   // catch and ignore 'MODULE_NOT_FOUND' error in firebase-admin context
   // we can safely ignore this error because RTDB in firebase-admin works without @firebase/app
