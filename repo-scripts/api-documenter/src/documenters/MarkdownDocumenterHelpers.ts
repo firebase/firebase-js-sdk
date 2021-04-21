@@ -49,13 +49,19 @@ import { DocNoteBox } from '../nodes/DocNoteBox';
 import { DocTableRow } from '../nodes/DocTableRow';
 import { DocTableCell } from '../nodes/DocTableCell';
 
-export function getLinkForApiItem(apiItem: ApiItem) {
-  const fileName = getFilenameForApiItem(apiItem);
+export function getLinkForApiItem(
+  apiItem: ApiItem,
+  addFileNameSuffix: boolean
+) {
+  const fileName = getFilenameForApiItem(apiItem, addFileNameSuffix);
   const headingAnchor = getHeadingAnchorForApiItem(apiItem);
   return `./${fileName}#${headingAnchor}`;
 }
 
-export function getFilenameForApiItem(apiItem: ApiItem): string {
+export function getFilenameForApiItem(
+  apiItem: ApiItem,
+  addFileNameSuffix: boolean
+): string {
   if (apiItem.kind === ApiItemKind.Model) {
     return 'index.md';
   }
@@ -103,10 +109,16 @@ export function getFilenameForApiItem(apiItem: ApiItem): string {
       // Sometimes we could have a class/interface and an entry point that have the same name.
       // This happened in the admin SDK where the App interface and the app namespace write to the same file.
       case ApiItemKind.Class:
-        baseName += '.' + qualifiedName + '_c';
+        baseName += '.' + qualifiedName;
+        if (addFileNameSuffix) {
+          baseName += '_c';
+        }
         break;
       case ApiItemKind.Interface:
-        baseName += '.' + qualifiedName + '_i';
+        baseName += '.' + qualifiedName;
+        if (addFileNameSuffix) {
+          baseName += '_i';
+        }
         break;
     }
   }
@@ -233,7 +245,8 @@ export function createExampleSection(
 
 export function createTitleCell(
   apiItem: ApiItem,
-  configuration: TSDocConfiguration
+  configuration: TSDocConfiguration,
+  addFileNameSuffix: boolean
 ): DocTableCell {
   return new DocTableCell({ configuration }, [
     new DocParagraph({ configuration }, [
@@ -241,7 +254,7 @@ export function createTitleCell(
         configuration,
         tagName: '@link',
         linkText: Utilities.getConciseSignature(apiItem),
-        urlDestination: getLinkForApiItem(apiItem)
+        urlDestination: getLinkForApiItem(apiItem, addFileNameSuffix)
       })
     ])
   ]);
@@ -348,7 +361,8 @@ export function createThrowsSection(
 
 export function createEntryPointTitleCell(
   apiItem: ApiEntryPoint,
-  configuration: TSDocConfiguration
+  configuration: TSDocConfiguration,
+  addFileNameSuffix: boolean
 ): DocTableCell {
   return new DocTableCell({ configuration }, [
     new DocParagraph({ configuration }, [
@@ -356,7 +370,7 @@ export function createEntryPointTitleCell(
         configuration,
         tagName: '@link',
         linkText: `/${apiItem.displayName}`,
-        urlDestination: getLinkForApiItem(apiItem)
+        urlDestination: getLinkForApiItem(apiItem, addFileNameSuffix)
       })
     ])
   ]);
