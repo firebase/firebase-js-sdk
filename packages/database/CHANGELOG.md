@@ -1,5 +1,14 @@
 # Unreleased
 
+## 0.9.11
+
+### Patch Changes
+
+- [`191184eb4`](https://github.com/firebase/firebase-js-sdk/commit/191184eb454109bff9198274fc416664b126d7ec) [#4801](https://github.com/firebase/firebase-js-sdk/pull/4801) - Fixes an internal conflict when using v8 and v9 SDKs in the same package.
+
+- Updated dependencies [[`3f370215a`](https://github.com/firebase/firebase-js-sdk/commit/3f370215aa571db6b41b92a7d8a9aaad2ea0ecd0)]:
+  - @firebase/auth-interop-types@0.1.6
+
 ## 0.9.10
 
 ### Patch Changes
