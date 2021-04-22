@@ -52,6 +52,12 @@ export interface UserParameters {
   lastLoginAt?: string | null;
 }
 
+/**
+ * UserInternal and AuthInternal reference each other, so both of them are included in the public typings.
+ * In order to exclude them, we mark them as internal explicitly.
+ *
+ * @internal
+ */
 export interface UserInternal extends User {
   displayName: string | null;
   email: string | null;

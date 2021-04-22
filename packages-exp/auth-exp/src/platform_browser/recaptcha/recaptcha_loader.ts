@@ -32,6 +32,12 @@ export const _JSLOAD_CALLBACK = jsHelpers._generateCallbackName('rcb');
 const NETWORK_TIMEOUT_DELAY = new Delay(30000, 60000);
 const RECAPTCHA_BASE = 'https://www.google.com/recaptcha/api.js?';
 
+/**
+ * We need to mark this interface as internal explicitly to exclude it in the public typings, because
+ * it references AuthInternal which has a circular dependency with UserInternal.
+ *
+ * @internal
+ */
 export interface ReCaptchaLoader {
   load(auth: AuthInternal, hl?: string): Promise<Recaptcha>;
   clearedOneInstance(): void;
