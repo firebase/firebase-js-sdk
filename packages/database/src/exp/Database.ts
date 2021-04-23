@@ -314,7 +314,7 @@ export function useDatabaseEmulator(
   if (repo.repoInfo_.nodeAdmin) {
     if (options.mockUserToken) {
       fatal(
-        'mockUserToken is not supported on the Admin SDK. For client access with mock users, please use the "firebase" package instead of "firebase-admin".'
+        'mockUserToken is not supported by the Admin SDK. For client access with mock users, please use the "firebase" package instead of "firebase-admin".'
       );
     }
     tokenProvider = new EmulatorTokenProvider(EmulatorTokenProvider.OWNER);
