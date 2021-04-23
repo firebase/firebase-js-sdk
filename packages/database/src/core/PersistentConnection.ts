@@ -773,7 +773,6 @@ export class PersistentConnection extends ServerActions {
       const onReady = this.onReady_.bind(this);
       const onDisconnect = this.onRealtimeDisconnect_.bind(this);
       const connId = this.id + ':' + PersistentConnection.nextConnectionId_++;
-      const self = this;
       const lastSessionId = this.lastSessionId;
       let canceled = false;
       let connection: Connection | null = null;
@@ -807,17 +806,17 @@ export class PersistentConnection extends ServerActions {
         .then(result => {
           if (!canceled) {
             log('getToken() completed. Creating connection.');
-            self.authToken_ = result && result.accessToken;
+            this.authToken_ = result && result.accessToken;
             connection = new Connection(
               connId,
-              self.repoInfo_,
-              self.applicationId_,
+              this.repoInfo_,
+              this.applicationId_,
               onDataMessage,
               onReady,
               onDisconnect,
               /* onKill= */ reason => {
-                warn(reason + ' (' + self.repoInfo_.toString() + ')');
-                self.interrupt(SERVER_KILL_INTERRUPT_REASON);
+                warn(reason + ' (' + this.repoInfo_.toString() + ')');
+                this.interrupt(SERVER_KILL_INTERRUPT_REASON);
               },
               lastSessionId
             );
@@ -826,7 +825,7 @@ export class PersistentConnection extends ServerActions {
           }
         })
         .then(null, error => {
-          self.log_('Failed to get token: ' + error);
+          this.log_('Failed to get token: ' + error);
           if (!canceled) {
             if (this.repoInfo_.nodeAdmin) {
               // This may be a critical error for the Admin Node.js SDK, so log a warning.

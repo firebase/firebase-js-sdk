@@ -217,7 +217,7 @@ export class FirebaseDatabase implements _FirebaseService {
 
   /** @hideconstructor */
   constructor(
-    private _repoInternal: Repo,
+    public _repoInternal: Repo,
     /** The FirebaseApp associated with this Realtime Database instance. */
     readonly app: FirebaseApp
   ) {}
@@ -300,7 +300,7 @@ export function useDatabaseEmulator(
     );
   }
   // Modify the repo to apply emulator settings
-  repoManagerApplyEmulatorSettings(db._repo, host, port);
+  repoManagerApplyEmulatorSettings(db._repoInternal, host, port);
 }
 
 /**
