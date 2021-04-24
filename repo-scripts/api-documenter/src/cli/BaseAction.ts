@@ -24,6 +24,7 @@ import colors from 'colors';
 
 import {
   CommandLineAction,
+  CommandLineFlagParameter,
   CommandLineStringParameter
 } from '@rushstack/ts-command-line';
 import { FileSystem } from '@rushstack/node-core-library';
@@ -39,11 +40,13 @@ export interface IBuildApiModelResult {
   apiModel: ApiModel;
   inputFolder: string;
   outputFolder: string;
+  addFileNameSuffix: boolean;
 }
 
 export abstract class BaseAction extends CommandLineAction {
   private _inputFolderParameter!: CommandLineStringParameter;
   private _outputFolderParameter!: CommandLineStringParameter;
+  private _fileNameSuffixParameter!: CommandLineFlagParameter;
 
   protected onDefineParameters(): void {
     // override
@@ -65,6 +68,17 @@ export abstract class BaseAction extends CommandLineAction {
         ` ANY EXISTING CONTENTS WILL BE DELETED!` +
         ` If omitted, the default is "./${this.actionName}"`
     });
+
+    this._fileNameSuffixParameter = this.defineFlagParameter({
+      parameterLongName: '--name-suffix',
+      parameterShortName: '-s',
+      description:
+        `Add suffix to interface and class names in the file path.` +
+        `For example, packageA.myinterface_i.md for MyInterface interface, ` +
+        `Add packageA.myclass_c.md for MyClass class.` +
+        `This is to avoid name conflict in case packageA also has, for example, an entry point with the same name in lowercase.` +
+        `This option is specifically designed for the Admin SDK where such case occurs.`
+    });
   }
 
   protected buildApiModel(): IBuildApiModelResult {
@@ -79,6 +93,8 @@ export abstract class BaseAction extends CommandLineAction {
       this._outputFolderParameter.value || `./${this.actionName}`;
     FileSystem.ensureFolder(outputFolder);
 
+    const addFileNameSuffix: boolean = this._fileNameSuffixParameter.value;
+
     for (const filename of FileSystem.readFolder(inputFolder)) {
       if (filename.match(/\.api\.json$/i)) {
         console.log(`Reading ${filename}`);
@@ -89,7 +105,7 @@ export abstract class BaseAction extends CommandLineAction {
 
     this._applyInheritDoc(apiModel, apiModel);
 
-    return { apiModel, inputFolder, outputFolder };
+    return { apiModel, inputFolder, outputFolder, addFileNameSuffix };
   }
 
   // TODO: This is a temporary workaround.  The long term plan is for API Extractor's DocCommentEnhancer

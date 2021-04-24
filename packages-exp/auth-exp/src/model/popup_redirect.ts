@@ -79,6 +79,12 @@ export interface EventManager {
   unregisterConsumer(authEventConsumer: AuthEventConsumer): void;
 }
 
+/**
+ * We need to mark this interface as internal explicitly to exclude it in the public typings, because
+ * it references AuthInternal which has a circular dependency with UserInternal.
+ *
+ * @internal
+ */
 export interface PopupRedirectResolverInternal extends PopupRedirectResolver {
   // Whether or not to initialize the event manager early
   _shouldInitProactively: boolean;

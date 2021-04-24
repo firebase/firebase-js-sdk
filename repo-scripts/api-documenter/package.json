@@ -1,7 +1,6 @@
 {
   "name": "@firebase/api-documenter",
   "version": "0.1.0",
-  "private": true,
   "description": "Read JSON files from api-extractor, generate documentation pages",
   "repository": {
     "directory": "repo-scripts/documenter",
@@ -14,9 +13,12 @@
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
   },
   "bin": {
-    "api-documenter": "./bin/api-documenter"
+    "api-documenter-fire": "./dist/start.js"
   },
-  "main": "lib/index.js",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
   "typings": "dist/rollup.d.ts",
   "dependencies": {
     "api-extractor-model-me": "0.1.1",
@@ -24,7 +26,8 @@
     "@rushstack/node-core-library": "3.36.0",
     "@rushstack/ts-command-line": "4.7.8",
     "colors": "~1.2.1",
-    "resolve": "~1.17.0"
+    "resolve": "~1.17.0",
+    "tslib": "^2.1.0"
   },
   "devDependencies": {
     "@types/resolve": "1.17.1",
