@@ -107,8 +107,8 @@ export function createMockUserToken(
 
   const project = projectId || 'demo-project';
   const iat = token.iat || 0;
-  const uid = token.uid || token.user_id;
-  if (!uid) {
+  const sub = token.sub || token.user_id;
+  if (!sub) {
     throw new Error("Auth must contain 'sub' or 'user_id' field!");
   }
 
@@ -119,8 +119,8 @@ export function createMockUserToken(
     iat,
     exp: iat + 3600,
     auth_time: iat,
-    sub: uid,
-    user_id: uid,
+    sub,
+    user_id: sub,
     firebase: {
       sign_in_provider: 'custom',
       identities: {}
