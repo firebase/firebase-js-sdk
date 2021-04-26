@@ -21,7 +21,7 @@ import { forceRestClient } from '../../src/api/test_access';
 import { getRandomNode, getFreshRepoFromReference } from '../helpers/util';
 
 // Some sanity checks for the ReadonlyRestClient crawler support.
-describe.only('Crawler Support', () => {
+describe('Crawler Support', () => {
   let initialData;
   let normalRef;
   let restRef;
