@@ -15,10 +15,4 @@
  * limitations under the License.
  */
 
-declare interface A {
-  a: string;
-}
-export class B implements A {
-  a: string;
-}
-export {};
+import '@firebase/app-check';
