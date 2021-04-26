@@ -82,7 +82,6 @@
     "messaging",
     "storage",
     "performance",
-    "remote-config",
-    "app-check"
+    "remote-config"
   ]
 }
