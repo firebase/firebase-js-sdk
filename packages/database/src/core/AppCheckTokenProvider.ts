@@ -36,7 +36,7 @@ export class AppCheckTokenProvider {
   ) {
     this.appCheck = appCheckProvider?.getImmediate({ optional: true });
     if (!this.appCheck) {
-      appCheckProvider.get().then(appCheck => (this.appCheck = appCheck));
+      appCheckProvider?.get().then(appCheck => (this.appCheck = appCheck));
     }
   }
 
