@@ -49,6 +49,7 @@ function factory(
   // TODO: This should eventually be 'app-compat'
   const app = container.getProvider('app').getImmediate();
   const authProvider = container.getProvider('auth-internal');
+  const appCheckProvider = container.getProvider('app-check-internal');
 
   // TODO: get StorageService instance from component framework instead
   // of creating a new one.
@@ -57,6 +58,7 @@ function factory(
     new StorageService(
       app,
       authProvider,
+      appCheckProvider,
       new XhrIoPool(),
       url,
       firebase.SDK_VERSION

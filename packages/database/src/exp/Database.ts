@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import {
   _FirebaseService,
   _getProvider,
@@ -26,6 +27,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
 
+import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import {
   AuthTokenProvider,
   EmulatorAdminTokenProvider,
@@ -98,6 +100,7 @@ function repoManagerApplyEmulatorSettings(
 export function repoManagerDatabaseFromApp(
   app: FirebaseApp,
   authProvider: Provider<FirebaseAuthInternalName>,
+  appCheckProvider?: Provider<AppCheckInternalComponentName>,
   url?: string,
   nodeAdmin?: boolean
 ): FirebaseDatabase {
@@ -146,7 +149,12 @@ export function repoManagerDatabaseFromApp(
     );
   }
 
-  const repo = repoManagerCreateRepo(repoInfo, app, authTokenProvider);
+  const repo = repoManagerCreateRepo(
+    repoInfo,
+    app,
+    authTokenProvider,
+    new AppCheckTokenProvider(app.name, appCheckProvider)
+  );
   return new FirebaseDatabase(repo, app);
 }
 
@@ -174,7 +182,8 @@ function repoManagerDeleteRepo(repo: Repo, appName: string): void {
 function repoManagerCreateRepo(
   repoInfo: RepoInfo,
   app: FirebaseApp,
-  authTokenProvider: AuthTokenProvider
+  authTokenProvider: AuthTokenProvider,
+  appCheckProvider: AppCheckTokenProvider
 ): Repo {
   let appRepos = repos[app.name];
 
@@ -189,7 +198,7 @@ function repoManagerCreateRepo(
       'Database initialized multiple times. Please make sure the format of the database URL matches with each database() call.'
     );
   }
-  repo = new Repo(repoInfo, useRestClient, authTokenProvider);
+  repo = new Repo(repoInfo, useRestClient, authTokenProvider, appCheckProvider);
   appRepos[repoInfo.toURLString()] = repo;
 
   return repo;

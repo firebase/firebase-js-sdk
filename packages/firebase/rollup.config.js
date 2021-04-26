@@ -76,7 +76,16 @@ const plugins = [
   commonjs()
 ];
 
-const deps = Object.keys(pkg.dependencies || {});
+// bundle app-check and app-check enabled libraries in firebase
+const deps = Object.keys(pkg.dependencies || {}).filter(
+  dep =>
+    ![
+      '@firebase/app-check',
+      '@firebase/storage',
+      '@firebase/functions',
+      '@firebase/database'
+    ].includes(dep)
+);
 const external = id => deps.some(dep => id === dep || id.startsWith(`${dep}/`));
 
 /**

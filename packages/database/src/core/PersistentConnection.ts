@@ -16,21 +16,22 @@
  */
 
 import {
+  assert,
   contains,
+  Deferred,
   isEmpty,
+  isMobileCordova,
+  isNodeSdk,
+  isReactNative,
+  isValidFormat,
   safeGet,
   stringify,
-  assert,
-  isAdmin,
-  isValidFormat,
-  isMobileCordova,
-  isReactNative,
-  isNodeSdk,
-  Deferred
+  isAdmin
 } from '@firebase/util';
 
 import { Connection } from '../realtime/Connection';
 
+import { AppCheckTokenProvider } from './AppCheckTokenProvider';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
 import { ServerActions } from './ServerActions';
@@ -50,7 +51,7 @@ const RECONNECT_DELAY_RESET_TIMEOUT = 30000; // Reset delay back to MIN_DELAY af
 const SERVER_KILL_INTERRUPT_REASON = 'server_kill';
 
 // If auth fails repeatedly, we'll assume something is wrong and log a warning / back off.
-const INVALID_AUTH_TOKEN_THRESHOLD = 3;
+const INVALID_TOKEN_THRESHOLD = 3;
 
 interface ListenSpec {
   onComplete(s: string, p?: unknown): void;
@@ -121,8 +122,10 @@ export class PersistentConnection extends ServerActions {
   } | null = null;
 
   private authToken_: string | null = null;
+  private appCheckToken_: string | null = null;
   private forceTokenRefresh_ = false;
   private invalidAuthTokenCount_ = 0;
+  private invalidAppCheckTokenCount_ = 0;
 
   private firstConnection_ = true;
   private lastConnectionAttemptTime_: number | null = null;
@@ -152,6 +155,7 @@ export class PersistentConnection extends ServerActions {
     private onConnectStatus_: (a: boolean) => void,
     private onServerInfoUpdate_: (a: unknown) => void,
     private authTokenProvider_: AuthTokenProvider,
+    private appCheckTokenProvider_: AppCheckTokenProvider,
     private authOverride_?: object | null
   ) {
     super();
@@ -372,6 +376,21 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
+  refreshAppCheckToken(token: string | null) {
+    this.appCheckToken_ = token;
+    this.log_('App check token refreshed');
+    if (this.appCheckToken_) {
+      this.tryAppCheck();
+    } else {
+      //If we're connected we want to let the server know to unauthenticate us.
+      //If we're not connected, simply delete the credential so we dont become
+      // authenticated next time we connect.
+      if (this.connected_) {
+        this.sendRequest('unappeck', {}, () => {});
+      }
+    }
+  }
+
   /**
    * Attempts to authenticate with the given credentials. If the authentication attempt fails, it's triggered like
    * a auth revoked (the connection is closed).
@@ -405,6 +424,33 @@ export class PersistentConnection extends ServerActions {
       );
     }
   }
+
+  /**
+   * Attempts to authenticate with the given token. If the authentication
+   * attempt fails, it's triggered like the token was revoked (the connection is
+   * closed).
+   */
+  tryAppCheck() {
+    if (this.connected_ && this.appCheckToken_) {
+      this.sendRequest(
+        'appcheck',
+        { 'token': this.appCheckToken_ },
+        (res: { [k: string]: unknown }) => {
+          const status = res[/*status*/ 's'] as string;
+          const data = (res[/*data*/ 'd'] as string) || 'error';
+          if (status === 'ok') {
+            this.invalidAppCheckTokenCount_ = 0;
+          } else {
+            this.onAppCheckRevoked_(status, data);
+          }
+        }
+      );
+    }
+  }
+
+  /**
+   * @inheritDoc
+   */
   unlisten(query: QueryContext, tag: number | null) {
     const pathString = query._path.toString();
     const queryId = query._queryIdentifier;
@@ -641,6 +687,11 @@ export class PersistentConnection extends ServerActions {
         body[/*status code*/ 's'] as string,
         body[/* explanation */ 'd'] as string
       );
+    } else if (action === 'apc') {
+      this.onAppCheckRevoked_(
+        body[/*status code*/ 's'] as string,
+        body[/* explanation */ 'd'] as string
+      );
     } else if (action === 'sd') {
       this.onSecurityDebugPacket_(body);
     } else {
@@ -764,7 +815,7 @@ export class PersistentConnection extends ServerActions {
     this.onConnectStatus_(false);
   }
 
-  private establishConnection_() {
+  private async establishConnection_() {
     if (this.shouldReconnect_()) {
       this.log_('Making a connection attempt');
       this.lastConnectionAttemptTime_ = new Date().getTime();
@@ -800,42 +851,48 @@ export class PersistentConnection extends ServerActions {
       const forceRefresh = this.forceTokenRefresh_;
       this.forceTokenRefresh_ = false;
 
-      // First fetch auth token, and establish connection after fetching the token was successful
-      this.authTokenProvider_
-        .getToken(forceRefresh)
-        .then(result => {
-          if (!canceled) {
-            log('getToken() completed. Creating connection.');
-            this.authToken_ = result && result.accessToken;
-            connection = new Connection(
-              connId,
-              this.repoInfo_,
-              this.applicationId_,
-              onDataMessage,
-              onReady,
-              onDisconnect,
-              /* onKill= */ reason => {
-                warn(reason + ' (' + this.repoInfo_.toString() + ')');
-                this.interrupt(SERVER_KILL_INTERRUPT_REASON);
-              },
-              lastSessionId
-            );
-          } else {
-            log('getToken() completed but was canceled');
+      try {
+        // First fetch auth and app check token, and establish connection after
+        // fetching the token was successful
+        const [authToken, appCheckToken] = await Promise.all([
+          this.authTokenProvider_.getToken(forceRefresh),
+          this.appCheckTokenProvider_.getToken(forceRefresh)
+        ]);
+
+        if (!canceled) {
+          log('getToken() completed. Creating connection.');
+          this.authToken_ = authToken && authToken.accessToken;
+          this.appCheckToken_ = appCheckToken && appCheckToken.token;
+          connection = new Connection(
+            connId,
+            this.repoInfo_,
+            this.applicationId_,
+            this.appCheckToken_,
+            this.authToken_,
+            onDataMessage,
+            onReady,
+            onDisconnect,
+            /* onKill= */ reason => {
+              warn(reason + ' (' + this.repoInfo_.toString() + ')');
+              this.interrupt(SERVER_KILL_INTERRUPT_REASON);
+            },
+            lastSessionId
+          );
+        } else {
+          log('getToken() completed but was canceled');
+        }
+      } catch (error) {
+        this.log_('Failed to get token: ' + error);
+        if (!canceled) {
+          if (this.repoInfo_.nodeAdmin) {
+            // This may be a critical error for the Admin Node.js SDK, so log a warning.
+            // But getToken() may also just have temporarily failed, so we still want to
+            // continue retrying.
+            warn(error);
           }
-        })
-        .then(null, error => {
-          this.log_('Failed to get token: ' + error);
-          if (!canceled) {
-            if (this.repoInfo_.nodeAdmin) {
-              // This may be a critical error for the Admin Node.js SDK, so log a warning.
-              // But getToken() may also just have temporarily failed, so we still want to
-              // continue retrying.
-              warn(error);
-            }
-            closeFn();
-          }
-        });
+          closeFn();
+        }
+      }
     }
   }
 
@@ -931,13 +988,30 @@ export class PersistentConnection extends ServerActions {
       // retry period since oauth tokens will report as "invalid" if they're
       // just expired. Plus there may be transient issues that resolve themselves.
       this.invalidAuthTokenCount_++;
-      if (this.invalidAuthTokenCount_ >= INVALID_AUTH_TOKEN_THRESHOLD) {
+      if (this.invalidAuthTokenCount_ >= INVALID_TOKEN_THRESHOLD) {
         // Set a long reconnect delay because recovery is unlikely
         this.reconnectDelay_ = RECONNECT_MAX_DELAY_FOR_ADMINS;
 
         // Notify the auth token provider that the token is invalid, which will log
         // a warning
         this.authTokenProvider_.notifyForInvalidToken();
+      }
+    }
+  }
+
+  private onAppCheckRevoked_(statusCode: string, explanation: string) {
+    log('App check token revoked: ' + statusCode + '/' + explanation);
+    this.appCheckToken_ = null;
+    this.forceTokenRefresh_ = true;
+    // Note: We don't close the connection as the developer may not have
+    // enforcement enabled. The backend closes connections with enforcements.
+    if (statusCode === 'invalid_token' || statusCode === 'permission_denied') {
+      // We'll wait a couple times before logging the warning / increasing the
+      // retry period since oauth tokens will report as "invalid" if they're
+      // just expired. Plus there may be transient issues that resolve themselves.
+      this.invalidAppCheckTokenCount_++;
+      if (this.invalidAppCheckTokenCount_ >= INVALID_TOKEN_THRESHOLD) {
+        this.appCheckTokenProvider_.notifyForInvalidToken();
       }
     }
   }
@@ -957,6 +1031,7 @@ export class PersistentConnection extends ServerActions {
   private restoreState_() {
     //Re-authenticate ourselves if we have a credential stored.
     this.tryAuth();
+    this.tryAppCheck();
 
     // Puts depend on having received the corresponding data update from the server before they complete, so we must
     // make sure to send listens before puts.

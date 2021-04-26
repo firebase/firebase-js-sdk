@@ -63,6 +63,7 @@ describe('Firebase Storage > Request', () => {
       requestInfo,
       null,
       null,
+      null,
       makePool(spiedSend),
       TEST_VERSION
     )
@@ -107,7 +108,7 @@ describe('Firebase Storage > Request', () => {
     requestInfo.urlParams[p1] = v1;
     requestInfo.urlParams[p2] = v2;
     requestInfo.body = 'thisistherequestbody';
-    return makeRequest(requestInfo, null, null, makePool(spiedSend))
+    return makeRequest(requestInfo, null, null, null, makePool(spiedSend))
       .getPromise()
       .then(
         () => {
@@ -150,7 +151,7 @@ describe('Firebase Storage > Request', () => {
       timeout
     );
 
-    return makeRequest(requestInfo, null, null, makePool(newSend))
+    return makeRequest(requestInfo, null, null, null, makePool(newSend))
       .getPromise()
       .then(
         () => {
@@ -172,7 +173,7 @@ describe('Firebase Storage > Request', () => {
       handler,
       timeout
     );
-    const request = makeRequest(requestInfo, null, null, makePool(null));
+    const request = makeRequest(requestInfo, null, null, null, makePool(null));
     const promise = request.getPromise().then(
       () => {
         assert.fail('Succeeded when handler gave error');
@@ -203,6 +204,7 @@ describe('Firebase Storage > Request', () => {
       requestInfo,
       /* appId= */ null,
       authToken,
+      null,
       makePool(spiedSend),
       TEST_VERSION
     );
@@ -243,6 +245,7 @@ describe('Firebase Storage > Request', () => {
       requestInfo,
       appId,
       null,
+      null,
       makePool(spiedSend),
       TEST_VERSION
     );
@@ -252,6 +255,47 @@ describe('Firebase Storage > Request', () => {
         const args: unknown[] = spiedSend.getCall(0).args;
         const expectedHeaders: { [key: string]: string } = {
           'X-Firebase-GMPID': appId
+        };
+        expectedHeaders[versionHeaderName] = versionHeaderValue;
+        assert.deepEqual(args[4], expectedHeaders);
+      },
+      () => {
+        assert.fail('Request failed unexpectedly');
+      }
+    );
+  });
+
+  it('sends appcheck token along properly', () => {
+    const appCheckToken = 'totallyshaddytoken';
+
+    function newSend(xhrio: TestingXhrIo): void {
+      xhrio.simulateResponse(200, '', {});
+    }
+    const spiedSend = sinon.spy(newSend);
+
+    function handler(): boolean {
+      return true;
+    }
+    const requestInfo = new RequestInfo(
+      'http://my-url.com/',
+      'GET',
+      handler,
+      timeout
+    );
+    const request = makeRequest(
+      requestInfo,
+      null,
+      null,
+      appCheckToken,
+      makePool(spiedSend),
+      TEST_VERSION
+    );
+    return request.getPromise().then(
+      () => {
+        assert.isTrue(spiedSend.calledOnce);
+        const args: unknown[] = spiedSend.getCall(0).args;
+        const expectedHeaders: { [key: string]: string } = {
+          'X-Firebase-AppCheck': appCheckToken
         };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
         assert.deepEqual(args[4], expectedHeaders);
