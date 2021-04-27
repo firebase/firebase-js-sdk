@@ -106,6 +106,8 @@ export function sharedErrorHandler(
     let newErr;
     if (xhr.getStatus() === 401) {
       if (
+        // This exact message string is the only consistent part of the
+        // server's error response that identifies it as an App Check error.
         xhr.getResponseText().includes('Firebase App Check token is invalid')
       ) {
         newErr = unauthorizedApp();

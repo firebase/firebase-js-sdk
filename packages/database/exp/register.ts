@@ -38,11 +38,7 @@ export function registerDatabase(variant?: string): void {
       (container, { instanceIdentifier: url }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
-        // App check is unsupported in Node.
-        const appCheckProvider =
-          variant === 'node'
-            ? undefined
-            : container.getProvider('app-check-internal');
+        const appCheckProvider = container.getProvider('app-check-internal');
         return repoManagerDatabaseFromApp(
           app,
           authProvider,
