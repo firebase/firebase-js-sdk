@@ -152,19 +152,16 @@ export function uploadBytes(
   metadata?: Metadata
 ): Promise<UploadResult> {
   ref._throwIfRoot('uploadBytes');
+  const requestInfo = multipartUpload(
+    ref.storage,
+    ref._location,
+    getMappings(),
+    new FbsBlob(data, true),
+    metadata
+  );
   return ref.storage
-    ._getAuthToken()
-    .then(authToken => {
-      const requestInfo = multipartUpload(
-        ref.storage,
-        ref._location,
-        getMappings(),
-        new FbsBlob(data, true),
-        metadata
-      );
-      const multipartRequest = ref.storage._makeRequest(requestInfo, authToken);
-      return multipartRequest.getPromise();
-    })
+    .makeRequestWithTokens(requestInfo)
+    .then(request => request.getPromise())
     .then(finalMetadata => {
       return {
         metadata: finalMetadata,
@@ -302,7 +299,6 @@ export async function list(
       );
     }
   }
-  const authToken = await ref.storage._getAuthToken();
   const op = options || {};
   const requestInfo = requestsList(
     ref.storage,
@@ -311,7 +307,7 @@ export async function list(
     op.pageToken,
     op.maxResults
   );
-  return ref.storage._makeRequest(requestInfo, authToken).getPromise();
+  return (await ref.storage.makeRequestWithTokens(requestInfo)).getPromise();
 }
 
 /**
@@ -323,13 +319,12 @@ export async function list(
  */
 export async function getMetadata(ref: Reference): Promise<Metadata> {
   ref._throwIfRoot('getMetadata');
-  const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsGetMetadata(
     ref.storage,
     ref._location,
     getMappings()
   );
-  return ref.storage._makeRequest(requestInfo, authToken).getPromise();
+  return (await ref.storage.makeRequestWithTokens(requestInfo)).getPromise();
 }
 
 /**
@@ -348,14 +343,13 @@ export async function updateMetadata(
   metadata: Partial<Metadata>
 ): Promise<Metadata> {
   ref._throwIfRoot('updateMetadata');
-  const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsUpdateMetadata(
     ref.storage,
     ref._location,
     metadata,
     getMappings()
   );
-  return ref.storage._makeRequest(requestInfo, authToken).getPromise();
+  return (await ref.storage.makeRequestWithTokens(requestInfo)).getPromise();
 }
 
 /**
@@ -366,14 +360,12 @@ export async function updateMetadata(
  */
 export async function getDownloadURL(ref: Reference): Promise<string> {
   ref._throwIfRoot('getDownloadURL');
-  const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsGetDownloadUrl(
     ref.storage,
     ref._location,
     getMappings()
   );
-  return ref.storage
-    ._makeRequest(requestInfo, authToken)
+  return (await ref.storage.makeRequestWithTokens(requestInfo))
     .getPromise()
     .then(url => {
       if (url === null) {
@@ -391,9 +383,8 @@ export async function getDownloadURL(ref: Reference): Promise<string> {
  */
 export async function deleteObject(ref: Reference): Promise<void> {
   ref._throwIfRoot('deleteObject');
-  const authToken = await ref.storage._getAuthToken();
   const requestInfo = requestsDeleteObject(ref.storage, ref._location);
-  return ref.storage._makeRequest(requestInfo, authToken).getPromise();
+  return (await ref.storage.makeRequestWithTokens(requestInfo)).getPromise();
 }
 
 /**

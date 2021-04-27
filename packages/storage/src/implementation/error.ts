@@ -83,6 +83,7 @@ export const enum StorageErrorCode {
   QUOTA_EXCEEDED = 'quota-exceeded',
   UNAUTHENTICATED = 'unauthenticated',
   UNAUTHORIZED = 'unauthorized',
+  UNAUTHORIZED_APP = 'unauthorized-app',
   RETRY_LIMIT_EXCEEDED = 'retry-limit-exceeded',
   INVALID_CHECKSUM = 'invalid-checksum',
   CANCELED = 'canceled',
@@ -150,6 +151,13 @@ export function unauthenticated(): FirebaseStorageError {
     'User is not authenticated, please authenticate using Firebase ' +
     'Authentication and try again.';
   return new FirebaseStorageError(StorageErrorCode.UNAUTHENTICATED, message);
+}
+
+export function unauthorizedApp(): FirebaseStorageError {
+  return new FirebaseStorageError(
+    StorageErrorCode.UNAUTHORIZED_APP,
+    'This app does not have permission to access Firebase Storage on this project.'
+  );
 }
 
 export function unauthorized(path: string): FirebaseStorageError {

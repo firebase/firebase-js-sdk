@@ -31,6 +31,7 @@ import {
 } from '../core/util/util';
 
 import {
+  APP_CHECK_TOKEN_PARAM,
   APPLICATION_ID_PARAM,
   FORGE_DOMAIN_RE,
   FORGE_REF,
@@ -99,25 +100,34 @@ export class BrowserPollConnection implements Transport {
   private onDisconnect_: ((a?: boolean) => void) | null;
 
   /**
-   * @param connId - An identifier for this connection, used for logging
-   * @param repoInfo - The info for the endpoint to send data to.
-   * @param applicationId - The Firebase App ID for this project.
-   * @param transportSessionId - Optional transportSessionid if we are reconnecting for an existing
-   *                                         transport session
-   * @param lastSessionId - Optional lastSessionId if the PersistentConnection has already created a
-   *                                     connection previously
+   * @param connId An identifier for this connection, used for logging
+   * @param repoInfo The info for the endpoint to send data to.
+   * @param applicationId The Firebase App ID for this project.
+   * @param appCheckToken The AppCheck token for this client.
+   * @param authToken The AuthToken to use for this connection.
+   * @param transportSessionId Optional transportSessionid if we are
+   * reconnecting for an existing transport session
+   * @param lastSessionId Optional lastSessionId if the PersistentConnection has
+   * already created a connection previously
    */
   constructor(
     public connId: string,
     public repoInfo: RepoInfo,
     private applicationId?: string,
+    private appCheckToken?: string,
+    private authToken?: string,
     public transportSessionId?: string,
     public lastSessionId?: string
   ) {
     this.log_ = logWrapper(connId);
     this.stats_ = statsManagerGetCollection(repoInfo);
-    this.urlFn = (params: { [k: string]: string }) =>
-      repoInfoConnectionURL(repoInfo, LONG_POLLING, params);
+    this.urlFn = (params: { [k: string]: string }) => {
+      // Always add the token if we have one.
+      if (this.appCheckToken) {
+        params[APP_CHECK_TOKEN_PARAM] = this.appCheckToken;
+      }
+      return repoInfoConnectionURL(repoInfo, LONG_POLLING, params);
+    };
   }
 
   /**
@@ -212,6 +222,9 @@ export class BrowserPollConnection implements Transport {
       }
       if (this.applicationId) {
         urlParams[APPLICATION_ID_PARAM] = this.applicationId;
+      }
+      if (this.appCheckToken) {
+        urlParams[APP_CHECK_TOKEN_PARAM] = this.appCheckToken;
       }
       if (
         typeof location !== 'undefined' &&

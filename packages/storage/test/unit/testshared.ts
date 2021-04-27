@@ -32,10 +32,12 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { StorageService } from '../../src/service';
 import { Metadata } from '../../src/metadata';
 
 export const authToken = 'totally-legit-auth-token';
+export const appCheckToken = 'totally-shady-token';
 export const bucket = 'mybucket';
 export const fakeApp = makeFakeApp();
 export const fakeAuthProvider = makeFakeAuthProvider({
@@ -45,6 +47,9 @@ export const emptyAuthProvider = new Provider<FirebaseAuthInternalName>(
   'auth-internal',
   new ComponentContainer('storage-container')
 );
+export const fakeAppCheckTokenProvider = makeFakeAppCheckProvider({
+  token: appCheckToken
+});
 
 export function makeFakeApp(bucketArg?: string): FirebaseApp {
   const app: any = {};
@@ -77,6 +82,28 @@ export function makeFakeAuthProvider(token: {
   );
 
   return provider as Provider<FirebaseAuthInternalName>;
+}
+
+export function makeFakeAppCheckProvider(tokenResult: {
+  token: string;
+}): Provider<AppCheckInternalComponentName> {
+  const provider = new Provider(
+    'app-check-internal',
+    new ComponentContainer('storage-container')
+  );
+  provider.setComponent(
+    new Component(
+      'app-check-internal',
+      () => {
+        return {
+          getToken: () => Promise.resolve(tokenResult)
+        } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+      },
+      ComponentType.PRIVATE
+    )
+  );
+
+  return provider as Provider<AppCheckInternalComponentName>;
 }
 
 export function makePool(sendHook: SendHook | null): XhrIoPool {
@@ -199,6 +226,7 @@ export function storageServiceWithHandler(
   return new StorageService(
     {} as FirebaseApp,
     emptyAuthProvider,
+    fakeAppCheckTokenProvider,
     makePool(newSend)
   );
 }

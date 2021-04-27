@@ -70,10 +70,12 @@ function factory(
 ): StorageService {
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
+  const appCheckProvider = container.getProvider('app-check-internal');
 
   return new StorageServiceInternal(
     app,
     authProvider,
+    appCheckProvider,
     new XhrIoPool(),
     url,
     SDK_VERSION
