@@ -33,7 +33,7 @@ export type FirebaseSignInProvider =
   | 'microsoft.com'
   | 'apple.com';
 
-export interface FirebaseIdToken {
+interface FirebaseIdToken {
   // Always set to https://securetoken.google.com/PROJECT_ID
   iss: string;
 
@@ -90,8 +90,11 @@ export interface FirebaseIdToken {
   uid?: never; // Try to catch a common mistake of "uid" (should be "sub" instead).
 }
 
+export type EmulatorMockTokenOptions = ({ user_id: string } | { sub: string }) &
+  Partial<FirebaseIdToken>;
+
 export function createMockUserToken(
-  token: Partial<FirebaseIdToken>,
+  token: EmulatorMockTokenOptions,
   projectId?: string
 ): string {
   if (token.uid) {

@@ -16,7 +16,7 @@
  */
 import { expect } from 'chai';
 import { base64 } from '../src/crypt';
-import { createMockUserToken, FirebaseIdToken } from '../src/emulator';
+import { createMockUserToken, EmulatorMockTokenOptions } from '../src/emulator';
 
 // Firebase Auth tokens contain snake_case claims following the JWT standard / convention.
 /* eslint-disable camelcase */
@@ -50,7 +50,7 @@ describe('createMockUserToken()', () => {
     const options = { uid: 'alice' };
 
     expect(() =>
-      createMockUserToken((options as unknown) as Partial<FirebaseIdToken>)
+      createMockUserToken((options as unknown) as EmulatorMockTokenOptions)
     ).to.throw(
       'Invalid Firebase token field "uid". Did you mean "sub" (for Firebase Auth User ID)?'
     );

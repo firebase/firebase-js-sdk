@@ -27,7 +27,7 @@ import { Provider } from '@firebase/component';
 import {
   getModularInstance,
   createMockUserToken,
-  FirebaseIdToken
+  EmulatorMockTokenOptions
 } from '@firebase/util';
 
 import {
@@ -298,7 +298,7 @@ export function useDatabaseEmulator(
   host: string,
   port: number,
   options: {
-    mockUserToken?: Partial<FirebaseIdToken>;
+    mockUserToken?: EmulatorMockTokenOptions;
   } = {}
 ): void {
   db = getModularInstance(db);
