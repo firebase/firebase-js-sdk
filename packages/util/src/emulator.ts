@@ -99,7 +99,7 @@ export function createMockUserToken(
 ): string {
   if (token.uid) {
     throw new Error(
-      'Invalid Firebase token field "uid". Did you mean "sub" (for Firebase Auth User ID)?'
+      'Invalid mockUserToken field "uid". Did you mean "sub" (for Firebase Auth User ID)?'
     );
   }
   // Unsecured JWTs use "none" as the algorithm.
@@ -112,7 +112,7 @@ export function createMockUserToken(
   const iat = token.iat || 0;
   const sub = token.sub || token.user_id;
   if (!sub) {
-    throw new Error("Auth must contain 'sub' or 'user_id' field!");
+    throw new Error("mockUserToken must contain 'sub' or 'user_id' field!");
   }
 
   const payload: FirebaseIdToken = {

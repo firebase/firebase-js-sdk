@@ -52,7 +52,7 @@ describe('createMockUserToken()', () => {
     expect(() =>
       createMockUserToken((options as unknown) as EmulatorMockTokenOptions)
     ).to.throw(
-      'Invalid Firebase token field "uid". Did you mean "sub" (for Firebase Auth User ID)?'
+      'Invalid mockUserToken field "uid". Did you mean "sub" (for Firebase Auth User ID)?'
     );
   });
 });
