@@ -23,10 +23,8 @@ import {
   MemoryPersistenceProvider
 } from './src/api/database';
 import { DatabaseId } from './src/core/database_info';
-import { setSDKVersion } from './src/core/version';
 import { FirebaseFirestore as FirestoreExp } from './src/exp/database';
 import { Code, FirestoreError } from './src/util/error';
-import { version as SDK_VERSION } from '../firebase/package.json';
 export {
   CollectionReference,
   DocumentReference,
@@ -73,5 +71,3 @@ function databaseIdFromFirestoreDatabase(
     firestoreDatabase.database
   );
 }
-
-setSDKVersion(SDK_VERSION);

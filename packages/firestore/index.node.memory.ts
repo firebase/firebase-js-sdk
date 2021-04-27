@@ -18,21 +18,18 @@
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import { version as SDK_VERSION } from '../firebase/package.json';
 import { name, version } from './package.json';
 import { Firestore, MemoryPersistenceProvider } from './src/api/database';
 import { configureForFirebase } from './src/config';
 import { FirebaseFirestore } from './src/exp/database';
 
 import './register-module';
-import { setSDKVersion } from './src/core/version';
 
 /**
  * Registers the memory-only Firestore build for Node with the components
  * framework.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  setSDKVersion(SDK_VERSION);
   configureForFirebase(
     instance,
     (app, auth) =>
