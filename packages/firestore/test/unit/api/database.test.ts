@@ -259,12 +259,10 @@ describe('Settings', () => {
     const mockUserToken = { sub: 'foobar' };
     db.useEmulator('localhost', 9000, { mockUserToken });
 
-    expect(db._delegate._getSettings().host).to.equal('localhost:9000');
-    expect(db._delegate._getSettings().ssl).to.be.false;
-    const { credentials } = db._delegate._getSettings();
+    const credentials = db._delegate._credentials;
     expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
-    await expect(credentials.getToken()).to.eventually.be.eql(
-      createMockUserToken(mockUserToken)
-    );
+    const token = await credentials.getToken();
+    expect(token!.type).to.eql('OAuth');
+    expect(token!.user.uid).to.eql(mockUserToken.sub);
   });
 });
