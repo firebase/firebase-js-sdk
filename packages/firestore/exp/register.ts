@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import {
+  _registerComponent,
+  registerVersion,
+  SDK_VERSION
+} from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
-import { version as SDK_VERSION } from '../../../packages-exp/firebase-exp/package.json';
 import { FirebaseFirestore } from '../src/exp/database';
 import { Settings } from '../src/exp/settings';
 import { setSDKVersion } from '../src/core/version';

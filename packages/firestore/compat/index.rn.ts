@@ -24,14 +24,13 @@ import { Firestore, IndexedDbPersistenceProvider } from '../src/api/database';
 import { registerBundle } from './bundle';
 import { configureForFirebase } from './config';
 import { name, version } from './package.json';
-import { version as SDK_VERSION } from '../../../packages-exp/firebase-exp/package.json';
 import { setSDKVersion } from '../src/core/version';
 /**
  * Registers the main Firestore ReactNative build with the components framework.
  * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  setSDKVersion(version);
+  setSDKVersion(instance.SDK_VERSION);
   configureForFirebase(
     instance,
     (app, firestoreExp) =>

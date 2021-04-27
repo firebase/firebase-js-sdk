@@ -25,7 +25,6 @@ import { Firestore, IndexedDbPersistenceProvider } from '../src/api/database';
 import { registerBundle } from './bundle';
 import { configureForFirebase } from './config';
 import { name, version } from './package.json';
-import { version as SDK_VERSION } from '../../../packages-exp/firebase-exp/package.json';
 import '../register-module';
 import { setSDKVersion } from '../src/core/version';
 
@@ -34,7 +33,7 @@ import { setSDKVersion } from '../src/core/version';
  * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  setSDKVersion(SDK_VERSION);
+  setSDKVersion(instance.SDK_VERSION);
   configureForFirebase(
     instance,
     (app, firestoreExp) =>

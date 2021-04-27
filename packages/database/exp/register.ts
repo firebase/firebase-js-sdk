@@ -16,7 +16,11 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import {
+  _registerComponent,
+  registerVersion,
+  SDK_VERSION
+} from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
@@ -24,6 +28,7 @@ import {
   FirebaseDatabase,
   repoManagerDatabaseFromApp
 } from '../src/exp/Database';
+import { setSDKVersion } from '../src/core/version';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -32,6 +37,7 @@ declare module '@firebase/component' {
 }
 
 export function registerDatabase(variant?: string): void {
+  setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
       'database-exp',
