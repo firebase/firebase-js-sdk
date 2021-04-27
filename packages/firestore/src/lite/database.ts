@@ -56,6 +56,8 @@ declare module '@firebase/component' {
  * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
 export class FirebaseFirestore implements FirestoreService {
+  type: 'firestore-lite' | 'firestore' = 'firestore-lite';
+
   readonly _databaseId: DatabaseId;
   readonly _persistenceKey: string = '(lite)';
   _credentials: CredentialsProvider;
