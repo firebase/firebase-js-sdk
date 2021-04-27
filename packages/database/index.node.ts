@@ -86,14 +86,10 @@ export function registerDatabase(instance: FirebaseNamespace) {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
+        const appCheckProvider = container.getProvider('app-check-internal');
 
         return new Database(
-          repoManagerDatabaseFromApp(
-            app,
-            authProvider,
-            /* appCheckProvider */ undefined,
-            url
-          ),
+          repoManagerDatabaseFromApp(app, authProvider, appCheckProvider, url),
           app
         );
       },
