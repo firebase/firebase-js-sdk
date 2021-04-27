@@ -25,14 +25,17 @@ import {
 } from './export';
 import { name, version } from './package.json';
 import { configureForFirebase } from './src/config';
+import { version as SDK_VERSION } from '../firebase/package.json';
 
 import './register-module';
+import { setSDKVersion } from './src/core/version';
 
 /**
  * Registers the memory-only Firestore build for ReactNative with the components
  * framework.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
+  setSDKVersion(SDK_VERSION);
   configureForFirebase(
     instance,
     (app, auth) =>

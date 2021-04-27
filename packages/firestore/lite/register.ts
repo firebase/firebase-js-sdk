@@ -18,7 +18,9 @@
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
+import { version as SDK_VERSION } from '../../../packages-exp/firebase-exp/package.json';
 import { version } from '../package.json';
+import { setSDKVersion } from '../src/core/version';
 import { FirebaseFirestore } from '../src/lite/database';
 import { Settings } from '../src/lite/settings';
 
@@ -29,6 +31,7 @@ declare module '@firebase/component' {
 }
 
 export function registerFirestore(): void {
+  setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
       'firestore/lite',

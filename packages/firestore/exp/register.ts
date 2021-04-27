@@ -19,8 +19,10 @@ import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
+import { version as SDK_VERSION } from '../../../packages-exp/firebase-exp/package.json';
 import { FirebaseFirestore } from '../src/exp/database';
 import { Settings } from '../src/exp/settings';
+import { setSDKVersion } from '../src/core/version';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -29,6 +31,7 @@ declare module '@firebase/component' {
 }
 
 export function registerFirestore(variant?: string): void {
+  setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
       'firestore-exp',

@@ -16,4 +16,7 @@
  */
 
 /** The semver (www.semver.org) version of the SDK. */
-export { version as SDK_VERSION } from '../../../firebase/package.json';
+export let SDK_VERSION = '';
+export function setSDKVersion(version: string): void {
+  SDK_VERSION = version;
+}
