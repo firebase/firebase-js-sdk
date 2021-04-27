@@ -4,10 +4,10 @@
 
 ```ts
 
+import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseIdToken } from '@firebase/util';
 
-// @public (undocumented)
+// @public
 export function child(parent: Reference, path: string): Reference;
 
 // @public
@@ -231,7 +231,7 @@ export function update(ref: Reference, values: object): Promise<void>;
 
 // @public
 export function useDatabaseEmulator(db: FirebaseDatabase, host: string, port: number, options?: {
-    mockUserToken?: Partial<FirebaseIdToken>;
+    mockUserToken?: EmulatorMockTokenOptions;
 }): void;
 
 
