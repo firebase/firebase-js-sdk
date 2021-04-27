@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
+import { createMockUserToken } from '@firebase/util';
 import { expect } from 'chai';
+import { EmulatorCredentialsProvider } from '../../../src/api/credentials';
 
 import {
   collectionReference,
@@ -249,5 +251,20 @@ describe('Settings', () => {
 
     expect(db._delegate._getSettings().host).to.equal('localhost:9000');
     expect(db._delegate._getSettings().ssl).to.be.false;
+  });
+
+  it('sets credentials based on mockUserToken', async () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    const mockUserToken = { sub: 'foobar' };
+    db.useEmulator('localhost', 9000, { mockUserToken });
+
+    expect(db._delegate._getSettings().host).to.equal('localhost:9000');
+    expect(db._delegate._getSettings().ssl).to.be.false;
+    const { credentials } = db._delegate._getSettings();
+    expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
+    await expect(credentials.getToken()).to.eventually.be.eql(
+      createMockUserToken(mockUserToken)
+    );
   });
 });

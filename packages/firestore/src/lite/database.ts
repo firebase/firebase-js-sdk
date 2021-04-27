@@ -24,13 +24,17 @@ import {
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 
 import {
   CredentialsProvider,
   EmptyCredentialsProvider,
+  EmulatorCredentialsProvider,
   FirebaseCredentialsProvider,
-  makeCredentialsProvider
+  makeCredentialsProvider,
+  OAuthToken
 } from '../api/credentials';
+import { User } from '../auth/user';
 import { DatabaseId } from '../core/database_info';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
@@ -230,7 +234,10 @@ export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
 export function useFirestoreEmulator(
   firestore: FirebaseFirestore,
   host: string,
-  port: number
+  port: number,
+  options: {
+    mockUserToken?: EmulatorMockTokenOptions;
+  } = {}
 ): void {
   firestore = cast(firestore, FirebaseFirestore);
   const settings = firestore._getSettings();
@@ -247,6 +254,21 @@ export function useFirestoreEmulator(
     host: `${host}:${port}`,
     ssl: false
   });
+
+  if (options.mockUserToken) {
+    const uid = options.mockUserToken.sub || options.mockUserToken.user_id;
+    if (!uid) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        "mockUserToken must contain 'sub' or 'user_id' field!"
+      );
+    }
+
+    const token = createMockUserToken(options.mockUserToken);
+    firestore._credentials = new EmulatorCredentialsProvider(
+      new OAuthToken(token, new User(uid))
+    );
+  }
 }
 
 /**

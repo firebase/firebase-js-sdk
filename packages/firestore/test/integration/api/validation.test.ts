@@ -157,6 +157,24 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() => db.useEmulator('localhost', 9000)).to.throw(errorMsg);
       }
     );
+
+    validationIt(persistence, 'useEmulator can set mockUserToken', () => {
+      const db = newTestFirestore('test-project');
+      // Verify that this doesn't throw.
+      db.useEmulator('localhost', 9000, { mockUserToken: { sub: 'foo' } });
+    });
+
+    validationIt(
+      persistence,
+      'throws if sub / user_id is missing in mockUserToken',
+      async db => {
+        const errorMsg = "mockUserToken must contain 'sub' or 'user_id' field!";
+
+        expect(() =>
+          db.useEmulator('localhost', 9000, { mockUserToken: {} as any })
+        ).to.throw(errorMsg);
+      }
+    );
   });
 
   describe('Firestore', () => {
