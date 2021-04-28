@@ -295,6 +295,7 @@ describe('internal api', () => {
 
     it('starts proactively refreshing token after adding the first listener', () => {
       const listener = (): void => {};
+      setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
       expect(getState(app).tokenListeners.length).to.equal(0);
       expect(getState(app).tokenRefresher).to.equal(undefined);
 
@@ -389,6 +390,7 @@ describe('internal api', () => {
 
     it('should stop proactively refreshing token after deleting the last listener', () => {
       const listener = (): void => {};
+      setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
 
       addTokenListener(app, fakePlatformLoggingProvider, listener);
       expect(getState(app).tokenListeners.length).to.equal(1);

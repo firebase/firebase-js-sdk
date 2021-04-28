@@ -29,6 +29,7 @@ export interface AppCheckState {
   token?: AppCheckToken;
   tokenRefresher?: Refresher;
   reCAPTCHAState?: ReCAPTCHAState;
+  isTokenAutoRefreshEnabled?: boolean;
 }
 
 export interface ReCAPTCHAState {
