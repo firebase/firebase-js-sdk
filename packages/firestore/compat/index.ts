@@ -21,12 +21,13 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import * as types from '@firebase/firestore-types';
 
 import { Firestore, IndexedDbPersistenceProvider } from '../src/api/database';
+import { setSDKVersion } from '../src/core/version';
 
 import { registerBundle } from './bundle';
 import { configureForFirebase } from './config';
 import { name, version } from './package.json';
+
 import '../register-module';
-import { setSDKVersion } from '../src/core/version';
 
 /**
  * Registers the main Firestore build with the components framework.

@@ -24,11 +24,11 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
+import { setSDKVersion } from '../src/core/version';
 import {
   FirebaseDatabase,
   repoManagerDatabaseFromApp
 } from '../src/exp/Database';
-import { setSDKVersion } from '../src/core/version';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
