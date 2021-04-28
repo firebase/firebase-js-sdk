@@ -99,7 +99,7 @@ export function createMockUserToken(
 ): string {
   if (token.uid) {
     throw new Error(
-      'Invalid mockUserToken field "uid". Did you mean "sub" (for Firebase Auth User ID)?'
+      'The "uid" field is no longer supported by mockUserToken. Please use "sub" instead for Firebase Auth User ID.'
     );
   }
   // Unsecured JWTs use "none" as the algorithm.
