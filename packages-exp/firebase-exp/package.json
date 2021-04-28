@@ -52,10 +52,6 @@
       "node": "./functions/dist/index.cjs.js",
       "default": "./functions/dist/index.esm.js"
     },
-    "./installations": {
-      "node": "./installations/dist/index.cjs.js",
-      "default": "./installations/dist/index.esm.js"
-    },
     "./messaging": {
       "node": "./messaging/dist/index.cjs.js",
       "default": "./messaging/dist/index.esm.js"
@@ -95,10 +91,6 @@
     "./compat/functions": {
       "node": "./compat/functions/dist/index.cjs.js",
       "default": "./compat/functions/dist/index.esm.js"
-    },
-    "./compat/installations": {
-      "node": "./compat/installations/dist/index.cjs.js",
-      "default": "./compat/installations/dist/index.esm.js"
     },
     "./compat/messaging": {
       "node": "./compat/messaging/dist/index.cjs.js",
