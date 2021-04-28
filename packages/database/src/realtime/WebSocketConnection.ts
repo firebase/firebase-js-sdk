@@ -166,6 +166,7 @@ export class WebSocketConnection implements Transport {
           }
         };
 
+        // Adding a comment to ask questions
         if (this.nodeAdmin) {
           options.headers['Authorization'] = this.authToken || '';
         } else {
