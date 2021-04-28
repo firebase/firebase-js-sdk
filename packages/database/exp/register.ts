@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _registerComponent,
   registerVersion,
   SDK_VERSION
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 

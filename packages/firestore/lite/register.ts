@@ -34,7 +34,7 @@ declare module '@firebase/component' {
 }
 
 export function registerFirestore(): void {
-  setSDKVersion(SDK_VERSION);
+  setSDKVersion(`${SDK_VERSION}_lite`);
   _registerComponent(
     new Component(
       'firestore/lite',
