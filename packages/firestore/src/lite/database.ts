@@ -256,6 +256,8 @@ export function useFirestoreEmulator(
   });
 
   if (options.mockUserToken) {
+    // Let createMockUserToken validate first (catches common mistakes like "uid" and missing sub.)
+    const token = createMockUserToken(options.mockUserToken);
     const uid = options.mockUserToken.sub || options.mockUserToken.user_id;
     if (!uid) {
       throw new FirestoreError(
@@ -264,7 +266,6 @@ export function useFirestoreEmulator(
       );
     }
 
-    const token = createMockUserToken(options.mockUserToken);
     firestore._credentials = new EmulatorCredentialsProvider(
       new OAuthToken(token, new User(uid))
     );
