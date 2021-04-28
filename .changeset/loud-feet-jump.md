@@ -1,5 +1,6 @@
 ---
 "@firebase/database": minor
+"firebase": minor
 "@firebase/util": minor
 ---
 
