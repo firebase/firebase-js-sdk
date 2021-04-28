@@ -21,8 +21,12 @@ import {
   AppCheckTokenResult,
   AppCheckTokenListener
 } from '@firebase/app-check-interop-types';
-import { AppCheckToken } from '@firebase/app-check-types';
-import { getDebugState, getState, setState } from './state';
+import {
+  AppCheckTokenInternal,
+  getDebugState,
+  getState,
+  setState
+} from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
@@ -72,7 +76,7 @@ export async function getToken(
    * return the debug token directly
    */
   if (isDebugMode()) {
-    const tokenFromDebugExchange: AppCheckToken = await exchangeToken(
+    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
       getExchangeDebugTokenRequest(app, await getDebugToken()),
       platformLoggerProvider
     );
@@ -81,7 +85,7 @@ export async function getToken(
 
   const state = getState(app);
 
-  let token: AppCheckToken | undefined = state.token;
+  let token: AppCheckTokenInternal | undefined = state.token;
   let error: Error | undefined = undefined;
 
   /**
@@ -111,7 +115,8 @@ export async function getToken(
    */
   try {
     if (state.customProvider) {
-      token = await state.customProvider.getToken();
+      const customToken = await state.customProvider.getToken();
+      token = { ...customToken, issuedAtTimeMillis: Date.now() };
     } else {
       const attestedClaimsToken = await getReCAPTCHAToken(app).catch(_e => {
         // reCaptcha.execute() throws null which is not very descriptive.
@@ -258,12 +263,13 @@ function createTokenRefresher(
       const state = getState(app);
 
       if (state.token) {
-        return Math.max(
-          0,
-          state.token.expireTimeMillis -
-            Date.now() -
-            TOKEN_REFRESH_TIME.OFFSET_DURATION
-        );
+        // issuedAtTime + (50% * total TTL) + 5 minutes
+        const nextRefreshTimeMillis =
+          state.token.issuedAtTimeMillis +
+          (state.token.expireTimeMillis - state.token.issuedAtTimeMillis) *
+            0.5 +
+          5 * 60 * 1000;
+        return Math.max(0, nextRefreshTimeMillis - Date.now());
       } else {
         return 0;
       }
@@ -288,7 +294,7 @@ function notifyTokenListeners(
   }
 }
 
-function isValid(token: AppCheckToken): boolean {
+function isValid(token: AppCheckTokenInternal): boolean {
   return token.expireTimeMillis - Date.now() > 0;
 }
 

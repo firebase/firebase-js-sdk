@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { AppCheckToken } from '@firebase/app-check-types';
 import { uuidv4 } from './util';
 import { FirebaseApp } from '@firebase/app-types';
 import { isIndexedDBAvailable } from '@firebase/util';
@@ -26,13 +25,14 @@ import {
   writeTokenToIndexedDB
 } from './indexeddb';
 import { logger } from './logger';
+import { AppCheckTokenInternal } from './state';
 
 /**
  * Always resolves. In case of an error reading from indexeddb, resolve with undefined
  */
 export async function readTokenFromStorage(
   app: FirebaseApp
-): Promise<AppCheckToken | undefined> {
+): Promise<AppCheckTokenInternal | undefined> {
   if (isIndexedDBAvailable()) {
     let token = undefined;
     try {
@@ -52,7 +52,7 @@ export async function readTokenFromStorage(
  */
 export function writeTokenToStorage(
   app: FirebaseApp,
-  token: AppCheckToken
+  token: AppCheckTokenInternal
 ): Promise<void> {
   if (isIndexedDBAvailable()) {
     return writeTokenToIndexedDB(app, token).catch(e => {

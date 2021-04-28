@@ -22,8 +22,8 @@ import {
 } from './constants';
 import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { AppCheckToken } from '@firebase/app-check-types';
 import { Provider } from '@firebase/component';
+import { AppCheckTokenInternal } from './state';
 
 /**
  * Response JSON returned from AppCheck server endpoint.
@@ -42,7 +42,7 @@ interface AppCheckRequest {
 export async function exchangeToken(
   { url, body }: AppCheckRequest,
   platformLoggerProvider: Provider<'platform-logger'>
-): Promise<AppCheckToken> {
+): Promise<AppCheckTokenInternal> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json'
   };
@@ -95,9 +95,11 @@ export async function exchangeToken(
   }
   const timeToLiveAsNumber = Number(match[1]) * 1000;
 
+  const now = Date.now();
   return {
     token: responseBody.attestationToken,
-    expireTimeMillis: Date.now() + timeToLiveAsNumber
+    expireTimeMillis: now + timeToLiveAsNumber,
+    issuedAtTimeMillis: now
   };
 }
 

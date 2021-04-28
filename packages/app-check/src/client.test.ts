@@ -74,7 +74,8 @@ describe('client', () => {
 
     expect(response).to.deep.equal({
       token: 'fake-appcheck-token',
-      expireTimeMillis: 3600
+      expireTimeMillis: 3600,
+      issuedAtTimeMillis: 0
     });
   });
 

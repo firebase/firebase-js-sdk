@@ -21,12 +21,16 @@ import { AppCheckTokenListener } from '@firebase/app-check-interop-types';
 import { Refresher } from './proactive-refresh';
 import { Deferred } from '@firebase/util';
 import { GreCAPTCHA } from './recaptcha';
+
+export interface AppCheckTokenInternal extends AppCheckToken {
+  issuedAtTimeMillis: number;
+}
 export interface AppCheckState {
   activated: boolean;
   tokenListeners: AppCheckTokenListener[];
   customProvider?: AppCheckProvider;
   siteKey?: string;
-  token?: AppCheckToken;
+  token?: AppCheckTokenInternal;
   tokenRefresher?: Refresher;
   reCAPTCHAState?: ReCAPTCHAState;
   isTokenAutoRefreshEnabled?: boolean;
