@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import { createMockUserToken } from '@firebase/util';
 import { expect } from 'chai';
-import { EmulatorCredentialsProvider } from '../../../src/api/credentials';
 
+import { EmulatorCredentialsProvider } from '../../../src/api/credentials';
 import {
   collectionReference,
   documentReference,
