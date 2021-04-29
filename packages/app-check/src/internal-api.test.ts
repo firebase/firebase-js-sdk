@@ -48,6 +48,7 @@ describe('internal api', () => {
   });
 
   afterEach(() => {
+    console.log('afterEach');
     clearState();
     removegreCAPTCHAScriptsOnPage();
   });
@@ -305,6 +306,9 @@ describe('internal api', () => {
           token: `fake-memory-app-check-token`
         });
         clock.restore();
+        console.log(
+          'done() in notifies the listener with the valid token in memory immediately'
+        );
         done();
       };
 
@@ -334,6 +338,9 @@ describe('internal api', () => {
           token: `fake-cached-app-check-token`
         });
         clock.restore();
+        console.log(
+          'done() in notifies the listener with the valid token in storage'
+        );
         done();
       };
 
@@ -346,6 +353,9 @@ describe('internal api', () => {
         expect(token).to.deep.equal({
           token: `my-debug-token`
         });
+        console.log(
+          'done() in notifies the listener with the debug token immediately'
+        );
         done();
       };
 
