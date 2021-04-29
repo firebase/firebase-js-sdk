@@ -12,7 +12,9 @@
   "webworker": "dist/index.webworker.esm5.js",
   "files": [
     "dist",
-    "internal/package.json"
+    "cordova/package.json",
+    "internal/package.json",
+    "react-native/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
