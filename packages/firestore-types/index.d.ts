@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { EmulatorMockTokenOptions } from '@firebase/app-types';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 
 export type DocumentData = { [field: string]: any };
 
