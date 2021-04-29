@@ -84,8 +84,7 @@ interface FirebaseIdToken {
   };
 
   // Custom claims set by the developer
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [claim: string]: any;
+  [claim: string]: unknown;
 
   uid?: never; // Try to catch a common mistake of "uid" (should be "sub" instead).
 }
