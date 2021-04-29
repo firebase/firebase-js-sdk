@@ -234,6 +234,7 @@ describe('internal api', () => {
     });
 
     it('returns the valid token in memory without making network request', async () => {
+      console.log('start returns the valid');
       const clock = useFakeTimers();
       activate(app, FAKE_SITE_KEY);
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
@@ -245,9 +246,11 @@ describe('internal api', () => {
       expect(clientStub).to.not.have.been.called;
 
       clock.restore();
+      console.log('end returns the valid');
     });
 
     it('force to get new token when forceRefresh is true', async () => {
+      console.log('start force to get new token');
       activate(app, FAKE_SITE_KEY);
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
 
@@ -259,9 +262,11 @@ describe('internal api', () => {
       expect(await getToken(app, true)).to.deep.equal({
         token: fakeRecaptchaAppCheckToken.token
       });
+      console.log('end force to get new token');
     });
 
     it('exchanges debug token if in debug mode', async () => {
+      console.log('start exchanges debug token');
       const exchangeTokenStub: SinonStub = stub(
         client,
         'exchangeToken'
@@ -277,6 +282,7 @@ describe('internal api', () => {
         'my-debug-token'
       );
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      console.log('end exchanges debug token');
     });
   });
 
