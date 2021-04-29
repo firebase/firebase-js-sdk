@@ -25,12 +25,16 @@ import {
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { getModularInstance } from '@firebase/util';
+import {
+  getModularInstance,
+  createMockUserToken,
+  EmulatorMockTokenOptions
+} from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import {
   AuthTokenProvider,
-  EmulatorAdminTokenProvider,
+  EmulatorTokenProvider,
   FirebaseAuthTokenProvider
 } from '../core/AuthTokenProvider';
 import { Repo, repoInterrupt, repoResume, repoStart } from '../core/Repo';
@@ -76,7 +80,8 @@ let useRestClient = false;
 function repoManagerApplyEmulatorSettings(
   repo: Repo,
   host: string,
-  port: number
+  port: number,
+  tokenProvider?: AuthTokenProvider
 ): void {
   repo.repoInfo_ = new RepoInfo(
     `${host}:${port}`,
@@ -88,8 +93,8 @@ function repoManagerApplyEmulatorSettings(
     repo.repoInfo_.includeNamespaceInQueryParams
   );
 
-  if (repo.repoInfo_.nodeAdmin) {
-    repo.authTokenProvider_ = new EmulatorAdminTokenProvider();
+  if (tokenProvider) {
+    repo.authTokenProvider_ = tokenProvider;
   }
 }
 
@@ -138,7 +143,7 @@ export function repoManagerDatabaseFromApp(
 
   const authTokenProvider =
     nodeAdmin && isEmulator
-      ? new EmulatorAdminTokenProvider()
+      ? new EmulatorTokenProvider(EmulatorTokenProvider.OWNER)
       : new FirebaseAuthTokenProvider(app.name, app.options, authProvider);
 
   validateUrl('Invalid Firebase Database URL', parsedUrl);
@@ -295,11 +300,15 @@ export function getDatabase(
  * @param db - The instance to modify.
  * @param host - The emulator host (ex: localhost)
  * @param port - The emulator port (ex: 8080)
+ * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules
  */
 export function useDatabaseEmulator(
   db: FirebaseDatabase,
   host: string,
-  port: number
+  port: number,
+  options: {
+    mockUserToken?: EmulatorMockTokenOptions;
+  } = {}
 ): void {
   db = getModularInstance(db);
   db._checkNotDeleted('useEmulator');
@@ -308,8 +317,26 @@ export function useDatabaseEmulator(
       'Cannot call useEmulator() after instance has already been initialized.'
     );
   }
+
+  const repo = db._repoInternal;
+  let tokenProvider: EmulatorTokenProvider | undefined = undefined;
+  if (repo.repoInfo_.nodeAdmin) {
+    if (options.mockUserToken) {
+      fatal(
+        'mockUserToken is not supported by the Admin SDK. For client access with mock users, please use the "firebase" package instead of "firebase-admin".'
+      );
+    }
+    tokenProvider = new EmulatorTokenProvider(EmulatorTokenProvider.OWNER);
+  } else if (options.mockUserToken) {
+    const token = createMockUserToken(
+      options.mockUserToken,
+      db.app.options.projectId
+    );
+    tokenProvider = new EmulatorTokenProvider(token);
+  }
+
   // Modify the repo to apply emulator settings
-  repoManagerApplyEmulatorSettings(db._repoInternal, host, port);
+  repoManagerApplyEmulatorSettings(repo, host, port, tokenProvider);
 }
 
 /**
