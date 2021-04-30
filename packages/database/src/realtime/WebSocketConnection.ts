@@ -166,9 +166,16 @@ export class WebSocketConnection implements Transport {
           }
         };
 
+        // If using Node with admin creds, AppCheck-related checks are unnecessary.
+        // It will send the authorization token.
         if (this.nodeAdmin) {
           options.headers['Authorization'] = this.authToken || '';
         } else {
+          // If using Node without admin creds (which includes all uses of the
+          // client-side Node SDK), it will send an AppCheck token if available.
+          // Any other auth credentials will eventually be sent after the connection
+          // is established, but aren't needed here as they don't effect the initial
+          // request to establish a connection.
           options.headers['X-Firebase-AppCheck'] = this.appCheckToken || '';
         }
 

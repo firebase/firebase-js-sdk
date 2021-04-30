@@ -17,18 +17,13 @@
 
 import { getDebugState } from './state';
 import { readOrCreateDebugTokenFromStorage } from './storage';
-import { Deferred } from '@firebase/util';
+import { Deferred, getGlobal } from '@firebase/util';
 
 declare global {
-  interface Window {
-    /**
-     * When it is a string, we treat it as the debug token and give it to consumers as the app check token
-     * When it is `true`, we will try to read the debug token from the indexeddb,
-     *      if it doesn't exist, create one, print it to console, and ask developers to register it in the Firebase console.
-     * When it is `undefined`, `false` or any unsupported value type, the SDK will operate in production mode
-     */
-    FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string;
-  }
+  // var must be used for global scopes
+  // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#type-checking-for-globalthis
+  // eslint-disable-next-line no-var
+  var FIREBASE_APPCHECK_DEBUG_TOKEN: boolean | string | undefined;
 }
 
 export function isDebugMode(): boolean {
@@ -50,9 +45,10 @@ export async function getDebugToken(): Promise<string> {
 }
 
 export function initializeDebugMode(): void {
+  const globals = getGlobal();
   if (
-    typeof self.FIREBASE_APPCHECK_DEBUG_TOKEN !== 'string' &&
-    self.FIREBASE_APPCHECK_DEBUG_TOKEN !== true
+    typeof globals.FIREBASE_APPCHECK_DEBUG_TOKEN !== 'string' &&
+    globals.FIREBASE_APPCHECK_DEBUG_TOKEN !== true
   ) {
     return;
   }
@@ -62,8 +58,8 @@ export function initializeDebugMode(): void {
   const deferredToken = new Deferred<string>();
   debugState.token = deferredToken;
 
-  if (typeof self.FIREBASE_APPCHECK_DEBUG_TOKEN === 'string') {
-    deferredToken.resolve(self.FIREBASE_APPCHECK_DEBUG_TOKEN);
+  if (typeof globals.FIREBASE_APPCHECK_DEBUG_TOKEN === 'string') {
+    deferredToken.resolve(globals.FIREBASE_APPCHECK_DEBUG_TOKEN);
   } else {
     deferredToken.resolve(readOrCreateDebugTokenFromStorage());
   }
