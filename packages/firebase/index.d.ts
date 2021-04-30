@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { EmulatorMockTokenOptions } from '@firebase/util';
+
 /**
  * <code>firebase</code> is a global namespace from which all Firebase
  * services are accessed.
@@ -8179,8 +8181,16 @@ declare namespace firebase.firestore {
      *
      * @param host the emulator host (ex: localhost).
      * @param port the emulator port (ex: 9000).
+     * @param options.mockUserToken - the mock auth token to use for unit
+     * testing Security Rules.
      */
-    useEmulator(host: string, port: number): void;
+    useEmulator(
+      host: string,
+      port: number,
+      options?: {
+        mockUserToken?: EmulatorMockTokenOptions;
+      }
+    ): void;
 
     /**
      * Attempts to enable persistent storage, if possible.
