@@ -23,7 +23,7 @@ import {
 import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { AppCheckToken } from '@firebase/app-check-types';
-import { version } from '../package.json';
+import { Provider } from '@firebase/component';
 
 /**
  * Response JSON returned from AppCheck server endpoint.
@@ -39,18 +39,24 @@ interface AppCheckRequest {
   body: { [key: string]: string };
 }
 
-export async function exchangeToken({
-  url,
-  body
-}: AppCheckRequest): Promise<AppCheckToken> {
-  const options = {
+export async function exchangeToken(
+  { url, body }: AppCheckRequest,
+  platformLoggerProvider: Provider<'platform-logger'>
+): Promise<AppCheckToken> {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json'
+  };
+  // If platform logger exists, add the platform info string to the header.
+  const platformLogger = platformLoggerProvider.getImmediate({
+    optional: true
+  });
+  if (platformLogger) {
+    headers['X-Firebase-Client'] = platformLogger.getPlatformInfoString();
+  }
+  const options: RequestInit = {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: {
-      'Content-Type': 'application/json',
-      // JS platform identifier + appCheck version only
-      'X-Firebase-Client': `fire-js/ fire-app-check/${version}`
-    }
+    headers
   };
   let response;
   try {

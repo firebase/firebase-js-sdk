@@ -24,6 +24,7 @@ import {
   addTokenListener,
   removeTokenListener
 } from './internal-api';
+import { Provider } from '@firebase/component';
 
 export function factory(app: FirebaseApp): FirebaseAppCheck {
   return {
@@ -32,10 +33,15 @@ export function factory(app: FirebaseApp): FirebaseAppCheck {
   };
 }
 
-export function internalFactory(app: FirebaseApp): FirebaseAppCheckInternal {
+export function internalFactory(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>
+): FirebaseAppCheckInternal {
   return {
-    getToken: forceRefresh => getToken(app, forceRefresh),
-    addTokenListener: listener => addTokenListener(app, listener),
+    getToken: forceRefresh =>
+      getToken(app, platformLoggerProvider, forceRefresh),
+    addTokenListener: listener =>
+      addTokenListener(app, platformLoggerProvider, listener),
     removeTokenListener: listener => removeTokenListener(app, listener)
   };
 }

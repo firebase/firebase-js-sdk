@@ -50,7 +50,8 @@ function registerAppCheck(firebase: _FirebaseNamespace): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        return internalFactory(app);
+        const platformLoggerProvider = container.getProvider('platform-logger');
+        return internalFactory(app, platformLoggerProvider);
       },
       ComponentType.PUBLIC
     )
