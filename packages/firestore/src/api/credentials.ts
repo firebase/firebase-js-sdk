@@ -135,7 +135,10 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
   }
 }
 
-/** A CredentialsProvider that always returns a constant token. Used for emulator token mocking. */
+/**
+ * A CredentialsProvider that always returns a constant token. Used for
+ * emulator token mocking.
+ */
 export class EmulatorCredentialsProvider implements CredentialsProvider {
   constructor(private token: Token) {}
 

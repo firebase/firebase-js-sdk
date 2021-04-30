@@ -230,6 +230,8 @@ export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
  * emulator.
  * @param host - the emulator host (ex: localhost).
  * @param port - the emulator port (ex: 9000).
+ * @param options.mockUserToken - the mock auth token to use for unit testing
+ * Security Rules.
  */
 export function useFirestoreEmulator(
   firestore: FirebaseFirestore,
@@ -256,7 +258,8 @@ export function useFirestoreEmulator(
   });
 
   if (options.mockUserToken) {
-    // Let createMockUserToken validate first (catches common mistakes like "uid" and missing sub.)
+    // Let createMockUserToken validate first (catches common mistakes like
+    // invalid field "uid" and missing field "sub" / "user_id".)
     const token = createMockUserToken(options.mockUserToken);
     const uid = options.mockUserToken.sub || options.mockUserToken.user_id;
     if (!uid) {
