@@ -24,6 +24,7 @@ import {
 import { factory, internalFactory } from './factory';
 import { initializeDebugMode } from './debug';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { name, version } from '../package.json';
 
 const APP_CHECK_NAME: AppCheckComponentName = 'appCheck';
 const APP_CHECK_NAME_INTERNAL: AppCheckInternalComponentName =
@@ -55,7 +56,7 @@ function registerAppCheck(firebase: _FirebaseNamespace): void {
     )
   );
 
-  // TODO: register AppCheck version with firebase.registerVersion() before BETA. We don't want to report version in EAP
+  firebase.registerVersion(name, version);
 }
 
 registerAppCheck(firebase as _FirebaseNamespace);
