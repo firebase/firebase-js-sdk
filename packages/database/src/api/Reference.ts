@@ -78,9 +78,12 @@ import { TransactionResult } from './TransactionResult';
  * This is part of a workaround for an issue in the no-modular '@firebase/database' where its typings
  * reference types from `@firebase/app-exp`.
  */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type ExpDataSnapshot = any;
 type ExpQuery = any;
 type ExpReference = any;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Class representing a firebase data snapshot.  It wraps a SnapshotNode and

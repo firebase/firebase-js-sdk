@@ -25,6 +25,7 @@ import { warn } from '../core/util/util';
  * This is a workaround for an issue in the no-modular '@firebase/database' where its typings
  * reference types from `@firebase/app-exp`.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExpOnDisconnect = any;
 
 export class OnDisconnect implements Compat<ExpOnDisconnect> {

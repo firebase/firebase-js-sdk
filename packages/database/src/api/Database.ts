@@ -41,6 +41,7 @@ import { Reference } from './Reference';
  * This is a workaround for an issue in the no-modular '@firebase/database' where its typings
  * reference types from `@firebase/app-exp`.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExpDatabase = any;
 
 /**

@@ -32,6 +32,7 @@ import { SessionStorage } from '../storage/storage';
  * This is part of a workaround for an issue in the no-modular '@firebase/database' where its typings
  * reference types from `@firebase/app-exp`.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type QueryContext = any;
 declare const window: Window;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
