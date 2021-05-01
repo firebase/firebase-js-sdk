@@ -17,9 +17,15 @@
 
 import { validateArgCount, validateCallback, Compat } from '@firebase/util';
 
-import { OnDisconnect as ExpOnDisconnect } from '../../exp/index';
 import { Indexable } from '../core/util/misc';
 import { warn } from '../core/util/util';
+
+// TODO: revert to import { OnDisconnect as ExpOnDisconnect } from '../../exp/index'; once the modular SDK goes GA
+/**
+ * This is a workaround for an issue in the no-modular '@firebase/database' where its typings
+ * reference types from `@firebase/app-exp`.
+ */
+type ExpOnDisconnect = any;
 
 export class OnDisconnect implements Compat<ExpOnDisconnect> {
   constructor(readonly _delegate: ExpOnDisconnect) {}

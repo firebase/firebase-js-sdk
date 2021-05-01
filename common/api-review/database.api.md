@@ -7,7 +7,7 @@
 import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 
-// @public
+// @public (undocumented)
 export function child(parent: Reference, path: string): Reference;
 
 // @public
