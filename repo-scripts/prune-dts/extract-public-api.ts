@@ -21,7 +21,7 @@ import * as path from 'path';
 import { Extractor, ExtractorConfig } from 'api-extractor-me';
 import * as tmp from 'tmp';
 
-import { pruneDts, removeUnusedImports } from './prune-dts';
+import { addBlankLines, pruneDts, removeUnusedImports } from './prune-dts';
 import * as yargs from 'yargs';
 
 /* eslint-disable no-console */
@@ -154,6 +154,8 @@ export async function generateApi(
   console.log('Generated rollup DTS');
   pruneDts(rollupDtsPath, publicDtsPath);
   console.log('Pruned DTS file');
+  await addBlankLines(publicDtsPath);
+  console.log('Added blank lines after imports');
   await removeUnusedImports(publicDtsPath);
   console.log('Removed unused imports');
 

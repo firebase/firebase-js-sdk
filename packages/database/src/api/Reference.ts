@@ -26,7 +26,6 @@ import {
 
 import {
   OnDisconnect as ExpOnDisconnect,
-  DataSnapshot as ExpDataSnapshot,
   off,
   onChildAdded,
   onChildChanged,
@@ -54,8 +53,6 @@ import {
   setPriority,
   push,
   runTransaction,
-  Query as ExpQuery,
-  Reference as ExpReference,
   _QueryImpl,
   _ReferenceImpl,
   child
@@ -74,6 +71,19 @@ import { ThenableReferenceImpl } from '../exp/Reference_impl';
 import { Database } from './Database';
 import { OnDisconnect } from './onDisconnect';
 import { TransactionResult } from './TransactionResult';
+
+// TODO: revert to import {  DataSnapshot as ExpDataSnapshot, Query as ExpQuery,
+// Reference as ExpReference,} from '../../exp/index'; once the modular SDK goes GA
+/**
+ * This is part of a workaround for an issue in the no-modular '@firebase/database' where its typings
+ * reference types from `@firebase/app-exp`.
+ */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type ExpDataSnapshot = any;
+type ExpQuery = any;
+type ExpReference = any;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Class representing a firebase data snapshot.  It wraps a SnapshotNode and

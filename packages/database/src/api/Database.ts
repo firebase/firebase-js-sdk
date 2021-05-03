@@ -25,7 +25,6 @@ import {
 } from '@firebase/util';
 
 import {
-  FirebaseDatabase as ExpDatabase,
   goOnline,
   useDatabaseEmulator,
   goOffline,
@@ -36,6 +35,14 @@ import {
 } from '../../exp/index'; // import from the exp public API
 
 import { Reference } from './Reference';
+
+// TODO: revert to import {FirebaseDatabase as ExpDatabase} from '@firebase/database' once modular SDK goes GA
+/**
+ * This is a workaround for an issue in the no-modular '@firebase/database' where its typings
+ * reference types from `@firebase/app-exp`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ExpDatabase = any;
 
 /**
  * Class representing a firebase database.
