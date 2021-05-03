@@ -37,7 +37,7 @@ import {
 } from './client';
 import { writeTokenToStorage, readTokenFromStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64 } from '@firebase/util';
+import { base64, issuedAtTime } from '@firebase/util';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { logger } from './logger';
 import { Provider } from '@firebase/component';
@@ -116,7 +116,19 @@ export async function getToken(
   try {
     if (state.customProvider) {
       const customToken = await state.customProvider.getToken();
-      token = { ...customToken, issuedAtTimeMillis: Date.now() };
+      // Try to extract IAT from custom token, in case this token is not
+      // being newly issued. JWT timestamps are in seconds since epoch.
+      const issuedAtTimeSeconds = issuedAtTime(customToken.token);
+      // Very basic validation, use current timestamp as IAT if JWT
+      // has no `iat` field or value is out of bounds.
+      const issuedAtTimeMillis =
+        issuedAtTimeSeconds !== null &&
+        issuedAtTimeSeconds < Date.now() &&
+        issuedAtTimeSeconds > 0
+          ? issuedAtTimeSeconds * 1000
+          : Date.now();
+
+      token = { ...customToken, issuedAtTimeMillis };
     } else {
       const attestedClaimsToken = await getReCAPTCHAToken(app).catch(_e => {
         // reCaptcha.execute() throws null which is not very descriptive.
