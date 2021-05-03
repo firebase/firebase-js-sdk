@@ -264,11 +264,18 @@ function createTokenRefresher(
 
       if (state.token) {
         // issuedAtTime + (50% * total TTL) + 5 minutes
-        const nextRefreshTimeMillis =
+        let nextRefreshTimeMillis =
           state.token.issuedAtTimeMillis +
           (state.token.expireTimeMillis - state.token.issuedAtTimeMillis) *
             0.5 +
           5 * 60 * 1000;
+        // Do not allow refresh time to be past (expireTime - 5 minutes)
+        const latestAllowableRefresh =
+          state.token.expireTimeMillis - 5 * 60 * 1000;
+        nextRefreshTimeMillis = Math.min(
+          nextRefreshTimeMillis,
+          latestAllowableRefresh
+        );
         return Math.max(0, nextRefreshTimeMillis - Date.now());
       } else {
         return 0;
