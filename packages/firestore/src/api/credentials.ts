@@ -135,6 +135,41 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
   }
 }
 
+/**
+ * A CredentialsProvider that always returns a constant token. Used for
+ * emulator token mocking.
+ */
+export class EmulatorCredentialsProvider implements CredentialsProvider {
+  constructor(private token: Token) {}
+
+  /**
+   * Stores the listener registered with setChangeListener()
+   * This isn't actually necessary since the UID never changes, but we use this
+   * to verify the listen contract is adhered to in tests.
+   */
+  private changeListener: CredentialChangeListener | null = null;
+
+  getToken(): Promise<Token | null> {
+    return Promise.resolve(this.token);
+  }
+
+  invalidateToken(): void {}
+
+  setChangeListener(changeListener: CredentialChangeListener): void {
+    debugAssert(
+      !this.changeListener,
+      'Can only call setChangeListener() once.'
+    );
+    this.changeListener = changeListener;
+    // Fire with initial user.
+    changeListener(this.token.user);
+  }
+
+  removeChangeListener(): void {
+    this.changeListener = null;
+  }
+}
+
 export class FirebaseCredentialsProvider implements CredentialsProvider {
   /**
    * The auth token listener registered with FirebaseApp, retained here so we

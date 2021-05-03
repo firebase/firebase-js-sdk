@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 
 export type DocumentData = { [field: string]: any };
 
@@ -61,7 +61,13 @@ export class FirebaseFirestore {
 
   settings(settings: Settings): void;
 
-  useEmulator(host: string, port: number): void;
+  useEmulator(
+    host: string,
+    port: number,
+    options?: {
+      mockUserToken?: EmulatorMockTokenOptions;
+    }
+  ): void;
 
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
