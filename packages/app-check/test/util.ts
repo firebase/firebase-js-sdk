@@ -18,6 +18,12 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { AppCheckProvider } from '@firebase/app-check-types';
 import { GreCAPTCHA, RECAPTCHA_URL } from '../src/recaptcha';
+import {
+  Provider,
+  ComponentContainer,
+  Component,
+  ComponentType
+} from '@firebase/component';
 
 export const FAKE_SITE_KEY = 'fake-site-key';
 
@@ -49,6 +55,21 @@ export function getFakeCustomTokenProvider(): AppCheckProvider {
         expireTimeMillis: 1
       })
   };
+}
+
+export function getFakePlatformLoggingProvider(
+  fakeLogString: string = 'a/1.2.3 b/2.3.4'
+): Provider<'platform-logger'> {
+  const container = new ComponentContainer('test');
+  container.addComponent(
+    new Component(
+      'platform-logger',
+      () => ({ getPlatformInfoString: () => fakeLogString }),
+      ComponentType.PRIVATE
+    )
+  );
+
+  return container.getProvider('platform-logger');
 }
 
 export function getFakeGreCAPTCHA(): GreCAPTCHA {

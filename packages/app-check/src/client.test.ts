@@ -19,7 +19,7 @@ import '../test/setup';
 import { expect } from 'chai';
 import { stub, SinonStub, useFakeTimers } from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
-import { getFakeApp } from '../test/util';
+import { getFakeApp, getFakePlatformLoggingProvider } from '../test/util';
 import { getExchangeRecaptchaTokenRequest, exchangeToken } from './client';
 import { FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, AppCheckError } from './errors';
@@ -64,8 +64,13 @@ describe('client', () => {
     );
 
     const response = await exchangeToken(
-      getExchangeRecaptchaTokenRequest(app, 'fake-custom-token')
+      getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+      getFakePlatformLoggingProvider('a/1.2.3 fire-app-check/2.3.4')
     );
+
+    expect(
+      (fetchStub.args[0][1]?.['headers'] as any)['X-Firebase-Client']
+    ).to.equal('a/1.2.3 fire-app-check/2.3.4');
 
     expect(response).to.deep.equal({
       token: 'fake-appcheck-token',
@@ -85,7 +90,8 @@ describe('client', () => {
 
     try {
       await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token')
+        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+        getFakePlatformLoggingProvider()
       );
     } catch (e) {
       expect(e).instanceOf(FirebaseError);
@@ -113,7 +119,8 @@ describe('client', () => {
 
     try {
       await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token')
+        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+        getFakePlatformLoggingProvider()
       );
     } catch (e) {
       expect(e).instanceOf(FirebaseError);
@@ -140,7 +147,8 @@ describe('client', () => {
 
     try {
       await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token')
+        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+        getFakePlatformLoggingProvider()
       );
     } catch (e) {
       expect(e).instanceOf(FirebaseError);
@@ -173,7 +181,8 @@ describe('client', () => {
 
     try {
       await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token')
+        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+        getFakePlatformLoggingProvider()
       );
     } catch (e) {
       expect(e).instanceOf(FirebaseError);

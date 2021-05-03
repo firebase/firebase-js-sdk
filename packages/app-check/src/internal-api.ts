@@ -36,6 +36,7 @@ import { getDebugToken, isDebugMode } from './debug';
 import { base64 } from '@firebase/util';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { logger } from './logger';
+import { Provider } from '@firebase/component';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
@@ -62,6 +63,7 @@ export function formatDummyToken(
  */
 export async function getToken(
   app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>,
   forceRefresh = false
 ): Promise<AppCheckTokenResult> {
   ensureActivated(app);
@@ -71,7 +73,8 @@ export async function getToken(
    */
   if (isDebugMode()) {
     const tokenFromDebugExchange: AppCheckToken = await exchangeToken(
-      getExchangeDebugTokenRequest(app, await getDebugToken())
+      getExchangeDebugTokenRequest(app, await getDebugToken()),
+      platformLoggerProvider
     );
     return { token: tokenFromDebugExchange.token };
   }
@@ -115,7 +118,8 @@ export async function getToken(
         throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
       });
       token = await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, attestedClaimsToken)
+        getExchangeRecaptchaTokenRequest(app, attestedClaimsToken),
+        platformLoggerProvider
       );
     }
   } catch (e) {
@@ -145,6 +149,7 @@ export async function getToken(
 
 export function addTokenListener(
   app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>,
   listener: AppCheckTokenListener
 ): void {
   const state = getState(app);
@@ -174,7 +179,7 @@ export function addTokenListener(
      * invoke the listener with the valid token, then start the token refresher
      */
     if (!newState.tokenRefresher) {
-      const tokenRefresher = createTokenRefresher(app);
+      const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
       newState.tokenRefresher = tokenRefresher;
     }
 
@@ -217,7 +222,10 @@ export function removeTokenListener(
   });
 }
 
-function createTokenRefresher(app: FirebaseApp): Refresher {
+function createTokenRefresher(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>
+): Refresher {
   return new Refresher(
     // Keep in mind when this fails for any reason other than the ones
     // for which we should retry, it will effectively stop the proactive refresh.
@@ -227,9 +235,9 @@ function createTokenRefresher(app: FirebaseApp): Refresher {
       // If there is a token, we force refresh it because we know it's going to expire soon
       let result;
       if (!state.token) {
-        result = await getToken(app);
+        result = await getToken(app, platformLoggerProvider);
       } else {
-        result = await getToken(app, true);
+        result = await getToken(app, platformLoggerProvider, true);
       }
 
       // getToken() always resolves. In case the result has an error field defined, it means the operation failed, and we should retry.
