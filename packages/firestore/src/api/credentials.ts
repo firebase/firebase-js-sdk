@@ -204,7 +204,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
 
   /**
    * Whether the initial token event has been raised. This can go back to
-   * `false` if Firestore first starts without Auth and Auth is loaded later.
+   * `false` if Firestore first starts without Auth and Auth is initialized later.
    */
   private initialEventRaised: boolean = false;
 
