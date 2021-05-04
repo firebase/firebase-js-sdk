@@ -959,8 +959,8 @@ function addEventListener(
   if (options && options.onlyOnce) {
     const userCallback = callback;
     const onceCallback: UserCallback = (dataSnapshot, previousChildName) => {
-      userCallback(dataSnapshot, previousChildName);
       repoRemoveEventCallbackForQuery(query._repo, query, container);
+      userCallback(dataSnapshot, previousChildName);
     };
     onceCallback.userCallback = callback.userCallback;
     onceCallback.context = callback.context;

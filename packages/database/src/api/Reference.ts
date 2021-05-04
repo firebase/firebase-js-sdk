@@ -326,7 +326,7 @@ export class Query implements Compat<ExpQuery> {
     validateCallback('Query.once', 'callback', callback, true);
 
     const ret = Query.getCancelAndContextArgs_(
-      'Query.on',
+      'Query.once',
       failureCallbackOrContext,
       context
     );
