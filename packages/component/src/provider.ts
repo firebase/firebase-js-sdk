@@ -265,7 +265,7 @@ export class Provider<T extends Name> {
    *
    * @returns a function to unregister the callback
    */
-  onInit(callback: (instance: NameServiceMapping[T]) => void): () => void {
+  onInit(callback: OnInitCallBack<T>): () => void {
     this.onInitCallbacks.add(callback);
 
     return () => {
