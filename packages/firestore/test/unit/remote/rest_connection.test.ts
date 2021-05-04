@@ -90,6 +90,11 @@ describe('RestConnection', () => {
         authHeaders: { 'Authorization': 'Bearer owner' }
       }
     );
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log(
+      `expected merges headers: ${connection.lastHeaders['X-Goog-Api-Client']}`
+    );
+    console.log(`got merges headers: gl-js/ fire/${SDK_VERSION}`);
     expect(connection.lastHeaders).to.deep.equal({
       'Authorization': 'Bearer owner',
       'Content-Type': 'text/plain',
