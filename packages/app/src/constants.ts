@@ -18,6 +18,7 @@
 export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 import { name as appName } from '../package.json';
 import { name as analyticsName } from '../../analytics/package.json';
+import { name as appCheckName } from '../../app-check/package.json';
 import { name as authName } from '../../auth/package.json';
 import { name as databaseName } from '../../database/package.json';
 import { name as functionsName } from '../../functions/package.json';
@@ -32,6 +33,7 @@ import { name as packageName } from '../../../package.json';
 export const PLATFORM_LOG_STRING = {
   [appName]: 'fire-core',
   [analyticsName]: 'fire-analytics',
+  [appCheckName]: 'fire-app-check',
   [authName]: 'fire-auth',
   [databaseName]: 'fire-rtdb',
   [functionsName]: 'fire-fn',
