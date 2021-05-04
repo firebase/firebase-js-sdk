@@ -21,8 +21,12 @@ import {
   AppCheckTokenResult,
   AppCheckTokenListener
 } from '@firebase/app-check-interop-types';
-import { AppCheckToken } from '@firebase/app-check-types';
-import { getDebugState, getState, setState } from './state';
+import {
+  AppCheckTokenInternal,
+  getDebugState,
+  getState,
+  setState
+} from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
@@ -33,7 +37,7 @@ import {
 } from './client';
 import { writeTokenToStorage, readTokenFromStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64 } from '@firebase/util';
+import { base64, issuedAtTime } from '@firebase/util';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { logger } from './logger';
 import { Provider } from '@firebase/component';
@@ -72,7 +76,7 @@ export async function getToken(
    * return the debug token directly
    */
   if (isDebugMode()) {
-    const tokenFromDebugExchange: AppCheckToken = await exchangeToken(
+    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
       getExchangeDebugTokenRequest(app, await getDebugToken()),
       platformLoggerProvider
     );
@@ -81,7 +85,7 @@ export async function getToken(
 
   const state = getState(app);
 
-  let token: AppCheckToken | undefined = state.token;
+  let token: AppCheckTokenInternal | undefined = state.token;
   let error: Error | undefined = undefined;
 
   /**
@@ -111,7 +115,20 @@ export async function getToken(
    */
   try {
     if (state.customProvider) {
-      token = await state.customProvider.getToken();
+      const customToken = await state.customProvider.getToken();
+      // Try to extract IAT from custom token, in case this token is not
+      // being newly issued. JWT timestamps are in seconds since epoch.
+      const issuedAtTimeSeconds = issuedAtTime(customToken.token);
+      // Very basic validation, use current timestamp as IAT if JWT
+      // has no `iat` field or value is out of bounds.
+      const issuedAtTimeMillis =
+        issuedAtTimeSeconds !== null &&
+        issuedAtTimeSeconds < Date.now() &&
+        issuedAtTimeSeconds > 0
+          ? issuedAtTimeSeconds * 1000
+          : Date.now();
+
+      token = { ...customToken, issuedAtTimeMillis };
     } else {
       const attestedClaimsToken = await getReCAPTCHAToken(app).catch(_e => {
         // reCaptcha.execute() throws null which is not very descriptive.
@@ -183,7 +200,12 @@ export function addTokenListener(
       newState.tokenRefresher = tokenRefresher;
     }
 
-    if (!newState.tokenRefresher.isRunning()) {
+    // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
+    // is not true.
+    if (
+      !newState.tokenRefresher.isRunning() &&
+      state.isTokenAutoRefreshEnabled === true
+    ) {
       newState.tokenRefresher.start();
     }
 
@@ -253,12 +275,20 @@ function createTokenRefresher(
       const state = getState(app);
 
       if (state.token) {
-        return Math.max(
-          0,
-          state.token.expireTimeMillis -
-            Date.now() -
-            TOKEN_REFRESH_TIME.OFFSET_DURATION
+        // issuedAtTime + (50% * total TTL) + 5 minutes
+        let nextRefreshTimeMillis =
+          state.token.issuedAtTimeMillis +
+          (state.token.expireTimeMillis - state.token.issuedAtTimeMillis) *
+            0.5 +
+          5 * 60 * 1000;
+        // Do not allow refresh time to be past (expireTime - 5 minutes)
+        const latestAllowableRefresh =
+          state.token.expireTimeMillis - 5 * 60 * 1000;
+        nextRefreshTimeMillis = Math.min(
+          nextRefreshTimeMillis,
+          latestAllowableRefresh
         );
+        return Math.max(0, nextRefreshTimeMillis - Date.now());
       } else {
         return 0;
       }
@@ -283,7 +313,7 @@ function notifyTokenListeners(
   }
 }
 
-function isValid(token: AppCheckToken): boolean {
+function isValid(token: AppCheckTokenInternal): boolean {
   return token.expireTimeMillis - Date.now() > 0;
 }
 

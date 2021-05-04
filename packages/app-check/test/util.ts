@@ -27,7 +27,7 @@ import {
 
 export const FAKE_SITE_KEY = 'fake-site-key';
 
-export function getFakeApp(): FirebaseApp {
+export function getFakeApp(overrides: Record<string, any> = {}): FirebaseApp {
   return {
     name: 'appName',
     options: {
@@ -43,7 +43,8 @@ export function getFakeApp(): FirebaseApp {
     delete: async () => {},
     // This won't be used in tests.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    appCheck: null as any
+    appCheck: null as any,
+    ...overrides
   };
 }
 

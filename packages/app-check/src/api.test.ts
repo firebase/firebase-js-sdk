@@ -17,7 +17,7 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { activate } from './api';
+import { activate, setTokenAutoRefreshEnabled } from './api';
 import {
   FAKE_SITE_KEY,
   getFakeApp,
@@ -39,6 +39,18 @@ describe('api', () => {
       expect(getState(app).activated).to.equal(false);
       activate(app, FAKE_SITE_KEY);
       expect(getState(app).activated).to.equal(true);
+    });
+
+    it('isTokenAutoRefreshEnabled value defaults to global setting', () => {
+      app = getFakeApp({ automaticDataCollectionEnabled: false });
+      activate(app, FAKE_SITE_KEY);
+      expect(getState(app).isTokenAutoRefreshEnabled).to.equal(false);
+    });
+
+    it('sets isTokenAutoRefreshEnabled correctly, overriding global setting', () => {
+      app = getFakeApp({ automaticDataCollectionEnabled: false });
+      activate(app, FAKE_SITE_KEY, true);
+      expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
     });
 
     it('can only be called once', () => {
@@ -65,6 +77,13 @@ describe('api', () => {
       activate(app, fakeCustomTokenProvider);
       expect(getState(app).customProvider).to.equal(fakeCustomTokenProvider);
       expect(initReCAPTCHAStub).to.have.not.been.called;
+    });
+  });
+  describe('setTokenAutoRefreshEnabled()', () => {
+    it('sets isTokenAutoRefreshEnabled correctly', () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: false });
+      setTokenAutoRefreshEnabled(app, true);
+      expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
     });
   });
 });

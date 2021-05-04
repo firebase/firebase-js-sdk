@@ -16,7 +16,7 @@
  */
 
 import { FirebaseAppCheck, AppCheckProvider } from '@firebase/app-check-types';
-import { activate } from './api';
+import { activate, setTokenAutoRefreshEnabled } from './api';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import {
@@ -28,8 +28,12 @@ import { Provider } from '@firebase/component';
 
 export function factory(app: FirebaseApp): FirebaseAppCheck {
   return {
-    activate: (siteKeyOrProvider: string | AppCheckProvider) =>
-      activate(app, siteKeyOrProvider)
+    activate: (
+      siteKeyOrProvider: string | AppCheckProvider,
+      isTokenAutoRefreshEnabled?: boolean
+    ) => activate(app, siteKeyOrProvider, isTokenAutoRefreshEnabled),
+    setTokenAutoRefreshEnabled: (isTokenAutoRefreshEnabled: boolean) =>
+      setTokenAutoRefreshEnabled(app, isTokenAutoRefreshEnabled)
   };
 }
 

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { AppCheckToken } from '@firebase/app-check-types';
 import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
+import { AppCheckTokenInternal } from './state';
 const DB_NAME = 'firebase-app-check-database';
 const DB_VERSION = 1;
 const STORE_NAME = 'firebase-app-check-store';
@@ -74,13 +74,13 @@ function getDBPromise(): Promise<IDBDatabase> {
 
 export function readTokenFromIndexedDB(
   app: FirebaseApp
-): Promise<AppCheckToken | undefined> {
-  return read(computeKey(app)) as Promise<AppCheckToken | undefined>;
+): Promise<AppCheckTokenInternal | undefined> {
+  return read(computeKey(app)) as Promise<AppCheckTokenInternal | undefined>;
 }
 
 export function writeTokenToIndexedDB(
   app: FirebaseApp,
-  token: AppCheckToken
+  token: AppCheckTokenInternal
 ): Promise<void> {
   return write(computeKey(app), token);
 }
