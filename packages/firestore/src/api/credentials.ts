@@ -178,7 +178,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     } else {
       // if auth is not available, invoke tokenListener once with null token
       this.tokenListener(null);
-      authProvider.get(
+      authProvider.get().then(
         auth => {
           this.auth = auth;
           if (this.tokenListener) {
