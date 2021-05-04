@@ -15,10 +15,15 @@
  * limitations under the License.
  */
 
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import {
+  _registerComponent,
+  registerVersion,
+  SDK_VERSION
+} from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
+import { setSDKVersion } from '../src/core/version';
 import { FirebaseFirestore } from '../src/exp/database';
 import { Settings } from '../src/exp/settings';
 
@@ -29,6 +34,7 @@ declare module '@firebase/component' {
 }
 
 export function registerFirestore(variant?: string): void {
+  setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
       'firestore-exp',
