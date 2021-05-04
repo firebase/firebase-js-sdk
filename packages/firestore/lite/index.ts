@@ -1,4 +1,14 @@
 /**
+ * Firestore Lite
+ *
+ * @remarks This package includes the same feature set as Firestore, but
+ * without latency compensation or snapshot listeners (and with
+ * correspondingly lighter size footprint). Firestore Lite supports fast
+ * write and read, operations but only when online.
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *
