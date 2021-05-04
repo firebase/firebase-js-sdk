@@ -165,6 +165,10 @@ describe('Testing Module Tests', function () {
         host: 'localhost',
         port: 9003
       },
+      storage: {
+        host: 'localhost',
+        port: 9199
+      },
       hub: {
         host: 'localhost',
         port: 4400

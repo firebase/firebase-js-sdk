@@ -412,7 +412,7 @@ function parseHost(host: string): { hostname: string, port: number } {
   const u = new URL(host);
   return {
     hostname: u.hostname,
-    port: Number.parseInt(u.port, 10);
+    port: Number.parseInt(u.port, 10)
   }
 }
 
