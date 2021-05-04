@@ -28,7 +28,8 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
-import { makeFakeApp, createTestService } from './utils';
+import { makeFakeApp, createTestService, getFetchImpl } from './utils';
+import { spy } from 'sinon';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
@@ -58,6 +59,7 @@ async function expectError(
 describe('Firebase Functions > Call', () => {
   let app: FirebaseApp;
   const region = 'us-central1';
+  let fetchSpy: sinon.SinonSpy = spy();
 
   before(() => {
     const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
@@ -67,6 +69,33 @@ describe('Firebase Functions > Call', () => {
     const messagingSenderId = 'messaging-sender-id';
 
     app = makeFakeApp({ projectId, messagingSenderId });
+  });
+
+  it('sends app check header', async () => {
+    const spyFetchImpl = getFetchImpl();
+    fetchSpy = spy(spyFetchImpl);
+    const functions = createTestService(
+      app,
+      region,
+      undefined,
+      undefined,
+      'not-dummy-token',
+      fetchSpy
+    );
+    const data = {
+      bool: true,
+      int: 2,
+      str: 'four',
+      array: [5, 6],
+      null: null
+    };
+
+    const func = functions.httpsCallable('dataTest');
+    await func(data);
+
+    expect(fetchSpy.args[0][1].headers['X-Firebase-AppCheck']).to.equal(
+      'not-dummy-token'
+    );
   });
 
   it('simple data', async () => {

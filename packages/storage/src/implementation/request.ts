@@ -280,10 +280,20 @@ export function addGmpidHeader_(headers: Headers, appId: string | null): void {
   }
 }
 
+export function addAppCheckHeader_(
+  headers: Headers,
+  appCheckToken: string | null
+): void {
+  if (appCheckToken !== null) {
+    headers['X-Firebase-AppCheck'] = appCheckToken;
+  }
+}
+
 export function makeRequest<T>(
   requestInfo: RequestInfo<T>,
   appId: string | null,
   authToken: string | null,
+  appCheckToken: string | null,
   pool: XhrIoPool,
   firebaseVersion?: string
 ): Request<T> {
@@ -293,6 +303,7 @@ export function makeRequest<T>(
   addGmpidHeader_(headers, appId);
   addAuthHeader_(headers, authToken);
   addVersionHeader_(headers, firebaseVersion);
+  addAppCheckHeader_(headers, appCheckToken);
   return new NetworkRequest<T>(
     url,
     requestInfo.method,

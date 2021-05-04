@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, contains, getModularInstance, Deferred } from '@firebase/util';
+import { assert, getModularInstance, Deferred } from '@firebase/util';
 
 import {
   Repo,
@@ -870,16 +870,12 @@ export class ValueEventRegistration implements EventRegistration {
 }
 
 /**
- * Represents the registration of 1 or more child_xxx events.
- *
- * Currently, it is always exactly 1 child_xxx event, but the idea is we might
- * let you register a group of callbacks together in the future.
+ * Represents the registration of a child_x event.
  */
 export class ChildEventRegistration implements EventRegistration {
   constructor(
-    private callbacks: {
-      [child: string]: CallbackContext;
-    } | null
+    private eventType: string,
+    private callbackContext: CallbackContext | null
   ) {}
 
   respondsTo(eventType: string): boolean {
@@ -887,11 +883,11 @@ export class ChildEventRegistration implements EventRegistration {
       eventType === 'children_added' ? 'child_added' : eventType;
     eventToCheck =
       eventToCheck === 'children_removed' ? 'child_removed' : eventToCheck;
-    return contains(this.callbacks, eventToCheck);
+    return this.eventType === eventToCheck;
   }
 
   createCancelEvent(error: Error, path: Path): CancelEvent | null {
-    if (this.callbacks['cancel'].hasCancelCallback) {
+    if (this.callbackContext.hasCancelCallback) {
       return new CancelEvent(this, error, path);
     } else {
       return null;
@@ -915,12 +911,11 @@ export class ChildEventRegistration implements EventRegistration {
 
   getEventRunner(eventData: CancelEvent | DataEvent): () => void {
     if (eventData.getEventType() === 'cancel') {
-      const cancelCB = this.callbacks['cancel'];
-      return () => cancelCB.onCancel((eventData as CancelEvent).error);
-    } else {
-      const cb = this.callbacks[(eventData as DataEvent).eventType];
       return () =>
-        cb.onValue(
+        this.callbackContext.onCancel((eventData as CancelEvent).error);
+    } else {
+      return () =>
+        this.callbackContext.onValue(
           (eventData as DataEvent).snapshot,
           (eventData as DataEvent).prevName
         );
@@ -929,42 +924,19 @@ export class ChildEventRegistration implements EventRegistration {
 
   matches(other: EventRegistration): boolean {
     if (other instanceof ChildEventRegistration) {
-      if (!this.callbacks || !other.callbacks) {
-        return true;
-      } else {
-        const otherKeys = Object.keys(other.callbacks);
-        const thisKeys = Object.keys(this.callbacks);
-        const otherCount = otherKeys.length;
-        const thisCount = thisKeys.length;
-        if (otherCount === thisCount) {
-          // If count is 1, do an exact match on eventType, if either is defined but null, it's a match.
-          // If event types don't match, not a match
-          // If count is not 1, exact match across all
-
-          if (otherCount === 1) {
-            const otherKey = otherKeys[0];
-            const thisKey = thisKeys[0];
-            return (
-              thisKey === otherKey &&
-              (!other.callbacks[otherKey] ||
-                !this.callbacks[thisKey] ||
-                other.callbacks[otherKey].matches(this.callbacks[thisKey]))
-            );
-          } else {
-            // Exact match on each key.
-            return thisKeys.every(eventType =>
-              other.callbacks[eventType].matches(this.callbacks[eventType])
-            );
-          }
-        }
-      }
+      return (
+        this.eventType === other.eventType &&
+        (!this.callbackContext ||
+          !other.callbackContext ||
+          this.callbackContext.matches(other.callbackContext))
+      );
     }
 
     return false;
   }
 
   hasAnyCallback(): boolean {
-    return this.callbacks !== null;
+    return !!this.callbackContext;
   }
 }
 
@@ -1002,9 +974,7 @@ function addEventListener(
   const container =
     eventType === 'value'
       ? new ValueEventRegistration(callbackContext)
-      : new ChildEventRegistration({
-          [eventType]: callbackContext
-        });
+      : new ChildEventRegistration(eventType, callbackContext);
   repoAddEventCallbackForQuery(query._repo, query, container);
   return () => repoRemoveEventCallbackForQuery(query._repo, query, container);
 }
@@ -1656,16 +1626,11 @@ export function off(
   ) => unknown
 ): void {
   let container: EventRegistration | null = null;
-  let callbacks: { [k: string]: CallbackContext } | null = null;
   const expCallback = callback ? new CallbackContext(callback) : null;
   if (eventType === 'value') {
     container = new ValueEventRegistration(expCallback);
   } else if (eventType) {
-    if (callback) {
-      callbacks = {};
-      callbacks[eventType] = expCallback;
-    }
-    container = new ChildEventRegistration(callbacks);
+    container = new ChildEventRegistration(eventType, expCallback);
   }
   repoRemoveEventCallbackForQuery(query._repo, query, container);
 }

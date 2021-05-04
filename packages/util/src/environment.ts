@@ -189,3 +189,20 @@ export function areCookiesEnabled(): boolean {
   }
   return true;
 }
+
+/**
+ * Polyfill for `globalThis` object.
+ * @returns the `globalThis` object for the given environment.
+ */
+export function getGlobal(): typeof globalThis {
+  if (typeof self !== 'undefined') {
+    return self;
+  }
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  if (typeof global !== 'undefined') {
+    return global;
+  }
+  throw new Error('Unable to locate global object.');
+}

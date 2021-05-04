@@ -23,6 +23,7 @@ import {
   Deferred
 } from '@firebase/util';
 
+import { AppCheckTokenProvider } from './AppCheckTokenProvider';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
 import { ServerActions } from './ServerActions';
@@ -73,7 +74,8 @@ export class ReadonlyRestClient extends ServerActions {
       c: boolean,
       d: number | null
     ) => void,
-    private authTokenProvider_: AuthTokenProvider
+    private authTokenProvider_: AuthTokenProvider,
+    private appCheckTokenProvider_: AppCheckTokenProvider
   ) {
     super();
   }
@@ -186,64 +188,67 @@ export class ReadonlyRestClient extends ServerActions {
   ) {
     queryStringParameters['format'] = 'export';
 
-    this.authTokenProvider_
-      .getToken(/*forceRefresh=*/ false)
-      .then(authTokenData => {
-        const authToken = authTokenData && authTokenData.accessToken;
-        if (authToken) {
-          queryStringParameters['auth'] = authToken;
-        }
+    return Promise.all([
+      this.authTokenProvider_.getToken(/*forceRefresh=*/ false),
+      this.appCheckTokenProvider_.getToken(/*forceRefresh=*/ false)
+    ]).then(([authToken, appCheckToken]) => {
+      if (authToken && authToken.accessToken) {
+        queryStringParameters['auth'] = authToken.accessToken;
+      }
+      if (appCheckToken && appCheckToken.token) {
+        queryStringParameters['ac'] = appCheckToken.token;
+      }
 
-        const url =
-          (this.repoInfo_.secure ? 'https://' : 'http://') +
-          this.repoInfo_.host +
-          pathString +
-          '?' +
-          'ns=' +
-          this.repoInfo_.namespace +
-          querystring(queryStringParameters);
+      const url =
+        (this.repoInfo_.secure ? 'https://' : 'http://') +
+        this.repoInfo_.host +
+        pathString +
+        '?' +
+        'ns=' +
+        this.repoInfo_.namespace +
+        querystring(queryStringParameters);
 
-        this.log_('Sending REST request for ' + url);
-        const xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = () => {
-          if (callback && xhr.readyState === 4) {
-            this.log_(
-              'REST Response for ' + url + ' received. status:',
-              xhr.status,
-              'response:',
-              xhr.responseText
-            );
-            let res = null;
-            if (xhr.status >= 200 && xhr.status < 300) {
-              try {
-                res = jsonEval(xhr.responseText);
-              } catch (e) {
-                warn(
-                  'Failed to parse JSON response for ' +
-                    url +
-                    ': ' +
-                    xhr.responseText
-                );
-              }
-              callback(null, res);
-            } else {
-              // 401 and 404 are expected.
-              if (xhr.status !== 401 && xhr.status !== 404) {
-                warn(
-                  'Got unsuccessful REST response for ' +
-                    url +
-                    ' Status: ' +
-                    xhr.status
-                );
-              }
-              callback(xhr.status);
+      this.log_('Sending REST request for ' + url);
+      const xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = () => {
+        if (callback && xhr.readyState === 4) {
+          this.log_(
+            'REST Response for ' + url + ' received. status:',
+            xhr.status,
+            'response:',
+            xhr.responseText
+          );
+          let res = null;
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              res = jsonEval(xhr.responseText);
+            } catch (e) {
+              warn(
+                'Failed to parse JSON response for ' +
+                  url +
+                  ': ' +
+                  xhr.responseText
+              );
             }
-            callback = null;
+            callback(null, res);
+          } else {
+            // 401 and 404 are expected.
+            if (xhr.status !== 401 && xhr.status !== 404) {
+              warn(
+                'Got unsuccessful REST response for ' +
+                  url +
+                  ' Status: ' +
+                  xhr.status
+              );
+            }
+            callback(xhr.status);
           }
-        };
+          callback = null;
+        }
+      };
 
-        xhr.open('GET', url, /*asynchronous=*/ true);
-        xhr.send();
-      });
+      xhr.open('GET', url, /*asynchronous=*/ true);
+      xhr.send();
+    });
   }
 }

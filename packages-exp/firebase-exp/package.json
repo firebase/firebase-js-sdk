@@ -52,10 +52,6 @@
       "node": "./functions/dist/index.cjs.js",
       "default": "./functions/dist/index.esm.js"
     },
-    "./installations": {
-      "node": "./installations/dist/index.cjs.js",
-      "default": "./installations/dist/index.esm.js"
-    },
     "./messaging": {
       "node": "./messaging/dist/index.cjs.js",
       "default": "./messaging/dist/index.esm.js"
@@ -96,10 +92,6 @@
       "node": "./compat/functions/dist/index.cjs.js",
       "default": "./compat/functions/dist/index.esm.js"
     },
-    "./compat/installations": {
-      "node": "./compat/installations/dist/index.cjs.js",
-      "default": "./compat/installations/dist/index.esm.js"
-    },
     "./compat/messaging": {
       "node": "./compat/messaging/dist/index.cjs.js",
       "default": "./compat/messaging/dist/index.esm.js"
@@ -137,11 +129,11 @@
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/auth-compat": "0.0.900",
-    "@firebase/database": "0.9.10",
+    "@firebase/database": "0.9.12",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/functions-compat": "0.0.900",
-    "@firebase/firestore": "2.2.4",
-    "@firebase/storage": "0.5.0",
+    "@firebase/firestore": "2.2.5",
+    "@firebase/storage": "0.5.1",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/performance-compat": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",

@@ -1,5 +1,14 @@
 #Unreleased
 
+## 0.5.1
+
+### Patch Changes
+
+- [`364e336a0`](https://github.com/firebase/firebase-js-sdk/commit/364e336a04e419d019846d702cf27144aeb8939e) [#4807](https://github.com/firebase/firebase-js-sdk/pull/4807) - Fix infinite recursion caused by `FirebaseStorageError` message getter.
+
+- Updated dependencies [[`3f370215a`](https://github.com/firebase/firebase-js-sdk/commit/3f370215aa571db6b41b92a7d8a9aaad2ea0ecd0)]:
+  - @firebase/storage-types@0.4.1
+
 ## 0.5.0
 
 ### Minor Changes

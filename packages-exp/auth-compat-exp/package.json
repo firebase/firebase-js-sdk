@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@firebase/auth-exp": "0.0.900",
-    "@firebase/auth-types": "0.10.2",
+    "@firebase/auth-types": "0.10.3",
     "@firebase/component": "0.4.1",
     "@firebase/util": "1.0.0",
     "node-fetch": "2.6.1",

@@ -24,8 +24,8 @@ import {
   MessagePayload,
   deleteToken,
   getToken,
-  onMessage,
-  onBackgroundMessage
+  onBackgroundMessage,
+  onMessage
 } from '@firebase/messaging-exp';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
@@ -44,6 +44,47 @@ export interface MessagingCompat {
   onBackgroundMessage(
     nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
   ): Unsubscribe;
+}
+
+export function isSupported(): boolean {
+  if (self && 'ServiceWorkerGlobalScope' in self) {
+    // Running in ServiceWorker context
+    return isSwSupported();
+  } else {
+    // Assume we are in the window context.
+    return isWindowSupported();
+  }
+}
+
+/**
+ * Checks to see if the required APIs exist.
+ */
+function isWindowSupported(): boolean {
+  return (
+    'indexedDB' in window &&
+    indexedDB !== null &&
+    navigator.cookieEnabled &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    'fetch' in window &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
+}
+
+/**
+ * Checks to see if the required APIs exist within SW Context.
+ */
+function isSwSupported(): boolean {
+  return (
+    'indexedDB' in self &&
+    indexedDB !== null &&
+    'PushManager' in self &&
+    'Notification' in self &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
 }
 
 export class MessagingCompatImpl implements MessagingCompat, _FirebaseService {

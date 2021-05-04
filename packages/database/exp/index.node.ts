@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
+import { Client } from 'faye-websocket';
+
+import { setWebSocketImpl } from '../src/realtime/WebSocketConnection';
+
 import { registerDatabase } from './register';
+
+setWebSocketImpl(Client);
 
 export * from './api';
 

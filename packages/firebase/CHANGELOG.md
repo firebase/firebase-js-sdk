@@ -1,5 +1,22 @@
 # firebase
 
+## 8.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`8d63eacf9`](https://github.com/firebase/firebase-js-sdk/commit/8d63eacf964c6e6b3b8ffe06bf682844ee430fbc), [`d422436d1`](https://github.com/firebase/firebase-js-sdk/commit/d422436d1d83f82aee8028e3a24c8e18d9d7c098)]:
+  - @firebase/database@0.9.12
+
+## 8.4.2
+
+### Patch Changes
+
+- Updated dependencies [[`633463e2a`](https://github.com/firebase/firebase-js-sdk/commit/633463e2abfdef7dbb6d9bf5275df21d6a01fcb6), [`c65883680`](https://github.com/firebase/firebase-js-sdk/commit/c658836806e0a5fef11fa61cd68f98960567f31b), [`364e336a0`](https://github.com/firebase/firebase-js-sdk/commit/364e336a04e419d019846d702cf27144aeb8939e), [`191184eb4`](https://github.com/firebase/firebase-js-sdk/commit/191184eb454109bff9198274fc416664b126d7ec)]:
+  - @firebase/firestore@2.2.5
+  - @firebase/storage@0.5.1
+  - @firebase/database@0.9.11
+  - @firebase/auth@0.16.5
+
 ## 8.4.1
 
 ### Patch Changes
