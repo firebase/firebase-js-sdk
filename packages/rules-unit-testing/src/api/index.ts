@@ -37,7 +37,8 @@ const FIRESTORE_ADDRESS_ENV: string = 'FIRESTORE_EMULATOR_HOST';
 const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 
 /** If this environment variable is set, use it for the Storage emulator. */
-const STORAGE_ADDRESS_ENV: string = 'STORAGE_EMULATOR_HOST';
+const FIREBASE_STORAGE_ADDRESS_ENV: string = 'FIREBASE_STORAGE_EMULATOR_HOST';
+const CLOUD_STORAGE_ADDRESS_ENV: string = 'STORAGE_EMULATOR_HOST';
 /** The default address for the local Firestore emulator. */
 const STORAGE_ADDRESS_DEFAULT: string = 'localhost:9199';
 
@@ -378,12 +379,15 @@ function getFirestoreHost() {
 
 function getStorageHost() {
   if (!_storageHost) {
-    const fromEnv = process.env[STORAGE_ADDRESS_ENV];
+    const fromEnv = process.env[FIREBASE_STORAGE_ADDRESS_ENV] || process.env[CLOUD_STORAGE_ADDRESS_ENV];
     if (fromEnv) {
-      _storageHost = fromEnv;
+      // The STORAGE_EMULATOR_HOST env var is an older Cloud Standard which includes http:// while
+      // the FIREBASE_STORAGE_EMULATOR_HOST is a newer variable supported beginning in the Admin
+      // SDK v9.7.0 which does not have the protocol.
+      _storageHost = fromEnv.replace("http://", "");
     } else {
       console.warn(
-        `Warning: ${STORAGE_ADDRESS_ENV} not set, using default value ${STORAGE_ADDRESS_DEFAULT}`
+        `Warning: ${FIREBASE_STORAGE_ADDRESS_ENV} not set, using default value ${STORAGE_ADDRESS_DEFAULT}`
       );
       _storageHost = STORAGE_ADDRESS_DEFAULT;
     }
@@ -564,29 +568,21 @@ export async function loadFirestoreRules(
 }
 
 export type LoadStorageRulesOptions = {
-  storageBucket: string;
   rules: string;
 };
 export async function loadStorageRules(
   options: LoadStorageRulesOptions
 ): Promise<void> {
-  if (!options.storageBucket) {
-    throw new Error('storageBucket not specified');
-  }
-
   if (!options.rules) {
     throw new Error('must provide rules to loadStorageRules');
   }
 
-  // TODO: This endpoint is not yet implemented! Will need a change in firebase-tools
-  //       to make this real.
   const resp = await requestPromise(request.put, {
     method: 'PUT',
     uri: `http://${getStorageHost()}/internal/setRules`,
     body: JSON.stringify({
-      storageBucket: options.storageBucket,
       rules: {
-        files: [{ content: options.rules }]
+        files: [{ name: 'storage.rules', content: options.rules }]
       }
     })
   });

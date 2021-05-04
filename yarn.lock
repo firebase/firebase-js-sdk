@@ -7463,10 +7463,10 @@ fined@^1.0.1:
     object.pick "^1.2.0"
     parse-filepath "^1.0.1"
 
-firebase-admin@9.4.2:
-  version "9.4.2"
-  resolved "https://registry.npmjs.org/firebase-admin/-/firebase-admin-9.4.2.tgz#190d5d7ca5e3f251d99503feb6e05e7ab1623851"
-  integrity sha512-mRnBJbW6BAz6DJkZ0GOUTkmnmCrwVzMreMc6O+RXWukFydOzi5Xr6TKSiPKxoOQw41r9IluP2AZ3Qzvlx2SR+g==
+firebase-admin@9.7.0:
+  version "9.7.0"
+  resolved "https://registry.npmjs.org/firebase-admin/-/firebase-admin-9.7.0.tgz#c5fde178a1f1e757373b38601eb62a8ccbcb9393"
+  integrity sha512-dvxy4lK2P2BikE9lB2hj4dUXGm9tuoGRVtobXzCpk7uhi0/FuTOU1yp4IW7vlMI20fxTdm6FmCXdwUlMeSljBA==
   dependencies:
     "@firebase/database" "^0.8.1"
     "@firebase/database-types" "^0.6.1"
@@ -7487,7 +7487,7 @@ firebase-admin@9.4.2:
     "@firebase/app-exp" "0.0.900"
     "@firebase/auth-compat" "0.0.900"
     "@firebase/auth-exp" "0.0.900"
-    "@firebase/database" "0.9.11"
+    "@firebase/database" "0.9.12"
     "@firebase/firestore" "2.2.5"
     "@firebase/functions-compat" "0.0.900"
     "@firebase/functions-exp" "0.0.900"
