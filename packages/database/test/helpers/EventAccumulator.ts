@@ -34,7 +34,7 @@ export const EventAccumulatorFactory = {
       if (count > maxCount) {
         throw new Error('Received more events than expected');
       }
-      return count == maxCount;
+      return count === maxCount;
     };
     const ea = new EventAccumulator(condition);
     ea.onReset(() => {
