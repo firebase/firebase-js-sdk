@@ -280,7 +280,7 @@ export class Provider<T extends Name> {
   private invokeOnInitCallbacks(
     instance: NameServiceMapping[T],
     identifier: string
-  ) {
+  ): void {
     for (const callback of this.onInitCallbacks) {
       try {
         callback(instance, identifier);
