@@ -198,7 +198,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
    * is re-assgined in `awaitTokenAndRaiseInitialEvent()` to allow blocking on
    * an a lazily loaded Auth instance. In this case, `this.receivedUser`
    * resolves once when the SDK first detects that there is no synchronous
-   * Auth, and then gets re-created and resolves again once Auth is loaded.
+   * Auth initialization, and then gets re-created and resolves again once Auth is initialized.
    */
   private receivedUser = new Deferred();
 
