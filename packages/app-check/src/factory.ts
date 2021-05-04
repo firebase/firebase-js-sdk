@@ -16,7 +16,7 @@
  */
 
 import { FirebaseAppCheck, AppCheckProvider } from '@firebase/app-check-types';
-import { activate } from './api';
+import { activate, setTokenAutoRefreshEnabled } from './api';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import {
@@ -24,18 +24,28 @@ import {
   addTokenListener,
   removeTokenListener
 } from './internal-api';
+import { Provider } from '@firebase/component';
 
 export function factory(app: FirebaseApp): FirebaseAppCheck {
   return {
-    activate: (siteKeyOrProvider: string | AppCheckProvider) =>
-      activate(app, siteKeyOrProvider)
+    activate: (
+      siteKeyOrProvider: string | AppCheckProvider,
+      isTokenAutoRefreshEnabled?: boolean
+    ) => activate(app, siteKeyOrProvider, isTokenAutoRefreshEnabled),
+    setTokenAutoRefreshEnabled: (isTokenAutoRefreshEnabled: boolean) =>
+      setTokenAutoRefreshEnabled(app, isTokenAutoRefreshEnabled)
   };
 }
 
-export function internalFactory(app: FirebaseApp): FirebaseAppCheckInternal {
+export function internalFactory(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>
+): FirebaseAppCheckInternal {
   return {
-    getToken: forceRefresh => getToken(app, forceRefresh),
-    addTokenListener: listener => addTokenListener(app, listener),
+    getToken: forceRefresh =>
+      getToken(app, platformLoggerProvider, forceRefresh),
+    addTokenListener: listener =>
+      addTokenListener(app, platformLoggerProvider, listener),
     removeTokenListener: listener => removeTokenListener(app, listener)
   };
 }

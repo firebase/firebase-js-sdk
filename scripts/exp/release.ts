@@ -487,9 +487,7 @@ async function commitAndPush(versions: Map<string, string>) {
   await exec('git add packages-exp/firebase-exp/package.json yarn.lock');
 
   const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME);
-  await exec(
-    `git commit -m "Publish firebase@exp ${firebaseExpVersion || ''}"`
-  );
+  await exec(`git commit -m "Publish firebase ${firebaseExpVersion || ''}"`);
 
   let { stdout: currentBranch, stderr } = await exec(
     `git rev-parse --abbrev-ref HEAD`

@@ -39,8 +39,12 @@ RPC_NAME_URL_MAPPING['Commit'] = 'commit';
 RPC_NAME_URL_MAPPING['RunQuery'] = 'runQuery';
 
 const RPC_URL_VERSION = 'v1';
-const X_GOOG_API_CLIENT_VALUE = 'gl-js/ fire/' + SDK_VERSION;
 
+// SDK_VERSION is updated to different value at runtime depending on the entry point,
+// so we need to get its value when we need it in a function.
+function getGoogApiClientValue(): string {
+  return 'gl-js/ fire/' + SDK_VERSION;
+}
 /**
  * Base class for all Rest-based connections to the backend (WebChannel and
  * HTTP).
@@ -118,7 +122,7 @@ export abstract class RestConnection implements Connection {
     headers: StringMap,
     token: Token | null
   ): void {
-    headers['X-Goog-Api-Client'] = X_GOOG_API_CLIENT_VALUE;
+    headers['X-Goog-Api-Client'] = getGoogApiClientValue();
 
     // Content-Type: text/plain will avoid preflight requests which might
     // mess with CORS and redirects by proxies. If we add custom headers

@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { EmulatorCredentialsProvider } from '../../../src/api/credentials';
 import {
   collectionReference,
   documentReference,
@@ -249,5 +250,18 @@ describe('Settings', () => {
 
     expect(db._delegate._getSettings().host).to.equal('localhost:9000');
     expect(db._delegate._getSettings().ssl).to.be.false;
+  });
+
+  it('sets credentials based on mockUserToken', async () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    const mockUserToken = { sub: 'foobar' };
+    db.useEmulator('localhost', 9000, { mockUserToken });
+
+    const credentials = db._delegate._credentials;
+    expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
+    const token = await credentials.getToken();
+    expect(token!.type).to.eql('OAuth');
+    expect(token!.user.uid).to.eql(mockUserToken.sub);
   });
 });

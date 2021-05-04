@@ -24,11 +24,15 @@ import { getState, setState, AppCheckState } from './state';
 /**
  *
  * @param app
- * @param provider - optional custom attestation provider
+ * @param siteKeyOrProvider - optional custom attestation provider
+ * or reCAPTCHA siteKey
+ * @param isTokenAutoRefreshEnabled - if true, enables auto refresh
+ * of appCheck token.
  */
 export function activate(
   app: FirebaseApp,
-  siteKeyOrProvider: string | AppCheckProvider
+  siteKeyOrProvider: string | AppCheckProvider,
+  isTokenAutoRefreshEnabled?: boolean
 ): void {
   const state = getState(app);
   if (state.activated) {
@@ -44,6 +48,14 @@ export function activate(
     newState.customProvider = siteKeyOrProvider;
   }
 
+  // Use value of global `automaticDataCollectionEnabled` (which
+  // itself defaults to false if not specified in config) if
+  // `isTokenAutoRefreshEnabled` param was not provided by user.
+  newState.isTokenAutoRefreshEnabled =
+    isTokenAutoRefreshEnabled === undefined
+      ? app.automaticDataCollectionEnabled
+      : isTokenAutoRefreshEnabled;
+
   setState(app, newState);
 
   // initialize reCAPTCHA if siteKey is provided
@@ -52,4 +64,21 @@ export function activate(
       /* we don't care about the initialization result in activate() */
     });
   }
+}
+
+export function setTokenAutoRefreshEnabled(
+  app: FirebaseApp,
+  isTokenAutoRefreshEnabled: boolean
+): void {
+  const state = getState(app);
+  // This will exist if any product libraries have called
+  // `addTokenListener()`
+  if (state.tokenRefresher) {
+    if (isTokenAutoRefreshEnabled === true) {
+      state.tokenRefresher.start();
+    } else {
+      state.tokenRefresher.stop();
+    }
+  }
+  setState(app, { ...state, isTokenAutoRefreshEnabled });
 }
