@@ -42,7 +42,7 @@ const RPC_URL_VERSION = 'v1';
 
 // SDK_VERSION is updated to different value at runtime depending on the entry point,
 // so we need to get its value when we need it in a function.
-function getGoogApiClientValue() {
+function getGoogApiClientValue(): string {
   return 'gl-js/ fire/' + SDK_VERSION;
 }
 /**
