@@ -30,7 +30,8 @@ import {
   unauthorized,
   objectNotFound,
   serverFileWrongSize,
-  unknown
+  unknown,
+  unauthorizedApp
 } from './error';
 import { Location } from './location';
 import {
@@ -104,7 +105,15 @@ export function sharedErrorHandler(
   ): FirebaseStorageError {
     let newErr;
     if (xhr.getStatus() === 401) {
-      newErr = unauthenticated();
+      if (
+        // This exact message string is the only consistent part of the
+        // server's error response that identifies it as an App Check error.
+        xhr.getResponseText().includes('Firebase App Check token is invalid')
+      ) {
+        newErr = unauthorizedApp();
+      } else {
+        newErr = unauthenticated();
+      }
     } else {
       if (xhr.getStatus() === 402) {
         newErr = quotaExceeded(location.bucket);

@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { CompleteFn } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';

@@ -38,7 +38,13 @@ export function registerDatabase(variant?: string): void {
       (container, { instanceIdentifier: url }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
-        return repoManagerDatabaseFromApp(app, authProvider, url);
+        const appCheckProvider = container.getProvider('app-check-internal');
+        return repoManagerDatabaseFromApp(
+          app,
+          authProvider,
+          appCheckProvider,
+          url
+        );
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

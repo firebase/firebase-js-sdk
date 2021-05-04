@@ -93,7 +93,7 @@ export class WriteBatch {
     const ref = validateReference(documentRef, this._firestore);
 
     const convertedValue = applyFirestoreDataConverter(
-      ref._converter,
+      ref.converter,
       data,
       options
     );
@@ -102,7 +102,7 @@ export class WriteBatch {
       'WriteBatch.set',
       ref._key,
       convertedValue,
-      ref._converter !== null,
+      ref.converter !== null,
       options
     );
     this._mutations.push(parsed.toMutation(ref._key, Precondition.none()));

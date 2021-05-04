@@ -358,9 +358,9 @@ async function getNewVersions(packagePaths: string[]) {
   for (const path of packagePaths) {
     const { version, name } = await readPackageJson(path);
 
-    // increment firebase-exp's patch version
+    // increment firebase-exp as a v9 prerelease, e.g. 9.0.0-beta.0 -> 9.0.0-beta.1
     if (name === FIREBASE_UMBRELLA_PACKAGE_NAME) {
-      const nextVersion = inc(version, 'patch');
+      const nextVersion = inc(version, 'prerelease');
       versions.set(name, nextVersion);
     } else {
       // create individual packages version
@@ -394,7 +394,7 @@ async function publishToNpm(packagePaths: string[], dryRun = false) {
 }
 
 async function publishPackage(packagePath: string, dryRun: boolean) {
-  const args = ['publish', '--access', 'public', '--tag', 'exp'];
+  const args = ['publish', '--access', 'public', '--tag', 'beta'];
   if (dryRun) {
     args.push('--dry-run');
   }
@@ -487,9 +487,7 @@ async function commitAndPush(versions: Map<string, string>) {
   await exec('git add packages-exp/firebase-exp/package.json yarn.lock');
 
   const firebaseExpVersion = versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME);
-  await exec(
-    `git commit -m "Publish firebase@exp ${firebaseExpVersion || ''}"`
-  );
+  await exec(`git commit -m "Publish firebase ${firebaseExpVersion || ''}"`);
 
   let { stdout: currentBranch, stderr } = await exec(
     `git rev-parse --abbrev-ref HEAD`

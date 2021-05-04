@@ -99,10 +99,14 @@ class DatastoreImpl extends Datastore {
         );
       })
       .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
+        if (error.name === 'FirebaseError') {
+          if (error.code === Code.UNAUTHENTICATED) {
+            this.credentials.invalidateToken();
+          }
+          throw error;
+        } else {
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
         }
-        throw error;
       });
   }
 
@@ -124,15 +128,19 @@ class DatastoreImpl extends Datastore {
         );
       })
       .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
+        if (error.name === 'FirebaseError') {
+          if (error.code === Code.UNAUTHENTICATED) {
+            this.credentials.invalidateToken();
+          }
+          throw error;
+        } else {
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
         }
-        throw error;
       });
   }
 
   terminate(): void {
-    this.terminated = false;
+    this.terminated = true;
   }
 }
 

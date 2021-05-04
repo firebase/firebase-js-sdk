@@ -132,7 +132,13 @@ export function initStandalone<T>({
 
   return {
     instance: new Database(
-      _repoManagerDatabaseFromApp(app, authProvider, url, nodeAdmin),
+      _repoManagerDatabaseFromApp(
+        app,
+        authProvider,
+        /* appCheckProvider= */ undefined,
+        url,
+        nodeAdmin
+      ),
       app
     ) as types.Database,
     namespace

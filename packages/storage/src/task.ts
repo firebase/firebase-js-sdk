@@ -172,12 +172,17 @@ export class UploadTask {
     }
   }
 
-  private _resolveToken(callback: (p1: string | null) => void): void {
+  private _resolveToken(
+    callback: (authToken: string | null, appCheckToken: string | null) => void
+  ): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._ref.storage._getAuthToken().then(authToken => {
+    Promise.all([
+      this._ref.storage._getAuthToken(),
+      this._ref.storage._getAppCheckToken()
+    ]).then(([authToken, appCheckToken]) => {
       switch (this._state) {
         case InternalTaskState.RUNNING:
-          callback(authToken);
+          callback(authToken, appCheckToken);
           break;
         case InternalTaskState.CANCELING:
           this._transition(InternalTaskState.CANCELED);
@@ -193,7 +198,7 @@ export class UploadTask {
   // TODO(andysoto): assert false
 
   private _createResumable(): void {
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = createResumableUpload(
         this._ref.storage,
         this._ref._location,
@@ -203,7 +208,8 @@ export class UploadTask {
       );
       const createRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        authToken,
+        appCheckToken
       );
       this._request = createRequest;
       createRequest.getPromise().then((url: string) => {
@@ -218,7 +224,7 @@ export class UploadTask {
   private _fetchStatus(): void {
     // TODO(andysoto): assert(this.uploadUrl_ !== null);
     const url = this._uploadUrl as string;
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = getResumableUploadStatus(
         this._ref.storage,
         this._ref._location,
@@ -227,7 +233,8 @@ export class UploadTask {
       );
       const statusRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        authToken,
+        appCheckToken
       );
       this._request = statusRequest;
       statusRequest.getPromise().then(status => {
@@ -252,7 +259,7 @@ export class UploadTask {
 
     // TODO(andysoto): assert(this.uploadUrl_ !== null);
     const url = this._uploadUrl as string;
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       let requestInfo;
       try {
         requestInfo = continueResumableUpload(
@@ -272,7 +279,8 @@ export class UploadTask {
       }
       const uploadRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        authToken,
+        appCheckToken
       );
       this._request = uploadRequest;
       uploadRequest.getPromise().then((newStatus: ResumableUploadStatus) => {
@@ -299,7 +307,7 @@ export class UploadTask {
   }
 
   private _fetchMetadata(): void {
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = getMetadata(
         this._ref.storage,
         this._ref._location,
@@ -307,7 +315,8 @@ export class UploadTask {
       );
       const metadataRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        authToken,
+        appCheckToken
       );
       this._request = metadataRequest;
       metadataRequest.getPromise().then(metadata => {
@@ -319,7 +328,7 @@ export class UploadTask {
   }
 
   private _oneShotUpload(): void {
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = multipartUpload(
         this._ref.storage,
         this._ref._location,
@@ -329,7 +338,8 @@ export class UploadTask {
       );
       const multipartRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        authToken,
+        appCheckToken
       );
       this._request = multipartRequest;
       multipartRequest.getPromise().then(metadata => {

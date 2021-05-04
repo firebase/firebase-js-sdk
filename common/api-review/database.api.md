@@ -4,9 +4,10 @@
 
 ```ts
 
+import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 
-// @public (undocumented)
+// @public
 export function child(parent: Reference, path: string): Reference;
 
 // @public
@@ -229,7 +230,9 @@ export type Unsubscribe = () => void;
 export function update(ref: Reference, values: object): Promise<void>;
 
 // @public
-export function useDatabaseEmulator(db: FirebaseDatabase, host: string, port: number): void;
+export function useDatabaseEmulator(db: FirebaseDatabase, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions;
+}): void;
 
 
 ```

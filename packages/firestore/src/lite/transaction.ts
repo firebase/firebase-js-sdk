@@ -88,7 +88,7 @@ export class Transaction {
           userDataWriter,
           doc.key,
           doc,
-          ref._converter
+          ref.converter
         );
       } else if (doc.isNoDocument()) {
         return new DocumentSnapshot(
@@ -96,7 +96,7 @@ export class Transaction {
           userDataWriter,
           ref._key,
           null,
-          ref._converter
+          ref.converter
         );
       } else {
         throw fail(
@@ -138,7 +138,7 @@ export class Transaction {
   ): this {
     const ref = validateReference(documentRef, this._firestore);
     const convertedValue = applyFirestoreDataConverter(
-      ref._converter,
+      ref.converter,
       value,
       options
     );
@@ -147,7 +147,7 @@ export class Transaction {
       'Transaction.set',
       ref._key,
       convertedValue,
-      ref._converter !== null,
+      ref.converter !== null,
       options
     );
     this._transaction.set(ref._key, parsed);

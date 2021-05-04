@@ -51,7 +51,7 @@ export default [
   // Convert main build to ES5
   {
     input: {
-      index: path.resolve('./compat', pkg['esm2017'])
+      index: path.resolve('./compat', pkg['browser'])
     },
     output: [
       {

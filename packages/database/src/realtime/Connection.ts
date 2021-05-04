@@ -86,6 +86,8 @@ export class Connection {
    * @param id - an id for this connection
    * @param repoInfo_ - the info for the endpoint to connect to
    * @param applicationId_ - the Firebase App ID for this project
+   * @param appCheckToken_ - The App Check Token for this device.
+   * @param authToken_ - The auth token for this session.
    * @param onMessage_ - the callback to be triggered when a server-push message arrives
    * @param onReady_ - the callback to be triggered when this connection is ready to send messages.
    * @param onDisconnect_ - the callback to be triggered when a connection was lost
@@ -96,6 +98,8 @@ export class Connection {
     public id: string,
     private repoInfo_: RepoInfo,
     private applicationId_: string | undefined,
+    private appCheckToken_: string | undefined,
+    private authToken_: string | undefined,
     private onMessage_: (a: {}) => void,
     private onReady_: (a: number, b: string) => void,
     private onDisconnect_: () => void,
@@ -117,7 +121,7 @@ export class Connection {
       this.nextTransportId_(),
       this.repoInfo_,
       this.applicationId_,
-      undefined,
+      this.appCheckToken_,
       this.lastSessionId
     );
 
@@ -404,6 +408,8 @@ export class Connection {
       this.nextTransportId_(),
       this.repoInfo_,
       this.applicationId_,
+      this.appCheckToken_,
+      this.authToken_,
       this.sessionId
     );
     // For certain transports (WebSockets), we need to send and receive several messages back and forth before we

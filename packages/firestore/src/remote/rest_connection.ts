@@ -119,7 +119,6 @@ export abstract class RestConnection implements Connection {
     token: Token | null
   ): void {
     headers['X-Goog-Api-Client'] = X_GOOG_API_CLIENT_VALUE;
-    headers['X-Firebase-GMPID'] = this.databaseInfo.appId;
 
     // Content-Type: text/plain will avoid preflight requests which might
     // mess with CORS and redirects by proxies. If we add custom headers
@@ -127,6 +126,9 @@ export abstract class RestConnection implements Connection {
     // parameter supported by ESF to avoid triggering preflight requests.
     headers['Content-Type'] = 'text/plain';
 
+    if (this.databaseInfo.appId) {
+      headers['X-Firebase-GMPID'] = this.databaseInfo.appId;
+    }
     if (token) {
       for (const header in token.authHeaders) {
         if (token.authHeaders.hasOwnProperty(header)) {

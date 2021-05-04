@@ -409,7 +409,7 @@ export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
               result._key,
               result._document,
               result.metadata,
-              ref._converter
+              ref.converter
             )
           )
       );
@@ -775,7 +775,7 @@ export class DocumentReference<T = PublicDocumentData>
             result._key,
             result._document,
             result.metadata,
-            this._delegate._converter
+            this._delegate.converter
           )
         )
     );
@@ -802,7 +802,7 @@ export class DocumentReference<T = PublicDocumentData>
             result._key,
             result._document,
             result.metadata,
-            this._delegate._converter as UntypedFirestoreDataConverter<T>
+            this._delegate.converter as UntypedFirestoreDataConverter<T>
           )
         )
     );

@@ -45,6 +45,7 @@ export function registerFunctions(
     // Dependencies
     const app = container.getProvider('app').getImmediate();
     const authProvider = container.getProvider('auth-internal');
+    const appCheckProvider = container.getProvider('app-check-internal');
     const messagingProvider = container.getProvider('messaging');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +53,7 @@ export function registerFunctions(
       app,
       authProvider,
       messagingProvider,
+      appCheckProvider,
       regionOrCustomDomain,
       fetchImpl
     );

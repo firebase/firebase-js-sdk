@@ -82,7 +82,7 @@ const es5Builds = [
     input: 'compat/index.ts',
     output: [
       {
-        file: path.resolve('compat', compatPkg.module),
+        file: path.resolve('compat', compatPkg.esm5),
         format: 'es',
         sourcemap: true
       }
@@ -127,7 +127,7 @@ const es2017Builds = [
     input: 'compat/index.ts',
     output: [
       {
-        file: path.resolve('compat', compatPkg.esm2017),
+        file: path.resolve('compat', compatPkg.browser),
         format: 'es',
         sourcemap: true
       }

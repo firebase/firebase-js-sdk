@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.9.9",
+  "version": "0.9.12",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -31,7 +31,7 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
-    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i dist/exp/index.d.ts -o dist/compat/esm5/compat/index.d.ts -a -r FirebaseDatabase:types.FirebaseDatabase -r Query:types.Query -r Reference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/database"
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i dist/exp/index.d.ts -o dist/compat/esm2017/compat/index.d.ts -a -r FirebaseDatabase:types.FirebaseDatabase -r Query:types.Query -r Reference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/database"
   },
   "license": "Apache-2.0",
   "peerDependencies": {},
@@ -40,7 +40,7 @@
     "@firebase/logger": "0.2.6",
     "@firebase/util": "1.0.0",
     "@firebase/component": "0.4.1",
-    "@firebase/auth-interop-types": "0.1.5",
+    "@firebase/auth-interop-types": "0.1.6",
     "faye-websocket": "0.11.3",
     "tslib": "^2.1.0"
   },

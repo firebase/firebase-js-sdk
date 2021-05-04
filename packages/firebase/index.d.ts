@@ -1274,6 +1274,8 @@ declare namespace firebase {
    * If not passed, uses the default app.
    */
   function analytics(app?: firebase.app.App): firebase.analytics.Analytics;
+
+  function appCheck(app?: firebase.app.App): firebase.appCheck.AppCheck;
 }
 
 declare namespace firebase.app {
@@ -1450,6 +1452,41 @@ declare namespace firebase.app {
      * ```
      */
     analytics(): firebase.analytics.Analytics;
+    appCheck(): firebase.appCheck.AppCheck;
+  }
+}
+
+/**
+ * @webonly
+ */
+declare namespace firebase.appCheck {
+  /**
+   * The Firebase AppCheck service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.appCheck `firebase.appCheck()`}.
+   */
+  export interface AppCheck {
+    /**
+     * Activate AppCheck
+     * @param siteKeyOrOrovider - reCAPTCHA sitekey or custom token provider
+     */
+    activate(siteKeyOrProvider: string | AppCheckProvider): void;
+  }
+
+  interface AppCheckProvider {
+    /**
+     * returns an AppCheck token
+     */
+    getToken(): Promise<AppCheckToken>;
+  }
+
+  interface AppCheckToken {
+    readonly token: string;
+    /**
+     * The local timestamp after which the token will expire.
+     */
+    readonly expireTimeMillis: number;
   }
 }
 

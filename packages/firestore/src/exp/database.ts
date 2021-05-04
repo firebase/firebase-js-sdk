@@ -80,6 +80,8 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
  * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
 export class FirebaseFirestore extends LiteFirestore {
+  type: 'firestore-lite' | 'firestore' = 'firestore';
+
   readonly _queue: AsyncQueue = newAsyncQueue();
   readonly _persistenceKey: string;
 

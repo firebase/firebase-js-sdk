@@ -27,6 +27,8 @@ describe('Connection', () => {
       '1',
       repoInfoForConnectionTest(),
       'fake-app-id',
+      'fake-app-check-token',
+      'fake-auth-token',
       message => {},
       (timestamp, sessionId) => {
         expect(sessionId).not.to.be.null;
@@ -47,12 +49,16 @@ describe('Connection', () => {
       '1',
       info,
       'fake-app-id',
+      'fake-app-check-token',
+      'fake-auth-token',
       message => {},
       (timestamp, sessionId) => {
         new Connection(
           '2',
           info,
           'fake-app-id',
+          'fake-app-check-token',
+          'fake-auth-token',
           message => {},
           (timestamp, sessionId) => {},
           () => {},
