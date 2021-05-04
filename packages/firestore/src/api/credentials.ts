@@ -23,8 +23,10 @@ import { Provider } from '@firebase/component';
 
 import { User } from '../auth/user';
 import { hardAssert, debugAssert } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
+import { Deferred } from '../util/promise';
 
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
@@ -78,7 +80,7 @@ export class OAuthToken implements Token {
  * token and may need to invalidate other state if the current user has also
  * changed.
  */
-export type CredentialChangeListener = (user: User) => void;
+export type CredentialChangeListener = (user: User) => Promise<void>;
 
 /**
  * Provides methods for getting the uid and token for the current user and
@@ -98,8 +100,13 @@ export interface CredentialsProvider {
    * Specifies a listener to be notified of credential changes
    * (sign-in / sign-out, token changes). It is immediately called once with the
    * initial user.
+   *
+   * The change listener is invoked on the provided AsyncQueue.
    */
-  setChangeListener(changeListener: CredentialChangeListener): void;
+  setChangeListener(
+    asyncQueue: AsyncQueue,
+    changeListener: CredentialChangeListener
+  ): void;
 
   /** Removes the previously-set change listener. */
   removeChangeListener(): void;
@@ -120,14 +127,20 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
 
   invalidateToken(): void {}
 
-  setChangeListener(changeListener: CredentialChangeListener): void {
+  setChangeListener(
+    asyncQueue: AsyncQueue,
+    changeListener: CredentialChangeListener
+  ): void {
     debugAssert(
       !this.changeListener,
       'Can only call setChangeListener() once.'
     );
     this.changeListener = changeListener;
     // Fire with initial user.
-    changeListener(User.UNAUTHENTICATED);
+    asyncQueue.enqueueRetryable(() => {
+      changeListener(User.FIRST_PARTY);
+      return Promise.resolve();
+    });
   }
 
   removeChangeListener(): void {
@@ -175,11 +188,25 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
    * The auth token listener registered with FirebaseApp, retained here so we
    * can unregister it.
    */
-  private tokenListener: ((token: string | null) => void) | null = null;
+  private tokenListener: (() => void) | null = null;
 
   /** Tracks the current User. */
   private currentUser: User = User.UNAUTHENTICATED;
-  private receivedInitialUser: boolean = false;
+
+  /**
+   * Promise that allows blocking on the next `tokenChange` event. The Promise
+   * is re-assgined in `awaitTokenAndRaiseInitialEvent()` to allow blocking on
+   * an a lazily loaded Auth instance. In this case, `this.receivedUser`
+   * resolves once when the SDK first detects that there is no synchronous
+   * Auth, and then gets re-created and resolves again once Auth is loaded.
+   */
+  private receivedUser = new Deferred();
+
+  /**
+   * Whether the initial token event has been raised. This can go back to
+   * `false` if Firestore first starts without Auth and Auth is loaded later.
+   */
+  private initialEventRaised: boolean = false;
 
   /**
    * Counter used to detect if the token changed while a getToken request was
@@ -188,44 +215,62 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   private tokenCounter = 0;
 
   /** The listener registered with setChangeListener(). */
-  private changeListener: CredentialChangeListener | null = null;
+  private changeListener: CredentialChangeListener = () => Promise.resolve();
 
   private forceRefresh = false;
 
-  private auth: FirebaseAuthInternal | null;
+  private auth: FirebaseAuthInternal | null = null;
+
+  private asyncQueue: AsyncQueue | null = null;
 
   constructor(authProvider: Provider<FirebaseAuthInternalName>) {
     this.tokenListener = () => {
       this.tokenCounter++;
+      this.receivedUser.resolve();
       this.currentUser = this.getUser();
-      this.receivedInitialUser = true;
-      if (this.changeListener) {
-        this.changeListener(this.currentUser);
+      if (this.initialEventRaised && this.asyncQueue) {
+        // We only invoke the change listener here if the initial event has been
+        // raised. The initial event itself is invoked synchronously in
+        // `awaitTokenAndRaiseInitialEvent()`.
+        this.asyncQueue.enqueueRetryable(() => {
+          this.changeListener(this.currentUser);
+          return Promise.resolve();
+        });
       }
     };
 
     this.tokenCounter = 0;
 
-    this.auth = authProvider.getImmediate({ optional: true });
+    const registerAuth = (auth: FirebaseAuthInternal): void => {
+      logDebug('FirebaseCredentialsProvider', 'Auth detected');
+      this.auth = auth;
+      if (this.tokenListener) {
+        // tokenListener can be removed by removeChangeListener()
+        this.awaitTokenAndRaiseInitialEvent();
+        this.auth.addAuthTokenListener(this.tokenListener);
+      }
+    };
 
-    if (this.auth) {
-      this.auth.addAuthTokenListener(this.tokenListener!);
-    } else {
-      // if auth is not available, invoke tokenListener once with null token
-      this.tokenListener(null);
-      authProvider.get().then(
-        auth => {
-          this.auth = auth;
-          if (this.tokenListener) {
-            // tokenListener can be removed by removeChangeListener()
-            this.auth.addAuthTokenListener(this.tokenListener);
-          }
-        },
-        () => {
-          /* this.authProvider.get() never rejects */
+    authProvider.onInit(auth => registerAuth(auth));
+
+    // Our users can initialize Auth right after Firestore, so we give it
+    // a chance to register itself with the component framework before we
+    // determine whether to start up in unauthenticated mode.
+    setTimeout(() => {
+      if (!this.auth) {
+        const auth = authProvider.getImmediate({ optional: true });
+        if (auth) {
+          registerAuth(auth);
+        } else if (this.tokenListener) {
+          // If auth is still not available, invoke tokenListener once with null
+          // token
+          logDebug('FirebaseCredentialsProvider', 'Auth not yet detected');
+          this.tokenListener();
         }
-      );
-    }
+      }
+    }, 0);
+
+    this.awaitTokenAndRaiseInitialEvent();
   }
 
   getToken(): Promise<Token | null> {
@@ -273,17 +318,13 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.forceRefresh = true;
   }
 
-  setChangeListener(changeListener: CredentialChangeListener): void {
-    debugAssert(
-      !this.changeListener,
-      'Can only call setChangeListener() once.'
-    );
+  setChangeListener(
+    asyncQueue: AsyncQueue,
+    changeListener: CredentialChangeListener
+  ): void {
+    debugAssert(!this.asyncQueue, 'Can only call setChangeListener() once.');
+    this.asyncQueue = asyncQueue;
     this.changeListener = changeListener;
-
-    // Fire the initial event
-    if (this.receivedInitialUser) {
-      changeListener(this.currentUser);
-    }
   }
 
   removeChangeListener(): void {
@@ -291,7 +332,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       this.auth.removeAuthTokenListener(this.tokenListener!);
     }
     this.tokenListener = null;
-    this.changeListener = null;
+    this.changeListener = () => Promise.resolve();
   }
 
   // Auth.getUid() can return null even with a user logged in. It is because
@@ -305,6 +346,33 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       'Received invalid UID: ' + currentUid
     );
     return new User(currentUid);
+  }
+
+  /**
+   * Blocks the AsyncQueue until the next user is available. This is invoked
+   * on SDK start to wait for the first user token (or `null` if Auth is not yet
+   * loaded). If Auth is loaded after Firestore,
+   * `awaitTokenAndRaiseInitialEvent()` is also used to block Firestore until
+   * Auth is fully initialized.
+   *
+   * This function also invokes the change listener synchronously once a token
+   * is available.
+   */
+  private awaitTokenAndRaiseInitialEvent(): void {
+    this.initialEventRaised = false;
+    if (this.asyncQueue) {
+      // Create a new deferred Promise that gets resolved when we receive the
+      // next token. Ensure that all previous Promises also get resolved.
+      const awaitToken = new Deferred<void>();
+      void awaitToken.promise.then(() => awaitToken.resolve());
+      this.receivedUser = awaitToken;
+
+      this.asyncQueue.enqueueRetryable(async () => {
+        await awaitToken.promise;
+        await this.changeListener(this.currentUser);
+      });
+    }
+    this.initialEventRaised = true;
   }
 }
 
@@ -368,9 +436,15 @@ export class FirstPartyCredentialsProvider implements CredentialsProvider {
     );
   }
 
-  setChangeListener(changeListener: CredentialChangeListener): void {
+  setChangeListener(
+    asyncQueue: AsyncQueue,
+    changeListener: CredentialChangeListener
+  ): void {
     // Fire with initial uid.
-    changeListener(User.FIRST_PARTY);
+    asyncQueue.enqueueRetryable(() => {
+      changeListener(User.FIRST_PARTY);
+      return Promise.resolve();
+    });
   }
 
   removeChangeListener(): void {}
