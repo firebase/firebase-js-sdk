@@ -22,7 +22,8 @@ import {
   InitializeOptions,
   InstantiationMode,
   Name,
-  NameServiceMapping
+  NameServiceMapping,
+  OnInitCallBack
 } from './types';
 import { Component } from './component';
 
@@ -37,6 +38,7 @@ export class Provider<T extends Name> {
     string,
     Deferred<NameServiceMapping[T]>
   > = new Map();
+  private onInitCallbacks: Set<OnInitCallBack<T>> = new Set();
 
   constructor(
     private readonly name: T,
@@ -250,7 +252,42 @@ export class Provider<T extends Name> {
         instanceDeferred.resolve(instance);
       }
     }
+
+    this.invokeOnInitCallbacks(instance, normalizedIdentifier);
+
     return instance;
+  }
+
+  /**
+   *
+   * @param callback - a function that will be invoked  after the provider has been initialized by calling provider.initialize().
+   * The function is invoked SYNCHRONOUSLY, so it should not execute any longrunning tasks in order to not block the program.
+   *
+   * @returns a function to unregister the callback
+   */
+  onInit(callback: OnInitCallBack<T>): () => void {
+    this.onInitCallbacks.add(callback);
+
+    return () => {
+      this.onInitCallbacks.delete(callback);
+    };
+  }
+
+  /**
+   * Invoke onInit callbacks synchronously
+   * @param instance the service instance`
+   */
+  private invokeOnInitCallbacks(
+    instance: NameServiceMapping[T],
+    identifier: string
+  ): void {
+    for (const callback of this.onInitCallbacks) {
+      try {
+        callback(instance, identifier);
+      } catch {
+        // ignore errors in the onInit callback
+      }
+    }
   }
 
   private getOrInitializeService({
