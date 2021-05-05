@@ -1,5 +1,5 @@
 ---
-"@firebase/auth-exp": patch
+"@firebase/auth": patch
 ---
 
 Ensure emulator warning text is accessible.
