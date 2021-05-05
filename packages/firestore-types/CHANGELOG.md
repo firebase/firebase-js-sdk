@@ -1,5 +1,11 @@
 # @firebase/firestore-types
 
+## 2.3.0
+
+### Minor Changes
+
+- [`97f61e6f3`](https://github.com/firebase/firebase-js-sdk/commit/97f61e6f3d24e5b4c92ed248bb531233a94b9eaf) [#4837](https://github.com/firebase/firebase-js-sdk/pull/4837) (fixes [#4715](https://github.com/firebase/firebase-js-sdk/issues/4715)) - Add mockUserToken support for Firestore.
+
 ## 2.2.0
 
 ### Minor Changes

@@ -1,5 +1,28 @@
 # firebase
 
+## 8.5.0
+
+### Minor Changes
+
+- [`97f61e6f3`](https://github.com/firebase/firebase-js-sdk/commit/97f61e6f3d24e5b4c92ed248bb531233a94b9eaf) [#4837](https://github.com/firebase/firebase-js-sdk/pull/4837) (fixes [#4715](https://github.com/firebase/firebase-js-sdk/issues/4715)) - Add mockUserToken support for Firestore.
+
+* [`ac4ad08a2`](https://github.com/firebase/firebase-js-sdk/commit/ac4ad08a284397ec966e991dd388bb1fba857467) [#4792](https://github.com/firebase/firebase-js-sdk/pull/4792) - Add mockUserToken support for database emulator.
+
+### Patch Changes
+
+- Updated dependencies [[`97f61e6f3`](https://github.com/firebase/firebase-js-sdk/commit/97f61e6f3d24e5b4c92ed248bb531233a94b9eaf), [`e123f241c`](https://github.com/firebase/firebase-js-sdk/commit/e123f241c0cf39a983645582c4e42b7a5bff7bd6), [`ac4ad08a2`](https://github.com/firebase/firebase-js-sdk/commit/ac4ad08a284397ec966e991dd388bb1fba857467)]:
+  - @firebase/firestore@2.3.0
+  - @firebase/app@0.6.21
+  - @firebase/database@0.10.0
+  - @firebase/util@1.1.0
+  - @firebase/analytics@0.6.10
+  - @firebase/functions@0.6.8
+  - @firebase/installations@0.4.26
+  - @firebase/messaging@0.7.10
+  - @firebase/performance@0.4.12
+  - @firebase/remote-config@0.1.37
+  - @firebase/storage@0.5.2
+
 ## 8.4.3
 
 ### Patch Changes
