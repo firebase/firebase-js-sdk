@@ -28,6 +28,7 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
 import { newDatastore, Datastore } from '../../../src/remote/datastore';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import { AsyncQueueImpl } from '../../../src/util/async_queue_impl';
 import { TestBundleBuilder } from '../../unit/util/bundle_data';
 import { collectionReference } from '../../util/api_helpers';
@@ -65,13 +66,18 @@ export function withTestDatastore(
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {
   private listener: CredentialChangeListener | null = null;
+  private asyncQueue: AsyncQueue | null = null;
 
   triggerUserChange(newUser: User): void {
-    this.listener!(newUser);
+    this.asyncQueue!.enqueueRetryable(async () => this.listener!(newUser));
   }
 
-  setChangeListener(listener: CredentialChangeListener): void {
-    super.setChangeListener(listener);
+  setChangeListener(
+    asyncQueue: AsyncQueue,
+    listener: CredentialChangeListener
+  ): void {
+    super.setChangeListener(asyncQueue, listener);
+    this.asyncQueue = asyncQueue;
     this.listener = listener;
   }
 }

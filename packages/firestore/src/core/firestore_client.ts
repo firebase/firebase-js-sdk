@@ -97,8 +97,8 @@ export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 export class FirestoreClient {
   private user = User.UNAUTHENTICATED;
   private readonly clientId = AutoId.newId();
-  private credentialListener: CredentialChangeListener = () => {};
-  private readonly receivedInitialUser = new Deferred<void>();
+  private credentialListener: CredentialChangeListener = () =>
+    Promise.resolve();
 
   offlineComponents?: OfflineComponentProvider;
   onlineComponents?: OnlineComponentProvider;
@@ -116,17 +116,14 @@ export class FirestoreClient {
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo
   ) {
-    this.credentials.setChangeListener(user => {
+    this.credentials.setChangeListener(asyncQueue, async user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
+      await this.credentialListener(user);
       this.user = user;
-      this.credentialListener(user);
-      this.receivedInitialUser.resolve();
     });
   }
 
   async getConfiguration(): Promise<ComponentConfiguration> {
-    await this.receivedInitialUser.promise;
-
     return {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
@@ -137,12 +134,8 @@ export class FirestoreClient {
     };
   }
 
-  setCredentialChangeListener(listener: (user: User) => void): void {
+  setCredentialChangeListener(listener: (user: User) => Promise<void>): void {
     this.credentialListener = listener;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.receivedInitialUser.promise.then(() =>
-      this.credentialListener(this.user)
-    );
   }
 
   /**
@@ -198,15 +191,13 @@ export async function setOfflineComponentProvider(
   await offlineComponentProvider.initialize(configuration);
 
   let currentUser = configuration.initialUser;
-  client.setCredentialChangeListener(user => {
+  client.setCredentialChangeListener(async user => {
     if (!currentUser.isEqual(user)) {
+      await localStoreHandleUserChange(
+        offlineComponentProvider.localStore,
+        user
+      );
       currentUser = user;
-      client.asyncQueue.enqueueRetryable(async () => {
-        await localStoreHandleUserChange(
-          offlineComponentProvider.localStore,
-          user
-        );
-      });
     }
   });
 
@@ -236,12 +227,7 @@ export async function setOnlineComponentProvider(
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
   client.setCredentialChangeListener(user =>
-    client.asyncQueue.enqueueRetryable(() =>
-      remoteStoreHandleCredentialChange(
-        onlineComponentProvider.remoteStore,
-        user
-      )
-    )
+    remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
   client.onlineComponents = onlineComponentProvider;
 }
