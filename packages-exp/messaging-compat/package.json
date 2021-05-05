@@ -32,9 +32,9 @@
   },
   "dependencies": {
     "@firebase/messaging-exp": "0.0.900",
-    "@firebase/component": "0.4.1",
+    "@firebase/component": "0.5.0",
     "@firebase/installations-exp": "0.0.900",
-    "@firebase/util": "1.0.0",
+    "@firebase/util": "1.1.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
