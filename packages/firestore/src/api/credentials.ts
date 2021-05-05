@@ -243,8 +243,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
         if (auth) {
           registerAuth(auth);
         } else if (this.invokeChangeListener) {
-          // If auth is still not available, invoke tokenListener once with null
-          // token
+          // If auth is still not available, invoke the change listener once
+          // with null token
           logDebug('FirebaseCredentialsProvider', 'Auth not yet detected');
           this.asyncQueue!.enqueueRetryable(() =>
             this.changeListener(this.currentUser)
