@@ -143,6 +143,63 @@ describe('Provider', () => {
       expect((provider as any).instances.size).to.equal(1);
       return expect(servicePromise).to.eventually.deep.equal({ test: true });
     });
+
+    it('invokes onInit callbacks synchronously', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      provider.onInit(callback1);
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+    });
+  });
+
+  describe('onInit', () => {
+    it('registers onInit callbacks', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+      provider.onInit(callback1);
+      provider.onInit(callback2);
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback2).to.have.been.calledOnce;
+    });
+
+    it('returns a function to unregister the callback', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+      provider.onInit(callback1);
+      const unregsiter = provider.onInit(callback2);
+      unregsiter();
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback2).to.not.have.been.called;
+    });
   });
 
   describe('Provider (multipleInstances = false)', () => {

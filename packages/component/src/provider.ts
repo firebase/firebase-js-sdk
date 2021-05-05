@@ -254,19 +254,18 @@ export class Provider<T extends Name> {
     }
 
     this.invokeOnInitCallbacks(instance, normalizedIdentifier);
+
     return instance;
   }
 
   /**
    *
-   * @param callback - a function that will be invoked  after the provider has
-   * been initialized by calling provider.initialize().
-   * The function is invoked SYNCHRONOUSLY, so it should not execute any
-   * longrunning tasks in order to not block the program.
+   * @param callback - a function that will be invoked  after the provider has been initialized by calling provider.initialize().
+   * The function is invoked SYNCHRONOUSLY, so it should not execute any longrunning tasks in order to not block the program.
    *
    * @returns a function to unregister the callback
    */
-  onInit(callback: (instance: NameServiceMapping[T]) => void): () => void {
+  onInit(callback: OnInitCallBack<T>): () => void {
     this.onInitCallbacks.add(callback);
 
     return () => {
