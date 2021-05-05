@@ -108,20 +108,9 @@ export function getFilenameForApiItem(
           baseName += '_n';
         }
         break;
-      // append the file name with the first letter of the ApiItemKind to avoid name collision.
-      // Sometimes we could have a class/interface and an entry point that have the same name.
-      // This happened in the admin SDK where the App interface and the app namespace write to the same file.
       case ApiItemKind.Class:
-        baseName += '.' + qualifiedName;
-        if (addFileNameSuffix) {
-          baseName += '_c';
-        }
-        break;
       case ApiItemKind.Interface:
         baseName += '.' + qualifiedName;
-        if (addFileNameSuffix) {
-          baseName += '_i';
-        }
         break;
     }
   }
