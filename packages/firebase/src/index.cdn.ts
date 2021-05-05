@@ -40,6 +40,7 @@ import '../storage';
 import '../performance';
 import '../analytics';
 import '../remote-config';
+import '../app-check';
 
 firebase.registerVersion(name, version, 'cdn');
 

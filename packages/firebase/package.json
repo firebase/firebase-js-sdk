@@ -57,6 +57,7 @@
     "@firebase/performance": "0.4.12",
     "@firebase/remote-config": "0.1.37",
     "@firebase/analytics": "0.6.10",
+    "@firebase/app-check": "0.0.1",
     "@firebase/util": "1.1.0"
   },
   "devDependencies": {
@@ -74,6 +75,7 @@
   "components": [
     "analytics",
     "app",
+    "app-check",
     "auth",
     "database",
     "firestore",
