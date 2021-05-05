@@ -255,7 +255,6 @@ export class Provider<T extends Name> {
 
     this.invokeOnInitCallbacks(instance, normalizedIdentifier);
 
-
     return instance;
   }
 
