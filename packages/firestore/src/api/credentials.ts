@@ -232,8 +232,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       }
     };
 
-    this.tokenCounter = 0;
-
     const registerAuth = (auth: FirebaseAuthInternal): void => {
       logDebug('FirebaseCredentialsProvider', 'Auth detected');
       this.auth = auth;
@@ -251,16 +249,16 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
         const auth = authProvider.getImmediate({ optional: true });
         if (auth) {
           registerAuth(auth);
-        } else if (this.tokenListener) {
+        } else if (this.invokeChangeListener) {
           // If auth is still not available, invoke tokenListener once with null
           // token
           logDebug('FirebaseCredentialsProvider', 'Auth not yet detected');
-          this.tokenListener();
+          this.asyncQueue!.enqueueRetryable(() =>
+            this.changeListener(this.currentUser)
+          );
         }
       }
     }, 0);
-
-    this.awaitTokenAndRaiseInitialEvent();
   }
 
   getToken(): Promise<Token | null> {
@@ -313,6 +311,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     changeListener: CredentialChangeListener
   ): void {
     debugAssert(!this.asyncQueue, 'Can only call setChangeListener() once.');
+    this.invokeChangeListener = true;
     this.asyncQueue = asyncQueue;
     this.changeListener = changeListener;
   }
@@ -344,20 +343,14 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
    * `awaitTokenAndRaiseInitialEvent()` is also used to block Firestore until
    * Auth is fully initialized.
    *
-   * This function also invokes the change listener synchronously once a token
+   * This function also invokes the change listener immediately after the token
    * is available.
    */
   private awaitTokenAndRaiseInitialEvent(): void {
-    this.invokeChangeListener = false; // Prevent double-firing of the listener
-    if (this.asyncQueue) {
-      // Create a new deferred Promise that gets resolved when we receive the
-      // next token. Ensure that all previous Promises also get resolved.
-      const awaitToken = new Deferred<void>();
-      void awaitToken.promise.then(() => awaitToken.resolve());
-      this.receivedUser = awaitToken;
-
-      this.asyncQueue.enqueueRetryable(async () => {
-        await awaitToken.promise;
+    if (this.invokeChangeListener) {
+      this.invokeChangeListener = false; // Prevent double-firing of the listener
+      this.asyncQueue!.enqueueRetryable(async () => {
+        await this.receivedUser.promise;
         await this.changeListener(this.currentUser);
         this.invokeChangeListener = true;
       });
