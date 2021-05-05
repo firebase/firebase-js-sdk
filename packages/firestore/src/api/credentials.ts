@@ -193,14 +193,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   /** Tracks the current User. */
   private currentUser: User = User.UNAUTHENTICATED;
 
-  /**
-   * Promise that allows blocking on the next `tokenChange` event. The Promise
-   * is reassigned in `awaitTokenAndRaiseInitialEvent()` to allow blocking on
-   * an a lazily loaded Auth instance. In this case, `this.receivedUser`
-   * resolves once when the SDK first detects that there is no synchronous
-   * Auth initialization, and then gets re-created and resolves again once Auth
-   * is initialized.
-   */
+  /** Promise that allows blocking on the first `tokenListener` event. */
   private receivedInitialUser = new Deferred();
 
   /**
@@ -337,14 +330,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   /**
-   * Blocks the AsyncQueue until the next user is available. This is invoked
-   * on SDK start to wait for the first user token (or `null` if Auth is not yet
-   * loaded). If Auth is loaded after Firestore,
-   * `awaitTokenAndRaiseInitialEvent()` is also used to block Firestore until
-   * Auth is fully initialized.
-   *
-   * This function also invokes the change listener immediately after the token
-   * is available.
+   * Blocks the AsyncQueue until the next user is available. This function also
+   * invokes `this.changeListener` immediately once the token is available.
    */
   private awaitTokenAndRaiseInitialEvent(): void {
     if (this.invokeChangeListener) {
