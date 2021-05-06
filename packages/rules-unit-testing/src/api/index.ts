@@ -429,7 +429,8 @@ function getHubHost() {
 }
 
 function parseHost(host: string): { hostname: string; port: number } {
-  const u = new URL(host);
+  const withProtocol = host.startsWith("http") ? host : `http://${host}`;
+  const u = new URL(withProtocol);
   return {
     hostname: u.hostname,
     port: Number.parseInt(u.port, 10)
@@ -495,6 +496,9 @@ function initializeApp(
     );
   }
   if (databaseName) {
+    const { hostname, port } = parseHost(getDatabaseHost());
+    app.firestore().useEmulator(hostname, port);
+
     // Toggle network connectivity to force a reauthentication attempt.
     // This mitigates a minor race condition where the client can send the
     // first database request before authenticating.
