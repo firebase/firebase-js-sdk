@@ -16,6 +16,10 @@
  */
 
 import firebase from 'firebase';
+import 'firebase/database';
+import 'firebase/firestore';
+import 'firebase/storage';
+
 import type { app } from 'firebase-admin';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
@@ -491,9 +495,6 @@ function initializeApp(
     );
   }
   if (databaseName) {
-    const { hostname, port } = parseHost(getDatabaseHost());
-    app.database().useEmulator(hostname, port);
-
     // Toggle network connectivity to force a reauthentication attempt.
     // This mitigates a minor race condition where the client can send the
     // first database request before authenticating.
