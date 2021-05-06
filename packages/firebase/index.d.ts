@@ -1469,19 +1469,45 @@ declare namespace firebase.appCheck {
   export interface AppCheck {
     /**
      * Activate AppCheck
-     * @param siteKeyOrOrovider - reCAPTCHA sitekey or custom token provider
+     * @param siteKeyOrProvider - reCAPTCHA sitekey or custom token provider
+     * @param isTokenAutoRefreshEnabled - If true, enables SDK to automatically
+     * refresh AppCheck token as needed. If undefined, the value will default
+     * to the value of `app.automaticDataCollectionEnabled`. That property
+     * defaults to false and can be set in the app config.
      */
-    activate(siteKeyOrProvider: string | AppCheckProvider): void;
+    activate(
+      siteKeyOrProvider: string | AppCheckProvider,
+      isTokenAutoRefreshEnabled?: boolean
+    ): void;
+
+    /**
+     *
+     * @param isTokenAutoRefreshEnabled - If set to true, enables SDK to
+     * automatically refresh AppCheck token as needed. If false, disables this
+     * functionality. This overrides any value set during `activate()`.
+     */
+    setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
   }
 
+  /**
+   * An AppCheck provider. This may be either the built-in reCAPTCHA provider
+   * or a custom provider. For more on custom providers, see
+   * https://firebase.google.com/docs/app-check/web-custom-provider
+   */
   interface AppCheckProvider {
     /**
-     * returns an AppCheck token
+     * Returns an AppCheck token.
      */
     getToken(): Promise<AppCheckToken>;
   }
 
+  /**
+   * The token returned from an `AppCheckProvider`.
+   */
   interface AppCheckToken {
+    /**
+     * The token string in JWT format.
+     */
     readonly token: string;
     /**
      * The local timestamp after which the token will expire.
