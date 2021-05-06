@@ -220,7 +220,24 @@ describe('Testing Module Tests', function () {
     });
   });
 
-  it('initializeAdminApp() has admin access', async function () {
+  it('initializeAdminApp() has admin access to RTDB', async function () {
+    await firebase.loadDatabaseRules({
+      databaseName: 'foo',
+      rules: '{ "rules": {".read": false, ".write": false} }'
+    });
+
+    const app = firebase.initializeAdminApp({
+      projectId: 'foo',
+      databaseName: 'foo',
+      storageBucket: 'foo'
+    });
+
+    await firebase.assertSucceeds(
+      app.database().ref().child('/foo/bar').set({ hello: 'world' })
+    );
+  });
+
+  it('initializeAdminApp() has admin access to Firestore', async function () {
     await firebase.loadFirestoreRules({
       projectId: 'foo',
       rules: `service cloud.firestore {
@@ -230,21 +247,37 @@ describe('Testing Module Tests', function () {
       }`
     });
 
-    await firebase.loadDatabaseRules({
-      databaseName: 'foo',
-      rules: '{ "rules": {".read": false, ".write": false} }'
-    });
-
     const app = firebase.initializeAdminApp({
       projectId: 'foo',
-      databaseName: 'foo'
+      databaseName: 'foo',
+      storageBucket: 'foo'
     });
 
     await firebase.assertSucceeds(
       app.firestore().doc('/foo/bar').set({ hello: 'world' })
     );
+  });
+
+  it('initializeAdminApp() has admin access to storage', async function () {
+    await firebase.loadStorageRules({
+      rules: `rules_version = '2';
+      service firebase.storage {
+        match /b/{bucket}/o {
+          match /{allPaths=**} {
+            allow read, write: if false;
+          }
+        }
+      }`
+    });
+
+    const app = firebase.initializeAdminApp({
+      projectId: 'foo',
+      databaseName: 'foo',
+      storageBucket: 'foo'
+    });
+
     await firebase.assertSucceeds(
-      app.database().ref().child('/foo/bar').set({ hello: 'world' })
+      app.storage().bucket().file('/foo/bar.txt').save('Hello, World!')
     );
   });
 
@@ -261,12 +294,14 @@ describe('Testing Module Tests', function () {
 
     const adminApp = firebase.initializeAdminApp({
       projectId: 'foo',
-      databaseName: 'foo'
+      databaseName: 'foo',
+      storageBucket: 'foo'
     });
 
     const testApp = firebase.initializeTestApp({
       projectId: 'foo',
-      databaseName: 'foo'
+      databaseName: 'foo',
+      storageBucket: 'foo'
     });
 
     // Admin app can write anywhere
@@ -377,6 +412,30 @@ describe('Testing Module Tests', function () {
         }
       }`
     });
+  });
+
+  it('loadStorageRules() succeeds on valid input', async function () {
+    await firebase.loadStorageRules({
+      rules: `rules_version = '2';
+      service firebase.storage {
+        match /b/{bucket}/o {
+          match /{allPaths=**} {
+            allow read, write: if false;
+          }
+        }
+      }`
+    });
+  });
+
+  it('loadStorageRules() fails on invalid input', async function () {
+    const p = firebase.loadStorageRules({
+      rules: `rules_version = '2';
+      service firebase.storage {
+        banana
+      }`
+    });
+
+    await expect(p).to.eventually.be.rejected;
   });
 
   it('clearFirestoreData() succeeds on valid input', async function () {

@@ -16,6 +16,7 @@
  */
 
 import firebase from 'firebase';
+import type { app } from 'firebase-admin';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
@@ -23,8 +24,8 @@ import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
 
-const { firestore, database } = firebase;
-export { firestore, database };
+const { firestore, database, storage } = firebase;
+export { firestore, database, storage };
 
 /** If this environment variable is set, use it for the database emulator's address. */
 const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_HOST';
@@ -224,10 +225,10 @@ export type AdminAppOptions = {
   storageBucket?: string;
 };
 /** Construct an App authenticated as an admin user. */
-export function initializeAdminApp(options: AdminAppOptions): firebase.app.App {
+export function initializeAdminApp(options: AdminAppOptions): app.App {
   const admin = require('firebase-admin');
 
-  const app = admin.initializeApp(
+  const app: app.App = admin.initializeApp(
     getAppOptions(options.databaseName, options.projectId, options.storageBucket),
     getRandomAppName()
   );
@@ -446,7 +447,7 @@ function getAppOptions(
   }
 
   if (storageBucket) {
-    appOptions['storgeBucket'] = storageBucket;
+    appOptions['storageBucket'] = storageBucket;
   }
 
   return appOptions;
@@ -580,6 +581,9 @@ export async function loadStorageRules(
   const resp = await requestPromise(request.put, {
     method: 'PUT',
     uri: `http://${getStorageHost()}/internal/setRules`,
+    headers: {
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({
       rules: {
         files: [{ name: 'storage.rules', content: options.rules }]
@@ -588,7 +592,7 @@ export async function loadStorageRules(
   });
 
   if (resp.statusCode !== 200) {
-    throw new Error(JSON.parse(resp.body.error));
+    throw new Error(resp.body);
   }
 }
 
