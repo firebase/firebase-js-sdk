@@ -43,6 +43,7 @@ function getHighestBump(changesetPackages: Record<string, string>) {
   for (const pkgName of Object.keys(changesetPackages)) {
     if (
       pkgName !== 'firebase' &&
+      pkgName !== '@firebase/rules-unit-testing' && // Not a dependency of firebase
       bumpRank[changesetPackages[pkgName]] > highestBump
     ) {
       highestBump = bumpRank[changesetPackages[pkgName]];
