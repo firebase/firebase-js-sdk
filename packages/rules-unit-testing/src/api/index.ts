@@ -216,7 +216,12 @@ export function initializeTestApp(options: AppOptions): firebase.app.App {
     ? createUnsecuredJwt(options.auth, options.projectId)
     : undefined;
 
-  return initializeApp(jwt, options.databaseName, options.projectId, options.storageBucket);
+  return initializeApp(
+    jwt,
+    options.databaseName,
+    options.projectId,
+    options.storageBucket
+  );
 }
 
 export type AdminAppOptions = {
@@ -229,7 +234,11 @@ export function initializeAdminApp(options: AdminAppOptions): app.App {
   const admin = require('firebase-admin');
 
   const app: app.App = admin.initializeApp(
-    getAppOptions(options.databaseName, options.projectId, options.storageBucket),
+    getAppOptions(
+      options.databaseName,
+      options.projectId,
+      options.storageBucket
+    ),
     getRandomAppName()
   );
 
@@ -380,12 +389,14 @@ function getFirestoreHost() {
 
 function getStorageHost() {
   if (!_storageHost) {
-    const fromEnv = process.env[FIREBASE_STORAGE_ADDRESS_ENV] || process.env[CLOUD_STORAGE_ADDRESS_ENV];
+    const fromEnv =
+      process.env[FIREBASE_STORAGE_ADDRESS_ENV] ||
+      process.env[CLOUD_STORAGE_ADDRESS_ENV];
     if (fromEnv) {
       // The STORAGE_EMULATOR_HOST env var is an older Cloud Standard which includes http:// while
       // the FIREBASE_STORAGE_EMULATOR_HOST is a newer variable supported beginning in the Admin
       // SDK v9.7.0 which does not have the protocol.
-      _storageHost = fromEnv.replace("http://", "");
+      _storageHost = fromEnv.replace('http://', '');
     } else {
       console.warn(
         `Warning: ${FIREBASE_STORAGE_ADDRESS_ENV} not set, using default value ${STORAGE_ADDRESS_DEFAULT}`
@@ -413,12 +424,12 @@ function getHubHost() {
   return _hubHost;
 }
 
-function parseHost(host: string): { hostname: string, port: number } {
+function parseHost(host: string): { hostname: string; port: number } {
   const u = new URL(host);
   return {
     hostname: u.hostname,
     port: Number.parseInt(u.port, 10)
-  }
+  };
 }
 
 function getRandomAppName(): string {
@@ -432,14 +443,12 @@ function getDatabaseUrl(databaseName: string) {
 function getAppOptions(
   databaseName?: string,
   projectId?: string,
-  storageBucket?: string,
+  storageBucket?: string
 ): { [key: string]: string } {
   let appOptions: { [key: string]: string } = {};
 
   if (databaseName) {
-    appOptions[
-      'databaseURL'
-    ] = getDatabaseUrl(databaseName);
+    appOptions['databaseURL'] = getDatabaseUrl(databaseName);
   }
 
   if (projectId) {
@@ -457,7 +466,7 @@ function initializeApp(
   accessToken?: string,
   databaseName?: string,
   projectId?: string,
-  storageBucket?: string,
+  storageBucket?: string
 ): firebase.app.App {
   const appOptions = getAppOptions(databaseName, projectId, storageBucket);
   const app = firebase.initializeApp(appOptions, getRandomAppName());
