@@ -276,9 +276,14 @@ describe('Testing Module Tests', function () {
       storageBucket: 'foo'
     });
 
-    await firebase.assertSucceeds(
-      app.storage().bucket().file('/foo/bar.txt').save('Hello, World!')
-    );
+    // TODO: This test cannot be enabled without adding credentials to the test environment
+    //       due to an underlying issue with firebase-admin storage. For now we will run it
+    //       locally but not in CI.
+    if (process.env.CI !== "true") {
+      await firebase.assertSucceeds(
+        app.storage().bucket().file('/foo/bar.txt').save('Hello, World!')
+      );
+    }
   });
 
   it('initializeAdminApp() and initializeTestApp() work together', async function () {
