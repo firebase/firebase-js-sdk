@@ -1469,8 +1469,8 @@ declare namespace firebase.appCheck {
   export interface AppCheck {
     /**
      * Activate AppCheck
-     * @param siteKeyOrProvider - reCAPTCHA sitekey or custom token provider
-     * @param isTokenAutoRefreshEnabled - If true, enables SDK to automatically
+     * @param siteKeyOrProvider reCAPTCHA sitekey or custom token provider
+     * @param isTokenAutoRefreshEnabled If true, enables SDK to automatically
      * refresh AppCheck token as needed. If undefined, the value will default
      * to the value of `app.automaticDataCollectionEnabled`. That property
      * defaults to false and can be set in the app config.
@@ -1482,7 +1482,7 @@ declare namespace firebase.appCheck {
 
     /**
      *
-     * @param isTokenAutoRefreshEnabled - If set to true, enables SDK to
+     * @param isTokenAutoRefreshEnabled If set to true, enables SDK to
      * automatically refresh AppCheck token as needed. If false, disables this
      * functionality. This overrides any value set during `activate()`.
      */
@@ -1502,7 +1502,7 @@ declare namespace firebase.appCheck {
   }
 
   /**
-   * The token returned from an `AppCheckProvider`.
+   * The token returned from an {@link firebase.appCheck.AppCheckProvider `AppCheckProvider`}.
    */
   interface AppCheckToken {
     /**
