@@ -15,7 +15,7 @@
     "build:deps": "lerna run --scope @firebase/rules-unit-testing --include-dependencies build",
     "dev": "rollup -c -w",
     "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
-    "test": "firebase --project=foo --debug emulators:exec 'yarn test:nyc'",
+    "test": "FIREBASE_CLI_PREVIEWS=storageemulator STORAGE_EMULATOR_HOST=http://localhost:9199 firebase --project=foo --debug emulators:exec 'yarn test:nyc'",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
   },
   "license": "Apache-2.0",
@@ -29,15 +29,15 @@
   "devDependencies": {
     "@google-cloud/firestore": "4.8.1",
     "@types/request": "2.48.5",
-    "firebase-admin": "9.4.2",
-    "firebase-tools": "9.1.0",
+    "firebase-admin": "9.7.0",
+    "firebase-tools": "9.10.1",
     "firebase-functions": "3.13.0",
     "rollup": "2.35.1",
     "rollup-plugin-typescript2": "0.29.0"
   },
   "peerDependencies": {
     "@google-cloud/firestore": "^4.2.0",
-    "firebase-admin": "^9.0.0"
+    "firebase-admin": "^9.7.0"
   },
   "repository": {
     "directory": "packages/rules-unit-testing",

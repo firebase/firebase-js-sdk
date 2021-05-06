@@ -33,6 +33,7 @@ export {
   initializeTestApp,
   loadDatabaseRules,
   loadFirestoreRules,
+  loadStorageRules,
   useEmulators,
   withFunctionTriggersDisabled
 } from './src/api';

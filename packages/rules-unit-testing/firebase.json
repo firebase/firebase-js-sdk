@@ -2,6 +2,9 @@
   "functions": {
     "source": "."
   },
+  "storage": {
+    "rules": "test/storage.rules"
+  },
   "emulators": {
     "firestore": {
       "port": 9003
@@ -11,6 +14,9 @@
     },
     "functions": {
       "port": 9004
+    },
+    "storage": {
+      "port": 9199
     },
     "ui": {
       "enabled": false

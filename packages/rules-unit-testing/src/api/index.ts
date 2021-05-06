@@ -16,6 +16,11 @@
  */
 
 import firebase from 'firebase';
+import 'firebase/database';
+import 'firebase/firestore';
+import 'firebase/storage';
+
+import type { app } from 'firebase-admin';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
@@ -23,18 +28,24 @@ import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
 
-const { firestore, database } = firebase;
-export { firestore, database };
+const { firestore, database, storage } = firebase;
+export { firestore, database, storage };
 
 /** If this environment variable is set, use it for the database emulator's address. */
 const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_HOST';
 /** The default address for the local database emulator. */
 const DATABASE_ADDRESS_DEFAULT: string = 'localhost:9000';
 
-/** If any of environment variable is set, use it for the Firestore emulator. */
+/** If this environment variable is set, use it for the Firestore emulator. */
 const FIRESTORE_ADDRESS_ENV: string = 'FIRESTORE_EMULATOR_HOST';
 /** The default address for the local Firestore emulator. */
 const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
+
+/** If this environment variable is set, use it for the Storage emulator. */
+const FIREBASE_STORAGE_ADDRESS_ENV: string = 'FIREBASE_STORAGE_EMULATOR_HOST';
+const CLOUD_STORAGE_ADDRESS_ENV: string = 'STORAGE_EMULATOR_HOST';
+/** The default address for the local Firestore emulator. */
+const STORAGE_ADDRESS_DEFAULT: string = 'localhost:9199';
 
 /** Environment variable to locate the Emulator Hub */
 const HUB_HOST_ENV: string = 'FIREBASE_EMULATOR_HUB';
@@ -46,6 +57,9 @@ let _databaseHost: string | undefined = undefined;
 
 /** The actual address for the Firestore emulator */
 let _firestoreHost: string | undefined = undefined;
+
+/** The actual address for the Storage emulator */
+let _storageHost: string | undefined = undefined;
 
 /** The actual address for the Emulator Hub */
 let _hubHost: string | undefined = undefined;
@@ -133,6 +147,10 @@ export type FirebaseEmulatorOptions = {
     host: string;
     port: number;
   };
+  storage?: {
+    host: string;
+    port: number;
+  };
   hub?: {
     host: string;
     port: number;
@@ -193,6 +211,7 @@ export function apps(): firebase.app.App[] {
 export type AppOptions = {
   databaseName?: string;
   projectId?: string;
+  storageBucket?: string;
   auth?: TokenOptions;
 };
 /** Construct an App authenticated with options.auth. */
@@ -201,19 +220,29 @@ export function initializeTestApp(options: AppOptions): firebase.app.App {
     ? createUnsecuredJwt(options.auth, options.projectId)
     : undefined;
 
-  return initializeApp(jwt, options.databaseName, options.projectId);
+  return initializeApp(
+    jwt,
+    options.databaseName,
+    options.projectId,
+    options.storageBucket
+  );
 }
 
 export type AdminAppOptions = {
   databaseName?: string;
   projectId?: string;
+  storageBucket?: string;
 };
 /** Construct an App authenticated as an admin user. */
-export function initializeAdminApp(options: AdminAppOptions): firebase.app.App {
+export function initializeAdminApp(options: AdminAppOptions): app.App {
   const admin = require('firebase-admin');
 
-  const app = admin.initializeApp(
-    getAppOptions(options.databaseName, options.projectId),
+  const app: app.App = admin.initializeApp(
+    getAppOptions(
+      options.databaseName,
+      options.projectId,
+      options.storageBucket
+    ),
     getRandomAppName()
   );
 
@@ -246,6 +275,10 @@ export function useEmulators(options: FirebaseEmulatorOptions): void {
 
   if (options.firestore) {
     _firestoreHost = getAddress(options.firestore.host, options.firestore.port);
+  }
+
+  if (options.storage) {
+    _storageHost = getAddress(options.storage.host, options.storage.port);
   }
 
   if (options.hub) {
@@ -301,6 +334,13 @@ export async function discoverEmulators(
     };
   }
 
+  if (data.storage) {
+    options.storage = {
+      host: data.storage.host,
+      port: data.storage.port
+    };
+  }
+
   if (data.hub) {
     options.hub = {
       host: data.hub.host,
@@ -351,6 +391,27 @@ function getFirestoreHost() {
   return _firestoreHost;
 }
 
+function getStorageHost() {
+  if (!_storageHost) {
+    const fromEnv =
+      process.env[FIREBASE_STORAGE_ADDRESS_ENV] ||
+      process.env[CLOUD_STORAGE_ADDRESS_ENV];
+    if (fromEnv) {
+      // The STORAGE_EMULATOR_HOST env var is an older Cloud Standard which includes http:// while
+      // the FIREBASE_STORAGE_EMULATOR_HOST is a newer variable supported beginning in the Admin
+      // SDK v9.7.0 which does not have the protocol.
+      _storageHost = fromEnv.replace('http://', '');
+    } else {
+      console.warn(
+        `Warning: ${FIREBASE_STORAGE_ADDRESS_ENV} not set, using default value ${STORAGE_ADDRESS_DEFAULT}`
+      );
+      _storageHost = STORAGE_ADDRESS_DEFAULT;
+    }
+  }
+
+  return _storageHost;
+}
+
 function getHubHost() {
   if (!_hubHost) {
     const fromEnv = process.env[HUB_HOST_ENV];
@@ -367,23 +428,40 @@ function getHubHost() {
   return _hubHost;
 }
 
+function parseHost(host: string): { hostname: string; port: number } {
+  const withProtocol = host.startsWith("http") ? host : `http://${host}`;
+  const u = new URL(withProtocol);
+  return {
+    hostname: u.hostname,
+    port: Number.parseInt(u.port, 10)
+  };
+}
+
 function getRandomAppName(): string {
   return 'app-' + new Date().getTime() + '-' + Math.random();
 }
 
+function getDatabaseUrl(databaseName: string) {
+  return `http://${getDatabaseHost()}?ns=${databaseName}`;
+}
+
 function getAppOptions(
   databaseName?: string,
-  projectId?: string
+  projectId?: string,
+  storageBucket?: string
 ): { [key: string]: string } {
   let appOptions: { [key: string]: string } = {};
 
   if (databaseName) {
-    appOptions[
-      'databaseURL'
-    ] = `http://${getDatabaseHost()}?ns=${databaseName}`;
+    appOptions['databaseURL'] = getDatabaseUrl(databaseName);
   }
+
   if (projectId) {
     appOptions['projectId'] = projectId;
+  }
+
+  if (storageBucket) {
+    appOptions['storageBucket'] = storageBucket;
   }
 
   return appOptions;
@@ -392,9 +470,10 @@ function getAppOptions(
 function initializeApp(
   accessToken?: string,
   databaseName?: string,
-  projectId?: string
+  projectId?: string,
+  storageBucket?: string
 ): firebase.app.App {
-  const appOptions = getAppOptions(databaseName, projectId);
+  const appOptions = getAppOptions(databaseName, projectId, storageBucket);
   const app = firebase.initializeApp(appOptions, getRandomAppName());
   if (accessToken) {
     const mockAuthComponent = new Component(
@@ -417,6 +496,9 @@ function initializeApp(
     );
   }
   if (databaseName) {
+    const { hostname, port } = parseHost(getDatabaseHost());
+    app.database().useEmulator(hostname, port);
+
     // Toggle network connectivity to force a reauthentication attempt.
     // This mitigates a minor race condition where the client can send the
     // first database request before authenticating.
@@ -424,10 +506,12 @@ function initializeApp(
     app.database().goOnline();
   }
   if (projectId) {
-    app.firestore().settings({
-      host: getFirestoreHost(),
-      ssl: false
-    });
+    const { hostname, port } = parseHost(getFirestoreHost());
+    app.firestore().useEmulator(hostname, port);
+  }
+  if (storageBucket) {
+    const { hostname, port } = parseHost(getStorageHost());
+    app.storage().useEmulator(hostname, port);
   }
   /**
   Mute warnings for the previously-created database and whatever other
@@ -495,6 +579,34 @@ export async function loadFirestoreRules(
 
   if (resp.statusCode !== 200) {
     throw new Error(JSON.parse(resp.body.error));
+  }
+}
+
+export type LoadStorageRulesOptions = {
+  rules: string;
+};
+export async function loadStorageRules(
+  options: LoadStorageRulesOptions
+): Promise<void> {
+  if (!options.rules) {
+    throw new Error('must provide rules to loadStorageRules');
+  }
+
+  const resp = await requestPromise(request.put, {
+    method: 'PUT',
+    uri: `http://${getStorageHost()}/internal/setRules`,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      rules: {
+        files: [{ name: 'storage.rules', content: options.rules }]
+      }
+    })
+  });
+
+  if (resp.statusCode !== 200) {
+    throw new Error(resp.body);
   }
 }
 
