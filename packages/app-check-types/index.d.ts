@@ -31,15 +31,15 @@ export interface FirebaseAppCheck {
 
   /**
    *
-   * @param isTokenAutoRefreshEnabled - If set to true, enables SDK to
-   * automatically refresh AppCheck token as needed. If false, disables this
-   * functionality. This overrides any value set during `activate()`.
+   * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
+   * refreshes App Check tokens as needed. This overrides any value set
+   * during `activate()`.
    */
   setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
 }
 
 /**
- * An AppCheck provider. This may be either the built-in reCAPTCHA provider
+ * An App Check provider. This can be either the built-in reCAPTCHA provider
  * or a custom provider. For more on custom providers, see
  * https://firebase.google.com/docs/app-check/web-custom-provider
  */
