@@ -497,7 +497,7 @@ function initializeApp(
   }
   if (databaseName) {
     const { hostname, port } = parseHost(getDatabaseHost());
-    app.firestore().useEmulator(hostname, port);
+    app.database().useEmulator(hostname, port);
 
     // Toggle network connectivity to force a reauthentication attempt.
     // This mitigates a minor race condition where the client can send the
