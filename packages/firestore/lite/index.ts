@@ -1,10 +1,9 @@
 /**
  * Firestore Lite
  *
- * @remarks This package includes the same feature set as Firestore, but
- * without latency compensation or snapshot listeners (and with
- * correspondingly lighter size footprint). Firestore Lite supports fast
- * write and read operations, but only when online.
+ * @remarks Firestore Lite is a small online-only SDK that allows read
+ * and write access to your Firestore database. All operations connect
+ * directly to the backend, and `onSnapshot()` APIs are not supported.
  * @packageDocumentation
  */
 
