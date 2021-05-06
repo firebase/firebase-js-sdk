@@ -441,6 +441,7 @@ export type LoadDatabaseRulesOptions = {
   databaseName: string;
   rules: string;
 };
+
 export async function loadDatabaseRules(
   options: LoadDatabaseRulesOptions
 ): Promise<void> {
