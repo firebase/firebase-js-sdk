@@ -17,10 +17,8 @@ export interface AppCheck {
 // @internal (undocumented)
 export type _AppCheckComponentName = 'app-check-exp';
 
-// Warning: (ae-internal-missing-underscore) The name "AppCheckInternalComponentName" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal (undocumented)
-export type AppCheckInternalComponentName = 'app-check-internal';
+export type _AppCheckInternalComponentName = 'app-check-internal';
 
 // @public
 export interface AppCheckProvider {
