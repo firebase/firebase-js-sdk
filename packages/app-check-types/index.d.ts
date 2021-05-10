@@ -28,17 +28,35 @@ export interface FirebaseAppCheck {
     siteKeyOrProvider: string | AppCheckProvider,
     isTokenAutoRefreshEnabled?: boolean
   ): void;
+
+  /**
+   *
+   * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
+   * refreshes App Check tokens as needed. This overrides any value set
+   * during `activate()`.
+   */
   setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
 }
 
+/**
+ * An App Check provider. This can be either the built-in reCAPTCHA provider
+ * or a custom provider. For more on custom providers, see
+ * https://firebase.google.com/docs/app-check/web-custom-provider
+ */
 interface AppCheckProvider {
   /**
-   * returns an AppCheck token
+   * Returns an AppCheck token.
    */
   getToken(): Promise<AppCheckToken>;
 }
 
+/**
+ * The token returned from an `AppCheckProvider`.
+ */
 interface AppCheckToken {
+  /**
+   * The token string in JWT format.
+   */
   readonly token: string;
   /**
    * The local timestamp after which the token will expire.
