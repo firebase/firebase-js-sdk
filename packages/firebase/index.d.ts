@@ -5786,7 +5786,7 @@ declare namespace firebase.database {
      *
      * @param host the emulator host (ex: localhost)
      * @param port the emulator port (ex: 8080)
-     * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules
+     * @param options.mockUserToken the mock auth token to use for unit testing Security Rules
      */
     useEmulator(
       host: string,
