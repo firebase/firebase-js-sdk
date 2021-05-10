@@ -1,4 +1,4 @@
-# @firebase/analytics
+# @firebase/app-check
 
 This is the Firebase AppCheck component of the Firebase JS SDK.
 
