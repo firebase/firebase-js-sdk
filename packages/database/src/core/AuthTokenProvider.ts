@@ -36,6 +36,7 @@ export interface AuthTokenProvider {
  */
 export class FirebaseAuthTokenProvider implements AuthTokenProvider {
   private auth_: FirebaseAuthInternal | null = null;
+
   constructor(
     private appName_: string,
     private firebaseOptions_: object,
@@ -43,13 +44,25 @@ export class FirebaseAuthTokenProvider implements AuthTokenProvider {
   ) {
     this.auth_ = authProvider_.getImmediate({ optional: true });
     if (!this.auth_) {
-      authProvider_.get().then(auth => (this.auth_ = auth));
+      authProvider_.onInit(auth => (this.auth_ = auth));
     }
   }
 
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
     if (!this.auth_) {
-      return Promise.resolve(null);
+      return new Promise<FirebaseAuthTokenData>((resolve, reject) => {
+        // Support delayed initialization of FirebaseAuth. This allows our
+        // customers to initialize the RTDB SDK before initializing Firebase
+        // Auth and ensures that all requests are authenticated if a token
+        // becomes available before the timoeout below expires.
+        setTimeout(() => {
+          if (this.auth_) {
+            this.getToken(forceRefresh).then(resolve, reject);
+          } else {
+            resolve(null);
+          }
+        }, 0);
+      });
     }
 
     return this.auth_.getToken(forceRefresh).catch(error => {
@@ -70,7 +83,6 @@ export class FirebaseAuthTokenProvider implements AuthTokenProvider {
     if (this.auth_) {
       this.auth_.addAuthTokenListener(listener);
     } else {
-      setTimeout(() => listener(null), 0);
       this.authProvider_
         .get()
         .then(auth => auth.addAuthTokenListener(listener));
