@@ -15,20 +15,18 @@
  * limitations under the License.
  */
 
-export interface FirebaseAppCheck {
+import { FirebaseApp } from '@firebase/app-exp';
+
+/**
+ * The Firebase AppCheck service interface.
+ *
+ * @public
+ */
+export interface AppCheck {
   /**
-   * Activate AppCheck
-   * @param siteKeyOrProvider - reCAPTCHA sitekey or custom token provider
-   * @param isTokenAutoRefreshEnabled - If true, enables SDK to automatically
-   * refresh AppCheck token as needed. If undefined, the value will default
-   * to the value of `app.automaticDataCollectionEnabled`. That property
-   * defaults to false and can be set in the app config.
+   * The FirebaseApp this Functions instance is associated with.
    */
-  activate(
-    siteKeyOrProvider: string | AppCheckProvider,
-    isTokenAutoRefreshEnabled?: boolean
-  ): void;
-  setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
+  app: FirebaseApp;
 }
 
 export interface AppCheckProvider {
@@ -46,9 +44,4 @@ export interface AppCheckToken {
   readonly expireTimeMillis: number;
 }
 
-export type AppCheckComponentName = 'appCheck';
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'appCheck': FirebaseAppCheck;
-  }
-}
+export type AppCheckComponentName = 'app-check-exp';

@@ -28,7 +28,7 @@ export { AppCheckInternalComponentName };
 export * from './api';
 export * from './public-types';
 
-const APP_CHECK_NAME: AppCheckComponentName = 'appCheck';
+const APP_CHECK_NAME: AppCheckComponentName = 'app-check-exp';
 const APP_CHECK_NAME_INTERNAL: AppCheckInternalComponentName =
   'app-check-internal';
 function registerAppCheck(): void {

@@ -15,19 +15,49 @@
  * limitations under the License.
  */
 
-import { AppCheckProvider } from './public-types';
-import { FirebaseApp } from '@firebase/app-exp';
+import { AppCheck, AppCheckProvider } from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { initialize as initializeRecaptcha } from './recaptcha';
 import { getState, setState, AppCheckState } from './state';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { Provider } from '@firebase/component';
+import { getModularInstance } from '@firebase/util';
+import { AppCheckService } from './factory';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'app-check-exp': AppCheckService;
+  }
+}
 
 /**
+ * Returns a Firebase AppCheck instance for the given app.
  *
- * @param app
- * @param siteKeyOrProvider - optional custom attestation provider
- * or reCAPTCHA siteKey
- * @param isTokenAutoRefreshEnabled - if true, enables auto refresh
- * of appCheck token.
+ * @public
+ *
+ * @param app - The FirebaseApp to use.
+ */
+export function getAppCheck(app: FirebaseApp = getApp()): AppCheck {
+  app = getModularInstance(app);
+  // Dependencies
+  const appCheckProvider: Provider<'app-check-exp'> = _getProvider(
+    app,
+    'app-check-exp'
+  );
+  const appCheckInstance = appCheckProvider.getImmediate();
+  return appCheckInstance;
+}
+
+/**
+ * Activate AppCheck
+ * @param app - Firebase app to activate AppCheck for.
+ * @param siteKeyOrProvider - reCAPTCHA v3 site key (public key) or
+ * custom token provider.
+ * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
+ * refreshes App Check tokens as needed. If undefined, defaults to the
+ * value of `app.automaticDataCollectionEnabled`, which defaults to
+ * false and can be set in the app config.
+ * @public
  */
 export function activate(
   app: FirebaseApp,
@@ -65,7 +95,12 @@ export function activate(
     });
   }
 }
-
+/**
+ *
+ * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
+ * refreshes App Check tokens as needed. This overrides any value set
+ * during `activate()`.
+ */
 export function setTokenAutoRefreshEnabled(
   app: FirebaseApp,
   isTokenAutoRefreshEnabled: boolean

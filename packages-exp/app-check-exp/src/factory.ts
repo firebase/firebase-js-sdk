@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseAppCheck, AppCheckProvider } from './public-types';
-import { activate, setTokenAutoRefreshEnabled } from './api';
-import { FirebaseApp } from '@firebase/app-exp';
+import { AppCheck } from './public-types';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 import { FirebaseAppCheckInternal } from './types';
 import {
   getToken,
@@ -26,15 +25,18 @@ import {
 } from './internal-api';
 import { Provider } from '@firebase/component';
 
-export function factory(app: FirebaseApp): FirebaseAppCheck {
-  return {
-    activate: (
-      siteKeyOrProvider: string | AppCheckProvider,
-      isTokenAutoRefreshEnabled?: boolean
-    ) => activate(app, siteKeyOrProvider, isTokenAutoRefreshEnabled),
-    setTokenAutoRefreshEnabled: (isTokenAutoRefreshEnabled: boolean) =>
-      setTokenAutoRefreshEnabled(app, isTokenAutoRefreshEnabled)
-  };
+/**
+ * AppCheck Service class.
+ */
+export class AppCheckService implements AppCheck, _FirebaseService {
+  constructor(public app: FirebaseApp) {}
+  _delete(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+export function factory(app: FirebaseApp): AppCheckService {
+  return new AppCheckService(app);
 }
 
 export function internalFactory(
