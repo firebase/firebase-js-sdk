@@ -32,7 +32,7 @@ import { logError, logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-import { isSafeInteger, WindowLike } from '../util/types';
+import { isSafeInteger, terminationEvent, WindowLike } from '../util/types';
 
 import {
   CLIENT_STATE_KEY_PREFIX,
@@ -613,7 +613,9 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Register a window unload hook to remove the client metadata entry from
     // WebStorage even if `shutdown()` was not called.
-    this.window.addEventListener('unload', () => this.shutdown());
+    this.window.addEventListener(terminationEvent(this.window), () =>
+      this.shutdown()
+    );
 
     this.started = true;
   }

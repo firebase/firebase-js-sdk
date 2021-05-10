@@ -23,7 +23,7 @@ import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
-import { DocumentLike, WindowLike } from '../util/types';
+import { DocumentLike, WindowLike, terminationEvent } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
 import { IndexManager } from './index_manager';
@@ -943,14 +943,6 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /**
-   * Returns the page termination event to listen to. 'pagehide' is recommended
-   * if available, it falls back to the less reliable 'unload'.
-   */
-  private terminationEvent(): string {
-    return 'onpagehide' in this.window! ? 'pagehide' : 'unload';
-  }
-
-  /**
    * Attaches a window.unload handler that will synchronously write our
    * clientId to a "zombie client id" location in LocalStorage. This can be used
    * by tabs trying to acquire the primary lease to determine that the lease
@@ -975,7 +967,7 @@ export class IndexedDbPersistence implements Persistence {
         });
       };
       this.window.addEventListener(
-        this.terminationEvent(),
+        terminationEvent(this.window),
         this.windowUnloadHandler
       );
     }
@@ -988,7 +980,7 @@ export class IndexedDbPersistence implements Persistence {
         "Expected 'window.removeEventListener' to be a function"
       );
       this.window!.removeEventListener(
-        this.terminationEvent(),
+        terminationEvent(this.window),
         this.windowUnloadHandler
       );
       this.windowUnloadHandler = null;
