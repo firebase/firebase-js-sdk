@@ -27,7 +27,6 @@ import { encode, decode } from './serializer';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
-import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 export const DEFAULT_REGION = 'us-central1';
 
@@ -87,15 +86,10 @@ export class FunctionsService implements _FirebaseService {
     readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<FirebaseMessagingName>,
-    appCheckProvider: Provider<AppCheckInternalComponentName>,
     regionOrCustomDomain: string = DEFAULT_REGION,
     readonly fetchImpl: typeof fetch
   ) {
-    this.contextProvider = new ContextProvider(
-      authProvider,
-      messagingProvider,
-      appCheckProvider
-    );
+    this.contextProvider = new ContextProvider(authProvider, messagingProvider);
     // Cancels all ongoing requests when resolved.
     this.cancelAllRequests = new Promise(resolve => {
       this.deleteService = () => {
@@ -239,9 +233,6 @@ async function call(
   }
   if (context.messagingToken) {
     headers['Firebase-Instance-ID-Token'] = context.messagingToken;
-  }
-  if (context.appCheckToken !== null) {
-    headers['X-Firebase-AppCheck'] = context.appCheckToken;
   }
 
   // Default timeout to 70s, but let the options override it.
