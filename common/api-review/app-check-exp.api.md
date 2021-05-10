@@ -6,21 +6,28 @@
 
 import { FirebaseApp } from '@firebase/app-exp';
 
-// @public (undocumented)
+// @public
 export function activate(app: FirebaseApp, siteKeyOrProvider: string | AppCheckProvider, isTokenAutoRefreshEnabled?: boolean): void;
 
-// @public (undocumented)
-export type AppCheckComponentName = 'appCheck';
+// @public
+export interface AppCheck {
+    app: FirebaseApp;
+}
 
-// @public (undocumented)
+// @internal (undocumented)
+export type _AppCheckComponentName = 'app-check-exp';
+
+// Warning: (ae-internal-missing-underscore) The name "AppCheckInternalComponentName" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export type AppCheckInternalComponentName = 'app-check-internal';
 
-// @public (undocumented)
+// @public
 export interface AppCheckProvider {
     getToken(): Promise<AppCheckToken>;
 }
 
-// @public (undocumented)
+// @public
 export interface AppCheckToken {
     readonly expireTimeMillis: number;
     // (undocumented)
@@ -28,11 +35,7 @@ export interface AppCheckToken {
 }
 
 // @public
-export interface FirebaseAppCheck {
-    activate(siteKeyOrProvider: string | AppCheckProvider, isTokenAutoRefreshEnabled?: boolean): void;
-    // (undocumented)
-    setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
-}
+export function getAppCheck(app?: FirebaseApp): AppCheck;
 
 // @public (undocumented)
 export function setTokenAutoRefreshEnabled(app: FirebaseApp, isTokenAutoRefreshEnabled: boolean): void;

@@ -29,13 +29,23 @@ export interface AppCheck {
   app: FirebaseApp;
 }
 
+/**
+ * An App Check provider. This can be either the built-in reCAPTCHA
+ * provider or a custom provider. For more on custom providers, see
+ * https://firebase.google.com/docs/app-check/web-custom-provider
+ * @public
+ */
 export interface AppCheckProvider {
   /**
-   * Returns an AppCheck token
+   * Returns an AppCheck token.
    */
   getToken(): Promise<AppCheckToken>;
 }
 
+/**
+ * The token returned from an {@link AppCheckProvider}.
+ * @public
+ */
 export interface AppCheckToken {
   readonly token: string;
   /**
@@ -44,4 +54,7 @@ export interface AppCheckToken {
   readonly expireTimeMillis: number;
 }
 
-export type AppCheckComponentName = 'app-check-exp';
+/**
+ * @internal
+ */
+export type _AppCheckComponentName = 'app-check-exp';

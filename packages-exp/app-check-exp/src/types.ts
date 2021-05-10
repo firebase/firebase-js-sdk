@@ -38,7 +38,10 @@ export interface AppCheckTokenResult {
   readonly error?: Error;
 }
 
-export type AppCheckInternalComponentName = 'app-check-internal';
+/**
+ * @internal
+ */
+export type _AppCheckInternalComponentName = 'app-check-internal';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

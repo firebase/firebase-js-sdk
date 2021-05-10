@@ -96,10 +96,10 @@ export function activate(
   }
 }
 /**
- *
  * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
  * refreshes App Check tokens as needed. This overrides any value set
  * during `activate()`.
+ * @public
  */
 export function setTokenAutoRefreshEnabled(
   app: FirebaseApp,

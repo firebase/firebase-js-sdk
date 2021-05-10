@@ -16,20 +16,20 @@
  */
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
-import { AppCheckComponentName } from './public-types';
+import { _AppCheckComponentName } from './public-types';
 import { factory, internalFactory } from './factory';
 import { initializeDebugMode } from './debug';
-import { AppCheckInternalComponentName } from './types';
+import { _AppCheckInternalComponentName } from './types';
 import { name, version } from '../package.json';
 
 // Used by other Firebase packages.
-export { AppCheckInternalComponentName };
+export { _AppCheckInternalComponentName as AppCheckInternalComponentName };
 
 export * from './api';
 export * from './public-types';
 
-const APP_CHECK_NAME: AppCheckComponentName = 'app-check-exp';
-const APP_CHECK_NAME_INTERNAL: AppCheckInternalComponentName =
+const APP_CHECK_NAME: _AppCheckComponentName = 'app-check-exp';
+const APP_CHECK_NAME_INTERNAL: _AppCheckInternalComponentName =
   'app-check-internal';
 function registerAppCheck(): void {
   // The public interface
