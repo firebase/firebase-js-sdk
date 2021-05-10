@@ -56,6 +56,9 @@ export function encode(data: unknown): unknown {
   if (Object.prototype.toString.call(data) === '[object String]') {
     return data;
   }
+  if (data instanceof Date) {
+    return data.toISOString();
+  }
   if (Array.isArray(data)) {
     return data.map(x => encode(x));
   }
