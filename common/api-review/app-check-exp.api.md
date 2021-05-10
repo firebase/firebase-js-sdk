@@ -35,7 +35,7 @@ export interface AppCheckToken {
 // @public
 export function getAppCheck(app?: FirebaseApp): AppCheck;
 
-// @public (undocumented)
+// @public
 export function setTokenAutoRefreshEnabled(app: FirebaseApp, isTokenAutoRefreshEnabled: boolean): void;
 
 

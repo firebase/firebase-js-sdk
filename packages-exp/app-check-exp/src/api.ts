@@ -96,6 +96,8 @@ export function activate(
   }
 }
 /**
+ * Set whether App Check will automatically refresh tokens as needed.
+ *
  * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
  * refreshes App Check tokens as needed. This overrides any value set
  * during `activate()`.
