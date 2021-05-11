@@ -59,14 +59,6 @@ export interface WindowLike {
   removeEventListener(type: string, listener: EventListener): void;
 }
 
-/**
- * Returns the page termination event to listen to. 'pagehide' is recommended
- * if available, it falls back to the less reliable 'unload'.
- */
-export function terminationEvent(window: WindowLike | null): string {
-  return 'onpagehide' in window! ? 'pagehide' : 'unload';
-}
-
 /** The subset of the browser's Document interface used by the SDK. */
 export interface DocumentLike {
   readonly visibilityState: VisibilityState;

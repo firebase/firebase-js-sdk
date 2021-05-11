@@ -23,7 +23,7 @@ import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
-import { DocumentLike, WindowLike, terminationEvent } from '../util/types';
+import { DocumentLike, WindowLike } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
 import { IndexManager } from './index_manager';
@@ -966,10 +966,7 @@ export class IndexedDbPersistence implements Persistence {
           return this.shutdown();
         });
       };
-      this.window.addEventListener(
-        terminationEvent(this.window),
-        this.windowUnloadHandler
-      );
+      this.window.addEventListener('pagehide', this.windowUnloadHandler);
     }
   }
 
@@ -979,10 +976,7 @@ export class IndexedDbPersistence implements Persistence {
         typeof this.window?.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
-      this.window!.removeEventListener(
-        terminationEvent(this.window),
-        this.windowUnloadHandler
-      );
+      this.window!.removeEventListener('pagehide', this.windowUnloadHandler);
       this.windowUnloadHandler = null;
     }
   }
