@@ -1,5 +1,18 @@
 # firebase
 
+## 8.6.0
+
+### Minor Changes
+
+- [`81c131abe`](https://github.com/firebase/firebase-js-sdk/commit/81c131abea7001c5933156ff6b0f3925f16ff052) [#4860](https://github.com/firebase/firebase-js-sdk/pull/4860) - Release the Firebase App Check package.
+
+### Patch Changes
+
+- [`cc7207e25`](https://github.com/firebase/firebase-js-sdk/commit/cc7207e25f09870c6c718b8e209e694661676d27) [#4870](https://github.com/firebase/firebase-js-sdk/pull/4870) - Fix database.useEmulator typing.
+
+- Updated dependencies [[`81c131abe`](https://github.com/firebase/firebase-js-sdk/commit/81c131abea7001c5933156ff6b0f3925f16ff052)]:
+  - @firebase/app-check@0.1.0
+
 ## 8.5.0
 
 ### Minor Changes
