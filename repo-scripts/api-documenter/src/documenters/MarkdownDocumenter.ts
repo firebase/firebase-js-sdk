@@ -329,7 +329,9 @@ export class MarkdownDocumenter {
         output.push(...createThrowsSection(apiItem, configuration));
         break;
       case ApiItemKind.Namespace:
-        // this._writeEntryPointOrNamespace(output, apiItem as ApiNamespace);
+        output.push(
+          ...this._createEntryPointOrNamespace(apiItem as ApiNamespace)
+        );
         break;
       case ApiItemKind.Model:
         output.push(...this._createModelTable(apiItem as ApiModel));
