@@ -2,4 +2,4 @@
 '@firebase/database': patch
 ---
 
-Index server data retrieved by get()
+Fix `index not defined` errors for orderByChild get requests
