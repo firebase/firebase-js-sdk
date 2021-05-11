@@ -466,11 +466,7 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
         query._path,
         node
       );
-      let affectedPath = query._path;
-      if (events.length > 0) {
-        affectedPath = repoRerunTransactions(repo, query._path);
-      }
-      eventQueueRaiseEventsAtPath(repo.eventQueue_, affectedPath, events);
+      eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
       return Promise.resolve(node);
     },
     err => {
