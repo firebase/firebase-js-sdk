@@ -1,1 +1,0 @@
-{"rules": {"$path": {".read": true, ".write": true, ".indexOn": "data"}}
