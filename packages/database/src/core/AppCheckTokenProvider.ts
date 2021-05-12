@@ -42,7 +42,19 @@ export class AppCheckTokenProvider {
 
   getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult> {
     if (!this.appCheck) {
-      return Promise.resolve(null);
+      return new Promise<AppCheckTokenResult>((resolve, reject) => {
+        // Support delayed initialization of FirebaseAppCheck. This allows our
+        // customers to initialize the RTDB SDK before initializing Firebase
+        // AppCheck and ensures that all requests are authenticated if a token
+        // becomes available before the timoeout below expires.
+        setTimeout(() => {
+          if (this.appCheck) {
+            this.getToken(forceRefresh).then(resolve, reject);
+          } else {
+            resolve(null);
+          }
+        }, 0);
+      });
     }
     return this.appCheck.getToken(forceRefresh);
   }

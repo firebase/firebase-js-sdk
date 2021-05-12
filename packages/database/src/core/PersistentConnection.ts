@@ -244,6 +244,7 @@ export class PersistentConnection extends ServerActions {
 
     return deferred.promise;
   }
+
   listen(
     query: QueryContext,
     currentHashFn: () => string,
@@ -351,6 +352,7 @@ export class PersistentConnection extends ServerActions {
       }
     }
   }
+
   refreshAuthToken(token: string) {
     this.authToken_ = token;
     this.log_('Auth token refreshed');
@@ -488,6 +490,7 @@ export class PersistentConnection extends ServerActions {
 
     this.sendRequest(action, req);
   }
+
   onDisconnectPut(
     pathString: string,
     data: unknown,
@@ -506,6 +509,7 @@ export class PersistentConnection extends ServerActions {
       });
     }
   }
+
   onDisconnectMerge(
     pathString: string,
     data: unknown,
@@ -524,6 +528,7 @@ export class PersistentConnection extends ServerActions {
       });
     }
   }
+
   onDisconnectCancel(
     pathString: string,
     onComplete?: (a: string, b: string) => void
@@ -561,6 +566,7 @@ export class PersistentConnection extends ServerActions {
       }
     });
   }
+
   put(
     pathString: string,
     data: unknown,
@@ -569,6 +575,7 @@ export class PersistentConnection extends ServerActions {
   ) {
     this.putInternal('p', pathString, data, onComplete, hash);
   }
+
   merge(
     pathString: string,
     data: unknown,
@@ -638,6 +645,7 @@ export class PersistentConnection extends ServerActions {
       }
     });
   }
+
   reportStats(stats: { [k: string]: unknown }) {
     // If we're not connected, we just drop the stats.
     if (this.connected_) {
