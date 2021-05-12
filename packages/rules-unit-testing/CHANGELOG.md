@@ -1,5 +1,12 @@
 # @firebase/rules-unit-testing
 
+## 1.3.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.6.1
+
 ## 1.3.0
 
 ### Minor Changes
