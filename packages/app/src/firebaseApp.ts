@@ -29,7 +29,8 @@ import {
   ComponentContainer,
   Component,
   ComponentType,
-  Name
+  Name,
+  InstantiationMode
 } from '@firebase/component';
 import { AppError, ERROR_FACTORY } from './errors';
 import { DEFAULT_ENTRY_NAME } from './constants';
@@ -122,8 +123,17 @@ export class FirebaseAppImpl implements FirebaseApp {
   ): FirebaseService {
     this.checkDestroyed_();
 
+    // Initialize instance if InstatiationMode is `EXPLICIT`.
+    const provider = this.container.getProvider(name as Name);
+    if (
+      !provider.isInitialized() &&
+      provider.getComponent()?.instantiationMode === InstantiationMode.EXPLICIT
+    ) {
+      provider.initialize();
+    }
+
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (this.container.getProvider(name as Name).getImmediate({
+    return (provider.getImmediate({
       identifier: instanceIdentifier
     }) as unknown) as FirebaseService;
   }

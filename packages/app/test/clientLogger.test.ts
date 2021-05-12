@@ -16,7 +16,10 @@
  */
 
 import { FirebaseNamespace, VersionService } from '@firebase/app-types';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import {
+  _FirebaseNamespace,
+  FirebaseService
+} from '@firebase/app-types/private';
 import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { expect } from 'chai';
 import { spy as Spy } from 'sinon';
@@ -29,7 +32,7 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     'vs1': VersionService;
     'vs2': VersionService;
-    'test-shell': Promise<void>;
+    'test-shell': FirebaseService;
   }
 }
 

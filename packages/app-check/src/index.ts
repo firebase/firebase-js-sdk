@@ -16,7 +16,11 @@
  */
 import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstantiationMode
+} from '@firebase/component';
 import {
   FirebaseAppCheck,
   AppCheckComponentName
@@ -41,6 +45,26 @@ function registerAppCheck(firebase: _FirebaseNamespace): void {
       },
       ComponentType.PUBLIC
     )
+      /**
+       * AppCheck can only be initialized by explicitly calling firebase.appCheck()
+       * We don't want firebase products that consume AppCheck to gate on AppCheck
+       * if the user doesn't intend them to, just because the AppCheck component
+       * is registered.
+       */
+      .setInstantiationMode(InstantiationMode.EXPLICIT)
+      /**
+       * Because all firebase products that depend on app-check depend on app-check-internal directly,
+       * we need to initialize app-check-internal after app-check is initialized to make it
+       * available to other firebase products.
+       */
+      .setInstanceCreatedCallback(
+        (container, _instanceIdentifier, _instance) => {
+          const appCheckInternalProvider = container.getProvider(
+            APP_CHECK_NAME_INTERNAL
+          );
+          appCheckInternalProvider.initialize();
+        }
+      )
   );
 
   // The internal interface used by other Firebase products
@@ -54,7 +78,7 @@ function registerAppCheck(firebase: _FirebaseNamespace): void {
         return internalFactory(app, platformLoggerProvider);
       },
       ComponentType.PUBLIC
-    )
+    ).setInstantiationMode(InstantiationMode.EXPLICIT)
   );
 
   firebase.registerVersion(name, version);
