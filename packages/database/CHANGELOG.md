@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.10.1
+
+### Patch Changes
+
+- [`5b202f852`](https://github.com/firebase/firebase-js-sdk/commit/5b202f852ca68b35b06b0ea17e4b6b8c446c651c) [#4864](https://github.com/firebase/firebase-js-sdk/pull/4864) - Fixed an issue that could cause `once()` to fire more than once if the value was modified inside its callback.
+
 ## 0.10.0
 
 ### Minor Changes

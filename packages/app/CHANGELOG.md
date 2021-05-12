@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.6.22
+
+### Patch Changes
+
+- [`60e834739`](https://github.com/firebase/firebase-js-sdk/commit/60e83473940e60f8390b1b0f97cf45a1733f66f0) [#4897](https://github.com/firebase/firebase-js-sdk/pull/4897) - Make App Check initialization explicit, to prevent unexpected errors for users who do not intend to use App Check.
+
 ## 0.6.21
 
 ### Patch Changes
