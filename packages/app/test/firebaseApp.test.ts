@@ -84,7 +84,7 @@ function executeFirebaseTests(): void {
       expect(service).to.eq((firebase as any).test());
     });
 
-    it('does not instantiate explicit components unless called explicitly', done => {
+    it('does not instantiate explicit components unless called explicitly', () => {
       firebase.initializeApp({});
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         createTestComponent('test').setInstantiationMode(
@@ -92,16 +92,17 @@ function executeFirebaseTests(): void {
         )
       );
 
+      let explicitService;
+
       // Expect getImmediate in a consuming component to return null.
       const consumerComponent = new Component(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         'consumer' as any,
         container => {
-          const testService = container
+          explicitService = container
             .getProvider('test' as any)
             .getImmediate({ optional: true });
-          expect(testService).to.be.null;
-          done();
+          return new TestService(container.getProvider('app').getImmediate());
         },
         ComponentType.PUBLIC
       );
@@ -110,9 +111,10 @@ function executeFirebaseTests(): void {
       );
 
       (firebase as any).consumer();
+      expect(explicitService).to.be.null;
     });
 
-    it('does instantiate explicit components when called explicitly', done => {
+    it('does instantiate explicit components when called explicitly', () => {
       firebase.initializeApp({});
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         createTestComponent('test').setInstantiationMode(
@@ -120,16 +122,17 @@ function executeFirebaseTests(): void {
         )
       );
 
+      let explicitService;
+
       // Expect getImmediate in a consuming component to return the service.
       const consumerComponent = new Component(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         'consumer' as any,
         container => {
-          const testService = container
+          explicitService = container
             .getProvider('test' as any)
             .getImmediate({ optional: true });
-          expect(testService).to.not.be.null;
-          done();
+          return new TestService(container.getProvider('app').getImmediate());
         },
         ComponentType.PUBLIC
       );
@@ -139,6 +142,7 @@ function executeFirebaseTests(): void {
 
       (firebase as any).test();
       (firebase as any).consumer();
+      expect(explicitService).to.not.be.null;
     });
 
     it(`creates a new instance of a service after removing the existing instance`, () => {
