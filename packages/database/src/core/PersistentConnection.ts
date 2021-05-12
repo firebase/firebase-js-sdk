@@ -165,7 +165,6 @@ export class PersistentConnection extends ServerActions {
         'Auth override specified in options, but not supported on non Node.js platforms'
       );
     }
-    this.scheduleConnect_(0);
 
     VisibilityMonitor.getInstance().on('visible', this.onVisible_, this);
 
@@ -194,6 +193,8 @@ export class PersistentConnection extends ServerActions {
   }
 
   get(query: QueryContext): Promise<string> {
+    this.initConnection_();
+
     const deferred = new Deferred<string>();
     const request = {
       p: query._path.toString(),
@@ -249,6 +250,8 @@ export class PersistentConnection extends ServerActions {
     tag: number | null,
     onComplete: (a: string, b: unknown) => void
   ) {
+    this.initConnection_();
+
     const queryId = query._queryIdentifier;
     const pathString = query._path.toString();
     this.log_('Listen called for ' + pathString + ' ' + queryId);
@@ -490,6 +493,8 @@ export class PersistentConnection extends ServerActions {
     data: unknown,
     onComplete?: (a: string, b: string) => void
   ) {
+    this.initConnection_();
+
     if (this.connected_) {
       this.sendOnDisconnect_('o', pathString, data, onComplete);
     } else {
@@ -506,6 +511,8 @@ export class PersistentConnection extends ServerActions {
     data: unknown,
     onComplete?: (a: string, b: string) => void
   ) {
+    this.initConnection_();
+
     if (this.connected_) {
       this.sendOnDisconnect_('om', pathString, data, onComplete);
     } else {
@@ -521,6 +528,8 @@ export class PersistentConnection extends ServerActions {
     pathString: string,
     onComplete?: (a: string, b: string) => void
   ) {
+    this.initConnection_();
+
     if (this.connected_) {
       this.sendOnDisconnect_('oc', pathString, null, onComplete);
     } else {
@@ -576,6 +585,8 @@ export class PersistentConnection extends ServerActions {
     onComplete: (a: string, b: string | null) => void,
     hash?: string
   ) {
+    this.initConnection_();
+
     const request: { [k: string]: unknown } = {
       /*path*/ p: pathString,
       /*data*/ d: data
@@ -735,6 +746,12 @@ export class PersistentConnection extends ServerActions {
       this.establishConnection_();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }, Math.floor(timeout)) as any;
+  }
+
+  private initConnection_() {
+    if (!this.realtime_ && this.firstConnection_) {
+      this.scheduleConnect_(0);
+    }
   }
 
   private onVisible_(visible: boolean) {
