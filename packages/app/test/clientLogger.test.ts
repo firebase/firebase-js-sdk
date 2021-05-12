@@ -54,7 +54,7 @@ describe('User Log Methods', () => {
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
-          async () => {
+          () => {
             const logger = new Logger('@firebase/logger-test');
             logger.warn('hello');
             expect(warnSpy.called).to.be.true;
@@ -70,6 +70,7 @@ describe('User Log Methods', () => {
             expect(infoSpy.called).to.be.true;
             logger.log('hi');
             expect(logSpy.called).to.be.true;
+            return {} as FirebaseService;
           },
           ComponentType.PUBLIC
         )
@@ -84,7 +85,7 @@ describe('User Log Methods', () => {
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
-          async () => {
+          () => {
             const logger = new Logger('@firebase/logger-test');
             (firebase as _FirebaseNamespace).onLog(logData => {
               result = logData;
@@ -95,6 +96,7 @@ describe('User Log Methods', () => {
             expect(result.args).to.deep.equal(['hi']);
             expect(result.type).to.equal('@firebase/logger-test');
             expect(infoSpy.called).to.be.true;
+            return {} as FirebaseService;
           },
           ComponentType.PUBLIC
         )

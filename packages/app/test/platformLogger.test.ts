@@ -78,14 +78,15 @@ describe('Platform Logger Service', () => {
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
-          async (container: ComponentContainer) => {
+          (container: ComponentContainer) => {
             const platformLoggerProvider = container.getProvider(
               'platform-logger'
             );
-            const platformLogger = (await platformLoggerProvider.get()) as PlatformLoggerService;
+            const platformLogger = platformLoggerProvider.getImmediate() as PlatformLoggerService;
             const platformInfoString = platformLogger.getPlatformInfoString();
             expect(platformInfoString).to.include(`fire-core/${appVersion}`);
             expect(platformInfoString).to.include('fire-js/');
+            return {} as FirebaseService;
           },
           ComponentType.PUBLIC
         )
@@ -99,16 +100,17 @@ describe('Platform Logger Service', () => {
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
-          async (container: ComponentContainer) => {
+          (container: ComponentContainer) => {
             const platformLoggerProvider = container.getProvider(
               'platform-logger'
             );
-            const platformLogger = (await platformLoggerProvider.get()) as PlatformLoggerService;
+            const platformLogger = platformLoggerProvider.getImmediate() as PlatformLoggerService;
             const platformInfoString = platformLogger.getPlatformInfoString();
             expect(platformInfoString).to.include(
               `fire-core-node/${appVersion}`
             );
             expect(platformInfoString).to.include('fire-js/');
+            return {} as FirebaseService;
           },
           ComponentType.PUBLIC
         )
@@ -126,14 +128,15 @@ describe('Platform Logger Service', () => {
       (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
         new Component(
           'test-shell',
-          async (container: ComponentContainer) => {
+          (container: ComponentContainer) => {
             const platformLoggerProvider = container.getProvider(
               'platform-logger'
             );
-            const platformLogger = (await platformLoggerProvider.get()) as PlatformLoggerService;
+            const platformLogger = platformLoggerProvider.getImmediate() as PlatformLoggerService;
             const platformInfoString = platformLogger.getPlatformInfoString();
             expect(platformInfoString).to.include('fire-analytics/1.2.3');
             expect(platformInfoString).to.include('fire-js/');
+            return {} as FirebaseService;
           },
           ComponentType.PUBLIC
         )
