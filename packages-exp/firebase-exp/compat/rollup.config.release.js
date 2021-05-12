@@ -206,6 +206,40 @@ const componentBuilds = compatPkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
+const aliasForCompleteCDNBuild = compatPkg.components
+  .filter(component => {
+    return (
+      component !== 'firestore' &&
+      component !== 'storage' &&
+      component !== 'database'
+    );
+  })
+  .map(component => ({
+    find: `@firebase/${component}`,
+    replacement: `@firebase/${component}-exp`
+  }))
+  .concat([
+    {
+      find: '@firebase/installations',
+      replacement: '@firebase/installations-exp'
+    },
+    {
+      // hack to locate firestore-compat
+      find: '@firebase/firestore-compat',
+      replacement: 'firestore-compat'
+    },
+    {
+      // hack to locate storage-compat
+      find: '@firebase/storage-compat',
+      replacement: 'storage-compat'
+    },
+    {
+      // hack to locate database-compat
+      find: '@firebase/database-compat',
+      replacement: 'database-compat'
+    }
+  ]);
+
 /**
  * Complete Package Builds
  */
@@ -230,10 +264,19 @@ const completeBuilds = [
     output: {
       file: 'firebase-compat.js',
       format: 'umd',
-      sourcemap: true,
+      // disable sourcemap, otherwise build will fail with Error: Multiple conflicting contents for sourcemap source
+      // TODO: I think it's related to the alias() we are using, so let's try to reenable it for GA.
+      sourcemap: false,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPluginUMD, terser()]
+    plugins: [
+      ...plugins,
+      typescriptPluginUMD,
+      terser(),
+      alias({
+        entries: aliasForCompleteCDNBuild
+      })
+    ]
   },
   /**
    * App Node.js Builds
@@ -280,7 +323,27 @@ const completeBuilds = [
       typescriptPluginUMD,
       json(),
       commonjs(),
-      terser()
+      terser({
+        format: {
+          comments: false
+        }
+      }),
+      alias({
+        entries: [
+          {
+            find: '@firebase/app',
+            replacement: '@firebase/app-exp'
+          },
+          {
+            find: `@firebase/performance`,
+            replacement: `@firebase/performance-exp`
+          },
+          {
+            find: '@firebase/installations',
+            replacement: '@firebase/installations-exp'
+          }
+        ]
+      })
     ]
   },
   /**
@@ -312,7 +375,27 @@ const completeBuilds = [
         preferConst: true
       }),
       commonjs(),
-      terser()
+      terser({
+        format: {
+          comments: false
+        }
+      }),
+      alias({
+        entries: [
+          {
+            find: '@firebase/app',
+            replacement: '@firebase/app-exp'
+          },
+          {
+            find: `@firebase/performance`,
+            replacement: `@firebase/performance-exp`
+          },
+          {
+            find: '@firebase/installations',
+            replacement: '@firebase/installations-exp'
+          }
+        ]
+      })
     ]
   }
 ];
