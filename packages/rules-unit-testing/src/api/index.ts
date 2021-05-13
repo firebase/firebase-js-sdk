@@ -263,9 +263,9 @@ export function initializeAdminApp(options: AdminAppOptions): app.App {
  * @param options options object.
  */
 export function useEmulators(options: FirebaseEmulatorOptions): void {
-  if (!(options.database || options.firestore || options.hub)) {
+  if (!(options.database || options.firestore || options.storage || options.hub)) {
     throw new Error(
-      "Argument to useEmulators must contain at least one of 'database', 'firestore', or 'hub'."
+      "Argument to useEmulators must contain at least one of 'database', 'firestore', 'storage', or 'hub'."
     );
   }
 
