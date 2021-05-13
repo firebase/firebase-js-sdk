@@ -90,6 +90,13 @@ interface AppCheckProvider {
   getToken(): Promise<AppCheckToken>;
 }
 
+interface ReCAPTCHAV3Provider {
+  /**
+   * @param siteKey - ReCAPTCHA v3 site key (public key).
+   */
+  constructor(siteKey: string): void;
+}
+
 /**
  * The token returned from an `AppCheckProvider`.
  */

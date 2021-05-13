@@ -29,32 +29,18 @@ import {
 } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
-import { ensureActivated } from './util';
+import { ensureActivated, formatDummyToken } from './util';
 import { exchangeToken, getExchangeDebugTokenRequest } from './client';
 import { writeTokenToStorage, readTokenFromStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64, issuedAtTime } from '@firebase/util';
+import { issuedAtTime } from '@firebase/util';
 import { logger } from './logger';
 import { Provider } from '@firebase/component';
-import { ReCAPTCHAProviderInternal } from './providers';
+import { ReCAPTCHAV3ProviderInternal } from './providers';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
 export const defaultTokenErrorData = { error: 'UNKNOWN_ERROR' };
-
-/**
- * Stringify and base64 encode token error data.
- *
- * @param tokenError Error data, currently hardcoded.
- */
-export function formatDummyToken(
-  tokenErrorData: Record<string, string>
-): string {
-  return base64.encodeString(
-    JSON.stringify(tokenErrorData),
-    /* webSafe= */ false
-  );
-}
 
 /**
  * This function will always resolve.
@@ -122,7 +108,7 @@ export async function getToken(
     // ReCAPTCHAProvider is wrapped during activate().
     // ensureActivated() at the beginning of this function will prevent
     // getting here without activate() having been called.
-    if (state.provider instanceof ReCAPTCHAProviderInternal) {
+    if (state.provider instanceof ReCAPTCHAV3ProviderInternal) {
       token = await state.provider.getToken();
     } else if (state.provider) {
       // custom provider

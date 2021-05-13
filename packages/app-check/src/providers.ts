@@ -20,11 +20,11 @@ import { FirebaseApp } from '@firebase/app-types';
 import { Provider } from '@firebase/component';
 import { exchangeToken, getExchangeRecaptchaTokenRequest } from './client';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { formatDummyToken } from './internal-api';
+import { formatDummyToken } from './util';
 import { getToken as getReCAPTCHAToken } from './recaptcha';
 import { AppCheckTokenInternal } from './state';
 
-export class ReCAPTCHAProvider implements AppCheckProvider {
+export class ReCAPTCHAV3Provider implements AppCheckProvider {
   constructor(private _siteKey: string) {}
   async getToken(): Promise<AppCheckToken> {
     return Promise.resolve({
@@ -37,7 +37,7 @@ export class ReCAPTCHAProvider implements AppCheckProvider {
   }
 }
 
-export class ReCAPTCHAProviderInternal implements AppCheckProvider {
+export class ReCAPTCHAV3ProviderInternal implements AppCheckProvider {
   constructor(
     private _app: FirebaseApp,
     private _siteKey: string,

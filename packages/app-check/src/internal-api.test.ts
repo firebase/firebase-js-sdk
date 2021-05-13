@@ -32,7 +32,6 @@ import {
   getToken,
   addTokenListener,
   removeTokenListener,
-  formatDummyToken,
   defaultTokenErrorData
 } from './internal-api';
 import * as reCAPTCHA from './recaptcha';
@@ -48,8 +47,9 @@ import {
   ListenerType
 } from './state';
 import { Deferred } from '@firebase/util';
-import { ReCAPTCHAProvider } from './providers';
 import { AppCheckTokenResult } from '../../app-check-types';
+import { ReCAPTCHAV3Provider } from './providers';
+import { formatDummyToken } from './util';
 
 const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
 
@@ -102,7 +102,7 @@ describe('internal api', () => {
     it('uses reCAPTCHA token to exchange for AppCheck token if ReCAPTCHAProvider is provided', async () => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -128,7 +128,7 @@ describe('internal api', () => {
       const errorStub = stub(console, 'error');
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -155,7 +155,7 @@ describe('internal api', () => {
     it('notifies listeners using cached token', async () => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       storageReadStub.resolves(fakeCachedAppCheckToken);
@@ -188,7 +188,7 @@ describe('internal api', () => {
     it('notifies listeners using new token', async () => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -224,7 +224,7 @@ describe('internal api', () => {
       stub(logger.logger, 'error');
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
@@ -250,7 +250,7 @@ describe('internal api', () => {
     it('ignores listeners that throw', async () => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
@@ -284,7 +284,7 @@ describe('internal api', () => {
     it('loads persisted token to memory and returns it', async () => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -304,7 +304,7 @@ describe('internal api', () => {
     it('persists token to storage', async () => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -321,7 +321,7 @@ describe('internal api', () => {
     it('returns the valid token in memory without making network request', async () => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
@@ -337,7 +337,7 @@ describe('internal api', () => {
     it('force to get new token when forceRefresh is true', async () => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
@@ -363,7 +363,7 @@ describe('internal api', () => {
       debugState.token.resolve('my-debug-token');
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -444,7 +444,7 @@ describe('internal api', () => {
     it('notifies the listener with the valid token in storage', done => {
       activate(
         app,
-        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       storageReadStub.resolves({
