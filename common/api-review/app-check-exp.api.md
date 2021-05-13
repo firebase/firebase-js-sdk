@@ -7,9 +7,6 @@
 import { FirebaseApp } from '@firebase/app-exp';
 
 // @public
-export function activate(app: FirebaseApp, siteKeyOrProvider: string | AppCheckProvider, isTokenAutoRefreshEnabled?: boolean): void;
-
-// @public
 export interface AppCheck {
     app: FirebaseApp;
 }
@@ -19,6 +16,12 @@ export type _AppCheckComponentName = 'app-check-exp';
 
 // @internal (undocumented)
 export type _AppCheckInternalComponentName = 'app-check-internal';
+
+// @public
+export interface AppCheckOptions {
+    isTokenAutoRefreshEnabled?: boolean;
+    provider: AppCheckProvider;
+}
 
 // @public
 export interface AppCheckProvider {
@@ -33,7 +36,13 @@ export interface AppCheckToken {
 }
 
 // @public
-export function getAppCheck(app?: FirebaseApp): AppCheck;
+export function initializeAppCheck(app: FirebaseApp | undefined, options: AppCheckOptions): AppCheck;
+
+// @public
+export class ReCaptchaV3Provider implements AppCheckProvider {
+    constructor(siteKey: string);
+    getToken(): Promise<AppCheckToken>;
+}
 
 // @public
 export function setTokenAutoRefreshEnabled(app: FirebaseApp, isTokenAutoRefreshEnabled: boolean): void;

@@ -28,8 +28,7 @@ export interface AppCheckTokenInternal extends AppCheckToken {
 export interface AppCheckState {
   activated: boolean;
   tokenListeners: AppCheckTokenListener[];
-  customProvider?: AppCheckProvider;
-  siteKey?: string;
+  provider?: AppCheckProvider;
   token?: AppCheckTokenInternal;
   tokenRefresher?: Refresher;
   reCAPTCHAState?: ReCAPTCHAState;

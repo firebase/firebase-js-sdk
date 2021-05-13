@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { getToken as getReCAPTCHAToken } from './recaptcha';
 import { FirebaseApp } from '@firebase/app-exp';
 import { AppCheckTokenResult, AppCheckTokenListener } from './types';
 import {
@@ -27,17 +26,13 @@ import {
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
-import {
-  exchangeToken,
-  getExchangeDebugTokenRequest,
-  getExchangeRecaptchaTokenRequest
-} from './client';
+import { exchangeToken, getExchangeDebugTokenRequest } from './client';
 import { writeTokenToStorage, readTokenFromStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
 import { base64, issuedAtTime } from '@firebase/util';
-import { ERROR_FACTORY, AppCheckError } from './errors';
 import { logger } from './logger';
 import { Provider } from '@firebase/component';
+import { ReCaptchaV3Provider } from './providers';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
@@ -111,8 +106,11 @@ export async function getToken(
    * request a new token
    */
   try {
-    if (state.customProvider) {
-      const customToken = await state.customProvider.getToken();
+    if (state.provider instanceof ReCaptchaV3Provider) {
+      token = await state.provider.getToken();
+    } else if (state.provider) {
+      // custom provider
+      const customToken = await state.provider.getToken();
       // Try to extract IAT from custom token, in case this token is not
       // being newly issued. JWT timestamps are in seconds since epoch.
       const issuedAtTimeSeconds = issuedAtTime(customToken.token);
@@ -126,15 +124,6 @@ export async function getToken(
           : Date.now();
 
       token = { ...customToken, issuedAtTimeMillis };
-    } else {
-      const attestedClaimsToken = await getReCAPTCHAToken(app).catch(_e => {
-        // reCaptcha.execute() throws null which is not very descriptive.
-        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-      });
-      token = await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, attestedClaimsToken),
-        platformLoggerProvider
-      );
     }
   } catch (e) {
     // `getToken()` should never throw, but logging error text to console will aid debugging.

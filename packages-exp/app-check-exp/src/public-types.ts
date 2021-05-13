@@ -58,3 +58,18 @@ export interface AppCheckToken {
  * @internal
  */
 export type _AppCheckComponentName = 'app-check-exp';
+
+/**
+ * Options for App Check initialization.
+ * @public
+ */
+export interface AppCheckOptions {
+  /**
+   * reCAPTCHA provider or custom provider.
+   */
+  provider: AppCheckProvider;
+  /**
+   * If set to true, enables automatic background refresh of app check token.
+   */
+  isTokenAutoRefreshEnabled?: boolean;
+}

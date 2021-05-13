@@ -27,6 +27,7 @@ export { _AppCheckInternalComponentName };
 
 export * from './api';
 export * from './public-types';
+export * from './providers';
 
 const APP_CHECK_NAME: _AppCheckComponentName = 'app-check-exp';
 const APP_CHECK_NAME_INTERNAL: _AppCheckInternalComponentName =
