@@ -96,13 +96,12 @@ const allBuilds = [
     },
     onwarn: util.onwarn
   },
-  // Node UMD build
+  // Node CJS build
   {
     input: path.resolve('./lite', pkg['main-esm']),
     output: {
       file: path.resolve('./lite', pkg.main),
-      format: 'umd',
-      name: 'firebase.firestore',
+      format: 'cjs',
       sourcemap: true
     },
     plugins: [
@@ -134,6 +133,22 @@ const allBuilds = [
       alias(util.generateAliasConfig('browser_lite')),
       ...browserPlugins()
     ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Convert es2017 build to ES5
+  {
+    input: path.resolve('./lite', pkg.browser),
+    output: [
+      {
+        file: path.resolve('./lite', pkg.esm5),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

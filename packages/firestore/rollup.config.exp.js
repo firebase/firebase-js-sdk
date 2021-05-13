@@ -97,13 +97,12 @@ const allBuilds = [
     },
     onwarn: util.onwarn
   },
-  // Node UMD build
+  // Node CJS build
   {
     input: path.resolve('./exp', pkg['main-esm']),
     output: {
       file: path.resolve('./exp', pkg.main),
-      format: 'umd',
-      name: 'firebase.firestore',
+      format: 'cjs',
       sourcemap: true
     },
     plugins: util.es2017ToEs5Plugins(/* mangled= */ false),
@@ -121,6 +120,22 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins()],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Convert es2017 build to ES5
+  {
+    input: path.resolve('./exp', pkg['browser']),
+    output: [
+      {
+        file: path.resolve('./exp', pkg['esm5']),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
