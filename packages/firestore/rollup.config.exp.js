@@ -135,7 +135,7 @@ const allBuilds = [
         sourcemap: true
       }
     ],
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ false),
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
