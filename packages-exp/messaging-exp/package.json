@@ -10,7 +10,8 @@
   "typings": "dist/index.d.ts",
   "sw": "dist/index.sw.esm2017.js",
   "files": [
-    "dist"
+    "dist",
+    "sw/package.json" 
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
