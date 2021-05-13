@@ -139,6 +139,22 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
+  // Convert es2017 build to ES5
+  {
+    input: path.resolve('./lite', pkg.browser),
+    output: [
+      {
+        file: path.resolve('./lite', pkg.esm5),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ false),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
   // RN build
   {
     input: './lite/index.ts',

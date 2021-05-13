@@ -126,6 +126,22 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
+  // Convert es2017 build to ES5
+  {
+    input: path.resolve('./exp', pkg['browser']),
+    output: [
+      {
+        file: path.resolve('./exp', pkg['esm5']),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ false),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
   // RN build
   {
     input: './exp/index.rn.ts',
