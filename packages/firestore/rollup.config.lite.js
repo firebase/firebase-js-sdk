@@ -96,13 +96,12 @@ const allBuilds = [
     },
     onwarn: util.onwarn
   },
-  // Node UMD build
+  // Node CJS build
   {
     input: path.resolve('./lite', pkg['main-esm']),
     output: {
       file: path.resolve('./lite', pkg.main),
-      format: 'umd',
-      name: 'firebase.firestore',
+      format: 'cjs',
       sourcemap: true
     },
     plugins: [
