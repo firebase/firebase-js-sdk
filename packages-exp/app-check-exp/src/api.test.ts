@@ -38,7 +38,7 @@ import {
 } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 import { AppCheckService } from './factory';
-import { ReCaptchaV3Provider } from './providers';
+import { ReCaptchaV3ProviderImpl } from './providers';
 import { PlatformLoggerService } from '@firebase/app-exp/dist/packages-exp/app-exp/src/types';
 
 describe('api', () => {
@@ -76,11 +76,11 @@ describe('api', () => {
   describe('initializeAppCheck()', () => {
     it('can only be called once', () => {
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        provider: new ReCaptchaV3ProviderImpl(FAKE_SITE_KEY)
       });
       expect(() =>
         initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+          provider: new ReCaptchaV3ProviderImpl(FAKE_SITE_KEY)
         })
       ).to.throw(/appCheck\/already-initialized/);
     });
@@ -90,7 +90,7 @@ describe('api', () => {
         Promise.resolve({} as any)
       );
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        provider: new ReCaptchaV3ProviderImpl(FAKE_SITE_KEY)
       });
       expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
         app,
@@ -119,7 +119,7 @@ describe('api', () => {
       expect(getState(app).activated).to.equal(false);
       activate(
         app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3ProviderImpl(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider()
       );
       expect(getState(app).activated).to.equal(true);
@@ -129,7 +129,7 @@ describe('api', () => {
       app.automaticDataCollectionEnabled = false;
       activate(
         app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3ProviderImpl(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider()
       );
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(false);
@@ -139,7 +139,7 @@ describe('api', () => {
       app.automaticDataCollectionEnabled = false;
       activate(
         app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3ProviderImpl(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider(),
         true
       );

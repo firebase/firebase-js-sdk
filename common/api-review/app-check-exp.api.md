@@ -5,6 +5,10 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-exp';
+import { Provider } from '@firebase/component';
+
+// @internal
+export function _activate(app: FirebaseApp, provider: AppCheckProvider, platformLoggerProvider: Provider<'platform-logger'>, isTokenAutoRefreshEnabled?: boolean): void;
 
 // @public
 export interface AppCheck {
@@ -41,6 +45,10 @@ export function initializeAppCheck(app: FirebaseApp | undefined, options: AppChe
 // @public
 export class ReCaptchaV3Provider implements AppCheckProvider {
     constructor(siteKey: string);
+    // Warning: (ae-forgotten-export) The symbol "ReCaptchaV3ProviderImpl" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    _delegate: ReCaptchaV3ProviderImpl;
     getToken(): Promise<AppCheckToken>;
 }
 

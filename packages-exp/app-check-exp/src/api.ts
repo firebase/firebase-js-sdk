@@ -97,9 +97,11 @@ export function _activate(
 
   // initialize reCAPTCHA if siteKey is provided
   if (newState.provider instanceof ReCaptchaV3Provider) {
+    const providerImpl = newState.provider._delegate;
+    setState(app, { ...newState, provider: providerImpl });
     // These need to be injected for ReCaptchaV3Provider's getToken() to work.
-    newState.provider.initialize(app, platformLoggerProvider);
-    initializeRecaptcha(app, newState.provider.siteKey).catch(() => {
+    providerImpl.initialize(app, platformLoggerProvider);
+    initializeRecaptcha(app, providerImpl.siteKey).catch(() => {
       /* we don't care about the initialization result in activate() */
     });
   }

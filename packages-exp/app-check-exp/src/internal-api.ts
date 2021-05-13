@@ -32,7 +32,7 @@ import { getDebugToken, isDebugMode } from './debug';
 import { base64, issuedAtTime } from '@firebase/util';
 import { logger } from './logger';
 import { Provider } from '@firebase/component';
-import { ReCaptchaV3Provider } from './providers';
+import { ReCaptchaV3ProviderImpl } from './providers';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
@@ -106,7 +106,7 @@ export async function getToken(
    * request a new token
    */
   try {
-    if (state.provider instanceof ReCaptchaV3Provider) {
+    if (state.provider instanceof ReCaptchaV3ProviderImpl) {
       token = await state.provider.getToken();
     } else if (state.provider) {
       // custom provider

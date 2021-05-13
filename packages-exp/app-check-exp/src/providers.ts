@@ -19,7 +19,7 @@ import { FirebaseApp } from '@firebase/app-exp';
 import { Provider } from '@firebase/component';
 import { exchangeToken, getExchangeRecaptchaTokenRequest } from './client';
 import { AppCheckError, ERROR_FACTORY } from './errors';
-import { AppCheckProvider } from './public-types';
+import { AppCheckProvider, AppCheckToken } from './public-types';
 import { getToken as getReCAPTCHAToken } from './recaptcha';
 import { AppCheckTokenInternal } from './state';
 
@@ -33,10 +33,24 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
   /**
    * @internal
    */
-  private _app?: FirebaseApp;
+  _delegate: ReCaptchaV3ProviderImpl;
   /**
-   * @internal
+   * Create a ReCaptchaV3Provider instance.
+   * @param siteKey - ReCAPTCHA V3 siteKey.
    */
+  constructor(siteKey: string) {
+    this._delegate = new ReCaptchaV3ProviderImpl(siteKey);
+  }
+  /**
+   * Returns an AppCheck token.
+   */
+  getToken(): Promise<AppCheckToken> {
+    return this._delegate.getToken();
+  }
+}
+
+export class ReCaptchaV3ProviderImpl implements AppCheckProvider {
+  private _app?: FirebaseApp;
   private _platformLoggerProvider?: Provider<'platform-logger'>;
 
   constructor(private _siteKey: string) {}
@@ -60,9 +74,6 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     );
   }
 
-  /**
-   * @internal
-   */
   initialize(
     app: FirebaseApp,
     platformLoggerProvider: Provider<'platform-logger'>
