@@ -68,10 +68,6 @@ export async function createCompatProject(config: CompatConfig) {
       [srcPkgJson.name]: srcPkgJson.version
     };
 
-    compatPkgJson.peerDependencies = {
-      '@firebase/app': '0.x'
-    };
-
     compatPkgJson.files = ['dist'];
 
     return `${JSON.stringify(compatPkgJson, null, 2)}\n`;
