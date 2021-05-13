@@ -44,8 +44,34 @@ export function getAppCheck(app: FirebaseApp = getApp()): AppCheck {
     app,
     'app-check-exp'
   );
-  const appCheckInstance = appCheckProvider.getImmediate();
-  return appCheckInstance;
+
+  if (appCheckProvider.isInitialized()) {
+    return appCheckProvider.getImmediate();
+  }
+  return initializeAppCheck(app);
+}
+
+interface AppCheckOptions {
+  provider: AppCheckProvider;
+  isTokenAutoRefreshEnabled?: boolean;
+}
+
+export function initializeAppCheck(
+  app: FirebaseApp = getApp(),
+  options?: AppCheckOptions
+): AppCheck {
+  app = getModularInstance(app);
+  const provider = _getProvider(app, 'app-check-exp');
+
+  if (provider.isInitialized()) {
+    throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
+      appName: app.name
+    });
+  }
+
+  const appCheck = provider.initialize({ options });
+
+  return appCheck;
 }
 
 /**
