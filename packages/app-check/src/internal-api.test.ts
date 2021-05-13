@@ -48,7 +48,8 @@ import {
   ListenerType
 } from './state';
 import { Deferred } from '@firebase/util';
-import { AppCheckTokenResult } from '../../app-check-interop-types';
+import { ReCAPTCHAProvider } from './providers';
+import { AppCheckTokenResult } from '../../app-check-types';
 
 const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
 
@@ -89,7 +90,7 @@ describe('internal api', () => {
       const customTokenProvider = getFakeCustomTokenProvider();
       const customProviderSpy = spy(customTokenProvider, 'getToken');
 
-      activate(app, customTokenProvider);
+      activate(app, customTokenProvider, fakePlatformLoggingProvider);
       const token = await getToken(app, fakePlatformLoggingProvider);
 
       expect(customProviderSpy).to.be.called;
@@ -98,8 +99,12 @@ describe('internal api', () => {
       });
     });
 
-    it('uses reCAPTCHA token to exchange for AppCheck token if no customTokenProvider is provided', async () => {
-      activate(app, FAKE_SITE_KEY);
+    it('uses reCAPTCHA token to exchange for AppCheck token if ReCAPTCHAProvider is provided', async () => {
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
 
       const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').resolves(
         fakeRecaptchaToken
@@ -121,7 +126,11 @@ describe('internal api', () => {
 
     it('resolves with a dummy token and an error if failed to get a token', async () => {
       const errorStub = stub(console, 'error');
-      activate(app, FAKE_SITE_KEY, true);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
 
       const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').resolves(
         fakeRecaptchaToken
@@ -144,7 +153,11 @@ describe('internal api', () => {
     });
 
     it('notifies listeners using cached token', async () => {
-      activate(app, FAKE_SITE_KEY, false);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
       storageReadStub.resolves(fakeCachedAppCheckToken);
 
       const listener1 = spy();
@@ -173,7 +186,11 @@ describe('internal api', () => {
     });
 
     it('notifies listeners using new token', async () => {
-      activate(app, FAKE_SITE_KEY, false);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
 
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
@@ -205,7 +222,11 @@ describe('internal api', () => {
 
     it('calls 3P error handler if there is an error getting a token', async () => {
       stub(logger.logger, 'error');
-      activate(app, FAKE_SITE_KEY, false);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
       stub(client, 'exchangeToken').rejects('exchange error');
       const listener1 = spy();
@@ -227,7 +248,11 @@ describe('internal api', () => {
     });
 
     it('ignores listeners that throw', async () => {
-      activate(app, FAKE_SITE_KEY, false);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
       const listener1 = stub().throws(new Error());
@@ -257,7 +282,11 @@ describe('internal api', () => {
     });
 
     it('loads persisted token to memory and returns it', async () => {
-      activate(app, FAKE_SITE_KEY);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
 
       storageReadStub.resolves(fakeCachedAppCheckToken);
 
@@ -273,7 +302,11 @@ describe('internal api', () => {
     });
 
     it('persists token to storage', async () => {
-      activate(app, FAKE_SITE_KEY, false);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
 
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
@@ -286,7 +319,11 @@ describe('internal api', () => {
     });
 
     it('returns the valid token in memory without making network request', async () => {
-      activate(app, FAKE_SITE_KEY);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
 
       const clientStub = stub(client, 'exchangeToken');
@@ -298,7 +335,11 @@ describe('internal api', () => {
     });
 
     it('force to get new token when forceRefresh is true', async () => {
-      activate(app, FAKE_SITE_KEY);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
 
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
@@ -320,7 +361,11 @@ describe('internal api', () => {
       debugState.enabled = true;
       debugState.token = new Deferred();
       debugState.token.resolve('my-debug-token');
-      activate(app, FAKE_SITE_KEY);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
 
       const token = await getToken(app, fakePlatformLoggingProvider);
       expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
@@ -397,7 +442,11 @@ describe('internal api', () => {
     });
 
     it('notifies the listener with the valid token in storage', done => {
-      activate(app, FAKE_SITE_KEY);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
       storageReadStub.resolves({
         token: `fake-cached-app-check-token`,
         expireTimeMillis: Date.now() + 60000,

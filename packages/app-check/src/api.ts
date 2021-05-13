@@ -20,7 +20,9 @@ import {
   AppCheckTokenResult
 } from '@firebase/app-check-types';
 import { FirebaseApp } from '@firebase/app-types';
+import { Provider } from '@firebase/component';
 import { ERROR_FACTORY, AppCheckError } from './errors';
+import { ReCAPTCHAProvider, ReCAPTCHAProviderInternal } from './providers';
 import { initialize as initializeRecaptcha } from './recaptcha';
 import { getState, setState, AppCheckState, ListenerType } from './state';
 import {
@@ -34,14 +36,15 @@ import { ErrorFn, NextFn, PartialObserver, Unsubscribe } from '@firebase/util';
 /**
  *
  * @param app
- * @param siteKeyOrProvider - optional custom attestation provider
- * or reCAPTCHA siteKey
+ * @param provider - optional custom attestation provider
+ * or reCAPTCHA provider
  * @param isTokenAutoRefreshEnabled - if true, enables auto refresh
  * of appCheck token.
  */
 export function activate(
   app: FirebaseApp,
-  siteKeyOrProvider: string | AppCheckProvider,
+  provider: AppCheckProvider,
+  platformLoggerProvider: Provider<'platform-logger'>,
   isTokenAutoRefreshEnabled?: boolean
 ): void {
   const state = getState(app);
@@ -52,11 +55,7 @@ export function activate(
   }
 
   const newState: AppCheckState = { ...state, activated: true };
-  if (typeof siteKeyOrProvider === 'string') {
-    newState.siteKey = siteKeyOrProvider;
-  } else {
-    newState.customProvider = siteKeyOrProvider;
-  }
+  newState.provider = provider;
 
   // Use value of global `automaticDataCollectionEnabled` (which
   // itself defaults to false if not specified in config) if
@@ -68,9 +67,17 @@ export function activate(
 
   setState(app, newState);
 
-  // initialize reCAPTCHA if siteKey is provided
-  if (newState.siteKey) {
-    initializeRecaptcha(app, newState.siteKey).catch(() => {
+  // initialize reCAPTCHA if provider is a ReCAPTCHAProvider
+  if (newState.provider instanceof ReCAPTCHAProvider) {
+    // Wrap public ReCAPTCHAProvider in an internal class that provides
+    // platform logging and app.
+    const internalProvider = new ReCAPTCHAProviderInternal(
+      app,
+      newState.provider.siteKey,
+      platformLoggerProvider
+    );
+    setState(app, { ...newState, provider: internalProvider });
+    initializeRecaptcha(app, internalProvider.siteKey).catch(() => {
       /* we don't care about the initialization result in activate() */
     });
   }

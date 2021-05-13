@@ -39,6 +39,7 @@ import * as client from './client';
 import * as storage from './storage';
 import * as logger from './logger';
 import * as util from './util';
+import { ReCAPTCHAProvider } from './providers';
 
 describe('api', () => {
   beforeEach(() => {
@@ -53,34 +54,59 @@ describe('api', () => {
 
     it('sets activated to true', () => {
       expect(getState(app).activated).to.equal(false);
-      activate(app, FAKE_SITE_KEY);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        getFakePlatformLoggingProvider()
+      );
       expect(getState(app).activated).to.equal(true);
     });
 
     it('isTokenAutoRefreshEnabled value defaults to global setting', () => {
       app = getFakeApp({ automaticDataCollectionEnabled: false });
-      activate(app, FAKE_SITE_KEY);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        getFakePlatformLoggingProvider()
+      );
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(false);
     });
 
     it('sets isTokenAutoRefreshEnabled correctly, overriding global setting', () => {
       app = getFakeApp({ automaticDataCollectionEnabled: false });
-      activate(app, FAKE_SITE_KEY, true);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        getFakePlatformLoggingProvider(),
+        true
+      );
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
     });
 
     it('can only be called once', () => {
-      activate(app, FAKE_SITE_KEY);
-      expect(() => activate(app, FAKE_SITE_KEY)).to.throw(
-        /AppCheck can only be activated once/
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        getFakePlatformLoggingProvider()
       );
+      expect(() =>
+        activate(
+          app,
+          new ReCAPTCHAProvider(FAKE_SITE_KEY),
+          getFakePlatformLoggingProvider()
+        )
+      ).to.throw(/AppCheck can only be activated once/);
     });
 
     it('initialize reCAPTCHA when a sitekey is provided', () => {
       const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
         Promise.resolve({} as any)
       );
-      activate(app, FAKE_SITE_KEY);
+      activate(
+        app,
+        new ReCAPTCHAProvider(FAKE_SITE_KEY),
+        getFakePlatformLoggingProvider()
+      );
       expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
         app,
         FAKE_SITE_KEY
@@ -90,8 +116,8 @@ describe('api', () => {
     it('does NOT initialize reCAPTCHA when a custom token provider is provided', () => {
       const fakeCustomTokenProvider = getFakeCustomTokenProvider();
       const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize');
-      activate(app, fakeCustomTokenProvider);
-      expect(getState(app).customProvider).to.equal(fakeCustomTokenProvider);
+      activate(app, fakeCustomTokenProvider, getFakePlatformLoggingProvider());
+      expect(getState(app).provider).to.equal(fakeCustomTokenProvider);
       expect(initReCAPTCHAStub).to.have.not.been.called;
     });
   });
@@ -149,7 +175,7 @@ describe('api', () => {
     });
     it('Listeners work when using top-level parameters pattern', async () => {
       const app = getFakeApp();
-      activate(app, FAKE_SITE_KEY, false);
+      activate(app, new ReCAPTCHAProvider(FAKE_SITE_KEY), false);
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
@@ -193,7 +219,7 @@ describe('api', () => {
 
     it('Listeners work when using Observer pattern', async () => {
       const app = getFakeApp();
-      activate(app, FAKE_SITE_KEY, false);
+      activate(app, new ReCAPTCHAProvider(FAKE_SITE_KEY), false);
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
@@ -238,7 +264,7 @@ describe('api', () => {
     it('onError() catches token errors', async () => {
       stub(logger.logger, 'error');
       const app = getFakeApp();
-      activate(app, FAKE_SITE_KEY, false);
+      activate(app, new ReCAPTCHAProvider(FAKE_SITE_KEY), false);
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').rejects('exchange error');
 

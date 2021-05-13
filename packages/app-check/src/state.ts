@@ -45,7 +45,7 @@ export const enum ListenerType {
 export interface AppCheckState {
   activated: boolean;
   tokenObservers: AppCheckTokenObserver[];
-  customProvider?: AppCheckProvider;
+  provider?: AppCheckProvider;
   siteKey?: string;
   token?: AppCheckTokenInternal;
   tokenRefresher?: Refresher;
