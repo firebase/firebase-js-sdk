@@ -4,7 +4,8 @@
     "version": "0.1.0",
     "scripts": {
         "test": "karma start --single-run",
-        "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
+        "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
+        "test:debug": "karma start --browsers Chrome --auto-watch"
     },
     "dependencies": {
       "firebase-exp": "file:../../packages-exp/firebase-exp"
