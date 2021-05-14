@@ -6,6 +6,7 @@ env:
   METRICS_SERVICE_URL: ${{ secrets.METRICS_SERVICE_URL }}
   GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
   GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+  NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
   binary-size:
