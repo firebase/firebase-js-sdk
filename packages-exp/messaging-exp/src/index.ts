@@ -33,6 +33,7 @@ export {
   getMessagingInWindow as getMessaging,
   onBackgroundMessage
 } from './api';
+export { _registerListeners } from './helpers/register';
 export { isWindowSupported as isSupported } from './api/isSupported';
 export * from './interfaces/public-types';
 

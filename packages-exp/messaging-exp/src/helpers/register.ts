@@ -23,9 +23,17 @@ import {
 } from '@firebase/component';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { isSwSupported, isWindowSupported } from '../api/isSupported';
+import {
+  onNotificationClick,
+  onPush,
+  onSubChange
+} from '../listeners/sw-listeners';
 
+import { FirebaseMessaging } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
+import { ServiceWorkerGlobalScope } from '../util/sw-types';
 import { _registerComponent } from '@firebase/app-exp';
+import { messageEventListener } from '../listeners/window-listener';
 
 const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
   container: ComponentContainer
@@ -85,4 +93,33 @@ export function registerMessagingInSw(): void {
   _registerComponent(
     new Component('messaging-exp', SwMessagingFactory, ComponentType.PUBLIC)
   );
+}
+
+declare const self: ServiceWorkerGlobalScope;
+/**
+ * Conditionally registers the listeners. Theses registrations are done in `getMessagingInSw` and
+ * `getMessagingInWindow` for the v9 SDK. This method exists for `messaging-compat` because the
+ * injected messaging instance to `messaging-compat` isn't created through the `getMessaging`
+ * method. Thus the main package of v9 needs to export this method to support `messaging-compat`.
+ *
+ * @internal
+ */
+export function _registerListeners(messaging: FirebaseMessaging): void {
+  if (!!navigator) {
+    // in window
+    navigator.serviceWorker.addEventListener('message', e =>
+      messageEventListener(messaging as MessagingService, e)
+    );
+  } else {
+    // in sw
+    self.addEventListener('push', e => {
+      e.waitUntil(onPush(e, messaging as MessagingService));
+    });
+    self.addEventListener('pushsubscriptionchange', e => {
+      e.waitUntil(onSubChange(e, messaging as MessagingService));
+    });
+    self.addEventListener('notificationclick', e => {
+      e.waitUntil(onNotificationClick(e));
+    });
+  }
 }
