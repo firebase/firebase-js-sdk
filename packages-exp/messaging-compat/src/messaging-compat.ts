@@ -22,7 +22,6 @@ import {
 import {
   FirebaseMessaging,
   MessagePayload,
-  _registerListeners,
   deleteToken,
   getToken,
   onBackgroundMessage,
@@ -92,8 +91,6 @@ export class MessagingCompatImpl implements MessagingCompat, _FirebaseService {
   constructor(readonly app: AppCompat, readonly _delegate: FirebaseMessaging) {
     this.app = app;
     this._delegate = _delegate;
-
-    _registerListeners(_delegate);
   }
 
   async getToken(options?: {
