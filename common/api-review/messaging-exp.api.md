@@ -67,9 +67,6 @@ export function onBackgroundMessage(messaging: FirebaseMessaging, nextOrObserver
 // @public
 export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
 
-// @internal
-export function _registerListeners(messaging: FirebaseMessaging): void;
-
 export { Unsubscribe }
 
 

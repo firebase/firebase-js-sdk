@@ -52,11 +52,15 @@ const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
       throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
     });
 
-  return new MessagingService(
+  const messaging = new MessagingService(
     container.getProvider('app-exp').getImmediate(),
     container.getProvider('installations-exp-internal').getImmediate(),
     container.getProvider('analytics-internal')
   );
+
+  registerListeners(messaging);
+
+  return messaging;
 };
 
 const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
@@ -76,11 +80,15 @@ const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
       throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
     });
 
-  return new MessagingService(
+  const messaging = new MessagingService(
     container.getProvider('app-exp').getImmediate(),
     container.getProvider('installations-exp-internal').getImmediate(),
     container.getProvider('analytics-internal')
   );
+
+  registerListeners(messaging);
+
+  return messaging;
 };
 
 export function registerMessagingInWindow(): void {
@@ -96,15 +104,7 @@ export function registerMessagingInSw(): void {
 }
 
 declare const self: ServiceWorkerGlobalScope;
-/**
- * Conditionally registers the listeners. Theses registrations are done in `getMessagingInSw` and
- * `getMessagingInWindow` for the v9 SDK. This method exists for `messaging-compat` because the
- * injected messaging instance to `messaging-compat` isn't created through the `getMessaging`
- * method. Thus the main package of v9 needs to export this method to support `messaging-compat`.
- *
- * @internal
- */
-export function _registerListeners(messaging: FirebaseMessaging): void {
+function registerListeners(messaging: FirebaseMessaging): void {
   if (!!navigator) {
     // in window
     navigator.serviceWorker.addEventListener('message', e =>
