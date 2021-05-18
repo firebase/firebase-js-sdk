@@ -37,8 +37,26 @@ import { onMessage as _onMessage } from './api/onMessage';
  *
  * @public
  */
-export function getMessaging(app: FirebaseApp = getApp()): FirebaseMessaging {
+export function getMessagingInWindow(
+  app: FirebaseApp = getApp()
+): FirebaseMessaging {
   return _getProvider(getModularInstance(app), 'messaging-exp').getImmediate();
+}
+
+/**
+ * Retrieves a Firebase Cloud Messaging instance.
+ *
+ * @returns The Firebase Cloud Messaging instance associated with the provided firebase app.
+ *
+ * @public
+ */
+export function getMessagingInSw(
+  app: FirebaseApp = getApp()
+): FirebaseMessaging {
+  return _getProvider(
+    getModularInstance(app),
+    'messaging-sw-exp'
+  ).getImmediate();
 }
 
 /**

@@ -30,7 +30,7 @@ export {
   getToken,
   deleteToken,
   onMessage,
-  getMessaging,
+  getMessagingInWindow as getMessaging,
   onBackgroundMessage
 } from './api';
 export { isWindowSupported as isSupported } from './api/isSupported';

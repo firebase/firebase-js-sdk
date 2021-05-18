@@ -20,12 +20,12 @@ import '@firebase/installations-exp';
 import { FirebaseMessaging } from './interfaces/public-types';
 import { registerMessagingInSw } from './helpers/register';
 
-export { onBackgroundMessage, getMessaging } from './api';
+export { onBackgroundMessage, getMessagingInSw as getMessaging } from './api';
 export { isSwSupported as isSupported } from './api/isSupported';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-exp': FirebaseMessaging;
+    'messaging-sw-exp': FirebaseMessaging;
   }
 }
 
