@@ -1,3 +1,7 @@
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -18,10 +22,7 @@ import {
   FirebaseMessaging,
   FirebaseMessagingName
 } from '@firebase/messaging-types';
-import {
-  FirebaseAuthInternal,
-  FirebaseAuthInternalName
-} from '@firebase/auth-interop-types';
+
 import { Provider } from '@firebase/component';
 
 /**
@@ -93,7 +94,7 @@ export class ContextProvider {
     }
 
     try {
-      return this.messaging.getToken();
+      return await this.messaging.getToken();
     } catch (e) {
       // We don't warn on this, because it usually means messaging isn't set up.
       // console.warn('Failed to retrieve instance id token.', e);
