@@ -32,7 +32,7 @@ import * as utils from './util';
 import { getState } from './state';
 import { Deferred } from '@firebase/util';
 import { _activate as activate } from './api';
-import { ReCaptchaV3ProviderImpl } from './providers';
+import { ReCaptchaV3Provider } from './providers';
 
 describe('recaptcha', () => {
   let app: FirebaseApp;
@@ -103,7 +103,7 @@ describe('recaptcha', () => {
       self.grecaptcha = grecaptchaFake;
       activate(
         app,
-        new ReCaptchaV3ProviderImpl(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider()
       );
       await getToken(app);
@@ -121,7 +121,7 @@ describe('recaptcha', () => {
       self.grecaptcha = grecaptchaFake;
       activate(
         app,
-        new ReCaptchaV3ProviderImpl(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider()
       );
       const token = await getToken(app);
