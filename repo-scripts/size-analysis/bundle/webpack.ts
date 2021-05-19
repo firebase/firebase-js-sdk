@@ -35,7 +35,7 @@ export async function bundleWithWebpack(
   const entryFileName = '/virtual_path_to_in_memory_file/index.js';
   const outputFileName = 'o.js';
 
-  const resolveConfig: webpack.Resolve = {
+  const resolveConfig: webpack.ResolveOptions = {
     mainFields: ['esm2017', 'module', 'main']
   };
 
