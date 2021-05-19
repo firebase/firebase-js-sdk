@@ -1,5 +1,40 @@
 # Unreleased
 
+## 0.10.1
+
+### Patch Changes
+
+- [`5b202f852`](https://github.com/firebase/firebase-js-sdk/commit/5b202f852ca68b35b06b0ea17e4b6b8c446c651c) [#4864](https://github.com/firebase/firebase-js-sdk/pull/4864) - Fixed an issue that could cause `once()` to fire more than once if the value was modified inside its callback.
+
+## 0.10.0
+
+### Minor Changes
+
+- [`ac4ad08a2`](https://github.com/firebase/firebase-js-sdk/commit/ac4ad08a284397ec966e991dd388bb1fba857467) [#4792](https://github.com/firebase/firebase-js-sdk/pull/4792) - Add mockUserToken support for database emulator.
+
+### Patch Changes
+
+- Updated dependencies [[`c34ac7a92`](https://github.com/firebase/firebase-js-sdk/commit/c34ac7a92a616915f38d192654db7770d81747ae), [`ac4ad08a2`](https://github.com/firebase/firebase-js-sdk/commit/ac4ad08a284397ec966e991dd388bb1fba857467)]:
+  - @firebase/component@0.5.0
+  - @firebase/util@1.1.0
+
+## 0.9.12
+
+### Patch Changes
+
+- [`8d63eacf9`](https://github.com/firebase/firebase-js-sdk/commit/8d63eacf964c6e6b3b8ffe06bf682844ee430fbc) [#4832](https://github.com/firebase/firebase-js-sdk/pull/4832) (fixes [#4818](https://github.com/firebase/firebase-js-sdk/issues/4818)) - Fixes an issue that prevented the SDK from firing cancel events for Rules violations.
+
+* [`d422436d1`](https://github.com/firebase/firebase-js-sdk/commit/d422436d1d83f82aee8028e3a24c8e18d9d7c098) [#4828](https://github.com/firebase/firebase-js-sdk/pull/4828) (fixes [#4811](https://github.com/firebase/firebase-js-sdk/issues/4811)) - Fixes a regression introduced with 8.4.1 that broke `useEmulator()`.
+
+## 0.9.11
+
+### Patch Changes
+
+- [`191184eb4`](https://github.com/firebase/firebase-js-sdk/commit/191184eb454109bff9198274fc416664b126d7ec) [#4801](https://github.com/firebase/firebase-js-sdk/pull/4801) - Fixes an internal conflict when using v8 and v9 SDKs in the same package.
+
+- Updated dependencies [[`3f370215a`](https://github.com/firebase/firebase-js-sdk/commit/3f370215aa571db6b41b92a7d8a9aaad2ea0ecd0)]:
+  - @firebase/auth-interop-types@0.1.6
+
 ## 0.9.10
 
 ### Patch Changes

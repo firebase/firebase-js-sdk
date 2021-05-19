@@ -33,6 +33,8 @@ export const LAST_SESSION_PARAM = 'ls';
 
 export const APPLICATION_ID_PARAM = 'p';
 
+export const APP_CHECK_TOKEN_PARAM = 'ac';
+
 export const WEBSOCKET = 'websocket';
 
 export const LONG_POLLING = 'long_polling';

@@ -15,11 +15,16 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import {
+  _registerComponent,
+  registerVersion,
+  SDK_VERSION
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
+import { setSDKVersion } from '../src/core/version';
 import {
   FirebaseDatabase,
   repoManagerDatabaseFromApp
@@ -32,13 +37,20 @@ declare module '@firebase/component' {
 }
 
 export function registerDatabase(variant?: string): void {
+  setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
       'database-exp',
       (container, { instanceIdentifier: url }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
-        return repoManagerDatabaseFromApp(app, authProvider, url);
+        const appCheckProvider = container.getProvider('app-check-internal');
+        return repoManagerDatabaseFromApp(
+          app,
+          authProvider,
+          appCheckProvider,
+          url
+        );
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

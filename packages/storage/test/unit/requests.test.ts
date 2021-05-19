@@ -43,7 +43,8 @@ import { StorageService } from '../../src/service';
 import {
   assertObjectIncludes,
   fakeXhrIo,
-  fakeAuthProvider
+  fakeAuthProvider,
+  fakeAppCheckTokenProvider
 } from './testshared';
 import {
   DEFAULT_HOST,
@@ -80,6 +81,7 @@ describe('Firebase Storage > Requests', () => {
   const storageService = new StorageService(
     mockApp,
     fakeAuthProvider,
+    fakeAppCheckTokenProvider,
     new XhrIoPool()
   );
 

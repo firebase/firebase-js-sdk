@@ -20,6 +20,7 @@ import {
   Component,
   ComponentContainer,
   ComponentType,
+  InstantiationMode,
   Name
 } from '@firebase/component';
 import {
@@ -121,8 +122,17 @@ export class FirebaseAppImpl implements Compat<_FirebaseAppExp>, _FirebaseApp {
   ): _FirebaseService {
     this._delegate.checkDestroyed();
 
+    // Initialize instance if InstatiationMode is `EXPLICIT`.
+    const provider = this._delegate.container.getProvider(name as Name);
+    if (
+      !provider.isInitialized() &&
+      provider.getComponent()?.instantiationMode === InstantiationMode.EXPLICIT
+    ) {
+      provider.initialize();
+    }
+
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (this._delegate.container.getProvider(name as Name).getImmediate({
+    return (provider.getImmediate({
       identifier: instanceIdentifier
     }) as unknown) as _FirebaseService;
   }

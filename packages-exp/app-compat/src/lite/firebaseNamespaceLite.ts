@@ -40,8 +40,8 @@ export function createFirebaseNamespaceLite(): FirebaseNamespace {
     // only allow performance to register with firebase lite
     if (
       component.type === ComponentType.PUBLIC &&
-      component.name !== 'performance' &&
-      component.name !== 'installations'
+      !component.name.includes('performance') &&
+      !component.name.includes('installations')
     ) {
       throw Error(`${name} cannot register with the standalone perf instance`);
     }

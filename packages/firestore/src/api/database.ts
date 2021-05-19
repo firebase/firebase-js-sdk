@@ -44,7 +44,11 @@ import {
   WhereFilterOp as PublicWhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
-import { Compat, getModularInstance } from '@firebase/util';
+import {
+  Compat,
+  EmulatorMockTokenOptions,
+  getModularInstance
+} from '@firebase/util';
 
 import {
   LoadBundleTask,
@@ -223,8 +227,14 @@ export class Firestore
     this._delegate._setSettings(settingsLiteral);
   }
 
-  useEmulator(host: string, port: number): void {
-    useFirestoreEmulator(this._delegate, host, port);
+  useEmulator(
+    host: string,
+    port: number,
+    options: {
+      mockUserToken?: EmulatorMockTokenOptions;
+    } = {}
+  ): void {
+    useFirestoreEmulator(this._delegate, host, port, options);
   }
 
   enableNetwork(): Promise<void> {
@@ -409,7 +419,7 @@ export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
               result._key,
               result._document,
               result.metadata,
-              ref._converter
+              ref.converter
             )
           )
       );
@@ -775,7 +785,7 @@ export class DocumentReference<T = PublicDocumentData>
             result._key,
             result._document,
             result.metadata,
-            this._delegate._converter
+            this._delegate.converter
           )
         )
     );
@@ -802,7 +812,7 @@ export class DocumentReference<T = PublicDocumentData>
             result._key,
             result._document,
             result.metadata,
-            this._delegate._converter as UntypedFirestoreDataConverter<T>
+            this._delegate.converter as UntypedFirestoreDataConverter<T>
           )
         )
     );

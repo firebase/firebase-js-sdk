@@ -2330,6 +2330,32 @@ describe('Query Tests', () => {
     await ea.promise;
   });
 
+  it('Query.once() only fires once', async () => {
+    const node = getRandomNode() as Reference;
+
+    let count = 1;
+    node.set(count);
+
+    const valueEvent = EventAccumulatorFactory.waitsForCount(3);
+    node.on('value', () => {
+      if (count < 3) {
+        ++count;
+        node.set(count);
+      }
+      valueEvent.addEvent();
+    });
+
+    const onceEvent = EventAccumulatorFactory.waitsForExactCount(1);
+    node.once('value', () => {
+      ++count;
+      node.set(count);
+      onceEvent.addEvent();
+    });
+
+    await valueEvent.promise;
+    await onceEvent.promise;
+  });
+
   it('Ensure on() returns callback function.', () => {
     const node = getRandomNode() as Reference;
     const callback = function () {};

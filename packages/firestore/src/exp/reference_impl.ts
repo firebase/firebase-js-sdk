@@ -143,7 +143,7 @@ export function getDocFromCache<T>(
           doc !== null && doc.hasLocalMutations,
           /* fromCache= */ true
         ),
-        reference._converter
+        reference.converter
       )
   );
 }
@@ -270,7 +270,7 @@ export function setDoc<T>(
   const firestore = cast(reference.firestore, FirebaseFirestore);
 
   const convertedValue = applyFirestoreDataConverter(
-    reference._converter,
+    reference.converter,
     data,
     options
   );
@@ -280,7 +280,7 @@ export function setDoc<T>(
     'setDoc',
     reference._key,
     convertedValue,
-    reference._converter !== null,
+    reference.converter !== null,
     options
   );
 
@@ -398,10 +398,7 @@ export function addDoc<T>(
   const firestore = cast(reference.firestore, FirebaseFirestore);
 
   const docRef = doc(reference);
-  const convertedValue = applyFirestoreDataConverter(
-    reference._converter,
-    data
-  );
+  const convertedValue = applyFirestoreDataConverter(reference.converter, data);
 
   const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
@@ -409,7 +406,7 @@ export function addDoc<T>(
     'addDoc',
     docRef._key,
     convertedValue,
-    reference._converter !== null,
+    reference.converter !== null,
     {}
   );
 
@@ -794,6 +791,6 @@ function convertToDocSnapshot<T>(
     ref._key,
     doc,
     new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache),
-    ref._converter
+    ref.converter
   );
 }

@@ -27,6 +27,23 @@ export const EventAccumulatorFactory = {
       count++;
     });
     return ea;
+  },
+  waitsForExactCount: maxCount => {
+    let count = 0;
+    const condition = () => {
+      if (count > maxCount) {
+        throw new Error('Received more events than expected');
+      }
+      return count === maxCount;
+    };
+    const ea = new EventAccumulator(condition);
+    ea.onReset(() => {
+      count = 0;
+    });
+    ea.onEvent(() => {
+      count++;
+    });
+    return ea;
   }
 };
 

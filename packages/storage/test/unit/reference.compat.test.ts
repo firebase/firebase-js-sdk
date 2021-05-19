@@ -28,16 +28,23 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { StorageService } from '../../src/service';
 import { Reference } from '../../src/reference';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
   app: FirebaseApp,
   authProvider: Provider<FirebaseAuthInternalName>,
+  appCheckProvider: Provider<AppCheckInternalComponentName>,
   sendHook: SendHook
 ): StorageServiceCompat {
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(app, authProvider, testShared.makePool(sendHook))
+    new StorageService(
+      app,
+      authProvider,
+      appCheckProvider,
+      testShared.makePool(sendHook)
+    )
   );
   return storageServiceCompat;
 }
@@ -46,6 +53,7 @@ function makeStorage(url: string): ReferenceCompat {
   const service = new StorageService(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
+    testShared.fakeAppCheckTokenProvider,
     testShared.makePool(null)
   );
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
@@ -195,6 +203,7 @@ describe('Firebase Storage > Reference', () => {
     const service = makeFakeService(
       testShared.fakeApp,
       testShared.emptyAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       newSend
     );
     const ref = service.refFromURL('gs://test-bucket');
@@ -220,6 +229,7 @@ describe('Firebase Storage > Reference', () => {
     const service = makeFakeService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       newSend
     );
     const ref = service.refFromURL('gs://test-bucket');

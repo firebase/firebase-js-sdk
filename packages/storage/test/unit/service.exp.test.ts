@@ -46,6 +46,7 @@ describe('Firebase Storage > Service', () => {
     const service = new StorageService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     it('Root refs point to the right place', () => {
@@ -62,6 +63,7 @@ describe('Firebase Storage > Service', () => {
       const service = new StorageService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         'gs://foo-bar.appspot.com'
       );
@@ -72,6 +74,7 @@ describe('Firebase Storage > Service', () => {
       const service = new StorageService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         `http://${DEFAULT_HOST}/v1/b/foo-bar.appspot.com/o`
       );
@@ -82,6 +85,7 @@ describe('Firebase Storage > Service', () => {
       const service = new StorageService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         `https://${DEFAULT_HOST}/v1/b/foo-bar.appspot.com/o`
       );
@@ -93,6 +97,7 @@ describe('Firebase Storage > Service', () => {
       const service = new StorageService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         'foo-bar.appspot.com'
       );
@@ -103,6 +108,7 @@ describe('Firebase Storage > Service', () => {
       const service = new StorageService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         'foo-bar.appspot.com'
       );
@@ -116,6 +122,7 @@ describe('Firebase Storage > Service', () => {
         new StorageService(
           testShared.fakeApp,
           testShared.fakeAuthProvider,
+          testShared.fakeAppCheckTokenProvider,
           xhrIoPool,
           'gs://bucket/object/'
         );
@@ -128,6 +135,7 @@ describe('Firebase Storage > Service', () => {
       const service = new StorageService(
         fakeAppGs,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool
       );
       expect(ref(service)?.toString()).to.equal('gs://mybucket/');
@@ -136,6 +144,7 @@ describe('Firebase Storage > Service', () => {
       const service = new StorageService(
         fakeAppGsEndingSlash,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool
       );
       expect(ref(service)?.toString()).to.equal('gs://mybucket/');
@@ -145,6 +154,7 @@ describe('Firebase Storage > Service', () => {
         new StorageService(
           fakeAppInvalidGs,
           testShared.fakeAuthProvider,
+          testShared.fakeAppCheckTokenProvider,
           xhrIoPool
         );
       }, 'storage/invalid-default-bucket');
@@ -154,6 +164,7 @@ describe('Firebase Storage > Service', () => {
     const service = new StorageService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     it('Works with gs:// URLs', () => {
@@ -238,6 +249,7 @@ GOOG4-RSA-SHA256`
       const service = new StorageService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         testShared.makePool(newSend)
       );
       useStorageEmulator(service, 'test.host.org', 1234);
@@ -249,6 +261,7 @@ GOOG4-RSA-SHA256`
     const service = new StorageService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     it('Works with non URL paths', () => {
@@ -264,6 +277,7 @@ GOOG4-RSA-SHA256`
     const service = new StorageService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     const reference = new Reference(service, testLocation);
@@ -307,6 +321,7 @@ GOOG4-RSA-SHA256`
     const service = new StorageService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     it('In-flight requests are canceled when the service is deleted', async () => {

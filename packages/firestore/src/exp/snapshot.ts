@@ -427,7 +427,7 @@ export class QuerySnapshot<T = DocumentData> {
             this._snapshot.mutatedKeys.has(doc.key),
             this._snapshot.fromCache
           ),
-          this.query._converter
+          this.query.converter
         )
       );
     });
@@ -497,7 +497,7 @@ export function changesFromSnapshot<T>(
           querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
           querySnapshot._snapshot.fromCache
         ),
-        querySnapshot.query._converter
+        querySnapshot.query.converter
       );
       lastDoc = change.doc;
       return {
@@ -525,7 +525,7 @@ export function changesFromSnapshot<T>(
             querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
             querySnapshot._snapshot.fromCache
           ),
-          querySnapshot.query._converter
+          querySnapshot.query.converter
         );
         let oldIndex = -1;
         let newIndex = -1;

@@ -122,7 +122,7 @@ function emitEmulatorWarning(disableBanner: boolean): void {
     sty.width = '100%';
     sty.backgroundColor = '#ffffff';
     sty.border = '.1em solid #000000';
-    sty.color = '#ff0000';
+    sty.color = '#b50000';
     sty.bottom = '0px';
     sty.left = '0px';
     sty.margin = '0px';

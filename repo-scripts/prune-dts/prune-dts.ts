@@ -39,14 +39,45 @@ export function pruneDts(inputLocation: string, outputLocation: string): void {
   const program = ts.createProgram([inputLocation], compilerOptions, host);
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(inputLocation)!;
+
   const result: ts.TransformationResult<ts.SourceFile> = ts.transform<ts.SourceFile>(
     sourceFile,
     [dropPrivateApiTransformer.bind(null, program, host)]
   );
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
+  let content = printer.printFile(transformedSourceFile);
 
-  const content = printer.printFile(transformedSourceFile);
   fs.writeFileSync(outputLocation, content);
+}
+
+export async function addBlankLines(outputLocation: string): Promise<void> {
+  const eslint = new ESLint({
+    fix: true,
+    overrideConfig: {
+      parserOptions: {
+        ecmaVersion: 2017,
+        sourceType: 'module',
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.eslint.json']
+      },
+      env: {
+        es6: true
+      },
+      plugins: ['@typescript-eslint'],
+      parser: '@typescript-eslint/parser',
+      rules: {
+        'unused-imports/no-unused-imports-ts': ['off'],
+        // add blank lines after imports. Otherwise removeUnusedImports() will remove the comment
+        // of the first item after the import block
+        'padding-line-between-statements': [
+          'error',
+          { 'blankLine': 'always', 'prev': 'import', 'next': '*' }
+        ]
+      }
+    }
+  });
+  const results = await eslint.lintFiles(outputLocation);
+  await ESLint.outputFixes(results);
 }
 
 export async function removeUnusedImports(

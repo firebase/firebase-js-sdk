@@ -24,6 +24,7 @@ import {
   stringify
 } from '@firebase/util';
 
+import { AppCheckTokenProvider } from './AppCheckTokenProvider';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
@@ -187,7 +188,8 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     public forceRestClient_: boolean,
-    public authTokenProvider_: AuthTokenProvider
+    public authTokenProvider_: AuthTokenProvider,
+    public appCheckProvider_: AppCheckTokenProvider
   ) {
     // This key is intentionally not updated if RepoInfo is later changed or replaced
     this.key = this.repoInfo_.toURLString();
@@ -221,7 +223,8 @@ export function repoStart(
       ) => {
         repoOnDataUpdate(repo, pathString, data, isMerge, tag);
       },
-      repo.authTokenProvider_
+      repo.authTokenProvider_,
+      repo.appCheckProvider_
     );
 
     // Minor hack: Fire onConnect immediately, since there's no actual connection.
@@ -259,6 +262,7 @@ export function repoStart(
         repoOnServerInfoUpdate(repo, updates);
       },
       repo.authTokenProvider_,
+      repo.appCheckProvider_,
       authOverride
     );
 
@@ -267,6 +271,10 @@ export function repoStart(
 
   repo.authTokenProvider_.addTokenChangeListener(token => {
     repo.server_.refreshAuthToken(token);
+  });
+
+  repo.appCheckProvider_.addTokenChangeListener(result => {
+    repo.server_.refreshAppCheckToken(result.token);
   });
 
   // In the case of multiple Repos for the same repoInfo (i.e. there are multiple Firebase.Contexts being used),

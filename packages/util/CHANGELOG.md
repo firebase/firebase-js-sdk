@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.1.0
+
+### Minor Changes
+
+- [`ac4ad08a2`](https://github.com/firebase/firebase-js-sdk/commit/ac4ad08a284397ec966e991dd388bb1fba857467) [#4792](https://github.com/firebase/firebase-js-sdk/pull/4792) - Add mockUserToken support for database emulator.
+
 ## 1.0.0
 
 ### Major Changes

@@ -1,5 +1,46 @@
 # @firebase/rules-unit-testing
 
+## 1.3.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.6.1
+
+## 1.3.0
+
+### Minor Changes
+
+- [`66deb252d`](https://github.com/firebase/firebase-js-sdk/commit/66deb252d9aebf318d2410d2dee47f19ad0968da) [#4863](https://github.com/firebase/firebase-js-sdk/pull/4863) - Add support for Storage emulator to rules-unit-testing
+
+### Patch Changes
+
+- Updated dependencies [[`cc7207e25`](https://github.com/firebase/firebase-js-sdk/commit/cc7207e25f09870c6c718b8e209e694661676d27), [`81c131abe`](https://github.com/firebase/firebase-js-sdk/commit/81c131abea7001c5933156ff6b0f3925f16ff052)]:
+  - firebase@8.6.0
+
+## 1.2.12
+
+### Patch Changes
+
+- Updated dependencies [[`c34ac7a92`](https://github.com/firebase/firebase-js-sdk/commit/c34ac7a92a616915f38d192654db7770d81747ae), [`97f61e6f3`](https://github.com/firebase/firebase-js-sdk/commit/97f61e6f3d24e5b4c92ed248bb531233a94b9eaf), [`ac4ad08a2`](https://github.com/firebase/firebase-js-sdk/commit/ac4ad08a284397ec966e991dd388bb1fba857467)]:
+  - @firebase/component@0.5.0
+  - firebase@8.5.0
+  - @firebase/util@1.1.0
+
+## 1.2.11
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.4.3
+
+## 1.2.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.4.2
+
 ## 1.2.9
 
 ### Patch Changes

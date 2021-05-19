@@ -32,6 +32,12 @@ export const enum Buffer {
   TOKEN_REFRESH = 30_000
 }
 
+/**
+ * We need to mark this class as internal explicitly to exclude it in the public typings, because
+ * it references AuthInternal which has a circular dependency with UserInternal.
+ *
+ * @internal
+ */
 export class StsTokenManager {
   refreshToken: string | null = null;
   accessToken: string | null = null;

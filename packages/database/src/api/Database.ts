@@ -18,10 +18,13 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import { validateArgCount, Compat } from '@firebase/util';
+import {
+  validateArgCount,
+  Compat,
+  EmulatorMockTokenOptions
+} from '@firebase/util';
 
 import {
-  FirebaseDatabase as ExpDatabase,
   goOnline,
   useDatabaseEmulator,
   goOffline,
@@ -32,6 +35,14 @@ import {
 } from '../../exp/index'; // import from the exp public API
 
 import { Reference } from './Reference';
+
+// TODO: revert to import {FirebaseDatabase as ExpDatabase} from '@firebase/database' once modular SDK goes GA
+/**
+ * This is a workaround for an issue in the no-modular '@firebase/database' where its typings
+ * reference types from `@firebase/app-exp`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ExpDatabase = any;
 
 /**
  * Class representing a firebase database.
@@ -58,9 +69,16 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
    *
    * @param host - the emulator host (ex: localhost)
    * @param port - the emulator port (ex: 8080)
+   * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules
    */
-  useEmulator(host: string, port: number): void {
-    useDatabaseEmulator(this._delegate, host, port);
+  useEmulator(
+    host: string,
+    port: number,
+    options: {
+      mockUserToken?: EmulatorMockTokenOptions;
+    } = {}
+  ): void {
+    useDatabaseEmulator(this._delegate, host, port, options);
   }
 
   /**
