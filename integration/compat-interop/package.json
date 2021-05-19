@@ -20,8 +20,8 @@
       "@firebase/messaging-compat": "0.0.900",
       "@firebase/performance-exp": "0.0.900",
       "@firebase/performance-compat": "0.0.900",
-      "@firebase/remote-config": "0.0.900",
-      "@firebase/remote-compat": "0.0.900"
+      "@firebase/remote-config-exp": "0.0.900",
+      "@firebase/remote-config-compat": "0.0.900"
     },
     "devDependencies": {
       "typescript": "4.2.2"
