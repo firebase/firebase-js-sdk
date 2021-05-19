@@ -8,7 +8,20 @@
         "test:debug": "karma start --browsers Chrome --auto-watch"
     },
     "dependencies": {
-      "firebase-exp": "file:../../packages-exp/firebase-exp"
+      "@firebase/app-exp": "0.0.900",
+      "@firebase/app-compat": "0.0.900",
+      "@firebase/analytics-exp": "0.0.900",
+      "@firebase/analytics-compat": "0.0.900",
+      "@firebase/auth-exp": "0.0.900",
+      "@firebase/auth-compat": "0.0.900",
+      "@firebase/functions-exp": "0.0.900",
+      "@firebase/functions-compat": "0.0.900",
+      "@firebase/messaging-exp": "0.0.900",
+      "@firebase/messaging-compat": "0.0.900",
+      "@firebase/performance-exp": "0.0.900",
+      "@firebase/performance-compat": "0.0.900",
+      "@firebase/remote-config": "0.0.900",
+      "@firebase/remote-compat": "0.0.900"
     },
     "devDependencies": {
       "typescript": "4.2.2"

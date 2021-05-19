@@ -17,9 +17,9 @@
 
 import { getModularInstance } from '@firebase/util';
 import { expect } from 'chai';
-import { getAuth, signOut } from 'firebase-exp/auth';
-import firebase from 'firebase-exp/compat/app';
-import 'firebase-exp/compat/auth';
+import { getAuth, signOut } from '@firebase/auth-exp';
+import firebase from '@firebase/app-compat';
+import '@firebase/auth-compat';
 
 import { TEST_PROJECT_CONFIG } from './util';
 

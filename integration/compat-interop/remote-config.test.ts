@@ -17,9 +17,9 @@
 
 import { getModularInstance } from '@firebase/util';
 import { expect } from 'chai';
-import { getRemoteConfig } from 'firebase-exp/remote-config';
-import firebase from 'firebase-exp/compat/app';
-import 'firebase-exp/compat/remote-config';
+import { getRemoteConfig } from '@firebase/remote-config-exp';
+import firebase from '@firebase/app-compat';
+import '@firebase/remote-config-compat';
 
 import { TEST_PROJECT_CONFIG } from './util';
 

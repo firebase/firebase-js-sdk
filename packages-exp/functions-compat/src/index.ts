@@ -25,12 +25,12 @@ firebase.registerVersion(name, version);
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
-    functions?: {
+    functions: {
       (app?: FirebaseApp): types.FirebaseFunctions;
       Functions: typeof types.FirebaseFunctions;
     };
   }
   interface FirebaseApp {
-    functions?(regionOrCustomDomain?: string): types.FirebaseFunctions;
+    functions(regionOrCustomDomain?: string): types.FirebaseFunctions;
   }
 }

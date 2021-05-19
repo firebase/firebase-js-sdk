@@ -17,8 +17,8 @@
 
 import { getModularInstance } from '@firebase/util';
 import { expect } from 'chai';
-import { getApp, getApps } from 'firebase-exp/app';
-import firebase from 'firebase-exp/compat/app';
+import { getApp, getApps } from '@firebase/app-exp';
+import firebase from '@firebase/app-compat';
 
 import { TEST_PROJECT_CONFIG } from './util';
 //TODO: add Storage, Firestore and Database tests once v8 is removed. Currently it's too difficult to set them up in integration tests.
