@@ -18,7 +18,7 @@
 import webpack from 'webpack';
 // @ts-ignore
 import virtualModulesPlugin from 'webpack-virtual-modules';
-import { createFsFromVolume, Volume } from 'memfs';
+import { createFsFromVolume, IFs, Volume } from 'memfs';
 import path from 'path';
 import { projectRoot } from '../util';
 
@@ -71,15 +71,15 @@ export async function bundleWithWebpack(
       }
 
       // Hack to get string output without reading the output file using an internal API from webpack
-      res(stats.compilation.assets[outputFileName]._value);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      res((stats!.compilation.assets[outputFileName] as any)['_value']);
     });
   });
 }
 
-function getMemoryFileSystem(): webpack.OutputFileSystem {
+function getMemoryFileSystem(): IFs {
   const fs = createFsFromVolume(new Volume());
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (fs as any).join = path.join.bind(path);
-
-  return (fs as unknown) as webpack.OutputFileSystem;
+  return fs;
 }
