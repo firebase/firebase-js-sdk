@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 2.3.1
+
+### Patch Changes
+
+- [`96a47097f`](https://github.com/firebase/firebase-js-sdk/commit/96a47097f36fa33f16b3f63b8cc72d256710e528) [#4886](https://github.com/firebase/firebase-js-sdk/pull/4886) - Use 'pagehide' for page termination by default.
+
 ## 2.3.0
 
 ### Minor Changes

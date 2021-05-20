@@ -1,5 +1,14 @@
 # @firebase/rules-unit-testing
 
+## 1.3.2
+
+### Patch Changes
+
+- [`b97dd4e1d`](https://github.com/firebase/firebase-js-sdk/commit/b97dd4e1d366ade504703f73628bcd1920db434b) [#4901](https://github.com/firebase/firebase-js-sdk/pull/4901) - Allow using useEmulators() with only the storage configuration.
+
+- Updated dependencies []:
+  - firebase@8.6.2
+
 ## 1.3.1
 
 ### Patch Changes

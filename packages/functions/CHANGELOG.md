@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.6.9
+
+### Patch Changes
+
+- [`997040ace`](https://github.com/firebase/firebase-js-sdk/commit/997040ace70de0891c9dea78b6da89e4886163b9) [#4924](https://github.com/firebase/firebase-js-sdk/pull/4924) - Fixed a bug in `httpsCallable()` when used in the same project as Firebase Messaging.
+
 ## 0.6.8
 
 ### Patch Changes
