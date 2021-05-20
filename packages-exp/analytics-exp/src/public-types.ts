@@ -128,7 +128,7 @@ export interface AnalyticsCallOptions {
  */
 export interface Analytics {
   /**
-   * The FirebaseApp this Functions instance is associated with.
+   * The FirebaseApp this Analytics instance is associated with.
    */
   app: FirebaseApp;
 }

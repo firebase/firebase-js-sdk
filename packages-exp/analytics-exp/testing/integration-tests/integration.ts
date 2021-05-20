@@ -34,6 +34,26 @@ try {
 }
 
 const RETRY_INTERVAL = 1000;
+const TIMEOUT_MILLIS = 20000;
+
+async function checkForEventCalls(retryCount = 0): Promise<PerformanceEntry[]> {
+  if (retryCount > TIMEOUT_MILLIS / RETRY_INTERVAL) {
+    return Promise.resolve([]);
+  }
+  await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+  const resources = performance.getEntriesByType('resource');
+  performance.clearResourceTimings();
+  const callsWithEvent = resources.filter(
+    resource =>
+      resource.name.includes('google-analytics.com') &&
+      resource.name.includes('en=login')
+  );
+  if (callsWithEvent.length === 0) {
+    return checkForEventCalls(retryCount + 1);
+  } else {
+    return callsWithEvent;
+  }
+}
 
 describe('FirebaseAnalytics Integration Smoke Tests', () => {
   let app: FirebaseApp;
@@ -41,23 +61,10 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
     afterEach(() => deleteApp(app));
     it('logEvent() sends correct network request.', async () => {
       app = initializeApp(config);
-      logEvent(getAnalytics(app), 'login', { method: 'email' });
-      async function checkForEventCalls(): Promise<number> {
-        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        const resources = performance.getEntriesByType('resource');
-        const callsWithEvent = resources.filter(
-          resource =>
-            resource.name.includes('google-analytics.com') &&
-            resource.name.includes('en=login')
-        );
-        if (callsWithEvent.length === 0) {
-          return checkForEventCalls();
-        } else {
-          return callsWithEvent.length;
-        }
-      }
-      const eventCallCount = await checkForEventCalls();
-      expect(eventCallCount).to.equal(1);
+      logEvent(getAnalytics(app), 'login', { method: 'phone' });
+      const eventCalls = await checkForEventCalls();
+      expect(eventCalls.length).to.equal(1);
+      expect(eventCalls[0].name).to.include('method=phone');
     });
     it("Warns if measurement ID doesn't match.", done => {
       const warnStub = stub(console, 'warn').callsFake(() => {
@@ -75,20 +82,6 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
     it('logEvent() sends correct network request.', async () => {
       app = initializeApp(config);
       logEvent(initializeAnalytics(app), 'login', { method: 'email' });
-      async function checkForEventCalls(): Promise<PerformanceEntry[]> {
-        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        const resources = performance.getEntriesByType('resource');
-        const callsWithEvent = resources.filter(
-          resource =>
-            resource.name.includes('google-analytics.com') &&
-            resource.name.includes('en=login')
-        );
-        if (callsWithEvent.length === 0) {
-          return checkForEventCalls();
-        } else {
-          return callsWithEvent;
-        }
-      }
       const eventCalls = await checkForEventCalls();
       expect(eventCalls.length).to.equal(1);
       expect(eventCalls[0].name).to.include('method=email');
