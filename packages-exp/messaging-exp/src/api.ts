@@ -141,6 +141,8 @@ export function onMessage(
  * message is received and the app is currently in the background.
  *
  * @returns To stop listening for messages execute this returned function
+ *
+ * @public
  */
 export function onBackgroundMessage(
   messaging: FirebaseMessaging,
