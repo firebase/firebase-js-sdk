@@ -222,7 +222,7 @@ export class Firestore
       currentSettings.host !== settingsLiteral.host
     ) {
       logWarn(
-        'The original host is being overridden. If you did not intend ' +
+        'You are overriding the original host. If you did not intend ' +
           'to override your settings, use {merge: true}.'
       );
     }
