@@ -54,8 +54,7 @@
     "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
-    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
-    "toc-devsite": "ts-node-script scripts/exp/generate-devsite-toc.ts -i temp"
+    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts"
   },
   "repository": {
     "type": "git",
