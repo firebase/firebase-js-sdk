@@ -22,6 +22,7 @@ import {
   InstanceFactory
 } from '@firebase/component';
 import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
+
 import { MessagingCompatImpl } from './messaging-compat';
 
 declare module '@firebase/component' {
@@ -33,10 +34,19 @@ declare module '@firebase/component' {
 const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
   container: ComponentContainer
 ) => {
-  return new MessagingCompatImpl(
-    container.getProvider('app-compat').getImmediate(),
-    container.getProvider('messaging-exp').getImmediate()
-  );
+  if (!!navigator) {
+    // in window
+    return new MessagingCompatImpl(
+      container.getProvider('app-compat').getImmediate(),
+      container.getProvider('messaging-exp').getImmediate()
+    );
+  } else {
+    // in sw
+    return new MessagingCompatImpl(
+      container.getProvider('app-compat').getImmediate(),
+      container.getProvider('messaging-sw-exp').getImmediate()
+    );
+  }
 };
 
 export function registerMessagingCompat(): void {

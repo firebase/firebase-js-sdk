@@ -117,7 +117,7 @@ import {
   validateIsNotUsedTogether,
   validateSetOptions
 } from '../util/input_validation';
-import { setLogLevel as setClientLogLevel } from '../util/log';
+import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
 
 import { Blob } from './blob';
 import {
@@ -216,14 +216,26 @@ export class Firestore
   }
 
   settings(settingsLiteral: PublicSettings): void {
+    const currentSettings = this._delegate._getSettings();
+    if (
+      !settingsLiteral.merge &&
+      currentSettings.host !== settingsLiteral.host
+    ) {
+      logWarn(
+        'You are overriding the original host. If you did not intend ' +
+          'to override your settings, use {merge: true}.'
+      );
+    }
+
     if (settingsLiteral.merge) {
       settingsLiteral = {
-        ...this._delegate._getSettings(),
+        ...currentSettings,
         ...settingsLiteral
       };
       // Remove the property from the settings once the merge is completed
       delete settingsLiteral.merge;
     }
+
     this._delegate._setSettings(settingsLiteral);
   }
 
