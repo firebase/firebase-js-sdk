@@ -12,3 +12,5 @@ Use `-i` to specify the folder that contains api.json files.
 Use `-p` to specify the g3 path that contains the reference docs.
 
 By default, the command will create `toc.yaml` in folder `/toc`. To change the output folder, use the flag `-o`.
+
+To generate toc for the Firebase JS SDK, also set the flag `-j` to create the top level `firebase` toc item.

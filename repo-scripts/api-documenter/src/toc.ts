@@ -27,6 +27,7 @@ export interface ITocGenerationOptions {
   g3Path: string;
   outputFolder: string;
   addFileNameSuffix: boolean;
+  jsSdk: boolean;
 }
 
 interface ITocItem {
@@ -39,14 +40,19 @@ export function generateToc({
   apiModel,
   g3Path,
   outputFolder,
-  addFileNameSuffix
+  addFileNameSuffix,
+  jsSdk
 }: ITocGenerationOptions) {
-  const js: ITocItem = {
-    title: 'firebase',
-    path: `${g3Path}/index`,
-    section: []
-  };
-  const toc = [js];
+  const toc = [];
+
+  if (jsSdk) {
+    const firebaseToc: ITocItem = {
+      title: 'firebase',
+      path: `${g3Path}/index`,
+      section: []
+    };
+    toc.push(firebaseToc);
+  }
 
   generateTocRecursively(apiModel, g3Path, addFileNameSuffix, toc);
 

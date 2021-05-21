@@ -15,13 +15,17 @@
  * limitations under the License.
  */
 
-import { CommandLineStringParameter } from '@rushstack/ts-command-line';
+import {
+  CommandLineFlagParameter,
+  CommandLineStringParameter
+} from '@rushstack/ts-command-line';
 import { ApiDocumenterCommandLine } from './ApiDocumenterCommandLine';
 import { BaseAction } from './BaseAction';
 import { generateToc } from '../toc';
 
 export class TocAction extends BaseAction {
   private _g3PathParameter!: CommandLineStringParameter;
+  private _jsSDKParameter!: CommandLineFlagParameter;
   public constructor(parser: ApiDocumenterCommandLine) {
     super({
       actionName: 'toc',
@@ -42,12 +46,21 @@ export class TocAction extends BaseAction {
       description: `Specifies the path where the reference docs will be written to in g3.
                 Used to generate paths in the toc`
     });
+
+    this._jsSDKParameter = this.defineFlagParameter({
+      parameterLongName: '--js-sdk',
+      parameterShortName: '-j',
+      description:
+        `Generating toc for the Firebase JS SDK.` +
+        `It will create an artificial top level toc item "firebase".`
+    });
   }
 
   protected async onExecute(): Promise<void> {
     // override
     const { apiModel, outputFolder, addFileNameSuffix } = this.buildApiModel();
     const g3Path: string | undefined = this._g3PathParameter.value;
+    const jsSdk: boolean = this._jsSDKParameter.value;
 
     if (!g3Path) {
       throw new Error(
@@ -59,7 +72,8 @@ export class TocAction extends BaseAction {
       apiModel,
       outputFolder,
       addFileNameSuffix,
-      g3Path
+      g3Path,
+      jsSdk
     });
   }
 }
