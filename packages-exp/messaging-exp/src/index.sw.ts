@@ -25,7 +25,7 @@ export { isSwSupported as isSupported } from './api/isSupported';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-exp': FirebaseMessaging;
+    'messaging-sw-exp': FirebaseMessaging;
   }
 }
 

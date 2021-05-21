@@ -16,6 +16,7 @@
  */
 
 import * as messagingModule from '@firebase/messaging-exp';
+import * as messagingModuleInSw from '@firebase/messaging-exp/sw';
 
 import { getFakeApp, getFakeModularMessaging } from './fakes';
 
@@ -33,7 +34,10 @@ describe('messagingCompat', () => {
   const getTokenStub = stub(messagingModule, 'getToken');
   const deleteTokenStub = stub(messagingModule, 'deleteToken');
   const onMessageStub = stub(messagingModule, 'onMessage');
-  const onBackgroundMessageStub = stub(messagingModule, 'onBackgroundMessage');
+  const onBackgroundMessageStub = stub(
+    messagingModuleInSw,
+    'onBackgroundMessage'
+  );
 
   it('routes messagingCompat.getToken to modular SDK', () => {
     void messagingCompat.getToken();

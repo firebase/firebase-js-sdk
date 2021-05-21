@@ -24,10 +24,11 @@ import {
   MessagePayload,
   deleteToken,
   getToken,
-  onBackgroundMessage,
   onMessage
 } from '@firebase/messaging-exp';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+
+import { onBackgroundMessage } from '@firebase/messaging-exp/sw';
 
 export interface MessagingCompat {
   getToken(options?: {
@@ -88,19 +89,6 @@ function isSwSupported(): boolean {
 }
 
 export class MessagingCompatImpl implements MessagingCompat, _FirebaseService {
-  swRegistration?: ServiceWorkerRegistration;
-  vapidKey?: string;
-
-  onBackgroundMessageHandler:
-    | NextFn<MessagePayload>
-    | Observer<MessagePayload>
-    | null = null;
-
-  onMessageHandler:
-    | NextFn<MessagePayload>
-    | Observer<MessagePayload>
-    | null = null;
-
   constructor(readonly app: AppCompat, readonly _delegate: FirebaseMessaging) {
     this.app = app;
     this._delegate = _delegate;
