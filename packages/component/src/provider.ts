@@ -99,15 +99,8 @@ export class Provider<T extends Name> {
     identifier?: string;
     optional?: boolean;
   }): NameServiceMapping[T] | null {
-    let { identifier, optional } = {
-      identifier: DEFAULT_ENTRY_NAME,
-      optional: false,
-      ...options
-    };
-
-    if (!identifier) {
-      identifier = DEFAULT_ENTRY_NAME;
-    }
+    const identifier = options?.identifier ?? DEFAULT_ENTRY_NAME;
+    const optional = options?.optional ?? false;
 
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
