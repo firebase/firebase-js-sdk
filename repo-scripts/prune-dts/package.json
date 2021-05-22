@@ -32,7 +32,7 @@
     "reportDir": "./coverage/node"
   },
   "devDependencies": {
-    "@types/eslint": "7.2.6",
+    "@types/eslint": "7.2.10",
     "@types/prettier": "2.1.6",
     "mocha": "8.2.1"
   }
