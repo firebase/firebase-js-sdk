@@ -211,7 +211,7 @@ export class ObjectValue {
  */
 export function extractFieldMask(value: ProtoMapValue): FieldMask {
   const fields: FieldPath[] = [];
-  forEach(value!.fields || {}, (key, value) => {
+  forEach(value!.fields, (key, value) => {
     const currentPath = new FieldPath([key]);
     if (isMapValue(value)) {
       const nestedMask = extractFieldMask(value.mapValue!);

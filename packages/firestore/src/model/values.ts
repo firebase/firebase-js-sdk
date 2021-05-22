@@ -479,7 +479,7 @@ export function estimateByteSize(value: Value): number {
 
 function estimateMapByteSize(mapValue: MapValue): number {
   let size = 0;
-  forEach(mapValue.fields || {}, (key, val) => {
+  forEach(mapValue.fields, (key, val) => {
     size += key.length + estimateByteSize(val);
   });
   return size;
@@ -564,7 +564,7 @@ export function deepClone(source: Value): Value {
   } else if (source.mapValue) {
     const target: Value = { mapValue: { fields: {} } };
     forEach(
-      source.mapValue.fields || {},
+      source.mapValue.fields,
       (key, val) => (target.mapValue!.fields![key] = deepClone(val))
     );
     return target;
