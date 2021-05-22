@@ -554,3 +554,27 @@ export function isMapValue(
 ): value is { mapValue: MapValue } {
   return !!value && 'mapValue' in value;
 }
+
+/** Creates a deep copy of `source`. */
+export function deepClone(source: Value): Value {
+  if (source.geoPointValue) {
+    return { geoPointValue: { ...source.geoPointValue } };
+  } else if (source.timestampValue) {
+    return { timestampValue: { ...normalizeTimestamp(source.timestampValue) } };
+  } else if (source.mapValue) {
+    const target: Value = { mapValue: { fields: {} } };
+    forEach(
+      source.mapValue.fields || {},
+      (key, val) => (target.mapValue!.fields![key] = deepClone(val))
+    );
+    return target;
+  } else if (source.arrayValue) {
+    const target: Value = { arrayValue: { values: [] } };
+    for (let i = 0; i < (source.arrayValue.values || []).length; ++i) {
+      target.arrayValue!.values![i] = deepClone(source.arrayValue.values![i]);
+    }
+    return target;
+  } else {
+    return { ...source };
+  }
+}
