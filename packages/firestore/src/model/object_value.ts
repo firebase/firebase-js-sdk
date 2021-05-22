@@ -36,14 +36,11 @@ export interface JsonObject<T> {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue {
-  private value: { mapValue: ProtoMapValue };
-
-  constructor(proto: { mapValue: ProtoMapValue }) {
+  constructor(private value: { mapValue: ProtoMapValue }) {
     debugAssert(
-      !isServerTimestamp(proto),
+      !isServerTimestamp(value),
       'ServerTimestamps should be converted to ServerTimestampValue'
     );
-    this.value = proto;
   }
 
   static empty(): ObjectValue {
