@@ -80,7 +80,7 @@ export class ObjectValue {
       'Cannot set field for empty path on ObjectValue'
     );
     const fieldsMap = this.getFieldsMap(path.popLast());
-    fieldsMap[path.lastSegment()] = value;
+    fieldsMap[path.lastSegment()] = deepClone(value);
   }
 
   /**
@@ -105,7 +105,7 @@ export class ObjectValue {
       }
 
       if (value) {
-        upserts[path.lastSegment()] = value;
+        upserts[path.lastSegment()] = deepClone(value);
       } else {
         deletes.push(path.lastSegment());
       }
