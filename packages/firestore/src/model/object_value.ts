@@ -16,7 +16,6 @@
  */
 
 import {
-  firestoreV1ApiClientInterfaces,
   MapValue as ProtoMapValue,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
