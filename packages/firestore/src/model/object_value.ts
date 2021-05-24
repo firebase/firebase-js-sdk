@@ -22,11 +22,11 @@ import {
 } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
 import { forEach } from '../util/obj';
+
 import { FieldMask } from './field_mask';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
 import { deepClone, isMapValue, valueEquals } from './values';
-import Value = firestoreV1ApiClientInterfaces.Value;
 
 export interface JsonObject<T> {
   [name: string]: T;
