@@ -111,8 +111,8 @@ export class ObjectValue {
     data.forEach((value, path) => {
       if (!parent.isImmediateParentOf(path)) {
         // Insert the accumulated changes at this parent location
-        const parent_map = this.getParentMap(parent);
-        this.applyChanges(parent_map, upserts, deletes);
+        const parentMap = this.getParentMap(parent);
+        this.applyChanges(parentMap, upserts, deletes);
         upserts = {};
         deletes = [];
         parent = path.popLast();
@@ -160,22 +160,18 @@ export class ObjectValue {
     let parent = this.value;
 
     for (let i = 0; i < path.length; ++i) {
-      const currentSegment = path.get(i);
+      const segment = path.get(i);
 
       if (!parent.mapValue.fields) {
         parent.mapValue.fields = {};
       }
-      let currentValue = parent.mapValue.fields[currentSegment];
 
-      if (!currentValue || typeOrder(currentValue) !== TypeOrder.ObjectValue) {
-        // Since the element is not a map value, free all existing data and
+      if (!isMapValue(parent.mapValue.fields[segment])) {
+        // Since the element is not a map value, remove all existing data and
         // change it to a map type.
-        currentValue = { mapValue: {} };
-        parent.mapValue.fields[currentSegment] = currentValue;
+        parent.mapValue.fields[segment] = { mapValue: {} };
       }
-
-      parent.mapValue.fields[currentSegment] = currentValue;
-      parent = currentValue as { mapValue: ProtoMapValue };
+      parent = parent.mapValue.fields[segment] as { mapValue: ProtoMapValue };
     }
 
     return parent.mapValue;
