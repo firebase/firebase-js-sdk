@@ -29,10 +29,8 @@ export class TocAction extends BaseAction {
   public constructor(parser: ApiDocumenterCommandLine) {
     super({
       actionName: 'toc',
-      summary: 'Generate documentation as Markdown files (*.md)',
-      documentation:
-        'Generates API documentation as a collection of files in' +
-        ' Markdown format, suitable for example for publishing on a GitHub site.'
+      summary: 'Generate TOC(table of content) for Firebase devsite.',
+      documentation: 'Generate TOC(table of content) for Firebase devsite.'
     });
   }
 
