@@ -1,0 +1,6 @@
+{
+  "name": "@firebase/auth-exp/react-native",
+  "description": "A React Native-specific build of the Firebase Auth JS SDK",
+  "browser": "../dist/rn/index.js",
+  "typings": "../dist/rn/index.rn.d.ts"
+}
