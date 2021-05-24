@@ -379,7 +379,7 @@ export function toMutationDocument(
 ): ProtoDocument {
   return {
     name: toName(serializer, key),
-    fields: fields.toProto().mapValue.fields
+    fields: fields.value.mapValue.fields
   };
 }
 
@@ -393,7 +393,7 @@ export function toDocument(
   );
   return {
     name: toName(serializer, document.key),
-    fields: document.data.toProto().mapValue.fields,
+    fields: document.data.value.mapValue.fields,
     updateTime: toTimestamp(serializer, document.version.toTimestamp())
   };
 }

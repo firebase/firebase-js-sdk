@@ -16,17 +16,17 @@
  */
 
 import {
+  firestoreV1ApiClientInterfaces,
   MapValue as ProtoMapValue,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
 import { forEach } from '../util/obj';
-
 import { FieldMask } from './field_mask';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
-import { TypeOrder } from './type_order';
-import { deepClone, isMapValue, typeOrder, valueEquals } from './values';
+import { deepClone, isMapValue, valueEquals } from './values';
+import Value = firestoreV1ApiClientInterfaces.Value;
 
 export interface JsonObject<T> {
   [name: string]: T;
@@ -36,7 +36,7 @@ export interface JsonObject<T> {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue {
-  constructor(private value: { mapValue: ProtoMapValue }) {
+  constructor(readonly value: { mapValue: ProtoMapValue }) {
     debugAssert(
       !isServerTimestamp(value),
       'ServerTimestamps should be converted to ServerTimestampValue'
@@ -73,11 +73,6 @@ export class ObjectValue {
     }
   }
 
-  /** Returns the full protobuf representation. */
-  toProto(): { mapValue: ProtoMapValue } {
-    return this.value;
-  }
-
   /**
    * Sets the field to the provided value.
    *
@@ -89,12 +84,8 @@ export class ObjectValue {
       !path.isEmpty(),
       'Cannot set field for empty path on ObjectValue'
     );
-    const parentMap = this.getParentMap(path.popLast());
-    this.applyChanges(
-      parentMap,
-      { [path.lastSegment()]: value },
-      /*deletes=*/ []
-    );
+    const fieldsMap = this.getFieldsMap(path.popLast());
+    fieldsMap[path.lastSegment()] = value;
   }
 
   /**
@@ -111,8 +102,8 @@ export class ObjectValue {
     data.forEach((value, path) => {
       if (!parent.isImmediateParentOf(path)) {
         // Insert the accumulated changes at this parent location
-        const parentMap = this.getParentMap(parent);
-        this.applyChanges(parentMap, upserts, deletes);
+        const fieldsMap = this.getFieldsMap(parent);
+        this.applyChanges(fieldsMap, upserts, deletes);
         upserts = {};
         deletes = [];
         parent = path.popLast();
@@ -125,8 +116,8 @@ export class ObjectValue {
       }
     });
 
-    const parentMap = this.getParentMap(parent);
-    this.applyChanges(parentMap, upserts, deletes);
+    const fieldsMap = this.getFieldsMap(parent);
+    this.applyChanges(fieldsMap, upserts, deletes);
   }
 
   /**
@@ -141,10 +132,8 @@ export class ObjectValue {
       'Cannot delete field for empty path on ObjectValue'
     );
     const nestedValue = this.field(path.popLast());
-    if (nestedValue && nestedValue.mapValue) {
-      this.applyChanges(nestedValue.mapValue, /*upserts=*/ {}, [
-        path.lastSegment()
-      ]);
+    if (isMapValue(nestedValue) && nestedValue.mapValue.fields) {
+      delete nestedValue.mapValue.fields[path.lastSegment()];
     }
   }
 
@@ -156,25 +145,24 @@ export class ObjectValue {
    * Returns the map that contains the leaf element of `path`. If the parent
    * entry does not yet exist, or if it is not a map, a new map will be created.
    */
-  private getParentMap(path: FieldPath): ProtoMapValue {
-    let parent = this.value;
+  private getFieldsMap(path: FieldPath): Record<string, ProtoValue> {
+    let current = this.value;
 
-    for (let i = 0; i < path.length; ++i) {
-      const segment = path.get(i);
-
-      if (!parent.mapValue.fields) {
-        parent.mapValue.fields = {};
-      }
-
-      if (!isMapValue(parent.mapValue.fields[segment])) {
-        // Since the element is not a map value, remove all existing data and
-        // change it to a map type.
-        parent.mapValue.fields[segment] = { mapValue: {} };
-      }
-      parent = parent.mapValue.fields[segment] as { mapValue: ProtoMapValue };
+    if (!current.mapValue!.fields) {
+      current.mapValue = { fields: {} };
     }
 
-    return parent.mapValue;
+    for (let i = 0; i < path.length; ++i) {
+      let next =
+        current.mapValue!.fields && current.mapValue!.fields![path.get(i)];
+      if (!isMapValue(next) || !next.mapValue.fields) {
+        next = { mapValue: { fields: {} } };
+        current.mapValue!.fields![path.get(i)] = next;
+      }
+      current = next as { mapValue: ProtoMapValue };
+    }
+
+    return current.mapValue!.fields!;
   }
 
   /**
@@ -182,16 +170,13 @@ export class ObjectValue {
    * entries.
    */
   private applyChanges(
-    parentMap: ProtoMapValue,
+    fieldsMap: Record<string, ProtoValue>,
     inserts: { [key: string]: ProtoValue },
     deletes: string[]
   ): void {
-    if (!parentMap.fields) {
-      parentMap.fields = {};
-    }
-    forEach(inserts, (key, val) => (parentMap.fields![key] = val));
+    forEach(inserts, (key, val) => (fieldsMap[key] = val));
     for (const field of deletes) {
-      delete parentMap.fields[field];
+      delete fieldsMap[field];
     }
   }
 
