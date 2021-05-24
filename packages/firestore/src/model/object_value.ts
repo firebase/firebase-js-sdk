@@ -59,16 +59,12 @@ export class ObjectValue {
     } else {
       let currentLevel: ProtoValue = this.value;
       for (let i = 0; i < path.length - 1; ++i) {
-        if (!currentLevel.mapValue!.fields) {
-          return null;
-        }
-        currentLevel = currentLevel.mapValue!.fields[path.get(i)];
+        currentLevel = (currentLevel.mapValue!.fields || {})[path.get(i)];
         if (!isMapValue(currentLevel)) {
           return null;
         }
       }
-
-      currentLevel = (currentLevel.mapValue!.fields || {})[path.lastSegment()];
+      currentLevel = (currentLevel.mapValue!.fields! || {})[path.lastSegment()];
       return currentLevel || null;
     }
   }
@@ -153,8 +149,7 @@ export class ObjectValue {
     }
 
     for (let i = 0; i < path.length; ++i) {
-      let next =
-        current.mapValue!.fields && current.mapValue!.fields![path.get(i)];
+      let next = current.mapValue!.fields![path.get(i)];
       if (!isMapValue(next) || !next.mapValue.fields) {
         next = { mapValue: { fields: {} } };
         current.mapValue!.fields![path.get(i)] = next;

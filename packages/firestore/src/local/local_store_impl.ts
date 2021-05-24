@@ -330,7 +330,7 @@ export function localStoreWriteLocally(
                 new PatchMutation(
                   mutation.key,
                   baseValue,
-                  extractFieldMask(baseValue.value.mapValue!),
+                  extractFieldMask(baseValue.value.mapValue),
                   Precondition.exists(true)
                 )
               );
