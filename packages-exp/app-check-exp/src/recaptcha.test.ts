@@ -18,31 +18,31 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { FirebaseApp } from '@firebase/app-exp';
+import { deleteApp, FirebaseApp } from '@firebase/app-exp';
 import {
-  getFakeApp,
+  getFullApp,
   getFakeGreCAPTCHA,
   removegreCAPTCHAScriptsOnPage,
   findgreCAPTCHAScriptsOnPage,
-  FAKE_SITE_KEY,
-  getFakePlatformLoggingProvider
+  FAKE_SITE_KEY
 } from '../test/util';
 import { initialize, getToken } from './recaptcha';
 import * as utils from './util';
 import { getState } from './state';
 import { Deferred } from '@firebase/util';
-import { _activate as activate } from './api';
+import { initializeAppCheck } from './api';
 import { ReCaptchaV3Provider } from './providers';
 
 describe('recaptcha', () => {
   let app: FirebaseApp;
 
   beforeEach(() => {
-    app = getFakeApp();
+    app = getFullApp();
   });
 
   afterEach(() => {
     removegreCAPTCHAScriptsOnPage();
+    return deleteApp(app);
   });
 
   describe('initialize()', () => {
@@ -101,11 +101,9 @@ describe('recaptcha', () => {
         Promise.resolve('fake-recaptcha-token')
       );
       self.grecaptcha = grecaptchaFake;
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider()
-      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
       await getToken(app);
 
       expect(executeStub).to.have.been.calledWith('fake_widget_1', {
@@ -119,11 +117,9 @@ describe('recaptcha', () => {
         Promise.resolve('fake-recaptcha-token')
       );
       self.grecaptcha = grecaptchaFake;
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider()
-      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
       const token = await getToken(app);
 
       expect(token).to.equal('fake-recaptcha-token');

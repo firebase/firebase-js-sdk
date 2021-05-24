@@ -25,7 +25,7 @@ import {
   writeTokenToIndexedDB
 } from './indexeddb';
 import { logger } from './logger';
-import { AppCheckTokenInternal } from './state';
+import { AppCheckTokenInternal } from './types';
 
 /**
  * Always resolves. In case of an error reading from indexeddb, resolve with undefined

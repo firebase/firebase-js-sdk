@@ -17,56 +17,23 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import {
-  _activate as activate,
-  setTokenAutoRefreshEnabled,
-  initializeAppCheck
-} from './api';
+import { setTokenAutoRefreshEnabled, initializeAppCheck } from './api';
 import {
   FAKE_SITE_KEY,
+  getFullApp,
   getFakeApp,
-  getFakeCustomTokenProvider,
-  getFakePlatformLoggingProvider
+  getFakeCustomTokenProvider
 } from '../test/util';
 import { getState } from './state';
 import * as reCAPTCHA from './recaptcha';
-import {
-  deleteApp,
-  FirebaseApp,
-  initializeApp,
-  _registerComponent
-} from '@firebase/app-exp';
-import { Component, ComponentType } from '@firebase/component';
-import { AppCheckService } from './factory';
+import { deleteApp, FirebaseApp } from '@firebase/app-exp';
 import { ReCaptchaV3Provider } from './providers';
-import { PlatformLoggerService } from '@firebase/app-exp/dist/packages-exp/app-exp/src/types';
 
 describe('api', () => {
   let app: FirebaseApp;
 
   beforeEach(() => {
-    app = initializeApp(
-      { apiKey: 'fdsa', appId: 'fdsafg' },
-      'initializeAppCheckTests'
-    );
-    _registerComponent(
-      new Component(
-        'platform-logger',
-        () => {
-          return {} as PlatformLoggerService;
-        },
-        ComponentType.PUBLIC
-      )
-    );
-    _registerComponent(
-      new Component(
-        'app-check-exp',
-        () => {
-          return {} as AppCheckService;
-        },
-        ComponentType.PUBLIC
-      )
-    );
+    app = getFullApp();
   });
 
   afterEach(() => {
@@ -107,42 +74,29 @@ describe('api', () => {
       expect(getState(app).provider).to.equal(fakeCustomTokenProvider);
       expect(initReCAPTCHAStub).to.have.not.been.called;
     });
-  });
-  describe('activate()', () => {
-    let app: FirebaseApp;
-
-    beforeEach(() => {
-      app = getFakeApp();
-    });
 
     it('sets activated to true', () => {
       expect(getState(app).activated).to.equal(false);
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider()
-      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
       expect(getState(app).activated).to.equal(true);
     });
 
     it('isTokenAutoRefreshEnabled value defaults to global setting', () => {
       app.automaticDataCollectionEnabled = false;
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider()
-      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(false);
     });
 
     it('sets isTokenAutoRefreshEnabled correctly, overriding global setting', () => {
       app.automaticDataCollectionEnabled = false;
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider(),
-        true
-      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
     });
   });

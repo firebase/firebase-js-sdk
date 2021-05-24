@@ -15,13 +15,20 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp, _getProvider } from '@firebase/app-exp';
 import { Provider } from '@firebase/component';
+import { issuedAtTime } from '@firebase/util';
 import { exchangeToken, getExchangeRecaptchaTokenRequest } from './client';
 import { AppCheckError, ERROR_FACTORY } from './errors';
-import { AppCheckProvider, AppCheckToken } from './public-types';
-import { getToken as getReCAPTCHAToken } from './recaptcha';
-import { AppCheckTokenInternal } from './state';
+import {
+  AppCheckProvider,
+  AppCheckToken,
+  CustomProviderOptions
+} from './public-types';
+import {
+  getToken as getReCAPTCHAToken,
+  initialize as initializeRecaptcha
+} from './recaptcha';
 
 /**
  * App Check provider that can obtain a reCAPTCHA V3 token and exchange it
@@ -30,32 +37,18 @@ import { AppCheckTokenInternal } from './state';
  * @public
  */
 export class ReCaptchaV3Provider implements AppCheckProvider {
-  /**
-   * @internal
-   */
-  _delegate: ReCaptchaV3ProviderImpl;
+  private _app?: FirebaseApp;
+  private _platformLoggerProvider?: Provider<'platform-logger'>;
   /**
    * Create a ReCaptchaV3Provider instance.
    * @param siteKey - ReCAPTCHA V3 siteKey.
    */
-  constructor(siteKey: string) {
-    this._delegate = new ReCaptchaV3ProviderImpl(siteKey);
-  }
+  constructor(private _siteKey: string) {}
   /**
    * Returns an AppCheck token.
+   * @internal
    */
-  getToken(): Promise<AppCheckToken> {
-    return this._delegate.getToken();
-  }
-}
-
-export class ReCaptchaV3ProviderImpl implements AppCheckProvider {
-  private _app?: FirebaseApp;
-  private _platformLoggerProvider?: Provider<'platform-logger'>;
-
-  constructor(private _siteKey: string) {}
-
-  async getToken(): Promise<AppCheckTokenInternal> {
+  async getToken(): Promise<AppCheckToken> {
     if (!this._app || !this._platformLoggerProvider) {
       // This should only occur if user has not called initializeAppCheck().
       // We don't have an appName to provide if so.
@@ -74,15 +67,60 @@ export class ReCaptchaV3ProviderImpl implements AppCheckProvider {
     );
   }
 
-  initialize(
-    app: FirebaseApp,
-    platformLoggerProvider: Provider<'platform-logger'>
-  ): void {
+  /**
+   * @internal
+   */
+  initialize(app: FirebaseApp): void {
     this._app = app;
-    this._platformLoggerProvider = platformLoggerProvider;
+    this._platformLoggerProvider = _getProvider(app, 'platform-logger');
+    initializeRecaptcha(app, this._siteKey).catch(() => {
+      /* we don't care about the initialization result */
+    });
+  }
+}
+
+/**
+ * Custom provider class.
+ * @public
+ */
+export class CustomProvider implements AppCheckProvider {
+  private _app?: FirebaseApp;
+
+  constructor(private _customProviderOptions: CustomProviderOptions) {}
+
+  /**
+   * @internal
+   */
+  async getToken(): Promise<AppCheckToken> {
+    if (!this._app) {
+      // This should only occur if user has not called initializeAppCheck().
+      // We don't have an appName to provide if so.
+      // This should already be caught in the top level `getToken()` function.
+      throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
+        appName: ''
+      });
+    }
+    // custom provider
+    const customToken = await this._customProviderOptions.getToken();
+    // Try to extract IAT from custom token, in case this token is not
+    // being newly issued. JWT timestamps are in seconds since epoch.
+    const issuedAtTimeSeconds = issuedAtTime(customToken.token);
+    // Very basic validation, use current timestamp as IAT if JWT
+    // has no `iat` field or value is out of bounds.
+    const issuedAtTimeMillis =
+      issuedAtTimeSeconds !== null &&
+      issuedAtTimeSeconds < Date.now() &&
+      issuedAtTimeSeconds > 0
+        ? issuedAtTimeSeconds * 1000
+        : Date.now();
+
+    return { ...customToken, issuedAtTimeMillis } as AppCheckToken;
   }
 
-  get siteKey(): string {
-    return this._siteKey;
+  /**
+   * @internal
+   */
+  initialize(app: FirebaseApp): void {
+    this._app = app;
   }
 }

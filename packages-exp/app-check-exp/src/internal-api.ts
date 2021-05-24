@@ -16,23 +16,21 @@
  */
 
 import { FirebaseApp } from '@firebase/app-exp';
-import { AppCheckTokenResult, AppCheckTokenListener } from './types';
 import {
-  AppCheckTokenInternal,
-  getDebugState,
-  getState,
-  setState
-} from './state';
+  AppCheckTokenResult,
+  AppCheckTokenListener,
+  AppCheckTokenInternal
+} from './types';
+import { getDebugState, getState, setState } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
 import { exchangeToken, getExchangeDebugTokenRequest } from './client';
 import { writeTokenToStorage, readTokenFromStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64, issuedAtTime } from '@firebase/util';
+import { base64 } from '@firebase/util';
 import { logger } from './logger';
 import { Provider } from '@firebase/component';
-import { ReCaptchaV3ProviderImpl } from './providers';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
@@ -106,24 +104,8 @@ export async function getToken(
    * request a new token
    */
   try {
-    if (state.provider instanceof ReCaptchaV3ProviderImpl) {
+    if (state.provider) {
       token = await state.provider.getToken();
-    } else if (state.provider) {
-      // custom provider
-      const customToken = await state.provider.getToken();
-      // Try to extract IAT from custom token, in case this token is not
-      // being newly issued. JWT timestamps are in seconds since epoch.
-      const issuedAtTimeSeconds = issuedAtTime(customToken.token);
-      // Very basic validation, use current timestamp as IAT if JWT
-      // has no `iat` field or value is out of bounds.
-      const issuedAtTimeMillis =
-        issuedAtTimeSeconds !== null &&
-        issuedAtTimeSeconds < Date.now() &&
-        issuedAtTimeSeconds > 0
-          ? issuedAtTimeSeconds * 1000
-          : Date.now();
-
-      token = { ...customToken, issuedAtTimeMillis };
     }
   } catch (e) {
     // `getToken()` should never throw, but logging error text to console will aid debugging.

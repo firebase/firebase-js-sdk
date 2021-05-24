@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app-exp';
+import { AppCheckToken } from './public-types';
+
 export interface FirebaseAppCheckInternal {
   // Get the current AttestationToken. Attaches to the most recent in-flight request if one
   // is present. Returns null if no token is present and no token requests are in-flight.
@@ -36,6 +39,18 @@ export type AppCheckTokenListener = (token: AppCheckTokenResult) => void;
 export interface AppCheckTokenResult {
   readonly token: string;
   readonly error?: Error;
+}
+
+export interface AppCheckTokenInternal extends AppCheckToken {
+  issuedAtTimeMillis: number;
+}
+
+export interface AppCheckProviderInternal {
+  /**
+   * Returns an AppCheck token.
+   */
+  getToken: () => Promise<AppCheckTokenInternal>;
+  initialize(app: FirebaseApp): void;
 }
 
 /**

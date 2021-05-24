@@ -15,15 +15,13 @@
  * limitations under the License.
  */
 
-import { AppCheck, AppCheckOptions, AppCheckProvider } from './public-types';
+import { AppCheck, AppCheckOptions } from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { initialize as initializeRecaptcha } from './recaptcha';
 import { getState, setState, AppCheckState } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
 import { getModularInstance } from '@firebase/util';
 import { AppCheckService } from './factory';
-import { ReCaptchaV3Provider } from './providers';
-import { Provider } from '@firebase/component';
+import { AppCheckProviderInternal } from './types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -43,7 +41,6 @@ export function initializeAppCheck(
 ): AppCheck {
   app = getModularInstance(app);
   const provider = _getProvider(app, 'app-check-exp');
-  const platformLoggerProvider = _getProvider(app, 'platform-logger');
 
   if (provider.isInitialized()) {
     throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
@@ -54,8 +51,7 @@ export function initializeAppCheck(
   const appCheck = provider.initialize({ options });
   _activate(
     app,
-    options.provider,
-    platformLoggerProvider,
+    options.provider as AppCheckProviderInternal,
     options.isTokenAutoRefreshEnabled
   );
 
@@ -74,10 +70,9 @@ export function initializeAppCheck(
  *
  * @internal
  */
-export function _activate(
+function _activate(
   app: FirebaseApp,
-  provider: AppCheckProvider,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  provider: AppCheckProviderInternal,
   isTokenAutoRefreshEnabled?: boolean
 ): void {
   const state = getState(app);
@@ -95,17 +90,9 @@ export function _activate(
 
   setState(app, newState);
 
-  // initialize reCAPTCHA if siteKey is provided
-  if (newState.provider instanceof ReCaptchaV3Provider) {
-    const providerImpl = newState.provider._delegate;
-    setState(app, { ...newState, provider: providerImpl });
-    // These need to be injected for ReCaptchaV3Provider's getToken() to work.
-    providerImpl.initialize(app, platformLoggerProvider);
-    initializeRecaptcha(app, providerImpl.siteKey).catch(() => {
-      /* we don't care about the initialization result in activate() */
-    });
-  }
+  (newState.provider as AppCheckProviderInternal).initialize(app);
 }
+
 /**
  * Set whether App Check will automatically refresh tokens as needed.
  *

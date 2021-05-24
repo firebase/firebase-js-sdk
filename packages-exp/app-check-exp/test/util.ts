@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
+import {
+  FirebaseApp,
+  initializeApp,
+  _registerComponent
+} from '@firebase/app-exp';
 import { AppCheckProvider } from '../src/public-types';
 import { GreCAPTCHA, RECAPTCHA_URL } from '../src/recaptcha';
 import {
@@ -24,24 +28,51 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
+import { PlatformLoggerService } from '@firebase/app-exp/dist/packages-exp/app-exp/src/types';
+import { AppCheckService } from '../src/factory';
 
 export const FAKE_SITE_KEY = 'fake-site-key';
+
+const fakeConfig = {
+  apiKey: 'apiKey',
+  projectId: 'projectId',
+  authDomain: 'authDomain',
+  messagingSenderId: 'messagingSenderId',
+  databaseURL: 'databaseUrl',
+  storageBucket: 'storageBucket',
+  appId: '1:777777777777:web:d93b5ca1475efe57'
+};
 
 export function getFakeApp(overrides: Record<string, any> = {}): FirebaseApp {
   return {
     name: 'appName',
-    options: {
-      apiKey: 'apiKey',
-      projectId: 'projectId',
-      authDomain: 'authDomain',
-      messagingSenderId: 'messagingSenderId',
-      databaseURL: 'databaseUrl',
-      storageBucket: 'storageBucket',
-      appId: '1:777777777777:web:d93b5ca1475efe57'
-    } as any,
+    options: fakeConfig,
     automaticDataCollectionEnabled: true,
     ...overrides
   };
+}
+
+export function getFullApp(): FirebaseApp {
+  const app = initializeApp(fakeConfig);
+  _registerComponent(
+    new Component(
+      'platform-logger',
+      () => {
+        return {} as PlatformLoggerService;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  _registerComponent(
+    new Component(
+      'app-check-exp',
+      () => {
+        return {} as AppCheckService;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  return app;
 }
 
 export function getFakeCustomTokenProvider(): AppCheckProvider {

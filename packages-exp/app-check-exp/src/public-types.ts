@@ -39,7 +39,7 @@ export interface AppCheckProvider {
   /**
    * Returns an AppCheck token.
    */
-  getToken(): Promise<AppCheckToken>;
+  getToken: () => Promise<AppCheckToken>;
 }
 
 /**
@@ -72,4 +72,16 @@ export interface AppCheckOptions {
    * If set to true, enables automatic background refresh of app check token.
    */
   isTokenAutoRefreshEnabled?: boolean;
+}
+
+/**
+ * Options when creating a {@link CustomProvider}.
+ * @public
+ */
+export interface CustomProviderOptions {
+  /**
+   * Method to get an App Check token through a custom provider
+   * service.
+   */
+  getToken(): Promise<AppCheckToken>;
 }
