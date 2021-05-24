@@ -7,7 +7,7 @@ and then generates files in [Markdown](https://en.wikipedia.org/wiki/Markdown) f
 ## Generate toc for Firebase devsite
 `api-documenter-fire toc -i temp -p "/docs/reference/js/v9"`
 
-`-i` and `-p` are required parameters.
+`-i` and `-p` (`--host-path`) are required parameters.
 Use `-i` to specify the folder that contains api.json files.
 Use `-p` to specify the g3 path that contains the reference docs.
 

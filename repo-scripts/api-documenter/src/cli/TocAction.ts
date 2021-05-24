@@ -38,10 +38,10 @@ export class TocAction extends BaseAction {
     super.onDefineParameters();
 
     this._g3PathParameter = this.defineStringParameter({
-      parameterLongName: '--g3-path',
+      parameterLongName: '--host-path',
       parameterShortName: '-p',
-      argumentName: 'G3PREFIX',
-      description: `Specifies the path where the reference docs will be written to in g3.
+      argumentName: 'HOSTPATH',
+      description: `Specifies the path where the reference docs resides (e.g. g3).
                 Used to generate paths in the toc`
     });
 
