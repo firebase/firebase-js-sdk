@@ -466,7 +466,9 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   }
   return repo.server_.get(query).then(
     payload => {
-      const node = nodeFromJSON(payload as string);
+      const node = nodeFromJSON(payload as string).withIndex(
+        query._queryParams.getIndex()
+      );
       const events = syncTreeApplyServerOverwrite(
         repo.serverSyncTree_,
         query._path,
