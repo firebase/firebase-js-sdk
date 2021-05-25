@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 
+import { getModularInstance } from '@firebase/util';
+import { expect } from 'chai';
+import { getAnalytics } from '@firebase/analytics-exp';
 import firebase from '@firebase/app-compat';
-import { name, version } from '../package.json';
-import { registerFunctions } from './register';
-import * as types from '@firebase/functions-types';
+import '@firebase/analytics-compat';
 
-registerFunctions();
-firebase.registerVersion(name, version);
+import { TEST_PROJECT_CONFIG } from './util';
 
-declare module '@firebase/app-compat' {
-  interface FirebaseNamespace {
-    functions: {
-      (app?: FirebaseApp): types.FirebaseFunctions;
-      Functions: typeof types.FirebaseFunctions;
-    };
-  }
-  interface FirebaseApp {
-    functions(regionOrCustomDomain?: string): types.FirebaseFunctions;
-  }
-}
+firebase.initializeApp(TEST_PROJECT_CONFIG);
+
+const compatAnalytics = firebase.analytics();
+const modularAnalytics = getAnalytics();
+
+describe('Analytics compat interop', () => {
+  it('Analytics compat instance references modular Analytics instance', () => {
+    expect(getModularInstance(compatAnalytics)).to.equal(modularAnalytics);
+  });
+});
