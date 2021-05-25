@@ -17,6 +17,12 @@
 
 import { validateIndexedDBOpenable } from '@firebase/util';
 
+/**
+ * Checks if all required APIs exist in the browser.
+ * @returns a Promise that resolves to a boolean.
+ *
+ * @public
+ */
 export async function isWindowSupported(): Promise<boolean> {
   // firebase-js-sdk/issues/2393 reveals that idb#open in Safari iframe and Firefox private browsing
   // might be prohibited to run. In these contexts, an error would be thrown during the messaging
@@ -36,7 +42,10 @@ export async function isWindowSupported(): Promise<boolean> {
 }
 
 /**
- * Checks to see if the required APIs exist within SW Context.
+ * Checks whether all required APIs exist within SW Context
+ * @returns a Promise that resolves to a boolean.
+ *
+ * @public
  */
 export async function isSwSupported(): Promise<boolean> {
   // firebase-js-sdk/issues/2393 reveals that idb#open in Safari iframe and Firefox private browsing
