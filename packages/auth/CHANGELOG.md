@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.16.6
+
+### Patch Changes
+
+- [`de68cdca2`](https://github.com/firebase/firebase-js-sdk/commit/de68cdca21c6ba5a890807857b529c2187e4adba) [#4868](https://github.com/firebase/firebase-js-sdk/pull/4868) (fixes [#4867](https://github.com/firebase/firebase-js-sdk/issues/4867)) - Ensure emulator warning text is accessible.
+
 ## 0.16.5
 
 ### Patch Changes

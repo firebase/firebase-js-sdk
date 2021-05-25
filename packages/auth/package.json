@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.16.5",
+  "version": "0.16.6",
   "main": "dist/auth.js",
   "browser": "dist/auth.esm.js",
   "module": "dist/auth.esm.js",
