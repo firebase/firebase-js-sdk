@@ -160,7 +160,7 @@ export class ObjectValue {
   }
 
   /**
-   * Modifies `parent_map` by adding, replacing or deleting the specified
+   * Modifies `parentMap` by adding, replacing or deleting the specified
    * entries.
    */
   private applyChanges(
