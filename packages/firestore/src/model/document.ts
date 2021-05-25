@@ -331,7 +331,7 @@ export class MutableDocument implements Document {
   toString(): string {
     return (
       `Document(${this.key}, ${this.version}, ${JSON.stringify(
-        this.data.toProto()
+        this.data.value
       )}, ` +
       `{documentType: ${this.documentType}}), ` +
       `{documentState: ${this.documentState}})`

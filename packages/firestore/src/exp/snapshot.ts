@@ -278,7 +278,7 @@ export class DocumentSnapshot<
       return this._converter.fromFirestore(snapshot, options);
     } else {
       return this._userDataWriter.convertValue(
-        this._document.data.toProto(),
+        this._document.data.value,
         options.serverTimestamps
       ) as T;
     }

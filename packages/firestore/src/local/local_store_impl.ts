@@ -16,7 +16,7 @@
  */
 
 import { User } from '../auth/user';
-import { BundledDocuments, NamedQuery, BundleConverter } from '../core/bundle';
+import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import { newQueryForPath, Query, queryToTarget } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
@@ -330,7 +330,7 @@ export function localStoreWriteLocally(
                 new PatchMutation(
                   mutation.key,
                   baseValue,
-                  extractFieldMask(baseValue.toProto().mapValue!),
+                  extractFieldMask(baseValue.value.mapValue),
                   Precondition.exists(true)
                 )
               );
