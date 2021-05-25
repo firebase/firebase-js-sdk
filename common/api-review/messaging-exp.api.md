@@ -29,10 +29,13 @@ export type _FirebaseMessagingName = 'messaging';
 export function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 
 // @public
-export function getToken(messaging: FirebaseMessaging, options?: {
-    vapidKey?: string;
+export function getToken(messaging: FirebaseMessaging, options?: GetTokenOptions): Promise<string>;
+
+// @public
+export interface GetTokenOptions {
     swReg?: ServiceWorkerRegistration;
-}): Promise<string>;
+    vapidKey?: string;
+}
 
 // @public
 export function isSupported(): Promise<boolean>;
