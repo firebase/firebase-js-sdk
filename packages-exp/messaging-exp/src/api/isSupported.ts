@@ -18,7 +18,7 @@
 import { validateIndexedDBOpenable } from '@firebase/util';
 
 /**
- * Check if all required APIs exist in the browser.
+ * Checks if all required APIs exist in the browser.
  * @returns a Promise that resolves to a boolean.
  *
  * @public
@@ -42,7 +42,7 @@ export async function isWindowSupported(): Promise<boolean> {
 }
 
 /**
- * Check whether all required APIs exist within SW Context
+ * Checks whether all required APIs exist within SW Context
  * @returns a Promise that resolves to a boolean.
  *
  * @public
