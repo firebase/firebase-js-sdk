@@ -114,8 +114,8 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "rollup -c && gulp firebase-js && yarn build:compat",
-    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && yarn build:compat:release",
+    "build": "rollup -c && yarn build:compat",
+    "build:release": "rollup -c rollup.config.release.js && yarn build:compat:release",
     "build:compat": "rollup -c compat/rollup.config.js",
     "build:compat:release": "rollup -c compat/rollup.config.release.js",
     "dev": "rollup -c -w",
@@ -167,6 +167,7 @@
     "performance",
     "remote-config",
     "messaging",
+    "messaging/sw",
     "database"
   ]
 }
