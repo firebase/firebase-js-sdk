@@ -113,6 +113,7 @@ export function makeDatabaseInfo(
     settings.host,
     settings.ssl,
     settings.experimentalForceLongPolling,
-    settings.experimentalAutoDetectLongPolling
+    settings.experimentalAutoDetectLongPolling,
+    settings.useFetchStreams
   );
 }
