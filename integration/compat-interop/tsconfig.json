@@ -1,0 +1,19 @@
+{
+  "extends": "../../config/tsconfig.base.json",
+  "compileOnSave": false,
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "outDir": "dist",
+    "target": "ES5",
+    "sourceMap": true,
+    "esModuleInterop": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

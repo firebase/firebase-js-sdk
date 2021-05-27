@@ -94,6 +94,34 @@ export interface MessagePayload {
 }
 
 /**
+ * Options for {@link getToken}
+ *
+ * @public
+ */
+export interface GetTokenOptions {
+  /**
+   * The public server key provided to push services. It is used to
+   * authenticate the push subscribers to receive push messages only from sending servers that hold
+   * the corresponding private key. If it is not provided, a default VAPID key is used. Note that some
+   * push services (Chrome Push Service) require a non-default VAPID key. Therefore, it is recommended
+   * to generate and import a VAPID key for your project with
+   * {@link https://firebase.google.com/docs/cloud-messaging/js/client#configure_web_credentials_with_fcm | Configure Web Credentials with FCM}.
+   * See
+   * {@link https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol | The Web Push Protocol}
+   * for details on web push services.
+   */
+  vapidKey?: string;
+  /**
+   * The service worker registration for receiving push
+   * messaging. If the registration is not provided explicitly, you need to have a
+   * `firebase-messaging-sw.js` at your root location. See
+   * {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token | Retrieve the current registration token}
+   * for more details.
+   */
+  swReg?: ServiceWorkerRegistration;
+}
+
+/**
  * Public interface of the Firebase Cloud Messaging SDK.
  *
  * @public

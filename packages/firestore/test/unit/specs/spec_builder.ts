@@ -17,12 +17,12 @@
 
 import { UserDataWriter } from '../../../src/api/database';
 import {
+  hasLimitToFirst,
+  hasLimitToLast,
+  newQueryForPath,
   Query,
   queryEquals,
-  newQueryForPath,
-  queryToTarget,
-  hasLimitToLast,
-  hasLimitToFirst
+  queryToTarget
 } from '../../../src/core/query';
 import {
   canonifyTarget,
@@ -1044,7 +1044,7 @@ export class SpecBuilder {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
         value: userDataWriter.convertValue(
-          doc.data.toProto()
+          doc.data.value
         ) as JsonObject<unknown>,
         options: {
           hasLocalMutations: doc.hasLocalMutations,

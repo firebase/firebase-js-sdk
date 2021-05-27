@@ -474,7 +474,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   documentSize(document: Document): number {
     let documentSize = document.key.toString().length;
     if (document.isFoundDocument()) {
-      documentSize += estimateByteSize(document.data.toProto());
+      documentSize += estimateByteSize(document.data.value);
     }
     return documentSize;
   }

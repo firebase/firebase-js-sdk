@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,22 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import { name, version } from '../package.json';
+const karma = require('karma');
+const karmaBase = require('../../config/karma.base');
 
-firebase.registerVersion(name, version, 'app');
-firebase.SDK_VERSION = version;
+const files = ['*.test.*'];
 
-export default firebase;
+module.exports = function (config) {
+  const karmaConfig = Object.assign({}, karmaBase, {
+    // files to load into karma
+    files: files,
+    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
+    // frameworks to use
+    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+    frameworks: ['mocha']
+  });
+
+  config.set(karmaConfig);
+};
+
+module.exports.files = files;

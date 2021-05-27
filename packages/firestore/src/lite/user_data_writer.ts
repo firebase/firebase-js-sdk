@@ -92,7 +92,7 @@ export abstract class AbstractUserDataWriter {
     serverTimestampBehavior: ServerTimestampBehavior
   ): DocumentData {
     const result: DocumentData = {};
-    forEach(mapValue.fields || {}, (key, value) => {
+    forEach(mapValue.fields, (key, value) => {
       result[key] = this.convertValue(value, serverTimestampBehavior);
     });
     return result;

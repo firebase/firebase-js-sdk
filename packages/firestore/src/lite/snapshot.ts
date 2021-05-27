@@ -174,9 +174,7 @@ export class DocumentSnapshot<T = DocumentData> {
       );
       return this._converter.fromFirestore(snapshot);
     } else {
-      return this._userDataWriter.convertValue(
-        this._document.data.toProto()
-      ) as T;
+      return this._userDataWriter.convertValue(this._document.data.value) as T;
     }
   }
 

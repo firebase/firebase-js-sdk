@@ -506,7 +506,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     const cb =
       typeof nextOrObserver === 'function'
         ? nextOrObserver
-        : nextOrObserver.next;
+        : nextOrObserver.next.bind(nextOrObserver);
 
     const promise = this._isInitialized
       ? Promise.resolve()

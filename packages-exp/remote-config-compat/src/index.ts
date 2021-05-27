@@ -64,7 +64,7 @@ registerRemoteConfigCompat(firebase as _FirebaseNamespace);
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
-    remoteConfig?: {
+    remoteConfig: {
       (app?: FirebaseApp): RemoteConfigCompat;
     };
   }
