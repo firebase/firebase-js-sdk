@@ -54,6 +54,9 @@ export class Serializer {
     if (Object.prototype.toString.call(data) === '[object String]') {
       return data;
     }
+    if (data instanceof Date) {
+      return data.toISOString();
+    }
     if (Array.isArray(data)) {
       return data.map(x => this.encode(x));
     }
