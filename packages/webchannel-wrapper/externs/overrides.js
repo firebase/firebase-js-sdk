@@ -68,6 +68,9 @@ goog.net.WebChannel.Options.forceLongPolling;
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.detectBufferingProxy;
 
+/** @type {unknown} */
+goog.net.WebChannel.Options.xmlHttpFactory;
+
 goog.labs.net.webChannel.requestStats.Event = {};
 goog.labs.net.webChannel.requestStats.Event.STAT_EVENT;
 

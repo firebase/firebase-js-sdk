@@ -25,7 +25,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
 import { setSDKVersion } from '../src/core/version';
 import { FirebaseFirestore } from '../src/exp/database';
-import { Settings } from '../src/exp/settings';
+import { PrivateSettings } from '../src/lite/settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -38,15 +38,14 @@ export function registerFirestore(variant?: string): void {
   _registerComponent(
     new Component(
       'firestore-exp',
-      (container, { options: settings }: { options?: Settings }) => {
+      (container, { options: settings }: { options?: PrivateSettings }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const firestoreInstance = new FirebaseFirestore(
           app,
           container.getProvider('auth-internal')
         );
-        if (settings) {
-          firestoreInstance._setSettings(settings);
-        }
+        settings = { useFetchStreams: true, ...settings };
+        firestoreInstance._setSettings(settings);
         return firestoreInstance;
       },
       ComponentType.PUBLIC
