@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 2.3.2
+
+### Patch Changes
+
+- [`169174520`](https://github.com/firebase/firebase-js-sdk/commit/169174520f6451f5741fd50e8957d4097895e97a) [#4929](https://github.com/firebase/firebase-js-sdk/pull/4929) - Added a warning message when the host settings are overridden without `{merge: true}`.
+
 ## 2.3.1
 
 ### Patch Changes
