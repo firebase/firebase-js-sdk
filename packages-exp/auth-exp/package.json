@@ -2,6 +2,7 @@
   "name": "@firebase/auth-exp",
   "version": "0.0.900",
   "private": true,
+  "sideEffects": false,
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",

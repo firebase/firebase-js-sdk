@@ -48,7 +48,7 @@ import {
   StorageEventListener
 } from '../persistence';
 import { ClientPlatform, _getClientVersion } from '../util/version';
-import { initializeAuth } from './initialize';
+import { _initializeAuth } from './initialize';
 import { registerAuth } from './register';
 
 describe('core/auth/initialize', () => {
@@ -147,7 +147,7 @@ describe('core/auth/initialize', () => {
 
   describe('initializeAuth', () => {
     it('should work with no deps', async () => {
-      const auth = initializeAuth(fakeApp) as AuthInternal;
+      const auth = _initializeAuth(fakeApp) as AuthInternal;
       await auth._initializationPromise;
 
       expect(auth.name).to.eq(fakeApp.name);
@@ -171,7 +171,7 @@ describe('core/auth/initialize', () => {
     });
 
     it('should set persistence', async () => {
-      const auth = initializeAuth(fakeApp, {
+      const auth = _initializeAuth(fakeApp, {
         persistence: fakeSessionPersistence
       }) as AuthInternal;
       await auth._initializationPromise;
@@ -180,7 +180,7 @@ describe('core/auth/initialize', () => {
     });
 
     it('should set persistence with fallback', async () => {
-      const auth = initializeAuth(fakeApp, {
+      const auth = _initializeAuth(fakeApp, {
         persistence: [fakeSessionPersistence, inMemoryPersistence]
       }) as AuthInternal;
       await auth._initializationPromise;
@@ -189,7 +189,7 @@ describe('core/auth/initialize', () => {
     });
 
     it('should set resolver', async () => {
-      const auth = initializeAuth(fakeApp, {
+      const auth = _initializeAuth(fakeApp, {
         popupRedirectResolver: fakePopupRedirectResolver
       }) as AuthInternal;
       await auth._initializationPromise;
@@ -200,7 +200,7 @@ describe('core/auth/initialize', () => {
     });
 
     it('should abort initialization if deleted synchronously', async () => {
-      const auth = initializeAuth(fakeApp, {
+      const auth = _initializeAuth(fakeApp, {
         popupRedirectResolver: fakePopupRedirectResolver
       }) as AuthInternal;
       await ((auth as unknown) as _FirebaseService)._delete();
@@ -210,8 +210,8 @@ describe('core/auth/initialize', () => {
     });
 
     it('should throw if called more than once', () => {
-      initializeAuth(fakeApp);
-      expect(() => initializeAuth(fakeApp)).to.throw();
+      _initializeAuth(fakeApp);
+      expect(() => _initializeAuth(fakeApp)).to.throw();
     });
   });
 });

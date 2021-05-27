@@ -25,9 +25,9 @@
 import { AsyncStorage } from 'react-native';
 
 import { FirebaseApp, _getProvider } from '@firebase/app-exp';
-import { Auth } from './src/model/public_types';
+import { Auth, Dependencies } from './src/model/public_types';
 
-import { initializeAuth } from './src';
+import { _initializeAuth } from './src/core/auth/initialize';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
@@ -51,4 +51,13 @@ export function getAuth(app: FirebaseApp): Auth {
   });
 }
 
-registerAuth(ClientPlatform.REACT_NATIVE);
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
+  const provider = _getProvider(app, 'auth-exp');
+  // register Auth if it hasn't been registered.
+  // Other Firebase SDKs, e.g. Firestore, can use Auth functionalities once Auth is registered.
+  if (!provider.isComponentSet()) {
+    registerAuth(ClientPlatform.REACT_NATIVE);
+  }
+
+  return _initializeAuth(app, deps);
+}

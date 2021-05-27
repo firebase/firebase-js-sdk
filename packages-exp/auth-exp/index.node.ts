@@ -25,9 +25,9 @@
 import * as fetchImpl from 'node-fetch';
 
 import { FirebaseApp, _getProvider } from '@firebase/app-exp';
-import { Auth } from './src/model/public_types';
+import { Auth, Dependencies } from './src/model/public_types';
 
-import { initializeAuth } from './src';
+import { _initializeAuth } from './src/core/auth/initialize';
 import { registerAuth } from './src/core/auth/register';
 import { FetchProvider } from './src/core/util/fetch_provider';
 import { ClientPlatform } from './src/core/util/version';
@@ -52,4 +52,13 @@ export function getAuth(app: FirebaseApp): Auth {
   return initializeAuth(app);
 }
 
-registerAuth(ClientPlatform.NODE);
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
+  const provider = _getProvider(app, 'auth-exp');
+  // register Auth if it hasn't been registered.
+  // Other Firebase SDKs, e.g. Firestore, can use Auth functionalities once Auth is registered.
+  if (!provider.isComponentSet()) {
+    registerAuth(ClientPlatform.NODE);
+  }
+
+  return _initializeAuth(app, deps);
+}

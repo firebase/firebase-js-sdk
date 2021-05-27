@@ -149,7 +149,6 @@ export function signOut(auth: Auth): Promise<void> {
   return getModularInstance(auth).signOut();
 }
 
-export { initializeAuth } from './auth/initialize';
 export { useAuthEmulator } from './auth/emulator';
 
 // credentials
