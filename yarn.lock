@@ -2557,6 +2557,13 @@
   dependencies:
     "@types/glob" "*"
 
+"@types/archiver@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.npmjs.org/@types/archiver/-/archiver-5.1.0.tgz#869f4ce4028e49cf9a0243cf914415f4cc3d1f3d"
+  integrity sha512-baFOhanb/hxmcOd1Uey2TfFg43kTSmM6py1Eo7Rjbv/ivcl7PXLhY0QgXGf50Hx/eskGCFqPfhs/7IZLb15C5g==
+  dependencies:
+    "@types/glob" "*"
+
 "@types/argparse@1.0.38":
   version "1.0.38"
   resolved "https://registry.npmjs.org/@types/argparse/-/argparse-1.0.38.tgz#a81fd8606d481f873a3800c6ebae4f1d768a56a9"
@@ -8328,6 +8335,18 @@ get-uri@3:
     fs-extra "^8.1.0"
     ftp "^0.3.10"
 
+get-uri@3:
+  version "3.0.2"
+  resolved "https://registry.npmjs.org/get-uri/-/get-uri-3.0.2.tgz#f0ef1356faabc70e1f9404fa3b66b2ba9bfc725c"
+  integrity sha512-+5s0SJbGoyiJTZZ2JTpFPLMPSch72KEqGOTvQsBqg0RBWvwhWUSYZFAtz3TPW0GXJuLBJPts1E241iHg+VRfhg==
+  dependencies:
+    "@tootallnate/once" "1"
+    data-uri-to-buffer "3"
+    debug "4"
+    file-uri-to-path "2"
+    fs-extra "^8.1.0"
+    ftp "^0.3.10"
+
 get-value@^2.0.3, get-value@^2.0.6:
   version "2.0.6"
   resolved "https://registry.npmjs.org/get-value/-/get-value-2.0.6.tgz#dc15ca1c672387ca76bd37ac0a395ba2042a2c28"
@@ -8654,10 +8673,10 @@ google-closure-compiler-java@^20200112.0.0:
   resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20200112.0.0.tgz#2b99f5e2869a573a1b35558ff3b6e6bc054a116f"
   integrity sha512-h/ExDCXAw88nOniQSbbK6et31kOwmaDxl6t52dnETCIzituQtGToPzy21vUel1o8o+FvWUybLoap+dEYBam1pA==
 
-google-closure-compiler-java@^20210505.0.0:
-  version "20210505.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20210505.0.0.tgz#f1acdedbff960ad9c81a6b39d3d02876e33b2141"
-  integrity sha512-h+DfQAaaCLFmmtasOS8eyh0M4D+JInTJfEP4byV5R1cnMninpGGLHOG3PNgLLzkXkIO/fu4ILEcVzoGmgJEoMA==
+google-closure-compiler-java@^20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20201102.0.1.tgz#15fa3e0701ee1a756168fdaf3b53fe61425b1b64"
+  integrity sha512-pXJIlyqepHhih0HCbShkAZJyViIxdyd4V7MnCUZEXLIIlygw92e2dC+5XiONDQZgRlF93BPmWCy9jr7wYoW1hQ==
 
 google-closure-compiler-js@^20200112.0.0:
   version "20200112.0.0"
@@ -8669,30 +8688,30 @@ google-closure-compiler-linux@^20200112.0.0:
   resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20200112.0.0.tgz#e6c7943cc0114046dbe9fc685e4d7d4eb536c1dc"
   integrity sha512-imTfdYP7BVTzzp3y7MuZP+98nEkbX7LZsZtxalNpl56vd+Ysc9/vOHXS14CdSoThaXIVlzX/lfjOlBRqPow+ew==
 
-google-closure-compiler-linux@^20210505.0.0:
-  version "20210505.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20210505.0.0.tgz#87ceaa5750d447725b2dd556b01a2e36e5cbf9cd"
-  integrity sha512-ADN2kFfIR1NiR24kLYb4YkX4MeXDJaT5OfRQEkiuIdZMtd28oEkm80LxCGuC7ftKEixoMm3f9/OG01B4U+xsnA==
+google-closure-compiler-linux@^20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20201102.0.1.tgz#a66f18142866c5d3186d0d0c0809538d38f7b998"
+  integrity sha512-aRbyTGnQoFXchcpEFNrP1p/WIvYOgN3hYKI+MOHWkvwVJBY2P8gpb07hAigO8fj+QKD/SFCl+2pXP+JniWOEqw==
 
 google-closure-compiler-osx@^20200112.0.0:
   version "20200112.0.0"
   resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20200112.0.0.tgz#df7a22c0dc32702b47c8ac4521f79bbe439effad"
   integrity sha512-E3S1KqZw4+Zov0VXCkjomPrYhyuuV6jH9InBchQ7cZfipFJjhQmSRf39u4Mu0sINW7GXfODZbzBwOXhEIquFQw==
 
-google-closure-compiler-osx@^20210505.0.0:
-  version "20210505.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20210505.0.0.tgz#1c31cd460cb6b8357a94add25b3500436c69ce26"
-  integrity sha512-JTwdh23aD2pwRU4QZjujxp/+rGfhex3utNWEdUDRMNpUGstUK7XPCDG8jNBtUpyuRiXFnpZa90qButqRgotQBA==
+google-closure-compiler-osx@^20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20201102.0.1.tgz#5099b29a7db553ded849e06cbbce194ecf9cd231"
+  integrity sha512-VguqEAOYI6XYZN6JcLMP8fpsoXk1Z9YuntMjv0IDVydkbZaHYOI4zE39FJhMuWiN7gOzSX2b/BBC6GsSh1F3fw==
 
 google-closure-compiler-windows@^20200112.0.0:
   version "20200112.0.0"
   resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20200112.0.0.tgz#8300d1e651f2c84ed565e729ccf40d6ed7e63771"
   integrity sha512-+5+UJFKXH0LGnYEHSVJxWwhtvX/MI6uebkAQkhma0057QsKs8fOToWuHL8/UbJULB4WUPa3DlHy0+Izs5z6lCQ==
 
-google-closure-compiler-windows@^20210505.0.0:
-  version "20210505.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20210505.0.0.tgz#45559acde54d1b85973c9984253c15bfa98b5cfb"
-  integrity sha512-bKTbg/f4ak72OggEMaH/7oExqOO9dS+TxwGhoovYOt/YaVR/8MDfGdxsOhqoiboiFwYysTPz8bwINjYQK6AwnA==
+google-closure-compiler-windows@^20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20201102.0.1.tgz#8b6c5c3f7050a738b71c59f9dd9863fb6cca282a"
+  integrity sha512-LlynipQi/iP76mjkOu6Rc1mCRuxTAhRvLjq10aGfVjKwpbCAF0Jq2a5k2ygr4xYiINNi2/L2qUw6ObPm9wQCOw==
 
 google-closure-compiler@20200112.0.0:
   version "20200112.0.0"
@@ -8710,30 +8729,30 @@ google-closure-compiler@20200112.0.0:
     google-closure-compiler-osx "^20200112.0.0"
     google-closure-compiler-windows "^20200112.0.0"
 
-google-closure-compiler@20210505.0.0:
-  version "20210505.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20210505.0.0.tgz#8a321ac49c9d3f0df30d7e15c2adbb2b11c5dd89"
-  integrity sha512-moeYaj4S6YTdOOvjv1ZLdUld/2YXw7q1GqUUHJJd+rE/uViyesozg8yKQZWcB3tvurhb+qEvFFet8CYoeaQHng==
+google-closure-compiler@20201102.0.1:
+  version "20201102.0.1"
+  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20201102.0.1.tgz#372670b1b047969d12de663698593e31944ad1bf"
+  integrity sha512-Cz+1jOswH0MwMVPu1rRH1xD4KYuY5XW2ox5aXwqaAxevqmirhr36f8wgKPHuVRSovFejW640r6UFwyrOT6U0CA==
   dependencies:
     chalk "2.x"
-    google-closure-compiler-java "^20210505.0.0"
+    google-closure-compiler-java "^20201102.0.1"
     minimist "1.x"
     vinyl "2.x"
     vinyl-sourcemaps-apply "^0.2.0"
   optionalDependencies:
-    google-closure-compiler-linux "^20210505.0.0"
-    google-closure-compiler-osx "^20210505.0.0"
-    google-closure-compiler-windows "^20210505.0.0"
+    google-closure-compiler-linux "^20201102.0.1"
+    google-closure-compiler-osx "^20201102.0.1"
+    google-closure-compiler-windows "^20201102.0.1"
 
 google-closure-library@20200830.0.0:
   version "20200830.0.0"
   resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20200830.0.0.tgz#9f3807e5a4af55ebf2c8a22853d53b8da39a48e8"
   integrity sha512-s4ma73K+FTeVywSMjVOxQ435t6kPfSlxEtIflq7Gabp2fxAnc9i8vUpvT8ZP/GH89LwSJReIaBGtrn72rfNC5Q==
 
-google-closure-library@20210406.0.0:
-  version "20210406.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20210406.0.0.tgz#47d6036c1704661ad47cde2e35f19cc55e33e775"
-  integrity sha512-1lAC/KC9R2QM6nygniM0pRcGrv5bkCUrIZb2hXFxLtAkA+zRiVeWtRYpFWDHXXJzkavKjsn9upiffL4x/nmmVg==
+google-closure-library@20201006.0.0:
+  version "20201006.0.0"
+  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20201006.0.0.tgz#5b2f325309566a63b97e22e57c71263fa98f22b4"
+  integrity sha512-jYTKvUBUkTFCO+PJLcqJrh4BNMHlInzPYpijg8lty/HIF1rH+qutHchlFdiSNad8HBVKIlMf3UzXRPXvmujrIg==
 
 google-gax@^2.12.0, google-gax@^2.9.2:
   version "2.13.0"
@@ -16424,6 +16443,11 @@ tslib@^1.11.1, tslib@^1.13.0, tslib@^1.8.1, tslib@^1.9.0:
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
 tslib@^2.0.1, tslib@^2.1.0, tslib@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.npmjs.org/tslib/-/tslib-2.2.0.tgz#fb2c475977e35e241311ede2693cee1ec6698f5c"
+  integrity sha512-gS9GVHRU+RGn5KQM2rllAlR3dU6m7AcpJKdtH8gFvQiC4Otgk98XnmMU+nZenHt/+VhnBPWwgrJsyrdcw6i23w==
+
+tslib@^2.0.1:
   version "2.2.0"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.2.0.tgz#fb2c475977e35e241311ede2693cee1ec6698f5c"
   integrity sha512-gS9GVHRU+RGn5KQM2rllAlR3dU6m7AcpJKdtH8gFvQiC4Otgk98XnmMU+nZenHt/+VhnBPWwgrJsyrdcw6i23w==
