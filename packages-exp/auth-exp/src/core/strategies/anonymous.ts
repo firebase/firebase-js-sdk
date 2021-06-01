@@ -34,6 +34,7 @@ import { _castAuth } from '../auth/auth_impl';
  */
 export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
+  await authInternal._initializationPromise;
   if (authInternal.currentUser?.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign them in again.
     return new UserCredentialImpl({
