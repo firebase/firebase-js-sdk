@@ -11,7 +11,7 @@
   "sw": "dist/index.sw.esm2017.js",
   "files": [
     "dist",
-    "sw/package.json" 
+    "sw/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -33,7 +33,7 @@
     "@firebase/app-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.5.0",
+    "@firebase/component": "0.5.1",
     "@firebase/installations-exp": "0.0.900",
     "@firebase/util": "1.1.0",
     "idb": "3.0.2",
