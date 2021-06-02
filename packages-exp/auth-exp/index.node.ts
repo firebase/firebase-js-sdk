@@ -53,12 +53,5 @@ export function getAuth(app: FirebaseApp): Auth {
 }
 
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
-  const provider = _getProvider(app, 'auth-exp');
-  // register Auth if it hasn't been registered.
-  // Other Firebase SDKs, e.g. Firestore, can use Auth functionalities once Auth is registered.
-  if (!provider.isComponentSet()) {
-    registerAuth(ClientPlatform.NODE);
-  }
-
-  return _initializeAuth(app, deps);
+  return _initializeAuth(app, ClientPlatform.NODE, deps);
 }
