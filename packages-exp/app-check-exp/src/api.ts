@@ -21,13 +21,15 @@ import { getState, setState, AppCheckState } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
 import { getModularInstance } from '@firebase/util';
 import { AppCheckService } from './factory';
-import { AppCheckProviderInternal } from './types';
+import { AppCheckProvider } from './types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'app-check-exp': AppCheckService;
   }
 }
+
+export { ReCaptchaV3Provider, CustomProvider } from './providers';
 
 /**
  * Activate AppCheck for the given app. Can be called only once per app.
@@ -49,11 +51,7 @@ export function initializeAppCheck(
   }
 
   const appCheck = provider.initialize({ options });
-  _activate(
-    app,
-    options.provider as AppCheckProviderInternal,
-    options.isTokenAutoRefreshEnabled
-  );
+  _activate(app, options.provider, options.isTokenAutoRefreshEnabled);
 
   return appCheck;
 }
@@ -72,7 +70,7 @@ export function initializeAppCheck(
  */
 function _activate(
   app: FirebaseApp,
-  provider: AppCheckProviderInternal,
+  provider: AppCheckProvider,
   isTokenAutoRefreshEnabled?: boolean
 ): void {
   const state = getState(app);
@@ -90,7 +88,7 @@ function _activate(
 
   setState(app, newState);
 
-  (newState.provider as AppCheckProviderInternal).initialize(app);
+  newState.provider.initialize(app);
 }
 
 /**

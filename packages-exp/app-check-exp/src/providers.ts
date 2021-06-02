@@ -20,15 +20,12 @@ import { Provider } from '@firebase/component';
 import { issuedAtTime } from '@firebase/util';
 import { exchangeToken, getExchangeRecaptchaTokenRequest } from './client';
 import { AppCheckError, ERROR_FACTORY } from './errors';
-import {
-  AppCheckProvider,
-  AppCheckToken,
-  CustomProviderOptions
-} from './public-types';
+import { CustomProviderOptions } from './public-types';
 import {
   getToken as getReCAPTCHAToken,
   initialize as initializeRecaptcha
 } from './recaptcha';
+import { AppCheckProvider, AppCheckTokenInternal } from './types';
 
 /**
  * App Check provider that can obtain a reCAPTCHA V3 token and exchange it
@@ -48,7 +45,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    * Returns an AppCheck token.
    * @internal
    */
-  async getToken(): Promise<AppCheckToken> {
+  async getToken(): Promise<AppCheckTokenInternal> {
     if (!this._app || !this._platformLoggerProvider) {
       // This should only occur if user has not called initializeAppCheck().
       // We don't have an appName to provide if so.
@@ -91,7 +88,7 @@ export class CustomProvider implements AppCheckProvider {
   /**
    * @internal
    */
-  async getToken(): Promise<AppCheckToken> {
+  async getToken(): Promise<AppCheckTokenInternal> {
     if (!this._app) {
       // This should only occur if user has not called initializeAppCheck().
       // We don't have an appName to provide if so.
@@ -114,7 +111,7 @@ export class CustomProvider implements AppCheckProvider {
         ? issuedAtTimeSeconds * 1000
         : Date.now();
 
-    return { ...customToken, issuedAtTimeMillis } as AppCheckToken;
+    return { ...customToken, issuedAtTimeMillis };
   }
 
   /**

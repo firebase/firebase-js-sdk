@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-exp';
+import { CustomProvider, ReCaptchaV3Provider } from './providers';
 
 /**
  * The Firebase AppCheck service interface.
@@ -30,20 +31,7 @@ export interface AppCheck {
 }
 
 /**
- * An App Check provider. This can be either the built-in reCAPTCHA
- * provider or a custom provider. For more on custom providers, see
- * https://firebase.google.com/docs/app-check/web-custom-provider
- * @public
- */
-export interface AppCheckProvider {
-  /**
-   * Returns an AppCheck token.
-   */
-  getToken: () => Promise<AppCheckToken>;
-}
-
-/**
- * The token returned from an {@link AppCheckProvider}.
+ * The token returned from an AppCheck provider.
  * @public
  */
 export interface AppCheckToken {
@@ -67,7 +55,7 @@ export interface AppCheckOptions {
   /**
    * reCAPTCHA provider or custom provider.
    */
-  provider: AppCheckProvider;
+  provider: CustomProvider | ReCaptchaV3Provider;
   /**
    * If set to true, enables automatic background refresh of app check token.
    */
@@ -80,8 +68,8 @@ export interface AppCheckOptions {
  */
 export interface CustomProviderOptions {
   /**
-   * Method to get an App Check token through a custom provider
+   * Function to get an App Check token through a custom provider
    * service.
    */
-  getToken(): Promise<AppCheckToken>;
+  getToken: () => Promise<AppCheckToken>;
 }

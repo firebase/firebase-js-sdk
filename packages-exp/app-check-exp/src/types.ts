@@ -45,7 +45,7 @@ export interface AppCheckTokenInternal extends AppCheckToken {
   issuedAtTimeMillis: number;
 }
 
-export interface AppCheckProviderInternal {
+export interface AppCheckProvider {
   /**
    * Returns an AppCheck token.
    */

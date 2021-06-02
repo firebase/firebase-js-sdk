@@ -20,7 +20,6 @@ import {
   initializeApp,
   _registerComponent
 } from '@firebase/app-exp';
-import { AppCheckProvider } from '../src/public-types';
 import { GreCAPTCHA, RECAPTCHA_URL } from '../src/recaptcha';
 import {
   Provider,
@@ -30,6 +29,7 @@ import {
 } from '@firebase/component';
 import { PlatformLoggerService } from '@firebase/app-exp/dist/packages-exp/app-exp/src/types';
 import { AppCheckService } from '../src/factory';
+import { CustomProvider } from '../src';
 
 export const FAKE_SITE_KEY = 'fake-site-key';
 
@@ -75,14 +75,14 @@ export function getFullApp(): FirebaseApp {
   return app;
 }
 
-export function getFakeCustomTokenProvider(): AppCheckProvider {
-  return {
+export function getFakeCustomTokenProvider(): CustomProvider {
+  return new CustomProvider({
     getToken: () =>
       Promise.resolve({
         token: 'fake-custom-app-check-token',
         expireTimeMillis: 1
       })
-  };
+  });
 }
 
 export function getFakePlatformLoggingProvider(

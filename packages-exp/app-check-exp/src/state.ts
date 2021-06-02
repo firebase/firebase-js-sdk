@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-exp';
 import {
-  AppCheckProviderInternal,
+  AppCheckProvider,
   AppCheckTokenInternal,
   AppCheckTokenListener
 } from './types';
@@ -27,7 +27,7 @@ import { GreCAPTCHA } from './recaptcha';
 export interface AppCheckState {
   activated: boolean;
   tokenListeners: AppCheckTokenListener[];
-  provider?: AppCheckProviderInternal;
+  provider?: AppCheckProvider;
   token?: AppCheckTokenInternal;
   tokenRefresher?: Refresher;
   reCAPTCHAState?: ReCAPTCHAState;
