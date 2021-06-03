@@ -1,5 +1,11 @@
 # @firebase/component
 
+## 0.5.1
+
+### Patch Changes
+
+- [`5fbc5fb01`](https://github.com/firebase/firebase-js-sdk/commit/5fbc5fb0140d7da980fd7ebbfbae810f8c64ae19) [#4911](https://github.com/firebase/firebase-js-sdk/pull/4911) - handle `undefined` correctly from input.
+
 ## 0.5.0
 
 ### Minor Changes

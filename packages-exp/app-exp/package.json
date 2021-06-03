@@ -32,7 +32,7 @@
   "dependencies": {
     "@firebase/util": "1.1.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.5.0",
+    "@firebase/component": "0.5.1",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

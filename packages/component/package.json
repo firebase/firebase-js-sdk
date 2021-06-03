@@ -1,6 +1,6 @@
 {
   "name": "@firebase/component",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
