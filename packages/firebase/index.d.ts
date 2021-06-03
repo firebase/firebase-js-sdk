@@ -1026,7 +1026,7 @@ declare namespace firebase {
     /** Always set to PROJECT_ID */
     aud: string;
 
-    /** The user's unique id */
+    /** The user's unique ID */
     sub: string;
 
     /** The token issue time, in seconds since epoch */
@@ -1035,7 +1035,7 @@ declare namespace firebase {
     /** The token expiry time, normally 'iat' + 3600 */
     exp: number;
 
-    /** The user's unique id, must be equal to 'sub' */
+    /** The user's unique ID. Must be equal to 'sub' */
     user_id: string;
 
     /** The time the user authenticated, normally 'iat' */
