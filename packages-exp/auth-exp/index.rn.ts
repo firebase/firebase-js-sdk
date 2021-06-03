@@ -28,7 +28,6 @@ import { FirebaseApp, _getProvider } from '@firebase/app-exp';
 import { Auth, Dependencies } from './src/model/public_types';
 
 import { _initializeAuth } from './src/core/auth/initialize';
-import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
 

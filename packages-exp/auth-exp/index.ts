@@ -24,7 +24,6 @@
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
 
 import { _initializeAuth } from './src/core/auth/initialize';
-import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';

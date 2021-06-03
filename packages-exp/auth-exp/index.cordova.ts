@@ -27,7 +27,6 @@ import { Auth, Dependencies } from './src/model/public_types';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 import { _initializeAuth } from './src/core/auth/initialize';
-import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 
 // Core functionality shared by all clients
