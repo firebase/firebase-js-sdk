@@ -1543,7 +1543,7 @@ declare namespace firebase.appCheck {
    */
   export interface AppCheck {
     /**
-     * Activate AppCheck
+     * Activate AppCheck.
      * @param siteKeyOrProvider reCAPTCHA v3 site key (public key) or
      * custom token provider.
      * @param isTokenAutoRefreshEnabled If true, the SDK automatically
