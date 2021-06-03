@@ -49,7 +49,7 @@ export class Provider<T extends Name> {
    * @param identifier A provider can provide mulitple instances of a service
    * if this.component.multipleInstances is true.
    */
-  get(identifier: string = DEFAULT_ENTRY_NAME): Promise<NameServiceMapping[T]> {
+  get(identifier?: string): Promise<NameServiceMapping[T]> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
@@ -99,11 +99,11 @@ export class Provider<T extends Name> {
     identifier?: string;
     optional?: boolean;
   }): NameServiceMapping[T] | null {
-    const identifier = options?.identifier ?? DEFAULT_ENTRY_NAME;
-    const optional = options?.optional ?? false;
-
     // if multipleInstances is not supported, use the default name
-    const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(
+      options?.identifier
+    );
+    const optional = options?.optional ?? false;
 
     if (
       this.isInitialized(normalizedIdentifier) ||
@@ -219,9 +219,9 @@ export class Provider<T extends Name> {
   }
 
   initialize(opts: InitializeOptions = {}): NameServiceMapping[T] {
-    const { instanceIdentifier = DEFAULT_ENTRY_NAME, options = {} } = opts;
+    const { options = {} } = opts;
     const normalizedIdentifier = this.normalizeInstanceIdentifier(
-      instanceIdentifier
+      opts.instanceIdentifier
     );
     if (this.isInitialized(normalizedIdentifier)) {
       throw Error(
@@ -263,8 +263,20 @@ export class Provider<T extends Name> {
    *
    * @returns a function to unregister the callback
    */
-  onInit(callback: OnInitCallBack<T>): () => void {
+  onInit(
+    callback: OnInitCallBack<T>,
+    options?: {
+      identifier?: string;
+      optional?: false;
+    }
+  ): () => void {
     this.onInitCallbacks.add(callback);
+
+    const instance = this.getImmediate(options);
+    if (instance) {
+      const identifier = this.normalizeInstanceIdentifier(options?.identifier);
+      callback(instance, identifier);
+    }
 
     return () => {
       this.onInitCallbacks.delete(callback);
@@ -324,7 +336,9 @@ export class Provider<T extends Name> {
     return instance || null;
   }
 
-  private normalizeInstanceIdentifier(identifier: string): string {
+  private normalizeInstanceIdentifier(
+    identifier: string = DEFAULT_ENTRY_NAME
+  ): string {
     if (this.component) {
       return this.component.multipleInstances ? identifier : DEFAULT_ENTRY_NAME;
     } else {

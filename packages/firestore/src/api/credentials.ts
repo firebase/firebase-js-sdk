@@ -307,6 +307,9 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.invokeChangeListener = true;
     this.asyncQueue = asyncQueue;
     this.changeListener = changeListener;
+    if (this.auth) {
+      this.awaitTokenAndRaiseInitialEvent();
+    }
   }
 
   removeChangeListener(): void {
