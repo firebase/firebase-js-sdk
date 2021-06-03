@@ -263,19 +263,13 @@ export class Provider<T extends Name> {
    *
    * @returns a function to unregister the callback
    */
-  onInit(
-    callback: OnInitCallBack<T>,
-    options?: {
-      identifier?: string;
-      optional?: false;
-    }
-  ): () => void {
+  onInit(callback: OnInitCallBack<T>, identifier?: string): () => void {
     this.onInitCallbacks.add(callback);
 
-    const instance = this.getImmediate(options);
+    const instance = this.getImmediate({ identifier, optional: true });
     if (instance) {
-      const identifier = this.normalizeInstanceIdentifier(options?.identifier);
-      callback(instance, identifier);
+      const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+      callback(instance, normalizedIdentifier);
     }
 
     return () => {
