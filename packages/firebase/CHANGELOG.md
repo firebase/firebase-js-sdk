@@ -1,5 +1,13 @@
 # firebase
 
+## 8.6.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.6.24
+  - @firebase/firestore@2.3.4
+
 ## 8.6.4
 
 ### Patch Changes

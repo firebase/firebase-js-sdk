@@ -1,5 +1,12 @@
 # @firebase/firestore
 
+## 2.3.4
+
+### Patch Changes
+
+- Updated dependencies [[`10fb5b87f`](https://github.com/firebase/firebase-js-sdk/commit/10fb5b87faecf3aa79e15545b21de99af3e51a71)]:
+  - @firebase/webchannel-wrapper@0.5.0
+
 ## 2.3.3
 
 ### Patch Changes
