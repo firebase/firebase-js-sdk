@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,11 @@
  * limitations under the License.
  */
 
-/**
- * @fileoverview Replacement for goog.net.XhrIoPool that works with fbs.XhrIo.
- */
-import { XhrIo } from './xhrio';
-import { newConnection } from '../platform/connection';
+// This file is only used under ts-node.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
 
-/**
- * Factory-like class for creating XhrIo instances.
- */
-export class XhrIoPool {
-  createXhrIo(): XhrIo {
-    return newConnection();
-  }
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  return platform.decodeBase64(encoded);
 }

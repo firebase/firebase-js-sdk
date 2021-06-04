@@ -14,17 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Headers, XhrIo, ErrorCode } from './xhrio';
-import { internalError } from './error';
+
+import { Headers, XhrIo, ErrorCode } from '../../implementation/xhrio';
+import { internalError } from '../../implementation/error';
 
 /**
  * We use this instead of goog.net.XhrIo because goog.net.XhrIo is hyuuuuge and
  * doesn't work in React Native on Android.
  */
-export class NetworkXhrIo implements XhrIo {
+export class XMLHTTPRequestXhrIo implements XhrIo {
   private xhr_: XMLHttpRequest;
   private errorCode_: ErrorCode;
-  private sendPromise_: Promise<XhrIo>;
+  private sendPromise_: Promise<void>;
   private sent_: boolean = false;
 
   constructor() {
@@ -33,14 +34,14 @@ export class NetworkXhrIo implements XhrIo {
     this.sendPromise_ = new Promise(resolve => {
       this.xhr_.addEventListener('abort', () => {
         this.errorCode_ = ErrorCode.ABORT;
-        resolve(this);
+        resolve();
       });
       this.xhr_.addEventListener('error', () => {
         this.errorCode_ = ErrorCode.NETWORK_ERROR;
-        resolve(this);
+        resolve();
       });
       this.xhr_.addEventListener('load', () => {
-        resolve(this);
+        resolve();
       });
     });
   }
@@ -53,7 +54,7 @@ export class NetworkXhrIo implements XhrIo {
     method: string,
     body?: ArrayBufferView | Blob | string,
     headers?: Headers
-  ): Promise<XhrIo> {
+  ): Promise<void> {
     if (this.sent_) {
       throw internalError('cannot .send() more than once');
     }
@@ -140,4 +141,8 @@ export class NetworkXhrIo implements XhrIo {
       this.xhr_.upload.removeEventListener('progress', listener);
     }
   }
+}
+
+export function newConnection(): XhrIo {
+  return new XMLHTTPRequestXhrIo();
 }

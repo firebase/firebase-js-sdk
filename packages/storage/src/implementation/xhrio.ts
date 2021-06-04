@@ -19,7 +19,7 @@
  * XHR headers
  */
 export interface Headers {
-  [name: string]: string | number;
+  [name: string]: string;
 }
 
 /**
@@ -31,8 +31,8 @@ export interface XhrIo {
     url: string,
     method: string,
     body?: ArrayBufferView | Blob | string | null,
-    headers?: Headers
-  ): Promise<XhrIo>;
+    headers?: Record<string, string>
+  ): Promise<void>;
 
   getErrorCode(): ErrorCode;
 

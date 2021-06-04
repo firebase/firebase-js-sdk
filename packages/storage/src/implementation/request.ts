@@ -132,27 +132,24 @@ class NetworkRequest<T> implements Request<T> {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      xhr
-        .send(self.url_, self.method_, self.body_, self.headers_)
-        .then((xhr: XhrIo) => {
-          if (self.progressCallback_ !== null) {
-            xhr.removeUploadProgressListener(progressListener);
-          }
-          self.pendingXhr_ = null;
-          xhr = xhr as XhrIo;
-          const hitServer = xhr.getErrorCode() === ErrorCode.NO_ERROR;
-          const status = xhr.getStatus();
-          if (!hitServer || self.isRetryStatusCode_(status)) {
-            const wasCanceled = xhr.getErrorCode() === ErrorCode.ABORT;
-            backoffCallback(
-              false,
-              new RequestEndStatus(false, null, wasCanceled)
-            );
-            return;
-          }
-          const successCode = self.successCodes_.indexOf(status) !== -1;
-          backoffCallback(true, new RequestEndStatus(successCode, xhr));
-        });
+      xhr.send(self.url_, self.method_, self.body_, self.headers_).then(() => {
+        if (self.progressCallback_ !== null) {
+          xhr.removeUploadProgressListener(progressListener);
+        }
+        self.pendingXhr_ = null;
+        const hitServer = xhr.getErrorCode() === ErrorCode.NO_ERROR;
+        const status = xhr.getStatus();
+        if (!hitServer || self.isRetryStatusCode_(status)) {
+          const wasCanceled = xhr.getErrorCode() === ErrorCode.ABORT;
+          backoffCallback(
+            false,
+            new RequestEndStatus(false, null, wasCanceled)
+          );
+          return;
+        }
+        const successCode = self.successCodes_.indexOf(status) !== -1;
+        backoffCallback(true, new RequestEndStatus(successCode, xhr));
+      });
     }
 
     /**

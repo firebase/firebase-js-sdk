@@ -399,7 +399,7 @@ export function createResumableUpload(
   const headers = {
     'X-Goog-Upload-Protocol': 'resumable',
     'X-Goog-Upload-Command': 'start',
-    'X-Goog-Upload-Header-Content-Length': blob.size(),
+    'X-Goog-Upload-Header-Content-Length': `${blob.size()}`,
     'X-Goog-Upload-Header-Content-Type': metadataForUpload['contentType']!,
     'Content-Type': 'application/json; charset=utf-8'
   };
@@ -511,7 +511,7 @@ export function continueResumableUpload(
     bytesToUpload === bytesLeft ? 'upload, finalize' : 'upload';
   const headers = {
     'X-Goog-Upload-Command': uploadCommand,
-    'X-Goog-Upload-Offset': status_.current
+    'X-Goog-Upload-Offset': `${status_.current}`
   };
   const body = blob.slice(startByte, endByte);
   if (body === null) {

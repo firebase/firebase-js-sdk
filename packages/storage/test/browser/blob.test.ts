@@ -19,7 +19,7 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 import { FbsBlob } from '../../src/implementation/blob';
 import * as type from '../../src/implementation/type';
-import * as testShared from './testshared';
+import * as testShared from '../unit/testshared';
 
 describe('Firebase Storage > Blob', () => {
   let stubs: sinon.SinonStub[] = [];

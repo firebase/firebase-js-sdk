@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,19 @@
  */
 
 /**
- * @fileoverview Replacement for goog.net.XhrIoPool that works with fbs.XhrIo.
+ * Returns an replacement configuration for `@rollup/plugin-alias` that replaces
+ * references to platform-specific files with implementations for the provided
+ * target platform.
  */
-import { XhrIo } from './xhrio';
-import { newConnection } from '../platform/connection';
-
-/**
- * Factory-like class for creating XhrIo instances.
- */
-export class XhrIoPool {
-  createXhrIo(): XhrIo {
-    return newConnection();
-  }
+function generateAliasConfig(platform) {
+  return {
+    entries: [
+      {
+        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
+        replacement: `$1\/platform/${platform}/$2.ts`
+      }
+    ]
+  };
 }
+
+exports.generateAliasConfig = generateAliasConfig;

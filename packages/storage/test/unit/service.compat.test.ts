@@ -346,7 +346,7 @@ GOOG4-RSA-SHA256`
     it('Running uploads fail when the service is deleted', () => {
       const ref = service.refFromURL('gs://mybucket/image.jpg');
       const toReturn = new Promise<void>((resolve, reject) => {
-        ref.put(new Blob(['a'])).on(
+        ref.put(new Uint8Array([97])).on(
           TaskEvent.STATE_CHANGED,
           null,
           (err: FirebaseStorageError | Error) => {

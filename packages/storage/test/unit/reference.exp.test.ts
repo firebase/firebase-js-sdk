@@ -75,7 +75,13 @@ function withFakeSend(
     body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
   ): void {
-    (body as Blob).text().then(text => {
+    let text: Promise<string>;
+    if (body instanceof Uint8Array) {
+      text = Promise.resolve(new TextDecoder().decode(body));
+    } else {
+      text = (body as Blob).text();
+    }
+    text.then(text => {
       testFn(text, headers);
       xhrio.abort();
       resolveFn();
@@ -302,7 +308,7 @@ describe('Firebase Storage > Reference', () => {
       const root = withFakeSend((text: string) => {
         expect(text).to.include('"contentType":"lol/wut"');
       }, done);
-      uploadBytes(ref(root, 'hello'), new Blob(), {
+      uploadBytes(ref(root, 'hello'), new Uint8Array(), {
         contentType: 'lol/wut'
       } as Metadata);
     });
@@ -310,7 +316,7 @@ describe('Firebase Storage > Reference', () => {
       const storageService = storageServiceWithHandler(fakeServerHandler({}));
       const root = ref(storageService, 'gs://test-bucket/');
       const childRef = ref(root, 'child');
-      const blob = new Blob(['a']);
+      const blob = new Uint8Array([97]);
       const result = await uploadBytes(childRef, blob);
       expect(result.ref).to.equal(childRef);
     });
@@ -334,7 +340,7 @@ describe('Firebase Storage > Reference', () => {
 
   describe('root operations', () => {
     it('uploadBytesResumable throws', () => {
-      expect(() => uploadBytesResumable(root, new Blob(['a']))).to.throw(
+      expect(() => uploadBytesResumable(root, new Uint8Array())).to.throw(
         'storage/invalid-root-operation'
       );
     });
@@ -344,7 +350,7 @@ describe('Firebase Storage > Reference', () => {
       );
     });
     it('uploadBytes throws', () => {
-      expect(() => uploadBytes(root, new Blob(['a']))).to.throw(
+      expect(() => uploadBytes(root, new Uint8Array())).to.throw(
         'storage/invalid-root-operation'
       );
     });

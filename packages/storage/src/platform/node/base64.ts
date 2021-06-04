@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  * limitations under the License.
  */
 
-/**
- * @fileoverview Replacement for goog.net.XhrIoPool that works with fbs.XhrIo.
- */
-import { XhrIo } from './xhrio';
-import { newConnection } from '../platform/connection';
+import { invalidFormat } from '../../implementation/error';
 
-/**
- * Factory-like class for creating XhrIo instances.
- */
-export class XhrIoPool {
-  createXhrIo(): XhrIo {
-    return newConnection();
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  // Node actually doesn't validate base64 strings.
+  // A quick sanity check that is not a fool-proof validation
+  if (/[^-A-Za-z0-9+/=]/.test(encoded)) {
+    throw invalidFormat('base64', 'Invalid character found');
   }
+  return new Buffer(encoded, 'base64').toString('binary');
 }

@@ -24,8 +24,8 @@ import { UploadTask } from '../../src/task';
 import { fakeServerHandler, storageServiceWithHandler } from './testshared';
 
 const testLocation = new Location('bucket', 'object');
-const smallBlob = new FbsBlob(new Blob(['a']));
-const bigBlob = new FbsBlob(new Blob([new ArrayBuffer(1024 * 1024)]));
+const smallBlob = new FbsBlob(new Uint8Array([97]));
+const bigBlob = new FbsBlob(new ArrayBuffer(1024 * 1024));
 
 describe('Firebase Storage > Upload Task', () => {
   it('Works for a small upload w/ an observer', done => {

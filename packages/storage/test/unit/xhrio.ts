@@ -40,8 +40,8 @@ export interface StringHeaders {
 
 export class TestingXhrIo implements XhrIo {
   private state: State;
-  private sendPromise: Promise<XhrIo>;
-  private resolve!: (xhrIo: XhrIo) => void;
+  private sendPromise: Promise<void>;
+  private resolve!: () => void;
   private sendHook: SendHook | null;
   private status: number;
   private responseText: string;
@@ -65,7 +65,7 @@ export class TestingXhrIo implements XhrIo {
     method: string,
     body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
-  ): Promise<XhrIo> {
+  ): Promise<void> {
     if (this.state !== State.START) {
       throw new FirebaseStorageError(
         StorageErrorCode.UNKNOWN,
@@ -102,7 +102,7 @@ export class TestingXhrIo implements XhrIo {
     this.errorCode = ErrorCode.NO_ERROR;
 
     this.state = State.DONE;
-    this.resolve(this);
+    this.resolve();
   }
 
   getErrorCode(): ErrorCode {
@@ -120,7 +120,7 @@ export class TestingXhrIo implements XhrIo {
   abort(): void {
     this.state = State.START;
     this.errorCode = ErrorCode.NO_ERROR;
-    this.resolve(this);
+    this.resolve();
   }
 
   getResponseHeader(header: string): string | null {

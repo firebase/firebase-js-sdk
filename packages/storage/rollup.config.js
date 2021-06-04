@@ -18,7 +18,10 @@
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import alias from '@rollup/plugin-alias';
 import pkg from './package.json';
+
+const { generateAliasConfig } = require('./rollup.shared');
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -40,7 +43,7 @@ const es5Builds = [
       { file: pkg.main, format: 'cjs', sourcemap: true },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
-    plugins: es5BuildPlugins,
+    plugins: [alias(generateAliasConfig('browser')), ...es5BuildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
@@ -71,7 +74,7 @@ const es2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: [alias(generateAliasConfig('browser')), ...es2017BuildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false

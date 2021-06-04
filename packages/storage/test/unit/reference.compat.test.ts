@@ -284,7 +284,7 @@ describe('Firebase Storage > Reference', () => {
 
   describe('root operations', () => {
     it('put throws', () => {
-      expect(() => root.put(new Blob(['a']))).to.throw(
+      expect(() => root.put(new Uint8Array())).to.throw(
         'storage/invalid-root-operation'
       );
     });

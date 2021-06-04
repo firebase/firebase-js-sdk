@@ -63,9 +63,9 @@ describe('Firebase Storage > Requests', () => {
   const locationEscapes = new Location('b/', 'o?');
   const locationEscapesUrl = '/b/b%2F/o/o%3F';
   const locationEscapesNoObjUrl = '/b/b%2F/o';
-  const smallBlob = new FbsBlob(new Blob(['a']));
+  const smallBlob = new FbsBlob(new Uint8Array([97]));
   const smallBlobString = 'a';
-  const bigBlob = new FbsBlob(new Blob([new ArrayBuffer(1024 * 1024)]));
+  const bigBlob = new FbsBlob(new ArrayBuffer(1024 * 1024));
 
   const mappings = getMappings();
 
@@ -158,7 +158,7 @@ describe('Firebase Storage > Requests', () => {
     });
   }
 
-  function assertBodyEquals(
+  async function assertBodyEquals(
     body: Blob | string | Uint8Array | null,
     expectedStr: string
   ): Promise<void> {
@@ -166,14 +166,13 @@ describe('Firebase Storage > Requests', () => {
       assert.fail('body was null');
     }
 
-    if (body instanceof Blob) {
+    if (typeof Blob !== 'undefined' && body instanceof Blob) {
       return readBlob(body).then(str => {
         assert.equal(str, expectedStr);
       });
     } else if (body instanceof Uint8Array) {
-      return readBlob(new Blob([body])).then(str => {
-        assert.equal(str, expectedStr);
-      });
+      const str = new TextDecoder().decode(body);
+      assert.equal(str, expectedStr);
     } else {
       assert.equal(body as string, expectedStr);
       return Promise.resolve(undefined);
@@ -501,7 +500,7 @@ describe('Firebase Storage > Requests', () => {
           headers: {
             'X-Goog-Upload-Protocol': 'resumable',
             'X-Goog-Upload-Command': 'start',
-            'X-Goog-Upload-Header-Content-Length': smallBlob.size(),
+            'X-Goog-Upload-Header-Content-Length': `${smallBlob.size()}`,
             'X-Goog-Upload-Header-Content-Type': contentTypeInMetadata,
             'Content-Type': metadataContentType
           }
@@ -606,7 +605,7 @@ describe('Firebase Storage > Requests', () => {
         urlParams: {},
         headers: {
           'X-Goog-Upload-Command': 'upload, finalize',
-          'X-Goog-Upload-Offset': 0
+          'X-Goog-Upload-Offset': '0'
         }
       },
       requestInfo
