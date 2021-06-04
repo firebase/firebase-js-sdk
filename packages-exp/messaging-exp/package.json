@@ -7,7 +7,7 @@
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
-  "typings": "./dist/index-public.d.ts",
+  "typings": "./dist/index.d.ts",
   "sw": "dist/index.sw.esm2017.js",
   "files": [
     "dist",
@@ -26,7 +26,7 @@
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "api-report": "yarn api-report:rollup && yarn api-report:api-json",
-    "api-report:rollup": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging-exp --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
+    "api-report:rollup": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging-exp --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
     "api-report:api-json": "api-extractor run --local --verbose",
     "type-check": "tsc --noEmit",
     "typings:public": "node ../../scripts/exp/use_typings.js ./dist/index-public.d.ts"
