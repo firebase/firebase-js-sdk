@@ -8,8 +8,15 @@
   }],
   "dtsRollup": {
     /** 
-     * rollup is not supported when multiple entry points are present
+     * rollup is not supported when multiple entry points are present.
+     * npm script api-report:rollup is used to generate dts rollup.
      */
     "enabled": false
-  }
+  },
+  "apiReport": {
+    /**
+     * apiReport is handled by npm script api-report:rollup
+     */
+    "enabled": false
+}
 }
