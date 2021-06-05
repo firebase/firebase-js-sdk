@@ -51,6 +51,7 @@ import {
   CONFIG_STORAGE_BUCKET_KEY
 } from '../../src/implementation/constants';
 import { FirebaseApp } from '@firebase/app-types';
+import { decodeUint8Array } from '../../src/platform/base64';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -171,7 +172,7 @@ describe('Firebase Storage > Requests', () => {
         assert.equal(str, expectedStr);
       });
     } else if (body instanceof Uint8Array) {
-      const str = new TextDecoder().decode(body);
+      const str = decodeUint8Array(body);
       assert.equal(str, expectedStr);
     } else {
       assert.equal(body as string, expectedStr);

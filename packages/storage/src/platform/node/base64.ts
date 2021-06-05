@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { TextDecoder } from 'util';
 import { invalidFormat } from '../../implementation/error';
 
 /** Converts a Base64 encoded string to a binary string. */
@@ -24,5 +25,9 @@ export function decodeBase64(encoded: string): string {
   if (/[^-A-Za-z0-9+/=]/.test(encoded)) {
     throw invalidFormat('base64', 'Invalid character found');
   }
-  return new Buffer(encoded, 'base64').toString('binary');
+  return Buffer.from(encoded, 'base64').toString('binary');
+}
+
+export function decodeUint8Array(data: Uint8Array): string {
+  return new TextDecoder().decode(data);
 }

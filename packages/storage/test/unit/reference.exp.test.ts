@@ -38,6 +38,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { fakeServerHandler, storageServiceWithHandler } from './testshared';
+import { decodeUint8Array } from '../../src/platform/base64';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
@@ -77,7 +78,7 @@ function withFakeSend(
   ): void {
     let text: Promise<string>;
     if (body instanceof Uint8Array) {
-      text = Promise.resolve(new TextDecoder().decode(body));
+      text = Promise.resolve(decodeUint8Array(body));
     } else {
       text = (body as Blob).text();
     }
@@ -269,11 +270,10 @@ describe('Firebase Storage > Reference', () => {
     getMetadata(ref(reference, 'foo'));
   });
 
-  describe('uploadString', () => {
+  describe.only('uploadString', () => {
     it('Uses metadata.contentType for RAW format', done => {
       // Regression test for b/30989476
       const root = withFakeSend((text: string, headers?: Headers) => {
-        console.log(headers);
         expect(text).to.include('"contentType":"lol/wut"');
       }, done);
       uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {

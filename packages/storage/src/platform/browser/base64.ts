@@ -19,3 +19,7 @@
 export function decodeBase64(encoded: string): string {
   return atob(encoded);
 }
+
+export function decodeUint8Array(data: Uint8Array): string {
+  return new TextDecoder().decode(data);
+}

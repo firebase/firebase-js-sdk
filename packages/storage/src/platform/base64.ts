@@ -23,3 +23,8 @@ const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
 export function decodeBase64(encoded: string): string {
   return platform.decodeBase64(encoded);
 }
+
+/** Converts a Uint8Array to a string. */
+export function decodeUint8Array(data: Uint8Array): string {
+  return platform.decodeUint8Array(data);
+}
