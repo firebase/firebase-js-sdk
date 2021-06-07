@@ -138,7 +138,8 @@ describe('internal api', () => {
 
     it('notifies listeners using cached token', async () => {
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
       });
 
       const clock = useFakeTimers();
@@ -153,6 +154,8 @@ describe('internal api', () => {
 
       await getToken(app, fakePlatformLoggingProvider);
 
+      clock.tick(1);
+
       expect(listener1).to.be.calledWith({
         token: fakeCachedAppCheckToken.token
       });
@@ -165,7 +168,8 @@ describe('internal api', () => {
 
     it('notifies listeners using new token', async () => {
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
       });
 
       stub(storage, 'readTokenFromStorage').returns(Promise.resolve(undefined));
@@ -191,7 +195,8 @@ describe('internal api', () => {
 
     it('ignores listeners that throw', async () => {
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
       });
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
@@ -353,7 +358,8 @@ describe('internal api', () => {
     it('notifies the listener with the valid token in storage', done => {
       const clock = useFakeTimers();
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
       });
       stub(storage, 'readTokenFromStorage').returns(
         Promise.resolve({
@@ -372,6 +378,7 @@ describe('internal api', () => {
       };
 
       addTokenListener(app, fakePlatformLoggingProvider, fakeListener);
+
       clock.tick(1);
     });
 
