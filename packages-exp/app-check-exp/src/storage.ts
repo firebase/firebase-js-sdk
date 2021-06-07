@@ -89,7 +89,7 @@ export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
     );
     // Not using logger because I don't think we ever want this accidentally hidden?
     console.log(
-      `AppCheck debug token: ${newToken}. You will need to whitelist it in the Firebase console for it to work`
+      `App Check debug token: ${newToken}. You will need to whitelist it in the Firebase console for it to work`
     );
     return newToken;
   } else {

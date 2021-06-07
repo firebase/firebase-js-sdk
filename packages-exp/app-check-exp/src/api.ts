@@ -32,9 +32,9 @@ declare module '@firebase/component' {
 export { ReCaptchaV3Provider, CustomProvider } from './providers';
 
 /**
- * Activate AppCheck for the given app. Can be called only once per app.
- * @param app - the FirebaseApp to activate AppCheck for
- * @param options - Provider implementation that can return an AppCheck token
+ * Activate App Check for the given app. Can be called only once per app.
+ * @param app - the FirebaseApp to activate App Check for
+ * @param options - Provider implementation that can return an App Check token
  * @public
  */
 export function initializeAppCheck(
@@ -57,8 +57,8 @@ export function initializeAppCheck(
 }
 
 /**
- * Activate AppCheck
- * @param app - Firebase app to activate AppCheck for.
+ * Activate App Check
+ * @param app - Firebase app to activate App Check for.
  * @param provider - reCAPTCHA v3 provider or
  * custom token provider.
  * @param isTokenAutoRefreshEnabled - If true, the SDK automatically

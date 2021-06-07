@@ -29,7 +29,7 @@ import { AppCheckProvider, AppCheckTokenInternal } from './types';
 
 /**
  * App Check provider that can obtain a reCAPTCHA V3 token and exchange it
- * for an AppCheck token.
+ * for an AppC heck token.
  *
  * @public
  */
@@ -42,7 +42,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    */
   constructor(private _siteKey: string) {}
   /**
-   * Returns an AppCheck token.
+   * Returns an App Check token.
    * @internal
    */
   async getToken(): Promise<AppCheckTokenInternal> {

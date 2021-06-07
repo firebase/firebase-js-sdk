@@ -34,8 +34,8 @@ const ERRORS: ErrorMap<AppCheckError> = {
     'You have already called initializeAppCheck() for FirebaseApp {$appName}, ' +
     'initializeAppCheck() can only be called once.',
   [AppCheckError.USE_BEFORE_ACTIVATION]:
-    'AppCheck is being used before initializeAppCheck() is called for FirebaseApp {$appName}. ' +
-    'Please make sure you call initializeAppCheck() before instantiating other Firebase services.',
+    'App Check is being used before initializeAppCheck() is called for FirebaseApp {$appName}. ' +
+    'Make sure you call initializeAppCheck() before instantiating other Firebase services.',
   [AppCheckError.FETCH_NETWORK_ERROR]:
     'Fetch failed to connect to a network. Check Internet connection. ' +
     'Original error: {$originalErrorMessage}.',

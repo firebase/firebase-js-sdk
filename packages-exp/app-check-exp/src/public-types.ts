@@ -19,19 +19,19 @@ import { FirebaseApp } from '@firebase/app-exp';
 import { CustomProvider, ReCaptchaV3Provider } from './providers';
 
 /**
- * The Firebase AppCheck service interface.
+ * The Firebase App Check service interface.
  *
  * @public
  */
 export interface AppCheck {
   /**
-   * The FirebaseApp this Functions instance is associated with.
+   * The `FirebaseApp` this `AppCheck` instance is associated with.
    */
   app: FirebaseApp;
 }
 
 /**
- * The token returned from an AppCheck provider.
+ * The token returned from an App Check provider.
  * @public
  */
 export interface AppCheckToken {
@@ -57,7 +57,7 @@ export interface AppCheckOptions {
    */
   provider: CustomProvider | ReCaptchaV3Provider;
   /**
-   * If set to true, enables automatic background refresh of app check token.
+   * If set to true, enables automatic background refresh of App Check token.
    */
   isTokenAutoRefreshEnabled?: boolean;
 }

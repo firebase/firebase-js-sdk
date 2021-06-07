@@ -51,7 +51,7 @@ export function formatDummyToken(
 }
 
 /**
- * This function will always resolve.
+ * This function always resolves.
  * The result will contain an error field if there is any error.
  * In case there is an error, the token field in the result will be populated with a dummy value
  */
