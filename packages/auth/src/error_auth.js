@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -280,7 +280,7 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_AUTH_EVENT] =
     'An internal error has occurred.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_CODE] =
     'The SMS verification code used to create the phone auth credential is ' +
-    'invalid. Please resend the verification code sms and be sure use the ' +
+    'invalid. Please resend the verification code sms and be sure to use the ' +
     'verification code provided by the user.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_CONTINUE_URI] =
     'The continue URL provided in the request is invalid.';

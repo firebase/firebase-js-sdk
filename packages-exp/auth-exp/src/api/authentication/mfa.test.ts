@@ -158,7 +158,7 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
 
     await expect(finalizeSignInPhoneMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure use the verification code provided by the user. (auth/invalid-verification-code).'
+      'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure to use the verification code provided by the user. (auth/invalid-verification-code).'
     );
     expect(mock.calls[0].request).to.eql({
       tenantId: null,
