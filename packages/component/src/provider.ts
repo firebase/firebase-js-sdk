@@ -38,7 +38,7 @@ export class Provider<T extends Name> {
     string,
     Deferred<NameServiceMapping[T]>
   > = new Map();
-  private onInitCallbacks: Set<OnInitCallBack<T>> = new Set();
+  private onInitCallbacks: Map<string, Set<OnInitCallBack<T>>> = new Map();
 
   constructor(
     private readonly name: T,
@@ -265,16 +265,20 @@ export class Provider<T extends Name> {
    * @returns a function to unregister the callback
    */
   onInit(callback: OnInitCallBack<T>, identifier?: string): () => void {
-    this.onInitCallbacks.add(callback);
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+    const existingInstances =
+      this.onInitCallbacks.get(normalizedIdentifier) ??
+      new Set<OnInitCallBack<T>>();
+    existingInstances.add(callback);
+    this.onInitCallbacks.set(normalizedIdentifier, existingInstances);
 
-    const instance = this.getImmediate({ identifier, optional: true });
-    if (instance) {
-      const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
-      callback(instance, normalizedIdentifier);
+    const existingInstance = this.instances.has(normalizedIdentifier);
+    if (existingInstance) {
+      callback(existingInstance, normalizedIdentifier);
     }
 
     return () => {
-      this.onInitCallbacks.delete(callback);
+      this.onInitCallbacks.get(normalizedIdentifier)!.delete(callback);
     };
   }
 
@@ -286,7 +290,11 @@ export class Provider<T extends Name> {
     instance: NameServiceMapping[T],
     identifier: string
   ): void {
-    for (const callback of this.onInitCallbacks) {
+    const callbacks = this.onInitCallbacks.get(identifier);
+    if (!callbacks) {
+      return;
+    }
+    for (const callback of callbacks) {
       try {
         callback(instance, identifier);
       } catch {

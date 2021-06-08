@@ -197,6 +197,30 @@ describe('Provider', () => {
       expect(callback).to.have.been.calledOnce;
     });
 
+    it('passes instance identifier', () => {
+      const component = { test: true };
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => component,
+          true,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+
+      provider.initialize();
+
+      provider.onInit(callback1, 'id1');
+      provider.onInit(callback2, 'id2');
+
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback1).to.have.been.calledWith(component, 'id1');
+      expect(callback2).to.have.been.calledOnce;
+      expect(callback2).to.have.been.calledWith(component, 'id1');
+    });
+
     it('returns a function to unregister the callback', () => {
       provider.setComponent(
         getFakeComponent(
@@ -209,8 +233,8 @@ describe('Provider', () => {
       const callback1 = fake();
       const callback2 = fake();
       provider.onInit(callback1);
-      const unregsiter = provider.onInit(callback2);
-      unregsiter();
+      const unregister = provider.onInit(callback2);
+      unregister();
 
       provider.initialize();
       expect(callback1).to.have.been.calledOnce;
