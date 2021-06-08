@@ -181,6 +181,22 @@ describe('Provider', () => {
       expect(callback2).to.have.been.calledOnce;
     });
 
+    it('invokes callback for existing component', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback = fake();
+      provider.initialize();
+      provider.onInit(callback);
+
+      expect(callback).to.have.been.calledOnce;
+    });
+
     it('returns a function to unregister the callback', () => {
       provider.setComponent(
         getFakeComponent(
