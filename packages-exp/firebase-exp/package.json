@@ -56,6 +56,10 @@
       "node": "./messaging/dist/index.cjs.js",
       "default": "./messaging/dist/index.esm.js"
     },
+    "./messaging/sw": {
+      "node": "./messaging/sw/dist/index.cjs.js",
+      "default": "./messaging/sw/dist/index.esm.js"
+    },
     "./performance": {
       "node": "./performance/dist/index.cjs.js",
       "default": "./performance/dist/index.esm.js"
