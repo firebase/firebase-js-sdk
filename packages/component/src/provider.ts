@@ -266,11 +266,11 @@ export class Provider<T extends Name> {
    */
   onInit(callback: OnInitCallBack<T>, identifier?: string): () => void {
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
-    const existingInstances =
+    const existingCallbacks =
       this.onInitCallbacks.get(normalizedIdentifier) ??
       new Set<OnInitCallBack<T>>();
-    existingInstances.add(callback);
-    this.onInitCallbacks.set(normalizedIdentifier, existingInstances);
+    existingCallbacks.add(callback);
+    this.onInitCallbacks.set(normalizedIdentifier, existingCallbacks);
 
     const existingInstance = this.instances.has(normalizedIdentifier);
     if (existingInstance) {
