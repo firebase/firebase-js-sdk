@@ -1,5 +1,11 @@
 # @firebase/component
 
+## 0.5.2
+
+### Patch Changes
+
+- [`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b) [#4971](https://github.com/firebase/firebase-js-sdk/pull/4971) - Fixes a regression that prevented Firestore from detecting Auth during its initial initialization, which could cause some writes to not be send.
+
 ## 0.5.1
 
 ### Patch Changes
