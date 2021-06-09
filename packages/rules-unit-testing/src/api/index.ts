@@ -27,6 +27,7 @@ import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
+import jwt from 'jsonwebtoken';
 
 const { firestore, database, storage } = firebase;
 export { firestore, database, storage };
@@ -158,13 +159,6 @@ export type FirebaseEmulatorOptions = {
 };
 
 function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
-  // Unsecured JWTs use "none" as the algorithm.
-  const header = {
-    alg: 'none',
-    kid: 'fakekid',
-    type: 'JWT'
-  };
-
   const project = projectId || 'fake-project';
   const iat = token.iat || 0;
   const uid = token.sub || token.uid || token.user_id;
@@ -197,11 +191,7 @@ function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
 
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
-  return [
-    base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
-    base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
-    signature
-  ].join('.');
+  return jwt.sign(payload, signature, { algorithm: 'none' });
 }
 
 export function apps(): firebase.app.App[] {
@@ -263,7 +253,9 @@ export function initializeAdminApp(options: AdminAppOptions): app.App {
  * @param options options object.
  */
 export function useEmulators(options: FirebaseEmulatorOptions): void {
-  if (!(options.database || options.firestore || options.storage || options.hub)) {
+  if (
+    !(options.database || options.firestore || options.storage || options.hub)
+  ) {
     throw new Error(
       "Argument to useEmulators must contain at least one of 'database', 'firestore', 'storage', or 'hub'."
     );
@@ -429,7 +421,7 @@ function getHubHost() {
 }
 
 function parseHost(host: string): { hostname: string; port: number } {
-  const withProtocol = host.startsWith("http") ? host : `http://${host}`;
+  const withProtocol = host.startsWith('http') ? host : `http://${host}`;
   const u = new URL(withProtocol);
   return {
     hostname: u.hostname,
