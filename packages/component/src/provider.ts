@@ -38,7 +38,7 @@ export class Provider<T extends Name> {
     string,
     Deferred<NameServiceMapping[T]>
   > = new Map();
-  private onInitCallbacks: Set<OnInitCallBack<T>> = new Set();
+  private onInitCallbacks: Map<string, Set<OnInitCallBack<T>>> = new Map();
 
   constructor(
     private readonly name: T,
@@ -49,7 +49,7 @@ export class Provider<T extends Name> {
    * @param identifier A provider can provide mulitple instances of a service
    * if this.component.multipleInstances is true.
    */
-  get(identifier: string = DEFAULT_ENTRY_NAME): Promise<NameServiceMapping[T]> {
+  get(identifier?: string): Promise<NameServiceMapping[T]> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
@@ -99,11 +99,11 @@ export class Provider<T extends Name> {
     identifier?: string;
     optional?: boolean;
   }): NameServiceMapping[T] | null {
-    const identifier = options?.identifier ?? DEFAULT_ENTRY_NAME;
-    const optional = options?.optional ?? false;
-
     // if multipleInstances is not supported, use the default name
-    const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(
+      options?.identifier
+    );
+    const optional = options?.optional ?? false;
 
     if (
       this.isInitialized(normalizedIdentifier) ||
@@ -219,9 +219,9 @@ export class Provider<T extends Name> {
   }
 
   initialize(opts: InitializeOptions = {}): NameServiceMapping[T] {
-    const { instanceIdentifier = DEFAULT_ENTRY_NAME, options = {} } = opts;
+    const { options = {} } = opts;
     const normalizedIdentifier = this.normalizeInstanceIdentifier(
-      instanceIdentifier
+      opts.instanceIdentifier
     );
     if (this.isInitialized(normalizedIdentifier)) {
       throw Error(
@@ -261,13 +261,24 @@ export class Provider<T extends Name> {
    * @param callback - a function that will be invoked  after the provider has been initialized by calling provider.initialize().
    * The function is invoked SYNCHRONOUSLY, so it should not execute any longrunning tasks in order to not block the program.
    *
+   * @param identifier An optional instance identifier
    * @returns a function to unregister the callback
    */
-  onInit(callback: OnInitCallBack<T>): () => void {
-    this.onInitCallbacks.add(callback);
+  onInit(callback: OnInitCallBack<T>, identifier?: string): () => void {
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+    const existingCallbacks =
+      this.onInitCallbacks.get(normalizedIdentifier) ??
+      new Set<OnInitCallBack<T>>();
+    existingCallbacks.add(callback);
+    this.onInitCallbacks.set(normalizedIdentifier, existingCallbacks);
+
+    const existingInstance = this.instances.has(normalizedIdentifier);
+    if (existingInstance) {
+      callback(existingInstance, normalizedIdentifier);
+    }
 
     return () => {
-      this.onInitCallbacks.delete(callback);
+      existingCallbacks.delete(callback);
     };
   }
 
@@ -279,7 +290,11 @@ export class Provider<T extends Name> {
     instance: NameServiceMapping[T],
     identifier: string
   ): void {
-    for (const callback of this.onInitCallbacks) {
+    const callbacks = this.onInitCallbacks.get(identifier);
+    if (!callbacks) {
+      return;
+    }
+    for (const callback of callbacks) {
       try {
         callback(instance, identifier);
       } catch {
@@ -324,7 +339,9 @@ export class Provider<T extends Name> {
     return instance || null;
   }
 
-  private normalizeInstanceIdentifier(identifier: string): string {
+  private normalizeInstanceIdentifier(
+    identifier: string = DEFAULT_ENTRY_NAME
+  ): string {
     if (this.component) {
       return this.component.multipleInstances ? identifier : DEFAULT_ENTRY_NAME;
     } else {
