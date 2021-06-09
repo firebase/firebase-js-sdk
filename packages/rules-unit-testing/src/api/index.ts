@@ -27,7 +27,7 @@ import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 const { firestore, database, storage } = firebase;
 export { firestore, database, storage };
