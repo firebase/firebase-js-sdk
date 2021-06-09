@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { fake, SinonSpy } from 'sinon';
+import { fake, SinonSpy, match } from 'sinon';
 import { ComponentContainer } from './component_container';
 import { FirebaseService } from '@firebase/app-types/private';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -198,27 +198,27 @@ describe('Provider', () => {
     });
 
     it('passes instance identifier', () => {
-      const component = { test: true };
       provider.setComponent(
         getFakeComponent(
           'test',
-          () => component,
+          () => ({ test: true }),
           true,
-          InstantiationMode.EXPLICIT
+          InstantiationMode.EAGER
         )
       );
       const callback1 = fake();
       const callback2 = fake();
 
-      provider.initialize();
+      provider.getImmediate({ identifier: 'id1' });
+      provider.getImmediate({ identifier: 'id2' });
 
       provider.onInit(callback1, 'id1');
       provider.onInit(callback2, 'id2');
 
       expect(callback1).to.have.been.calledOnce;
-      expect(callback1).to.have.been.calledWith(component, 'id1');
+      expect(callback1).to.have.been.calledWith(match.any, 'id1');
       expect(callback2).to.have.been.calledOnce;
-      expect(callback2).to.have.been.calledWith(component, 'id1');
+      expect(callback2).to.have.been.calledWith(match.any, 'id2');
     });
 
     it('returns a function to unregister the callback', () => {
