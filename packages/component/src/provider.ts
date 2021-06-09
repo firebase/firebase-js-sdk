@@ -278,7 +278,7 @@ export class Provider<T extends Name> {
     }
 
     return () => {
-      this.onInitCallbacks.get(normalizedIdentifier)!.delete(callback);
+      existingCallbacks.delete(callback);
     };
   }
 
