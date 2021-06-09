@@ -181,7 +181,7 @@ describe('Provider', () => {
       expect(callback2).to.have.been.calledOnce;
     });
 
-    it('invokes callback for existing component', () => {
+    it('invokes callback for existing instance', () => {
       provider.setComponent(
         getFakeComponent(
           'test',
