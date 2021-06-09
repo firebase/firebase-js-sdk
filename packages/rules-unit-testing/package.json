@@ -29,10 +29,11 @@
   },
   "devDependencies": {
     "@google-cloud/firestore": "4.8.1",
+    "@types/jsonwebtoken": "^8.5.1",
     "@types/request": "2.48.5",
     "firebase-admin": "9.7.0",
-    "firebase-tools": "9.10.1",
     "firebase-functions": "3.13.0",
+    "firebase-tools": "9.10.1",
     "rollup": "2.35.1",
     "rollup-plugin-typescript2": "0.29.0"
   },
