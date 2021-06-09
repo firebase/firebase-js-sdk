@@ -23,6 +23,7 @@ goog.provide('firebase.webchannel.wrapper');
 
 // goog.net.WebChannelTransport
 goog.require('goog.net.createWebChannelTransport');
+goog.require('goog.net.FetchXmlHttpFactory');
 goog.require('goog.labs.net.webChannel.requestStats');
 goog.require('goog.labs.net.webChannel.WebChannelBaseTransport');
 
@@ -83,5 +84,6 @@ module['exports']['ErrorCode'] = goog.net.ErrorCode;
 module['exports']['EventType'] = goog.net.EventType;
 module['exports']['Event'] = goog.labs.net.webChannel.requestStats.Event;
 module['exports']['Stat'] = goog.labs.net.webChannel.requestStats.Stat;
+module['exports']['FetchXmlHttpFactory'] = goog.net.FetchXmlHttpFactory;
 module['exports']['WebChannel'] = goog.net.WebChannel;
 module['exports']['XhrIo'] = goog.net.XhrIo;

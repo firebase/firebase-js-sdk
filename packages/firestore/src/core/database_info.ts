@@ -30,6 +30,8 @@ export class DatabaseInfo {
    * when using WebChannel as the network transport.
    * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
+   * @param useFetchStreams Whether to use the Fetch API instead of
+   * XMLHTTPRequest
    */
   constructor(
     readonly databaseId: DatabaseId,
@@ -38,7 +40,8 @@ export class DatabaseInfo {
     readonly host: string,
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
-    readonly autoDetectLongPolling: boolean
+    readonly autoDetectLongPolling: boolean,
+    readonly useFetchStreams: boolean
   ) {}
 }
 

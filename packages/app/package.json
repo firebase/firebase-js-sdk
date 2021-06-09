@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.6.22",
+  "version": "0.6.24",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -31,7 +31,7 @@
     "@firebase/app-types": "0.6.2",
     "@firebase/util": "1.1.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.5.0",
+    "@firebase/component": "0.5.1",
     "tslib": "^2.1.0",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"

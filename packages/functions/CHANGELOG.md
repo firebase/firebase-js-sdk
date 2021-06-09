@@ -1,5 +1,14 @@
 # @firebase/functions
 
+## 0.6.10
+
+### Patch Changes
+
+- [`92e4e8d29`](https://github.com/firebase/firebase-js-sdk/commit/92e4e8d2996c690837a203a868b0d26bf6e3ad84) [#4887](https://github.com/firebase/firebase-js-sdk/pull/4887) (fixes [#683](https://github.com/firebase/firebase-js-sdk/issues/683)) - Fix functions to convert Date objects to an ISO string instead of an empty object.
+
+- Updated dependencies [[`5fbc5fb01`](https://github.com/firebase/firebase-js-sdk/commit/5fbc5fb0140d7da980fd7ebbfbae810f8c64ae19)]:
+  - @firebase/component@0.5.1
+
 ## 0.6.9
 
 ### Patch Changes

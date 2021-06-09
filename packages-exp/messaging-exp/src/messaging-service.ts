@@ -27,7 +27,6 @@ import { extractAppConfig } from './helpers/extract-app-config';
 export class MessagingService implements _FirebaseService {
   readonly app!: FirebaseApp;
   readonly firebaseDependencies!: FirebaseInternalDependencies;
-  deleteService!: () => Promise<void>;
 
   swRegistration?: ServiceWorkerRegistration;
   vapidKey?: string;
@@ -58,6 +57,6 @@ export class MessagingService implements _FirebaseService {
   }
 
   _delete(): Promise<void> {
-    return this.deleteService();
+    return Promise.resolve();
   }
 }

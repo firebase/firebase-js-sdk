@@ -58,6 +58,8 @@ export interface PrivateSettings extends Settings {
   experimentalForceLongPolling?: boolean;
   // Used in firestore@exp
   experimentalAutoDetectLongPolling?: boolean;
+  // Used in firestore@exp
+  useFetchStreams?: boolean;
 }
 
 /**
@@ -79,6 +81,8 @@ export class FirestoreSettings {
   readonly experimentalAutoDetectLongPolling: boolean;
 
   readonly ignoreUndefinedProperties: boolean;
+
+  readonly useFetchStreams: boolean;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -120,6 +124,7 @@ export class FirestoreSettings {
 
     this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
     this.experimentalAutoDetectLongPolling = !!settings.experimentalAutoDetectLongPolling;
+    this.useFetchStreams = !!settings.useFetchStreams;
 
     validateIsNotUsedTogether(
       'experimentalForceLongPolling',
@@ -139,7 +144,8 @@ export class FirestoreSettings {
         other.experimentalForceLongPolling &&
       this.experimentalAutoDetectLongPolling ===
         other.experimentalAutoDetectLongPolling &&
-      this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
+      this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
+      this.useFetchStreams === other.useFetchStreams
     );
   }
 }
