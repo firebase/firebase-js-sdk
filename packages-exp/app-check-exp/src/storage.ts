@@ -57,7 +57,7 @@ export function writeTokenToStorage(
   if (isIndexedDBAvailable()) {
     return writeTokenToIndexedDB(app, token).catch(e => {
       // swallow the error and resolve the promise
-      logger.warn(`Failed to write token to indexeddb. Error: ${e}`);
+      logger.warn(`Failed to write token to IndexedDB. Error: ${e}`);
     });
   }
 

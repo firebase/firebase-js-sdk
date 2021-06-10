@@ -34,7 +34,7 @@ export { ReCaptchaV3Provider, CustomProvider } from './providers';
 /**
  * Activate App Check for the given app. Can be called only once per app.
  * @param app - the FirebaseApp to activate App Check for
- * @param options - Provider implementation that can return an App Check token
+ * @param options - App Check initialization options
  * @public
  */
 export function initializeAppCheck(
