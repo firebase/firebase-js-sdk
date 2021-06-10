@@ -2,7 +2,7 @@
   "name": "@firebase/app-check-exp",
   "version": "0.0.900",
   "private": true,
-  "description": "An AppCheck package for new firebase packages",
+  "description": "An App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",

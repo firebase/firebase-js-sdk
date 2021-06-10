@@ -29,7 +29,7 @@ import { AppCheckProvider, AppCheckTokenInternal } from './types';
 
 /**
  * App Check provider that can obtain a reCAPTCHA V3 token and exchange it
- * for an AppC heck token.
+ * for an App Check token.
  *
  * @public
  */
