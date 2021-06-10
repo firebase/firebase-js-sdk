@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.6.26
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
 ## 0.6.25
 
 ### Patch Changes
