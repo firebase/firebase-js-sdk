@@ -22,7 +22,7 @@ import {
 import { Provider } from '@firebase/component';
 
 import { User } from '../auth/user';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -193,8 +193,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   /** Tracks the current User. */
   private currentUser: User = User.UNAUTHENTICATED;
 
-  /** Promise that allows blocking on the first `tokenListener` event. */
-  private receivedInitialUser = new Deferred();
+  /** Promise that allows blocking on the initialization of Firebase Auth. */
+  private authDeferred = new Deferred();
 
   /**
    * Counter used to detect if the token changed while a getToken request was
@@ -203,9 +203,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   private tokenCounter = 0;
 
   /** The listener registered with setChangeListener(). */
-  private changeListener: CredentialChangeListener = () => Promise.resolve();
-
-  private invokeChangeListener = false;
+  private changeListener?: CredentialChangeListener;
 
   private forceRefresh = false;
 
@@ -217,10 +215,10 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.tokenListener = () => {
       this.tokenCounter++;
       this.currentUser = this.getUser();
-      this.receivedInitialUser.resolve();
-      if (this.invokeChangeListener) {
+      this.authDeferred.resolve();
+      if (this.changeListener) {
         this.asyncQueue!.enqueueRetryable(() =>
-          this.changeListener(this.currentUser)
+          this.changeListener!(this.currentUser)
         );
       }
     };
@@ -228,7 +226,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     const registerAuth = (auth: FirebaseAuthInternal): void => {
       logDebug('FirebaseCredentialsProvider', 'Auth detected');
       this.auth = auth;
-      this.awaitTokenAndRaiseInitialEvent();
       this.auth.addAuthTokenListener(this.tokenListener);
     };
 
@@ -242,13 +239,10 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
         const auth = authProvider.getImmediate({ optional: true });
         if (auth) {
           registerAuth(auth);
-        } else if (this.invokeChangeListener) {
-          // If auth is still not available, invoke the change listener once
-          // with null token
+        } else {
+          // If auth is still not available, proceed with `null` user
           logDebug('FirebaseCredentialsProvider', 'Auth not yet detected');
-          this.asyncQueue!.enqueueRetryable(() =>
-            this.changeListener(this.currentUser)
-          );
+          this.authDeferred.resolve();
         }
       }
     }, 0);
@@ -304,12 +298,14 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     changeListener: CredentialChangeListener
   ): void {
     debugAssert(!this.asyncQueue, 'Can only call setChangeListener() once.');
-    this.invokeChangeListener = true;
     this.asyncQueue = asyncQueue;
-    this.changeListener = changeListener;
-    if (this.auth) {
-      this.awaitTokenAndRaiseInitialEvent();
-    }
+
+    // Blocks the AsyncQueue until the next user is available.
+    this.asyncQueue!.enqueueRetryable(async () => {
+      await this.authDeferred.promise;
+      await changeListener(this.currentUser);
+      this.changeListener = changeListener;
+    });
   }
 
   removeChangeListener(): void {
@@ -330,21 +326,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       'Received invalid UID: ' + currentUid
     );
     return new User(currentUid);
-  }
-
-  /**
-   * Blocks the AsyncQueue until the next user is available. This function also
-   * invokes `this.changeListener` immediately once the token is available.
-   */
-  private awaitTokenAndRaiseInitialEvent(): void {
-    if (this.invokeChangeListener) {
-      this.invokeChangeListener = false; // Prevent double-firing of the listener
-      this.asyncQueue!.enqueueRetryable(async () => {
-        await this.receivedInitialUser.promise;
-        await this.changeListener(this.currentUser);
-        this.invokeChangeListener = true;
-      });
-    }
   }
 }
 
