@@ -65,8 +65,6 @@ export function initializeAppCheck(
  * refreshes App Check tokens as needed. If undefined, defaults to the
  * value of `app.automaticDataCollectionEnabled`, which defaults to
  * false and can be set in the app config.
- *
- * @internal
  */
 function _activate(
   app: FirebaseApp,

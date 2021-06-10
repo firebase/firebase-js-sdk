@@ -87,7 +87,7 @@ describe('internal api', () => {
       clock.restore();
     });
 
-    it('uses reCAPTCHA token to exchange for AppCheck token if no customTokenProvider is provided', async () => {
+    it('uses reCAPTCHA token to exchange for AppCheck token', async () => {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -282,7 +282,11 @@ describe('internal api', () => {
 
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
-        Promise.resolve(fakeRecaptchaAppCheckToken)
+        Promise.resolve({
+          token: 'new-recaptcha-app-check-token',
+          expireTimeMillis: 345,
+          issuedAtTimeMillis: 0
+        })
       );
 
       expect(

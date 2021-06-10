@@ -18,12 +18,7 @@ import '../test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { setTokenAutoRefreshEnabled, initializeAppCheck } from './api';
-import {
-  FAKE_SITE_KEY,
-  getFullApp,
-  getFakeApp,
-  getFakeCustomTokenProvider
-} from '../test/util';
+import { FAKE_SITE_KEY, getFullApp, getFakeApp } from '../test/util';
 import { getState } from './state';
 import * as reCAPTCHA from './recaptcha';
 import { deleteApp, FirebaseApp } from '@firebase/app-exp';
@@ -52,7 +47,7 @@ describe('api', () => {
       ).to.throw(/appCheck\/already-initialized/);
     });
 
-    it('initialize reCAPTCHA when a sitekey is provided', () => {
+    it('initialize reCAPTCHA when a ReCaptchaV3Provider is provided', () => {
       const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
         Promise.resolve({} as any)
       );
@@ -63,16 +58,6 @@ describe('api', () => {
         app,
         FAKE_SITE_KEY
       );
-    });
-
-    it('does NOT initialize reCAPTCHA when a custom token provider is provided', () => {
-      const fakeCustomTokenProvider = getFakeCustomTokenProvider();
-      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize');
-      initializeAppCheck(app, {
-        provider: fakeCustomTokenProvider
-      });
-      expect(getState(app).provider).to.equal(fakeCustomTokenProvider);
-      expect(initReCAPTCHAStub).to.have.not.been.called;
     });
 
     it('sets activated to true', () => {

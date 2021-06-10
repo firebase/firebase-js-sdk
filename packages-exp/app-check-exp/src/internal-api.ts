@@ -104,9 +104,10 @@ export async function getToken(
    * request a new token
    */
   try {
-    if (state.provider) {
-      token = await state.provider.getToken();
-    }
+    // state.provider is populated in initializeAppCheck()
+    // ensureActivated() at the top of this function checks that
+    // initializeAppCheck() has been called.
+    token = await state.provider!.getToken();
   } catch (e) {
     // `getToken()` should never throw, but logging error text to console will aid debugging.
     logger.error(e);
