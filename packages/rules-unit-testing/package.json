@@ -20,18 +20,20 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "8.6.5",
     "@firebase/component": "0.5.1",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "1.1.0",
+    "firebase": "8.6.5",
+    "jsonwebtoken": "^8.5.1",
     "request": "2.88.2"
   },
   "devDependencies": {
     "@google-cloud/firestore": "4.8.1",
+    "@types/jsonwebtoken": "^8.5.1",
     "@types/request": "2.48.5",
     "firebase-admin": "9.7.0",
-    "firebase-tools": "9.10.1",
     "firebase-functions": "3.13.0",
+    "firebase-tools": "9.10.1",
     "rollup": "2.35.1",
     "rollup-plugin-typescript2": "0.29.0"
   },
