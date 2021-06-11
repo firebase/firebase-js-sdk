@@ -67,7 +67,9 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   },
   from: 'from',
   // eslint-disable-next-line camelcase
-  collapse_key: 'collapse'
+  collapse_key: 'collapse',
+  // eslint-disable-next-line camelcase
+  exposed_message_id: 'mid'
 };
 
 // internal message payload (parsed directly from the push event) that contains and only contains
@@ -78,7 +80,9 @@ const DATA_MESSAGE: MessagePayloadInternal = {
   },
   from: 'from',
   // eslint-disable-next-line camelcase
-  collapse_key: 'collapse'
+  collapse_key: 'collapse',
+  // eslint-disable-next-line camelcase
+  exposed_message_id: 'mid'
 };
 
 describe('SwController', () => {

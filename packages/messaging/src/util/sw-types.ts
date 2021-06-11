@@ -42,6 +42,23 @@ interface ServiceWorkerGlobalScope {
   ): void;
 }
 
+// Only makes `clients` and `registration` optional because in tests, we reset them by calling
+// `delete` and TS2790 enforces The operand of a `delete'` operator must be optional.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface ServiceWorkerGlobalScopeForTesting {
+  readonly location: WorkerLocation;
+  readonly clients?: Clients;
+  readonly registration?: ServiceWorkerRegistration;
+  addEventListener<K extends keyof ServiceWorkerGlobalScopeEventMap>(
+    type: K,
+    listener: (
+      this: ServiceWorkerGlobalScope,
+      ev: ServiceWorkerGlobalScopeEventMap[K]
+    ) => any,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+}
+
 // Same as the previous interface
 interface ServiceWorkerGlobalScopeEventMap {
   notificationclick: NotificationEvent;
