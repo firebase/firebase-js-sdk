@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "9.0.0-beta.2",
+  "version": "9.0.0-beta.3",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -55,6 +55,10 @@
     "./messaging": {
       "node": "./messaging/dist/index.cjs.js",
       "default": "./messaging/dist/index.esm.js"
+    },
+    "./messaging/sw": {
+      "node": "./messaging/sw/dist/index.cjs.js",
+      "default": "./messaging/sw/dist/index.esm.js"
     },
     "./performance": {
       "node": "./performance/dist/index.cjs.js",
@@ -129,11 +133,11 @@
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/auth-compat": "0.0.900",
-    "@firebase/database": "0.10.3",
+    "@firebase/database": "0.10.4",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/functions-compat": "0.0.900",
-    "@firebase/firestore": "2.3.3",
-    "@firebase/storage": "0.5.3",
+    "@firebase/firestore": "2.3.5",
+    "@firebase/storage": "0.5.4",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/performance-compat": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
