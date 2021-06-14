@@ -503,10 +503,7 @@ export const prodErrorMap: AuthErrorMap;
 
 // @public
 export const ProviderId: {
-    ANONYMOUS: string;
-    CUSTOM: string;
     FACEBOOK: string;
-    FIREBASE: string;
     GITHUB: string;
     GOOGLE: string;
     PASSWORD: string;
@@ -581,7 +578,6 @@ export function signInAnonymously(auth: Auth): Promise<UserCredential>;
 
 // @public
 export const SignInMethod: {
-    ANONYMOUS: string;
     EMAIL_LINK: string;
     EMAIL_PASSWORD: string;
     FACEBOOK: string;
