@@ -272,7 +272,7 @@ export class Provider<T extends Name> {
     existingCallbacks.add(callback);
     this.onInitCallbacks.set(normalizedIdentifier, existingCallbacks);
 
-    const existingInstance = this.instances.has(normalizedIdentifier);
+    const existingInstance = this.instances.get(normalizedIdentifier);
     if (existingInstance) {
       callback(existingInstance, normalizedIdentifier);
     }
