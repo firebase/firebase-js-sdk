@@ -1,9 +1,26 @@
 /**
+ * @license
+ * Copyright 2021 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * An enum of factors that may be used for multifactor authentication.
  *
  * @public
  */
- export const FactorId = {
+export const FactorId = {
   /** Phone as second factor */
   PHONE: 'phone'
 };
@@ -13,7 +30,7 @@
  *
  * @public
  */
- export const ProviderId = {
+export const ProviderId = {
   /** @internal */
   ANONYMOUS: 'anonymous',
   /** @internal */
@@ -34,13 +51,12 @@
   TWITTER: 'twitter.com'
 };
 
-
 /**
  * Enumeration of supported sign-in methods.
  *
  * @public
  */
- export const SignInMethod = {
+export const SignInMethod = {
   /** @internal */
   ANONYMOUS: 'anonymous',
   /** Email link sign in method */
@@ -64,7 +80,7 @@
  *
  * @public
  */
- export const OperationType = {
+export const OperationType = {
   /** Operation involving linking an additional provider to an already signed-in user. */
   LINK: 'link',
   /** Operation involving using a provider to reauthenticate an already signed-in user. */
@@ -73,13 +89,12 @@
   SIGN_IN: 'signIn'
 };
 
-
 /**
  * An enumeration of the possible email action types.
  *
  * @public
  */
- export const ActionCodeOperation = {
+export const ActionCodeOperation = {
   /** The email link sign-in action. */
   EMAIL_SIGNIN: 'EMAIL_SIGNIN',
   /** The password reset action. */
