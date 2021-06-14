@@ -31,14 +31,8 @@ export const FactorId = {
  * @public
  */
 export const ProviderId = {
-  /** @internal */
-  ANONYMOUS: 'anonymous',
-  /** @internal */
-  CUSTOM: 'custom',
   /** Facebook provider ID */
   FACEBOOK: 'facebook.com',
-  /** @internal */
-  FIREBASE: 'firebase',
   /** GitHub provider ID */
   GITHUB: 'github.com',
   /** Google provider ID */
@@ -57,8 +51,6 @@ export const ProviderId = {
  * @public
  */
 export const SignInMethod = {
-  /** @internal */
-  ANONYMOUS: 'anonymous',
   /** Email link sign in method */
   EMAIL_LINK: 'emailLink',
   /** Email/password sign in method */

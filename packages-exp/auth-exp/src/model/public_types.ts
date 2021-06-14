@@ -54,7 +54,7 @@ export const enum ProviderId {
 /**
  * Enumeration of supported sign-in methods.
  *
- * @private
+ * @internal
  */
 export const enum SignInMethod {
   /** @internal */
