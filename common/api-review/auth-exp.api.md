@@ -20,18 +20,18 @@ export interface ActionCodeInfo {
         multiFactorInfo?: MultiFactorInfo | null;
         previousEmail?: string | null;
     };
-    operation: ActionCodeOperation;
+    operation: string;
 }
 
 // @public
-export const enum ActionCodeOperation {
-    EMAIL_SIGNIN = "EMAIL_SIGNIN",
-    PASSWORD_RESET = "PASSWORD_RESET",
-    RECOVER_EMAIL = "RECOVER_EMAIL",
-    REVERT_SECOND_FACTOR_ADDITION = "REVERT_SECOND_FACTOR_ADDITION",
-    VERIFY_AND_CHANGE_EMAIL = "VERIFY_AND_CHANGE_EMAIL",
-    VERIFY_EMAIL = "VERIFY_EMAIL"
-}
+export const ActionCodeOperation: {
+    EMAIL_SIGNIN: string;
+    PASSWORD_RESET: string;
+    RECOVER_EMAIL: string;
+    REVERT_SECOND_FACTOR_ADDITION: string;
+    VERIFY_AND_CHANGE_EMAIL: string;
+    VERIFY_EMAIL: string;
+};
 
 // @public
 export interface ActionCodeSettings {
@@ -56,7 +56,7 @@ export class ActionCodeURL {
     readonly code: string;
     readonly continueUrl: string | null;
     readonly languageCode: string | null;
-    readonly operation: ActionCodeOperation;
+    readonly operation: string;
     static parseLink(link: string): ActionCodeURL | null;
     readonly tenantId: string | null;
 }
@@ -239,9 +239,9 @@ export class FacebookAuthProvider extends BaseOAuthProvider {
 }
 
 // @public
-export const enum FactorId {
-    PHONE = "phone"
-}
+export const FactorId: {
+    PHONE: string;
+};
 
 // @public
 export function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<string[]>;
@@ -324,19 +324,19 @@ export function multiFactor(user: User): MultiFactorUser;
 
 // @public
 export interface MultiFactorAssertion {
-    readonly factorId: FactorId;
+    readonly factorId: string;
 }
 
 // @public
 export interface MultiFactorError extends AuthError {
-    readonly operationType: OperationType;
+    readonly operationType: string;
 }
 
 // @public
 export interface MultiFactorInfo {
     readonly displayName?: string | null;
     readonly enrollmentTime: string;
-    readonly factorId: FactorId;
+    readonly factorId: string;
     readonly uid: string;
 }
 
@@ -405,11 +405,11 @@ export function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObserver<Us
 export function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 
 // @public
-export const enum OperationType {
-    LINK = "link",
-    REAUTHENTICATE = "reauthenticate",
-    SIGN_IN = "signIn"
-}
+export const OperationType: {
+    LINK: string;
+    REAUTHENTICATE: string;
+    SIGN_IN: string;
+};
 
 // @public
 export function parseActionCodeURL(link: string): ActionCodeURL | null;
@@ -502,20 +502,17 @@ export interface PopupRedirectResolver {
 export const prodErrorMap: AuthErrorMap;
 
 // @public
-export const enum ProviderId {
-    // @internal (undocumented)
-    ANONYMOUS = "anonymous",
-    // @internal (undocumented)
-    CUSTOM = "custom",
-    FACEBOOK = "facebook.com",
-    // @internal (undocumented)
-    FIREBASE = "firebase",
-    GITHUB = "github.com",
-    GOOGLE = "google.com",
-    PASSWORD = "password",
-    PHONE = "phone",
-    TWITTER = "twitter.com"
-}
+export const ProviderId: {
+    ANONYMOUS: string;
+    CUSTOM: string;
+    FACEBOOK: string;
+    FIREBASE: string;
+    GITHUB: string;
+    GOOGLE: string;
+    PASSWORD: string;
+    PHONE: string;
+    TWITTER: string;
+};
 
 // @public
 export interface ReactNativeAsyncStorage {
@@ -583,17 +580,16 @@ export function setPersistence(auth: Auth, persistence: Persistence): Promise<vo
 export function signInAnonymously(auth: Auth): Promise<UserCredential>;
 
 // @public
-export const enum SignInMethod {
-    // @internal (undocumented)
-    ANONYMOUS = "anonymous",
-    EMAIL_LINK = "emailLink",
-    EMAIL_PASSWORD = "password",
-    FACEBOOK = "facebook.com",
-    GITHUB = "github.com",
-    GOOGLE = "google.com",
-    PHONE = "phone",
-    TWITTER = "twitter.com"
-}
+export const SignInMethod: {
+    ANONYMOUS: string;
+    EMAIL_LINK: string;
+    EMAIL_PASSWORD: string;
+    FACEBOOK: string;
+    GITHUB: string;
+    GOOGLE: string;
+    PHONE: string;
+    TWITTER: string;
+};
 
 // @public
 export function signInWithCredential(auth: Auth, credential: AuthCredential): Promise<UserCredential>;
@@ -630,7 +626,7 @@ export class TwitterAuthProvider extends BaseOAuthProvider {
 }
 
 // @public
-export function unlink(user: User, providerId: ProviderId): Promise<User>;
+export function unlink(user: User, providerId: string): Promise<User>;
 
 export { Unsubscribe }
 
@@ -677,7 +673,7 @@ export interface User extends UserInfo {
 
 // @public
 export interface UserCredential {
-    operationType: OperationType;
+    operationType: string;
     providerId: string | null;
     user: User;
 }

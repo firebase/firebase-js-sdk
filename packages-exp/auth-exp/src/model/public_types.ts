@@ -28,7 +28,7 @@ export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
 /**
  * Enumeration of supported providers.
  *
- * @public
+ * @internal
  */
 export const enum ProviderId {
   /** @internal */
@@ -54,7 +54,7 @@ export const enum ProviderId {
 /**
  * Enumeration of supported sign-in methods.
  *
- * @public
+ * @private
  */
 export const enum SignInMethod {
   /** @internal */
@@ -78,7 +78,7 @@ export const enum SignInMethod {
 /**
  * Enumeration of supported operation types.
  *
- * @public
+ * @internal
  */
 export const enum OperationType {
   /** Operation involving linking an additional provider to an already signed-in user. */
@@ -431,13 +431,13 @@ export interface ActionCodeInfo {
   /**
    * The type of operation that generated the action code.
    */
-  operation: ActionCodeOperation;
+  operation: string;
 }
 
 /**
  * An enumeration of the possible email action types.
  *
- * @public
+ * @internal
  */
 export const enum ActionCodeOperation {
   /** The email link sign-in action. */
@@ -556,7 +556,7 @@ export interface AuthProvider {
 /**
  * An enum of factors that may be used for multifactor authentication.
  *
- * @public
+ * @internal
  */
 export const enum FactorId {
   /** Phone as second factor */
@@ -603,7 +603,7 @@ export interface ConfirmationResult {
  */
 export interface MultiFactorAssertion {
   /** The identifier of the second factor. */
-  readonly factorId: FactorId;
+  readonly factorId: string;
 }
 
 /**
@@ -641,7 +641,7 @@ export interface MultiFactorError extends AuthError {
   /**
    * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.
    */
-  readonly operationType: OperationType;
+  readonly operationType: string;
 }
 
 /**
@@ -657,7 +657,7 @@ export interface MultiFactorInfo {
   /** The enrollment date of the second factor formatted as a UTC string. */
   readonly enrollmentTime: string;
   /** The identifier of the second factor. */
-  readonly factorId: FactorId;
+  readonly factorId: string;
 }
 
 /**
@@ -1044,7 +1044,7 @@ export interface UserCredential {
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
-  operationType: OperationType;
+  operationType: string;
 }
 
 /**

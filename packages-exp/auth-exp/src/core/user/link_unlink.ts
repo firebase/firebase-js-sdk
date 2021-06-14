@@ -38,7 +38,7 @@ import { getModularInstance } from '@firebase/util';
  */
 export async function unlink(
   user: User,
-  providerId: ProviderId
+  providerId: string
 ): Promise<User> {
   const userInternal = getModularInstance(user) as UserInternal;
   await _assertLinkedStatus(true, userInternal, providerId);
