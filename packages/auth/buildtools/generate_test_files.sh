@@ -25,9 +25,13 @@ cd "$(dirname $(dirname "$0"))"
 mkdir -p generated
 
 echo "Generating dependency file..."
-python ../../node_modules/google-closure-library/closure/bin/build/depswriter.py \
-    --root_with_prefix="test ../../../../test" \
-    --root_with_prefix="src ../../../../src" \
+node $(npm bin)/closure-make-deps \
+    --closure-path="node_modules/google-closure-library/closure/goog" \
+    --file="node_modules/google-closure-library/closure/goog/deps.js" \
+    --root="test" \
+    --root="src" \
+    --exclude="src/debug.js" \
+    --exclude="src/externs.js" \
     > generated/deps.js
 
 echo "Generating test HTML files..."
