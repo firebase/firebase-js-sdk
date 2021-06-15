@@ -25,12 +25,12 @@ export interface ActionCodeInfo {
 
 // @public
 export const ActionCodeOperation: {
-    EMAIL_SIGNIN: string;
-    PASSWORD_RESET: string;
-    RECOVER_EMAIL: string;
-    REVERT_SECOND_FACTOR_ADDITION: string;
-    VERIFY_AND_CHANGE_EMAIL: string;
-    VERIFY_EMAIL: string;
+    readonly EMAIL_SIGNIN: "EMAIL_SIGNIN";
+    readonly PASSWORD_RESET: "PASSWORD_RESET";
+    readonly RECOVER_EMAIL: "RECOVER_EMAIL";
+    readonly REVERT_SECOND_FACTOR_ADDITION: "REVERT_SECOND_FACTOR_ADDITION";
+    readonly VERIFY_AND_CHANGE_EMAIL: "VERIFY_AND_CHANGE_EMAIL";
+    readonly VERIFY_EMAIL: "VERIFY_EMAIL";
 };
 
 // @public
@@ -240,7 +240,7 @@ export class FacebookAuthProvider extends BaseOAuthProvider {
 
 // @public
 export const FactorId: {
-    PHONE: string;
+    readonly PHONE: "phone";
 };
 
 // @public
@@ -406,9 +406,9 @@ export function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObserver<User
 
 // @public
 export const OperationType: {
-    LINK: string;
-    REAUTHENTICATE: string;
-    SIGN_IN: string;
+    readonly LINK: "link";
+    readonly REAUTHENTICATE: "reauthenticate";
+    readonly SIGN_IN: "signIn";
 };
 
 // @public
@@ -503,12 +503,12 @@ export const prodErrorMap: AuthErrorMap;
 
 // @public
 export const ProviderId: {
-    FACEBOOK: string;
-    GITHUB: string;
-    GOOGLE: string;
-    PASSWORD: string;
-    PHONE: string;
-    TWITTER: string;
+    readonly FACEBOOK: "facebook.com";
+    readonly GITHUB: "github.com";
+    readonly GOOGLE: "google.com";
+    readonly PASSWORD: "password";
+    readonly PHONE: "phone";
+    readonly TWITTER: "twitter.com";
 };
 
 // @public
@@ -578,13 +578,13 @@ export function signInAnonymously(auth: Auth): Promise<UserCredential>;
 
 // @public
 export const SignInMethod: {
-    EMAIL_LINK: string;
-    EMAIL_PASSWORD: string;
-    FACEBOOK: string;
-    GITHUB: string;
-    GOOGLE: string;
-    PHONE: string;
-    TWITTER: string;
+    readonly EMAIL_LINK: "emailLink";
+    readonly EMAIL_PASSWORD: "password";
+    readonly FACEBOOK: "facebook.com";
+    readonly GITHUB: "github.com";
+    readonly GOOGLE: "google.com";
+    readonly PHONE: "phone";
+    readonly TWITTER: "twitter.com";
 };
 
 // @public

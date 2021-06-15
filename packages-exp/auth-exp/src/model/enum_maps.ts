@@ -23,7 +23,7 @@
 export const FactorId = {
   /** Phone as second factor */
   PHONE: 'phone'
-};
+} as const;
 
 /**
  * Enumeration of supported providers.
@@ -43,7 +43,7 @@ export const ProviderId = {
   PHONE: 'phone',
   /** Twitter provider ID */
   TWITTER: 'twitter.com'
-};
+} as const;
 
 /**
  * Enumeration of supported sign-in methods.
@@ -65,7 +65,7 @@ export const SignInMethod = {
   PHONE: 'phone',
   /** Twitter sign in method */
   TWITTER: 'twitter.com'
-};
+} as const;
 
 /**
  * Enumeration of supported operation types.
@@ -79,7 +79,7 @@ export const OperationType = {
   REAUTHENTICATE: 'reauthenticate',
   /** Operation involving signing in a user. */
   SIGN_IN: 'signIn'
-};
+} as const;
 
 /**
  * An enumeration of the possible email action types.
@@ -99,4 +99,4 @@ export const ActionCodeOperation = {
   VERIFY_AND_CHANGE_EMAIL: 'VERIFY_AND_CHANGE_EMAIL',
   /** The email verification action. */
   VERIFY_EMAIL: 'VERIFY_EMAIL'
-};
+} as const;
