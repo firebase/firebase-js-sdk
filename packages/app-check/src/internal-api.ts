@@ -167,12 +167,17 @@ export async function getToken(
 export function addTokenListener(
   app: FirebaseApp,
   platformLoggerProvider: Provider<'platform-logger'>,
-  listener: AppCheckTokenListener
+  listener: (token: AppCheckTokenResult) => void,
+  onError?: (error: Error) => void
 ): void {
   const state = getState(app);
+  const tokenListener: AppCheckTokenListener = {
+    listener,
+    onError
+  };
   const newState = {
     ...state,
-    tokenListeners: [...state.tokenListeners, listener]
+    tokenListeners: [...state.tokenListeners, tokenListener]
   };
 
   /**
@@ -185,8 +190,14 @@ export function addTokenListener(
     if (debugState.enabled && debugState.token) {
       debugState.token.promise
         .then(token => listener({ token }))
-        .catch(() => {
-          /* we don't care about exceptions thrown in listeners */
+        .catch(e => {
+          /**
+           * An error handler will be provided if this is called by the public
+           * API. Internal callers don't care about errors in listeners.
+           */
+          if (onError) {
+            onError(e);
+          }
         });
     }
   } else {
@@ -214,8 +225,14 @@ export function addTokenListener(
       const validToken = state.token;
       Promise.resolve()
         .then(() => listener({ token: validToken.token }))
-        .catch(() => {
-          /* we don't care about exceptions thrown in listeners */
+        .catch(e => {
+          /**
+           * An error handler will be provided if this is called by the public
+           * API. Internal callers don't care about errors in listeners.
+           */
+          if (onError) {
+            onError(e);
+          }
         });
     }
   }
@@ -225,11 +242,13 @@ export function addTokenListener(
 
 export function removeTokenListener(
   app: FirebaseApp,
-  listener: AppCheckTokenListener
+  listener: (token: AppCheckTokenResult) => void
 ): void {
   const state = getState(app);
 
-  const newListeners = state.tokenListeners.filter(l => l !== listener);
+  const newListeners = state.tokenListeners.filter(
+    tokenListener => tokenListener.listener !== listener
+  );
   if (
     newListeners.length === 0 &&
     state.tokenRefresher &&
@@ -306,9 +325,13 @@ function notifyTokenListeners(
 
   for (const listener of listeners) {
     try {
-      listener(token);
+      listener.listener(token);
     } catch (e) {
-      // If any handler fails, ignore and run next handler.
+      // If any listener fails, run any provided error handler,
+      // then run next listener.
+      if (listener.onError) {
+        listener.onError(e);
+      }
     }
   }
 }
