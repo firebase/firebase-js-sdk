@@ -7750,8 +7750,8 @@ firebase-admin@9.7.0:
     "@firebase/app-exp" "0.0.900"
     "@firebase/auth-compat" "0.0.900"
     "@firebase/auth-exp" "0.0.900"
-    "@firebase/database" "0.10.3"
-    "@firebase/firestore" "2.3.4"
+    "@firebase/database" "0.10.4"
+    "@firebase/firestore" "2.3.6"
     "@firebase/functions-compat" "0.0.900"
     "@firebase/functions-exp" "0.0.900"
     "@firebase/messaging-compat" "0.0.900"
@@ -7760,7 +7760,7 @@ firebase-admin@9.7.0:
     "@firebase/performance-exp" "0.0.900"
     "@firebase/remote-config-compat" "0.0.900"
     "@firebase/remote-config-exp" "0.0.900"
-    "@firebase/storage" "0.5.3"
+    "@firebase/storage" "0.5.4"
 
 firebase-functions@3.13.0:
   version "3.13.0"
@@ -8723,11 +8723,6 @@ google-closure-compiler@20210601.0.0:
     google-closure-compiler-linux "^20210601.0.0"
     google-closure-compiler-osx "^20210601.0.0"
     google-closure-compiler-windows "^20210601.0.0"
-
-google-closure-library@20200830.0.0:
-  version "20200830.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20200830.0.0.tgz#9f3807e5a4af55ebf2c8a22853d53b8da39a48e8"
-  integrity sha512-s4ma73K+FTeVywSMjVOxQ435t6kPfSlxEtIflq7Gabp2fxAnc9i8vUpvT8ZP/GH89LwSJReIaBGtrn72rfNC5Q==
 
 google-closure-library@20210406.0.0:
   version "20210406.0.0"
