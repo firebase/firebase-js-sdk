@@ -1,5 +1,11 @@
 # @firebase/component
 
+## 0.5.3
+
+### Patch Changes
+
+- [`725ab4684`](https://github.com/firebase/firebase-js-sdk/commit/725ab4684ef0999a12f71e704c204a00fb030e5d) [#5023](https://github.com/firebase/firebase-js-sdk/pull/5023) (fixes [#5018](https://github.com/firebase/firebase-js-sdk/issues/5018)) - Pass the instance to onInit callback
+
 ## 0.5.2
 
 ### Patch Changes
