@@ -18,11 +18,12 @@
 import { getToken as getReCAPTCHAToken } from './recaptcha';
 import { FirebaseApp } from '@firebase/app-types';
 import {
-  AppCheckTokenResult,
-  AppCheckTokenListener
+  AppCheckTokenListener,
+  AppCheckTokenResult
 } from '@firebase/app-check-interop-types';
 import {
   AppCheckTokenInternal,
+  AppCheckTokenListenerInternal,
   getDebugState,
   getState,
   setState
@@ -167,11 +168,11 @@ export async function getToken(
 export function addTokenListener(
   app: FirebaseApp,
   platformLoggerProvider: Provider<'platform-logger'>,
-  listener: (token: AppCheckTokenResult) => void,
+  listener: AppCheckTokenListener,
   onError?: (error: Error) => void
 ): void {
   const state = getState(app);
-  const tokenListener: AppCheckTokenListener = {
+  const tokenListener: AppCheckTokenListenerInternal = {
     listener,
     onError
   };

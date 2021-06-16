@@ -25,9 +25,13 @@ import { GreCAPTCHA } from './recaptcha';
 export interface AppCheckTokenInternal extends AppCheckToken {
   issuedAtTimeMillis: number;
 }
+export interface AppCheckTokenListenerInternal {
+  listener: AppCheckTokenListener;
+  onError?: (error: Error) => void;
+}
 export interface AppCheckState {
   activated: boolean;
-  tokenListeners: AppCheckTokenListener[];
+  tokenListeners: AppCheckTokenListenerInternal[];
   customProvider?: AppCheckProvider;
   siteKey?: string;
   token?: AppCheckTokenInternal;
