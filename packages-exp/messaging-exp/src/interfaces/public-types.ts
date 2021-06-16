@@ -118,7 +118,7 @@ export interface GetTokenOptions {
    * {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token | Retrieve the current registration token}
    * for more details.
    */
-  swReg?: ServiceWorkerRegistration;
+  serviceWorkerRegistration?: ServiceWorkerRegistration;
 }
 
 /**
