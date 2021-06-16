@@ -16,7 +16,7 @@
  */
 import '../test/setup';
 import { expect } from 'chai';
-import { stub, spy, restore } from 'sinon';
+import { stub, spy } from 'sinon';
 import {
   activate,
   setTokenAutoRefreshEnabled,
