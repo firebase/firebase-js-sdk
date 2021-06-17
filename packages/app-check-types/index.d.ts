@@ -42,7 +42,7 @@ export interface FirebaseAppCheck {
   /**
    * Get the current App Check token. Attaches to the most recent
    * in-flight request if one is present. Returns null if no token
-   * is present and no token requests are in-flight.
+   * is present and no token requests are in flight.
    *
    * @param forceRefresh - If true, will always try to fetch a fresh token.
    * If false, will use a cached token if found in storage.
