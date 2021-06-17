@@ -72,7 +72,6 @@ describe('internal api', () => {
     };
 
     it('uses customTokenProvider to get an AppCheck token', async () => {
-      const clock = useFakeTimers();
       const customTokenProvider = getFakeCustomTokenProvider();
       const customProviderSpy = spy(customTokenProvider, 'getToken');
 
@@ -83,8 +82,6 @@ describe('internal api', () => {
       expect(token).to.deep.equal({
         token: 'fake-custom-app-check-token'
       });
-
-      clock.restore();
     });
 
     it('uses reCAPTCHA token to exchange for AppCheck token', async () => {
@@ -108,6 +105,10 @@ describe('internal api', () => {
         fakeRecaptchaToken
       );
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      // TODO: Permanently fix.
+      // Small delay to prevent common test flakiness where this test runs
+      // into afterEach() sometimes
+      await new Promise(resolve => setTimeout(resolve, 50));
     });
 
     it('resolves with a dummy token and an error if failed to get a token', async () => {
@@ -292,7 +293,7 @@ describe('internal api', () => {
       expect(
         await getToken(app, fakePlatformLoggingProvider, true)
       ).to.deep.equal({
-        token: fakeRecaptchaAppCheckToken.token
+        token: 'new-recaptcha-app-check-token'
       });
     });
 
