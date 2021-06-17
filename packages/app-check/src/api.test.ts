@@ -36,6 +36,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import * as internalApi from './internal-api';
 import * as client from './client';
 import * as storage from './storage';
+import * as logger from './logger';
 
 describe('api', () => {
   describe('activate()', () => {
@@ -151,31 +152,32 @@ describe('api', () => {
       const errorFn1 = spy();
       const errorFn2 = spy();
 
-      const unSubscribe1 = onTokenChanged(
+      const unsubscribe1 = onTokenChanged(
         app,
         fakePlatformLoggingProvider,
         listener1,
         errorFn1
       );
-      const unSubscribe2 = onTokenChanged(
+      const unsubscribe2 = onTokenChanged(
         app,
         fakePlatformLoggingProvider,
         listener2,
         errorFn2
       );
 
-      expect(getState(app).tokenListeners.length).to.equal(2);
+      expect(getState(app).tokenObservers.length).to.equal(2);
 
-      await getToken(app, fakePlatformLoggingProvider);
+      await internalApi.getToken(app, fakePlatformLoggingProvider);
 
       expect(listener2).to.be.calledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
-      expect(errorFn1).to.be.calledOnce;
+      // onError should not be called on listener errors.
+      expect(errorFn1).to.not.be.called;
       expect(errorFn2).to.not.be.called;
-      unSubscribe1();
-      unSubscribe2();
-      expect(getState(app).tokenListeners.length).to.equal(0);
+      unsubscribe1();
+      unsubscribe2();
+      expect(getState(app).tokenObservers.length).to.equal(0);
     });
 
     it('Listeners work when using Observer pattern', async () => {
@@ -206,27 +208,60 @@ describe('api', () => {
        * Reverse the order of adding the failed and successful handler, for extra
        * testing.
        */
-      const unSubscribe2 = onTokenChanged(app, fakePlatformLoggingProvider, {
+      const unsubscribe2 = onTokenChanged(app, fakePlatformLoggingProvider, {
         next: listener2,
         error: errorFn2
       });
-      const unSubscribe1 = onTokenChanged(app, fakePlatformLoggingProvider, {
+      const unsubscribe1 = onTokenChanged(app, fakePlatformLoggingProvider, {
         next: listener1,
         error: errorFn1
       });
 
-      expect(getState(app).tokenListeners.length).to.equal(2);
+      expect(getState(app).tokenObservers.length).to.equal(2);
 
-      await getToken(app, fakePlatformLoggingProvider);
+      await internalApi.getToken(app, fakePlatformLoggingProvider);
 
       expect(listener2).to.be.calledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
-      expect(errorFn1).to.be.calledOnce;
+      // onError should not be called on listener errors.
+      expect(errorFn1).to.not.be.called;
       expect(errorFn2).to.not.be.called;
-      unSubscribe1();
-      unSubscribe2();
-      expect(getState(app).tokenListeners.length).to.equal(0);
+      unsubscribe1();
+      unsubscribe2();
+      expect(getState(app).tokenObservers.length).to.equal(0);
+    });
+
+    it('onError() catches token errors', async () => {
+      stub(logger.logger, 'error');
+      const app = getFakeApp();
+      activate(app, FAKE_SITE_KEY, false);
+      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      const fakeRecaptchaToken = 'fake-recaptcha-token';
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').rejects('exchange error');
+      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
+
+      const listener1 = spy();
+
+      const errorFn1 = spy();
+
+      const unsubscribe1 = onTokenChanged(
+        app,
+        fakePlatformLoggingProvider,
+        listener1,
+        errorFn1
+      );
+
+      await internalApi.getToken(app, fakePlatformLoggingProvider);
+
+      expect(getState(app).tokenObservers.length).to.equal(1);
+
+      expect(errorFn1).to.be.calledOnce;
+      expect(errorFn1.args[0][0].name).to.include('exchange error');
+
+      unsubscribe1();
+      expect(getState(app).tokenObservers.length).to.equal(0);
     });
   });
 });

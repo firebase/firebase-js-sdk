@@ -23,7 +23,7 @@ import {
 } from '@firebase/app-check-interop-types';
 import {
   AppCheckTokenInternal,
-  AppCheckTokenListenerInternal,
+  AppCheckTokenObserver,
   getDebugState,
   getState,
   setState
@@ -172,13 +172,13 @@ export function addTokenListener(
   onError?: (error: Error) => void
 ): void {
   const state = getState(app);
-  const tokenListener: AppCheckTokenListenerInternal = {
-    listener,
-    onError
+  const tokenListener: AppCheckTokenObserver = {
+    next: listener,
+    error: onError
   };
   const newState = {
     ...state,
-    tokenListeners: [...state.tokenListeners, tokenListener]
+    tokenObservers: [...state.tokenObservers, tokenListener]
   };
 
   /**
@@ -191,14 +191,8 @@ export function addTokenListener(
     if (debugState.enabled && debugState.token) {
       debugState.token.promise
         .then(token => listener({ token }))
-        .catch(e => {
-          /**
-           * An error handler will be provided if this is called by the public
-           * API. Internal callers don't care about errors in listeners.
-           */
-          if (onError) {
-            onError(e);
-          }
+        .catch(() => {
+          /** Ignore errors in listeners. */
         });
     }
   } else {
@@ -208,7 +202,11 @@ export function addTokenListener(
      * invoke the listener with the valid token, then start the token refresher
      */
     if (!newState.tokenRefresher) {
-      const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
+      const tokenRefresher = createTokenRefresher(
+        app,
+        platformLoggerProvider,
+        onError
+      );
       newState.tokenRefresher = tokenRefresher;
     }
 
@@ -226,14 +224,8 @@ export function addTokenListener(
       const validToken = state.token;
       Promise.resolve()
         .then(() => listener({ token: validToken.token }))
-        .catch(e => {
-          /**
-           * An error handler will be provided if this is called by the public
-           * API. Internal callers don't care about errors in listeners.
-           */
-          if (onError) {
-            onError(e);
-          }
+        .catch(() => {
+          /** Ignore errors in listeners. */
         });
     }
   }
@@ -247,11 +239,11 @@ export function removeTokenListener(
 ): void {
   const state = getState(app);
 
-  const newListeners = state.tokenListeners.filter(
-    tokenListener => tokenListener.listener !== listener
+  const newObservers = state.tokenObservers.filter(
+    tokenObserver => tokenObserver.next !== listener
   );
   if (
-    newListeners.length === 0 &&
+    newObservers.length === 0 &&
     state.tokenRefresher &&
     state.tokenRefresher.isRunning()
   ) {
@@ -260,13 +252,14 @@ export function removeTokenListener(
 
   setState(app, {
     ...state,
-    tokenListeners: newListeners
+    tokenObservers: newObservers
   });
 }
 
 function createTokenRefresher(
   app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>
+  platformLoggerProvider: Provider<'platform-logger'>,
+  onError?: (error: Error) => void
 ): Refresher {
   return new Refresher(
     // Keep in mind when this fails for any reason other than the ones
@@ -284,7 +277,11 @@ function createTokenRefresher(
 
       // getToken() always resolves. In case the result has an error field defined, it means the operation failed, and we should retry.
       if (result.error) {
-        throw result.error;
+        if (onError) {
+          onError(result.error);
+        } else {
+          throw result.error;
+        }
       }
     },
     () => {
@@ -322,17 +319,24 @@ function notifyTokenListeners(
   app: FirebaseApp,
   token: AppCheckTokenResult
 ): void {
-  const listeners = getState(app).tokenListeners;
+  const observers = getState(app).tokenObservers;
 
-  for (const listener of listeners) {
+  for (const observer of observers) {
     try {
-      listener.listener(token);
-    } catch (e) {
-      // If any listener fails, run any provided error handler,
-      // then run next listener.
-      if (listener.onError) {
-        listener.onError(e);
+      if (observer.error) {
+        // If this listener has an error handler, handle errors differently
+        // from successes.
+        if (token.error) {
+          observer.error(token.error);
+        } else {
+          observer.next(token);
+        }
+      } else {
+        // Otherwise return the token, whether or not it has an error field.
+        observer.next(token);
       }
+    } catch (ignored) {
+      // If any handler fails, ignore and run next handler.
     }
   }
 }

@@ -16,22 +16,29 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { AppCheckProvider, AppCheckToken } from '@firebase/app-check-types';
+import {
+  AppCheckProvider,
+  AppCheckToken,
+  AppCheckTokenResult
+} from '@firebase/app-check-types';
 import { AppCheckTokenListener } from '@firebase/app-check-interop-types';
 import { Refresher } from './proactive-refresh';
-import { Deferred } from '@firebase/util';
+import { Deferred, PartialObserver } from '@firebase/util';
 import { GreCAPTCHA } from './recaptcha';
 
 export interface AppCheckTokenInternal extends AppCheckToken {
   issuedAtTimeMillis: number;
 }
-export interface AppCheckTokenListenerInternal {
-  listener: AppCheckTokenListener;
-  onError?: (error: Error) => void;
+
+export interface AppCheckTokenObserver
+  extends PartialObserver<AppCheckTokenResult> {
+  // required
+  next: AppCheckTokenListener;
 }
+
 export interface AppCheckState {
   activated: boolean;
-  tokenListeners: AppCheckTokenListenerInternal[];
+  tokenObservers: AppCheckTokenObserver[];
   customProvider?: AppCheckProvider;
   siteKey?: string;
   token?: AppCheckTokenInternal;
@@ -53,7 +60,7 @@ export interface DebugState {
 const APP_CHECK_STATES = new Map<FirebaseApp, AppCheckState>();
 export const DEFAULT_STATE: AppCheckState = {
   activated: false,
-  tokenListeners: []
+  tokenObservers: []
 };
 
 const DEBUG_STATE: DebugState = {

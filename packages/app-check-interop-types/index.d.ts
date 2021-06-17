@@ -24,10 +24,10 @@ export interface FirebaseAppCheckInternal {
   // registered at the same time for one or more FirebaseAppAttestation instances. The
   // listeners call back on the UI thread whenever the current token associated with this
   // FirebaseAppAttestation changes.
-  addTokenListener(listener: (token: AppCheckTokenResult) => void): void;
+  addTokenListener(listener: AppCheckTokenListener): void;
 
   // Unregisters a listener to changes in the token state.
-  removeTokenListener(listener: (token: AppCheckTokenResult) => void): void;
+  removeTokenListener(listener: AppCheckTokenListener): void;
 }
 
 type AppCheckTokenListener = (token: AppCheckTokenResult) => void;
