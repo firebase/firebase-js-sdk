@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -39,7 +39,7 @@
   "dependencies": {
     "@firebase/storage-types": "0.4.1",
     "@firebase/util": "1.1.0",
-    "@firebase/component": "0.5.2",
+    "@firebase/component": "0.5.3",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
@@ -47,8 +47,8 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.26",
-    "@firebase/auth": "0.16.6",
+    "@firebase/app": "0.6.27",
+    "@firebase/auth": "0.16.7",
     "rollup": "2.35.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.29.0",
