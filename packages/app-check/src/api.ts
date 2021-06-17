@@ -147,14 +147,18 @@ export function onTokenChanged(
   let nextFn: NextFn<AppCheckTokenResult> = () => {};
   let errorFn: ErrorFn = () => {};
   if ((onNextOrObserver as PartialObserver<AppCheckTokenResult>).next != null) {
-    nextFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).next!;
+    nextFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).next!.bind(
+      onNextOrObserver
+    );
   } else {
     nextFn = onNextOrObserver as NextFn<AppCheckTokenResult>;
   }
   if (
     (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error != null
   ) {
-    errorFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error!;
+    errorFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error!.bind(
+      onNextOrObserver
+    );
   } else if (onError) {
     errorFn = onError;
   }
