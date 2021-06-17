@@ -131,7 +131,6 @@
     "@firebase/analytics-compat": "0.0.900",
     "@firebase/app-exp": "0.0.900",
     "@firebase/app-compat": "0.0.900",
-    "@firebase/app-check-exp": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/auth-compat": "0.0.900",
     "@firebase/database": "0.10.4",
@@ -164,7 +163,6 @@
   "components": [
     "analytics",
     "app",
-    "app-check",
     "auth",
     "functions",
     "firestore",
