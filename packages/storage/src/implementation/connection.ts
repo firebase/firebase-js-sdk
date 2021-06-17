@@ -16,7 +16,7 @@
  */
 
 /**
- * XHR headers
+ * Network headers
  */
 export interface Headers {
   [name: string]: string;
@@ -26,12 +26,12 @@ export interface Headers {
  * A lightweight wrapper around XMLHttpRequest with a
  * goog.net.XhrIo-like interface.
  */
-export interface XhrIo {
+export interface Connection {
   send(
     url: string,
     method: string,
     body?: ArrayBufferView | Blob | string | null,
-    headers?: Record<string, string>
+    headers?: Headers
   ): Promise<void>;
 
   getErrorCode(): ErrorCode;

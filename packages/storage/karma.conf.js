@@ -31,6 +31,7 @@ module.exports = function (config) {
 };
 
 function getTestFiles(argv) {
+  process.env.TEST_PLATFORM = 'browser';
   let unitTestFiles = ['test/unit/*'];
   let integrationTestFiles = [];
   if (argv.exp) {

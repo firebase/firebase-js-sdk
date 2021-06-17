@@ -14,14 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorCode, Headers, XhrIo } from '../../src/implementation/xhrio';
+import {
+  ErrorCode,
+  Headers,
+  Connection
+} from '../../src/implementation/connection';
 import {
   FirebaseStorageError,
   StorageErrorCode
 } from '../../src/implementation/error';
 
 export type SendHook = (
-  xhrio: TestingXhrIo,
+  connection: TestingConnection,
   url: string,
   method: string,
   body?: ArrayBufferView | Blob | string | null,
@@ -34,18 +38,14 @@ export enum State {
   DONE = 2
 }
 
-export interface StringHeaders {
-  [name: string]: string;
-}
-
-export class TestingXhrIo implements XhrIo {
+export class TestingConnection implements Connection {
   private state: State;
   private sendPromise: Promise<void>;
   private resolve!: () => void;
   private sendHook: SendHook | null;
   private status: number;
   private responseText: string;
-  private headers: StringHeaders;
+  private headers: Headers;
   private errorCode: ErrorCode;
 
   constructor(sendHook: SendHook | null) {

@@ -22,9 +22,9 @@ use(chaiAsPromised);
 import { FirebaseApp } from '@firebase/app-types';
 import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
 import { FirebaseStorageError } from '../../src/implementation/error';
-import { Headers, XhrIo } from '../../src/implementation/xhrio';
-import { XhrIoPool } from '../../src/implementation/xhriopool';
-import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
+import { Headers, Connection } from '../../src/implementation/connection';
+import { ConnectionPool } from '../../src/implementation/connectionPool';
+import { SendHook, TestingConnection } from './connection';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   Provider,
@@ -106,26 +106,26 @@ export function makeFakeAppCheckProvider(tokenResult: {
   return provider as Provider<AppCheckInternalComponentName>;
 }
 
-export function makePool(sendHook: SendHook | null): XhrIoPool {
+export function makePool(sendHook: SendHook | null): ConnectionPool {
   const pool: any = {
-    createXhrIo() {
-      return new TestingXhrIo(sendHook);
+    createConnection() {
+      return new TestingConnection(sendHook);
     }
   };
-  return pool as XhrIoPool;
+  return pool as ConnectionPool;
 }
 
 /**
  * Returns something that looks like an fbs.XhrIo with the given headers
  * and status.
  */
-export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
-  const lower: StringHeaders = {};
+export function fakeXhrIo(headers: Headers, status: number = 200): Connection {
+  const lower: Headers = {};
   for (const [key, value] of Object.entries(headers)) {
     lower[key.toLowerCase()] = value.toString();
   }
 
-  const fakeXhrIo: any = {
+  const fakeConnection: any = {
     getResponseHeader(name: string): string {
       const lowerName = name.toLowerCase();
       if (lower.hasOwnProperty(lowerName)) {
@@ -139,7 +139,7 @@ export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
     }
   };
 
-  return fakeXhrIo as XhrIo;
+  return fakeConnection as Connection;
 }
 
 /**
@@ -200,7 +200,7 @@ const defaultFakeMetadata: Partial<Metadata> = { 'downloadTokens': ['a', 'b'] };
 interface Response {
   status: number;
   body: string;
-  headers: StringHeaders;
+  headers: Headers;
 }
 type RequestHandler = (
   url: string,
@@ -213,14 +213,18 @@ export function storageServiceWithHandler(
   handler: RequestHandler
 ): StorageService {
   function newSend(
-    xhrio: TestingXhrIo,
+    connection: TestingConnection,
     url: string,
     method: string,
     body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
-    xhrio.simulateResponse(response.status, response.body, response.headers);
+    connection.simulateResponse(
+      response.status,
+      response.body,
+      response.headers
+    );
   }
 
   return new StorageService(
@@ -243,10 +247,7 @@ export function fakeServerHandler(
 
   let nextId: number = 0;
 
-  function statusHeaders(
-    status: string,
-    existing?: StringHeaders
-  ): StringHeaders {
+  function statusHeaders(status: string, existing?: Headers): Headers {
     if (existing) {
       existing['X-Goog-Upload-Status'] = status;
       return existing;

@@ -15,14 +15,18 @@
  * limitations under the License.
  */
 
-import { Headers, XhrIo, ErrorCode } from '../../implementation/xhrio';
+import {
+  Headers,
+  Connection,
+  ErrorCode
+} from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 
 /**
- * We use this instead of goog.net.XhrIo because goog.net.XhrIo is hyuuuuge and
- * doesn't work in React Native on Android.
+ * Network layer for browsers. We use this instead of goog.net.XhrIo because
+ * goog.net.XhrIo is hyuuuuge and doesn't work in React Native on Android.
  */
-export class XMLHTTPRequestXhrIo implements XhrIo {
+export class XhrConnection implements Connection {
   private xhr_: XMLHttpRequest;
   private errorCode_: ErrorCode;
   private sendPromise_: Promise<void>;
@@ -143,6 +147,6 @@ export class XMLHTTPRequestXhrIo implements XhrIo {
   }
 }
 
-export function newConnection(): XhrIo {
-  return new XMLHTTPRequestXhrIo();
+export function newConnection(): Connection {
+  return new XhrConnection();
 }

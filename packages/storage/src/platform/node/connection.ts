@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ErrorCode, XhrIo } from '../../implementation/xhrio';
+import { ErrorCode, Connection } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 import * as nodeFetch from 'node-fetch';
 
@@ -23,10 +23,12 @@ import * as nodeFetch from 'node-fetch';
 const fetch: typeof window.fetch = nodeFetch as any;
 
 /**
- * We use this instead of goog.net.XhrIo because goog.net.XhrIo is hyuuuuge and
- * doesn't work in React Native on Android.
+ * Network layer that works in Node.
+ *
+ * This network implementation should not be used in browsers as it does not
+ * support progress updates.
  */
-export class FetchXhrIo implements XhrIo {
+export class FetchConnection implements Connection {
   private errorCode_: ErrorCode;
   private statusCode_: number | undefined;
   private body_: string | undefined;
@@ -111,6 +113,6 @@ export class FetchXhrIo implements XhrIo {
   }
 }
 
-export function newConnection(): XhrIo {
-  return new FetchXhrIo();
+export function newConnection(): Connection {
+  return new FetchConnection();
 }

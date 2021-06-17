@@ -37,7 +37,7 @@ import {
 import { makeUrl } from '../../src/implementation/url';
 import { unknown, StorageErrorCode } from '../../src/implementation/error';
 import { RequestInfo } from '../../src/implementation/requestinfo';
-import { XhrIoPool } from '../../src/implementation/xhriopool';
+import { ConnectionPool } from '../../src/implementation/connectionPool';
 import { Metadata } from '../../src/metadata';
 import { StorageService } from '../../src/service';
 import {
@@ -83,7 +83,7 @@ describe('Firebase Storage > Requests', () => {
     mockApp,
     fakeAuthProvider,
     fakeAppCheckTokenProvider,
-    new XhrIoPool()
+    new ConnectionPool()
   );
 
   const contentTypeInMetadata = 'application/jason';

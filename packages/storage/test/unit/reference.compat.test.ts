@@ -17,12 +17,12 @@
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
 import { StringFormat } from '../../src/implementation/string';
-import { Headers } from '../../src/implementation/xhrio';
+import { Headers } from '../../src/implementation/connection';
 import { Metadata } from '../../src/metadata';
 import { ReferenceCompat } from '../../compat/reference';
 import { StorageServiceCompat } from '../../compat/service';
 import * as testShared from './testshared';
-import { SendHook, TestingXhrIo } from './xhrio';
+import { SendHook, TestingConnection } from './connection';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
@@ -189,7 +189,7 @@ describe('Firebase Storage > Reference', () => {
 
   it("Doesn't send Authorization on null auth token", done => {
     function newSend(
-      xhrio: TestingXhrIo,
+      connection: TestingConnection,
       url: string,
       method: string,
       body?: ArrayBufferView | Blob | string | null,
@@ -213,7 +213,7 @@ describe('Firebase Storage > Reference', () => {
   it('Works if the user logs in before creating the storage reference', done => {
     // Regression test for b/27227221
     function newSend(
-      xhrio: TestingXhrIo,
+      connection: TestingConnection,
       url: string,
       method: string,
       body?: ArrayBufferView | Blob | string | null,
