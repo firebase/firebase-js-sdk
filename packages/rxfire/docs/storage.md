@@ -88,7 +88,7 @@ getDownloadURL(davidRef)
 ```
 
 ### `getMetadata()`
-The `getMetadata()` function creates an observable that emits the URL of the file's metadta.
+The `getMetadata()` function creates an observable that emits the URL of the file's metadata.
 
 |                 |                                          |
 |-----------------|------------------------------------------|
