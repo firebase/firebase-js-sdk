@@ -21,6 +21,7 @@ import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import {
   Analytics,
   AnalyticsCallOptions,
+  AnalyticsOptions,
   CustomParams,
   EventNameString,
   EventParams
@@ -47,6 +48,7 @@ import {
   setUserProperties as internalSetUserProperties,
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
 } from './functions';
+import { ERROR_FACTORY, AnalyticsError } from './errors';
 
 export { settings } from './factory';
 
@@ -70,7 +72,34 @@ export function getAnalytics(app: FirebaseApp = getApp()): Analytics {
     app,
     ANALYTICS_TYPE
   );
-  const analyticsInstance = analyticsProvider.getImmediate();
+
+  if (analyticsProvider.isInitialized()) {
+    return analyticsProvider.getImmediate();
+  }
+
+  return initializeAnalytics(app);
+}
+
+/**
+ * Returns a Firebase Analytics instance for the given app.
+ *
+ * @public
+ *
+ * @param app - The FirebaseApp to use.
+ */
+export function initializeAnalytics(
+  app: FirebaseApp,
+  options: AnalyticsOptions = {}
+): Analytics {
+  // Dependencies
+  const analyticsProvider: Provider<'analytics-exp'> = _getProvider(
+    app,
+    ANALYTICS_TYPE
+  );
+  if (analyticsProvider.isInitialized()) {
+    throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
+  }
+  const analyticsInstance = analyticsProvider.initialize({ options });
   return analyticsInstance;
 }
 

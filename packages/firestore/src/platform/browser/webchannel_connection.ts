@@ -30,6 +30,7 @@ import {
   WebChannel,
   WebChannelError,
   WebChannelOptions,
+  FetchXmlHttpFactory,
   XhrIo,
   getStatEventTarget,
   EventTarget,
@@ -62,11 +63,13 @@ const XHR_TIMEOUT_SECS = 15;
 export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
   private readonly autoDetectLongPolling: boolean;
+  private readonly useFetchStreams: boolean;
 
   constructor(info: DatabaseInfo) {
     super(info);
     this.forceLongPolling = info.forceLongPolling;
     this.autoDetectLongPolling = info.autoDetectLongPolling;
+    this.useFetchStreams = info.useFetchStreams;
   }
 
   protected performRPCRequest<Req, Resp>(
@@ -193,6 +196,10 @@ export class WebChannelConnection extends RestConnection {
       forceLongPolling: this.forceLongPolling,
       detectBufferingProxy: this.autoDetectLongPolling
     };
+
+    if (this.useFetchStreams) {
+      request.xmlHttpFactory = new FetchXmlHttpFactory({});
+    }
 
     this.modifyHeadersForRequest(request.initMessageHeaders!, token);
 

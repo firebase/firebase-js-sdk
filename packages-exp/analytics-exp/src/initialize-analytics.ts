@@ -27,6 +27,7 @@ import {
 } from '@firebase/util';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { findGtagScriptOnPage, insertScriptTag } from './helpers';
+import { AnalyticsOptions } from './public-types';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
@@ -72,7 +73,8 @@ export async function initializeAnalytics(
   measurementIdToAppId: { [key: string]: string },
   installations: _FirebaseInstallationsInternal,
   gtagCore: Gtag,
-  dataLayerName: string
+  dataLayerName: string,
+  options?: AnalyticsOptions
 ): Promise<string> {
   const dynamicConfigPromise = fetchDynamicConfigWithRetry(app);
   // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.
@@ -121,12 +123,13 @@ export async function initializeAnalytics(
   // We keep it together with other initialization logic for better code structure.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (gtagCore as any)('js', new Date());
+  // User config added first. We don't want users to accidentally overwrite
+  // base Firebase config properties.
+  const configProperties: Record<string, unknown> = options?.config ?? {};
 
-  const configProperties: { [key: string]: string | boolean } = {
-    // guard against developers accidentally setting properties with prefix `firebase_`
-    [ORIGIN_KEY]: 'firebase',
-    update: true
-  };
+  // guard against developers accidentally setting properties with prefix `firebase_`
+  configProperties[ORIGIN_KEY] = 'firebase';
+  configProperties.update = true;
 
   if (fid != null) {
     configProperties[GA_FID_KEY] = fid;

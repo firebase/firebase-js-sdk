@@ -1,5 +1,83 @@
 # firebase
 
+## 8.6.8
+
+### Patch Changes
+
+- Updated dependencies [[`c81cf82fa`](https://github.com/firebase/firebase-js-sdk/commit/c81cf82fac14cbfaebc0e440235c3fb38af22d38)]:
+  - @firebase/auth@0.16.7
+  - @firebase/storage@0.5.5
+  - @firebase/analytics@0.6.13
+  - @firebase/app@0.6.27
+  - @firebase/app-check@0.1.4
+  - @firebase/database@0.10.5
+  - @firebase/firestore@2.3.7
+  - @firebase/functions@0.6.12
+  - @firebase/installations@0.4.29
+  - @firebase/messaging@0.7.13
+  - @firebase/performance@0.4.15
+  - @firebase/remote-config@0.1.40
+
+## 8.6.7
+
+### Patch Changes
+
+- Updated dependencies [[`1d54447ca`](https://github.com/firebase/firebase-js-sdk/commit/1d54447ca928ab50228600858978bb3b341c0507)]:
+  - @firebase/app@0.6.26
+  - @firebase/firestore@2.3.6
+
+## 8.6.6
+
+### Patch Changes
+
+- Updated dependencies [[`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b)]:
+  - @firebase/firestore@2.3.5
+  - @firebase/analytics@0.6.12
+  - @firebase/app@0.6.25
+  - @firebase/app-check@0.1.3
+  - @firebase/database@0.10.4
+  - @firebase/functions@0.6.11
+  - @firebase/installations@0.4.28
+  - @firebase/messaging@0.7.12
+  - @firebase/performance@0.4.14
+  - @firebase/remote-config@0.1.39
+  - @firebase/storage@0.5.4
+
+## 8.6.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.6.24
+  - @firebase/firestore@2.3.4
+
+## 8.6.4
+
+### Patch Changes
+
+- [`b49345d31`](https://github.com/firebase/firebase-js-sdk/commit/b49345d31cdd3dfd42d65768156818dc09c7fa61) [#4283](https://github.com/firebase/firebase-js-sdk/pull/4283) (fixes [#4235](https://github.com/firebase/firebase-js-sdk/issues/4235)) - set firebase.SDK_VERSION to the latest value
+
+- Updated dependencies [[`92e4e8d29`](https://github.com/firebase/firebase-js-sdk/commit/92e4e8d2996c690837a203a868b0d26bf6e3ad84)]:
+  - @firebase/functions@0.6.10
+  - @firebase/analytics@0.6.11
+  - @firebase/app@0.6.23
+  - @firebase/app-check@0.1.2
+  - @firebase/database@0.10.3
+  - @firebase/firestore@2.3.3
+  - @firebase/installations@0.4.27
+  - @firebase/messaging@0.7.11
+  - @firebase/performance@0.4.13
+  - @firebase/remote-config@0.1.38
+  - @firebase/storage@0.5.3
+
+## 8.6.3
+
+### Patch Changes
+
+- Updated dependencies [[`169174520`](https://github.com/firebase/firebase-js-sdk/commit/169174520f6451f5741fd50e8957d4097895e97a), [`2a5039ee3`](https://github.com/firebase/firebase-js-sdk/commit/2a5039ee3242fb4109da9dee36ac978d78519334)]:
+  - @firebase/firestore@2.3.2
+  - @firebase/database@0.10.2
+
 ## 8.6.2
 
 ### Patch Changes

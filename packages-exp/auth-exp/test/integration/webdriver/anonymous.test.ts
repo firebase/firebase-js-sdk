@@ -52,4 +52,19 @@ browserDescribe('WebDriver anonymous auth test', driver => {
     );
     expect(after.uid).to.eq(before.uid);
   });
+
+  it('user persists after refresh and sign in (no init wait)', async () => {
+    const { user: before }: UserCredential = await driver.call(
+      AnonFunction.SIGN_IN_ANONYMOUSLY
+    );
+    await driver.webDriver.navigate().refresh();
+    await driver.injectConfigAndInitAuth();
+
+    // At this point we aren't waiting for auth to "settle"
+    // Sign in before the first onAuthStateChanged has occurred
+    const { user: after }: UserCredential = await driver.call(
+      AnonFunction.SIGN_IN_ANONYMOUSLY
+    );
+    expect(after.uid).to.eq(before.uid);
+  });
 });
