@@ -60,5 +60,4 @@ jobs:
         NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
         NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
         NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
-        NPM_TOKEN_RXFIRE: ${{secrets.NPM_TOKEN_RXFIRE}}
         CI: true
