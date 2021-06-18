@@ -4,7 +4,7 @@
 
 ## RemoteConfig.defaultConfig property
 
-Object containing default values for conigs.
+Object containing default values for configs.
 
 <b>Signature:</b>
 

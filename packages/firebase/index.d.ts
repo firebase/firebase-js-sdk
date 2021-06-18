@@ -1761,7 +1761,7 @@ declare namespace firebase.remoteConfig {
     settings: Settings;
 
     /**
-     * Object containing default values for conigs.
+     * Object containing default values for configs.
      */
     defaultConfig: { [key: string]: string | number | boolean };
 
