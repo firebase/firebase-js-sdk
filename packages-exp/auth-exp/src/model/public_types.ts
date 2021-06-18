@@ -27,7 +27,7 @@ import {
 import {
   FactorId as FactorIdMap,
   OperationType as OperationTypeMap,
-  ActionCodeOperation as ActionCodeOperationMap,
+  ActionCodeOperation as ActionCodeOperationMap
 } from './enum_maps';
 
 export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
@@ -647,7 +647,7 @@ export interface MultiFactorError extends AuthError {
   /**
    * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.
    */
-   readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+  readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
 }
 
 /**
