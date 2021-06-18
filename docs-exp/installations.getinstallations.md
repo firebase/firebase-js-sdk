@@ -9,16 +9,16 @@ Returns an instance of FirebaseInstallations associated with the given FirebaseA
 <b>Signature:</b>
 
 ```typescript
-export declare function getInstallations(app: FirebaseApp): FirebaseInstallations;
+export declare function getInstallations(app?: FirebaseApp): FirebaseInstallations;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
+|  app | [FirebaseApp](./app.firebaseapp.md) | The <code>FirebaseApp</code> instance. |
 
 <b>Returns:</b>
 
-[FirebaseInstallations](./installations-types.firebaseinstallations.md)
+[FirebaseInstallations](./installations.firebaseinstallations.md)
 

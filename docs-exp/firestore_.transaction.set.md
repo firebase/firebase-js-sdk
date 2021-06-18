@@ -4,6 +4,8 @@
 
 ## Transaction.set() method
 
+Writes to the document referred to by the provided [DocumentReference](./firestore_.documentreference.md)<!-- -->. If the document does not exist yet, it will be created.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,12 @@ set<T>(documentRef: DocumentReference<T>, data: T): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; |  |
-|  data | T |  |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md)<!-- -->&lt;T&gt; | A reference to the document to be set. |
+|  data | T | An object of the fields and values for the document. |
 
 <b>Returns:</b>
 
 this
+
+This `Transaction` instance. Used for chaining method calls.
 

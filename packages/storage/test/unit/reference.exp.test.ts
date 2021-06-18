@@ -36,21 +36,29 @@ import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { fakeServerHandler, storageServiceWithHandler } from './testshared';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
   app: FirebaseApp,
   authProvider: Provider<FirebaseAuthInternalName>,
+  appCheckProvider: Provider<AppCheckInternalComponentName>,
   sendHook: SendHook
 ): StorageService {
-  return new StorageService(app, authProvider, testShared.makePool(sendHook));
+  return new StorageService(
+    app,
+    authProvider,
+    appCheckProvider,
+    testShared.makePool(sendHook)
+  );
 }
 
 function makeStorage(url: string): Reference {
   const service = new StorageService(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
+    testShared.fakeAppCheckTokenProvider,
     testShared.makePool(null)
   );
   return new Reference(service, url);
@@ -76,6 +84,7 @@ function withFakeSend(
   const service = makeFakeService(
     testShared.fakeApp,
     testShared.fakeAuthProvider,
+    testShared.fakeAppCheckTokenProvider,
     newSend
   );
   return ref(service, 'gs://test-bucket');
@@ -221,6 +230,7 @@ describe('Firebase Storage > Reference', () => {
     const service = makeFakeService(
       testShared.fakeApp,
       testShared.emptyAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       newSend
     );
     const reference = ref(service, 'gs://test-bucket');
@@ -246,6 +256,7 @@ describe('Firebase Storage > Reference', () => {
     const service = makeFakeService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       newSend
     );
     const reference = ref(service, 'gs://test-bucket');

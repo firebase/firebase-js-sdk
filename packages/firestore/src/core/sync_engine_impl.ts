@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
+import { LoadBundleTask } from '../exp/bundle';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   localStoreAcknowledgeBatch,
@@ -45,12 +45,13 @@ import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
-  MaybeDocumentMap
+  DocumentMap
 } from '../model/collections';
-import { MaybeDocument, NoDocument } from '../model/document';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
+import { ResourcePath } from '../model/path';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
@@ -160,7 +161,7 @@ class LimboResolution {
  */
 type ApplyDocChangesHandler = (
   queryView: QueryView,
-  changes: MaybeDocumentMap,
+  changes: DocumentMap,
   remoteEvent?: RemoteEvent
 ) => Promise<ViewSnapshot | undefined>;
 
@@ -208,9 +209,14 @@ class SyncEngineImpl implements SyncEngine {
   queriesByTarget = new Map<TargetId, Query[]>();
   /**
    * The keys of documents that are in limbo for which we haven't yet started a
-   * limbo resolution query.
+   * limbo resolution query. The strings in this set are the result of calling
+   * `key.path.canonicalString()` where `key` is a `DocumentKey` object.
+   *
+   * The `Set` type was chosen because it provides efficient lookup and removal
+   * of arbitrary elements and it also maintains insertion order, providing the
+   * desired queue-like FIFO semantics.
    */
-  enqueuedLimboResolutions: DocumentKey[] = [];
+  enqueuedLimboResolutions = new Set<string>();
   /**
    * Keeps track of the target ID for each document that is in limbo with an
    * active target.
@@ -612,12 +618,12 @@ export async function syncEngineRejectListen(
     // This is kind of a hack. Ideally, we would have a method in the local
     // store to purge a document. However, it would be tricky to keep all of
     // the local store's invariants with another method.
-    let documentUpdates = new SortedMap<DocumentKey, MaybeDocument>(
+    let documentUpdates = new SortedMap<DocumentKey, MutableDocument>(
       DocumentKey.comparator
     );
     documentUpdates = documentUpdates.insert(
       limboKey,
-      new NoDocument(limboKey, SnapshotVersion.min())
+      MutableDocument.newNoDocument(limboKey, SnapshotVersion.min())
     );
     const resolvedLimboDocuments = documentKeySet().add(limboKey);
     const event = new RemoteEvent(
@@ -876,6 +882,8 @@ function removeLimboTarget(
   syncEngineImpl: SyncEngineImpl,
   key: DocumentKey
 ): void {
+  syncEngineImpl.enqueuedLimboResolutions.delete(key.path.canonicalString());
+
   // It's possible that the target already got removed because the query failed. In that case,
   // the key won't exist in `limboTargetsByKey`. Only do the cleanup if we still have the target.
   const limboTargetId = syncEngineImpl.activeLimboTargetsByKey.get(key);
@@ -925,9 +933,13 @@ function trackLimboChange(
   limboChange: AddedLimboDocument
 ): void {
   const key = limboChange.key;
-  if (!syncEngineImpl.activeLimboTargetsByKey.get(key)) {
+  const keyString = key.path.canonicalString();
+  if (
+    !syncEngineImpl.activeLimboTargetsByKey.get(key) &&
+    !syncEngineImpl.enqueuedLimboResolutions.has(keyString)
+  ) {
     logDebug(LOG_TAG, 'New document in limbo: ' + key);
-    syncEngineImpl.enqueuedLimboResolutions.push(key);
+    syncEngineImpl.enqueuedLimboResolutions.add(keyString);
     pumpEnqueuedLimboResolutions(syncEngineImpl);
   }
 }
@@ -942,11 +954,14 @@ function trackLimboChange(
  */
 function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
   while (
-    syncEngineImpl.enqueuedLimboResolutions.length > 0 &&
+    syncEngineImpl.enqueuedLimboResolutions.size > 0 &&
     syncEngineImpl.activeLimboTargetsByKey.size <
       syncEngineImpl.maxConcurrentLimboResolutions
   ) {
-    const key = syncEngineImpl.enqueuedLimboResolutions.shift()!;
+    const keyString = syncEngineImpl.enqueuedLimboResolutions.values().next()
+      .value;
+    syncEngineImpl.enqueuedLimboResolutions.delete(keyString);
+    const key = new DocumentKey(ResourcePath.fromString(keyString));
     const limboTargetId = syncEngineImpl.limboTargetIdGenerator.next();
     syncEngineImpl.activeLimboResolutionsByTarget.set(
       limboTargetId,
@@ -979,14 +994,14 @@ export function syncEngineGetActiveLimboDocumentResolutions(
 // Visible for testing
 export function syncEngineGetEnqueuedLimboDocumentResolutions(
   syncEngine: SyncEngine
-): DocumentKey[] {
+): Set<string> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   return syncEngineImpl.enqueuedLimboResolutions;
 }
 
 export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   syncEngine: SyncEngine,
-  changes: MaybeDocumentMap,
+  changes: DocumentMap,
   remoteEvent?: RemoteEvent
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
@@ -1037,7 +1052,7 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
 async function applyDocChanges(
   syncEngineImpl: SyncEngineImpl,
   queryView: QueryView,
-  changes: MaybeDocumentMap,
+  changes: DocumentMap,
   remoteEvent?: RemoteEvent
 ): Promise<ViewSnapshot | undefined> {
   let viewDocChanges = queryView.view.computeDocChanges(changes);

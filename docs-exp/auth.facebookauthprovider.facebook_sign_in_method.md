@@ -4,10 +4,10 @@
 
 ## FacebookAuthProvider.FACEBOOK\_SIGN\_IN\_METHOD property
 
-Always set to [SignInMethod.FACEBOOK](./auth-types.signinmethod.facebook.md)<!-- -->.
+Always set to [SignInMethod.FACEBOOK](./auth.signinmethod.facebook.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-static readonly FACEBOOK_SIGN_IN_METHOD = externs.SignInMethod.FACEBOOK;
+static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
 ```

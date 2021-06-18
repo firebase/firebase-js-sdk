@@ -15,19 +15,17 @@
  * limitations under the License.
  */
 
-import {
-  httpsCallable as httpsCallableExp,
-  useFunctionsEmulator as useFunctionsEmulatorExp
-} from '@firebase/functions-exp';
 import { FirebaseFunctions, HttpsCallable } from '@firebase/functions-types';
 import {
+  httpsCallable as httpsCallableExp,
+  useFunctionsEmulator as useFunctionsEmulatorExp,
   HttpsCallableOptions,
   Functions as FunctionsServiceExp
-} from '@firebase/functions-types-exp';
-import { FirebaseApp } from '@firebase/app-types';
+} from '@firebase/functions-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import { FirebaseError } from '@firebase/util';
 
-export class FunctionsService implements FirebaseFunctions {
+export class FunctionsService implements FirebaseFunctions, _FirebaseService {
   /**
    * For testing.
    * @internal
@@ -41,13 +39,13 @@ export class FunctionsService implements FirebaseFunctions {
 
   constructor(
     public app: FirebaseApp,
-    private _functionsInstance: FunctionsServiceExp
+    readonly _delegate: FunctionsServiceExp
   ) {
-    this._region = this._functionsInstance.region;
-    this._customDomain = this._functionsInstance.customDomain;
+    this._region = this._delegate.region;
+    this._customDomain = this._delegate.customDomain;
   }
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
-    return httpsCallableExp(this._functionsInstance, name, options);
+    return httpsCallableExp(this._delegate, name, options);
   }
   /**
    * Deprecated in pre-modularized repo, does not exist in modularized
@@ -69,13 +67,9 @@ export class FunctionsService implements FirebaseFunctions {
         'Port missing in origin provided to useFunctionsEmulator()'
       );
     }
-    return useFunctionsEmulatorExp(
-      this._functionsInstance,
-      match[1],
-      Number(match[2])
-    );
+    return useFunctionsEmulatorExp(this._delegate, match[1], Number(match[2]));
   }
   useEmulator(host: string, port: number): void {
-    return useFunctionsEmulatorExp(this._functionsInstance, host, port);
+    return useFunctionsEmulatorExp(this._delegate, host, port);
   }
 }

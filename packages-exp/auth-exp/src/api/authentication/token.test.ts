@@ -18,13 +18,15 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { FirebaseError, querystringDecode } from '@firebase/util';
+import { FirebaseError, getUA, querystringDecode } from '@firebase/util';
 
 import { HttpHeader } from '../';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { Endpoint, requestStsToken } from './token';
+import { SDK_VERSION } from '@firebase/app-exp';
+import { _getBrowserName } from '../../core/util/browser';
 
 use(chaiAsPromised);
 
@@ -63,6 +65,28 @@ describe('requestStsToken', () => {
     );
     expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
       'testSDK/0.0.0'
+    );
+  });
+
+  it('should set the framework in clientVersion if logged', async () => {
+    const mock = fetch.mock(endpoint, {
+      'access_token': 'new-access-token',
+      'expires_in': '3600',
+      'refresh_token': 'new-refresh-token'
+    });
+
+    auth._logFramework('Mythical');
+    await requestStsToken(auth, 'old-refresh-token');
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Mythical`
+    );
+
+    // If a new framework is logged, the client version header should change as well.
+    auth._logFramework('Magical');
+    await requestStsToken(auth, 'old-refresh-token');
+    expect(mock.calls[1].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      // frameworks should be sorted alphabetically
+      `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Magical,Mythical`
     );
   });
 

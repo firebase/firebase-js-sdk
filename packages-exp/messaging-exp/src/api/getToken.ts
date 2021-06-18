@@ -19,24 +19,17 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 import { MessagingService } from '../messaging-service';
 import { getTokenInternal } from '../internals/token-manager';
-import { messageEventListener } from '../listeners/messageEventListener';
 import { updateSwReg } from '../helpers/updateSwReg';
 import { updateVapidKey } from '../helpers/updateVapidKey';
+import { GetTokenOptions } from '../interfaces/public-types';
 
 export async function getToken(
   messaging: MessagingService,
-  options?: {
-    vapidKey?: string;
-    serviceWorkerRegistration?: ServiceWorkerRegistration;
-  }
+  options?: GetTokenOptions
 ): Promise<string> {
   if (!navigator) {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
-
-  navigator.serviceWorker.addEventListener('message', e =>
-    messageEventListener(messaging, e)
-  );
 
   if (Notification.permission === 'default') {
     await Notification.requestPermission();

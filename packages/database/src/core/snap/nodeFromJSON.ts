@@ -15,27 +15,27 @@
  * limitations under the License.
  */
 
-import { ChildrenNode } from './ChildrenNode';
-import { LeafNode } from './LeafNode';
-import { NamedNode, Node } from './Node';
 import { contains, assert } from '@firebase/util';
 
-import { buildChildSet } from './childSet';
-import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
-import { IndexMap } from './IndexMap';
-import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
+import { Indexable } from '../util/misc';
 import { SortedMap } from '../util/SortedMap';
 import { each } from '../util/util';
-import { Indexable } from '../util/misc';
+
+import { ChildrenNode } from './ChildrenNode';
+import { buildChildSet } from './childSet';
+import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
+import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
+import { IndexMap } from './IndexMap';
+import { LeafNode } from './LeafNode';
+import { NamedNode, Node } from './Node';
 
 const USE_HINZE = true;
 
 /**
  * Constructs a snapshot node representing the passed JSON and returns it.
- * @param {*} json JSON to create a node for.
- * @param {?string|?number=} priority Optional priority to use.  This will be ignored if the
+ * @param json - JSON to create a node for.
+ * @param priority - Optional priority to use.  This will be ignored if the
  * passed JSON contains a .priority property.
- * @return {!Node}
  */
 export function nodeFromJSON(
   json: unknown | null,

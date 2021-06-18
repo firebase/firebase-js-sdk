@@ -22,7 +22,7 @@ import {
   EventManager
 } from '../../model/popup_redirect';
 import { AuthErrorCode } from '../errors';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { _createError } from '../util/assert';
 
 // The amount of time to store the UIDs of seen events; this is
@@ -32,11 +32,11 @@ const EVENT_DUPLICATION_CACHE_DURATION_MS = 10 * 60 * 1000;
 export class AuthEventManager implements EventManager {
   private readonly cachedEventUids: Set<string> = new Set();
   private readonly consumers: Set<AuthEventConsumer> = new Set();
-  private queuedRedirectEvent: AuthEvent | null = null;
-  private hasHandledPotentialRedirect = false;
+  protected queuedRedirectEvent: AuthEvent | null = null;
+  protected hasHandledPotentialRedirect = false;
   private lastProcessedEventTime = Date.now();
 
-  constructor(private readonly auth: Auth) {}
+  constructor(private readonly auth: AuthInternal) {}
 
   registerConsumer(authEventConsumer: AuthEventConsumer): void {
     this.consumers.add(authEventConsumer);

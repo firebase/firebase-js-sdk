@@ -4,10 +4,10 @@
 
 ## browserLocalPersistence variable
 
-An implementation of [Persistence](./auth-types.persistence.md) of type 'LOCAL' using `localStorage` for the underlying storage.
+An implementation of [Persistence](./auth.persistence.md) of type 'LOCAL' using `localStorage` for the underlying storage.
 
 <b>Signature:</b>
 
 ```typescript
-browserLocalPersistence: externs.Persistence
+browserLocalPersistence: Persistence
 ```

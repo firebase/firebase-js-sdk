@@ -535,12 +535,9 @@ describeSpec('Limits:', [], () => {
     () => {
       const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
       const doc1 = doc('collection/a', 1003, { key: 'a' });
-      const doc1Local = doc(
-        'collection/a',
-        0,
-        { key: 'a' },
-        { hasLocalMutations: true }
-      );
+      const doc1Local = doc('collection/a', 0, {
+        key: 'a'
+      }).setHasLocalMutations();
       const doc2 = doc('collection/b', 1001, { key: 'b' });
       const doc3 = doc('collection/c', 1002, { key: 'c' });
       return client(0)

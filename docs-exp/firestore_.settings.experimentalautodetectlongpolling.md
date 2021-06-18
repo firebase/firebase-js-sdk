@@ -4,6 +4,10 @@
 
 ## Settings.experimentalAutoDetectLongPolling property
 
+Configures the SDK's underlying transport (WebChannel) to automatically detect if long-polling should be used. This is very similar to `experimentalForceLongPolling`<!-- -->, but only uses long-polling if required.
+
+This setting will likely be enabled by default in future releases and cannot be combined with `experimentalForceLongPolling`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

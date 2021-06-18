@@ -15,21 +15,19 @@
  * limitations under the License.
  */
 
-import {
-  DynamicConfig,
-  Gtag,
-  MinimalDynamicConfig
-} from '@firebase/analytics-types-exp';
+import { DynamicConfig, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GA_FID_KEY, ORIGIN_KEY } from './constants';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { fetchDynamicConfigWithRetry } from './get-config';
 import { logger } from './logger';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable
 } from '@firebase/util';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
+import { findGtagScriptOnPage, insertScriptTag } from './helpers';
+import { AnalyticsOptions } from './public-types';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
@@ -74,7 +72,9 @@ export async function initializeAnalytics(
   >,
   measurementIdToAppId: { [key: string]: string },
   installations: _FirebaseInstallationsInternal,
-  gtagCore: Gtag
+  gtagCore: Gtag,
+  dataLayerName: string,
+  options?: AnalyticsOptions
 ): Promise<string> {
   const dynamicConfigPromise = fetchDynamicConfigWithRetry(app);
   // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.
@@ -113,17 +113,23 @@ export async function initializeAnalytics(
     fidPromise
   ]);
 
+  // Detect if user has already put the gtag <script> tag on this page.
+  if (!findGtagScriptOnPage()) {
+    insertScriptTag(dataLayerName, dynamicConfig.measurementId);
+  }
+
   // This command initializes gtag.js and only needs to be called once for the entire web app,
   // but since it is idempotent, we can call it multiple times.
   // We keep it together with other initialization logic for better code structure.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  gtagCore('js' as any, new Date());
+  (gtagCore as any)('js', new Date());
+  // User config added first. We don't want users to accidentally overwrite
+  // base Firebase config properties.
+  const configProperties: Record<string, unknown> = options?.config ?? {};
 
-  const configProperties: { [key: string]: string | boolean } = {
-    // guard against developers accidentally setting properties with prefix `firebase_`
-    [ORIGIN_KEY]: 'firebase',
-    update: true
-  };
+  // guard against developers accidentally setting properties with prefix `firebase_`
+  configProperties[ORIGIN_KEY] = 'firebase';
+  configProperties.update = true;
 
   if (fid != null) {
     configProperties[GA_FID_KEY] = fid;
@@ -131,6 +137,8 @@ export async function initializeAnalytics(
 
   // It should be the first config command called on this GA-ID
   // Initialize this GA-ID and set FID on it using the gtag config API.
+  // Note: This will trigger a page_view event unless 'send_page_view' is set to false in
+  // `configProperties`.
   gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, configProperties);
   return dynamicConfig.measurementId;
 }

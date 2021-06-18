@@ -16,90 +16,67 @@
  */
 
 import { stringify } from '@firebase/util';
+
+import { DataSnapshot as ExpDataSnapshot } from '../../exp/Reference_impl';
 import { Path } from '../util/Path';
+
 import { EventRegistration } from './EventRegistration';
-import { DataSnapshot } from '../../api/DataSnapshot';
 
 /**
  * Encapsulates the data needed to raise an event
  * @interface
  */
 export interface Event {
-  /**
-   * @return {!Path}
-   */
   getPath(): Path;
 
-  /**
-   * @return {!string}
-   */
   getEventType(): string;
 
-  /**
-   * @return {!function()}
-   */
   getEventRunner(): () => void;
 
-  /**
-   * @return {!string}
-   */
   toString(): string;
 }
 
+/**
+ * One of the following strings: "value", "child_added", "child_changed",
+ * "child_removed", or "child_moved."
+ */
 export type EventType =
   | 'value'
-  | ' child_added'
-  | ' child_changed'
-  | ' child_moved'
-  | ' child_removed';
+  | 'child_added'
+  | 'child_changed'
+  | 'child_moved'
+  | 'child_removed';
 
 /**
  * Encapsulates the data needed to raise an event
- * @implements {Event}
  */
 export class DataEvent implements Event {
   /**
-   * @param {!string} eventType One of: value, child_added, child_changed, child_moved, child_removed
-   * @param {!EventRegistration} eventRegistration The function to call to with the event data. User provided
-   * @param {!DataSnapshot} snapshot The data backing the event
-   * @param {?string=} prevName Optional, the name of the previous child for child_* events.
+   * @param eventType - One of: value, child_added, child_changed, child_moved, child_removed
+   * @param eventRegistration - The function to call to with the event data. User provided
+   * @param snapshot - The data backing the event
+   * @param prevName - Optional, the name of the previous child for child_* events.
    */
   constructor(
     public eventType: EventType,
     public eventRegistration: EventRegistration,
-    public snapshot: DataSnapshot,
+    public snapshot: ExpDataSnapshot,
     public prevName?: string | null
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   getPath(): Path {
-    const ref = this.snapshot.getRef();
+    const ref = this.snapshot.ref;
     if (this.eventType === 'value') {
-      return ref.path;
+      return ref._path;
     } else {
-      return ref.getParent().path;
+      return ref.parent._path;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   getEventType(): string {
     return this.eventType;
   }
-
-  /**
-   * @inheritDoc
-   */
   getEventRunner(): () => void {
     return this.eventRegistration.getEventRunner(this);
   }
-
-  /**
-   * @inheritDoc
-   */
   toString(): string {
     return (
       this.getPath().toString() +
@@ -112,41 +89,20 @@ export class DataEvent implements Event {
 }
 
 export class CancelEvent implements Event {
-  /**
-   * @param {EventRegistration} eventRegistration
-   * @param {Error} error
-   * @param {!Path} path
-   */
   constructor(
     public eventRegistration: EventRegistration,
     public error: Error,
     public path: Path
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   getPath(): Path {
     return this.path;
   }
-
-  /**
-   * @inheritDoc
-   */
   getEventType(): string {
     return 'cancel';
   }
-
-  /**
-   * @inheritDoc
-   */
   getEventRunner(): () => void {
     return this.eventRegistration.getEventRunner(this);
   }
-
-  /**
-   * @inheritDoc
-   */
   toString(): string {
     return this.path.toString() + ':cancel';
   }

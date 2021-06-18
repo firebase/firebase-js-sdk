@@ -15,11 +15,17 @@
  * limitations under the License.
  */
 
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import {
+  _registerComponent,
+  registerVersion,
+  SDK_VERSION
+} from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../package.json';
+import { setSDKVersion } from '../src/core/version';
 import { FirebaseFirestore } from '../src/lite/database';
+import { Settings } from '../src/lite/settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -28,15 +34,20 @@ declare module '@firebase/component' {
 }
 
 export function registerFirestore(): void {
+  setSDKVersion(`${SDK_VERSION}_lite`);
   _registerComponent(
     new Component(
       'firestore/lite',
-      container => {
+      (container, { options: settings }: { options?: Settings }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
-        return ((app, auth) => new FirebaseFirestore(app, auth))(
+        const firestoreInstance = new FirebaseFirestore(
           app,
           container.getProvider('auth-internal')
         );
+        if (settings) {
+          firestoreInstance._setSettings(settings);
+        }
+        return firestoreInstance;
       },
       ComponentType.PUBLIC
     )

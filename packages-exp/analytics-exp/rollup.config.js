@@ -18,12 +18,7 @@
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import pkg from './package.json';
 import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
-
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
 
 /**
  * ES5 Builds
@@ -37,10 +32,7 @@ const es5BuildPlugins = [
 
 const es5Builds = es5BuildsNoPlugin.map(build => ({
   ...build,
-  plugins: es5BuildPlugins,
-  treeshake: {
-    moduleSideEffects: false
-  }
+  plugins: es5BuildPlugins
 }));
 
 /**
@@ -60,10 +52,7 @@ const es2017BuildPlugins = [
 
 const es2017Builds = es2017BuildsNoPlugin.map(build => ({
   ...build,
-  plugins: es2017BuildPlugins,
-  treeshake: {
-    moduleSideEffects: false
-  }
+  plugins: es2017BuildPlugins
 }));
 
 export default [...es5Builds, ...es2017Builds];

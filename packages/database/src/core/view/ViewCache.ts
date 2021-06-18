@@ -15,108 +15,63 @@
  * limitations under the License.
  */
 
-import { ChildrenNode } from '../snap/ChildrenNode';
-import { CacheNode } from './CacheNode';
 import { Node } from '../snap/Node';
+
+import { CacheNode } from './CacheNode';
 
 /**
  * Stores the data we have cached for a view.
  *
  * serverSnap is the cached server data, eventSnap is the cached event data (server data plus any local writes).
- *
- * @constructor
  */
-export class ViewCache {
-  /**
-   *
-   * @param {!CacheNode} eventCache_
-   * @param {!CacheNode} serverCache_
-   */
-  constructor(
-    private readonly eventCache_: CacheNode,
-    private readonly serverCache_: CacheNode
-  ) {}
+export interface ViewCache {
+  readonly eventCache: CacheNode;
+  readonly serverCache: CacheNode;
+}
 
-  /**
-   * @const
-   * @type {ViewCache}
-   */
-  static Empty = new ViewCache(
-    new CacheNode(
-      ChildrenNode.EMPTY_NODE,
-      /*fullyInitialized=*/ false,
-      /*filtered=*/ false
-    ),
-    new CacheNode(
-      ChildrenNode.EMPTY_NODE,
-      /*fullyInitialized=*/ false,
-      /*filtered=*/ false
-    )
+export function newViewCache(
+  eventCache: CacheNode,
+  serverCache: CacheNode
+): ViewCache {
+  return { eventCache, serverCache };
+}
+
+export function viewCacheUpdateEventSnap(
+  viewCache: ViewCache,
+  eventSnap: Node,
+  complete: boolean,
+  filtered: boolean
+): ViewCache {
+  return newViewCache(
+    new CacheNode(eventSnap, complete, filtered),
+    viewCache.serverCache
   );
+}
 
-  /**
-   * @param {!Node} eventSnap
-   * @param {boolean} complete
-   * @param {boolean} filtered
-   * @return {!ViewCache}
-   */
-  updateEventSnap(
-    eventSnap: Node,
-    complete: boolean,
-    filtered: boolean
-  ): ViewCache {
-    return new ViewCache(
-      new CacheNode(eventSnap, complete, filtered),
-      this.serverCache_
-    );
-  }
+export function viewCacheUpdateServerSnap(
+  viewCache: ViewCache,
+  serverSnap: Node,
+  complete: boolean,
+  filtered: boolean
+): ViewCache {
+  return newViewCache(
+    viewCache.eventCache,
+    new CacheNode(serverSnap, complete, filtered)
+  );
+}
 
-  /**
-   * @param {!Node} serverSnap
-   * @param {boolean} complete
-   * @param {boolean} filtered
-   * @return {!ViewCache}
-   */
-  updateServerSnap(
-    serverSnap: Node,
-    complete: boolean,
-    filtered: boolean
-  ): ViewCache {
-    return new ViewCache(
-      this.eventCache_,
-      new CacheNode(serverSnap, complete, filtered)
-    );
-  }
+export function viewCacheGetCompleteEventSnap(
+  viewCache: ViewCache
+): Node | null {
+  return viewCache.eventCache.isFullyInitialized()
+    ? viewCache.eventCache.getNode()
+    : null;
+}
 
-  /**
-   * @return {!CacheNode}
-   */
-  getEventCache(): CacheNode {
-    return this.eventCache_;
-  }
-
-  /**
-   * @return {?Node}
-   */
-  getCompleteEventSnap(): Node | null {
-    return this.eventCache_.isFullyInitialized()
-      ? this.eventCache_.getNode()
-      : null;
-  }
-
-  /**
-   * @return {!CacheNode}
-   */
-  getServerCache(): CacheNode {
-    return this.serverCache_;
-  }
-
-  /**
-   * @return {?Node}
-   */
-  getCompleteServerSnap(): Node | null {
-    return this.serverCache_.isFullyInitialized()
-      ? this.serverCache_.getNode()
-      : null;
-  }
+export function viewCacheGetCompleteServerSnap(
+  viewCache: ViewCache
+): Node | null {
+  return viewCache.serverCache.isFullyInitialized()
+    ? viewCache.serverCache.getNode()
+    : null;
 }

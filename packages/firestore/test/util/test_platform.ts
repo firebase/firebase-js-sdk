@@ -58,7 +58,7 @@ export class FakeWindow implements WindowLike {
       case 'storage':
         this.storageListeners.push(listener);
         break;
-      case 'unload':
+      case 'pagehide':
       case 'visibilitychange':
         // The spec tests currently do not rely on `unload`/`visibilitychange`
         // listeners.

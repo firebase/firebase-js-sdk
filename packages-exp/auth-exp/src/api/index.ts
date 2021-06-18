@@ -22,8 +22,8 @@ import { _createError, _fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
-import { Auth } from '@firebase/auth-types-exp';
-import { Auth as AuthInternal } from '../model/auth';
+import { Auth } from '../model/public_types';
+import { AuthInternal, ConfigInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
@@ -64,6 +64,19 @@ export const enum Endpoint {
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
+export function _addTidIfNecessary<T extends { tenantId?: string }>(
+  auth: Auth,
+  request: T
+): T {
+  if (auth.tenantId && !request.tenantId) {
+    return {
+      ...request,
+      tenantId: auth.tenantId
+    };
+  }
+  return request;
+}
+
 export async function _performApiRequest<T, V>(
   auth: Auth,
   method: HttpMethod,
@@ -91,7 +104,10 @@ export async function _performApiRequest<T, V>(
 
     const headers = new (FetchProvider.headers())();
     headers.set(HttpHeader.CONTENT_TYPE, 'application/json');
-    headers.set(HttpHeader.X_CLIENT_VERSION, auth.config.sdkClientVersion);
+    headers.set(
+      HttpHeader.X_CLIENT_VERSION,
+      (auth as AuthInternal)._getSdkClientVersion()
+    );
 
     if (auth.languageCode) {
       headers.set(HttpHeader.X_FIREBASE_LOCALE, auth.languageCode);
@@ -129,21 +145,22 @@ export async function _performFetchWithErrorHandling<V>(
 
     const json = await response.json();
     if ('needConfirmation' in json) {
-      throw makeTaggedError(auth, AuthErrorCode.NEED_CONFIRMATION, json);
+      throw _makeTaggedError(auth, AuthErrorCode.NEED_CONFIRMATION, json);
     }
 
-    if (response.ok) {
+    if (response.ok && !('errorMessage' in json)) {
       return json;
     } else {
-      const serverErrorCode = json.error.message.split(' : ')[0] as ServerError;
+      const errorMessage = response.ok ? json.errorMessage : json.error.message;
+      const serverErrorCode = errorMessage.split(' : ')[0] as ServerError;
       if (serverErrorCode === ServerError.FEDERATED_USER_ID_ALREADY_LINKED) {
-        throw makeTaggedError(
+        throw _makeTaggedError(
           auth,
           AuthErrorCode.CREDENTIAL_ALREADY_IN_USE,
           json
         );
       } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
-        throw makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
+        throw _makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
       }
       const authError =
         errorMap[serverErrorCode] ||
@@ -195,7 +212,7 @@ export function _getFinalTarget(
     return `${auth.config.apiScheme}://${base}`;
   }
 
-  return _emulatorUrl(auth.config, base);
+  return _emulatorUrl(auth.config as ConfigInternal, base);
 }
 
 class NetworkTimeout<T> {
@@ -221,7 +238,7 @@ interface PotentialResponse extends IdTokenResponse {
   phoneNumber?: string;
 }
 
-function makeTaggedError(
+export function _makeTaggedError(
   auth: Auth,
   code: AuthErrorCode,
   response: PotentialResponse

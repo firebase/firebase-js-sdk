@@ -21,6 +21,7 @@ export class DatabaseInfo {
    * persistenceKey.
    *
    * @param databaseId - The database to use.
+   * @param appId - The Firebase App Id.
    * @param persistenceKey - A unique identifier for this Firestore's local
    * storage (used in conjunction with the databaseId).
    * @param host - The Firestore backend host to connect to.
@@ -29,14 +30,18 @@ export class DatabaseInfo {
    * when using WebChannel as the network transport.
    * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
+   * @param useFetchStreams Whether to use the Fetch API instead of
+   * XMLHTTPRequest
    */
   constructor(
     readonly databaseId: DatabaseId,
+    readonly appId: string,
     readonly persistenceKey: string,
     readonly host: string,
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
-    readonly autoDetectLongPolling: boolean
+    readonly autoDetectLongPolling: boolean,
+    readonly useFetchStreams: boolean
   ) {}
 }
 

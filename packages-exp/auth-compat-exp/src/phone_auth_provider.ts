@@ -15,29 +15,30 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
 import firebase from '@firebase/app-compat';
-import { unwrap, Wrapper } from './wrap';
+import { Compat } from '@firebase/util';
 
 export class PhoneAuthProvider
-  implements compat.PhoneAuthProvider, Wrapper<externs.PhoneAuthProvider> {
+  implements compat.PhoneAuthProvider, Compat<exp.PhoneAuthProvider> {
   providerId = 'phone';
-  private readonly phoneProvider: impl.PhoneAuthProvider;
+  readonly _delegate: exp.PhoneAuthProvider;
 
-  static PHONE_SIGN_IN_METHOD = impl.PhoneAuthProvider.PHONE_SIGN_IN_METHOD;
-  static PROVIDER_ID = impl.PhoneAuthProvider.PROVIDER_ID;
+  static PHONE_SIGN_IN_METHOD = exp.PhoneAuthProvider.PHONE_SIGN_IN_METHOD;
+  static PROVIDER_ID = exp.PhoneAuthProvider.PROVIDER_ID;
 
   static credential(
     verificationId: string,
     verificationCode: string
   ): compat.AuthCredential {
-    return impl.PhoneAuthProvider.credential(verificationId, verificationCode);
+    return exp.PhoneAuthProvider.credential(verificationId, verificationCode);
   }
 
   constructor() {
-    this.phoneProvider = new impl.PhoneAuthProvider(unwrap(firebase.auth!()));
+    // TODO: remove ts-ignore when moving types from auth-types to auth-compat
+    // @ts-ignore
+    this._delegate = new exp.PhoneAuthProvider(unwrap(firebase.auth!()));
   }
 
   verifyPhoneNumber(
@@ -48,15 +49,15 @@ export class PhoneAuthProvider
       | compat.PhoneMultiFactorSignInInfoOptions,
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<string> {
-    return this.phoneProvider.verifyPhoneNumber(
+    return this._delegate.verifyPhoneNumber(
       // The implementation matches but the types are subtly incompatible
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       phoneInfoOptions as any,
-      unwrap(applicationVerifier)
+      applicationVerifier
     );
   }
 
-  unwrap(): externs.PhoneAuthProvider {
-    return this.phoneProvider;
+  unwrap(): exp.PhoneAuthProvider {
+    return this._delegate;
   }
 }

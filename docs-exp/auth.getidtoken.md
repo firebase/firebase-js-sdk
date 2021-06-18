@@ -9,14 +9,14 @@ Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
 <b>Signature:</b>
 
 ```typescript
-export declare function getIdToken(user: externs.User, forceRefresh?: boolean): Promise<string>;
+export declare function getIdToken(user: User, forceRefresh?: boolean): Promise<string>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
+|  user | [User](./auth.user.md) | The user. |
 |  forceRefresh | boolean | Force refresh regardless of token expiration. |
 
 <b>Returns:</b>

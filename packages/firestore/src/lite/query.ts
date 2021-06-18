@@ -15,12 +15,8 @@
  * limitations under the License.
  */
 
-import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  parseQueryValue,
-  UserDataReader
-} from '../api/user_data_reader';
+import { getModularInstance } from '@firebase/util';
+
 import { DatabaseId } from '../core/database_info';
 import {
   findFilterOperator,
@@ -61,6 +57,11 @@ import {
 import { FieldPath } from './field_path';
 import { DocumentReference, Query } from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
+import {
+  newUserDataReader,
+  parseQueryValue,
+  UserDataReader
+} from './user_data_reader';
 
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery
@@ -87,8 +88,8 @@ export type QueryConstraintType =
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where},
- * {@link orderBy}, {@link startAt}, {@link startAfter}, {@link
- * endBefore}, {@link endAt}, {@link limit} or {@link limitToLast} and
+ * {@link orderBy}, {@link (startAt:1)}, {@link (startAfter:1)}, {@link
+ * endBefore:1}, {@link (endAt:1)}, {@link limit} or {@link limitToLast} and
  * can then be passed to {@link query} to create a new query instance that
  * also contains this `QueryConstraint`.
  */
@@ -104,10 +105,10 @@ export abstract class QueryConstraint {
 }
 
 /**
- * Creates a new immutable instance of `query` that is extended to also include
+ * Creates a new immutable instance of `Query` that is extended to also include
  * additional query constraints.
  *
- * @param query - The query instance to use as a base for the new constraints.
+ * @param query - The Query instance to use as a base for the new constraints.
  * @param queryConstraints - The list of `QueryConstraint`s to apply.
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
@@ -146,7 +147,7 @@ class QueryFilterConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithAddedFilter(query._query, filter)
     );
   }
@@ -204,7 +205,7 @@ class QueryOrderByConstraint extends QueryConstraint {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithAddedOrderBy(query._query, orderBy)
     );
   }
@@ -246,7 +247,7 @@ class QueryLimitConstraint extends QueryConstraint {
   _apply<T>(query: Query<T>): Query<T> {
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithLimit(query._query, this._limit, this._limitType)
     );
   }
@@ -295,7 +296,7 @@ class QueryStartAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithStartAt(query._query, bound)
     );
   }
@@ -377,7 +378,7 @@ class QueryEndAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query._converter,
+      query.converter,
       queryWithEndAt(query._query, bound)
     );
   }
@@ -442,9 +443,7 @@ function newQueryBoundFromDocOrFields<T>(
   docOrFields: Array<unknown | DocumentSnapshot<T>>,
   before: boolean
 ): Bound {
-  if (docOrFields[0] instanceof Compat) {
-    docOrFields[0] = docOrFields[0]._delegate;
-  }
+  docOrFields[0] = getModularInstance(docOrFields[0]);
 
   if (docOrFields[0] instanceof DocumentSnapshot) {
     return newQueryBoundFromDocument(
@@ -577,7 +576,7 @@ export function newQueryBoundFromDocument(
     if (orderBy.field.isKeyField()) {
       components.push(refValue(databaseId, doc.key));
     } else {
-      const value = doc.field(orderBy.field);
+      const value = doc.data.field(orderBy.field);
       if (isServerTimestamp(value)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -676,9 +675,7 @@ function parseDocumentIdValue(
   query: InternalQuery,
   documentIdValue: unknown
 ): ProtoValue {
-  if (documentIdValue instanceof Compat) {
-    documentIdValue = documentIdValue._delegate;
-  }
+  documentIdValue = getModularInstance(documentIdValue);
 
   if (typeof documentIdValue === 'string') {
     if (documentIdValue === '') {

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { OperationType } from '@firebase/auth-types-exp';
+import { OperationType } from '../../model/public_types';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';

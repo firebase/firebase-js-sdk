@@ -15,10 +15,17 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseApp } from '@firebase/app';
 
-export { getDatabase } from '../src/exp/Database';
+/**
+ * @public
+ */
+export declare function getDatabase(app: FirebaseApp, url?: string): Database;
 
+/**
+ * @public
+ */
 export interface DataSnapshot {
   child(path: string): DataSnapshot;
   exists(): boolean;
@@ -34,6 +41,9 @@ export interface DataSnapshot {
   val(): any;
 }
 
+/**
+ * @public
+ */
 export interface Database {
   app: FirebaseApp;
   useEmulator(host: string, port: number): void;
@@ -43,6 +53,9 @@ export interface Database {
   refFromURL(url: string): Reference;
 }
 
+/**
+ * @public
+ */
 export interface OnDisconnect {
   cancel(onComplete?: (a: Error | null) => any): Promise<void>;
   remove(onComplete?: (a: Error | null) => any): Promise<void>;
@@ -55,6 +68,9 @@ export interface OnDisconnect {
   update(values: object, onComplete?: (a: Error | null) => any): Promise<any>;
 }
 
+/**
+ * @public
+ */
 type EventType =
   | 'value'
   | 'child_added'
@@ -62,6 +78,9 @@ type EventType =
   | 'child_moved'
   | 'child_removed';
 
+/**
+ * @public
+ */
 export interface Query {
   endAt(value: number | string | boolean | null, key?: string): Query;
   equalTo(value: number | string | boolean | null, key?: string): Query;
@@ -96,6 +115,9 @@ export interface Query {
   toString(): string;
 }
 
+/**
+ * @public
+ */
 export interface Reference extends Query {
   child(path: string): Reference;
   key: string | null;
@@ -122,15 +144,24 @@ export interface Reference extends Query {
   update(values: object, onComplete?: (a: Error | null) => any): Promise<any>;
 }
 
-export interface ServerValue {
+/**
+ * @public
+ */
+export declare const ServerValue: {
   TIMESTAMP: object;
   increment(delta: number): object;
-}
+};
 
+/**
+ * @public
+ */
 export interface ThenableReference
   extends Reference,
     Pick<Promise<Reference>, 'then' | 'catch'> {}
 
+/**
+ * @public
+ */
 export function enableLogging(
   logger?: boolean | ((a: string) => any),
   persistent?: boolean

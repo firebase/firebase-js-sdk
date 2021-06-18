@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app-compat';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import {
   Component,
   ComponentContainer,
-  ComponentType
+  ComponentType,
+  InstanceFactoryOptions
 } from '@firebase/component';
 import { RemoteConfigCompatImpl } from './remoteConfig';
 import { name as packageName, version } from '../package.json';
 import { RemoteConfig as RemoteConfigCompat } from '@firebase/remote-config-types';
 
-// TODO: move it to the future remote-config-compat-types package
+// TODO: move it to remote-config-types package
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'remote-config-compat': RemoteConfigCompat;
+    'remoteConfig-compat': RemoteConfigCompat;
   }
 }
 
@@ -38,7 +38,7 @@ function registerRemoteConfigCompat(
 ): void {
   firebaseInstance.INTERNAL.registerComponent(
     new Component(
-      'remote-config-compat',
+      'remoteConfig-compat',
       remoteConfigFactory,
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
@@ -49,10 +49,9 @@ function registerRemoteConfigCompat(
 
 function remoteConfigFactory(
   container: ComponentContainer,
-  namespace?: string
+  { instanceIdentifier: namespace }: InstanceFactoryOptions
 ): RemoteConfigCompatImpl {
-  // TODO: change 'app' to 'app-compat' before the official release
-  const app = container.getProvider('app').getImmediate();
+  const app = container.getProvider('app-compat').getImmediate();
   // The following call will always succeed because rc `import {...} from '@firebase/remote-config-exp'`
   const remoteConfig = container.getProvider('remote-config-exp').getImmediate({
     identifier: namespace
@@ -62,3 +61,14 @@ function remoteConfigFactory(
 }
 
 registerRemoteConfigCompat(firebase as _FirebaseNamespace);
+
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    remoteConfig: {
+      (app?: FirebaseApp): RemoteConfigCompat;
+    };
+  }
+  interface FirebaseApp {
+    remoteConfig(): RemoteConfigCompat;
+  }
+}

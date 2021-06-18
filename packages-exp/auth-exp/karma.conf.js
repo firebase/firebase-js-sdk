@@ -24,7 +24,9 @@ module.exports = function (config) {
     files: getTestFiles(argv),
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
+    frameworks: ['mocha'],
+
+    client: Object.assign({}, karmaBase.client, getClientConfig(argv))
   });
 
   config.set(karmaConfig);
@@ -34,7 +36,11 @@ function getTestFiles(argv) {
   if (argv.unit) {
     return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
   } else if (argv.integration) {
-    return ['test/integration/**/*.test.ts'];
+    return argv.local
+      ? ['test/integration/flows/*.test.ts']
+      : ['test/integration/flows/*!(local).test.ts'];
+  } else if (argv.cordova) {
+    return ['src/platform_cordova/**/*.test.ts'];
   } else {
     // For the catch-all yarn:test, ignore the phone integration test
     return [
@@ -44,6 +50,30 @@ function getTestFiles(argv) {
       'test/integration/flows/email.test.ts'
     ];
   }
+}
+
+function getClientConfig(argv) {
+  if (!argv.local) {
+    return {};
+  }
+
+  if (!process.env.GCLOUD_PROJECT || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+    console.error(
+      'Local testing against emulator requested, but ' +
+        'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+        'are missing'
+    );
+    process.exit(1);
+  }
+
+  return {
+    authAppConfig: {
+      apiKey: 'local-api-key',
+      projectId: process.env.GCLOUD_PROJECT,
+      authDomain: 'local-auth-domain'
+    },
+    authEmulatorHost: process.env.FIREBASE_AUTH_EMULATOR_HOST
+  };
 }
 
 module.exports.files = getTestFiles(argv);

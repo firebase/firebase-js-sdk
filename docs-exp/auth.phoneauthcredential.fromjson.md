@@ -4,6 +4,7 @@
 
 ## PhoneAuthCredential.fromJSON() method
 
+Generates a phone credential based on a plain object or a JSON string.
 
 <b>Signature:</b>
 

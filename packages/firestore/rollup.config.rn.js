@@ -60,7 +60,7 @@ export default [
       bundle: 'index.bundle.ts'
     },
     output: {
-      dir: 'dist/rn',
+      dir: 'dist/memory/rn',
       format: 'es',
       sourcemap: true
     },

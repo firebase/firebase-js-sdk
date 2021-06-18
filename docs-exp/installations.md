@@ -4,6 +4,8 @@
 
 ## installations package
 
+Firebase Installations
+
 ## Functions
 
 |  Function | Description |
@@ -13,6 +15,12 @@
 |  [getInstallations(app)](./installations.getinstallations.md) | Returns an instance of FirebaseInstallations associated with the given FirebaseApp instance. |
 |  [getToken(installations, forceRefresh)](./installations.gettoken.md) | Returns an Installation auth token, identifying the current Firebase Installation. |
 |  [onIdChange(installations, callback)](./installations.onidchange.md) | Sets a new callback that will get called when Installation ID changes. Returns an unsubscribe function that will remove the callback when called. |
+
+## Interfaces
+
+|  Interface | Description |
+|  --- | --- |
+|  [FirebaseInstallations](./installations.firebaseinstallations.md) | Public interface of the FirebaseInstallations SDK. |
 
 ## Type Aliases
 

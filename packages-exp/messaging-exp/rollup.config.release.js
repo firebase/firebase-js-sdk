@@ -21,9 +21,10 @@ import pkg from './package.json';
 import typescript from 'typescript';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
 
 /**
  * ES5 Builds
@@ -43,7 +44,7 @@ const es5Builds = [
     input: 'src/index.ts',
     output: [
       { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      { file: pkg.esm5, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     treeshake: {
@@ -75,7 +76,7 @@ const es2017Builds = [
   {
     input: 'src/index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
@@ -90,7 +91,7 @@ const es2017Builds = [
   {
     input: 'src/index.sw.ts',
     output: { file: pkg.sw, format: 'es', sourcemap: true },
-    plugins: es5BuildPlugins,
+    plugins: es2017BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: (id, external) => id === '@firebase/installations'

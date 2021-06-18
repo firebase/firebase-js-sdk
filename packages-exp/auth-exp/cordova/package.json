@@ -1,0 +1,6 @@
+{
+  "name": "@firebase/auth-exp/cordova",
+  "description": "A Cordova-specific build of the Firebase Auth JS SDK",
+  "browser": "../dist/cordova/index.js",
+  "typings": "../dist/cordova/index.cordova.d.ts"
+}

@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { LoadBundleTask } from '../../../src/api/bundle';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
@@ -58,6 +57,7 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import { LoadBundleTask } from '../../../src/exp/bundle';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
@@ -72,7 +72,6 @@ import {
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
-import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { JsonObject } from '../../../src/model/object_value';
@@ -118,7 +117,6 @@ import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
-import { SortedSet } from '../../../src/util/sorted_set';
 import {
   byteStringFromString,
   deletedDoc,
@@ -144,6 +142,7 @@ import {
 import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
+  TEST_APP_ID,
   TEST_DATABASE_ID,
   TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
@@ -164,6 +163,11 @@ import {
 } from './spec_test_components';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
+
+interface DocumentOptions {
+  hasLocalMutations?: boolean;
+  hasCommittedMutations?: boolean;
+}
 
 export function parseQuery(querySpec: string | SpecQuery): Query {
   if (typeof querySpec === 'string') {
@@ -247,6 +251,7 @@ abstract class TestRunner {
     this.clientId = `client${clientIndex}`;
     this.databaseInfo = new DatabaseInfo(
       TEST_DATABASE_ID,
+      TEST_APP_ID,
       TEST_PERSISTENCE_KEY,
       'host',
       /*ssl=*/ false,
@@ -629,10 +634,14 @@ abstract class TestRunner {
         ? doc(
             watchEntity.doc.key,
             watchEntity.doc.version,
-            watchEntity.doc.value,
-            watchEntity.doc.options
+            watchEntity.doc.value
           )
         : deletedDoc(watchEntity.doc.key, watchEntity.doc.version);
+      if (watchEntity.doc.options?.hasCommittedMutations) {
+        document.setHasCommittedMutations();
+      } else if (watchEntity.doc.options?.hasLocalMutations) {
+        document.setHasLocalMutations();
+      }
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
@@ -1008,31 +1017,16 @@ abstract class TestRunner {
   }
 
   private validateEnqueuedLimboDocs(): void {
-    let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine).forEach(
-      key => {
-        actualLimboDocs = actualLimboDocs.add(key);
-      }
+    const actualLimboDocs = Array.from(
+      syncEngineGetEnqueuedLimboDocumentResolutions(this.syncEngine)
     );
-    let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    this.expectedEnqueuedLimboDocs.forEach(key => {
-      expectedLimboDocs = expectedLimboDocs.add(key);
-    });
-    actualLimboDocs.forEach(key => {
-      expect(expectedLimboDocs.has(key)).to.equal(
-        true,
-        `Found enqueued limbo doc ${key.toString()}, but it was not in ` +
-          `the set of expected enqueued limbo documents ` +
-          `(${expectedLimboDocs.toString()})`
-      );
-    });
-    expectedLimboDocs.forEach(key => {
-      expect(actualLimboDocs.has(key)).to.equal(
-        true,
-        `Expected doc ${key.toString()} to be enqueued for limbo resolution, ` +
-          `but it was not in the queue (${actualLimboDocs.toString()})`
-      );
-    });
+    const expectedLimboDocs = Array.from(this.expectedEnqueuedLimboDocs, key =>
+      key.path.canonicalString()
+    );
+    expect(actualLimboDocs).to.have.members(
+      expectedLimboDocs,
+      'The set of enqueued limbo documents is incorrect'
+    );
   }
 
   private async validateActiveTargets(): Promise<void> {
@@ -1156,14 +1150,15 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
+    const document = doc(change.key, change.version, change.value || {});
+    if (change.options?.hasCommittedMutations) {
+      document.setHasCommittedMutations();
+    } else if (change.options?.hasLocalMutations) {
+      document.setHasLocalMutations();
+    }
     return {
       type,
-      doc: doc(
-        change.key,
-        change.version,
-        change.value || {},
-        change.options || {}
-      )
+      doc: document
     };
   }
 }

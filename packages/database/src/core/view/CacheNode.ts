@@ -16,7 +16,7 @@
  */
 
 import { Node } from '../snap/Node';
-import { Path } from '../util/Path';
+import { Path, pathGetFront, pathIsEmpty } from '../util/Path';
 
 /**
  * A cache node only stores complete children. Additionally it holds a flag whether the node can be considered fully
@@ -25,11 +25,6 @@ import { Path } from '../util/Path';
  * whether a node potentially had children removed due to a filter.
  */
 export class CacheNode {
-  /**
-   * @param {!Node} node_
-   * @param {boolean} fullyInitialized_
-   * @param {boolean} filtered_
-   */
   constructor(
     private node_: Node,
     private fullyInitialized_: boolean,
@@ -38,7 +33,6 @@ export class CacheNode {
 
   /**
    * Returns whether this node was fully initialized with either server data or a complete overwrite by the client
-   * @return {boolean}
    */
   isFullyInitialized(): boolean {
     return this.fullyInitialized_;
@@ -46,38 +40,26 @@ export class CacheNode {
 
   /**
    * Returns whether this node is potentially missing children due to a filter applied to the node
-   * @return {boolean}
    */
   isFiltered(): boolean {
     return this.filtered_;
   }
 
-  /**
-   * @param {!Path} path
-   * @return {boolean}
-   */
   isCompleteForPath(path: Path): boolean {
-    if (path.isEmpty()) {
+    if (pathIsEmpty(path)) {
       return this.isFullyInitialized() && !this.filtered_;
     }
 
-    const childKey = path.getFront();
+    const childKey = pathGetFront(path);
     return this.isCompleteForChild(childKey);
   }
 
-  /**
-   * @param {!string} key
-   * @return {boolean}
-   */
   isCompleteForChild(key: string): boolean {
     return (
       (this.isFullyInitialized() && !this.filtered_) || this.node_.hasChild(key)
     );
   }
 
-  /**
-   * @return {!Node}
-   */
   getNode(): Node {
     return this.node_;
   }

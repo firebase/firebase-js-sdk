@@ -19,8 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
-import * as externs from '@firebase/auth-types-exp';
-import { OperationType } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, OperationType } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -29,7 +28,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
-import { UserCredential } from '../../model/user';
+import { UserCredentialInternal } from '../../model/user';
 import {
   isSignInWithEmailLink,
   sendSignInLinkToEmail,
@@ -60,7 +59,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       url: 'continue-url'
     });
     expect(mock.calls[0].request).to.eql({
-      requestType: externs.ActionCodeOperation.EMAIL_SIGNIN,
+      requestType: ActionCodeOperation.EMAIL_SIGNIN,
       email,
       canHandleCodeInApp: true,
       continueUrl: 'continue-url'
@@ -68,10 +67,12 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
   });
 
   it('should require handleCodeInApp to be true', async () => {
-    await expect(sendSignInLinkToEmail(auth, email)).to.be.rejectedWith(
-      FirebaseError,
-      'auth/argument-error).'
-    );
+    await expect(
+      sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: false,
+        url: 'continue-url'
+      })
+    ).to.be.rejectedWith(FirebaseError, 'auth/argument-error).');
   });
 
   it('should surface errors', async () => {
@@ -112,7 +113,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       });
 
       expect(mock.calls[0].request).to.eql({
-        requestType: externs.ActionCodeOperation.EMAIL_SIGNIN,
+        requestType: ActionCodeOperation.EMAIL_SIGNIN,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -138,7 +139,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         dynamicLinkDomain: 'fdl-domain'
       });
       expect(mock.calls[0].request).to.eql({
-        requestType: externs.ActionCodeOperation.EMAIL_SIGNIN,
+        requestType: ActionCodeOperation.EMAIL_SIGNIN,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -248,7 +249,7 @@ describe('core/strategies/email_and_password/signInWithEmailLink', () => {
       auth,
       'some-email',
       actionLink
-    )) as UserCredential;
+    )) as UserCredentialInternal;
     expect(_tokenResponse).to.eql({
       idToken: 'id-token',
       refreshToken: 'refresh-token',

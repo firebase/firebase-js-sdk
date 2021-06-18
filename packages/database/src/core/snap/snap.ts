@@ -16,10 +16,11 @@
  */
 
 import { assert, contains } from '@firebase/util';
+
+import { Indexable } from '../util/misc';
 import { doubleToIEEE754String } from '../util/util';
 
 import { Node } from './Node';
-import { Indexable } from '../util/misc';
 
 let MAX_NODE: Node;
 
@@ -27,10 +28,6 @@ export function setMaxNode(val: Node) {
   MAX_NODE = val;
 }
 
-/**
- * @param {(!string|!number)} priority
- * @return {!string}
- */
 export const priorityHashText = function (priority: string | number): string {
   if (typeof priority === 'number') {
     return 'number:' + doubleToIEEE754String(priority);
@@ -41,8 +38,6 @@ export const priorityHashText = function (priority: string | number): string {
 
 /**
  * Validates that a priority snapshot Node is valid.
- *
- * @param {!Node} priorityNode
  */
 export const validatePriorityNode = function (priorityNode: Node) {
   if (priorityNode.isLeafNode()) {

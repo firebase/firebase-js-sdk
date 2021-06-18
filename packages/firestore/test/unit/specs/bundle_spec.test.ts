@@ -22,8 +22,8 @@ import { LimitType } from '../../../src/protos/firestore_bundle_proto';
 import { toVersion } from '../../../src/remote/serializer';
 import {
   doc,
-  query,
   filter,
+  query,
   TestSnapshotVersion,
   version,
   wrapObject
@@ -76,7 +76,7 @@ function bundleWithDocumentAndQuery(
       testDoc.key,
       toVersion(JSON_SERIALIZER, version(testDoc.createTime)),
       toVersion(JSON_SERIALIZER, version(testDoc.updateTime!)),
-      wrapObject(testDoc.content!).proto.mapValue.fields!
+      wrapObject(testDoc.content!).value.mapValue.fields!
     );
   }
   return builder.build(
@@ -85,7 +85,7 @@ function bundleWithDocumentAndQuery(
   );
 }
 
-describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
+describeSpec('Bundles:', ['no-ios'], () => {
   specTest('Newer docs from bundles should overwrite cache', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { value: 'a' });
@@ -187,12 +187,9 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           .userPatches('collection/a', { value: 'patched' })
           .expectEvents(query1, {
             modified: [
-              doc(
-                'collection/a',
-                250,
-                { value: 'patched' },
-                { hasLocalMutations: true }
-              )
+              doc('collection/a', 250, {
+                value: 'patched'
+              }).setHasLocalMutations()
             ],
             hasPendingWrites: true
           })
@@ -236,12 +233,9 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           .userPatches('collection/a', { value: 'patched' })
           .expectEvents(query1, {
             modified: [
-              doc(
-                'collection/a',
-                250,
-                { value: 'patched' },
-                { hasLocalMutations: true }
-              )
+              doc('collection/a', 250, {
+                value: 'patched'
+              }).setHasLocalMutations()
             ],
             hasPendingWrites: true
           })

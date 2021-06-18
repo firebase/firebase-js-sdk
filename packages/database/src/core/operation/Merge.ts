@@ -15,20 +15,21 @@
  * limitations under the License.
  */
 
+import { assert } from '@firebase/util';
+
+import { Node } from '../snap/Node';
+import { ImmutableTree } from '../util/ImmutableTree';
+import {
+  newEmptyPath,
+  Path,
+  pathGetFront,
+  pathIsEmpty,
+  pathPopFront
+} from '../util/Path';
+
 import { Operation, OperationSource, OperationType } from './Operation';
 import { Overwrite } from './Overwrite';
-import { Path } from '../util/Path';
-import { assert } from '@firebase/util';
-import { ImmutableTree } from '../util/ImmutableTree';
-import { Node } from '../snap/Node';
 
-/**
- * @param {!OperationSource} source
- * @param {!Path} path
- * @param {!ImmutableTree.<!Node>} children
- * @constructor
- * @implements {Operation}
- */
 export class Merge implements Operation {
   /** @inheritDoc */
   type = OperationType.MERGE;
@@ -38,35 +39,27 @@ export class Merge implements Operation {
     /** @inheritDoc */ public path: Path,
     /** @inheritDoc */ public children: ImmutableTree<Node>
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   operationForChild(childName: string): Operation {
-    if (this.path.isEmpty()) {
+    if (pathIsEmpty(this.path)) {
       const childTree = this.children.subtree(new Path(childName));
       if (childTree.isEmpty()) {
         // This child is unaffected
         return null;
       } else if (childTree.value) {
         // We have a snapshot for the child in question.  This becomes an overwrite of the child.
-        return new Overwrite(this.source, Path.Empty, childTree.value);
+        return new Overwrite(this.source, newEmptyPath(), childTree.value);
       } else {
         // This is a merge at a deeper level
-        return new Merge(this.source, Path.Empty, childTree);
+        return new Merge(this.source, newEmptyPath(), childTree);
       }
     } else {
       assert(
-        this.path.getFront() === childName,
+        pathGetFront(this.path) === childName,
         "Can't get a merge for a child not on the path of the operation"
       );
-      return new Merge(this.source, this.path.popFront(), this.children);
+      return new Merge(this.source, pathPopFront(this.path), this.children);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   toString(): string {
     return (
       'Operation(' +

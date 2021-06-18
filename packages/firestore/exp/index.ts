@@ -1,4 +1,10 @@
 /**
+ * Cloud Firestore
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *
@@ -19,106 +25,4 @@ import { registerFirestore } from './register';
 
 registerFirestore();
 
-export { FieldPath, documentId } from '../src/exp/field_path';
-
-export {
-  FirebaseFirestore,
-  initializeFirestore,
-  getFirestore,
-  enableIndexedDbPersistence,
-  enableMultiTabIndexedDbPersistence,
-  clearIndexedDbPersistence,
-  waitForPendingWrites,
-  disableNetwork,
-  enableNetwork,
-  terminate,
-  useFirestoreEmulator
-} from '../src/exp/database';
-
-export { Settings, PersistenceSettings } from '../src/exp/settings';
-
-export {
-  DocumentChange,
-  DocumentSnapshot,
-  QueryDocumentSnapshot,
-  QuerySnapshot,
-  snapshotEqual,
-  SnapshotOptions,
-  FirestoreDataConverter,
-  DocumentChangeType,
-  SnapshotMetadata
-} from '../src/exp/snapshot';
-
-export {
-  DocumentReference,
-  CollectionReference,
-  Query,
-  doc,
-  collection,
-  collectionGroup,
-  SetOptions,
-  DocumentData,
-  UpdateData,
-  refEqual,
-  queryEqual
-} from '../src/exp/reference';
-
-export {
-  endAt,
-  endBefore,
-  startAt,
-  startAfter,
-  limit,
-  limitToLast,
-  where,
-  orderBy,
-  query,
-  QueryConstraint,
-  QueryConstraintType,
-  OrderByDirection,
-  WhereFilterOp
-} from '../src/exp/query';
-
-export { Unsubscribe } from '../src/exp/reference_impl';
-
-export { runTransaction, Transaction } from '../src/exp/transaction';
-
-export {
-  SnapshotListenOptions,
-  getDoc,
-  getDocFromCache,
-  getDocFromServer,
-  getDocs,
-  getDocsFromCache,
-  getDocsFromServer,
-  onSnapshot,
-  onSnapshotsInSync,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  addDoc
-} from '../src/exp/reference_impl';
-
-export { FieldValue } from '../src/exp/field_value';
-
-export {
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp,
-  deleteField
-} from '../src/exp/field_value_impl';
-
-export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
-
-export { Bytes } from '../src/exp/bytes';
-
-export { WriteBatch, writeBatch } from '../src/exp/write_batch';
-
-export { GeoPoint } from '../src/exp/geo_point';
-
-export { Timestamp } from '../src/exp/timestamp';
-
-export { CACHE_SIZE_UNLIMITED } from '../src/exp/database';
-
-export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+export * from './api';

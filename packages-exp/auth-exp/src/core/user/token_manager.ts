@@ -17,7 +17,7 @@
 
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { requestStsToken } from '../../api/authentication/token';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
@@ -27,13 +27,17 @@ import { _tokenExpiresIn } from './id_token_result';
 /**
  * The number of milliseconds before the official expiration time of a token
  * to refresh that token, to provide a buffer for RPCs to complete.
- *
- * @internal
  */
 export const enum Buffer {
   TOKEN_REFRESH = 30_000
 }
 
+/**
+ * We need to mark this class as internal explicitly to exclude it in the public typings, because
+ * it references AuthInternal which has a circular dependency with UserInternal.
+ *
+ * @internal
+ */
 export class StsTokenManager {
   refreshToken: string | null = null;
   accessToken: string | null = null;
@@ -69,7 +73,10 @@ export class StsTokenManager {
     );
   }
 
-  async getToken(auth: Auth, forceRefresh = false): Promise<string | null> {
+  async getToken(
+    auth: AuthInternal,
+    forceRefresh = false
+  ): Promise<string | null> {
     _assert(
       !this.accessToken || this.refreshToken,
       auth,
@@ -92,7 +99,7 @@ export class StsTokenManager {
     this.refreshToken = null;
   }
 
-  private async refresh(auth: Auth, oldToken: string): Promise<void> {
+  private async refresh(auth: AuthInternal, oldToken: string): Promise<void> {
     const { accessToken, refreshToken, expiresIn } = await requestStsToken(
       auth,
       oldToken

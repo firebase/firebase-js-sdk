@@ -4,6 +4,8 @@
 
 ## FirestoreError.code property
 
+The backend error code associated with this error.
+
 <b>Signature:</b>
 
 ```typescript

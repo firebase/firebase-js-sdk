@@ -15,88 +15,78 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  AuthSettings,
+  Config,
+  EmulatorConfig,
+  PopupRedirectResolver,
+  User
+} from './public_types';
 import { ErrorFactory } from '@firebase/util';
 import { AuthErrorCode, AuthErrorParams } from '../core/errors';
 
-import { PopupRedirectResolver } from './popup_redirect';
-import { User } from './user';
+import { PopupRedirectResolverInternal } from './popup_redirect';
+import { UserInternal } from './user';
+import { ClientPlatform } from '../core/util/version';
 
-/** @internal */
 export type AppName = string;
-/** @internal */
 export type ApiKey = string;
-/** @internal */
 export type AuthDomain = string;
 
-/** @internal */
-export interface ConfigInternal extends externs.Config {
+export interface ConfigInternal extends Config {
   /**
-   * @internal
    * @readonly
    */
   emulator?: {
     url: string;
   };
+
+  /**
+   * @readonly
+   */
+  clientPlatform: ClientPlatform;
 }
 
-/** @internal */
-export interface Auth extends externs.Auth {
-  /** @internal */
-  currentUser: externs.User | null;
-  /** @internal */
+/**
+ * UserInternal and AuthInternal reference each other, so both of them are included in the public typings.
+ * In order to exclude them, we mark them as internal explicitly.
+ *
+ * @internal
+ */
+export interface AuthInternal extends Auth {
+  currentUser: User | null;
+  emulatorConfig: EmulatorConfig | null;
   _canInitEmulator: boolean;
-  /** @internal */
   _isInitialized: boolean;
-  /** @internal */
   _initializationPromise: Promise<void> | null;
-  /** @internal */
-  _updateCurrentUser(user: User | null): Promise<void>;
+  _updateCurrentUser(user: UserInternal | null): Promise<void>;
 
-  /** @internal */
   _onStorageEvent(): void;
 
-  /** @internal */
-  _notifyListenersIfCurrent(user: User): void;
-  /** @internal */
-  _persistUserIfCurrent(user: User): Promise<void>;
-  /** @internal */
+  _notifyListenersIfCurrent(user: UserInternal): void;
+  _persistUserIfCurrent(user: UserInternal): Promise<void>;
   _setRedirectUser(
-    user: User | null,
-    popupRedirectResolver?: externs.PopupRedirectResolver
+    user: UserInternal | null,
+    popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void>;
-  /** @internal */
-  _redirectUserForId(id: string): Promise<User | null>;
-  /** @internal */
-  _popupRedirectResolver: PopupRedirectResolver | null;
-  /** @internal */
+  _redirectUserForId(id: string): Promise<UserInternal | null>;
+  _popupRedirectResolver: PopupRedirectResolverInternal | null;
   _key(): string;
-  /** @internal */
   _startProactiveRefresh(): void;
-  /** @internal */
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
+  _logFramework(framework: string): void;
+  _getFrameworks(): readonly string[];
+  _getSdkClientVersion(): string;
 
-  /** @internal */
   readonly name: AppName;
-  /** @internal */
   readonly config: ConfigInternal;
-  /** @internal */
   languageCode: string | null;
-  /** @internal */
   tenantId: string | null;
-  /** @internal */
-  readonly settings: externs.AuthSettings;
+  readonly settings: AuthSettings;
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams>;
 
-  /** @internal */
   useDeviceLanguage(): void;
-  /** @internal */
   signOut(): Promise<void>;
-}
-
-export interface Dependencies {
-  persistence?: externs.Persistence | externs.Persistence[];
-  popupRedirectResolver?: externs.PopupRedirectResolver;
-  errorMap?: externs.AuthErrorMap;
 }

@@ -43,7 +43,8 @@ import { StorageService } from '../../src/service';
 import {
   assertObjectIncludes,
   fakeXhrIo,
-  fakeAuthProvider
+  fakeAuthProvider,
+  fakeAppCheckTokenProvider
 } from './testshared';
 import {
   DEFAULT_HOST,
@@ -80,6 +81,7 @@ describe('Firebase Storage > Requests', () => {
   const storageService = new StorageService(
     mockApp,
     fakeAuthProvider,
+    fakeAppCheckTokenProvider,
     new XhrIoPool()
   );
 
@@ -200,7 +202,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = getMetadata(storageService, location, mappings);
       assertObjectIncludes(
         {
-          url: makeUrl(url),
+          url: makeUrl(url, storageService.host),
           method: 'GET',
           body: null,
           headers: {},
@@ -220,7 +222,7 @@ describe('Firebase Storage > Requests', () => {
     const requestInfo = list(storageService, locationRoot, '/');
     assertObjectIncludes(
       {
-        url: makeUrl(locationNormalNoObjUrl),
+        url: makeUrl(locationNormalNoObjUrl, storageService.host),
         method: 'GET',
         body: null,
         headers: {},
@@ -250,7 +252,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: makeUrl(locationNoObjectUrl),
+          url: makeUrl(locationNoObjectUrl, storageService.host),
           method: 'GET',
           body: null,
           headers: {},
@@ -317,7 +319,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = getDownloadUrl(storageService, location, mappings);
       assertObjectIncludes(
         {
-          url: makeUrl(url),
+          url: makeUrl(url, storageService.host),
           method: 'GET',
           body: null,
           headers: {},
@@ -352,7 +354,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: makeUrl(url),
+          url: makeUrl(url, storageService.host),
           method: 'PATCH',
           body: metadataString,
           headers: { 'Content-Type': metadataContentType },
@@ -383,7 +385,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = deleteObject(storageService, location);
       assertObjectIncludes(
         {
-          url: makeUrl(url),
+          url: makeUrl(url, storageService.host),
           method: 'DELETE',
           body: null,
           headers: {},
@@ -448,7 +450,7 @@ describe('Firebase Storage > Requests', () => {
 
       assertObjectIncludes(
         {
-          url: makeUrl(url),
+          url: makeUrl(url, storageService.host),
           method: 'POST',
           urlParams: { name: location.path },
           headers: {
@@ -493,7 +495,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: makeUrl(url),
+          url: makeUrl(url, storageService.host),
           method: 'POST',
           urlParams: { name: location.path },
           headers: {

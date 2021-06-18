@@ -32,5 +32,5 @@ export declare class GeoPoint
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [isEqual(other)](./firestore_lite.geopoint.isequal.md) |  | Returns true if this <code>GeoPoint</code> is equal to the provided one. |
-|  [toJSON()](./firestore_lite.geopoint.tojson.md) |  |  |
+|  [toJSON()](./firestore_lite.geopoint.tojson.md) |  | Returns a JSON-serializable representation of this GeoPoint. |
 

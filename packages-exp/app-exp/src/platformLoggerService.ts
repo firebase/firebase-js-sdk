@@ -21,8 +21,9 @@ import {
   Provider,
   Name
 } from '@firebase/component';
+import { PlatformLoggerService, VersionService } from './types';
 
-export class PlatformLoggerService {
+export class PlatformLoggerServiceImpl implements PlatformLoggerService {
   constructor(private readonly container: ComponentContainer) {}
   // In initial implementation, this will be called by installations on
   // auth token refresh, and installations will send this string.
@@ -33,7 +34,7 @@ export class PlatformLoggerService {
     return providers
       .map(provider => {
         if (isVersionServiceProvider(provider)) {
-          const service = provider.getImmediate();
+          const service = provider.getImmediate() as VersionService;
           return `${service.library}/${service.version}`;
         } else {
           return null;
@@ -51,9 +52,7 @@ export class PlatformLoggerService {
  * provides VersionService. The provider is not necessarily a 'app-version'
  * provider.
  */
-function isVersionServiceProvider(
-  provider: Provider<Name>
-): provider is Provider<'app-version'> {
+function isVersionServiceProvider(provider: Provider<Name>): boolean {
   const component = provider.getComponent();
   return component?.type === ComponentType.VERSION;
 }

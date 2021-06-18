@@ -25,20 +25,19 @@ import { jsonEval, stringify } from '@firebase/util';
  * We automatically (see storage.js) create two such wrappers, one for sessionStorage,
  * and one for localStorage.
  *
- * @constructor
  */
 export class DOMStorageWrapper {
   // Use a prefix to avoid collisions with other stuff saved by the app.
   private prefix_ = 'firebase:';
 
   /**
-   * @param {Storage} domStorage_ The underlying storage object (e.g. localStorage or sessionStorage)
+   * @param domStorage_ - The underlying storage object (e.g. localStorage or sessionStorage)
    */
   constructor(private domStorage_: Storage) {}
 
   /**
-   * @param {string} key The key to save the value under
-   * @param {?Object} value The value being stored, or null to remove the key.
+   * @param key - The key to save the value under
+   * @param value - The value being stored, or null to remove the key.
    */
   set(key: string, value: unknown | null) {
     if (value == null) {
@@ -49,8 +48,7 @@ export class DOMStorageWrapper {
   }
 
   /**
-   * @param {string} key
-   * @return {*} The value that was stored under this key, or null
+   * @returns The value that was stored under this key, or null
    */
   get(key: string): unknown {
     const storedVal = this.domStorage_.getItem(this.prefixedName_(key));
@@ -61,19 +59,12 @@ export class DOMStorageWrapper {
     }
   }
 
-  /**
-   * @param {string} key
-   */
   remove(key: string) {
     this.domStorage_.removeItem(this.prefixedName_(key));
   }
 
   isInMemoryStorage: boolean;
 
-  /**
-   * @param {string} name
-   * @return {string}
-   */
   prefixedName_(name: string): string {
     return this.prefix_ + name;
   }

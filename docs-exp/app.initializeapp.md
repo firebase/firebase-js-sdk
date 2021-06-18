@@ -18,12 +18,12 @@ export declare function initializeApp(options: FirebaseOptions, name?: string): 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FirebaseOptions](./app-types.firebaseoptions.md) | Options to configure the app's services. |
+|  options | [FirebaseOptions](./app.firebaseoptions.md) | Options to configure the app's services. |
 |  name | string | Optional name of the app to initialize. If no name is provided, the default is <code>&quot;[DEFAULT]&quot;</code>. |
 
 <b>Returns:</b>
 
-[FirebaseApp](./app-types.firebaseapp.md)
+[FirebaseApp](./app.firebaseapp.md)
 
 The initialized app.
 

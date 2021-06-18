@@ -4,9 +4,7 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebaseMessaging } from '@firebase/messaging-types-exp';
-import { MessagePayload } from '@firebase/messaging-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
@@ -15,18 +13,59 @@ import { Unsubscribe } from '@firebase/util';
 export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
 
 // @public
-export function getMessaging(app: FirebaseApp): FirebaseMessaging;
+export interface FcmOptions {
+    analyticsLabel?: string;
+    link?: string;
+}
 
 // @public
-export function getToken(messaging: FirebaseMessaging, options?: {
-    vapidKey?: string;
+export interface FirebaseMessaging {
+}
+
+// @internal (undocumented)
+export type _FirebaseMessagingName = 'messaging';
+
+// @public
+export function getMessaging(app?: FirebaseApp): FirebaseMessaging;
+
+// @public
+export function getToken(messaging: FirebaseMessaging, options?: GetTokenOptions): Promise<string>;
+
+// @public
+export interface GetTokenOptions {
     swReg?: ServiceWorkerRegistration;
-}): Promise<string>;
+    vapidKey?: string;
+}
+
+// @public
+export function isSupported(): Promise<boolean>;
+
+// @public
+export interface MessagePayload {
+    collapseKey: string;
+    data?: {
+        [key: string]: string;
+    };
+    fcmOptions?: FcmOptions;
+    from: string;
+    notification?: NotificationPayload;
+}
+
+export { NextFn }
+
+// @public
+export interface NotificationPayload {
+    body?: string;
+    image?: string;
+    title?: string;
+}
+
+export { Observer }
 
 // @public
 export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
 
+export { Unsubscribe }
 
-// (No @packageDocumentation comment for this package)
 
 ```

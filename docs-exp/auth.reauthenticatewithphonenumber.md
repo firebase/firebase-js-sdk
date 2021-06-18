@@ -9,20 +9,20 @@ Re-authenticates a user using a fresh phne credential.
 <b>Signature:</b>
 
 ```typescript
-export declare function reauthenticateWithPhoneNumber(user: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
+export declare function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) | The user. |
+|  user | [User](./auth.user.md) | The user. |
 |  phoneNumber | string | The user's phone number in E.164 format (e.g. +16505550101). |
-|  appVerifier | externs.[ApplicationVerifier](./auth-types.applicationverifier.md) | The [ApplicationVerifier](./auth-types.applicationverifier.md)<!-- -->. |
+|  appVerifier | [ApplicationVerifier](./auth.applicationverifier.md) | The [ApplicationVerifier](./auth.applicationverifier.md)<!-- -->. |
 
 <b>Returns:</b>
 
-Promise&lt;externs.[ConfirmationResult](./auth-types.confirmationresult.md)<!-- -->&gt;
+Promise&lt;[ConfirmationResult](./auth.confirmationresult.md)<!-- -->&gt;
 
 ## Remarks
 

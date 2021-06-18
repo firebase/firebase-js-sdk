@@ -29,7 +29,11 @@ import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { createFirebaseNamespaceLite } from '../src/lite/firebaseNamespaceLite';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstantiationMode
+} from '@firebase/component';
 import './setup';
 
 executeFirebaseTests();
@@ -78,6 +82,67 @@ function executeFirebaseTests(): void {
       const service = (firebase as any).test();
 
       expect(service).to.eq((firebase as any).test());
+    });
+
+    it('does not instantiate explicit components unless called explicitly', () => {
+      firebase.initializeApp({});
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('test').setInstantiationMode(
+          InstantiationMode.EXPLICIT
+        )
+      );
+
+      let explicitService;
+
+      // Expect getImmediate in a consuming component to return null.
+      const consumerComponent = new Component(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'consumer' as any,
+        container => {
+          explicitService = container
+            .getProvider('test' as any)
+            .getImmediate({ optional: true });
+          return new TestService(container.getProvider('app').getImmediate());
+        },
+        ComponentType.PUBLIC
+      );
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        consumerComponent
+      );
+
+      (firebase as any).consumer();
+      expect(explicitService).to.be.null;
+    });
+
+    it('does instantiate explicit components when called explicitly', () => {
+      firebase.initializeApp({});
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('test').setInstantiationMode(
+          InstantiationMode.EXPLICIT
+        )
+      );
+
+      let explicitService;
+
+      // Expect getImmediate in a consuming component to return the service.
+      const consumerComponent = new Component(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'consumer' as any,
+        container => {
+          explicitService = container
+            .getProvider('test' as any)
+            .getImmediate({ optional: true });
+          return new TestService(container.getProvider('app').getImmediate());
+        },
+        ComponentType.PUBLIC
+      );
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        consumerComponent
+      );
+
+      (firebase as any).test();
+      (firebase as any).consumer();
+      expect(explicitService).to.not.be.null;
     });
 
     it(`creates a new instance of a service after removing the existing instance`, () => {
@@ -334,6 +399,11 @@ function firebaseAppTests(
 
     it('Error to get uninitialized app using Object.prototype member name.', () => {
       expect(() => firebase.app('toString')).throws(/'toString'.*created/i);
+    });
+
+    it('JSON.stringify() does not throw', () => {
+      const app = firebase.initializeApp({}, 'new-app');
+      JSON.stringify(app);
     });
 
     describe('Check for bad app names', () => {

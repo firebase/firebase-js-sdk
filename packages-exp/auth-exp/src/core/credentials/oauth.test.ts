@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import { ProviderId, SignInMethod } from '../../model/public_types';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
@@ -165,7 +165,7 @@ describe('core/credentials/oauth', () => {
       expect(request.requestUri).to.eq('http://localhost');
       expect(request.returnSecureToken).to.be.true;
       expect(request.pendingToken).to.eq('pending-token');
-      expect(request.postBody).to.be.null;
+      expect(request.postBody).to.be.undefined;
     });
   });
 

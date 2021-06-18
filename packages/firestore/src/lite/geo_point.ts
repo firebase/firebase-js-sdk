@@ -79,6 +79,7 @@ export class GeoPoint {
     return this._lat === other._lat && this._long === other._long;
   }
 
+  /** Returns a JSON-serializable representation of this GeoPoint. */
   toJSON(): { latitude: number; longitude: number } {
     return { latitude: this._lat, longitude: this._long };
   }

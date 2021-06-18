@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import { ProviderId, SignInMethod } from '../../model/public_types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
 
@@ -33,8 +33,8 @@ describe('core/providers/email', () => {
         'some-email',
         'some-password'
       );
-      expect(credential.email).to.eq('some-email');
-      expect(credential.password).to.eq('some-password');
+      expect(credential._email).to.eq('some-email');
+      expect(credential._password).to.eq('some-password');
       expect(credential.providerId).to.eq(ProviderId.PASSWORD);
       expect(credential.signInMethod).to.eq(SignInMethod.EMAIL_PASSWORD);
     });
@@ -54,8 +54,8 @@ describe('core/providers/email', () => {
         'some-email',
         actionLink
       );
-      expect(credential.email).to.eq('some-email');
-      expect(credential.password).to.eq('CODE');
+      expect(credential._email).to.eq('some-email');
+      expect(credential._password).to.eq('CODE');
       expect(credential.providerId).to.eq(ProviderId.PASSWORD);
       expect(credential.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
     });

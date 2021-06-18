@@ -4,8 +4,10 @@
 
 ## TwitterAuthProvider.PROVIDER\_ID property
 
+Always set to [ProviderId.TWITTER](./auth.providerid.twitter.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
+static readonly PROVIDER_ID = ProviderId.TWITTER;
 ```

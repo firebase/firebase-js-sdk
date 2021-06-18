@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '../src/public-types';
 import { ComponentType, Component } from '@firebase/component';
 
 export class TestService implements _FirebaseService {

@@ -21,11 +21,11 @@ set -o errexit
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NPM_BIN_DIR="$(npm bin)"
-TSNODE="$NPM_BIN_DIR/ts-node"
+TSNODE="$NPM_BIN_DIR/ts-node "
 GENERATE_SPEC_JS="$DIR/generate_spec_json.js"
 
 export TS_NODE_CACHE=NO 
 export TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}' 
 export TS_NODE_PROJECT="$DIR/../../tsconfig.json"
 
-$TSNODE $GENERATE_SPEC_JS "$@"
+$TSNODE --require ../../index.node.ts $GENERATE_SPEC_JS "$@"

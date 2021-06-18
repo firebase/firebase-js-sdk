@@ -19,7 +19,8 @@ import { Service } from './api/service';
 import {
   Component,
   ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  InstanceFactoryOptions
 } from '@firebase/component';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 
@@ -39,11 +40,12 @@ export function registerFunctions(
 
   function factory(
     container: ComponentContainer,
-    regionOrCustomDomain?: string
+    { instanceIdentifier: regionOrCustomDomain }: InstanceFactoryOptions
   ): Service {
     // Dependencies
     const app = container.getProvider('app').getImmediate();
     const authProvider = container.getProvider('auth-internal');
+    const appCheckProvider = container.getProvider('app-check-internal');
     const messagingProvider = container.getProvider('messaging');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,6 +53,7 @@ export function registerFunctions(
       app,
       authProvider,
       messagingProvider,
+      appCheckProvider,
       regionOrCustomDomain,
       fetchImpl
     );

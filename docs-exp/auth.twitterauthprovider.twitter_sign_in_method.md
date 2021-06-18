@@ -4,8 +4,10 @@
 
 ## TwitterAuthProvider.TWITTER\_SIGN\_IN\_METHOD property
 
+Always set to [SignInMethod.TWITTER](./auth.signinmethod.twitter.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
-static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
+static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
 ```

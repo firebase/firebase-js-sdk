@@ -25,6 +25,9 @@ import { StorageService } from '../../src/service';
 import { FirebaseApp } from '@firebase/app-types';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { TestingXhrIo } from './xhrio';
+import { Headers } from '../../src/implementation/xhrio';
 
 const fakeAppGs = testShared.makeFakeApp('gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp('gs://mybucket/');
@@ -38,12 +41,13 @@ function makeGsUrl(child: string = ''): string {
 function makeService(
   app: FirebaseApp,
   authProvider: Provider<FirebaseAuthInternalName>,
+  appCheckProvider: Provider<AppCheckInternalComponentName>,
   pool: XhrIoPool,
   url?: string
 ): StorageServiceCompat {
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(app, authProvider, pool, url)
+    new StorageService(app, authProvider, appCheckProvider, pool, url)
   );
   return storageServiceCompat;
 }
@@ -53,6 +57,7 @@ describe('Firebase Storage > Service', () => {
     const service = makeService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     it('Root refs point to the right place', () => {
@@ -87,6 +92,7 @@ describe('Firebase Storage > Service', () => {
       const service = makeService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         'gs://foo-bar.appspot.com'
       );
@@ -97,6 +103,7 @@ describe('Firebase Storage > Service', () => {
       const service = makeService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         `http://${DEFAULT_HOST}/v1/b/foo-bar.appspot.com/o`
       );
@@ -107,6 +114,7 @@ describe('Firebase Storage > Service', () => {
       const service = makeService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         `https://${DEFAULT_HOST}/v1/b/foo-bar.appspot.com/o`
       );
@@ -118,6 +126,7 @@ describe('Firebase Storage > Service', () => {
       const service = makeService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         'foo-bar.appspot.com'
       );
@@ -128,6 +137,7 @@ describe('Firebase Storage > Service', () => {
       const service = makeService(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool,
         'foo-bar.appspot.com'
       );
@@ -139,6 +149,7 @@ describe('Firebase Storage > Service', () => {
         makeService(
           testShared.fakeApp,
           testShared.fakeAuthProvider,
+          testShared.fakeAppCheckTokenProvider,
           xhrIoPool,
           'gs://bucket/object/'
         );
@@ -151,6 +162,7 @@ describe('Firebase Storage > Service', () => {
       const service = makeService(
         fakeAppGs,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool
       );
       expect(service.ref().toString()).to.equal('gs://mybucket/');
@@ -159,20 +171,53 @@ describe('Firebase Storage > Service', () => {
       const service = makeService(
         fakeAppGsEndingSlash,
         testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
         xhrIoPool
       );
       expect(service.ref().toString()).to.equal('gs://mybucket/');
     });
     it('Throws when config bucket is gs:// with an object path', () => {
       testShared.assertThrows(() => {
-        makeService(fakeAppInvalidGs, testShared.fakeAuthProvider, xhrIoPool);
+        makeService(
+          fakeAppInvalidGs,
+          testShared.fakeAuthProvider,
+          testShared.fakeAppCheckTokenProvider,
+          xhrIoPool
+        );
       }, 'storage/invalid-default-bucket');
+    });
+  });
+  describe('useStorageEmulator(service, host, port)', () => {
+    it('sets emulator host correctly', done => {
+      function newSend(
+        xhrio: TestingXhrIo,
+        url: string,
+        method: string,
+        body?: ArrayBufferView | Blob | string | null,
+        headers?: Headers
+      ): void {
+        // Expect emulator host to be in url of storage operations requests,
+        // in this case getDownloadURL.
+        expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
+        xhrio.abort();
+        done();
+      }
+      const service = makeService(
+        testShared.fakeApp,
+        testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
+        testShared.makePool(newSend)
+      );
+      service.useEmulator('test.host.org', 1234);
+      expect(service._delegate.host).to.equal('http://test.host.org:1234');
+      void service.ref('test.png').getDownloadURL();
     });
   });
   describe('refFromURL', () => {
     const service = makeService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     it('Works with gs:// URLs', () => {
@@ -231,6 +276,7 @@ GOOG4-RSA-SHA256`
     const service = makeService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     describe('ref', () => {
@@ -280,6 +326,7 @@ GOOG4-RSA-SHA256`
     const service = makeService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       xhrIoPool
     );
     it('In-flight requests are canceled when the service is deleted', async () => {
@@ -298,7 +345,7 @@ GOOG4-RSA-SHA256`
     });
     it('Running uploads fail when the service is deleted', () => {
       const ref = service.refFromURL('gs://mybucket/image.jpg');
-      const toReturn = new Promise((resolve, reject) => {
+      const toReturn = new Promise<void>((resolve, reject) => {
         ref.put(new Blob(['a'])).on(
           TaskEvent.STATE_CHANGED,
           null,

@@ -22,7 +22,6 @@ import { DocumentReference, UserDataWriter } from '../../../src/api/database';
 import { FieldValue } from '../../../src/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
-import { parseQueryValue } from '../../../src/api/user_data_reader';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
   LimitType,
@@ -47,6 +46,7 @@ import {
   targetEquals,
   TargetImpl
 } from '../../../src/core/target';
+import { parseQueryValue } from '../../../src/lite/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';
 import {
@@ -797,7 +797,7 @@ export function serializerTest(
       const d = doc('foo/bar', 42, { a: 5, b: 'b' });
       const proto = {
         name: toName(s, d.key),
-        fields: d.toProto().mapValue.fields,
+        fields: d.data.value.mapValue.fields,
         updateTime: toVersion(s, d.version)
       };
       const serialized = toDocument(s, d);

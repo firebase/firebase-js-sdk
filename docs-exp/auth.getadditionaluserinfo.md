@@ -4,21 +4,21 @@
 
 ## getAdditionalUserInfo() function
 
-Extracts provider specific [AdditionalUserInfo](./auth-types.additionaluserinfo.md) for the given credential.
+Extracts provider specific [AdditionalUserInfo](./auth.additionaluserinfo.md) for the given credential.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getAdditionalUserInfo(userCredential: externs.UserCredential): externs.AdditionalUserInfo | null;
+export declare function getAdditionalUserInfo(userCredential: UserCredential): AdditionalUserInfo | null;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userCredential | externs.[UserCredential](./auth-types.usercredential.md) | The user credential. |
+|  userCredential | [UserCredential](./auth.usercredential.md) | The user credential. |
 
 <b>Returns:</b>
 
-externs.[AdditionalUserInfo](./auth-types.additionaluserinfo.md) \| null
+[AdditionalUserInfo](./auth.additionaluserinfo.md) \| null
 

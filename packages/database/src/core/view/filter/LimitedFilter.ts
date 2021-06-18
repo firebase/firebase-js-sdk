@@ -15,67 +15,43 @@
  * limitations under the License.
  */
 
-import { RangedFilter } from './RangedFilter';
-import { ChildrenNode } from '../../snap/ChildrenNode';
-import { Node, NamedNode } from '../../snap/Node';
 import { assert } from '@firebase/util';
-import { Change } from '../Change';
-import { NodeFilter } from './NodeFilter';
+
+import { ChildrenNode } from '../../snap/ChildrenNode';
 import { Index } from '../../snap/indexes/Index';
-import { IndexedFilter } from './IndexedFilter';
-import { QueryParams } from '../QueryParams';
+import { NamedNode, Node } from '../../snap/Node';
 import { Path } from '../../util/Path';
-import { CompleteChildSource } from '../CompleteChildSource';
+import {
+  changeChildAdded,
+  changeChildChanged,
+  changeChildRemoved
+} from '../Change';
 import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
+import { CompleteChildSource } from '../CompleteChildSource';
+import { QueryParams } from '../QueryParams';
+
+import { IndexedFilter } from './IndexedFilter';
+import { NodeFilter } from './NodeFilter';
+import { RangedFilter } from './RangedFilter';
 
 /**
  * Applies a limit and a range to a node and uses RangedFilter to do the heavy lifting where possible
- *
- * @constructor
- * @implements {NodeFilter}
  */
 export class LimitedFilter implements NodeFilter {
-  /**
-   * @const
-   * @type {RangedFilter}
-   * @private
-   */
   private readonly rangedFilter_: RangedFilter;
 
-  /**
-   * @const
-   * @type {!Index}
-   * @private
-   */
   private readonly index_: Index;
 
-  /**
-   * @const
-   * @type {number}
-   * @private
-   */
   private readonly limit_: number;
 
-  /**
-   * @const
-   * @type {boolean}
-   * @private
-   */
   private readonly reverse_: boolean;
 
-  /**
-   * @param {!QueryParams} params
-   */
   constructor(params: QueryParams) {
     this.rangedFilter_ = new RangedFilter(params);
     this.index_ = params.getIndex();
     this.limit_ = params.getLimit();
     this.reverse_ = !params.isViewFromLeft();
   }
-
-  /**
-   * @inheritDoc
-   */
   updateChild(
     snap: Node,
     key: string,
@@ -111,10 +87,6 @@ export class LimitedFilter implements NodeFilter {
       );
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   updateFullNode(
     oldSnap: Node,
     newSnap: Node,
@@ -212,45 +184,20 @@ export class LimitedFilter implements NodeFilter {
       .getIndexedFilter()
       .updateFullNode(oldSnap, filtered, optChangeAccumulator);
   }
-
-  /**
-   * @inheritDoc
-   */
   updatePriority(oldSnap: Node, newPriority: Node): Node {
     // Don't support priorities on queries
     return oldSnap;
   }
-
-  /**
-   * @inheritDoc
-   */
   filtersNodes(): boolean {
     return true;
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndexedFilter(): IndexedFilter {
     return this.rangedFilter_.getIndexedFilter();
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndex(): Index {
     return this.index_;
   }
 
-  /**
-   * @param {!Node} snap
-   * @param {string} childKey
-   * @param {!Node} childSnap
-   * @param {!CompleteChildSource} source
-   * @param {?ChildChangeAccumulator} changeAccumulator
-   * @return {!Node}
-   * @private
-   */
   private fullLimitUpdateChild_(
     snap: Node,
     childKey: string,
@@ -300,14 +247,14 @@ export class LimitedFilter implements NodeFilter {
       if (remainsInWindow) {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childChangedChange(childKey, childSnap, oldChildSnap)
+            changeChildChanged(childKey, childSnap, oldChildSnap)
           );
         }
         return oldEventCache.updateImmediateChild(childKey, childSnap);
       } else {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childRemovedChange(childKey, oldChildSnap)
+            changeChildRemoved(childKey, oldChildSnap)
           );
         }
         const newEventCache = oldEventCache.updateImmediateChild(
@@ -319,7 +266,7 @@ export class LimitedFilter implements NodeFilter {
         if (nextChildInRange) {
           if (changeAccumulator != null) {
             changeAccumulator.trackChildChange(
-              Change.childAddedChange(nextChild.name, nextChild.node)
+              changeChildAdded(nextChild.name, nextChild.node)
             );
           }
           return newEventCache.updateImmediateChild(
@@ -337,10 +284,10 @@ export class LimitedFilter implements NodeFilter {
       if (cmp(windowBoundary, newChildNamedNode) >= 0) {
         if (changeAccumulator != null) {
           changeAccumulator.trackChildChange(
-            Change.childRemovedChange(windowBoundary.name, windowBoundary.node)
+            changeChildRemoved(windowBoundary.name, windowBoundary.node)
           );
           changeAccumulator.trackChildChange(
-            Change.childAddedChange(childKey, childSnap)
+            changeChildAdded(childKey, childSnap)
           );
         }
         return oldEventCache

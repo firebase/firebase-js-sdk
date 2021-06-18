@@ -15,22 +15,49 @@
  * limitations under the License.
  */
 
-import { _getProvider } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
-import * as externs from '@firebase/auth-types-exp';
+import { _getProvider, FirebaseApp } from '@firebase/app-exp';
+import { Auth, Dependencies } from '../../model/public_types';
 
-import { Dependencies } from '../../model/auth';
-import { Persistence } from '../persistence';
+import { AuthErrorCode } from '../errors';
+import { PersistenceInternal } from '../persistence';
+import { _fail } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { AuthImpl } from './auth_impl';
 
-/** @public */
-export function initializeAuth(
-  app: FirebaseApp,
-  deps?: Dependencies
-): externs.Auth {
-  const auth = _getProvider(app, 'auth-exp').getImmediate() as AuthImpl;
-  _initializeAuthInstance(auth, deps);
+/**
+ * Initializes an Auth instance with fine-grained control over
+ * {@link Dependencies}.
+ *
+ * @remarks
+ *
+ * This function allows more control over the Auth instance than
+ * {@link getAuth}. `getAuth` uses platform-specific defaults to supply
+ * the {@link Dependencies}. In general, `getAuth` is the easiest way to
+ * initialize Auth and works for most use cases. Use `initializeAuth` if you
+ * need control over which persistence layer is used, or to minimize bundle
+ * size if you're not using either `signInWithPopup` or `signInWithRedirect`.
+ *
+ * For example, if your app only uses anonymous accounts and you only want
+ * accounts saved for the current session, initialize Auth with:
+ *
+ * ```js
+ * const auth = initializeAuth(app, {
+ *   persistence: browserSessionPersistence,
+ *   popupRedirectResolver: undefined,
+ * });
+ * ```
+ *
+ * @public
+ */
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
+  const provider = _getProvider(app, 'auth-exp');
+
+  if (provider.isInitialized()) {
+    const auth = provider.getImmediate() as AuthImpl;
+    _fail(auth, AuthErrorCode.ALREADY_INITIALIZED);
+  }
+
+  const auth = provider.initialize({ options: deps }) as AuthImpl;
 
   return auth;
 }
@@ -43,7 +70,7 @@ export function _initializeAuthInstance(
   const hierarchy = (Array.isArray(persistence)
     ? persistence
     : [persistence]
-  ).map<Persistence>(_getInstance);
+  ).map<PersistenceInternal>(_getInstance);
   if (deps?.errorMap) {
     auth._updateErrorMap(deps.errorMap);
   }

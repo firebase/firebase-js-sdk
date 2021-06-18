@@ -24,10 +24,11 @@ import {
   getFakeInstallations
 } from '../testing/get-fake-firebase-services';
 import { GtagCommand } from './constants';
-import { DynamicConfig } from '@firebase/analytics-types-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { DynamicConfig } from './types';
+import { FirebaseApp } from '@firebase/app-exp';
 import { Deferred } from '@firebase/util';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
+import { removeGtagScript } from '../testing/gtag-script-util';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeFid = 'fid-1234-zyxw';
@@ -47,7 +48,7 @@ function stubFetch(): void {
   fetchStub.returns(Promise.resolve(mockResponse));
 }
 
-describe('initializeIds()', () => {
+describe('initializeAnalytics()', () => {
   const gtagStub: SinonStub = stub();
   const dynamicPromisesList: Array<Promise<DynamicConfig>> = [];
   const measurementIdToAppId: { [key: string]: string } = {};
@@ -60,6 +61,7 @@ describe('initializeIds()', () => {
   });
   afterEach(() => {
     fetchStub.restore();
+    removeGtagScript();
   });
   it('gets FID and measurement ID and calls gtag config with them', async () => {
     stubFetch();
@@ -68,12 +70,31 @@ describe('initializeIds()', () => {
       dynamicPromisesList,
       measurementIdToAppId,
       fakeInstallations,
-      gtagStub
+      gtagStub,
+      'dataLayer'
     );
     expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
       'firebase_id': fakeFid,
       'origin': 'firebase',
       update: true
+    });
+  });
+  it('calls gtag config with options if provided', async () => {
+    stubFetch();
+    await initializeAnalytics(
+      app,
+      dynamicPromisesList,
+      measurementIdToAppId,
+      fakeInstallations,
+      gtagStub,
+      'dataLayer',
+      { config: { 'send_page_view': false } }
+    );
+    expect(gtagStub).to.be.calledWith(GtagCommand.CONFIG, fakeMeasurementId, {
+      'firebase_id': fakeFid,
+      'origin': 'firebase',
+      update: true,
+      'send_page_view': false
     });
   });
   it('puts dynamic fetch promise into dynamic promises list', async () => {
@@ -83,7 +104,8 @@ describe('initializeIds()', () => {
       dynamicPromisesList,
       measurementIdToAppId,
       fakeInstallations,
-      gtagStub
+      gtagStub,
+      'dataLayer'
     );
     const dynamicPromiseResult = await dynamicPromisesList[0];
     expect(dynamicPromiseResult.measurementId).to.equal(fakeMeasurementId);
@@ -96,7 +118,8 @@ describe('initializeIds()', () => {
       dynamicPromisesList,
       measurementIdToAppId,
       fakeInstallations,
-      gtagStub
+      gtagStub,
+      'dataLayer'
     );
     expect(measurementIdToAppId[fakeMeasurementId]).to.equal(fakeAppId);
   });
@@ -108,7 +131,8 @@ describe('initializeIds()', () => {
       dynamicPromisesList,
       measurementIdToAppId,
       fakeInstallations,
-      gtagStub
+      gtagStub,
+      'dataLayer'
     );
     expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
     expect(consoleStub.args[0][1]).to.include('old-measurement-id');

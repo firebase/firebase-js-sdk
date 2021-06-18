@@ -22,12 +22,14 @@ import {
   querystring,
   Deferred
 } from '@firebase/util';
-import { logWrapper, warn } from './util/util';
 
-import { ServerActions } from './ServerActions';
-import { RepoInfo } from './RepoInfo';
+import { AppCheckTokenProvider } from './AppCheckTokenProvider';
 import { AuthTokenProvider } from './AuthTokenProvider';
-import { Query } from '../api/Query';
+import { RepoInfo } from './RepoInfo';
+import { ServerActions } from './ServerActions';
+import { logWrapper, warn } from './util/util';
+import { QueryContext } from './view/EventRegistration';
+import { queryParamsToRestQueryStringParameters } from './view/QueryParams';
 
 /**
  * An implementation of ServerActions that communicates with the server via REST requests.
@@ -45,34 +47,24 @@ export class ReadonlyRestClient extends ServerActions {
   /**
    * We don't actually need to track listens, except to prevent us calling an onComplete for a listen
    * that's been removed. :-/
-   *
-   * @private {!Object.<string, !Object>}
    */
   private listens_: { [k: string]: object } = {};
 
-  /**
-   * @param {!Query} query
-   * @param {?number=} tag
-   * @return {string}
-   * @private
-   */
-  static getListenId_(query: Query, tag?: number | null): string {
+  static getListenId_(query: QueryContext, tag?: number | null): string {
     if (tag !== undefined) {
       return 'tag$' + tag;
     } else {
       assert(
-        query.getQueryParams().isDefault(),
+        query._queryParams.isDefault(),
         "should have a tag if it's not a default query."
       );
-      return query.path.toString();
+      return query._path.toString();
     }
   }
 
   /**
-   * @param {!RepoInfo} repoInfo_ Data about the namespace we are connecting to
-   * @param {function(string, *, boolean, ?number)} onDataUpdate_ A callback for new data from the server
-   * @param {AuthTokenProvider} authTokenProvider_
-   * @implements {ServerActions}
+   * @param repoInfo_ - Data about the namespace we are connecting to
+   * @param onDataUpdate_ - A callback for new data from the server
    */
   constructor(
     private repoInfo_: RepoInfo,
@@ -82,31 +74,30 @@ export class ReadonlyRestClient extends ServerActions {
       c: boolean,
       d: number | null
     ) => void,
-    private authTokenProvider_: AuthTokenProvider
+    private authTokenProvider_: AuthTokenProvider,
+    private appCheckTokenProvider_: AppCheckTokenProvider
   ) {
     super();
   }
 
   /** @inheritDoc */
   listen(
-    query: Query,
+    query: QueryContext,
     currentHashFn: () => string,
     tag: number | null,
     onComplete: (a: string, b: unknown) => void
   ) {
-    const pathString = query.path.toString();
-    this.log_(
-      'Listen called for ' + pathString + ' ' + query.queryIdentifier()
-    );
+    const pathString = query._path.toString();
+    this.log_('Listen called for ' + pathString + ' ' + query._queryIdentifier);
 
     // Mark this listener so we can tell if it's removed.
     const listenId = ReadonlyRestClient.getListenId_(query, tag);
     const thisListen = {};
     this.listens_[listenId] = thisListen;
 
-    const queryStringParameters = query
-      .getQueryParams()
-      .toRestQueryStringParameters();
+    const queryStringParameters = queryParamsToRestQueryStringParameters(
+      query._queryParams
+    );
 
     this.restRequest_(
       pathString + '.json',
@@ -140,17 +131,17 @@ export class ReadonlyRestClient extends ServerActions {
   }
 
   /** @inheritDoc */
-  unlisten(query: Query, tag: number | null) {
+  unlisten(query: QueryContext, tag: number | null) {
     const listenId = ReadonlyRestClient.getListenId_(query, tag);
     delete this.listens_[listenId];
   }
 
-  get(query: Query): Promise<string> {
-    const queryStringParameters = query
-      .getQueryParams()
-      .toRestQueryStringParameters();
+  get(query: QueryContext): Promise<string> {
+    const queryStringParameters = queryParamsToRestQueryStringParameters(
+      query._queryParams
+    );
 
-    const pathString = query.path.toString();
+    const pathString = query._path.toString();
 
     const deferred = new Deferred<string>();
 
@@ -189,11 +180,6 @@ export class ReadonlyRestClient extends ServerActions {
   /**
    * Performs a REST request to the given path, with the provided query string parameters,
    * and any auth credentials we have.
-   *
-   * @param {!string} pathString
-   * @param {!Object.<string, *>} queryStringParameters
-   * @param {?function(?number, *=)} callback
-   * @private
    */
   private restRequest_(
     pathString: string,
@@ -202,64 +188,67 @@ export class ReadonlyRestClient extends ServerActions {
   ) {
     queryStringParameters['format'] = 'export';
 
-    this.authTokenProvider_
-      .getToken(/*forceRefresh=*/ false)
-      .then(authTokenData => {
-        const authToken = authTokenData && authTokenData.accessToken;
-        if (authToken) {
-          queryStringParameters['auth'] = authToken;
-        }
+    return Promise.all([
+      this.authTokenProvider_.getToken(/*forceRefresh=*/ false),
+      this.appCheckTokenProvider_.getToken(/*forceRefresh=*/ false)
+    ]).then(([authToken, appCheckToken]) => {
+      if (authToken && authToken.accessToken) {
+        queryStringParameters['auth'] = authToken.accessToken;
+      }
+      if (appCheckToken && appCheckToken.token) {
+        queryStringParameters['ac'] = appCheckToken.token;
+      }
 
-        const url =
-          (this.repoInfo_.secure ? 'https://' : 'http://') +
-          this.repoInfo_.host +
-          pathString +
-          '?' +
-          'ns=' +
-          this.repoInfo_.namespace +
-          querystring(queryStringParameters);
+      const url =
+        (this.repoInfo_.secure ? 'https://' : 'http://') +
+        this.repoInfo_.host +
+        pathString +
+        '?' +
+        'ns=' +
+        this.repoInfo_.namespace +
+        querystring(queryStringParameters);
 
-        this.log_('Sending REST request for ' + url);
-        const xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = () => {
-          if (callback && xhr.readyState === 4) {
-            this.log_(
-              'REST Response for ' + url + ' received. status:',
-              xhr.status,
-              'response:',
-              xhr.responseText
-            );
-            let res = null;
-            if (xhr.status >= 200 && xhr.status < 300) {
-              try {
-                res = jsonEval(xhr.responseText);
-              } catch (e) {
-                warn(
-                  'Failed to parse JSON response for ' +
-                    url +
-                    ': ' +
-                    xhr.responseText
-                );
-              }
-              callback(null, res);
-            } else {
-              // 401 and 404 are expected.
-              if (xhr.status !== 401 && xhr.status !== 404) {
-                warn(
-                  'Got unsuccessful REST response for ' +
-                    url +
-                    ' Status: ' +
-                    xhr.status
-                );
-              }
-              callback(xhr.status);
+      this.log_('Sending REST request for ' + url);
+      const xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = () => {
+        if (callback && xhr.readyState === 4) {
+          this.log_(
+            'REST Response for ' + url + ' received. status:',
+            xhr.status,
+            'response:',
+            xhr.responseText
+          );
+          let res = null;
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              res = jsonEval(xhr.responseText);
+            } catch (e) {
+              warn(
+                'Failed to parse JSON response for ' +
+                  url +
+                  ': ' +
+                  xhr.responseText
+              );
             }
-            callback = null;
+            callback(null, res);
+          } else {
+            // 401 and 404 are expected.
+            if (xhr.status !== 401 && xhr.status !== 404) {
+              warn(
+                'Got unsuccessful REST response for ' +
+                  url +
+                  ' Status: ' +
+                  xhr.status
+              );
+            }
+            callback(xhr.status);
           }
-        };
+          callback = null;
+        }
+      };
 
-        xhr.open('GET', url, /*asynchronous=*/ true);
-        xhr.send();
-      });
+      xhr.open('GET', url, /*asynchronous=*/ true);
+      xhr.send();
+    });
   }
 }

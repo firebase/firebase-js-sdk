@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { UntypedFirestoreDataConverter } from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite/field_path';
@@ -26,6 +24,8 @@ import {
   fieldPathFromArgument,
   FirestoreDataConverter as LiteFirestoreDataConverter
 } from '../lite/snapshot';
+import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
+import { AbstractUserDataWriter } from '../lite/user_data_writer';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail } from '../util/assert';
@@ -89,8 +89,8 @@ export interface FirestoreDataConverter<T>
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
-   * and {@link Transaction#set} with `merge:true` or `mergeFields`.
+   * Firestore database). Used with {@link (setDoc:1)}, {@link (WriteBatch.set:1)}
+   * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
    */
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
@@ -214,9 +214,9 @@ export interface DocumentChange<T = DocumentData> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
-  T
-> {
+export class DocumentSnapshot<
+  T = DocumentData
+> extends LiteDocumentSnapshot<T> {
   private readonly _firestoreImpl: FirebaseFirestore;
 
   /**
@@ -278,7 +278,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
       return this._converter.fromFirestore(snapshot, options);
     } else {
       return this._userDataWriter.convertValue(
-        this._document.toProto(),
+        this._document.data.value,
         options.serverTimestamps
       ) as T;
     }
@@ -304,9 +304,9 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get(fieldPath: string | FieldPath, options: SnapshotOptions = {}): any {
     if (this._document) {
-      const value = this._document
-        .data()
-        .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
+      const value = this._document.data.field(
+        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
+      );
       if (value !== null) {
         return this._userDataWriter.convertValue(
           value,
@@ -329,9 +329,9 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
-  T
-> {
+export class QueryDocumentSnapshot<
+  T = DocumentData
+> extends DocumentSnapshot<T> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -427,7 +427,7 @@ export class QuerySnapshot<T = DocumentData> {
             this._snapshot.mutatedKeys.has(doc.key),
             this._snapshot.fromCache
           ),
-          this.query._converter
+          this.query.converter
         )
       );
     });
@@ -497,7 +497,7 @@ export function changesFromSnapshot<T>(
           querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
           querySnapshot._snapshot.fromCache
         ),
-        querySnapshot.query._converter
+        querySnapshot.query.converter
       );
       lastDoc = change.doc;
       return {
@@ -525,7 +525,7 @@ export function changesFromSnapshot<T>(
             querySnapshot._snapshot.mutatedKeys.has(change.doc.key),
             querySnapshot._snapshot.fromCache
           ),
-          querySnapshot.query._converter
+          querySnapshot.query.converter
         );
         let oldIndex = -1;
         let newIndex = -1;

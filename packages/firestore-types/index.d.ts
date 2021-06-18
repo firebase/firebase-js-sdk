@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 
 export type DocumentData = { [field: string]: any };
 
@@ -61,7 +61,13 @@ export class FirebaseFirestore {
 
   settings(settings: Settings): void;
 
-  useEmulator(host: string, port: number): void;
+  useEmulator(
+    host: string,
+    port: number,
+    options?: {
+      mockUserToken?: EmulatorMockTokenOptions;
+    }
+  ): void;
 
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
@@ -286,6 +292,7 @@ export class DocumentReference<T = DocumentData> {
     onCompletion?: () => void
   ): () => void;
 
+  withConverter(converter: null): DocumentReference<DocumentData>;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -315,9 +322,9 @@ export class DocumentSnapshot<T = DocumentData> {
   isEqual(other: DocumentSnapshot<T>): boolean;
 }
 
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
-  T
-> {
+export class QueryDocumentSnapshot<
+  T = DocumentData
+> extends DocumentSnapshot<T> {
   private constructor();
 
   data(options?: SnapshotOptions): T;
@@ -398,6 +405,7 @@ export class Query<T = DocumentData> {
     onCompletion?: () => void
   ): () => void;
 
+  withConverter(converter: null): Query<DocumentData>;
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
@@ -442,6 +450,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 
   isEqual(other: CollectionReference<T>): boolean;
 
+  withConverter(converter: null): CollectionReference<DocumentData>;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;

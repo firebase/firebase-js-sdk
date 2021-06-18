@@ -17,13 +17,16 @@
 
 declare let MozWebSocket: WebSocket;
 
-import firebase from '@firebase/app';
 import '../../index';
-import { Reference } from '../../src/api/Reference';
-import { Query } from '../../src/api/Query';
-import { ConnectionTarget } from '../../src/api/test_access';
+
+import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
+
+import { Query, Reference } from '../../src/api/Reference';
+import { ConnectionTarget } from '../../src/api/test_access';
+import { Path } from '../../src/core/util/Path';
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
 
@@ -74,9 +77,6 @@ export function createTestApp() {
 /**
  * Gets or creates a root node to the test namespace. All calls sharing the
  * value of opt_i will share an app context.
- * @param {number=} i
- * @param {string=} ref
- * @return {Reference}
  */
 export function getRootNode(i = 0, ref?: string) {
   if (i + 1 > numDatabases) {
@@ -95,8 +95,6 @@ export function getRootNode(i = 0, ref?: string) {
 /**
  * Create multiple refs to the same top level
  * push key - each on it's own Firebase.Context.
- * @param {int=} numNodes
- * @return {Reference|Array<Reference>}
  */
 export function getRandomNode(numNodes?): Reference | Reference[] {
   if (numNodes === undefined) {
@@ -122,7 +120,7 @@ export function getQueryValue(query: Query) {
 }
 
 export function pause(milliseconds: number) {
-  return new Promise(resolve => {
+  return new Promise<void>(resolve => {
     setTimeout(() => resolve(), milliseconds);
   });
 }
@@ -143,13 +141,13 @@ export function shuffle(arr, randFn = Math.random) {
 let freshRepoId = 1;
 const activeFreshApps = [];
 
-export function getFreshRepo(path) {
+export function getFreshRepo(path: Path) {
   const app = firebase.initializeApp(
     { databaseURL: DATABASE_URL },
     'ISOLATED_REPO_' + freshRepoId++
   );
   activeFreshApps.push(app);
-  return (app as any).database().ref(path);
+  return (app as any).database().ref(path.toString());
 }
 
 export function getFreshRepoFromReference(ref) {

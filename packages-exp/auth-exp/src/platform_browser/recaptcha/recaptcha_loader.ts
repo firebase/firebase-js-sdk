@@ -20,7 +20,7 @@ import { querystring } from '@firebase/util';
 import { AuthErrorCode } from '../../core/errors';
 import { _assert, _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import { Recaptcha } from './recaptcha';
@@ -32,8 +32,14 @@ export const _JSLOAD_CALLBACK = jsHelpers._generateCallbackName('rcb');
 const NETWORK_TIMEOUT_DELAY = new Delay(30000, 60000);
 const RECAPTCHA_BASE = 'https://www.google.com/recaptcha/api.js?';
 
+/**
+ * We need to mark this interface as internal explicitly to exclude it in the public typings, because
+ * it references AuthInternal which has a circular dependency with UserInternal.
+ *
+ * @internal
+ */
 export interface ReCaptchaLoader {
-  load(auth: Auth, hl?: string): Promise<Recaptcha>;
+  load(auth: AuthInternal, hl?: string): Promise<Recaptcha>;
   clearedOneInstance(): void;
 }
 
@@ -45,7 +51,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   private counter = 0;
   private readonly librarySeparatelyLoaded = !!_window().grecaptcha;
 
-  load(auth: Auth, hl = ''): Promise<Recaptcha> {
+  load(auth: AuthInternal, hl = ''): Promise<Recaptcha> {
     _assert(isHostLanguageValid(hl), auth, AuthErrorCode.ARGUMENT_ERROR);
 
     if (this.shouldResolveImmediately(hl)) {
@@ -119,7 +125,7 @@ function isHostLanguageValid(hl: string): boolean {
 }
 
 export class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
-  async load(auth: Auth): Promise<Recaptcha> {
+  async load(auth: AuthInternal): Promise<Recaptcha> {
     return new MockReCaptcha(auth);
   }
 

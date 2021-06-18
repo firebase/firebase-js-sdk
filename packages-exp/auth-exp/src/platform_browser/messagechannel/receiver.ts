@@ -28,7 +28,6 @@ import { _allSettled } from './promise';
 /**
  * Interface class for receiving messages.
  *
- * @internal
  */
 export class Receiver {
   private static readonly receivers: Receiver[] = [];
@@ -78,7 +77,6 @@ export class Receiver {
    *
    * @param event - The MessageEvent.
    *
-   * @internal
    */
   private async handleEvent<
     T extends _ReceiverResponse,
@@ -118,7 +116,6 @@ export class Receiver {
    * @param eventType - Event name to subscribe to.
    * @param eventHandler - The event handler which should receive the events.
    *
-   * @internal
    */
   _subscribe<T extends _ReceiverResponse, S extends _SenderRequest>(
     eventType: _EventType,
@@ -141,7 +138,6 @@ export class Receiver {
    * @param eventType - Event name to unsubscribe from.
    * @param eventHandler - Optinoal event handler, if none provided, unsubscribe all handlers on this event.
    *
-   * @internal
    */
   _unsubscribe<T extends _ReceiverResponse, S extends _SenderRequest>(
     eventType: _EventType,

@@ -22,6 +22,7 @@ import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
  * @public
  */
 export class FirebaseStorageError extends FirebaseError {
+  private readonly _baseMessage: string;
   /**
    * Stores custom error data unque to FirebaseStorageError.
    */
@@ -37,6 +38,7 @@ export class FirebaseStorageError extends FirebaseError {
       prependCode(code),
       `Firebase Storage: ${message} (${prependCode(code)})`
     );
+    this._baseMessage = this.message;
     // Without this, `instanceof FirebaseStorageError`, in tests for example,
     // returns false.
     Object.setPrototypeOf(this, FirebaseStorageError.prototype);
@@ -50,17 +52,6 @@ export class FirebaseStorageError extends FirebaseError {
   }
 
   /**
-   * Error message including serverResponse if available.
-   */
-  get message(): string {
-    if (this.customData.serverResponse) {
-      return `${this.message}\n${this.customData.serverResponse}`;
-    } else {
-      return this.message;
-    }
-  }
-
-  /**
    * Optional response message that was added by the server.
    */
   get serverResponse(): null | string {
@@ -69,6 +60,11 @@ export class FirebaseStorageError extends FirebaseError {
 
   set serverResponse(serverResponse: string | null) {
     this.customData.serverResponse = serverResponse;
+    if (this.customData.serverResponse) {
+      this.message = `${this._baseMessage}\n${this.customData.serverResponse}`;
+    } else {
+      this.message = this._baseMessage;
+    }
   }
 }
 
@@ -87,6 +83,7 @@ export const enum StorageErrorCode {
   QUOTA_EXCEEDED = 'quota-exceeded',
   UNAUTHENTICATED = 'unauthenticated',
   UNAUTHORIZED = 'unauthorized',
+  UNAUTHORIZED_APP = 'unauthorized-app',
   RETRY_LIMIT_EXCEEDED = 'retry-limit-exceeded',
   INVALID_CHECKSUM = 'invalid-checksum',
   CANCELED = 'canceled',
@@ -154,6 +151,13 @@ export function unauthenticated(): FirebaseStorageError {
     'User is not authenticated, please authenticate using Firebase ' +
     'Authentication and try again.';
   return new FirebaseStorageError(StorageErrorCode.UNAUTHENTICATED, message);
+}
+
+export function unauthorizedApp(): FirebaseStorageError {
+  return new FirebaseStorageError(
+    StorageErrorCode.UNAUTHORIZED_APP,
+    'This app does not have permission to access Firebase Storage on this project.'
+  );
 }
 
 export function unauthorized(path: string): FirebaseStorageError {

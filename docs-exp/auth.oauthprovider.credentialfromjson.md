@@ -4,19 +4,21 @@
 
 ## OAuthProvider.credentialFromJSON() method
 
+Creates an [OAuthCredential](./auth.oauthcredential.md) from a JSON string or a plain object.
+
 <b>Signature:</b>
 
 ```typescript
-static credentialFromJSON(json: object | string): externs.OAuthCredential;
+static credentialFromJSON(json: object | string): OAuthCredential;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  json | object \| string |  |
+|  json | object \| string | A plain object or a JSON string |
 
 <b>Returns:</b>
 
-externs.[OAuthCredential](./auth-types.oauthcredential.md)
+[OAuthCredential](./auth.oauthcredential.md)
 

@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { OperationType } from '@firebase/auth-types-exp';
+import { OperationType } from '../../model/public_types';
 
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
 import { _assert, _fail } from '../util/assert';
@@ -27,7 +27,7 @@ import { _logoutIfInvalidated } from './invalidation';
 import { UserCredentialImpl } from './user_credential_impl';
 
 export async function _reauthenticate(
-  user: User,
+  user: UserInternal,
   credential: AuthCredential,
   bypassAuthState = false
 ): Promise<UserCredentialImpl> {

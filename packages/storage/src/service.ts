@@ -23,13 +23,16 @@ import { XhrIoPool } from './implementation/xhriopool';
 import { Reference, _getChild } from './reference';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import {
   FirebaseApp,
   FirebaseOptions,
   _FirebaseService
-} from '@firebase/app-types-exp';
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
+  DEFAULT_HOST,
   DEFAULT_MAX_OPERATION_RETRY_TIME,
   DEFAULT_MAX_UPLOAD_RETRY_TIME
 } from '../src/implementation/constants';
@@ -119,12 +122,23 @@ export function ref(
   }
 }
 
-function extractBucket(config?: FirebaseOptions): Location | null {
+function extractBucket(
+  host: string,
+  config?: FirebaseOptions
+): Location | null {
   const bucketString = config?.[CONFIG_STORAGE_BUCKET_KEY];
   if (bucketString == null) {
     return null;
   }
-  return Location.makeFromBucketSpec(bucketString);
+  return Location.makeFromBucketSpec(bucketString, host);
+}
+
+export function useStorageEmulator(
+  storage: StorageService,
+  host: string,
+  port: number
+): void {
+  storage.host = `http://${host}:${port}`;
 }
 
 /**
@@ -133,7 +147,14 @@ function extractBucket(config?: FirebaseOptions): Location | null {
  * @param opt_url - gs:// url to a custom Storage Bucket
  */
 export class StorageService implements _FirebaseService {
-  readonly _bucket: Location | null = null;
+  _bucket: Location | null = null;
+  /**
+   * This string can be in the formats:
+   * - host
+   * - host:port
+   * - protocol://host:port
+   */
+  private _host: string = DEFAULT_HOST;
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
@@ -146,6 +167,13 @@ export class StorageService implements _FirebaseService {
      */
     readonly app: FirebaseApp,
     readonly _authProvider: Provider<FirebaseAuthInternalName>,
+    /**
+     * @internal
+     */
+    readonly _appCheckProvider: Provider<AppCheckInternalComponentName>,
+    /**
+     * @internal
+     */
     readonly _pool: XhrIoPool,
     readonly _url?: string,
     readonly _firebaseVersion?: string
@@ -154,9 +182,27 @@ export class StorageService implements _FirebaseService {
     this._maxUploadRetryTime = DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this._requests = new Set();
     if (_url != null) {
-      this._bucket = Location.makeFromBucketSpec(_url);
+      this._bucket = Location.makeFromBucketSpec(_url, this._host);
     } else {
-      this._bucket = extractBucket(this.app.options);
+      this._bucket = extractBucket(this._host, this.app.options);
+    }
+  }
+
+  get host(): string {
+    return this._host;
+  }
+
+  /**
+   * Set host string for this service.
+   * @param host - host string in the form of host, host:port,
+   * or protocol://host:port
+   */
+  set host(host: string) {
+    this._host = host;
+    if (this._url != null) {
+      this._bucket = Location.makeFromBucketSpec(this._url, host);
+    } else {
+      this._bucket = extractBucket(host, this.app.options);
     }
   }
 
@@ -206,6 +252,19 @@ export class StorageService implements _FirebaseService {
     return null;
   }
 
+  async _getAppCheckToken(): Promise<string | null> {
+    const appCheck = this._appCheckProvider.getImmediate({ optional: true });
+    if (appCheck) {
+      const result = await appCheck.getToken();
+      // TODO: What do we want to do if there is an error getting the token?
+      // Context: appCheck.getToken() will never throw even if an error happened. In the error case, a dummy token will be
+      // returned along with an error field describing the error. In general, we shouldn't care about the error condition and just use
+      // the token (actual or dummy) to send requests.
+      return result.token;
+    }
+    return null;
+  }
+
   /**
    * Stop running requests and prevent more from being created.
    */
@@ -230,13 +289,15 @@ export class StorageService implements _FirebaseService {
    */
   _makeRequest<T>(
     requestInfo: RequestInfo<T>,
-    authToken: string | null
+    authToken: string | null,
+    appCheckToken: string | null
   ): Request<T> {
     if (!this._deleted) {
       const request = makeRequest(
         requestInfo,
         this._appId,
         authToken,
+        appCheckToken,
         this._pool,
         this._firebaseVersion
       );
@@ -250,5 +311,16 @@ export class StorageService implements _FirebaseService {
     } else {
       return new FailRequest(appDeleted());
     }
+  }
+
+  async makeRequestWithTokens<T>(
+    requestInfo: RequestInfo<T>
+  ): Promise<Request<T>> {
+    const [authToken, appCheckToken] = await Promise.all([
+      this._getAuthToken(),
+      this._getAppCheckToken()
+    ]);
+
+    return this._makeRequest(requestInfo, authToken, appCheckToken);
   }
 }

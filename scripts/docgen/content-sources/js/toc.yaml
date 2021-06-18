@@ -11,6 +11,16 @@ toc:
   - title: "App"
     path: /docs/reference/js/firebase.app.App
 
+- title: "firebase.appcheck"
+  path: /docs/reference/js/firebase.appcheck
+  section:
+  - title: "AppCheck"
+    path: /docs/reference/js/firebase.appcheck.AppCheck
+  - title: "AppCheckProvider"
+    path: /docs/reference/js/firebase.appcheck.AppCheckProvider
+  - title: "AppCheckToken"
+    path: /docs/reference/js/firebase.appcheck.AppCheckToken
+
 - title: "firebase.analytics"
   path: /docs/reference/js/firebase.analytics
   section:

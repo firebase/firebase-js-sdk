@@ -24,6 +24,13 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
+function onWarn(warning, defaultWarn) {
+  if (warning.code === 'CIRCULAR_DEPENDENCY') {
+    throw new Error(warning);
+  }
+  defaultWarn(warning);
+}
+
 /**
  * ES5 Builds
  */
@@ -42,7 +49,11 @@ const es5Builds = [
     input: 'index.node.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   /**
    * Browser Builds
@@ -51,7 +62,11 @@ const es5Builds = [
     input: 'index.ts',
     output: [{ file: pkg.module, format: 'es', sourcemap: true }],
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
@@ -78,7 +93,11 @@ const es2017Builds = [
     input: 'index.ts',
     output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
     plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 

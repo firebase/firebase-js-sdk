@@ -1,4 +1,10 @@
 /**
+ * Firebase Analytics
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2019 Google LLC
  *
@@ -22,22 +28,14 @@ import { ANALYTICS_TYPE } from './constants';
 import {
   Component,
   ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  InstanceFactoryOptions
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { logEvent } from './api';
 import { name, version } from '../package.json';
-
-import {
-  Analytics,
-  AnalyticsCallOptions,
-  SettingsOptions,
-  ControlParams,
-  EventParams,
-  CustomParams,
-  Item,
-  Promotion
-} from '@firebase/analytics-types-exp';
+import { AnalyticsCallOptions } from './public-types';
+import '@firebase/installations-exp';
 
 declare global {
   interface Window {
@@ -49,14 +47,14 @@ function registerAnalytics(): void {
   _registerComponent(
     new Component(
       ANALYTICS_TYPE,
-      container => {
+      (container, { options: analyticsOptions }: InstanceFactoryOptions) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-exp').getImmediate();
         const installations = container
           .getProvider('installations-exp-internal')
           .getImmediate();
 
-        return factory(app, installations);
+        return factory(app, installations, analyticsOptions);
       },
       ComponentType.PUBLIC
     )
@@ -91,15 +89,4 @@ function registerAnalytics(): void {
 registerAnalytics();
 
 export * from './api';
-/**
- * Public types.
- */
-export {
-  Analytics,
-  SettingsOptions,
-  ControlParams,
-  EventParams,
-  CustomParams,
-  Item,
-  Promotion
-};
+export * from './public-types';

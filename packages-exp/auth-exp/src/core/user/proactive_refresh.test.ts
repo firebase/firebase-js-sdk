@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { User } from '../../model/user';
+import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { _createError } from '../util/assert';
 import { Duration, ProactiveRefresh } from './proactive_refresh';
@@ -30,7 +30,7 @@ use(chaiAsPromised);
 use(sinonChai);
 
 describe('core/user/proactive_refresh', () => {
-  let user: User;
+  let user: UserInternal;
   let proactiveRefresh: ProactiveRefresh;
   let getTokenStub: sinon.SinonStub;
   let clock: sinon.SinonFakeTimers;

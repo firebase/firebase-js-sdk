@@ -25,9 +25,9 @@ declare const window: Window;
  * TODO: Once MemoryStorage and DOMStorageWrapper have a shared interface this method annotation should change
  * to reflect this type
  *
- * @param {string} domStorageName Name of the underlying storage object
+ * @param domStorageName - Name of the underlying storage object
  *   (e.g. 'localStorage' or 'sessionStorage').
- * @return {?} Turning off type information until a common interface is defined.
+ * @returns Turning off type information until a common interface is defined.
  */
 const createStoragefor = function (
   domStorageName: string

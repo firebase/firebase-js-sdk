@@ -18,7 +18,7 @@
 import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { SignInWithPhoneNumberRequest } from '../authentication/sms';
 import { FinalizeMfaResponse } from '../authentication/mfa';
-import { Auth } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 
 /**
  * MFA Info as returned by the API
@@ -57,7 +57,7 @@ export interface StartPhoneMfaEnrollmentResponse {
 }
 
 export function startEnrollPhoneMfa(
-  auth: Auth,
+  auth: AuthInternal,
   request: Omit<StartPhoneMfaEnrollmentRequest, 'tenantId'>
 ): Promise<StartPhoneMfaEnrollmentResponse> {
   return _performApiRequest<
@@ -80,7 +80,7 @@ export interface FinalizePhoneMfaEnrollmentResponse
   extends FinalizeMfaResponse {}
 
 export function finalizeEnrollPhoneMfa(
-  auth: Auth,
+  auth: AuthInternal,
   request: Omit<FinalizePhoneMfaEnrollmentRequest, 'tenantId'>
 ): Promise<FinalizePhoneMfaEnrollmentResponse> {
   return _performApiRequest<
@@ -101,7 +101,7 @@ export interface WithdrawMfaRequest {
 export interface WithdrawMfaResponse extends FinalizeMfaResponse {}
 
 export function withdrawMfa(
-  auth: Auth,
+  auth: AuthInternal,
   request: Omit<WithdrawMfaRequest, 'tenantId'>
 ): Promise<WithdrawMfaResponse> {
   return _performApiRequest<WithdrawMfaRequest, WithdrawMfaResponse>(

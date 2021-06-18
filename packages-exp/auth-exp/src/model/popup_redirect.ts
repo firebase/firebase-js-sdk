@@ -15,30 +15,32 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  Auth,
+  AuthProvider,
+  Persistence,
+  PopupRedirectResolver,
+  UserCredential
+} from './public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { AuthPopup } from '../platform_browser/util/popup';
-import { Auth } from './auth';
+import { AuthInternal } from './auth';
 
-/** @internal */
 export const enum EventFilter {
   POPUP,
   REDIRECT
 }
 
-/** @internal */
 export const enum GapiOutcome {
   ACK = 'ACK',
   ERROR = 'ERROR'
 }
 
-/** @internal */
 export interface GapiAuthEvent extends gapi.iframes.Message {
   authEvent: AuthEvent;
 }
 
-/** @internal */
 export const enum AuthEventType {
   LINK_VIA_POPUP = 'linkViaPopup',
   LINK_VIA_REDIRECT = 'linkViaRedirect',
@@ -50,13 +52,11 @@ export const enum AuthEventType {
   VERIFY_APP = 'verifyApp'
 }
 
-/** @internal */
 export interface AuthEventError extends Error {
   code: string; // in the form of auth/${AuthErrorCode}
   message: string;
 }
 
-/** @internal */
 export interface AuthEvent {
   type: AuthEventType;
   eventId: string | null;
@@ -67,7 +67,6 @@ export interface AuthEvent {
   error?: AuthEventError;
 }
 
-/** @internal */
 export interface AuthEventConsumer {
   readonly filter: AuthEventType[];
   eventId: string | null;
@@ -75,41 +74,45 @@ export interface AuthEventConsumer {
   onError(error: FirebaseError): unknown;
 }
 
-/** @internal */
 export interface EventManager {
   registerConsumer(authEventConsumer: AuthEventConsumer): void;
   unregisterConsumer(authEventConsumer: AuthEventConsumer): void;
 }
 
-/** @internal */
-export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
-  /** @internal */
-  _initialize(auth: Auth): Promise<EventManager>;
-  /** @internal */
+/**
+ * We need to mark this interface as internal explicitly to exclude it in the public typings, because
+ * it references AuthInternal which has a circular dependency with UserInternal.
+ *
+ * @internal
+ */
+export interface PopupRedirectResolverInternal extends PopupRedirectResolver {
+  // Whether or not to initialize the event manager early
+  _shouldInitProactively: boolean;
+
+  _initialize(auth: AuthInternal): Promise<EventManager>;
   _openPopup(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup>;
-  /** @internal */
   _openRedirect(
-    auth: Auth,
-    provider: externs.AuthProvider,
+    auth: AuthInternal,
+    provider: AuthProvider,
     authType: AuthEventType,
     eventId?: string
-  ): Promise<never>;
-  /** @internal */
+  ): Promise<void | never>;
   _isIframeWebStorageSupported(
-    auth: Auth,
+    auth: AuthInternal,
     cb: (support: boolean) => unknown
   ): void;
-  _redirectPersistence: externs.Persistence;
+  _redirectPersistence: Persistence;
+  _originValidation(auth: Auth): Promise<void>;
 
   // This is needed so that auth does not have a hard dependency on redirect
   _completeRedirectFn: (
-    auth: externs.Auth,
-    resolver: externs.PopupRedirectResolver,
+    auth: Auth,
+    resolver: PopupRedirectResolver,
     bypassAuthState: boolean
-  ) => Promise<externs.UserCredential | null>;
+  ) => Promise<UserCredential | null>;
 }

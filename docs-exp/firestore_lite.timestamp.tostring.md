@@ -4,6 +4,8 @@
 
 ## Timestamp.toString() method
 
+Returns a textual representation of this Timestamp.
+
 <b>Signature:</b>
 
 ```typescript

@@ -1395,6 +1395,18 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
+    it('for DocumentReference.withConverter(null) ', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverter)
+          .withConverter(null);
+
+        expect(() => docRef.set(new Post('post', 'author'))).to.throw();
+      });
+    });
+
     it('for CollectionReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
         const coll = db.collection('posts').withConverter(postConverter);
@@ -1404,6 +1416,17 @@ apiDescribe('Database', (persistence: boolean) => {
         const post = postData.data();
         expect(post).to.not.equal(undefined);
         expect(post!.byline()).to.equal('post, by author');
+      });
+    });
+
+    it('for CollectionReference.withConverter(null)', () => {
+      return withTestDb(persistence, async db => {
+        const coll = db
+          .collection('posts')
+          .withConverter(postConverter)
+          .withConverter(null);
+
+        expect(() => coll.add(new Post('post', 'author'))).to.throw();
       });
     });
 
@@ -1421,6 +1444,20 @@ apiDescribe('Database', (persistence: boolean) => {
           .get();
         expect(posts.size).to.equal(2);
         expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+      });
+    });
+
+    it('for Query.withConverter(null)', () => {
+      return withTestDb(persistence, async db => {
+        await db
+          .doc('postings/post1')
+          .set({ title: 'post1', author: 'author1' });
+        const posts = await db
+          .collectionGroup('postings')
+          .withConverter(postConverter)
+          .withConverter(null)
+          .get();
+        expect(posts.docs[0].data()).to.not.be.an.instanceof(Post);
       });
     });
 

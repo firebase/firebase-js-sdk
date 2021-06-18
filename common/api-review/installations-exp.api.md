@@ -4,17 +4,26 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 
 // @public
 export function deleteInstallations(installations: FirebaseInstallations): Promise<void>;
 
 // @public
+export interface FirebaseInstallations {
+}
+
+// @internal
+export interface _FirebaseInstallationsInternal {
+    getId(): Promise<string>;
+    getToken(forceRefresh?: boolean): Promise<string>;
+}
+
+// @public
 export function getId(installations: FirebaseInstallations): Promise<string>;
 
 // @public
-export function getInstallations(app: FirebaseApp): FirebaseInstallations;
+export function getInstallations(app?: FirebaseApp): FirebaseInstallations;
 
 // @public
 export function getToken(installations: FirebaseInstallations, forceRefresh?: boolean): Promise<string>;
@@ -28,7 +37,5 @@ export type IdChangeUnsubscribeFn = () => void;
 // @public
 export function onIdChange(installations: FirebaseInstallations, callback: IdChangeCallbackFn): IdChangeUnsubscribeFn;
 
-
-// (No @packageDocumentation comment for this package)
 
 ```

@@ -966,7 +966,7 @@ export class IndexedDbPersistence implements Persistence {
           return this.shutdown();
         });
       };
-      this.window.addEventListener('unload', this.windowUnloadHandler);
+      this.window.addEventListener('pagehide', this.windowUnloadHandler);
     }
   }
 
@@ -976,7 +976,7 @@ export class IndexedDbPersistence implements Persistence {
         typeof this.window?.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
-      this.window!.removeEventListener('unload', this.windowUnloadHandler);
+      this.window!.removeEventListener('pagehide', this.windowUnloadHandler);
       this.windowUnloadHandler = null;
     }
   }

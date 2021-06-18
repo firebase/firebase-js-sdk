@@ -1,4 +1,10 @@
 /**
+ * Firebase Realtime Database
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *
@@ -15,44 +21,8 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
-import { Component, ComponentType } from '@firebase/component';
+import { registerDatabase } from './register';
 
-import { version } from '../package.json';
-import { FirebaseDatabase } from '../src/exp/Database';
-
-export {
-  getDatabase,
-  FirebaseDatabase,
-  ServerValue
-} from '../src/exp/Database';
-export { EventType } from '../src/core/view/Event';
-export { DataSnapshot } from '../src/api/DataSnapshot';
-export { Query } from '../src/api/Query';
-export { Reference } from '../src/api/Reference';
-export { OnDisconnect } from '../src/api/onDisconnect';
-export { enableLogging } from '../src/core/util/util';
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'database-exp': FirebaseDatabase;
-  }
-}
-
-function registerDatabase(): void {
-  _registerComponent(
-    new Component(
-      'database-exp',
-      (container, url) => {
-        const app = container.getProvider('app-exp').getImmediate()!;
-        const authProvider = container.getProvider('auth-internal');
-        return new FirebaseDatabase(app, authProvider, url);
-      },
-      ComponentType.PUBLIC
-    ).setMultipleInstances(true)
-  );
-  registerVersion('database-exp', version, 'node');
-}
+export * from './api';
 
 registerDatabase();

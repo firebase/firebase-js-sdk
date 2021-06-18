@@ -9,7 +9,7 @@ Creates a [OAuthCredential](./auth.oauthcredential.md) from a generic OAuth prov
 <b>Signature:</b>
 
 ```typescript
-credential(params: OAuthCredentialOptions): externs.OAuthCredential;
+credential(params: OAuthCredentialOptions): OAuthCredential;
 ```
 
 ## Parameters
@@ -20,7 +20,7 @@ credential(params: OAuthCredentialOptions): externs.OAuthCredential;
 
 <b>Returns:</b>
 
-externs.[OAuthCredential](./auth-types.oauthcredential.md)
+[OAuthCredential](./auth.oauthcredential.md)
 
 ## Remarks
 

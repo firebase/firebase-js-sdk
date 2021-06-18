@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.900.9",
+  "version": "9.0.0-beta.4",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -20,15 +20,106 @@
     "**/dist/",
     "**/package.json",
     "/firebase*.js",
-    "/firebase*.map"
+    "/firebase*.map",
+    "compat/index.d.ts"
   ],
+  "exports": {
+    "./analytics": {
+      "node": "./analytics/dist/index.cjs.js",
+      "default": "./analytics/dist/index.esm.js"
+    },
+    "./app": {
+      "node": "./app/dist/index.cjs.js",
+      "default": "./app/dist/index.esm.js"
+    },
+    "./auth": {
+      "node": "./auth/dist/index.cjs.js",
+      "default": "./auth/dist/index.esm.js"
+    },
+    "./database": {
+      "node": "./database/dist/index.cjs.js",
+      "default": "./database/dist/index.esm.js"
+    },
+    "./firestore": {
+      "node": "./firestore/dist/index.cjs.js",
+      "default": "./firestore/dist/index.esm.js"
+    },
+    "./firestore/lite": {
+      "node": "./firestore/lite/dist/index.cjs.js",
+      "default": "./firestore/lite/dist/index.esm.js"
+    },
+    "./functions": {
+      "node": "./functions/dist/index.cjs.js",
+      "default": "./functions/dist/index.esm.js"
+    },
+    "./messaging": {
+      "node": "./messaging/dist/index.cjs.js",
+      "default": "./messaging/dist/index.esm.js"
+    },
+    "./messaging/sw": {
+      "node": "./messaging/sw/dist/index.cjs.js",
+      "default": "./messaging/sw/dist/index.esm.js"
+    },
+    "./performance": {
+      "node": "./performance/dist/index.cjs.js",
+      "default": "./performance/dist/index.esm.js"
+    },
+    "./remote-config": {
+      "node": "./remote-config/dist/index.cjs.js",
+      "default": "./remote-config/dist/index.esm.js"
+    },
+    "./storage": {
+      "node": "./storage/dist/index.cjs.js",
+      "default": "./storage/dist/index.esm.js"
+    },
+    "./compat/analytics": {
+      "node": "./compat/analytics/dist/index.cjs.js",
+      "default": "./compat/analytics/dist/index.esm.js"
+    },
+    "./compat/app": {
+      "node": "./compat/app/dist/index.cjs.js",
+      "default": "./compat/app/dist/index.esm.js"
+    },
+    "./compat/auth": {
+      "node": "./compat/auth/dist/index.cjs.js",
+      "default": "./compat/auth/dist/index.esm.js"
+    },
+    "./compat/database": {
+      "node": "./compat/database/dist/index.cjs.js",
+      "default": "./compat/database/dist/index.esm.js"
+    },
+    "./compat/firestore": {
+      "node": "./compat/firestore/dist/index.cjs.js",
+      "default": "./compat/firestore/dist/index.esm.js"
+    },
+    "./compat/functions": {
+      "node": "./compat/functions/dist/index.cjs.js",
+      "default": "./compat/functions/dist/index.esm.js"
+    },
+    "./compat/messaging": {
+      "node": "./compat/messaging/dist/index.cjs.js",
+      "default": "./compat/messaging/dist/index.esm.js"
+    },
+    "./compat/performance": {
+      "node": "./compat/performance/dist/index.cjs.js",
+      "default": "./compat/performance/dist/index.esm.js"
+    },
+    "./compat/remote-config": {
+      "node": "./compat/remote-config/dist/index.cjs.js",
+      "default": "./compat/remote-config/dist/index.esm.js"
+    },
+    "./compat/storage": {
+      "node": "./compat/storage/dist/index.cjs.js",
+      "default": "./compat/storage/dist/index.esm.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "rollup -c && gulp firebase-js && yarn build:compat",
-    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && yarn build:compat:release",
+    "build": "rollup -c && yarn build:compat",
+    "build:release": "rollup -c rollup.config.release.js && yarn build:compat:release",
     "build:compat": "rollup -c compat/rollup.config.js",
     "build:compat:release": "rollup -c compat/rollup.config.release.js",
     "dev": "rollup -c -w",
@@ -37,30 +128,37 @@
   },
   "dependencies": {
     "@firebase/analytics-exp": "0.0.900",
+    "@firebase/analytics-compat": "0.0.900",
     "@firebase/app-exp": "0.0.900",
     "@firebase/app-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
-    "@firebase/database": "0.8.3",
+    "@firebase/auth-compat": "0.0.900",
+    "@firebase/database": "0.10.5",
     "@firebase/functions-exp": "0.0.900",
-    "@firebase/firestore": "2.1.2",
-    "@firebase/storage": "0.4.2",
+    "@firebase/functions-compat": "0.0.900",
+    "@firebase/firestore": "2.3.7",
+    "@firebase/storage": "0.5.5",
     "@firebase/performance-exp": "0.0.900",
+    "@firebase/performance-compat": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
-    "@firebase/messaging-exp": "0.0.900"
+    "@firebase/remote-config-compat": "0.0.900",
+    "@firebase/messaging-exp": "0.0.900",
+    "@firebase/messaging-compat": "0.0.900"
   },
   "devDependencies": {
     "rollup": "2.35.1",
-    "@rollup/plugin-commonjs": "15.1.0",
+    "@rollup/plugin-commonjs": "17.1.0",
     "rollup-plugin-license": "2.2.0",
-    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-node-resolve": "11.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.29.0",
     "rollup-plugin-uglify": "6.0.4",
+    "@rollup/plugin-alias": "3.1.1",
     "gulp": "4.0.2",
-    "gulp-sourcemaps": "2.6.5",
+    "gulp-sourcemaps": "3.0.0",
     "gulp-concat": "2.6.1",
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   },
   "components": [
     "analytics",
@@ -73,6 +171,7 @@
     "performance",
     "remote-config",
     "messaging",
+    "messaging/sw",
     "database"
   ]
 }
