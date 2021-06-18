@@ -24,6 +24,12 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
+import {
+  FactorId as FactorIdMap,
+  OperationType as OperationTypeMap,
+  ActionCodeOperation as ActionCodeOperationMap,
+} from './enum_maps';
+
 export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
 /**
  * Enumeration of supported providers.
@@ -431,7 +437,7 @@ export interface ActionCodeInfo {
   /**
    * The type of operation that generated the action code.
    */
-  operation: string;
+  operation: typeof ActionCodeOperationMap[keyof typeof ActionCodeOperationMap];
 }
 
 /**
@@ -603,7 +609,7 @@ export interface ConfirmationResult {
  */
 export interface MultiFactorAssertion {
   /** The identifier of the second factor. */
-  readonly factorId: string;
+  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
 }
 
 /**
@@ -641,7 +647,7 @@ export interface MultiFactorError extends AuthError {
   /**
    * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.
    */
-  readonly operationType: string;
+   readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
 }
 
 /**
@@ -657,7 +663,7 @@ export interface MultiFactorInfo {
   /** The enrollment date of the second factor formatted as a UTC string. */
   readonly enrollmentTime: string;
   /** The identifier of the second factor. */
-  readonly factorId: string;
+  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
 }
 
 /**
@@ -1044,7 +1050,7 @@ export interface UserCredential {
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
-  operationType: string;
+  operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
 }
 
 /**

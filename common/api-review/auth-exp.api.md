@@ -20,7 +20,7 @@ export interface ActionCodeInfo {
         multiFactorInfo?: MultiFactorInfo | null;
         previousEmail?: string | null;
     };
-    operation: string;
+    operation: typeof ActionCodeOperation[keyof typeof ActionCodeOperation];
 }
 
 // @public
@@ -324,19 +324,19 @@ export function multiFactor(user: User): MultiFactorUser;
 
 // @public
 export interface MultiFactorAssertion {
-    readonly factorId: string;
+    readonly factorId: typeof FactorId[keyof typeof FactorId];
 }
 
 // @public
 export interface MultiFactorError extends AuthError {
-    readonly operationType: string;
+    readonly operationType: typeof OperationType[keyof typeof OperationType];
 }
 
 // @public
 export interface MultiFactorInfo {
     readonly displayName?: string | null;
     readonly enrollmentTime: string;
-    readonly factorId: string;
+    readonly factorId: typeof FactorId[keyof typeof FactorId];
     readonly uid: string;
 }
 
@@ -669,7 +669,7 @@ export interface User extends UserInfo {
 
 // @public
 export interface UserCredential {
-    operationType: string;
+    operationType: typeof OperationType[keyof typeof OperationType];
     providerId: string | null;
     user: User;
 }
