@@ -26,11 +26,14 @@ const { readdirSync, statSync, readFileSync, writeFileSync } = require('fs');
 // can be used in command line
 if (argv._[0]) {
   const dirOrFile = path.resolve(argv._[0]);
-  if (statSync(dirOrFile).isFile()) {
-    removeExpSuffixFromFile(dirOrFile);
-  } else {
-    removeExpSuffix(dirOrFile);
-  }
+  try {
+    accessSync(dirOrFile);
+    if (statSync(dirOrFile).isFile()) {
+      removeExpSuffixFromFile(dirOrFile);
+    } else {
+      removeExpSuffix(dirOrFile);
+    }
+  } catch (err) {}
 }
 
 function removeExpSuffix(dir) {
