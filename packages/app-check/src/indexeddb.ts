@@ -73,16 +73,20 @@ function getDBPromise(): Promise<IDBDatabase> {
 }
 
 export function readTokenFromIndexedDB(
-  app: FirebaseApp
+  app: FirebaseApp,
+  keySuffix?: string
 ): Promise<AppCheckTokenInternal | undefined> {
-  return read(computeKey(app)) as Promise<AppCheckTokenInternal | undefined>;
+  return read(computeKey(app, keySuffix)) as Promise<
+    AppCheckTokenInternal | undefined
+  >;
 }
 
 export function writeTokenToIndexedDB(
   app: FirebaseApp,
-  token: AppCheckTokenInternal
+  token: AppCheckTokenInternal,
+  keySuffix?: string
 ): Promise<void> {
-  return write(computeKey(app), token);
+  return write(computeKey(app, keySuffix), token);
 }
 
 export function writeDebugTokenToIndexedDB(token: string): Promise<void> {
@@ -146,6 +150,10 @@ async function read(key: string): Promise<unknown> {
   });
 }
 
-function computeKey(app: FirebaseApp): string {
-  return `${app.options.appId}-${app.name}`;
+function computeKey(app: FirebaseApp, keySuffix?: string): string {
+  let key = `${app.options.appId}-${app.name}`;
+  if (keySuffix != null) {
+    key += `-${keySuffix}`;
+  }
+  return key;
 }

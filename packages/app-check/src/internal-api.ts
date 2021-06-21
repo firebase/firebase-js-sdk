@@ -77,10 +77,27 @@ export async function getToken(
    * return the debug token directly
    */
   if (isDebugMode()) {
+    // Check for an in-memory debug token from the exchange endpoint.
+    const debugState = getDebugState();
+    if (debugState.exchangeToken && isValid(debugState.exchangeToken)) {
+      return { token: debugState.exchangeToken.token };
+    }
+    // Check for a indexedDB cached debug token from the exchange endpoint.
+    const cachedDebugToken = await readTokenFromStorage(app, 'debug');
+    if (cachedDebugToken && isValid(cachedDebugToken)) {
+      // Write to debug state.
+      debugState.exchangeToken = cachedDebugToken;
+      return { token: cachedDebugToken.token };
+    }
     const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
       getExchangeDebugTokenRequest(app, await getDebugToken()),
       platformLoggerProvider
     );
+    // Write debug token to indexedDB using special debug key, different
+    // from key for regular prod tokens.
+    await writeTokenToStorage(app, tokenFromDebugExchange, 'debug');
+    // Write to debug state.
+    debugState.exchangeToken = tokenFromDebugExchange;
     return { token: tokenFromDebugExchange.token };
   }
 

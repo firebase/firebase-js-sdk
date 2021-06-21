@@ -37,6 +37,12 @@ describe('Storage', () => {
     expect(await readTokenFromStorage(app)).to.deep.equal(fakeToken);
   });
 
+  it('sets and gets appCheck debug token to indexeddb', async () => {
+    const fakeToken2 = { ...fakeToken, token: 'debug-token' };
+    await writeTokenToStorage(app, fakeToken2, 'debug');
+    expect(await readTokenFromStorage(app, 'debug')).to.deep.equal(fakeToken2);
+  });
+
   it('no op for writeTokenToStorage() if indexeddb is not available', async () => {
     stub(util, 'isIndexedDBAvailable').returns(false);
     await writeTokenToStorage(app, fakeToken);

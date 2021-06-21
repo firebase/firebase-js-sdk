@@ -281,6 +281,67 @@ describe('internal api', () => {
       );
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
+
+    it('reads any memory-cached debug token if in debug mode', async () => {
+      const clock = useFakeTimers();
+      const clientStub = stub(client, 'exchangeToken');
+      const readStub = stub(storage, 'readTokenFromStorage');
+      const debugState = getDebugState();
+      debugState.enabled = true;
+      debugState.token = new Deferred();
+      debugState.token.resolve('my-debug-token');
+      debugState.exchangeToken = fakeCachedAppCheckToken;
+      activate(app, FAKE_SITE_KEY);
+      expect(getState(app).token).to.equal(undefined);
+      expect(await getToken(app, fakePlatformLoggingProvider)).to.deep.equal({
+        token: fakeCachedAppCheckToken.token
+      });
+      expect(getDebugState().exchangeToken).to.equal(fakeCachedAppCheckToken);
+      expect(readStub).has.not.been.called;
+      expect(clientStub).has.not.been.called;
+      clock.restore();
+    });
+
+    it('reads any indexedDB cached debug token if in debug mode', async () => {
+      const clock = useFakeTimers();
+      stub(storage, 'readTokenFromStorage').returns(
+        Promise.resolve(fakeCachedAppCheckToken)
+      );
+      const clientStub = stub(client, 'exchangeToken');
+      const debugState = getDebugState();
+      debugState.enabled = true;
+      debugState.token = new Deferred();
+      debugState.token.resolve('my-debug-token');
+      activate(app, FAKE_SITE_KEY);
+      expect(getState(app).token).to.equal(undefined);
+      expect(await getToken(app, fakePlatformLoggingProvider)).to.deep.equal({
+        token: fakeCachedAppCheckToken.token
+      });
+      expect(getDebugState().exchangeToken).to.equal(fakeCachedAppCheckToken);
+      expect(clientStub).has.not.been.called;
+      clock.restore();
+    });
+
+    it('persists debug token to indexedDB storage', async () => {
+      activate(app, FAKE_SITE_KEY);
+
+      stub(storage, 'readTokenFromStorage').returns(Promise.resolve(undefined));
+      stub(client, 'exchangeToken').returns(
+        Promise.resolve(fakeRecaptchaAppCheckToken)
+      );
+      const storageWriteStub = stub(storage, 'writeTokenToStorage');
+      const debugState = getDebugState();
+      debugState.enabled = true;
+      debugState.token = new Deferred();
+      debugState.token.resolve('my-debug-token');
+      const result = await getToken(app, fakePlatformLoggingProvider);
+      expect(result).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      expect(storageWriteStub).has.been.calledWith(
+        app,
+        fakeRecaptchaAppCheckToken,
+        'debug'
+      );
+    });
   });
 
   describe('addTokenListener', () => {

@@ -54,7 +54,11 @@ export interface ReCAPTCHAState {
 
 export interface DebugState {
   enabled: boolean;
+  // This is the debug token string the user interacts with.
   token?: Deferred<string>;
+  // This is the token returned from the App Check exchange endpoint when
+  // after the debug token is passed to it.
+  exchangeToken?: AppCheckTokenInternal;
 }
 
 const APP_CHECK_STATES = new Map<FirebaseApp, AppCheckState>();
@@ -80,6 +84,7 @@ export function clearState(): void {
   APP_CHECK_STATES.clear();
   DEBUG_STATE.enabled = false;
   DEBUG_STATE.token = undefined;
+  DEBUG_STATE.exchangeToken = undefined;
 }
 
 export function getDebugState(): DebugState {
