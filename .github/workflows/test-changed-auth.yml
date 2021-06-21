@@ -28,7 +28,7 @@ jobs:
         cp config/ci.config.json config/project.json
         yarn
     - name: Check if tests needed
-      run: yarn ts-node-script scripts/ci-test/has_changed.ts
+      run: yarn ts-node-script scripts/ci-test/has_changed.ts auth
       id: check-tests-needed
     - name: build
       if: ${{steps.check-tests-needed.outputs.NEEDS_TESTS}}
