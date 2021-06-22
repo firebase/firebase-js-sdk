@@ -1,4 +1,4 @@
-name: Check Changeset
+name: Label doc changes
 
 on: pull_request
 

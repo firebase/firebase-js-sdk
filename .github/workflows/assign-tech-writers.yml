@@ -1,0 +1,14 @@
+name: Label doc changes
+
+on: 
+  pull_request: 
+    types: [labeled]
+jobs:
+  assign_tech_writers:
+    if: {{github.event.label.name == 'doc-changes'}}
+
+    steps:
+      - name: assign techwriters to PR
+        uses: hkusu/review-assign-action@v1
+        with:
+          assignees: egilmorez
