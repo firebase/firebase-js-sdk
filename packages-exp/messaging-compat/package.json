@@ -40,7 +40,7 @@
   "devDependencies": {
     "@firebase/app-compat": "0.0.900",
     "@rollup/plugin-json": "4.1.0",
-    "rollup-plugin-typescript2": "0.29.0",
+    "rollup-plugin-typescript2": "0.30.0",
     "ts-essentials": "7.0.1",
     "typescript": "4.2.2"
   },

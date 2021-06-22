@@ -19,17 +19,17 @@
     "@firebase/app-exp": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.4",
+    "@firebase/util": "0.4.1",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "@rollup/plugin-strip": "2.0.0",
-    "rollup": "2.35.1",
+    "rollup": "2.52.2",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-terser": "6.1.0",
-    "rollup-plugin-typescript2": "0.29.0",
+    "rollup-plugin-typescript2": "0.30.0",
     "rollup-plugin-uglify": "6.0.4",
     "@rollup/plugin-node-resolve": "11.2.0",
     "lerna": "3.22.1"
