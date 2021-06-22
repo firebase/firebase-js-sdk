@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 import { Connection } from '../implementation/connection';
-
-// This file is only used under ts-node.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/connection`);
+import { newConnection as nodeNewConnection } from './node/connection';
 
 export function newConnection(): Connection {
-  return platform.newConnection();
+  // This file is only used under ts-node.
+  return nodeNewConnection();
 }

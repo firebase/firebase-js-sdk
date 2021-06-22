@@ -15,16 +15,19 @@
  * limitations under the License.
  */
 
-// This file is only used under ts-node.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
+import {
+  decodeUint8Array as nodeDecodeUint8Array,
+  decodeBase64 as nodeDecodeBase64
+} from './node/base64';
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  return platform.decodeBase64(encoded);
+  // This file is only used under ts-node.
+  return nodeDecodeBase64(encoded);
 }
 
 /** Converts a Uint8Array to a string. */
 export function decodeUint8Array(data: Uint8Array): string {
-  return platform.decodeUint8Array(data);
+  // This file is only used under ts-node.
+  return nodeDecodeUint8Array(data);
 }
