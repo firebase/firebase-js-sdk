@@ -20,10 +20,9 @@ import { spawn } from 'child-process-promise';
 import * as tmp from 'tmp';
 
 /**
- * This function is meant to be run in CI to detect if the PR contains documentation changes.
- * If it does, assign tech writers to the PR automatically
+ * check if there is any doc changes from baseSha to headSha
  */
-async function detectDocChange(baseSha: string, headSha: string) {
+async function docChanged(baseSha: string, headSha: string): Promise<boolean> {
   const tmpDir = tmp.dirSync().name;
   console.log('tmpDir is', tmpDir);
   // clone repo to the tmpDir
@@ -64,36 +63,24 @@ async function detectDocChange(baseSha: string, headSha: string) {
     '--exclude-standard'
   ]);
 
-  // assign tech writers if there are doc changes.
-  if (!!diff || !!untracked) {
-    console.log(
-      'doc changes detected. Assigning tech writers to PR',
-      diff,
-      '@@@@@@@@@',
-      untracked
-    );
+  return !!diff || !!untracked;
+}
+
+// this function is supposed to run in the Github action.
+async function runInCI() {
+  const headSha = process.env.GITHUB_PULL_REQUEST_HEAD_SHA;
+  const mergeBaseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA;
+
+  if (!headSha || !mergeBaseSha) {
+    console.log('No merge base or head found. Is it not a PR?');
+    process.exit(1);
+  }
+
+  if (await docChanged(mergeBaseSha, headSha)) {
+    console.log(`::set-output name=DOC_CHANGED::true`);
   } else {
-    console.log('no doc changes detected');
+    console.log(`::set-output name=DOC_CHANGED::false`);
   }
 }
-// find merge base
 
-// generate reference docs for the merge base
-
-// generate reference docs for the current PR
-
-// any changes?
-
-// const headSha = process.env.GITHUB_PULL_REQUEST_HEAD_SHA;
-// const mergeBaseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA;
-
-// if (!headSha || !mergeBaseSha) {
-//     console.log('No merge base or head found. Is it not a PR?');
-//     process.exit(1);
-// }
-
-// detectDocChange(mergeBaseSha, headSha);
-detectDocChange(
-  'b97dd4e1d366ade504703f73628bcd1920db434b',
-  '57f19127cd8f64be9a59209eacc45b2814edc2f7'
-);
+runInCI();
