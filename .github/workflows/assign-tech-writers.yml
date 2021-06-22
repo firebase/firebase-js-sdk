@@ -1,4 +1,4 @@
-name: Label doc changes
+name: Assign tech writers
 
 on: 
   pull_request: 
