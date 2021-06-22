@@ -37,7 +37,10 @@ async function docChanged(baseSha: string, headSha: string): Promise<boolean> {
   // generate reference docs using the baseSha
   await git.checkout(baseSha);
   await spawn('yarn', [], { cwd: tmpDir, stdio: 'inherit' });
-  await spawn('yarn', ['docgen:exp'], { cwd: tmpDir, stdio: 'inherit' });
+  await spawn('yarn', ['docgen:exp', 'devsite'], {
+    cwd: tmpDir,
+    stdio: 'inherit'
+  });
 
   // revert yarn.lock, so we can checkout the headSha without conflict.
   await git.checkout('yarn.lock');
