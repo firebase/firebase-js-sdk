@@ -263,7 +263,9 @@ export function initializeAdminApp(options: AdminAppOptions): app.App {
  * @param options options object.
  */
 export function useEmulators(options: FirebaseEmulatorOptions): void {
-  if (!(options.database || options.firestore || options.storage || options.hub)) {
+  if (
+    !(options.database || options.firestore || options.storage || options.hub)
+  ) {
     throw new Error(
       "Argument to useEmulators must contain at least one of 'database', 'firestore', 'storage', or 'hub'."
     );
@@ -429,7 +431,7 @@ function getHubHost() {
 }
 
 function parseHost(host: string): { hostname: string; port: number } {
-  const withProtocol = host.startsWith("http") ? host : `http://${host}`;
+  const withProtocol = host.startsWith('http') ? host : `http://${host}`;
   const u = new URL(withProtocol);
   return {
     hostname: u.hostname,

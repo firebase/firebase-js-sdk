@@ -20,6 +20,7 @@ import { ErrorFactory, ErrorMap } from '@firebase/util';
 export const enum AnalyticsError {
   ALREADY_EXISTS = 'already-exists',
   ALREADY_INITIALIZED = 'already-initialized',
+  ALREADY_INITIALIZED_SETTINGS = 'already-initialized-settings',
   INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed',
   INVALID_ANALYTICS_CONTEXT = 'invalid-analytics-context',
   INDEXEDDB_UNAVAILABLE = 'indexeddb-unavailable',
@@ -35,6 +36,10 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     ' already exists. ' +
     'Only one Firebase Analytics instance can be created for each appId.',
   [AnalyticsError.ALREADY_INITIALIZED]:
+    'Firebase Analytics has already been initialized. ' +
+    'initializeAnalytics() must only be called once. getAnalytics() can be used ' +
+    'to get a reference to the already-intialized instance.',
+  [AnalyticsError.ALREADY_INITIALIZED_SETTINGS]:
     'Firebase Analytics has already been initialized.' +
     'settings() must be called before initializing any Analytics instance' +
     'or it will have no effect.',

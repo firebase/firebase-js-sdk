@@ -186,7 +186,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.INVALID_AUTH_EVENT]: 'An internal AuthError has occurred.',
     [AuthErrorCode.INVALID_CODE]:
       'The SMS verification code used to create the phone auth credential is ' +
-      'invalid. Please resend the verification code sms and be sure use the ' +
+      'invalid. Please resend the verification code sms and be sure to use the ' +
       'verification code provided by the user.',
     [AuthErrorCode.INVALID_CONTINUE_URI]:
       'The continue URL provided in the request is invalid.',

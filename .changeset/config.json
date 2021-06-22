@@ -16,6 +16,7 @@
     "firebase-compat-interop-test",
     "firebase-compat-typings-test",
     "@firebase/app-exp",
+    "@firebase/app-check-exp",
     "@firebase/analytics-compat",
     "@firebase/analytics-exp",
     "@firebase/auth-exp",

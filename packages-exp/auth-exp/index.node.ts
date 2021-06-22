@@ -41,6 +41,13 @@ FetchProvider.initialize(
 
 // Core functionality shared by all clients
 export * from './src';
+export {
+  FactorId,
+  ProviderId,
+  SignInMethod,
+  OperationType,
+  ActionCodeOperation
+} from './src/model/enum_maps';
 
 export function getAuth(app: FirebaseApp): Auth {
   const provider = _getProvider(app, 'auth-exp');

@@ -1,5 +1,35 @@
 # @firebase/rules-unit-testing
 
+## 1.3.8
+
+### Patch Changes
+
+- Updated dependencies [[`725ab4684`](https://github.com/firebase/firebase-js-sdk/commit/725ab4684ef0999a12f71e704c204a00fb030e5d)]:
+  - @firebase/component@0.5.3
+  - firebase@8.6.8
+
+## 1.3.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.6.7
+
+## 1.3.6
+
+### Patch Changes
+
+- Updated dependencies [[`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b)]:
+  - @firebase/component@0.5.2
+  - firebase@8.6.6
+
+## 1.3.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.6.5
+
 ## 1.3.4
 
 ### Patch Changes
