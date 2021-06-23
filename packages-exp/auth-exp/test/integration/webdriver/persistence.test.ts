@@ -386,7 +386,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       if (browser === 'firefox') {
         return;
       }
-      
+
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support indexedDB.
       await driver.webDriver.executeScript('delete window.indexedDB');
