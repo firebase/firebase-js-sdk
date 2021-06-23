@@ -17,7 +17,7 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { activate, setTokenAutoRefreshEnabled } from './api';
+import { activate, isActivated, setTokenAutoRefreshEnabled } from './api';
 import {
   FAKE_SITE_KEY,
   getFakeApp,
@@ -39,6 +39,7 @@ describe('api', () => {
       expect(getState(app).activated).to.equal(false);
       activate(app, FAKE_SITE_KEY);
       expect(getState(app).activated).to.equal(true);
+      expect(isActivated(app)).to.equal(true);
     });
 
     it('isTokenAutoRefreshEnabled value defaults to global setting', () => {

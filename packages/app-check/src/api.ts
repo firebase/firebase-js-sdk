@@ -66,6 +66,11 @@ export function activate(
   }
 }
 
+export function isActivated(app: FirebaseApp): boolean {
+  const { activated } = getState(app);
+  return activated;
+}
+
 export function setTokenAutoRefreshEnabled(
   app: FirebaseApp,
   isTokenAutoRefreshEnabled: boolean

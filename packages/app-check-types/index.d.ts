@@ -30,6 +30,11 @@ export interface FirebaseAppCheck {
   ): void;
 
   /**
+   * Returns true if activate() has been called.
+   */
+  isActivated(): boolean;
+
+  /**
    *
    * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
    * refreshes App Check tokens as needed. This overrides any value set
