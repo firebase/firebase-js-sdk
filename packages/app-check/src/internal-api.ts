@@ -202,11 +202,7 @@ export function addTokenListener(
      * invoke the listener with the valid token, then start the token refresher
      */
     if (!newState.tokenRefresher) {
-      const tokenRefresher = createTokenRefresher(
-        app,
-        platformLoggerProvider,
-        onError
-      );
+      const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
       newState.tokenRefresher = tokenRefresher;
     }
 
@@ -258,8 +254,7 @@ export function removeTokenListener(
 
 function createTokenRefresher(
   app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
-  onError?: (error: Error) => void
+  platformLoggerProvider: Provider<'platform-logger'>
 ): Refresher {
   return new Refresher(
     // Keep in mind when this fails for any reason other than the ones
@@ -277,11 +272,7 @@ function createTokenRefresher(
 
       // getToken() always resolves. In case the result has an error field defined, it means the operation failed, and we should retry.
       if (result.error) {
-        if (onError) {
-          onError(result.error);
-        } else {
-          throw result.error;
-        }
+        throw result.error;
       }
     },
     () => {

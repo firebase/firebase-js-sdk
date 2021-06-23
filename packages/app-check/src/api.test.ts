@@ -114,8 +114,10 @@ describe('api', () => {
     it('getToken() throws errors returned with token', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
       const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      // If getToken() errors, it returns a dummy token with an error field
+      // instead of throwing.
       stub(internalApi, 'getToken').resolves({
-        token: 'a-token-string',
+        token: 'a-dummy-token',
         error: Error('there was an error')
       });
       await expect(
