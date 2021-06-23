@@ -45,7 +45,7 @@ const SUITES: TempSuite[] = [];
 /** Main entry point for all WebDriver tests */
 export function browserDescribe(
   title: string,
-  generator: (driver: AuthDriver, browser?: string) => void
+  generator: (driver: AuthDriver, browser: string) => void
 ): void {
   SUITES.push({
     title,
