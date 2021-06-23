@@ -31,7 +31,7 @@ import { AuthDriver } from './auth_driver';
  */
 
 interface TempSuite {
-  generator: (driver: AuthDriver, browser?: string) => void;
+  generator: (driver: AuthDriver, browser: string) => void;
   title: string;
 }
 
