@@ -23,11 +23,10 @@
  */
 
 import { FirebaseApp, _getProvider } from '@firebase/app-exp';
-import { Auth } from './src/model/public_types';
+import { Auth, Dependencies } from './src/model/public_types';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
-import { initializeAuth } from './src';
-import { registerAuth } from './src/core/auth/register';
+import { _initializeAuth } from './src/core/auth/initialize';
 import { ClientPlatform } from './src/core/util/version';
 
 // Core functionality shared by all clients
@@ -61,4 +60,6 @@ export function getAuth(app: FirebaseApp): Auth {
   });
 }
 
-registerAuth(ClientPlatform.CORDOVA);
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
+  return _initializeAuth(app, ClientPlatform.CORDOVA, deps);
+}

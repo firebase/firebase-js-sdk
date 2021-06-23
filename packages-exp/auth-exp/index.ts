@@ -23,13 +23,12 @@
 
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
 
-import { initializeAuth } from './src';
-import { registerAuth } from './src/core/auth/register';
+import { _initializeAuth } from './src/core/auth/initialize';
 import { ClientPlatform } from './src/core/util/version';
 import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
-import { Auth } from './src/model/public_types';
+import { Auth, Dependencies } from './src/model/public_types';
 
 // Public types
 export {
@@ -140,4 +139,31 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   });
 }
 
-registerAuth(ClientPlatform.BROWSER);
+/**
+ * Initializes an Auth instance with fine-grained control over
+ * {@link Dependencies}.
+ *
+ * @remarks
+ *
+ * This function allows more control over the Auth instance than
+ * {@link getAuth}. `getAuth` uses platform-specific defaults to supply
+ * the {@link Dependencies}. In general, `getAuth` is the easiest way to
+ * initialize Auth and works for most use cases. Use `initializeAuth` if you
+ * need control over which persistence layer is used, or to minimize bundle
+ * size if you're not using either `signInWithPopup` or `signInWithRedirect`.
+ *
+ * For example, if your app only uses anonymous accounts and you only want
+ * accounts saved for the current session, initialize Auth with:
+ *
+ * ```js
+ * const auth = initializeAuth(app, {
+ *   persistence: browserSessionPersistence,
+ *   popupRedirectResolver: undefined,
+ * });
+ * ```
+ *
+ * @public
+ */
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
+  return _initializeAuth(app, ClientPlatform.BROWSER, deps);
+}

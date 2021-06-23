@@ -22,7 +22,9 @@ import { AuthErrorCode } from '../errors';
 import { PersistenceInternal } from '../persistence';
 import { _fail } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
+import { ClientPlatform } from '../util/version';
 import { AuthImpl } from './auth_impl';
+import { registerAuth } from './register';
 
 /**
  * Initializes an Auth instance with fine-grained control over
@@ -46,11 +48,19 @@ import { AuthImpl } from './auth_impl';
  *   popupRedirectResolver: undefined,
  * });
  * ```
- *
- * @public
  */
-export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
+export function _initializeAuth(
+  app: FirebaseApp,
+  platform: ClientPlatform,
+  deps?: Dependencies
+): Auth {
   const provider = _getProvider(app, 'auth-exp');
+
+  // register Auth if it hasn't been registered.
+  // Other Firebase SDKs, e.g. Firestore, can use Auth functionalities once Auth is registered.
+  if (!provider.isComponentSet()) {
+    registerAuth(platform);
+  }
 
   if (provider.isInitialized()) {
     const auth = provider.getImmediate() as AuthImpl;
