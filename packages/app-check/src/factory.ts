@@ -39,8 +39,10 @@ import { PartialObserver } from '@firebase/util';
 import { FirebaseService } from '@firebase/app-types/private';
 import { getState } from './state';
 
-export function factory(app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>): FirebaseAppCheck & FirebaseService {
+export function factory(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>
+): FirebaseAppCheck & FirebaseService {
   return {
     app,
     activate: (

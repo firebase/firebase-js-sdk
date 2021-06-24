@@ -39,8 +39,8 @@ import * as logger from './logger';
 import * as client from './client';
 import * as storage from './storage';
 import { getState, clearState, setState, getDebugState } from './state';
-import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { Deferred } from '@firebase/util';
+import { AppCheckTokenResult } from '../../app-check-interop-types';
 
 const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
 
@@ -179,7 +179,7 @@ describe('internal api', () => {
     it('calls optional error handler if there is an error getting a token', async () => {
       stub(logger.logger, 'error');
       activate(app, FAKE_SITE_KEY, false);
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
       stub(client, 'exchangeToken').rejects('exchange error');
       const listener1 = spy();
 
@@ -392,24 +392,23 @@ describe('internal api', () => {
     });
 
     it('notifies the listener with the valid token in storage', done => {
-      const clock = useFakeTimers();
       activate(app, FAKE_SITE_KEY);
       storageReadStub.resolves({
         token: `fake-cached-app-check-token`,
-        expireTimeMillis: 123,
+        expireTimeMillis: Date.now() + 60000,
         issuedAtTimeMillis: 0
       });
 
+      // Need to use done() if the callback will be called by the
+      // refresher.
       const fakeListener = (token: AppCheckTokenResult): void => {
         expect(token).to.deep.equal({
           token: `fake-cached-app-check-token`
         });
-        clock.restore();
         done();
       };
 
       addTokenListener(app, fakePlatformLoggingProvider, fakeListener);
-      clock.tick(1);
     });
 
     it('notifies the listener with the debug token immediately', async () => {
