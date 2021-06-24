@@ -28,6 +28,7 @@ import {
   getFakeApp,
   getFakeCustomTokenProvider,
   getFakePlatformLoggingProvider,
+  getFakeGreCAPTCHA,
   removegreCAPTCHAScriptsOnPage
 } from '../test/util';
 import { clearState, getState } from './state';
@@ -37,8 +38,12 @@ import * as internalApi from './internal-api';
 import * as client from './client';
 import * as storage from './storage';
 import * as logger from './logger';
+import * as util from './util';
 
 describe('api', () => {
+  beforeEach(() => {
+    stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
+  });
   describe('activate()', () => {
     let app: FirebaseApp;
 

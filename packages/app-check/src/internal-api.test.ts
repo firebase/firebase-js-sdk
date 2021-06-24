@@ -23,6 +23,7 @@ import {
   FAKE_SITE_KEY,
   getFakeApp,
   getFakeCustomTokenProvider,
+  getFakeGreCAPTCHA,
   getFakePlatformLoggingProvider,
   removegreCAPTCHAScriptsOnPage
 } from '../test/util';
@@ -38,6 +39,7 @@ import * as reCAPTCHA from './recaptcha';
 import * as logger from './logger';
 import * as client from './client';
 import * as storage from './storage';
+import * as util from './util';
 import { getState, clearState, setState, getDebugState } from './state';
 import { Deferred } from '@firebase/util';
 import { AppCheckTokenResult } from '../../app-check-interop-types';
@@ -53,6 +55,7 @@ describe('internal api', () => {
     app = getFakeApp();
     storageReadStub = stub(storage, 'readTokenFromStorage').resolves(undefined);
     storageWriteStub = stub(storage, 'writeTokenToStorage');
+    stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
   });
 
   afterEach(async () => {
