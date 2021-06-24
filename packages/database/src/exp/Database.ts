@@ -16,12 +16,12 @@
  */
 
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _FirebaseService,
   _getProvider,
   FirebaseApp,
   getApp
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
