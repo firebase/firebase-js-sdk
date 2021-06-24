@@ -16,16 +16,27 @@
  */
 import '../test/setup';
 import { expect } from 'chai';
-import { stub } from 'sinon';
-import { activate, setTokenAutoRefreshEnabled } from './api';
+import { stub, spy } from 'sinon';
+import {
+  activate,
+  setTokenAutoRefreshEnabled,
+  getToken,
+  onTokenChanged
+} from './api';
 import {
   FAKE_SITE_KEY,
   getFakeApp,
-  getFakeCustomTokenProvider
+  getFakeCustomTokenProvider,
+  getFakePlatformLoggingProvider,
+  removegreCAPTCHAScriptsOnPage
 } from '../test/util';
-import { getState } from './state';
+import { clearState, getState } from './state';
 import * as reCAPTCHA from './recaptcha';
 import { FirebaseApp } from '@firebase/app-types';
+import * as internalApi from './internal-api';
+import * as client from './client';
+import * as storage from './storage';
+import * as logger from './logger';
 
 describe('api', () => {
   describe('activate()', () => {
@@ -84,6 +95,175 @@ describe('api', () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: false });
       setTokenAutoRefreshEnabled(app, true);
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
+    });
+  });
+  describe('getToken()', () => {
+    it('getToken() calls the internal getToken() function', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      const internalGetToken = stub(internalApi, 'getToken').resolves({
+        token: 'a-token-string'
+      });
+      await getToken(app, fakePlatformLoggingProvider, true);
+      expect(internalGetToken).to.be.calledWith(
+        app,
+        fakePlatformLoggingProvider,
+        true
+      );
+    });
+    it('getToken() throws errors returned with token', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      // If getToken() errors, it returns a dummy token with an error field
+      // instead of throwing.
+      stub(internalApi, 'getToken').resolves({
+        token: 'a-dummy-token',
+        error: Error('there was an error')
+      });
+      await expect(
+        getToken(app, fakePlatformLoggingProvider, true)
+      ).to.be.rejectedWith('there was an error');
+    });
+  });
+  describe('onTokenChanged()', () => {
+    afterEach(() => {
+      clearState();
+      removegreCAPTCHAScriptsOnPage();
+    });
+    it('Listeners work when using top-level parameters pattern', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      activate(app, FAKE_SITE_KEY, true);
+      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      const fakeRecaptchaToken = 'fake-recaptcha-token';
+      const fakeRecaptchaAppCheckToken = {
+        token: 'fake-recaptcha-app-check-token',
+        expireTimeMillis: 123,
+        issuedAtTimeMillis: 0
+      };
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').returns(
+        Promise.resolve(fakeRecaptchaAppCheckToken)
+      );
+      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
+
+      const listener1 = (): void => {
+        throw new Error();
+      };
+      const listener2 = spy();
+
+      const errorFn1 = spy();
+      const errorFn2 = spy();
+
+      const unsubscribe1 = onTokenChanged(
+        app,
+        fakePlatformLoggingProvider,
+        listener1,
+        errorFn1
+      );
+      const unsubscribe2 = onTokenChanged(
+        app,
+        fakePlatformLoggingProvider,
+        listener2,
+        errorFn2
+      );
+
+      expect(getState(app).tokenObservers.length).to.equal(2);
+
+      await internalApi.getToken(app, fakePlatformLoggingProvider);
+
+      expect(listener2).to.be.calledWith({
+        token: fakeRecaptchaAppCheckToken.token
+      });
+      // onError should not be called on listener errors.
+      expect(errorFn1).to.not.be.called;
+      expect(errorFn2).to.not.be.called;
+      unsubscribe1();
+      unsubscribe2();
+      expect(getState(app).tokenObservers.length).to.equal(0);
+    });
+
+    it('Listeners work when using Observer pattern', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      activate(app, FAKE_SITE_KEY, true);
+      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      const fakeRecaptchaToken = 'fake-recaptcha-token';
+      const fakeRecaptchaAppCheckToken = {
+        token: 'fake-recaptcha-app-check-token',
+        expireTimeMillis: 123,
+        issuedAtTimeMillis: 0
+      };
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').returns(
+        Promise.resolve(fakeRecaptchaAppCheckToken)
+      );
+      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
+
+      const listener1 = (): void => {
+        throw new Error();
+      };
+      const listener2 = spy();
+
+      const errorFn1 = spy();
+      const errorFn2 = spy();
+
+      /**
+       * Reverse the order of adding the failed and successful handler, for extra
+       * testing.
+       */
+      const unsubscribe2 = onTokenChanged(app, fakePlatformLoggingProvider, {
+        next: listener2,
+        error: errorFn2
+      });
+      const unsubscribe1 = onTokenChanged(app, fakePlatformLoggingProvider, {
+        next: listener1,
+        error: errorFn1
+      });
+
+      expect(getState(app).tokenObservers.length).to.equal(2);
+
+      await internalApi.getToken(app, fakePlatformLoggingProvider);
+
+      expect(listener2).to.be.calledWith({
+        token: fakeRecaptchaAppCheckToken.token
+      });
+      // onError should not be called on listener errors.
+      expect(errorFn1).to.not.be.called;
+      expect(errorFn2).to.not.be.called;
+      unsubscribe1();
+      unsubscribe2();
+      expect(getState(app).tokenObservers.length).to.equal(0);
+    });
+
+    it('onError() catches token errors', async () => {
+      stub(logger.logger, 'error');
+      const app = getFakeApp();
+      activate(app, FAKE_SITE_KEY, false);
+      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      const fakeRecaptchaToken = 'fake-recaptcha-token';
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').rejects('exchange error');
+      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
+
+      const listener1 = spy();
+
+      const errorFn1 = spy();
+
+      const unsubscribe1 = onTokenChanged(
+        app,
+        fakePlatformLoggingProvider,
+        listener1,
+        errorFn1
+      );
+
+      await internalApi.getToken(app, fakePlatformLoggingProvider);
+
+      expect(getState(app).tokenObservers.length).to.equal(1);
+
+      expect(errorFn1).to.be.calledOnce;
+      expect(errorFn1.args[0][0].name).to.include('exchange error');
+
+      unsubscribe1();
+      expect(getState(app).tokenObservers.length).to.equal(0);
     });
   });
 });

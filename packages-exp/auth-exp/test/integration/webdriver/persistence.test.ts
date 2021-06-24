@@ -47,7 +47,7 @@ async function testPersistedUser() {
   };
 }
 
-browserDescribe('WebDriver persistence test', driver => {
+browserDescribe('WebDriver persistence test', (driver, browser) => {
   const fullPersistenceKey = `firebase:authUser:${API_KEY}:[DEFAULT]`;
   context('default persistence hierarchy (indexedDB > localStorage)', () => {
     it('stores user in indexedDB by default', async () => {
@@ -381,6 +381,12 @@ browserDescribe('WebDriver persistence test', driver => {
     });
 
     it('stays logged in when switching from legacy SDK and then back (no indexedDB support)', async () => {
+      // Skip this test if running in Firefox. The Legacy SDK incorrectly
+      // implements the db delete + reopen workaround for Firefox.
+      if (browser === 'firefox') {
+        return;
+      }
+
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support indexedDB.
       await driver.webDriver.executeScript('delete window.indexedDB');

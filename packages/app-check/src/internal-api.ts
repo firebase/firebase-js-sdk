@@ -18,11 +18,12 @@
 import { getToken as getReCAPTCHAToken } from './recaptcha';
 import { FirebaseApp } from '@firebase/app-types';
 import {
-  AppCheckTokenResult,
-  AppCheckTokenListener
+  AppCheckTokenListener,
+  AppCheckTokenResult
 } from '@firebase/app-check-interop-types';
 import {
   AppCheckTokenInternal,
+  AppCheckTokenObserver,
   getDebugState,
   getState,
   setState
@@ -167,12 +168,17 @@ export async function getToken(
 export function addTokenListener(
   app: FirebaseApp,
   platformLoggerProvider: Provider<'platform-logger'>,
-  listener: AppCheckTokenListener
+  listener: AppCheckTokenListener,
+  onError?: (error: Error) => void
 ): void {
   const state = getState(app);
+  const tokenListener: AppCheckTokenObserver = {
+    next: listener,
+    error: onError
+  };
   const newState = {
     ...state,
-    tokenListeners: [...state.tokenListeners, listener]
+    tokenObservers: [...state.tokenObservers, tokenListener]
   };
 
   /**
@@ -186,7 +192,7 @@ export function addTokenListener(
       debugState.token.promise
         .then(token => listener({ token }))
         .catch(() => {
-          /* we don't care about exceptions thrown in listeners */
+          /** Ignore errors in listeners. */
         });
     }
   } else {
@@ -215,7 +221,7 @@ export function addTokenListener(
       Promise.resolve()
         .then(() => listener({ token: validToken.token }))
         .catch(() => {
-          /* we don't care about exceptions thrown in listeners */
+          /** Ignore errors in listeners. */
         });
     }
   }
@@ -225,13 +231,15 @@ export function addTokenListener(
 
 export function removeTokenListener(
   app: FirebaseApp,
-  listener: AppCheckTokenListener
+  listener: (token: AppCheckTokenResult) => void
 ): void {
   const state = getState(app);
 
-  const newListeners = state.tokenListeners.filter(l => l !== listener);
+  const newObservers = state.tokenObservers.filter(
+    tokenObserver => tokenObserver.next !== listener
+  );
   if (
-    newListeners.length === 0 &&
+    newObservers.length === 0 &&
     state.tokenRefresher &&
     state.tokenRefresher.isRunning()
   ) {
@@ -240,7 +248,7 @@ export function removeTokenListener(
 
   setState(app, {
     ...state,
-    tokenListeners: newListeners
+    tokenObservers: newObservers
   });
 }
 
@@ -302,12 +310,23 @@ function notifyTokenListeners(
   app: FirebaseApp,
   token: AppCheckTokenResult
 ): void {
-  const listeners = getState(app).tokenListeners;
+  const observers = getState(app).tokenObservers;
 
-  for (const listener of listeners) {
+  for (const observer of observers) {
     try {
-      listener(token);
-    } catch (e) {
+      if (observer.error) {
+        // If this listener has an error handler, handle errors differently
+        // from successes.
+        if (token.error) {
+          observer.error(token.error);
+        } else {
+          observer.next(token);
+        }
+      } else {
+        // Otherwise return the token, whether or not it has an error field.
+        observer.next(token);
+      }
+    } catch (ignored) {
       // If any handler fails, ignore and run next handler.
     }
   }

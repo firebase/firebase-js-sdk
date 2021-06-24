@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { PartialObserver, Unsubscribe } from '@firebase/util';
+
 export interface FirebaseAppCheck {
   /**
    * Activate AppCheck
@@ -36,6 +38,40 @@ export interface FirebaseAppCheck {
    * during `activate()`.
    */
   setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
+
+  /**
+   * Get the current App Check token. Attaches to the most recent
+   * in-flight request if one is present. Returns null if no token
+   * is present and no token requests are in flight.
+   *
+   * @param forceRefresh - If true, will always try to fetch a fresh token.
+   * If false, will use a cached token if found in storage.
+   */
+  getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
+
+  /**
+   * Registers a listener to changes in the token state. There can be more
+   * than one listener registered at the same time for one or more
+   * App Check instances. The listeners call back on the UI thread whenever
+   * the current token associated with this App Check instance changes.
+   *
+   * @returns A function that unsubscribes this listener.
+   */
+  onTokenChanged(observer: PartialObserver<AppCheckTokenResult>): Unsubscribe;
+
+  /**
+   * Registers a listener to changes in the token state. There can be more
+   * than one listener registered at the same time for one or more
+   * App Check instances. The listeners call back on the UI thread whenever
+   * the current token associated with this App Check instance changes.
+   *
+   * @returns A function that unsubscribes this listener.
+   */
+  onTokenChanged(
+    onNext: (tokenResult: AppCheckTokenResult) => void,
+    onError?: (error: Error) => void,
+    onCompletion?: () => void
+  ): Unsubscribe;
 }
 
 /**
@@ -62,6 +98,16 @@ interface AppCheckToken {
    * The local timestamp after which the token will expire.
    */
   readonly expireTimeMillis: number;
+}
+
+/**
+ * Result returned by `getToken()`.
+ */
+interface AppCheckTokenResult {
+  /**
+   * The token string in JWT format.
+   */
+  readonly token: string;
 }
 
 export type AppCheckComponentName = 'appCheck';

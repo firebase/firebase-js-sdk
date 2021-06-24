@@ -15,11 +15,21 @@
  * limitations under the License.
  */
 
-import { AppCheckProvider } from '@firebase/app-check-types';
+import {
+  AppCheckProvider,
+  AppCheckTokenResult
+} from '@firebase/app-check-types';
 import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { initialize as initializeRecaptcha } from './recaptcha';
 import { getState, setState, AppCheckState } from './state';
+import {
+  getToken as getTokenInternal,
+  addTokenListener,
+  removeTokenListener
+} from './internal-api';
+import { Provider } from '@firebase/component';
+import { ErrorFn, NextFn, PartialObserver, Unsubscribe } from '@firebase/util';
 
 /**
  *
@@ -81,4 +91,77 @@ export function setTokenAutoRefreshEnabled(
     }
   }
   setState(app, { ...state, isTokenAutoRefreshEnabled });
+}
+
+/**
+ * Differs from internal getToken in that it throws the error.
+ */
+export async function getToken(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>,
+  forceRefresh?: boolean
+): Promise<AppCheckTokenResult> {
+  const result = await getTokenInternal(
+    app,
+    platformLoggerProvider,
+    forceRefresh
+  );
+  if (result.error) {
+    throw result.error;
+  }
+  return { token: result.token };
+}
+
+/**
+ * Wraps addTokenListener/removeTokenListener methods in an Observer
+ * pattern for public use.
+ */
+export function onTokenChanged(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>,
+  observer: PartialObserver<AppCheckTokenResult>
+): Unsubscribe;
+export function onTokenChanged(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>,
+  onNext: (tokenResult: AppCheckTokenResult) => void,
+  onError?: (error: Error) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onTokenChanged(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>,
+  onNextOrObserver:
+    | ((tokenResult: AppCheckTokenResult) => void)
+    | PartialObserver<AppCheckTokenResult>,
+  onError?: (error: Error) => void,
+  /**
+   * NOTE: Although an `onCompletion` callback can be provided, it will
+   * never be called because the token stream is never-ending.
+   * It is added only for API consistency with the observer pattern, which
+   * we follow in JS APIs.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onCompletion?: () => void
+): Unsubscribe {
+  let nextFn: NextFn<AppCheckTokenResult> = () => {};
+  let errorFn: ErrorFn = () => {};
+  if ((onNextOrObserver as PartialObserver<AppCheckTokenResult>).next != null) {
+    nextFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).next!.bind(
+      onNextOrObserver
+    );
+  } else {
+    nextFn = onNextOrObserver as NextFn<AppCheckTokenResult>;
+  }
+  if (
+    (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error != null
+  ) {
+    errorFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error!.bind(
+      onNextOrObserver
+    );
+  } else if (onError) {
+    errorFn = onError;
+  }
+  addTokenListener(app, platformLoggerProvider, nextFn, errorFn);
+  return () => removeTokenListener(app, nextFn);
 }
