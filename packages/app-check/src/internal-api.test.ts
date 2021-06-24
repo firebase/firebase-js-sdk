@@ -44,7 +44,7 @@ import { Deferred } from '@firebase/util';
 
 const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
 
-describe.only('internal api', () => {
+describe('internal api', () => {
   let app: FirebaseApp;
   let storageStub: SinonStub;
 
