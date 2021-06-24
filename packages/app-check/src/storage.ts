@@ -31,13 +31,12 @@ import { AppCheckTokenInternal } from './state';
  * Always resolves. In case of an error reading from indexeddb, resolve with undefined
  */
 export async function readTokenFromStorage(
-  app: FirebaseApp,
-  keySuffix?: string
+  app: FirebaseApp
 ): Promise<AppCheckTokenInternal | undefined> {
   if (isIndexedDBAvailable()) {
     let token = undefined;
     try {
-      token = await readTokenFromIndexedDB(app, keySuffix);
+      token = await readTokenFromIndexedDB(app);
     } catch (e) {
       // swallow the error and return undefined
       logger.warn(`Failed to read token from indexeddb. Error: ${e}`);
@@ -53,11 +52,10 @@ export async function readTokenFromStorage(
  */
 export function writeTokenToStorage(
   app: FirebaseApp,
-  token: AppCheckTokenInternal,
-  keySuffix?: string
+  token: AppCheckTokenInternal
 ): Promise<void> {
   if (isIndexedDBAvailable()) {
-    return writeTokenToIndexedDB(app, token, keySuffix).catch(e => {
+    return writeTokenToIndexedDB(app, token).catch(e => {
       // swallow the error and resolve the promise
       logger.warn(`Failed to write token to indexeddb. Error: ${e}`);
     });

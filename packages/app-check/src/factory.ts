@@ -36,18 +36,19 @@ import {
 import { Provider } from '@firebase/component';
 import { PartialObserver } from '@firebase/util';
 
-export function factory(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>
-): FirebaseAppCheck {
+import { FirebaseService } from '@firebase/app-types/private';
+import { getState } from './state';
+
+export function factory(app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>): FirebaseAppCheck & FirebaseService {
   return {
+    app,
     activate: (
       siteKeyOrProvider: string | AppCheckProvider,
       isTokenAutoRefreshEnabled?: boolean
     ) => activate(app, siteKeyOrProvider, isTokenAutoRefreshEnabled),
     setTokenAutoRefreshEnabled: (isTokenAutoRefreshEnabled: boolean) =>
       setTokenAutoRefreshEnabled(app, isTokenAutoRefreshEnabled),
-
     getToken: forceRefresh =>
       getToken(app, platformLoggerProvider, forceRefresh),
     onTokenChanged: (
@@ -68,7 +69,16 @@ export function factory(
         onNextOrObserver as (tokenResult: AppCheckTokenResult) => void,
         onError,
         onCompletion
-      )
+      ),
+    INTERNAL: {
+      delete: () => {
+        const { tokenObservers } = getState(app);
+        for (const tokenObserver of tokenObservers) {
+          removeTokenListener(app, tokenObserver.next);
+        }
+        return Promise.resolve();
+      }
+    }
   };
 }
 

@@ -72,42 +72,17 @@ export async function getToken(
   forceRefresh = false
 ): Promise<AppCheckTokenResult> {
   ensureActivated(app);
-  /**
-   * DEBUG MODE
-   * return the debug token directly
-   */
-  if (isDebugMode()) {
-    // Check for an in-memory debug token from the exchange endpoint.
-    const debugState = getDebugState();
-    if (debugState.exchangeToken && isValid(debugState.exchangeToken)) {
-      return { token: debugState.exchangeToken.token };
-    }
-    // Check for a indexedDB cached debug token from the exchange endpoint.
-    const cachedDebugToken = await readTokenFromStorage(app, 'debug');
-    if (cachedDebugToken && isValid(cachedDebugToken)) {
-      // Write to debug state.
-      debugState.exchangeToken = cachedDebugToken;
-      return { token: cachedDebugToken.token };
-    }
-    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
-      getExchangeDebugTokenRequest(app, await getDebugToken()),
-      platformLoggerProvider
-    );
-    // Write debug token to indexedDB using special debug key, different
-    // from key for regular prod tokens.
-    await writeTokenToStorage(app, tokenFromDebugExchange, 'debug');
-    // Write to debug state.
-    debugState.exchangeToken = tokenFromDebugExchange;
-    return { token: tokenFromDebugExchange.token };
-  }
 
   const state = getState(app);
 
+  /**
+   * First check if there is a token in memory from a previous `getToken()` call.
+   */
   let token: AppCheckTokenInternal | undefined = state.token;
   let error: Error | undefined = undefined;
 
   /**
-   * try to load token from indexedDB if it's the first time this function is called
+   * If there is no token in memory, try to load token from indexedDB.
    */
   if (!token) {
     // readTokenFromStorage() always resolves. In case of an error, it resolves with `undefined`.
@@ -121,11 +96,28 @@ export async function getToken(
     }
   }
 
-  // return the cached token if it's valid
+  // Return the cached token (from either memory or indexedDB) if it's valid
   if (!forceRefresh && token && isValid(token)) {
     return {
       token: token.token
     };
+  }
+
+  /**
+   * DEBUG MODE
+   * If debug mode is set, and there is no cached token, fetch a new App
+   * Check token using the debug token, and return it directly.
+   */
+  if (isDebugMode()) {
+    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
+      getExchangeDebugTokenRequest(app, await getDebugToken()),
+      platformLoggerProvider
+    );
+    // Write debug token to indexedDB.
+    await writeTokenToStorage(app, tokenFromDebugExchange);
+    // Write debug token to state.
+    setState(app, { ...state, token: tokenFromDebugExchange });
+    return { token: tokenFromDebugExchange.token };
   }
 
   /**
@@ -172,7 +164,7 @@ export async function getToken(
     interopTokenResult = {
       token: token.token
     };
-    // write the new token to the memory state as well ashe persistent storage.
+    // write the new token to the memory state as well as the persistent storage.
     // Only do it if we got a valid new token
     setState(app, { ...state, token });
     await writeTokenToStorage(app, token);
