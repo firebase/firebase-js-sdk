@@ -22,7 +22,7 @@
   "typings": "dist/rollup.d.ts",
   "dependencies": {
     "api-extractor-model-me": "0.1.1",
-    "@microsoft/tsdoc": "0.13.2",
+    "@microsoft/tsdoc": "0.12.24",
     "@rushstack/node-core-library": "3.39.0",
     "@rushstack/ts-command-line": "4.7.8",
     "colors": "~1.4.0",
