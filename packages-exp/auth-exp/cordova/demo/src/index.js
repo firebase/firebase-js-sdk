@@ -1017,13 +1017,15 @@ function signInWithPopupRedirect(provider) {
   }
   console.log('Provider:');
   console.log(provider);
-  method(inst, provider, cordovaPopupRedirectResolver).then(() => getRedirectResult(auth)).then(response => {
-    console.log('Popup response:');
-    console.log(response);
-    alertSuccess(action + ' with ' + provider['providerId'] + ' successful!');
-    logAdditionalUserInfo(response);
-    onAuthSuccess(activeUser());
-  }, onAuthError);
+  method(inst, provider, cordovaPopupRedirectResolver)
+    .then(() => getRedirectResult(auth))
+    .then(response => {
+      console.log('Popup response:');
+      console.log(response);
+      alertSuccess(action + ' with ' + provider['providerId'] + ' successful!');
+      logAdditionalUserInfo(response);
+      onAuthSuccess(activeUser());
+    }, onAuthError);
 }
 
 /**
@@ -1551,14 +1553,16 @@ function initApp() {
 
   $('#fetch-sign-in-methods-for-email').click(onFetchSignInMethodsForEmail);
 
-
-
   $('#copy-active-user').click(onCopyActiveUser);
   $('#copy-last-user').click(onCopyLastUser);
 
   $('#apply-auth-settings-change').click(onApplyAuthSettingsChange);
 }
 
-document.addEventListener('deviceready', function() {
-  initApp();
-}, false);
+document.addEventListener(
+  'deviceready',
+  function () {
+    initApp();
+  },
+  false
+);

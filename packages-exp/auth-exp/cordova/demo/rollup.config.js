@@ -14,33 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- import resolve from '@rollup/plugin-node-resolve';
- import strip from '@rollup/plugin-strip';
-  
- /**
-  * Common plugins for all builds
-  */
- const commonPlugins = [
-   strip({
-     functions: ['debugAssert.*']
-   })
- ];
- 
- const es5Builds = [
-   /**
-    * Browser Builds
-    */
-   {
-     input: 'src/index.js',
-     output: [{ file: 'www/dist/bundle.js', format: 'esm', sourcemap: true }],
-     plugins: [
-       ...commonPlugins,
-       resolve({
-         mainFields: ['module', 'main']
-       })
-     ]
-   },
- ];
- 
- export default [...es5Builds];
- 
+import resolve from '@rollup/plugin-node-resolve';
+import strip from '@rollup/plugin-strip';
+
+/**
+ * Common plugins for all builds
+ */
+const commonPlugins = [
+  strip({
+    functions: ['debugAssert.*']
+  })
+];
+
+const es5Builds = [
+  /**
+   * Browser Builds
+   */
+  {
+    input: 'src/index.js',
+    output: [{ file: 'www/dist/bundle.js', format: 'esm', sourcemap: true }],
+    plugins: [
+      ...commonPlugins,
+      resolve({
+        mainFields: ['module', 'main']
+      })
+    ]
+  }
+];
+
+export default [...es5Builds];
