@@ -4858,6 +4858,8 @@ declare namespace firebase.analytics {
       eventParams?: {
         app_name: string;
         screen_name: EventParams['screen_name'];
+        firebase_screen: EventParams['firebase_screen'];
+        firebase_screen_class: EventParams['firebase_screen_class'];
         app_id?: string;
         app_version?: string;
         app_installer_id?: string;
@@ -5166,6 +5168,14 @@ declare namespace firebase.analytics {
     number?: string;
     promotions?: Promotion[];
     screen_name?: string;
+    /**
+     * Firebase-specific. Use to log a screen_name to Firebase Analytics.
+     */
+    firebase_screen?: string;
+    /**
+     * Firebase-specific. Use to log a screen_class to Firebase Analytics.
+     */
+    firebase_screen_class?: string;
     search_term?: string;
     shipping?: Currency;
     tax?: Currency;
