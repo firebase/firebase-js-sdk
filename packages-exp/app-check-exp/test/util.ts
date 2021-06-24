@@ -29,7 +29,7 @@ import {
 } from '@firebase/component';
 import { PlatformLoggerService } from '@firebase/app-exp/dist/packages-exp/app-exp/src/types';
 import { AppCheckService } from '../src/factory';
-import { CustomProvider } from '../src';
+import { AppCheck, CustomProvider } from '../src';
 
 export const FAKE_SITE_KEY = 'fake-site-key';
 
@@ -50,6 +50,13 @@ export function getFakeApp(overrides: Record<string, any> = {}): FirebaseApp {
     automaticDataCollectionEnabled: true,
     ...overrides
   };
+}
+
+export function getFakeAppCheck(app: FirebaseApp): AppCheck {
+  return {
+    app,
+    platformLoggerProvider: getFakePlatformLoggingProvider()
+  } as AppCheck;
 }
 
 export function getFullApp(): FirebaseApp {

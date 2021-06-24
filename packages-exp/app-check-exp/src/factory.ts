@@ -16,7 +16,7 @@
  */
 
 import { AppCheck } from './public-types';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService, _getProvider } from '@firebase/app-exp';
 import { FirebaseAppCheckInternal } from './types';
 import {
   getToken,
@@ -29,7 +29,11 @@ import { Provider } from '@firebase/component';
  * AppCheck Service class.
  */
 export class AppCheckService implements AppCheck, _FirebaseService {
-  constructor(public app: FirebaseApp) {}
+  platformLoggerProvider: Provider<'platform-logger'>;
+
+  constructor(public app: FirebaseApp) {
+    this.platformLoggerProvider = _getProvider(app, 'platform-logger');
+  }
   _delete(): Promise<void> {
     return Promise.resolve();
   }
