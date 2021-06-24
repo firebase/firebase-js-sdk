@@ -46,15 +46,18 @@ const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
 
 describe('internal api', () => {
   let app: FirebaseApp;
-  let storageStub: SinonStub;
+  let storageReadStub: SinonStub;
+  let storageWriteStub: SinonStub;
 
   beforeEach(() => {
     app = getFakeApp();
-    storageStub = stub(storage, 'readTokenFromStorage').resolves(undefined);
+    storageReadStub = stub(storage, 'readTokenFromStorage').resolves(undefined);
+    storageWriteStub = stub(storage, 'writeTokenToStorage');
   });
 
   afterEach(async () => {
-    storageStub.restore();
+    storageReadStub.restore();
+    storageWriteStub.restore();
     clearState();
     removegreCAPTCHAScriptsOnPage();
   });
@@ -135,7 +138,7 @@ describe('internal api', () => {
 
     it('notifies listeners using cached token', async () => {
       activate(app, FAKE_SITE_KEY, false);
-      storageStub.resolves(fakeCachedAppCheckToken);
+      storageReadStub.resolves(fakeCachedAppCheckToken);
 
       const listener1 = spy();
       const listener2 = spy();
@@ -213,7 +216,7 @@ describe('internal api', () => {
     it('loads persisted token to memory and returns it', async () => {
       activate(app, FAKE_SITE_KEY);
 
-      storageStub.resolves(fakeCachedAppCheckToken);
+      storageReadStub.resolves(fakeCachedAppCheckToken);
 
       const clientStub = stub(client, 'exchangeToken');
 
@@ -231,7 +234,7 @@ describe('internal api', () => {
 
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
-      const storageWriteStub = stub(storage, 'writeTokenToStorage');
+      storageWriteStub.resetHistory();
       const result = await getToken(app, fakePlatformLoggingProvider);
       expect(result).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
       expect(storageWriteStub).has.been.calledWith(
@@ -285,7 +288,7 @@ describe('internal api', () => {
     });
 
     it('reads any memory-cached debug token if in debug mode', async () => {
-      storageStub.resetHistory();
+      storageReadStub.resetHistory();
       const clientStub = stub(client, 'exchangeToken');
       const debugState = getDebugState();
       debugState.enabled = true;
@@ -298,12 +301,12 @@ describe('internal api', () => {
       expect(token).to.deep.equal({
         token: fakeCachedAppCheckToken.token
       });
-      expect(storageStub).has.not.been.called;
+      expect(storageReadStub).has.not.been.called;
       expect(clientStub).has.not.been.called;
     });
 
     it('reads any indexedDB cached debug token if in debug mode and no token in memory', async () => {
-      storageStub.resolves(fakeCachedAppCheckToken);
+      storageReadStub.resolves(fakeCachedAppCheckToken);
       const clientStub = stub(client, 'exchangeToken');
       const debugState = getDebugState();
       debugState.enabled = true;
@@ -323,7 +326,7 @@ describe('internal api', () => {
       activate(app, FAKE_SITE_KEY);
 
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
-      const storageWriteStub = stub(storage, 'writeTokenToStorage');
+      storageWriteStub.resetHistory();
       const debugState = getDebugState();
       debugState.enabled = true;
       debugState.token = new Deferred();
@@ -391,7 +394,7 @@ describe('internal api', () => {
     it('notifies the listener with the valid token in storage', done => {
       const clock = useFakeTimers();
       activate(app, FAKE_SITE_KEY);
-      storageStub.resolves({
+      storageReadStub.resolves({
         token: `fake-cached-app-check-token`,
         expireTimeMillis: 123,
         issuedAtTimeMillis: 0
