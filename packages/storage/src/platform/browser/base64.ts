@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Request } from './request';
-import { RequestInfo } from './requestinfo';
-import { ConnectionPool } from './connectionPool';
 
-type requestMaker = <T>(
-  requestInfo: RequestInfo<T>,
-  appId: string | null,
-  authToken: string | null,
-  pool: ConnectionPool
-) => Request<T>;
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  return atob(encoded);
+}
 
-export { requestMaker };
+export function decodeUint8Array(data: Uint8Array): string {
+  return new TextDecoder().decode(data);
+}

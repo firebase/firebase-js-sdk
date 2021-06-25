@@ -28,7 +28,7 @@ import {
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 
-import { XhrIoPool } from '../src/implementation/xhriopool';
+import { ConnectionPool } from '../src/implementation/connectionPool';
 import {
   StorageService as StorageServiceInternal,
   useStorageEmulator as useEmulatorInternal
@@ -76,7 +76,7 @@ function factory(
     app,
     authProvider,
     appCheckProvider,
-    new XhrIoPool(),
+    new ConnectionPool(),
     url,
     SDK_VERSION
   );

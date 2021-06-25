@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Request } from './request';
-import { RequestInfo } from './requestinfo';
-import { ConnectionPool } from './connectionPool';
 
-type requestMaker = <T>(
-  requestInfo: RequestInfo<T>,
-  appId: string | null,
-  authToken: string | null,
-  pool: ConnectionPool
-) => Request<T>;
+/**
+ * Returns an replacement configuration for `@rollup/plugin-alias` that replaces
+ * references to platform-specific files with implementations for the provided
+ * target platform.
+ */
+function generateAliasConfig(platform) {
+  return {
+    entries: [
+      {
+        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
+        replacement: `$1\/platform/${platform}/$2.ts`
+      }
+    ]
+  };
+}
 
-export { requestMaker };
+exports.generateAliasConfig = generateAliasConfig;

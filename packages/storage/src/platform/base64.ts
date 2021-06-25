@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Request } from './request';
-import { RequestInfo } from './requestinfo';
-import { ConnectionPool } from './connectionPool';
 
-type requestMaker = <T>(
-  requestInfo: RequestInfo<T>,
-  appId: string | null,
-  authToken: string | null,
-  pool: ConnectionPool
-) => Request<T>;
+import {
+  decodeUint8Array as nodeDecodeUint8Array,
+  decodeBase64 as nodeDecodeBase64
+} from './node/base64';
 
-export { requestMaker };
+/** Converts a Base64 encoded string to a binary string. */
+export function decodeBase64(encoded: string): string {
+  // This file is only used under ts-node.
+  return nodeDecodeBase64(encoded);
+}
+
+/** Converts a Uint8Array to a string. */
+export function decodeUint8Array(data: Uint8Array): string {
+  // This file is only used under ts-node.
+  return nodeDecodeUint8Array(data);
+}
