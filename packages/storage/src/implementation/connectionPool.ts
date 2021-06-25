@@ -18,14 +18,14 @@
 /**
  * @fileoverview Replacement for goog.net.XhrIoPool that works with fbs.XhrIo.
  */
-import { XhrIo } from './xhrio';
-import { NetworkXhrIo } from './xhrio_network';
+import { Connection } from './connection';
+import { newConnection } from '../platform/connection';
 
 /**
  * Factory-like class for creating XhrIo instances.
  */
-export class XhrIoPool {
-  createXhrIo(): XhrIo {
-    return new NetworkXhrIo();
+export class ConnectionPool {
+  createConnection(): Connection {
+    return newConnection();
   }
 }

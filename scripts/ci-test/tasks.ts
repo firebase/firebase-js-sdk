@@ -199,3 +199,20 @@ export function filterTasks(
 
   return filteredTasks;
 }
+
+export function logTasks(testTasks: TestTask[]): void {
+  for (const task of testTasks) {
+    switch (task.reason) {
+      case TestReason.Changed:
+        console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
+        break;
+      case TestReason.Dependent:
+        console.log(
+          chalk`{yellow ${task.pkgName} (depends on modified files)}`
+        );
+        break;
+      default:
+        console.log(chalk`{yellow ${task.pkgName} (running all tests)}`);
+    }
+  }
+}

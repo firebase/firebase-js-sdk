@@ -24,7 +24,7 @@
 
 import * as fetchImpl from 'node-fetch';
 
-import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
 import { Auth } from './src/model/public_types';
 
 import { initializeAuth } from './src';
@@ -34,9 +34,9 @@ import { ClientPlatform } from './src/core/util/version';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
 FetchProvider.initialize(
-  (fetchImpl.default as unknown) as typeof fetch,
-  (fetchImpl.Headers as unknown) as typeof Headers,
-  (fetchImpl.Response as unknown) as typeof Response
+  fetchImpl.default as unknown as typeof fetch,
+  fetchImpl.Headers as unknown as typeof Headers,
+  fetchImpl.Response as unknown as typeof Response
 );
 
 // Core functionality shared by all clients
@@ -49,7 +49,7 @@ export {
   ActionCodeOperation
 } from './src/model/enum_maps';
 
-export function getAuth(app: FirebaseApp): Auth {
+export function getAuth(app: FirebaseApp = getApp()): Auth {
   const provider = _getProvider(app, 'auth-exp');
 
   if (provider.isInitialized()) {

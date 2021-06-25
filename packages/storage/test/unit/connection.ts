@@ -14,14 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ErrorCode, Headers, XhrIo } from '../../src/implementation/xhrio';
+import {
+  ErrorCode,
+  Headers,
+  Connection
+} from '../../src/implementation/connection';
 import {
   FirebaseStorageError,
   StorageErrorCode
 } from '../../src/implementation/error';
 
 export type SendHook = (
-  xhrio: TestingXhrIo,
+  connection: TestingConnection,
   url: string,
   method: string,
   body?: ArrayBufferView | Blob | string | null,
@@ -34,18 +38,14 @@ export enum State {
   DONE = 2
 }
 
-export interface StringHeaders {
-  [name: string]: string;
-}
-
-export class TestingXhrIo implements XhrIo {
+export class TestingConnection implements Connection {
   private state: State;
-  private sendPromise: Promise<XhrIo>;
-  private resolve!: (xhrIo: XhrIo) => void;
+  private sendPromise: Promise<void>;
+  private resolve!: () => void;
   private sendHook: SendHook | null;
   private status: number;
   private responseText: string;
-  private headers: StringHeaders;
+  private headers: Headers;
   private errorCode: ErrorCode;
 
   constructor(sendHook: SendHook | null) {
@@ -65,7 +65,7 @@ export class TestingXhrIo implements XhrIo {
     method: string,
     body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
-  ): Promise<XhrIo> {
+  ): Promise<void> {
     if (this.state !== State.START) {
       throw new FirebaseStorageError(
         StorageErrorCode.UNKNOWN,
@@ -102,7 +102,7 @@ export class TestingXhrIo implements XhrIo {
     this.errorCode = ErrorCode.NO_ERROR;
 
     this.state = State.DONE;
-    this.resolve(this);
+    this.resolve();
   }
 
   getErrorCode(): ErrorCode {
@@ -120,7 +120,7 @@ export class TestingXhrIo implements XhrIo {
   abort(): void {
     this.state = State.START;
     this.errorCode = ErrorCode.NO_ERROR;
-    this.resolve(this);
+    this.resolve();
   }
 
   getResponseHeader(header: string): string | null {

@@ -16,13 +16,13 @@
  */
 import { Request } from './request';
 import { RequestInfo } from './requestinfo';
-import { XhrIoPool } from './xhriopool';
+import { ConnectionPool } from './connectionPool';
 
 type requestMaker = <T>(
   requestInfo: RequestInfo<T>,
   appId: string | null,
   authToken: string | null,
-  pool: XhrIoPool
+  pool: ConnectionPool
 ) => Request<T>;
 
 export { requestMaker };

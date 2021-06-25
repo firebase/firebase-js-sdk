@@ -17,7 +17,7 @@
 
 import { resolve } from 'path';
 import { spawn } from 'child-process-promise';
-import { TestReason, filterTasks, getTestTasks } from './tasks';
+import { TestReason, filterTasks, getTestTasks, logTasks } from './tasks';
 import chalk from 'chalk';
 import { argv } from 'yargs';
 import { TestConfig, testConfig } from './testConfig';
@@ -51,6 +51,8 @@ async function runTests(config: TestConfig) {
   try {
     const testTasks = filterTasks(await getTestTasks(), config);
 
+    // print tasks for info
+    logTasks(testTasks);
     if (testTasks.length === 0) {
       chalk`{green No test tasks. Skipping all tests }`;
       process.exit(0);

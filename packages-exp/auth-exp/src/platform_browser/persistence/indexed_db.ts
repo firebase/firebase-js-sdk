@@ -113,8 +113,10 @@ export function _openDatabase(): Promise<IDBDatabase> {
       // https://github.com/firebase/firebase-js-sdk/issues/634
 
       if (!db.objectStoreNames.contains(DB_OBJECTSTORE_NAME)) {
+        // Need to close the database or else you get a `blocked` event
+        db.close();
         await _deleteDatabase();
-        return _openDatabase();
+        resolve(await _openDatabase());
       } else {
         resolve(db);
       }
@@ -173,10 +175,11 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
   constructor() {
     // Fire & forget the service worker registration as it may never resolve
-    this._workerInitializationPromise = this.initializeServiceWorkerMessaging().then(
-      () => {},
-      () => {}
-    );
+    this._workerInitializationPromise =
+      this.initializeServiceWorkerMessaging().then(
+        () => {},
+        () => {}
+      );
   }
 
   async _openDb(): Promise<IDBDatabase> {

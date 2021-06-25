@@ -19,9 +19,12 @@ import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkgExp from './exp/package.json';
+import alias from '@rollup/plugin-alias';
 import pkg from './package.json';
 import path from 'path';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
+
+const { generateAliasConfig } = require('./rollup.shared');
 
 const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
@@ -38,6 +41,7 @@ const es5Plugins = [
 ];
 
 const es5Builds = [
+  // Browser
   {
     input: './exp/index.ts',
     output: {
@@ -45,7 +49,7 @@ const es5Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es5Plugins,
+    plugins: [alias(generateAliasConfig('browser')), ...es5Plugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
@@ -68,21 +72,30 @@ const es2017Plugins = [
 ];
 
 const es2017Builds = [
+  // Node
   {
     input: './exp/index.ts',
-    output: [
-      {
-        file: path.resolve('./exp', pkgExp.main),
-        format: 'cjs',
-        sourcemap: true
-      },
-      {
-        file: path.resolve('./exp', pkgExp.browser),
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: es2017Plugins,
+    output: {
+      file: path.resolve('./exp', pkgExp.main),
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [alias(generateAliasConfig('node')), ...es2017Plugins],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+
+  // Browser
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkgExp.browser),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(generateAliasConfig('browser')), ...es2017Plugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false

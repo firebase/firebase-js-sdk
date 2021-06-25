@@ -1,7 +1,7 @@
 {
   "name": "@firebase/storage-exp",
   "description": "A tree-shakeable version of the Storage SDK",
-  "main": "./dist/index.browser.cjs.js",
+  "main": "./dist/index.node.cjs.js",
   "module": "./dist/index.browser.esm2017.js",
   "browser": "./dist/index.browser.esm2017.js",
   "esm5": "./dist/index.browser.esm5.js",

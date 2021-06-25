@@ -19,7 +19,7 @@ import { Location } from './implementation/location';
 import { FailRequest } from './implementation/failrequest';
 import { Request, makeRequest } from './implementation/request';
 import { RequestInfo } from './implementation/requestinfo';
-import { XhrIoPool } from './implementation/xhriopool';
+import { ConnectionPool } from './implementation/connectionPool';
 import { Reference, _getChild } from './reference';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -174,7 +174,7 @@ export class StorageService implements _FirebaseService {
     /**
      * @internal
      */
-    readonly _pool: XhrIoPool,
+    readonly _pool: ConnectionPool,
     readonly _url?: string,
     readonly _firebaseVersion?: string
   ) {

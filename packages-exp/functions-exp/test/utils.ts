@@ -19,6 +19,7 @@ import { FirebaseOptions, FirebaseApp } from '@firebase/app-exp';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FunctionsService } from '../src/service';
 import { useFunctionsEmulator } from '../src/api';
 import nodeFetch from 'node-fetch';
@@ -51,6 +52,10 @@ export function createTestService(
   messagingProvider = new Provider<FirebaseMessagingName>(
     'messaging',
     new ComponentContainer('test')
+  ),
+  appCheckProvider = new Provider<AppCheckInternalComponentName>(
+    'app-check-internal',
+    new ComponentContainer('test')
   )
 ): FunctionsService {
   const fetchImpl: typeof fetch =
@@ -59,6 +64,7 @@ export function createTestService(
     app,
     authProvider,
     messagingProvider,
+    appCheckProvider,
     region,
     fetchImpl
   );

@@ -19,7 +19,7 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 import { FbsBlob } from '../../src/implementation/blob';
 import * as type from '../../src/implementation/type';
-import * as testShared from './testshared';
+import * as testShared from '../unit/testshared';
 
 describe('Firebase Storage > Blob', () => {
   let stubs: sinon.SinonStub[] = [];
@@ -53,19 +53,7 @@ describe('Firebase Storage > Blob', () => {
     testShared.assertUint8ArrayEquals(
       merged.uploadData() as Uint8Array,
       new Uint8Array([
-        0x77,
-        0x68,
-        0x61,
-        0x74,
-        0x1,
-        0x2,
-        0x3,
-        0x4,
-        0xf0,
-        0x9f,
-        0x98,
-        0x8a,
-        0x20
+        0x77, 0x68, 0x61, 0x74, 0x1, 0x2, 0x3, 0x4, 0xf0, 0x9f, 0x98, 0x8a, 0x20
       ])
     );
   });
