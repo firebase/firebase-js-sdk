@@ -761,7 +761,16 @@ fireauth.exportlib.exportFunction(
       'multipleInstances': false,
       'serviceProps': namespace,
       'instantiationMode': 'LAZY',
-      'type':  'PUBLIC'
+      'type':  'PUBLIC',
+      /**
+       * Initialize auth-internal after auth is initialized to make auth available to other firebase products.
+       */
+      'onInstanceCreated': function (container, _instanceIdentifier, _instance) {
+          const authInternalProvider = container['getProvider'](
+            'auth-internal'
+          );
+          authInternalProvider['initialize']();
+        }
     };
   
     // Provides Auth internal APIs.
