@@ -112,7 +112,7 @@
     "git-rev-sync": "3.0.1",
     "glob": "7.1.6",
     "http-server": "0.12.3",
-    "husky": "4.3.6",
+    "husky": "6.0.0",
     "indexeddbshim": "7.1.0",
     "inquirer": "8.1.1",
     "istanbul-instrumenter-loader": "3.0.1",
