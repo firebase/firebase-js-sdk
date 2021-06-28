@@ -27,18 +27,15 @@ const argv = yargs.options({
   // TODO: remove once modular SDKs become official
   buildAppExp: {
     type: 'boolean',
-    desc:
-      'whether or not build @firebase/app-exp first. It is a hack required to build Firestore'
+    desc: 'whether or not build @firebase/app-exp first. It is a hack required to build Firestore'
   },
   buildAppCompat: {
     type: 'boolean',
-    desc:
-      'whether or not build @firebase/app-compat first. It is a hack required to build Firestore'
+    desc: 'whether or not build @firebase/app-compat first. It is a hack required to build Firestore'
   },
   buildAll: {
     type: 'boolean',
-    desc:
-      'if true, build all packages. Used in Test Auth workflow because Auth tests depends on the firebase package'
+    desc: 'if true, build all packages. Used in Test Auth workflow because Auth tests depends on the firebase package'
   }
 }).argv;
 

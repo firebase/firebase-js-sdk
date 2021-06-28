@@ -16,10 +16,10 @@ jobs:
       with:
         # Canary release script requires git history and tags.
         fetch-depth: 0
-    - name: Set up Node (10)
+    - name: Set up Node (14)
       uses: actions/setup-node@v2
       with:
-        node-version: 10.x
+        node-version: 14.x
     - name: Yarn install
       run: yarn
     - name: Deploy canary

@@ -87,13 +87,13 @@ describe('Firebase Storage > Requests', () => {
   );
 
   const contentTypeInMetadata = 'application/jason';
-  const metadata = ({
+  const metadata = {
     contentType: contentTypeInMetadata,
     customMetadata: {
       // no-inline
       foo: 'bar'
     }
-  } as any) as Metadata;
+  } as any as Metadata;
   const metadataString = JSON.stringify({
     // no-inline
     contentType: contentTypeInMetadata,
@@ -400,7 +400,8 @@ describe('Firebase Storage > Requests', () => {
     checkNoOpHandler(requestInfo);
   });
   it('multipartUpload request info', () => {
-    const multipartHeaderRegex = /^multipart\/related; boundary=([A-Za-z0-9]+)$/;
+    const multipartHeaderRegex =
+      /^multipart\/related; boundary=([A-Za-z0-9]+)$/;
 
     const maps = [
       [locationNormal, locationNormalNoObjUrl],

@@ -4500,7 +4500,8 @@ declare namespace firebase.auth {
    * @hidden
    */
   class RecaptchaVerifier_Instance
-    implements firebase.auth.ApplicationVerifier {
+    implements firebase.auth.ApplicationVerifier
+  {
     constructor(
       container: any | string,
       parameters?: Object | null,

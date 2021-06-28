@@ -175,10 +175,11 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
   constructor() {
     // Fire & forget the service worker registration as it may never resolve
-    this._workerInitializationPromise = this.initializeServiceWorkerMessaging().then(
-      () => {},
-      () => {}
-    );
+    this._workerInitializationPromise =
+      this.initializeServiceWorkerMessaging().then(
+        () => {},
+        () => {}
+      );
   }
 
   async _openDb(): Promise<IDBDatabase> {

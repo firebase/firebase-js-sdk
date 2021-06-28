@@ -35,9 +35,8 @@ import { getReactNativePersistence } from './src/platform_react_native/persisten
 // Core functionality shared by all clients
 export * from './src';
 
-export const reactNativeLocalPersistence = getReactNativePersistence(
-  AsyncStorage
-);
+export const reactNativeLocalPersistence =
+  getReactNativePersistence(AsyncStorage);
 
 export function getAuth(app: FirebaseApp = getApp()): Auth {
   const provider = _getProvider(app, 'auth-exp');

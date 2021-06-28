@@ -34,9 +34,9 @@ import { ClientPlatform } from './src/core/util/version';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
 FetchProvider.initialize(
-  (fetchImpl.default as unknown) as typeof fetch,
-  (fetchImpl.Headers as unknown) as typeof Headers,
-  (fetchImpl.Response as unknown) as typeof Response
+  fetchImpl.default as unknown as typeof fetch,
+  fetchImpl.Headers as unknown as typeof Headers,
+  fetchImpl.Response as unknown as typeof Response
 );
 
 // Core functionality shared by all clients
