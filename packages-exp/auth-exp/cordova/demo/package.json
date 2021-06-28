@@ -39,7 +39,7 @@
     "@firebase/app-exp": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.4",
+    "@firebase/util": "1.1.0",
     "cordova-plugin-browsertab": "0.2.0",
     "cordova-plugin-buildinfo": "4.0.0",
     "cordova-plugin-compat": "1.2.0",
