@@ -16,7 +16,7 @@
  */
 import '../test/setup';
 import { expect } from 'chai';
-import { stub, spy, SinonStub } from 'sinon';
+import { stub, spy } from 'sinon';
 import {
   activate,
   setTokenAutoRefreshEnabled,
@@ -131,8 +131,6 @@ describe('api', () => {
     });
   });
   describe('onTokenChanged()', () => {
-    let storageReadStub: SinonStub;
-    let storageWriteStub: SinonStub;
     const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
     const fakeRecaptchaToken = 'fake-recaptcha-token';
     const fakeRecaptchaAppCheckToken = {
@@ -142,14 +140,10 @@ describe('api', () => {
     };
 
     beforeEach(() => {
-      storageReadStub = stub(storage, 'readTokenFromStorage').resolves(
-        undefined
-      );
-      storageWriteStub = stub(storage, 'writeTokenToStorage');
+      stub(storage, 'readTokenFromStorage').resolves(undefined);
+      stub(storage, 'writeTokenToStorage');
     });
     afterEach(() => {
-      storageReadStub.restore();
-      storageWriteStub.restore();
       clearState();
       removegreCAPTCHAScriptsOnPage();
     });

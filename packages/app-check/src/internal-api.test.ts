@@ -59,8 +59,6 @@ describe('internal api', () => {
   });
 
   afterEach(async () => {
-    storageReadStub.restore();
-    storageWriteStub.restore();
     clearState();
     removegreCAPTCHAScriptsOnPage();
   });
@@ -200,9 +198,7 @@ describe('internal api', () => {
       activate(app, FAKE_SITE_KEY, false);
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
-      const listener1 = (): void => {
-        throw new Error();
-      };
+      const listener1 = stub().throws(new Error());
       const listener2 = spy();
 
       const errorFn1 = spy();
@@ -213,6 +209,7 @@ describe('internal api', () => {
       await getToken(app, fakePlatformLoggingProvider);
 
       expect(errorFn1).not.to.be.called;
+      expect(listener1).to.be.called;
       expect(listener2).to.be.called;
     });
 
@@ -237,7 +234,6 @@ describe('internal api', () => {
 
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
-      storageWriteStub.resetHistory();
       const result = await getToken(app, fakePlatformLoggingProvider);
       expect(result).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
       expect(storageWriteStub).has.been.calledWith(
@@ -288,58 +284,6 @@ describe('internal api', () => {
         'my-debug-token'
       );
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-    });
-
-    it('reads any memory-cached debug token if in debug mode', async () => {
-      storageReadStub.resetHistory();
-      const clientStub = stub(client, 'exchangeToken');
-      const debugState = getDebugState();
-      debugState.enabled = true;
-      debugState.token = new Deferred();
-      debugState.token.resolve('my-debug-token');
-      activate(app, FAKE_SITE_KEY);
-      const state = getState(app);
-      setState(app, { ...state, token: fakeCachedAppCheckToken });
-      const token = await getToken(app, fakePlatformLoggingProvider);
-      expect(token).to.deep.equal({
-        token: fakeCachedAppCheckToken.token
-      });
-      expect(storageReadStub).has.not.been.called;
-      expect(clientStub).has.not.been.called;
-    });
-
-    it('reads any indexedDB cached debug token if in debug mode and no token in memory', async () => {
-      storageReadStub.resolves(fakeCachedAppCheckToken);
-      const clientStub = stub(client, 'exchangeToken');
-      const debugState = getDebugState();
-      debugState.enabled = true;
-      debugState.token = new Deferred();
-      debugState.token.resolve('my-debug-token');
-      activate(app, FAKE_SITE_KEY);
-      expect(getState(app).token).to.equal(undefined);
-      const result = await getToken(app, fakePlatformLoggingProvider);
-      expect(result).to.deep.equal({
-        token: fakeCachedAppCheckToken.token
-      });
-      expect(getState(app).token).to.equal(fakeCachedAppCheckToken);
-      expect(clientStub).has.not.been.called;
-    });
-
-    it('persists debug token to indexedDB storage', async () => {
-      activate(app, FAKE_SITE_KEY);
-
-      stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
-      storageWriteStub.resetHistory();
-      const debugState = getDebugState();
-      debugState.enabled = true;
-      debugState.token = new Deferred();
-      debugState.token.resolve('my-debug-token');
-      const result = await getToken(app, fakePlatformLoggingProvider);
-      expect(result).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-      expect(storageWriteStub).has.been.calledWith(
-        app,
-        fakeRecaptchaAppCheckToken
-      );
     });
   });
 
@@ -412,37 +356,6 @@ describe('internal api', () => {
       };
 
       addTokenListener(app, fakePlatformLoggingProvider, fakeListener);
-    });
-
-    it('notifies the listener with the debug token immediately', async () => {
-      stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
-      const listener = stub();
-
-      const clock = useFakeTimers();
-
-      const debugState = getDebugState();
-      debugState.enabled = true;
-      debugState.token = new Deferred();
-      debugState.token.resolve('my-debug-token');
-
-      activate(app, FAKE_SITE_KEY, false);
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
-      await clock.runAllAsync();
-      expect(listener).to.be.calledWith({ token: 'my-debug-token' });
-      clock.restore();
-    });
-
-    it('does NOT start token refresher in debug mode', () => {
-      const debugState = getDebugState();
-      debugState.enabled = true;
-      debugState.token = new Deferred();
-      debugState.token.resolve('my-debug-token');
-
-      activate(app, FAKE_SITE_KEY, true);
-      addTokenListener(app, fakePlatformLoggingProvider, () => {});
-
-      const state = getState(app);
-      expect(state.tokenRefresher).is.undefined;
     });
   });
 

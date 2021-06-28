@@ -24,7 +24,6 @@ import {
 import {
   AppCheckTokenInternal,
   AppCheckTokenObserver,
-  getDebugState,
   getState,
   setState
 } from './state';
@@ -191,48 +190,30 @@ export function addTokenListener(
   };
 
   /**
-   * DEBUG MODE
-   *
-   * invoke the listener once with the debug token.
+   * Invoke the listener with the valid token, then start the token refresher
    */
-  if (isDebugMode()) {
-    const debugState = getDebugState();
-    if (debugState.enabled && debugState.token) {
-      debugState.token.promise
-        .then(token => listener({ token }))
-        .catch(() => {
-          /** Ignore errors in listeners. */
-        });
-    }
-  } else {
-    /**
-     * PROD MODE
-     *
-     * invoke the listener with the valid token, then start the token refresher
-     */
-    if (!newState.tokenRefresher) {
-      const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
-      newState.tokenRefresher = tokenRefresher;
-    }
+  if (!newState.tokenRefresher) {
+    const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
+    newState.tokenRefresher = tokenRefresher;
+  }
 
-    // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
-    // is not true.
-    if (
-      !newState.tokenRefresher.isRunning() &&
-      state.isTokenAutoRefreshEnabled === true
-    ) {
-      newState.tokenRefresher.start();
-    }
+  // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
+  // is not true.
+  if (
+    !newState.tokenRefresher.isRunning() &&
+    state.isTokenAutoRefreshEnabled === true
+  ) {
+    newState.tokenRefresher.start();
+  }
 
-    // invoke the listener async immediately if there is a valid token
-    if (state.token && isValid(state.token)) {
-      const validToken = state.token;
-      Promise.resolve()
-        .then(() => listener({ token: validToken.token }))
-        .catch(() => {
-          /** Ignore errors in listeners. */
-        });
-    }
+  // invoke the listener async immediately if there is a valid token
+  if (state.token && isValid(state.token)) {
+    const validToken = state.token;
+    Promise.resolve()
+      .then(() => listener({ token: validToken.token }))
+      .catch(() => {
+        /** Ignore errors in listeners. */
+      });
   }
 
   setState(app, newState);
