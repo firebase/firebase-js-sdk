@@ -30,11 +30,7 @@ import {
   getToken as getTokenExp,
   onTokenChanged as onTokenChangedExp
 } from '@firebase/app-check-exp';
-import {
-  getModularInstance,
-  PartialObserver,
-  Unsubscribe
-} from '@firebase/util';
+import { PartialObserver, Unsubscribe } from '@firebase/util';
 
 export class AppCheckService implements FirebaseAppCheck, _FirebaseService {
   constructor(
