@@ -15,16 +15,26 @@
  * limitations under the License.
  */
 
-import { AppCheckProvider, FirebaseAppCheck } from '@firebase/app-check-types';
+import {
+  AppCheckProvider,
+  AppCheckTokenResult,
+  FirebaseAppCheck
+} from '@firebase/app-check-types';
 import { _FirebaseService, FirebaseApp } from '@firebase/app-compat';
 import {
   AppCheck as AppCheckServiceExp,
   CustomProvider,
   initializeAppCheck,
   ReCaptchaV3Provider,
-  setTokenAutoRefreshEnabled as setTokenAutoRefreshEnabledExp
+  setTokenAutoRefreshEnabled as setTokenAutoRefreshEnabledExp,
+  getToken as getTokenExp,
+  onTokenChanged as onTokenChangedExp
 } from '@firebase/app-check-exp';
-import { getModularInstance } from '../../../packages/util/dist';
+import {
+  getModularInstance,
+  PartialObserver,
+  Unsubscribe
+} from '@firebase/util';
 
 export class AppCheckService implements FirebaseAppCheck, _FirebaseService {
   constructor(
@@ -35,19 +45,39 @@ export class AppCheckService implements FirebaseAppCheck, _FirebaseService {
     siteKeyOrProvider: string | AppCheckProvider,
     isTokenAutoRefreshEnabled?: boolean
   ): void {
-    const app = getModularInstance(this.app);
     let provider: ReCaptchaV3Provider | CustomProvider;
     if (typeof siteKeyOrProvider === 'string') {
       provider = new ReCaptchaV3Provider(siteKeyOrProvider);
     } else {
       provider = new CustomProvider({ getToken: siteKeyOrProvider.getToken });
     }
-    initializeAppCheck(app, {
+    initializeAppCheck(this.app, {
       provider,
       isTokenAutoRefreshEnabled
     });
   }
   setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void {
     setTokenAutoRefreshEnabledExp(this._delegate, isTokenAutoRefreshEnabled);
+  }
+  getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult> {
+    return getTokenExp(this._delegate, forceRefresh);
+  }
+  onTokenChanged(
+    onNextOrObserver:
+      | PartialObserver<AppCheckTokenResult>
+      | ((tokenResult: AppCheckTokenResult) => void),
+    onError?: (error: Error) => void,
+    onCompletion?: () => void
+  ): Unsubscribe {
+    return onTokenChangedExp(
+      this._delegate,
+      /**
+       * Exp onTokenChanged() will handle both overloads but we need
+       * to specify one to not confuse Typescript.
+       */
+      onNextOrObserver as (tokenResult: AppCheckTokenResult) => void,
+      onError,
+      onCompletion
+    );
   }
 }
