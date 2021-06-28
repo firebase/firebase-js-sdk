@@ -251,8 +251,6 @@ export class Provider<T extends Name> {
       }
     }
 
-    this.invokeOnInitCallbacks(instance, normalizedIdentifier);
-
     return instance;
   }
 
@@ -317,6 +315,13 @@ export class Provider<T extends Name> {
         options
       });
       this.instances.set(instanceIdentifier, instance);
+
+      /**
+       * Invoke onInit listeners.
+       * Note this.component.onInstanceCreated is different, which is used by the component creator,
+       * while onInit listeners are registered by consumers of the provider.
+       */
+      this.invokeOnInitCallbacks(instance, instanceIdentifier);
 
       /**
        * Order is important
