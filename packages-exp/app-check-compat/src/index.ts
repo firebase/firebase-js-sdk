@@ -31,29 +31,25 @@ import { FirebaseAppCheck } from '../../../packages/app-check-types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app-check-compat': AppCheckService;
+    'appCheck-compat': AppCheckService;
   }
 }
 
-const factory: InstanceFactory<'app-check-compat'> = (
+const factory: InstanceFactory<'appCheck-compat'> = (
   container: ComponentContainer
 ) => {
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
-  const AppCheckServiceExp = container
+  const appCheckServiceExp = container
     .getProvider('app-check-exp')
     .getImmediate();
 
-  return new AppCheckService(app as FirebaseApp, AppCheckServiceExp);
+  return new AppCheckService(app as FirebaseApp, appCheckServiceExp);
 };
 
 export function registerAppCheck(): void {
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
-    new Component(
-      'app-check-compat',
-      factory,
-      ComponentType.PUBLIC
-    ).setMultipleInstances(true)
+    new Component('appCheck-compat', factory, ComponentType.PUBLIC)
   );
 }
 

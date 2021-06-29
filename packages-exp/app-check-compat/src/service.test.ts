@@ -21,10 +21,7 @@ import * as appCheckExp from '@firebase/app-check-exp';
 import { stub, match, SinonStub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { CustomProvider, ReCaptchaV3Provider } from '@firebase/app-check-exp';
-import {
-  AppCheckToken,
-  AppCheckTokenResult
-} from '../../../packages/app-check-types';
+import { AppCheckTokenResult } from '../../../packages/app-check-types';
 import { PartialObserver } from '../../../packages/util/dist';
 
 use(sinonChai);
@@ -38,7 +35,7 @@ function createTestService(app: FirebaseApp): AppCheckService {
   );
 }
 
-describe('Firebase Analytics > Service', () => {
+describe('Firebase App Check > Service', () => {
   let app: FirebaseApp;
   let service: AppCheckService;
 
@@ -76,11 +73,19 @@ describe('Firebase Analytics > Service', () => {
     () => {
       const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
       service = new AppCheckService(app, {} as appCheckExp.AppCheck);
+      const customGetTokenStub = stub();
       service.activate({
-        getToken: () => Promise.resolve({} as AppCheckToken)
+        getToken: customGetTokenStub
       });
       expect(initializeAppCheckStub).to.be.calledWith(app, {
-        provider: match.instanceOf(CustomProvider),
+        provider: match
+          .instanceOf(CustomProvider)
+          .and(
+            match.hasNested(
+              '_customProviderOptions.getToken',
+              customGetTokenStub
+            )
+          ),
         isTokenAutoRefreshEnabled: undefined
       });
       initializeAppCheckStub.restore();

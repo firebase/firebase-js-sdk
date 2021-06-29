@@ -22,10 +22,9 @@
     "test:browser": "karma start --single-run --nocache"
   },
   "peerDependencies": {
-    "@firebase/app-exp": "0.x"
+    "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/app-compat": "0.0.900",
     "@firebase/app-check-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "1.1.0",
@@ -34,7 +33,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-exp": "0.0.900",
     "rollup": "2.33.2",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",
