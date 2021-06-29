@@ -28,6 +28,7 @@ import {
   getFakeApp,
   getFakeCustomTokenProvider,
   getFakePlatformLoggingProvider,
+  getFakeGreCAPTCHA,
   removegreCAPTCHAScriptsOnPage
 } from '../test/util';
 import { clearState, getState } from './state';
@@ -37,8 +38,12 @@ import * as internalApi from './internal-api';
 import * as client from './client';
 import * as storage from './storage';
 import * as logger from './logger';
+import * as util from './util';
 
 describe('api', () => {
+  beforeEach(() => {
+    stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
+  });
   describe('activate()', () => {
     let app: FirebaseApp;
 
@@ -126,25 +131,29 @@ describe('api', () => {
     });
   });
   describe('onTokenChanged()', () => {
+    const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+    const fakeRecaptchaToken = 'fake-recaptcha-token';
+    const fakeRecaptchaAppCheckToken = {
+      token: 'fake-recaptcha-app-check-token',
+      expireTimeMillis: Date.now() + 60000,
+      issuedAtTimeMillis: 0
+    };
+
+    beforeEach(() => {
+      stub(storage, 'readTokenFromStorage').resolves(undefined);
+      stub(storage, 'writeTokenToStorage');
+    });
     afterEach(() => {
       clearState();
       removegreCAPTCHAScriptsOnPage();
     });
     it('Listeners work when using top-level parameters pattern', async () => {
-      const app = getFakeApp({ automaticDataCollectionEnabled: true });
-      activate(app, FAKE_SITE_KEY, true);
-      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
-      const fakeRecaptchaToken = 'fake-recaptcha-token';
-      const fakeRecaptchaAppCheckToken = {
-        token: 'fake-recaptcha-app-check-token',
-        expireTimeMillis: 123,
-        issuedAtTimeMillis: 0
-      };
+      const app = getFakeApp();
+      activate(app, FAKE_SITE_KEY, false);
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
-      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
       const listener1 = (): void => {
         throw new Error();
@@ -183,20 +192,12 @@ describe('api', () => {
     });
 
     it('Listeners work when using Observer pattern', async () => {
-      const app = getFakeApp({ automaticDataCollectionEnabled: true });
-      activate(app, FAKE_SITE_KEY, true);
-      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
-      const fakeRecaptchaToken = 'fake-recaptcha-token';
-      const fakeRecaptchaAppCheckToken = {
-        token: 'fake-recaptcha-app-check-token',
-        expireTimeMillis: 123,
-        issuedAtTimeMillis: 0
-      };
+      const app = getFakeApp();
+      activate(app, FAKE_SITE_KEY, false);
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
-      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
       const listener1 = (): void => {
         throw new Error();
@@ -238,11 +239,8 @@ describe('api', () => {
       stub(logger.logger, 'error');
       const app = getFakeApp();
       activate(app, FAKE_SITE_KEY, false);
-      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
-      const fakeRecaptchaToken = 'fake-recaptcha-token';
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').rejects('exchange error');
-      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
       const listener1 = spy();
 

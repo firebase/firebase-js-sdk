@@ -54,6 +54,7 @@ export interface ReCAPTCHAState {
 
 export interface DebugState {
   enabled: boolean;
+  // This is the debug token string the user interacts with.
   token?: Deferred<string>;
 }
 
