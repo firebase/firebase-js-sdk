@@ -18,6 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import { DEFAULT_MAX_ATTEMPTS_COUNT } from '../../../src/core/transaction_runner';
 import { TimerId } from '../../../src/util/async_queue';
 import { Deferred } from '../../util/promise';
 import * as integrationHelpers from '../util/helpers';
@@ -183,6 +184,7 @@ apiDescribe(
           .then(() => doc.get())
           .then(snapshot => {
             expect(snapshot.data()!['count']).to.equal(1234 + counter);
+            expect(counter).to.equal(DEFAULT_MAX_ATTEMPTS_COUNT);
           });
       });
     });
