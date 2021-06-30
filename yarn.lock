@@ -7888,6 +7888,8 @@ firebase-admin@9.9.0:
   dependencies:
     "@firebase/analytics-compat" "0.0.900"
     "@firebase/analytics-exp" "0.0.900"
+    "@firebase/app-check-compat" "0.0.900"
+    "@firebase/app-check-exp" "0.0.900"
     "@firebase/app-compat" "0.0.900"
     "@firebase/app-exp" "0.0.900"
     "@firebase/auth-compat" "0.0.900"

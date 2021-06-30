@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
- import '@firebase/app-check-compat';
+import '@firebase/app-check-compat';
