@@ -32,6 +32,10 @@
       "node": "./app/dist/index.cjs.js",
       "default": "./app/dist/index.esm.js"
     },
+    "./app-check": {
+      "node": "./app-check/dist/index.cjs.js",
+      "default": "./app-check/dist/index.esm.js"
+    },
     "./auth": {
       "node": "./auth/dist/index.cjs.js",
       "default": "./auth/dist/index.esm.js"
@@ -79,6 +83,10 @@
     "./compat/app": {
       "node": "./compat/app/dist/index.cjs.js",
       "default": "./compat/app/dist/index.esm.js"
+    },
+    "./compat/app-check": {
+      "node": "./compat/app-check/dist/index.cjs.js",
+      "default": "./compat/app-check/dist/index.esm.js"
     },
     "./compat/auth": {
       "node": "./compat/auth/dist/index.cjs.js",
@@ -131,6 +139,8 @@
     "@firebase/analytics-compat": "0.0.900",
     "@firebase/app-exp": "0.0.900",
     "@firebase/app-compat": "0.0.900",
+    "@firebase/app-check-exp": "0.0.900",
+    "@firebase/app-check-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/auth-compat": "0.0.900",
     "@firebase/database": "0.10.5",
@@ -163,6 +173,7 @@
   "components": [
     "analytics",
     "app",
+    "app-check",
     "auth",
     "functions",
     "firestore",
