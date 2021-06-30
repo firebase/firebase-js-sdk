@@ -16,7 +16,7 @@
  */
 import '../test/setup';
 import { expect } from 'chai';
-import { match, spy, stub } from 'sinon';
+import { spy, stub } from 'sinon';
 import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
@@ -29,7 +29,6 @@ import {
   getFakeApp,
   getFakeGreCAPTCHA,
   getFakeAppCheck,
-  getFakePlatformLoggingProvider,
   removegreCAPTCHAScriptsOnPage
 } from '../test/util';
 import { clearState, getState } from './state';
@@ -41,6 +40,7 @@ import * as storage from './storage';
 import * as internalApi from './internal-api';
 import { deleteApp, FirebaseApp } from '@firebase/app-exp';
 import { ReCaptchaV3Provider } from './providers';
+import { AppCheckService } from './factory';
 
 describe('api', () => {
   let app: FirebaseApp;
@@ -122,11 +122,7 @@ describe('api', () => {
         token: 'a-token-string'
       });
       await getToken(appCheck, true);
-      expect(internalGetToken).to.be.calledWith(
-        appCheck.app,
-        match.any, // platformLoggerProvider
-        true
-      );
+      expect(internalGetToken).to.be.calledWith(appCheck, true);
     });
     it('getToken() throws errors returned with token', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
@@ -160,9 +156,7 @@ describe('api', () => {
       );
       stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
-      const listener1 = (): void => {
-        throw new Error();
-      };
+      const listener1 = stub().throws(new Error());
       const listener2 = spy();
 
       const errorFn1 = spy();
@@ -173,11 +167,9 @@ describe('api', () => {
 
       expect(getState(app).tokenObservers.length).to.equal(2);
 
-      await internalApi.getToken(
-        appCheck.app,
-        getFakePlatformLoggingProvider()
-      );
+      await internalApi.getToken(appCheck as AppCheckService);
 
+      expect(listener1).to.be.called;
       expect(listener2).to.be.calledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
@@ -194,7 +186,6 @@ describe('api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
-      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
       const fakeRecaptchaToken = 'fake-recaptcha-token';
       const fakeRecaptchaAppCheckToken = {
         token: 'fake-recaptcha-app-check-token',
@@ -207,9 +198,7 @@ describe('api', () => {
       );
       stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
-      const listener1 = (): void => {
-        throw new Error();
-      };
+      const listener1 = stub().throws(new Error());
       const listener2 = spy();
 
       const errorFn1 = spy();
@@ -230,8 +219,9 @@ describe('api', () => {
 
       expect(getState(app).tokenObservers.length).to.equal(2);
 
-      await internalApi.getToken(appCheck.app, fakePlatformLoggingProvider);
+      await internalApi.getToken(appCheck as AppCheckService);
 
+      expect(listener1).to.be.called;
       expect(listener2).to.be.calledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
@@ -249,7 +239,6 @@ describe('api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: false
       });
-      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
       const fakeRecaptchaToken = 'fake-recaptcha-token';
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').rejects('exchange error');
@@ -261,7 +250,7 @@ describe('api', () => {
 
       const unsubscribe1 = onTokenChanged(appCheck, listener1, errorFn1);
 
-      await internalApi.getToken(app, fakePlatformLoggingProvider);
+      await internalApi.getToken(appCheck as AppCheckService);
 
       expect(getState(app).tokenObservers.length).to.equal(1);
 

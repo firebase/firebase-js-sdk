@@ -19,7 +19,8 @@ import { FirebaseApp } from '@firebase/app-exp';
 import {
   AppCheckTokenResult,
   AppCheckTokenInternal,
-  AppCheckTokenObserver
+  AppCheckTokenObserver,
+  ListenerType
 } from './types';
 import { AppCheckTokenListener } from './public-types';
 import { getDebugState, getState, setState } from './state';
@@ -31,7 +32,7 @@ import { writeTokenToStorage, readTokenFromStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
 import { base64 } from '@firebase/util';
 import { logger } from './logger';
-import { Provider } from '@firebase/component';
+import { AppCheckService } from './factory';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
@@ -57,10 +58,10 @@ export function formatDummyToken(
  * In case there is an error, the token field in the result will be populated with a dummy value
  */
 export async function getToken(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheck: AppCheckService,
   forceRefresh = false
 ): Promise<AppCheckTokenResult> {
+  const app = appCheck.app;
   ensureActivated(app);
   /**
    * DEBUG MODE
@@ -69,7 +70,7 @@ export async function getToken(
   if (isDebugMode()) {
     const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
       getExchangeDebugTokenRequest(app, await getDebugToken()),
-      platformLoggerProvider
+      appCheck.platformLoggerProvider
     );
     return { token: tokenFromDebugExchange.token };
   }
@@ -135,15 +136,17 @@ export async function getToken(
 }
 
 export function addTokenListener(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheck: AppCheckService,
+  type: ListenerType,
   listener: AppCheckTokenListener,
   onError?: (error: Error) => void
 ): void {
+  const { app } = appCheck;
   const state = getState(app);
   const tokenObserver: AppCheckTokenObserver = {
     next: listener,
-    error: onError
+    error: onError,
+    type
   };
   const newState = {
     ...state,
@@ -171,7 +174,7 @@ export function addTokenListener(
      * invoke the listener with the valid token, then start the token refresher
      */
     if (!newState.tokenRefresher) {
-      const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
+      const tokenRefresher = createTokenRefresher(appCheck);
       newState.tokenRefresher = tokenRefresher;
     }
 
@@ -221,10 +224,8 @@ export function removeTokenListener(
   });
 }
 
-function createTokenRefresher(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>
-): Refresher {
+function createTokenRefresher(appCheck: AppCheckService): Refresher {
+  const { app } = appCheck;
   return new Refresher(
     // Keep in mind when this fails for any reason other than the ones
     // for which we should retry, it will effectively stop the proactive refresh.
@@ -234,9 +235,9 @@ function createTokenRefresher(
       // If there is a token, we force refresh it because we know it's going to expire soon
       let result;
       if (!state.token) {
-        result = await getToken(app, platformLoggerProvider);
+        result = await getToken(appCheck);
       } else {
-        result = await getToken(app, platformLoggerProvider, true);
+        result = await getToken(appCheck, true);
       }
 
       // getToken() always resolves. In case the result has an error field defined, it means the operation failed, and we should retry.
@@ -292,8 +293,12 @@ function notifyTokenListeners(
           observer.next(token);
         }
       } else {
-        // Otherwise return the token, whether or not it has an error field.
-        observer.next(token);
+        // If this is a 2P listener, return the token, whether or not it
+        // has an error field. If it is a 3P listener with no error handler,
+        // ignore the error.
+        if (observer.type === ListenerType['2P']) {
+          observer.next(token);
+        }
       }
     } catch (e) {
       // If any handler fails, ignore and run next handler.

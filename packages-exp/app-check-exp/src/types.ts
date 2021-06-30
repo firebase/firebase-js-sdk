@@ -38,6 +38,12 @@ export interface AppCheckTokenObserver
   extends PartialObserver<AppCheckTokenResult> {
   // required
   next: AppCheckTokenListener;
+  type: ListenerType;
+}
+
+export enum ListenerType {
+  '2P' = '2P',
+  '3P' = '3P'
 }
 
 // If the error field is defined, the token field will be populated with a dummy token

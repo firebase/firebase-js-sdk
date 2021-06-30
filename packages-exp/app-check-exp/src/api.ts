@@ -27,7 +27,7 @@ import {
   Unsubscribe
 } from '@firebase/util';
 import { AppCheckService } from './factory';
-import { AppCheckProvider } from './types';
+import { AppCheckProvider, ListenerType } from './types';
 import {
   getToken as getTokenInternal,
   addTokenListener,
@@ -141,8 +141,7 @@ export async function getToken(
   forceRefresh?: boolean
 ): Promise<AppCheckTokenResult> {
   const result = await getTokenInternal(
-    appCheckInstance.app,
-    (appCheckInstance as AppCheckService).platformLoggerProvider,
+    appCheckInstance as AppCheckService,
     forceRefresh
   );
   if (result.error) {
@@ -231,8 +230,8 @@ export function onTokenChanged(
     errorFn = onError;
   }
   addTokenListener(
-    appCheckInstance.app,
-    (appCheckInstance as AppCheckService).platformLoggerProvider,
+    appCheckInstance as AppCheckService,
+    ListenerType['3P'],
     nextFn,
     errorFn
   );

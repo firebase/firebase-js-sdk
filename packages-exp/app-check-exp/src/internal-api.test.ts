@@ -23,7 +23,6 @@ import {
   FAKE_SITE_KEY,
   getFullApp,
   getFakeCustomTokenProvider,
-  getFakePlatformLoggingProvider,
   removegreCAPTCHAScriptsOnPage,
   getFakeGreCAPTCHA
 } from '../test/util';
@@ -43,8 +42,9 @@ import { getState, clearState, setState, getDebugState } from './state';
 import { AppCheckTokenListener } from './public-types';
 import { Deferred } from '@firebase/util';
 import { ReCaptchaV3Provider } from './providers';
+import { AppCheckService } from './factory';
+import { ListenerType } from './types';
 
-const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
 const fakeRecaptchaToken = 'fake-recaptcha-token';
 const fakeRecaptchaAppCheckToken = {
   token: 'fake-recaptcha-app-check-token',
@@ -81,8 +81,10 @@ describe('internal api', () => {
       const customTokenProvider = getFakeCustomTokenProvider();
       const customProviderSpy = spy(customTokenProvider, 'getToken');
 
-      initializeAppCheck(app, { provider: customTokenProvider });
-      const token = await getToken(app, fakePlatformLoggingProvider);
+      const appCheck = initializeAppCheck(app, {
+        provider: customTokenProvider
+      });
+      const token = await getToken(appCheck as AppCheckService);
 
       expect(customProviderSpy).to.be.called;
       expect(token).to.deep.equal({
@@ -91,7 +93,7 @@ describe('internal api', () => {
     });
 
     it('uses reCAPTCHA token to exchange for AppCheck token', async () => {
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
@@ -103,7 +105,7 @@ describe('internal api', () => {
         'exchangeToken'
       ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
 
-      const token = await getToken(app, fakePlatformLoggingProvider);
+      const token = await getToken(appCheck as AppCheckService);
 
       expect(reCAPTCHASpy).to.be.called;
 
@@ -119,7 +121,7 @@ describe('internal api', () => {
 
     it('resolves with a dummy token and an error if failed to get a token', async () => {
       const errorStub = stub(console, 'error');
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
@@ -130,7 +132,7 @@ describe('internal api', () => {
       const error = new Error('oops, something went wrong');
       stub(client, 'exchangeToken').returns(Promise.reject(error));
 
-      const token = await getToken(app, fakePlatformLoggingProvider);
+      const token = await getToken(appCheck as AppCheckService);
 
       expect(reCAPTCHASpy).to.be.called;
       expect(token).to.deep.equal({
@@ -144,7 +146,7 @@ describe('internal api', () => {
     });
 
     it('notifies listeners using cached token', async () => {
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
@@ -154,10 +156,18 @@ describe('internal api', () => {
 
       const listener1 = spy();
       const listener2 = spy();
-      addTokenListener(app, fakePlatformLoggingProvider, listener1);
-      addTokenListener(app, fakePlatformLoggingProvider, listener2);
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        listener1
+      );
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        listener2
+      );
 
-      await getToken(app, fakePlatformLoggingProvider);
+      await getToken(appCheck as AppCheckService);
 
       clock.tick(1);
 
@@ -172,7 +182,7 @@ describe('internal api', () => {
     });
 
     it('notifies listeners using new token', async () => {
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
@@ -184,10 +194,18 @@ describe('internal api', () => {
 
       const listener1 = spy();
       const listener2 = spy();
-      addTokenListener(app, fakePlatformLoggingProvider, listener1);
-      addTokenListener(app, fakePlatformLoggingProvider, listener2);
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        listener1
+      );
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        listener2
+      );
 
-      await getToken(app, fakePlatformLoggingProvider);
+      await getToken(appCheck as AppCheckService);
 
       expect(listener1).to.be.calledWith({
         token: fakeRecaptchaAppCheckToken.token
@@ -198,7 +216,7 @@ describe('internal api', () => {
     });
 
     it('calls optional error handler if there is an error getting a token', async () => {
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
@@ -207,16 +225,21 @@ describe('internal api', () => {
       const listener1 = spy();
       const errorFn1 = spy();
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener1, errorFn1);
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        listener1,
+        errorFn1
+      );
 
-      await getToken(app, fakePlatformLoggingProvider);
+      await getToken(appCheck as AppCheckService);
 
       expect(errorFn1).to.be.calledOnce;
       expect(errorFn1.args[0][0].name).to.include('exchange error');
     });
 
     it('ignores listeners that throw', async () => {
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
@@ -229,10 +252,18 @@ describe('internal api', () => {
       };
       const listener2 = spy();
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener1);
-      addTokenListener(app, fakePlatformLoggingProvider, listener2);
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        listener1
+      );
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        listener2
+      );
 
-      await getToken(app, fakePlatformLoggingProvider);
+      await getToken(appCheck as AppCheckService);
 
       expect(listener2).to.be.calledWith({
         token: fakeRecaptchaAppCheckToken.token
@@ -241,7 +272,7 @@ describe('internal api', () => {
 
     it('loads persisted token to memory and returns it', async () => {
       const clock = useFakeTimers();
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
@@ -250,7 +281,7 @@ describe('internal api', () => {
       const clientStub = stub(client, 'exchangeToken');
 
       expect(getState(app).token).to.equal(undefined);
-      expect(await getToken(app, fakePlatformLoggingProvider)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
         token: fakeCachedAppCheckToken.token
       });
       expect(getState(app).token).to.equal(fakeCachedAppCheckToken);
@@ -260,7 +291,7 @@ describe('internal api', () => {
     });
 
     it('persists token to storage', async () => {
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
@@ -269,7 +300,7 @@ describe('internal api', () => {
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
       storageWriteStub.resetHistory();
-      const result = await getToken(app, fakePlatformLoggingProvider);
+      const result = await getToken(appCheck as AppCheckService);
       expect(result).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
       expect(storageWriteStub).has.been.calledWith(
         app,
@@ -279,13 +310,13 @@ describe('internal api', () => {
 
     it('returns the valid token in memory without making network request', async () => {
       const clock = useFakeTimers();
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
 
       const clientStub = stub(client, 'exchangeToken');
-      expect(await getToken(app, fakePlatformLoggingProvider)).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
         token: fakeRecaptchaAppCheckToken.token
       });
       expect(clientStub).to.not.have.been.called;
@@ -294,7 +325,7 @@ describe('internal api', () => {
     });
 
     it('force to get new token when forceRefresh is true', async () => {
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
@@ -308,9 +339,7 @@ describe('internal api', () => {
         })
       );
 
-      expect(
-        await getToken(app, fakePlatformLoggingProvider, true)
-      ).to.deep.equal({
+      expect(await getToken(appCheck as AppCheckService, true)).to.deep.equal({
         token: 'new-recaptcha-app-check-token'
       });
     });
@@ -324,11 +353,11 @@ describe('internal api', () => {
       debugState.enabled = true;
       debugState.token = new Deferred();
       debugState.token.resolve('my-debug-token');
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const token = await getToken(app, fakePlatformLoggingProvider);
+      const token = await getToken(appCheck as AppCheckService);
       expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
         'my-debug-token'
       );
@@ -340,7 +369,11 @@ describe('internal api', () => {
     it('adds token listeners', () => {
       const listener = (): void => {};
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        { app } as AppCheckService,
+        ListenerType['2P'],
+        listener
+      );
 
       expect(getState(app).tokenObservers[0].next).to.equal(listener);
     });
@@ -351,7 +384,11 @@ describe('internal api', () => {
       expect(getState(app).tokenObservers.length).to.equal(0);
       expect(getState(app).tokenRefresher).to.equal(undefined);
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        { app } as AppCheckService,
+        ListenerType['2P'],
+        listener
+      );
 
       expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
     });
@@ -375,12 +412,16 @@ describe('internal api', () => {
         }
       });
 
-      addTokenListener(app, fakePlatformLoggingProvider, fakeListener);
+      addTokenListener(
+        { app } as AppCheckService,
+        ListenerType['2P'],
+        fakeListener
+      );
     });
 
     it('notifies the listener with the valid token in storage', done => {
       const clock = useFakeTimers();
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
@@ -400,7 +441,11 @@ describe('internal api', () => {
         done();
       };
 
-      addTokenListener(app, fakePlatformLoggingProvider, fakeListener);
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        fakeListener
+      );
 
       clock.tick(1);
     });
@@ -418,10 +463,14 @@ describe('internal api', () => {
       debugState.token = new Deferred();
       debugState.token.resolve('my-debug-token');
 
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      addTokenListener(app, fakePlatformLoggingProvider, fakeListener);
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        fakeListener
+      );
     });
 
     it('does NOT start token refresher in debug mode', () => {
@@ -430,10 +479,14 @@ describe('internal api', () => {
       debugState.token = new Deferred();
       debugState.token.resolve('my-debug-token');
 
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      addTokenListener(app, fakePlatformLoggingProvider, () => {});
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType['2P'],
+        () => {}
+      );
 
       const state = getState(app);
       expect(state.tokenRefresher).is.undefined;
@@ -443,7 +496,11 @@ describe('internal api', () => {
   describe('removeTokenListener', () => {
     it('should remove token listeners', () => {
       const listener = (): void => {};
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        { app } as AppCheckService,
+        ListenerType['2P'],
+        listener
+      );
       expect(getState(app).tokenObservers.length).to.equal(1);
 
       removeTokenListener(app, listener);
@@ -454,7 +511,11 @@ describe('internal api', () => {
       const listener = (): void => {};
       setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        { app } as AppCheckService,
+        ListenerType['2P'],
+        listener
+      );
       expect(getState(app).tokenObservers.length).to.equal(1);
       expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
 

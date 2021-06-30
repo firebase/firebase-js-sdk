@@ -16,8 +16,8 @@
  */
 
 import { AppCheck } from './public-types';
-import { FirebaseApp, _FirebaseService, _getProvider } from '@firebase/app-exp';
-import { FirebaseAppCheckInternal } from './types';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
+import { FirebaseAppCheckInternal, ListenerType } from './types';
 import {
   getToken,
   addTokenListener,
@@ -29,29 +29,29 @@ import { Provider } from '@firebase/component';
  * AppCheck Service class.
  */
 export class AppCheckService implements AppCheck, _FirebaseService {
-  platformLoggerProvider: Provider<'platform-logger'>;
-
-  constructor(public app: FirebaseApp) {
-    this.platformLoggerProvider = _getProvider(app, 'platform-logger');
-  }
+  constructor(
+    public app: FirebaseApp,
+    public platformLoggerProvider: Provider<'platform-logger'>
+  ) {}
   _delete(): Promise<void> {
     return Promise.resolve();
   }
 }
 
-export function factory(app: FirebaseApp): AppCheckService {
-  return new AppCheckService(app);
+export function factory(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>
+): AppCheckService {
+  return new AppCheckService(app, platformLoggerProvider);
 }
 
 export function internalFactory(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>
+  appCheck: AppCheckService
 ): FirebaseAppCheckInternal {
   return {
-    getToken: forceRefresh =>
-      getToken(app, platformLoggerProvider, forceRefresh),
+    getToken: forceRefresh => getToken(appCheck, forceRefresh),
     addTokenListener: listener =>
-      addTokenListener(app, platformLoggerProvider, listener),
-    removeTokenListener: listener => removeTokenListener(app, listener)
+      addTokenListener(appCheck, ListenerType['2P'], listener),
+    removeTokenListener: listener => removeTokenListener(appCheck.app, listener)
   };
 }
