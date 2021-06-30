@@ -34,6 +34,12 @@ export interface AppCheckTokenObserver
   extends PartialObserver<AppCheckTokenResult> {
   // required
   next: AppCheckTokenListener;
+  type: ListenerType;
+}
+
+export const enum ListenerType {
+  '2P' = '2P',
+  '3P' = '3P'
 }
 
 export interface AppCheckState {
