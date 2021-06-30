@@ -95,7 +95,7 @@ export function internalFactory(
       addTokenListener(
         app,
         platformLoggerProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       ),
     removeTokenListener: listener => removeTokenListener(app, listener)

@@ -307,7 +307,7 @@ function notifyTokenListeners(
 
   for (const observer of observers) {
     try {
-      if (observer.type === ListenerType['3P'] && token.error != null) {
+      if (observer.type === ListenerType.EXTERNAL && token.error != null) {
         // If this listener was added by a 3P call, send any token error to
         // the supplied error handler. A 3P observer always has an error
         // handler.

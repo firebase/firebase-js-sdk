@@ -38,8 +38,8 @@ export interface AppCheckTokenObserver
 }
 
 export const enum ListenerType {
-  '2P' = '2P',
-  '3P' = '3P'
+  'INTERNAL' = 'INTERNAL',
+  'EXTERNAL' = 'EXTERNAL'
 }
 
 export interface AppCheckState {

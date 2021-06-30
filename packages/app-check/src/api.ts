@@ -165,7 +165,7 @@ export function onTokenChanged(
   addTokenListener(
     app,
     platformLoggerProvider,
-    ListenerType['3P'],
+    ListenerType.EXTERNAL,
     nextFn,
     errorFn
   );

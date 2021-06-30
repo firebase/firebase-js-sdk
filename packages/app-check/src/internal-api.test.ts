@@ -152,13 +152,13 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener1
       );
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener2
       );
 
@@ -183,13 +183,13 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener1
       );
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener2
       );
 
@@ -215,7 +215,7 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['3P'],
+        ListenerType.EXTERNAL,
         listener1,
         errorFn1
       );
@@ -238,14 +238,14 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener1,
         errorFn1
       );
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener2
       );
 
@@ -344,7 +344,7 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
 
@@ -361,7 +361,7 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
 
@@ -386,7 +386,7 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
       await clock.runAllAsync();
@@ -416,7 +416,7 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         fakeListener
       );
     });
@@ -435,7 +435,7 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
       expect(getState(app).tokenObservers.length).to.equal(1);
@@ -452,7 +452,7 @@ describe('internal api', () => {
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
       expect(getState(app).tokenObservers.length).to.equal(1);
