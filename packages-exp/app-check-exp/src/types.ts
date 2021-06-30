@@ -41,7 +41,7 @@ export interface AppCheckTokenObserver
   type: ListenerType;
 }
 
-export enum ListenerType {
+export const enum ListenerType {
   '2P' = '2P',
   '3P' = '3P'
 }

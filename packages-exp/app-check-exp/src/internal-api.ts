@@ -284,24 +284,19 @@ function notifyTokenListeners(
 
   for (const observer of observers) {
     try {
-      if (observer.error) {
-        // If this listener has an error handler, handle errors differently
-        // from successes.
-        if (token.error) {
-          observer.error(token.error);
-        } else {
-          observer.next(token);
-        }
+      if (observer.type === ListenerType['3P'] && token.error != null) {
+        // If this listener was added by a 3P call, send any token error to
+        // the supplied error handler. A 3P observer always has an error
+        // handler.
+        observer.error!(token.error);
       } else {
+        // If the token has no error field, always return the token.
         // If this is a 2P listener, return the token, whether or not it
-        // has an error field. If it is a 3P listener with no error handler,
-        // ignore the error.
-        if (observer.type === ListenerType['2P']) {
-          observer.next(token);
-        }
+        // has an error field.
+        observer.next(token);
       }
     } catch (e) {
-      // If any handler fails, ignore and run next handler.
+      // Errors in the listener function itself are always ignored.
     }
   }
 }

@@ -215,7 +215,7 @@ describe('internal api', () => {
       });
     });
 
-    it('calls optional error handler if there is an error getting a token', async () => {
+    it('calls 3P error handler if there is an error getting a token', async () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
@@ -227,7 +227,7 @@ describe('internal api', () => {
 
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType['3P'],
         listener1,
         errorFn1
       );
