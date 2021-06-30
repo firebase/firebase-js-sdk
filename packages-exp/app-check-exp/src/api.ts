@@ -231,7 +231,7 @@ export function onTokenChanged(
   }
   addTokenListener(
     appCheckInstance as AppCheckService,
-    ListenerType['3P'],
+    ListenerType.EXTERNAL,
     nextFn,
     errorFn
   );

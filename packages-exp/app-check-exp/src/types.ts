@@ -42,8 +42,10 @@ export interface AppCheckTokenObserver
 }
 
 export const enum ListenerType {
-  '2P' = '2P',
-  '3P' = '3P'
+  // Listener added by a 2P library.
+  'INTERNAL' = 'INTERNAL',
+  // Listener added by users using the public API.
+  'EXTERNAL' = 'EXTERNAL'
 }
 
 // If the error field is defined, the token field will be populated with a dummy token

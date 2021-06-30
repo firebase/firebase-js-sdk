@@ -2,8 +2,7 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "strict": true,
-    "preserveConstEnums": true
+    "strict": true
   },
   "exclude": ["dist/**/*"]
 }

@@ -51,7 +51,7 @@ export function internalFactory(
   return {
     getToken: forceRefresh => getToken(appCheck, forceRefresh),
     addTokenListener: listener =>
-      addTokenListener(appCheck, ListenerType['2P'], listener),
+      addTokenListener(appCheck, ListenerType.INTERNAL, listener),
     removeTokenListener: listener => removeTokenListener(appCheck.app, listener)
   };
 }

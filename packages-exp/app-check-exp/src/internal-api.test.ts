@@ -158,12 +158,12 @@ describe('internal api', () => {
       const listener2 = spy();
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener1
       );
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener2
       );
 
@@ -196,12 +196,12 @@ describe('internal api', () => {
       const listener2 = spy();
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener1
       );
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener2
       );
 
@@ -227,7 +227,7 @@ describe('internal api', () => {
 
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['3P'],
+        ListenerType.EXTERNAL,
         listener1,
         errorFn1
       );
@@ -254,12 +254,12 @@ describe('internal api', () => {
 
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener1
       );
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener2
       );
 
@@ -371,7 +371,7 @@ describe('internal api', () => {
 
       addTokenListener(
         { app } as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
 
@@ -386,7 +386,7 @@ describe('internal api', () => {
 
       addTokenListener(
         { app } as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
 
@@ -414,7 +414,7 @@ describe('internal api', () => {
 
       addTokenListener(
         { app } as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         fakeListener
       );
     });
@@ -443,7 +443,7 @@ describe('internal api', () => {
 
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         fakeListener
       );
 
@@ -468,7 +468,7 @@ describe('internal api', () => {
       });
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         fakeListener
       );
     });
@@ -484,7 +484,7 @@ describe('internal api', () => {
       });
       addTokenListener(
         appCheck as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         () => {}
       );
 
@@ -498,7 +498,7 @@ describe('internal api', () => {
       const listener = (): void => {};
       addTokenListener(
         { app } as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
       expect(getState(app).tokenObservers.length).to.equal(1);
@@ -513,7 +513,7 @@ describe('internal api', () => {
 
       addTokenListener(
         { app } as AppCheckService,
-        ListenerType['2P'],
+        ListenerType.INTERNAL,
         listener
       );
       expect(getState(app).tokenObservers.length).to.equal(1);
