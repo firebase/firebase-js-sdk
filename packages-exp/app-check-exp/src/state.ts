@@ -19,14 +19,14 @@ import { FirebaseApp } from '@firebase/app-exp';
 import {
   AppCheckProvider,
   AppCheckTokenInternal,
-  AppCheckTokenListener
+  AppCheckTokenObserver
 } from './types';
 import { Refresher } from './proactive-refresh';
 import { Deferred } from '@firebase/util';
 import { GreCAPTCHA } from './recaptcha';
 export interface AppCheckState {
   activated: boolean;
-  tokenListeners: AppCheckTokenListener[];
+  tokenObservers: AppCheckTokenObserver[];
   provider?: AppCheckProvider;
   token?: AppCheckTokenInternal;
   tokenRefresher?: Refresher;
@@ -47,7 +47,7 @@ export interface DebugState {
 const APP_CHECK_STATES = new Map<FirebaseApp, AppCheckState>();
 export const DEFAULT_STATE: AppCheckState = {
   activated: false,
-  tokenListeners: []
+  tokenObservers: []
 };
 
 const DEBUG_STATE: DebugState = {

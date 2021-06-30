@@ -5,6 +5,8 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app-exp';
+import { PartialObserver } from '@firebase/util';
+import { Unsubscribe } from '@firebase/util';
 
 // @public
 export interface AppCheck {
@@ -30,6 +32,14 @@ export interface AppCheckToken {
     readonly token: string;
 }
 
+// @public
+export type AppCheckTokenListener = (token: AppCheckTokenResult) => void;
+
+// @public
+export interface AppCheckTokenResult {
+    readonly token: string;
+}
+
 // Warning: (ae-forgotten-export) The symbol "AppCheckProvider" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -49,7 +59,16 @@ export interface CustomProviderOptions {
 }
 
 // @public
+export function getToken(appCheckInstance: AppCheck, forceRefresh?: boolean): Promise<AppCheckTokenResult>;
+
+// @public
 export function initializeAppCheck(app: FirebaseApp | undefined, options: AppCheckOptions): AppCheck;
+
+// @public
+export function onTokenChanged(appCheckInstance: AppCheck, observer: PartialObserver<AppCheckTokenResult>): Unsubscribe;
+
+// @public
+export function onTokenChanged(appCheckInstance: AppCheck, onNext: (tokenResult: AppCheckTokenResult) => void, onError?: (error: Error) => void, onCompletion?: () => void): Unsubscribe;
 
 // @public
 export class ReCaptchaV3Provider implements AppCheckProvider {
@@ -61,7 +80,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     }
 
 // @public
-export function setTokenAutoRefreshEnabled(app: FirebaseApp, isTokenAutoRefreshEnabled: boolean): void;
+export function setTokenAutoRefreshEnabled(appCheckInstance: AppCheck, isTokenAutoRefreshEnabled: boolean): void;
 
 
 // (No @packageDocumentation comment for this package)

@@ -15,7 +15,9 @@
     "firebase-messaging-integration-test",
     "firebase-compat-interop-test",
     "firebase-compat-typings-test",
+    "@firebase/app-compat",
     "@firebase/app-exp",
+    "@firebase/app-check-compat",
     "@firebase/app-check-exp",
     "@firebase/analytics-compat",
     "@firebase/analytics-exp",
@@ -32,7 +34,6 @@
     "@firebase/remote-config-exp",
     "@firebase/remote-config-compat",
     "firebase-exp",
-    "@firebase/app-compat",
     "@firebase/changelog-generator",
     "firebase-size-analysis"
   ],

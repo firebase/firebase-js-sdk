@@ -73,3 +73,20 @@ export interface CustomProviderOptions {
    */
   getToken: () => Promise<AppCheckToken>;
 }
+
+/**
+ * Result returned by `getToken()`.
+ * @public
+ */
+export interface AppCheckTokenResult {
+  /**
+   * The token string in JWT format.
+   */
+  readonly token: string;
+}
+
+/**
+ * A listener that is called whenever the App Check token changes.
+ * @public
+ */
+export type AppCheckTokenListener = (token: AppCheckTokenResult) => void;

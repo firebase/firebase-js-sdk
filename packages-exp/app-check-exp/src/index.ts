@@ -39,7 +39,8 @@ function registerAppCheck(): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-exp').getImmediate();
-        return factory(app);
+        const platformLoggerProvider = container.getProvider('platform-logger');
+        return factory(app, platformLoggerProvider);
       },
       ComponentType.PUBLIC
     )
@@ -50,10 +51,8 @@ function registerAppCheck(): void {
     new Component(
       APP_CHECK_NAME_INTERNAL,
       container => {
-        // getImmediate for FirebaseApp will always succeed
-        const app = container.getProvider('app-exp').getImmediate();
-        const platformLoggerProvider = container.getProvider('platform-logger');
-        return internalFactory(app, platformLoggerProvider);
+        const appCheck = container.getProvider('app-check-exp').getImmediate();
+        return internalFactory(appCheck);
       },
       ComponentType.PUBLIC
     )

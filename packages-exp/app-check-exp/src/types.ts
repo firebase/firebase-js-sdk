@@ -16,7 +16,8 @@
  */
 
 import { FirebaseApp } from '@firebase/app-exp';
-import { AppCheckToken } from './public-types';
+import { PartialObserver } from '@firebase/util';
+import { AppCheckToken, AppCheckTokenListener } from './public-types';
 
 export interface FirebaseAppCheckInternal {
   // Get the current AttestationToken. Attaches to the most recent in-flight request if one
@@ -33,7 +34,19 @@ export interface FirebaseAppCheckInternal {
   removeTokenListener(listener: AppCheckTokenListener): void;
 }
 
-export type AppCheckTokenListener = (token: AppCheckTokenResult) => void;
+export interface AppCheckTokenObserver
+  extends PartialObserver<AppCheckTokenResult> {
+  // required
+  next: AppCheckTokenListener;
+  type: ListenerType;
+}
+
+export const enum ListenerType {
+  // Listener added by a 2P library.
+  'INTERNAL' = 'INTERNAL',
+  // Listener added by users using the public API.
+  'EXTERNAL' = 'EXTERNAL'
+}
 
 // If the error field is defined, the token field will be populated with a dummy token
 export interface AppCheckTokenResult {
