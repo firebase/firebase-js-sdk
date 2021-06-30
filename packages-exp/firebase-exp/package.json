@@ -164,6 +164,8 @@
     "analytics",
     "app",
     "auth",
+    "auth/cordova",
+    "auth/react-native",
     "functions",
     "firestore",
     "firestore/lite",
