@@ -22,7 +22,7 @@ import {
 import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { initialize as initializeRecaptcha } from './recaptcha';
-import { getState, setState, AppCheckState } from './state';
+import { getState, setState, AppCheckState, ListenerType } from './state';
 import {
   getToken as getTokenInternal,
   addTokenListener,
@@ -162,6 +162,12 @@ export function onTokenChanged(
   } else if (onError) {
     errorFn = onError;
   }
-  addTokenListener(app, platformLoggerProvider, nextFn, errorFn);
+  addTokenListener(
+    app,
+    platformLoggerProvider,
+    ListenerType.EXTERNAL,
+    nextFn,
+    errorFn
+  );
   return () => removeTokenListener(app, nextFn);
 }

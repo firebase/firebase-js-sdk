@@ -37,7 +37,7 @@ import { Provider } from '@firebase/component';
 import { PartialObserver } from '@firebase/util';
 
 import { FirebaseService } from '@firebase/app-types/private';
-import { getState } from './state';
+import { getState, ListenerType } from './state';
 
 export function factory(
   app: FirebaseApp,
@@ -92,7 +92,12 @@ export function internalFactory(
     getToken: forceRefresh =>
       getTokenInternal(app, platformLoggerProvider, forceRefresh),
     addTokenListener: listener =>
-      addTokenListener(app, platformLoggerProvider, listener),
+      addTokenListener(
+        app,
+        platformLoggerProvider,
+        ListenerType.INTERNAL,
+        listener
+      ),
     removeTokenListener: listener => removeTokenListener(app, listener)
   };
 }
