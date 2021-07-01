@@ -23,8 +23,8 @@ export const enum AppCheckError {
 
 const ERRORS: ErrorMap<AppCheckError> = {
   [AppCheckError.USE_BEFORE_ACTIVATION]:
-    'App Check is being used before initializeAppCheck() is called for FirebaseApp {$appName}. ' +
-    'Call initializeAppCheck() before instantiating other Firebase services.'
+    'App Check is being used before activate() is called for FirebaseApp {$appName}. ' +
+    'Call activate() before instantiating other Firebase services.'
 };
 
 interface ErrorParams {
