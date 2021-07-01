@@ -27,7 +27,7 @@ import {
   InstanceFactory
 } from '@firebase/component';
 import { AppCheckService } from './service';
-import { FirebaseAppCheck } from '../../../packages/app-check-types';
+import { FirebaseAppCheck } from '@firebase/app-check-types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -40,11 +40,8 @@ const factory: InstanceFactory<'appCheck-compat'> = (
 ) => {
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
-  const appCheckServiceExp = container
-    .getProvider('app-check-exp')
-    .getImmediate();
 
-  return new AppCheckService(app as FirebaseApp, appCheckServiceExp);
+  return new AppCheckService(app as FirebaseApp);
 };
 
 export function registerAppCheck(): void {
