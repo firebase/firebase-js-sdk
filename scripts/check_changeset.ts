@@ -123,7 +123,9 @@ async function parseChangesetFile(changesetFile: string) {
 async function main() {
   const errors = [];
   try {
-    await exec('yarn changeset status');
+    await exec(
+      `yarn changeset status --since ${process.env.GITHUB_PULL_REQUEST_BASE_SHA}`
+    );
     console.log(`::set-output name=BLOCKING_FAILURE::false`);
   } catch (e) {
     if (e.message.match('No changesets present')) {
