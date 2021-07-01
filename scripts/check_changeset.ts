@@ -25,6 +25,9 @@ import fs from 'mz/fs';
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
+const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
+const headRef = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
+
 // Version bump text converted to rankable numbers.
 const bumpRank: Record<string, number> = {
   'patch': 0,
@@ -65,10 +68,7 @@ async function getDiffData(): Promise<{
   changedPackages: Set<string>;
   changesetFile: string;
 } | null> {
-  const diff = await git.diff([
-    '--name-only',
-    `${process.env.GITHUB_PULL_REQUEST_BASE_SHA}...${process.env.GITHUB_PULL_REQUEST_HEAD_SHA}`
-  ]);
+  const diff = await git.diff(['--name-only', `${baseRef}...${headRef}`]);
   const changedFiles = diff.split('\n');
   let changesetFile = '';
   const changedPackages = new Set<string>();
@@ -123,9 +123,7 @@ async function parseChangesetFile(changesetFile: string) {
 async function main() {
   const errors = [];
   try {
-    await exec(
-      `yarn changeset status --since ${process.env.GITHUB_PULL_REQUEST_BASE_SHA}`
-    );
+    await exec(`yarn changeset status --since ${baseRef}`);
     console.log(`::set-output name=BLOCKING_FAILURE::false`);
   } catch (e) {
     if (e.message.match('No changesets present')) {
