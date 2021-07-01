@@ -18,6 +18,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   linkWithPhoneNumber,
   PhoneAuthProvider,
@@ -33,7 +34,6 @@ import {
   UserCredential,
   signInWithCredential,
   ConfirmationResult
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { FirebaseError } from '@firebase/util';
 
