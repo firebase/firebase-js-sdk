@@ -41,6 +41,7 @@ declare module '@firebase/component' {
 }
 
 export { ReCaptchaV3Provider, CustomProvider } from './providers';
+export { PartialObserver, Unsubscribe }; // from @firebase/util
 
 /**
  * Activate App Check for the given app. Can be called only once per app.
@@ -214,18 +215,18 @@ export function onTokenChanged(
   let nextFn: NextFn<AppCheckTokenResult> = () => {};
   let errorFn: ErrorFn = () => {};
   if ((onNextOrObserver as PartialObserver<AppCheckTokenResult>).next != null) {
-    nextFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).next!.bind(
-      onNextOrObserver
-    );
+    nextFn = (
+      onNextOrObserver as PartialObserver<AppCheckTokenResult>
+    ).next!.bind(onNextOrObserver);
   } else {
     nextFn = onNextOrObserver as NextFn<AppCheckTokenResult>;
   }
   if (
     (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error != null
   ) {
-    errorFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error!.bind(
-      onNextOrObserver
-    );
+    errorFn = (
+      onNextOrObserver as PartialObserver<AppCheckTokenResult>
+    ).error!.bind(onNextOrObserver);
   } else if (onError) {
     errorFn = onError;
   }

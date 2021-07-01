@@ -14,12 +14,13 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:release": "rollup -c rollup.config.release.js",
+    "build:release": "rollup -c rollup.config.release.js && yarn add-compat-overloads",
     "build:deps": "lerna run --scope @firebase/app-check-compat --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
-    "test:browser": "karma start --single-run --nocache"
+    "test:browser": "karma start --single-run --nocache",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../app-check-exp/dist/app-check-exp-public.d.ts -o dist/src/index.d.ts -a -r AppCheck:FirebaseAppCheck -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/app-check"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x"
