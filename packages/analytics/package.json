@@ -1,6 +1,6 @@
 {
   "name": "@firebase/analytics",
-  "version": "0.6.13",
+  "version": "0.6.14",
   "description": "A analytics package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -27,15 +27,15 @@
   },
   "dependencies": {
     "@firebase/analytics-types": "0.4.0",
-    "@firebase/installations": "0.4.29",
+    "@firebase/installations": "0.4.30",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "1.1.0",
-    "@firebase/component": "0.5.3",
+    "@firebase/component": "0.5.4",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.6.27",
+    "@firebase/app": "0.6.28",
     "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",

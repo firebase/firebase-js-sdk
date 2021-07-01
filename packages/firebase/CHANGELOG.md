@@ -1,5 +1,27 @@
 # firebase
 
+## 8.7.0
+
+### Minor Changes
+
+- [`870dd5e35`](https://github.com/firebase/firebase-js-sdk/commit/870dd5e3594f5b588bdc2801c60c6d984d1d08cc) [#5033](https://github.com/firebase/firebase-js-sdk/pull/5033) - Added `getToken()` and `onTokenChanged` methods to App Check.
+
+### Patch Changes
+
+- Updated dependencies [[`870dd5e35`](https://github.com/firebase/firebase-js-sdk/commit/870dd5e3594f5b588bdc2801c60c6d984d1d08cc), [`5d007b8fb`](https://github.com/firebase/firebase-js-sdk/commit/5d007b8fb64ac26c2f82704398965e9f3deda58a), [`5d31e2192`](https://github.com/firebase/firebase-js-sdk/commit/5d31e2192d0ea68a768bc7826ad5aa830c2bc36c), [`56a6a9d4a`](https://github.com/firebase/firebase-js-sdk/commit/56a6a9d4af2766154584a0f66d3c4d8024d74ba5)]:
+  - @firebase/app-check@0.2.0
+  - @firebase/auth@0.16.8
+  - @firebase/firestore@2.3.8
+  - @firebase/storage@0.5.6
+  - @firebase/analytics@0.6.14
+  - @firebase/app@0.6.28
+  - @firebase/database@0.10.6
+  - @firebase/functions@0.6.13
+  - @firebase/installations@0.4.30
+  - @firebase/messaging@0.7.14
+  - @firebase/performance@0.4.16
+  - @firebase/remote-config@0.1.41
+
 ## 8.6.8
 
 ### Patch Changes
