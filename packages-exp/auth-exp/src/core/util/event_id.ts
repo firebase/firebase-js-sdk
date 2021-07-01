@@ -15,24 +15,10 @@
  * limitations under the License.
  */
 
-const MAX_RANDOM_DIGITS = 15;
-
 export function _generateEventId(prefix = '', digits = 10): string {
-  // This array breaks down digits into a list of numbers, maxed at 15, that
-  // sums to digits. For example, 10 becomes [10] and 16 becomes [15, 1].
-  const digitBreakdown = Array(Math.floor(digits / MAX_RANDOM_DIGITS)).fill(
-    MAX_RANDOM_DIGITS
-  );
-  if (digits % MAX_RANDOM_DIGITS) {
-    digitBreakdown.push(digits % MAX_RANDOM_DIGITS);
+  let random = '';
+  for (let i = 0; i < digits; i++) {
+    random += Math.floor(Math.random() * 10);
   }
-
-  const random = digitBreakdown
-    .map(digits =>
-      Math.floor(Math.random() * Math.pow(10, digits))
-        .toString()
-        .padStart(digits, '0')
-    )
-    .join('');
   return prefix + random;
 }
