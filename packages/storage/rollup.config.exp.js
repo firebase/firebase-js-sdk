@@ -31,6 +31,8 @@ const deps = [
   '@firebase/app'
 ];
 
+const nodeDeps = [...deps, 'util'];
+
 const es5Plugins = [
   typescriptPlugin({
     typescript,
@@ -81,7 +83,8 @@ const es2017Builds = [
       sourcemap: true
     },
     plugins: [alias(generateAliasConfig('node')), ...es2017Plugins],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id =>
+      nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
     }
