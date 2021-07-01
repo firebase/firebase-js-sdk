@@ -65,7 +65,10 @@ async function getDiffData(): Promise<{
   changedPackages: Set<string>;
   changesetFile: string;
 } | null> {
-  const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
+  const diff = await git.diff([
+    '--name-only',
+    `${process.env.GITHUB_PULL_REQUEST_BASE_SHA}...${process.env.GITHUB_PULL_REQUEST_HEAD_SHA}`
+  ]);
   const changedFiles = diff.split('\n');
   let changesetFile = '';
   const changedPackages = new Set<string>();
@@ -173,9 +176,8 @@ async function main() {
 
       // Check for packages with a minor or major bump where 'firebase' hasn't been
       // bumped high enough or at all.
-      const { highestBump, bumpText, bumpPackage } = getHighestBump(
-        changesetPackages
-      );
+      const { highestBump, bumpText, bumpPackage } =
+        getHighestBump(changesetPackages);
       if (highestBump > bumpRank.patch) {
         if (changesetPackages['firebase'] == null) {
           errors.push(
