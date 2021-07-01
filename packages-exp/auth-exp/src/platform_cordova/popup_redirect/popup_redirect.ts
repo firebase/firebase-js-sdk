@@ -185,7 +185,8 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
  *
  * @public
  */
-export const cordovaPopupRedirectResolver: PopupRedirectResolver = CordovaPopupRedirectResolver;
+export const cordovaPopupRedirectResolver: PopupRedirectResolver =
+  CordovaPopupRedirectResolver;
 
 function generateNoEvent(): AuthEvent {
   return {

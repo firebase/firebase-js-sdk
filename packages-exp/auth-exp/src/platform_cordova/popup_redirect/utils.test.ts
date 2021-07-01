@@ -190,14 +190,18 @@ describe('platform_cordova/popup_redirect/utils', () => {
   describe('_validateOrigin', () => {
     beforeEach(() => {
       sinon.stub(win.BuildInfo, 'packageName').value('com.example.myapp');
-      sinon.stub(projectConfig, '_getProjectConfig').returns(Promise.resolve({/* does not matter here */ authorizedDomains: []}));
+      sinon
+        .stub(projectConfig, '_getProjectConfig')
+        .returns(
+          Promise.resolve({ /* does not matter here */ authorizedDomains: [] })
+        );
     });
 
     it('sets the correct fields for android', async () => {
       setUA(ANDROID_UA);
       await _validateOrigin(auth);
       expect(projectConfig._getProjectConfig).to.have.been.calledWith(auth, {
-        androidPackageName: 'com.example.myapp',
+        androidPackageName: 'com.example.myapp'
       });
     });
 
@@ -205,7 +209,7 @@ describe('platform_cordova/popup_redirect/utils', () => {
       setUA(IOS_UA);
       await _validateOrigin(auth);
       expect(projectConfig._getProjectConfig).to.have.been.calledWith(auth, {
-        iosBundleId: 'com.example.myapp',
+        iosBundleId: 'com.example.myapp'
       });
     });
   });

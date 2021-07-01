@@ -61,7 +61,8 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>)();
+    resolver =
+      new (cordovaPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>)();
     provider = new GoogleAuthProvider();
     utilsStubs = sinon.stub(utils);
     eventsStubs = {
@@ -88,7 +89,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
   afterEach(() => {
     sinon.restore();
     universalLinksCb = null;
-    const anyWindow = (win as unknown) as Record<string, unknown>;
+    const anyWindow = win as unknown as Record<string, unknown>;
     delete anyWindow.universalLinks;
     delete anyWindow.BuildInfo;
   });

@@ -28,7 +28,10 @@ import { _getRedirectUrl } from '../../core/util/handler';
 import { AuthInternal } from '../../model/auth';
 import { AuthEvent } from '../../model/popup_redirect';
 import { InAppBrowserRef, _cordovaWindow } from '../plugins';
-import { GetProjectConfigRequest, _getProjectConfig } from '../../api/project_config/get_project_config';
+import {
+  GetProjectConfigRequest,
+  _getProjectConfig
+} from '../../api/project_config/get_project_config';
 
 /**
  * How long to wait after the app comes back into focus before concluding that
