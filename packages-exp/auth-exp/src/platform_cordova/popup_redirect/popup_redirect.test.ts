@@ -105,6 +105,7 @@ describe('platform_cordova/popup_redirect/popup_redirect', () => {
       );
       utilsStubs._performRedirect.returns(Promise.resolve({}));
       utilsStubs._waitForAppResume.returns(Promise.resolve());
+      utilsStubs._validateOrigin.returns(Promise.resolve());
       eventsStubs._generateNewEvent!.returns(event);
 
       const redirectPromise = resolver._openRedirect(
