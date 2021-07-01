@@ -19,6 +19,7 @@
 
 import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
+import * as externs from '@firebase/auth-exp';
 import {
   Component,
   ComponentType,
@@ -93,7 +94,7 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
               impl.ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION,
             VERIFY_AND_CHANGE_EMAIL:
               impl.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
-            VERIFY_EMAIL: impl.ActionCodeOperation.VERIFY_EMAIL
+            VERIFY_EMAIL: externs.ActionCodeOperation.VERIFY_EMAIL
           }
         },
         EmailAuthProvider: impl.EmailAuthProvider,
