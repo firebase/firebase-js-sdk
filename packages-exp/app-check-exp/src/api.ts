@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-import { AppCheck, AppCheckOptions, AppCheckTokenResult } from './public-types';
+import {
+  AppCheck,
+  AppCheckOptions,
+  AppCheckTokenResult,
+  Unsubscribe,
+  PartialObserver
+} from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { getState, setState, AppCheckState } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
-import {
-  getModularInstance,
-  ErrorFn,
-  NextFn,
-  PartialObserver,
-  Unsubscribe
-} from '@firebase/util';
+import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';
 import { AppCheckProvider, ListenerType } from './types';
 import {
@@ -41,7 +41,6 @@ declare module '@firebase/component' {
 }
 
 export { ReCaptchaV3Provider, CustomProvider } from './providers';
-export { PartialObserver, Unsubscribe }; // from @firebase/util
 
 /**
  * Activate App Check for the given app. Can be called only once per app.
