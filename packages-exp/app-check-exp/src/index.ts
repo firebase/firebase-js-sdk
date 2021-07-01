@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstantiationMode
+} from '@firebase/component';
 import { _AppCheckComponentName } from './public-types';
 import { factory, internalFactory } from './factory';
 import { initializeDebugMode } from './debug';
@@ -44,6 +48,16 @@ function registerAppCheck(): void {
       },
       ComponentType.PUBLIC
     )
+      .setInstantiationMode(InstantiationMode.EXPLICIT)
+      /**
+       * Initialize app-check-internal after app-check is initialized to make AppCheck available to
+       * other Firebase SDKs
+       */
+      .setInstanceCreatedCallback(
+        (container, _identifier, _appcheckService) => {
+          container.getProvider(APP_CHECK_NAME_INTERNAL).initialize();
+        }
+      )
   );
 
   // The internal interface used by other Firebase products
@@ -55,7 +69,7 @@ function registerAppCheck(): void {
         return internalFactory(appCheck);
       },
       ComponentType.PUBLIC
-    )
+    ).setInstantiationMode(InstantiationMode.EXPLICIT)
   );
 
   registerVersion(name, version);
