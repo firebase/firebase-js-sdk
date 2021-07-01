@@ -147,7 +147,7 @@ export function getEs2017Builds(additionalTypescriptPlugins = {}) {
 
 export function getAllBuilds(additionalTypescriptPlugins = {}) {
   return [
-    // ...getEs5Builds(additionalTypescriptPlugins),
+    ...getEs5Builds(additionalTypescriptPlugins),
     ...getEs2017Builds(additionalTypescriptPlugins)
   ];
 }
