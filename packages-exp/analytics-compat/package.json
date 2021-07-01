@@ -44,7 +44,7 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.5.3",
+    "@firebase/component": "0.5.4",
     "@firebase/analytics-exp": "0.0.900",
     "@firebase/analytics-types": "0.4.0",
     "@firebase/util": "1.1.0",

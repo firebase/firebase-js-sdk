@@ -34,7 +34,7 @@
     "@firebase/performance-types": "0.0.13",
     "@firebase/util": "1.1.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.5.3",
+    "@firebase/component": "0.5.4",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
