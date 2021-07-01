@@ -136,10 +136,8 @@ describe('Integration test: oob codes', () => {
 
       const reauthSession = await sendEmailLink();
       cred = EmailAuthProvider.credentialWithLink(email, reauthSession.oobLink);
-      const {
-        user: newUser,
-        operationType
-      } = await reauthenticateWithCredential(oldUser, cred);
+      const { user: newUser, operationType } =
+        await reauthenticateWithCredential(oldUser, cred);
 
       expect(newUser.uid).to.eq(oldUser.uid);
       expect(operationType).to.eq(OperationType.REAUTHENTICATE);
@@ -332,7 +330,9 @@ describe('Integration test: oob codes', () => {
     const { user } = await signInWithEmailLink(
       auth,
       email,
-      (await code(email)).oobLink
+      (
+        await code(email)
+      ).oobLink
     );
     await verifyBeforeUpdateEmail(user, updatedEmail, BASE_SETTINGS);
     expect(user.email).to.eq(email);
