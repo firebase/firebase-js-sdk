@@ -33,7 +33,7 @@ const {
 if (argv._[0]) {
   const dirOrFile = path.resolve(argv._[0]);
   try {
-    console.log('Do we have access?', accessSync(dirOrFile));
+    accessSync(dirOrFile);
     if (statSync(dirOrFile).isFile()) {
       removeExpSuffixFromFile(dirOrFile);
     } else {
