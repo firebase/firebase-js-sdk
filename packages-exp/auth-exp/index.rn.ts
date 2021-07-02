@@ -38,7 +38,7 @@ export * from './src';
 /**
  * An implementation of {@link Persistence} of type 'LOCAL' for use in React
  * Native environments.
- * 
+ *
  * @public
  */
 export const reactNativeLocalPersistence =
