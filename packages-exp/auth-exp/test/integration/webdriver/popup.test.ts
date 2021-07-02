@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   OperationType,
   UserCredential,
   User,
   OAuthCredential
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { expect, use } from 'chai';
 import { IdPPage } from './util/idp_page';

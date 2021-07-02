@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Auth,
   createUserWithEmailAndPassword,
@@ -31,7 +32,6 @@ import {
   updateEmail,
   updatePassword,
   updateProfile
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
