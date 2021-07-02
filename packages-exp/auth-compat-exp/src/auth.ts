@@ -39,7 +39,8 @@ import { ReverseWrapper, Wrapper } from './wrap';
 const _assert: typeof exp._assert = exp._assert;
 
 export class Auth
-  implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService {
+  implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService
+{
   readonly _delegate: exp.AuthImpl;
 
   constructor(readonly app: FirebaseApp, provider: Provider<'auth-exp'>) {
@@ -354,7 +355,7 @@ export class Auth
     return this._delegate._delete();
   }
   private linkUnderlyingAuth(): void {
-    ((this._delegate as unknown) as ReverseWrapper<Auth>).wrapped = () => this;
+    (this._delegate as unknown as ReverseWrapper<Auth>).wrapped = () => this;
   }
 }
 
