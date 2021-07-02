@@ -33,12 +33,6 @@ import { Auth } from './src/model/public_types';
 
 // Public types
 export {
-  // Enums
-  ActionCodeOperation,
-  FactorId,
-  OperationType,
-  ProviderId,
-  SignInMethod,
   // Interfaces
   ActionCodeInfo,
   ActionCodeSettings,
@@ -78,6 +72,15 @@ export {
   CompleteFn,
   Unsubscribe
 } from './src/model/public_types';
+
+// Helper maps (not used internally)
+export {
+  FactorId,
+  ProviderId,
+  SignInMethod,
+  OperationType,
+  ActionCodeOperation
+} from './src/model/enum_maps';
 
 // Core functionality shared by all clients
 export * from './src';

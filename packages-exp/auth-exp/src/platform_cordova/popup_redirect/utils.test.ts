@@ -25,6 +25,7 @@ import {
   _checkCordovaConfiguration,
   _generateHandlerUrl,
   _performRedirect,
+  _validateOrigin,
   _waitForAppResume
 } from './utils';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
@@ -37,6 +38,7 @@ import {
 } from '../../../test/helpers/timeout_stub';
 import { FirebaseError } from '@firebase/util';
 import { InAppBrowserRef, _cordovaWindow } from '../plugins';
+import * as projectConfig from '../../api/project_config/get_project_config';
 
 const ANDROID_UA = 'UserAgent/5.0 (Linux; Android 0.0.0)';
 const IOS_UA = 'UserAgent/5.0 (iPhone; CPU iPhone 0.0.0)';
@@ -182,6 +184,33 @@ describe('platform_cordova/popup_redirect/utils', () => {
         await _generateHandlerUrl(auth, event, provider)
       );
       expect(params.get('appDisplayName')).to.eq('This is my app');
+    });
+  });
+
+  describe('_validateOrigin', () => {
+    beforeEach(() => {
+      sinon.stub(win.BuildInfo, 'packageName').value('com.example.myapp');
+      sinon
+        .stub(projectConfig, '_getProjectConfig')
+        .returns(
+          Promise.resolve({ /* does not matter here */ authorizedDomains: [] })
+        );
+    });
+
+    it('sets the correct fields for android', async () => {
+      setUA(ANDROID_UA);
+      await _validateOrigin(auth);
+      expect(projectConfig._getProjectConfig).to.have.been.calledWith(auth, {
+        androidPackageName: 'com.example.myapp'
+      });
+    });
+
+    it('sets the correct fields for ios', async () => {
+      setUA(IOS_UA);
+      await _validateOrigin(auth);
+      expect(projectConfig._getProjectConfig).to.have.been.calledWith(auth, {
+        iosBundleId: 'com.example.myapp'
+      });
     });
   });
 

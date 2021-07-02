@@ -15,25 +15,72 @@
  * limitations under the License.
  */
 
-import { FirebaseAppCheck, AppCheckProvider } from '@firebase/app-check-types';
-import { activate, setTokenAutoRefreshEnabled } from './api';
+import {
+  FirebaseAppCheck,
+  AppCheckProvider,
+  AppCheckTokenResult
+} from '@firebase/app-check-types';
+import {
+  activate,
+  setTokenAutoRefreshEnabled,
+  getToken,
+  onTokenChanged
+} from './api';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import {
-  getToken,
+  getToken as getTokenInternal,
   addTokenListener,
   removeTokenListener
 } from './internal-api';
 import { Provider } from '@firebase/component';
+import { PartialObserver } from '@firebase/util';
 
-export function factory(app: FirebaseApp): FirebaseAppCheck {
+import { FirebaseService } from '@firebase/app-types/private';
+import { getState, ListenerType } from './state';
+
+export function factory(
+  app: FirebaseApp,
+  platformLoggerProvider: Provider<'platform-logger'>
+): FirebaseAppCheck & FirebaseService {
   return {
+    app,
     activate: (
       siteKeyOrProvider: string | AppCheckProvider,
       isTokenAutoRefreshEnabled?: boolean
     ) => activate(app, siteKeyOrProvider, isTokenAutoRefreshEnabled),
     setTokenAutoRefreshEnabled: (isTokenAutoRefreshEnabled: boolean) =>
-      setTokenAutoRefreshEnabled(app, isTokenAutoRefreshEnabled)
+      setTokenAutoRefreshEnabled(app, isTokenAutoRefreshEnabled),
+    getToken: forceRefresh =>
+      getToken(app, platformLoggerProvider, forceRefresh),
+    onTokenChanged: (
+      onNextOrObserver:
+        | ((tokenResult: AppCheckTokenResult) => void)
+        | PartialObserver<AppCheckTokenResult>,
+      onError?: (error: Error) => void,
+      onCompletion?: () => void
+    ) =>
+      onTokenChanged(
+        app,
+        platformLoggerProvider,
+        /**
+         * This can still be an observer. Need to do this casting because
+         * according to Typescript: "Implementation signatures of overloads
+         * are not externally visible"
+         */
+        onNextOrObserver as (tokenResult: AppCheckTokenResult) => void,
+        onError,
+        onCompletion
+      ),
+    INTERNAL: {
+      delete: () => {
+        const { tokenObservers } = getState(app);
+        for (const tokenObserver of tokenObservers) {
+          removeTokenListener(app, tokenObserver.next);
+        }
+        return Promise.resolve();
+      }
+    }
   };
 }
 
@@ -43,9 +90,14 @@ export function internalFactory(
 ): FirebaseAppCheckInternal {
   return {
     getToken: forceRefresh =>
-      getToken(app, platformLoggerProvider, forceRefresh),
+      getTokenInternal(app, platformLoggerProvider, forceRefresh),
     addTokenListener: listener =>
-      addTokenListener(app, platformLoggerProvider, listener),
+      addTokenListener(
+        app,
+        platformLoggerProvider,
+        ListenerType.INTERNAL,
+        listener
+      ),
     removeTokenListener: listener => removeTokenListener(app, listener)
   };
 }

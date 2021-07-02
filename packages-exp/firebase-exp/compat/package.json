@@ -8,6 +8,7 @@
     "components": [
         "app",
         "analytics",
+        "app-check",
         "auth",
         "functions",
         "messaging",

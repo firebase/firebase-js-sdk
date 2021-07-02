@@ -18,13 +18,14 @@
 import { getToken as getReCAPTCHAToken } from './recaptcha';
 import { FirebaseApp } from '@firebase/app-types';
 import {
-  AppCheckTokenResult,
-  AppCheckTokenListener
+  AppCheckTokenListener,
+  AppCheckTokenResult
 } from '@firebase/app-check-interop-types';
 import {
   AppCheckTokenInternal,
-  getDebugState,
+  AppCheckTokenObserver,
   getState,
+  ListenerType,
   setState
 } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
@@ -71,25 +72,17 @@ export async function getToken(
   forceRefresh = false
 ): Promise<AppCheckTokenResult> {
   ensureActivated(app);
-  /**
-   * DEBUG MODE
-   * return the debug token directly
-   */
-  if (isDebugMode()) {
-    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
-      getExchangeDebugTokenRequest(app, await getDebugToken()),
-      platformLoggerProvider
-    );
-    return { token: tokenFromDebugExchange.token };
-  }
 
   const state = getState(app);
 
+  /**
+   * First check if there is a token in memory from a previous `getToken()` call.
+   */
   let token: AppCheckTokenInternal | undefined = state.token;
   let error: Error | undefined = undefined;
 
   /**
-   * try to load token from indexedDB if it's the first time this function is called
+   * If there is no token in memory, try to load token from indexedDB.
    */
   if (!token) {
     // readTokenFromStorage() always resolves. In case of an error, it resolves with `undefined`.
@@ -103,11 +96,28 @@ export async function getToken(
     }
   }
 
-  // return the cached token if it's valid
+  // Return the cached token (from either memory or indexedDB) if it's valid
   if (!forceRefresh && token && isValid(token)) {
     return {
       token: token.token
     };
+  }
+
+  /**
+   * DEBUG MODE
+   * If debug mode is set, and there is no cached token, fetch a new App
+   * Check token using the debug token, and return it directly.
+   */
+  if (isDebugMode()) {
+    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
+      getExchangeDebugTokenRequest(app, await getDebugToken()),
+      platformLoggerProvider
+    );
+    // Write debug token to indexedDB.
+    await writeTokenToStorage(app, tokenFromDebugExchange);
+    // Write debug token to state.
+    setState(app, { ...state, token: tokenFromDebugExchange });
+    return { token: tokenFromDebugExchange.token };
   }
 
   /**
@@ -154,7 +164,7 @@ export async function getToken(
     interopTokenResult = {
       token: token.token
     };
-    // write the new token to the memory state as well ashe persistent storage.
+    // write the new token to the memory state as well as the persistent storage.
     // Only do it if we got a valid new token
     setState(app, { ...state, token });
     await writeTokenToStorage(app, token);
@@ -167,57 +177,46 @@ export async function getToken(
 export function addTokenListener(
   app: FirebaseApp,
   platformLoggerProvider: Provider<'platform-logger'>,
-  listener: AppCheckTokenListener
+  type: ListenerType,
+  listener: AppCheckTokenListener,
+  onError?: (error: Error) => void
 ): void {
   const state = getState(app);
+  const tokenListener: AppCheckTokenObserver = {
+    next: listener,
+    error: onError,
+    type
+  };
   const newState = {
     ...state,
-    tokenListeners: [...state.tokenListeners, listener]
+    tokenObservers: [...state.tokenObservers, tokenListener]
   };
 
   /**
-   * DEBUG MODE
-   *
-   * invoke the listener once with the debug token.
+   * Invoke the listener with the valid token, then start the token refresher
    */
-  if (isDebugMode()) {
-    const debugState = getDebugState();
-    if (debugState.enabled && debugState.token) {
-      debugState.token.promise
-        .then(token => listener({ token }))
-        .catch(() => {
-          /* we don't care about exceptions thrown in listeners */
-        });
-    }
-  } else {
-    /**
-     * PROD MODE
-     *
-     * invoke the listener with the valid token, then start the token refresher
-     */
-    if (!newState.tokenRefresher) {
-      const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
-      newState.tokenRefresher = tokenRefresher;
-    }
+  if (!newState.tokenRefresher) {
+    const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
+    newState.tokenRefresher = tokenRefresher;
+  }
 
-    // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
-    // is not true.
-    if (
-      !newState.tokenRefresher.isRunning() &&
-      state.isTokenAutoRefreshEnabled === true
-    ) {
-      newState.tokenRefresher.start();
-    }
+  // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
+  // is not true.
+  if (
+    !newState.tokenRefresher.isRunning() &&
+    state.isTokenAutoRefreshEnabled === true
+  ) {
+    newState.tokenRefresher.start();
+  }
 
-    // invoke the listener async immediately if there is a valid token
-    if (state.token && isValid(state.token)) {
-      const validToken = state.token;
-      Promise.resolve()
-        .then(() => listener({ token: validToken.token }))
-        .catch(() => {
-          /* we don't care about exceptions thrown in listeners */
-        });
-    }
+  // invoke the listener async immediately if there is a valid token
+  if (state.token && isValid(state.token)) {
+    const validToken = state.token;
+    Promise.resolve()
+      .then(() => listener({ token: validToken.token }))
+      .catch(() => {
+        /** Ignore errors in listeners. */
+      });
   }
 
   setState(app, newState);
@@ -225,13 +224,15 @@ export function addTokenListener(
 
 export function removeTokenListener(
   app: FirebaseApp,
-  listener: AppCheckTokenListener
+  listener: (token: AppCheckTokenResult) => void
 ): void {
   const state = getState(app);
 
-  const newListeners = state.tokenListeners.filter(l => l !== listener);
+  const newObservers = state.tokenObservers.filter(
+    tokenObserver => tokenObserver.next !== listener
+  );
   if (
-    newListeners.length === 0 &&
+    newObservers.length === 0 &&
     state.tokenRefresher &&
     state.tokenRefresher.isRunning()
   ) {
@@ -240,7 +241,7 @@ export function removeTokenListener(
 
   setState(app, {
     ...state,
-    tokenListeners: newListeners
+    tokenObservers: newObservers
   });
 }
 
@@ -302,13 +303,23 @@ function notifyTokenListeners(
   app: FirebaseApp,
   token: AppCheckTokenResult
 ): void {
-  const listeners = getState(app).tokenListeners;
+  const observers = getState(app).tokenObservers;
 
-  for (const listener of listeners) {
+  for (const observer of observers) {
     try {
-      listener(token);
-    } catch (e) {
-      // If any handler fails, ignore and run next handler.
+      if (observer.type === ListenerType.EXTERNAL && token.error != null) {
+        // If this listener was added by a 3P call, send any token error to
+        // the supplied error handler. A 3P observer always has an error
+        // handler.
+        observer.error!(token.error);
+      } else {
+        // If the token has no error field, always return the token.
+        // If this is a 2P listener, return the token, whether or not it
+        // has an error field.
+        observer.next(token);
+      }
+    } catch (ignored) {
+      // Errors in the listener function itself are always ignored.
     }
   }
 }

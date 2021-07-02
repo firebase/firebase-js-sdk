@@ -1536,6 +1536,13 @@ declare namespace firebase.app {
  */
 declare namespace firebase.appCheck {
   /**
+   * Result returned by
+   * {@link firebase.appCheck.AppCheck.getToken `firebase.appCheck().getToken()`}.
+   */
+  interface AppCheckTokenResult {
+    token: string;
+  }
+  /**
    * The Firebase AppCheck service interface.
    *
    * Do not call this constructor directly. Instead, use
@@ -1563,6 +1570,57 @@ declare namespace firebase.appCheck {
      * during `activate()`.
      */
     setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
+    /**
+     * Get the current App Check token. Attaches to the most recent
+     * in-flight request if one is present. Returns null if no token
+     * is present and no token requests are in-flight.
+     *
+     * @param forceRefresh - If true, will always try to fetch a fresh token.
+     * If false, will use a cached token if found in storage.
+     */
+    getToken(
+      forceRefresh?: boolean
+    ): Promise<firebase.appCheck.AppCheckTokenResult>;
+
+    /**
+     * Registers a listener to changes in the token state. There can be more
+     * than one listener registered at the same time for one or more
+     * App Check instances. The listeners call back on the UI thread whenever
+     * the current token associated with this App Check instance changes.
+     *
+     * @param observer An object with `next`, `error`, and `complete`
+     * properties. `next` is called with an
+     * {@link firebase.appCheck.AppCheckTokenResult `AppCheckTokenResult`}
+     * whenever the token changes. `error` is optional and is called if an
+     * error is thrown by the listener (the `next` function). `complete`
+     * is unused, as the token stream is unending.
+     *
+     * @returns A function that unsubscribes this listener.
+     */
+    onTokenChanged(observer: {
+      next: (tokenResult: firebase.appCheck.AppCheckTokenResult) => void;
+      error?: (error: Error) => void;
+      complete?: () => void;
+    }): Unsubscribe;
+
+    /**
+     * Registers a listener to changes in the token state. There can be more
+     * than one listener registered at the same time for one or more
+     * App Check instances. The listeners call back on the UI thread whenever
+     * the current token associated with this App Check instance changes.
+     *
+     * @param onNext When the token changes, this function is called with aa
+     * {@link firebase.appCheck.AppCheckTokenResult `AppCheckTokenResult`}.
+     * @param onError Optional. Called if there is an error thrown by the
+     * listener (the `onNext` function).
+     * @param onCompletion Currently unused, as the token stream is unending.
+     * @returns A function that unsubscribes this listener.
+     */
+    onTokenChanged(
+      onNext: (tokenResult: firebase.appCheck.AppCheckTokenResult) => void,
+      onError?: (error: Error) => void,
+      onCompletion?: () => void
+    ): Unsubscribe;
   }
 
   /**
@@ -4442,7 +4500,8 @@ declare namespace firebase.auth {
    * @hidden
    */
   class RecaptchaVerifier_Instance
-    implements firebase.auth.ApplicationVerifier {
+    implements firebase.auth.ApplicationVerifier
+  {
     constructor(
       container: any | string,
       parameters?: Object | null,

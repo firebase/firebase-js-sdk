@@ -21,7 +21,8 @@
     "rollup-plugin-copy-assets",
     "idb",
     "whatwg-fetch",
-    "typedoc"
+    "typedoc",
+    "@microsoft/tsdoc"
   ],
   "assignees": [
     "@Feiyang1",

@@ -62,9 +62,6 @@ packages/auth-types  @bojeil-google @avolkovi @sam-gc @yuchenshi @firebase/jssdk
 packages/testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
 packages/rules-unit-testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
 
-# RxFire Code
-packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
-
 # Installations
 packages/installations @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
 packages/installations-types @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers

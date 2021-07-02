@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstantiationMode
+} from '@firebase/component';
 import { _AppCheckComponentName } from './public-types';
 import { factory, internalFactory } from './factory';
 import { initializeDebugMode } from './debug';
@@ -39,10 +43,21 @@ function registerAppCheck(): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-exp').getImmediate();
-        return factory(app);
+        const platformLoggerProvider = container.getProvider('platform-logger');
+        return factory(app, platformLoggerProvider);
       },
       ComponentType.PUBLIC
     )
+      .setInstantiationMode(InstantiationMode.EXPLICIT)
+      /**
+       * Initialize app-check-internal after app-check is initialized to make AppCheck available to
+       * other Firebase SDKs
+       */
+      .setInstanceCreatedCallback(
+        (container, _identifier, _appcheckService) => {
+          container.getProvider(APP_CHECK_NAME_INTERNAL).initialize();
+        }
+      )
   );
 
   // The internal interface used by other Firebase products
@@ -50,13 +65,11 @@ function registerAppCheck(): void {
     new Component(
       APP_CHECK_NAME_INTERNAL,
       container => {
-        // getImmediate for FirebaseApp will always succeed
-        const app = container.getProvider('app-exp').getImmediate();
-        const platformLoggerProvider = container.getProvider('platform-logger');
-        return internalFactory(app, platformLoggerProvider);
+        const appCheck = container.getProvider('app-check-exp').getImmediate();
+        return internalFactory(appCheck);
       },
       ComponentType.PUBLIC
-    )
+    ).setInstantiationMode(InstantiationMode.EXPLICIT)
   );
 
   registerVersion(name, version);

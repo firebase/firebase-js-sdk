@@ -18,9 +18,9 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 import { makeRequest } from '../../src/implementation/request';
 import { RequestInfo } from '../../src/implementation/requestinfo';
-import { XhrIo } from '../../src/implementation/xhrio';
+import { Connection } from '../../src/implementation/connection';
 import { makePool } from './testshared';
-import { TestingXhrIo } from './xhrio';
+import { TestingConnection } from './connection';
 
 const TEST_VERSION = '1.2.3';
 
@@ -38,17 +38,17 @@ describe('Firebase Storage > Request', () => {
     const responseValue = 'ResponseValue1';
     const response = 'I am the server response!!!!';
 
-    function newSend(xhrio: TestingXhrIo): void {
+    function newSend(connection: TestingConnection): void {
       const responseHeaders: { [key: string]: string } = {};
       responseHeaders[responseHeader] = responseValue;
-      xhrio.simulateResponse(status, response, responseHeaders);
+      connection.simulateResponse(status, response, responseHeaders);
     }
     const spiedSend = sinon.spy(newSend);
 
-    function handler(xhr: XhrIo, text: string): string {
+    function handler(connection: Connection, text: string): string {
       assert.equal(text, response);
-      assert.equal(xhr.getResponseHeader(responseHeader), responseValue);
-      assert.equal(xhr.getStatus(), status);
+      assert.equal(connection.getResponseHeader(responseHeader), responseValue);
+      assert.equal(connection.getStatus(), status);
       return text;
     }
 
@@ -88,12 +88,12 @@ describe('Firebase Storage > Request', () => {
   });
 
   it('URL parameters get encoded correctly', () => {
-    function newSend(xhrio: TestingXhrIo): void {
-      xhrio.simulateResponse(200, '', {});
+    function newSend(connection: TestingConnection): void {
+      connection.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);
 
-    function handler(xhr: XhrIo, text: string): string {
+    function handler(connection: Connection, text: string): string {
       return text;
     }
 
@@ -136,8 +136,8 @@ describe('Firebase Storage > Request', () => {
   });
 
   it('Propagates errors acceptably', () => {
-    function newSend(xhrio: TestingXhrIo): void {
-      xhrio.simulateResponse(200, '', {});
+    function newSend(connection: TestingConnection): void {
+      connection.simulateResponse(200, '', {});
     }
 
     const errorMessage = 'Catch me if you can';
@@ -185,8 +185,8 @@ describe('Firebase Storage > Request', () => {
   });
 
   it('Sends auth tokens along properly', () => {
-    function newSend(xhrio: TestingXhrIo): void {
-      xhrio.simulateResponse(200, '', {});
+    function newSend(connection: TestingConnection): void {
+      connection.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);
 
@@ -227,8 +227,8 @@ describe('Firebase Storage > Request', () => {
   it('Sends APP ID along properly', () => {
     const appId = 'myFirebaseApp';
 
-    function newSend(xhrio: TestingXhrIo): void {
-      xhrio.simulateResponse(200, '', {});
+    function newSend(connection: TestingConnection): void {
+      connection.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);
 
@@ -268,8 +268,8 @@ describe('Firebase Storage > Request', () => {
   it('sends appcheck token along properly', () => {
     const appCheckToken = 'totallyshaddytoken';
 
-    function newSend(xhrio: TestingXhrIo): void {
-      xhrio.simulateResponse(200, '', {});
+    function newSend(connection: TestingConnection): void {
+      connection.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);
 

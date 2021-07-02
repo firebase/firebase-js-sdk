@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "9.0.0-beta.4",
+  "version": "9.0.0-beta.6",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -31,6 +31,10 @@
     "./app": {
       "node": "./app/dist/index.cjs.js",
       "default": "./app/dist/index.esm.js"
+    },
+    "./app-check": {
+      "node": "./app-check/dist/index.cjs.js",
+      "default": "./app-check/dist/index.esm.js"
     },
     "./auth": {
       "node": "./auth/dist/index.cjs.js",
@@ -79,6 +83,10 @@
     "./compat/app": {
       "node": "./compat/app/dist/index.cjs.js",
       "default": "./compat/app/dist/index.esm.js"
+    },
+    "./compat/app-check": {
+      "node": "./compat/app-check/dist/index.cjs.js",
+      "default": "./compat/app-check/dist/index.esm.js"
     },
     "./compat/auth": {
       "node": "./compat/auth/dist/index.cjs.js",
@@ -131,13 +139,15 @@
     "@firebase/analytics-compat": "0.0.900",
     "@firebase/app-exp": "0.0.900",
     "@firebase/app-compat": "0.0.900",
+    "@firebase/app-check-exp": "0.0.900",
+    "@firebase/app-check-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/auth-compat": "0.0.900",
-    "@firebase/database": "0.10.5",
+    "@firebase/database": "0.10.6",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/functions-compat": "0.0.900",
-    "@firebase/firestore": "2.3.7",
-    "@firebase/storage": "0.5.5",
+    "@firebase/firestore": "2.3.8",
+    "@firebase/storage": "0.5.6",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/performance-compat": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",
@@ -146,13 +156,13 @@
     "@firebase/messaging-compat": "0.0.900"
   },
   "devDependencies": {
-    "rollup": "2.35.1",
+    "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
-    "rollup-plugin-license": "2.2.0",
+    "rollup-plugin-license": "2.5.0",
     "@rollup/plugin-node-resolve": "11.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
-    "rollup-plugin-typescript2": "0.29.0",
+    "rollup-plugin-typescript2": "0.30.0",
     "rollup-plugin-uglify": "6.0.4",
     "@rollup/plugin-alias": "3.1.1",
     "gulp": "4.0.2",
@@ -163,6 +173,7 @@
   "components": [
     "analytics",
     "app",
+    "app-check",
     "auth",
     "functions",
     "firestore",
