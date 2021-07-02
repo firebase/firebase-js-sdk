@@ -2,4 +2,4 @@
 '@firebase/database': patch
 ---
 
-On node, always send auth and appcheck tokens when they are available.
+On Node, always send Auth and AppCheck tokens when they are available.
