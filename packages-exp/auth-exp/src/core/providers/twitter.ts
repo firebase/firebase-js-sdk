@@ -46,7 +46,7 @@ import { OAuthCredential } from '../credentials/oauth';
 import { BaseOAuthProvider } from './oauth';
 
 /**
- * Provider for generating an {@link OAuthCredential} for {@link ProviderId.TWITTER}.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId}.TWITTER.
  *
  * @example
  * ```javascript
@@ -85,9 +85,9 @@ import { BaseOAuthProvider } from './oauth';
  * @public
  */
 export class TwitterAuthProvider extends BaseOAuthProvider {
-  /** Always set to {@link SignInMethod.TWITTER}. */
+  /** Always set to {@link SignInMethod}.TWITTER. */
   static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
-  /** Always set to {@link ProviderId.TWITTER}. */
+  /** Always set to {@link ProviderId}.TWITTER. */
   static readonly PROVIDER_ID = ProviderId.TWITTER;
 
   constructor() {
@@ -140,10 +140,8 @@ export class TwitterAuthProvider extends BaseOAuthProvider {
     if (!tokenResponse) {
       return null;
     }
-    const {
-      oauthAccessToken,
-      oauthTokenSecret
-    } = tokenResponse as SignInWithIdpResponse;
+    const { oauthAccessToken, oauthTokenSecret } =
+      tokenResponse as SignInWithIdpResponse;
     if (!oauthAccessToken || !oauthTokenSecret) {
       return null;
     }

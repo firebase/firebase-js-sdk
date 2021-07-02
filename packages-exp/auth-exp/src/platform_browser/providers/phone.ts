@@ -52,12 +52,12 @@ import { TaggedWithTokenResponse } from '../../model/id_token';
  * @public
  */
 export class PhoneAuthProvider {
-  /** Always set to {@link ProviderId.PHONE}. */
+  /** Always set to {@link ProviderId}.PHONE. */
   static readonly PROVIDER_ID = ProviderId.PHONE;
-  /** Always set to {@link SignInMethod.PHONE}. */
+  /** Always set to {@link SignInMethod}.PHONE. */
   static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
 
-  /** Always set to {@link ProviderId.PHONE}. */
+  /** Always set to {@link ProviderId}.PHONE. */
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
   private readonly auth: AuthInternal;
 
@@ -203,10 +203,8 @@ export class PhoneAuthProvider {
     if (!tokenResponse) {
       return null;
     }
-    const {
-      phoneNumber,
-      temporaryProof
-    } = tokenResponse as SignInWithPhoneNumberResponse;
+    const { phoneNumber, temporaryProof } =
+      tokenResponse as SignInWithPhoneNumberResponse;
     if (phoneNumber && temporaryProof) {
       return PhoneAuthCredential._fromTokenResponse(
         phoneNumber,

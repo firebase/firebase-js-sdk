@@ -33,19 +33,19 @@ import { _assert } from '../util/assert';
  */
 export class EmailAuthProvider implements AuthProvider {
   /**
-   * Always set to {@link ProviderId.PASSWORD}, even for email link.
+   * Always set to {@link ProviderId}.PASSWORD, even for email link.
    */
   static readonly PROVIDER_ID = ProviderId.PASSWORD;
   /**
-   * Always set to {@link SignInMethod.EMAIL_PASSWORD}.
+   * Always set to {@link SignInMethod}.EMAIL_PASSWORD.
    */
   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
   /**
-   * Always set to {@link SignInMethod.EMAIL_LINK}.
+   * Always set to {@link SignInMethod}.EMAIL_LINK.
    */
   static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
   /**
-   * Always set to {@link ProviderId.PASSWORD}, even for email link.
+   * Always set to {@link ProviderId}.PASSWORD, even for email link.
    */
   readonly providerId = EmailAuthProvider.PROVIDER_ID;
 
