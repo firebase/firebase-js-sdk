@@ -107,11 +107,17 @@ export class Auth
   get languageCode(): string | null {
     return this._delegate.languageCode;
   }
+  set languageCode(languageCode: string | null) {
+    this._delegate.languageCode = languageCode;
+  }
   get settings(): compat.AuthSettings {
     return this._delegate.settings;
   }
   get tenantId(): string | null {
     return this._delegate.tenantId;
+  }
+  set tenantId(tid: string | null) {
+    this._delegate.tenantId = tid;
   }
   useDeviceLanguage(): void {
     this._delegate.useDeviceLanguage();
