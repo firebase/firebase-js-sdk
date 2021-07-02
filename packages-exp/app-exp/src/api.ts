@@ -41,7 +41,7 @@ import {
 } from '@firebase/logger';
 
 /**
- * The current SDK version.
+ * The current SDK version. Test Test
  *
  * @public
  */
