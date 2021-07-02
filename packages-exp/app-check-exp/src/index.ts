@@ -1,4 +1,10 @@
 /**
+ * Firebase App Check
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2017 Google LLC
  *
