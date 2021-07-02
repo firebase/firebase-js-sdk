@@ -21,7 +21,13 @@
  */
 const { argv } = require('yargs');
 const path = require('path');
-const { readdirSync, statSync, readFileSync, writeFileSync } = require('fs');
+const {
+  readdirSync,
+  statSync,
+  readFileSync,
+  writeFileSync,
+  accessSync
+} = require('fs');
 
 // can be used in command line
 if (argv._[0]) {
