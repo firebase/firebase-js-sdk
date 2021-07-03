@@ -29,7 +29,7 @@ import { OAuthCredential } from '../credentials/oauth';
 import { BaseOAuthProvider } from './oauth';
 
 /**
- * Provider for generating an an {@link OAuthCredential} for {@link ProviderId.GOOGLE}.
+ * Provider for generating an an {@link OAuthCredential} for {@link ProviderId}.GOOGLE.
  *
  * @example
  * ```javascript
@@ -70,9 +70,9 @@ import { BaseOAuthProvider } from './oauth';
  * @public
  */
 export class GoogleAuthProvider extends BaseOAuthProvider {
-  /** Always set to {@link SignInMethod.GOOGLE}. */
+  /** Always set to {@link SignInMethod}.GOOGLE. */
   static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
-  /** Always set to {@link ProviderId.GOOGLE}. */
+  /** Always set to {@link ProviderId}.GOOGLE. */
   static readonly PROVIDER_ID = ProviderId.GOOGLE;
 
   constructor() {
@@ -136,10 +136,8 @@ export class GoogleAuthProvider extends BaseOAuthProvider {
       return null;
     }
 
-    const {
-      oauthIdToken,
-      oauthAccessToken
-    } = tokenResponse as SignInWithIdpResponse;
+    const { oauthIdToken, oauthAccessToken } =
+      tokenResponse as SignInWithIdpResponse;
     if (!oauthIdToken && !oauthAccessToken) {
       // This could be an oauth 1 credential or a phone credential
       return null;
