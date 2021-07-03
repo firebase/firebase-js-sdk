@@ -21,16 +21,26 @@
  */
 const { argv } = require('yargs');
 const path = require('path');
-const { readdirSync, statSync, readFileSync, writeFileSync } = require('fs');
+const {
+  readdirSync,
+  statSync,
+  readFileSync,
+  writeFileSync,
+  accessSync
+} = require('fs');
 
 // can be used in command line
 if (argv._[0]) {
   const dirOrFile = path.resolve(argv._[0]);
-  if (statSync(dirOrFile).isFile()) {
-    removeExpSuffixFromFile(dirOrFile);
-  } else {
-    removeExpSuffix(dirOrFile);
-  }
+
+  try {
+    accessSync(dirOrFile);
+    if (statSync(dirOrFile).isFile()) {
+      removeExpSuffixFromFile(dirOrFile);
+    } else {
+      removeExpSuffix(dirOrFile);
+    }
+  } catch (_err) {}
 }
 
 function removeExpSuffix(dir) {
