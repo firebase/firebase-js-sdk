@@ -35,6 +35,12 @@ import { getReactNativePersistence } from './src/platform_react_native/persisten
 // Core functionality shared by all clients
 export * from './src';
 
+/**
+ * An implementation of {@link Persistence} of type 'LOCAL' for use in React
+ * Native environments.
+ *
+ * @public
+ */
 export const reactNativeLocalPersistence =
   getReactNativePersistence(AsyncStorage);
 
