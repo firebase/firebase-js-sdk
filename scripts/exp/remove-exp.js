@@ -39,7 +39,7 @@ if (argv._[0]) {
     } else {
       removeExpSuffix(dirOrFile);
     }
-  } catch (err) {}
+  } catch (_err) {}
 }
 
 function removeExpSuffix(dir) {
