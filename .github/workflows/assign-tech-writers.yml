@@ -10,6 +10,6 @@ jobs:
 
     steps:
       - name: assign techwriters to PR
-        uses: hkusu/review-assign-action@v1
+        uses: kentaro-m/auto-assign-action@v1.2.0
         with:
-          assignees: egilmorez
+          configuration-path: ".github/auto_assign.yml"
