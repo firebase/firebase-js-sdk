@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-        - name: Auto Assign Action
+      - name: Auto Assign Action
         uses: kentaro-m/auto-assign-action@v1.1.2
         with:
           configuration-path: ".github/auto_assign.yml"
