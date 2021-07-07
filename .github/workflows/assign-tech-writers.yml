@@ -6,6 +6,7 @@ on:
 jobs:
   assign_tech_writers:
     if: {{github.event.label.name == 'doc-changes'}}
+    runs-on: ubuntu-latest
 
     steps:
       - name: assign techwriters to PR
