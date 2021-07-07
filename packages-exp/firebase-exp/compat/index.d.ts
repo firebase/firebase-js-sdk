@@ -1274,6 +1274,8 @@ declare namespace firebase {
    * If not passed, uses the default app.
    */
   function analytics(app?: firebase.app.App): firebase.analytics.Analytics;
+
+  function appCheck(app?: firebase.app.App): firebase.appCheck.AppCheck;
 }
 
 declare namespace firebase.app {
@@ -1471,6 +1473,123 @@ declare namespace firebase.app {
      * ```
      */
     analytics(): firebase.analytics.Analytics;
+    appCheck(): firebase.appCheck.AppCheck;
+  }
+}
+
+declare namespace firebase.appCheck {
+  /**
+   * Result returned by
+   * {@link firebase.appCheck.AppCheck.getToken `firebase.appCheck().getToken()`}.
+   */
+  interface AppCheckTokenResult {
+    token: string;
+  }
+  /**
+   * The Firebase AppCheck service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.appCheck `firebase.appCheck()`}.
+   */
+  export interface AppCheck {
+    /**
+     * Activate AppCheck
+     * @param siteKeyOrProvider reCAPTCHA v3 site key (public key) or
+     * custom token provider.
+     * @param isTokenAutoRefreshEnabled If true, the SDK automatically
+     * refreshes App Check tokens as needed. If undefined, defaults to the
+     * value of `app.automaticDataCollectionEnabled`, which defaults to
+     * false and can be set in the app config.
+     */
+    activate(
+      siteKeyOrProvider: string | AppCheckProvider,
+      isTokenAutoRefreshEnabled?: boolean
+    ): void;
+
+    /**
+     *
+     * @param isTokenAutoRefreshEnabled If true, the SDK automatically
+     * refreshes App Check tokens as needed. This overrides any value set
+     * during `activate()`.
+     */
+    setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
+    /**
+     * Get the current App Check token. Attaches to the most recent
+     * in-flight request if one is present. Returns null if no token
+     * is present and no token requests are in-flight.
+     *
+     * @param forceRefresh - If true, will always try to fetch a fresh token.
+     * If false, will use a cached token if found in storage.
+     */
+    getToken(
+      forceRefresh?: boolean
+    ): Promise<firebase.appCheck.AppCheckTokenResult>;
+
+    /**
+     * Registers a listener to changes in the token state. There can be more
+     * than one listener registered at the same time for one or more
+     * App Check instances. The listeners call back on the UI thread whenever
+     * the current token associated with this App Check instance changes.
+     *
+     * @param observer An object with `next`, `error`, and `complete`
+     * properties. `next` is called with an
+     * {@link firebase.appCheck.AppCheckTokenResult `AppCheckTokenResult`}
+     * whenever the token changes. `error` is optional and is called if an
+     * error is thrown by the listener (the `next` function). `complete`
+     * is unused, as the token stream is unending.
+     *
+     * @returns A function that unsubscribes this listener.
+     */
+    onTokenChanged(observer: {
+      next: (tokenResult: firebase.appCheck.AppCheckTokenResult) => void;
+      error?: (error: Error) => void;
+      complete?: () => void;
+    }): Unsubscribe;
+
+    /**
+     * Registers a listener to changes in the token state. There can be more
+     * than one listener registered at the same time for one or more
+     * App Check instances. The listeners call back on the UI thread whenever
+     * the current token associated with this App Check instance changes.
+     *
+     * @param onNext When the token changes, this function is called with aa
+     * {@link firebase.appCheck.AppCheckTokenResult `AppCheckTokenResult`}.
+     * @param onError Optional. Called if there is an error thrown by the
+     * listener (the `onNext` function).
+     * @param onCompletion Currently unused, as the token stream is unending.
+     * @returns A function that unsubscribes this listener.
+     */
+    onTokenChanged(
+      onNext: (tokenResult: firebase.appCheck.AppCheckTokenResult) => void,
+      onError?: (error: Error) => void,
+      onCompletion?: () => void
+    ): Unsubscribe;
+  }
+
+  /**
+   * An App Check provider. This can be either the built-in reCAPTCHA
+   * provider or a custom provider. For more on custom providers, see
+   * https://firebase.google.com/docs/app-check/web-custom-provider
+   */
+  interface AppCheckProvider {
+    /**
+     * Returns an AppCheck token.
+     */
+    getToken(): Promise<AppCheckToken>;
+  }
+
+  /**
+   * The token returned from an {@link firebase.appCheck.AppCheckProvider `AppCheckProvider`}.
+   */
+  interface AppCheckToken {
+    /**
+     * The token string in JWT format.
+     */
+    readonly token: string;
+    /**
+     * The local timestamp after which the token will expire.
+     */
+    readonly expireTimeMillis: number;
   }
 }
 
@@ -4419,7 +4538,8 @@ declare namespace firebase.auth {
    * @hidden
    */
   class RecaptchaVerifier_Instance
-    implements firebase.auth.ApplicationVerifier {
+    implements firebase.auth.ApplicationVerifier
+  {
     constructor(
       container: any | string,
       parameters?: Object | null,

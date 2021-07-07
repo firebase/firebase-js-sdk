@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-import { AppCheck, AppCheckOptions, AppCheckTokenResult } from './public-types';
+import {
+  AppCheck,
+  AppCheckOptions,
+  AppCheckTokenResult,
+  Unsubscribe,
+  PartialObserver
+} from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { getState, setState, AppCheckState } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
-import {
-  getModularInstance,
-  ErrorFn,
-  NextFn,
-  PartialObserver,
-  Unsubscribe
-} from '@firebase/util';
+import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';
 import { AppCheckProvider, ListenerType } from './types';
 import {
@@ -214,18 +214,18 @@ export function onTokenChanged(
   let nextFn: NextFn<AppCheckTokenResult> = () => {};
   let errorFn: ErrorFn = () => {};
   if ((onNextOrObserver as PartialObserver<AppCheckTokenResult>).next != null) {
-    nextFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).next!.bind(
-      onNextOrObserver
-    );
+    nextFn = (
+      onNextOrObserver as PartialObserver<AppCheckTokenResult>
+    ).next!.bind(onNextOrObserver);
   } else {
     nextFn = onNextOrObserver as NextFn<AppCheckTokenResult>;
   }
   if (
     (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error != null
   ) {
-    errorFn = (onNextOrObserver as PartialObserver<AppCheckTokenResult>).error!.bind(
-      onNextOrObserver
-    );
+    errorFn = (
+      onNextOrObserver as PartialObserver<AppCheckTokenResult>
+    ).error!.bind(onNextOrObserver);
   } else if (onError) {
     errorFn = onError;
   }
