@@ -5,7 +5,7 @@ on:
     types: [labeled]
 jobs:
   assign_tech_writers:
-    if: {{github.event.label.name == 'doc-changes'}}
+    if: ${{github.event.label.name == 'doc-changes'}}
     runs-on: ubuntu-latest
 
     steps:
