@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.10.7
+
+### Patch Changes
+
+- [`99414a51c`](https://github.com/firebase/firebase-js-sdk/commit/99414a51ca5cd25f69a96e4c9949ad5b84e3f64e) [#5082](https://github.com/firebase/firebase-js-sdk/pull/5082) - On Node, always send Auth and AppCheck tokens when they are available.
+
 ## 0.10.6
 
 ### Patch Changes
