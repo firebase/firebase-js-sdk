@@ -73,9 +73,11 @@ export async function migrateOldDatabase(
   if ('databases' in indexedDB) {
     // indexedDb.databases() is an IndexedDB v3 API and does not exist in all browsers. TODO: Remove
     // typecast when it lands in TS types.
-    const databases = await (indexedDB as {
-      databases(): Promise<Array<{ name: string; version: number }>>;
-    }).databases();
+    const databases = await (
+      indexedDB as unknown as {
+        databases(): Promise<Array<{ name: string; version: number }>>;
+      }
+    ).databases();
     const dbNames = databases.map(db => db.name);
 
     if (!dbNames.includes(OLD_DB_NAME)) {

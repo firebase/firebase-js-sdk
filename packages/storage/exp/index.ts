@@ -29,10 +29,7 @@ import {
 } from '@firebase/app-exp';
 
 import { ConnectionPool } from '../src/implementation/connectionPool';
-import {
-  StorageService as StorageServiceInternal,
-  useStorageEmulator as useEmulatorInternal
-} from '../src/service';
+import { StorageService as StorageServiceInternal } from '../src/service';
 import {
   Component,
   ComponentType,
@@ -44,22 +41,6 @@ import { name, version } from '../package.json';
 
 import { StorageService } from './public-types';
 import { STORAGE_TYPE } from './constants';
-
-/**
- * Modify this `StorageService` instance to communicate with the Cloud Storage emulator.
- *
- * @param storage - The `StorageService` instance
- * @param host - The emulator host (ex: localhost)
- * @param port - The emulator port (ex: 5001)
- * @public
- */
-export function useStorageEmulator(
-  storage: StorageService,
-  host: string,
-  port: number
-): void {
-  useEmulatorInternal(storage as StorageServiceInternal, host, port);
-}
 
 export { StringFormat } from '../src/implementation/string';
 export * from './api';

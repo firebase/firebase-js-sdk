@@ -40,10 +40,10 @@ export function pruneDts(inputLocation: string, outputLocation: string): void {
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(inputLocation)!;
 
-  const result: ts.TransformationResult<ts.SourceFile> = ts.transform<ts.SourceFile>(
-    sourceFile,
-    [dropPrivateApiTransformer.bind(null, program, host)]
-  );
+  const result: ts.TransformationResult<ts.SourceFile> =
+    ts.transform<ts.SourceFile>(sourceFile, [
+      dropPrivateApiTransformer.bind(null, program, host)
+    ]);
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   let content = printer.printFile(transformedSourceFile);
 
@@ -336,7 +336,7 @@ function extractJSDocComment(
   });
 
   if (comments.length > 0) {
-    const jsDocTags = ts.getJSDocTags(symbol.declarations[overloadCount]);
+    const jsDocTags = ts.getJSDocTags(symbol.declarations![overloadCount]);
     const maybeNewline = jsDocTags?.length > 0 ? '\n' : '';
     return ts.factory.createJSDocComment(
       comments[0].text + maybeNewline,
@@ -395,7 +395,7 @@ function extractExportedSymbol(
   // See if there is an exported symbol that extends this private symbol.
   // In this case, we can safely use the public symbol instead.
   for (const symbol of allExportedSymbols) {
-    for (const declaration of symbol.declarations) {
+    for (const declaration of symbol.declarations!) {
       if (
         ts.isClassDeclaration(declaration) ||
         ts.isInterfaceDeclaration(declaration)
@@ -422,7 +422,7 @@ function extractExportedSymbol(
   // symbol with a less restrictive type.
   const localSymbol = typeChecker.getSymbolAtLocation(typeName);
   if (localSymbol) {
-    for (const declaration of localSymbol!.declarations) {
+    for (const declaration of localSymbol.declarations!) {
       if (
         ts.isClassDeclaration(declaration) ||
         ts.isInterfaceDeclaration(declaration)

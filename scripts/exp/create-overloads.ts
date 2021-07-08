@@ -300,7 +300,9 @@ function findTypes(
       // include the type if it's not in the excludes list or a builtin type
       if (!typesToIgnore.includes(typeName)) {
         const symbol = typeCheck.getSymbolAtLocation(node.typeName);
-        const declaration = symbol?.declarations[0];
+        const declaration = symbol?.declarations
+          ? symbol.declarations[0]
+          : undefined;
 
         // ignore type parameters.
         if (!declaration || !ts.isTypeParameterDeclaration(declaration)) {

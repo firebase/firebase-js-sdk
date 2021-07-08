@@ -23,7 +23,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "typescript": "4.2.2"
+    "typescript": "4.3.5"
   },
   "repository": {
     "directory": "repo-scripts/changelog-generator",

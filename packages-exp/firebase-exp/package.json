@@ -168,7 +168,7 @@
     "gulp": "4.0.2",
     "gulp-sourcemaps": "3.0.0",
     "gulp-concat": "2.6.1",
-    "typescript": "4.2.2"
+    "typescript": "4.3.5"
   },
   "components": [
     "analytics",

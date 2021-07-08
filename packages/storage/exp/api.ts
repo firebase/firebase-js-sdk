@@ -24,7 +24,8 @@ import {
 
 import {
   ref as refInternal,
-  StorageService as StorageServiceInternal
+  StorageService as StorageServiceInternal,
+  useStorageEmulator as useEmulatorInternal
 } from '../src/service';
 import { Provider } from '@firebase/component';
 
@@ -303,4 +304,20 @@ export function getStorage(
     identifier: bucketUrl
   });
   return storageInstance;
+}
+
+/**
+ * Modify this `StorageService` instance to communicate with the Cloud Storage emulator.
+ *
+ * @param storage - The `StorageService` instance
+ * @param host - The emulator host (ex: localhost)
+ * @param port - The emulator port (ex: 5001)
+ * @public
+ */
+export function useStorageEmulator(
+  storage: StorageService,
+  host: string,
+  port: number
+): void {
+  useEmulatorInternal(storage as StorageServiceInternal, host, port);
 }

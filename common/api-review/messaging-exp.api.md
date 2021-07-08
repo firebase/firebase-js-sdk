@@ -22,9 +22,6 @@ export interface FcmOptions {
 export interface FirebaseMessaging {
 }
 
-// @internal (undocumented)
-export type _FirebaseMessagingName = 'messaging';
-
 // @public
 export function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 
@@ -33,7 +30,7 @@ export function getToken(messaging: FirebaseMessaging, options?: GetTokenOptions
 
 // @public
 export interface GetTokenOptions {
-    swReg?: ServiceWorkerRegistration;
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
     vapidKey?: string;
 }
 
