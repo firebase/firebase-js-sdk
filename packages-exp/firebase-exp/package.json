@@ -143,7 +143,7 @@
     "@firebase/app-check-compat": "0.0.900",
     "@firebase/auth-exp": "0.0.900",
     "@firebase/auth-compat": "0.0.900",
-    "@firebase/database": "0.10.6",
+    "@firebase/database": "0.10.7",
     "@firebase/functions-exp": "0.0.900",
     "@firebase/functions-compat": "0.0.900",
     "@firebase/firestore": "2.3.8",
