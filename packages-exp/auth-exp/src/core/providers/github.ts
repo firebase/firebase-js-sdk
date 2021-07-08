@@ -71,9 +71,9 @@ import { BaseOAuthProvider } from './oauth';
  */
 export class GithubAuthProvider extends BaseOAuthProvider {
   /** Always set to {@link SignInMethod}.GITHUB. */
-  static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
+  static readonly GITHUB_SIGN_IN_METHOD: 'github.com' = SignInMethod.GITHUB;
   /** Always set to {@link ProviderId}.GITHUB. */
-  static readonly PROVIDER_ID = ProviderId.GITHUB;
+  static readonly PROVIDER_ID: 'github.com' = ProviderId.GITHUB;
 
   constructor() {
     super(ProviderId.GITHUB);
