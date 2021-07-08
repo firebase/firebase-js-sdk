@@ -1,0 +1,15 @@
+name: Assign tech writers
+
+on: 
+  pull_request: 
+    types: [labeled]
+jobs:
+  assign_tech_writers:
+    if: ${{github.event.label.name == 'doc-changes'}}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: assign techwriters to PR
+        uses: kentaro-m/auto-assign-action@v1.2.0
+        with:
+          configuration-path: ".github/auto_assign.yml"

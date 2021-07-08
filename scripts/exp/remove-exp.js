@@ -32,7 +32,6 @@ const {
 // can be used in command line
 if (argv._[0]) {
   const dirOrFile = path.resolve(argv._[0]);
-
   try {
     accessSync(dirOrFile);
     if (statSync(dirOrFile).isFile()) {
