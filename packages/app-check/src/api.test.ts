@@ -39,7 +39,7 @@ import * as client from './client';
 import * as storage from './storage';
 import * as logger from './logger';
 import * as util from './util';
-import { ReCAPTCHAV3Provider } from './providers';
+import { ReCaptchaV3Provider } from './providers';
 
 describe('api', () => {
   beforeEach(() => {
@@ -56,7 +56,7 @@ describe('api', () => {
       expect(getState(app).activated).to.equal(false);
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider()
       );
       expect(getState(app).activated).to.equal(true);
@@ -66,7 +66,7 @@ describe('api', () => {
       app = getFakeApp({ automaticDataCollectionEnabled: false });
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider()
       );
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(false);
@@ -76,7 +76,7 @@ describe('api', () => {
       app = getFakeApp({ automaticDataCollectionEnabled: false });
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider(),
         true
       );
@@ -86,25 +86,36 @@ describe('api', () => {
     it('can only be called once', () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider()
       );
       expect(() =>
         activate(
           app,
-          new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+          new ReCaptchaV3Provider(FAKE_SITE_KEY),
           getFakePlatformLoggingProvider()
         )
       ).to.throw(/AppCheck can only be activated once/);
     });
 
-    it('initialize reCAPTCHA when a sitekey is provided', () => {
+    it('initialize reCAPTCHA when a sitekey string is provided', () => {
+      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
+        Promise.resolve({} as any)
+      );
+      activate(app, FAKE_SITE_KEY, getFakePlatformLoggingProvider());
+      expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
+        app,
+        FAKE_SITE_KEY
+      );
+    });
+
+    it('initialize reCAPTCHA when a ReCaptchaV3Provider instance is provided', () => {
       const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
         Promise.resolve({} as any)
       );
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         getFakePlatformLoggingProvider()
       );
       expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
@@ -113,13 +124,22 @@ describe('api', () => {
       );
     });
 
-    it('does NOT initialize reCAPTCHA when a custom token provider is provided', () => {
-      const fakeCustomTokenProvider = getFakeCustomTokenProvider();
-      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize');
-      activate(app, fakeCustomTokenProvider, getFakePlatformLoggingProvider());
-      expect(getState(app).provider).to.equal(fakeCustomTokenProvider);
-      expect(initReCAPTCHAStub).to.have.not.been.called;
-    });
+    it(
+      'creates CustomProvider instance if user provides an object containing' +
+        ' a getToken() method',
+      async () => {
+        const fakeCustomTokenProvider = getFakeCustomTokenProvider();
+        const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize');
+        activate(
+          app,
+          fakeCustomTokenProvider,
+          getFakePlatformLoggingProvider()
+        );
+        const result = await getState(app).provider?.getToken();
+        expect(result?.token).to.equal('fake-custom-app-check-token');
+        expect(initReCAPTCHAStub).to.have.not.been.called;
+      }
+    );
   });
   describe('setTokenAutoRefreshEnabled()', () => {
     it('sets isTokenAutoRefreshEnabled correctly', () => {
@@ -177,7 +197,7 @@ describe('api', () => {
       const app = getFakeApp();
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider,
         false
       );
@@ -226,7 +246,7 @@ describe('api', () => {
       const app = getFakeApp();
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider,
         false
       );
@@ -276,7 +296,7 @@ describe('api', () => {
       const app = getFakeApp();
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider,
         false
       );

@@ -20,10 +20,7 @@ import {
   AppCheckTokenResult
 } from '@firebase/app-check-types';
 import { FirebaseApp } from '@firebase/app-types';
-import { Provider } from '@firebase/component';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { ReCAPTCHAV3Provider, ReCAPTCHAV3ProviderInternal } from './providers';
-import { initialize as initializeRecaptcha } from './recaptcha';
 import { getState, setState, AppCheckState, ListenerType } from './state';
 import {
   getToken as getTokenInternal,
@@ -32,6 +29,7 @@ import {
 } from './internal-api';
 import { Provider } from '@firebase/component';
 import { ErrorFn, NextFn, PartialObserver, Unsubscribe } from '@firebase/util';
+import { CustomProvider, ReCaptchaV3Provider } from './providers';
 
 /**
  *
@@ -43,7 +41,12 @@ import { ErrorFn, NextFn, PartialObserver, Unsubscribe } from '@firebase/util';
  */
 export function activate(
   app: FirebaseApp,
-  provider: AppCheckProvider,
+  siteKeyOrProvider:
+    | ReCaptchaV3Provider
+    | CustomProvider
+    // This is the old interface for users to supply a custom provider.
+    | AppCheckProvider
+    | string,
   platformLoggerProvider: Provider<'platform-logger'>,
   isTokenAutoRefreshEnabled?: boolean
 ): void {
@@ -55,7 +58,22 @@ export function activate(
   }
 
   const newState: AppCheckState = { ...state, activated: true };
-  newState.provider = provider;
+
+  if (typeof siteKeyOrProvider === 'string') {
+    newState.provider = new ReCaptchaV3Provider(siteKeyOrProvider);
+  } else if (
+    siteKeyOrProvider instanceof ReCaptchaV3Provider ||
+    siteKeyOrProvider instanceof CustomProvider
+  ) {
+    newState.provider = siteKeyOrProvider;
+  } else {
+    // Process "old" custom provider to avoid breaking previous users.
+    // This was defined at beta release as simply an object with a
+    // getToken() method.
+    newState.provider = new CustomProvider({
+      getToken: siteKeyOrProvider.getToken
+    });
+  }
 
   // Use value of global `automaticDataCollectionEnabled` (which
   // itself defaults to false if not specified in config) if
@@ -67,20 +85,7 @@ export function activate(
 
   setState(app, newState);
 
-  // initialize reCAPTCHA if provider is a ReCAPTCHAProvider
-  if (newState.provider instanceof ReCAPTCHAV3Provider) {
-    // Wrap public ReCAPTCHAProvider in an internal class that provides
-    // platform logging and app.
-    const internalProvider = new ReCAPTCHAV3ProviderInternal(
-      app,
-      newState.provider.siteKey,
-      platformLoggerProvider
-    );
-    setState(app, { ...newState, provider: internalProvider });
-    initializeRecaptcha(app, internalProvider.siteKey).catch(() => {
-      /* we don't care about the initialization result in activate() */
-    });
-  }
+  newState.provider.initialize(app, platformLoggerProvider);
 }
 
 export function setTokenAutoRefreshEnabled(

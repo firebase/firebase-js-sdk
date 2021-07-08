@@ -47,8 +47,7 @@ import {
   ListenerType
 } from './state';
 import { Deferred } from '@firebase/util';
-import { AppCheckTokenResult } from '../../app-check-types';
-import { ReCAPTCHAV3Provider } from './providers';
+import { CustomProvider, ReCaptchaV3Provider } from './providers';
 import { formatDummyToken } from './util';
 
 const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
@@ -86,7 +85,7 @@ describe('internal api', () => {
       issuedAtTimeMillis: 0
     };
 
-    it('uses customTokenProvider to get an AppCheck token', async () => {
+    it('uses user-provided custom getToken() method to get an AppCheck token', async () => {
       const customTokenProvider = getFakeCustomTokenProvider();
       const customProviderSpy = spy(customTokenProvider, 'getToken');
 
@@ -99,10 +98,28 @@ describe('internal api', () => {
       });
     });
 
+    it('uses user-provided CustomProvider instance to get an AppCheck token', async () => {
+      const getTokenStub = stub().resolves({
+        token: 'custom-token-using-class',
+        expireTimeMillis: 1000
+      });
+      const fakeCustomProvider = new CustomProvider({
+        getToken: getTokenStub
+      });
+
+      activate(app, fakeCustomProvider, fakePlatformLoggingProvider);
+      const token = await getToken(app, fakePlatformLoggingProvider);
+
+      expect(getTokenStub).to.be.called;
+      expect(token).to.deep.equal({
+        token: 'custom-token-using-class'
+      });
+    });
+
     it('uses reCAPTCHA token to exchange for AppCheck token if ReCAPTCHAProvider is provided', async () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -128,7 +145,7 @@ describe('internal api', () => {
       const errorStub = stub(console, 'error');
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -155,7 +172,7 @@ describe('internal api', () => {
     it('notifies listeners using cached token', async () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       storageReadStub.resolves(fakeCachedAppCheckToken);
@@ -188,7 +205,7 @@ describe('internal api', () => {
     it('notifies listeners using new token', async () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -224,7 +241,7 @@ describe('internal api', () => {
       stub(logger.logger, 'error');
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
@@ -250,7 +267,7 @@ describe('internal api', () => {
     it('ignores listeners that throw', async () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
@@ -284,7 +301,7 @@ describe('internal api', () => {
     it('loads persisted token to memory and returns it', async () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -304,7 +321,7 @@ describe('internal api', () => {
     it('persists token to storage', async () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -321,7 +338,7 @@ describe('internal api', () => {
     it('returns the valid token in memory without making network request', async () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
@@ -337,7 +354,7 @@ describe('internal api', () => {
     it('force to get new token when forceRefresh is true', async () => {
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
@@ -363,7 +380,7 @@ describe('internal api', () => {
       debugState.token.resolve('my-debug-token');
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
 
@@ -441,10 +458,12 @@ describe('internal api', () => {
       clock.restore();
     });
 
-    it('notifies the listener with the valid token in storage', done => {
+    it('notifies the listener with the valid token in storage', async () => {
+      const clock = useFakeTimers();
+      const listener = stub();
       activate(
         app,
-        new ReCAPTCHAV3Provider(FAKE_SITE_KEY),
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
       storageReadStub.resolves({
@@ -453,21 +472,17 @@ describe('internal api', () => {
         issuedAtTimeMillis: 0
       });
 
-      // Need to use done() if the callback will be called by the
-      // refresher.
-      const fakeListener = (token: AppCheckTokenResult): void => {
-        expect(token).to.deep.equal({
-          token: `fake-cached-app-check-token`
-        });
-        done();
-      };
-
       addTokenListener(
         app,
         fakePlatformLoggingProvider,
         ListenerType.INTERNAL,
-        fakeListener
+        listener
       );
+      await clock.runAllAsync();
+      expect(listener).to.be.calledWith({
+        token: 'fake-cached-app-check-token'
+      });
+      clock.restore();
     });
   });
 

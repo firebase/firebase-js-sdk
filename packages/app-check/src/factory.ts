@@ -46,12 +46,12 @@ export function factory(
   return {
     app,
     activate: (
-      provider: AppCheckProvider,
+      siteKeyOrProvider: AppCheckProvider | string,
       isTokenAutoRefreshEnabled?: boolean
     ) =>
       activate(
         app,
-        provider,
+        siteKeyOrProvider,
         platformLoggerProvider,
         isTokenAutoRefreshEnabled
       ),

@@ -16,15 +16,12 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import {
-  AppCheckProvider,
-  AppCheckToken,
-  AppCheckTokenResult
-} from '@firebase/app-check-types';
+import { AppCheckToken, AppCheckTokenResult } from '@firebase/app-check-types';
 import { AppCheckTokenListener } from '@firebase/app-check-interop-types';
 import { Refresher } from './proactive-refresh';
 import { Deferred, PartialObserver } from '@firebase/util';
 import { GreCAPTCHA } from './recaptcha';
+import { AppCheckProviderInternal } from './providers';
 
 export interface AppCheckTokenInternal extends AppCheckToken {
   issuedAtTimeMillis: number;
@@ -45,7 +42,7 @@ export const enum ListenerType {
 export interface AppCheckState {
   activated: boolean;
   tokenObservers: AppCheckTokenObserver[];
-  provider?: AppCheckProvider;
+  provider?: AppCheckProviderInternal;
   siteKey?: string;
   token?: AppCheckTokenInternal;
   tokenRefresher?: Refresher;

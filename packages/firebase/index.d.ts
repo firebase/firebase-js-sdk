@@ -1551,6 +1551,25 @@ declare namespace firebase.appCheck {
      */
     constructor(siteKey: string);
   }
+  /*
+   * Custom token provider.
+   */
+  class CustomProvider {
+    /**
+     * @param options - Options for creating the custom provider.
+     */
+    constructor(options: CustomProviderOptions);
+  }
+  /**
+   * Options when creating a CustomProvider.
+   */
+  interface CustomProviderOptions {
+    /**
+     * Function to get an App Check token through a custom provider
+     * service.
+     */
+    getToken: () => Promise<AppCheckToken>;
+  }
 
   /**
    * The Firebase AppCheck service interface.

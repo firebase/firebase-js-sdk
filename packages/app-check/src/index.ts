@@ -26,7 +26,7 @@ import {
   AppCheckComponentName
 } from '@firebase/app-check-types';
 import { factory, internalFactory } from './factory';
-import { ReCAPTCHAV3Provider } from './providers';
+import { ReCaptchaV3Provider, CustomProvider } from './providers';
 import { initializeDebugMode } from './debug';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { name, version } from '../package.json';
@@ -48,7 +48,8 @@ function registerAppCheck(firebase: _FirebaseNamespace): void {
       ComponentType.PUBLIC
     )
       .setServiceProps({
-        ReCAPTCHAV3Provider
+        ReCaptchaV3Provider,
+        CustomProvider
       })
       /**
        * AppCheck can only be initialized by explicitly calling firebase.appCheck()
