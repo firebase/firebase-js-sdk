@@ -25,6 +25,7 @@ import {
   AppCheckTokenInternal,
   AppCheckTokenObserver,
   getState,
+  ListenerType,
   setState
 } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
@@ -176,13 +177,15 @@ export async function getToken(
 export function addTokenListener(
   app: FirebaseApp,
   platformLoggerProvider: Provider<'platform-logger'>,
+  type: ListenerType,
   listener: AppCheckTokenListener,
   onError?: (error: Error) => void
 ): void {
   const state = getState(app);
   const tokenListener: AppCheckTokenObserver = {
     next: listener,
-    error: onError
+    error: onError,
+    type
   };
   const newState = {
     ...state,
@@ -304,20 +307,19 @@ function notifyTokenListeners(
 
   for (const observer of observers) {
     try {
-      if (observer.error) {
-        // If this listener has an error handler, handle errors differently
-        // from successes.
-        if (token.error) {
-          observer.error(token.error);
-        } else {
-          observer.next(token);
-        }
+      if (observer.type === ListenerType.EXTERNAL && token.error != null) {
+        // If this listener was added by a 3P call, send any token error to
+        // the supplied error handler. A 3P observer always has an error
+        // handler.
+        observer.error!(token.error);
       } else {
-        // Otherwise return the token, whether or not it has an error field.
+        // If the token has no error field, always return the token.
+        // If this is a 2P listener, return the token, whether or not it
+        // has an error field.
         observer.next(token);
       }
     } catch (ignored) {
-      // If any handler fails, ignore and run next handler.
+      // Errors in the listener function itself are always ignored.
     }
   }
 }

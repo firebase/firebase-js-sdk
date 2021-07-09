@@ -31,12 +31,14 @@ import {
   onTokenChanged as onTokenChangedExp
 } from '@firebase/app-check-exp';
 import { PartialObserver, Unsubscribe } from '@firebase/util';
+import { ERROR_FACTORY, AppCheckError } from './errors';
 
-export class AppCheckService implements FirebaseAppCheck, _FirebaseService {
-  constructor(
-    public app: FirebaseApp,
-    readonly _delegate: AppCheckServiceExp
-  ) {}
+export class AppCheckService
+  implements FirebaseAppCheck, Omit<_FirebaseService, '_delegate'>
+{
+  _delegate?: AppCheckServiceExp;
+  constructor(public app: FirebaseApp) {}
+
   activate(
     siteKeyOrProvider: string | AppCheckProvider,
     isTokenAutoRefreshEnabled?: boolean
@@ -47,17 +49,30 @@ export class AppCheckService implements FirebaseAppCheck, _FirebaseService {
     } else {
       provider = new CustomProvider({ getToken: siteKeyOrProvider.getToken });
     }
-    initializeAppCheck(this.app, {
+    this._delegate = initializeAppCheck(this.app, {
       provider,
       isTokenAutoRefreshEnabled
     });
   }
+
   setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void {
+    if (!this._delegate) {
+      throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
+        appName: this.app.name
+      });
+    }
     setTokenAutoRefreshEnabledExp(this._delegate, isTokenAutoRefreshEnabled);
   }
+
   getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult> {
+    if (!this._delegate) {
+      throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
+        appName: this.app.name
+      });
+    }
     return getTokenExp(this._delegate, forceRefresh);
   }
+
   onTokenChanged(
     onNextOrObserver:
       | PartialObserver<AppCheckTokenResult>
@@ -65,6 +80,11 @@ export class AppCheckService implements FirebaseAppCheck, _FirebaseService {
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): Unsubscribe {
+    if (!this._delegate) {
+      throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
+        appName: this.app.name
+      });
+    }
     return onTokenChangedExp(
       this._delegate,
       /**

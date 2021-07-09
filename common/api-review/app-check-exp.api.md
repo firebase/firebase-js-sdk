@@ -70,6 +70,8 @@ export function onTokenChanged(appCheckInstance: AppCheck, observer: PartialObse
 // @public
 export function onTokenChanged(appCheckInstance: AppCheck, onNext: (tokenResult: AppCheckTokenResult) => void, onError?: (error: Error) => void, onCompletion?: () => void): Unsubscribe;
 
+export { PartialObserver }
+
 // @public
 export class ReCaptchaV3Provider implements AppCheckProvider {
     constructor(_siteKey: string);
@@ -81,6 +83,8 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
 
 // @public
 export function setTokenAutoRefreshEnabled(appCheckInstance: AppCheck, isTokenAutoRefreshEnabled: boolean): void;
+
+export { Unsubscribe }
 
 
 // (No @packageDocumentation comment for this package)

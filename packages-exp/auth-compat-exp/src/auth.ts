@@ -39,7 +39,8 @@ import { ReverseWrapper, Wrapper } from './wrap';
 const _assert: typeof exp._assert = exp._assert;
 
 export class Auth
-  implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService {
+  implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService
+{
   readonly _delegate: exp.AuthImpl;
 
   constructor(readonly app: FirebaseApp, provider: Provider<'auth-exp'>) {
@@ -107,11 +108,17 @@ export class Auth
   get languageCode(): string | null {
     return this._delegate.languageCode;
   }
+  set languageCode(languageCode: string | null) {
+    this._delegate.languageCode = languageCode;
+  }
   get settings(): compat.AuthSettings {
     return this._delegate.settings;
   }
   get tenantId(): string | null {
     return this._delegate.tenantId;
+  }
+  set tenantId(tid: string | null) {
+    this._delegate.tenantId = tid;
   }
   useDeviceLanguage(): void {
     this._delegate.useDeviceLanguage();
@@ -348,7 +355,7 @@ export class Auth
     return this._delegate._delete();
   }
   private linkUnderlyingAuth(): void {
-    ((this._delegate as unknown) as ReverseWrapper<Auth>).wrapped = () => this;
+    (this._delegate as unknown as ReverseWrapper<Auth>).wrapped = () => this;
   }
 }
 

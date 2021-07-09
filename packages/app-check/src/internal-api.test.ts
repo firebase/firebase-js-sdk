@@ -40,7 +40,13 @@ import * as logger from './logger';
 import * as client from './client';
 import * as storage from './storage';
 import * as util from './util';
-import { getState, clearState, setState, getDebugState } from './state';
+import {
+  getState,
+  clearState,
+  setState,
+  getDebugState,
+  ListenerType
+} from './state';
 import { Deferred } from '@firebase/util';
 import { AppCheckTokenResult } from '../../app-check-interop-types';
 
@@ -143,8 +149,18 @@ describe('internal api', () => {
 
       const listener1 = spy();
       const listener2 = spy();
-      addTokenListener(app, fakePlatformLoggingProvider, listener1);
-      addTokenListener(app, fakePlatformLoggingProvider, listener2);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener1
+      );
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener2
+      );
 
       await getToken(app, fakePlatformLoggingProvider);
 
@@ -164,8 +180,18 @@ describe('internal api', () => {
 
       const listener1 = spy();
       const listener2 = spy();
-      addTokenListener(app, fakePlatformLoggingProvider, listener1);
-      addTokenListener(app, fakePlatformLoggingProvider, listener2);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener1
+      );
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener2
+      );
 
       await getToken(app, fakePlatformLoggingProvider);
 
@@ -177,7 +203,7 @@ describe('internal api', () => {
       });
     });
 
-    it('calls optional error handler if there is an error getting a token', async () => {
+    it('calls 3P error handler if there is an error getting a token', async () => {
       stub(logger.logger, 'error');
       activate(app, FAKE_SITE_KEY, false);
       stub(reCAPTCHA, 'getToken').resolves(fakeRecaptchaToken);
@@ -186,7 +212,13 @@ describe('internal api', () => {
 
       const errorFn1 = spy();
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener1, errorFn1);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.EXTERNAL,
+        listener1,
+        errorFn1
+      );
 
       await getToken(app, fakePlatformLoggingProvider);
 
@@ -203,8 +235,19 @@ describe('internal api', () => {
 
       const errorFn1 = spy();
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener1, errorFn1);
-      addTokenListener(app, fakePlatformLoggingProvider, listener2);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener1,
+        errorFn1
+      );
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener2
+      );
 
       await getToken(app, fakePlatformLoggingProvider);
 
@@ -298,7 +341,12 @@ describe('internal api', () => {
       const listener = (): void => {};
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener
+      );
 
       expect(getState(app).tokenObservers[0].next).to.equal(listener);
     });
@@ -310,7 +358,12 @@ describe('internal api', () => {
       expect(getState(app).tokenObservers.length).to.equal(0);
       expect(getState(app).tokenRefresher).to.equal(undefined);
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener
+      );
 
       expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
 
@@ -330,7 +383,12 @@ describe('internal api', () => {
         }
       });
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener
+      );
       await clock.runAllAsync();
       expect(listener).to.be.calledWith({
         token: 'fake-memory-app-check-token'
@@ -355,7 +413,12 @@ describe('internal api', () => {
         done();
       };
 
-      addTokenListener(app, fakePlatformLoggingProvider, fakeListener);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        fakeListener
+      );
     });
   });
 
@@ -369,7 +432,12 @@ describe('internal api', () => {
     it('should remove token listeners', () => {
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
       const listener = (): void => {};
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener
+      );
       expect(getState(app).tokenObservers.length).to.equal(1);
 
       removeTokenListener(app, listener);
@@ -381,7 +449,12 @@ describe('internal api', () => {
       const listener = (): void => {};
       setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
 
-      addTokenListener(app, fakePlatformLoggingProvider, listener);
+      addTokenListener(
+        app,
+        fakePlatformLoggingProvider,
+        ListenerType.INTERNAL,
+        listener
+      );
       expect(getState(app).tokenObservers.length).to.equal(1);
       expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
 

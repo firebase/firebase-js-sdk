@@ -28,7 +28,7 @@ import { OAuthCredential } from '../credentials/oauth';
 import { BaseOAuthProvider } from './oauth';
 
 /**
- * Provider for generating an {@link OAuthCredential} for {@link ProviderId.FACEBOOK}.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId}.FACEBOOK.
  *
  * @example
  * ```javascript
@@ -67,10 +67,11 @@ import { BaseOAuthProvider } from './oauth';
  * @public
  */
 export class FacebookAuthProvider extends BaseOAuthProvider {
-  /** Always set to {@link SignInMethod.FACEBOOK}. */
-  static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
-  /** Always set to {@link ProviderId.FACEBOOK}. */
-  static readonly PROVIDER_ID = ProviderId.FACEBOOK;
+  /** Always set to {@link SignInMethod}.FACEBOOK. */
+  static readonly FACEBOOK_SIGN_IN_METHOD: 'facebook.com' =
+    SignInMethod.FACEBOOK;
+  /** Always set to {@link ProviderId}.FACEBOOK. */
+  static readonly PROVIDER_ID: 'facebook.com' = ProviderId.FACEBOOK;
 
   constructor() {
     super(ProviderId.FACEBOOK);

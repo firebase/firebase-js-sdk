@@ -38,8 +38,8 @@ import { getModularInstance } from '@firebase/util';
  * @remarks
  * This is useful to differentiate methods of sign-in for the same provider, eg.
  * {@link EmailAuthProvider} which has 2 methods of sign-in,
- * {@link SignInMethod.EMAIL_PASSWORD} and
- * {@link SignInMethod.EMAIL_LINK} .
+ * {@link SignInMethod}.EMAIL_PASSWORD and
+ * {@link SignInMethod}.EMAIL_LINK.
  *
  * @param auth - The Auth instance.
  * @param email - The user's email address.

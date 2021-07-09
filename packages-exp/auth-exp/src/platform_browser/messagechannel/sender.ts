@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { _generateEventId } from '../../core/util/event_id';
 import {
   _SenderRequest,
   _EventType,
@@ -30,10 +31,6 @@ import {
 interface MessageHandler {
   messageChannel: MessageChannel;
   onMessage: EventListenerOrEventListenerObject;
-}
-
-function generateEventId(prefix = '', digits = 20): string {
-  return `${prefix}${Math.floor(Math.random() * Math.pow(10, digits))}`;
 }
 
 /**
@@ -91,7 +88,7 @@ export class Sender {
     let completionTimer: any;
     let handler: MessageHandler;
     return new Promise<_ReceiverMessageResponse<T>>((resolve, reject) => {
-      const eventId = generateEventId();
+      const eventId = _generateEventId('', 20);
       messageChannel.port1.start();
       const ackTimer = setTimeout(() => {
         reject(new Error(_MessageError.UNSUPPORTED_EVENT));

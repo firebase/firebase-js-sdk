@@ -16,8 +16,12 @@
  */
 
 import { PartialObserver, Unsubscribe } from '@firebase/util';
+import { FirebaseApp } from '@firebase/app-types';
 
 export interface FirebaseAppCheck {
+  /** The `FirebaseApp` associated with this instance. */
+  app: FirebaseApp;
+
   /**
    * Activate AppCheck
    * @param siteKeyOrProvider - reCAPTCHA sitekey or custom token provider
