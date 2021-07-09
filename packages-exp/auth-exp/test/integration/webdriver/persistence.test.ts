@@ -74,10 +74,6 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(await driver.getUserSnapshot()).to.contain({ uid });
     });
 
-    it('ci smoke test', () => {
-      expect(1).to.eq(0);
-    });
-
     it('should work fine if indexedDB is available while localStorage is not', async () => {
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support localStorage.

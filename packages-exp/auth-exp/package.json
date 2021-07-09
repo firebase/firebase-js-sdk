@@ -26,7 +26,7 @@
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
     "test:all": "run-p test:browser:unit test:node:unit test:integration",
-    "test:integration": "firebase emulators:exec --project p --only auth \"run-s test:browser:integration:local test:node:integration:local test:webdriver\"",
+    "test:integration": "firebase emulators:exec --project emulatedproject --only auth \"run-s test:browser:integration:local test:node:integration:local test:webdriver\"",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:integration:local": "run-s test:node:integration:local test:browser:integration:local test:webdriver",
     "test:browser": "karma start --single-run --local",
