@@ -8,12 +8,19 @@ import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 
 // @public
-export function child(parent: Reference, path: string): Reference;
+export function child(parent: DatabaseReference, path: string): DatabaseReference;
 
 // @public
 export class Database {
     readonly app: FirebaseApp;
     readonly 'type' = "database";
+}
+
+// @public
+export interface DatabaseReference extends Query {
+    readonly key: string | null;
+    readonly parent: DatabaseReference | null;
+    readonly root: DatabaseReference;
 }
 
 // @public
@@ -26,7 +33,7 @@ export class DataSnapshot {
     hasChildren(): boolean;
     get key(): string | null;
     get priority(): string | number | null;
-    readonly ref: Reference;
+    readonly ref: DatabaseReference;
     get size(): number;
     toJSON(): object | null;
     val(): any;
@@ -125,7 +132,7 @@ export class OnDisconnect {
 }
 
 // @public
-export function onDisconnect(ref: Reference): OnDisconnect;
+export function onDisconnect(ref: DatabaseReference): OnDisconnect;
 
 // @public
 export function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
@@ -149,12 +156,12 @@ export function orderByPriority(): QueryConstraint;
 export function orderByValue(): QueryConstraint;
 
 // @public
-export function push(parent: Reference, value?: unknown): ThenableReference;
+export function push(parent: DatabaseReference, value?: unknown): ThenableReference;
 
 // @public
 export interface Query {
     isEqual(other: Query | null): boolean;
-    readonly ref: Reference;
+    readonly ref: DatabaseReference;
     toJSON(): string;
     toString(): string;
 }
@@ -171,35 +178,28 @@ export abstract class QueryConstraint {
 export type QueryConstraintType = 'endAt' | 'endBefore' | 'startAt' | 'startAfter' | 'limitToFirst' | 'limitToLast' | 'orderByChild' | 'orderByKey' | 'orderByPriority' | 'orderByValue' | 'equalTo';
 
 // @public
-export function ref(db: Database, path?: string): Reference;
+export function ref(db: Database, path?: string): DatabaseReference;
 
 // @public
-export interface Reference extends Query {
-    readonly key: string | null;
-    readonly parent: Reference | null;
-    readonly root: Reference;
-}
+export function refFromURL(db: Database, url: string): DatabaseReference;
 
 // @public
-export function refFromURL(db: Database, url: string): Reference;
+export function remove(ref: DatabaseReference): Promise<void>;
 
 // @public
-export function remove(ref: Reference): Promise<void>;
-
-// @public
-export function runTransaction(ref: Reference, transactionUpdate: (currentData: any) => unknown, options?: TransactionOptions): Promise<TransactionResult>;
+export function runTransaction(ref: DatabaseReference, transactionUpdate: (currentData: any) => unknown, options?: TransactionOptions): Promise<TransactionResult>;
 
 // @public
 export function serverTimestamp(): object;
 
 // @public
-export function set(ref: Reference, value: unknown): Promise<void>;
+export function set(ref: DatabaseReference, value: unknown): Promise<void>;
 
 // @public
-export function setPriority(ref: Reference, priority: string | number | null): Promise<void>;
+export function setPriority(ref: DatabaseReference, priority: string | number | null): Promise<void>;
 
 // @public
-export function setWithPriority(ref: Reference, value: unknown, priority: string | number | null): Promise<void>;
+export function setWithPriority(ref: DatabaseReference, value: unknown, priority: string | number | null): Promise<void>;
 
 // @public
 export function startAfter(value: number | string | boolean | null, key?: string): QueryConstraint;
@@ -208,7 +208,7 @@ export function startAfter(value: number | string | boolean | null, key?: string
 export function startAt(value?: number | string | boolean | null, key?: string): QueryConstraint;
 
 // @public
-export interface ThenableReference extends Reference, Pick<Promise<Reference>, 'then' | 'catch'> {
+export interface ThenableReference extends DatabaseReference, Pick<Promise<DatabaseReference>, 'then' | 'catch'> {
 }
 
 // @public
@@ -227,7 +227,7 @@ export class TransactionResult {
 export type Unsubscribe = () => void;
 
 // @public
-export function update(ref: Reference, values: object): Promise<void>;
+export function update(ref: DatabaseReference, values: object): Promise<void>;
 
 // @public
 export function useDatabaseEmulator(db: Database, host: string, port: number, options?: {

@@ -26,7 +26,7 @@ export {
 } from '../src/exp/Database';
 export {
   Query,
-  Reference,
+  DatabaseReference,
   ListenOptions,
   Unsubscribe,
   ThenableReference
