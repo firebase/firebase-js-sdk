@@ -160,10 +160,7 @@ export function addTokenListener(
 
   // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
   // is not true.
-  if (
-    !newState.tokenRefresher.isRunning() &&
-    state.isTokenAutoRefreshEnabled === true
-  ) {
+  if (!newState.tokenRefresher.isRunning() && state.isTokenAutoRefreshEnabled) {
     newState.tokenRefresher.start();
   }
 
