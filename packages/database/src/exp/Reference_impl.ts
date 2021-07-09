@@ -84,7 +84,7 @@ import {
   queryParamsStartAt
 } from '../core/view/QueryParams';
 
-import { FirebaseDatabase } from './Database';
+import { Database } from './Database';
 import { OnDisconnect } from './OnDisconnect';
 import {
   ListenOptions,
@@ -477,7 +477,7 @@ export class DataSnapshot {
  *   pointing to the provided path. Otherwise, a `Reference` pointing to the
  *   root of the Database.
  */
-export function ref(db: FirebaseDatabase, path?: string): Reference {
+export function ref(db: Database, path?: string): Reference {
   db = getModularInstance(db);
   db._checkNotDeleted('ref');
   return path !== undefined ? child(db._root, path) : db._root;
@@ -499,7 +499,7 @@ export function ref(db: FirebaseDatabase, path?: string): Reference {
  * @returns A `Reference` pointing to the provided
  *   Firebase URL.
  */
-export function refFromURL(db: FirebaseDatabase, url: string): Reference {
+export function refFromURL(db: Database, url: string): Reference {
   db = getModularInstance(db);
   db._checkNotDeleted('refFromURL');
   const parsedURL = parseRepoInfo(url, db._repo.repoInfo_.nodeAdmin);

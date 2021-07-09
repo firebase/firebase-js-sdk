@@ -11,6 +11,12 @@ import { FirebaseApp } from '@firebase/app';
 export function child(parent: Reference, path: string): Reference;
 
 // @public
+export class Database {
+    readonly app: FirebaseApp;
+    readonly 'type' = "database";
+}
+
+// @public
 export class DataSnapshot {
     child(path: string): DataSnapshot;
     exists(): boolean;
@@ -45,22 +51,16 @@ export function equalTo(value: number | string | boolean | null, key?: string): 
 export type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
 
 // @public
-export class FirebaseDatabase {
-    readonly app: FirebaseApp;
-    readonly 'type' = "database";
-}
-
-// @public
 export function get(query: Query): Promise<DataSnapshot>;
 
 // @public
-export function getDatabase(app?: FirebaseApp, url?: string): FirebaseDatabase;
+export function getDatabase(app?: FirebaseApp, url?: string): Database;
 
 // @public
-export function goOffline(db: FirebaseDatabase): void;
+export function goOffline(db: Database): void;
 
 // @public
-export function goOnline(db: FirebaseDatabase): void;
+export function goOnline(db: Database): void;
 
 // @public
 export function increment(delta: number): object;
@@ -171,7 +171,7 @@ export abstract class QueryConstraint {
 export type QueryConstraintType = 'endAt' | 'endBefore' | 'startAt' | 'startAfter' | 'limitToFirst' | 'limitToLast' | 'orderByChild' | 'orderByKey' | 'orderByPriority' | 'orderByValue' | 'equalTo';
 
 // @public
-export function ref(db: FirebaseDatabase, path?: string): Reference;
+export function ref(db: Database, path?: string): Reference;
 
 // @public
 export interface Reference extends Query {
@@ -181,7 +181,7 @@ export interface Reference extends Query {
 }
 
 // @public
-export function refFromURL(db: FirebaseDatabase, url: string): Reference;
+export function refFromURL(db: Database, url: string): Reference;
 
 // @public
 export function remove(ref: Reference): Promise<void>;
@@ -230,7 +230,7 @@ export type Unsubscribe = () => void;
 export function update(ref: Reference, values: object): Promise<void>;
 
 // @public
-export function useDatabaseEmulator(db: FirebaseDatabase, host: string, port: number, options?: {
+export function useDatabaseEmulator(db: Database, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions;
 }): void;
 

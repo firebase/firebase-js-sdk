@@ -16,7 +16,7 @@
  */
 
 export {
-  FirebaseDatabase,
+  Database,
   enableLogging,
   getDatabase,
   goOffline,
