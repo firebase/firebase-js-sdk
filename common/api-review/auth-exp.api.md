@@ -218,10 +218,10 @@ export class EmailAuthCredential extends AuthCredential {
 export class EmailAuthProvider implements AuthProvider {
     static credential(email: string, password: string): EmailAuthCredential;
     static credentialWithLink(email: string, emailLink: string): EmailAuthCredential;
-    static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
-    static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
-    static readonly PROVIDER_ID = ProviderId.PASSWORD;
-    readonly providerId = ProviderId.PASSWORD;
+    static readonly EMAIL_LINK_SIGN_IN_METHOD: 'emailLink';
+    static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: 'password';
+    static readonly PROVIDER_ID: 'password';
+    readonly providerId: "password";
 }
 
 export { ErrorFn }
@@ -234,8 +234,8 @@ export class FacebookAuthProvider extends BaseOAuthProvider {
     static credential(accessToken: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
-    static readonly PROVIDER_ID = ProviderId.FACEBOOK;
+    static readonly FACEBOOK_SIGN_IN_METHOD: 'facebook.com';
+    static readonly PROVIDER_ID: 'facebook.com';
 }
 
 // @public
@@ -270,8 +270,8 @@ export class GithubAuthProvider extends BaseOAuthProvider {
     static credential(accessToken: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
-    static readonly PROVIDER_ID = ProviderId.GITHUB;
+    static readonly GITHUB_SIGN_IN_METHOD: 'github.com';
+    static readonly PROVIDER_ID: 'github.com';
 }
 
 // @public
@@ -280,8 +280,8 @@ export class GoogleAuthProvider extends BaseOAuthProvider {
     static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
-    static readonly PROVIDER_ID = ProviderId.GOOGLE;
+    static readonly GOOGLE_SIGN_IN_METHOD: 'google.com';
+    static readonly PROVIDER_ID: 'google.com';
 }
 
 // @public
@@ -458,9 +458,9 @@ export class PhoneAuthProvider {
     static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
     static credentialFromError(error: FirebaseError): AuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
-    static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
-    static readonly PROVIDER_ID = ProviderId.PHONE;
-    readonly providerId = ProviderId.PHONE;
+    static readonly PHONE_SIGN_IN_METHOD: 'phone';
+    static readonly PROVIDER_ID: 'phone';
+    readonly providerId: "phone";
     verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
 }
 
@@ -617,8 +617,8 @@ export class TwitterAuthProvider extends BaseOAuthProvider {
     static credential(token: string, secret: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    static readonly PROVIDER_ID = ProviderId.TWITTER;
-    static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
+    static readonly PROVIDER_ID: 'twitter.com';
+    static readonly TWITTER_SIGN_IN_METHOD: 'twitter.com';
 }
 
 // @public

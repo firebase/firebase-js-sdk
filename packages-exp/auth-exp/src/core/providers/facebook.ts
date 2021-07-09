@@ -68,9 +68,10 @@ import { BaseOAuthProvider } from './oauth';
  */
 export class FacebookAuthProvider extends BaseOAuthProvider {
   /** Always set to {@link SignInMethod}.FACEBOOK. */
-  static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
+  static readonly FACEBOOK_SIGN_IN_METHOD: 'facebook.com' =
+    SignInMethod.FACEBOOK;
   /** Always set to {@link ProviderId}.FACEBOOK. */
-  static readonly PROVIDER_ID = ProviderId.FACEBOOK;
+  static readonly PROVIDER_ID: 'facebook.com' = ProviderId.FACEBOOK;
 
   constructor() {
     super(ProviderId.FACEBOOK);

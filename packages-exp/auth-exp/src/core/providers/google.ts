@@ -71,9 +71,9 @@ import { BaseOAuthProvider } from './oauth';
  */
 export class GoogleAuthProvider extends BaseOAuthProvider {
   /** Always set to {@link SignInMethod}.GOOGLE. */
-  static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
+  static readonly GOOGLE_SIGN_IN_METHOD: 'google.com' = SignInMethod.GOOGLE;
   /** Always set to {@link ProviderId}.GOOGLE. */
-  static readonly PROVIDER_ID = ProviderId.GOOGLE;
+  static readonly PROVIDER_ID: 'google.com' = ProviderId.GOOGLE;
 
   constructor() {
     super(ProviderId.GOOGLE);

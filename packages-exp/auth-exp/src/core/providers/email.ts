@@ -35,15 +35,17 @@ export class EmailAuthProvider implements AuthProvider {
   /**
    * Always set to {@link ProviderId}.PASSWORD, even for email link.
    */
-  static readonly PROVIDER_ID = ProviderId.PASSWORD;
+  static readonly PROVIDER_ID: 'password' = ProviderId.PASSWORD;
   /**
    * Always set to {@link SignInMethod}.EMAIL_PASSWORD.
    */
-  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
+  static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: 'password' =
+    SignInMethod.EMAIL_PASSWORD;
   /**
    * Always set to {@link SignInMethod}.EMAIL_LINK.
    */
-  static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
+  static readonly EMAIL_LINK_SIGN_IN_METHOD: 'emailLink' =
+    SignInMethod.EMAIL_LINK;
   /**
    * Always set to {@link ProviderId}.PASSWORD, even for email link.
    */
