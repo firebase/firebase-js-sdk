@@ -2805,10 +2805,10 @@
   resolved "https://registry.npmjs.org/@types/chai/-/chai-4.2.14.tgz#44d2dd0b5de6185089375d976b4ec5caf6861193"
   integrity sha512-G+ITQPXkwTrslfG5L/BksmbLUA0M1iybEsmCWPqzSxsRRhJZimBKJkoMi8fr/CPygPTj4zO5pJH7I2/cm9M7SQ==
 
-"@types/child-process-promise@2.2.1":
-  version "2.2.1"
-  resolved "https://registry.npmjs.org/@types/child-process-promise/-/child-process-promise-2.2.1.tgz#049033bef102f77a1719b38672cc86a2c4710ab1"
-  integrity sha512-xZ4kkF82YkmqPCERqV9Tj0bVQj3Tk36BqGlNgxv5XhifgDRhwAqp+of+sccksdpZRbbPsNwMOkmUqOnLgxKtGw==
+"@types/child-process-promise@2.2.2":
+  version "2.2.2"
+  resolved "https://registry.npmjs.org/@types/child-process-promise/-/child-process-promise-2.2.2.tgz#ac7d640a6289f7caa6102d92d83a0123a07a4937"
+  integrity sha512-4eGTIhKW0jb9DlS81Fgo/UyZ12DMhDhz3Ec8tdHW53l4ubteynNIuy7Z1HNnyHn1jTzXa/o9iX0WoAdiSoDs+Q==
   dependencies:
     "@types/node" "*"
 
