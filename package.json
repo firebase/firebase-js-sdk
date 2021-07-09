@@ -80,7 +80,7 @@
     "@types/inquirer": "7.3.1",
     "@types/listr": "0.14.2",
     "@types/long": "4.0.1",
-    "@types/mocha": "7.0.2",
+    "@types/mocha": "8.2.3",
     "@types/mz": "2.7.3",
     "@types/node": "12.20.15",
     "@types/sinon": "9.0.10",
