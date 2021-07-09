@@ -40,6 +40,14 @@
       "node": "./auth/dist/index.cjs.js",
       "default": "./auth/dist/index.esm.js"
     },
+    "./auth/cordova": {
+      "node": "./auth/cordova/dist/index.cjs.js",
+      "default": "./auth/cordova/dist/index.esm.js"
+    },
+    "./auth/react-native": {
+      "node": "./auth/react-native/dist/index.cjs.js",
+      "default": "./auth/react-native/dist/index.esm.js"
+    },
     "./database": {
       "node": "./database/dist/index.cjs.js",
       "default": "./database/dist/index.esm.js"
@@ -175,6 +183,8 @@
     "app",
     "app-check",
     "auth",
+    "auth/cordova",
+    "auth/react-native",
     "functions",
     "firestore",
     "firestore/lite",
