@@ -30,7 +30,7 @@ registerFirestore();
 export { Settings } from '../src/lite/settings';
 
 export {
-  FirebaseFirestore,
+  FirebaseFirestore as Firestore,
   initializeFirestore,
   getFirestore,
   terminate,

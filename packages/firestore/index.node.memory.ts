@@ -21,7 +21,7 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { name, version } from './package.json';
 import { Firestore, MemoryPersistenceProvider } from './src/api/database';
 import { configureForFirebase } from './src/config';
-import { FirebaseFirestore } from './src/exp/database';
+import { Firestore as ExpFirestore } from './src/exp/database';
 
 import './register-module';
 
@@ -35,7 +35,7 @@ export function registerFirestore(instance: FirebaseNamespace): void {
     (app, auth) =>
       new Firestore(
         app,
-        new FirebaseFirestore(app, auth),
+        new ExpFirestore(app, auth),
         new MemoryPersistenceProvider()
       )
   );

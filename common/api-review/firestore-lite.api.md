@@ -4,6 +4,7 @@
 
 ```ts
 
+import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app-exp';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
@@ -27,7 +28,7 @@ export class Bytes {
 }
 
 // @public
-export function collection(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
 // @public
 export function collection(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
@@ -36,7 +37,7 @@ export function collection(reference: CollectionReference<unknown>, path: string
 export function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
 // @public
-export function collectionGroup(firestore: FirebaseFirestore, collectionId: string): Query<DocumentData>;
+export function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData>;
 
 // @public
 export class CollectionReference<T = DocumentData> extends Query<T> {
@@ -55,7 +56,7 @@ export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 export function deleteField(): FieldValue;
 
 // @public
-export function doc(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
 
 // @public
 export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
@@ -73,7 +74,8 @@ export function documentId(): FieldPath;
 
 // @public
 export class DocumentReference<T = DocumentData> {
-    readonly firestore: FirebaseFirestore;
+    readonly converter: FirestoreDataConverter<T> | null;
+    readonly firestore: Firestore;
     get id(): string;
     get parent(): CollectionReference<T>;
     get path(): string;
@@ -116,9 +118,11 @@ export abstract class FieldValue {
 }
 
 // @public
-export class FirebaseFirestore {
+export class Firestore {
     get app(): FirebaseApp;
     toJSON(): object;
+    // (undocumented)
+    type: 'firestore-lite' | 'firestore';
 }
 
 // @public
@@ -158,13 +162,13 @@ export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnap
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(app?: FirebaseApp): FirebaseFirestore;
+export function getFirestore(app?: FirebaseApp): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
 
 // @public
-export function initializeFirestore(app: FirebaseApp, settings: Settings): FirebaseFirestore;
+export function initializeFirestore(app: FirebaseApp, settings: Settings): Firestore;
 
 // @public
 export function limit(limit: number): QueryConstraint;
@@ -183,7 +187,8 @@ export type OrderByDirection = 'desc' | 'asc';
 // @public
 export class Query<T = DocumentData> {
     protected constructor();
-    readonly firestore: FirebaseFirestore;
+    readonly converter: FirestoreDataConverter<T> | null;
+    readonly firestore: Firestore;
     readonly type: 'query' | 'collection';
     withConverter(converter: null): Query<DocumentData>;
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
@@ -222,7 +227,7 @@ export class QuerySnapshot<T = DocumentData> {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public
-export function runTransaction<T>(firestore: FirebaseFirestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
 
 // @public
 export function serverTimestamp(): FieldValue;
@@ -266,7 +271,7 @@ export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 export function startAt(...fieldValues: unknown[]): QueryConstraint;
 
 // @public
-export function terminate(firestore: FirebaseFirestore): Promise<void>;
+export function terminate(firestore: Firestore): Promise<void>;
 
 // @public
 export class Timestamp {
@@ -311,7 +316,9 @@ export function updateDoc(reference: DocumentReference<unknown>, data: UpdateDat
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
 // @public
-export function useFirestoreEmulator(firestore: FirebaseFirestore, host: string, port: number): void;
+export function useFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions;
+}): void;
 
 // @public
 export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
@@ -330,9 +337,7 @@ export class WriteBatch {
 }
 
 // @public
-export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
+export function writeBatch(firestore: Firestore): WriteBatch;
 
-
-// (No @packageDocumentation comment for this package)
 
 ```

@@ -20,7 +20,7 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { name, version } from './package.json';
 import { Firestore, IndexedDbPersistenceProvider } from './src/api/database';
 import { configureForFirebase } from './src/config';
-import { FirebaseFirestore as ExpFirebaseFirestore } from './src/exp/database';
+import { Firestore as ExpFirebaseFirestore } from './src/exp/database';
 
 import './register-module';
 

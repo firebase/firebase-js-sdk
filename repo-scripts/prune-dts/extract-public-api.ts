@@ -64,6 +64,7 @@ function writePackageJson(packageName: string): void {
 }
 
 function loadApiExtractorConfig(
+  packageName: string,
   typescriptDtsPath: string,
   rollupDtsPath: string,
   untrimmedRollupDtsPath: string,
@@ -84,6 +85,7 @@ function loadApiExtractorConfig(
     },
     'apiReport': {
       'enabled': apiReportEnabled,
+      reportFileName: `${packageName}.api.md`,
       reportFolder
     },
     'messages': {
@@ -141,6 +143,7 @@ export async function generateApi(
   writePackageJson(packageName);
 
   let extractorConfig = loadApiExtractorConfig(
+    packageName,
     typescriptDtsPath,
     rollupDtsPath,
     untrimmedRollupDtsPath,
@@ -160,6 +163,7 @@ export async function generateApi(
   console.log('Removed unused imports');
 
   extractorConfig = loadApiExtractorConfig(
+    packageName,
     publicDtsPath,
     rollupDtsPath,
     untrimmedRollupDtsPath,
