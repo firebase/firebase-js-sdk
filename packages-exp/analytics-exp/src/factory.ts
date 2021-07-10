@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SettingsOptions, Analytics, AnalyticsOptions } from './public-types';
+import { SettingsOptions, Analytics, AnalyticsSettings } from './public-types';
 import { Gtag, DynamicConfig, MinimalDynamicConfig } from './types';
 import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
@@ -177,7 +177,7 @@ function warnOnBrowserContextMismatch(): void {
 export function factory(
   app: FirebaseApp,
   installations: _FirebaseInstallationsInternal,
-  options?: AnalyticsOptions
+  options?: AnalyticsSettings
 ): AnalyticsService {
   warnOnBrowserContextMismatch();
   const appId = app.options.appId;
