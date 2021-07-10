@@ -141,3 +141,21 @@ export function onBackgroundMessage(
   messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
 }
+
+/**
+ * Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By
+ * default, message delivery metrics are not exported to BigQuery. Use this method to enable or
+ * disable the export at runtime.
+ *
+ * @param messaging - The `FirebaseMessaging` instance.
+ * @param enable - Whether Firebase Cloud Messaging should export message delivery metrics to
+ * BigQuery.
+ *
+ * @public
+ */
+export function setDeliveryMetricsExportedToBigQueryEnabled(
+  messaging: FirebaseMessaging,
+  enable: boolean
+): void {
+  (messaging as MessagingService).deliveryMetricsExportedToBigQueryEnabled = enable;
+}

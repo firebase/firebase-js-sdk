@@ -38,6 +38,7 @@ import { dbGet } from '../internals/idb-manager';
 import { externalizePayload } from '../helpers/externalizePayload';
 import { isConsoleMessage } from '../helpers/is-console-message';
 import { sleep } from '../helpers/sleep';
+import { stageLog } from '../helpers/logToFirelog';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
@@ -69,6 +70,11 @@ export async function onPush(
   if (!internalPayload) {
     // Failed to get parsed MessagePayload from the PushEvent. Skip handling the push.
     return;
+  }
+
+  // log to Firelog with user consent
+  if (messaging.deliveryMetricsExportedToBigQueryEnabled) {
+    await stageLog(messaging, internalPayload);
   }
 
   // foreground handling: eventually passed to onMessage hook
