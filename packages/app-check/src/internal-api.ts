@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { getToken as getReCAPTCHAToken } from './recaptcha';
 import { FirebaseApp } from '@firebase/app-types';
 import {
   AppCheckTokenListener,
@@ -30,36 +29,16 @@ import {
 } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
-import { ensureActivated } from './util';
-import {
-  exchangeToken,
-  getExchangeDebugTokenRequest,
-  getExchangeRecaptchaTokenRequest
-} from './client';
+import { ensureActivated, formatDummyToken } from './util';
+import { exchangeToken, getExchangeDebugTokenRequest } from './client';
 import { writeTokenToStorage, readTokenFromStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64, issuedAtTime } from '@firebase/util';
-import { ERROR_FACTORY, AppCheckError } from './errors';
 import { logger } from './logger';
 import { Provider } from '@firebase/component';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
 export const defaultTokenErrorData = { error: 'UNKNOWN_ERROR' };
-
-/**
- * Stringify and base64 encode token error data.
- *
- * @param tokenError Error data, currently hardcoded.
- */
-export function formatDummyToken(
-  tokenErrorData: Record<string, string>
-): string {
-  return base64.encodeString(
-    JSON.stringify(tokenErrorData),
-    /* webSafe= */ false
-  );
-}
 
 /**
  * This function will always resolve.
@@ -124,31 +103,10 @@ export async function getToken(
    * request a new token
    */
   try {
-    if (state.customProvider) {
-      const customToken = await state.customProvider.getToken();
-      // Try to extract IAT from custom token, in case this token is not
-      // being newly issued. JWT timestamps are in seconds since epoch.
-      const issuedAtTimeSeconds = issuedAtTime(customToken.token);
-      // Very basic validation, use current timestamp as IAT if JWT
-      // has no `iat` field or value is out of bounds.
-      const issuedAtTimeMillis =
-        issuedAtTimeSeconds !== null &&
-        issuedAtTimeSeconds < Date.now() &&
-        issuedAtTimeSeconds > 0
-          ? issuedAtTimeSeconds * 1000
-          : Date.now();
-
-      token = { ...customToken, issuedAtTimeMillis };
-    } else {
-      const attestedClaimsToken = await getReCAPTCHAToken(app).catch(_e => {
-        // reCaptcha.execute() throws null which is not very descriptive.
-        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-      });
-      token = await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, attestedClaimsToken),
-        platformLoggerProvider
-      );
-    }
+    // state.provider is populated in initializeAppCheck()
+    // ensureActivated() at the top of this function checks that
+    // initializeAppCheck() has been called.
+    token = await state.provider!.getToken();
   } catch (e) {
     // `getToken()` should never throw, but logging error text to console will aid debugging.
     logger.error(e);
@@ -202,14 +160,12 @@ export function addTokenListener(
 
   // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
   // is not true.
-  if (
-    !newState.tokenRefresher.isRunning() &&
-    state.isTokenAutoRefreshEnabled === true
-  ) {
+  if (!newState.tokenRefresher.isRunning() && state.isTokenAutoRefreshEnabled) {
     newState.tokenRefresher.start();
   }
 
-  // invoke the listener async immediately if there is a valid token
+  // Invoke the listener async immediately if there is a valid token
+  // in memory.
   if (state.token && isValid(state.token)) {
     const validToken = state.token;
     Promise.resolve()
@@ -217,6 +173,14 @@ export function addTokenListener(
       .catch(() => {
         /** Ignore errors in listeners. */
       });
+  } else {
+    // Also try storage. Otherwise isTokenAutoRefreshEnabled == false
+    // will prevent reading existing token from storage.
+    void readTokenFromStorage(app).then(cachedToken => {
+      if (cachedToken && isValid(cachedToken)) {
+        listener({ token: cachedToken.token });
+      }
+    });
   }
 
   setState(app, newState);
