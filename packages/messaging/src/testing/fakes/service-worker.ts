@@ -18,7 +18,7 @@
 import { Writable } from 'ts-essentials';
 
 // Add fake SW types.
-declare const self: Window & Writable<ServiceWorkerGlobalScope>;
+declare const self: Window & Writable<ServiceWorkerGlobalScopeForTesting>;
 
 // When trying to stub self.clients self.registration, Sinon complains that these properties do not
 // exist. This is because we're not actually running these tests in a service worker context.

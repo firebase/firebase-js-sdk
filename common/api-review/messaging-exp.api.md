@@ -22,9 +22,6 @@ export interface FcmOptions {
 export interface FirebaseMessaging {
 }
 
-// @internal (undocumented)
-export type _FirebaseMessagingName = 'messaging';
-
 // @public
 export function getMessaging(app?: FirebaseApp): FirebaseMessaging;
 
@@ -48,6 +45,7 @@ export interface MessagePayload {
     };
     fcmOptions?: FcmOptions;
     from: string;
+    messageId: string;
     notification?: NotificationPayload;
 }
 
