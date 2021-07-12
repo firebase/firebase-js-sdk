@@ -27,7 +27,7 @@ import { QueryContext } from '../core/view/EventRegistration';
  * suitable for synchronizing to the client. Queries are created by chaining
  * together one or more of the filter methods defined here.
  *
- * Just as with a `Reference`, you can receive data from a `Query` by using the
+ * Just as with a `DatabaseReference`, you can receive data from a `Query` by using the
  * `on*()` methods. You will only receive events and `DataSnapshot`s for the
  * subset of the data that matches your query.
  *
@@ -35,15 +35,15 @@ import { QueryContext } from '../core/view/EventRegistration';
  * for more information.
  */
 export interface Query extends QueryContext {
-  /** The `Reference` for the `Query`'s location. */
-  readonly ref: Reference;
+  /** The `DatabaseReference` for the `Query`'s location. */
+  readonly ref: DatabaseReference;
 
   /**
    * Returns whether or not the current and provided queries represent the same
    * location, have the same query parameters, and are from the same instance of
    * `FirebaseApp`.
    *
-   * Two `Reference` objects are equivalent if they represent the same location
+   * Two `DatabaseReference` objects are equivalent if they represent the same location
    * and are from the same instance of `FirebaseApp`.
    *
    * Two `Query` objects are equivalent if they represent the same location,
@@ -80,7 +80,7 @@ export interface Query extends QueryContext {
 }
 
 /**
- * A `Reference` represents a specific location in your Database and can be used
+ * A `DatabaseReference` represents a specific location in your Database and can be used
  * for reading or writing data to that Database location.
  *
  * You can reference the root or child location in your Database by calling
@@ -90,36 +90,36 @@ export interface Query extends QueryContext {
  * `on*()` method. See {@link
  * https://firebase.google.com/docs/database/web/read-and-write}
  */
-export interface Reference extends Query {
+export interface DatabaseReference extends Query {
   /**
-   * The last part of the `Reference`'s path.
+   * The last part of the `DatabaseReference`'s path.
    *
    * For example, `"ada"` is the key for
    * `https://<DATABASE_NAME>.firebaseio.com/users/ada`.
    *
-   * The key of a root `Reference` is `null`.
+   * The key of a root `DatabaseReference` is `null`.
    */
   readonly key: string | null;
 
   /**
-   * The parent location of a `Reference`.
+   * The parent location of a `DatabaseReference`.
    *
-   * The parent of a root `Reference` is `null`.
+   * The parent of a root `DatabaseReference` is `null`.
    */
-  readonly parent: Reference | null;
+  readonly parent: DatabaseReference | null;
 
-  /** The root `Reference` of the Database. */
-  readonly root: Reference;
+  /** The root `DatabaseReference` of the Database. */
+  readonly root: DatabaseReference;
 }
 
 /**
- * A `Promise` that can also act as a `Reference` when returned by
+ * A `Promise` that can also act as a `DatabaseReference` when returned by
  * {@link push}. The reference is available immediately and the Promise resolves
  * as the write to the backend completes.
  */
 export interface ThenableReference
-  extends Reference,
-    Pick<Promise<Reference>, 'then' | 'catch'> {}
+  extends DatabaseReference,
+    Pick<Promise<DatabaseReference>, 'then' | 'catch'> {}
 
 /** A callback that can invoked to remove a listener. */
 export type Unsubscribe = () => void;
@@ -131,5 +131,5 @@ export interface ListenOptions {
 }
 
 export interface ReferenceConstructor {
-  new (repo: Repo, path: Path): Reference;
+  new (repo: Repo, path: Path): DatabaseReference;
 }
