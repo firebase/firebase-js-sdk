@@ -29,6 +29,10 @@ import { RetryingClient } from './src/client/retrying_client';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 import { name as packageName, version } from './package.json';
 import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable
+} from '@firebase/util';
+import {
   Component,
   ComponentType,
   ComponentContainer,
@@ -49,11 +53,11 @@ export function registerRemoteConfig(
   firebaseInstance: _FirebaseNamespace
 ): void {
   firebaseInstance.INTERNAL.registerComponent(
-    new Component(
-      'remoteConfig',
-      remoteConfigFactory,
-      ComponentType.PUBLIC
-    ).setMultipleInstances(true)
+    new Component('remoteConfig', remoteConfigFactory, ComponentType.PUBLIC)
+      .setMultipleInstances(true)
+      .setServiceProps({
+        isSupported
+      })
   );
 
   firebaseInstance.registerVersion(packageName, version);
@@ -72,7 +76,10 @@ export function registerRemoteConfig(
     if (typeof window === 'undefined') {
       throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_WINDOW);
     }
-
+    // Guards against the SDK being used when indexedDB is not available.
+    if (!isIndexedDBAvailable()) {
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNAVAILABLE);
+    }
     // Normalizes optional inputs.
     const { projectId, apiKey, appId } = app.options;
     if (!projectId) {
@@ -138,5 +145,23 @@ declare module '@firebase/app-types' {
   }
   interface FirebaseApp {
     remoteConfig(): RemoteConfigType;
+  }
+}
+/**
+ * this is a public static method provided to users that wraps two different checks:
+ *
+ * 1. check if IndexedDB is supported by the browser environment.
+ * 2. check if the current browser context is valid for using IndexedDB.
+ *
+ */
+async function isSupported(): Promise<boolean> {
+  if (!isIndexedDBAvailable()) {
+    return false;
+  }
+
+  try {
+    return await validateIndexedDBOpenable();
+  } catch (error) {
+    return false;
   }
 }

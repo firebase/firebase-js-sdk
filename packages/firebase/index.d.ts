@@ -1969,6 +1969,15 @@ declare namespace firebase.remoteConfig {
    * Defines levels of Remote Config logging.
    */
   export type LogLevel = 'debug' | 'error' | 'silent';
+  /**
+   * Returns true if current browser context supports initialization of remote config module
+   * (`firebase.remoteConfig()`).
+   *
+   * Returns false otherwise.
+   *
+   *
+   */
+  function isSupported(): Promise<boolean>;
 }
 
 declare namespace firebase.functions {
