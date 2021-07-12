@@ -44,6 +44,7 @@ export interface MessagePayload {
   fcmOptions?: FcmOptions;
   from: string;
   collapseKey: string;
+  messageId: string;
 }
 
 export interface FirebaseMessaging {
