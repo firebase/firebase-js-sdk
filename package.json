@@ -83,7 +83,7 @@
     "@types/mocha": "7.0.2",
     "@types/mz": "2.7.3",
     "@types/node": "12.20.15",
-    "@types/sinon": "9.0.10",
+    "@types/sinon": "10.0.2",
     "@types/sinon-chai": "3.2.5",
     "@types/tmp": "0.2.0",
     "@types/yargs": "16.0.0",
