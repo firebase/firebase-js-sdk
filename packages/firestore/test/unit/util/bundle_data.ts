@@ -158,7 +158,7 @@ export const meta: BundleElement = {
     createTime: { seconds: 1577836805, nanos: 6 },
     version: 1,
     totalDocuments: 1,
-    totalBytes: 416
+    totalBytes: '416'
   }
 };
 export const metaString = lengthPrefixedString(meta);

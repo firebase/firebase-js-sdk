@@ -496,7 +496,7 @@ export function bundleMetadata(
     createTime: { seconds: createTime, nanos: 0 },
     version,
     totalDocuments,
-    totalBytes
+    totalBytes: `${totalBytes}`
   };
 }
 

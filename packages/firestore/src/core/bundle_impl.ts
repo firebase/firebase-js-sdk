@@ -25,6 +25,7 @@ import {
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { normalizeNumber } from '../model/normalize';
 import {
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery
@@ -207,7 +208,7 @@ export function bundleInitialProgress(
     documentsLoaded: 0,
     bytesLoaded: 0,
     totalDocuments: metadata.totalDocuments!,
-    totalBytes: metadata.totalBytes!
+    totalBytes: normalizeNumber(metadata.totalBytes!)
   };
 }
 
@@ -221,8 +222,8 @@ export function bundleSuccessProgress(
   return {
     taskState: 'Success',
     documentsLoaded: metadata.totalDocuments!,
-    bytesLoaded: metadata.totalBytes!,
+    bytesLoaded: normalizeNumber(metadata.totalBytes!),
     totalDocuments: metadata.totalDocuments!,
-    totalBytes: metadata.totalBytes!
+    totalBytes: normalizeNumber(metadata.totalBytes!)
   };
 }

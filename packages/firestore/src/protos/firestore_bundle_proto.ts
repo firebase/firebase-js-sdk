@@ -74,7 +74,7 @@ export interface BundleMetadata {
   totalDocuments?: number | null;
 
   /** BundleMetadata totalBytes */
-  totalBytes?: number | null;
+  totalBytes?: number | string | null;
 }
 
 /** Properties of a BundleElement. */
