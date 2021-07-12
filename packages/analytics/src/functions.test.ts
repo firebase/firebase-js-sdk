@@ -23,9 +23,10 @@ import {
   logEvent,
   setUserId,
   setUserProperties,
-  setAnalyticsCollectionEnabled
+  setAnalyticsCollectionEnabled,
+  setCookieFlags
 } from './functions';
-import { GtagCommand, EventName } from './constants';
+import { GtagCommand, EventName, COOKIE_FLAGS } from './constants';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
@@ -172,6 +173,34 @@ describe('FirebaseAnalytics methods', () => {
     expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
       'user_properties.currency': 'USD',
       'user_properties.language': 'en'
+    });
+  });
+
+  it('setCookieFlags() calls gtag correctly (instance)', async () => {
+    await setCookieFlags(
+      gtagStub,
+      fakeInitializationPromise,
+      'SameSite=None; Secure'
+    );
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        [COOKIE_FLAGS]: 'SameSite=None; Secure',
+        update: true
+      }
+    );
+  });
+
+  it('setCookieFlags() calls gtag correctly (global)', async () => {
+    await setCookieFlags(
+      gtagStub,
+      fakeInitializationPromise,
+      'SameSite=None; Secure',
+      { global: true }
+    );
+    expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
+      [COOKIE_FLAGS]: 'SameSite=None; Secure'
     });
   });
 

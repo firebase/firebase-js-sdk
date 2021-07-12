@@ -30,7 +30,8 @@ import {
   setCurrentScreen,
   setUserId,
   setUserProperties,
-  setAnalyticsCollectionEnabled
+  setAnalyticsCollectionEnabled,
+  setCookieFlags
 } from './functions';
 import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
@@ -270,6 +271,14 @@ export function factory(
       setAnalyticsCollectionEnabled(
         initializationPromisesMap[appId],
         enabled
+      ).catch(e => logger.error(e));
+    },
+    setCookieFlags: (flags: string, options) => {
+      setCookieFlags(
+        wrappedGtagFunction,
+        initializationPromisesMap[appId],
+        flags,
+        options
       ).catch(e => logger.error(e));
     },
     INTERNAL: {

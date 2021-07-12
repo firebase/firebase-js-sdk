@@ -18,6 +18,7 @@
 // Key to attach FID to in gtag params.
 export const GA_FID_KEY = 'firebase_id';
 export const ORIGIN_KEY = 'origin';
+export const COOKIE_FLAGS = 'cookie_flags';
 
 export const FETCH_TIMEOUT_MILLIS = 60 * 1000;
 
