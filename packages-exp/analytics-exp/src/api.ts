@@ -450,6 +450,8 @@ export function logEvent(
   eventParams?: {
     app_name: string;
     screen_name: EventParams['screen_name'];
+    firebase_screen: EventParams['firebase_screen'];
+    firebase_screen_class: EventParams['firebase_screen_class'];
     app_id?: string;
     app_version?: string;
     app_installer_id?: string;
