@@ -1741,6 +1741,121 @@ function testAuth_onAuthStateChanged() {
   unsubscribe1 = auth1.onAuthStateChanged(observer1);
 }
 
+/**
+ * Test whether we can retrieve the signed-in user as a promise.
+ * We also verify the behavior when user signs out.
+ */
+function testAuth_getSignedInUser_success() {
+  stubs.reset();
+  var expectedTokenResponse2 = {
+    'idToken': jwt2,
+    'refreshToken': 'REFRESH_TOKEN2'
+  };
+  var user = new fireauth.AuthUser(
+    config3, expectedTokenResponse, {'uid': '1234'});
+  var user2 = new fireauth.AuthUser(
+    config3, expectedTokenResponse2, {'uid': '5678'});
+  // Simulate available token.
+  var counter = 0;
+  stubs.replace(
+    fireauth.StsTokenManager.prototype,
+    'getToken',
+    function(opt_forceRefresh) {
+      // Generate new token on each call.
+      counter++;
+      return goog.Promise.resolve({
+        accessToken: 'accessToken' + counter.toString(),
+        refreshToken: 'refreshToken'
+      });
+    });
+  // Simulate user initially logged in.
+  stubs.replace(
+    fireauth.storage.UserManager.prototype,
+    'getCurrentUser',
+    function() {
+      return goog.Promise.resolve(user);
+    });
+  initializeMockStorage();
+  // Suppress addStateChangeListener.
+  stubs.replace(
+    fireauth.storage.UserManager.prototype,
+    'addCurrentUserChangeListener',
+    function(listener) {});
+  // Simulate available token.
+  stubs.replace(
+    fireauth.AuthUser.prototype,
+    'reload',
+    function() {
+      // Token not refreshed, notifyAuthListeners_ should call regardless.
+      return goog.Promise.resolve();
+    });
+  // Simulate new user sign in.
+  stubs.replace(
+    fireauth.AuthUser,
+    'initializeFromIdTokenResponse',
+    function() {
+      return goog.Promise.resolve(user2);
+    });
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+
+  // logged-in user should be returned
+  auth1.getSignedInUser().then((signedInUser) => {
+    assertEquals(0, marker++);
+    assertNotNull(signedInUser);
+    assertObjectEquals(signedInUser, user);
+    // signing out so that the next call returns null.
+    return auth1.signOut();
+  }).then(() => {
+    assertEquals(1, marker++);
+    return auth1.getSignedInUser();
+  }).then((signedInUser) => {
+    // user had been signed out so that we receive null
+    assertEquals(2, marker++);
+    assertNull(signedInUser)
+    // sign in user2 so that the next call will return user2.
+    return auth1.signInWithIdTokenResponse(expectedTokenResponse2);
+  }).then(() => {
+    assertEquals(3, marker++);
+    return auth1.getSignedInUser();
+  }).then((signedInUser) => {
+    // user2 should have been returned
+    assertEquals(4, marker++);
+    assertNotNull(signedInUser)
+    assertNotNull(user2)
+    assertObjectEquals(signedInUser, user2);
+    asyncTestCase.signal();
+  })
+  mockControl.$replayAll();
+  // Keep track of what is triggering the events.
+  var marker = 0;
+  asyncTestCase.waitForSignals(1);
+}
+
+function testAuth_getSignedInUser_error() {
+  stubs.reset();
+  var expectedError = new fireauth.AuthError(
+    fireauth.authenum.Error.INTERNAL_ERROR);
+  // throw when onAuthStateChanged is called
+  stubs.replace(
+    fireauth.Auth.prototype,
+    'onAuthStateChanged',
+    function(tokenResponse) {
+      throw expectedError;
+    });
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  auth1.getSignedInUser()
+    .then((signedInUser) => {
+      fail('getSignedInUser should not resolve!');
+    })
+    .catch(function(error) {
+      fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+      asyncTestCase.signal();
+    });
+  mockControl.$replayAll();
+  asyncTestCase.waitForSignals(1);
+}
 
 function testFetchSignInMethodsForEmail() {
   var email = 'foo@bar.com';

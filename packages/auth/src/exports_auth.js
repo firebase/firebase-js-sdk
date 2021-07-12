@@ -99,6 +99,10 @@ fireauth.exportlib.exportPrototypeMethods(
           fireauth.args.func('opt_completed', true)
         ]
       },
+      getSignedInUser : {
+        name: 'getSignedInUser',
+        args: []
+      },
       onIdTokenChanged: {
         name: 'onIdTokenChanged',
         args: [
