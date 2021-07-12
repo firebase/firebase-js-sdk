@@ -138,7 +138,7 @@ describe('platform_browser/util/popup', () => {
       width: '500',
       height: '600',
       top: '0',
-      left: '0'
+      left: '150'
     });
 
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */

@@ -60,8 +60,8 @@ export function _open(
   width = DEFAULT_WIDTH,
   height = DEFAULT_HEIGHT
 ): AuthPopup {
-  const top = Math.min((window.screen.availHeight - height) / 2, 0).toString();
-  const left = Math.min((window.screen.availWidth - width) / 2, 0).toString();
+  const top = Math.max((window.screen.availHeight - height) / 2, 0).toString();
+  const left = Math.max((window.screen.availWidth - width) / 2, 0).toString();
   let target = '';
 
   const options: { [key: string]: string } = {
