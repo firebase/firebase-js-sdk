@@ -120,6 +120,7 @@ describe('internal api', () => {
     });
 
     it('resolves with a dummy token and an error if failed to get a token', async () => {
+      // getToken() errors are logged to console. Hide this during test.
       const errorStub = stub(console, 'error');
       activate(app, FAKE_SITE_KEY, true);
 

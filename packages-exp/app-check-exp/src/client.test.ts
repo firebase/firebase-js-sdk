@@ -52,7 +52,8 @@ describe('client', () => {
   });
 
   it('returns a AppCheck token', async () => {
-    useFakeTimers();
+    // To get a consistent expireTime/issuedAtTime.
+    const clock = useFakeTimers();
     fetchStub.returns(
       Promise.resolve({
         status: 200,
@@ -77,6 +78,7 @@ describe('client', () => {
       expireTimeMillis: 3600,
       issuedAtTimeMillis: 0
     });
+    clock.restore();
   });
 
   it('throws when there is a network error', async () => {
