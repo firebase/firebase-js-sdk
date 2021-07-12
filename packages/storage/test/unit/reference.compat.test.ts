@@ -75,7 +75,7 @@ describe('Firebase Storage > Reference', () => {
       expect(s.toString()).to.equal('gs://test-bucket/this/ismyobject?hello');
     });
     it("doesn't URL-decode on a gs:// string", () => {
-      const s = makeStorage('gs://test-bucket/%3F');
+      const s = makeStorage('gs://testbucket/%3F');
       expect(s.toString()).to.equal('gs://test-bucket/%3F');
     });
     it('ignores URL params and fragments on an http URL', () => {

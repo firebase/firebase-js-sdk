@@ -206,6 +206,35 @@ export function list(
   return requestInfo;
 }
 
+export function getBytes(
+  service: StorageService,
+  location: Location,
+  mappings: Mappings
+): RequestInfo<Uint8Array> {
+  const urlPart = location.fullServerUrl();
+  const url = makeUrl(urlPart, service.host) + '?alt=media';
+  const method = 'GET';
+  const timeout = service.maxOperationRetryTime;
+  const requestInfo = new RequestInfo(
+    url,
+    method,
+    getBytesHandler(service, mappings),
+    timeout
+  );
+  requestInfo.errorHandler = objectErrorHandler(location);
+  return requestInfo;
+}
+
+export function getBytesHandler(
+  service: StorageService,
+  mappings: Mappings
+): (p1: XhrIo, p2: string) => Uint8Array {
+  function handler(xhr: XhrIo, data: string): Uint8Array {
+    return (data as any) as Uint8Array;
+  }
+  return handler;
+}
+
 export function getDownloadUrl(
   service: StorageService,
   location: Location,

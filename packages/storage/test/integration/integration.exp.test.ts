@@ -29,7 +29,8 @@ import {
   deleteObject,
   getMetadata,
   updateMetadata,
-  listAll
+  listAll,
+  getBytes
 } from '../../exp/index';
 
 import { use, expect } from 'chai';
@@ -69,6 +70,19 @@ describe('FirebaseStorage Exp', () => {
     const reference = ref(storage, 'public/exp-bytes');
     const snap = await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     expect(snap.metadata.timeCreated).to.exist;
+  });
+
+  it.only('can get bytes', async () => {
+    const reference = ref(storage, 'public/exp-bytes');
+    await uploadBytes(reference, new Uint8Array([0, 1, 3]));
+    const bytes = await getBytes(reference);
+    expect(bytes).to.deep.equal(new Uint8Array([0, 1, 3]));
+  });
+
+  it.only('getBytes() throws for missing file', async () => {
+    const reference = ref(storage, 'public/exp-bytes-missing');
+    const bytes = await getBytes(reference);
+    expect(bytes).to.deep.equal(new Uint8Array([0, 1, 3]));
   });
 
   it('can upload bytes (resumable)', async () => {

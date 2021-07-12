@@ -50,7 +50,7 @@ function factory(
 
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    storageExp
+    storageExp as any
   );
   return storageServiceCompat;
 }

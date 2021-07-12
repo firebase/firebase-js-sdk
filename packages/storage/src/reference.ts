@@ -29,7 +29,8 @@ import {
   updateMetadata as requestsUpdateMetadata,
   getDownloadUrl as requestsGetDownloadUrl,
   deleteObject as requestsDeleteObject,
-  multipartUpload
+  multipartUpload,
+  getBytes
 } from './implementation/requests';
 import { ListOptions } from '../exp/public-types';
 import { StringFormat, dataFromString } from './implementation/string';
@@ -135,6 +136,19 @@ export class Reference {
       throw invalidRootOperation(name);
     }
   }
+}
+
+/**
+ * Download the bytes at the object's location.
+
+ * @returns A Promise containing the downloaded bytes.
+ */
+export function getBytesInternal(ref: Reference): Promise<Uint8Array> {
+  ref._throwIfRoot('getBytes');
+  const requestInfo = getBytes(ref.storage, ref._location, getMappings());
+  return ref.storage
+    .makeRequestWithTokens(requestInfo)
+    .then(request => request.getPromise());
 }
 
 /**
