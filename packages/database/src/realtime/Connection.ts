@@ -122,6 +122,7 @@ export class Connection {
       this.repoInfo_,
       this.applicationId_,
       this.appCheckToken_,
+      this.authToken_,
       this.lastSessionId
     );
 
