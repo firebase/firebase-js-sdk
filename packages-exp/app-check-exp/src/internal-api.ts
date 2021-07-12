@@ -173,7 +173,7 @@ export function addTokenListener(
   // is not true.
   if (
     !newState.tokenRefresher.isRunning() &&
-    state.isTokenAutoRefreshEnabled === true
+    state.isTokenAutoRefreshEnabled
   ) {
     newState.tokenRefresher.start();
   }
