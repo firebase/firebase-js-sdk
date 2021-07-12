@@ -25,10 +25,15 @@ function getScriptParentElement(): HTMLDocument | HTMLHeadElement {
 export function _loadJS(url: string): Promise<Event> {
   // TODO: consider adding timeout support & cancellation
   return new Promise((resolve, reject) => {
+    function onError(e: Event|string): void {
+      const errorEvent = e as ErrorEvent;
+      const error = typeof errorEvent !== 'string' && errorEvent.error ? errorEvent.error : _createError(AuthErrorCode.INTERNAL_ERROR);
+      reject(error);
+    }
     const el = document.createElement('script');
     el.setAttribute('src', url);
     el.onload = resolve;
-    el.onerror = () => reject(_createError(AuthErrorCode.INTERNAL_ERROR));
+    el.onerror = onError;
     el.type = 'text/javascript';
     el.charset = 'UTF-8';
     getScriptParentElement().appendChild(el);
