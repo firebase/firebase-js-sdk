@@ -33,6 +33,7 @@ import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
+import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryMetricsExportedToBigQueryEnabled';
 
 /**
  * Retrieves a Firebase Cloud Messaging instance.
@@ -157,5 +158,6 @@ export function setDeliveryMetricsExportedToBigQueryEnabled(
   messaging: FirebaseMessaging,
   enable: boolean
 ): void {
-  (messaging as MessagingService).deliveryMetricsExportedToBigQueryEnabled = enable;
+  messaging = getModularInstance(messaging);
+  return _setDeliveryMetricsExportedToBigQueryEnabled(messaging, enable);
 }
