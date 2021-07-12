@@ -39,7 +39,7 @@ import {
 } from '../../src/core/view_snapshot';
 import {
   ensureFirestoreConfigured,
-  FirebaseFirestore
+  Firestore as ExpFirestore
 } from '../../src/exp/database';
 import {
   Query as ExpQuery,
@@ -70,7 +70,7 @@ export function firestore(): Firestore {
 export function newTestFirestore(projectId = 'new-project'): Firestore {
   return new Firestore(
     new DatabaseId(projectId),
-    new FirebaseFirestore(
+    new ExpFirestore(
       new DatabaseId(projectId),
       new Provider('auth-internal', new ComponentContainer('default'))
     ),

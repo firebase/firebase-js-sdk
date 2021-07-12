@@ -61,7 +61,7 @@ import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
-import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
+import { ensureFirestoreConfigured, Firestore } from './database';
 import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
 
 /**
@@ -93,7 +93,7 @@ export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
   return firestoreClientGetDocumentViaSnapshotListener(
@@ -103,7 +103,7 @@ export function getDoc<T>(
 }
 
 export class ExpUserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: FirebaseFirestore) {
+  constructor(protected firestore: Firestore) {
     super();
   }
 
@@ -128,7 +128,7 @@ export function getDocFromCache<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
@@ -159,7 +159,7 @@ export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
   return firestoreClientGetDocumentViaSnapshotListener(client, reference._key, {
@@ -179,7 +179,7 @@ export function getDocFromServer<T>(
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   query = cast<Query<T>>(query, Query);
-  const firestore = cast(query.firestore, FirebaseFirestore);
+  const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
@@ -202,7 +202,7 @@ export function getDocsFromCache<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
   query = cast<Query<T>>(query, Query);
-  const firestore = cast(query.firestore, FirebaseFirestore);
+  const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
@@ -221,7 +221,7 @@ export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
   query = cast<Query<T>>(query, Query);
-  const firestore = cast(query.firestore, FirebaseFirestore);
+  const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
@@ -267,7 +267,7 @@ export function setDoc<T>(
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
 
   const convertedValue = applyFirestoreDataConverter(
     reference.converter,
@@ -332,7 +332,7 @@ export function updateDoc(
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
   reference = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
 
   const dataReader = newUserDataReader(firestore);
 
@@ -376,7 +376,7 @@ export function updateDoc(
 export function deleteDoc(
   reference: DocumentReference<unknown>
 ): Promise<void> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   const mutations = [new DeleteMutation(reference._key, Precondition.none())];
   return executeWrite(firestore, mutations);
 }
@@ -395,7 +395,7 @@ export function addDoc<T>(
   reference: CollectionReference<T>,
   data: T
 ): Promise<DocumentReference<T>> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
 
   const docRef = doc(reference);
   const convertedValue = applyFirestoreDataConverter(reference.converter, data);
@@ -644,11 +644,11 @@ export function onSnapshot<T>(
   }
 
   let observer: PartialObserver<ViewSnapshot>;
-  let firestore: FirebaseFirestore;
+  let firestore: Firestore;
   let internalQuery: InternalQuery;
 
   if (reference instanceof DocumentReference) {
-    firestore = cast(reference.firestore, FirebaseFirestore);
+    firestore = cast(reference.firestore, Firestore);
     internalQuery = newQueryForPath(reference._key.path);
 
     observer = {
@@ -668,7 +668,7 @@ export function onSnapshot<T>(
     };
   } else {
     const query = cast<Query<T>>(reference, Query);
-    firestore = cast(query.firestore, FirebaseFirestore);
+    firestore = cast(query.firestore, Firestore);
     internalQuery = query._query;
     const userDataWriter = new ExpUserDataWriter(firestore);
 
@@ -715,7 +715,7 @@ export function onSnapshot<T>(
  * listener.
  */
 export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   observer: {
     next?: (value: void) => void;
     error?: (error: FirestoreError) => void;
@@ -739,14 +739,14 @@ export function onSnapshotsInSync(
  * listener.
  */
 export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   onSync: () => void
 ): Unsubscribe;
 export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   arg: unknown
 ): Unsubscribe {
-  firestore = cast(firestore, FirebaseFirestore);
+  firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const observer = isPartialObserver(arg)
     ? (arg as PartialObserver<void>)
@@ -762,7 +762,7 @@ export function onSnapshotsInSync(
  * @internal
  */
 export function executeWrite(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   mutations: Mutation[]
 ): Promise<void> {
   const client = ensureFirestoreConfigured(firestore);
@@ -774,7 +774,7 @@ export function executeWrite(
  * to a DocumentSnapshot.
  */
 function convertToDocSnapshot<T>(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   ref: DocumentReference<T>,
   snapshot: ViewSnapshot
 ): DocumentSnapshot<T> {

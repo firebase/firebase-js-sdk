@@ -21,7 +21,7 @@ import { DocumentReference } from '../lite/reference';
 import { Transaction as LiteTransaction } from '../lite/transaction';
 import { validateReference } from '../lite/write_batch';
 
-import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
+import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
 import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
 
@@ -38,7 +38,7 @@ export class Transaction extends LiteTransaction {
 
   /** @hideconstructor */
   constructor(
-    protected readonly _firestore: FirebaseFirestore,
+    protected readonly _firestore: Firestore,
     _transaction: InternalTransaction
   ) {
     super(_firestore, _transaction);
@@ -90,7 +90,7 @@ export class Transaction extends LiteTransaction {
  * rejected promise with the corresponding failure error is returned.
  */
 export function runTransaction<T>(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
   const client = ensureFirestoreConfigured(firestore);

@@ -31,7 +31,7 @@ import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
 
 /**
@@ -217,7 +217,7 @@ export interface DocumentChange<T = DocumentData> {
 export class DocumentSnapshot<
   T = DocumentData
 > extends LiteDocumentSnapshot<T> {
-  private readonly _firestoreImpl: FirebaseFirestore;
+  private readonly _firestoreImpl: Firestore;
 
   /**
    *  Metadata about the `DocumentSnapshot`, including information about its
@@ -227,7 +227,7 @@ export class DocumentSnapshot<
 
   /** @hideconstructor protected */
   constructor(
-    readonly _firestore: FirebaseFirestore,
+    readonly _firestore: Firestore,
     userDataWriter: AbstractUserDataWriter,
     key: DocumentKey,
     document: Document | null,
@@ -375,7 +375,7 @@ export class QuerySnapshot<T = DocumentData> {
 
   /** @hideconstructor */
   constructor(
-    readonly _firestore: FirebaseFirestore,
+    readonly _firestore: Firestore,
     readonly _userDataWriter: AbstractUserDataWriter,
     query: Query<T>,
     readonly _snapshot: ViewSnapshot

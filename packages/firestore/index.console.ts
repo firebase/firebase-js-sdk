@@ -23,7 +23,7 @@ import {
   MemoryPersistenceProvider
 } from './src/api/database';
 import { DatabaseId } from './src/core/database_info';
-import { FirebaseFirestore as FirestoreExp } from './src/exp/database';
+import { Firestore as FirestoreExp } from './src/exp/database';
 import { Code, FirestoreError } from './src/util/error';
 export {
   CollectionReference,
