@@ -1296,12 +1296,7 @@
     fs-extra "^7.0.1"
     p-filter "^2.1.0"
 
-"@changesets/types@3.3.0":
-  version "3.3.0"
-  resolved "https://registry.npmjs.org/@changesets/types/-/types-3.3.0.tgz#04cd8184b2d2da760667bd89bf9b930938dbd96e"
-  integrity sha512-rJamRo+OD/MQekImfIk07JZwYSB18iU6fYL8xOg0gfAiTh1a1+OlR1fPIxm55I7RsWw812is2YcPPwXdIewrhA==
-
-"@changesets/types@^4.0.0":
+"@changesets/types@4.0.0", "@changesets/types@^4.0.0":
   version "4.0.0"
   resolved "https://registry.npmjs.org/@changesets/types/-/types-4.0.0.tgz#635f804546b0a96ecc0ca3f26403a6782a3dc938"
   integrity sha512-whLmPx2wgJRoOtxVZop+DJ71z1gTSkij7osiHgN+pe//FiE6bb4ffvBBb0rACs2cUPfAkWxgSPzqkECgKS1jvQ==
