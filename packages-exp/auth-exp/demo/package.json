@@ -32,7 +32,7 @@
     "rollup-plugin-typescript2": "0.30.0",
     "rollup-plugin-uglify": "6.0.4",
     "@rollup/plugin-node-resolve": "11.2.0",
-    "lerna": "3.22.1"
+    "lerna": "4.0.0"
   },
   "repository": {
     "directory": "packages-exp/auth-exp/demo",
