@@ -22,7 +22,7 @@
  */
 
 import {
-  FirebasePerformance,
+  PerformanceMonitoring,
   PerformanceSettings,
   PerformanceTrace
 } from './public_types';
@@ -56,7 +56,7 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
  */
 export function getPerformance(
   app: FirebaseApp = getApp()
-): FirebasePerformance {
+): PerformanceMonitoring {
   app = getModularInstance(app);
   const provider = _getProvider(app, 'performance-exp');
   const perfInstance = provider.getImmediate() as PerformanceController;
@@ -72,7 +72,7 @@ export function getPerformance(
 export function initializePerformance(
   app: FirebaseApp,
   settings?: PerformanceSettings
-): FirebasePerformance {
+): PerformanceMonitoring {
   app = getModularInstance(app);
   const provider = _getProvider(app, 'performance-exp');
 
@@ -95,7 +95,7 @@ export function initializePerformance(
  * @public
  */
 export function trace(
-  performance: FirebasePerformance,
+  performance: PerformanceMonitoring,
   name: string
 ): PerformanceTrace {
   performance = getModularInstance(performance);
@@ -134,4 +134,4 @@ function registerPerformance(): void {
 registerPerformance();
 registerVersion(name, version);
 
-export { FirebasePerformance, PerformanceSettings, PerformanceTrace };
+export { PerformanceMonitoring, PerformanceSettings, PerformanceTrace };

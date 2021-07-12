@@ -18,7 +18,7 @@
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
-import { FirebaseInstallations } from '../interfaces/public-types';
+import { Installations } from '../interfaces/public-types';
 
 /**
  * Creates a Firebase Installation if there isn't one for the app and
@@ -27,9 +27,7 @@ import { FirebaseInstallations } from '../interfaces/public-types';
  *
  * @public
  */
-export async function getId(
-  installations: FirebaseInstallations
-): Promise<string> {
+export async function getId(installations: Installations): Promise<string> {
   const installationsImpl = installations as FirebaseInstallationsImpl;
   const { installationEntry, registrationPromise } = await getInstallationEntry(
     installationsImpl.appConfig

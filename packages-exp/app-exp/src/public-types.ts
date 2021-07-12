@@ -123,7 +123,7 @@ export interface FirebaseOptions {
  *
  * Configuration options given to {@link (initializeApp:1) | initializeApp()}
  */
-export interface FirebaseAppConfig {
+export interface FirebaseAppSettings {
   /**
    * custom name for the Firebase App.
    * The default value is `"[DEFAULT]"`.

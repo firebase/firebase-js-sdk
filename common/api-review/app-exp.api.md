@@ -40,12 +40,6 @@ export interface FirebaseApp {
     readonly options: FirebaseOptions;
 }
 
-// @public
-export interface FirebaseAppConfig {
-    automaticDataCollectionEnabled?: boolean;
-    name?: string;
-}
-
 // @internal (undocumented)
 export interface _FirebaseAppInternal extends FirebaseApp {
     // (undocumented)
@@ -54,6 +48,12 @@ export interface _FirebaseAppInternal extends FirebaseApp {
     container: ComponentContainer;
     // (undocumented)
     isDeleted: boolean;
+}
+
+// @public
+export interface FirebaseAppSettings {
+    automaticDataCollectionEnabled?: boolean;
+    name?: string;
 }
 
 // @public
@@ -88,7 +88,7 @@ export function _getProvider<T extends Name>(app: FirebaseApp, name: T): Provide
 export function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
 
 // @public
-export function initializeApp(options: FirebaseOptions, config?: FirebaseAppConfig): FirebaseApp;
+export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSettings): FirebaseApp;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;

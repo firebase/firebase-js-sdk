@@ -17,7 +17,7 @@
 
 import { addCallback, removeCallback } from '../helpers/fid-changed';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
-import { FirebaseInstallations } from '../interfaces/public-types';
+import { Installations } from '../interfaces/public-types';
 
 /**
  * An user defined callback function that gets called when Installations ID changes.
@@ -42,7 +42,7 @@ export type IdChangeUnsubscribeFn = () => void;
  * @public
  */
 export function onIdChange(
-  installations: FirebaseInstallations,
+  installations: Installations,
   callback: IdChangeCallbackFn
 ): IdChangeUnsubscribeFn {
   const { appConfig } = installations as FirebaseInstallationsImpl;

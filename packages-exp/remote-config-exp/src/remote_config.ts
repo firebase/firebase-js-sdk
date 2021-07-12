@@ -19,7 +19,7 @@ import { FirebaseApp } from '@firebase/app-exp';
 import {
   RemoteConfig as RemoteConfigType,
   FetchStatus,
-  Settings
+  RemoteConfigSettings
 } from './public_types';
 import { StorageCache } from './storage/storage_cache';
 import { RemoteConfigFetchClient } from './client/remote_config_fetch_client';
@@ -47,7 +47,7 @@ export class RemoteConfig implements RemoteConfigType {
    */
   _initializePromise?: Promise<void>;
 
-  settings: Settings = {
+  settings: RemoteConfigSettings = {
     fetchTimeoutMillis: DEFAULT_FETCH_TIMEOUT_MILLIS,
     minimumFetchIntervalMillis: DEFAULT_CACHE_MAX_AGE_MILLIS
   };

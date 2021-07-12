@@ -24,7 +24,7 @@ export interface RemoteConfig {
   /**
    * Defines configuration for the Remote Config SDK.
    */
-  settings: Settings;
+  settings: RemoteConfigSettings;
 
   /**
    * Object containing default values for conigs.
@@ -92,7 +92,7 @@ export interface Value {
  *
  * @public
  */
-export interface Settings {
+export interface RemoteConfigSettings {
   /**
    * Defines the maximum age in milliseconds of an entry in the config cache before
    * it is considered stale. Defaults to 43200000 (Twelve hours).

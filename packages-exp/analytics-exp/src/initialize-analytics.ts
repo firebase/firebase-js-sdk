@@ -27,7 +27,7 @@ import {
 } from '@firebase/util';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { findGtagScriptOnPage, insertScriptTag } from './helpers';
-import { AnalyticsOptions } from './public-types';
+import { AnalyticsSettings } from './public-types';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
@@ -74,7 +74,7 @@ export async function initializeAnalytics(
   installations: _FirebaseInstallationsInternal,
   gtagCore: Gtag,
   dataLayerName: string,
-  options?: AnalyticsOptions
+  options?: AnalyticsSettings
 ): Promise<string> {
   const dynamicConfigPromise = fetchDynamicConfigWithRetry(app);
   // Once fetched, map measurementIds to appId, for ease of lookup in wrapped gtag function.

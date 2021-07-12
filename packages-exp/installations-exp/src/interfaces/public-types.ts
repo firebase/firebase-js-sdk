@@ -20,7 +20,7 @@
  *
  * @public
  */
-export interface FirebaseInstallations {}
+export interface Installations {}
 
 /**
  * An interface for Firebase internal SDKs use only.
@@ -43,7 +43,7 @@ export interface _FirebaseInstallationsInternal {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'installations-exp': FirebaseInstallations;
+    'installations-exp': Installations;
     'installations-exp-internal': _FirebaseInstallationsInternal;
   }
 }

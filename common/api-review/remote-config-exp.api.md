@@ -49,17 +49,17 @@ export interface RemoteConfig {
     };
     fetchTimeMillis: number;
     lastFetchStatus: FetchStatus;
-    settings: Settings;
+    settings: RemoteConfigSettings;
+}
+
+// @public
+export interface RemoteConfigSettings {
+    fetchTimeoutMillis: number;
+    minimumFetchIntervalMillis: number;
 }
 
 // @public
 export function setLogLevel(remoteConfig: RemoteConfig, logLevel: LogLevel): void;
-
-// @public
-export interface Settings {
-    fetchTimeoutMillis: number;
-    minimumFetchIntervalMillis: number;
-}
 
 // @public
 export interface Value {

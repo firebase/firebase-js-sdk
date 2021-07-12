@@ -17,10 +17,10 @@
 
 import { Provider } from '@firebase/component';
 import { _FirebaseService } from '@firebase/app-exp';
-import { FirebaseInstallations } from '../interfaces/public-types';
+import { Installations } from '../interfaces/public-types';
 
 export interface FirebaseInstallationsImpl
-  extends FirebaseInstallations,
+  extends Installations,
     _FirebaseService {
   readonly appConfig: AppConfig;
   readonly platformLoggerProvider: Provider<'platform-logger'>;

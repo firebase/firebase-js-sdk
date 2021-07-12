@@ -10,7 +10,7 @@ import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
 // @public
-export function deleteToken(messaging: FirebaseMessaging): Promise<boolean>;
+export function deleteToken(messaging: Messaging): Promise<boolean>;
 
 // @public
 export interface FcmOptions {
@@ -19,21 +19,14 @@ export interface FcmOptions {
 }
 
 // @public
-export interface FirebaseMessaging {
-}
-
-// @internal (undocumented)
-export type _FirebaseMessagingName = 'messaging';
+export function getMessaging(app?: FirebaseApp): Messaging;
 
 // @public
-export function getMessaging(app?: FirebaseApp): FirebaseMessaging;
-
-// @public
-export function getToken(messaging: FirebaseMessaging, options?: GetTokenOptions): Promise<string>;
+export function getToken(messaging: Messaging, options?: GetTokenOptions): Promise<string>;
 
 // @public
 export interface GetTokenOptions {
-    swReg?: ServiceWorkerRegistration;
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
     vapidKey?: string;
 }
 
@@ -51,6 +44,10 @@ export interface MessagePayload {
     notification?: NotificationPayload;
 }
 
+// @public
+export interface Messaging {
+}
+
 export { NextFn }
 
 // @public
@@ -63,7 +60,7 @@ export interface NotificationPayload {
 export { Observer }
 
 // @public
-export function onMessage(messaging: FirebaseMessaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
+export function onMessage(messaging: Messaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
 
 export { Unsubscribe }
 

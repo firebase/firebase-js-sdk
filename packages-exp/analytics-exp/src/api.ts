@@ -21,7 +21,7 @@ import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import {
   Analytics,
   AnalyticsCallOptions,
-  AnalyticsOptions,
+  AnalyticsSettings,
   CustomParams,
   EventNameString,
   EventParams
@@ -89,7 +89,7 @@ export function getAnalytics(app: FirebaseApp = getApp()): Analytics {
  */
 export function initializeAnalytics(
   app: FirebaseApp,
-  options: AnalyticsOptions = {}
+  options: AnalyticsSettings = {}
 ): Analytics {
   // Dependencies
   const analyticsProvider: Provider<'analytics-exp'> = _getProvider(

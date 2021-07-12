@@ -23,7 +23,7 @@
 
 import '@firebase/installations-exp';
 
-import { FirebaseMessaging } from './interfaces/public-types';
+import { Messaging } from './interfaces/public-types';
 import { registerMessagingInWindow } from './helpers/register';
 
 export {
@@ -37,7 +37,7 @@ export * from './interfaces/public-types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-exp': FirebaseMessaging;
+    'messaging-exp': Messaging;
   }
 }
 

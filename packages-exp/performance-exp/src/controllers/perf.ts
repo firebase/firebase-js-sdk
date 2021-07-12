@@ -21,12 +21,12 @@ import { getInitializationPromise } from '../services/initialization_service';
 import { Api } from '../services/api_service';
 import { FirebaseApp } from '@firebase/app-exp';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
-import { PerformanceSettings, FirebasePerformance } from '../public_types';
+import { PerformanceSettings, PerformanceMonitoring } from '../public_types';
 import { validateIndexedDBOpenable } from '@firebase/util';
 import { setupTransportService } from '../services/transport_service';
 import { consoleLogger } from '../utils/console_logger';
 
-export class PerformanceController implements FirebasePerformance {
+export class PerformanceController implements PerformanceMonitoring {
   private initialized: boolean = false;
 
   constructor(
