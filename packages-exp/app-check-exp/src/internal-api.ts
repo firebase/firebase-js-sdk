@@ -23,7 +23,7 @@ import {
   ListenerType
 } from './types';
 import { AppCheckTokenListener } from './public-types';
-import { getDebugState, getState, setState } from './state';
+import { getState, setState } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
@@ -63,25 +63,17 @@ export async function getToken(
 ): Promise<AppCheckTokenResult> {
   const app = appCheck.app;
   ensureActivated(app);
-  /**
-   * DEBUG MODE
-   * return the debug token directly
-   */
-  if (isDebugMode()) {
-    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
-      getExchangeDebugTokenRequest(app, await getDebugToken()),
-      appCheck.platformLoggerProvider
-    );
-    return { token: tokenFromDebugExchange.token };
-  }
 
   const state = getState(app);
 
+  /**
+   * First check if there is a token in memory from a previous `getToken()` call.
+   */
   let token: AppCheckTokenInternal | undefined = state.token;
   let error: Error | undefined = undefined;
 
   /**
-   * try to load token from indexedDB if it's the first time this function is called
+   * If there is no token in memory, try to load token from indexedDB.
    */
   if (!token) {
     // readTokenFromStorage() always resolves. In case of an error, it resolves with `undefined`.
@@ -95,11 +87,28 @@ export async function getToken(
     }
   }
 
-  // return the cached token if it's valid
+  // Return the cached token (from either memory or indexedDB) if it's valid
   if (!forceRefresh && token && isValid(token)) {
     return {
       token: token.token
     };
+  }
+
+  /**
+   * DEBUG MODE
+   * If debug mode is set, and there is no cached token, fetch a new App
+   * Check token using the debug token, and return it directly.
+   */
+  if (isDebugMode()) {
+    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
+      getExchangeDebugTokenRequest(app, await getDebugToken()),
+      appCheck.platformLoggerProvider
+    );
+    // Write debug token to indexedDB.
+    await writeTokenToStorage(app, tokenFromDebugExchange);
+    // Write debug token to state.
+    setState(app, { ...state, token: tokenFromDebugExchange });
+    return { token: tokenFromDebugExchange.token };
   }
 
   /**
@@ -125,7 +134,7 @@ export async function getToken(
     interopTokenResult = {
       token: token.token
     };
-    // write the new token to the memory state as well ashe persistent storage.
+    // write the new token to the memory state as well as the persistent storage.
     // Only do it if we got a valid new token
     setState(app, { ...state, token });
     await writeTokenToStorage(app, token);
@@ -152,50 +161,31 @@ export function addTokenListener(
     ...state,
     tokenObservers: [...state.tokenObservers, tokenObserver]
   };
-
   /**
-   * DEBUG MODE
-   *
-   * invoke the listener once with the debug token.
+   * Invoke the listener with the valid token, then start the token refresher
    */
-  if (isDebugMode()) {
-    const debugState = getDebugState();
-    if (debugState.enabled && debugState.token) {
-      debugState.token.promise
-        .then(token => listener({ token }))
-        .catch(() => {
-          /* we don't care about exceptions thrown in listeners */
-        });
-    }
-  } else {
-    /**
-     * PROD MODE
-     *
-     * invoke the listener with the valid token, then start the token refresher
-     */
-    if (!newState.tokenRefresher) {
-      const tokenRefresher = createTokenRefresher(appCheck);
-      newState.tokenRefresher = tokenRefresher;
-    }
+  if (!newState.tokenRefresher) {
+    const tokenRefresher = createTokenRefresher(appCheck);
+    newState.tokenRefresher = tokenRefresher;
+  }
 
-    // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
-    // is not true.
-    if (
-      !newState.tokenRefresher.isRunning() &&
-      state.isTokenAutoRefreshEnabled === true
-    ) {
-      newState.tokenRefresher.start();
-    }
+  // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
+  // is not true.
+  if (
+    !newState.tokenRefresher.isRunning() &&
+    state.isTokenAutoRefreshEnabled
+  ) {
+    newState.tokenRefresher.start();
+  }
 
-    // invoke the listener async immediately if there is a valid token
-    if (state.token && isValid(state.token)) {
-      const validToken = state.token;
-      Promise.resolve()
-        .then(() => listener({ token: validToken.token }))
-        .catch(() => {
-          /* we don't care about exceptions thrown in listeners */
-        });
-    }
+  // invoke the listener async immediately if there is a valid token
+  if (state.token && isValid(state.token)) {
+    const validToken = state.token;
+    Promise.resolve()
+      .then(() => listener({ token: validToken.token }))
+      .catch(() => {
+        /* we don't care about exceptions thrown in listeners */
+      });
   }
 
   setState(app, newState);
