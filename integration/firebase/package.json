@@ -9,7 +9,7 @@
   "devDependencies": {
     "firebase": "8.7.1",
     "@types/chai": "4.2.14",
-    "@types/mocha": "7.0.2",
+    "@types/mocha": "8.2.3",
     "chai": "4.3.4",
     "karma": "5.2.3",
     "karma-babel-preprocessor": "8.0.1",
