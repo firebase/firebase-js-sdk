@@ -25,6 +25,7 @@ export {
   apps,
   assertFails,
   assertSucceeds,
+  discoverEmulators,
   clearFirestoreData,
   database,
   firestore,
@@ -32,5 +33,7 @@ export {
   initializeTestApp,
   loadDatabaseRules,
   loadFirestoreRules,
+  loadStorageRules,
+  useEmulators,
   withFunctionTriggersDisabled
 } from './src/api';

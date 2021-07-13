@@ -144,8 +144,11 @@ export function isIndexedDBAvailable(): boolean {
 }
 
 /**
- * This method validates browser context for indexedDB by opening a dummy indexedDB database and reject
+ * This method validates browser/sw context for indexedDB by opening a dummy indexedDB database and reject
  * if errors occur during the database open operation.
+ *
+ * @throws exception if current browser/sw context can't run idb.open (ex: Safari iframe, Firefox
+ * private browsing)
  */
 export function validateIndexedDBOpenable(): Promise<boolean> {
   return new Promise((resolve, reject) => {
@@ -153,12 +156,12 @@ export function validateIndexedDBOpenable(): Promise<boolean> {
       let preExist: boolean = true;
       const DB_CHECK_NAME =
         'validate-browser-context-for-indexeddb-analytics-module';
-      const request = window.indexedDB.open(DB_CHECK_NAME);
+      const request = self.indexedDB.open(DB_CHECK_NAME);
       request.onsuccess = () => {
         request.result.close();
         // delete database only when it doesn't pre-exist
         if (!preExist) {
-          window.indexedDB.deleteDatabase(DB_CHECK_NAME);
+          self.indexedDB.deleteDatabase(DB_CHECK_NAME);
         }
         resolve(true);
       };
@@ -185,4 +188,21 @@ export function areCookiesEnabled(): boolean {
     return false;
   }
   return true;
+}
+
+/**
+ * Polyfill for `globalThis` object.
+ * @returns the `globalThis` object for the given environment.
+ */
+export function getGlobal(): typeof globalThis {
+  if (typeof self !== 'undefined') {
+    return self;
+  }
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  if (typeof global !== 'undefined') {
+    return global;
+  }
+  throw new Error('Unable to locate global object.');
 }

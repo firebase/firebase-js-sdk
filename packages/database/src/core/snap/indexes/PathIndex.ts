@@ -16,47 +16,31 @@
  */
 
 import { assert } from '@firebase/util';
-import { nameCompare, MAX_NAME } from '../../util/util';
-import { Index } from './Index';
+
+import { Path, pathGetFront, pathIsEmpty, pathSlice } from '../../util/Path';
+import { MAX_NAME, nameCompare } from '../../util/util';
 import { ChildrenNode, MAX_NODE } from '../ChildrenNode';
 import { NamedNode, Node } from '../Node';
 import { nodeFromJSON } from '../nodeFromJSON';
-import { Path } from '../../util/Path';
 
-/**
- * @param {!Path} indexPath
- * @constructor
- * @extends {Index}
- */
+import { Index } from './Index';
+
 export class PathIndex extends Index {
   constructor(private indexPath_: Path) {
     super();
 
     assert(
-      !indexPath_.isEmpty() && indexPath_.getFront() !== '.priority',
+      !pathIsEmpty(indexPath_) && pathGetFront(indexPath_) !== '.priority',
       "Can't create PathIndex with empty path or .priority key"
     );
   }
 
-  /**
-   * @param {!Node} snap
-   * @return {!Node}
-   * @protected
-   */
   protected extractChild(snap: Node): Node {
     return snap.getChild(this.indexPath_);
   }
-
-  /**
-   * @inheritDoc
-   */
   isDefinedOn(node: Node): boolean {
     return !node.getChild(this.indexPath_).isEmpty();
   }
-
-  /**
-   * @inheritDoc
-   */
   compare(a: NamedNode, b: NamedNode): number {
     const aChild = this.extractChild(a.node);
     const bChild = this.extractChild(b.node);
@@ -67,10 +51,6 @@ export class PathIndex extends Index {
       return indexCmp;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   makePost(indexValue: object, name: string): NamedNode {
     const valueNode = nodeFromJSON(indexValue);
     const node = ChildrenNode.EMPTY_NODE.updateChild(
@@ -79,19 +59,11 @@ export class PathIndex extends Index {
     );
     return new NamedNode(name, node);
   }
-
-  /**
-   * @inheritDoc
-   */
   maxPost(): NamedNode {
     const node = ChildrenNode.EMPTY_NODE.updateChild(this.indexPath_, MAX_NODE);
     return new NamedNode(MAX_NAME, node);
   }
-
-  /**
-   * @inheritDoc
-   */
   toString(): string {
-    return this.indexPath_.slice().join('/');
+    return pathSlice(this.indexPath_, 0).join('/');
   }
 }

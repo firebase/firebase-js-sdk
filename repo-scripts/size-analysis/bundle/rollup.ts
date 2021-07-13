@@ -36,9 +36,7 @@ export async function bundleWithRollup(
   };
 
   if (moduleDirectory) {
-    resolveOptions.customResolveOptions = {
-      moduleDirectory
-    };
+    resolveOptions.moduleDirectories = [moduleDirectory];
   }
 
   const bundle = await rollup.rollup({

@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { Path } from '../util/Path';
-import { log, logger, exceptionGuard } from '../util/util';
+import { Path, pathContains, pathEquals } from '../util/Path';
+import { exceptionGuard, log, logger } from '../util/util';
+
 import { Event } from './Event';
 
 /**
@@ -31,152 +32,132 @@ import { Event } from './Event';
  *
  * NOTE: This can all go away if/when we move to async events.
  *
- * @constructor
  */
 export class EventQueue {
-  /**
-   * @private
-   * @type {!Array.<EventList>}
-   */
-  private eventLists_: EventList[] = [];
+  eventLists_: EventList[] = [];
 
   /**
    * Tracks recursion depth of raiseQueuedEvents_, for debugging purposes.
-   * @private
-   * @type {!number}
    */
-  private recursionDepth_ = 0;
+  recursionDepth_ = 0;
+}
 
-  /**
-   * @param {!Array.<Event>} eventDataList The new events to queue.
-   */
-  queueEvents(eventDataList: Event[]) {
-    // We group events by path, storing them in a single EventList, to make it easier to skip over them quickly.
-    let currList = null;
-    for (let i = 0; i < eventDataList.length; i++) {
-      const eventData = eventDataList[i];
-      const eventPath = eventData.getPath();
-      if (currList !== null && !eventPath.equals(currList.getPath())) {
-        this.eventLists_.push(currList);
-        currList = null;
-      }
-
-      if (currList === null) {
-        currList = new EventList(eventPath);
-      }
-
-      currList.add(eventData);
+/**
+ * @param eventDataList - The new events to queue.
+ */
+export function eventQueueQueueEvents(
+  eventQueue: EventQueue,
+  eventDataList: Event[]
+) {
+  // We group events by path, storing them in a single EventList, to make it easier to skip over them quickly.
+  let currList: EventList | null = null;
+  for (let i = 0; i < eventDataList.length; i++) {
+    const data = eventDataList[i];
+    const path = data.getPath();
+    if (currList !== null && !pathEquals(path, currList.path)) {
+      eventQueue.eventLists_.push(currList);
+      currList = null;
     }
-    if (currList) {
-      this.eventLists_.push(currList);
+
+    if (currList === null) {
+      currList = { events: [], path };
     }
+
+    currList.events.push(data);
   }
-
-  /**
-   * Queues the specified events and synchronously raises all events (including previously queued ones)
-   * for the specified path.
-   *
-   * It is assumed that the new events are all for the specified path.
-   *
-   * @param {!Path} path The path to raise events for.
-   * @param {!Array.<Event>} eventDataList The new events to raise.
-   */
-  raiseEventsAtPath(path: Path, eventDataList: Event[]) {
-    this.queueEvents(eventDataList);
-    this.raiseQueuedEventsMatchingPredicate_((eventPath: Path) =>
-      eventPath.equals(path)
-    );
-  }
-
-  /**
-   * Queues the specified events and synchronously raises all events (including previously queued ones) for
-   * locations related to the specified change path (i.e. all ancestors and descendants).
-   *
-   * It is assumed that the new events are all related (ancestor or descendant) to the specified path.
-   *
-   * @param {!Path} changedPath The path to raise events for.
-   * @param {!Array.<!Event>} eventDataList The events to raise
-   */
-  raiseEventsForChangedPath(changedPath: Path, eventDataList: Event[]) {
-    this.queueEvents(eventDataList);
-
-    this.raiseQueuedEventsMatchingPredicate_((eventPath: Path) => {
-      return eventPath.contains(changedPath) || changedPath.contains(eventPath);
-    });
-  }
-
-  /**
-   * @param {!function(!Path):boolean} predicate
-   * @private
-   */
-  private raiseQueuedEventsMatchingPredicate_(
-    predicate: (path: Path) => boolean
-  ) {
-    this.recursionDepth_++;
-
-    let sentAll = true;
-    for (let i = 0; i < this.eventLists_.length; i++) {
-      const eventList = this.eventLists_[i];
-      if (eventList) {
-        const eventPath = eventList.getPath();
-        if (predicate(eventPath)) {
-          this.eventLists_[i].raise();
-          this.eventLists_[i] = null;
-        } else {
-          sentAll = false;
-        }
-      }
-    }
-
-    if (sentAll) {
-      this.eventLists_ = [];
-    }
-
-    this.recursionDepth_--;
+  if (currList) {
+    eventQueue.eventLists_.push(currList);
   }
 }
 
 /**
- * @param {!Path} path
- * @constructor
+ * Queues the specified events and synchronously raises all events (including previously queued ones)
+ * for the specified path.
+ *
+ * It is assumed that the new events are all for the specified path.
+ *
+ * @param path - The path to raise events for.
+ * @param eventDataList - The new events to raise.
  */
-export class EventList {
-  /**
-   * @type {!Array.<Event>}
-   * @private
-   */
-  private events_: Event[] = [];
+export function eventQueueRaiseEventsAtPath(
+  eventQueue: EventQueue,
+  path: Path,
+  eventDataList: Event[]
+) {
+  eventQueueQueueEvents(eventQueue, eventDataList);
+  eventQueueRaiseQueuedEventsMatchingPredicate(eventQueue, eventPath =>
+    pathEquals(eventPath, path)
+  );
+}
 
-  constructor(private readonly path_: Path) {}
+/**
+ * Queues the specified events and synchronously raises all events (including previously queued ones) for
+ * locations related to the specified change path (i.e. all ancestors and descendants).
+ *
+ * It is assumed that the new events are all related (ancestor or descendant) to the specified path.
+ *
+ * @param changedPath - The path to raise events for.
+ * @param eventDataList - The events to raise
+ */
+export function eventQueueRaiseEventsForChangedPath(
+  eventQueue: EventQueue,
+  changedPath: Path,
+  eventDataList: Event[]
+) {
+  eventQueueQueueEvents(eventQueue, eventDataList);
+  eventQueueRaiseQueuedEventsMatchingPredicate(
+    eventQueue,
+    eventPath =>
+      pathContains(eventPath, changedPath) ||
+      pathContains(changedPath, eventPath)
+  );
+}
 
-  /**
-   * @param {!Event} eventData
-   */
-  add(eventData: Event) {
-    this.events_.push(eventData);
-  }
+function eventQueueRaiseQueuedEventsMatchingPredicate(
+  eventQueue: EventQueue,
+  predicate: (path: Path) => boolean
+) {
+  eventQueue.recursionDepth_++;
 
-  /**
-   * Iterates through the list and raises each event
-   */
-  raise() {
-    for (let i = 0; i < this.events_.length; i++) {
-      const eventData = this.events_[i];
-      if (eventData !== null) {
-        this.events_[i] = null;
-        const eventFn = eventData.getEventRunner();
-        if (logger) {
-          log('event: ' + eventData.toString());
-        }
-        exceptionGuard(eventFn);
+  let sentAll = true;
+  for (let i = 0; i < eventQueue.eventLists_.length; i++) {
+    const eventList = eventQueue.eventLists_[i];
+    if (eventList) {
+      const eventPath = eventList.path;
+      if (predicate(eventPath)) {
+        eventListRaise(eventQueue.eventLists_[i]);
+        eventQueue.eventLists_[i] = null;
+      } else {
+        sentAll = false;
       }
     }
   }
 
-  /**
-   * @return {!Path}
-   */
-  getPath(): Path {
-    return this.path_;
+  if (sentAll) {
+    eventQueue.eventLists_ = [];
+  }
+
+  eventQueue.recursionDepth_--;
+}
+
+interface EventList {
+  events: Event[];
+  path: Path;
+}
+
+/**
+ * Iterates through the list and raises each event
+ */
+function eventListRaise(eventList: EventList) {
+  for (let i = 0; i < eventList.events.length; i++) {
+    const eventData = eventList.events[i];
+    if (eventData !== null) {
+      eventList.events[i] = null;
+      const eventFn = eventData.getEventRunner();
+      if (logger) {
+        log('event: ' + eventData.toString());
+      }
+      exceptionGuard(eventFn);
+    }
   }
 }

@@ -16,10 +16,10 @@ jobs:
       with:
         # Canary release script requires git history and tags.
         fetch-depth: 0
-    - name: Set up Node (10)
+    - name: Set up Node (14)
       uses: actions/setup-node@v2
       with:
-        node-version: 10.x
+        node-version: 14.x
     - name: Yarn install
       run: yarn
     - name: Deploy canary
@@ -30,6 +30,9 @@ jobs:
         NPM_TOKEN_ANALYTICS_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_TYPES}}
         NPM_TOKEN_APP: ${{secrets.NPM_TOKEN_APP}}
         NPM_TOKEN_APP_TYPES: ${{secrets.NPM_TOKEN_APP_TYPES}}
+        NPM_TOKEN_APP_CHECK: ${{secrets.NPM_TOKEN_APP_CHECK}}
+        NPM_TOKEN_APP_CHECK_INTEROP_TYPES: ${{secrets.NPM_TOKEN_APP_CHECK_INTEROP_TYPES}}
+        NPM_TOKEN_APP_CHECK_TYPES: ${{secrets.NPM_TOKEN_APP_CHECK_TYPES}}
         NPM_TOKEN_AUTH: ${{secrets.NPM_TOKEN_AUTH}}
         NPM_TOKEN_AUTH_INTEROP_TYPES: ${{secrets.NPM_TOKEN_AUTH_INTEROP_TYPES}}
         NPM_TOKEN_AUTH_TYPES: ${{secrets.NPM_TOKEN_AUTH_TYPES}}
@@ -57,5 +60,4 @@ jobs:
         NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
         NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
         NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
-        NPM_TOKEN_RXFIRE: ${{secrets.NPM_TOKEN_RXFIRE}}
         CI: true

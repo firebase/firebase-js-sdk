@@ -22,6 +22,8 @@ export interface TransportConstructor {
     connId: string,
     repoInfo: RepoInfo,
     applicationId?: string,
+    appCheckToken?: string,
+    authToken?: string,
     transportSessionId?: string,
     lastSessionId?: string
   ): Transport;
@@ -33,28 +35,24 @@ export interface TransportConstructor {
 export abstract class Transport {
   /**
    * Bytes received since connection started.
-   * @type {number}
    */
   abstract bytesReceived: number;
 
   /**
    * Bytes sent since connection started.
-   * @type {number}
    */
   abstract bytesSent: number;
 
   /**
    * An identifier for this connection, used for logging
-   * @type {string}
    */
   abstract connId: string;
 
   /**
-   *
-   * @param {string} connId An identifier for this connection, used for logging
-   * @param {RepoInfo} repoInfo The info for the endpoint to send data to.
-   * @param {string=} transportSessionId Optional transportSessionId if this is connecting to an existing transport session
-   * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
+   * @param connId - An identifier for this connection, used for logging
+   * @param repoInfo - The info for the endpoint to send data to.
+   * @param transportSessionId - Optional transportSessionId if this is connecting to an existing transport session
+   * @param lastSessionId - Optional lastSessionId if there was a previous connection
    * @interface
    */
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
@@ -66,8 +64,8 @@ export abstract class Transport {
   ) {}
 
   /**
-   * @param {function(Object)} onMessage Callback when messages arrive
-   * @param {function()} onDisconnect Callback with connection lost.
+   * @param onMessage - Callback when messages arrive
+   * @param onDisconnect - Callback with connection lost.
    */
   abstract open(
     onMessage: (a: {}) => void,
@@ -79,7 +77,7 @@ export abstract class Transport {
   abstract close(): void;
 
   /**
-   * @param {!Object} data The JSON data to transmit
+   * @param data - The JSON data to transmit
    */
   abstract send(data: {}): void;
 

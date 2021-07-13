@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 var allTests = require('./generated/all_tests');
 
-var TEST_SERVER = 'http://localhost:4000';
+var TEST_SERVER = 'http://localhost:4001';
 
 var FLAKY_TEST_RETRIAL = 3;
 

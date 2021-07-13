@@ -209,11 +209,23 @@ export const Code = {
 
 /** An error returned by a Firestore operation. */
 export class FirestoreError extends Error {
+  /** The custom name for all FirestoreErrors. */
   readonly name: string = 'FirebaseError';
+
+  /** The stack of the error. */
   readonly stack?: string;
 
   /** @hideconstructor */
-  constructor(readonly code: FirestoreErrorCode, readonly message: string) {
+  constructor(
+    /**
+     * The backend error code associated with this error.
+     */
+    readonly code: FirestoreErrorCode,
+    /**
+     * A custom error description.
+     */
+    readonly message: string
+  ) {
     super(message);
 
     // HACK: We write a toString property directly because Error is not a real

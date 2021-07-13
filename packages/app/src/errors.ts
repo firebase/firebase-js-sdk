@@ -40,7 +40,13 @@ const ERRORS: ErrorMap<AppError> = {
     'First argument to `onLog` must be null or a function.'
 };
 
-type ErrorParams = { [key in AppError]: { appName: string } };
+interface ErrorParams {
+  [AppError.NO_APP]: { appName: string };
+  [AppError.BAD_APP_NAME]: { appName: string };
+  [AppError.DUPLICATE_APP]: { appName: string };
+  [AppError.APP_DELETED]: { appName: string };
+  [AppError.INVALID_APP_ARGUMENT]: { appName: string };
+}
 
 export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(
   'app',

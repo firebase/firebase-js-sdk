@@ -17,10 +17,10 @@
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
 import { StringFormat } from '../../src/implementation/string';
-import { Headers } from '../../src/implementation/xhrio';
+import { Headers } from '../../src/implementation/connection';
 import { Metadata } from '../../src/metadata';
 import {
-  StorageReference,
+  Reference,
   uploadString,
   uploadBytesResumable,
   deleteObject,
@@ -32,50 +32,66 @@ import {
 } from '../../src/reference';
 import { StorageService, ref } from '../../src/service';
 import * as testShared from './testshared';
-import { SendHook, TestingXhrIo } from './xhrio';
+import { SendHook, TestingConnection } from './connection';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { fakeServerHandler, storageServiceWithHandler } from './testshared';
+import { decodeUint8Array } from '../../src/platform/base64';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
   app: FirebaseApp,
   authProvider: Provider<FirebaseAuthInternalName>,
+  appCheckProvider: Provider<AppCheckInternalComponentName>,
   sendHook: SendHook
 ): StorageService {
-  return new StorageService(app, authProvider, testShared.makePool(sendHook));
+  return new StorageService(
+    app,
+    authProvider,
+    appCheckProvider,
+    testShared.makePool(sendHook)
+  );
 }
 
-function makeStorage(url: string): StorageReference {
+function makeStorage(url: string): Reference {
   const service = new StorageService(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
+    testShared.fakeAppCheckTokenProvider,
     testShared.makePool(null)
   );
-  return new StorageReference(service, url);
+  return new Reference(service, url);
 }
 
 function withFakeSend(
   testFn: (text: string, headers?: Headers) => void,
   resolveFn: () => void
-): StorageReference {
+): Reference {
   function newSend(
-    xhrio: TestingXhrIo,
+    connection: TestingConnection,
     url: string,
     method: string,
     body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
   ): void {
-    (body as Blob).text().then(text => {
+    let text: Promise<string>;
+    if (body instanceof Uint8Array) {
+      text = Promise.resolve(decodeUint8Array(body));
+    } else {
+      text = (body as Blob).text();
+    }
+    text.then(text => {
       testFn(text, headers);
-      xhrio.abort();
+      connection.abort();
       resolveFn();
     });
   }
   const service = makeFakeService(
     testShared.fakeApp,
     testShared.fakeAuthProvider,
+    testShared.fakeAppCheckTokenProvider,
     newSend
   );
   return ref(service, 'gs://test-bucket');
@@ -207,7 +223,7 @@ describe('Firebase Storage > Reference', () => {
 
   it("Doesn't send Authorization on null auth token", done => {
     function newSend(
-      xhrio: TestingXhrIo,
+      connection: TestingConnection,
       url: string,
       method: string,
       body?: ArrayBufferView | Blob | string | null,
@@ -221,6 +237,7 @@ describe('Firebase Storage > Reference', () => {
     const service = makeFakeService(
       testShared.fakeApp,
       testShared.emptyAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       newSend
     );
     const reference = ref(service, 'gs://test-bucket');
@@ -230,7 +247,7 @@ describe('Firebase Storage > Reference', () => {
   it('Works if the user logs in before creating the storage reference', done => {
     // Regression test for b/27227221
     function newSend(
-      xhrio: TestingXhrIo,
+      connection: TestingConnection,
       url: string,
       method: string,
       body?: ArrayBufferView | Blob | string | null,
@@ -246,6 +263,7 @@ describe('Firebase Storage > Reference', () => {
     const service = makeFakeService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       newSend
     );
     const reference = ref(service, 'gs://test-bucket');
@@ -256,7 +274,6 @@ describe('Firebase Storage > Reference', () => {
     it('Uses metadata.contentType for RAW format', done => {
       // Regression test for b/30989476
       const root = withFakeSend((text: string, headers?: Headers) => {
-        console.log(headers);
         expect(text).to.include('"contentType":"lol/wut"');
       }, done);
       uploadString(ref(root, 'test'), 'hello', StringFormat.RAW, {
@@ -291,7 +308,7 @@ describe('Firebase Storage > Reference', () => {
       const root = withFakeSend((text: string) => {
         expect(text).to.include('"contentType":"lol/wut"');
       }, done);
-      uploadBytes(ref(root, 'hello'), new Blob(), {
+      uploadBytes(ref(root, 'hello'), new Uint8Array(), {
         contentType: 'lol/wut'
       } as Metadata);
     });
@@ -299,7 +316,7 @@ describe('Firebase Storage > Reference', () => {
       const storageService = storageServiceWithHandler(fakeServerHandler({}));
       const root = ref(storageService, 'gs://test-bucket/');
       const childRef = ref(root, 'child');
-      const blob = new Blob(['a']);
+      const blob = new Uint8Array([97]);
       const result = await uploadBytes(childRef, blob);
       expect(result.ref).to.equal(childRef);
     });
@@ -323,7 +340,7 @@ describe('Firebase Storage > Reference', () => {
 
   describe('root operations', () => {
     it('uploadBytesResumable throws', () => {
-      expect(() => uploadBytesResumable(root, new Blob(['a']))).to.throw(
+      expect(() => uploadBytesResumable(root, new Uint8Array())).to.throw(
         'storage/invalid-root-operation'
       );
     });
@@ -333,7 +350,7 @@ describe('Firebase Storage > Reference', () => {
       );
     });
     it('uploadBytes throws', () => {
-      expect(() => uploadBytes(root, new Blob(['a']))).to.throw(
+      expect(() => uploadBytes(root, new Uint8Array())).to.throw(
         'storage/invalid-root-operation'
       );
     });

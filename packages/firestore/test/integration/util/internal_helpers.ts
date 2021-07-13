@@ -28,6 +28,7 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
 import { newDatastore, Datastore } from '../../../src/remote/datastore';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import { AsyncQueueImpl } from '../../../src/util/async_queue_impl';
 import { TestBundleBuilder } from '../../unit/util/bundle_data';
 import { collectionReference } from '../../util/api_helpers';
@@ -43,11 +44,13 @@ export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueueImpl {
 export function getDefaultDatabaseInfo(): DatabaseInfo {
   return new DatabaseInfo(
     new DatabaseId(DEFAULT_PROJECT_ID),
+    'test-app-id',
     'persistenceKey',
     DEFAULT_SETTINGS.host!,
     !!DEFAULT_SETTINGS.ssl,
     !!DEFAULT_SETTINGS.experimentalForceLongPolling,
-    !!DEFAULT_SETTINGS.experimentalAutoDetectLongPolling
+    !!DEFAULT_SETTINGS.experimentalAutoDetectLongPolling,
+    /*use FetchStreams= */ false
   );
 }
 
@@ -64,13 +67,18 @@ export function withTestDatastore(
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {
   private listener: CredentialChangeListener | null = null;
+  private asyncQueue: AsyncQueue | null = null;
 
   triggerUserChange(newUser: User): void {
-    this.listener!(newUser);
+    this.asyncQueue!.enqueueRetryable(async () => this.listener!(newUser));
   }
 
-  setChangeListener(listener: CredentialChangeListener): void {
-    super.setChangeListener(listener);
+  setChangeListener(
+    asyncQueue: AsyncQueue,
+    listener: CredentialChangeListener
+  ): void {
+    super.setChangeListener(asyncQueue, listener);
+    this.asyncQueue = asyncQueue;
     this.listener = listener;
   }
 }

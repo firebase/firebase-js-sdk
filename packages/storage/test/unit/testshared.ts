@@ -20,11 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 use(chaiAsPromised);
 
 import { FirebaseApp } from '@firebase/app-types';
-import * as constants from '../../src/implementation/constants';
-import { Code, FirebaseStorageError } from '../../src/implementation/error';
-import { Headers, XhrIo } from '../../src/implementation/xhrio';
-import { XhrIoPool } from '../../src/implementation/xhriopool';
-import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
+import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
+import { FirebaseStorageError } from '../../src/implementation/error';
+import { Headers, Connection } from '../../src/implementation/connection';
+import { ConnectionPool } from '../../src/implementation/connectionPool';
+import { SendHook, TestingConnection } from './connection';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   Provider,
@@ -32,10 +32,12 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { StorageService } from '../../src/service';
 import { Metadata } from '../../src/metadata';
 
 export const authToken = 'totally-legit-auth-token';
+export const appCheckToken = 'totally-shady-token';
 export const bucket = 'mybucket';
 export const fakeApp = makeFakeApp();
 export const fakeAuthProvider = makeFakeAuthProvider({
@@ -45,14 +47,17 @@ export const emptyAuthProvider = new Provider<FirebaseAuthInternalName>(
   'auth-internal',
   new ComponentContainer('storage-container')
 );
+export const fakeAppCheckTokenProvider = makeFakeAppCheckProvider({
+  token: appCheckToken
+});
 
 export function makeFakeApp(bucketArg?: string): FirebaseApp {
   const app: any = {};
   app.options = {};
   if (bucketArg != null) {
-    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucketArg;
+    app.options[CONFIG_STORAGE_BUCKET_KEY] = bucketArg;
   } else {
-    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket;
+    app.options[CONFIG_STORAGE_BUCKET_KEY] = bucket;
   }
   return app as FirebaseApp;
 }
@@ -79,26 +84,48 @@ export function makeFakeAuthProvider(token: {
   return provider as Provider<FirebaseAuthInternalName>;
 }
 
-export function makePool(sendHook: SendHook | null): XhrIoPool {
+export function makeFakeAppCheckProvider(tokenResult: {
+  token: string;
+}): Provider<AppCheckInternalComponentName> {
+  const provider = new Provider(
+    'app-check-internal',
+    new ComponentContainer('storage-container')
+  );
+  provider.setComponent(
+    new Component(
+      'app-check-internal',
+      () => {
+        return {
+          getToken: () => Promise.resolve(tokenResult)
+        } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+      },
+      ComponentType.PRIVATE
+    )
+  );
+
+  return provider as Provider<AppCheckInternalComponentName>;
+}
+
+export function makePool(sendHook: SendHook | null): ConnectionPool {
   const pool: any = {
-    createXhrIo() {
-      return new TestingXhrIo(sendHook);
+    createConnection() {
+      return new TestingConnection(sendHook);
     }
   };
-  return pool as XhrIoPool;
+  return pool as ConnectionPool;
 }
 
 /**
  * Returns something that looks like an fbs.XhrIo with the given headers
  * and status.
  */
-export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
-  const lower: StringHeaders = {};
+export function fakeXhrIo(headers: Headers, status: number = 200): Connection {
+  const lower: Headers = {};
   for (const [key, value] of Object.entries(headers)) {
     lower[key.toLowerCase()] = value.toString();
   }
 
-  const fakeXhrIo: any = {
+  const fakeConnection: any = {
     getResponseHeader(name: string): string {
       const lowerName = name.toLowerCase();
       if (lower.hasOwnProperty(lowerName)) {
@@ -112,7 +139,7 @@ export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
     }
   };
 
-  return fakeXhrIo as XhrIo;
+  return fakeConnection as Connection;
 }
 
 /**
@@ -125,7 +152,10 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
   };
 }
 
-export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
+export function assertThrows(
+  f: () => void,
+  code: string
+): FirebaseStorageError {
   let captured: FirebaseStorageError | null = null;
   expect(() => {
     try {
@@ -170,7 +200,7 @@ const defaultFakeMetadata: Partial<Metadata> = { 'downloadTokens': ['a', 'b'] };
 interface Response {
   status: number;
   body: string;
-  headers: StringHeaders;
+  headers: Headers;
 }
 type RequestHandler = (
   url: string,
@@ -183,19 +213,24 @@ export function storageServiceWithHandler(
   handler: RequestHandler
 ): StorageService {
   function newSend(
-    xhrio: TestingXhrIo,
+    connection: TestingConnection,
     url: string,
     method: string,
     body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
-    xhrio.simulateResponse(response.status, response.body, response.headers);
+    connection.simulateResponse(
+      response.status,
+      response.body,
+      response.headers
+    );
   }
 
   return new StorageService(
     {} as FirebaseApp,
     emptyAuthProvider,
+    fakeAppCheckTokenProvider,
     makePool(newSend)
   );
 }
@@ -212,10 +247,7 @@ export function fakeServerHandler(
 
   let nextId: number = 0;
 
-  function statusHeaders(
-    status: string,
-    existing?: StringHeaders
-  ): StringHeaders {
+  function statusHeaders(status: string, existing?: Headers): Headers {
     if (existing) {
       existing['X-Goog-Upload-Status'] = status;
       return existing;

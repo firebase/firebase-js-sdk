@@ -1,5 +1,92 @@
 # @firebase/functions
 
+## 0.6.13
+
+### Patch Changes
+
+- Updated dependencies [[`56a6a9d4a`](https://github.com/firebase/firebase-js-sdk/commit/56a6a9d4af2766154584a0f66d3c4d8024d74ba5)]:
+  - @firebase/component@0.5.4
+
+## 0.6.12
+
+### Patch Changes
+
+- Updated dependencies [[`725ab4684`](https://github.com/firebase/firebase-js-sdk/commit/725ab4684ef0999a12f71e704c204a00fb030e5d)]:
+  - @firebase/component@0.5.3
+
+## 0.6.11
+
+### Patch Changes
+
+- Updated dependencies [[`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b)]:
+  - @firebase/component@0.5.2
+
+## 0.6.10
+
+### Patch Changes
+
+- [`92e4e8d29`](https://github.com/firebase/firebase-js-sdk/commit/92e4e8d2996c690837a203a868b0d26bf6e3ad84) [#4887](https://github.com/firebase/firebase-js-sdk/pull/4887) (fixes [#683](https://github.com/firebase/firebase-js-sdk/issues/683)) - Fix functions to convert Date objects to an ISO string instead of an empty object.
+
+- Updated dependencies [[`5fbc5fb01`](https://github.com/firebase/firebase-js-sdk/commit/5fbc5fb0140d7da980fd7ebbfbae810f8c64ae19)]:
+  - @firebase/component@0.5.1
+
+## 0.6.9
+
+### Patch Changes
+
+- [`997040ace`](https://github.com/firebase/firebase-js-sdk/commit/997040ace70de0891c9dea78b6da89e4886163b9) [#4924](https://github.com/firebase/firebase-js-sdk/pull/4924) - Fixed a bug in `httpsCallable()` when used in the same project as Firebase Messaging.
+
+## 0.6.8
+
+### Patch Changes
+
+- Updated dependencies [[`c34ac7a92`](https://github.com/firebase/firebase-js-sdk/commit/c34ac7a92a616915f38d192654db7770d81747ae)]:
+  - @firebase/component@0.5.0
+
+## 0.6.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/component@0.4.1
+
+## 0.6.6
+
+### Patch Changes
+
+- Updated dependencies [[`f24d8961b`](https://github.com/firebase/firebase-js-sdk/commit/f24d8961b3b87821413297688803fc85113086b3)]:
+  - @firebase/component@0.4.0
+
+## 0.6.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/component@0.3.1
+
+## 0.6.4
+
+### Patch Changes
+
+- [`5c1a83ed7`](https://github.com/firebase/firebase-js-sdk/commit/5c1a83ed70bae979322bd8751c0885d683ce4bf3) [#4595](https://github.com/firebase/firebase-js-sdk/pull/4595) - Component facotry now takes an options object. And added `Provider.initialize()` that can be used to pass an options object to the component factory.
+
+- Updated dependencies [[`5c1a83ed7`](https://github.com/firebase/firebase-js-sdk/commit/5c1a83ed70bae979322bd8751c0885d683ce4bf3)]:
+  - @firebase/component@0.3.0
+
+## 0.6.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/component@0.2.1
+
+## 0.6.2
+
+### Patch Changes
+
+- Updated dependencies [[`6afe42613`](https://github.com/firebase/firebase-js-sdk/commit/6afe42613ed3d7a842d378dc1a09a795811db2ac)]:
+  - @firebase/component@0.2.0
+
 ## 0.6.1
 
 ### Patch Changes

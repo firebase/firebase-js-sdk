@@ -16,22 +16,24 @@
  */
 
 import { assert } from '@firebase/util';
-import { Change } from '../Change';
+
 import { ChildrenNode } from '../../snap/ChildrenNode';
-import { PRIORITY_INDEX } from '../../snap/indexes/PriorityIndex';
-import { NodeFilter } from './NodeFilter';
 import { Index } from '../../snap/indexes/Index';
-import { Path } from '../../util/Path';
-import { CompleteChildSource } from '../CompleteChildSource';
-import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
+import { PRIORITY_INDEX } from '../../snap/indexes/PriorityIndex';
 import { Node } from '../../snap/Node';
+import { Path } from '../../util/Path';
+import {
+  changeChildAdded,
+  changeChildChanged,
+  changeChildRemoved
+} from '../Change';
+import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
+import { CompleteChildSource } from '../CompleteChildSource';
+
+import { NodeFilter } from './NodeFilter';
 
 /**
  * Doesn't really filter nodes but applies an index to the node and keeps track of any changes
- *
- * @constructor
- * @implements {NodeFilter}
- * @param {!Index} index
  */
 export class IndexedFilter implements NodeFilter {
   constructor(private readonly index_: Index) {}
@@ -69,7 +71,7 @@ export class IndexedFilter implements NodeFilter {
       if (newChild.isEmpty()) {
         if (snap.hasChild(key)) {
           optChangeAccumulator.trackChildChange(
-            Change.childRemovedChange(key, oldChild)
+            changeChildRemoved(key, oldChild)
           );
         } else {
           assert(
@@ -78,12 +80,10 @@ export class IndexedFilter implements NodeFilter {
           );
         }
       } else if (oldChild.isEmpty()) {
-        optChangeAccumulator.trackChildChange(
-          Change.childAddedChange(key, newChild)
-        );
+        optChangeAccumulator.trackChildChange(changeChildAdded(key, newChild));
       } else {
         optChangeAccumulator.trackChildChange(
-          Change.childChangedChange(key, newChild, oldChild)
+          changeChildChanged(key, newChild, oldChild)
         );
       }
     }
@@ -94,10 +94,6 @@ export class IndexedFilter implements NodeFilter {
       return snap.updateImmediateChild(key, newChild).withIndex(this.index_);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   updateFullNode(
     oldSnap: Node,
     newSnap: Node,
@@ -108,7 +104,7 @@ export class IndexedFilter implements NodeFilter {
         oldSnap.forEachChild(PRIORITY_INDEX, (key, childNode) => {
           if (!newSnap.hasChild(key)) {
             optChangeAccumulator.trackChildChange(
-              Change.childRemovedChange(key, childNode)
+              changeChildRemoved(key, childNode)
             );
           }
         });
@@ -119,12 +115,12 @@ export class IndexedFilter implements NodeFilter {
             const oldChild = oldSnap.getImmediateChild(key);
             if (!oldChild.equals(childNode)) {
               optChangeAccumulator.trackChildChange(
-                Change.childChangedChange(key, childNode, oldChild)
+                changeChildChanged(key, childNode, oldChild)
               );
             }
           } else {
             optChangeAccumulator.trackChildChange(
-              Change.childAddedChange(key, childNode)
+              changeChildAdded(key, childNode)
             );
           }
         });
@@ -132,10 +128,6 @@ export class IndexedFilter implements NodeFilter {
     }
     return newSnap.withIndex(this.index_);
   }
-
-  /**
-   * @inheritDoc
-   */
   updatePriority(oldSnap: Node, newPriority: Node): Node {
     if (oldSnap.isEmpty()) {
       return ChildrenNode.EMPTY_NODE;
@@ -143,24 +135,12 @@ export class IndexedFilter implements NodeFilter {
       return oldSnap.updatePriority(newPriority);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   filtersNodes(): boolean {
     return false;
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndexedFilter(): IndexedFilter {
     return this;
   }
-
-  /**
-   * @inheritDoc
-   */
   getIndex(): Index {
     return this.index_;
   }

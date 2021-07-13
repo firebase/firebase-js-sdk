@@ -15,27 +15,28 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
+import { Compat } from '@firebase/util';
+import { _savePersistenceForRedirect } from './persistence';
+import { CompatPopupRedirectResolver } from './popup_redirect';
 import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
-import { unwrap, Wrapper } from './wrap';
 
-export class User implements compat.User, Wrapper<externs.User> {
+export class User implements compat.User, Compat<exp.User> {
   // Maintain a map so that there's always a 1:1 mapping between new User and
   // legacy compat users
-  private static readonly USER_MAP = new WeakMap<externs.User, User>();
+  private static readonly USER_MAP = new WeakMap<exp.User, User>();
 
   readonly multiFactor: compat.MultiFactorUser;
 
-  private constructor(private readonly user: externs.User) {
-    this.multiFactor = impl.multiFactor(user);
+  private constructor(readonly _delegate: exp.User) {
+    this.multiFactor = exp.multiFactor(_delegate);
   }
 
-  static getOrCreate(user: externs.User): User {
+  static getOrCreate(user: exp.User): User {
     if (!User.USER_MAP.has(user)) {
       User.USER_MAP.set(user, new User(user));
     }
@@ -44,19 +45,19 @@ export class User implements compat.User, Wrapper<externs.User> {
   }
 
   delete(): Promise<void> {
-    return this.user.delete();
+    return this._delegate.delete();
   }
   reload(): Promise<void> {
-    return this.user.reload();
+    return this._delegate.reload();
   }
   toJSON(): object {
-    return this.user.toJSON();
+    return this._delegate.toJSON();
   }
   getIdTokenResult(forceRefresh?: boolean): Promise<compat.IdTokenResult> {
-    return this.user.getIdTokenResult(forceRefresh);
+    return this._delegate.getIdTokenResult(forceRefresh);
   }
   getIdToken(forceRefresh?: boolean): Promise<string> {
-    return this.user.getIdToken(forceRefresh);
+    return this._delegate.getIdToken(forceRefresh);
   }
   linkAndRetrieveDataWithCredential(
     credential: compat.AuthCredential
@@ -68,7 +69,7 @@ export class User implements compat.User, Wrapper<externs.User> {
   ): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.linkWithCredential(this.user, credential as externs.AuthCredential)
+      exp.linkWithCredential(this._delegate, credential as exp.AuthCredential)
     );
   }
   async linkWithPhoneNumber(
@@ -77,11 +78,7 @@ export class User implements compat.User, Wrapper<externs.User> {
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
       this.auth,
-      impl.linkWithPhoneNumber(
-        this.user,
-        phoneNumber,
-        unwrap(applicationVerifier)
-      )
+      exp.linkWithPhoneNumber(this._delegate, phoneNumber, applicationVerifier)
     );
   }
   async linkWithPopup(
@@ -89,18 +86,19 @@ export class User implements compat.User, Wrapper<externs.User> {
   ): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.linkWithPopup(
-        this.user,
-        provider as externs.AuthProvider,
-        impl.browserPopupRedirectResolver
+      exp.linkWithPopup(
+        this._delegate,
+        provider as exp.AuthProvider,
+        CompatPopupRedirectResolver
       )
     );
   }
-  linkWithRedirect(provider: compat.AuthProvider): Promise<void> {
-    return impl.linkWithRedirect(
-      this.user,
-      provider as externs.AuthProvider,
-      impl.browserPopupRedirectResolver
+  async linkWithRedirect(provider: compat.AuthProvider): Promise<void> {
+    await _savePersistenceForRedirect(exp._castAuth(this.auth));
+    return exp.linkWithRedirect(
+      this._delegate,
+      provider as exp.AuthProvider,
+      CompatPopupRedirectResolver
     );
   }
   reauthenticateAndRetrieveDataWithCredential(
@@ -112,10 +110,10 @@ export class User implements compat.User, Wrapper<externs.User> {
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      (this.auth as unknown) as externs.Auth,
-      impl.reauthenticateWithCredential(
-        this.user,
-        credential as externs.AuthCredential
+      (this.auth as unknown) as exp.Auth,
+      exp.reauthenticateWithCredential(
+        this._delegate,
+        credential as exp.AuthCredential
       )
     );
   }
@@ -125,10 +123,10 @@ export class User implements compat.User, Wrapper<externs.User> {
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
       this.auth,
-      impl.reauthenticateWithPhoneNumber(
-        this.user,
+      exp.reauthenticateWithPhoneNumber(
+        this._delegate,
         phoneNumber,
-        unwrap(applicationVerifier)
+        applicationVerifier
       )
     );
   }
@@ -137,97 +135,97 @@ export class User implements compat.User, Wrapper<externs.User> {
   ): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.reauthenticateWithPopup(
-        this.user,
-        provider as externs.AuthProvider,
-        impl.browserPopupRedirectResolver
+      exp.reauthenticateWithPopup(
+        this._delegate,
+        provider as exp.AuthProvider,
+        CompatPopupRedirectResolver
       )
     );
   }
-  reauthenticateWithRedirect(provider: compat.AuthProvider): Promise<void> {
-    return impl.reauthenticateWithRedirect(
-      this.user,
-      provider as externs.AuthProvider,
-      impl.browserPopupRedirectResolver
+  async reauthenticateWithRedirect(
+    provider: compat.AuthProvider
+  ): Promise<void> {
+    await _savePersistenceForRedirect(exp._castAuth(this.auth));
+    return exp.reauthenticateWithRedirect(
+      this._delegate,
+      provider as exp.AuthProvider,
+      CompatPopupRedirectResolver
     );
   }
   sendEmailVerification(
     actionCodeSettings?: compat.ActionCodeSettings | null
   ): Promise<void> {
-    return impl.sendEmailVerification(this.user, actionCodeSettings);
+    return exp.sendEmailVerification(this._delegate, actionCodeSettings);
   }
   async unlink(providerId: string): Promise<compat.User> {
-    await impl.unlink(this.user, providerId as externs.ProviderId);
+    await exp.unlink(this._delegate, providerId);
     return this;
   }
   updateEmail(newEmail: string): Promise<void> {
-    return impl.updateEmail(this.user, newEmail);
+    return exp.updateEmail(this._delegate, newEmail);
   }
   updatePassword(newPassword: string): Promise<void> {
-    return impl.updatePassword(this.user, newPassword);
+    return exp.updatePassword(this._delegate, newPassword);
   }
   updatePhoneNumber(phoneCredential: compat.AuthCredential): Promise<void> {
-    return impl.updatePhoneNumber(
-      this.user,
-      phoneCredential as externs.AuthCredential
+    return exp.updatePhoneNumber(
+      this._delegate,
+      phoneCredential as exp.PhoneAuthCredential
     );
   }
   updateProfile(profile: {
     displayName?: string | null;
     photoURL?: string | null;
   }): Promise<void> {
-    return impl.updateProfile(this.user, profile);
+    return exp.updateProfile(this._delegate, profile);
   }
   verifyBeforeUpdateEmail(
     newEmail: string,
     actionCodeSettings?: compat.ActionCodeSettings | null
   ): Promise<void> {
-    return impl.verifyBeforeUpdateEmail(
-      this.user,
+    return exp.verifyBeforeUpdateEmail(
+      this._delegate,
       newEmail,
       actionCodeSettings
     );
   }
-  unwrap(): externs.User {
-    return this.user;
-  }
   get emailVerified(): boolean {
-    return this.user.emailVerified;
+    return this._delegate.emailVerified;
   }
   get isAnonymous(): boolean {
-    return this.user.isAnonymous;
+    return this._delegate.isAnonymous;
   }
   get metadata(): compat.UserMetadata {
-    return this.user.metadata;
+    return this._delegate.metadata;
   }
   get phoneNumber(): string | null {
-    return this.user.phoneNumber;
+    return this._delegate.phoneNumber;
   }
   get providerData(): Array<compat.UserInfo | null> {
-    return this.user.providerData;
+    return this._delegate.providerData;
   }
   get refreshToken(): string {
-    return this.user.refreshToken;
+    return this._delegate.refreshToken;
   }
   get tenantId(): string | null {
-    return this.user.tenantId;
+    return this._delegate.tenantId;
   }
   get displayName(): string | null {
-    return this.user.displayName;
+    return this._delegate.displayName;
   }
   get email(): string | null {
-    return this.user.email;
+    return this._delegate.email;
   }
   get photoURL(): string | null {
-    return this.user.photoURL;
+    return this._delegate.photoURL;
   }
   get providerId(): string {
-    return this.user.providerId;
+    return this._delegate.providerId;
   }
   get uid(): string {
-    return this.user.uid;
+    return this._delegate.uid;
   }
-  private get auth(): externs.Auth {
-    return ((this.user as impl.UserImpl).auth as unknown) as externs.Auth;
+  private get auth(): exp.Auth {
+    return ((this._delegate as exp.UserImpl).auth as unknown) as exp.Auth;
   }
 }

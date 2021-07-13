@@ -32,9 +32,11 @@ export enum GtagCommand {
   CONFIG = 'config'
 }
 
-/*
+/**
  * Officially recommended event names for gtag.js
  * Any other string is also allowed.
+ *
+ * @public
  */
 export enum EventName {
   ADD_SHIPPING_INFO = 'add_shipping_info',
@@ -42,7 +44,11 @@ export enum EventName {
   ADD_TO_CART = 'add_to_cart',
   ADD_TO_WISHLIST = 'add_to_wishlist',
   BEGIN_CHECKOUT = 'begin_checkout',
-  /** @deprecated */
+  /**
+   * @deprecated
+   * This event name is deprecated and is unsupported in updated
+   * Enhanced Ecommerce reports.
+   */
   CHECKOUT_PROGRESS = 'checkout_progress',
   EXCEPTION = 'exception',
   GENERATE_LEAD = 'generate_lead',

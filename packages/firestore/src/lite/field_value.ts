@@ -25,9 +25,11 @@ import { FieldTransform } from '../model/mutation';
 export abstract class FieldValue {
   /**
    * @param _methodName - The public API endpoint that returns this class.
+   * @hideconstructor
    */
   constructor(public _methodName: string) {}
 
+  /** Compares `FieldValue`s for equality. */
   abstract isEqual(other: FieldValue): boolean;
   abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 }

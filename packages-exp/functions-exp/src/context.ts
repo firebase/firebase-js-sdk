@@ -1,3 +1,7 @@
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -18,11 +22,12 @@ import {
   FirebaseMessaging,
   FirebaseMessagingName
 } from '@firebase/messaging-types';
-import {
-  FirebaseAuthInternal,
-  FirebaseAuthInternalName
-} from '@firebase/auth-interop-types';
+
 import { Provider } from '@firebase/component';
+import {
+  AppCheckInternalComponentName,
+  FirebaseAppCheckInternal
+} from '@firebase/app-check-interop-types';
 
 /**
  * The metadata that should be supplied with function calls.
@@ -31,6 +36,7 @@ import { Provider } from '@firebase/component';
 export interface Context {
   authToken?: string;
   messagingToken?: string;
+  appCheckToken: string | null;
 }
 
 /**
@@ -40,9 +46,11 @@ export interface Context {
 export class ContextProvider {
   private auth: FirebaseAuthInternal | null = null;
   private messaging: FirebaseMessaging | null = null;
+  private appCheck: FirebaseAppCheckInternal | null = null;
   constructor(
     authProvider: Provider<FirebaseAuthInternalName>,
-    messagingProvider: Provider<FirebaseMessagingName>
+    messagingProvider: Provider<FirebaseMessagingName>,
+    appCheckProvider: Provider<AppCheckInternalComponentName>
   ) {
     this.auth = authProvider.getImmediate({ optional: true });
     this.messaging = messagingProvider.getImmediate({
@@ -61,6 +69,15 @@ export class ContextProvider {
     if (!this.messaging) {
       messagingProvider.get().then(
         messaging => (this.messaging = messaging),
+        () => {
+          /* get() never rejects */
+        }
+      );
+    }
+
+    if (!this.appCheck) {
+      appCheckProvider.get().then(
+        appCheck => (this.appCheck = appCheck),
         () => {
           /* get() never rejects */
         }
@@ -92,7 +109,7 @@ export class ContextProvider {
     }
 
     try {
-      return this.messaging.getToken();
+      return await this.messaging.getToken();
     } catch (e) {
       // We don't warn on this, because it usually means messaging isn't set up.
       // console.warn('Failed to retrieve instance id token.', e);
@@ -102,9 +119,22 @@ export class ContextProvider {
     }
   }
 
+  async getAppCheckToken(): Promise<string | null> {
+    if (this.appCheck) {
+      const result = await this.appCheck.getToken();
+      // If getToken() fails, it will still return a dummy token that also has
+      // an error field containing the error message. We will send any token
+      // provided here and show an error if/when it is rejected by the functions
+      // endpoint.
+      return result.token;
+    }
+    return null;
+  }
+
   async getContext(): Promise<Context> {
     const authToken = await this.getAuthToken();
     const messagingToken = await this.getMessagingToken();
-    return { authToken, messagingToken };
+    const appCheckToken = await this.getAppCheckToken();
+    return { authToken, messagingToken, appCheckToken };
   }
 }

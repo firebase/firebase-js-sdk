@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import {
+  ActionCodeOperation,
+  ActionCodeSettings,
+  Auth,
+  UserCredential
+} from '../../model/public_types';
 
 import * as api from '../../api/authentication/email_and_password';
 import { ActionCodeURL } from '../action_code_url';
@@ -25,6 +30,7 @@ import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -58,31 +64,32 @@ import { _assert } from '../util/assert';
  * }
  * ```
  *
- * @param auth - The Auth instance.
+ * @param authInternal - The Auth instance.
  * @param email - The user's email address.
- * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
  * @public
  */
 export async function sendSignInLinkToEmail(
-  auth: externs.Auth,
+  auth: Auth,
   email: string,
-  actionCodeSettings?: externs.ActionCodeSettings
+  actionCodeSettings: ActionCodeSettings
 ): Promise<void> {
+  const authModular = getModularInstance(auth);
   const request: api.EmailSignInRequest = {
-    requestType: externs.ActionCodeOperation.EMAIL_SIGNIN,
+    requestType: ActionCodeOperation.EMAIL_SIGNIN,
     email
   };
   _assert(
-    actionCodeSettings?.handleCodeInApp,
-    auth,
+    actionCodeSettings.handleCodeInApp,
+    authModular,
     AuthErrorCode.ARGUMENT_ERROR
   );
   if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(auth, request, actionCodeSettings);
+    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
   }
 
-  await api.sendSignInLinkToEmail(auth, request);
+  await api.sendSignInLinkToEmail(authModular, request);
 }
 
 /**
@@ -93,12 +100,9 @@ export async function sendSignInLinkToEmail(
  *
  * @public
  */
-export function isSignInWithEmailLink(
-  auth: externs.Auth,
-  emailLink: string
-): boolean {
+export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
   const actionCodeUrl = ActionCodeURL.parseLink(emailLink);
-  return actionCodeUrl?.operation === externs.ActionCodeOperation.EMAIL_SIGNIN;
+  return actionCodeUrl?.operation === ActionCodeOperation.EMAIL_SIGNIN;
 }
 
 /**
@@ -139,10 +143,11 @@ export function isSignInWithEmailLink(
  * @public
  */
 export async function signInWithEmailLink(
-  auth: externs.Auth,
+  auth: Auth,
   email: string,
   emailLink?: string
-): Promise<externs.UserCredential> {
+): Promise<UserCredential> {
+  const authModular = getModularInstance(auth);
   const credential = EmailAuthProvider.credentialWithLink(
     email,
     emailLink || _getCurrentUrl()
@@ -150,9 +155,9 @@ export async function signInWithEmailLink(
   // Check if the tenant ID in the email link matches the tenant ID on Auth
   // instance.
   _assert(
-    credential.tenantId === (auth.tenantId || null),
-    auth,
+    credential._tenantId === (authModular.tenantId || null),
+    authModular,
     AuthErrorCode.TENANT_ID_MISMATCH
   );
-  return signInWithCredential(auth, credential);
+  return signInWithCredential(authModular, credential);
 }

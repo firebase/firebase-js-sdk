@@ -1,4 +1,13 @@
 /**
+ * Firestore Lite
+ *
+ * @remarks Firestore Lite is a small online-only SDK that allows read
+ * and write access to your Firestore database. All operations connect
+ * directly to the backend, and `onSnapshot()` APIs are not supported.
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *

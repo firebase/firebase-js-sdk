@@ -46,6 +46,7 @@ interface DebugOptions {
 
 interface BundleDefinition {
   name: string;
+  description?: string;
   dependencies: BundleDependency[];
 }
 
@@ -72,6 +73,12 @@ enum Bundler {
 enum Mode {
   Npm = 'npm',
   Local = 'local'
+}
+
+enum SpecialImport {
+  Default = 'default import',
+  Sizeeffect = 'side effect import',
+  Namespace = 'namespace import'
 }
 
 export async function run({
@@ -247,7 +254,9 @@ async function analyzeBundle(
 ): Promise<BundleAnalysis> {
   const analysis: BundleAnalysis = {
     name: bundleDefinition.name,
-    results: []
+    description: bundleDefinition.description ?? '',
+    results: [],
+    dependencies: bundleDefinition.dependencies
   };
 
   let moduleDirectory: string | undefined;
@@ -392,15 +401,23 @@ async function analyzeBundleWithBundler(
 
 function createEntryFileContent(bundleDefinition: BundleDefinition): string {
   const contentArray = [];
+  // cache used symbols. Used to avoid symbol collision when multiple modules export symbols with the same name.
+  const symbolsCache = new Set<string>();
   for (const dep of bundleDefinition.dependencies) {
     for (const imp of dep.imports) {
       if (typeof imp === 'string') {
-        contentArray.push(`export {${imp}} from '${dep.packageName}';`);
+        contentArray.push(
+          ...createImportExport(imp, dep.packageName, symbolsCache)
+        );
       } else {
-        // Import object
+        // submodule imports
         for (const subImp of imp.imports) {
           contentArray.push(
-            `export {${subImp}} from '${dep.packageName}/${imp.path}';`
+            ...createImportExport(
+              subImp,
+              `${dep.packageName}/${imp.path}`,
+              symbolsCache
+            )
           );
         }
       }
@@ -410,8 +427,64 @@ function createEntryFileContent(bundleDefinition: BundleDefinition): string {
   return contentArray.join('\n');
 }
 
+function createImportExport(
+  symbol: string,
+  modulePath: string,
+  symbolsCache: Set<string>
+): string[] {
+  const contentArray = [];
+
+  switch (symbol) {
+    case SpecialImport.Default: {
+      const nameToUse = createSymbolName('default_import', symbolsCache);
+      contentArray.push(`import ${nameToUse} from '${modulePath}';`);
+      contentArray.push(`console.log(${nameToUse})`); // prevent import from being tree shaken
+      break;
+    }
+    case SpecialImport.Namespace: {
+      const nameToUse = createSymbolName('namespace', symbolsCache);
+      contentArray.push(`import * as ${nameToUse} from '${modulePath}';`);
+      contentArray.push(`console.log(${nameToUse})`); // prevent import from being tree shaken
+      break;
+    }
+    case SpecialImport.Sizeeffect:
+      contentArray.push(`import '${modulePath}';`);
+      break;
+    default:
+      // named imports
+      const nameToUse = createSymbolName(symbol, symbolsCache);
+
+      if (nameToUse !== symbol) {
+        contentArray.push(
+          `export {${symbol} as ${nameToUse}} from '${modulePath}';`
+        );
+      } else {
+        contentArray.push(`export {${symbol}} from '${modulePath}';`);
+      }
+  }
+
+  return contentArray;
+}
+
+/**
+ * In case a symbol with the same name is already imported from another module, we need to give this symbol another name
+ * using "originalname as anothername" syntax, otherwise it returns the original symbol name.
+ */
+function createSymbolName(symbol: string, symbolsCache: Set<string>): string {
+  let nameToUse = symbol;
+  const max = 100;
+  while (symbolsCache.has(nameToUse)) {
+    nameToUse = `${symbol}_${Math.floor(Math.random() * max)}`;
+  }
+
+  symbolsCache.add(nameToUse);
+  return nameToUse;
+}
+
 interface BundleAnalysis {
   name: string; // the bundle name defined in the bundle definition
+  description: string;
+  dependencies: BundleDependency[];
   results: BundleAnalysisResult[];
 }
 

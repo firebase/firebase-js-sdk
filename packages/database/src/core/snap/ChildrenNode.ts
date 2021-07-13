@@ -16,20 +16,22 @@
  */
 
 import { assert } from '@firebase/util';
-import { sha1, MAX_NAME, MIN_NAME } from '../util/util';
+
+import { Path, pathGetFront, pathGetLength, pathPopFront } from '../util/Path';
 import { SortedMap, SortedMapIterator } from '../util/SortedMap';
-import { Node, NamedNode } from './Node';
-import { validatePriorityNode, priorityHashText, setMaxNode } from './snap';
+import { MAX_NAME, MIN_NAME, sha1 } from '../util/util';
+
+import { NAME_COMPARATOR } from './comparators';
+import { Index } from './indexes/Index';
+import { KEY_INDEX, KeyIndex } from './indexes/KeyIndex';
 import {
   PRIORITY_INDEX,
   setMaxNode as setPriorityMaxNode
 } from './indexes/PriorityIndex';
-import { KEY_INDEX, KeyIndex } from './indexes/KeyIndex';
 import { IndexMap } from './IndexMap';
 import { LeafNode } from './LeafNode';
-import { NAME_COMPARATOR } from './comparators';
-import { Index } from './indexes/Index';
-import { Path } from '../util/Path';
+import { NamedNode, Node } from './Node';
+import { priorityHashText, setMaxNode, validatePriorityNode } from './snap';
 
 export interface ChildrenNodeConstructor {
   new (
@@ -48,9 +50,6 @@ let EMPTY_NODE: ChildrenNode;
  * ChildrenNode is a class for storing internal nodes in a DataSnapshot
  * (i.e. nodes with children).  It implements Node and stores the
  * list of children in the children property, sorted by child name.
- *
- * @constructor
- * @implements {Node}
  */
 export class ChildrenNode implements Node {
   private lazyHash_: string | null = null;
@@ -67,11 +66,8 @@ export class ChildrenNode implements Node {
   }
 
   /**
-   *
-   * @param {!SortedMap.<string, !Node>} children_ List of children
-   * of this node..
-   * @param {?Node} priorityNode_ The priority of this node (as a snapshot node).
-   * @param {!IndexMap} indexMap_
+   * @param children_ - List of children of this node..
+   * @param priorityNode_ - The priority of this node (as a snapshot node).
    */
   constructor(
     private readonly children_: SortedMap<string, Node>,
@@ -128,12 +124,12 @@ export class ChildrenNode implements Node {
 
   /** @inheritDoc */
   getChild(path: Path): Node {
-    const front = path.getFront();
+    const front = pathGetFront(path);
     if (front === null) {
       return this;
     }
 
-    return this.getImmediateChild(front).getChild(path.popFront());
+    return this.getImmediateChild(front).getChild(pathPopFront(path));
   }
 
   /** @inheritDoc */
@@ -169,16 +165,16 @@ export class ChildrenNode implements Node {
 
   /** @inheritDoc */
   updateChild(path: Path, newChildNode: Node): Node {
-    const front = path.getFront();
+    const front = pathGetFront(path);
     if (front === null) {
       return newChildNode;
     } else {
       assert(
-        path.getFront() !== '.priority' || path.getLength() === 1,
+        pathGetFront(path) !== '.priority' || pathGetLength(path) === 1,
         '.priority must be the last token in a path'
       );
       const newImmediateChild = this.getImmediateChild(front).updateChild(
-        path.popFront(),
+        pathPopFront(path),
         newChildNode
       );
       return this.updateImmediateChild(front, newImmediateChild);
@@ -195,10 +191,6 @@ export class ChildrenNode implements Node {
     return this.children_.count();
   }
 
-  /**
-   * @private
-   * @type {RegExp}
-   */
   private static INTEGER_REGEXP_ = /^(0|[1-9]\d*)$/;
 
   /** @inheritDoc */
@@ -279,10 +271,6 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {?string}
-   */
   getFirstChildName(indexDefinition: Index): string | null {
     const idx = this.resolveIndex_(indexDefinition);
     if (idx) {
@@ -293,10 +281,6 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {?NamedNode}
-   */
   getFirstChild(indexDefinition: Index): NamedNode | null {
     const minKey = this.getFirstChildName(indexDefinition);
     if (minKey) {
@@ -308,8 +292,6 @@ export class ChildrenNode implements Node {
 
   /**
    * Given an index, return the key name of the largest value we have, according to that index
-   * @param {!Index} indexDefinition
-   * @return {?string}
    */
   getLastChildName(indexDefinition: Index): string | null {
     const idx = this.resolveIndex_(indexDefinition);
@@ -321,10 +303,6 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {?NamedNode}
-   */
   getLastChild(indexDefinition: Index): NamedNode | null {
     const maxKey = this.getLastChildName(indexDefinition);
     if (maxKey) {
@@ -333,10 +311,6 @@ export class ChildrenNode implements Node {
       return null;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   forEachChild(
     index: Index,
     action: (key: string, node: Node) => boolean | void
@@ -351,22 +325,12 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {SortedMapIterator}
-   */
   getIterator(
     indexDefinition: Index
   ): SortedMapIterator<string | NamedNode, Node, NamedNode> {
     return this.getIteratorFrom(indexDefinition.minPost(), indexDefinition);
   }
 
-  /**
-   *
-   * @param {!NamedNode} startPost
-   * @param {!Index} indexDefinition
-   * @return {!SortedMapIterator}
-   */
   getIteratorFrom(
     startPost: NamedNode,
     indexDefinition: Index
@@ -388,10 +352,6 @@ export class ChildrenNode implements Node {
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {!SortedMapIterator}
-   */
   getReverseIterator(
     indexDefinition: Index
   ): SortedMapIterator<string | NamedNode, Node, NamedNode> {
@@ -401,11 +361,6 @@ export class ChildrenNode implements Node {
     );
   }
 
-  /**
-   * @param {!NamedNode} endPost
-   * @param {!Index} indexDefinition
-   * @return {!SortedMapIterator}
-   */
   getReverseIteratorFrom(
     endPost: NamedNode,
     indexDefinition: Index
@@ -428,10 +383,6 @@ export class ChildrenNode implements Node {
       return iterator;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   compareTo(other: ChildrenNode): number {
     if (this.isEmpty()) {
       if (other.isEmpty()) {
@@ -448,10 +399,6 @@ export class ChildrenNode implements Node {
       return 0;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   withIndex(indexDefinition: Index): Node {
     if (
       indexDefinition === KEY_INDEX ||
@@ -466,17 +413,9 @@ export class ChildrenNode implements Node {
       return new ChildrenNode(this.children_, this.priorityNode_, newIndexMap);
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   isIndexed(index: Index): boolean {
     return index === KEY_INDEX || this.indexMap_.hasIndex(index);
   }
-
-  /**
-   * @inheritDoc
-   */
   equals(other: Node): boolean {
     if (other === this) {
       return true;
@@ -514,9 +453,6 @@ export class ChildrenNode implements Node {
    * Returns a SortedMap ordered by index, or null if the default (by-key) ordering can be used
    * instead.
    *
-   * @private
-   * @param {!Index} indexDefinition
-   * @return {?SortedMap.<NamedNode, Node>}
    */
   private resolveIndex_(
     indexDefinition: Index
@@ -529,11 +465,6 @@ export class ChildrenNode implements Node {
   }
 }
 
-/**
- * @constructor
- * @extends {ChildrenNode}
- * @private
- */
 export class MaxNode extends ChildrenNode {
   constructor() {
     super(
@@ -571,8 +502,6 @@ export class MaxNode extends ChildrenNode {
 
 /**
  * Marker that will sort higher than any other snapshot.
- * @type {!MAX_NODE}
- * @const
  */
 export const MAX_NODE = new MaxNode();
 

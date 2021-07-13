@@ -16,6 +16,7 @@
  */
 
 import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
+import { Compat } from '@firebase/util';
 
 import {
   arrayRemove,
@@ -26,11 +27,7 @@ import {
   serverTimestamp
 } from '../../exp/index';
 
-import { Compat } from './compat';
-
-export class FieldValue
-  extends Compat<FieldValue1>
-  implements PublicFieldValue {
+export class FieldValue implements PublicFieldValue, Compat<FieldValue1> {
   static serverTimestamp(): FieldValue {
     const delegate = serverTimestamp();
     delegate._methodName = 'FieldValue.serverTimestamp';
@@ -60,6 +57,8 @@ export class FieldValue
     delegate._methodName = 'FieldValue.increment';
     return new FieldValue(delegate);
   }
+
+  constructor(readonly _delegate: FieldValue1) {}
 
   isEqual(other: FieldValue): boolean {
     return this._delegate.isEqual(other._delegate);

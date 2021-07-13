@@ -18,10 +18,14 @@
 import './setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { FirebaseNamespace, FirebaseOptions } from '@firebase/app-types';
-import { _FirebaseApp, _FirebaseNamespace } from '@firebase/app-types/private';
+import { FirebaseNamespace, FirebaseOptions } from '../src/public-types';
+import { _FirebaseApp, _FirebaseNamespace } from '../src/types';
 import { _components, _clearComponents } from '@firebase/app-exp';
-import { ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstantiationMode
+} from '@firebase/component';
 
 import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { createFirebaseNamespaceLite } from '../src/lite/firebaseNamespaceLite';
@@ -67,6 +71,7 @@ function executeFirebaseTests(): void {
 
       expect(serviceNamespace).to.eq(serviceNamespace2);
       expect(registerStub).to.have.not.thrown();
+      registerStub.restore();
     });
 
     it('returns cached service instances', () => {
@@ -78,6 +83,71 @@ function executeFirebaseTests(): void {
       const service = (firebase as any).test();
 
       expect(service).to.eq((firebase as any).test());
+    });
+
+    it('does not instantiate explicit components unless called explicitly', () => {
+      firebase.initializeApp({});
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('explicit1').setInstantiationMode(
+          InstantiationMode.EXPLICIT
+        )
+      );
+
+      let explicitService;
+
+      // Expect getImmediate in a consuming component to return null.
+      const consumerComponent = new Component(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'consumer' as any,
+        container => {
+          explicitService = container
+            .getProvider('explicit1' as any)
+            .getImmediate({ optional: true });
+          return new TestService(
+            container.getProvider('app-compat').getImmediate()
+          );
+        },
+        ComponentType.PUBLIC
+      );
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        consumerComponent
+      );
+
+      (firebase as any).consumer();
+      expect(explicitService).to.be.null;
+    });
+
+    it('does instantiate explicit components when called explicitly', () => {
+      firebase.initializeApp({});
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('explicit2').setInstantiationMode(
+          InstantiationMode.EXPLICIT
+        )
+      );
+
+      let explicitService;
+
+      // Expect getImmediate in a consuming component to return the service.
+      const consumerComponent = new Component(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'consumer' as any,
+        container => {
+          explicitService = container
+            .getProvider('explicit2' as any)
+            .getImmediate({ optional: true });
+          return new TestService(
+            container.getProvider('app-compat').getImmediate()
+          );
+        },
+        ComponentType.PUBLIC
+      );
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        consumerComponent
+      );
+
+      (firebase as any).explicit2();
+      (firebase as any).consumer();
+      expect(explicitService).to.not.be.null;
     });
 
     it(`creates a new instance of a service after removing the existing instance`, () => {
@@ -133,8 +203,8 @@ function executeFirebaseTests(): void {
       const warnStub = stub(console, 'warn');
       const initialSize = _components.size;
 
-      firebase.registerVersion('@firebase/analytics', '1.2.3');
-      expect(_components.get('fire-analytics-version')).to.exist;
+      firebase.registerVersion('@firebase/app-compat', '1.2.3');
+      expect(_components.get('fire-core-compat-version')).to.exist;
       expect(_components.size).to.equal(initialSize + 1);
 
       expect(warnStub.called).to.be.false;

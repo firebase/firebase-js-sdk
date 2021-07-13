@@ -14,19 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as externs from '@firebase/auth-types-exp';
+import { FactorId, MultiFactorAssertion } from '../model/public_types';
 import { debugFail } from '../core/util/assert';
-import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
+import { MultiFactorSessionImpl, MultiFactorSessionType } from './mfa_session';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
-import { Auth } from '../model/auth';
+import { AuthInternal } from '../model/auth';
 
-export abstract class MultiFactorAssertion
-  implements externs.MultiFactorAssertion {
-  protected constructor(readonly factorId: externs.FactorId) {}
+export abstract class MultiFactorAssertionImpl implements MultiFactorAssertion {
+  protected constructor(readonly factorId: FactorId) {}
 
   _process(
-    auth: Auth,
-    session: MultiFactorSession,
+    auth: AuthInternal,
+    session: MultiFactorSessionImpl,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
     switch (session.type) {
@@ -40,12 +39,12 @@ export abstract class MultiFactorAssertion
   }
 
   abstract _finalizeEnroll(
-    auth: Auth,
+    auth: AuthInternal,
     idToken: string,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse>;
   abstract _finalizeSignIn(
-    auth: Auth,
+    auth: AuthInternal,
     mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse>;
 }

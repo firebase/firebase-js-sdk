@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Document } from '../../../src/model/document';
+import { MutableDocument } from '../../../src/model/document';
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { doc, query } from '../../util/helpers';
@@ -32,18 +32,12 @@ describeSpec('Writes:', [], () => {
       const query1 = query('collection');
       const docAv1 = doc('collection/a', 1000, { v: 1 });
       const docBv1 = doc('collection/b', 500, { v: 1 });
-      const docAv2Local = doc(
-        'collection/a',
-        1000,
-        { v: 2 },
-        { hasLocalMutations: true }
-      );
-      const docBv2Local = doc(
-        'collection/b',
-        500,
-        { v: 2 },
-        { hasLocalMutations: true }
-      );
+      const docAv2Local = doc('collection/a', 1000, {
+        v: 2
+      }).setHasLocalMutations();
+      const docBv2Local = doc('collection/b', 500, {
+        v: 2
+      }).setHasLocalMutations();
       const docAv2 = doc('collection/a', 2000, { v: 2 });
       const docBv2 = doc('collection/b', 2500, { v: 2 });
 
@@ -82,12 +76,9 @@ describeSpec('Writes:', [], () => {
     () => {
       const query1 = query('collection/key');
       const doc1a = doc('collection/key', 1000, { v: 1 });
-      const doc1b = doc(
-        'collection/key',
-        1000,
-        { v: 2 },
-        { hasLocalMutations: true }
-      );
+      const doc1b = doc('collection/key', 1000, {
+        v: 2
+      }).setHasLocalMutations();
       const doc1c = doc('collection/key', 2000, { v: 2 });
       return spec()
         .userListens(query1)
@@ -114,12 +105,9 @@ describeSpec('Writes:', [], () => {
     [],
     () => {
       const query1 = query('collection');
-      const pendingDoc = doc(
-        'collection/doc',
-        /* remoteVersion= */ 0,
-        { v: 1 },
-        { hasLocalMutations: true }
-      );
+      const pendingDoc = doc('collection/doc', /* remoteVersion= */ 0, {
+        v: 1
+      }).setHasLocalMutations();
       return spec()
         .withGCEnabled(false)
         .userSets('collection/doc', { v: 1 })
@@ -137,12 +125,9 @@ describeSpec('Writes:', [], () => {
     [],
     () => {
       const query1 = query('collection');
-      const modifiedDoc = doc(
-        'collection/doc',
-        1000,
-        { v: 1 },
-        { hasCommittedMutations: true }
-      );
+      const modifiedDoc = doc('collection/doc', 1000, {
+        v: 1
+      }).setHasCommittedMutations();
       return spec()
         .withGCEnabled(false)
         .userSets('collection/doc', { v: 1 })
@@ -190,12 +175,7 @@ describeSpec('Writes:', [], () => {
 
     const query1 = query('collection/key');
     const doc1a = doc('collection/key', initialVersion, { v: 1 });
-    const doc1b = doc(
-      'collection/key',
-      1000,
-      { v: 2 },
-      { hasLocalMutations: true }
-    );
+    const doc1b = doc('collection/key', 1000, { v: 2 }).setHasLocalMutations();
     const doc1c = doc('collection/key', watchVersion, { v: 3 });
 
     return spec()
@@ -221,12 +201,9 @@ describeSpec('Writes:', [], () => {
     () => {
       const query1 = query('collection/key');
       const docV1 = doc('collection/key', 1000, { v: 1 });
-      const docV2Local = doc(
-        'collection/key',
-        1000,
-        { v: 2 },
-        { hasLocalMutations: true }
-      );
+      const docV2Local = doc('collection/key', 1000, {
+        v: 2
+      }).setHasLocalMutations();
       const docV2 = doc('collection/key', 2000, { v: 2 });
 
       return (
@@ -254,12 +231,9 @@ describeSpec('Writes:', [], () => {
     const query1 = query('collection');
     const docV1 = doc('collection/key', 1000, { v: 1 });
     const docV2 = doc('collection/key', 2000, { v: 2 });
-    const docV3Local = doc(
-      'collection/key',
-      1000,
-      { v: 3 },
-      { hasLocalMutations: true }
-    );
+    const docV3Local = doc('collection/key', 1000, {
+      v: 3
+    }).setHasLocalMutations();
     const docV3 = doc('collection/key', 3000, { v: 3 });
     const docB = doc('collection/b', 3000, { doc: 'b' });
     return (
@@ -291,34 +265,25 @@ describeSpec('Writes:', [], () => {
   specTest('Local patch is applied to query until watch catches up', [], () => {
     const query1 = query('collection');
 
-    const docV1 = doc(
-      'collection/doc',
-      /* remoteVersion= */ 0,
-      { local: 1 },
-      { hasLocalMutations: true }
-    );
+    const docV1 = doc('collection/doc', /* remoteVersion= */ 0, {
+      local: 1
+    }).setHasLocalMutations();
     const docV2 = doc('collection/doc', /* remoteVersion= */ 2000, {
       local: 1,
       remote: 2
     });
-    const docV2Local = doc(
-      'collection/doc',
-      /* remoteVersion= */ 2000,
-      { local: 5, remote: 2 },
-      { hasLocalMutations: true }
-    );
-    const docV3 = doc(
-      'collection/doc',
-      3000,
-      { local: 1, remote: 3 },
-      { hasCommittedMutations: true }
-    );
-    const docV4 = doc(
-      'collection/doc',
-      4000,
-      { local: 1, remote: 4 },
-      { hasCommittedMutations: true }
-    );
+    const docV2Local = doc('collection/doc', /* remoteVersion= */ 2000, {
+      local: 5,
+      remote: 2
+    }).setHasLocalMutations();
+    const docV3 = doc('collection/doc', 3000, {
+      local: 1,
+      remote: 3
+    }).setHasCommittedMutations();
+    const docV4 = doc('collection/doc', 4000, {
+      local: 1,
+      remote: 4
+    }).setHasCommittedMutations();
     const docV5Acknowledged = doc('collection/doc', /* remoteVersion= */ 5000, {
       local: 5,
       remote: 5
@@ -362,17 +327,14 @@ describeSpec('Writes:', [], () => {
 
   specTest('Writes are pipelined', [], () => {
     const query1 = query('collection');
-    const docs: Document[] = [];
-    const localDocs: Document[] = [];
+    const docs: MutableDocument[] = [];
+    const localDocs: MutableDocument[] = [];
     const numWrites = 15;
     for (let i = 0; i < numWrites; i++) {
       const d = doc('collection/a' + i, (i + 1) * 1000, { v: 1 });
-      const dLocal = doc(
-        'collection/a' + i,
-        0,
-        { v: 1 },
-        { hasLocalMutations: true }
-      );
+      const dLocal = doc('collection/a' + i, 0, {
+        v: 1
+      }).setHasLocalMutations();
       docs.push(d);
       localDocs.push(dLocal);
     }
@@ -411,13 +373,11 @@ describeSpec('Writes:', [], () => {
 
   specTest('Pipelined writes can fail', [], () => {
     const query1 = query('collection');
-    const docs: Document[] = [];
+    const docs: MutableDocument[] = [];
     // Chose a number that is higher than the number of pipelined writes
     const numWrites = 15;
     for (let i = 0; i < numWrites; i++) {
-      docs.push(
-        doc('collection/a' + i, 0, { v: 1 }, { hasLocalMutations: true })
-      );
+      docs.push(doc('collection/a' + i, 0, { v: 1 }).setHasLocalMutations());
     }
 
     // Only listen, no watch events because all writes are local
@@ -459,19 +419,11 @@ describeSpec('Writes:', [], () => {
   specTest('Failed writes are released immediately.', [], () => {
     const query1 = query('collection');
     const docAv1 = doc('collection/a', 1000, { v: 1 });
-    const docAv2Local = doc(
-      'collection/a',
-      1000,
-      { v: 2 },
-      { hasLocalMutations: true }
-    );
+    const docAv2Local = doc('collection/a', 1000, {
+      v: 2
+    }).setHasLocalMutations();
 
-    const docBLocal = doc(
-      'collection/b',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
+    const docBLocal = doc('collection/b', 0, { v: 1 }).setHasLocalMutations();
     const docB = doc('collection/b', 2000, { v: 1 });
 
     return (
@@ -503,20 +455,10 @@ describeSpec('Writes:', [], () => {
 
   specTest('Writes are not re-sent.', [], () => {
     const query1 = query('collection');
-    const docALocal = doc(
-      'collection/a',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
+    const docALocal = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
     const docA = doc('collection/a', 1000, { v: 1 });
 
-    const docBLocal = doc(
-      'collection/b',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
+    const docBLocal = doc('collection/b', 0, { v: 1 }).setHasLocalMutations();
     const docB = doc('collection/b', 2000, { v: 1 });
 
     return (
@@ -550,12 +492,7 @@ describeSpec('Writes:', [], () => {
 
   specTest('Writes are not re-sent after disable/enable network.', [], () => {
     const query1 = query('collection');
-    const docALocal = doc(
-      'collection/a',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
+    const docALocal = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
     const docA = doc('collection/a', 1000, { v: 1 });
 
     return (
@@ -604,12 +541,7 @@ describeSpec('Writes:', [], () => {
       'garbage collection on target removal',
     () => {
       const query1 = query('collection');
-      const docALocal = doc(
-        'collection/a',
-        0,
-        { v: 1 },
-        { hasLocalMutations: true }
-      );
+      const docALocal = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
 
       return (
         spec()
@@ -644,12 +576,9 @@ describeSpec('Writes:', [], () => {
     specTest('Writes that fail with code ' + code + ' are rejected', [], () => {
       const query1 = query('collection/key');
 
-      const doc1a = doc(
-        'collection/key',
-        0,
-        { foo: 'bar' },
-        { hasLocalMutations: true }
-      );
+      const doc1a = doc('collection/key', 0, {
+        foo: 'bar'
+      }).setHasLocalMutations();
       return spec()
         .userListens(query1)
         .userSets('collection/key', { foo: 'bar' })
@@ -674,12 +603,9 @@ describeSpec('Writes:', [], () => {
     [],
     () => {
       const query1 = query('collection/key');
-      const doc1a = doc(
-        'collection/key',
-        0,
-        { foo: 'bar' },
-        { hasLocalMutations: true }
-      );
+      const doc1a = doc('collection/key', 0, {
+        foo: 'bar'
+      }).setHasLocalMutations();
 
       return spec()
         .userListens(query1)
@@ -710,12 +636,9 @@ describeSpec('Writes:', [], () => {
   ]) {
     specTest('Writes that fail with code ' + code + ' are retried', [], () => {
       const query1 = query('collection/key');
-      const doc1a = doc(
-        'collection/key',
-        0,
-        { foo: 'bar' },
-        { hasLocalMutations: true }
-      );
+      const doc1a = doc('collection/key', 0, {
+        foo: 'bar'
+      }).setHasLocalMutations();
       const doc1b = doc('collection/key', 1000, { foo: 'bar' });
 
       return spec()
@@ -747,12 +670,10 @@ describeSpec('Writes:', [], () => {
     () => {
       const query1 = query('collection/doc');
       const docV1 = doc('collection/doc', 1000, { v: 1, a: { b: 2 } });
-      const docV2Local = doc(
-        'collection/doc',
-        1000,
-        { v: 2, a: { b: 2 } },
-        { hasLocalMutations: true }
-      );
+      const docV2Local = doc('collection/doc', 1000, {
+        v: 2,
+        a: { b: 2 }
+      }).setHasLocalMutations();
       const docV2 = doc('collection/doc', 2000, { v: 2, a: { b: 2 } });
 
       return (
@@ -844,24 +765,9 @@ describeSpec('Writes:', [], () => {
     ['multi-client'],
     () => {
       const query1 = query('collection');
-      const docV1 = doc(
-        'collection/a',
-        0,
-        { v: 1 },
-        { hasLocalMutations: true }
-      );
-      const docV2 = doc(
-        'collection/a',
-        0,
-        { v: 2 },
-        { hasLocalMutations: true }
-      );
-      const docV3 = doc(
-        'collection/a',
-        0,
-        { v: 3 },
-        { hasLocalMutations: true }
-      );
+      const docV1 = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
+      const docV2 = doc('collection/a', 0, { v: 2 }).setHasLocalMutations();
+      const docV3 = doc('collection/a', 0, { v: 3 }).setHasLocalMutations();
 
       return client(0)
         .userListens(query1)
@@ -907,12 +813,7 @@ describeSpec('Writes:', [], () => {
     ['multi-client'],
     () => {
       const query1 = query('collection');
-      const localDoc = doc(
-        'collection/a',
-        0,
-        { v: 1 },
-        { hasLocalMutations: true }
-      );
+      const localDoc = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
       const remoteDoc = doc('collection/a', 1000, { v: 1 });
       return client(0)
         .becomeVisible()
@@ -953,12 +854,7 @@ describeSpec('Writes:', [], () => {
     ['multi-client'],
     () => {
       const query1 = query('collection');
-      const localDoc = doc(
-        'collection/a',
-        0,
-        { v: 1 },
-        { hasLocalMutations: true }
-      );
+      const localDoc = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
 
       return client(0)
         .userListens(query1)
@@ -999,12 +895,7 @@ describeSpec('Writes:', [], () => {
 
   specTest('Writes are released by primary client', ['multi-client'], () => {
     const query1 = query('collection');
-    const docALocal = doc(
-      'collection/a',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
+    const docALocal = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
     const docA = doc('collection/a', 1000, { v: 1 });
 
     return (
@@ -1038,18 +929,10 @@ describeSpec('Writes:', [], () => {
   specTest('Writes are held during primary failover', ['multi-client'], () => {
     const query1 = query('collection');
     const query2 = query('collection/doc');
-    const docV1 = doc(
-      'collection/doc',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
-    const docV1Committed = doc(
-      'collection/doc',
-      2000,
-      { v: 1 },
-      { hasCommittedMutations: true }
-    );
+    const docV1 = doc('collection/doc', 0, { v: 1 }).setHasLocalMutations();
+    const docV1Committed = doc('collection/doc', 2000, {
+      v: 1
+    }).setHasCommittedMutations();
     const docV1Acknowledged = doc('collection/doc', 2000, { v: 1 });
     return (
       client(0)
@@ -1205,24 +1088,9 @@ describeSpec('Writes:', [], () => {
 
   specTest('Secondary tabs handle user change', ['multi-client'], () => {
     const query1 = query('collection');
-    const docALocal = doc(
-      'collection/a',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
-    const docBLocal = doc(
-      'collection/b',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
-    const docCLocal = doc(
-      'collection/c',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
+    const docALocal = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
+    const docBLocal = doc('collection/b', 0, { v: 1 }).setHasLocalMutations();
+    const docCLocal = doc('collection/c', 0, { v: 1 }).setHasLocalMutations();
 
     // Firebase Auth attempts to rapidly synchronize user changes across tabs.
     // We emulate this behavior in this spec tests by calling `changeUser`
@@ -1299,18 +1167,8 @@ describeSpec('Writes:', [], () => {
 
   specTest('Mutations are scoped by user', ['multi-client'], () => {
     const query1 = query('collection');
-    const docALocal = doc(
-      'collection/a',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
-    const docBLocal = doc(
-      'collection/b',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
+    const docALocal = doc('collection/a', 0, { v: 1 }).setHasLocalMutations();
+    const docBLocal = doc('collection/b', 0, { v: 1 }).setHasLocalMutations();
 
     return client(0)
       .changeUser('user1')
@@ -1336,12 +1194,7 @@ describeSpec('Writes:', [], () => {
 
   specTest('Mutation recovers after primary takeover', ['multi-client'], () => {
     const query1 = query('collection');
-    const docALocal = doc(
-      'collection/a',
-      0,
-      { k: 'a' },
-      { hasLocalMutations: true }
-    );
+    const docALocal = doc('collection/a', 0, { k: 'a' }).setHasLocalMutations();
     const docA = doc('collection/a', 1000, { k: 'a' });
     return client(0)
       .expectPrimaryState(true)
@@ -1459,18 +1312,12 @@ describeSpec('Writes:', [], () => {
     ['multi-client'],
     () => {
       const query1 = query('collection');
-      const docA = doc(
-        'collection/a',
-        1000,
-        { k: 'a' },
-        { hasCommittedMutations: true }
-      );
-      const docB = doc(
-        'collection/b',
-        2000,
-        { k: 'b' },
-        { hasCommittedMutations: true }
-      );
+      const docA = doc('collection/a', 1000, {
+        k: 'a'
+      }).setHasCommittedMutations();
+      const docB = doc('collection/b', 2000, {
+        k: 'b'
+      }).setHasCommittedMutations();
 
       return client(0)
         .expectPrimaryState(true)

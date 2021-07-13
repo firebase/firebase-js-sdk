@@ -16,6 +16,14 @@
  */
 
 import * as ts from 'typescript';
+
+export function getImportPathTransformer({ pattern, template }) {
+  return () => ({
+    before: [transformImportPath({ pattern, template })],
+    after: [],
+    afterDeclarations: [transformImportPath({ pattern, template })]
+  });
+}
 /**
  * remove '-exp' in import paths.
  * For example, `import {...} from '@firebase/app-exp'` becomes `import {...} from '@firebase/app'`.
@@ -23,28 +31,38 @@ import * as ts from 'typescript';
  * Used to generate the release build for exp packages. We do this because we publish them
  * using the existing package names under a special release tag (e.g. firebase@exp);
  */
-
 export const importPathTransformer = () => ({
-  before: [transformImportPath()],
+  before: [
+    transformImportPath({
+      pattern: /^(@firebase.*)-exp(.*)$/,
+      template: [1, 2]
+    })
+  ],
   after: [],
-  afterDeclarations: [transformImportPath()]
+  afterDeclarations: [
+    transformImportPath({
+      pattern: /^(@firebase.*)-exp(.*)$/,
+      template: [1, 2]
+    })
+  ]
 });
 
-function transformImportPath() {
+function transformImportPath({ pattern, template }) {
   return context => file => {
-    return visitNodeAndChildren(file, context);
+    return visitNodeAndChildren(file, context, { pattern, template });
   };
 }
 
-function visitNodeAndChildren(node, context) {
+function visitNodeAndChildren(node, context, { pattern, template }) {
   return ts.visitEachChild(
-    visitNode(node),
-    childNode => visitNodeAndChildren(childNode, context),
+    visitNode(node, { pattern, template }),
+    childNode =>
+      visitNodeAndChildren(childNode, context, { pattern, template }),
     context
   );
 }
 
-function visitNode(node) {
+function visitNode(node, { pattern, template }) {
   let importPath;
   if (
     (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
@@ -56,11 +74,19 @@ function visitNode(node) {
       importPathWithQuotes.length - 2
     );
 
-    const pattern = /^(@firebase.*)-exp(.*)$/g;
     const captures = pattern.exec(importPath);
-
     if (captures) {
-      const newName = `${captures[1]}${captures[2]}`;
+      const newNameFragments = [];
+      for (const fragment of template) {
+        if (typeof fragment === 'number') {
+          newNameFragments.push(captures[fragment]);
+        } else if (typeof fragment === 'string') {
+          newNameFragments.push(fragment);
+        } else {
+          throw Error(`unrecognized fragment: ${fragment}`);
+        }
+      }
+      const newName = newNameFragments.join('');
       const newNode = ts.getMutableClone(node);
       newNode.moduleSpecifier = ts.createLiteral(newName);
       return newNode;

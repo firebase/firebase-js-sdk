@@ -1,5 +1,49 @@
 # @firebase/auth
 
+## 0.16.8
+
+### Patch Changes
+
+- [`56a6a9d4a`](https://github.com/firebase/firebase-js-sdk/commit/56a6a9d4af2766154584a0f66d3c4d8024d74ba5) [#5071](https://github.com/firebase/firebase-js-sdk/pull/5071) (fixes [#4932](https://github.com/firebase/firebase-js-sdk/issues/4932)) - Auto initialize `auth-internal` after `auth` has been initialized.
+
+## 0.16.7
+
+### Patch Changes
+
+- [`c81cf82fa`](https://github.com/firebase/firebase-js-sdk/commit/c81cf82fac14cbfaebc0e440235c3fb38af22d38) [#4966](https://github.com/firebase/firebase-js-sdk/pull/4966) (fixes [#4879](https://github.com/firebase/firebase-js-sdk/issues/4879)) - Fix bug where `linkWithPopup`, `linkWithRedirect`, `reauthenticateWithPopup`, and `reauthenticateWithRedirect` weren't correctly picking up the emulator configuration.
+
+## 0.16.6
+
+### Patch Changes
+
+- [`de68cdca2`](https://github.com/firebase/firebase-js-sdk/commit/de68cdca21c6ba5a890807857b529c2187e4adba) [#4868](https://github.com/firebase/firebase-js-sdk/pull/4868) (fixes [#4867](https://github.com/firebase/firebase-js-sdk/issues/4867)) - Ensure emulator warning text is accessible.
+
+## 0.16.5
+
+### Patch Changes
+
+- Updated dependencies [[`3f370215a`](https://github.com/firebase/firebase-js-sdk/commit/3f370215aa571db6b41b92a7d8a9aaad2ea0ecd0)]:
+  - @firebase/auth-types@0.10.3
+
+## 0.16.4
+
+### Patch Changes
+
+- Updated dependencies [[`4ab5a9ce5`](https://github.com/firebase/firebase-js-sdk/commit/4ab5a9ce5b6256a95d745f6dc40a5e5ddd2301f2)]:
+  - @firebase/auth-types@0.10.2
+
+## 0.16.3
+
+### Patch Changes
+
+- [`73bb561e1`](https://github.com/firebase/firebase-js-sdk/commit/73bb561e18ea42286a54d28648636bf1ac7fcfe0) [#4357](https://github.com/firebase/firebase-js-sdk/pull/4357) (fixes [#4174](https://github.com/firebase/firebase-js-sdk/issues/4174)) - Decode UTF-8 in ID Token. Fix #4174.
+
+## 0.16.2
+
+### Patch Changes
+
+- [`92a7f4345`](https://github.com/firebase/firebase-js-sdk/commit/92a7f434536051bedd00bc1be7e774174378aa7d) [#4280](https://github.com/firebase/firebase-js-sdk/pull/4280) - Add the `useEmulator()` function and `emulatorConfig` to the `firebase` package externs
+
 ## 0.16.1
 
 ### Patch Changes

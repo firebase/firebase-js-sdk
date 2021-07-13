@@ -389,6 +389,15 @@ export class PhoneMultiFactorGenerator {
   ): PhoneMultiFactorAssertion;
 }
 
+export interface EmulatorConfig {
+  readonly protocol: string;
+  readonly host: string;
+  readonly port: number | null;
+  readonly options: {
+    readonly disableWarnings: boolean;
+  };
+}
+
 export class FirebaseAuth {
   private constructor();
 
@@ -407,6 +416,7 @@ export class FirebaseAuth {
     password: string
   ): Promise<UserCredential>;
   currentUser: User | null;
+  readonly emulatorConfig: EmulatorConfig | null;
   fetchSignInMethodsForEmail(email: string): Promise<Array<string>>;
   isSignInWithEmailLink(emailLink: string): boolean;
   getRedirectResult(): Promise<UserCredential>;
@@ -455,6 +465,7 @@ export class FirebaseAuth {
   tenantId: string | null;
   updateCurrentUser(user: User | null): Promise<void>;
   useDeviceLanguage(): void;
+  useEmulator(url: string, options?: { disableWarnings?: boolean }): void;
   verifyPasswordResetCode(code: string): Promise<string>;
 }
 

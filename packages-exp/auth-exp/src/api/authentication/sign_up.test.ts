@@ -51,10 +51,11 @@ describe('api/authentication/signUp', () => {
       email: 'test@foo.com'
     });
 
+    auth.tenantId = 'tenant-id';
     const response = await signUp(auth, request);
     expect(response.displayName).to.eq('my-name');
     expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'

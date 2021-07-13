@@ -23,7 +23,7 @@ import '@firebase/auth';
 import * as storage from '@firebase/storage-types';
 
 import { expect } from 'chai';
-import '../../compat/index';
+import '../../index';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');
@@ -78,7 +78,7 @@ describe('FirebaseStorage Compat', () => {
     });
   });
 
-  it('can delete object ', () => {
+  it('can delete object', () => {
     return withTestInstance(async storage => {
       const ref = storage.ref('public/delete');
       await ref.putString('foo');

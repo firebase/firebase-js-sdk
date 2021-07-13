@@ -15,29 +15,40 @@
  * limitations under the License.
  */
 
-import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
-import * as externs from '@firebase/auth-types-exp';
+import { _FirebaseService, FirebaseApp } from '@firebase/app-exp';
 import {
+  Auth,
+  AuthErrorMap,
+  AuthSettings,
+  EmulatorConfig,
+  NextOrObserver,
+  Persistence,
+  PopupRedirectResolver,
+  User,
+  UserCredential,
   CompleteFn,
-  createSubscribe,
-  ErrorFactory,
   ErrorFn,
   NextFn,
-  Observer,
-  Subscribe,
   Unsubscribe
+} from '../../model/public_types';
+import {
+  createSubscribe,
+  ErrorFactory,
+  getModularInstance,
+  Observer,
+  Subscribe
 } from '@firebase/util';
 
-import { Auth, ConfigInternal } from '../../model/auth';
-import { PopupRedirectResolver } from '../../model/popup_redirect';
-import { User } from '../../model/user';
+import { AuthInternal, ConfigInternal } from '../../model/auth';
+import { PopupRedirectResolverInternal } from '../../model/popup_redirect';
+import { UserInternal } from '../../model/user';
 import {
   AuthErrorCode,
   AuthErrorParams,
   ErrorMapRetriever,
   _DEFAULT_AUTH_ERROR_FACTORY
 } from '../errors';
-import { Persistence } from '../persistence';
+import { PersistenceInternal } from '../persistence';
 import {
   KeyName,
   PersistenceUserManager
@@ -46,6 +57,7 @@ import { _reloadWithoutSaving } from '../user/reload';
 import { _assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
+import { _getClientVersion } from '../util/version';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -57,14 +69,15 @@ export const enum DefaultConfig {
   API_SCHEME = 'https'
 }
 
-export class AuthImpl implements Auth, _FirebaseService {
-  currentUser: externs.User | null = null;
+export class AuthImpl implements AuthInternal, _FirebaseService {
+  currentUser: User | null = null;
+  emulatorConfig: EmulatorConfig | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
-  private authStateSubscription = new Subscription<externs.User>(this);
-  private idTokenSubscription = new Subscription<externs.User>(this);
-  private redirectUser: User | null = null;
+  private authStateSubscription = new Subscription<User>(this);
+  private idTokenSubscription = new Subscription<User>(this);
+  private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
   private redirectInitializerError: Error | null = null;
 
@@ -74,7 +87,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   _isInitialized = false;
   _deleted = false;
   _initializationPromise: Promise<void> | null = null;
-  _popupRedirectResolver: PopupRedirectResolver | null = null;
+  _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
   _errorFactory: ErrorFactory<
     AuthErrorCode,
     AuthErrorParams
@@ -88,28 +101,29 @@ export class AuthImpl implements Auth, _FirebaseService {
 
   languageCode: string | null = null;
   tenantId: string | null = null;
-  settings: externs.AuthSettings = { appVerificationDisabledForTesting: false };
+  settings: AuthSettings = { appVerificationDisabledForTesting: false };
 
   constructor(
     public readonly app: FirebaseApp,
     public readonly config: ConfigInternal
   ) {
     this.name = app.name;
+    this.clientVersion = config.sdkClientVersion;
   }
 
   _initializeWithPersistence(
-    persistenceHierarchy: Persistence[],
-    popupRedirectResolver?: externs.PopupRedirectResolver
+    persistenceHierarchy: PersistenceInternal[],
+    popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
+    if (popupRedirectResolver) {
+      this._popupRedirectResolver = _getInstance(popupRedirectResolver);
+    }
+
     // Have to check for app deletion throughout initialization (after each
     // promise resolution)
     this._initializationPromise = this.queue(async () => {
       if (this._deleted) {
         return;
-      }
-
-      if (popupRedirectResolver) {
-        this._popupRedirectResolver = _getInstance(popupRedirectResolver);
       }
 
       this.persistenceManager = await PersistenceUserManager.create(
@@ -119,6 +133,12 @@ export class AuthImpl implements Auth, _FirebaseService {
 
       if (this._deleted) {
         return;
+      }
+
+      // Initialize the resolver early if necessary (only applicable to web:
+      // this will cause the iframe to load immediately in certain cases)
+      if (this._popupRedirectResolver?._shouldInitProactively) {
+        await this._popupRedirectResolver._initialize(this);
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
@@ -168,10 +188,10 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   private async initializeCurrentUser(
-    popupRedirectResolver?: externs.PopupRedirectResolver
+    popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
     // First check to see if we have a pending redirect event.
-    let storedUser = (await this.assertedPersistence.getCurrentUser()) as User | null;
+    let storedUser = (await this.assertedPersistence.getCurrentUser()) as UserInternal | null;
     if (popupRedirectResolver && this.config.authDomain) {
       await this.getOrInitRedirectPersistenceManager();
       const redirectUserEventId = this.redirectUser?._redirectEventId;
@@ -186,7 +206,7 @@ export class AuthImpl implements Auth, _FirebaseService {
         (!redirectUserEventId || redirectUserEventId === storedUserEventId) &&
         result?.user
       ) {
-        storedUser = result.user as User;
+        storedUser = result.user as UserInternal;
       }
     }
 
@@ -219,8 +239,8 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   private async tryRedirectSignIn(
-    redirectResolver: externs.PopupRedirectResolver
-  ): Promise<externs.UserCredential | null> {
+    redirectResolver: PopupRedirectResolver
+  ): Promise<UserCredential | null> {
     // The redirect user needs to be checked (and signed in if available)
     // during auth initialization. All of the normal sign in and link/reauth
     // flows call back into auth and push things onto the promise queue. We
@@ -237,7 +257,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     // _completeRedirectFn) with an optional parameter that instructs all of
     // the underlying auth operations to skip anything that mutates auth state.
 
-    let result: externs.UserCredential | null = null;
+    let result: UserCredential | null = null;
     try {
       // We know this._popupRedirectResolver is set since redirectResolver
       // is passed in. The _completeRedirectFn expects the unwrapped extern.
@@ -254,7 +274,9 @@ export class AuthImpl implements Auth, _FirebaseService {
     return result;
   }
 
-  private async reloadAndSetCurrentUserOrClear(user: User): Promise<void> {
+  private async reloadAndSetCurrentUserOrClear(
+    user: UserInternal
+  ): Promise<void> {
     try {
       await _reloadWithoutSaving(user);
     } catch (e) {
@@ -272,38 +294,27 @@ export class AuthImpl implements Auth, _FirebaseService {
     this.languageCode = _getUserLanguage();
   }
 
-  useEmulator(url: string, options?: { disableWarnings: boolean }): void {
-    _assert(this._canInitEmulator, this, AuthErrorCode.EMULATOR_CONFIG_FAILED);
-
-    _assert(
-      /^https?:\/\//.test(url),
-      this,
-      AuthErrorCode.INVALID_EMULATOR_SCHEME
-    );
-
-    this.config.emulator = { url };
-    this.settings.appVerificationDisabledForTesting = true;
-    emitEmulatorWarning(!!options?.disableWarnings);
-  }
-
   async _delete(): Promise<void> {
     this._deleted = true;
   }
 
-  async updateCurrentUser(userExtern: externs.User | null): Promise<void> {
+  async updateCurrentUser(userExtern: User | null): Promise<void> {
     // The public updateCurrentUser method needs to make a copy of the user,
-    // and also needs to verify that the app matches
-    const user = userExtern as User | null;
-    _assert(
-      !user || user.auth.name === this.name,
-      this,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
-
-    return this._updateCurrentUser(user && user._clone());
+    // and also check that the project matches
+    const user = userExtern
+      ? (getModularInstance(userExtern) as UserInternal)
+      : null;
+    if (user) {
+      _assert(
+        user.auth.config.apiKey === this.config.apiKey,
+        this,
+        AuthErrorCode.INVALID_AUTH
+      );
+    }
+    return this._updateCurrentUser(user && user._clone(this));
   }
 
-  async _updateCurrentUser(user: externs.User | null): Promise<void> {
+  async _updateCurrentUser(user: User | null): Promise<void> {
     if (this._deleted) {
       return;
     }
@@ -316,7 +327,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     }
 
     return this.queue(async () => {
-      await this.directlySetCurrentUser(user as User | null);
+      await this.directlySetCurrentUser(user as UserInternal | null);
       this.notifyAuthListeners();
     });
   }
@@ -330,7 +341,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     return this._updateCurrentUser(null);
   }
 
-  setPersistence(persistence: externs.Persistence): Promise<void> {
+  setPersistence(persistence: Persistence): Promise<void> {
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
@@ -340,7 +351,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     return this.assertedPersistence.persistence.type;
   }
 
-  _updateErrorMap(errorMap: externs.AuthErrorMap): void {
+  _updateErrorMap(errorMap: AuthErrorMap): void {
     this._errorFactory = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
       'auth',
       'Firebase',
@@ -349,7 +360,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   onAuthStateChanged(
-    nextOrObserver: externs.NextOrObserver<externs.User>,
+    nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -362,7 +373,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   onIdTokenChanged(
-    nextOrObserver: externs.NextOrObserver<externs.User>,
+    nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -384,8 +395,8 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   async _setRedirectUser(
-    user: User | null,
-    popupRedirectResolver?: externs.PopupRedirectResolver
+    user: UserInternal | null,
+    popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
     const redirectManager = await this.getOrInitRedirectPersistenceManager(
       popupRedirectResolver
@@ -396,10 +407,10 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   private async getOrInitRedirectPersistenceManager(
-    popupRedirectResolver?: externs.PopupRedirectResolver
+    popupRedirectResolver?: PopupRedirectResolver
   ): Promise<PersistenceUserManager> {
     if (!this.redirectPersistenceManager) {
-      const resolver: PopupRedirectResolver | null =
+      const resolver: PopupRedirectResolverInternal | null =
         (popupRedirectResolver && _getInstance(popupRedirectResolver)) ||
         this._popupRedirectResolver;
       _assert(resolver, this, AuthErrorCode.ARGUMENT_ERROR);
@@ -414,7 +425,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     return this.redirectPersistenceManager;
   }
 
-  async _redirectUserForId(id: string): Promise<User | null> {
+  async _redirectUserForId(id: string): Promise<UserInternal | null> {
     // Make sure we've cleared any pending persistence actions if we're not in
     // the initializer
     if (this._isInitialized) {
@@ -432,14 +443,14 @@ export class AuthImpl implements Auth, _FirebaseService {
     return null;
   }
 
-  async _persistUserIfCurrent(user: User): Promise<void> {
+  async _persistUserIfCurrent(user: UserInternal): Promise<void> {
     if (user === this.currentUser) {
       return this.queue(async () => this.directlySetCurrentUser(user));
     }
   }
 
   /** Notifies listeners only if the user is current */
-  _notifyListenersIfCurrent(user: User): void {
+  _notifyListenersIfCurrent(user: UserInternal): void {
     if (user === this.currentUser) {
       this.notifyAuthListeners();
     }
@@ -464,8 +475,8 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   /** Returns the current user cast as the internal type */
-  get _currentUser(): User {
-    return this.currentUser as User;
+  get _currentUser(): UserInternal {
+    return this.currentUser as UserInternal;
   }
 
   private notifyAuthListeners(): void {
@@ -483,8 +494,8 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   private registerStateListener(
-    subscription: Subscription<externs.User>,
-    nextOrObserver: externs.NextOrObserver<externs.User>,
+    subscription: Subscription<User>,
+    nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -495,7 +506,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     const cb =
       typeof nextOrObserver === 'function'
         ? nextOrObserver
-        : nextOrObserver.next;
+        : nextOrObserver.next.bind(nextOrObserver);
 
     const promise = this._isInitialized
       ? Promise.resolve()
@@ -517,7 +528,9 @@ export class AuthImpl implements Auth, _FirebaseService {
    * should only be called from within a queued callback. This is necessary
    * because the queue shouldn't rely on another queued callback.
    */
-  private async directlySetCurrentUser(user: User | null): Promise<void> {
+  private async directlySetCurrentUser(
+    user: UserInternal | null
+  ): Promise<void> {
     if (this.currentUser && this.currentUser !== user) {
       this._currentUser._stopProactiveRefresh();
       if (user && this.isProactiveRefreshEnabled) {
@@ -545,15 +558,39 @@ export class AuthImpl implements Auth, _FirebaseService {
     _assert(this.persistenceManager, this, AuthErrorCode.INTERNAL_ERROR);
     return this.persistenceManager;
   }
+
+  private frameworks: string[] = [];
+  private clientVersion: string;
+  _logFramework(framework: string): void {
+    if (!framework || this.frameworks.includes(framework)) {
+      return;
+    }
+    this.frameworks.push(framework);
+
+    // Sort alphabetically so that "FirebaseCore-web,FirebaseUI-web" and
+    // "FirebaseUI-web,FirebaseCore-web" aren't viewed as different.
+    this.frameworks.sort();
+    this.clientVersion = _getClientVersion(
+      this.config.clientPlatform,
+      this._getFrameworks()
+    );
+  }
+  _getFrameworks(): readonly string[] {
+    return this.frameworks;
+  }
+  _getSdkClientVersion(): string {
+    return this.clientVersion;
+  }
 }
 
 /**
- * Method to be used to cast down to our private implmentation of Auth
+ * Method to be used to cast down to our private implmentation of Auth.
+ * It will also handle unwrapping from the compat type if necessary
  *
  * @param auth Auth object passed in from developer
  */
-export function _castAuth(auth: externs.Auth): Auth {
-  return (auth as unknown) as Auth;
+export function _castAuth(auth: Auth): AuthInternal {
+  return getModularInstance(auth) as AuthInternal;
 }
 
 /** Helper class to wrap subscriber logic */
@@ -563,50 +600,10 @@ class Subscription<T> {
     observer => (this.observer = observer)
   );
 
-  constructor(readonly auth: Auth) {}
+  constructor(readonly auth: AuthInternal) {}
 
   get next(): NextFn<T | null> {
     _assert(this.observer, this.auth, AuthErrorCode.INTERNAL_ERROR);
     return this.observer.next.bind(this.observer);
-  }
-}
-
-function emitEmulatorWarning(disableBanner: boolean): void {
-  function attachBanner(): void {
-    const el = document.createElement('p');
-    const sty = el.style;
-    el.innerText =
-      'Running in emulator mode. Do not use with production credentials.';
-    sty.position = 'fixed';
-    sty.width = '100%';
-    sty.backgroundColor = '#ffffff';
-    sty.border = '.1em solid #000000';
-    sty.color = '#ff0000';
-    sty.bottom = '0px';
-    sty.left = '0px';
-    sty.margin = '0px';
-    sty.zIndex = '10000';
-    sty.textAlign = 'center';
-    el.classList.add('firebase-emulator-warning');
-    document.body.appendChild(el);
-  }
-
-  if (typeof console !== 'undefined' && typeof console.info === 'function') {
-    console.info(
-      'WARNING: You are using the Auth Emulator,' +
-        ' which is intended for local testing only.  Do not use with' +
-        ' production credentials.'
-    );
-  }
-  if (
-    typeof window !== 'undefined' &&
-    typeof document !== 'undefined' &&
-    !disableBanner
-  ) {
-    if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', attachBanner);
-    } else {
-      attachBanner();
-    }
   }
 }

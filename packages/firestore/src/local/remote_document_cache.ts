@@ -17,12 +17,8 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  DocumentKeySet,
-  DocumentMap,
-  NullableMaybeDocumentMap
-} from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
+import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { PersistencePromise } from './persistence_promise';
@@ -32,35 +28,34 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 /**
  * Represents cached documents received from the remote backend.
  *
- * The cache is keyed by DocumentKey and entries in the cache are MaybeDocument
- * instances, meaning we can cache both Document instances (an actual document
- * with data) as well as NoDocument instances (indicating that the document is
- * known to not exist).
+ * The cache is keyed by DocumentKey and entries in the cache are
+ * MutableDocuments, meaning we can cache both actual documents as well as
+ * documents that are known to not exist.
  */
 export interface RemoteDocumentCache {
   /**
    * Looks up an entry in the cache.
    *
    * @param documentKey - The key of the entry to look up.*
-   * @returns The cached Document or NoDocument entry, or null if we have
-   * nothing cached.
+   * @returns The cached document entry. Returns an invalid document if the
+   * document is not cached.
    */
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null>;
+  ): PersistencePromise<MutableDocument>;
 
   /**
    * Looks up a set of entries in the cache.
    *
    * @param documentKeys - The keys of the entries to look up.
-   * @returns The cached Document or NoDocument entries indexed by key. If an
-   * entry is not cached, the corresponding key will be mapped to a null value.
+   * @returns The cached document entries indexed by key. If an entry is not
+   * cached, the corresponding key will be mapped to an invalid document.
    */
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap>;
+  ): PersistencePromise<MutableDocumentMap>;
 
   /**
    * Executes a query against the cached Document entries.
@@ -79,7 +74,7 @@ export interface RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query,
     sinceReadTime: SnapshotVersion
-  ): PersistencePromise<DocumentMap>;
+  ): PersistencePromise<MutableDocumentMap>;
 
   /**
    * Provides access to add or update the contents of the cache. The buffer

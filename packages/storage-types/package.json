@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage-types",
-  "version": "0.3.13",
+  "version": "0.4.1",
   "description": "@firebase/storage Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -13,7 +13,7 @@
   ],
   "peerDependencies": {
     "@firebase/app-types": "0.x",
-    "@firebase/util": "0.x"
+    "@firebase/util": "1.x"
   },
   "repository": {
     "directory": "packages/storage-types",
@@ -24,6 +24,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "4.0.5"
+    "typescript": "4.2.2"
   }
 }

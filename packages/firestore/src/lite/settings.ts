@@ -28,19 +28,38 @@ import { validateIsNotUsedTogether } from '../util/input_validation';
 export const DEFAULT_HOST = 'firestore.googleapis.com';
 export const DEFAULT_SSL = true;
 
+/**
+ * Specifies custom configurations for your Cloud Firestore instance.
+ * You must set these before invoking any other methods.
+ */
 export interface Settings {
+  /** The hostname to connect to. */
   host?: string;
+
+  /** Whether to use SSL when connecting. */
   ssl?: boolean;
+
+  /**
+   * Whether to skip nested properties that are set to `undefined` during
+   * object serialization. If set to `true`, these properties are skipped
+   * and not written to Firestore. If set to `false` or omitted, the SDK
+   * throws an exception when it encounters properties of type `undefined`.
+   */
   ignoreUndefinedProperties?: boolean;
-  cacheSizeBytes?: number;
-  experimentalForceLongPolling?: boolean;
-  experimentalAutoDetectLongPolling?: boolean;
 }
 
 /** Undocumented, private additional settings not exposed in our public API. */
 export interface PrivateSettings extends Settings {
   // Can be a google-auth-library or gapi client.
   credentials?: CredentialsSettings;
+  // Used in firestore@exp
+  cacheSizeBytes?: number;
+  // Used in firestore@exp
+  experimentalForceLongPolling?: boolean;
+  // Used in firestore@exp
+  experimentalAutoDetectLongPolling?: boolean;
+  // Used in firestore@exp
+  useFetchStreams?: boolean;
 }
 
 /**
@@ -62,6 +81,8 @@ export class FirestoreSettings {
   readonly experimentalAutoDetectLongPolling: boolean;
 
   readonly ignoreUndefinedProperties: boolean;
+
+  readonly useFetchStreams: boolean;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,6 +124,7 @@ export class FirestoreSettings {
 
     this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
     this.experimentalAutoDetectLongPolling = !!settings.experimentalAutoDetectLongPolling;
+    this.useFetchStreams = !!settings.useFetchStreams;
 
     validateIsNotUsedTogether(
       'experimentalForceLongPolling',
@@ -122,7 +144,8 @@ export class FirestoreSettings {
         other.experimentalForceLongPolling &&
       this.experimentalAutoDetectLongPolling ===
         other.experimentalAutoDetectLongPolling &&
-      this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
+      this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
+      this.useFetchStreams === other.useFetchStreams
     );
   }
 }

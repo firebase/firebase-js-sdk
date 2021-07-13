@@ -15,14 +15,12 @@
  * limitations under the License.
  */
 
-import { EventEmitter } from './EventEmitter';
 import { assert } from '@firebase/util';
+
+import { EventEmitter } from './EventEmitter';
 
 declare const document: Document;
 
-/**
- * @extends {EventEmitter}
- */
 export class VisibilityMonitor extends EventEmitter {
   private visible_: boolean;
 
@@ -75,10 +73,6 @@ export class VisibilityMonitor extends EventEmitter {
     }
   }
 
-  /**
-   * @param {!string} eventType
-   * @return {Array.<boolean>}
-   */
   getInitialEvent(eventType: string): boolean[] {
     assert(eventType === 'visible', 'Unknown event type: ' + eventType);
     return [this.visible_];

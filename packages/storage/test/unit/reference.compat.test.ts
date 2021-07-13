@@ -17,27 +17,34 @@
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
 import { StringFormat } from '../../src/implementation/string';
-import { Headers } from '../../src/implementation/xhrio';
+import { Headers } from '../../src/implementation/connection';
 import { Metadata } from '../../src/metadata';
 import { ReferenceCompat } from '../../compat/reference';
 import { StorageServiceCompat } from '../../compat/service';
 import * as testShared from './testshared';
-import { SendHook, TestingXhrIo } from './xhrio';
+import { SendHook, TestingConnection } from './connection';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { StorageService } from '../../src/service';
-import { StorageReference } from '../../src/reference';
+import { Reference } from '../../src/reference';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
   app: FirebaseApp,
   authProvider: Provider<FirebaseAuthInternalName>,
+  appCheckProvider: Provider<AppCheckInternalComponentName>,
   sendHook: SendHook
 ): StorageServiceCompat {
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(app, authProvider, testShared.makePool(sendHook))
+    new StorageService(
+      app,
+      authProvider,
+      appCheckProvider,
+      testShared.makePool(sendHook)
+    )
   );
   return storageServiceCompat;
 }
@@ -46,16 +53,14 @@ function makeStorage(url: string): ReferenceCompat {
   const service = new StorageService(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
+    testShared.fakeAppCheckTokenProvider,
     testShared.makePool(null)
   );
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     {} as FirebaseApp,
     service
   );
-  return new ReferenceCompat(
-    new StorageReference(service, url),
-    storageServiceCompat
-  );
+  return new ReferenceCompat(new Reference(service, url), storageServiceCompat);
 }
 
 describe('Firebase Storage > Reference', () => {
@@ -184,7 +189,7 @@ describe('Firebase Storage > Reference', () => {
 
   it("Doesn't send Authorization on null auth token", done => {
     function newSend(
-      xhrio: TestingXhrIo,
+      connection: TestingConnection,
       url: string,
       method: string,
       body?: ArrayBufferView | Blob | string | null,
@@ -198,6 +203,7 @@ describe('Firebase Storage > Reference', () => {
     const service = makeFakeService(
       testShared.fakeApp,
       testShared.emptyAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       newSend
     );
     const ref = service.refFromURL('gs://test-bucket');
@@ -207,7 +213,7 @@ describe('Firebase Storage > Reference', () => {
   it('Works if the user logs in before creating the storage reference', done => {
     // Regression test for b/27227221
     function newSend(
-      xhrio: TestingXhrIo,
+      connection: TestingConnection,
       url: string,
       method: string,
       body?: ArrayBufferView | Blob | string | null,
@@ -223,6 +229,7 @@ describe('Firebase Storage > Reference', () => {
     const service = makeFakeService(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
       newSend
     );
     const ref = service.refFromURL('gs://test-bucket');
@@ -277,7 +284,7 @@ describe('Firebase Storage > Reference', () => {
 
   describe('root operations', () => {
     it('put throws', () => {
-      expect(() => root.put(new Blob(['a']))).to.throw(
+      expect(() => root.put(new Uint8Array())).to.throw(
         'storage/invalid-root-operation'
       );
     });

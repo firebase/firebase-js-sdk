@@ -24,8 +24,8 @@
 
 import { AsyncStorage } from 'react-native';
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { Auth } from '@firebase/auth-types-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { Auth } from './src/model/public_types';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
@@ -35,11 +35,22 @@ import { getReactNativePersistence } from './src/platform_react_native/persisten
 // Core functionality shared by all clients
 export * from './src';
 
-export const reactNativeLocalPersistence = getReactNativePersistence(
-  AsyncStorage
-);
+/**
+ * An implementation of {@link Persistence} of type 'LOCAL' for use in React
+ * Native environments.
+ *
+ * @public
+ */
+export const reactNativeLocalPersistence =
+  getReactNativePersistence(AsyncStorage);
 
-export function getAuth(app: FirebaseApp): Auth {
+export function getAuth(app: FirebaseApp = getApp()): Auth {
+  const provider = _getProvider(app, 'auth-exp');
+
+  if (provider.isInitialized()) {
+    return provider.getImmediate();
+  }
+
   return initializeAuth(app, {
     persistence: reactNativeLocalPersistence
   });

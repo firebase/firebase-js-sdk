@@ -16,10 +16,11 @@
  */
 
 import { expect } from 'chai';
-import { fake, SinonSpy } from 'sinon';
+import { fake, SinonSpy, match } from 'sinon';
 import { ComponentContainer } from './component_container';
 import { FirebaseService } from '@firebase/app-types/private';
-import { _FirebaseService } from '@firebase/app-types-exp';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { _FirebaseService } from '@firebase/app-exp';
 import { Provider } from './provider';
 import { getFakeApp, getFakeComponent } from '../test/util';
 import '../test/setup';
@@ -92,23 +93,178 @@ describe('Provider', () => {
 
   it('does not throw if instance factory throws when registering a component with a pending promise', () => {
     // create a pending promise
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    provider.get();
+    void provider.get();
     const component = getFakeComponent('test', () => {
       throw Error('something went wrong!');
     });
     expect(() => provider.setComponent(component)).to.not.throw();
   });
 
+  describe('initialize()', () => {
+    it('throws if the provider is already initialized', () => {
+      provider.setComponent(getFakeComponent('test', () => ({})));
+      provider.initialize();
+
+      expect(() => provider.initialize()).to.throw();
+    });
+
+    it('throws if the component has not been registered', () => {
+      expect(() => provider.initialize()).to.throw();
+    });
+
+    it('accepts an options parameter and passes it to the instance factory', () => {
+      const options = {
+        configurable: true,
+        test: true
+      };
+      provider.setComponent(
+        getFakeComponent('test', (_container, opts) => ({
+          options: opts.options
+        }))
+      );
+      const instance = provider.initialize({ options });
+
+      expect((instance as any).options).to.deep.equal(options);
+    });
+
+    it('resolve pending promises created by Provider.get() with the same identifier', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const servicePromise = provider.get();
+      expect((provider as any).instances.size).to.equal(0);
+
+      provider.initialize();
+      expect((provider as any).instances.size).to.equal(1);
+      return expect(servicePromise).to.eventually.deep.equal({ test: true });
+    });
+
+    it('invokes onInit callbacks synchronously', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      provider.onInit(callback1);
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+    });
+  });
+
+  describe('onInit', () => {
+    it('registers onInit callbacks', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+      provider.onInit(callback1);
+      provider.onInit(callback2);
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback2).to.have.been.calledOnce;
+    });
+
+    it('invokes callback for existing instance', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback = fake();
+      provider.initialize();
+      provider.onInit(callback);
+
+      expect(callback).to.have.been.calledOnce;
+    });
+
+    it('passes service instance', () => {
+      const serviceInstance = { test: true };
+      provider.setComponent(getFakeComponent('test', () => serviceInstance));
+      const callback = fake();
+
+      // initialize the service instance
+      provider.getImmediate();
+
+      provider.onInit(callback);
+
+      expect(callback).to.have.been.calledOnce;
+      expect(callback).to.have.been.calledWith(serviceInstance);
+    });
+
+    it('passes instance identifier', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          true,
+          InstantiationMode.EAGER
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+
+      provider.getImmediate({ identifier: 'id1' });
+      provider.getImmediate({ identifier: 'id2' });
+
+      provider.onInit(callback1, 'id1');
+      provider.onInit(callback2, 'id2');
+
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback1).to.have.been.calledWith(match.any, 'id1');
+      expect(callback2).to.have.been.calledOnce;
+      expect(callback2).to.have.been.calledWith(match.any, 'id2');
+    });
+
+    it('returns a function to unregister the callback', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+      provider.onInit(callback1);
+      const unregister = provider.onInit(callback2);
+      unregister();
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback2).to.not.have.been.called;
+    });
+  });
+
   describe('Provider (multipleInstances = false)', () => {
     describe('getImmediate()', () => {
-      it('throws if the service is not available', () => {
+      it('throws if component has not been registered', () => {
         expect(provider.getImmediate.bind(provider)).to.throw(
           'Service test is not available'
         );
       });
 
-      it('returns null if the service is not available with optional flag', () => {
+      it('returns null with the optional flag set if component has not been registered ', () => {
         expect(provider.getImmediate({ optional: true })).to.equal(null);
       });
 
@@ -154,11 +310,10 @@ describe('Provider', () => {
       });
     });
 
-    describe('provideFactory()', () => {
+    describe('setComponent()', () => {
       it('instantiates the service if there is a pending promise and the service is eager', () => {
         // create a pending promise
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        provider.get();
+        void provider.get();
 
         provider.setComponent(
           getFakeComponent('test', () => ({}), false, InstantiationMode.EAGER)
@@ -168,8 +323,7 @@ describe('Provider', () => {
 
       it('instantiates the service if there is a pending promise and the service is NOT eager', () => {
         // create a pending promise
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        provider.get();
+        void provider.get();
 
         provider.setComponent(getFakeComponent('test', () => ({})));
         expect((provider as any).instances.size).to.equal(1);
@@ -222,8 +376,7 @@ describe('Provider', () => {
           )
         );
 
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        provider.delete();
+        void provider.delete();
 
         expect(deleteFake).to.have.been.called;
       });
@@ -245,8 +398,7 @@ describe('Provider', () => {
           )
         );
 
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        provider.delete();
+        void provider.delete();
 
         expect(deleteFake).to.have.been.called;
       });
@@ -319,14 +471,12 @@ describe('Provider', () => {
       });
     });
 
-    describe('provideFactory()', () => {
+    describe('setComponent()', () => {
       it('instantiates services for the pending promises for all instance identifiers', async () => {
-        /* eslint-disable @typescript-eslint/no-floating-promises */
         // create 3 promises for 3 different identifiers
-        provider.get();
-        provider.get('name1');
-        provider.get('name2');
-        /* eslint-enable @typescript-eslint/no-floating-promises */
+        void provider.get();
+        void provider.get('name1');
+        void provider.get('name2');
 
         provider.setComponent(
           getFakeComponent('test', () => ({ test: true }), true)
@@ -349,8 +499,7 @@ describe('Provider', () => {
 
       it(`instantiates the default serviec if there are pending promises for other identifiers 
             but not for the default identifer and the service is eager`, () => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        provider.get('name1');
+        void provider.get('name1');
         provider.setComponent(
           getFakeComponent(
             'test',
@@ -386,8 +535,7 @@ describe('Provider', () => {
         provider.getImmediate({ identifier: 'instance1' });
         provider.getImmediate({ identifier: 'instance2' });
 
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        provider.delete();
+        void provider.delete();
 
         expect(deleteFakes.length).to.equal(2);
         for (const f of deleteFakes) {
@@ -447,6 +595,49 @@ describe('Provider', () => {
         expect((provider as any).instances.size).to.equal(2);
         expect((provider as any).instancesDeferred.size).to.equal(2);
       });
+    });
+  });
+
+  describe('InstantiationMode: EXPLICIT', () => {
+    it('setComponent() does NOT auto-initialize the service', () => {
+      // create a pending promise which should trigger initialization if instantiationMode is non-EXPLICIT
+      void provider.get();
+
+      provider.setComponent(
+        getFakeComponent('test', () => ({}), false, InstantiationMode.EXPLICIT)
+      );
+      expect((provider as any).instances.size).to.equal(0);
+    });
+
+    it('get() does NOT auto-initialize the service', () => {
+      provider.setComponent(
+        getFakeComponent('test', () => ({}), false, InstantiationMode.EXPLICIT)
+      );
+      expect((provider as any).instances.size).to.equal(0);
+      void provider.get();
+      expect((provider as any).instances.size).to.equal(0);
+    });
+
+    it('getImmediate() does NOT auto-initialize the service and throws if the service has not been initialized', () => {
+      provider.setComponent(
+        getFakeComponent('test', () => ({}), false, InstantiationMode.EXPLICIT)
+      );
+      expect((provider as any).instances.size).to.equal(0);
+
+      expect(() => provider.getImmediate()).to.throw(
+        'Service test is not available'
+      );
+      expect((provider as any).instances.size).to.equal(0);
+    });
+
+    it('getImmediate() does NOT auto-initialize the service and returns null if the optional flag is set', () => {
+      provider.setComponent(
+        getFakeComponent('test', () => ({}), false, InstantiationMode.EXPLICIT)
+      );
+      expect((provider as any).instances.size).to.equal(0);
+
+      expect(provider.getImmediate({ optional: true })).to.equal(null);
+      expect((provider as any).instances.size).to.equal(0);
     });
   });
 });

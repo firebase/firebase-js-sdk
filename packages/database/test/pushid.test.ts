@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { predecessor, successor } from '../src/core/util/NextPushId';
 import {
   INTEGER_32_MIN,

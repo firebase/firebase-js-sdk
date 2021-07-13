@@ -15,16 +15,13 @@
  * limitations under the License.
  */
 
+import { resolve } from 'path';
 import { projectRoot, readPackageJson } from '../utils';
-import { writeFile as _writeFile, readFile as _readFile } from 'fs';
-import { promisify } from 'util';
-import path from 'path';
+import { writeFileSync } from 'fs';
+import { createCompatProject } from './prepare-util';
 
-const writeFile = promisify(_writeFile);
-const readFile = promisify(_readFile);
 const packagePath = `${projectRoot}/packages/firestore`;
 
-//
 /**
  * Transform package.json in @firebase/firestore so that we can use scripts/exp/release.ts to release Firestore exp.
  * It does following things:
@@ -44,8 +41,7 @@ export async function prepare() {
   packageJson.version = '0.0.900';
 
   packageJson.peerDependencies = {
-    '@firebase/app-exp': '0.x',
-    '@firebase/app-types-exp': '0.x'
+    '@firebase/app-exp': '0.x'
   };
 
   packageJson.main = expPackageJson.main.replace('../', '');
@@ -69,9 +65,31 @@ export async function prepare() {
   ];
 
   // update package.json files
-  await writeFile(
+  writeFileSync(
     `${packagePath}/package.json`,
     `${JSON.stringify(packageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
+}
+
+export async function createFirestoreCompatProject() {
+  const FIRESTORE_SRC = resolve(projectRoot, 'packages/firestore');
+  const FIRESTORE_COMPAT_SRC = resolve(
+    projectRoot,
+    'packages/firestore/compat'
+  );
+  const FIRESTORE_COMPAT_DEST = resolve(
+    projectRoot,
+    'packages-exp/firestore-compat'
+  );
+  const FIRESTORE_COMPAT_BINARY_SRC = resolve(FIRESTORE_SRC, 'dist/compat');
+  const FIRESTORE_COMPAT_BINARY_DEST = resolve(FIRESTORE_COMPAT_DEST, 'dist');
+
+  createCompatProject({
+    srcDir: FIRESTORE_SRC,
+    compatSrcDir: FIRESTORE_COMPAT_SRC,
+    compatDestDir: FIRESTORE_COMPAT_DEST,
+    compatBinarySrcDir: FIRESTORE_COMPAT_BINARY_SRC,
+    compatBinaryDestDir: FIRESTORE_COMPAT_BINARY_DEST
+  });
 }

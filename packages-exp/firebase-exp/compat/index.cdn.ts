@@ -30,15 +30,16 @@ import '@firebase/polyfill';
 import firebase from './app';
 import { name, version } from '../package.json';
 
-// import './auth';
-// import './database';
-// import './firestore';
-// import './functions';
-// import './messaging';
-// import './storage';
-// import './performance';
-// import './analytics';
-// import './remote-config';
+import './analytics';
+import './app-check';
+import './auth';
+import './database';
+import './firestore';
+import './functions';
+import './messaging';
+import './storage';
+import './performance';
+import './remote-config';
 
 firebase.registerVersion(name, version, 'compat-cdn');
 

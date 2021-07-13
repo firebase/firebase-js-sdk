@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Code, FirebaseStorageError } from './error';
+import { invalidArgument } from './error';
 
 export function isJustDef<T>(p: T | null | undefined): p is T | null {
   return p !== void 0;
@@ -49,14 +49,12 @@ export function validateNumber(
   value: number
 ): void {
   if (value < minValue) {
-    throw new FirebaseStorageError(
-      Code.INVALID_ARGUMENT,
+    throw invalidArgument(
       `Invalid value for '${argument}'. Expected ${minValue} or greater.`
     );
   }
   if (value > maxValue) {
-    throw new FirebaseStorageError(
-      Code.INVALID_ARGUMENT,
+    throw invalidArgument(
       `Invalid value for '${argument}'. Expected ${maxValue} or less.`
     );
   }

@@ -16,14 +16,16 @@
  */
 
 import { expect } from 'chai';
+
+import { Reference } from '../src/api/Reference';
+
+import { EventAccumulator } from './helpers/EventAccumulator';
 import {
   getFreshRepo,
   getRootNode,
   getRandomNode,
   getPath
 } from './helpers/util';
-import { Reference } from '../src/api/Reference';
-import { EventAccumulator } from './helpers/EventAccumulator';
 
 /**
  * We have a test that depends on leveraging two properly
@@ -75,7 +77,7 @@ describe('.info Tests', function () {
   });
 
   it('Can watch .info/connected.', () => {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       const f = (getRandomNode() as Reference).root;
       f.child('.info/connected').on('value', snap => {
         if (snap.val() === true) {

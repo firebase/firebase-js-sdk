@@ -16,21 +16,25 @@
  */
 
 import { _performApiRequest, Endpoint, HttpMethod } from '../index';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 
-export interface GetProjectConfigRequest {}
+export interface GetProjectConfigRequest {
+  androidPackageName?: string;
+  iosBundleId?: string;
+}
 
 export interface GetProjectConfigResponse {
   authorizedDomains: string[];
 }
 
 export async function _getProjectConfig(
-  auth: Auth
+  auth: Auth,
+  request: GetProjectConfigRequest = {}
 ): Promise<GetProjectConfigResponse> {
   return _performApiRequest<GetProjectConfigRequest, GetProjectConfigResponse>(
     auth,
     HttpMethod.GET,
     Endpoint.GET_PROJECT_CONFIG,
-    {}
+    request
   );
 }

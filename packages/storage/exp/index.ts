@@ -1,4 +1,10 @@
 /**
+ * Cloud Storage for Firebase
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *
@@ -18,74 +24,62 @@
 import {
   _registerComponent,
   registerVersion,
-  _getProvider,
   SDK_VERSION
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 
-import { XhrIoPool } from '../src/implementation/xhriopool';
-import { StorageService } from '../src/service';
+import { ConnectionPool } from '../src/implementation/connectionPool';
+import {
+  StorageService as StorageServiceInternal,
+  useStorageEmulator as useEmulatorInternal
+} from '../src/service';
 import {
   Component,
   ComponentType,
   ComponentContainer,
-  Provider
+  InstanceFactoryOptions
 } from '@firebase/component';
 
 import { name, version } from '../package.json';
-import { FirebaseApp } from '@firebase/app-types-exp';
 
-export { ref, StorageService } from '../src/service';
-export {
-  uploadBytes,
-  uploadBytesResumable,
-  uploadString,
-  getMetadata,
-  updateMetadata,
-  list,
-  listAll,
-  getDownloadURL,
-  deleteObject,
-  StorageReference
-} from '../src/reference';
-export { Metadata } from '../src/metadata';
-export { ListOptions, ListResult } from '../src/list';
-export { UploadTask } from '../src/task';
-export { UploadResult, UploadTaskSnapshot } from '../src/tasksnapshot';
-export { StringFormat } from '../src/implementation/string';
+import { StorageService } from './public-types';
+import { STORAGE_TYPE } from './constants';
 
 /**
- * Type constant for Firebase Storage.
- */
-const STORAGE_TYPE = 'storage-exp';
-
-/**
- * Gets a Firebase StorageService instance for the given Firebase app.
+ * Modify this `StorageService` instance to communicate with the Cloud Storage emulator.
+ *
+ * @param storage - The `StorageService` instance
+ * @param host - The emulator host (ex: localhost)
+ * @param port - The emulator port (ex: 5001)
  * @public
- * @param app - Firebase app to get Storage instance for.
- * @returns A Firebase StorageService instance.
  */
-export function getStorage(app: FirebaseApp): StorageService {
-  // Dependencies
-  const storageProvider: Provider<'storage-exp'> = _getProvider(
-    app,
-    STORAGE_TYPE
-  );
-  const storageInstance = storageProvider.getImmediate();
-  return storageInstance;
+export function useStorageEmulator(
+  storage: StorageService,
+  host: string,
+  port: number
+): void {
+  useEmulatorInternal(storage as StorageServiceInternal, host, port);
 }
 
-function factory(container: ComponentContainer, url?: string): StorageService {
+export { StringFormat } from '../src/implementation/string';
+export * from './api';
+
+function factory(
+  container: ComponentContainer,
+  { instanceIdentifier: url }: InstanceFactoryOptions
+): StorageService {
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
+  const appCheckProvider = container.getProvider('app-check-internal');
 
-  return (new StorageService(
+  return new StorageServiceInternal(
     app,
     authProvider,
-    new XhrIoPool(),
+    appCheckProvider,
+    new ConnectionPool(),
     url,
     SDK_VERSION
-  ) as unknown) as StorageService;
+  );
 }
 
 function registerStorage(): void {
@@ -101,9 +95,3 @@ function registerStorage(): void {
 }
 
 registerStorage();
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'storage-exp': StorageService;
-  }
-}

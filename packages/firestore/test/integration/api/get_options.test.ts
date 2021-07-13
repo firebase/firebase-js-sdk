@@ -291,7 +291,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           // Create an initial listener for this query (to attempt to disrupt the
           // gets below) and wait for the listener to deliver its initial
           // snapshot before continuing.
-          return new Promise((resolve, reject) => {
+          return new Promise<void>((resolve, reject) => {
             docRef.onSnapshot(
               docSnap => {
                 resolve();
@@ -355,7 +355,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
             // Create an initial listener for this query (to attempt to disrupt the
             // gets below) and wait for the listener to deliver its initial
             // snapshot before continuing.
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               colRef.onSnapshot(
                 qrySnap => {
                   resolve();

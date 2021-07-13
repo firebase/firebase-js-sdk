@@ -16,7 +16,7 @@
  */
 
 import { _performApiRequest, Endpoint, HttpMethod } from '../index';
-import { Auth } from '@firebase/auth-types-exp';
+import { Auth } from '../../model/public_types';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from '../account_management/mfa';
 import { SignInWithIdpResponse } from './idp';

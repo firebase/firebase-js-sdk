@@ -16,9 +16,10 @@
  */
 import pkg from './package.json';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/app'
+];
 
 export const es5BuildsNoPlugin = [
   /**
@@ -26,7 +27,7 @@ export const es5BuildsNoPlugin = [
    */
   {
     input: 'src/index.ts',
-    output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
+    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
@@ -46,7 +47,7 @@ export const es2017BuildsNoPlugin = [
   {
     input: 'src/index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },

@@ -15,25 +15,22 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { Database } from './src/api/Database';
-import { DataSnapshot } from './src/api/DataSnapshot';
-import { Query } from './src/api/Query';
-import { Reference } from './src/api/Reference';
-import { enableLogging } from './src/core/util/util';
-import { RepoManager } from './src/core/RepoManager';
-import * as INTERNAL from './src/api/internal';
-import * as TEST_ACCESS from './src/api/test_access';
-import * as types from '@firebase/database-types';
-import { setSDKVersion } from './src/core/version';
-import { CONSTANTS, isNodeSdk } from '@firebase/util';
-import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
-import { Client } from 'faye-websocket';
-import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { Component, ComponentType } from '@firebase/component';
+import * as types from '@firebase/database-types';
+import { CONSTANTS, isNodeSdk } from '@firebase/util';
+import { Client } from 'faye-websocket';
 
 import { name, version } from './package.json';
+import { Database } from './src/api/Database';
+import * as INTERNAL from './src/api/internal';
+import { DataSnapshot, Query, Reference } from './src/api/Reference';
+import * as TEST_ACCESS from './src/api/test_access';
+import { setSDKVersion } from './src/core/version';
+import { enableLogging, repoManagerDatabaseFromApp } from './src/exp/Database';
+import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
 
 setWebSocketImpl(Client);
 
@@ -43,10 +40,10 @@ const ServerValue = Database.ServerValue;
  * A one off register function which returns a database based on the app and
  * passed database URL. (Used by the Admin SDK)
  *
- * @param app A valid FirebaseApp-like object
- * @param url A valid Firebase databaseURL
- * @param version custom version e.g. firebase-admin version
- * @param nodeAdmin true if the SDK is being initialized from Firebase Admin.
+ * @param app - A valid FirebaseApp-like object
+ * @param url - A valid Firebase databaseURL
+ * @param version - custom version e.g. firebase-admin version
+ * @param nodeAdmin - true if the SDK is being initialized from Firebase Admin.
  */
 export function initStandalone(
   app: FirebaseApp,
@@ -84,16 +81,16 @@ export function registerDatabase(instance: FirebaseNamespace) {
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'database',
-      (container, url) => {
+      (container, { instanceIdentifier: url }) => {
         /* Dependencies */
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
+        const appCheckProvider = container.getProvider('app-check-internal');
 
-        return RepoManager.getInstance().databaseFromApp(
-          app,
-          authProvider,
-          url
+        return new Database(
+          repoManagerDatabaseFromApp(app, authProvider, appCheckProvider, url),
+          app
         );
       },
       ComponentType.PUBLIC
@@ -128,8 +125,10 @@ try {
   // @firebase/app when used together with the js sdk. More detail:
   // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
   // eslint-disable-next-line import/no-extraneous-dependencies, @typescript-eslint/no-require-imports
-  const firebase = require('@firebase/app').default;
-  registerDatabase(firebase);
+  const firebase = require('@firebase/app').default; // Only present for v8, undefined for v9 (should skip).
+  if (firebase) {
+    registerDatabase(firebase);
+  }
 } catch (err) {
   // catch and ignore 'MODULE_NOT_FOUND' error in firebase-admin context
   // we can safely ignore this error because RTDB in firebase-admin works without @firebase/app
@@ -141,7 +140,6 @@ try {
 // Types to export for the admin SDK
 export { Database, Query, Reference, enableLogging, ServerValue };
 
-export { DataSnapshot } from './src/api/DataSnapshot';
 export { OnDisconnect } from './src/api/onDisconnect';
 
 declare module '@firebase/app-types' {
@@ -157,3 +155,4 @@ declare module '@firebase/app-types' {
     database?(): types.FirebaseDatabase;
   }
 }
+export { DataSnapshot } from './src/api/Reference';

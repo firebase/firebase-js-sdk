@@ -16,15 +16,16 @@
  */
 
 import { expect } from 'chai';
-import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
-import { LeafNode } from '../src/core/snap/LeafNode';
-import { IndexMap } from '../src/core/snap/IndexMap';
-import { Path } from '../src/core/util/Path';
-import { SortedMap } from '../src/core/util/SortedMap';
+
 import { ChildrenNode } from '../src/core/snap/ChildrenNode';
 import { NAME_COMPARATOR } from '../src/core/snap/comparators';
-import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
+import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
+import { IndexMap } from '../src/core/snap/IndexMap';
+import { LeafNode } from '../src/core/snap/LeafNode';
 import { Node } from '../src/core/snap/Node';
+import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
+import { newEmptyPath, Path } from '../src/core/util/Path';
+import { SortedMap } from '../src/core/util/SortedMap';
 
 describe('Node Tests', () => {
   const DEFAULT_INDEX = PRIORITY_INDEX;
@@ -318,7 +319,7 @@ describe('Node Tests', () => {
   it('removing nodes correctly removes the root', () => {
     let json = null;
     let node = nodeFromJSON(json);
-    let newNode = node.updateChild(new Path(''), ChildrenNode.EMPTY_NODE);
+    let newNode = node.updateChild(newEmptyPath(), ChildrenNode.EMPTY_NODE);
     expect(newNode.isEmpty()).to.equal(true);
 
     json = { a: 1 };

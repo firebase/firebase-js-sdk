@@ -15,20 +15,13 @@
  * limitations under the License.
  */
 
-import { Index } from './Index';
-import { NamedNode, Node } from '../Node';
 import { nameCompare } from '../../util/util';
+import { NamedNode, Node } from '../Node';
 import { nodeFromJSON } from '../nodeFromJSON';
 
-/**
- * @constructor
- * @extends {Index}
- * @private
- */
+import { Index } from './Index';
+
 export class ValueIndex extends Index {
-  /**
-   * @inheritDoc
-   */
   compare(a: NamedNode, b: NamedNode): number {
     const indexCmp = a.node.compareTo(b.node);
     if (indexCmp === 0) {
@@ -37,49 +30,28 @@ export class ValueIndex extends Index {
       return indexCmp;
     }
   }
-
-  /**
-   * @inheritDoc
-   */
   isDefinedOn(node: Node): boolean {
     return true;
   }
-
-  /**
-   * @inheritDoc
-   */
   indexedValueChanged(oldNode: Node, newNode: Node): boolean {
     return !oldNode.equals(newNode);
   }
-
-  /**
-   * @inheritDoc
-   */
   minPost(): NamedNode {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (NamedNode as any).MIN;
   }
-
-  /**
-   * @inheritDoc
-   */
   maxPost(): NamedNode {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (NamedNode as any).MAX;
   }
 
-  /**
-   * @param {*} indexValue
-   * @param {string} name
-   * @return {!NamedNode}
-   */
   makePost(indexValue: object, name: string): NamedNode {
     const valueNode = nodeFromJSON(indexValue);
     return new NamedNode(name, valueNode);
   }
 
   /**
-   * @return {!string} String representation for inclusion in a query spec
+   * @returns String representation for inclusion in a query spec
    */
   toString(): string {
     return '.value';

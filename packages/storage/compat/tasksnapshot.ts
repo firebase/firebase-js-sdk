@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import * as types from '@firebase/storage-types';
+import { UploadTaskSnapshot } from '../exp/api';
 import { ReferenceCompat } from './reference';
 import { UploadTaskCompat } from './task';
-import { UploadTaskSnapshot } from '../src/tasksnapshot';
-import { Metadata } from '../src/metadata';
+import * as types from '@firebase/storage-types';
+import { Compat } from '@firebase/util';
 
-export class UploadTaskSnapshotCompat implements types.UploadTaskSnapshot {
+export class UploadTaskSnapshotCompat
+  implements types.UploadTaskSnapshot, Compat<UploadTaskSnapshot> {
   constructor(
     readonly _delegate: UploadTaskSnapshot,
     readonly task: UploadTaskCompat,
@@ -31,8 +32,8 @@ export class UploadTaskSnapshotCompat implements types.UploadTaskSnapshot {
   get bytesTransferred(): number {
     return this._delegate.bytesTransferred;
   }
-  get metadata(): Metadata {
-    return this._delegate.metadata;
+  get metadata(): types.FullMetadata {
+    return this._delegate.metadata as types.FullMetadata;
   }
   get state(): string {
     return this._delegate.state;

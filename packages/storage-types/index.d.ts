@@ -135,6 +135,7 @@ export class FirebaseStorage {
   refFromURL(url: string): Reference;
   setMaxOperationRetryTime(time: number): void;
   setMaxUploadRetryTime(time: number): void;
+  useEmulator(host: string, port: number): void;
 }
 
 declare module '@firebase/component' {

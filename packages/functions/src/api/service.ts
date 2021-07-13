@@ -29,6 +29,7 @@ import { Serializer } from '../serializer';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 /**
  * The response to an http request.
@@ -100,6 +101,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
     private app_: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<FirebaseMessagingName>,
+    private appCheckProvider: Provider<AppCheckInternalComponentName>,
     regionOrCustomDomain_: string = 'us-central1',
     readonly fetchImpl: typeof fetch
   ) {
@@ -198,6 +200,11 @@ export class Service implements FirebaseFunctions, FirebaseService {
   ): Promise<HttpResponse> {
     headers['Content-Type'] = 'application/json';
 
+    const appCheckToken = await this.getAppCheckToken();
+    if (appCheckToken !== null) {
+      headers['X-Firebase-AppCheck'] = appCheckToken;
+    }
+
     let response: Response;
     try {
       response = await this.fetchImpl(url, {
@@ -225,6 +232,19 @@ export class Service implements FirebaseFunctions, FirebaseService {
       status: response.status,
       json
     };
+  }
+
+  private async getAppCheckToken(): Promise<string | null> {
+    const appCheck = this.appCheckProvider.getImmediate({ optional: true });
+    if (appCheck) {
+      const result = await appCheck.getToken();
+      // If getToken() fails, it will still return a dummy token that also has
+      // an error field containing the error message. We will send any token
+      // provided here and show an error if/when it is rejected by the functions
+      // endpoint.
+      return result.token;
+    }
+    return null;
   }
 
   /**

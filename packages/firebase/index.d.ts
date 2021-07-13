@@ -1006,6 +1006,81 @@ declare namespace firebase {
     uid: string;
   }
 
+  type FirebaseSignInProvider =
+    | 'custom'
+    | 'email'
+    | 'password'
+    | 'phone'
+    | 'anonymous'
+    | 'google.com'
+    | 'facebook.com'
+    | 'github.com'
+    | 'twitter.com'
+    | 'microsoft.com'
+    | 'apple.com';
+
+  interface FirebaseIdToken {
+    /** Always set to https://securetoken.google.com/PROJECT_ID */
+    iss: string;
+
+    /** Always set to PROJECT_ID */
+    aud: string;
+
+    /** The user's unique ID */
+    sub: string;
+
+    /** The token issue time, in seconds since epoch */
+    iat: number;
+
+    /** The token expiry time, normally 'iat' + 3600 */
+    exp: number;
+
+    /** The user's unique ID. Must be equal to 'sub' */
+    user_id: string;
+
+    /** The time the user authenticated, normally 'iat' */
+    auth_time: number;
+
+    /** The sign in provider, only set when the provider is 'anonymous' */
+    provider_id?: 'anonymous';
+
+    /** The user's primary email */
+    email?: string;
+
+    /** The user's email verification status */
+    email_verified?: boolean;
+
+    /** The user's primary phone number */
+    phone_number?: string;
+
+    /** The user's display name */
+    name?: string;
+
+    /** The user's profile photo URL */
+    picture?: string;
+
+    /** Information on all identities linked to this user */
+    firebase: {
+      /** The primary sign-in provider */
+      sign_in_provider: FirebaseSignInProvider;
+
+      /** A map of providers to the user's list of unique identifiers from each provider */
+      identities?: { [provider in FirebaseSignInProvider]?: string[] };
+    };
+
+    /** Custom claims set by the developer */
+    [claim: string]: unknown;
+
+    // NO LONGER SUPPORTED. Use "sub" instead. (Not a jsdoc comment to avoid generating docs.)
+    uid?: never;
+  }
+
+  export type EmulatorMockTokenOptions = (
+    | { user_id: string }
+    | { sub: string }
+  ) &
+    Partial<FirebaseIdToken>;
+
   /**
    * Retrieves a Firebase {@link firebase.app.App app} instance.
    *
@@ -1106,7 +1181,7 @@ declare namespace firebase {
    *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
    *   Add Firebase to your app} and
    * {@link
-   *   https://firebase.google.com/docs/web/setup#multiple-projects
+   *   https://firebase.google.com/docs/web/learn-more#multiple-projects
    *   Initialize multiple projects} for detailed documentation.
    *
    * @example
@@ -1117,12 +1192,12 @@ declare namespace firebase {
    * // https://console.firebase.google.com
    * firebase.initializeApp({
    *   apiKey: "AIza....",                             // Auth / General Use
-   *   appId: "1:27992087142:web:ce....",      // General Use
+   *   appId: "1:27992087142:web:ce....",              // General Use
    *   projectId: "my-firebase-project",               // General Use
    *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
    *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
    *   storageBucket: "YOUR_APP.appspot.com",          // Storage
-   *   messagingSenderId: "123456789",                  // Cloud Messaging
+   *   messagingSenderId: "123456789",                 // Cloud Messaging
    *   measurementId: "G-12345"                        // Analytics
    * });
    * ```
@@ -1274,6 +1349,8 @@ declare namespace firebase {
    * If not passed, uses the default app.
    */
   function analytics(app?: firebase.app.App): firebase.analytics.Analytics;
+
+  function appCheck(app?: firebase.app.App): firebase.appCheck.AppCheck;
 }
 
 declare namespace firebase.app {
@@ -1408,7 +1485,7 @@ declare namespace firebase.app {
      */
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
-    functions(region?: string): firebase.functions.Functions;
+    functions(regionOrCustomDomain?: string): firebase.functions.Functions;
     /**
      * Gets the {@link firebase.performance.Performance `Performance`} service for the
      * current app. If the current app is not the default one, throws an error.
@@ -1450,6 +1527,126 @@ declare namespace firebase.app {
      * ```
      */
     analytics(): firebase.analytics.Analytics;
+    appCheck(): firebase.appCheck.AppCheck;
+  }
+}
+
+/**
+ * @webonly
+ */
+declare namespace firebase.appCheck {
+  /**
+   * Result returned by
+   * {@link firebase.appCheck.AppCheck.getToken `firebase.appCheck().getToken()`}.
+   */
+  interface AppCheckTokenResult {
+    token: string;
+  }
+  /**
+   * The Firebase AppCheck service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.appCheck `firebase.appCheck()`}.
+   */
+  export interface AppCheck {
+    /**
+     * Activate AppCheck
+     * @param siteKeyOrProvider reCAPTCHA v3 site key (public key) or
+     * custom token provider.
+     * @param isTokenAutoRefreshEnabled If true, the SDK automatically
+     * refreshes App Check tokens as needed. If undefined, defaults to the
+     * value of `app.automaticDataCollectionEnabled`, which defaults to
+     * false and can be set in the app config.
+     */
+    activate(
+      siteKeyOrProvider: string | AppCheckProvider,
+      isTokenAutoRefreshEnabled?: boolean
+    ): void;
+
+    /**
+     *
+     * @param isTokenAutoRefreshEnabled If true, the SDK automatically
+     * refreshes App Check tokens as needed. This overrides any value set
+     * during `activate()`.
+     */
+    setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
+    /**
+     * Get the current App Check token. Attaches to the most recent
+     * in-flight request if one is present. Returns null if no token
+     * is present and no token requests are in-flight.
+     *
+     * @param forceRefresh - If true, will always try to fetch a fresh token.
+     * If false, will use a cached token if found in storage.
+     */
+    getToken(
+      forceRefresh?: boolean
+    ): Promise<firebase.appCheck.AppCheckTokenResult>;
+
+    /**
+     * Registers a listener to changes in the token state. There can be more
+     * than one listener registered at the same time for one or more
+     * App Check instances. The listeners call back on the UI thread whenever
+     * the current token associated with this App Check instance changes.
+     *
+     * @param observer An object with `next`, `error`, and `complete`
+     * properties. `next` is called with an
+     * {@link firebase.appCheck.AppCheckTokenResult `AppCheckTokenResult`}
+     * whenever the token changes. `error` is optional and is called if an
+     * error is thrown by the listener (the `next` function). `complete`
+     * is unused, as the token stream is unending.
+     *
+     * @returns A function that unsubscribes this listener.
+     */
+    onTokenChanged(observer: {
+      next: (tokenResult: firebase.appCheck.AppCheckTokenResult) => void;
+      error?: (error: Error) => void;
+      complete?: () => void;
+    }): Unsubscribe;
+
+    /**
+     * Registers a listener to changes in the token state. There can be more
+     * than one listener registered at the same time for one or more
+     * App Check instances. The listeners call back on the UI thread whenever
+     * the current token associated with this App Check instance changes.
+     *
+     * @param onNext When the token changes, this function is called with aa
+     * {@link firebase.appCheck.AppCheckTokenResult `AppCheckTokenResult`}.
+     * @param onError Optional. Called if there is an error thrown by the
+     * listener (the `onNext` function).
+     * @param onCompletion Currently unused, as the token stream is unending.
+     * @returns A function that unsubscribes this listener.
+     */
+    onTokenChanged(
+      onNext: (tokenResult: firebase.appCheck.AppCheckTokenResult) => void,
+      onError?: (error: Error) => void,
+      onCompletion?: () => void
+    ): Unsubscribe;
+  }
+
+  /**
+   * An App Check provider. This can be either the built-in reCAPTCHA
+   * provider or a custom provider. For more on custom providers, see
+   * https://firebase.google.com/docs/app-check/web-custom-provider
+   */
+  interface AppCheckProvider {
+    /**
+     * Returns an AppCheck token.
+     */
+    getToken(): Promise<AppCheckToken>;
+  }
+
+  /**
+   * The token returned from an {@link firebase.appCheck.AppCheckProvider `AppCheckProvider`}.
+   */
+  interface AppCheckToken {
+    /**
+     * The token string in JWT format.
+     */
+    readonly token: string;
+    /**
+     * The local timestamp after which the token will expire.
+     */
+    readonly expireTimeMillis: number;
   }
 }
 
@@ -4303,7 +4500,8 @@ declare namespace firebase.auth {
    * @hidden
    */
   class RecaptchaVerifier_Instance
-    implements firebase.auth.ApplicationVerifier {
+    implements firebase.auth.ApplicationVerifier
+  {
     constructor(
       container: any | string,
       parameters?: Object | null,
@@ -4479,7 +4677,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'add_shipping_info',
-      eventParams: {
+      eventParams?: {
         coupon?: EventParams['coupon'];
         currency?: EventParams['currency'];
         items?: EventParams['items'];
@@ -4500,7 +4698,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
-      eventParams: {
+      eventParams?: {
         currency?: EventParams['currency'];
         value?: EventParams['value'];
         items?: EventParams['items'];
@@ -4519,7 +4717,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'begin_checkout',
-      eventParams: {
+      eventParams?: {
         currency?: EventParams['currency'];
         coupon?: EventParams['coupon'];
         value?: EventParams['value'];
@@ -4539,7 +4737,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'checkout_progress',
-      eventParams: {
+      eventParams?: {
         currency?: EventParams['currency'];
         coupon?: EventParams['coupon'];
         value?: EventParams['value'];
@@ -4561,7 +4759,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'exception',
-      eventParams: {
+      eventParams?: {
         description?: EventParams['description'];
         fatal?: EventParams['fatal'];
         [key: string]: any;
@@ -4579,7 +4777,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'generate_lead',
-      eventParams: {
+      eventParams?: {
         value?: EventParams['value'];
         currency?: EventParams['currency'];
         transaction_id?: EventParams['transaction_id'];
@@ -4598,7 +4796,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'login',
-      eventParams: {
+      eventParams?: {
         method?: EventParams['method'];
         [key: string]: any;
       },
@@ -4615,7 +4813,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'page_view',
-      eventParams: {
+      eventParams?: {
         page_title?: string;
         page_location?: string;
         page_path?: string;
@@ -4634,7 +4832,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'purchase' | 'refund',
-      eventParams: {
+      eventParams?: {
         value?: EventParams['value'];
         currency?: EventParams['currency'];
         transaction_id: EventParams['transaction_id'];
@@ -4658,7 +4856,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'screen_view',
-      eventParams: {
+      eventParams?: {
         app_name: string;
         screen_name: EventParams['screen_name'];
         app_id?: string;
@@ -4679,7 +4877,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'search' | 'view_search_results',
-      eventParams: {
+      eventParams?: {
         search_term?: EventParams['search_term'];
         [key: string]: any;
       },
@@ -4696,7 +4894,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'select_content',
-      eventParams: {
+      eventParams?: {
         items?: EventParams['items'];
         promotions?: EventParams['promotions'];
         content_type?: EventParams['content_type'];
@@ -4716,7 +4914,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'select_item',
-      eventParams: {
+      eventParams?: {
         items?: EventParams['items'];
         item_list_name?: EventParams['item_list_name'];
         item_list_id?: EventParams['item_list_id'];
@@ -4735,7 +4933,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'select_promotion' | 'view_promotion',
-      eventParams: {
+      eventParams?: {
         items?: EventParams['items'];
         promotion_id?: EventParams['promotion_id'];
         promotion_name?: EventParams['promotion_name'];
@@ -4754,7 +4952,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'set_checkout_option',
-      eventParams: {
+      eventParams?: {
         checkout_step?: EventParams['checkout_step'];
         checkout_option?: EventParams['checkout_option'];
         [key: string]: any;
@@ -4772,7 +4970,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'share',
-      eventParams: {
+      eventParams?: {
         method?: EventParams['method'];
         content_type?: EventParams['content_type'];
         content_id?: EventParams['content_id'];
@@ -4791,7 +4989,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'sign_up',
-      eventParams: {
+      eventParams?: {
         method?: EventParams['method'];
         [key: string]: any;
       },
@@ -4808,7 +5006,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'timing_complete',
-      eventParams: {
+      eventParams?: {
         name: string;
         value: number;
         event_category?: string;
@@ -4828,7 +5026,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'view_cart' | 'view_item',
-      eventParams: {
+      eventParams?: {
         currency?: EventParams['currency'];
         items?: EventParams['items'];
         value?: EventParams['value'];
@@ -4847,7 +5045,7 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'view_item_list',
-      eventParams: {
+      eventParams?: {
         items?: EventParams['items'];
         item_list_name?: EventParams['item_list_name'];
         item_list_id?: EventParams['item_list_id'];
@@ -5674,8 +5872,15 @@ declare namespace firebase.database {
      *
      * @param host the emulator host (ex: localhost)
      * @param port the emulator port (ex: 8080)
+     * @param options.mockUserToken the mock auth token to use for unit testing Security Rules
      */
-    useEmulator(host: string, port: number): void;
+    useEmulator(
+      host: string,
+      port: number,
+      options?: {
+        mockUserToken?: EmulatorMockTokenOptions;
+      }
+    ): void;
     /**
      * Disconnects from the server (all Database operations will be completed
      * offline).
@@ -5942,8 +6147,8 @@ declare namespace firebase.database {
     /**
      * Creates a `Query` with the specified ending point.
      *
-     * Using `startAt()`, `endAt()`, and `equalTo()` allows you to choose arbitrary
-     * starting and ending points for your queries.
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
      *
      * The ending point is inclusive, so children with exactly the specified value
      * will be included in the query. The optional key argument can be used to
@@ -5959,6 +6164,7 @@ declare namespace firebase.database {
      * @example
      * ```javascript
      * // Find all dinosaurs whose names come before Pterodactyl lexicographically.
+     * // Include Pterodactyl in the result.
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByKey().endAt("pterodactyl").on("child_added", function(snapshot) {
      *   console.log(snapshot.key);
@@ -5978,10 +6184,42 @@ declare namespace firebase.database {
       key?: string
     ): firebase.database.Query;
     /**
+     * Creates a `Query` with the specified ending point (exclusive).
+     *
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
+     *
+     * The ending point is exclusive. If only a value is provided, children
+     * with a value less than the specified value will be included in the query.
+     * If a key is specified, then children must have a value lesss than or equal
+     * to the specified value and a a key name less than the specified key.
+     *
+     * @example
+     * ```javascript
+     * // Find all dinosaurs whose names come before Pterodactyl lexicographically.
+     * // Do not include Pterodactyl in the result.
+     * var ref = firebase.database().ref("dinosaurs");
+     * ref.orderByKey().endBefore("pterodactyl").on("child_added", function(snapshot) {
+     *   console.log(snapshot.key);
+     * });
+     *
+     * @param value The value to end before. The argument
+     *   type depends on which `orderBy*()` function was used in this query.
+     *   Specify a value that matches the `orderBy*()` type. When used in
+     *   combination with `orderByKey()`, the value must be a string.
+     * @param key The child key to end before, among the children with the
+     *   previously specified priority. This argument is only allowed if ordering by
+     *   child, value, or priority.
+     */
+    endBefore(
+      value: number | string | boolean | null,
+      key?: string
+    ): firebase.database.Query;
+    /**
      * Creates a `Query` that includes children that match the specified value.
      *
-     * Using `startAt()`, `endAt()`, and `equalTo()` allows us to choose arbitrary
-     * starting and ending points for our queries.
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
      *
      * The optional key argument can be used to further limit the range of the
      * query. If it is specified, then children that have exactly the specified
@@ -6426,8 +6664,8 @@ declare namespace firebase.database {
     /**
      * Creates a `Query` with the specified starting point.
      *
-     * Using `startAt()`, `endAt()`, and `equalTo()` allows you to choose arbitrary
-     * starting and ending points for your queries.
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
      *
      * The starting point is inclusive, so children with exactly the specified value
      * will be included in the query. The optional key argument can be used to
@@ -6457,6 +6695,37 @@ declare namespace firebase.database {
      *   if ordering by child, value, or priority.
      */
     startAt(
+      value: number | string | boolean | null,
+      key?: string
+    ): firebase.database.Query;
+    /**
+     * Creates a `Query` with the specified starting point (exclusive).
+     *
+     * Using `startAt()`, `startAfter()`, `endBefore()`, `endAt()` and `equalTo()`
+     * allows you to choose arbitrary starting and ending points for your queries.
+     *
+     * The starting point is exclusive. If only a value is provided, children
+     * with a value greater than the specified value will be included in the query.
+     * If a key is specified, then children must have a value greater than or equal
+     * to the specified value and a a key name greater than the specified key.
+     *
+     * @example
+     * ```javascript
+     * // Find all dinosaurs that are more than three meters tall.
+     * var ref = firebase.database().ref("dinosaurs");
+     * ref.orderByChild("height").startAfter(3).on("child_added", function(snapshot) {
+     *   console.log(snapshot.key)
+     * });
+     * ```
+     *
+     * @param value The value to start after. The argument
+     *   type depends on which `orderBy*()` function was used in this query.
+     *   Specify a value that matches the `orderBy*()` type. When used in
+     *   combination with `orderByKey()`, the value must be a string.
+     * @param key The child key to start after. This argument is only allowed
+     *   if ordering by child, value, or priority.
+     */
+    startAfter(
       value: number | string | boolean | null,
       key?: string
     ): firebase.database.Query;
@@ -6953,6 +7222,8 @@ declare namespace firebase.database {
     logger?: boolean | ((a: string) => any),
     persistent?: boolean
   ): any;
+
+  export type EmulatorMockTokenOptions = firebase.EmulatorMockTokenOptions;
 }
 
 declare namespace firebase.database.ServerValue {
@@ -7548,6 +7819,13 @@ declare namespace firebase.storage {
      * @see {@link firebase.storage.Storage.maxUploadRetryTime}
      */
     setMaxUploadRetryTime(time: number): any;
+    /**
+     * Modify this `Storage` instance to communicate with the Cloud Storage emulator.
+     *
+     * @param host - The emulator host (ex: localhost)
+     * @param port - The emulator port (ex: 5001)
+     */
+    useEmulator(host: string, port: number): void;
   }
 
   /**
@@ -8071,8 +8349,16 @@ declare namespace firebase.firestore {
      *
      * @param host the emulator host (ex: localhost).
      * @param port the emulator port (ex: 9000).
+     * @param options.mockUserToken - the mock auth token to use for unit
+     * testing Security Rules.
      */
-    useEmulator(host: string, port: number): void;
+    useEmulator(
+      host: string,
+      port: number,
+      options?: {
+        mockUserToken?: EmulatorMockTokenOptions;
+      }
+    ): void;
 
     /**
      * Attempts to enable persistent storage, if possible.
@@ -9025,7 +9311,26 @@ declare namespace firebase.firestore {
      * provided converter will convert between Firestore data and your custom
      * type U.
      *
-     * @param converter Converts objects to and from Firestore.
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
+     * @return A DocumentReference<U> that uses the provided converter.
+     */
+    withConverter(converter: null): DocumentReference<DocumentData>;
+    /**
+     * Applies a custom data converter to this DocumentReference, allowing you
+     * to use your own custom model objects with Firestore. When you call
+     * set(), get(), etc. on the returned DocumentReference instance, the
+     * provided converter will convert between Firestore data and your custom
+     * type U.
+     *
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
      * @return A DocumentReference<U> that uses the provided converter.
      */
     withConverter<U>(
@@ -9172,9 +9477,9 @@ declare namespace firebase.firestore {
    * `exists` property will always be true and `data()` will never return
    * 'undefined'.
    */
-  export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
-    T
-  > {
+  export class QueryDocumentSnapshot<
+    T = DocumentData
+  > extends DocumentSnapshot<T> {
     private constructor();
 
     /**
@@ -9480,7 +9785,25 @@ declare namespace firebase.firestore {
      * returned Query, the provided converter will convert between Firestore
      * data and your custom type U.
      *
-     * @param converter Converts objects to and from Firestore.
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
+     * @return A Query<U> that uses the provided converter.
+     */
+    withConverter(converter: null): Query<DocumentData>;
+    /**
+     * Applies a custom data converter to this Query, allowing you to use your
+     * own custom model objects with Firestore. When you call get() on the
+     * returned Query, the provided converter will convert between Firestore
+     * data and your custom type U.
+     *
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
      * @return A Query<U> that uses the provided converter.
      */
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
@@ -9636,7 +9959,25 @@ declare namespace firebase.firestore {
      * on the returned CollectionReference instance, the provided converter will
      * convert between Firestore data and your custom type U.
      *
-     * @param converter Converts objects to and from Firestore.
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
+     * @return A CollectionReference<U> that uses the provided converter.
+     */
+    withConverter(converter: null): CollectionReference<DocumentData>;
+    /**
+     * Applies a custom data converter to this CollectionReference, allowing you
+     * to use your own custom model objects with Firestore. When you call add()
+     * on the returned CollectionReference instance, the provided converter will
+     * convert between Firestore data and your custom type U.
+     *
+     * Passing in `null` as the converter parameter removes the current
+     * converter.
+     *
+     * @param converter Converts objects to and from Firestore. Passing in
+     * `null` removes the current converter.
      * @return A CollectionReference<U> that uses the provided converter.
      */
     withConverter<U>(
@@ -9813,6 +10154,8 @@ declare namespace firebase.firestore {
     name: string;
     stack?: string;
   }
+
+  export type EmulatorMockTokenOptions = firebase.EmulatorMockTokenOptions;
 }
 
 export default firebase;

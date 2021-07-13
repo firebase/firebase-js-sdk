@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Persistence } from '../../model/public_types';
 import {
   PersistedBlob,
-  Persistence,
+  PersistenceInternal as InternalPersistence,
   PersistenceType,
   PersistenceValue,
   StorageEventListener,
@@ -56,7 +56,6 @@ interface DBObject {
  *
  * Unfortunately we can't cleanly extend Promise<T> since promises are not callable in ES6
  *
- * @internal
  */
 class DBPromise<T> {
   constructor(private readonly request: IDBRequest) {}
@@ -79,19 +78,16 @@ function getObjectStore(db: IDBDatabase, isReadWrite: boolean): IDBObjectStore {
     .objectStore(DB_OBJECTSTORE_NAME);
 }
 
-/** @internal */
 export async function _clearDatabase(db: IDBDatabase): Promise<void> {
   const objectStore = getObjectStore(db, true);
   return new DBPromise<void>(objectStore.clear()).toPromise();
 }
 
-/** @internal */
 export function _deleteDatabase(): Promise<void> {
   const request = indexedDB.deleteDatabase(DB_NAME);
   return new DBPromise<void>(request).toPromise();
 }
 
-/** @internal */
 export function _openDatabase(): Promise<IDBDatabase> {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
   return new Promise((resolve, reject) => {
@@ -117,8 +113,10 @@ export function _openDatabase(): Promise<IDBDatabase> {
       // https://github.com/firebase/firebase-js-sdk/issues/634
 
       if (!db.objectStoreNames.contains(DB_OBJECTSTORE_NAME)) {
+        // Need to close the database or else you get a `blocked` event
+        db.close();
         await _deleteDatabase();
-        return _openDatabase();
+        resolve(await _openDatabase());
       } else {
         resolve(db);
       }
@@ -126,26 +124,16 @@ export function _openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-/** @internal */
 export async function _putObject(
   db: IDBDatabase,
   key: string,
   value: PersistenceValue | string
 ): Promise<void> {
-  const getRequest = getObjectStore(db, false).get(key);
-  const data = await new DBPromise<DBObject | null>(getRequest).toPromise();
-  if (data) {
-    // Force an index signature on the user object
-    data.value = value as PersistedBlob;
-    const request = getObjectStore(db, true).put(data);
-    return new DBPromise<void>(request).toPromise();
-  } else {
-    const request = getObjectStore(db, true).add({
-      [DB_DATA_KEYPATH]: key,
-      value
-    });
-    return new DBPromise<void>(request).toPromise();
-  }
+  const request = getObjectStore(db, true).put({
+    [DB_DATA_KEYPATH]: key,
+    value
+  });
+  return new DBPromise<void>(request).toPromise();
 }
 
 async function getObject(
@@ -157,17 +145,15 @@ async function getObject(
   return data === undefined ? null : data.value;
 }
 
-function deleteObject(db: IDBDatabase, key: string): Promise<void> {
+export function _deleteObject(db: IDBDatabase, key: string): Promise<void> {
   const request = getObjectStore(db, true).delete(key);
   return new DBPromise<void>(request).toPromise();
 }
 
-/** @internal */
 export const _POLLING_INTERVAL_MS = 800;
-/** @internal */
 export const _TRANSACTION_RETRY_COUNT = 3;
 
-class IndexedDBLocalPersistence implements Persistence {
+class IndexedDBLocalPersistence implements InternalPersistence {
   static type: 'LOCAL' = 'LOCAL';
 
   type = PersistenceType.LOCAL;
@@ -189,10 +175,11 @@ class IndexedDBLocalPersistence implements Persistence {
 
   constructor() {
     // Fire & forget the service worker registration as it may never resolve
-    this._workerInitializationPromise = this.initializeServiceWorkerMessaging().then(
-      () => {},
-      () => {}
-    );
+    this._workerInitializationPromise =
+      this.initializeServiceWorkerMessaging().then(
+        () => {},
+        () => {}
+      );
   }
 
   async _openDb(): Promise<IDBDatabase> {
@@ -324,7 +311,7 @@ class IndexedDBLocalPersistence implements Persistence {
       }
       const db = await _openDatabase();
       await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
-      await deleteObject(db, STORAGE_AVAILABLE_KEY);
+      await _deleteObject(db, STORAGE_AVAILABLE_KEY);
       return true;
     } catch {}
     return false;
@@ -357,7 +344,7 @@ class IndexedDBLocalPersistence implements Persistence {
 
   async _remove(key: string): Promise<void> {
     return this._withPendingWrite(async () => {
-      await this._withRetries((db: IDBDatabase) => deleteObject(db, key));
+      await this._withRetries((db: IDBDatabase) => _deleteObject(db, key));
       delete this.localCache[key];
       return this.notifyServiceWorker(key);
     });
@@ -380,10 +367,19 @@ class IndexedDBLocalPersistence implements Persistence {
     }
 
     const keys = [];
+    const keysInResult = new Set();
     for (const { fbase_key: key, value } of result) {
+      keysInResult.add(key);
       if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
         this.notifyListeners(key, value as PersistenceValue);
         keys.push(key);
+      }
+    }
+    for (const localKey of Object.keys(this.localCache)) {
+      if (this.localCache[localKey] && !keysInResult.has(localKey)) {
+        // Deleted
+        this.notifyListeners(localKey, null);
+        keys.push(localKey);
       }
     }
     return keys;
@@ -393,12 +389,12 @@ class IndexedDBLocalPersistence implements Persistence {
     key: string,
     newValue: PersistenceValue | null
   ): void {
-    if (!this.listeners[key]) {
-      return;
-    }
     this.localCache[key] = newValue;
-    for (const listener of Array.from(this.listeners[key])) {
-      listener(newValue);
+    const listeners = this.listeners[key];
+    if (listeners) {
+      for (const listener of Array.from(listeners)) {
+        listener(newValue);
+      }
     }
   }
 
@@ -422,7 +418,11 @@ class IndexedDBLocalPersistence implements Persistence {
     if (Object.keys(this.listeners).length === 0) {
       this.startPolling();
     }
-    this.listeners[key] = this.listeners[key] || new Set();
+    if (!this.listeners[key]) {
+      this.listeners[key] = new Set();
+      // Populate the cache to avoid spuriously triggering on first poll.
+      void this._get(key); // This can happen in the background async and we can return immediately.
+    }
     this.listeners[key].add(listener);
   }
 
@@ -432,7 +432,6 @@ class IndexedDBLocalPersistence implements Persistence {
 
       if (this.listeners[key].size === 0) {
         delete this.listeners[key];
-        delete this.localCache[key];
       }
     }
 
@@ -443,9 +442,9 @@ class IndexedDBLocalPersistence implements Persistence {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#Persistence} of type 'LOCAL' using `indexedDB`
+ * An implementation of {@link Persistence} of type 'LOCAL' using `indexedDB`
  * for the underlying storage.
  *
  * @public
  */
-export const indexedDBLocalPersistence: externs.Persistence = IndexedDBLocalPersistence;
+export const indexedDBLocalPersistence: Persistence = IndexedDBLocalPersistence;

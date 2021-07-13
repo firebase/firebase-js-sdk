@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-import { use, expect } from 'chai';
+import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { Reference } from '../src/api/Reference';
-import { DataSnapshot } from '../src/api/DataSnapshot';
-import { Query } from '../src/api/Query';
-import '../src/core/snap/ChildrenNode';
-import { getRandomNode, getFreshRepo, getPath, pause } from './helpers/util';
+import * as _ from 'lodash';
+
+import { DataSnapshot, Query, Reference } from '../src/api/Reference';
+import { INTEGER_32_MAX, INTEGER_32_MIN } from '../src/core/util/util';
+
 import {
   EventAccumulator,
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
-import * as _ from 'lodash';
-import { INTEGER_32_MIN, INTEGER_32_MAX } from '../src/core/util/util';
+import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
 
 use(chaiAsPromised);
 
@@ -81,11 +80,6 @@ describe('Query Tests', () => {
     const dbChild = child.database;
 
     expect(db).to.equal(dbChild);
-    /**
-     * TS throws an error here (as is expected)
-     * casting to any to allow the code to run
-     */
-    expect(() => ((path as any).database = "can't overwrite")).to.throw();
     expect(path.database).to.equal(db);
   });
 
@@ -371,7 +365,7 @@ describe('Query Tests', () => {
   it('Query.queryIdentifier works.', () => {
     const path = getRandomNode() as Reference;
     const queryId = function (query) {
-      return query.queryIdentifier(query);
+      return query._delegate._queryIdentifier;
     };
 
     expect(queryId(path)).to.equal('default');
@@ -771,6 +765,16 @@ describe('Query Tests', () => {
     });
 
     expect(expected).to.equal(10);
+  });
+
+  it('Raises snapshots synchronously', () => {
+    const node = getRandomNode() as Reference;
+    let newValue;
+    node.on('value', v => {
+      newValue = v.val();
+    });
+    node.set('foo');
+    expect(newValue).to.equal('foo');
   });
 
   it('Set a limit of 5, add a bunch of nodes, ensure only last 5 items are sent from server.', async () => {
@@ -1375,6 +1379,62 @@ describe('Query Tests', () => {
 
     expect(added).to.equal('');
     expect(removed).to.equal('b ');
+  });
+
+  it('Ensure startAfter on key index works', async () => {
+    const node = getRandomNode() as Reference;
+    const childOne = node.push();
+    const childTwo = node.push();
+    await childOne.set(1);
+    await childTwo.set(2);
+    const snap = await node.orderByKey().startAfter(childOne.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childTwo.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childTwo.key]]);
+  });
+
+  it('Ensure endBefore on key index works', async () => {
+    const node = getRandomNode() as Reference;
+    const childOne = node.push();
+    const childTwo = node.push();
+    await childOne.set(1);
+    await childTwo.set(2);
+    const snap = await node.orderByKey().endBefore(childTwo.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childOne.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childOne.key]]);
+  });
+
+  it('Ensure startAfter on key index works with overlapping listener', async () => {
+    const node = getRandomNode() as Reference;
+    const childOne = node.push();
+    const childTwo = node.push();
+    // Create a server synced and a latency-compensated write
+    await childOne.set(1);
+    childTwo.set(2);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    node.on('value', snap => {
+      ea.addEvent(snap.val());
+    });
+    await ea.promise;
+    const snap = await node.orderByKey().startAfter(childOne.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childTwo.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childTwo.key]]);
+  });
+
+  it('Ensure endBefore on key index works with overlapping listener', async () => {
+    const node = getRandomNode() as Reference;
+    const childOne = node.push();
+    const childTwo = node.push();
+    // Create a server synced and a latency-compensated write
+    await childOne.set(1);
+    childTwo.set(2);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
+    node.on('value', snap => {
+      ea.addEvent(snap.val());
+    });
+    await ea.promise;
+    const snap = await node.orderByKey().endBefore(childTwo.key).get();
+    expect(Object.keys(snap.val())).to.deep.equal([childOne.key]);
+    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childOne.key]]);
   });
 
   it('Ensure startAt / endAt with priority works.', async () => {
@@ -2270,6 +2330,32 @@ describe('Query Tests', () => {
     await ea.promise;
   });
 
+  it('Query.once() only fires once', async () => {
+    const node = getRandomNode() as Reference;
+
+    let count = 1;
+    node.set(count);
+
+    const valueEvent = EventAccumulatorFactory.waitsForCount(3);
+    node.on('value', () => {
+      if (count < 3) {
+        ++count;
+        node.set(count);
+      }
+      valueEvent.addEvent();
+    });
+
+    const onceEvent = EventAccumulatorFactory.waitsForExactCount(1);
+    node.once('value', () => {
+      ++count;
+      node.set(count);
+      onceEvent.addEvent();
+    });
+
+    await valueEvent.promise;
+    await onceEvent.promise;
+  });
+
   it('Ensure on() returns callback function.', () => {
     const node = getRandomNode() as Reference;
     const callback = function () {};
@@ -2425,7 +2511,7 @@ describe('Query Tests', () => {
   });
 
   function dumpListens(node: Query) {
-    const listens: Map<string, Map<string, unknown>> = (node.repo
+    const listens: Map<string, Map<string, unknown>> = (node._delegate._repo
       .persistentConnection_ as any).listens;
     const nodePath = getPath(node);
     const listenPaths = [];
@@ -3098,12 +3184,26 @@ describe('Query Tests', () => {
     expect((await node.get()).val()).to.equal(null);
   });
 
-  it('get at non-empty root returns correct value', async () => {
+  it('get at node returns correct value', async () => {
     const node = getRandomNode() as Reference;
     const expected = { foo: 'a', bar: 'b' };
     await node.set(expected);
     const snapshot = await node.get();
     expect(snapshot.val()).to.deep.equal(expected);
+  });
+
+  it('get for child returns correct value', async () => {
+    const node = getRandomNode() as Reference;
+    await node.set({ foo: 'a', bar: 'b', baz: 'c' });
+    const snapshot = await node.child('baz').get();
+    expect(snapshot.val()).to.deep.equal('c');
+  });
+
+  it('get for parent returns correct value', async () => {
+    const node = getRandomNode() as Reference;
+    const child = node.child('child');
+    await child.set(1);
+    expect((await node.get()).val()).to.deep.equal({ child: 1 });
   });
 
   it('get for removed node returns correct value', async () => {
@@ -3118,7 +3218,7 @@ describe('Query Tests', () => {
     expect(snapshot.val()).to.be.null;
   });
 
-  it('get while offline is rejected', async () => {
+  it('get for missing node while offline is rejected', async () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
     try {
@@ -3128,9 +3228,9 @@ describe('Query Tests', () => {
     }
   });
 
-  it('get reads from cache if database is not connected', async () => {
+  it('get reads node from cache when not connected', async () => {
     const node = getRandomNode() as Reference;
-    const node2 = getFreshRepo(node.path);
+    const node2 = getFreshRepo(node._delegate._path);
     try {
       await node2.set({ foo: 'bar' });
       const onSnapshot = await new Promise((resolve, _) => {
@@ -3150,9 +3250,137 @@ describe('Query Tests', () => {
     }
   });
 
+  it('get reads child node from cache when not connected', async () => {
+    const node = getRandomNode() as Reference;
+    const node2 = getFreshRepo(node._delegate._path);
+    try {
+      await node2.set({ foo: 'bar' });
+      const onSnapshot = await new Promise((resolve, _) => {
+        node.on('value', snap => {
+          resolve(snap);
+        });
+      });
+      node.database.goOffline();
+      const getSnapshot = await node.child('foo').get();
+      // node's cache dropped here.
+      node.off();
+      expect(getSnapshot.val()).to.deep.equal('bar');
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get reads parent node from cache when not connected', async () => {
+    const node = getRandomNode() as Reference;
+    const node2 = getFreshRepo(node._delegate._path);
+    try {
+      await node2.set({ foo: 'bar' });
+      await node2.child('baz').set(1);
+      const onSnapshot = await new Promise((resolve, _) => {
+        node.on('value', snap => {
+          resolve(snap);
+        });
+      });
+      node.database.goOffline();
+      const getSnapshot = await node.get();
+      // node's cache dropped here.
+      node.off();
+      expect(getSnapshot.val()).to.deep.equal({ foo: 'bar', baz: 1 });
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get with pending node writes when not connected', async () => {
+    const node = getRandomNode() as Reference;
+    const node2 = getFreshRepo(node._delegate._path);
+    try {
+      await node2.set({ foo: 'bar' });
+      const onSnapshot = await new Promise((resolve, _) => {
+        node.on('value', snap => {
+          resolve(snap);
+        });
+      });
+      node.database.goOffline();
+      node.set({ foo: 'baz' });
+      const getSnapshot = await node.get();
+      // node's cache dropped here.
+      node.off();
+      expect(getSnapshot.val()).to.deep.equal({ foo: 'baz' });
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get with pending child writes when not connected', async () => {
+    const node = getRandomNode() as Reference;
+    const node2 = getFreshRepo(node._delegate._path);
+    try {
+      await node2.set({ foo: 'bar' });
+      const onSnapshot = await new Promise((resolve, _) => {
+        node.on('value', snap => {
+          resolve(snap);
+        });
+      });
+      node.database.goOffline();
+      node.child('baz').set(true);
+      const getSnapshot = await node.get();
+      // node's cache dropped here.
+      node.off();
+      expect(getSnapshot.val()).to.deep.equal({ foo: 'bar', baz: true });
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get with pending parent writes when not connected', async () => {
+    const node = getRandomNode() as Reference;
+    const node2 = getFreshRepo(node._delegate._path);
+    try {
+      await node2.set({ foo: 'bar' });
+      const onSnapshot = await new Promise((resolve, _) => {
+        node.on('value', snap => {
+          resolve(snap);
+        });
+      });
+      node.database.goOffline();
+      node.set({ foo: 'baz' });
+      const getSnapshot = await node.child('foo').get();
+      // node's cache dropped here.
+      node.off();
+      expect(getSnapshot.val()).to.deep.equal('baz');
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get with pending writes', async () => {
+    const node = getRandomNode() as Reference;
+    node.database.goOffline();
+    try {
+      node.set({ foo: 'bar' });
+      const snap = await node.get();
+      expect(snap.val()).to.deep.equal({ foo: 'bar' });
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
+  it('get child of pending writes', async () => {
+    const node = getRandomNode() as Reference;
+    node.database.goOffline();
+    try {
+      node.set({ foo: 'bar' });
+      const snap = await node.child('foo').get();
+      expect(snap.val()).to.deep.equal('bar');
+    } finally {
+      node.database.goOnline();
+    }
+  });
+
   it('get does not cache sibling data', async () => {
     const reader = getRandomNode() as Reference;
-    const writer = getFreshRepo(reader.path);
+    const writer = getFreshRepo(reader._delegate._path);
     await writer.set({
       foo: { cached: { data: '1' }, notCached: { data: '2' } }
     });

@@ -17,7 +17,7 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { Query, queryToTarget } from '../core/query';
-import { Document, MaybeDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
@@ -39,7 +39,7 @@ import {
 } from './persistent_stream';
 import {
   fromDocument,
-  fromMaybeDocument,
+  fromBatchGetDocumentsResponse,
   getEncodedDatabaseId,
   JsonProtoSerializer,
   toMutation,
@@ -99,10 +99,14 @@ class DatastoreImpl extends Datastore {
         );
       })
       .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
+        if (error.name === 'FirebaseError') {
+          if (error.code === Code.UNAUTHENTICATED) {
+            this.credentials.invalidateToken();
+          }
+          throw error;
+        } else {
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
         }
-        throw error;
       });
   }
 
@@ -124,15 +128,19 @@ class DatastoreImpl extends Datastore {
         );
       })
       .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
+        if (error.name === 'FirebaseError') {
+          if (error.code === Code.UNAUTHENTICATED) {
+            this.credentials.invalidateToken();
+          }
+          throw error;
+        } else {
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
         }
-        throw error;
       });
   }
 
   terminate(): void {
-    this.terminated = false;
+    this.terminated = true;
   }
 }
 
@@ -161,7 +169,7 @@ export async function invokeCommitRpc(
 export async function invokeBatchGetDocumentsRpc(
   datastore: Datastore,
   keys: DocumentKey[]
-): Promise<MaybeDocument[]> {
+): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const path = getEncodedDatabaseId(datastoreImpl.serializer) + '/documents';
   const request = {
@@ -172,12 +180,12 @@ export async function invokeBatchGetDocumentsRpc(
     ProtoBatchGetDocumentsResponse
   >('BatchGetDocuments', path, request);
 
-  const docs = new Map<string, MaybeDocument>();
+  const docs = new Map<string, Document>();
   response.forEach(proto => {
-    const doc = fromMaybeDocument(datastoreImpl.serializer, proto);
+    const doc = fromBatchGetDocumentsResponse(datastoreImpl.serializer, proto);
     docs.set(doc.key.toString(), doc);
   });
-  const result: MaybeDocument[] = [];
+  const result: Document[] = [];
   keys.forEach(key => {
     const doc = docs.get(key.toString());
     hardAssert(!!doc, 'Missing entity in write response for ' + key);

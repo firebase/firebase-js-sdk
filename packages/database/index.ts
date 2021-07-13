@@ -14,24 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { Database } from './src/api/Database';
-import { DataSnapshot } from './src/api/DataSnapshot';
-import { Query } from './src/api/Query';
-import { Reference } from './src/api/Reference';
-import { enableLogging } from './src/core/util/util';
-import { RepoManager } from './src/core/RepoManager';
-import * as INTERNAL from './src/api/internal';
-import * as TEST_ACCESS from './src/api/test_access';
-import { isNodeSdk } from '@firebase/util';
-import * as types from '@firebase/database-types';
-import { setSDKVersion } from './src/core/version';
 import { Component, ComponentType } from '@firebase/component';
+import * as types from '@firebase/database-types';
+import { isNodeSdk } from '@firebase/util';
 
 import { name, version } from './package.json';
+import { Database } from './src/api/Database';
+import * as INTERNAL from './src/api/internal';
+import { DataSnapshot, Query, Reference } from './src/api/Reference';
+import * as TEST_ACCESS from './src/api/test_access';
+import { enableLogging } from './src/core/util/util';
+import { setSDKVersion } from './src/core/version';
+import { repoManagerDatabaseFromApp } from './src/exp/Database';
 
 const ServerValue = Database.ServerValue;
 
@@ -43,16 +42,16 @@ export function registerDatabase(instance: FirebaseNamespace) {
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'database',
-      (container, url) => {
+      (container, { instanceIdentifier: url }) => {
         /* Dependencies */
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const authProvider = container.getProvider('auth-internal');
+        const appCheckProvider = container.getProvider('app-check-internal');
 
-        return RepoManager.getInstance().databaseFromApp(
-          app,
-          authProvider,
-          url
+        return new Database(
+          repoManagerDatabaseFromApp(app, authProvider, appCheckProvider, url),
+          app
         );
       },
       ComponentType.PUBLIC
@@ -85,7 +84,7 @@ registerDatabase(firebase);
 // Types to export for the admin SDK
 export { Database, Query, Reference, enableLogging, ServerValue };
 
-export { DataSnapshot } from './src/api/DataSnapshot';
+export { DataSnapshot } from './src/api/Reference';
 export { OnDisconnect } from './src/api/onDisconnect';
 
 declare module '@firebase/app-types' {

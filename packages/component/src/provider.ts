@@ -18,7 +18,13 @@
 import { Deferred } from '@firebase/util';
 import { ComponentContainer } from './component_container';
 import { DEFAULT_ENTRY_NAME } from './constants';
-import { InstantiationMode, Name, NameServiceMapping } from './types';
+import {
+  InitializeOptions,
+  InstantiationMode,
+  Name,
+  NameServiceMapping,
+  OnInitCallBack
+} from './types';
 import { Component } from './component';
 
 /**
@@ -32,6 +38,7 @@ export class Provider<T extends Name> {
     string,
     Deferred<NameServiceMapping[T]>
   > = new Map();
+  private onInitCallbacks: Map<string, Set<OnInitCallBack<T>>> = new Map();
 
   constructor(
     private readonly name: T,
@@ -42,22 +49,30 @@ export class Provider<T extends Name> {
    * @param identifier A provider can provide mulitple instances of a service
    * if this.component.multipleInstances is true.
    */
-  get(identifier: string = DEFAULT_ENTRY_NAME): Promise<NameServiceMapping[T]> {
+  get(identifier?: string): Promise<NameServiceMapping[T]> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
     if (!this.instancesDeferred.has(normalizedIdentifier)) {
       const deferred = new Deferred<NameServiceMapping[T]>();
       this.instancesDeferred.set(normalizedIdentifier, deferred);
-      // If the service instance is available, resolve the promise with it immediately
-      try {
-        const instance = this.getOrInitializeService(normalizedIdentifier);
-        if (instance) {
-          deferred.resolve(instance);
+
+      if (
+        this.isInitialized(normalizedIdentifier) ||
+        this.shouldAutoInitialize()
+      ) {
+        // initialize the service if it can be auto-initialized
+        try {
+          const instance = this.getOrInitializeService({
+            instanceIdentifier: normalizedIdentifier
+          });
+          if (instance) {
+            deferred.resolve(instance);
+          }
+        } catch (e) {
+          // when the instance factory throws an exception during get(), it should not cause
+          // a fatal error. We just return the unresolved promise in this case.
         }
-      } catch (e) {
-        // when the instance factory throws an exception during get(), it should not cause
-        // a fatal error. We just return the unresolved promise in this case.
       }
     }
 
@@ -84,28 +99,33 @@ export class Provider<T extends Name> {
     identifier?: string;
     optional?: boolean;
   }): NameServiceMapping[T] | null {
-    const { identifier, optional } = {
-      identifier: DEFAULT_ENTRY_NAME,
-      optional: false,
-      ...options
-    };
     // if multipleInstances is not supported, use the default name
-    const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
-    try {
-      const instance = this.getOrInitializeService(normalizedIdentifier);
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(
+      options?.identifier
+    );
+    const optional = options?.optional ?? false;
 
-      if (!instance) {
+    if (
+      this.isInitialized(normalizedIdentifier) ||
+      this.shouldAutoInitialize()
+    ) {
+      try {
+        return this.getOrInitializeService({
+          instanceIdentifier: normalizedIdentifier
+        });
+      } catch (e) {
         if (optional) {
           return null;
+        } else {
+          throw e;
         }
-        throw Error(`Service ${this.name} is not available`);
       }
-      return instance;
-    } catch (e) {
+    } else {
+      // In case a component is not initialized and should/can not be auto-initialized at the moment, return null if the optional flag is set, or throw
       if (optional) {
         return null;
       } else {
-        throw e;
+        throw Error(`Service ${this.name} is not available`);
       }
     }
   }
@@ -126,10 +146,16 @@ export class Provider<T extends Name> {
     }
 
     this.component = component;
+
+    // return early without attempting to initialize the component if the component requires explicit initialization (calling `Provider.initialize()`)
+    if (!this.shouldAutoInitialize()) {
+      return;
+    }
+
     // if the service is eager, initialize the default instance
     if (isComponentEager(component)) {
       try {
-        this.getOrInitializeService(DEFAULT_ENTRY_NAME);
+        this.getOrInitializeService({ instanceIdentifier: DEFAULT_ENTRY_NAME });
       } catch (e) {
         // when the instance factory for an eager Component throws an exception during the eager
         // initialization, it should not cause a fatal error.
@@ -151,7 +177,9 @@ export class Provider<T extends Name> {
 
       try {
         // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy.
-        const instance = this.getOrInitializeService(normalizedIdentifier)!;
+        const instance = this.getOrInitializeService({
+          instanceIdentifier: normalizedIdentifier
+        })!;
         instanceDeferred.resolve(instance);
       } catch (e) {
         // when the instance factory throws an exception, it should not cause
@@ -186,27 +214,151 @@ export class Provider<T extends Name> {
     return this.component != null;
   }
 
-  private getOrInitializeService(
+  isInitialized(identifier: string = DEFAULT_ENTRY_NAME): boolean {
+    return this.instances.has(identifier);
+  }
+
+  initialize(opts: InitializeOptions = {}): NameServiceMapping[T] {
+    const { options = {} } = opts;
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(
+      opts.instanceIdentifier
+    );
+    if (this.isInitialized(normalizedIdentifier)) {
+      throw Error(
+        `${this.name}(${normalizedIdentifier}) has already been initialized`
+      );
+    }
+
+    if (!this.isComponentSet()) {
+      throw Error(`Component ${this.name} has not been registered yet`);
+    }
+
+    const instance = this.getOrInitializeService({
+      instanceIdentifier: normalizedIdentifier,
+      options
+    })!;
+
+    // resolve any pending promise waiting for the service instance
+    for (const [
+      instanceIdentifier,
+      instanceDeferred
+    ] of this.instancesDeferred.entries()) {
+      const normalizedDeferredIdentifier = this.normalizeInstanceIdentifier(
+        instanceIdentifier
+      );
+      if (normalizedIdentifier === normalizedDeferredIdentifier) {
+        instanceDeferred.resolve(instance);
+      }
+    }
+
+    return instance;
+  }
+
+  /**
+   *
+   * @param callback - a function that will be invoked  after the provider has been initialized by calling provider.initialize().
+   * The function is invoked SYNCHRONOUSLY, so it should not execute any longrunning tasks in order to not block the program.
+   *
+   * @param identifier An optional instance identifier
+   * @returns a function to unregister the callback
+   */
+  onInit(callback: OnInitCallBack<T>, identifier?: string): () => void {
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+    const existingCallbacks =
+      this.onInitCallbacks.get(normalizedIdentifier) ??
+      new Set<OnInitCallBack<T>>();
+    existingCallbacks.add(callback);
+    this.onInitCallbacks.set(normalizedIdentifier, existingCallbacks);
+
+    const existingInstance = this.instances.get(normalizedIdentifier);
+    if (existingInstance) {
+      callback(existingInstance, normalizedIdentifier);
+    }
+
+    return () => {
+      existingCallbacks.delete(callback);
+    };
+  }
+
+  /**
+   * Invoke onInit callbacks synchronously
+   * @param instance the service instance`
+   */
+  private invokeOnInitCallbacks(
+    instance: NameServiceMapping[T],
     identifier: string
-  ): NameServiceMapping[T] | null {
-    let instance = this.instances.get(identifier);
+  ): void {
+    const callbacks = this.onInitCallbacks.get(identifier);
+    if (!callbacks) {
+      return;
+    }
+    for (const callback of callbacks) {
+      try {
+        callback(instance, identifier);
+      } catch {
+        // ignore errors in the onInit callback
+      }
+    }
+  }
+
+  private getOrInitializeService({
+    instanceIdentifier,
+    options = {}
+  }: {
+    instanceIdentifier: string;
+    options?: Record<string, unknown>;
+  }): NameServiceMapping[T] | null {
+    let instance = this.instances.get(instanceIdentifier);
     if (!instance && this.component) {
-      instance = this.component.instanceFactory(
-        this.container,
-        normalizeIdentifierForFactory(identifier)
-      ) as NameServiceMapping[T];
-      this.instances.set(identifier, instance);
+      instance = this.component.instanceFactory(this.container, {
+        instanceIdentifier: normalizeIdentifierForFactory(instanceIdentifier),
+        options
+      });
+      this.instances.set(instanceIdentifier, instance);
+
+      /**
+       * Invoke onInit listeners.
+       * Note this.component.onInstanceCreated is different, which is used by the component creator,
+       * while onInit listeners are registered by consumers of the provider.
+       */
+      this.invokeOnInitCallbacks(instance, instanceIdentifier);
+
+      /**
+       * Order is important
+       * onInstanceCreated() should be called after this.instances.set(instanceIdentifier, instance); which
+       * makes `isInitialized()` return true.
+       */
+      if (this.component.onInstanceCreated) {
+        try {
+          this.component.onInstanceCreated(
+            this.container,
+            instanceIdentifier,
+            instance
+          );
+        } catch {
+          // ignore errors in the onInstanceCreatedCallback
+        }
+      }
     }
 
     return instance || null;
   }
 
-  private normalizeInstanceIdentifier(identifier: string): string {
+  private normalizeInstanceIdentifier(
+    identifier: string = DEFAULT_ENTRY_NAME
+  ): string {
     if (this.component) {
       return this.component.multipleInstances ? identifier : DEFAULT_ENTRY_NAME;
     } else {
       return identifier; // assume multiple instances are supported before the component is provided.
     }
+  }
+
+  private shouldAutoInitialize(): boolean {
+    return (
+      !!this.component &&
+      this.component.instantiationMode !== InstantiationMode.EXPLICIT
+    );
   }
 }
 
@@ -215,6 +367,6 @@ function normalizeIdentifierForFactory(identifier: string): string | undefined {
   return identifier === DEFAULT_ENTRY_NAME ? undefined : identifier;
 }
 
-function isComponentEager(component: Component<Name>): boolean {
+function isComponentEager<T extends Name>(component: Component<T>): boolean {
   return component.instantiationMode === InstantiationMode.EAGER;
 }

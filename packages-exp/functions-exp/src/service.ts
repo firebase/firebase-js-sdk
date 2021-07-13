@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 import {
   HttpsCallable,
   HttpsCallableResult,
   HttpsCallableOptions
-} from '@firebase/functions-types-exp';
+} from './public-types';
 import { _errorForResponse, FunctionsError } from './error';
 import { ContextProvider } from './context';
 import { encode, decode } from './serializer';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 export const DEFAULT_REGION = 'us-central1';
 
@@ -86,10 +87,15 @@ export class FunctionsService implements _FirebaseService {
     readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<FirebaseMessagingName>,
+    appCheckProvider: Provider<AppCheckInternalComponentName>,
     regionOrCustomDomain: string = DEFAULT_REGION,
     readonly fetchImpl: typeof fetch
   ) {
-    this.contextProvider = new ContextProvider(authProvider, messagingProvider);
+    this.contextProvider = new ContextProvider(
+      authProvider,
+      messagingProvider,
+      appCheckProvider
+    );
     // Cancels all ongoing requests when resolved.
     this.cancelAllRequests = new Promise(resolve => {
       this.deleteService = () => {
@@ -154,14 +160,14 @@ export function useFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable(
+export function httpsCallable<RequestData, ResponseData>(
   functionsInstance: FunctionsService,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable {
-  return data => {
+): HttpsCallable<RequestData, ResponseData> {
+  return (data => {
     return call(functionsInstance, name, data, options || {});
-  };
+  }) as HttpsCallable<RequestData, ResponseData>;
 }
 
 /**
@@ -233,6 +239,9 @@ async function call(
   }
   if (context.messagingToken) {
     headers['Firebase-Instance-ID-Token'] = context.messagingToken;
+  }
+  if (context.appCheckToken !== null) {
+    headers['X-Firebase-AppCheck'] = context.appCheckToken;
   }
 
   // Default timeout to 70s, but let the options override it.

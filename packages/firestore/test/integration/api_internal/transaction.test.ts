@@ -18,6 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import { DEFAULT_MAX_ATTEMPTS_COUNT } from '../../../src/core/transaction_runner';
 import { TimerId } from '../../../src/util/async_queue';
 import { Deferred } from '../../util/promise';
 import * as integrationHelpers from '../util/helpers';
@@ -33,7 +34,7 @@ apiDescribe(
       const transactionPromises: Array<Promise<void>> = [];
       const readPromises: Array<Promise<void>> = [];
       // A barrier to make sure every transaction reaches the same spot.
-      const barrier = new Deferred();
+      const barrier = new Deferred<void>();
       let started = 0;
 
       return integrationHelpers.withTestDb(persistence, db => {
@@ -90,7 +91,7 @@ apiDescribe(
       const transactionPromises: Array<Promise<void>> = [];
       const readPromises: Array<Promise<void>> = [];
       // A barrier to make sure every transaction reaches the same spot.
-      const barrier = new Deferred();
+      const barrier = new Deferred<void>();
       let counter = 0;
 
       return integrationHelpers.withTestDb(persistence, db => {
@@ -183,6 +184,7 @@ apiDescribe(
           .then(() => doc.get())
           .then(snapshot => {
             expect(snapshot.data()!['count']).to.equal(1234 + counter);
+            expect(counter).to.equal(DEFAULT_MAX_ATTEMPTS_COUNT);
           });
       });
     });

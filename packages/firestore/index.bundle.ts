@@ -21,18 +21,8 @@ import { Firestore, loadBundle, namedQuery } from './export';
  * Prototype patches bundle loading to Firestore.
  */
 export function registerBundle(instance: typeof Firestore): void {
-  instance.prototype.loadBundle = function (
-    this: Firestore,
-    data: ArrayBuffer | ReadableStream<Uint8Array> | string
-  ) {
-    return loadBundle(this, data);
-  };
-  instance.prototype.namedQuery = function (
-    this: Firestore,
-    queryName: string
-  ) {
-    return namedQuery(this, queryName);
-  };
+  instance.prototype.loadBundle = loadBundle;
+  instance.prototype.namedQuery = namedQuery;
 }
 
 registerBundle(Firestore);

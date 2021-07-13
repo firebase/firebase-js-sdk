@@ -15,19 +15,15 @@
  * limitations under the License.
  */
 
-import {
-  FirebaseApp,
-  FirebaseOptions,
-  FirebaseNamespace
-} from '@firebase/app-types'; // TODO: create @firebase/app-types-compat before the official release
+import { FirebaseApp, FirebaseOptions } from './public-types';
 import {
   _FirebaseNamespace,
-  FirebaseService,
+  _FirebaseService,
   FirebaseServiceNamespace
-} from '@firebase/app-types/private';
+} from './types';
 import * as modularAPIs from '@firebase/app-exp';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
-import { Component, ComponentType } from '@firebase/component';
+import { _FirebaseAppInternal as _FirebaseAppExp } from '@firebase/app-exp';
+import { Component, ComponentType, Name } from '@firebase/component';
 
 import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
@@ -43,13 +39,13 @@ import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
  */
 export function createFirebaseNamespaceCore(
   firebaseAppImpl: typeof FirebaseAppImpl | typeof FirebaseAppLiteImpl
-): FirebaseNamespace {
+): _FirebaseNamespace {
   const apps: { [name: string]: FirebaseApp } = {};
   // // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // const components = new Map<string, Component<any>>();
 
   // A namespace is a plain JavaScript Object.
-  const namespace: FirebaseNamespace = {
+  const namespace: _FirebaseNamespace = {
     // Hack to prevent Babel from modifying the object returned
     // as the firebase namespace.
     // @ts-ignore
@@ -121,8 +117,8 @@ export function createFirebaseNamespaceCore(
     const app = modularAPIs.initializeApp(
       options,
       rawConfig
-    ) as _FirebaseAppInternal;
-    const appCompat = new firebaseAppImpl(app, namespace as _FirebaseNamespace);
+    ) as _FirebaseAppExp;
+    const appCompat = new firebaseAppImpl(app, namespace);
     apps[app.name] = appCompat;
     return appCompat;
   }
@@ -135,10 +131,11 @@ export function createFirebaseNamespaceCore(
     return Object.keys(apps).map(name => apps[name]);
   }
 
-  function registerComponentCompat(
-    component: Component
-  ): FirebaseServiceNamespace<FirebaseService> | null {
+  function registerComponentCompat<T extends Name>(
+    component: Component<T>
+  ): FirebaseServiceNamespace<_FirebaseService> | null {
     const componentName = component.name;
+    const componentNameWithoutCompat = componentName.replace('-compat', '');
     if (
       modularAPIs._registerComponent(component) &&
       component.type === ComponentType.PUBLIC
@@ -147,9 +144,9 @@ export function createFirebaseNamespaceCore(
       // The Service namespace is an accessor function ...
       const serviceNamespace = (
         appArg: FirebaseApp = app()
-      ): FirebaseService => {
+      ): _FirebaseService => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (typeof (appArg as any)[componentName] !== 'function') {
+        if (typeof (appArg as any)[componentNameWithoutCompat] !== 'function') {
           // Invalid argument.
           // This happens in the following case: firebase.storage('gs:/')
           throw ERROR_FACTORY.create(AppError.INVALID_APP_ARGUMENT, {
@@ -159,7 +156,7 @@ export function createFirebaseNamespaceCore(
 
         // Forward service instance lookup to the FirebaseApp.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (appArg as any)[componentName]();
+        return (appArg as any)[componentNameWithoutCompat]();
       };
 
       // ... and a container for service-level properties.
@@ -168,11 +165,11 @@ export function createFirebaseNamespaceCore(
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (namespace as any)[componentName] = serviceNamespace;
+      (namespace as any)[componentNameWithoutCompat] = serviceNamespace;
 
       // Patch the FirebaseAppImpl prototype
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (firebaseAppImpl.prototype as any)[componentName] =
+      (firebaseAppImpl.prototype as any)[componentNameWithoutCompat] =
         // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
         // option added to the no-explicit-any rule when ESlint releases it.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -187,7 +184,7 @@ export function createFirebaseNamespaceCore(
 
     return component.type === ComponentType.PUBLIC
       ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (namespace as any)[componentName]
+        (namespace as any)[componentNameWithoutCompat]
       : null;
   }
 

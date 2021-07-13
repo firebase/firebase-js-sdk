@@ -18,6 +18,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   createUserWithEmailAndPassword,
   EmailAuthProvider,
@@ -25,10 +26,10 @@ import {
   signInAnonymously,
   signInWithEmailAndPassword,
   updateEmail,
-  updatePassword
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  updatePassword,
+  Auth,
+  OperationType
 } from '@firebase/auth-exp';
-import { Auth, OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import {

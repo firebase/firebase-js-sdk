@@ -19,19 +19,9 @@ import {
   DocumentData as PublicDocumentData,
   SetOptions as PublicSetOptions
 } from '@firebase/firestore-types';
+import { getModularInstance } from '@firebase/util';
 
-import { Compat } from '../api/compat';
-import {
-  newUserDataReader,
-  ParsedUpdateData,
-  parseSetData,
-  parseUpdateData,
-  parseUpdateVarargs,
-  UntypedFirestoreDataConverter
-} from '../api/user_data_reader';
-import { AbstractUserDataWriter } from '../api/user_data_writer';
 import { hasLimitToLast } from '../core/query';
-import { Document } from '../model/document';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
   invokeBatchGetDocumentsRpc,
@@ -60,6 +50,15 @@ import {
   QueryDocumentSnapshot,
   QuerySnapshot
 } from './snapshot';
+import {
+  newUserDataReader,
+  ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
+  UntypedFirestoreDataConverter
+} from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * Converts custom model object of type T into DocumentData by applying the
@@ -129,13 +128,13 @@ export function getDoc<T>(
   return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
     result => {
       hardAssert(result.length === 1, 'Expected a single document result');
-      const maybeDocument = result[0];
+      const document = result[0];
       return new DocumentSnapshot<T>(
         reference.firestore,
         userDataWriter,
         reference._key,
-        maybeDocument instanceof Document ? maybeDocument : null,
-        reference._converter
+        document.isFoundDocument() ? document : null,
+        reference.converter
       );
     }
   );
@@ -167,7 +166,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
           userDataWriter,
           doc.key,
           doc,
-          query._converter
+          query.converter
         )
     );
 
@@ -228,7 +227,7 @@ export function setDoc<T>(
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const convertedValue = applyFirestoreDataConverter(
-    reference._converter,
+    reference.converter,
     data,
     options
   );
@@ -238,7 +237,7 @@ export function setDoc<T>(
     'setDoc',
     reference._key,
     convertedValue,
-    reference._converter !== null,
+    reference.converter !== null,
     options
   );
 
@@ -306,9 +305,7 @@ export function updateDoc(
 
   // For Compat types, we have to "extract" the underlying types before
   // performing validation.
-  if (fieldOrUpdateData instanceof Compat) {
-    fieldOrUpdateData = fieldOrUpdateData._delegate;
-  }
+  fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
   let parsed: ParsedUpdateData;
   if (
@@ -381,10 +378,7 @@ export function addDoc<T>(
   reference = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(reference);
 
-  const convertedValue = applyFirestoreDataConverter(
-    reference._converter,
-    data
-  );
+  const convertedValue = applyFirestoreDataConverter(reference.converter, data);
 
   const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
@@ -392,7 +386,7 @@ export function addDoc<T>(
     'addDoc',
     docRef._key,
     convertedValue,
-    docRef._converter !== null,
+    docRef.converter !== null,
     {}
   );
 

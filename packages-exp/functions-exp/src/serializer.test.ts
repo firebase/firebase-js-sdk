@@ -82,6 +82,18 @@ describe('Serializer', () => {
     expect(decode('hello')).to.equal('hello');
   });
 
+  it('encodes date to ISO string', () => {
+    expect(encode(new Date(1620666095891))).to.equal(
+      '2021-05-10T17:01:35.891Z'
+    );
+  });
+
+  it('decodes date string without modifying it', () => {
+    expect(decode('2021-05-10T17:01:35.891Z')).to.equal(
+      '2021-05-10T17:01:35.891Z'
+    );
+  });
+
   // TODO(klimt): Make this test more interesting once we have a complex type
   // that can be created in JavaScript.
   it('encodes array', () => {
@@ -111,12 +123,14 @@ describe('Serializer', () => {
       encode({
         foo: 1,
         bar: 'hello',
-        baz: [1, 2, 3]
+        baz: [1, 2, 3],
+        date: new Date(1620666095891)
       })
     ).to.deep.equal({
       foo: 1,
       bar: 'hello',
-      baz: [1, 2, 3]
+      baz: [1, 2, 3],
+      date: '2021-05-10T17:01:35.891Z'
     });
   });
 
@@ -132,12 +146,14 @@ describe('Serializer', () => {
             value: '1099511627776',
             '@type': 'type.googleapis.com/google.protobuf.Int64Value'
           }
-        ]
+        ],
+        date: '2021-05-10T17:01:35.891Z'
       })
     ).to.deep.equal({
       foo: 1,
       bar: 'hello',
-      baz: [1, 2, 1099511627776]
+      baz: [1, 2, 1099511627776],
+      date: '2021-05-10T17:01:35.891Z'
     });
   });
 

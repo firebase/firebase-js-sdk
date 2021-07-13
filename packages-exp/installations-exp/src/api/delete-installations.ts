@@ -20,10 +20,11 @@ import { remove, update } from '../helpers/idb-manager';
 import { RequestStatus } from '../interfaces/installation-entry';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseInstallations } from '../interfaces/public-types';
 
 /**
  * Deletes the Firebase Installation and all associated data.
+ * @param installations - The `Installations` instance.
  *
  * @public
  */

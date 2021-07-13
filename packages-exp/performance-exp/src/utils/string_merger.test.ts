@@ -19,13 +19,11 @@ import { expect } from 'chai';
 
 import { mergeStrings } from './string_merger';
 import { FirebaseError } from '@firebase/util';
-// import { ERROR_FACTORY, ErrorCode } from './errors';
 import '../../test/setup';
 
 describe('Firebase Performance > string_merger', () => {
   describe('#mergeStrings', () => {
     it('Throws exception when string length has | diff | > 1', () => {
-      // const expectedError = ERROR_FACTORY.create(ErrorCode.INVALID_STRING_MERGER_PARAMETER);
       expect(() => mergeStrings('', '123')).to.throw(
         FirebaseError,
         'performance/invalid String merger input'

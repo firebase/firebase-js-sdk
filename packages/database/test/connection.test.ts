@@ -16,8 +16,10 @@
  */
 
 import { expect } from 'chai';
-import { repoInfoForConnectionTest } from './helpers/util';
+
 import { Connection } from '../src/realtime/Connection';
+
+import { repoInfoForConnectionTest } from './helpers/util';
 
 describe('Connection', () => {
   it('return the session id', done => {
@@ -25,6 +27,8 @@ describe('Connection', () => {
       '1',
       repoInfoForConnectionTest(),
       'fake-app-id',
+      'fake-app-check-token',
+      'fake-auth-token',
       message => {},
       (timestamp, sessionId) => {
         expect(sessionId).not.to.be.null;
@@ -45,12 +49,16 @@ describe('Connection', () => {
       '1',
       info,
       'fake-app-id',
+      'fake-app-check-token',
+      'fake-auth-token',
       message => {},
       (timestamp, sessionId) => {
         new Connection(
           '2',
           info,
           'fake-app-id',
+          'fake-app-check-token',
+          'fake-auth-token',
           message => {},
           (timestamp, sessionId) => {},
           () => {},

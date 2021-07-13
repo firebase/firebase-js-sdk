@@ -16,40 +16,41 @@
  */
 
 import { assert } from '@firebase/util';
-import { Path } from '../util/Path';
-import { Operation, OperationSource, OperationType } from './Operation';
+
 import { ImmutableTree } from '../util/ImmutableTree';
+import {
+  newEmptyPath,
+  Path,
+  pathGetFront,
+  pathIsEmpty,
+  pathPopFront
+} from '../util/Path';
+
+import { newOperationSourceUser, Operation, OperationType } from './Operation';
 
 export class AckUserWrite implements Operation {
   /** @inheritDoc */
   type = OperationType.ACK_USER_WRITE;
 
   /** @inheritDoc */
-  source = OperationSource.User;
+  source = newOperationSourceUser();
 
   /**
-   *
-   * @param {!Path} path
-   * @param {!ImmutableTree<!boolean>} affectedTree A tree containing true for each affected path. Affected paths can't overlap.
-   * @param {!boolean} revert
+   * @param affectedTree - A tree containing true for each affected path. Affected paths can't overlap.
    */
   constructor(
     /** @inheritDoc */ public path: Path,
     /** @inheritDoc */ public affectedTree: ImmutableTree<boolean>,
     /** @inheritDoc */ public revert: boolean
   ) {}
-
-  /**
-   * @inheritDoc
-   */
   operationForChild(childName: string): AckUserWrite {
-    if (!this.path.isEmpty()) {
+    if (!pathIsEmpty(this.path)) {
       assert(
-        this.path.getFront() === childName,
+        pathGetFront(this.path) === childName,
         'operationForChild called for unrelated child.'
       );
       return new AckUserWrite(
-        this.path.popFront(),
+        pathPopFront(this.path),
         this.affectedTree,
         this.revert
       );
@@ -62,7 +63,7 @@ export class AckUserWrite implements Operation {
       return this;
     } else {
       const childTree = this.affectedTree.subtree(new Path(childName));
-      return new AckUserWrite(Path.Empty, childTree, this.revert);
+      return new AckUserWrite(newEmptyPath(), childTree, this.revert);
     }
   }
 }

@@ -16,6 +16,7 @@
  */
 
 import { assert } from '@firebase/util';
+
 import {
   tryParseInt,
   MAX_NAME,

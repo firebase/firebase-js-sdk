@@ -30,7 +30,7 @@ import { setupOobResources } from './oob_resources_service';
 import { Trace } from '../resources/trace';
 import '../../test/setup';
 import { PerformanceController } from '../controllers/perf';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
 describe('Firebase Performance > oob_resources_service', () => {

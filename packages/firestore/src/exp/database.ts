@@ -15,9 +15,13 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import {
+  _getProvider,
+  _removeServiceInstance,
+  FirebaseApp,
+  getApp
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
@@ -32,12 +36,15 @@ import {
   FirestoreClient,
   firestoreClientDisableNetwork,
   firestoreClientEnableNetwork,
+  firestoreClientGetNamedQuery,
+  firestoreClientLoadBundle,
   firestoreClientWaitForPendingWrites,
   setOfflineComponentProvider,
   setOnlineComponentProvider
 } from '../core/firestore_client';
 import { makeDatabaseInfo } from '../lite/components';
 import { FirebaseFirestore as LiteFirestore } from '../lite/database';
+import { Query } from '../lite/reference';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
@@ -51,8 +58,8 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
+import { LoadBundleTask } from './bundle';
 import { PersistenceSettings, Settings } from './settings';
-
 export { useFirestoreEmulator } from '../lite/database';
 
 /** DOMException error code constants. */
@@ -73,6 +80,8 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
  * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
 export class FirebaseFirestore extends LiteFirestore {
+  type: 'firestore-lite' | 'firestore' = 'firestore';
+
   readonly _queue: AsyncQueue = newAsyncQueue();
   readonly _persistenceKey: string;
 
@@ -104,7 +113,7 @@ export class FirebaseFirestore extends LiteFirestore {
  * {@link getFirestore}. If the custom settings are empty, this function is
  * equivalent to calling {@link getFirestore}.
  *
- * @param app - The {@link FirebaseApp} with which the `Firestore` instance will
+ * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
  * @returns A newly initialized `Firestore` instance.
@@ -113,10 +122,14 @@ export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
 ): FirebaseFirestore {
-  const firestore = _getProvider(
-    app,
-    'firestore-exp'
-  ).getImmediate() as FirebaseFirestore;
+  const provider = _getProvider(app, 'firestore-exp');
+
+  if (provider.isInitialized()) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'Firestore can only be initialized once per app.'
+    );
+  }
 
   if (
     settings.cacheSizeBytes !== undefined &&
@@ -129,23 +142,25 @@ export function initializeFirestore(
     );
   }
 
-  firestore._setSettings(settings);
-  return firestore;
+  return provider.initialize({ options: settings });
 }
 
 /**
  * Returns the existing instance of Firestore that is associated with the
- * provided {@link FirebaseApp}. If no instance exists, initializes a new
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app - The {@link FirebaseApp} instance that the returned Firestore
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Firestore
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp): FirebaseFirestore {
+export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
   return _getProvider(app, 'firestore-exp').getImmediate() as FirebaseFirestore;
 }
 
+/**
+ * @internal
+ */
 export function ensureFirestoreConfigured(
   firestore: FirebaseFirestore
 ): FirestoreClient {
@@ -166,6 +181,7 @@ export function configureFirestore(firestore: FirebaseFirestore): void {
 
   const databaseInfo = makeDatabaseInfo(
     firestore._databaseId,
+    firestore._app?.options.appId || '',
     firestore._persistenceKey,
     settings
   );
@@ -458,6 +474,55 @@ export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
 export function terminate(firestore: FirebaseFirestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore-exp');
   return firestore._delete();
+}
+
+/**
+ * Loads a Firestore bundle into the local cache.
+ *
+ * @param firestore - The `Firestore` instance to load bundles for for.
+ * @param bundleData - An object representing the bundle to be loaded. Valid objects are
+ *   `ArrayBuffer`, `ReadableStream<Uint8Array>` or `string`.
+ *
+ * @returns
+ *   A `LoadBundleTask` object, which notifies callers with progress updates, and completion
+ *   or error events. It can be used as a `Promise<LoadBundleTaskProgress>`.
+ */
+export function loadBundle(
+  firestore: FirebaseFirestore,
+  bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string
+): LoadBundleTask {
+  firestore = cast(firestore, FirebaseFirestore);
+  const client = ensureFirestoreConfigured(firestore);
+  const resultTask = new LoadBundleTask();
+  firestoreClientLoadBundle(
+    client,
+    firestore._databaseId,
+    bundleData,
+    resultTask
+  );
+  return resultTask;
+}
+
+/**
+ * Reads a Firestore `Query` from local cache, identified by the given name.
+ *
+ * The named queries are packaged  into bundles on the server side (along
+ * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
+ * cache, use this method to extract a `Query` by name.
+ */
+export function namedQuery(
+  firestore: FirebaseFirestore,
+  name: string
+): Promise<Query | null> {
+  firestore = cast(firestore, FirebaseFirestore);
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientGetNamedQuery(client, name).then(namedQuery => {
+    if (!namedQuery) {
+      return null;
+    }
+
+    return new Query(firestore, null, namedQuery.query);
+  });
 }
 
 function verifyNotInitialized(firestore: FirebaseFirestore): void {

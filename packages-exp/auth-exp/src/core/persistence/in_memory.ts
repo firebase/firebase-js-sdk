@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Persistence } from '../../model/public_types';
 
 import {
-  Persistence,
+  PersistenceInternal,
   PersistenceType,
   PersistenceValue,
   StorageEventListener
 } from '../persistence';
 
-export class InMemoryPersistence implements Persistence {
+export class InMemoryPersistence implements PersistenceInternal {
   static type: 'NONE' = 'NONE';
   readonly type = PersistenceType.NONE;
   storage: Record<string, PersistenceValue> = {};
@@ -58,8 +58,8 @@ export class InMemoryPersistence implements Persistence {
 }
 
 /**
- * An implementation of {@link @firebase/auth-types#Persistence} of type 'NONE'.
+ * An implementation of {@link Persistence} of type 'NONE'.
  *
  * @public
  */
-export const inMemoryPersistence: externs.Persistence = InMemoryPersistence;
+export const inMemoryPersistence: Persistence = InMemoryPersistence;

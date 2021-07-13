@@ -39,6 +39,8 @@ const newTestFirestore = firebaseExport.newTestFirestore;
 const Timestamp = firebaseExport.Timestamp;
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
+const DocumentReference = firebaseExport.DocumentReference;
+const QueryDocumentSnapshot = firebaseExport.QueryDocumentSnapshot;
 
 const MEMORY_ONLY_BUILD =
   typeof process !== 'undefined' &&
@@ -468,9 +470,6 @@ apiDescribe('Database', (persistence: boolean) => {
           () => Promise.reject('update should have failed.'),
           err => {
             expect(err.message).to.exist;
-            // TODO: Change this to just match "no document to update" once the
-            // backend response is consistent.
-            expect(err.message).to.match(/no (document|entity) to update/i);
             expect(err.code).to.equal('not-found');
           }
         )
@@ -1326,7 +1325,11 @@ apiDescribe('Database', (persistence: boolean) => {
   // only to web.
   apiDescribe('withConverter() support', (persistence: boolean) => {
     class Post {
-      constructor(readonly title: string, readonly author: string) {}
+      constructor(
+        readonly title: string,
+        readonly author: string,
+        readonly ref: firestore.DocumentReference | null = null
+      ) {}
       byline(): string {
         return this.title + ', by ' + this.author;
       }
@@ -1340,8 +1343,9 @@ apiDescribe('Database', (persistence: boolean) => {
         snapshot: firestore.QueryDocumentSnapshot,
         options: firestore.SnapshotOptions
       ): Post {
+        expect(snapshot).to.be.an.instanceof(QueryDocumentSnapshot);
         const data = snapshot.data(options);
-        return new Post(data.title, data.author);
+        return new Post(data.title, data.author, snapshot.ref);
       }
     };
 
@@ -1369,7 +1373,7 @@ apiDescribe('Database', (persistence: boolean) => {
         options: firestore.SnapshotOptions
       ): Post {
         const data = snapshot.data();
-        return new Post(data.title, data.author);
+        return new Post(data.title, data.author, snapshot.ref);
       }
     };
 
@@ -1388,6 +1392,18 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
+    it('for DocumentReference.withConverter(null) ', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverter)
+          .withConverter(null);
+
+        expect(() => docRef.set(new Post('post', 'author'))).to.throw();
+      });
+    });
+
     it('for CollectionReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
         const coll = db.collection('posts').withConverter(postConverter);
@@ -1397,6 +1413,17 @@ apiDescribe('Database', (persistence: boolean) => {
         const post = postData.data();
         expect(post).to.not.equal(undefined);
         expect(post!.byline()).to.equal('post, by author');
+      });
+    });
+
+    it('for CollectionReference.withConverter(null)', () => {
+      return withTestDb(persistence, async db => {
+        const coll = db
+          .collection('posts')
+          .withConverter(postConverter)
+          .withConverter(null);
+
+        expect(() => coll.add(new Post('post', 'author'))).to.throw();
       });
     });
 
@@ -1414,6 +1441,20 @@ apiDescribe('Database', (persistence: boolean) => {
           .get();
         expect(posts.size).to.equal(2);
         expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+      });
+    });
+
+    it('for Query.withConverter(null)', () => {
+      return withTestDb(persistence, async db => {
+        await db
+          .doc('postings/post1')
+          .set({ title: 'post1', author: 'author1' });
+        const posts = await db
+          .collectionGroup('postings')
+          .withConverter(postConverter)
+          .withConverter(null)
+          .get();
+        expect(posts.docs[0].data()).to.not.be.an.instanceof(Post);
       });
     });
 
@@ -1552,7 +1593,7 @@ apiDescribe('Database', (persistence: boolean) => {
             expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
 
             const data = snapshot.data(options);
-            return new Post(data.title, data.author);
+            return new Post(data.title, data.author, snapshot.ref);
           }
         });
 
@@ -1588,6 +1629,53 @@ apiDescribe('Database', (persistence: boolean) => {
         const docRef = db.doc('some/doc').withConverter(postConverter);
         const docRef2 = db.doc('some/doc').withConverter(postConverter2);
         expect(docRef.isEqual(docRef2)).to.be.false;
+      });
+    });
+
+    it('Correct snapshot specified to fromFirestore() when registered with DocumentReference', () => {
+      return withTestDb(persistence, async db => {
+        const untypedDocRef = db.collection('/models').doc();
+        const docRef = untypedDocRef.withConverter(postConverter);
+        await docRef.set(new Post('post', 'author'));
+        const docSnapshot = await docRef.get();
+        const ref = docSnapshot.data()!.ref!;
+        expect(ref).to.be.an.instanceof(DocumentReference);
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
+      });
+    });
+
+    it('Correct snapshot specified to fromFirestore() when registered with CollectionReference', () => {
+      return withTestDb(persistence, async db => {
+        const untypedCollection = db
+          .collection('/models')
+          .doc()
+          .collection('sub');
+        const collection = untypedCollection.withConverter(postConverter);
+        const docRef = collection.doc();
+        await docRef.set(new Post('post', 'author', docRef));
+        const querySnapshot = await collection.get();
+        expect(querySnapshot.size).to.equal(1);
+        const ref = querySnapshot.docs[0].data().ref!;
+        expect(ref).to.be.an.instanceof(DocumentReference);
+        const untypedDocRef = untypedCollection.doc(docRef.id);
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
+      });
+    });
+
+    it('Correct snapshot specified to fromFirestore() when registered with Query', () => {
+      return withTestDb(persistence, async db => {
+        const untypedCollection = db.collection('/models');
+        const untypedDocRef = untypedCollection.doc();
+        const docRef = untypedDocRef.withConverter(postConverter);
+        await docRef.set(new Post('post', 'author', docRef));
+        const query = untypedCollection
+          .where(FieldPath.documentId(), '==', docRef.id)
+          .withConverter(postConverter);
+        const querySnapshot = await query.get();
+        expect(querySnapshot.size).to.equal(1);
+        const ref = querySnapshot.docs[0].data().ref!;
+        expect(ref).to.be.an.instanceof(DocumentReference);
+        expect(untypedDocRef.isEqual(ref)).to.be.true;
       });
     });
   });

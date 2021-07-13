@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ActionCodeSettings, Auth } from '@firebase/auth-types-exp';
+import { ActionCodeSettings, Auth } from '../../model/public_types';
 
 import { GetOobCodeRequest } from '../../api/authentication/email_and_password';
 import { AuthErrorCode } from '../errors';

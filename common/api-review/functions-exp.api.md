@@ -4,21 +4,46 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { Functions } from '@firebase/functions-types-exp';
-import { HttpsCallable } from '@firebase/functions-types-exp';
-import { HttpsCallableOptions } from '@firebase/functions-types-exp';
+import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseError } from '@firebase/util';
 
 // @public
-export function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;
+export interface Functions {
+    app: FirebaseApp;
+    customDomain: string | null;
+    region: string;
+}
 
 // @public
-export function httpsCallable(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
+export interface FunctionsError extends FirebaseError {
+    readonly code: FunctionsErrorCode;
+    readonly details?: unknown;
+}
+
+// @public
+export type FunctionsErrorCode = 'ok' | 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
+
+// @public
+export function getFunctions(app?: FirebaseApp, regionOrCustomDomain?: string): Functions;
+
+// @public
+export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (data?: RequestData | null) => Promise<HttpsCallableResult<ResponseData>>;
+
+// @public
+export function httpsCallable<RequestData = unknown, ResponseData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData>;
+
+// @public
+export interface HttpsCallableOptions {
+    timeout?: number;
+}
+
+// @public
+export interface HttpsCallableResult<ResponseData = unknown> {
+    readonly data: ResponseData;
+}
 
 // @public
 export function useFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
 
-
-// (No @packageDocumentation comment for this package)
 
 ```

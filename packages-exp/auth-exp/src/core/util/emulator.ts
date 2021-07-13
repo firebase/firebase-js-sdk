@@ -21,11 +21,10 @@ import { debugAssert } from './assert';
 export function _emulatorUrl(config: ConfigInternal, path?: string): string {
   debugAssert(config.emulator, 'Emulator should always be set here');
   const { url } = config.emulator;
-  const emulatorHost = new URL(url).toString();
 
   if (!path) {
-    return emulatorHost;
+    return url;
   }
 
-  return `${emulatorHost}${path.startsWith('/') ? path.slice(1) : path}`;
+  return `${url}${path.startsWith('/') ? path.slice(1) : path}`;
 }

@@ -613,7 +613,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Register a window unload hook to remove the client metadata entry from
     // WebStorage even if `shutdown()` was not called.
-    this.window.addEventListener('unload', () => this.shutdown());
+    this.window.addEventListener('pagehide', () => this.shutdown());
 
     this.started = true;
   }

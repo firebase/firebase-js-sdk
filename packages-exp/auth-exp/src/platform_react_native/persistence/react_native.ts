@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
+import { Persistence, ReactNativeAsyncStorage } from '../../model/public_types';
 
 import {
-  Persistence,
+  PersistenceInternal,
   PersistenceType,
   PersistenceValue,
   STORAGE_AVAILABLE_KEY,
   StorageEventListener
 } from '../../core/persistence';
-import { debugFail } from '../../core/util/assert';
 
 /**
  * Returns a persistence class that wraps AsyncStorage imported from
@@ -41,9 +40,9 @@ import { debugFail } from '../../core/util/assert';
  */
 
 export function getReactNativePersistence(
-  storage: externs.ReactNativeAsyncStorage
-): externs.Persistence {
-  return class implements Persistence {
+  storage: ReactNativeAsyncStorage
+): Persistence {
+  return class implements PersistenceInternal {
     static type: 'LOCAL' = 'LOCAL';
     readonly type: PersistenceType = PersistenceType.LOCAL;
 
@@ -74,11 +73,13 @@ export function getReactNativePersistence(
     }
 
     _addListener(_key: string, _listener: StorageEventListener): void {
-      debugFail('not implemented');
+      // Listeners are not supported for React Native storage.
+      return;
     }
 
     _removeListener(_key: string, _listener: StorageEventListener): void {
-      debugFail('not implemented');
+      // Listeners are not supported for React Native storage.
+      return;
     }
   };
 }

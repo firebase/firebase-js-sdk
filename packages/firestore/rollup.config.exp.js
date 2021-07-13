@@ -54,7 +54,7 @@ const nodePlugins = function () {
       ]
     }),
     replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../src/protos')
+      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
     })
   ];
 };
@@ -69,6 +69,7 @@ const browserPlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
+      clean: true,
       abortOnError: false,
       transformers: [
         util.removeAssertAndPrefixInternalTransformer,
@@ -83,7 +84,7 @@ const browserPlugins = function () {
 const allBuilds = [
   // Node ESM build
   {
-    input: './exp/index.ts',
+    input: './exp/index.node.ts',
     output: {
       file: path.resolve('./exp', pkg['main-esm']),
       format: 'es',
@@ -96,13 +97,12 @@ const allBuilds = [
     },
     onwarn: util.onwarn
   },
-  // Node UMD build
+  // Node CJS build
   {
     input: path.resolve('./exp', pkg['main-esm']),
     output: {
       file: path.resolve('./exp', pkg.main),
-      format: 'umd',
-      name: 'firebase.firestore',
+      format: 'cjs',
       sourcemap: true
     },
     plugins: util.es2017ToEs5Plugins(/* mangled= */ false),
@@ -125,9 +125,25 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
+  // Convert es2017 build to ES5
+  {
+    input: path.resolve('./exp', pkg['browser']),
+    output: [
+      {
+        file: path.resolve('./exp', pkg['esm5']),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
   // RN build
   {
-    input: './exp/index.ts',
+    input: './exp/index.rn.ts',
     output: {
       file: path.resolve('./exp', pkg['react-native']),
       format: 'es',

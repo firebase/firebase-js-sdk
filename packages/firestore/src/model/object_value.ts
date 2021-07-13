@@ -25,21 +25,19 @@ import { forEach } from '../util/obj';
 import { FieldMask } from './field_mask';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
-import { TypeOrder } from './type_order';
-import { isMapValue, typeOrder, valueEquals } from './values';
+import { deepClone, isMapValue, valueEquals } from './values';
 
 export interface JsonObject<T> {
   [name: string]: T;
 }
-
 /**
  * An ObjectValue represents a MapValue in the Firestore Proto and offers the
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue {
-  constructor(readonly proto: { mapValue: ProtoMapValue }) {
+  constructor(readonly value: { mapValue: ProtoMapValue }) {
     debugAssert(
-      !isServerTimestamp(proto),
+      !isServerTimestamp(value),
       'ServerTimestamps should be converted to ServerTimestampValue'
     );
   }
@@ -52,67 +50,69 @@ export class ObjectValue {
    * Returns the value at the given path or null.
    *
    * @param path - the path to search
-   * @returns The value at the path or if there it doesn't exist.
+   * @returns The value at the path or null if the path is not set.
    */
   field(path: FieldPath): ProtoValue | null {
     if (path.isEmpty()) {
-      return this.proto;
+      return this.value;
     } else {
-      let value: ProtoValue = this.proto;
+      let currentLevel: ProtoValue = this.value;
       for (let i = 0; i < path.length - 1; ++i) {
-        if (!value.mapValue!.fields) {
-          return null;
-        }
-        value = value.mapValue!.fields[path.get(i)];
-        if (!isMapValue(value)) {
+        currentLevel = (currentLevel.mapValue!.fields || {})[path.get(i)];
+        if (!isMapValue(currentLevel)) {
           return null;
         }
       }
-
-      value = (value.mapValue!.fields || {})[path.lastSegment()];
-      return value || null;
+      currentLevel = (currentLevel.mapValue!.fields! || {})[path.lastSegment()];
+      return currentLevel || null;
     }
   }
-
-  isEqual(other: ObjectValue): boolean {
-    return valueEquals(this.proto, other.proto);
-  }
-}
-
-/**
- * An Overlay, which contains an update to apply. Can either be Value proto, a
- * map of Overlay values (to represent additional nesting at the given key) or
- * `null` (to represent field deletes).
- */
-type Overlay = Map<string, Overlay> | ProtoValue | null;
-
-/**
- * An ObjectValueBuilder provides APIs to set and delete fields from an
- * ObjectValue.
- */
-export class ObjectValueBuilder {
-  /** A map that contains the accumulated changes in this builder. */
-  private overlayMap = new Map<string, Overlay>();
-
-  /**
-   * @param baseObject - The object to mutate.
-   */
-  constructor(private readonly baseObject: ObjectValue = ObjectValue.empty()) {}
 
   /**
    * Sets the field to the provided value.
    *
    * @param path - The field path to set.
    * @param value - The value to set.
-   * @returns The current Builder instance.
    */
-  set(path: FieldPath, value: ProtoValue): ObjectValueBuilder {
+  set(path: FieldPath, value: ProtoValue): void {
     debugAssert(
       !path.isEmpty(),
       'Cannot set field for empty path on ObjectValue'
     );
-    this.setOverlay(path, value);
-    return this;
+    const fieldsMap = this.getFieldsMap(path.popLast());
+    fieldsMap[path.lastSegment()] = deepClone(value);
+  }
+
+  /**
+   * Sets the provided fields to the provided values.
+   *
+   * @param data - A map of fields to values (or null for deletes).
+   */
+  setAll(data: Map<FieldPath, ProtoValue | null>): void {
+    let parent = FieldPath.emptyPath();
+
+    let upserts: { [key: string]: ProtoValue } = {};
+    let deletes: string[] = [];
+
+    data.forEach((value, path) => {
+      if (!parent.isImmediateParentOf(path)) {
+        // Insert the accumulated changes at this parent location
+        const fieldsMap = this.getFieldsMap(parent);
+        this.applyChanges(fieldsMap, upserts, deletes);
+        upserts = {};
+        deletes = [];
+        parent = path.popLast();
+      }
+
+      if (value) {
+        upserts[path.lastSegment()] = deepClone(value);
+      } else {
+        deletes.push(path.lastSegment());
+      }
+    });
+
+    const fieldsMap = this.getFieldsMap(parent);
+    this.applyChanges(fieldsMap, upserts, deletes);
   }
 
   /**
@@ -120,107 +120,64 @@ export class ObjectValueBuilder {
    * specified path, nothing is changed.
    *
    * @param path - The field path to remove.
-   * @returns The current Builder instance.
    */
-  delete(path: FieldPath): ObjectValueBuilder {
+  delete(path: FieldPath): void {
     debugAssert(
       !path.isEmpty(),
       'Cannot delete field for empty path on ObjectValue'
     );
-    this.setOverlay(path, null);
-    return this;
+    const nestedValue = this.field(path.popLast());
+    if (isMapValue(nestedValue) && nestedValue.mapValue.fields) {
+      delete nestedValue.mapValue.fields[path.lastSegment()];
+    }
+  }
+
+  isEqual(other: ObjectValue): boolean {
+    return valueEquals(this.value, other.value);
   }
 
   /**
-   * Adds `value` to the overlay map at `path`. Creates nested map entries if
-   * needed.
+   * Returns the map that contains the leaf element of `path`. If the parent
+   * entry does not yet exist, or if it is not a map, a new map will be created.
    */
-  private setOverlay(path: FieldPath, value: ProtoValue | null): void {
-    let currentLevel = this.overlayMap;
+  private getFieldsMap(path: FieldPath): Record<string, ProtoValue> {
+    let current = this.value;
 
-    for (let i = 0; i < path.length - 1; ++i) {
-      const currentSegment = path.get(i);
-      let currentValue = currentLevel.get(currentSegment);
-
-      if (currentValue instanceof Map) {
-        // Re-use a previously created map
-        currentLevel = currentValue;
-      } else if (
-        currentValue &&
-        typeOrder(currentValue) === TypeOrder.ObjectValue
-      ) {
-        // Convert the existing Protobuf MapValue into a map
-        currentValue = new Map<string, Overlay>(
-          Object.entries(currentValue.mapValue!.fields || {})
-        );
-        currentLevel.set(currentSegment, currentValue);
-        currentLevel = currentValue;
-      } else {
-        // Create an empty map to represent the current nesting level
-        currentValue = new Map<string, Overlay>();
-        currentLevel.set(currentSegment, currentValue);
-        currentLevel = currentValue;
-      }
+    if (!current.mapValue!.fields) {
+      current.mapValue = { fields: {} };
     }
 
-    currentLevel.set(path.lastSegment(), value);
+    for (let i = 0; i < path.length; ++i) {
+      let next = current.mapValue!.fields![path.get(i)];
+      if (!isMapValue(next) || !next.mapValue.fields) {
+        next = { mapValue: { fields: {} } };
+        current.mapValue!.fields![path.get(i)] = next;
+      }
+      current = next as { mapValue: ProtoMapValue };
+    }
+
+    return current.mapValue!.fields!;
   }
 
-  /** Returns an ObjectValue with all mutations applied. */
-  build(): ObjectValue {
-    const mergedResult = this.applyOverlay(
-      FieldPath.emptyPath(),
-      this.overlayMap
+  /**
+   * Modifies `fieldsMap` by adding, replacing or deleting the specified
+   * entries.
+   */
+  private applyChanges(
+    fieldsMap: Record<string, ProtoValue>,
+    inserts: { [key: string]: ProtoValue },
+    deletes: string[]
+  ): void {
+    forEach(inserts, (key, val) => (fieldsMap[key] = val));
+    for (const field of deletes) {
+      delete fieldsMap[field];
+    }
+  }
+
+  clone(): ObjectValue {
+    return new ObjectValue(
+      deepClone(this.value) as { mapValue: ProtoMapValue }
     );
-    if (mergedResult != null) {
-      return new ObjectValue(mergedResult);
-    } else {
-      return this.baseObject;
-    }
-  }
-
-  /**
-   * Applies any overlays from `currentOverlays` that exist at `currentPath`
-   * and returns the merged data at `currentPath` (or null if there were no
-   * changes).
-   *
-   * @param currentPath - The path at the current nesting level. Can be set to
-   * FieldValue.emptyPath() to represent the root.
-   * @param currentOverlays - The overlays at the current nesting level in the
-   * same format as `overlayMap`.
-   * @returns The merged data at `currentPath` or null if no modifications
-   * were applied.
-   */
-  private applyOverlay(
-    currentPath: FieldPath,
-    currentOverlays: Map<string, Overlay>
-  ): { mapValue: ProtoMapValue } | null {
-    let modified = false;
-
-    const existingValue = this.baseObject.field(currentPath);
-    const resultAtPath = isMapValue(existingValue)
-      ? // If there is already data at the current path, base our
-        // modifications on top of the existing data.
-        { ...existingValue.mapValue.fields }
-      : {};
-
-    currentOverlays.forEach((value, pathSegment) => {
-      if (value instanceof Map) {
-        const nested = this.applyOverlay(currentPath.child(pathSegment), value);
-        if (nested != null) {
-          resultAtPath[pathSegment] = nested;
-          modified = true;
-        }
-      } else if (value !== null) {
-        resultAtPath[pathSegment] = value;
-        modified = true;
-      } else if (resultAtPath.hasOwnProperty(pathSegment)) {
-        delete resultAtPath[pathSegment];
-        modified = true;
-      }
-    });
-
-    return modified ? { mapValue: { fields: resultAtPath } } : null;
   }
 }
 
@@ -229,7 +186,7 @@ export class ObjectValueBuilder {
  */
 export function extractFieldMask(value: ProtoMapValue): FieldMask {
   const fields: FieldPath[] = [];
-  forEach(value!.fields || {}, (key, value) => {
+  forEach(value!.fields, (key, value) => {
     const currentPath = new FieldPath([key]);
     if (isMapValue(value)) {
       const nestedMask = extractFieldMask(value.mapValue!);

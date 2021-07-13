@@ -16,7 +16,7 @@
  */
 import { TaskState } from './implementation/taskenums';
 import { Metadata } from './metadata';
-import { StorageReference } from './reference';
+import { Reference } from './reference';
 import { UploadTask } from './task';
 
 /**
@@ -24,8 +24,15 @@ import { UploadTask } from './task';
  * @public
  */
 export interface UploadResult {
+  /**
+   * Contains the metadata sent back from the server.
+   */
   readonly metadata: Metadata;
-  readonly ref: StorageReference;
+
+  /**
+   * The reference that spawned this upload.
+   */
+  readonly ref: Reference;
 }
 
 /**
@@ -33,10 +40,34 @@ export interface UploadResult {
  * @public
  */
 export interface UploadTaskSnapshot {
+  /**
+   * The number of bytes that have been successfully uploaded so far.
+   */
   readonly bytesTransferred: number;
+
+  /**
+   * The total number of bytes to be uploaded.
+   */
   readonly totalBytes: number;
+
+  /**
+   * The current state of the task.
+   */
   readonly state: TaskState;
+
+  /**
+   * Before the upload completes, contains the metadata sent to the server.
+   * After the upload completes, contains the metadata sent back from the server.
+   */
   readonly metadata: Metadata;
+
+  /**
+   * The task of which this is a snapshot.
+   */
   readonly task: UploadTask;
-  readonly ref: StorageReference;
+
+  /**
+   * The reference that spawned this snapshot's upload task.
+   */
+  readonly ref: Reference;
 }

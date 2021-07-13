@@ -19,19 +19,19 @@ import { FbsBlob } from '../../src/implementation/blob';
 import { Location } from '../../src/implementation/location';
 import { Unsubscribe } from '../../src/implementation/observer';
 import { TaskEvent, TaskState } from '../../src/implementation/taskenums';
-import { StorageReference } from '../../src/reference';
+import { Reference } from '../../src/reference';
 import { UploadTask } from '../../src/task';
 import { fakeServerHandler, storageServiceWithHandler } from './testshared';
 
 const testLocation = new Location('bucket', 'object');
-const smallBlob = new FbsBlob(new Blob(['a']));
-const bigBlob = new FbsBlob(new Blob([new ArrayBuffer(1024 * 1024)]));
+const smallBlob = new FbsBlob(new Uint8Array([97]));
+const bigBlob = new FbsBlob(new ArrayBuffer(1024 * 1024));
 
 describe('Firebase Storage > Upload Task', () => {
   it('Works for a small upload w/ an observer', done => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new StorageReference(storageService, testLocation),
+      new Reference(storageService, testLocation),
       smallBlob
     );
     task.on(
@@ -44,7 +44,7 @@ describe('Firebase Storage > Upload Task', () => {
   it('Works for a small upload w/ a promise', () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new StorageReference(storageService, testLocation),
+      new Reference(storageService, testLocation),
       smallBlob
     );
     return task.then(snapshot => {
@@ -54,7 +54,7 @@ describe('Firebase Storage > Upload Task', () => {
   it('Works for a small upload canceled w/ a promise', () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new StorageReference(storageService, testLocation),
+      new Reference(storageService, testLocation),
       smallBlob
     );
     const promise: Promise<string | null> = task.then<string | null>(
@@ -70,7 +70,7 @@ describe('Firebase Storage > Upload Task', () => {
   it('Works properly with multiple observers', () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new StorageReference(storageService, testLocation),
+      new Reference(storageService, testLocation),
       smallBlob
     );
 
@@ -115,7 +115,7 @@ describe('Firebase Storage > Upload Task', () => {
     h1();
     h2();
 
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       task.on(
         TaskEvent.STATE_CHANGED,
         undefined,
@@ -133,10 +133,10 @@ describe('Firebase Storage > Upload Task', () => {
   it("Works properly with an observer missing the 'next' method", () => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new StorageReference(storageService, testLocation),
+      new Reference(storageService, testLocation),
       smallBlob
     );
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       task.on(TaskEvent.STATE_CHANGED, {
         error: () => {
           assert.fail('Unexpected upload failure');
@@ -151,7 +151,7 @@ describe('Firebase Storage > Upload Task', () => {
   function runNormalUploadTest(blob: FbsBlob): Promise<void> {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
-      new StorageReference(storageService, testLocation),
+      new Reference(storageService, testLocation),
       blob
     );
 
@@ -169,14 +169,14 @@ describe('Firebase Storage > Upload Task', () => {
     function promiseAssertWrapper<T>(func: T): T {
       function wrapped(..._args: any[]): void {
         try {
-          ((func as any) as (...args: any[]) => void).apply(null, _args);
+          (func as any as (...args: any[]) => void).apply(null, _args);
         } catch (e) {
           reject(e);
           // also throw to further unwind the stack
           throw e;
         }
       }
-      return (wrapped as any) as T;
+      return wrapped as any as T;
     }
 
     const fixedAssertEquals = promiseAssertWrapper(assert.equal);
@@ -270,7 +270,7 @@ describe('Firebase Storage > Upload Task', () => {
       fixedAssertTrue(lastIsAll);
 
       const task2 = new UploadTask(
-        new StorageReference(storageService, testLocation),
+        new Reference(storageService, testLocation),
         blob
       );
       const events2: string[] = [];

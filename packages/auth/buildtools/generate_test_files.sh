@@ -25,13 +25,13 @@ cd "$(dirname $(dirname "$0"))"
 mkdir -p generated
 
 echo "Generating dependency file..."
-python ../../node_modules/google-closure-library/closure/bin/build/depswriter.py \
+python2 ../../node_modules/google-closure-library/closure/bin/build/depswriter.py \
     --root_with_prefix="test ../../../../test" \
     --root_with_prefix="src ../../../../src" \
     > generated/deps.js
 
 echo "Generating test HTML files..."
-python ./buildtools/gen_test_html.py
-python ./buildtools/gen_all_tests_js.py > generated/all_tests.js
+python2 ./buildtools/gen_test_html.py
+python2 ./buildtools/gen_all_tests_js.py > generated/all_tests.js
 
 echo "Done."

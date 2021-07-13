@@ -18,17 +18,31 @@
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import alias from '@rollup/plugin-alias';
 import pkg from './package.json';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+import { getImportPathTransformer } from '../../scripts/exp/ts-transform-import-path';
+
+const { generateAliasConfig } = require('./rollup.shared');
+
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  '@firebase/storage'
+];
 /**
  * ES5 Builds
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    abortOnError: false,
+    transformers: [
+      getImportPathTransformer({
+        // ../exp/index
+        pattern: /^.*exp\/api$/,
+        template: ['@firebase/storage']
+      })
+    ]
   }),
   json()
 ];
@@ -37,11 +51,22 @@ const es5Builds = [
   {
     input: './compat/index.ts',
     output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      {
+        dir: 'dist/compat/cjs',
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        dir: 'dist/compat/esm5',
+        format: 'es',
+        sourcemap: true
+      }
     ],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    plugins: [alias(generateAliasConfig('browser')), ...es5BuildPlugins],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
@@ -51,6 +76,14 @@ const es5Builds = [
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
+    abortOnError: false,
+    transformers: [
+      getImportPathTransformer({
+        // ../exp/index
+        pattern: /^.*exp\/api$/,
+        template: ['@firebase/storage']
+      })
+    ],
     tsconfigOverride: {
       compilerOptions: {
         target: 'es2017'
@@ -64,12 +97,15 @@ const es2017Builds = [
   {
     input: './compat/index.ts',
     output: {
-      file: pkg.esm2017,
+      dir: 'dist/compat/esm2017',
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    plugins: [alias(generateAliasConfig('browser')), ...es2017BuildPlugins],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 

@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import {
   PersistedBlob,
-  Persistence,
+  PersistenceInternal,
   PersistenceType
 } from '../../core/persistence';
 import { _getInstance } from '../../core/util/instantiator';
@@ -34,7 +34,9 @@ describe('platform_browser/persistence/session_storage', () => {
 
   afterEach(() => sinon.restore());
   describe('browserSessionPersistence', () => {
-    const persistence: Persistence = _getInstance(browserSessionPersistence);
+    const persistence: PersistenceInternal = _getInstance(
+      browserSessionPersistence
+    );
 
     it('should work with persistence type', async () => {
       const key = 'my-super-special-persistence-type';
