@@ -26,6 +26,7 @@ import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import alias from '@rollup/plugin-alias';
+import { terser } from 'rollup-plugin-terser';
 
 // remove -exp from dependencies name
 const deps = Object.keys(pkg.dependencies || {}).map(name =>
@@ -106,7 +107,15 @@ const cdnBuilds = [
       sourcemap: true,
       format: 'es'
     },
-    plugins: [...plugins, typescriptPluginCDN]
+    plugins: [
+      ...plugins,
+      typescriptPluginCDN,
+      terser({
+        format: {
+          comments: false
+        }
+      })
+    ]
   },
   ...pkg.components
     .filter(component => component !== 'app')
@@ -130,6 +139,11 @@ const cdnBuilds = [
             entries: {
               '@firebase/app': FIREBASE_APP_URL,
               '@firebase/installations': '@firebase/installations-exp'
+            }
+          }),
+          terser({
+            format: {
+              comments: false
             }
           })
         ],
