@@ -21,6 +21,8 @@ import commonjs from '@rollup/plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import { uglify } from 'rollup-plugin-uglify';
+import { terser } from 'rollup-plugin-terser';
 import json from '@rollup/plugin-json';
 import pkg from './package.json';
 
@@ -109,7 +111,7 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins]
+    plugins: [...plugins, uglify()]
   }
 ];
 
@@ -141,7 +143,14 @@ const componentBuilds = pkg.components
       {
         input: `${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}.js`),
-        plugins: [...plugins],
+        plugins: [
+          ...plugins,
+          uglify({
+            output: {
+              ascii_only: true // escape unicode chars
+            }
+          })
+        ],
         external: ['@firebase/app']
       }
     ];
@@ -186,7 +195,14 @@ const firestoreBuilds = [
   {
     input: `firestore/index.cdn.ts`,
     output: createUmdOutputConfig(`firebase-firestore.js`),
-    plugins: [...plugins],
+    plugins: [
+      ...plugins,
+      uglify({
+        output: {
+          ascii_only: true // escape unicode chars
+        }
+      })
+    ],
     external: ['@firebase/app']
   }
 ];
@@ -232,7 +248,7 @@ const firestoreMemoryBuilds = [
   {
     input: `firestore/memory/index.cdn.ts`,
     output: createUmdOutputConfig(`firebase-firestore.memory.js`),
-    plugins: [...plugins],
+    plugins: [...plugins, uglify()],
     external: ['@firebase/app']
   }
 ];
@@ -258,7 +274,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins]
+    plugins: [...plugins, uglify()]
   },
   /**
    * App Node.js Builds
@@ -298,7 +314,8 @@ const completeBuilds = [
         typescript
       }),
       json(),
-      commonjs()
+      commonjs(),
+      uglify()
     ]
   },
   /**
@@ -328,7 +345,8 @@ const completeBuilds = [
       json({
         preferConst: true
       }),
-      commonjs()
+      commonjs(),
+      terser()
     ]
   }
 ];
