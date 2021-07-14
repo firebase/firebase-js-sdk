@@ -15,8 +15,6 @@
 #
 #   - @Feiyang1
 #   - @hiranya911
-#   - @bojeil-google
-#   - @depoll
 #   - @hsubox76
 
 
@@ -90,8 +88,8 @@ packages-exp/auth-exp  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-appro
 packages-exp/auth-compat-exp @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
 
 # Installations-Exp Code
-packages/installations-exp @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
-packages/installations-types-exp @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+packages/installations-exp @avolkovi @yoyomyo @firebase/jssdk-global-approvers
+packages/installations-types-exp @avolkovi @yoyomyo @firebase/jssdk-global-approvers
 
 # Perf-Exp Code
 packages/performance-exp  @alikn @zijianjoy @firebase/jssdk-global-approvers
