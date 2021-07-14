@@ -34,7 +34,7 @@ import { CustomProvider, ReCaptchaV3Provider } from './providers';
 /**
  *
  * @param app
- * @param provider - optional custom attestation provider
+ * @param siteKeyOrProvider - optional custom attestation provider
  * or reCAPTCHA provider
  * @param isTokenAutoRefreshEnabled - if true, enables auto refresh
  * of appCheck token.

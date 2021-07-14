@@ -44,8 +44,6 @@ export interface AppCheckProviderInternal {
 /**
  * App Check provider that can obtain a reCAPTCHA V3 token and exchange it
  * for an App Check token.
- *
- * @public
  */
 export class ReCaptchaV3Provider implements AppCheckProviderInternal {
   private _app?: FirebaseApp;
@@ -68,19 +66,19 @@ export class ReCaptchaV3Provider implements AppCheckProviderInternal {
         appName: ''
       });
     }
-    const attestedClaimsToken = await getReCAPTCHAToken(this._app).catch(_e => {
+    let attestedClaimsToken;
+    try {
+      attestedClaimsToken = await getReCAPTCHAToken(this._app);
+    } catch (e) {
       // reCaptcha.execute() throws null which is not very descriptive.
       throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-    });
+    }
     return exchangeToken(
       getExchangeRecaptchaTokenRequest(this._app, attestedClaimsToken),
       this._platformLoggerProvider
     );
   }
 
-  /**
-   * @internal
-   */
   initialize(
     app: FirebaseApp,
     platformLoggerProvider: Provider<'platform-logger'>
@@ -95,7 +93,6 @@ export class ReCaptchaV3Provider implements AppCheckProviderInternal {
 
 /**
  * Custom provider class.
- * @public
  */
 export class CustomProvider implements AppCheckProviderInternal {
   private _app?: FirebaseApp;

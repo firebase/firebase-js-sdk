@@ -91,20 +91,20 @@ interface AppCheckProvider {
   getToken(): Promise<AppCheckToken>;
 }
 
-interface ReCAPTCHAV3Provider {
+export class ReCAPTCHAV3Provider {
   /**
    * @param siteKey - ReCAPTCHA v3 site key (public key).
    */
-  constructor(siteKey: string): void;
+  constructor(siteKey: string);
 }
 /*
  * Custom token provider.
  */
-interface CustomProvider {
+export class CustomProvider {
   /**
    * @param options - Options for creating the custom provider.
    */
-  constructor(options: CustomProviderOptions): void;
+  constructor(options: CustomProviderOptions);
 }
 interface CustomProviderOptions {
   /**
