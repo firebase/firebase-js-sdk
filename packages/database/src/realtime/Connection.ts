@@ -123,6 +123,7 @@ export class Connection {
       this.applicationId_,
       this.appCheckToken_,
       this.authToken_,
+      null,
       this.lastSessionId
     );
 
