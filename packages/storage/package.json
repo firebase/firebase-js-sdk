@@ -1,0 +1,69 @@
+{
+  "name": "@firebase/storage",
+  "version": "0.5.6",
+  "description": "",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.node.cjs.js",
+  "module": "dist/index.browser.esm.js",
+  "browser": "dist/index.browser.esm.js",
+  "esm2017": "dist/index.browser.esm2017.js",
+  "files": [
+    "dist",
+    "exp/dist"
+  ],
+  "scripts": {
+    "bundle": "rollup -c",
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "run-p 'bundle rollup.config.js' build:exp && yarn build:compat",
+    "build:exp": "rollup -c rollup.config.exp.js ; yarn api-report",
+    "build:compat": "rollup -c rollup.config.compat.js && yarn add-compat-overloads",
+    "build:exp:release": "yarn build:exp && yarn build:compat",
+    "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
+    "dev": "rollup -c -w",
+    "test": "run-p test:browser test:node lint",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
+    "test:browser:compat:unit": "karma start --single-run --compat --unit",
+    "test:browser:exp:unit": "karma start --single-run --exp --unit",
+    "test:browser:compat:integration": "karma start --single-run --compat --integration",
+    "test:browser:exp:integration": "karma start --single-run --exp --integration",
+    "test:browser:compat": "karma start --single-run --compat",
+    "test:browser:exp": "karma start --single-run --exp",
+    "test:browser": "karma start --single-run",
+    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.ts --config ../../config/mocharc.node.js",
+    "test:debug": "karma start --browser=Chrome",
+    "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
+    "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input exp/dist/storage-public.d.ts --output exp/dist/storage-public.d.ts",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i exp/dist/storage-public.d.ts -o dist/compat/esm2017/compat/index.d.ts -a -r StorageService:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@firebase/storage-types": "0.4.1",
+    "@firebase/util": "1.1.0",
+    "@firebase/component": "0.5.4",
+    "node-fetch": "2.6.1",
+    "tslib": "^2.1.0"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "devDependencies": {
+    "@firebase/app": "0.6.28",
+    "@firebase/auth": "0.16.8",
+    "rollup": "2.52.2",
+    "@rollup/plugin-alias": "3.1.2",
+    "@rollup/plugin-json": "4.1.0",
+    "rollup-plugin-typescript2": "0.30.0",
+    "typescript": "4.2.2"
+  },
+  "repository": {
+    "directory": "packages/storage",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts"
+}
