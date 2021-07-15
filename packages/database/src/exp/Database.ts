@@ -263,6 +263,12 @@ export class FirebaseDatabase implements _FirebaseService {
     }
     return Promise.resolve();
   }
+
+  _checkNotDeleted(apiName: string) {
+    if (this._rootInternal === null) {
+      fatal('Cannot call ' + apiName + ' on a deleted database.');
+    }
+  }
 }
 
 /**
