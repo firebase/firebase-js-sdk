@@ -19,6 +19,7 @@ import * as exp from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import firebase from '@firebase/app-compat';
 import { Compat } from '@firebase/util';
+import { unwrap } from './wrap';
 
 export class PhoneAuthProvider
   implements compat.PhoneAuthProvider, Compat<exp.PhoneAuthProvider> {
