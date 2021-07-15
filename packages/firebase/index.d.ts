@@ -5169,11 +5169,11 @@ declare namespace firebase.analytics {
     promotions?: Promotion[];
     screen_name?: string;
     /**
-     * Firebase-specific. Use to log a screen_name to Firebase Analytics.
+     * Firebase-specific. Use to log a `screen_name` to Firebase Analytics.
      */
     firebase_screen?: string;
     /**
-     * Firebase-specific. Use to log a screen_class to Firebase Analytics.
+     * Firebase-specific. Use to log a `screen_class` to Firebase Analytics.
      */
     firebase_screen_class?: string;
     search_term?: string;
