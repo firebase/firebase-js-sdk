@@ -3,4 +3,4 @@
 "@firebase/firestore": patch
 ---
 
-Fixes an issue that prevented Timestamps to be used via `update()` when connected to the Emulator
+Fixed an issue that prevented Timestamps from being used via `update()` when connected to the Emulator
