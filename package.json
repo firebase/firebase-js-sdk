@@ -87,7 +87,7 @@
     "@types/sinon-chai": "3.2.5",
     "@types/tmp": "0.2.0",
     "@types/yargs": "16.0.0",
-    "@types/js-yaml": "4.0.0",
+    "@types/js-yaml": "4.0.2",
     "@typescript-eslint/eslint-plugin": "4.28.0",
     "@typescript-eslint/eslint-plugin-tslint": "4.28.0",
     "@typescript-eslint/parser": "4.28.0",
