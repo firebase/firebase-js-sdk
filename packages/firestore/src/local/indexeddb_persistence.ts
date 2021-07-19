@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isSafari } from '@firebase/util';
+
 import { User } from '../auth/user';
 import { DatabaseId } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
@@ -959,6 +961,14 @@ export class IndexedDbPersistence implements Persistence {
         // accesses internal state. We execute this code directly during shutdown
         // to make sure it gets a chance to run.
         this.markClientZombied();
+
+        if (isSafari() && navigator.appVersion.match(`Version/14`)) {
+          // On Safari 14, we do not run any cleanup actions as it might trigger
+          // a bug that prevents Safari from re-opening IndexedDB during the
+          // next page load.
+          // See https://bugs.webkit.org/show_bug.cgi?id=226547
+          this.queue.enterRestrictedMode(/* purgeExistingTasks= */ true);
+        }
 
         this.queue.enqueueAndForget(() => {
           // Attempt graceful shutdown (including releasing our primary lease),
