@@ -427,10 +427,11 @@ describe('AsyncQueue', () => {
       });
 
     queue.enqueueAndForget(() => doStep(1));
+    queue.enqueueAndForgetEvenWhileRestricted(() => doStep(2));
     queue.enterRestrictedMode(/* purgeExistingTasks =*/ true);
 
     await queue.drain();
-    expect(completedSteps).to.deep.equal([]);
+    expect(completedSteps).to.deep.equal([2]);
   });
 });
 
