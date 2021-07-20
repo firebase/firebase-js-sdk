@@ -127,7 +127,7 @@ export class Auth
     return this._delegate.signOut();
   }
   useEmulator(url: string, options?: { disableWarnings: boolean }): void {
-    exp.useAuthEmulator(this._delegate, url, options);
+    exp.connectAuthEmulator(this._delegate, url, options);
   }
   applyActionCode(code: string): Promise<void> {
     return exp.applyActionCode(this._delegate, code);

@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import { TaskEvent } from '../../src/implementation/taskenums';
 import { Headers } from '../../src/implementation/connection';
 import { ConnectionPool } from '../../src/implementation/connectionPool';
-import { StorageService, ref, useStorageEmulator } from '../../src/service';
+import { StorageService, ref, connectStorageEmulator } from '../../src/service';
 import * as testShared from './testshared';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseStorageError } from '../../src/implementation/error';
@@ -231,7 +231,7 @@ GOOG4-RSA-SHA256`
       );
     });
   });
-  describe('useStorageEmulator(service, host, port)', () => {
+  describe('connectStorageEmulator(service, host, port)', () => {
     it('sets emulator host correctly', done => {
       function newSend(
         connection: TestingConnection,
@@ -252,7 +252,7 @@ GOOG4-RSA-SHA256`
         testShared.fakeAppCheckTokenProvider,
         testShared.makePool(newSend)
       );
-      useStorageEmulator(service, 'test.host.org', 1234);
+      connectStorageEmulator(service, 'test.host.org', 1234);
       expect(service.host).to.equal('http://test.host.org:1234');
       void getDownloadURL(ref(service, 'test.png'));
     });

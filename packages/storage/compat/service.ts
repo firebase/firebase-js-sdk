@@ -23,7 +23,7 @@ import { ReferenceCompat } from './reference';
 import {
   isUrl,
   StorageService,
-  useStorageEmulator as internalUseEmulator
+  connectStorageEmulator as internalUseEmulator
 } from '../src/service';
 import { invalidArgument } from '../src/implementation/error';
 import { Compat } from '@firebase/util';

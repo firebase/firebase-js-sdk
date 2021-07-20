@@ -60,7 +60,7 @@ import {
   enableNetwork,
   ensureFirestoreConfigured,
   FirebaseFirestore as ExpFirebaseFirestore,
-  useFirestoreEmulator,
+  connectFirestoreEmulator,
   waitForPendingWrites,
   FieldPath as ExpFieldPath,
   limit,
@@ -246,7 +246,7 @@ export class Firestore
       mockUserToken?: EmulatorMockTokenOptions;
     } = {}
   ): void {
-    useFirestoreEmulator(this._delegate, host, port, options);
+    connectFirestoreEmulator(this._delegate, host, port, options);
   }
 
   enableNetwork(): Promise<void> {

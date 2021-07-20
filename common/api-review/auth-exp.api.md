@@ -174,6 +174,11 @@ export interface ConfirmationResult {
 export function confirmPasswordReset(auth: Auth, oobCode: string, newPassword: string): Promise<void>;
 
 // @public
+export function connectAuthEmulator(auth: Auth, url: string, options?: {
+    disableWarnings: boolean;
+}): void;
+
+// @public
 export function createUserWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 
 // @public
@@ -643,11 +648,6 @@ export function updateProfile(user: User, { displayName, photoURL: photoUrl }: {
     displayName?: string | null;
     photoURL?: string | null;
 }): Promise<void>;
-
-// @public
-export function useAuthEmulator(auth: Auth, url: string, options?: {
-    disableWarnings: boolean;
-}): void;
 
 // @public
 export function useDeviceLanguage(auth: Auth): void;

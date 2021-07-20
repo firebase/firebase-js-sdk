@@ -28,7 +28,7 @@ import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { UserInternal } from '../../model/user';
 import { _castAuth } from './auth_impl';
-import { useAuthEmulator } from './emulator';
+import { connectAuthEmulator } from './emulator';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -67,48 +67,48 @@ describe('core/auth/emulator', () => {
     }
   });
 
-  context('useAuthEmulator', () => {
+  context('connectAuthEmulator', () => {
     it('fails if a network request has already been made', async () => {
       await user.delete();
-      expect(() => useAuthEmulator(auth, 'http://localhost:2020')).to.throw(
+      expect(() => connectAuthEmulator(auth, 'http://localhost:2020')).to.throw(
         FirebaseError,
         'auth/emulator-config-failed'
       );
     });
 
     it('updates the endpoint appropriately', async () => {
-      useAuthEmulator(auth, 'http://localhost:2020');
+      connectAuthEmulator(auth, 'http://localhost:2020');
       await user.delete();
       expect(normalEndpoint.calls.length).to.eq(0);
       expect(emulatorEndpoint.calls.length).to.eq(1);
     });
 
     it('updates the endpoint appropriately with trailing slash', async () => {
-      useAuthEmulator(auth, 'http://localhost:2020/');
+      connectAuthEmulator(auth, 'http://localhost:2020/');
       await user.delete();
       expect(normalEndpoint.calls.length).to.eq(0);
       expect(emulatorEndpoint.calls.length).to.eq(1);
     });
 
     it('checks the scheme properly', () => {
-      expect(() => useAuthEmulator(auth, 'http://localhost:2020')).not.to.throw;
+      expect(() => connectAuthEmulator(auth, 'http://localhost:2020')).not.to.throw;
       delete auth.config.emulator;
-      expect(() => useAuthEmulator(auth, 'https://localhost:2020')).not.to
+      expect(() => connectAuthEmulator(auth, 'https://localhost:2020')).not.to
         .throw;
       delete auth.config.emulator;
-      expect(() => useAuthEmulator(auth, 'ssh://localhost:2020')).to.throw(
+      expect(() => connectAuthEmulator(auth, 'ssh://localhost:2020')).to.throw(
         FirebaseError,
         'auth/invalid-emulator-scheme'
       );
       delete auth.config.emulator;
-      expect(() => useAuthEmulator(auth, 'localhost:2020')).to.throw(
+      expect(() => connectAuthEmulator(auth, 'localhost:2020')).to.throw(
         FirebaseError,
         'auth/invalid-emulator-scheme'
       );
     });
 
     it('attaches a banner to the DOM', () => {
-      useAuthEmulator(auth, 'http://localhost:2020');
+      connectAuthEmulator(auth, 'http://localhost:2020');
       if (typeof document !== 'undefined') {
         const el = document.querySelector('.firebase-emulator-warning')!;
         expect(el).not.to.be.null;
@@ -121,7 +121,7 @@ describe('core/auth/emulator', () => {
 
     it('logs out a warning to the console', () => {
       sinon.stub(console, 'info');
-      useAuthEmulator(auth, 'http://localhost:2020');
+      connectAuthEmulator(auth, 'http://localhost:2020');
       expect(console.info).to.have.been.calledWith(
         'WARNING: You are using the Auth Emulator,' +
           ' which is intended for local testing only.  Do not use with' +
@@ -131,7 +131,7 @@ describe('core/auth/emulator', () => {
 
     it('logs out the warning but has no banner if disableBanner true', () => {
       sinon.stub(console, 'info');
-      useAuthEmulator(auth, 'http://localhost:2020', { disableWarnings: true });
+      connectAuthEmulator(auth, 'http://localhost:2020', { disableWarnings: true });
       expect(console.info).to.have.been.calledWith(
         'WARNING: You are using the Auth Emulator,' +
           ' which is intended for local testing only.  Do not use with' +
@@ -143,7 +143,7 @@ describe('core/auth/emulator', () => {
     });
 
     it('sets emulatorConfig on the Auth object', async () => {
-      useAuthEmulator(auth, 'http://localhost:2020');
+      connectAuthEmulator(auth, 'http://localhost:2020');
       expect(auth.emulatorConfig).to.eql({
         protocol: 'http',
         host: 'localhost',
@@ -153,7 +153,7 @@ describe('core/auth/emulator', () => {
     });
 
     it('sets disableWarnings in emulatorConfig accordingly', async () => {
-      useAuthEmulator(auth, 'https://127.0.0.1', { disableWarnings: true });
+      connectAuthEmulator(auth, 'https://127.0.0.1', { disableWarnings: true });
       expect(auth.emulatorConfig).to.eql({
         protocol: 'https',
         host: '127.0.0.1',
@@ -163,7 +163,7 @@ describe('core/auth/emulator', () => {
     });
 
     it('quotes IPv6 address in emulatorConfig', async () => {
-      useAuthEmulator(auth, 'http://[::1]:2020/');
+      connectAuthEmulator(auth, 'http://[::1]:2020/');
       expect(auth.emulatorConfig).to.eql({
         protocol: 'http',
         host: '[::1]',
