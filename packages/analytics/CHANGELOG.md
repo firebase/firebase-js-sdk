@@ -1,5 +1,12 @@
 # @firebase/analytics
 
+## 0.6.15
+
+### Patch Changes
+
+- Updated dependencies [[`02586c975`](https://github.com/firebase/firebase-js-sdk/commit/02586c9754318b01a0051561d2c7c4906059b5af)]:
+  - @firebase/analytics-types@0.5.0
+
 ## 0.6.14
 
 ### Patch Changes
