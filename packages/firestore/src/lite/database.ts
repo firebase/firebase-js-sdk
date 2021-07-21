@@ -233,7 +233,7 @@ export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
  * @param options.mockUserToken - the mock auth token to use for unit testing
  * Security Rules.
  */
-export function useFirestoreEmulator(
+export function connectFirestoreEmulator(
   firestore: FirebaseFirestore,
   host: string,
   port: number,

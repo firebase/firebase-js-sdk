@@ -147,7 +147,7 @@ export class FunctionsService implements _FirebaseService {
  * @param port The emulator port (ex: 5001)
  * @public
  */
-export function useFunctionsEmulator(
+export function connectFunctionsEmulator(
   functionsInstance: FunctionsService,
   host: string,
   port: number

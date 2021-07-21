@@ -31,7 +31,7 @@ import {
 import { ConnectionPool } from '../src/implementation/connectionPool';
 import {
   StorageService as StorageServiceInternal,
-  useStorageEmulator as useEmulatorInternal
+  connectStorageEmulator as useEmulatorInternal
 } from '../src/service';
 import {
   Component,
@@ -53,7 +53,7 @@ import { STORAGE_TYPE } from './constants';
  * @param port - The emulator port (ex: 5001)
  * @public
  */
-export function useStorageEmulator(
+export function connectStorageEmulator(
   storage: StorageService,
   host: string,
   port: number

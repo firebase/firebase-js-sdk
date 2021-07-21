@@ -302,7 +302,7 @@ export function getDatabase(
  * @param port - The emulator port (ex: 8080)
  * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules
  */
-export function useDatabaseEmulator(
+export function connectDatabaseEmulator(
   db: FirebaseDatabase,
   host: string,
   port: number,

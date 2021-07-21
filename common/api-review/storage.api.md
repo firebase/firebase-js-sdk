@@ -16,6 +16,9 @@ import { Subscribe } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
 // @public
+export function connectStorageEmulator(storage: StorageService, host: string, port: number): void;
+
+// @public
 export function deleteObject(ref: StorageReference): Promise<void>;
 
 // @internal (undocumented)
@@ -253,9 +256,6 @@ export interface UploadTaskSnapshot {
     task: UploadTask;
     totalBytes: number;
 }
-
-// @public
-export function useStorageEmulator(storage: StorageService, host: string, port: number): void;
 
 
 ```

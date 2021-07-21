@@ -21,7 +21,7 @@ export {
   getDatabase,
   goOffline,
   goOnline,
-  useDatabaseEmulator,
+  connectDatabaseEmulator,
   repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp
 } from '../src/exp/Database';
 export {

@@ -11,6 +11,11 @@ import { FirebaseApp } from '@firebase/app';
 export function child(parent: Reference, path: string): Reference;
 
 // @public
+export function connectDatabaseEmulator(db: FirebaseDatabase, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions;
+}): void;
+
+// @public
 export class DataSnapshot {
     child(path: string): DataSnapshot;
     exists(): boolean;
@@ -228,11 +233,6 @@ export type Unsubscribe = () => void;
 
 // @public
 export function update(ref: Reference, values: object): Promise<void>;
-
-// @public
-export function useDatabaseEmulator(db: FirebaseDatabase, host: string, port: number, options?: {
-    mockUserToken?: EmulatorMockTokenOptions;
-}): void;
 
 
 ```
