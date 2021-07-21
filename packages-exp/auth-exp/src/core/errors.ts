@@ -435,12 +435,12 @@ export const _DEFAULT_AUTH_ERROR_FACTORY = new ErrorFactory<
 /**
  * A map of potential Auth error codes, for easier comparison with errors
  * thrown by the SDK.
- * 
+ *
  * @remarks
  * Please note that you can't tree-shake individual keys
  * in the map, so by using the map you might substantially increase your
  * bundle size.
- * 
+ *
  * @public
  */
 export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
