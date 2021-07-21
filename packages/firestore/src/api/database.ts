@@ -199,7 +199,8 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
  * to the functional API of firestore-exp.
  */
 export class Firestore
-  implements PublicFirestore, FirebaseService, Compat<ExpFirebaseFirestore> {
+  implements PublicFirestore, FirebaseService, Compat<ExpFirebaseFirestore>
+{
   _appCompat?: FirebaseApp;
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
@@ -568,7 +569,8 @@ export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
 class FirestoreDataConverter<U>
   implements
     UntypedFirestoreDataConverter<U>,
-    Compat<PublicFirestoreDataConverter<U>> {
+    Compat<PublicFirestoreDataConverter<U>>
+{
   private static readonly INSTANCES = new WeakMap();
 
   private constructor(
@@ -643,7 +645,8 @@ class FirestoreDataConverter<U>
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = PublicDocumentData>
-  implements PublicDocumentReference<T>, Compat<ExpDocumentReference<T>> {
+  implements PublicDocumentReference<T>, Compat<ExpDocumentReference<T>>
+{
   private _userDataWriter: UserDataWriter;
 
   constructor(
@@ -927,7 +930,8 @@ export function wrapObserver<CompatType, ExpType>(
 export interface SnapshotOptions extends PublicSnapshotOptions {}
 
 export class DocumentSnapshot<T = PublicDocumentData>
-  implements PublicDocumentSnapshot<T>, Compat<ExpDocumentSnapshot<T>> {
+  implements PublicDocumentSnapshot<T>, Compat<ExpDocumentSnapshot<T>>
+{
   constructor(
     private readonly _firestore: Firestore,
     readonly _delegate: ExpDocumentSnapshot<T>
@@ -969,7 +973,8 @@ export class DocumentSnapshot<T = PublicDocumentData>
 
 export class QueryDocumentSnapshot<T = PublicDocumentData>
   extends DocumentSnapshot<T>
-  implements PublicQueryDocumentSnapshot<T> {
+  implements PublicQueryDocumentSnapshot<T>
+{
   data(options?: PublicSnapshotOptions): T {
     const data = this._delegate.data(options);
     debugAssert(
@@ -981,7 +986,8 @@ export class QueryDocumentSnapshot<T = PublicDocumentData>
 }
 
 export class Query<T = PublicDocumentData>
-  implements PublicQuery<T>, Compat<ExpQuery<T>> {
+  implements PublicQuery<T>, Compat<ExpQuery<T>>
+{
   private readonly _userDataWriter: UserDataWriter;
 
   constructor(readonly firestore: Firestore, readonly _delegate: ExpQuery<T>) {
@@ -1159,7 +1165,8 @@ export class Query<T = PublicDocumentData>
 }
 
 export class DocumentChange<T = PublicDocumentData>
-  implements PublicDocumentChange<T>, Compat<ExpDocumentChange<T>> {
+  implements PublicDocumentChange<T>, Compat<ExpDocumentChange<T>>
+{
   constructor(
     private readonly _firestore: Firestore,
     readonly _delegate: ExpDocumentChange<T>
@@ -1183,7 +1190,8 @@ export class DocumentChange<T = PublicDocumentData>
 }
 
 export class QuerySnapshot<T = PublicDocumentData>
-  implements PublicQuerySnapshot<T>, Compat<ExpQuerySnapshot<T>> {
+  implements PublicQuerySnapshot<T>, Compat<ExpQuerySnapshot<T>>
+{
   constructor(
     readonly _firestore: Firestore,
     readonly _delegate: ExpQuerySnapshot<T>
@@ -1238,7 +1246,8 @@ export class QuerySnapshot<T = PublicDocumentData>
 
 export class CollectionReference<T = PublicDocumentData>
   extends Query<T>
-  implements PublicCollectionReference<T> {
+  implements PublicCollectionReference<T>
+{
   constructor(
     readonly firestore: Firestore,
     readonly _delegate: ExpCollectionReference<T>

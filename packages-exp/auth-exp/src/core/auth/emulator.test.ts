@@ -91,7 +91,8 @@ describe('core/auth/emulator', () => {
     });
 
     it('checks the scheme properly', () => {
-      expect(() => connectAuthEmulator(auth, 'http://localhost:2020')).not.to.throw;
+      expect(() => connectAuthEmulator(auth, 'http://localhost:2020')).not.to
+        .throw;
       delete auth.config.emulator;
       expect(() => connectAuthEmulator(auth, 'https://localhost:2020')).not.to
         .throw;
@@ -131,7 +132,9 @@ describe('core/auth/emulator', () => {
 
     it('logs out the warning but has no banner if disableBanner true', () => {
       sinon.stub(console, 'info');
-      connectAuthEmulator(auth, 'http://localhost:2020', { disableWarnings: true });
+      connectAuthEmulator(auth, 'http://localhost:2020', {
+        disableWarnings: true
+      });
       expect(console.info).to.have.been.calledWith(
         'WARNING: You are using the Auth Emulator,' +
           ' which is intended for local testing only.  Do not use with' +
@@ -181,9 +184,9 @@ describe('core/auth/emulator', () => {
     });
 
     it('also stringifies the current user', () => {
-      auth.currentUser = ({
+      auth.currentUser = {
         toJSON: (): object => ({ foo: 'bar' })
-      } as unknown) as UserInternal;
+      } as unknown as UserInternal;
       expect(JSON.stringify(auth)).to.eq(
         '{"apiKey":"test-api-key","authDomain":"localhost",' +
           '"appName":"test-app","currentUser":{"foo":"bar"}}'

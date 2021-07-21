@@ -33,7 +33,8 @@ import { Compat } from '@firebase/util';
  * @param opt_url gs:// url to a custom Storage Bucket
  */
 export class StorageServiceCompat
-  implements types.FirebaseStorage, Compat<StorageService> {
+  implements types.FirebaseStorage, Compat<StorageService>
+{
   constructor(public app: FirebaseApp, readonly _delegate: StorageService) {}
 
   INTERNAL = {
