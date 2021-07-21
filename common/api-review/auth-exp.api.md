@@ -127,6 +127,105 @@ export interface AuthError extends FirebaseError {
 }
 
 // @public
+export const AuthErrorCodes: {
+    ADMIN_ONLY_OPERATION: string;
+    ARGUMENT_ERROR: string;
+    APP_NOT_AUTHORIZED: string;
+    APP_NOT_INSTALLED: string;
+    CAPTCHA_CHECK_FAILED: string;
+    CODE_EXPIRED: string;
+    CORDOVA_NOT_READY: string;
+    CORS_UNSUPPORTED: string;
+    CREDENTIAL_ALREADY_IN_USE: string;
+    CREDENTIAL_MISMATCH: string;
+    CREDENTIAL_TOO_OLD_LOGIN_AGAIN: string;
+    DEPENDENT_SDK_INIT_BEFORE_AUTH: string;
+    DYNAMIC_LINK_NOT_ACTIVATED: string;
+    EMAIL_CHANGE_NEEDS_VERIFICATION: string;
+    EMAIL_EXISTS: string;
+    EMULATOR_CONFIG_FAILED: string;
+    EXPIRED_OOB_CODE: string;
+    EXPIRED_POPUP_REQUEST: string;
+    INTERNAL_ERROR: string;
+    INVALID_API_KEY: string;
+    INVALID_APP_CREDENTIAL: string;
+    INVALID_APP_ID: string;
+    INVALID_AUTH: string;
+    INVALID_AUTH_EVENT: string;
+    INVALID_CERT_HASH: string;
+    INVALID_CODE: string;
+    INVALID_CONTINUE_URI: string;
+    INVALID_CORDOVA_CONFIGURATION: string;
+    INVALID_CUSTOM_TOKEN: string;
+    INVALID_DYNAMIC_LINK_DOMAIN: string;
+    INVALID_EMAIL: string;
+    INVALID_EMULATOR_SCHEME: string;
+    INVALID_IDP_RESPONSE: string;
+    INVALID_MESSAGE_PAYLOAD: string;
+    INVALID_MFA_SESSION: string;
+    INVALID_OAUTH_CLIENT_ID: string;
+    INVALID_OAUTH_PROVIDER: string;
+    INVALID_OOB_CODE: string;
+    INVALID_ORIGIN: string;
+    INVALID_PASSWORD: string;
+    INVALID_PERSISTENCE: string;
+    INVALID_PHONE_NUMBER: string;
+    INVALID_PROVIDER_ID: string;
+    INVALID_RECIPIENT_EMAIL: string;
+    INVALID_SENDER: string;
+    INVALID_SESSION_INFO: string;
+    INVALID_TENANT_ID: string;
+    MFA_INFO_NOT_FOUND: string;
+    MFA_REQUIRED: string;
+    MISSING_ANDROID_PACKAGE_NAME: string;
+    MISSING_APP_CREDENTIAL: string;
+    MISSING_AUTH_DOMAIN: string;
+    MISSING_CODE: string;
+    MISSING_CONTINUE_URI: string;
+    MISSING_IFRAME_START: string;
+    MISSING_IOS_BUNDLE_ID: string;
+    MISSING_OR_INVALID_NONCE: string;
+    MISSING_MFA_INFO: string;
+    MISSING_MFA_SESSION: string;
+    MISSING_PHONE_NUMBER: string;
+    MISSING_SESSION_INFO: string;
+    MODULE_DESTROYED: string;
+    NEED_CONFIRMATION: string;
+    NETWORK_REQUEST_FAILED: string;
+    NULL_USER: string;
+    NO_AUTH_EVENT: string;
+    NO_SUCH_PROVIDER: string;
+    OPERATION_NOT_ALLOWED: string;
+    OPERATION_NOT_SUPPORTED: string;
+    POPUP_BLOCKED: string;
+    POPUP_CLOSED_BY_USER: string;
+    PROVIDER_ALREADY_LINKED: string;
+    QUOTA_EXCEEDED: string;
+    REDIRECT_CANCELLED_BY_USER: string;
+    REDIRECT_OPERATION_PENDING: string;
+    REJECTED_CREDENTIAL: string;
+    SECOND_FACTOR_ALREADY_ENROLLED: string;
+    SECOND_FACTOR_LIMIT_EXCEEDED: string;
+    TENANT_ID_MISMATCH: string;
+    TIMEOUT: string;
+    TOKEN_EXPIRED: string;
+    TOO_MANY_ATTEMPTS_TRY_LATER: string;
+    UNAUTHORIZED_DOMAIN: string;
+    UNSUPPORTED_FIRST_FACTOR: string;
+    UNSUPPORTED_PERSISTENCE: string;
+    UNSUPPORTED_TENANT_OPERATION: string;
+    UNVERIFIED_EMAIL: string;
+    USER_CANCELLED: string;
+    USER_DELETED: string;
+    USER_DISABLED: string;
+    USER_MISMATCH: string;
+    USER_SIGNED_OUT: string;
+    WEAK_PASSWORD: string;
+    WEB_STORAGE_UNSUPPORTED: string;
+    ALREADY_INITIALIZED: string;
+};
+
+// @public
 export interface AuthErrorMap {
 }
 
