@@ -539,4 +539,4 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   WEAK_PASSWORD: 'auth/weak-password',
   WEB_STORAGE_UNSUPPORTED: 'auth/web-storage-unsupported',
   ALREADY_INITIALIZED: 'auth/already-initialized'
-};
+} as const;
