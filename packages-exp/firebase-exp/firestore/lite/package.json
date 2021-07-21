@@ -1,7 +1,8 @@
 {
   "name": "firebase-exp/firestore/lite",
-  "main": "dist/index.cjs.js",
+  "main": "dist/index.cjs",
   "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
-  "typings": "dist/firestore/lite/index.d.ts"
+  "typings": "dist/firestore/lite/index.d.ts",
+  "type": "module"
 }
