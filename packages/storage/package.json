@@ -3,10 +3,10 @@
   "version": "0.5.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "browser": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "main": "dist/index.node.cjs.js",
+  "module": "dist/index.browser.esm.js",
+  "browser": "dist/index.browser.esm.js",
+  "esm2017": "dist/index.browser.esm2017.js",
   "files": [
     "dist",
     "exp/dist"

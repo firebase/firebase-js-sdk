@@ -559,8 +559,11 @@ export function isMapValue(
 export function deepClone(source: Value): Value {
   if (source.geoPointValue) {
     return { geoPointValue: { ...source.geoPointValue } };
-  } else if (source.timestampValue) {
-    return { timestampValue: { ...normalizeTimestamp(source.timestampValue) } };
+  } else if (
+    source.timestampValue &&
+    typeof source.timestampValue === 'object'
+  ) {
+    return { timestampValue: { ...source.timestampValue } };
   } else if (source.mapValue) {
     const target: Value = { mapValue: { fields: {} } };
     forEach(

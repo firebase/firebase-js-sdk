@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _getProvider,
   _removeServiceInstance,
   FirebaseApp,
   getApp
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
@@ -60,7 +60,7 @@ import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
 import { PersistenceSettings, Settings } from './settings';
-export { useFirestoreEmulator } from '../lite/database';
+export { connectFirestoreEmulator } from '../lite/database';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;

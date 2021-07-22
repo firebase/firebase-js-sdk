@@ -187,7 +187,7 @@ describe('Firebase Storage > Service', () => {
       }, 'storage/invalid-default-bucket');
     });
   });
-  describe('useStorageEmulator(service, host, port)', () => {
+  describe('connectStorageEmulator(service, host, port)', () => {
     it('sets emulator host correctly', done => {
       function newSend(
         connection: TestingConnection,

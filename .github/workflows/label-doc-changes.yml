@@ -33,4 +33,4 @@ jobs:
       if: ${{steps.check-doc-changes.outputs.DOC_CHANGED == 'true'}}
       with:
         labels: doc-changes
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}

@@ -24,6 +24,11 @@ export interface DatabaseReference extends Query {
 }
 
 // @public
+export function connectDatabaseEmulator(db: FirebaseDatabase, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions;
+}): void;
+
+// @public
 export class DataSnapshot {
     child(path: string): DataSnapshot;
     exists(): boolean;
@@ -228,11 +233,6 @@ export type Unsubscribe = () => void;
 
 // @public
 export function update(ref: DatabaseReference, values: object): Promise<void>;
-
-// @public
-export function useDatabaseEmulator(db: Database, host: string, port: number, options?: {
-    mockUserToken?: EmulatorMockTokenOptions;
-}): void;
 
 
 ```
