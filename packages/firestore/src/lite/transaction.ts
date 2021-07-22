@@ -25,7 +25,7 @@ import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
 import { getDatastore } from './components';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { DocumentReference, SetOptions, UpdateData } from './reference';
 import {
@@ -62,7 +62,7 @@ export class Transaction {
 
   /** @hideconstructor */
   constructor(
-    protected readonly _firestore: FirebaseFirestore,
+    protected readonly _firestore: Firestore,
     private readonly _transaction: InternalTransaction
   ) {
     this._dataReader = newUserDataReader(_firestore);
@@ -255,10 +255,10 @@ export class Transaction {
  * rejected promise with the corresponding failure error is returned.
  */
 export function runTransaction<T>(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  firestore = cast(firestore, FirebaseFirestore);
+  firestore = cast(firestore, Firestore);
   const datastore = getDatastore(firestore);
   const deferred = new Deferred<T>();
   new TransactionRunner<T>(

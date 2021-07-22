@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Settings as LiteSettings } from '../lite/settings';
+import { FirestoreSettings as LiteSettings } from '../lite/settings';
 
 export { DEFAULT_HOST } from '../lite/settings';
 

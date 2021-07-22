@@ -43,7 +43,7 @@ import {
   setOnlineComponentProvider
 } from '../core/firestore_client';
 import { makeDatabaseInfo } from '../lite/components';
-import { FirebaseFirestore as LiteFirestore } from '../lite/database';
+import { Firestore as LiteFirestore } from '../lite/database';
 import { Query } from '../lite/reference';
 import {
   indexedDbClearPersistence,
@@ -80,6 +80,9 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
  * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
 export class Firestore extends LiteFirestore {
+  /**
+   * whether it's a firestore or firestore-lite instance
+   */
   type: 'firestore-lite' | 'firestore' = 'firestore';
 
   readonly _queue: AsyncQueue = newAsyncQueue();
