@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.10.8
+
+### Patch Changes
+
+- [`fb3e35965`](https://github.com/firebase/firebase-js-sdk/commit/fb3e35965b23f88e318dd877fabade16cdcb6385) [#5146](https://github.com/firebase/firebase-js-sdk/pull/5146) - Fix sending of auth tokens on node.
+
 ## 0.10.7
 
 ### Patch Changes
