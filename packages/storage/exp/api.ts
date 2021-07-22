@@ -30,7 +30,7 @@ import { Provider } from '@firebase/component';
 
 import {
   StorageReference,
-  StorageService,
+  FirebaseStorage,
   UploadResult,
   ListOptions,
   ListResult,
@@ -249,7 +249,7 @@ export function deleteObject(ref: StorageReference): Promise<void> {
  * @param url - URL. If empty, returns root reference.
  * @public
  */
-export function ref(storage: StorageService, url?: string): StorageReference;
+export function ref(storage: FirebaseStorage, url?: string): StorageReference;
 /**
  * Returns a StorageReference for the given path in the
  * default bucket.
@@ -259,11 +259,11 @@ export function ref(storage: StorageService, url?: string): StorageReference;
  * @public
  */
 export function ref(
-  storageOrRef: StorageService | StorageReference,
+  storageOrRef: FirebaseStorage | StorageReference,
   path?: string
 ): StorageReference;
 export function ref(
-  serviceOrRef: StorageService | StorageReference,
+  serviceOrRef: FirebaseStorage | StorageReference,
   pathOrUrl?: string
 ): StorageReference | null {
   serviceOrRef = getModularInstance(serviceOrRef);
@@ -293,7 +293,7 @@ export { StringFormat } from '../src/implementation/string';
 export function getStorage(
   app: FirebaseApp = getApp(),
   bucketUrl?: string
-): StorageService {
+): FirebaseStorage {
   app = getModularInstance(app);
   const storageProvider: Provider<'storage-exp'> = _getProvider(
     app,

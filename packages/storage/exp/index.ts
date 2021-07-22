@@ -42,7 +42,7 @@ import {
 
 import { name, version } from '../package.json';
 
-import { StorageService } from './public-types';
+import { FirebaseStorage } from './public-types';
 import { STORAGE_TYPE } from './constants';
 
 /**
@@ -54,7 +54,7 @@ import { STORAGE_TYPE } from './constants';
  * @public
  */
 export function useStorageEmulator(
-  storage: StorageService,
+  storage: FirebaseStorage,
   host: string,
   port: number
 ): void {
@@ -67,7 +67,7 @@ export * from './api';
 function factory(
   container: ComponentContainer,
   { instanceIdentifier: url }: InstanceFactoryOptions
-): StorageService {
+): FirebaseStorage {
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
   const appCheckProvider = container.getProvider('app-check-internal');
