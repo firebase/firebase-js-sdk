@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.6.0
+
+### Minor Changes
+
+- [`b3caa5158`](https://github.com/firebase/firebase-js-sdk/commit/b3caa515846d2bfcf4a95dedff69f08d503cbfc2) [#5149](https://github.com/firebase/firebase-js-sdk/pull/5149) - Add NodeJS support to Cloud Storage for Firebase. This release changes the `main` field in package.json to point to a Node specific build. If you are building a bundle for borwser usage, please make sure that your bundler uses the `browser` field (the default).
+
 ## 0.5.6
 
 ### Patch Changes
