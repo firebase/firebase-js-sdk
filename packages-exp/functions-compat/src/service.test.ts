@@ -31,7 +31,7 @@ describe('Firebase Functions > Service', () => {
   let httpsCallableStub: SinonStub = stub();
 
   before(() => {
-    functionsEmulatorStub = stub(functionsExp, 'useFunctionsEmulator');
+    functionsEmulatorStub = stub(functionsExp, 'connectFunctionsEmulator');
     httpsCallableStub = stub(functionsExp, 'httpsCallable');
   });
 

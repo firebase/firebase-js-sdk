@@ -34,7 +34,7 @@ export {
   initializeFirestore,
   getFirestore,
   terminate,
-  useFirestoreEmulator
+  connectFirestoreEmulator
 } from '../src/lite/database';
 
 export {

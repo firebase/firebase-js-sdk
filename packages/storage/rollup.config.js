@@ -26,6 +26,9 @@ const { generateAliasConfig } = require('./rollup.shared');
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
+
+const nodeDeps = [...deps, 'util'];
+
 /**
  * ES5 Builds
  */
@@ -39,10 +42,7 @@ const es5BuildPlugins = [
 const es5Builds = [
   {
     input: './index.ts',
-    output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
-    ],
+    output: { file: pkg.module, format: 'es', sourcemap: true },
     plugins: [alias(generateAliasConfig('browser')), ...es5BuildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
@@ -67,6 +67,22 @@ const es2017BuildPlugins = [
 ];
 
 const es2017Builds = [
+  // Node
+  {
+    input: './index.ts',
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [alias(generateAliasConfig('node')), ...es2017BuildPlugins],
+    external: id =>
+      nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Browser
   {
     input: './index.ts',
     output: {

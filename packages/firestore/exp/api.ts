@@ -28,7 +28,7 @@ export {
   disableNetwork,
   enableNetwork,
   terminate,
-  useFirestoreEmulator,
+  connectFirestoreEmulator,
   loadBundle,
   namedQuery,
   ensureFirestoreConfigured

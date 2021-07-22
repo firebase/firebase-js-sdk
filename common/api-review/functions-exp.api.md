@@ -8,6 +8,9 @@ import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export function connectFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
+
+// @public
 export interface Functions {
     app: FirebaseApp;
     customDomain: string | null;
@@ -41,9 +44,6 @@ export interface HttpsCallableOptions {
 export interface HttpsCallableResult<ResponseData = unknown> {
     readonly data: ResponseData;
 }
-
-// @public
-export function useFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
 
 
 ```

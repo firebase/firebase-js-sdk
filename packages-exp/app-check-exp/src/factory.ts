@@ -24,6 +24,7 @@ import {
   removeTokenListener
 } from './internal-api';
 import { Provider } from '@firebase/component';
+import { getState } from './state';
 
 /**
  * AppCheck Service class.
@@ -34,6 +35,10 @@ export class AppCheckService implements AppCheck, _FirebaseService {
     public platformLoggerProvider: Provider<'platform-logger'>
   ) {}
   _delete(): Promise<void> {
+    const { tokenObservers } = getState(this.app);
+    for (const tokenObserver of tokenObservers) {
+      removeTokenListener(this.app, tokenObserver.next);
+    }
     return Promise.resolve();
   }
 }

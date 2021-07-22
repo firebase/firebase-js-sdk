@@ -22,7 +22,7 @@ import * as popup from './popup';
 import * as email from './email';
 import * as persistence from './persistence';
 import { initializeApp } from '@firebase/app-exp';
-import { getAuth, useAuthEmulator } from '@firebase/auth-exp';
+import { getAuth, connectAuthEmulator } from '@firebase/auth-exp';
 
 window.core = core;
 window.anonymous = anonymous;
@@ -39,7 +39,7 @@ window.legacyAuth = null;
 window.startAuth = async () => {
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  useAuthEmulator(auth, emulatorUrl);
+  connectAuthEmulator(auth, emulatorUrl);
   window.auth = auth;
 };
 

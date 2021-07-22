@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _getProvider,
   _removeServiceInstance,
   FirebaseApp,
   getApp
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
@@ -233,7 +233,7 @@ export function getFirestore(app: FirebaseApp = getApp()): Firestore {
  * @param options.mockUserToken - the mock auth token to use for unit testing
  * Security Rules.
  */
-export function useFirestoreEmulator(
+export function connectFirestoreEmulator(
   firestore: Firestore,
   host: string,
   port: number,

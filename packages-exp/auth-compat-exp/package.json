@@ -18,14 +18,14 @@
     "build:release": "rollup -c rollup.config.release.js && yarn add-compat-overloads",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
-    "test:all": "run-p test:browser test:node",
+    "test:all": "run-p test:browser test:node test:integration",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
     "test:browser:integration": "karma start --single-run --integration",
     "test:node": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts",
     "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
     "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
-    "test:integration": "run-s test:browser:integration test:node:integration test:webdriver",
+    "test:integration": "firebase emulators:exec --project demo-emulatedproject --only auth \"run-s test:browser:integration test:node:integration test:webdriver\"",
     "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../auth-exp/dist/auth-exp-public.d.ts -o dist/auth-compat-exp/index.d.ts -a -r Auth:types.FirebaseAuth -r User:types.User -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/auth"
   },
   "peerDependencies": {
