@@ -28,7 +28,7 @@ import { name as performanceName } from '../../performance/package.json';
 import { name as remoteConfigName } from '../../remote-config/package.json';
 import { name as storageName } from '../../storage/package.json';
 import { name as firestoreName } from '../../firestore/package.json';
-import { name as packageName } from '../../../package.json';
+import { name as packageName } from '../../firebase/package.json';
 
 export const PLATFORM_LOG_STRING = {
   [appName]: 'fire-core',
