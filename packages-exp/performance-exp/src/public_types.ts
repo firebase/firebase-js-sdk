@@ -33,7 +33,7 @@ export interface PerformanceSettings {
  *
  * @public
  */
-export interface PerformanceMonitoring {
+export interface FirebasePerformance {
   /**
    * Controls the logging of automatic traces and HTTP/S network monitoring.
    */
@@ -130,6 +130,6 @@ export interface PerformanceTrace {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'performance-exp': PerformanceMonitoring;
+    'performance-exp': FirebasePerformance;
   }
 }
