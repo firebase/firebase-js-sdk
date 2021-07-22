@@ -24,12 +24,8 @@ import { Reference, _getChild } from './reference';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
-import {
-  FirebaseApp,
-  FirebaseOptions,
-  _FirebaseService
-  // eslint-disable-next-line import/no-extraneous-dependencies
-} from '@firebase/app-exp';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-exp';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
   DEFAULT_HOST,
@@ -42,6 +38,7 @@ import {
   noDefaultBucket
 } from './implementation/error';
 import { validateNumber } from './implementation/type';
+import { FirebaseStorage } from '../exp/public-types';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
@@ -50,7 +47,7 @@ export function isUrl(path?: string): boolean {
 /**
  * Returns a firebaseStorage.Reference for the given url.
  */
-function refFromURL(service: StorageService, url: string): Reference {
+function refFromURL(service: FirebaseStorageImpl, url: string): Reference {
   return new Reference(service, url);
 }
 
@@ -59,10 +56,10 @@ function refFromURL(service: StorageService, url: string): Reference {
  * bucket.
  */
 function refFromPath(
-  ref: StorageService | Reference,
+  ref: FirebaseStorageImpl | Reference,
   path?: string
 ): Reference {
-  if (ref instanceof StorageService) {
+  if (ref instanceof FirebaseStorageImpl) {
     const service = ref;
     if (service._bucket == null) {
       throw noDefaultBucket();
@@ -92,7 +89,7 @@ function refFromPath(
  * @param url - URL. If empty, returns root reference.
  * @public
  */
-export function ref(storage: StorageService, url?: string): Reference;
+export function ref(storage: FirebaseStorageImpl, url?: string): Reference;
 /**
  * Returns a storage Reference for the given path in the
  * default bucket.
@@ -102,15 +99,15 @@ export function ref(storage: StorageService, url?: string): Reference;
  * @public
  */
 export function ref(
-  storageOrRef: StorageService | Reference,
+  storageOrRef: FirebaseStorageImpl | Reference,
   path?: string
 ): Reference;
 export function ref(
-  serviceOrRef: StorageService | Reference,
+  serviceOrRef: FirebaseStorageImpl | Reference,
   pathOrUrl?: string
 ): Reference | null {
   if (pathOrUrl && isUrl(pathOrUrl)) {
-    if (serviceOrRef instanceof StorageService) {
+    if (serviceOrRef instanceof FirebaseStorageImpl) {
       return refFromURL(serviceOrRef, pathOrUrl);
     } else {
       throw invalidArgument(
@@ -134,7 +131,7 @@ function extractBucket(
 }
 
 export function connectStorageEmulator(
-  storage: StorageService,
+  storage: FirebaseStorageImpl,
   host: string,
   port: number
 ): void {
@@ -146,7 +143,7 @@ export function connectStorageEmulator(
  * @public
  * @param opt_url - gs:// url to a custom Storage Bucket
  */
-export class StorageService implements _FirebaseService {
+export class FirebaseStorageImpl implements FirebaseStorage {
   _bucket: Location | null = null;
   /**
    * This string can be in the formats:

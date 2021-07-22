@@ -19,7 +19,7 @@ import '../../index';
 import firebase from '@firebase/app';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { StorageServiceCompat } from '../../compat/service';
-import { StorageService } from '../../src/service';
+import { FirebaseStorageImpl } from '../../src/service';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');
@@ -39,8 +39,8 @@ describe('Firebase Storage > API', () => {
     });
     const storage = firebase.storage!();
     expect(
-      ((storage as StorageServiceCompat)._delegate as StorageService)._bucket
-        ?.bucket
+      ((storage as StorageServiceCompat)._delegate as FirebaseStorageImpl)
+        ._bucket?.bucket
     ).to.equal(STORAGE_BUCKET);
     await app.delete();
   });
@@ -53,8 +53,8 @@ describe('Firebase Storage > API', () => {
     });
     const storage = firebase.storage!(app, 'gs://foo-bar.appspot.com');
     expect(
-      ((storage as StorageServiceCompat)._delegate as StorageService)._bucket
-        ?.bucket
+      ((storage as StorageServiceCompat)._delegate as FirebaseStorageImpl)
+        ._bucket?.bucket
     ).to.equal(STORAGE_BUCKET);
     await app.delete();
   });

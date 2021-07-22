@@ -16,7 +16,7 @@
  */
 import { expect } from 'chai';
 import { getStorage } from '../../exp/index';
-import { StorageService } from '../../src/service';
+import { FirebaseStorageImpl } from '../../src/service';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app-exp';
 
@@ -37,7 +37,7 @@ describe('Firebase Storage > API', () => {
       authDomain: AUTH_DOMAIN
     });
     const storage = getStorage(app);
-    expect((storage as StorageService)._bucket?.bucket).to.equal(
+    expect((storage as FirebaseStorageImpl)._bucket?.bucket).to.equal(
       STORAGE_BUCKET
     );
     await deleteApp(app);
@@ -50,7 +50,7 @@ describe('Firebase Storage > API', () => {
       authDomain: AUTH_DOMAIN
     });
     const storage = getStorage(app, 'gs://foo-bar.appspot.com');
-    expect((storage as StorageService)._bucket?.bucket).to.equal(
+    expect((storage as FirebaseStorageImpl)._bucket?.bucket).to.equal(
       'foo-bar.appspot.com'
     );
     await deleteApp(app);
