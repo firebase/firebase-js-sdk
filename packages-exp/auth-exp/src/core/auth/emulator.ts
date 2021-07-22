@@ -31,7 +31,7 @@ import { _castAuth } from './auth_impl';
  *
  * @example
  * ```javascript
- * useAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+ * connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
  * ```
  *
  * @param auth - The Auth instance.
@@ -40,7 +40,7 @@ import { _castAuth } from './auth_impl';
  *
  * @public
  */
-export function useAuthEmulator(
+export function connectAuthEmulator(
   auth: Auth,
   url: string,
   options?: { disableWarnings: boolean }

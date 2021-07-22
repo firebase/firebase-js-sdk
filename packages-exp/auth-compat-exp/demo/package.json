@@ -21,7 +21,7 @@
   "dependencies": {
     "@firebase/logger": "^0.2.2",
     "@firebase/util": "^1.0.0",
-    "lerna": "^3.22.1",
+    "lerna": "^4.0.0",
     "tslib": "2.3.0"
   },
   "license": "Apache-2.0",

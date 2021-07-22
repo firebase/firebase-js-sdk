@@ -150,7 +150,7 @@ export function signOut(auth: Auth): Promise<void> {
 }
 
 export { initializeAuth } from './auth/initialize';
-export { useAuthEmulator } from './auth/emulator';
+export { connectAuthEmulator } from './auth/emulator';
 
 // credentials
 export { AuthCredential } from './credentials';

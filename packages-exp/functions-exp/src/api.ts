@@ -23,7 +23,7 @@ import { Functions, HttpsCallableOptions, HttpsCallable } from './public-types';
 import {
   FunctionsService,
   DEFAULT_REGION,
-  useFunctionsEmulator as _useFunctionsEmulator,
+  connectFunctionsEmulator as _connectFunctionsEmulator,
   httpsCallable as _httpsCallable
 } from './service';
 import { getModularInstance } from '@firebase/util';
@@ -62,12 +62,12 @@ export function getFunctions(
  * @param port - The emulator port (ex: 5001)
  * @public
  */
-export function useFunctionsEmulator(
+export function connectFunctionsEmulator(
   functionsInstance: Functions,
   host: string,
   port: number
 ): void {
-  _useFunctionsEmulator(
+  _connectFunctionsEmulator(
     getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
     host,
     port

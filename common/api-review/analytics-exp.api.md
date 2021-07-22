@@ -74,6 +74,8 @@ export interface EventParams {
     event_label?: string;
     // (undocumented)
     fatal?: boolean;
+    firebase_screen?: string;
+    firebase_screen_class?: string;
     // (undocumented)
     item_list_id?: string;
     // (undocumented)
@@ -295,6 +297,8 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'purchase' | '
 export function logEvent(analyticsInstance: Analytics, eventName: 'screen_view', eventParams?: {
     app_name: string;
     screen_name: EventParams['screen_name'];
+    firebase_screen: EventParams['firebase_screen'];
+    firebase_screen_class: EventParams['firebase_screen_class'];
     app_id?: string;
     app_version?: string;
     app_installer_id?: string;

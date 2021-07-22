@@ -23,6 +23,7 @@ import { debugAssert, fail } from './assert';
 import { AsyncQueue, DelayedOperation, TimerId } from './async_queue';
 import { FirestoreError } from './error';
 import { logDebug, logError } from './log';
+import { Deferred } from './promise';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -48,6 +49,9 @@ export class AsyncQueueImpl implements AsyncQueue {
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
   private operationInProgress = false;
+
+  // Enabled during shutdown on Safari to prevent future access to IndexedDB.
+  private skipNonRestrictedTasks = false;
 
   // List of TimerIds to fast-forward delays for.
   private timerIdsToSkip: TimerId[] = [];
@@ -97,9 +101,10 @@ export class AsyncQueueImpl implements AsyncQueue {
     this.enqueueInternal(op);
   }
 
-  enterRestrictedMode(): void {
+  enterRestrictedMode(purgeExistingTasks?: boolean): void {
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
+      this.skipNonRestrictedTasks = purgeExistingTasks || false;
       const document = getDocument();
       if (document && typeof document.removeEventListener === 'function') {
         document.removeEventListener(
@@ -114,9 +119,22 @@ export class AsyncQueueImpl implements AsyncQueue {
     this.verifyNotFailed();
     if (this._isShuttingDown) {
       // Return a Promise which never resolves.
-      return new Promise<T>(resolve => {});
+      return new Promise<T>(() => {});
     }
-    return this.enqueueInternal(op);
+
+    // Create a deferred Promise that we can return to the callee. This
+    // allows us to return a "hanging Promise" only to the callee and still
+    // advance the queue even when the operation is not run.
+    const task = new Deferred<T>();
+    return this.enqueueInternal<unknown>(() => {
+      if (this._isShuttingDown && this.skipNonRestrictedTasks) {
+        // We do not resolve 'task'
+        return Promise.resolve();
+      }
+
+      op().then(task.resolve, task.reject);
+      return task.promise;
+    }).then(() => task.promise);
   }
 
   enqueueRetryable(op: () => Promise<void>): void {
