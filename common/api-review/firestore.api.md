@@ -56,6 +56,11 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 }
 
 // @public
+export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions;
+}): void;
+
+// @public
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
 // @public
@@ -151,7 +156,6 @@ export abstract class FieldValue {
 export class Firestore {
     get app(): FirebaseApp;
     toJSON(): object;
-    // (undocumented)
     type: 'firestore-lite' | 'firestore';
 }
 
@@ -463,11 +467,6 @@ export function updateDoc(reference: DocumentReference<unknown>, data: UpdateDat
 
 // @public
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
-
-// @public
-export function useFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
-    mockUserToken?: EmulatorMockTokenOptions;
-}): void;
 
 // @public
 export function waitForPendingWrites(firestore: Firestore): Promise<void>;
