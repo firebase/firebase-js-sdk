@@ -14,5 +14,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { spawn } from 'child-process-promise';
+import simpleGit from 'simple-git/promise';
+import { projectRoot } from '../utils';
 
-async function updateApiReports() {}
+const git = simpleGit(projectRoot);
+
+async function updateApiReports() {
+  /** API reports are generated as part of the builds */
+  // TODO: change yarn command once exp packages become official
+  await spawn('yarn', ['lerna', 'run', '--scope', '@firebase/*-exp', 'build'], {
+    stdio: 'inherit'
+  });
+
+  // build storage-exp
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
+    {
+      stdio: 'inherit'
+    }
+  );
+
+  // build database-exp
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp'],
+    {
+      stdio: 'inherit'
+    }
+  );
+
+  // generate public typings for firestore
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
+    {
+      stdio: 'inherit'
+    }
+  );
+
+  // stage api reviews
+  await git.add('common/api-review/*');
+
+  // reset unrelated changes
+  await git.checkout('.');
+
+  await git.commit('Update API reports');
+  await git.push('origin');
+}
+
+updateApiReports();
