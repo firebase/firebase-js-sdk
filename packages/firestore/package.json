@@ -86,7 +86,7 @@
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "11.2.0",
     "@types/eslint": "7.2.10",
-    "@types/json-stable-stringify": "1.0.32",
+    "@types/json-stable-stringify": "1.0.33",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.11.2",
     "rollup": "2.52.2",
