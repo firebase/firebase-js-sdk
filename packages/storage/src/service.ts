@@ -269,9 +269,11 @@ export class StorageService implements _FirebaseService {
    * Stop running requests and prevent more from being created.
    */
   _delete(): Promise<void> {
-    this._deleted = true;
-    this._requests.forEach(request => request.cancel());
-    this._requests.clear();
+    if (!this._deleted) {
+      this._deleted = true;
+      this._requests.forEach(request => request.cancel());
+      this._requests.clear();
+    }
     return Promise.resolve();
   }
 

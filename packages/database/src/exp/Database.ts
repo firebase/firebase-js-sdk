@@ -256,10 +256,11 @@ export class FirebaseDatabase implements _FirebaseService {
   }
 
   _delete(): Promise<void> {
-    this._checkNotDeleted('delete');
-    repoManagerDeleteRepo(this._repo, this.app.name);
-    this._repoInternal = null;
-    this._rootInternal = null;
+    if (this._rootInternal !== null) {
+      repoManagerDeleteRepo(this._repo, this.app.name);
+      this._repoInternal = null;
+      this._rootInternal = null;
+    }
     return Promise.resolve();
   }
 

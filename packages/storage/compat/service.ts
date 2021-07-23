@@ -37,15 +37,6 @@ export class StorageServiceCompat
 {
   constructor(public app: FirebaseApp, readonly _delegate: StorageService) {}
 
-  INTERNAL = {
-    /**
-     * Called when the associated app is deleted.
-     */
-    delete: () => {
-      return this._delegate._delete();
-    }
-  };
-
   get maxOperationRetryTime(): number {
     return this._delegate.maxOperationRetryTime;
   }

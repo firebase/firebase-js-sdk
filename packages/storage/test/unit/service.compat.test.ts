@@ -333,13 +333,13 @@ GOOG4-RSA-SHA256`
       const ref = service.refFromURL('gs://mybucket/image.jpg');
       const metadataPromise = ref.getMetadata();
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      service.INTERNAL.delete();
+      service._delegate._delete();
       await expect(metadataPromise).to.be.rejectedWith('storage/app-deleted');
     });
     it('Requests fail when started after the service is deleted', async () => {
       const ref = service.refFromURL('gs://mybucket/image.jpg');
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      service.INTERNAL.delete();
+      service._delegate._delete();
 
       await expect(ref.getMetadata()).to.be.rejectedWith('storage/app-deleted');
     });
@@ -360,7 +360,7 @@ GOOG4-RSA-SHA256`
           }
         );
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        service.INTERNAL.delete();
+        service._delegate._delete();
       });
       return toReturn;
     });
