@@ -61,7 +61,7 @@ declare module '@firebase/component' {
  */
 export class Firestore implements FirestoreService {
   /**
-   * whether it's a firestore or firestore-lite instance
+   * Whether it's a Firestore or Firestore Lite instance
    */
   type: 'firestore-lite' | 'firestore' = 'firestore-lite';
 
