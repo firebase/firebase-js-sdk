@@ -7,10 +7,8 @@
   },
   "packageRules": [
     {
-      "minor": {
-        "groupName": "all non-major dependencies",
-        "groupSlug": "all-minor-patch"
-      },
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "all non-major dependencies",
       "excludePackageNames": ["typescript"]
     }
   ],
