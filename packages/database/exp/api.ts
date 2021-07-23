@@ -16,7 +16,7 @@
  */
 
 export {
-  FirebaseDatabase,
+  Database,
   enableLogging,
   getDatabase,
   goOffline,
@@ -26,7 +26,7 @@ export {
 } from '../src/exp/Database';
 export {
   Query,
-  Reference,
+  DatabaseReference,
   ListenOptions,
   Unsubscribe,
   ThenableReference

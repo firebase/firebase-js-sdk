@@ -108,7 +108,7 @@ export function repoManagerDatabaseFromApp(
   appCheckProvider?: Provider<AppCheckInternalComponentName>,
   url?: string,
   nodeAdmin?: boolean
-): FirebaseDatabase {
+): Database {
   let dbUrl: string | undefined = url || app.options.databaseURL;
   if (dbUrl === undefined) {
     if (!app.options.projectId) {
@@ -160,7 +160,7 @@ export function repoManagerDatabaseFromApp(
     authTokenProvider,
     new AppCheckTokenProvider(app.name, appCheckProvider)
   );
-  return new FirebaseDatabase(repo, app);
+  return new Database(repo, app);
 }
 
 /**
@@ -219,7 +219,7 @@ export function repoManagerForceRestClient(forceRestClient: boolean): void {
 /**
  * Class representing a Firebase Realtime Database.
  */
-export class FirebaseDatabase implements _FirebaseService {
+export class Database implements _FirebaseService {
   /** Represents a database instance. */
   readonly 'type' = 'database';
 
@@ -286,10 +286,10 @@ export class FirebaseDatabase implements _FirebaseService {
 export function getDatabase(
   app: FirebaseApp = getApp(),
   url?: string
-): FirebaseDatabase {
+): Database {
   return _getProvider(app, 'database-exp').getImmediate({
     identifier: url
-  }) as FirebaseDatabase;
+  }) as Database;
 }
 
 /**
@@ -304,7 +304,7 @@ export function getDatabase(
  * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules
  */
 export function connectDatabaseEmulator(
-  db: FirebaseDatabase,
+  db: Database,
   host: string,
   port: number,
   options: {
@@ -361,7 +361,7 @@ export function connectDatabaseEmulator(
  *
  * @param db - The instance to disconnect.
  */
-export function goOffline(db: FirebaseDatabase): void {
+export function goOffline(db: Database): void {
   db = getModularInstance(db);
   db._checkNotDeleted('goOffline');
   repoInterrupt(db._repo);
@@ -378,7 +378,7 @@ export function goOffline(db: FirebaseDatabase): void {
  *
  * @param db - The instance to reconnect.
  */
-export function goOnline(db: FirebaseDatabase): void {
+export function goOnline(db: Database): void {
   db = getModularInstance(db);
   db._checkNotDeleted('goOnline');
   repoResume(db._repo);

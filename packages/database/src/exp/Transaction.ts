@@ -22,7 +22,7 @@ import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { Node } from '../core/snap/Node';
 import { validateWritablePath } from '../core/util/validation';
 
-import { Reference } from './Reference';
+import { DatabaseReference } from './Reference';
 import { DataSnapshot, onValue, ReferenceImpl } from './Reference_impl';
 
 /** An options object to configure transactions. */
@@ -92,7 +92,7 @@ export class TransactionResult {
  * callback to handle success and failure.
  */
 export function runTransaction(
-  ref: Reference,
+  ref: DatabaseReference,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transactionUpdate: (currentData: any) => unknown,
   options?: TransactionOptions
