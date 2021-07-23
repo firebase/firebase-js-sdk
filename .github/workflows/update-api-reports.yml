@@ -2,9 +2,6 @@ name: Update API reports
 
 on: pull_request
 
-env:
-  GITHUB_HEAD_REF: ${{ github.head_ref }}
-
 jobs:
   check_doc_changes:
     name: Check if docs are being changed
@@ -22,8 +19,11 @@ jobs:
         node-version: 14.x
     - name: Yarn install
       run: yarn
-    - name : echo branch name
-      run: echo ${{ github.head_ref }}
     - name: Update API reports
       run: yarn ts-node-script scripts/exp/update-api-reports.ts
       id: update-api-reports
+    - name: Push changes
+      use: ad-m/github-push-action@0.6.0
+      with: 
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}

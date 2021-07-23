@@ -61,7 +61,8 @@ async function updateApiReports() {
   await git.checkout('.');
 
   await git.commit('Update API reports');
-  await git.push('origin');
+
+  // Pushing to the remote branch is done in the GHA workflow, see .github/workflows/update-api-reports.yml
 }
 
 updateApiReports();
