@@ -3,8 +3,8 @@ name: Update API reports
 on: pull_request
 
 jobs:
-  check_doc_changes:
-    name: Check if docs are being changed
+  update_api_reports:
+    name: Update API reports
     runs-on: ubuntu-latest
 
     steps:
