@@ -81,7 +81,7 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
  */
 export class Firestore extends LiteFirestore {
   /**
-   * Whether it's a Firestore or Firestore Lite instance
+   * Whether it's a Firestore or Firestore Lite instance.
    */
   type: 'firestore-lite' | 'firestore' = 'firestore';
 
