@@ -54,15 +54,7 @@ async function updateApiReports() {
     }
   );
 
-  // stage api reviews
-  await git.add('common/api-review/*');
-
-  // reset unrelated changes
-  await git.checkout('.');
-
-  await git.commit('Update API reports');
-
-  // Pushing to the remote branch is done in the GHA workflow, see .github/workflows/update-api-reports.yml
+  // Committing and Pushing to the remote branch is done in the GHA workflow, see .github/workflows/update-api-reports.yml
 }
 
 updateApiReports();
