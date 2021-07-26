@@ -22,7 +22,7 @@ jobs:
     - name: Update API reports
       run: yarn ts-node-script scripts/exp/update-api-reports.ts
       id: update-api-reports
-    - name: Push changes
+    - name: Commit & Push changes
       uses: EndBug/add-and-commit@v7
       with:
         add: 'common/api-review/*'
