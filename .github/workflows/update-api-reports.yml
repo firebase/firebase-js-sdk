@@ -11,8 +11,8 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@master
       with:
-        # This makes Actions fetch all Git history so check_changeset script can diff properly.
-        fetch-depth: 0
+        # checkout HEAD commit instead of merge commit
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Set up Node (14)
       uses: actions/setup-node@v2
       with:
