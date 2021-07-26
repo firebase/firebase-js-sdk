@@ -19,6 +19,8 @@ jobs:
         node-version: 14.x
     - name: Yarn install
       run: yarn
+    - name: git log before
+      run: git log
     - name: Update API reports
       run: yarn ts-node-script scripts/exp/update-api-reports.ts
       id: update-api-reports
