@@ -31,7 +31,6 @@ jobs:
         RECAPTCHA_SITE_KEY: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
       run: |
         echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
-        sed -i -e "s/APP_CHECK_DEBUG_TOKEN/$APP_CHECK_DEBUG_TOKEN/g" context.html
     - name: Yarn install
       run: |
         yarn add firebase@beta
@@ -66,7 +65,6 @@ jobs:
         RECAPTCHA_SITE_KEY: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
       run: |
         echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
-        sed -i -e "s/APP_CHECK_DEBUG_TOKEN/$APP_CHECK_DEBUG_TOKEN/g" context.html
     - name: Yarn install
       run: |
         yarn add firebase@next
