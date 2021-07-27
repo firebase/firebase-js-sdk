@@ -11,6 +11,11 @@ import { FirebaseApp } from '@firebase/app';
 export function child(parent: DatabaseReference, path: string): DatabaseReference;
 
 // @public
+export function connectDatabaseEmulator(db: Database, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions;
+}): void;
+
+// @public
 export class Database {
     readonly app: FirebaseApp;
     readonly 'type' = "database";
@@ -22,11 +27,6 @@ export interface DatabaseReference extends Query {
     readonly parent: DatabaseReference | null;
     readonly root: DatabaseReference;
 }
-
-// @public
-export function connectDatabaseEmulator(db: FirebaseDatabase, host: string, port: number, options?: {
-    mockUserToken?: EmulatorMockTokenOptions;
-}): void;
 
 // @public
 export class DataSnapshot {

@@ -87,6 +87,4 @@ export function setTokenAutoRefreshEnabled(appCheckInstance: AppCheck, isTokenAu
 export { Unsubscribe }
 
 
-// (No @packageDocumentation comment for this package)
-
 ```
