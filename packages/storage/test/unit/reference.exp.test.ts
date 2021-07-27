@@ -30,7 +30,7 @@ import {
   getDownloadURL,
   uploadBytes
 } from '../../src/reference';
-import { StorageService, ref } from '../../src/service';
+import { FirebaseStorageImpl, ref } from '../../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingConnection } from './connection';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
@@ -46,8 +46,8 @@ function makeFakeService(
   authProvider: Provider<FirebaseAuthInternalName>,
   appCheckProvider: Provider<AppCheckInternalComponentName>,
   sendHook: SendHook
-): StorageService {
-  return new StorageService(
+): FirebaseStorageImpl {
+  return new FirebaseStorageImpl(
     app,
     authProvider,
     appCheckProvider,
@@ -56,7 +56,7 @@ function makeFakeService(
 }
 
 function makeStorage(url: string): Reference {
-  const service = new StorageService(
+  const service = new FirebaseStorageImpl(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
     testShared.fakeAppCheckTokenProvider,

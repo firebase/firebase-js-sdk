@@ -39,7 +39,7 @@ import { unknown, StorageErrorCode } from '../../src/implementation/error';
 import { RequestInfo } from '../../src/implementation/requestinfo';
 import { ConnectionPool } from '../../src/implementation/connectionPool';
 import { Metadata } from '../../src/metadata';
-import { StorageService } from '../../src/service';
+import { FirebaseStorageImpl } from '../../src/service';
 import {
   assertObjectIncludes,
   fakeXhrIo,
@@ -79,7 +79,7 @@ describe('Firebase Storage > Requests', () => {
     delete: async () => undefined
   };
 
-  const storageService = new StorageService(
+  const storageService = new FirebaseStorageImpl(
     mockApp,
     fakeAuthProvider,
     fakeAppCheckTokenProvider,

@@ -126,7 +126,7 @@ export interface GetTokenOptions {
  *
  * @public
  */
-export interface FirebaseMessaging {}
+export interface Messaging {}
 
 /**
  * @internal
@@ -137,6 +137,6 @@ export { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-exp': FirebaseMessaging;
+    'messaging-exp': Messaging;
   }
 }

@@ -14,23 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {
-  _getProvider,
-  FirebaseApp,
-  getApp
-  // eslint-disable-next-line import/no-extraneous-dependencies
-} from '@firebase/app-exp';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 
 import {
   ref as refInternal,
-  StorageService as StorageServiceInternal
+  FirebaseStorageImpl,
+  connectStorageEmulator as connectEmulatorInternal
 } from '../src/service';
 import { Provider } from '@firebase/component';
 
 import {
   StorageReference,
-  StorageService,
+  FirebaseStorage,
   UploadResult,
   ListOptions,
   ListResult,
@@ -249,7 +245,7 @@ export function deleteObject(ref: StorageReference): Promise<void> {
  * @param url - URL. If empty, returns root reference.
  * @public
  */
-export function ref(storage: StorageService, url?: string): StorageReference;
+export function ref(storage: FirebaseStorage, url?: string): StorageReference;
 /**
  * Returns a StorageReference for the given path in the
  * default bucket.
@@ -259,16 +255,16 @@ export function ref(storage: StorageService, url?: string): StorageReference;
  * @public
  */
 export function ref(
-  storageOrRef: StorageService | StorageReference,
+  storageOrRef: FirebaseStorage | StorageReference,
   path?: string
 ): StorageReference;
 export function ref(
-  serviceOrRef: StorageService | StorageReference,
+  serviceOrRef: FirebaseStorage | StorageReference,
   pathOrUrl?: string
 ): StorageReference | null {
   serviceOrRef = getModularInstance(serviceOrRef);
   return refInternal(
-    serviceOrRef as StorageServiceInternal | Reference,
+    serviceOrRef as FirebaseStorageImpl | Reference,
     pathOrUrl
   );
 }
@@ -293,7 +289,7 @@ export { StringFormat } from '../src/implementation/string';
 export function getStorage(
   app: FirebaseApp = getApp(),
   bucketUrl?: string
-): StorageService {
+): FirebaseStorage {
   app = getModularInstance(app);
   const storageProvider: Provider<'storage-exp'> = _getProvider(
     app,
@@ -303,4 +299,20 @@ export function getStorage(
     identifier: bucketUrl
   });
   return storageInstance;
+}
+
+/**
+ * Modify this `StorageService` instance to communicate with the Cloud Storage emulator.
+ *
+ * @param storage - The `StorageService` instance
+ * @param host - The emulator host (ex: localhost)
+ * @param port - The emulator port (ex: 5001)
+ * @public
+ */
+export function connectStorageEmulator(
+  storage: FirebaseStorage,
+  host: string,
+  port: number
+): void {
+  connectEmulatorInternal(storage as FirebaseStorageImpl, host, port);
 }

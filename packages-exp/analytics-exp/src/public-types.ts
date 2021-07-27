@@ -102,7 +102,7 @@ export interface GtagConfigParams {
  * Analytics initialization options.
  * @public
  */
-export interface AnalyticsOptions {
+export interface AnalyticsSettings {
   /**
    * Params to be passed in the initial gtag config call during analytics initialization.
    */

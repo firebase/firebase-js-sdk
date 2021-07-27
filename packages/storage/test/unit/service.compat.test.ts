@@ -22,7 +22,7 @@ import { StorageServiceCompat } from '../../compat/service';
 import * as testShared from './testshared';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseStorageError } from '../../src/implementation/error';
-import { StorageService } from '../../src/service';
+import { FirebaseStorageImpl } from '../../src/service';
 import { FirebaseApp } from '@firebase/app-types';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -47,7 +47,7 @@ function makeService(
 ): StorageServiceCompat {
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(app, authProvider, appCheckProvider, pool, url)
+    new FirebaseStorageImpl(app, authProvider, appCheckProvider, pool, url)
   );
   return storageServiceCompat;
 }
@@ -209,7 +209,9 @@ describe('Firebase Storage > Service', () => {
         testShared.makePool(newSend)
       );
       service.useEmulator('test.host.org', 1234);
-      expect(service._delegate.host).to.equal('http://test.host.org:1234');
+      expect((service._delegate as FirebaseStorageImpl).host).to.equal(
+        'http://test.host.org:1234'
+      );
       void service.ref('test.png').getDownloadURL();
     });
   });

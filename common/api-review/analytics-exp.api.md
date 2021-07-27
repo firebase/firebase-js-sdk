@@ -17,7 +17,7 @@ export interface AnalyticsCallOptions {
 }
 
 // @public
-export interface AnalyticsOptions {
+export interface AnalyticsSettings {
     config?: GtagConfigParams | EventParams;
 }
 
@@ -142,7 +142,7 @@ export interface GtagConfigParams {
 }
 
 // @public
-export function initializeAnalytics(app: FirebaseApp, options?: AnalyticsOptions): Analytics;
+export function initializeAnalytics(app: FirebaseApp, options?: AnalyticsSettings): Analytics;
 
 // @public
 export function isSupported(): Promise<boolean>;

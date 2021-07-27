@@ -45,7 +45,7 @@ import { RequestInfo, UrlParams } from './requestinfo';
 import { isString } from './type';
 import { makeUrl } from './url';
 import { Connection } from './connection';
-import { StorageService } from '../service';
+import { FirebaseStorageImpl } from '../service';
 
 /**
  * Throws the UNKNOWN FirebaseStorageError if cndn is false.
@@ -57,7 +57,7 @@ export function handlerCheck(cndn: boolean): void {
 }
 
 export function metadataHandler(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   mappings: Mappings
 ): (p1: Connection, p2: string) => Metadata {
   function handler(xhr: Connection, text: string): Metadata {
@@ -69,7 +69,7 @@ export function metadataHandler(
 }
 
 export function listHandler(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   bucket: string
 ): (p1: Connection, p2: string) => ListResult {
   function handler(xhr: Connection, text: string): ListResult {
@@ -81,7 +81,7 @@ export function listHandler(
 }
 
 export function downloadUrlHandler(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   mappings: Mappings
 ): (p1: Connection, p2: string) => string | null {
   function handler(xhr: Connection, text: string): string | null {
@@ -151,7 +151,7 @@ export function objectErrorHandler(
 }
 
 export function getMetadata(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   mappings: Mappings
 ): RequestInfo<Metadata> {
@@ -170,7 +170,7 @@ export function getMetadata(
 }
 
 export function list(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   delimiter?: string,
   pageToken?: string | null,
@@ -207,7 +207,7 @@ export function list(
 }
 
 export function getDownloadUrl(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   mappings: Mappings
 ): RequestInfo<string | null> {
@@ -226,7 +226,7 @@ export function getDownloadUrl(
 }
 
 export function updateMetadata(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   metadata: Partial<Metadata>,
   mappings: Mappings
@@ -250,7 +250,7 @@ export function updateMetadata(
 }
 
 export function deleteObject(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location
 ): RequestInfo<void> {
   const urlPart = location.fullServerUrl();
@@ -294,7 +294,7 @@ export function metadataForUpload_(
  * Prepare RequestInfo for uploads as Content-Type: multipart.
  */
 export function multipartUpload(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   mappings: Mappings,
   blob: FbsBlob,
@@ -388,7 +388,7 @@ export function checkResumeHeader_(
 }
 
 export function createResumableUpload(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   mappings: Mappings,
   blob: FbsBlob,
@@ -432,7 +432,7 @@ export function createResumableUpload(
  * @param url From a call to fbs.requests.createResumableUpload.
  */
 export function getResumableUploadStatus(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   url: string,
   blob: FbsBlob
@@ -482,7 +482,7 @@ export const RESUMABLE_UPLOAD_CHUNK_SIZE: number = 256 * 1024;
  */
 export function continueResumableUpload(
   location: Location,
-  service: StorageService,
+  service: FirebaseStorageImpl,
   url: string,
   blob: FbsBlob,
   chunkSize: number,
