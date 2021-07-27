@@ -59,7 +59,7 @@ import {
   enableMultiTabIndexedDbPersistence,
   enableNetwork,
   ensureFirestoreConfigured,
-  FirebaseFirestore as ExpFirebaseFirestore,
+  Firestore as ExpFirestore,
   connectFirestoreEmulator,
   waitForPendingWrites,
   FieldPath as ExpFieldPath,
@@ -199,12 +199,12 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
  * to the functional API of firestore-exp.
  */
 export class Firestore
-  implements PublicFirestore, FirebaseService, Compat<ExpFirebaseFirestore>
+  implements PublicFirestore, FirebaseService, Compat<ExpFirestore>
 {
   _appCompat?: FirebaseApp;
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    readonly _delegate: ExpFirebaseFirestore,
+    readonly _delegate: ExpFirestore,
     private _persistenceProvider: PersistenceProvider
   ) {
     if (!(databaseIdOrApp instanceof DatabaseId)) {

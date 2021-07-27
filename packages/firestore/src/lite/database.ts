@@ -43,14 +43,14 @@ import { logWarn } from '../util/log';
 import { FirestoreService, removeComponents } from './components';
 import {
   DEFAULT_HOST,
-  FirestoreSettings,
+  FirestoreSettingsImpl,
   PrivateSettings,
-  Settings
+  FirestoreSettings
 } from './settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore/lite': FirebaseFirestore;
+    'firestore/lite': Firestore;
   }
 }
 
@@ -59,14 +59,17 @@ declare module '@firebase/component' {
  *
  * Do not call this constructor directly. Instead, use {@link getFirestore}.
  */
-export class FirebaseFirestore implements FirestoreService {
+export class Firestore implements FirestoreService {
+  /**
+   * Whether it's a Firestore or Firestore Lite instance.
+   */
   type: 'firestore-lite' | 'firestore' = 'firestore-lite';
 
   readonly _databaseId: DatabaseId;
   readonly _persistenceKey: string = '(lite)';
   _credentials: CredentialsProvider;
 
-  private _settings = new FirestoreSettings({});
+  private _settings = new FirestoreSettingsImpl({});
   private _settingsFrozen = false;
 
   // A task that is assigned when the terminate() is invoked and resolved when
@@ -122,17 +125,17 @@ export class FirebaseFirestore implements FirestoreService {
           'methods on a Firestore object.'
       );
     }
-    this._settings = new FirestoreSettings(settings);
+    this._settings = new FirestoreSettingsImpl(settings);
     if (settings.credentials !== undefined) {
       this._credentials = makeCredentialsProvider(settings.credentials);
     }
   }
 
-  _getSettings(): FirestoreSettings {
+  _getSettings(): FirestoreSettingsImpl {
     return this._settings;
   }
 
-  _freezeSettings(): FirestoreSettings {
+  _freezeSettings(): FirestoreSettingsImpl {
     this._settingsFrozen = true;
     return this._settings;
   }
@@ -190,8 +193,8 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
  */
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: Settings
-): FirebaseFirestore {
+  settings: FirestoreSettings
+): Firestore {
   const provider = _getProvider(app, 'firestore/lite');
 
   if (provider.isInitialized()) {
@@ -213,11 +216,8 @@ export function initializeFirestore(
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
-  return _getProvider(
-    app,
-    'firestore/lite'
-  ).getImmediate() as FirebaseFirestore;
+export function getFirestore(app: FirebaseApp = getApp()): Firestore {
+  return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
 }
 
 /**
@@ -234,14 +234,14 @@ export function getFirestore(app: FirebaseApp = getApp()): FirebaseFirestore {
  * Security Rules.
  */
 export function connectFirestoreEmulator(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   host: string,
   port: number,
   options: {
     mockUserToken?: EmulatorMockTokenOptions;
   } = {}
 ): void {
-  firestore = cast(firestore, FirebaseFirestore);
+  firestore = cast(firestore, Firestore);
   const settings = firestore._getSettings();
 
   if (settings.host !== DEFAULT_HOST && settings.host !== host) {
@@ -295,8 +295,8 @@ export function connectFirestoreEmulator(
  * @returns A promise that is resolved when the instance has been successfully
  * terminated.
  */
-export function terminate(firestore: FirebaseFirestore): Promise<void> {
-  firestore = cast(firestore, FirebaseFirestore);
+export function terminate(firestore: Firestore): Promise<void> {
+  firestore = cast(firestore, Firestore);
   _removeServiceInstance(firestore.app, 'firestore/lite');
   return firestore._delete();
 }

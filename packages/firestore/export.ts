@@ -42,7 +42,7 @@ export { GeoPoint } from './src/api/geo_point';
 export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/api/field_value';
 export { Timestamp } from './src/api/timestamp';
-export { FirebaseFirestore as ExpFirebaseFirestore } from './src/exp/database';
+export { Firestore as ExpFirestore } from './src/exp/database';
 
 export function loadBundle(
   this: Firestore,

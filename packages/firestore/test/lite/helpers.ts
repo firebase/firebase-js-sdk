@@ -19,10 +19,7 @@
 import { initializeApp } from '@firebase/app-exp';
 import { expect } from 'chai';
 
-import {
-  initializeFirestore,
-  FirebaseFirestore
-} from '../../src/lite/database';
+import { initializeFirestore, Firestore } from '../../src/lite/database';
 import {
   doc,
   collection,
@@ -32,7 +29,7 @@ import {
   SetOptions
 } from '../../src/lite/reference';
 import { setDoc } from '../../src/lite/reference_impl';
-import { Settings } from '../../src/lite/settings';
+import { FirestoreSettings } from '../../src/lite/settings';
 import { QueryDocumentSnapshot } from '../../src/lite/snapshot';
 import { AutoId } from '../../src/util/misc';
 import {
@@ -44,8 +41,8 @@ let appCount = 0;
 
 export async function withTestDbSettings(
   projectId: string,
-  settings: Settings,
-  fn: (db: FirebaseFirestore) => void | Promise<void>
+  settings: FirestoreSettings,
+  fn: (db: Firestore) => void | Promise<void>
 ): Promise<void> {
   const app = initializeApp(
     { apiKey: 'fake-api-key', projectId },
@@ -57,7 +54,7 @@ export async function withTestDbSettings(
 }
 
 export function withTestDb(
-  fn: (db: FirebaseFirestore) => void | Promise<void>
+  fn: (db: Firestore) => void | Promise<void>
 ): Promise<void> {
   return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
 }
