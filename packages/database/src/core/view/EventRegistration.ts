@@ -74,7 +74,6 @@ export class CallbackContext {
       (this.snapshotCallback.userCallback !== undefined &&
         this.snapshotCallback.userCallback ===
           other.snapshotCallback.userCallback &&
-        this.snapshotCallback.context !== undefined &&
         this.snapshotCallback.context === other.snapshotCallback.context)
     );
   }
