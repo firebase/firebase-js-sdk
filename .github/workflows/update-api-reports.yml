@@ -27,5 +27,6 @@ jobs:
       uses: EndBug/add-and-commit@v7
       with:
         add: 'common/api-review/*'
+        author_name: 'google-oss-bot'
         message: 'Update API reports'
         default_author: github_actor
