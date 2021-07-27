@@ -18,7 +18,7 @@
 import {
   FirebaseApp,
   FirebaseOptions,
-  FirebaseAppConfig
+  FirebaseAppSettings
 } from './public-types';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { ERROR_FACTORY, AppError } from './errors';
@@ -105,7 +105,7 @@ export function initializeApp(
  */
 export function initializeApp(
   options: FirebaseOptions,
-  config?: FirebaseAppConfig
+  config?: FirebaseAppSettings
 ): FirebaseApp;
 export function initializeApp(
   options: FirebaseOptions,
@@ -116,7 +116,7 @@ export function initializeApp(
     rawConfig = { name };
   }
 
-  const config: Required<FirebaseAppConfig> = {
+  const config: Required<FirebaseAppSettings> = {
     name: DEFAULT_ENTRY_NAME,
     automaticDataCollectionEnabled: false,
     ...rawConfig

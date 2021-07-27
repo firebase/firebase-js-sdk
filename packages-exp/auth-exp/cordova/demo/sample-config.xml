@@ -2,6 +2,7 @@
 <widget id="{{YOUR PACKAGE NAME / BUNDLE ID HERE}}" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Cordova Auth Demo</name>
     <content src="index.html" />
+    <!-- CAUTION: THESE PERMISSIONS ARE OVERLY BROAD AND SHOULD ONLY BE USED FOR DEMO PURPOSES -->
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />

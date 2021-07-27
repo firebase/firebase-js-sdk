@@ -7,11 +7,7 @@
 import { FirebaseApp } from '@firebase/app-exp';
 
 // @public
-export function deleteInstallations(installations: FirebaseInstallations): Promise<void>;
-
-// @public
-export interface FirebaseInstallations {
-}
+export function deleteInstallations(installations: Installations): Promise<void>;
 
 // @internal
 export interface _FirebaseInstallationsInternal {
@@ -20,13 +16,13 @@ export interface _FirebaseInstallationsInternal {
 }
 
 // @public
-export function getId(installations: FirebaseInstallations): Promise<string>;
+export function getId(installations: Installations): Promise<string>;
 
 // @public
-export function getInstallations(app?: FirebaseApp): FirebaseInstallations;
+export function getInstallations(app?: FirebaseApp): Installations;
 
 // @public
-export function getToken(installations: FirebaseInstallations, forceRefresh?: boolean): Promise<string>;
+export function getToken(installations: Installations, forceRefresh?: boolean): Promise<string>;
 
 // @public
 export type IdChangeCallbackFn = (installationId: string) => void;
@@ -35,7 +31,11 @@ export type IdChangeCallbackFn = (installationId: string) => void;
 export type IdChangeUnsubscribeFn = () => void;
 
 // @public
-export function onIdChange(installations: FirebaseInstallations, callback: IdChangeCallbackFn): IdChangeUnsubscribeFn;
+export interface Installations {
+}
+
+// @public
+export function onIdChange(installations: Installations, callback: IdChangeCallbackFn): IdChangeUnsubscribeFn;
 
 
 ```

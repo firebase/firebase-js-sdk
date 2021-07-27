@@ -32,7 +32,7 @@ export const DEFAULT_SSL = true;
  * Specifies custom configurations for your Cloud Firestore instance.
  * You must set these before invoking any other methods.
  */
-export interface Settings {
+export interface FirestoreSettings {
   /** The hostname to connect to. */
   host?: string;
 
@@ -49,7 +49,7 @@ export interface Settings {
 }
 
 /** Undocumented, private additional settings not exposed in our public API. */
-export interface PrivateSettings extends Settings {
+export interface PrivateSettings extends FirestoreSettings {
   // Can be a google-auth-library or gapi client.
   credentials?: CredentialsSettings;
   // Used in firestore@exp
@@ -67,7 +67,7 @@ export interface PrivateSettings extends Settings {
  * user-supplied firestore.Settings object. This is a separate type so that
  * defaults can be supplied and the value can be checked for equality.
  */
-export class FirestoreSettings {
+export class FirestoreSettingsImpl {
   /** The hostname to connect to. */
   readonly host: string;
 
@@ -123,7 +123,8 @@ export class FirestoreSettings {
     }
 
     this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
-    this.experimentalAutoDetectLongPolling = !!settings.experimentalAutoDetectLongPolling;
+    this.experimentalAutoDetectLongPolling =
+      !!settings.experimentalAutoDetectLongPolling;
     this.useFetchStreams = !!settings.useFetchStreams;
 
     validateIsNotUsedTogether(
@@ -134,7 +135,7 @@ export class FirestoreSettings {
     );
   }
 
-  isEqual(other: FirestoreSettings): boolean {
+  isEqual(other: FirestoreSettingsImpl): boolean {
     return (
       this.host === other.host &&
       this.ssl === other.ssl &&

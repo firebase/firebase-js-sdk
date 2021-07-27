@@ -22,7 +22,7 @@ import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { arrayEquals } from '../util/misc';
 
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
   DocumentData,
@@ -120,7 +120,7 @@ export class DocumentSnapshot<T = DocumentData> {
 
   /** @hideconstructor protected */
   constructor(
-    public _firestore: FirebaseFirestore,
+    public _firestore: Firestore,
     public _userDataWriter: AbstractUserDataWriter,
     public _key: DocumentKey,
     public _document: Document | null,

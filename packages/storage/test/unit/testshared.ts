@@ -33,7 +33,7 @@ import {
   ComponentType
 } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
-import { StorageService } from '../../src/service';
+import { FirebaseStorageImpl } from '../../src/service';
 import { Metadata } from '../../src/metadata';
 
 export const authToken = 'totally-legit-auth-token';
@@ -211,7 +211,7 @@ type RequestHandler = (
 
 export function storageServiceWithHandler(
   handler: RequestHandler
-): StorageService {
+): FirebaseStorageImpl {
   function newSend(
     connection: TestingConnection,
     url: string,
@@ -227,7 +227,7 @@ export function storageServiceWithHandler(
     );
   }
 
-  return new StorageService(
+  return new FirebaseStorageImpl(
     {} as FirebaseApp,
     emptyAuthProvider,
     fakeAppCheckTokenProvider,

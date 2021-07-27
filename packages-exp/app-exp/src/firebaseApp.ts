@@ -18,7 +18,7 @@
 import {
   FirebaseApp,
   FirebaseOptions,
-  FirebaseAppConfig
+  FirebaseAppSettings
 } from './public-types';
 import {
   ComponentContainer,
@@ -36,7 +36,7 @@ export class FirebaseAppImpl implements FirebaseApp {
 
   constructor(
     options: FirebaseOptions,
-    config: Required<FirebaseAppConfig>,
+    config: Required<FirebaseAppSettings>,
     container: ComponentContainer
   ) {
     this._options = { ...options };

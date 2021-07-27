@@ -26,7 +26,7 @@ import { SendHook, TestingConnection } from './connection';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { StorageService } from '../../src/service';
+import { FirebaseStorageImpl } from '../../src/service';
 import { Reference } from '../../src/reference';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
@@ -39,7 +39,7 @@ function makeFakeService(
 ): StorageServiceCompat {
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(
+    new FirebaseStorageImpl(
       app,
       authProvider,
       appCheckProvider,
@@ -50,7 +50,7 @@ function makeFakeService(
 }
 
 function makeStorage(url: string): ReferenceCompat {
-  const service = new StorageService(
+  const service = new FirebaseStorageImpl(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
     testShared.fakeAppCheckTokenProvider,

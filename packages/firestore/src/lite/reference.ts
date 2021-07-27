@@ -34,7 +34,7 @@ import {
 } from '../util/input_validation';
 import { AutoId } from '../util/misc';
 
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FirestoreDataConverter } from './snapshot';
 
@@ -93,11 +93,11 @@ export class DocumentReference<T = DocumentData> {
    * The {@link FirebaseFirestore} the document is in.
    * This is useful for performing transactions, for example.
    */
-  readonly firestore: FirebaseFirestore;
+  readonly firestore: Firestore;
 
   /** @hideconstructor */
   constructor(
-    firestore: FirebaseFirestore,
+    firestore: Firestore,
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
@@ -174,13 +174,13 @@ export class Query<T = DocumentData> {
    * The `FirebaseFirestore` for the Firestore database (useful for performing
    * transactions, etc.).
    */
-  readonly firestore: FirebaseFirestore;
+  readonly firestore: Firestore;
 
   // This is the lite version of the Query class in the main SDK.
 
   /** @hideconstructor protected */
   constructor(
-    firestore: FirebaseFirestore,
+    firestore: Firestore,
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
@@ -222,7 +222,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 
   /** @hideconstructor */
   constructor(
-    firestore: FirebaseFirestore,
+    firestore: Firestore,
     converter: FirestoreDataConverter<T> | null,
     readonly _path: ResourcePath
   ) {
@@ -299,7 +299,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
  * @returns The `CollectionReference` instance.
  */
 export function collection(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData>;
@@ -338,17 +338,14 @@ export function collection(
   ...pathSegments: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
-  parent:
-    | FirebaseFirestore
-    | DocumentReference<unknown>
-    | CollectionReference<unknown>,
+  parent: Firestore | DocumentReference<unknown> | CollectionReference<unknown>,
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData> {
   parent = getModularInstance(parent);
 
   validateNonEmptyArgument('collection', 'path', path);
-  if (parent instanceof FirebaseFirestore) {
+  if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(path, ...pathSegments);
     validateCollectionPath(absolutePath);
     return new CollectionReference(parent, /* converter= */ null, absolutePath);
@@ -391,10 +388,10 @@ export function collection(
  * @returns The created `Query`.
  */
 export function collectionGroup(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   collectionId: string
 ): Query<DocumentData> {
-  firestore = cast(firestore, FirebaseFirestore);
+  firestore = cast(firestore, Firestore);
 
   validateNonEmptyArgument('collectionGroup', 'collection id', collectionId);
   if (collectionId.indexOf('/') >= 0) {
@@ -425,7 +422,7 @@ export function collectionGroup(
  * @returns The `DocumentReference` instance.
  */
 export function doc(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   path: string,
   ...pathSegments: string[]
 ): DocumentReference<DocumentData>;
@@ -467,10 +464,7 @@ export function doc(
   ...pathSegments: string[]
 ): DocumentReference<DocumentData>;
 export function doc<T>(
-  parent:
-    | FirebaseFirestore
-    | CollectionReference<T>
-    | DocumentReference<unknown>,
+  parent: Firestore | CollectionReference<T> | DocumentReference<unknown>,
   path?: string,
   ...pathSegments: string[]
 ): DocumentReference {
@@ -483,7 +477,7 @@ export function doc<T>(
   }
   validateNonEmptyArgument('doc', 'path', path);
 
-  if (parent instanceof FirebaseFirestore) {
+  if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(path, ...pathSegments);
     validateDocumentPath(absolutePath);
     return new DocumentReference(

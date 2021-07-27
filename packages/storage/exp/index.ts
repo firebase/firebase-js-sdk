@@ -20,19 +20,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _registerComponent,
   registerVersion,
   SDK_VERSION
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 
 import { ConnectionPool } from '../src/implementation/connectionPool';
-import {
-  StorageService as StorageServiceInternal,
-  connectStorageEmulator as useEmulatorInternal
-} from '../src/service';
+import { FirebaseStorageImpl } from '../src/service';
 import {
   Component,
   ComponentType,
@@ -42,24 +38,8 @@ import {
 
 import { name, version } from '../package.json';
 
-import { StorageService } from './public-types';
+import { FirebaseStorage } from './public-types';
 import { STORAGE_TYPE } from './constants';
-
-/**
- * Modify this `StorageService` instance to communicate with the Cloud Storage emulator.
- *
- * @param storage - The `StorageService` instance
- * @param host - The emulator host (ex: localhost)
- * @param port - The emulator port (ex: 5001)
- * @public
- */
-export function connectStorageEmulator(
-  storage: StorageService,
-  host: string,
-  port: number
-): void {
-  useEmulatorInternal(storage as StorageServiceInternal, host, port);
-}
 
 export { StringFormat } from '../src/implementation/string';
 export * from './api';
@@ -67,12 +47,12 @@ export * from './api';
 function factory(
   container: ComponentContainer,
   { instanceIdentifier: url }: InstanceFactoryOptions
-): StorageService {
+): FirebaseStorage {
   const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
   const appCheckProvider = container.getProvider('app-check-internal');
 
-  return new StorageServiceInternal(
+  return new FirebaseStorageImpl(
     app,
     authProvider,
     appCheckProvider,
