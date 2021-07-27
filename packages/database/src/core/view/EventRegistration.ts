@@ -71,8 +71,10 @@ export class CallbackContext {
   matches(other: CallbackContext): boolean {
     return (
       this.snapshotCallback === other.snapshotCallback ||
-      (this.snapshotCallback.userCallback ===
-        other.snapshotCallback.userCallback &&
+      (this.snapshotCallback.userCallback !== undefined &&
+        this.snapshotCallback.userCallback ===
+          other.snapshotCallback.userCallback &&
+        this.snapshotCallback.context !== undefined &&
         this.snapshotCallback.context === other.snapshotCallback.context)
     );
   }

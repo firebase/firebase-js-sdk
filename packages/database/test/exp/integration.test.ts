@@ -24,12 +24,15 @@ import {
   getDatabase,
   goOffline,
   goOnline,
+  push,
   ref,
-  refFromURL
+  refFromURL,
+  runTransaction
 } from '../../exp/index';
 import { onValue, set } from '../../src/exp/Reference_impl';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
 import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
+import { Deferred } from '@firebase/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -149,5 +152,37 @@ describe('Database@exp Tests', () => {
     await deleteApp(defaultApp);
     expect(() => ref(db)).to.throw('Cannot call ref on a deleted database.');
     defaultApp = undefined;
+  });
+
+  it('Can listen to transaction changes', async () => {
+    // Repro for https://github.com/firebase/firebase-js-sdk/issues/5195
+    let latestValue = 0;
+
+    let deferred = new Deferred<void>();
+
+    const database = getDatabase(defaultApp);
+    const counterRef = push(ref(database, 'counter'));
+
+    onValue(counterRef, snap => {
+      latestValue = snap.val();
+      deferred.resolve();
+    });
+
+    async function incrementViaTransaction() {
+      deferred = new Deferred<void>();
+      await runTransaction(counterRef, currentData => {
+        return currentData + 1;
+      });
+      // Wait for the snapshot listener to fire. They are not invoked inline
+      // for transactions.
+      await deferred.promise;
+    }
+
+    expect(latestValue).to.equal(0);
+
+    await incrementViaTransaction();
+    expect(latestValue).to.equal(1);
+    await incrementViaTransaction();
+    expect(latestValue).to.equal(2);
   });
 });
