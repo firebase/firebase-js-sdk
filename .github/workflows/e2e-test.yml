@@ -28,7 +28,6 @@ jobs:
       env:
         PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
         TEST_ACCOUNT: ${{ secrets.TEST_ACCOUNT }}
-        APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
       run: |
         echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
     - name: Yarn install
@@ -36,4 +35,6 @@ jobs:
         yarn add firebase@beta
         yarn
     - name: Run tests
+      env:
+        APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
       run: xvfb-run yarn test
