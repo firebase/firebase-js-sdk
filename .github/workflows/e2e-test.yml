@@ -38,7 +38,7 @@ jobs:
         yarn
     - name: Run tests
       run: xvfb-run yarn test
-  test-v8:
+  test-staging:
     name: Run E2E Smoke Tests (v8)
     runs-on: ubuntu-latest
     defaults:
@@ -69,7 +69,7 @@ jobs:
         sed -i -e "s/APP_CHECK_DEBUG_TOKEN/$APP_CHECK_DEBUG_TOKEN/g" context.html
     - name: Yarn install
       run: |
-        yarn add firebase@latest
+        yarn add firebase@next
         yarn test:v8
     - name: Run tests
       run: xvfb-run yarn test
