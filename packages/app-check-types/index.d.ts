@@ -91,7 +91,7 @@ interface AppCheckProvider {
   getToken(): Promise<AppCheckToken>;
 }
 
-export class ReCAPTCHAV3Provider {
+export class ReCaptchaV3Provider {
   /**
    * @param siteKey - ReCAPTCHA v3 site key (public key).
    */

@@ -1545,7 +1545,7 @@ declare namespace firebase.appCheck {
   /*
    * ReCAPTCHA v3 token provider.
    */
-  class ReCAPTCHAV3Provider {
+  class ReCaptchaV3Provider {
     /**
      * @param siteKey - ReCAPTCHA v3 site key (public key).
      */
