@@ -17,6 +17,7 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app-exp';
+import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
 import {
@@ -32,7 +33,6 @@ import {
 import { onValue, set } from '../../src/exp/Reference_impl';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
 import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
-import { Deferred } from '@firebase/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
