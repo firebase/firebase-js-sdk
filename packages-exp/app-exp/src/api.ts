@@ -130,6 +130,8 @@ export function initializeApp(
   }
 
   if (_apps.has(name)) {
+    // return the existing app if options and config deep equal the ones in the existing app.
+
     throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
   }
 

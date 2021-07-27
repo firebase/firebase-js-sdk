@@ -30,6 +30,13 @@ import { ERROR_FACTORY, AppError } from './errors';
 export class FirebaseAppImpl implements FirebaseApp {
   private readonly _options: FirebaseOptions;
   private readonly _name: string;
+  /**
+   * Original config values passed in as a constructor parameter.
+   * It is only used to compare with another config object to support idempotent initializeApp().
+   *
+   * Updating automaticDataCollectionEnabled on the App instance will not change its value in _config.
+   */
+  private readonly _config: Required<FirebaseAppSettings>;
   private _automaticDataCollectionEnabled: boolean;
   private _isDeleted = false;
   private readonly _container: ComponentContainer;
@@ -40,6 +47,7 @@ export class FirebaseAppImpl implements FirebaseApp {
     container: ComponentContainer
   ) {
     this._options = { ...options };
+    this._config = { ...config };
     this._name = config.name;
     this._automaticDataCollectionEnabled =
       config.automaticDataCollectionEnabled;
@@ -67,6 +75,11 @@ export class FirebaseAppImpl implements FirebaseApp {
   get options(): FirebaseOptions {
     this.checkDestroyed();
     return this._options;
+  }
+
+  get config(): Required<FirebaseAppSettings> {
+    this.checkDestroyed();
+    return this._config;
   }
 
   get container(): ComponentContainer {
