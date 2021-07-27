@@ -28,4 +28,4 @@ jobs:
       with:
         add: 'common/api-review/*'
         message: 'Update API reports'
-        default_author: github_actions
+        default_author: github_actor
