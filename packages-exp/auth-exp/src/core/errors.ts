@@ -437,7 +437,7 @@ export const _DEFAULT_AUTH_ERROR_FACTORY = new ErrorFactory<
  * thrown by the SDK.
  *
  * @remarks
- * Please note that you can't tree-shake individual keys
+ * Note that you can't tree-shake individual keys
  * in the map, so by using the map you might substantially increase your
  * bundle size.
  *
