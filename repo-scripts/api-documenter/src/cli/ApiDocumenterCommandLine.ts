@@ -21,6 +21,7 @@
 import { CommandLineParser } from '@rushstack/ts-command-line';
 import { MarkdownAction } from './MarkdownAction';
 import { TocAction } from './TocAction';
+import { MarkdownAction as MarkdownActionOriginal } from './MarkdownActionOriginal';
 
 export class ApiDocumenterCommandLine extends CommandLineParser {
   public constructor() {
@@ -41,5 +42,6 @@ export class ApiDocumenterCommandLine extends CommandLineParser {
   private _populateActions(): void {
     this.addAction(new MarkdownAction(this));
     this.addAction(new TocAction(this));
+    this.addAction(new MarkdownActionOriginal(this));
   }
 }
