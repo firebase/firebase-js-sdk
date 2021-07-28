@@ -31,7 +31,7 @@ import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated, formatDummyToken } from './util';
 import { exchangeToken, getExchangeDebugTokenRequest } from './client';
-import { writeTokenToStorage, readTokenFromStorage } from './storage';
+import { writeTokenToStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
 import { logger } from './logger';
 import { Provider } from '@firebase/component';
@@ -65,7 +65,7 @@ export async function getToken(
    */
   if (!token) {
     // readTokenFromStorage() always resolves. In case of an error, it resolves with `undefined`.
-    const cachedToken = await readTokenFromStorage(app);
+    const cachedToken = await state.cachedTokenPromise;
     if (cachedToken && isValid(cachedToken)) {
       token = cachedToken;
 
@@ -173,14 +173,19 @@ export function addTokenListener(
       .catch(() => {
         /** Ignore errors in listeners. */
       });
-  } else {
-    // Also try storage. Otherwise isTokenAutoRefreshEnabled == false
-    // will prevent reading existing token from storage.
-    void readTokenFromStorage(app).then(cachedToken => {
-      if (cachedToken && isValid(cachedToken)) {
-        listener({ token: cachedToken.token });
-      }
-    });
+  } else if (state.token == null) {
+    // Only check cache if there was no token. If the token was invalid,
+    // skip this and rely on exchange endpoint.
+    void state
+      .cachedTokenPromise!// Storage token promise. Always populated in `activate()`.
+      .then(cachedToken => {
+        if (cachedToken && isValid(cachedToken)) {
+          listener({ token: cachedToken.token });
+        }
+      })
+      .catch(() => {
+        /** Ignore errors in listeners. */
+      });
   }
 
   setState(app, newState);
@@ -288,7 +293,7 @@ function notifyTokenListeners(
   }
 }
 
-function isValid(token: AppCheckTokenInternal): boolean {
+export function isValid(token: AppCheckTokenInternal): boolean {
   return token.expireTimeMillis - Date.now() > 0;
 }
 

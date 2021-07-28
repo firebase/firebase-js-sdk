@@ -170,12 +170,12 @@ describe('internal api', () => {
     });
 
     it('notifies listeners using cached token', async () => {
+      storageReadStub.resolves(fakeCachedAppCheckToken);
       activate(
         app,
         new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
-      storageReadStub.resolves(fakeCachedAppCheckToken);
 
       const listener1 = spy();
       const listener2 = spy();
@@ -299,13 +299,13 @@ describe('internal api', () => {
     });
 
     it('loads persisted token to memory and returns it', async () => {
+      storageReadStub.resolves(fakeCachedAppCheckToken);
+
       activate(
         app,
         new ReCaptchaV3Provider(FAKE_SITE_KEY),
         fakePlatformLoggingProvider
       );
-
-      storageReadStub.resolves(fakeCachedAppCheckToken);
 
       const clientStub = stub(client, 'exchangeToken');
 
@@ -402,6 +402,10 @@ describe('internal api', () => {
     it('adds token listeners', () => {
       const listener = (): void => {};
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
+      setState(app, {
+        ...getState(app),
+        cachedTokenPromise: Promise.resolve(undefined)
+      });
 
       addTokenListener(
         app,
@@ -416,7 +420,11 @@ describe('internal api', () => {
     it('starts proactively refreshing token after adding the first listener', () => {
       const listener = (): void => {};
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
-      setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
+      setState(app, {
+        ...getState(app),
+        isTokenAutoRefreshEnabled: true,
+        cachedTokenPromise: Promise.resolve(undefined)
+      });
       expect(getState(app).tokenObservers.length).to.equal(0);
       expect(getState(app).tokenRefresher).to.equal(undefined);
 
@@ -461,16 +469,16 @@ describe('internal api', () => {
     it('notifies the listener with the valid token in storage', async () => {
       const clock = useFakeTimers();
       const listener = stub();
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        fakePlatformLoggingProvider
-      );
       storageReadStub.resolves({
         token: `fake-cached-app-check-token`,
         expireTimeMillis: Date.now() + 60000,
         issuedAtTimeMillis: 0
       });
+      activate(
+        app,
+        new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        fakePlatformLoggingProvider
+      );
 
       addTokenListener(
         app,
@@ -495,6 +503,10 @@ describe('internal api', () => {
     };
     it('should remove token listeners', () => {
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
+      setState(app, {
+        ...getState(app),
+        cachedTokenPromise: Promise.resolve(undefined)
+      });
       const listener = (): void => {};
       addTokenListener(
         app,
@@ -510,6 +522,10 @@ describe('internal api', () => {
 
     it('should stop proactively refreshing token after deleting the last listener', () => {
       stub(client, 'exchangeToken').resolves(fakeRecaptchaAppCheckToken);
+      setState(app, {
+        ...getState(app),
+        cachedTokenPromise: Promise.resolve(undefined)
+      });
       const listener = (): void => {};
       setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
 

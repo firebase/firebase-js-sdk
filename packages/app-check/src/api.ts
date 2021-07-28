@@ -25,11 +25,13 @@ import { getState, setState, AppCheckState, ListenerType } from './state';
 import {
   getToken as getTokenInternal,
   addTokenListener,
-  removeTokenListener
+  removeTokenListener,
+  isValid
 } from './internal-api';
 import { Provider } from '@firebase/component';
 import { ErrorFn, NextFn, PartialObserver, Unsubscribe } from '@firebase/util';
 import { CustomProvider, ReCaptchaV3Provider } from './providers';
+import { readTokenFromStorage } from './storage';
 
 /**
  *
@@ -58,6 +60,14 @@ export function activate(
   }
 
   const newState: AppCheckState = { ...state, activated: true };
+
+  // Read cached token from storage if it exists and store it in memory.
+  newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
+    if (cachedToken && isValid(cachedToken)) {
+      newState.token = cachedToken;
+    }
+    return cachedToken;
+  });
 
   if (typeof siteKeyOrProvider === 'string') {
     newState.provider = new ReCaptchaV3Provider(siteKeyOrProvider);

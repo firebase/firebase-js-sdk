@@ -45,6 +45,7 @@ export interface AppCheckState {
   provider?: AppCheckProviderInternal;
   siteKey?: string;
   token?: AppCheckTokenInternal;
+  cachedTokenPromise?: Promise<AppCheckTokenInternal | undefined>;
   tokenRefresher?: Refresher;
   reCAPTCHAState?: ReCAPTCHAState;
   isTokenAutoRefreshEnabled?: boolean;
