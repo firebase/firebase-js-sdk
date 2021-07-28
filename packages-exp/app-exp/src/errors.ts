@@ -32,7 +32,7 @@ const ERRORS: ErrorMap<AppError> = {
     'call Firebase App.initializeApp()',
   [AppError.BAD_APP_NAME]: "Illegal App name: '{$appName}",
   [AppError.DUPLICATE_APP]:
-    "Firebase App named '{$appName}' already exists with different options",
+    "Firebase App named '{$appName}' already exists with different options or config",
   [AppError.APP_DELETED]: "Firebase App named '{$appName}' already deleted",
   [AppError.INVALID_APP_ARGUMENT]:
     'firebase.{$appName}() takes either no argument or a ' +

@@ -346,7 +346,7 @@ function firebaseAppTests(
       expect(firebase.apps.length).to.eq(2);
     });
 
-    it('initilizeApp can be called more than once and returns the same instance if the options and config are the same', () => {
+    it('initializeApp can be called more than once and returns the same instance if the options and config are the same', () => {
       const app = firebase.initializeApp(
         {
           apiKey: 'test1'
