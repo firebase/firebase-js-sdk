@@ -698,7 +698,9 @@ export function assertFails(pr: Promise<any>): any {
         errCode === 'permission-denied' ||
         errCode === 'permission_denied' ||
         errMessage.indexOf('permission_denied') >= 0 ||
-        errMessage.indexOf('permission denied') >= 0;
+        errMessage.indexOf('permission denied') >= 0 ||   
+        // Storage permission errors contain message: (storage/unauthorized)
+        errMessage.indexOf('unauthorized') >= 0;
 
       if (!isPermissionDenied) {
         return Promise.reject(
