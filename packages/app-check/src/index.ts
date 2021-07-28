@@ -104,8 +104,8 @@ initializeDebugMode();
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     appCheck(app?: FirebaseApp): FirebaseAppCheck;
-    ReCaptchaV3Provider: ReCaptchaV3Provider;
-    CustomProvider: CustomProvider;
+    ReCaptchaV3Provider: typeof ReCaptchaV3Provider;
+    CustomProvider: typeof CustomProvider;
   }
   interface FirebaseApp {
     appCheck(): FirebaseAppCheck;
