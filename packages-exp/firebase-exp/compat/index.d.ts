@@ -4887,18 +4887,14 @@ declare namespace firebase.analytics {
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
-     * See
-     * {@link https://developers.google.com/analytics/devguides/collection/ga4/screen-view
-     * | Screen views}.
+     * See {@link https://firebase.google.com/docs/analytics/screenviews
+     * | Track Screenviews}.
      */
     logEvent(
       eventName: 'screen_view',
       eventParams?: {
-        app_name: string;
-        screen_name: EventParams['screen_name'];
-        app_id?: string;
-        app_version?: string;
-        app_installer_id?: string;
+        firebase_screen: EventParams['firebase_screen'];
+        firebase_screen_class: EventParams['firebase_screen_class'];
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
@@ -5197,6 +5193,14 @@ declare namespace firebase.analytics {
     currency?: string;
     description?: string;
     fatal?: boolean;
+    /**
+     * Firebase-specific. Use to log a `screen_name` to Firebase Analytics.
+     */
+    firebase_screen?: string;
+    /**
+     * Firebase-specific. Use to log a `screen_class` to Firebase Analytics.
+     */
+    firebase_screen_class?: string;
     items?: Item[];
     method?: string;
     number?: string;

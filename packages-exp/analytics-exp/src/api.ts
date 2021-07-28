@@ -439,21 +439,13 @@ export function logEvent(
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
- * See
- * {@link https://developers.google.com/analytics/devguides/collection/ga4/screen-view
- * | Screen views}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'screen_view',
   eventParams?: {
-    app_name: string;
-    screen_name: EventParams['screen_name'];
     firebase_screen: EventParams['firebase_screen'];
     firebase_screen_class: EventParams['firebase_screen_class'];
-    app_id?: string;
-    app_version?: string;
-    app_installer_id?: string;
     [key: string]: any;
   },
   options?: AnalyticsCallOptions
