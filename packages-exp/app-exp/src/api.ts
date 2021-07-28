@@ -39,6 +39,7 @@ import {
   LogOptions,
   setUserLogHandler
 } from '@firebase/logger';
+import { deepEqual } from '@firebase/util';
 
 /**
  * The current SDK version.
@@ -129,8 +130,17 @@ export function initializeApp(
     });
   }
 
-  if (_apps.has(name)) {
-    throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
+  const existingApp = _apps.get(name) as FirebaseAppImpl;
+  if (existingApp) {
+    // return the existing app if options and config deep equal the ones in the existing app.
+    if (
+      deepEqual(options, existingApp.options) &&
+      deepEqual(config, existingApp.config)
+    ) {
+      return existingApp;
+    } else {
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
+    }
   }
 
   const container = new ComponentContainer(name);
