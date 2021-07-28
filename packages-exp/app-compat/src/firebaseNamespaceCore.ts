@@ -109,6 +109,8 @@ export function createFirebaseNamespaceCore(
 
   /**
    * Create a new App instance (name must be unique).
+   *
+   * This function is idempotent. It can be called more than once and return the same instance using the same options and config.
    */
   function initializeAppCompat(
     options: FirebaseOptions,
@@ -118,6 +120,11 @@ export function createFirebaseNamespaceCore(
       options,
       rawConfig
     ) as _FirebaseAppExp;
+
+    if (contains(apps, app.name)) {
+      return apps[app.name];
+    }
+
     const appCompat = new firebaseAppImpl(app, namespace);
     apps[app.name] = appCompat;
     return appCompat;
