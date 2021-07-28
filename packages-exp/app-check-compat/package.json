@@ -28,8 +28,8 @@
   "dependencies": {
     "@firebase/app-check-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "1.1.0",
-    "@firebase/component": "0.5.4",
+    "@firebase/util": "1.2.0",
+    "@firebase/component": "0.5.5",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
