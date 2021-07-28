@@ -439,6 +439,8 @@ export function logEvent(
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
+ * See {@link https://firebase.google.com/docs/analytics/screenviews
+ * | Track Screenviews}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
