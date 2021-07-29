@@ -133,6 +133,23 @@ _The type information from the import statement will include all of the SDKs,
 not just the ones you have `required`, so you could get a runtime error if you
 reference a non-required service._
 
+#### Alternative - all-in-one import
+
+>This brings in all Firebase features. We recommend the method above to
+>minimize download size by only including the scripts you need.
+
+```js
+// This import loads all Firebase services, whether used in your code or not.
+import firebase from 'firebase';
+```
+
+Or with `require()`:
+
+```js
+// This import loads all Firebase services, whether used in your code or not.
+var firebase = require('firebase').default;
+```
+
 ## Get the code (Node.js - server and command line)
 
 ### NPM
