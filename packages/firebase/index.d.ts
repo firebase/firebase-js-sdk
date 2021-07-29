@@ -7499,9 +7499,6 @@ declare namespace firebase.messaging {
   function isSupported(): boolean;
 }
 
-/**
- * @webonly
- */
 declare namespace firebase.storage {
   /**
    * The full set of object metadata, including read-only properties.
