@@ -18,7 +18,7 @@
 import { FirebaseInstallations as FirebaseInstallationsCompat } from '@firebase/installations-types';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import {
-  FirebaseInstallations,
+  Installations,
   deleteInstallations,
   getId,
   getToken,
@@ -31,7 +31,7 @@ export class InstallationsCompat
   implements FirebaseInstallationsCompat, _FirebaseService {
   constructor(
     public app: FirebaseApp,
-    readonly _delegate: FirebaseInstallations
+    readonly _delegate: Installations
   ) {}
 
   getId(): Promise<string> {
