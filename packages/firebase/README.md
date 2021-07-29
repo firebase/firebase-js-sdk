@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk)
+<!-- [![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk) -->
 
 # Firebase - App success made simple
 
@@ -36,84 +36,21 @@ you should use the
 
 ## Get the code (browser)
 
-### Script include
->This brings in all Firebase features. See
->["Include only the features you need"](#include-only-the-features-you-need)
->below for
->how to minimize download size by only including the scripts you need.
-
-Include Firebase in your web application via a `<script>` tag:
-
-```html
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase.js"></script>
-
-<script>
-  var app = firebase.initializeApp({
-    apiKey: '<your-api-key>',
-    authDomain: '<your-auth-domain>',
-    databaseURL: '<your-database-url>',
-    projectId: '<your-cloud-firestore-project>',
-    storageBucket: '<your-storage-bucket>',
-    messagingSenderId: '<your-sender-id>'
-  });
-  // ...
-</script>
-```
-
-_Note: To get a filled in version of the above code snippet, go to the
-[Firebase console](https://console.firebase.google.com/) for your app and click on "Add
-Firebase to your web app"._
-
-### npm bundler (Browserify, Webpack, etc.)
-
->This brings in all Firebase features. See
->["Include only the features you need"](#include-only-the-features-you-need)
->below for
->how to minimize bundle size by only importing the features you need.
-
-The Firebase JavaScript npm package contains code that can be run in the browser
-after combining the modules you use with a package bundler (e.g.,
-[Browserify](http://browserify.org/), [Webpack](https://webpack.github.io/)).
-
-Install the Firebase npm module:
-
-```
-$ npm init
-$ npm install --save firebase
-```
-
-In your code, you can access Firebase using:
-
-```js
-var firebase = require('firebase');
-var app = firebase.initializeApp({ ... });
-```
-
-If you are using ES6 imports or TypeScript:
-
-```js
-import firebase from 'firebase';
-var app = firebase.initializeApp({ ... });
-```
-
-### Include only the features you need
-
-The full Firebase JavaScript client includes support for Firebase Authentication, the
-Firebase Realtime Database, Firebase Storage, and Firebase Cloud Messaging. Including
-code via the above snippets will pull in all of these features.
-
-You can reduce the amount of code your app uses by just including the features
-you need. The individually installable services are:
+We recommend only installing the features you need. The individually installable services are:
 
 - `firebase-app` - The core `firebase` client (required).
+- `firebase-analytics` - Firebase Analytics (optional).
 - `firebase-auth` - Firebase Authentication (optional).
 - `firebase-database` - The Firebase Realtime Database (optional).
 - `firebase-firestore` - Cloud Firestore (optional).
 - `firebase-storage` - Firebase Storage (optional).
 - `firebase-messaging` - Firebase Cloud Messaging (optional).
 - `firebase-functions` - Firebase Cloud Functions (optional).
+- `firebase-remote-config` - Firebase Remote Config (optional).
+- `firebase-performance` - Firebase Performance (optional).
 
-From the CDN, include the individual services you use (include `firebase-app`
+### Script include
+Include Firebase in your web application via `<script>` tags. Create a script tag for each of the individual services you use (include `firebase-app`
 first):
 
 ```html
@@ -126,24 +63,48 @@ first):
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-functions.js"></script>
 
 <script>
+  var app = firebase.initializeApp({
+    apiKey: '<your-api-key>',
+    authDomain: '<your-auth-domain>',
+    databaseURL: '<your-database-url>',
+    projectId: '<your-cloud-firestore-project>',
+    storageBucket: '<your-storage-bucket>',
+    messagingSenderId: '<your-sender-id>',
+    appId: '<your-app-id>'
+  });
+  // ...
+</script>
+```
+
+_Note: To get a filled in version of the above code snippet, go to the
+[Firebase console](https://console.firebase.google.com/) for your app and click on "Add
+Firebase to your web app"._
+
+#### Alternative - all-in-one import
+
+>This brings in all Firebase features. We recommend the method above to
+>minimize download size by only including the scripts you need.
+
+Include Firebase in your web application via a `<script>` tag:
+
+```html
+<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase.js"></script>
+
+<script>
   var app = firebase.initializeApp({ ... });
   // ...
 </script>
 ```
 
-When using the firebase npm package, you can `require()` just the services that
-you use:
+### NPM Bundler (Browserify, Webpack, Rollup, etc.)
 
-```js
-var firebase = require('firebase/app');
-require('firebase/auth');
-require('firebase/database');
-
-var app = firebase.initializeApp({ ... });
+Install the Firebase NPM module:
+```
+$ npm init
+$ npm install --save firebase
 ```
 
-If you are using TypeScript with the npm package, you can import just the
-services you use:
+In your code, you can import the services you use:
 
 ```js
 // This import loads the firebase namespace along with all its type information.
@@ -152,6 +113,20 @@ import firebase from 'firebase/app';
 // These imports load individual services into the firebase namespace.
 import 'firebase/auth';
 import 'firebase/database';
+```
+
+Or if using `require()`:
+
+_We recommend the `.default` import from `firebase/app` in order for
+typings to work correctly.
+See [release notes for 8.0.0](https://firebase.google.com/support/release-notes/js#version_800_-_october_26_2020)._
+
+```js
+var firebase = require('firebase/app').default;
+require('firebase/auth');
+require('firebase/database');
+
+var app = firebase.initializeApp({ ... });
 ```
 
 _The type information from the import statement will include all of the SDKs,
@@ -177,7 +152,9 @@ $ npm install --save firebase
 In your code, you can access Firebase using:
 
 ```js
-var firebase = require('firebase');
+var firebase = require('firebase/app').default;
+require('firebase/auth');
+require('firebase/database');
 var app = firebase.initializeApp({ ... });
 // ...
 ```
@@ -195,23 +172,6 @@ import 'firebase/database';
 ```
 
 _Known issue for typescript users with --experimental-modules: you have to set allowSyntheticDefaultImports to true in tsconfig.json to pass the type check. Use it with caution since it makes the assumption that all modules have a default export, which might not be the case for the other dependencies you have. And Your code will break if you try to import the default export from a module that doesn't have default export._
-
-Firebase Storage is not included in the server side Firebase npm module.
-Instead, you can use the
-[`google-cloud` Node.js client](https://github.com/GoogleCloudPlatform/google-cloud-node).
-
-```
-$ npm install --save google-cloud
-```
-
-In your code, you can access your Storage bucket using:
-
-```js
-var gcloud = require('google-cloud')({ ... });
-var gcs = gcloud.storage();
-var bucket = gcs.bucket('<your-firebase-storage-bucket>');
-...
-```
 
 Firebase Cloud Messaging is not included in the server side Firebase npm module.
 Instead, you can use the
