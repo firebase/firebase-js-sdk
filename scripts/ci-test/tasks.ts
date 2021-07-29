@@ -92,7 +92,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
   const allPackageNames = packageInfo.map(info => info.name);
 
   const depGraph: { [key: string]: any } = JSON.parse(
-    (await exec('npx lerna ls --graph', { cwd: root })).stdout
+    (await exec('npx lerna ls --all --graph', { cwd: root })).stdout
   );
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
