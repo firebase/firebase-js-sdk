@@ -27,74 +27,55 @@ export interface GtagConfigParams {
    * Whether or not a page view should be sent.
    * If set to true (default), a page view is automatically sent upon initialization
    * of analytics.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
    */
   'send_page_view'?: boolean;
   /**
    * The title of the page.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
    */
   'page_title'?: string;
   /**
-   * The path to the page. If overridden, this value must start with a / character.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/pages
-   */
-  'page_path'?: string;
-  /**
    * The URL of the page.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
    */
   'page_location'?: string;
   /**
    * Defaults to `auto`.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
    */
   'cookie_domain'?: string;
   /**
    * Defaults to 63072000 (two years, in seconds).
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
    */
   'cookie_expires'?: number;
   /**
    * Defaults to `_ga`.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
    */
   'cookie_prefix'?: string;
   /**
    * If set to true, will update cookies on each page load.
    * Defaults to true.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
    */
   'cookie_update'?: boolean;
   /**
    * Appends additional flags to the cookie when set.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/cookies-user-id
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
    */
   'cookie_flags'?: string;
   /**
    * If set to false, disables all advertising features with gtag.js.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/display-features
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/display-features | Disable advertising features }
    */
   'allow_google_signals?': boolean;
   /**
    * If set to false, disables all advertising personalization with gtag.js.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/display-features
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/display-features | Disable advertising features }
    */
   'allow_ad_personalization_signals'?: boolean;
-  /**
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/enhanced-link-attribution
-   */
-  'link_attribution'?: boolean;
-  /**
-   * If set to true, anonymizes IP addresses for all events.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/ip-anonymization
-   */
-  'anonymize_ip'?: boolean;
-  /**
-   * Custom dimensions and metrics.
-   * See https://developers.google.com/analytics/devguides/collection/gtagjs/custom-dims-mets
-   */
-  'custom_map'?: { [key: string]: unknown };
   [key: string]: unknown;
 }
 
@@ -246,8 +227,8 @@ export interface Promotion {
 /**
  * Standard gtag.js control parameters.
  * For more information, see
- * {@link https://developers.google.com/gtagjs/reference/parameter
- * | the gtag.js documentation on parameters}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * the GA4 reference documentation}.
  * @public
  */
 export interface ControlParams {
@@ -260,14 +241,14 @@ export interface ControlParams {
 /**
  * Standard gtag.js event parameters.
  * For more information, see
- * {@link https://developers.google.com/gtagjs/reference/parameter
- * | the gtag.js documentation on parameters}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * the GA4 reference documentation}.
  * @public
  */
 export interface EventParams {
   checkout_option?: string;
   checkout_step?: number;
-  content_id?: string;
+  item_id?: string;
   content_type?: string;
   coupon?: string;
   currency?: string;

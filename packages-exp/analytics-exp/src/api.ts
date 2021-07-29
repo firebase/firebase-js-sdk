@@ -221,8 +221,8 @@ export function setAnalyticsCollectionEnabled(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -244,8 +244,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -267,8 +267,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -288,8 +288,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -310,8 +310,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -333,9 +333,9 @@ export function logEvent(
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
- * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * See
+ * {@link https://developers.google.com/analytics/devguides/collection/ga4/exceptions
+ * | Measure exceptions}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -354,8 +354,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -363,7 +363,6 @@ export function logEvent(
   eventParams?: {
     value?: EventParams['value'];
     currency?: EventParams['currency'];
-    transaction_id?: EventParams['transaction_id'];
     [key: string]: any;
   },
   options?: AnalyticsCallOptions
@@ -375,8 +374,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -393,9 +392,9 @@ export function logEvent(
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
- * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * See
+ * {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view
+ * | Page views}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -415,8 +414,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -440,21 +439,15 @@ export function logEvent(
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
- * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * See {@link https://firebase.google.com/docs/analytics/screenviews
+ * | Track Screenviews}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'screen_view',
   eventParams?: {
-    app_name: string;
-    screen_name: EventParams['screen_name'];
     firebase_screen: EventParams['firebase_screen'];
     firebase_screen_class: EventParams['firebase_screen_class'];
-    app_id?: string;
-    app_version?: string;
-    app_installer_id?: string;
     [key: string]: any;
   },
   options?: AnalyticsCallOptions
@@ -466,8 +459,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -485,17 +478,15 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
   eventName: 'select_content',
   eventParams?: {
-    items?: EventParams['items'];
-    promotions?: EventParams['promotions'];
     content_type?: EventParams['content_type'];
-    content_id?: EventParams['content_id'];
+    item_id?: EventParams['item_id'];
     [key: string]: any;
   },
   options?: AnalyticsCallOptions
@@ -507,8 +498,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -528,8 +519,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -549,8 +540,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -569,8 +560,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -578,7 +569,7 @@ export function logEvent(
   eventParams?: {
     method?: EventParams['method'];
     content_type?: EventParams['content_type'];
-    content_id?: EventParams['content_id'];
+    item_id?: EventParams['item_id'];
     [key: string]: any;
   },
   options?: AnalyticsCallOptions
@@ -590,8 +581,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -609,8 +600,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -631,8 +622,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -652,8 +643,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent(
   analyticsInstance: Analytics,
@@ -673,8 +664,8 @@ export function logEvent(
  * app instance on this device.
  * @public
  * List of recommended event parameters can be found in
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  */
 export function logEvent<T extends string>(
   analyticsInstance: Analytics,
@@ -689,8 +680,8 @@ export function logEvent<T extends string>(
  * app instance on this device.
  * List of official event parameters can be found in the gtag.js
  * reference documentation:
- * {@link https://developers.google.com/gtagjs/reference/event
- * | the gtag.js reference documentation}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * | the GA4 reference documentation}.
  *
  * @public
  */
