@@ -26,7 +26,11 @@ import {
   Unsubscribe
 } from '../model/public_types';
 
-export { debugErrorMap, prodErrorMap } from './errors';
+export {
+  debugErrorMap,
+  prodErrorMap,
+  AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY as AuthErrorCodes
+} from './errors';
 
 // Non-optional auth methods.
 /**
