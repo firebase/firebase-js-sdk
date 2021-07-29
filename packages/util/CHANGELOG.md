@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.2.0
+
+### Minor Changes
+
+- [`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c) [#5207](https://github.com/firebase/firebase-js-sdk/pull/5207) - Added deepEqual for comparing objects
+
 ## 1.1.0
 
 ### Minor Changes

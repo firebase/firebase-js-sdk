@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.6.13",
+  "version": "0.6.14",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -30,8 +30,8 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.28",
-    "@firebase/messaging": "0.7.14",
+    "@firebase/app": "0.6.29",
+    "@firebase/messaging": "0.7.15",
     "rollup": "2.52.2",
     "rollup-plugin-typescript2": "0.30.0",
     "typescript": "4.2.2"
@@ -46,7 +46,7 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.5.4",
+    "@firebase/component": "0.5.5",
     "@firebase/functions-types": "0.4.0",
     "@firebase/messaging-types": "0.5.0",
     "node-fetch": "2.6.1",
