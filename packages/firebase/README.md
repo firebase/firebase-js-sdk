@@ -39,6 +39,7 @@ you should use the
 We recommend only installing the features you need. The individually installable services are:
 
 - `firebase-app` - The core `firebase` client (required).
+- `firebase-app-check` - Firebase App Check (optional).
 - `firebase-analytics` - Firebase Analytics (optional).
 - `firebase-auth` - Firebase Authentication (optional).
 - `firebase-database` - The Firebase Realtime Database (optional).
@@ -54,13 +55,12 @@ Include Firebase in your web application via `<script>` tags. Create a script ta
 first):
 
 ```html
+<!-- Always required. -->
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js"></script>
+<!-- Include only the services you use, for example auth and database below. -->
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-storage.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-messaging.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-functions.js"></script>
+<!-- See above list for names of the other services. -->
 
 <script>
   var app = firebase.initializeApp({
@@ -117,7 +117,7 @@ import 'firebase/database';
 
 Or if using `require()`:
 
-_We recommend the `.default` import from `firebase/app` in order for
+_Use the `.default` import from `firebase/app` in order for
 typings to work correctly.
 See [release notes for 8.0.0](https://firebase.google.com/support/release-notes/js#version_800_-_october_26_2020)._
 
