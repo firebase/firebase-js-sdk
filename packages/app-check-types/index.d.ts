@@ -17,6 +17,7 @@
 
 import { PartialObserver, Unsubscribe } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app-types';
+import { Provider } from '@firebase/component';
 
 export interface FirebaseAppCheck {
   /** The `FirebaseApp` associated with this instance. */
@@ -88,6 +89,29 @@ interface AppCheckProvider {
    * Returns an AppCheck token.
    */
   getToken(): Promise<AppCheckToken>;
+}
+
+export class ReCaptchaV3Provider {
+  /**
+   * @param siteKey - ReCAPTCHA v3 site key (public key).
+   */
+  constructor(siteKey: string);
+}
+/*
+ * Custom token provider.
+ */
+export class CustomProvider {
+  /**
+   * @param options - Options for creating the custom provider.
+   */
+  constructor(options: CustomProviderOptions);
+}
+interface CustomProviderOptions {
+  /**
+   * Function to get an App Check token through a custom provider
+   * service.
+   */
+  getToken: () => Promise<AppCheckToken>;
 }
 
 /**

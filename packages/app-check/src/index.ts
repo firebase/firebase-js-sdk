@@ -23,9 +23,15 @@ import {
 } from '@firebase/component';
 import {
   FirebaseAppCheck,
-  AppCheckComponentName
+  AppCheckComponentName,
+  ReCaptchaV3Provider,
+  CustomProvider
 } from '@firebase/app-check-types';
 import { factory, internalFactory } from './factory';
+import {
+  ReCaptchaV3Provider as ReCaptchaV3ProviderImpl,
+  CustomProvider as CustomProviderImpl
+} from './providers';
 import { initializeDebugMode } from './debug';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { name, version } from '../package.json';
@@ -46,6 +52,10 @@ function registerAppCheck(firebase: _FirebaseNamespace): void {
       },
       ComponentType.PUBLIC
     )
+      .setServiceProps({
+        ReCaptchaV3Provider: ReCaptchaV3ProviderImpl,
+        CustomProvider: CustomProviderImpl
+      })
       /**
        * AppCheck can only be initialized by explicitly calling firebase.appCheck()
        * We don't want firebase products that consume AppCheck to gate on AppCheck
@@ -94,6 +104,8 @@ initializeDebugMode();
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     appCheck(app?: FirebaseApp): FirebaseAppCheck;
+    ReCaptchaV3Provider: typeof ReCaptchaV3Provider;
+    CustomProvider: typeof CustomProvider;
   }
   interface FirebaseApp {
     appCheck(): FirebaseAppCheck;

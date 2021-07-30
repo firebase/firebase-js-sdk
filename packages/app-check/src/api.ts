@@ -21,27 +21,35 @@ import {
 } from '@firebase/app-check-types';
 import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { initialize as initializeRecaptcha } from './recaptcha';
 import { getState, setState, AppCheckState, ListenerType } from './state';
 import {
   getToken as getTokenInternal,
   addTokenListener,
-  removeTokenListener
+  removeTokenListener,
+  isValid
 } from './internal-api';
 import { Provider } from '@firebase/component';
 import { ErrorFn, NextFn, PartialObserver, Unsubscribe } from '@firebase/util';
+import { CustomProvider, ReCaptchaV3Provider } from './providers';
+import { readTokenFromStorage } from './storage';
 
 /**
  *
  * @param app
  * @param siteKeyOrProvider - optional custom attestation provider
- * or reCAPTCHA siteKey
+ * or reCAPTCHA provider
  * @param isTokenAutoRefreshEnabled - if true, enables auto refresh
  * of appCheck token.
  */
 export function activate(
   app: FirebaseApp,
-  siteKeyOrProvider: string | AppCheckProvider,
+  siteKeyOrProvider:
+    | ReCaptchaV3Provider
+    | CustomProvider
+    // This is the old interface for users to supply a custom provider.
+    | AppCheckProvider
+    | string,
+  platformLoggerProvider: Provider<'platform-logger'>,
   isTokenAutoRefreshEnabled?: boolean
 ): void {
   const state = getState(app);
@@ -52,10 +60,29 @@ export function activate(
   }
 
   const newState: AppCheckState = { ...state, activated: true };
+
+  // Read cached token from storage if it exists and store it in memory.
+  newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
+    if (cachedToken && isValid(cachedToken)) {
+      setState(app, { ...getState(app), token: cachedToken });
+    }
+    return cachedToken;
+  });
+
   if (typeof siteKeyOrProvider === 'string') {
-    newState.siteKey = siteKeyOrProvider;
+    newState.provider = new ReCaptchaV3Provider(siteKeyOrProvider);
+  } else if (
+    siteKeyOrProvider instanceof ReCaptchaV3Provider ||
+    siteKeyOrProvider instanceof CustomProvider
+  ) {
+    newState.provider = siteKeyOrProvider;
   } else {
-    newState.customProvider = siteKeyOrProvider;
+    // Process "old" custom provider to avoid breaking previous users.
+    // This was defined at beta release as simply an object with a
+    // getToken() method.
+    newState.provider = new CustomProvider({
+      getToken: siteKeyOrProvider.getToken
+    });
   }
 
   // Use value of global `automaticDataCollectionEnabled` (which
@@ -68,12 +95,7 @@ export function activate(
 
   setState(app, newState);
 
-  // initialize reCAPTCHA if siteKey is provided
-  if (newState.siteKey) {
-    initializeRecaptcha(app, newState.siteKey).catch(() => {
-      /* we don't care about the initialization result in activate() */
-    });
-  }
+  newState.provider.initialize(app, platformLoggerProvider);
 }
 
 export function setTokenAutoRefreshEnabled(

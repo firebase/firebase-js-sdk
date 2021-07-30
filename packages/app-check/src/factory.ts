@@ -46,9 +46,15 @@ export function factory(
   return {
     app,
     activate: (
-      siteKeyOrProvider: string | AppCheckProvider,
+      siteKeyOrProvider: AppCheckProvider | string,
       isTokenAutoRefreshEnabled?: boolean
-    ) => activate(app, siteKeyOrProvider, isTokenAutoRefreshEnabled),
+    ) =>
+      activate(
+        app,
+        siteKeyOrProvider,
+        platformLoggerProvider,
+        isTokenAutoRefreshEnabled
+      ),
     setTokenAutoRefreshEnabled: (isTokenAutoRefreshEnabled: boolean) =>
       setTokenAutoRefreshEnabled(app, isTokenAutoRefreshEnabled),
     getToken: forceRefresh =>
