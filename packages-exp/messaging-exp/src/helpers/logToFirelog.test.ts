@@ -90,7 +90,29 @@ describe('logToFirelog', () => {
       expect(messaging.logEvents).to.be.empty;
     });
 
-    it('Reject 1st request, Pass 2nd request', async () => {
+    it('Retries when non-200 response returned ', async () => {
+      // set up
+      fetchStub.resolves(
+        new Response(
+          /** body= */ new Blob(),
+          /** init= */ {
+            'status': 404,
+            'statusText': 'non-200 error returned'
+          }
+        )
+      );
+
+      messaging.logEvents.push(getFakeLogEvent());
+
+      // call
+      await LogModule._dispatchLogEvents(messaging);
+
+      //assert
+      expect(fetchStub).to.be.calledThrice;
+      expect(messaging.logEvents).to.be.empty;
+    });
+
+    it('Rejects 1st request, Passes 2nd request', async () => {
       // set up
       fetchStub
         .onFirstCall()
@@ -154,8 +176,9 @@ describe('logToFirelog', () => {
       }, 1000);
     });
 
-    it('clears log events if no user logging permission', done => {
+    it('send log events if user logging permission is granted', done => {
       // set up
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
       messaging = getFakeMessagingService();
       messaging.logEvents.push(getFakeLogEvent());
       messaging.deliveryMetricsExportedToBigQueryEnabled = true;

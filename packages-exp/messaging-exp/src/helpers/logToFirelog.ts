@@ -52,6 +52,11 @@ export function startLoggingService(messaging: MessagingService): void {
   }
 }
 
+/**
+ *
+ * @param messaging the messaging instance.
+ * @param offsetInMs this method execute after `offsetInMs` elapsed .
+ */
 export function _processQueue(
   messaging: MessagingService,
   offsetInMs: number
@@ -98,10 +103,21 @@ export async function _dispatchLogEvents(
           }
         );
 
-        break;
+        if (response.ok) {
+          // existing the do-while interactive retry logic because a 200 response code has been
+          // returned.
+          break;
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            'Non-200 code is returned in fetch to Firelog endpoint.'
+          );
+        }
       } catch (error) {
         const isLastAttempt = retryCount === MAX_RETRIES;
         if (isLastAttempt) {
+          // existing the do-while interactive retry logic because retry quota has reached.
           break;
         }
       }
@@ -116,7 +132,9 @@ export async function _dispatchLogEvents(
       }
 
       await new Promise(resolve => setTimeout(resolve, delayInMs));
-    } while (retryCount++ < MAX_RETRIES - 1);
+
+      retryCount++;
+    } while (retryCount < MAX_RETRIES);
   }
 
   messaging.logEvents = [];
@@ -148,8 +166,8 @@ function createFcmEvent(
     fcmEvent.project_number = internalPayload.from;
   }
 
-  if (!!internalPayload.exposed_message_id) {
-    fcmEvent.message_id = internalPayload.exposed_message_id;
+  if (!!internalPayload.fcm_message_id) {
+    fcmEvent.message_id = internalPayload.fcm_message_id;
   }
 
   fcmEvent.instance_id = fid;
@@ -184,7 +202,7 @@ function createAndEnqueueLogEvent(
   const logEvent = {} as LogEvent;
 
   /* eslint-disable camelcase */
-  logEvent.event_time_ms = Math.floor(Date.now() / 1000).toString();
+  logEvent.event_time_ms = Math.floor(Date.now()).toString();
   logEvent.source_extension_json_proto3 = JSON.stringify(fcmEvent);
   // eslint-disable-next-line camelcase
 
@@ -206,7 +224,7 @@ export function _mergeStrings(s1: string, s2: string): string {
   const resultArray = [];
   for (let i = 0; i < s1.length; i++) {
     resultArray.push(s1.charAt(i));
-    if (s2.length > i) {
+    if (i < s2.length) {
       resultArray.push(s2.charAt(i));
     }
   }

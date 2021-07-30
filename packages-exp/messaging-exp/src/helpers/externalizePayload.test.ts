@@ -32,7 +32,7 @@ describe('externalizePayload', () => {
       // eslint-disable-next-line camelcase
       collapse_key: 'collapse',
       // eslint-disable-next-line camelcase
-      exposed_message_id: 'mid'
+      fcm_message_id: 'mid'
     };
 
     const payload: MessagePayload = {
@@ -55,7 +55,7 @@ describe('externalizePayload', () => {
       // eslint-disable-next-line camelcase
       collapse_key: 'collapse',
       // eslint-disable-next-line camelcase
-      exposed_message_id: 'mid'
+      fcm_message_id: 'mid'
     };
 
     const payload: MessagePayload = {
@@ -88,7 +88,7 @@ describe('externalizePayload', () => {
       // eslint-disable-next-line camelcase
       collapse_key: 'collapse',
       // eslint-disable-next-line camelcase
-      exposed_message_id: 'mid'
+      fcm_message_id: 'mid'
     };
 
     const payload: MessagePayload = {

@@ -384,7 +384,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -410,7 +410,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -433,7 +433,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -529,7 +529,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -542,7 +542,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       });
       expect(logEventSpy).not.to.have.been.called;
     });
@@ -556,7 +556,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -582,7 +582,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -601,7 +601,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       });
       expect(logEventSpy).to.have.been.calledOnceWith(
         'notification_foreground',
@@ -631,7 +631,7 @@ describe('WindowController', () => {
         // eslint-disable-next-line camelcase
         collapse_key: 'collapse',
         // eslint-disable-next-line camelcase
-        exposed_message_id: 'mid'
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(

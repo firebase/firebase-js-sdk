@@ -26,7 +26,7 @@ export function externalizePayload(
     // eslint-disable-next-line camelcase
     collapseKey: internalPayload.collapse_key,
     // eslint-disable-next-line camelcase
-    messageId: internalPayload.exposed_message_id
+    messageId: internalPayload.fcm_message_id
   } as MessagePayload;
 
   propagateNotificationPayload(payload, internalPayload);

@@ -18,14 +18,14 @@
 // Describes a Firebase Messaging event on a client. Defined as in
 // firebase_messaging/src/proto/messaging_event.proto
 export interface FcmEvent {
-  project_number: string; //number
+  project_number: string;
   message_id: string;
   instance_id: string;
-  message_type: string; //number
-  sdk_platform: string; //number
+  message_type: string;
+  sdk_platform: string;
   package_name: string;
   collapse_key: string;
-  event: string; //number
+  event: string;
   analytics_label?: string;
 }
 
@@ -58,7 +58,7 @@ interface LogResponseDetails {
   responseAction: UserResponse;
 }
 
-export enum UserResponse {
+export const enum UserResponse {
   RESPONSE_ACTION_UNKNOWN = 'RESPONSE_ACTION_UNKNOWN',
   RETRY_REQUEST_LATER = 'RETRY_REQUEST_LATER',
   DELETE_REQUEST = 'DELETE_REQUEST'
