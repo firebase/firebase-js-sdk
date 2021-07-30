@@ -28,7 +28,7 @@ import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
 import { exchangeToken, getExchangeDebugTokenRequest } from './client';
-import { writeTokenToStorage, readTokenFromStorage } from './storage';
+import { writeTokenToStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
 import { base64 } from '@firebase/util';
 import { logger } from './logger';
@@ -76,8 +76,8 @@ export async function getToken(
    * If there is no token in memory, try to load token from indexedDB.
    */
   if (!token) {
-    // readTokenFromStorage() always resolves. In case of an error, it resolves with `undefined`.
-    const cachedToken = await readTokenFromStorage(app);
+    // cachedTokenPromise contains the token found in IndexedDB or undefined if not found.
+    const cachedToken = await state.cachedTokenPromise;
     if (cachedToken && isValid(cachedToken)) {
       token = cachedToken;
 
@@ -175,13 +175,27 @@ export function addTokenListener(
     newState.tokenRefresher.start();
   }
 
-  // invoke the listener async immediately if there is a valid token
+  // Invoke the listener async immediately if there is a valid token
+  // in memory.
   if (state.token && isValid(state.token)) {
     const validToken = state.token;
     Promise.resolve()
       .then(() => listener({ token: validToken.token }))
       .catch(() => {
         /* we don't care about exceptions thrown in listeners */
+      });
+  } else if (state.token == null) {
+    // Only check cache if there was no token. If the token was invalid,
+    // skip this and rely on exchange endpoint.
+    void state
+      .cachedTokenPromise! // Storage token promise. Always populated in `activate()`.
+      .then(cachedToken => {
+        if (cachedToken && isValid(cachedToken)) {
+          listener({ token: cachedToken.token });
+        }
+      })
+      .catch(() => {
+        /** Ignore errors in listeners. */
       });
   }
 
@@ -288,7 +302,7 @@ function notifyTokenListeners(
   }
 }
 
-function isValid(token: AppCheckTokenInternal): boolean {
+export function isValid(token: AppCheckTokenInternal): boolean {
   return token.expireTimeMillis - Date.now() > 0;
 }
 
