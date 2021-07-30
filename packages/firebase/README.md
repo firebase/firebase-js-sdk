@@ -117,7 +117,7 @@ import 'firebase/database';
 
 Or if using `require()`:
 
-_We recommend the `.default` import from `firebase/app` in order for
+_Use the `.default` import from `firebase/app` in order for
 typings to work correctly.
 See [release notes for 8.0.0](https://firebase.google.com/support/release-notes/js#version_800_-_october_26_2020)._
 
