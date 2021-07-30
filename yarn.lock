@@ -5230,10 +5230,10 @@ chrome-trace-event@^1.0.2:
   resolved "https://registry.npmjs.org/chrome-trace-event/-/chrome-trace-event-1.0.3.tgz#1015eced4741e15d06664a957dbbf50d041e26ac"
   integrity sha512-p3KULyQg4S7NIHixdwbGX+nFHkoBiA4YQmyWtjb8XngSKV124nJmRysgAeujbUVb15vh+RvFUfCPqU7rXk+hZg==
 
-chromedriver@91.0.0:
-  version "91.0.0"
-  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-91.0.0.tgz#b8c07d715c1bde2ed5817757e923bd65565c8f94"
-  integrity sha512-0eQGLDWvfVd1apkqQpt4452bCATrsj50whhVzMqPiazNSfCXXwfYWRonYxx3DVFCG3+RwSCLvsk8/vpuojCyJA==
+chromedriver@92.0.0:
+  version "92.0.0"
+  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-92.0.0.tgz#7860efe7d082ec877dc8146aa920d30340fcbb47"
+  integrity sha512-IdJ5n5jLL6tCsGQF/fQHF2gDEhVzoYIqktUn6hE/BSsXlCcyDTi45fQbhTEhZlmshM8+BpnRtPuIT5DRbxNqKg==
   dependencies:
     "@testim/chrome-version" "^1.0.7"
     axios "^0.21.1"
@@ -7723,7 +7723,7 @@ firebase-admin@9.9.0:
     "@google-cloud/storage" "^5.3.0"
 
 "firebase-exp@file:packages-exp/firebase-exp":
-  version "9.0.0-beta.6"
+  version "9.0.0-beta.7"
   dependencies:
     "@firebase/analytics-compat" "0.0.900"
     "@firebase/analytics-exp" "0.0.900"
@@ -7733,8 +7733,8 @@ firebase-admin@9.9.0:
     "@firebase/app-exp" "0.0.900"
     "@firebase/auth-compat" "0.0.900"
     "@firebase/auth-exp" "0.0.900"
-    "@firebase/database" "0.10.7"
-    "@firebase/firestore" "2.3.8"
+    "@firebase/database" "0.10.9"
+    "@firebase/firestore" "2.3.10"
     "@firebase/functions-compat" "0.0.900"
     "@firebase/functions-exp" "0.0.900"
     "@firebase/messaging-compat" "0.0.900"
@@ -7743,7 +7743,7 @@ firebase-admin@9.9.0:
     "@firebase/performance-exp" "0.0.900"
     "@firebase/remote-config-compat" "0.0.900"
     "@firebase/remote-config-exp" "0.0.900"
-    "@firebase/storage" "0.5.6"
+    "@firebase/storage" "0.6.1"
 
 firebase-functions@3.14.1:
   version "3.14.1"
