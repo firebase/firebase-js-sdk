@@ -63,7 +63,7 @@ first):
 <!-- See above list for names of the other services. -->
 
 <script>
-  var app = firebase.initializeApp({
+  const app = firebase.initializeApp({
     apiKey: '<your-api-key>',
     authDomain: '<your-auth-domain>',
     databaseURL: '<your-database-url>',
@@ -91,7 +91,7 @@ Include Firebase in your web application via a `<script>` tag:
 <script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase.js"></script>
 
 <script>
-  var app = firebase.initializeApp({ ... });
+  const app = firebase.initializeApp({ ... });
   // ...
 </script>
 ```
@@ -122,11 +122,11 @@ typings to work correctly.
 See [release notes for 8.0.0](https://firebase.google.com/support/release-notes/js#version_800_-_october_26_2020)._
 
 ```js
-var firebase = require('firebase/app').default;
+const firebase = require('firebase/app').default;
 require('firebase/auth');
 require('firebase/database');
 
-var app = firebase.initializeApp({ ... });
+const app = firebase.initializeApp({ ... });
 ```
 
 _The type information from the import statement will include all of the SDKs,
@@ -147,7 +147,7 @@ Or with `require()`:
 
 ```js
 // This import loads all Firebase services, whether used in your code or not.
-var firebase = require('firebase').default;
+const firebase = require('firebase').default;
 ```
 
 ## Get the code (Node.js - server and command line)
@@ -169,10 +169,10 @@ $ npm install --save firebase
 In your code, you can access Firebase using:
 
 ```js
-var firebase = require('firebase/app').default;
+const firebase = require('firebase/app').default;
 require('firebase/auth');
 require('firebase/database');
-var app = firebase.initializeApp({ ... });
+const app = firebase.initializeApp({ ... });
 // ...
 ```
 
