@@ -44,7 +44,7 @@ export function registerFirestore(variant?: string): void {
           app,
           container.getProvider('auth-internal')
         );
-        settings = { useFetchStreams: false, ...settings };
+        settings = { useFetchStreams: true, ...settings };
         firestoreInstance._setSettings(settings);
         return firestoreInstance;
       },
