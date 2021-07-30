@@ -177,7 +177,7 @@ export function addTokenListener(
     // Only check cache if there was no token. If the token was invalid,
     // skip this and rely on exchange endpoint.
     void state
-      .cachedTokenPromise!// Storage token promise. Always populated in `activate()`.
+      .cachedTokenPromise! // Storage token promise. Always populated in `activate()`.
       .then(cachedToken => {
         if (cachedToken && isValid(cachedToken)) {
           listener({ token: cachedToken.token });
