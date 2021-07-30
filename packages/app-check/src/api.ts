@@ -64,7 +64,7 @@ export function activate(
   // Read cached token from storage if it exists and store it in memory.
   newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
     if (cachedToken && isValid(cachedToken)) {
-      newState.token = cachedToken;
+      setState(app, { ...getState(app), token: cachedToken });
     }
     return cachedToken;
   });

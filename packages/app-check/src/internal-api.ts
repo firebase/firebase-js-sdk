@@ -64,7 +64,7 @@ export async function getToken(
    * If there is no token in memory, try to load token from indexedDB.
    */
   if (!token) {
-    // readTokenFromStorage() always resolves. In case of an error, it resolves with `undefined`.
+    // cachedTokenPromise contains the token found in IndexedDB or undefined if not found.
     const cachedToken = await state.cachedTokenPromise;
     if (cachedToken && isValid(cachedToken)) {
       token = cachedToken;
