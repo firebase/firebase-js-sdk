@@ -25,7 +25,7 @@ export { WriteBatch };
 
 /**
  * Creates a write batch, used for performing multiple writes as a single
- * atomic operation. The maximum number of writes allowed in a single WriteBatch
+ * atomic operation. The maximum number of writes allowed in a single `WriteBatch`
  * is 500.
  *
  * Unlike transactions, write batches are persisted offline and therefore are

@@ -313,7 +313,7 @@ export function snapshotEqual<T>(
 }
 
 /**
- * Helper that calls fromDotSeparatedString() but wraps any error thrown.
+ * Helper that calls `fromDotSeparatedString()` but wraps any error thrown.
  */
 export function fieldPathFromArgument(
   methodName: string,

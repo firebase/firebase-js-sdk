@@ -159,11 +159,11 @@ export function initializeFirestore(
 }
 
 /**
- * Returns the existing instance of Firestore that is associated with the
+ * Returns the existing `Firestore` instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Firestore
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned `Firestore`
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
@@ -414,16 +414,16 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
  * Waits until all currently pending writes for the active user have been
  * acknowledged by the backend.
  *
- * The returned Promise resolves immediately if there are no outstanding writes.
- * Otherwise, the Promise waits for all previously issued writes (including
+ * The returned promise resolves immediately if there are no outstanding writes.
+ * Otherwise, the promise waits for all previously issued writes (including
  * those written in a previous app session), but it does not wait for writes
  * that were added after the function is called. If you want to wait for
  * additional writes, call `waitForPendingWrites()` again.
  *
- * Any outstanding `waitForPendingWrites()` Promises are rejected during user
+ * Any outstanding `waitForPendingWrites()` promises are rejected during user
  * changes.
  *
- * @returns A Promise which resolves when all currently pending writes have been
+ * @returns A promise which resolves when all currently pending writes have been
  * acknowledged by the backend.
  */
 export function waitForPendingWrites(firestore: Firestore): Promise<void> {
@@ -433,7 +433,7 @@ export function waitForPendingWrites(firestore: Firestore): Promise<void> {
 }
 
 /**
- * Re-enables use of the network for this Firestore instance after a prior
+ * Re-enables use of the network for this `Firestore` instance after a prior
  * call to {@link disableNetwork}.
  *
  * @returns A promise that is resolved once the network has been enabled.
@@ -459,7 +459,7 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
 }
 
 /**
- * Terminates the provided Firestore instance.
+ * Terminates the provided `Firestore` instance.
  *
  * After calling `terminate()` only the `clearIndexedDbPersistence()` function
  * may be used. Any other function will throw a `FirestoreError`.

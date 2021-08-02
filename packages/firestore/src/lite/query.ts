@@ -108,7 +108,7 @@ export abstract class QueryConstraint {
  * Creates a new immutable instance of `Query` that is extended to also include
  * additional query constraints.
  *
- * @param query - The Query instance to use as a base for the new constraints.
+ * @param query - The `Query` instance to use as a base for the new constraints.
  * @param queryConstraints - The list of `QueryConstraint`s to apply.
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
@@ -538,9 +538,9 @@ export function newQueryOrderBy(
 }
 
 /**
- * Create a Bound from a query and a document.
+ * Create a `Bound` from a query and a document.
  *
- * Note that the Bound will always include the key of the document
+ * Note that the `Bound` will always include the key of the document
  * and so only the provided document will compare equal to the returned
  * position.
  *
@@ -603,7 +603,7 @@ export function newQueryBoundFromDocument(
 }
 
 /**
- * Converts a list of field values to a Bound for the given query.
+ * Converts a list of field values to a `Bound` for the given query.
  */
 export function newQueryBoundFromFields(
   query: InternalQuery,
@@ -666,9 +666,9 @@ export function newQueryBoundFromFields(
 }
 
 /**
- * Parses the given documentIdValue into a ReferenceValue, throwing
- * appropriate errors if the value is anything other than a DocumentReference
- * or String, or if the string is malformed.
+ * Parses the given `documentIdValue` into a `ReferenceValue`, throwing
+ * appropriate errors if the value is anything other than a `DocumentReference`
+ * or `string`, or if the string is malformed.
  */
 function parseDocumentIdValue(
   databaseId: DatabaseId,
@@ -745,11 +745,11 @@ function validateDisjunctiveFilterElements(
  * Operators in a query must adhere to the following set of rules:
  * 1. Only one array operator is allowed.
  * 2. Only one disjunctive operator is allowed.
- * 3. NOT_EQUAL cannot be used with another NOT_EQUAL operator.
- * 4. NOT_IN cannot be used with array, disjunctive, or NOT_EQUAL operators.
+ * 3. `NOT_EQUAL` cannot be used with another `NOT_EQUAL` operator.
+ * 4. `NOT_IN` cannot be used with array, disjunctive, or `NOT_EQUAL` operators.
  *
- * Array operators: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY
- * Disjunctive operators: IN, ARRAY_CONTAINS_ANY, NOT_IN
+ * Array operators: `ARRAY_CONTAINS`, `ARRAY_CONTAINS_ANY`
+ * Disjunctive operators: `IN`, `ARRAY_CONTAINS_ANY`, `NOT_IN`
  */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {
