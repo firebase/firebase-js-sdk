@@ -165,7 +165,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.EMAIL_EXISTS]:
       'The email address is already in use by another account.',
     [AuthErrorCode.EMULATOR_CONFIG_FAILED]:
-      'Auth instance has already been used to make a network call. Auth can ' +
+      '{@link Auth} instance has already been used to make a network call. Auth can ' +
       'no longer be configured to use the emulator. Try calling ' +
       '"connectAuthEmulator()" sooner.',
     [AuthErrorCode.EXPIRED_OOB_CODE]: 'The action code has expired.',
@@ -243,7 +243,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.INVALID_SESSION_INFO]:
       'The verification ID used to create the phone auth credential is invalid.',
     [AuthErrorCode.INVALID_TENANT_ID]:
-      "The Auth instance's tenant ID is invalid.",
+      "The {@link Auth} instance's tenant ID is invalid.",
     [AuthErrorCode.MISSING_ANDROID_PACKAGE_NAME]:
       'An Android Package Name must be provided if the Android App is required to be installed.',
     [AuthErrorCode.MISSING_AUTH_DOMAIN]:
@@ -316,7 +316,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.SECOND_FACTOR_LIMIT_EXCEEDED]:
       'The maximum allowed number of second factors on a user has been exceeded.',
     [AuthErrorCode.TENANT_ID_MISMATCH]:
-      "The provided tenant ID does not match the Auth instance's tenant ID",
+      "The provided tenant ID does not match the {@link Auth} instance's tenant ID",
     [AuthErrorCode.TIMEOUT]: 'The operation has timed out.',
     [AuthErrorCode.TOKEN_EXPIRED]:
       "The user's credential is no longer valid. The user must sign in again.",
@@ -436,7 +436,7 @@ export const _DEFAULT_AUTH_ERROR_FACTORY = new ErrorFactory<
 >('auth', 'Firebase', _prodErrorMap());
 
 /**
- * A map of potential Auth error codes, for easier comparison with errors
+ * A map of potential `Auth` error codes, for easier comparison with errors
  * thrown by the SDK.
  *
  * @remarks

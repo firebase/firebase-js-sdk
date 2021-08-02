@@ -16,7 +16,7 @@
  */
 
 /**
- * Public interface of the FirebaseInstallations SDK.
+ * Public interface of the Firebase Installations SDK.
  *
  * @public
  */

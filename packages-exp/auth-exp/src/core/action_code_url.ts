@@ -139,7 +139,7 @@ export class ActionCodeURL {
    * otherwise returns null.
    *
    * @param link  - The email action link string.
-   * @returns The ActionCodeURL object, or null if the link is invalid.
+   * @returns The `ActionCodeURL` object, or null if the link is invalid.
    *
    * @public
    */

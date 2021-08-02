@@ -61,7 +61,7 @@ export class PhoneAuthProvider {
   private readonly auth: AuthInternal;
 
   /**
-   * @param auth - The Firebase Auth instance in which sign-ins should occur.
+   * @param auth - The Firebase {@link Auth} instance in which sign-ins should occur.
    *
    */
   constructor(auth: Auth) {

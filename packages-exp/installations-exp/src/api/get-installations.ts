@@ -19,7 +19,8 @@ import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
 import { Installations } from '../interfaces/public-types';
 
 /**
- * Returns an instance of FirebaseInstallations associated with the given FirebaseApp instance.
+ * Returns an instance of Firebase Installations associated with the given
+ * `FirebaseApp` instance.
  * @param app - The `FirebaseApp` instance.
  *
  * @public

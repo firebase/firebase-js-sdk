@@ -29,7 +29,7 @@ import { FederatedAuthProvider } from './federated';
 const SAML_PROVIDER_PREFIX = 'saml.';
 
 /**
- * An AuthProvider for SAML.
+ * An {@link AuthProvider} for SAML.
  *
  * @public
  */
