@@ -36,7 +36,7 @@ chai.use(sinonChai);
 
 function makePersistence(
   type = PersistenceType.NONE,
-  shouldAllowMigration = false,
+  shouldAllowMigration = false
 ): {
   persistence: PersistenceInternal;
   stub: sinon.SinonStubbedInstance<PersistenceInternal>;
@@ -51,7 +51,7 @@ function makePersistence(
     _remove: async () => {},
     _addListener(_key: string, _listener: StorageEventListener) {},
     _removeListener(_key: string, _listener: StorageEventListener) {},
-    _shouldAllowMigration: shouldAllowMigration,
+    _shouldAllowMigration: shouldAllowMigration
   };
 
   const stub = sinon.stub(persistence);
@@ -261,10 +261,8 @@ describe('core/persistence/persistence_user_manager', () => {
       });
 
       it('removes current user & sets it in the new persistene', async () => {
-        const {
-          persistence: nextPersistence,
-          stub: nextStub
-        } = makePersistence();
+        const { persistence: nextPersistence, stub: nextStub } =
+          makePersistence();
         const auth = await testAuth();
         const user = testUser(auth, 'uid');
         persistenceStub._get.returns(Promise.resolve(user.toJSON()));
@@ -285,10 +283,8 @@ describe('core/persistence/persistence_user_manager', () => {
         const user = testUser(auth, 'uid');
         stub._get.returns(Promise.resolve(user.toJSON()));
 
-        const {
-          persistence: nextPersistence,
-          stub: nextStub
-        } = makePersistence(PersistenceType.LOCAL);
+        const { persistence: nextPersistence, stub: nextStub } =
+          makePersistence(PersistenceType.LOCAL);
 
         // This should migrate the user even if both has type LOCAL. For example, developer may want
         // to switch from localStorage to indexedDB (both type LOCAL) and we should honor that.

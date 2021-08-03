@@ -137,7 +137,11 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
 
   return initializeAuth(app, {
     popupRedirectResolver: browserPopupRedirectResolver,
-    persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence]
+    persistence: [
+      indexedDBLocalPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence
+    ]
   });
 }
 

@@ -46,7 +46,8 @@ const IE10_LOCAL_STORAGE_SYNC_DELAY = 10;
 
 class BrowserLocalPersistence
   extends BrowserPersistenceClass
-  implements InternalPersistence {
+  implements InternalPersistence
+{
   static type: 'LOCAL' = 'LOCAL';
 
   constructor() {

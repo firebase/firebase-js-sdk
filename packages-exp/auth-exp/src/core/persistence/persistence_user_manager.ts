@@ -112,19 +112,22 @@ export class PersistenceUserManager {
         userKey
       );
     }
-    
+
     // Eliminate any persistences that are not available
-    const persistences = (await Promise.all(persistenceHierarchy.map(async persistence => {
-      if (await persistence._isAvailable()) {
-        return persistence;
-      }
-      return undefined;
-    }))).filter(persistence => persistence) as PersistenceInternal[];
+    const persistences = (
+      await Promise.all(
+        persistenceHierarchy.map(async persistence => {
+          if (await persistence._isAvailable()) {
+            return persistence;
+          }
+          return undefined;
+        })
+      )
+    ).filter(persistence => persistence) as PersistenceInternal[];
 
     // Fall back to the first persistence listed, or in memory if none available
-    let chosenPersistence = persistences[0] || _getInstance<PersistenceInternal>(
-      inMemoryPersistence
-    );
+    let chosenPersistence =
+      persistences[0] || _getInstance<PersistenceInternal>(inMemoryPersistence);
 
     const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
 
@@ -146,7 +149,9 @@ export class PersistenceUserManager {
     }
 
     // Migrate up the chain
-    const migrationHierarchy = persistences.filter(p => p._shouldAllowMigration);
+    const migrationHierarchy = persistences.filter(
+      p => p._shouldAllowMigration
+    );
     chosenPersistence = migrationHierarchy[0];
     if (userToMigrate) {
       // This normally shouldn't throw since chosenPersistence.isAvailable() is true, but if it does
