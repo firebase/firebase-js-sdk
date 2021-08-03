@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AuthInternal } from '../../model/auth';
 import { Persistence } from '../../model/public_types';
 
 export const enum PersistenceType {
@@ -44,4 +45,6 @@ export interface PersistenceInternal extends Persistence {
   _remove(key: string): Promise<void>;
   _addListener(key: string, listener: StorageEventListener): void;
   _removeListener(key: string, listener: StorageEventListener): void;
+  // Should this persistence allow migration up the chosen hierarchy?
+  _shouldAllowMigration?: boolean;
 }
