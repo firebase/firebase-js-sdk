@@ -131,6 +131,8 @@ export class PersistenceUserManager {
 
     const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
 
+    // Pull out the existing user, setting the chosen persistence to that
+    // persistence if the user exists.
     let userToMigrate: UserInternal | null = null;
     for (const persistence of persistences) {
       try {
@@ -144,11 +146,13 @@ export class PersistenceUserManager {
       } catch {}
     }
 
+    // If the persistence does _not_ allow migration, just finish off here
     if (!chosenPersistence._shouldAllowMigration) {
       return new PersistenceUserManager(chosenPersistence, auth, userKey);
     }
 
-    // Migrate up the chain
+    // If we find the user in a persistence that does support migration, use
+    // that migration path (of only persistences that support migration)
     const migrationHierarchy = persistences.filter(
       p => p._shouldAllowMigration
     );
