@@ -69,6 +69,7 @@ class BrowserLocalPersistence
     _iframeCannotSyncWebStorage() && _isIframe();
   // Whether to use polling instead of depending on window events
   private readonly fallbackToPolling = _isMobileBrowser();
+  readonly _shouldAllowMigration = true;
 
   private forAllChangedKeys(
     cb: (key: string, oldValue: string | null, newValue: string | null) => void
