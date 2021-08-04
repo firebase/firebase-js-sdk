@@ -65,7 +65,7 @@ describe('auth compat', () => {
         providerStub.getImmediate.returns(underlyingAuth);
         const authCompat = new Auth(
           app,
-          (providerStub as unknown) as Provider<'auth-exp'>
+          providerStub as unknown as Provider<'auth-exp'>
         );
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
@@ -83,7 +83,7 @@ describe('auth compat', () => {
         );
         providerStub.isInitialized.returns(false);
         providerStub.initialize.returns(underlyingAuth);
-        new Auth(app, (providerStub as unknown) as Provider<'auth-exp'>);
+        new Auth(app, providerStub as unknown as Provider<'auth-exp'>);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         expect(providerStub.initialize).to.have.been.calledWith({
           options: {

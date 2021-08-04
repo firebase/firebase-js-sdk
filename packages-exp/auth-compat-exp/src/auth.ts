@@ -68,7 +68,7 @@ export class Auth
       for (const persistence of [
         exp.indexedDBLocalPersistence,
         exp.browserLocalPersistence,
-        exp.browserSessionPersistence,
+        exp.browserSessionPersistence
       ]) {
         if (!persistences.includes(persistence)) {
           persistences.push(persistence);
