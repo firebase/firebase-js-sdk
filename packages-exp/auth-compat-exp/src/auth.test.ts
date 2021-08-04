@@ -91,7 +91,8 @@ describe('auth compat', () => {
             persistence: [
               exp.inMemoryPersistence,
               exp.indexedDBLocalPersistence,
-              exp.browserLocalPersistence
+              exp.browserLocalPersistence,
+              exp.browserSessionPersistence
             ]
           }
         });
