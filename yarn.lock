@@ -7723,7 +7723,7 @@ firebase-admin@9.9.0:
     "@google-cloud/storage" "^5.3.0"
 
 "firebase-exp@file:packages-exp/firebase-exp":
-  version "9.0.0-beta.6"
+  version "9.0.0-beta.8"
   dependencies:
     "@firebase/analytics-compat" "0.0.900"
     "@firebase/analytics-exp" "0.0.900"
@@ -7733,8 +7733,8 @@ firebase-admin@9.9.0:
     "@firebase/app-exp" "0.0.900"
     "@firebase/auth-compat" "0.0.900"
     "@firebase/auth-exp" "0.0.900"
-    "@firebase/database" "0.10.7"
-    "@firebase/firestore" "2.3.8"
+    "@firebase/database" "0.10.9"
+    "@firebase/firestore" "2.3.10"
     "@firebase/functions-compat" "0.0.900"
     "@firebase/functions-exp" "0.0.900"
     "@firebase/messaging-compat" "0.0.900"
@@ -7743,7 +7743,7 @@ firebase-admin@9.9.0:
     "@firebase/performance-exp" "0.0.900"
     "@firebase/remote-config-compat" "0.0.900"
     "@firebase/remote-config-exp" "0.0.900"
-    "@firebase/storage" "0.5.6"
+    "@firebase/storage" "0.6.1"
 
 firebase-functions@3.14.1:
   version "3.14.1"
@@ -15687,9 +15687,9 @@ tar@6.0.2:
     yallist "^4.0.0"
 
 tar@^4, tar@^4.3.0, tar@^4.4.12:
-  version "4.4.13"
-  resolved "https://registry.npmjs.org/tar/-/tar-4.4.13.tgz#43b364bc52888d555298637b10d60790254ab525"
-  integrity sha512-w2VwSrBoHa5BsSyH+KxEqeQBAllHhccyMFVHtGtdMpF4W7IRWfZjFiQceJPChOeTsSDVUpER2T8FA93pr0L+QA==
+  version "4.4.15"
+  resolved "https://registry.npmjs.org/tar/-/tar-4.4.15.tgz#3caced4f39ebd46ddda4d6203d48493a919697f8"
+  integrity sha512-ItbufpujXkry7bHH9NpQyTXPbJ72iTlXgkBAYsAjDXk3Ds8t/3NfO5P4xZGy7u+sYuQUbimgzswX4uQIEeNVOA==
   dependencies:
     chownr "^1.1.1"
     fs-minipass "^1.2.5"
