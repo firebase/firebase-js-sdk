@@ -214,7 +214,7 @@ export interface Auth {
    *
    * @example
    * ```javascript
-   * // Set the tenant ID on {@link Auth} instance.
+   * // Set the tenant ID on Auth instance.
    * auth.tenantId = 'TENANT_PROJECT_ID';
    *
    * // All future sign-in request now include tenant ID.
@@ -930,7 +930,7 @@ export interface User extends UserInfo {
    *
    * @example
    * ```javascript
-   * // Set the tenant ID on {@link Auth} instance.
+   * // Set the tenant ID on Auth instance.
    * auth.tenantId = 'TENANT_PROJECT_ID';
    *
    * // All future sign-in request now include tenant ID.
