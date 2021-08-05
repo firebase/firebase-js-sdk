@@ -33,7 +33,7 @@ module.exports = function (config) {
 function getTestFiles(argv) {
   let unitTestFiles = ['test/unit/*'];
   let integrationTestFiles = ['test/integration/*'];
-  
+
   // if (argv.compat) {
   //   unitTestFiles = unitTestFiles.filter(
   //     filename => !filename.includes('.exp.')
