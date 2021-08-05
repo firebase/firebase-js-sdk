@@ -1,5 +1,11 @@
 # @firebase/app-check-types
 
+## 0.3.0
+
+### Minor Changes
+
+- [`8599d9141`](https://github.com/firebase/firebase-js-sdk/commit/8599d91416ae8ac5202742f11cee00666d3360ec) [#4902](https://github.com/firebase/firebase-js-sdk/pull/4902) - Add `RecaptchaV3Provider` and `CustomProvider` classes that can be supplied to `firebase.appCheck().activate()`.
+
 ## 0.2.0
 
 ### Minor Changes
