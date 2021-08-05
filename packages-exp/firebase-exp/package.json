@@ -233,7 +233,7 @@
     "@firebase/functions-exp": "0.0.900",
     "@firebase/functions-compat": "0.0.900",
     "@firebase/firestore": "2.3.10",
-    "@firebase/storage": "0.6.1",
+    "@firebase/storage": "0.6.2",
     "@firebase/performance-exp": "0.0.900",
     "@firebase/performance-compat": "0.0.900",
     "@firebase/remote-config-exp": "0.0.900",

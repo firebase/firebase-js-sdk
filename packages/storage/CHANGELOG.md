@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.6.2
+
+### Patch Changes
+
+- [`5bda08eee`](https://github.com/firebase/firebase-js-sdk/commit/5bda08eee4e0c4007b1d858edcbcc8020604d560) [#5245](https://github.com/firebase/firebase-js-sdk/pull/5245) - Adds a browser CJS build as ./dist/index.browser.cjs.js.
+
 ## 0.6.1
 
 ### Patch Changes
