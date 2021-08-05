@@ -30,11 +30,11 @@ import {
   getMetadata,
   updateMetadata,
   listAll
-} from '../../exp/index';
+} from '../../src/index';
 
 import { use, expect } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as types from '../../exp/public-types';
+import * as types from '../../src/public-types';
 
 use(chaiAsPromised);
 
@@ -46,7 +46,7 @@ export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
 export const API_KEY = PROJECT_CONFIG.apiKey;
 export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 
-describe('FirebaseStorage Exp', () => {
+describe('FirebaseStorage Integration tests', () => {
   let app: FirebaseApp;
   let storage: types.FirebaseStorage;
 

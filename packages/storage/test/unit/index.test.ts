@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { getStorage } from '../../exp/index';
+import { getStorage } from '../../src/index';
 import { FirebaseStorageImpl } from '../../src/service';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app-exp';

@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import '../../../storage-compat/index';
+import '../../index';
 import firebase from '@firebase/app';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { StorageServiceCompat } from '../../compat/service';
-import { FirebaseStorageImpl } from '../../src/service';
+import { FirebaseStorageImpl } from '../../../storage/src/service';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');
