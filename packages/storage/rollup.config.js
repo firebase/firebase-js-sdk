@@ -42,7 +42,10 @@ const es5BuildPlugins = [
 const es5Builds = [
   {
     input: './index.ts',
-    output: { file: pkg.module, format: 'es', sourcemap: true },
+    output: [
+      { file: 'dist/index.browser.cjs.js', format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
+    ],
     plugins: [alias(generateAliasConfig('browser')), ...es5BuildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
