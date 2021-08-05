@@ -487,6 +487,6 @@ export interface UploadResult {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'storage-exp': FirebaseStorage;
+    'storage': FirebaseStorage;
   }
 }

@@ -21,29 +21,42 @@ import typescript from 'typescript';
 import alias from '@rollup/plugin-alias';
 import pkg from './package.json';
 
-const { generateAliasConfig } = require('./rollup.shared');
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+function generateAliasConfig(platform) {
+  return {
+    entries: [
+      {
+        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
+        replacement: `$1\/platform/${platform}/$2.ts`
+      }
+    ]
+  };
+}
+
+const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
 
 const nodeDeps = [...deps, 'util'];
 
-/**
- * ES5 Builds
- */
-const es5BuildPlugins = [
+const es5Plugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    abortOnError: false,
+    transformers: [importPathTransformer]
   }),
   json()
 ];
 
 const es5Builds = [
+  // Browser
   {
-    input: './index.ts',
-    output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: [alias(generateAliasConfig('browser')), ...es5BuildPlugins],
+    input: './src/index.ts',
+    output: {
+      file: pkg.esm5,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(generateAliasConfig('browser')), ...es5Plugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
@@ -51,17 +64,16 @@ const es5Builds = [
   }
 ];
 
-/**
- * ES2017 Builds
- */
-const es2017BuildPlugins = [
+const es2017Plugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    abortOnError: false,
+    transformers: [importPathTransformer]
   }),
   json({ preferConst: true })
 ];
@@ -69,28 +81,29 @@ const es2017BuildPlugins = [
 const es2017Builds = [
   // Node
   {
-    input: './index.ts',
+    input: './src/index.ts',
     output: {
       file: pkg.main,
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [alias(generateAliasConfig('node')), ...es2017BuildPlugins],
+    plugins: [alias(generateAliasConfig('node')), ...es2017Plugins],
     external: id =>
       nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
     }
   },
+
   // Browser
   {
-    input: './index.ts',
+    input: './src/index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(generateAliasConfig('browser')), ...es2017BuildPlugins],
+    plugins: [alias(generateAliasConfig('browser')), ...es2017Plugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false

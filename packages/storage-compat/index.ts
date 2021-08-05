@@ -17,13 +17,13 @@
 
 import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { StringFormat } from './src/implementation/string';
-import { TaskEvent, TaskState } from './src/implementation/taskenums';
+import { StringFormat } from '../storage/src/implementation/string';
+import { TaskEvent, TaskState } from '../storage/src/implementation/taskenums';
 
-import { ConnectionPool } from './src/implementation/connectionPool';
+import { ConnectionPool } from '../storage/src/implementation/connectionPool';
 import { ReferenceCompat } from './compat/reference';
 import { StorageServiceCompat } from './compat/service';
-import { FirebaseStorageImpl } from './src/service';
+import { FirebaseStorageImpl } from '../storage/src/service';
 import * as types from '@firebase/storage-types';
 import {
   Component,
@@ -32,7 +32,7 @@ import {
   InstanceFactoryOptions
 } from '@firebase/component';
 
-import { name, version } from './package.json';
+import { name, version } from '../storage/package.json';
 
 import './register-module';
 

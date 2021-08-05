@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import '../../index';
+import '../../../storage-compat/index';
 import firebase from '@firebase/app';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { StorageServiceCompat } from '../../compat/service';

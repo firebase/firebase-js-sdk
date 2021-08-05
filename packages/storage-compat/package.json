@@ -1,0 +1,24 @@
+{
+  "name": "@firebase/storage-compat",
+  "version": "0.1.0",
+  "description": "The Cloud Storage component of the Firebase JS SDK.",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "./dist/cjs/index.js",
+  "browser": "./dist/esm2017/index.js",
+  "module": "./dist/esm2017/index.js",
+  "esm5": "./dist/esm5/index.js",
+  "license": "Apache-2.0",
+  "typings": "./dist/esm2017/compat/index.d.ts",
+  "private": false,
+  "dependencies": {
+    "@firebase/storage-types": "0.4.1",
+    "@firebase/util": "1.2.0",
+    "@firebase/component": "0.5.5",
+    "node-fetch": "2.6.1",
+    "tslib": "^2.1.0",
+    "@firebase/storage": "0.0.900-exp.8b4d7550f"
+  },
+  "files": [
+    "dist"
+  ]
+}

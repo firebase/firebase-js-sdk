@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,6 @@
  */
 
 /**
- * Returns an replacement configuration for `@rollup/plugin-alias` that replaces
- * references to platform-specific files with implementations for the provided
- * target platform.
+ * Type constant for Firebase Storage.
  */
-function generateAliasConfig(platform) {
-  return {
-    entries: [
-      {
-        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
-        replacement: `$1\/platform/${platform}/$2.ts`
-      }
-    ]
-  };
-}
-
-exports.generateAliasConfig = generateAliasConfig;
+export const STORAGE_TYPE = 'storage';

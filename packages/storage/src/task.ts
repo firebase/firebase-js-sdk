@@ -32,15 +32,14 @@ import {
 } from './implementation/taskenums';
 import { Metadata } from './metadata';
 import {
-  CompleteFn,
-  ErrorFn,
   Observer,
-  StorageObserver,
   Subscribe,
-  Unsubscribe
+  Unsubscribe,
+  StorageObserver as StorageObserverInternal,
+  NextFn
 } from './implementation/observer';
 import { Request } from './implementation/request';
-import { UploadTaskSnapshot } from './tasksnapshot';
+import { UploadTaskSnapshot, StorageObserver } from './public-types';
 import { async as fbsAsync } from './implementation/async';
 import { Mappings, getMappings } from './implementation/metadata';
 import {
@@ -76,7 +75,7 @@ export class UploadTask {
   _transferred: number = 0;
   private _needToFetchStatus: boolean = false;
   private _needToFetchMetadata: boolean = false;
-  private _observers: Array<StorageObserver<UploadTaskSnapshot>> = [];
+  private _observers: Array<StorageObserverInternal<UploadTaskSnapshot>> = [];
   private _resumable: boolean;
   /**
    * Upload state.
@@ -132,7 +131,7 @@ export class UploadTask {
 
     // Prevent uncaught rejections on the internal promise from bubbling out
     // to the top level with a dummy handler.
-    this._promise.then(null, () => {});
+    this._promise.then(null, () => { });
   }
 
   private _makeProgressCallback(): (p1: number, p2: number) => void {
@@ -483,11 +482,12 @@ export class UploadTask {
     type: TaskEvent,
     nextOrObserver?:
       | StorageObserver<UploadTaskSnapshot>
-      | ((a: UploadTaskSnapshot) => unknown),
-    error?: ErrorFn,
-    completed?: CompleteFn
+      | null
+      | ((snapshot: UploadTaskSnapshot) => unknown),
+    error?: ((a: FirebaseStorageError) => unknown) | null,
+    completed?: Unsubscribe | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
-    const observer = new Observer(nextOrObserver, error, completed);
+    const observer = new Observer((nextOrObserver as StorageObserverInternal<UploadTaskSnapshot> | NextFn<UploadTaskSnapshot>) || undefined, error || undefined, completed || undefined);
     this._addObserver(observer);
     return () => {
       this._removeObserver(observer);

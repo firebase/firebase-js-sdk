@@ -230,20 +230,16 @@ export class _UploadTask {
     // Warning: (ae-forgotten-export) The symbol "Metadata" needs to be exported by the entry point index.d.ts
     _metadata: Metadata | null;
     // Warning: (ae-forgotten-export) The symbol "TaskEvent" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "StorageObserver" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "ErrorFn" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "CompleteFn" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "FirebaseStorageError" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Unsubscribe" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Subscribe" needs to be exported by the entry point index.d.ts
-    on(type: TaskEvent_2, nextOrObserver?: StorageObserver_2<UploadTaskSnapshot_2> | ((a: UploadTaskSnapshot_2) => unknown), error?: ErrorFn, completed?: CompleteFn_2): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot_2>;
+    on(type: TaskEvent_2, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: FirebaseStorageError_2) => unknown) | null, completed?: Unsubscribe_2 | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
     pause(): boolean;
     resume(): boolean;
-    // Warning: (ae-forgotten-export) The symbol "UploadTaskSnapshot" needs to be exported by the entry point index.d.ts
-    get snapshot(): UploadTaskSnapshot_2;
+    get snapshot(): UploadTaskSnapshot;
     // Warning: (ae-forgotten-export) The symbol "InternalTaskState" needs to be exported by the entry point index.d.ts
     _state: InternalTaskState;
-    // Warning: (ae-forgotten-export) The symbol "FirebaseStorageError" needs to be exported by the entry point index.d.ts
-    then<U>(onFulfilled?: ((value: UploadTaskSnapshot_2) => U | Promise<U>) | null, onRejected?: ((error: FirebaseStorageError_2) => U | Promise<U>) | null): Promise<U>;
+    then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null, onRejected?: ((error: FirebaseStorageError_2) => U | Promise<U>) | null): Promise<U>;
     _transferred: number;
     }
 
