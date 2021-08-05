@@ -22,7 +22,8 @@ import * as types from '@firebase/storage-types';
 import { Compat } from '@firebase/util';
 
 export class UploadTaskSnapshotCompat
-  implements types.UploadTaskSnapshot, Compat<UploadTaskSnapshot> {
+  implements types.UploadTaskSnapshot, Compat<UploadTaskSnapshot>
+{
   constructor(
     readonly _delegate: UploadTaskSnapshot,
     readonly task: UploadTaskCompat,

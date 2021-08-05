@@ -291,10 +291,7 @@ export function getStorage(
   bucketUrl?: string
 ): FirebaseStorage {
   app = getModularInstance(app);
-  const storageProvider: Provider<'storage'> = _getProvider(
-    app,
-    STORAGE_TYPE
-  );
+  const storageProvider: Provider<'storage'> = _getProvider(app, STORAGE_TYPE);
   const storageInstance = storageProvider.getImmediate({
     identifier: bucketUrl
   });

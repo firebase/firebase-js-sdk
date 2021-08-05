@@ -34,7 +34,9 @@ function generateAliasConfig(platform) {
   };
 }
 
-const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
 
 const nodeDeps = [...deps, 'util'];
 

@@ -131,7 +131,7 @@ export class UploadTask {
 
     // Prevent uncaught rejections on the internal promise from bubbling out
     // to the top level with a dummy handler.
-    this._promise.then(null, () => { });
+    this._promise.then(null, () => {});
   }
 
   private _makeProgressCallback(): (p1: number, p2: number) => void {
@@ -487,7 +487,13 @@ export class UploadTask {
     error?: ((a: FirebaseStorageError) => unknown) | null,
     completed?: Unsubscribe | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
-    const observer = new Observer((nextOrObserver as StorageObserverInternal<UploadTaskSnapshot> | NextFn<UploadTaskSnapshot>) || undefined, error || undefined, completed || undefined);
+    const observer = new Observer(
+      (nextOrObserver as
+        | StorageObserverInternal<UploadTaskSnapshot>
+        | NextFn<UploadTaskSnapshot>) || undefined,
+      error || undefined,
+      completed || undefined
+    );
     this._addObserver(observer);
     return () => {
       this._removeObserver(observer);

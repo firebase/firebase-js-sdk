@@ -19,7 +19,10 @@
 import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { StringFormat } from '../../storage/src/implementation/string';
-import { TaskEvent, TaskState } from '../../storage/src/implementation/taskenums';
+import {
+  TaskEvent,
+  TaskState
+} from '../../storage/src/implementation/taskenums';
 
 import { ReferenceCompat } from './reference';
 import { StorageServiceCompat } from './service';
@@ -73,7 +76,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
   instance.registerVersion(name, version);
 }
 
-registerStorage((firebase as unknown) as _FirebaseNamespace);
+registerStorage(firebase as unknown as _FirebaseNamespace);
 
 /**
  * Define extension behavior for `registerStorage`
