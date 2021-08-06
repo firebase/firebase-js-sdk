@@ -26,20 +26,22 @@ import {
   deleteObject,
   UploadTask,
   StringFormat,
+  UploadMetadata,
+  FullMetadata,
+  SettableMetadata,
   _UploadTask,
   _getChild,
   _Reference,
-  _FbsBlob
-} from '../exp/api'; // import from the exp public API
+  _FbsBlob,
+  _dataFromString,
+  _invalidRootOperation
+} from '@firebase/storage'; // import from the exp public API
 
 import { UploadTaskCompat } from './task';
 import { ListResultCompat } from './list';
 import { StorageServiceCompat } from './service';
 
 import * as types from '@firebase/storage-types';
-import { Metadata } from '../src/metadata';
-import { dataFromString } from '../src/implementation/string';
-import { invalidRootOperation } from '../src/implementation/error';
 import { Compat } from '@firebase/util';
 
 export class ReferenceCompat
@@ -104,7 +106,7 @@ export class ReferenceCompat
   ): types.UploadTask {
     this._throwIfRoot('put');
     return new UploadTaskCompat(
-      uploadBytesResumable(this._delegate, data, metadata as Metadata),
+      uploadBytesResumable(this._delegate, data, metadata as UploadMetadata),
       this
     );
   }
@@ -119,11 +121,11 @@ export class ReferenceCompat
   putString(
     value: string,
     format: StringFormat = StringFormat.RAW,
-    metadata?: Metadata
+    metadata?: types.UploadMetadata
   ): types.UploadTask {
     this._throwIfRoot('putString');
-    const data = dataFromString(format, value);
-    const metadataClone = { ...metadata } as Metadata;
+    const data = _dataFromString(format, value);
+    const metadataClone = { ...metadata };
     if (metadataClone['contentType'] == null && data.contentType != null) {
       metadataClone['contentType'] = data.contentType;
     }
@@ -131,7 +133,7 @@ export class ReferenceCompat
       new _UploadTask(
         this._delegate as _Reference,
         new _FbsBlob(data.data, true),
-        metadataClone
+        metadataClone as FullMetadata & { [k: string]: string}
       ) as UploadTask,
       this
     );
@@ -208,7 +210,7 @@ export class ReferenceCompat
   ): Promise<types.FullMetadata> {
     return updateMetadata(
       this._delegate,
-      metadata as Metadata
+      metadata as SettableMetadata
     ) as Promise<types.FullMetadata>;
   }
 
@@ -231,7 +233,7 @@ export class ReferenceCompat
 
   private _throwIfRoot(name: string): void {
     if ((this._delegate as _Reference)._location.path === '') {
-      throw invalidRootOperation(name);
+      throw _invalidRootOperation(name);
     }
   }
 }

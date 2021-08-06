@@ -250,6 +250,9 @@ export function noDownloadURL(): FirebaseStorageError {
   );
 }
 
+/**
+ * @internal
+ */
 export function invalidArgument(message: string): FirebaseStorageError {
   return new FirebaseStorageError(StorageErrorCode.INVALID_ARGUMENT, message);
 }
@@ -292,6 +295,8 @@ export function appDeleted(): FirebaseStorageError {
 
 /**
  * @param name - The name of the operation that was invalid.
+ * 
+ * @internal
  */
 export function invalidRootOperation(name: string): FirebaseStorageError {
   return new FirebaseStorageError(

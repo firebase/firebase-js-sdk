@@ -18,11 +18,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { StringFormat } from '../../storage/src/implementation/string';
-import {
-  TaskEvent,
-  TaskState
-} from '../../storage/src/implementation/taskenums';
+import { StringFormat, _TaskEvent as TaskEvent, _TaskState as TaskState} from '@firebase/storage';
 
 import { ReferenceCompat } from './reference';
 import { StorageServiceCompat } from './service';
@@ -34,12 +30,12 @@ import {
   InstanceFactoryOptions
 } from '@firebase/component';
 
-import { name, version } from '../../storage/compat/package.json';
+import { name, version } from '../package.json';
 
 /**
  * Type constant for Firebase Storage.
  */
-const STORAGE_TYPE = 'storage';
+const STORAGE_TYPE = 'storage-compat';
 
 function factory(
   container: ComponentContainer,
@@ -48,7 +44,7 @@ function factory(
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
   const storageExp = container
-    .getProvider('storage-exp')
+    .getProvider('storage')
     .getImmediate({ identifier: url });
 
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(

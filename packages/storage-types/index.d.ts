@@ -140,6 +140,6 @@ export class FirebaseStorage {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'storage': FirebaseStorage;
+    'storage-compat': FirebaseStorage;
   }
 }

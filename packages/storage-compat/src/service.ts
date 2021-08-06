@@ -20,13 +20,13 @@ import { FirebaseApp } from '@firebase/app-types';
 
 import {
   ref,
-  _Location,
   connectStorageEmulator,
-  FirebaseStorage
-} from '../exp/api'; // import from the exp public API
+  FirebaseStorage,
+  _Location,
+  _invalidArgument,
+  _FirebaseStorageImpl
+} from '@firebase/storage'; // import from the exp public API
 import { ReferenceCompat } from './reference';
-import { isUrl, FirebaseStorageImpl } from '../src/service';
-import { invalidArgument } from '../src/implementation/error';
 import { Compat } from '@firebase/util';
 
 /**
@@ -52,7 +52,7 @@ export class StorageServiceCompat
    */
   ref(path?: string): types.Reference {
     if (isUrl(path)) {
-      throw invalidArgument(
+      throw _invalidArgument(
         'ref() expected a child path but got a URL, use refFromURL instead.'
       );
     }
@@ -65,14 +65,14 @@ export class StorageServiceCompat
    */
   refFromURL(url: string): types.Reference {
     if (!isUrl(url)) {
-      throw invalidArgument(
+      throw _invalidArgument(
         'refFromURL() expected a full URL but got a child path, use ref() instead.'
       );
     }
     try {
-      _Location.makeFromUrl(url, (this._delegate as FirebaseStorageImpl).host);
+      _Location.makeFromUrl(url, (this._delegate as _FirebaseStorageImpl).host);
     } catch (e) {
-      throw invalidArgument(
+      throw _invalidArgument(
         'refFromUrl() expected a valid full URL but got an invalid one.'
       );
     }
@@ -90,4 +90,8 @@ export class StorageServiceCompat
   useEmulator(host: string, port: number): void {
     connectStorageEmulator(this._delegate, host, port);
   }
+}
+
+function isUrl(path?: string): boolean {
+  return /^[A-Za-z]+:\/\//.test(path as string);
 }
