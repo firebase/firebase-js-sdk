@@ -174,7 +174,7 @@ describe('core/persistence/persistence_user_manager', () => {
       const search = [a.persistence, b.persistence, c.persistence];
       const auth = await testAuth();
       const user = testUser(auth, 'uid');
-      a.stub._isAvailable.resolves(false);  // Important
+      a.stub._isAvailable.resolves(false); // Important
       b.stub._isAvailable.resolves(true);
       c.stub._isAvailable.resolves(true);
       b.stub._get.resolves(user.toJSON());
