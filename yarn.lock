@@ -7723,7 +7723,7 @@ firebase-admin@9.9.0:
     "@google-cloud/storage" "^5.3.0"
 
 "firebase-exp@file:packages-exp/firebase-exp":
-  version "9.0.0-beta.6"
+  version "9.0.0-beta.8"
   dependencies:
     "@firebase/analytics-compat" "0.0.900"
     "@firebase/analytics-exp" "0.0.900"
@@ -7733,8 +7733,8 @@ firebase-admin@9.9.0:
     "@firebase/app-exp" "0.0.900"
     "@firebase/auth-compat" "0.0.900"
     "@firebase/auth-exp" "0.0.900"
-    "@firebase/database" "0.10.7"
-    "@firebase/firestore" "2.3.8"
+    "@firebase/database" "0.10.9"
+    "@firebase/firestore" "2.3.10"
     "@firebase/functions-compat" "0.0.900"
     "@firebase/functions-exp" "0.0.900"
     "@firebase/messaging-compat" "0.0.900"
@@ -7743,7 +7743,7 @@ firebase-admin@9.9.0:
     "@firebase/performance-exp" "0.0.900"
     "@firebase/remote-config-compat" "0.0.900"
     "@firebase/remote-config-exp" "0.0.900"
-    "@firebase/storage" "0.5.6"
+    "@firebase/storage" "0.6.2"
 
 firebase-functions@3.14.1:
   version "3.14.1"
@@ -8630,15 +8630,10 @@ google-closure-compiler@20210601.0.0:
     google-closure-compiler-osx "^20210601.0.0"
     google-closure-compiler-windows "^20210601.0.0"
 
-google-closure-library@20200830.0.0:
-  version "20200830.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20200830.0.0.tgz#9f3807e5a4af55ebf2c8a22853d53b8da39a48e8"
-  integrity sha512-s4ma73K+FTeVywSMjVOxQ435t6kPfSlxEtIflq7Gabp2fxAnc9i8vUpvT8ZP/GH89LwSJReIaBGtrn72rfNC5Q==
-
-google-closure-library@20210406.0.0:
-  version "20210406.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20210406.0.0.tgz#47d6036c1704661ad47cde2e35f19cc55e33e775"
-  integrity sha512-1lAC/KC9R2QM6nygniM0pRcGrv5bkCUrIZb2hXFxLtAkA+zRiVeWtRYpFWDHXXJzkavKjsn9upiffL4x/nmmVg==
+google-closure-library@20210601.0.0:
+  version "20210601.0.0"
+  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20210601.0.0.tgz#52bff34b41880d380c1757a698acb035b8e38f3e"
+  integrity sha512-tOpdq+BnDCjJTXrKGoHRsypobTO1YrpjZzYPVIsYmoihtDRppmKYpmcAylRumZgXSiJXl7ekOwU1RD4wP7lbig==
 
 google-gax@^2.12.0:
   version "2.13.0"
