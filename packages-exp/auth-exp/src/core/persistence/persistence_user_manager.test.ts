@@ -88,7 +88,7 @@ describe('core/persistence/persistence_user_manager', () => {
       expect(c.stub._isAvailable).to.have.been.calledOnce;
 
       // a should not be chosen since it is not available (despite having a user).
-      expect(out.persistence).to.eq(b.persistence);
+      expect(out.persistence).to.eq(a.persistence);
     });
 
     it('defaults to first available persistence if no user', async () => {
@@ -167,6 +167,43 @@ describe('core/persistence/persistence_user_manager', () => {
       expect((await out.getCurrentUser())!.uid).to.eq(user.uid);
     });
 
+    it('migrate found user to available persistence, if applicable', async () => {
+      const a = makePersistence(PersistenceType.NONE, true);
+      const b = makePersistence(PersistenceType.NONE, true);
+      const c = makePersistence(PersistenceType.NONE, true);
+      const search = [a.persistence, b.persistence, c.persistence];
+      const auth = await testAuth();
+      const user = testUser(auth, 'uid');
+      a.stub._isAvailable.resolves(false);  // Important
+      b.stub._isAvailable.resolves(true);
+      c.stub._isAvailable.resolves(true);
+      b.stub._get.resolves(user.toJSON());
+      c.stub._get.resolves(testUser(auth, 'wrong-uid').toJSON());
+
+      let persistedUserInA: PersistenceValue | null = null;
+      b.stub._set.callsFake(async (_, value) => {
+        persistedUserInA = value;
+      });
+      a.stub._get.callsFake(async () => persistedUserInA);
+
+      const out = await PersistenceUserManager.create(auth, search);
+      expect(b.stub._set).to.have.been.calledOnceWith(
+        'firebase:authUser:test-api-key:test-app',
+        user.toJSON()
+      );
+      expect(a.stub._set).to.not.have.been.called;
+      expect(c.stub._set).to.not.have.been.called;
+      expect(a.stub._remove).to.have.been.calledOnceWith(
+        'firebase:authUser:test-api-key:test-app'
+      );
+      expect(c.stub._remove).to.have.been.calledOnceWith(
+        'firebase:authUser:test-api-key:test-app'
+      );
+
+      expect(out.persistence).to.eq(b.persistence);
+      expect((await out.getCurrentUser())!.uid).to.eq(user.uid);
+    });
+
     it('uses default user key if none provided', async () => {
       const { stub, persistence } = makePersistence();
       stub._isAvailable.resolves(true);
@@ -200,9 +237,9 @@ describe('core/persistence/persistence_user_manager', () => {
 
       const out = await PersistenceUserManager.create(auth, search);
       expect(out.persistence).to.eq(_getInstance(inMemoryPersistence));
-      expect(a.stub._get).not.to.have.been.called;
-      expect(b.stub._get).not.to.have.been.called;
-      expect(c.stub._get).not.to.have.been.called;
+      expect(a.stub._get).to.have.been.calledOnce;
+      expect(b.stub._get).to.have.been.calledOnce;
+      expect(c.stub._get).to.have.been.calledOnce;
     });
   });
 

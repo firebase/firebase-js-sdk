@@ -134,7 +134,10 @@ export class PersistenceUserManager {
     // Pull out the existing user, setting the chosen persistence to that
     // persistence if the user exists.
     let userToMigrate: UserInternal | null = null;
-    for (const persistence of persistences) {
+    // Note, here we check for a user in _all_ persistences, not just the
+    // ones deemed available. If we can migrate a user out of a broken
+    // persistence, we will (but only if that persistence supports migration).
+    for (const persistence of persistenceHierarchy) {
       try {
         const blob = await persistence._get<PersistedBlob>(key);
         if (blob) {
@@ -166,7 +169,7 @@ export class PersistenceUserManager {
     // Attempt to clear the key in other persistences but ignore errors. This helps prevent issues
     // such as users getting stuck with a previous account after signing out and refreshing the tab.
     await Promise.all(
-      migrationHierarchy.map(async persistence => {
+      persistenceHierarchy.map(async persistence => {
         if (persistence !== chosenPersistence) {
           try {
             await persistence._remove(key);

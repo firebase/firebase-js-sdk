@@ -182,6 +182,28 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
     });
 
+    it('migrate stored user to localStorage if indexedDB is readonly', async () => {
+      // Sign in first, which gets persisted in indexedDB.
+      const cred: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+      const uid = cred.user.uid;
+
+      await driver.webDriver.navigate().refresh();
+      await driver.call(PersistenceFunction.MAKE_INDEXED_DB_READONLY);
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+
+      // User from indexedDB should be picked up.
+      const user = await driver.getUserSnapshot();
+      expect(user.uid).eql(uid);
+
+      // User should be migrated to localStorage, and the key in indexedDB should be deleted.
+      const snap = await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP);
+      expect(snap).to.have.property(fullPersistenceKey).that.contains({ uid });
+      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
+    });
+
     it('use in-memory and clear all persistences if indexedDB and localStorage are both broken', async () => {
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support indexedDB.
