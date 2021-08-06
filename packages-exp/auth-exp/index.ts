@@ -121,7 +121,8 @@ export { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
 /**
- * Initializes an Auth instance with platform specific default dependencies.
+ * Return the existing Auth instance that is associated with the provided {@link @firebase/app#FirebaseApp}.
+ * If no instance exists, initializes an Auth instance with platform specific default dependencies.
  *
  * @param app - The Firebase App.
  *
