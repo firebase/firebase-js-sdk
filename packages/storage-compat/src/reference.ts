@@ -133,7 +133,7 @@ export class ReferenceCompat
       new _UploadTask(
         this._delegate as _Reference,
         new _FbsBlob(data.data, true),
-        metadataClone as FullMetadata & { [k: string]: string}
+        metadataClone as FullMetadata & { [k: string]: string }
       ) as UploadTask,
       this
     );

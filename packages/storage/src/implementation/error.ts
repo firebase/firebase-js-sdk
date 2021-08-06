@@ -295,7 +295,7 @@ export function appDeleted(): FirebaseStorageError {
 
 /**
  * @param name - The name of the operation that was invalid.
- * 
+ *
  * @internal
  */
 export function invalidRootOperation(name: string): FirebaseStorageError {

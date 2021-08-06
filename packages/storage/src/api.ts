@@ -63,8 +63,14 @@ export type { Reference as _Reference } from './reference';
 export type { FirebaseStorageImpl as _FirebaseStorageImpl } from './service';
 export { FbsBlob as _FbsBlob } from './implementation/blob';
 export { dataFromString as _dataFromString } from './implementation/string';
-export { invalidRootOperation as _invalidRootOperation, invalidArgument as _invalidArgument } from './implementation/error';
-export { TaskEvent as _TaskEvent, TaskState as _TaskState } from './implementation/taskenums';
+export {
+  invalidRootOperation as _invalidRootOperation,
+  invalidArgument as _invalidArgument
+} from './implementation/error';
+export {
+  TaskEvent as _TaskEvent,
+  TaskState as _TaskState
+} from './implementation/taskenums';
 
 /**
  * Uploads data to this object's location.

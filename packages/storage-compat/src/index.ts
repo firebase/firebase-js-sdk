@@ -18,7 +18,11 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { StringFormat, _TaskEvent as TaskEvent, _TaskState as TaskState} from '@firebase/storage';
+import {
+  StringFormat,
+  _TaskEvent as TaskEvent,
+  _TaskState as TaskState
+} from '@firebase/storage';
 
 import { ReferenceCompat } from './reference';
 import { StorageServiceCompat } from './service';
