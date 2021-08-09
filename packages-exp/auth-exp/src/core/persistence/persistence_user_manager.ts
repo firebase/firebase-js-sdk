@@ -127,7 +127,8 @@ export class PersistenceUserManager {
 
     // Fall back to the first persistence listed, or in memory if none available
     let selectedPersistence =
-      availablePersistences[0] || _getInstance<PersistenceInternal>(inMemoryPersistence);
+      availablePersistences[0] ||
+      _getInstance<PersistenceInternal>(inMemoryPersistence);
 
     const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
 
@@ -158,7 +159,10 @@ export class PersistenceUserManager {
     );
 
     // If the persistence does _not_ allow migration, just finish off here
-    if (!selectedPersistence._shouldAllowMigration || !migrationHierarchy.length) {
+    if (
+      !selectedPersistence._shouldAllowMigration ||
+      !migrationHierarchy.length
+    ) {
       return new PersistenceUserManager(selectedPersistence, auth, userKey);
     }
 
