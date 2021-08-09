@@ -24,11 +24,17 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
+import {
+  FactorId as FactorIdMap,
+  OperationType as OperationTypeMap,
+  ActionCodeOperation as ActionCodeOperationMap
+} from './enum_maps';
+
 export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
 /**
  * Enumeration of supported providers.
  *
- * @public
+ * @internal
  */
 export const enum ProviderId {
   /** @internal */
@@ -54,7 +60,7 @@ export const enum ProviderId {
 /**
  * Enumeration of supported sign-in methods.
  *
- * @public
+ * @internal
  */
 export const enum SignInMethod {
   /** @internal */
@@ -78,7 +84,7 @@ export const enum SignInMethod {
 /**
  * Enumeration of supported operation types.
  *
- * @public
+ * @internal
  */
 export const enum OperationType {
   /** Operation involving linking an additional provider to an already signed-in user. */
@@ -171,7 +177,7 @@ export interface AuthError extends FirebaseError {
    * The tenant ID being used for sign-in/linking.
    *
    * @remarks
-   * If you use {@link @firebase/auth#signInWithRedirect} to sign in,
+   * If you use {@link signInWithRedirect} to sign in,
    * you have to set the tenant ID on {@link Auth} instance again as the tenant ID is not persisted
    * after redirection.
    */
@@ -395,7 +401,7 @@ export interface IdTokenResult {
 }
 
 /**
- * A response from {@link @firebase/auth#checkActionCode}.
+ * A response from {@link checkActionCode}.
  *
  * @public
  */
@@ -404,21 +410,21 @@ export interface ActionCodeInfo {
    * The data associated with the action code.
    *
    * @remarks
-   * For the {@link ActionCodeOperation.PASSWORD_RESET}, {@link ActionCodeOperation.VERIFY_EMAIL}, and
-   * {@link ActionCodeOperation.RECOVER_EMAIL} actions, this object contains an email field with the address
+   * For the {@link ActionCodeOperation}.PASSWORD_RESET, {@link ActionCodeOperation}.VERIFY_EMAIL, and
+   * {@link ActionCodeOperation}.RECOVER_EMAIL actions, this object contains an email field with the address
    * the email was sent to.
    *
-   * For the {@link ActionCodeOperation.RECOVER_EMAIL} action, which allows a user to undo an email address
+   * For the {@link ActionCodeOperation}.RECOVER_EMAIL action, which allows a user to undo an email address
    * change, this object also contains a `previousEmail` field with the user account's current
    * email address. After the action completes, the user's email address will revert to the value
    * in the `email` field from the value in `previousEmail` field.
    *
-   * For the {@link ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL} action, which allows a user to verify the
+   * For the {@link ActionCodeOperation}.VERIFY_AND_CHANGE_EMAIL action, which allows a user to verify the
    * email before updating it, this object contains a `previousEmail` field with the user account's
    * email address before updating. After the action completes, the user's email address will be
    * updated to the value in the `email` field from the value in `previousEmail` field.
    *
-   * For the {@link ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION} action, which allows a user to
+   * For the {@link ActionCodeOperation}.REVERT_SECOND_FACTOR_ADDITION action, which allows a user to
    * unenroll a newly added second factor, this object contains a `multiFactorInfo` field with
    * the information about the second factor. For phone second factor, the `multiFactorInfo`
    * is a {@link MultiFactorInfo} object, which contains the phone number.
@@ -431,13 +437,13 @@ export interface ActionCodeInfo {
   /**
    * The type of operation that generated the action code.
    */
-  operation: ActionCodeOperation;
+  operation: typeof ActionCodeOperationMap[keyof typeof ActionCodeOperationMap];
 }
 
 /**
  * An enumeration of the possible email action types.
  *
- * @public
+ * @internal
  */
 export const enum ActionCodeOperation {
   /** The email link sign-in action. */
@@ -524,7 +530,7 @@ export interface ActionCodeSettings {
  * A verifier for domain verification and abuse prevention.
  *
  * @remarks
- * Currently, the only implementation is {@link @firebase/auth#RecaptchaVerifier}.
+ * Currently, the only implementation is {@link RecaptchaVerifier}.
  *
  * @public
  */
@@ -556,7 +562,7 @@ export interface AuthProvider {
 /**
  * An enum of factors that may be used for multifactor authentication.
  *
- * @public
+ * @internal
  */
 export const enum FactorId {
   /** Phone as second factor */
@@ -603,7 +609,7 @@ export interface ConfirmationResult {
  */
 export interface MultiFactorAssertion {
   /** The identifier of the second factor. */
-  readonly factorId: FactorId;
+  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
 }
 
 /**
@@ -641,7 +647,7 @@ export interface MultiFactorError extends AuthError {
   /**
    * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.
    */
-  readonly operationType: OperationType;
+  readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
 }
 
 /**
@@ -657,7 +663,7 @@ export interface MultiFactorInfo {
   /** The enrollment date of the second factor formatted as a UTC string. */
   readonly enrollmentTime: string;
   /** The identifier of the second factor. */
-  readonly factorId: FactorId;
+  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
 }
 
 /**
@@ -945,7 +951,7 @@ export interface User extends UserInfo {
    */
   readonly emailVerified: boolean;
   /**
-   * Whether the user is authenticated using the {@link ProviderId.ANONYMOUS} provider.
+   * Whether the user is authenticated using the {@link ProviderId}.ANONYMOUS provider.
    */
   readonly isAnonymous: boolean;
   /**
@@ -986,7 +992,7 @@ export interface User extends UserInfo {
    * @remarks
    * Important: this is a security-sensitive operation that requires the user to have recently
    * signed in. If this requirement isn't met, ask the user to authenticate again and then call
-   * one of the reauthentication methods like {@link @firebase/auth#reauthenticateWithCredential}.
+   * one of the reauthentication methods like {@link reauthenticateWithCredential}.
    */
   delete(): Promise<void>;
   /**
@@ -1026,8 +1032,8 @@ export interface User extends UserInfo {
  * and any additional user information that was returned from the identity provider.
  *
  * @remarks
- * `operationType` could be {@link OperationType.SIGN_IN} for a sign-in operation,
- * {@link OperationType.LINK} for a linking operation and {@link OperationType.REAUTHENTICATE} for
+ * `operationType` could be {@link OperationType}.SIGN_IN for a sign-in operation,
+ * {@link OperationType}.LINK for a linking operation and {@link OperationType}.REAUTHENTICATE for
  * a reauthentication operation.
  *
  * @public
@@ -1044,7 +1050,7 @@ export interface UserCredential {
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
-  operationType: OperationType;
+  operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
 }
 
 /**
@@ -1127,8 +1133,8 @@ export interface AdditionalUserInfo {
 export type UserProfile = Record<string, unknown>;
 
 /**
- * A resolver used for handling DOM specific operations like {@link @firebase/auth#signInWithPopup}
- * or {@link @firebase/auth#signInWithRedirect}.
+ * A resolver used for handling DOM specific operations like {@link signInWithPopup}
+ * or {@link signInWithRedirect}.
  *
  * @public
  */

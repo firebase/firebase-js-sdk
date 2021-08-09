@@ -14,25 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _registerComponent,
   registerVersion,
   SDK_VERSION
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
 import { setSDKVersion } from '../src/core/version';
-import {
-  FirebaseDatabase,
-  repoManagerDatabaseFromApp
-} from '../src/exp/Database';
+import { Database, repoManagerDatabaseFromApp } from '../src/exp/Database';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'database-exp': FirebaseDatabase;
+    'database-exp': Database;
   }
 }
 

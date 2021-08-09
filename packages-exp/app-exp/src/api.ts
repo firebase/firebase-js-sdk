@@ -18,7 +18,7 @@
 import {
   FirebaseApp,
   FirebaseOptions,
-  FirebaseAppConfig
+  FirebaseAppSettings
 } from './public-types';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { ERROR_FACTORY, AppError } from './errors';
@@ -39,6 +39,7 @@ import {
   LogOptions,
   setUserLogHandler
 } from '@firebase/logger';
+import { deepEqual } from '@firebase/util';
 
 /**
  * The current SDK version.
@@ -105,7 +106,7 @@ export function initializeApp(
  */
 export function initializeApp(
   options: FirebaseOptions,
-  config?: FirebaseAppConfig
+  config?: FirebaseAppSettings
 ): FirebaseApp;
 export function initializeApp(
   options: FirebaseOptions,
@@ -116,7 +117,7 @@ export function initializeApp(
     rawConfig = { name };
   }
 
-  const config: Required<FirebaseAppConfig> = {
+  const config: Required<FirebaseAppSettings> = {
     name: DEFAULT_ENTRY_NAME,
     automaticDataCollectionEnabled: false,
     ...rawConfig
@@ -129,8 +130,17 @@ export function initializeApp(
     });
   }
 
-  if (_apps.has(name)) {
-    throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
+  const existingApp = _apps.get(name) as FirebaseAppImpl;
+  if (existingApp) {
+    // return the existing app if options and config deep equal the ones in the existing app.
+    if (
+      deepEqual(options, existingApp.options) &&
+      deepEqual(config, existingApp.config)
+    ) {
+      return existingApp;
+    } else {
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
+    }
   }
 
   const container = new ComponentContainer(name);

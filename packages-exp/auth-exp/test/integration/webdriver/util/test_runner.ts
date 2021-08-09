@@ -31,7 +31,7 @@ import { AuthDriver } from './auth_driver';
  */
 
 interface TempSuite {
-  generator: (driver: AuthDriver) => void;
+  generator: (driver: AuthDriver, browser: string) => void;
   title: string;
 }
 
@@ -45,7 +45,7 @@ const SUITES: TempSuite[] = [];
 /** Main entry point for all WebDriver tests */
 export function browserDescribe(
   title: string,
-  generator: (driver: AuthDriver) => void
+  generator: (driver: AuthDriver, browser: string) => void
 ): void {
   SUITES.push({
     title,
@@ -75,7 +75,7 @@ setTimeout(() => {
       });
 
       for (const { title, generator } of SUITES) {
-        describe(title, () => generator(DRIVER));
+        describe(title, () => generator(DRIVER, browser));
       }
     });
   }

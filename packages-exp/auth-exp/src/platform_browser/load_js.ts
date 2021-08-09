@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { AuthErrorCode } from '../core/errors';
+import { _createError } from '../core/util/assert';
+
 function getScriptParentElement(): HTMLDocument | HTMLHeadElement {
   return document.getElementsByTagName('head')?.[0] ?? document;
 }
@@ -25,7 +28,11 @@ export function _loadJS(url: string): Promise<Event> {
     const el = document.createElement('script');
     el.setAttribute('src', url);
     el.onload = resolve;
-    el.onerror = reject;
+    el.onerror = e => {
+      const error = _createError(AuthErrorCode.INTERNAL_ERROR);
+      error.customData = e as unknown as Record<string, unknown>;
+      reject(error);
+    };
     el.type = 'text/javascript';
     el.charset = 'UTF-8';
     getScriptParentElement().appendChild(el);

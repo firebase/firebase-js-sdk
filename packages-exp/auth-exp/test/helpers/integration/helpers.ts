@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 import { deleteApp, initializeApp } from '@firebase/app-exp';
 import { Auth, User } from '../../../src/model/public_types';
 
-import { getAuth, useAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
+import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
 import { resetEmulator } from './emulator_rest_helpers';
@@ -42,7 +42,7 @@ export function getTestInstance(requireEmulator = false): Auth {
 
   if (emulatorUrl) {
     const stub = stubConsoleToSilenceEmulatorWarnings();
-    useAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
+    connectAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
     stub.restore();
   } else if (requireEmulator) {
     /* Emulator wasn't configured but test must use emulator */

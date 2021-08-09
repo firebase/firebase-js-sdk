@@ -20,10 +20,10 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { StringFormat } from './src/implementation/string';
 import { TaskEvent, TaskState } from './src/implementation/taskenums';
 
-import { XhrIoPool } from './src/implementation/xhriopool';
+import { ConnectionPool } from './src/implementation/connectionPool';
 import { ReferenceCompat } from './compat/reference';
 import { StorageServiceCompat } from './compat/service';
-import { StorageService } from './src/service';
+import { FirebaseStorageImpl } from './src/service';
 import * as types from '@firebase/storage-types';
 import {
   Component,
@@ -55,11 +55,11 @@ function factory(
   // of creating a new one.
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(
+    new FirebaseStorageImpl(
       app,
       authProvider,
       appCheckProvider,
-      new XhrIoPool(),
+      new ConnectionPool(),
       url,
       firebase.SDK_VERSION
     )
@@ -73,7 +73,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
     TaskState,
     TaskEvent,
     StringFormat,
-    Storage: StorageService,
+    Storage: FirebaseStorageImpl,
     Reference: ReferenceCompat
   };
   instance.INTERNAL.registerComponent(

@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
-import { FirebaseInstallations } from '../interfaces/public-types';
+import { Installations } from '../interfaces/public-types';
 
 /**
  * Returns an instance of FirebaseInstallations associated with the given FirebaseApp instance.
@@ -24,9 +24,7 @@ import { FirebaseInstallations } from '../interfaces/public-types';
  *
  * @public
  */
-export function getInstallations(
-  app: FirebaseApp = getApp()
-): FirebaseInstallations {
+export function getInstallations(app: FirebaseApp = getApp()): Installations {
   const installationsImpl = _getProvider(
     app,
     'installations-exp'

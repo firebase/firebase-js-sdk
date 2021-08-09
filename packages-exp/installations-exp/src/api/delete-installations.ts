@@ -20,7 +20,7 @@ import { remove, update } from '../helpers/idb-manager';
 import { RequestStatus } from '../interfaces/installation-entry';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
-import { FirebaseInstallations } from '../interfaces/public-types';
+import { Installations } from '../interfaces/public-types';
 
 /**
  * Deletes the Firebase Installation and all associated data.
@@ -29,7 +29,7 @@ import { FirebaseInstallations } from '../interfaces/public-types';
  * @public
  */
 export async function deleteInstallations(
-  installations: FirebaseInstallations
+  installations: Installations
 ): Promise<void> {
   const { appConfig } = installations as FirebaseInstallationsImpl;
 

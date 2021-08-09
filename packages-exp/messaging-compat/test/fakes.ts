@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import { FirebaseMessaging } from '@firebase/messaging-exp';
+import { Messaging } from '@firebase/messaging-exp';
 
 export function getFakeApp(): FirebaseApp {
   return {
@@ -36,6 +36,6 @@ export function getFakeApp(): FirebaseApp {
   };
 }
 
-export function getFakeModularMessaging(): FirebaseMessaging {
+export function getFakeModularMessaging(): Messaging {
   return {};
 }

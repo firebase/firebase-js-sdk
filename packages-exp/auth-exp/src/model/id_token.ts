@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { ProviderId } from './public_types';
-
 import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
 
 /**
@@ -55,7 +53,7 @@ export interface IdTokenResponse {
   idToken?: IdToken;
   refreshToken?: string;
   expiresIn?: string;
-  providerId?: ProviderId | string;
+  providerId?: string;
 
   // Used in AdditionalUserInfo
   displayName?: string | null;

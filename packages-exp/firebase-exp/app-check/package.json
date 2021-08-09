@@ -1,0 +1,8 @@
+{
+  "name": "firebase-exp/app-check",
+  "main": "dist/index.cjs",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/app-check/index.d.ts",
+  "type": "module"
+}

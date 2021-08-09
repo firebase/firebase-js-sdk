@@ -18,7 +18,7 @@
 export { FieldPath, documentId } from '../src/exp/field_path';
 
 export {
-  FirebaseFirestore,
+  Firestore,
   initializeFirestore,
   getFirestore,
   enableIndexedDbPersistence,
@@ -28,7 +28,7 @@ export {
   disableNetwork,
   enableNetwork,
   terminate,
-  useFirestoreEmulator,
+  connectFirestoreEmulator,
   loadBundle,
   namedQuery,
   ensureFirestoreConfigured
@@ -40,7 +40,7 @@ export {
   TaskState
 } from '../src/exp/bundle';
 
-export { Settings, PersistenceSettings } from '../src/exp/settings';
+export { FirestoreSettings, PersistenceSettings } from '../src/exp/settings';
 
 export {
   DocumentChange,

@@ -34,14 +34,14 @@ export function getImportPathTransformer({ pattern, template }) {
 export const importPathTransformer = () => ({
   before: [
     transformImportPath({
-      pattern: /^(@firebase.*)-exp(.*)$/g,
+      pattern: /^(@firebase.*)-exp(.*)$/,
       template: [1, 2]
     })
   ],
   after: [],
   afterDeclarations: [
     transformImportPath({
-      pattern: /^(@firebase.*)-exp(.*)$/g,
+      pattern: /^(@firebase.*)-exp(.*)$/,
       template: [1, 2]
     })
   ]
@@ -75,7 +75,6 @@ function visitNode(node, { pattern, template }) {
     );
 
     const captures = pattern.exec(importPath);
-
     if (captures) {
       const newNameFragments = [];
       for (const fragment of template) {

@@ -36,10 +36,7 @@ import { getModularInstance } from '@firebase/util';
  *
  * @public
  */
-export async function unlink(
-  user: User,
-  providerId: ProviderId
-): Promise<User> {
+export async function unlink(user: User, providerId: string): Promise<User> {
   const userInternal = getModularInstance(user) as UserInternal;
   await _assertLinkedStatus(true, userInternal, providerId);
   const { providerUserInfo } = await deleteLinkedAccounts(userInternal.auth, {

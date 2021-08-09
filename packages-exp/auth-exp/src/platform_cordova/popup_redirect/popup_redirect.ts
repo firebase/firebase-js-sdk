@@ -30,6 +30,7 @@ import {
   _checkCordovaConfiguration,
   _generateHandlerUrl,
   _performRedirect,
+  _validateOrigin,
   _waitForAppResume
 } from './utils';
 import {
@@ -54,6 +55,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
   readonly _redirectPersistence = browserSessionPersistence;
   readonly _shouldInitProactively = true; // This is lightweight for Cordova
   private readonly eventManagers = new Map<string, CordovaAuthEventManager>();
+  private readonly originValidationPromises: Record<string, Promise<void>> = {};
 
   _completeRedirectFn = _getRedirectResult;
 
@@ -88,6 +90,8 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
     manager.resetRedirect();
     _clearRedirectOutcomes();
 
+    await this._originValidation(auth);
+
     const event = _generateNewEvent(auth, authType, eventId);
     await _savePartialEvent(auth, event);
     const url = await _generateHandlerUrl(auth, event, provider);
@@ -102,8 +106,13 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
     throw new Error('Method not implemented.');
   }
 
-  _originValidation(): Promise<void> {
-    return Promise.resolve();
+  _originValidation(auth: AuthInternal): Promise<void> {
+    const key = auth._key();
+    if (!this.originValidationPromises[key]) {
+      this.originValidationPromises[key] = _validateOrigin(auth);
+    }
+
+    return this.originValidationPromises[key];
   }
 
   private attachCallbackListeners(
@@ -176,7 +185,8 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
  *
  * @public
  */
-export const cordovaPopupRedirectResolver: PopupRedirectResolver = CordovaPopupRedirectResolver;
+export const cordovaPopupRedirectResolver: PopupRedirectResolver =
+  CordovaPopupRedirectResolver;
 
 function generateNoEvent(): AuthEvent {
   return {

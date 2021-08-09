@@ -92,7 +92,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
   const allPackageNames = packageInfo.map(info => info.name);
 
   const depGraph: { [key: string]: any } = JSON.parse(
-    (await exec('npx lerna ls --graph', { cwd: root })).stdout
+    (await exec('npx lerna ls --all --graph', { cwd: root })).stdout
   );
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
@@ -198,4 +198,21 @@ export function filterTasks(
   }
 
   return filteredTasks;
+}
+
+export function logTasks(testTasks: TestTask[]): void {
+  for (const task of testTasks) {
+    switch (task.reason) {
+      case TestReason.Changed:
+        console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
+        break;
+      case TestReason.Dependent:
+        console.log(
+          chalk`{yellow ${task.pkgName} (depends on modified files)}`
+        );
+        break;
+      default:
+        console.log(chalk`{yellow ${task.pkgName} (running all tests)}`);
+    }
+  }
 }

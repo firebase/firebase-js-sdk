@@ -17,16 +17,16 @@
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
 import { StringFormat } from '../../src/implementation/string';
-import { Headers } from '../../src/implementation/xhrio';
+import { Headers } from '../../src/implementation/connection';
 import { Metadata } from '../../src/metadata';
 import { ReferenceCompat } from '../../compat/reference';
 import { StorageServiceCompat } from '../../compat/service';
 import * as testShared from './testshared';
-import { SendHook, TestingXhrIo } from './xhrio';
+import { SendHook, TestingConnection } from './connection';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { StorageService } from '../../src/service';
+import { FirebaseStorageImpl } from '../../src/service';
 import { Reference } from '../../src/reference';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
@@ -39,7 +39,7 @@ function makeFakeService(
 ): StorageServiceCompat {
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new StorageService(
+    new FirebaseStorageImpl(
       app,
       authProvider,
       appCheckProvider,
@@ -50,7 +50,7 @@ function makeFakeService(
 }
 
 function makeStorage(url: string): ReferenceCompat {
-  const service = new StorageService(
+  const service = new FirebaseStorageImpl(
     {} as FirebaseApp,
     testShared.emptyAuthProvider,
     testShared.fakeAppCheckTokenProvider,
@@ -189,7 +189,7 @@ describe('Firebase Storage > Reference', () => {
 
   it("Doesn't send Authorization on null auth token", done => {
     function newSend(
-      xhrio: TestingXhrIo,
+      connection: TestingConnection,
       url: string,
       method: string,
       body?: ArrayBufferView | Blob | string | null,
@@ -213,7 +213,7 @@ describe('Firebase Storage > Reference', () => {
   it('Works if the user logs in before creating the storage reference', done => {
     // Regression test for b/27227221
     function newSend(
-      xhrio: TestingXhrIo,
+      connection: TestingConnection,
       url: string,
       method: string,
       body?: ArrayBufferView | Blob | string | null,
@@ -284,7 +284,7 @@ describe('Firebase Storage > Reference', () => {
 
   describe('root operations', () => {
     it('put throws', () => {
-      expect(() => root.put(new Blob(['a']))).to.throw(
+      expect(() => root.put(new Uint8Array())).to.throw(
         'storage/invalid-root-operation'
       );
     });

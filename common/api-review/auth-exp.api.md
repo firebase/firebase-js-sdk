@@ -20,18 +20,18 @@ export interface ActionCodeInfo {
         multiFactorInfo?: MultiFactorInfo | null;
         previousEmail?: string | null;
     };
-    operation: ActionCodeOperation;
+    operation: typeof ActionCodeOperation[keyof typeof ActionCodeOperation];
 }
 
 // @public
-export const enum ActionCodeOperation {
-    EMAIL_SIGNIN = "EMAIL_SIGNIN",
-    PASSWORD_RESET = "PASSWORD_RESET",
-    RECOVER_EMAIL = "RECOVER_EMAIL",
-    REVERT_SECOND_FACTOR_ADDITION = "REVERT_SECOND_FACTOR_ADDITION",
-    VERIFY_AND_CHANGE_EMAIL = "VERIFY_AND_CHANGE_EMAIL",
-    VERIFY_EMAIL = "VERIFY_EMAIL"
-}
+export const ActionCodeOperation: {
+    readonly EMAIL_SIGNIN: "EMAIL_SIGNIN";
+    readonly PASSWORD_RESET: "PASSWORD_RESET";
+    readonly RECOVER_EMAIL: "RECOVER_EMAIL";
+    readonly REVERT_SECOND_FACTOR_ADDITION: "REVERT_SECOND_FACTOR_ADDITION";
+    readonly VERIFY_AND_CHANGE_EMAIL: "VERIFY_AND_CHANGE_EMAIL";
+    readonly VERIFY_EMAIL: "VERIFY_EMAIL";
+};
 
 // @public
 export interface ActionCodeSettings {
@@ -56,7 +56,7 @@ export class ActionCodeURL {
     readonly code: string;
     readonly continueUrl: string | null;
     readonly languageCode: string | null;
-    readonly operation: ActionCodeOperation;
+    readonly operation: string;
     static parseLink(link: string): ActionCodeURL | null;
     readonly tenantId: string | null;
 }
@@ -127,6 +127,105 @@ export interface AuthError extends FirebaseError {
 }
 
 // @public
+export const AuthErrorCodes: {
+    readonly ADMIN_ONLY_OPERATION: "auth/admin-restricted-operation";
+    readonly ARGUMENT_ERROR: "auth/argument-error";
+    readonly APP_NOT_AUTHORIZED: "auth/app-not-authorized";
+    readonly APP_NOT_INSTALLED: "auth/app-not-installed";
+    readonly CAPTCHA_CHECK_FAILED: "auth/captcha-check-failed";
+    readonly CODE_EXPIRED: "auth/code-expired";
+    readonly CORDOVA_NOT_READY: "auth/cordova-not-ready";
+    readonly CORS_UNSUPPORTED: "auth/cors-unsupported";
+    readonly CREDENTIAL_ALREADY_IN_USE: "auth/credential-already-in-use";
+    readonly CREDENTIAL_MISMATCH: "auth/custom-token-mismatch";
+    readonly CREDENTIAL_TOO_OLD_LOGIN_AGAIN: "auth/requires-recent-login";
+    readonly DEPENDENT_SDK_INIT_BEFORE_AUTH: "auth/dependent-sdk-initialized-before-auth";
+    readonly DYNAMIC_LINK_NOT_ACTIVATED: "auth/dynamic-link-not-activated";
+    readonly EMAIL_CHANGE_NEEDS_VERIFICATION: "auth/email-change-needs-verification";
+    readonly EMAIL_EXISTS: "auth/email-already-in-use";
+    readonly EMULATOR_CONFIG_FAILED: "auth/emulator-config-failed";
+    readonly EXPIRED_OOB_CODE: "auth/expired-action-code";
+    readonly EXPIRED_POPUP_REQUEST: "auth/cancelled-popup-request";
+    readonly INTERNAL_ERROR: "auth/internal-error";
+    readonly INVALID_API_KEY: "auth/invalid-api-key";
+    readonly INVALID_APP_CREDENTIAL: "auth/invalid-app-credential";
+    readonly INVALID_APP_ID: "auth/invalid-app-id";
+    readonly INVALID_AUTH: "auth/invalid-user-token";
+    readonly INVALID_AUTH_EVENT: "auth/invalid-auth-event";
+    readonly INVALID_CERT_HASH: "auth/invalid-cert-hash";
+    readonly INVALID_CODE: "auth/invalid-verification-code";
+    readonly INVALID_CONTINUE_URI: "auth/invalid-continue-uri";
+    readonly INVALID_CORDOVA_CONFIGURATION: "auth/invalid-cordova-configuration";
+    readonly INVALID_CUSTOM_TOKEN: "auth/invalid-custom-token";
+    readonly INVALID_DYNAMIC_LINK_DOMAIN: "auth/invalid-dynamic-link-domain";
+    readonly INVALID_EMAIL: "auth/invalid-email";
+    readonly INVALID_EMULATOR_SCHEME: "auth/invalid-emulator-scheme";
+    readonly INVALID_IDP_RESPONSE: "auth/invalid-credential";
+    readonly INVALID_MESSAGE_PAYLOAD: "auth/invalid-message-payload";
+    readonly INVALID_MFA_SESSION: "auth/invalid-multi-factor-session";
+    readonly INVALID_OAUTH_CLIENT_ID: "auth/invalid-oauth-client-id";
+    readonly INVALID_OAUTH_PROVIDER: "auth/invalid-oauth-provider";
+    readonly INVALID_OOB_CODE: "auth/invalid-action-code";
+    readonly INVALID_ORIGIN: "auth/unauthorized-domain";
+    readonly INVALID_PASSWORD: "auth/wrong-password";
+    readonly INVALID_PERSISTENCE: "auth/invalid-persistence-type";
+    readonly INVALID_PHONE_NUMBER: "auth/invalid-phone-number";
+    readonly INVALID_PROVIDER_ID: "auth/invalid-provider-id";
+    readonly INVALID_RECIPIENT_EMAIL: "auth/invalid-recipient-email";
+    readonly INVALID_SENDER: "auth/invalid-sender";
+    readonly INVALID_SESSION_INFO: "auth/invalid-verification-id";
+    readonly INVALID_TENANT_ID: "auth/invalid-tenant-id";
+    readonly MFA_INFO_NOT_FOUND: "auth/multi-factor-info-not-found";
+    readonly MFA_REQUIRED: "auth/multi-factor-auth-required";
+    readonly MISSING_ANDROID_PACKAGE_NAME: "auth/missing-android-pkg-name";
+    readonly MISSING_APP_CREDENTIAL: "auth/missing-app-credential";
+    readonly MISSING_AUTH_DOMAIN: "auth/auth-domain-config-required";
+    readonly MISSING_CODE: "auth/missing-verification-code";
+    readonly MISSING_CONTINUE_URI: "auth/missing-continue-uri";
+    readonly MISSING_IFRAME_START: "auth/missing-iframe-start";
+    readonly MISSING_IOS_BUNDLE_ID: "auth/missing-ios-bundle-id";
+    readonly MISSING_OR_INVALID_NONCE: "auth/missing-or-invalid-nonce";
+    readonly MISSING_MFA_INFO: "auth/missing-multi-factor-info";
+    readonly MISSING_MFA_SESSION: "auth/missing-multi-factor-session";
+    readonly MISSING_PHONE_NUMBER: "auth/missing-phone-number";
+    readonly MISSING_SESSION_INFO: "auth/missing-verification-id";
+    readonly MODULE_DESTROYED: "auth/app-deleted";
+    readonly NEED_CONFIRMATION: "auth/account-exists-with-different-credential";
+    readonly NETWORK_REQUEST_FAILED: "auth/network-request-failed";
+    readonly NULL_USER: "auth/null-user";
+    readonly NO_AUTH_EVENT: "auth/no-auth-event";
+    readonly NO_SUCH_PROVIDER: "auth/no-such-provider";
+    readonly OPERATION_NOT_ALLOWED: "auth/operation-not-allowed";
+    readonly OPERATION_NOT_SUPPORTED: "auth/operation-not-supported-in-this-environment";
+    readonly POPUP_BLOCKED: "auth/popup-blocked";
+    readonly POPUP_CLOSED_BY_USER: "auth/popup-closed-by-user";
+    readonly PROVIDER_ALREADY_LINKED: "auth/provider-already-linked";
+    readonly QUOTA_EXCEEDED: "auth/quota-exceeded";
+    readonly REDIRECT_CANCELLED_BY_USER: "auth/redirect-cancelled-by-user";
+    readonly REDIRECT_OPERATION_PENDING: "auth/redirect-operation-pending";
+    readonly REJECTED_CREDENTIAL: "auth/rejected-credential";
+    readonly SECOND_FACTOR_ALREADY_ENROLLED: "auth/second-factor-already-in-use";
+    readonly SECOND_FACTOR_LIMIT_EXCEEDED: "auth/maximum-second-factor-count-exceeded";
+    readonly TENANT_ID_MISMATCH: "auth/tenant-id-mismatch";
+    readonly TIMEOUT: "auth/timeout";
+    readonly TOKEN_EXPIRED: "auth/user-token-expired";
+    readonly TOO_MANY_ATTEMPTS_TRY_LATER: "auth/too-many-requests";
+    readonly UNAUTHORIZED_DOMAIN: "auth/unauthorized-continue-uri";
+    readonly UNSUPPORTED_FIRST_FACTOR: "auth/unsupported-first-factor";
+    readonly UNSUPPORTED_PERSISTENCE: "auth/unsupported-persistence-type";
+    readonly UNSUPPORTED_TENANT_OPERATION: "auth/unsupported-tenant-operation";
+    readonly UNVERIFIED_EMAIL: "auth/unverified-email";
+    readonly USER_CANCELLED: "auth/user-cancelled";
+    readonly USER_DELETED: "auth/user-not-found";
+    readonly USER_DISABLED: "auth/user-disabled";
+    readonly USER_MISMATCH: "auth/user-mismatch";
+    readonly USER_SIGNED_OUT: "auth/user-signed-out";
+    readonly WEAK_PASSWORD: "auth/weak-password";
+    readonly WEB_STORAGE_UNSUPPORTED: "auth/web-storage-unsupported";
+    readonly ALREADY_INITIALIZED: "auth/already-initialized";
+};
+
+// @public
 export interface AuthErrorMap {
 }
 
@@ -174,6 +273,11 @@ export interface ConfirmationResult {
 export function confirmPasswordReset(auth: Auth, oobCode: string, newPassword: string): Promise<void>;
 
 // @public
+export function connectAuthEmulator(auth: Auth, url: string, options?: {
+    disableWarnings: boolean;
+}): void;
+
+// @public
 export function createUserWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 
 // @public
@@ -218,10 +322,10 @@ export class EmailAuthCredential extends AuthCredential {
 export class EmailAuthProvider implements AuthProvider {
     static credential(email: string, password: string): EmailAuthCredential;
     static credentialWithLink(email: string, emailLink: string): EmailAuthCredential;
-    static readonly EMAIL_LINK_SIGN_IN_METHOD = SignInMethod.EMAIL_LINK;
-    static readonly EMAIL_PASSWORD_SIGN_IN_METHOD = SignInMethod.EMAIL_PASSWORD;
-    static readonly PROVIDER_ID = ProviderId.PASSWORD;
-    readonly providerId = ProviderId.PASSWORD;
+    static readonly EMAIL_LINK_SIGN_IN_METHOD: 'emailLink';
+    static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: 'password';
+    static readonly PROVIDER_ID: 'password';
+    readonly providerId: "password";
 }
 
 export { ErrorFn }
@@ -234,14 +338,14 @@ export class FacebookAuthProvider extends BaseOAuthProvider {
     static credential(accessToken: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    static readonly FACEBOOK_SIGN_IN_METHOD = SignInMethod.FACEBOOK;
-    static readonly PROVIDER_ID = ProviderId.FACEBOOK;
+    static readonly FACEBOOK_SIGN_IN_METHOD: 'facebook.com';
+    static readonly PROVIDER_ID: 'facebook.com';
 }
 
 // @public
-export const enum FactorId {
-    PHONE = "phone"
-}
+export const FactorId: {
+    readonly PHONE: "phone";
+};
 
 // @public
 export function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<string[]>;
@@ -270,8 +374,8 @@ export class GithubAuthProvider extends BaseOAuthProvider {
     static credential(accessToken: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    static readonly GITHUB_SIGN_IN_METHOD = SignInMethod.GITHUB;
-    static readonly PROVIDER_ID = ProviderId.GITHUB;
+    static readonly GITHUB_SIGN_IN_METHOD: 'github.com';
+    static readonly PROVIDER_ID: 'github.com';
 }
 
 // @public
@@ -280,8 +384,8 @@ export class GoogleAuthProvider extends BaseOAuthProvider {
     static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    static readonly GOOGLE_SIGN_IN_METHOD = SignInMethod.GOOGLE;
-    static readonly PROVIDER_ID = ProviderId.GOOGLE;
+    static readonly GOOGLE_SIGN_IN_METHOD: 'google.com';
+    static readonly PROVIDER_ID: 'google.com';
 }
 
 // @public
@@ -324,19 +428,19 @@ export function multiFactor(user: User): MultiFactorUser;
 
 // @public
 export interface MultiFactorAssertion {
-    readonly factorId: FactorId;
+    readonly factorId: typeof FactorId[keyof typeof FactorId];
 }
 
 // @public
 export interface MultiFactorError extends AuthError {
-    readonly operationType: OperationType;
+    readonly operationType: typeof OperationType[keyof typeof OperationType];
 }
 
 // @public
 export interface MultiFactorInfo {
     readonly displayName?: string | null;
     readonly enrollmentTime: string;
-    readonly factorId: FactorId;
+    readonly factorId: typeof FactorId[keyof typeof FactorId];
     readonly uid: string;
 }
 
@@ -405,11 +509,11 @@ export function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObserver<Us
 export function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 
 // @public
-export const enum OperationType {
-    LINK = "link",
-    REAUTHENTICATE = "reauthenticate",
-    SIGN_IN = "signIn"
-}
+export const OperationType: {
+    readonly LINK: "link";
+    readonly REAUTHENTICATE: "reauthenticate";
+    readonly SIGN_IN: "signIn";
+};
 
 // @public
 export function parseActionCodeURL(link: string): ActionCodeURL | null;
@@ -458,9 +562,9 @@ export class PhoneAuthProvider {
     static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
     static credentialFromError(error: FirebaseError): AuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
-    static readonly PHONE_SIGN_IN_METHOD = SignInMethod.PHONE;
-    static readonly PROVIDER_ID = ProviderId.PHONE;
-    readonly providerId = ProviderId.PHONE;
+    static readonly PHONE_SIGN_IN_METHOD: 'phone';
+    static readonly PROVIDER_ID: 'phone';
+    readonly providerId: "phone";
     verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
 }
 
@@ -502,20 +606,14 @@ export interface PopupRedirectResolver {
 export const prodErrorMap: AuthErrorMap;
 
 // @public
-export const enum ProviderId {
-    // @internal (undocumented)
-    ANONYMOUS = "anonymous",
-    // @internal (undocumented)
-    CUSTOM = "custom",
-    FACEBOOK = "facebook.com",
-    // @internal (undocumented)
-    FIREBASE = "firebase",
-    GITHUB = "github.com",
-    GOOGLE = "google.com",
-    PASSWORD = "password",
-    PHONE = "phone",
-    TWITTER = "twitter.com"
-}
+export const ProviderId: {
+    readonly FACEBOOK: "facebook.com";
+    readonly GITHUB: "github.com";
+    readonly GOOGLE: "google.com";
+    readonly PASSWORD: "password";
+    readonly PHONE: "phone";
+    readonly TWITTER: "twitter.com";
+};
 
 // @public
 export interface ReactNativeAsyncStorage {
@@ -583,17 +681,15 @@ export function setPersistence(auth: Auth, persistence: Persistence): Promise<vo
 export function signInAnonymously(auth: Auth): Promise<UserCredential>;
 
 // @public
-export const enum SignInMethod {
-    // @internal (undocumented)
-    ANONYMOUS = "anonymous",
-    EMAIL_LINK = "emailLink",
-    EMAIL_PASSWORD = "password",
-    FACEBOOK = "facebook.com",
-    GITHUB = "github.com",
-    GOOGLE = "google.com",
-    PHONE = "phone",
-    TWITTER = "twitter.com"
-}
+export const SignInMethod: {
+    readonly EMAIL_LINK: "emailLink";
+    readonly EMAIL_PASSWORD: "password";
+    readonly FACEBOOK: "facebook.com";
+    readonly GITHUB: "github.com";
+    readonly GOOGLE: "google.com";
+    readonly PHONE: "phone";
+    readonly TWITTER: "twitter.com";
+};
 
 // @public
 export function signInWithCredential(auth: Auth, credential: AuthCredential): Promise<UserCredential>;
@@ -625,12 +721,12 @@ export class TwitterAuthProvider extends BaseOAuthProvider {
     static credential(token: string, secret: string): OAuthCredential;
     static credentialFromError(error: FirebaseError): OAuthCredential | null;
     static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
-    static readonly PROVIDER_ID = ProviderId.TWITTER;
-    static readonly TWITTER_SIGN_IN_METHOD = SignInMethod.TWITTER;
+    static readonly PROVIDER_ID: 'twitter.com';
+    static readonly TWITTER_SIGN_IN_METHOD: 'twitter.com';
 }
 
 // @public
-export function unlink(user: User, providerId: ProviderId): Promise<User>;
+export function unlink(user: User, providerId: string): Promise<User>;
 
 export { Unsubscribe }
 
@@ -653,11 +749,6 @@ export function updateProfile(user: User, { displayName, photoURL: photoUrl }: {
 }): Promise<void>;
 
 // @public
-export function useAuthEmulator(auth: Auth, url: string, options?: {
-    disableWarnings: boolean;
-}): void;
-
-// @public
 export function useDeviceLanguage(auth: Auth): void;
 
 // @public
@@ -677,7 +768,7 @@ export interface User extends UserInfo {
 
 // @public
 export interface UserCredential {
-    operationType: OperationType;
+    operationType: typeof OperationType[keyof typeof OperationType];
     providerId: string | null;
     user: User;
 }

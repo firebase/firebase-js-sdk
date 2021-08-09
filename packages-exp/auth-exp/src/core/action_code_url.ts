@@ -107,7 +107,7 @@ export class ActionCodeURL {
    * The action performed by the email action link. It returns from one of the types from
    * {@link ActionCodeInfo}
    */
-  readonly operation: ActionCodeOperation;
+  readonly operation: string;
   /**
    * The tenant ID of the email action link. Null if the email action is from the parent project.
    */

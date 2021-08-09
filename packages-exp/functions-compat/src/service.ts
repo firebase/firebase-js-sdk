@@ -18,7 +18,7 @@
 import { FirebaseFunctions, HttpsCallable } from '@firebase/functions-types';
 import {
   httpsCallable as httpsCallableExp,
-  useFunctionsEmulator as useFunctionsEmulatorExp,
+  connectFunctionsEmulator as useFunctionsEmulatorExp,
   HttpsCallableOptions,
   Functions as FunctionsServiceExp
 } from '@firebase/functions-exp';

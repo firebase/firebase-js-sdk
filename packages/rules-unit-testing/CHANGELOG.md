@@ -1,5 +1,66 @@
 # @firebase/rules-unit-testing
 
+## 1.3.13
+
+### Patch Changes
+
+- Updated dependencies [[`8599d9141`](https://github.com/firebase/firebase-js-sdk/commit/8599d91416ae8ac5202742f11cee00666d3360ec), [`bd50d8310`](https://github.com/firebase/firebase-js-sdk/commit/bd50d83107be3d87064f72800c608abc94ae3456)]:
+  - firebase@8.9.0
+
+## 1.3.12
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c)]:
+  - @firebase/util@1.2.0
+  - @firebase/component@0.5.5
+  - firebase@8.8.1
+
+## 1.3.11
+
+### Patch Changes
+
+- Updated dependencies [[`b3caa5158`](https://github.com/firebase/firebase-js-sdk/commit/b3caa515846d2bfcf4a95dedff69f08d503cbfc2), [`02586c975`](https://github.com/firebase/firebase-js-sdk/commit/02586c9754318b01a0051561d2c7c4906059b5af), [`2cd9d7c39`](https://github.com/firebase/firebase-js-sdk/commit/2cd9d7c394dd0c84f285fbcfa4b0a5d79509451f)]:
+  - firebase@8.8.0
+
+## 1.3.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.7.1
+
+## 1.3.9
+
+### Patch Changes
+
+- Updated dependencies [[`870dd5e35`](https://github.com/firebase/firebase-js-sdk/commit/870dd5e3594f5b588bdc2801c60c6d984d1d08cc), [`56a6a9d4a`](https://github.com/firebase/firebase-js-sdk/commit/56a6a9d4af2766154584a0f66d3c4d8024d74ba5)]:
+  - firebase@8.7.0
+  - @firebase/component@0.5.4
+
+## 1.3.8
+
+### Patch Changes
+
+- Updated dependencies [[`725ab4684`](https://github.com/firebase/firebase-js-sdk/commit/725ab4684ef0999a12f71e704c204a00fb030e5d)]:
+  - @firebase/component@0.5.3
+  - firebase@8.6.8
+
+## 1.3.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@8.6.7
+
+## 1.3.6
+
+### Patch Changes
+
+- Updated dependencies [[`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b)]:
+  - @firebase/component@0.5.2
+  - firebase@8.6.6
+
 ## 1.3.5
 
 ### Patch Changes
