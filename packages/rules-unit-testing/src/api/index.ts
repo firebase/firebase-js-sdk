@@ -27,7 +27,7 @@ import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
-import * as jwt from 'jsonwebtoken';
+import { base64Encode } from '@firebase/util';
 
 const { firestore, database, storage } = firebase;
 export { firestore, database, storage };
@@ -159,18 +159,19 @@ export type FirebaseEmulatorOptions = {
 };
 
 function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
+  // Unsecured JWTs use "none" as the algorithm.
+  const header = {
+    alg: 'none',
+    kid: 'fakekid',
+    type: 'JWT'
+  };
+
   const project = projectId || 'fake-project';
   const iat = token.iat || 0;
   const uid = token.sub || token.uid || token.user_id;
   if (!uid) {
     throw new Error("Auth must contain 'sub', 'uid', or 'user_id' field!");
   }
-
-  const header = {
-    alg: 'none',
-    kid: 'fakekid',
-    type: 'JWT'
-  };
 
   const payload: FirebaseIdToken = {
     // Set all required fields to decent defaults
@@ -197,9 +198,12 @@ function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
 
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
-  return jwt.sign(payload, signature, { algorithm: 'none', header });
+  return [
+    base64Encode(JSON.stringify(header)),
+    base64Encode(JSON.stringify(payload)),
+    signature
+  ].join('.');
 }
-
 export function apps(): firebase.app.App[] {
   return firebase.apps;
 }
