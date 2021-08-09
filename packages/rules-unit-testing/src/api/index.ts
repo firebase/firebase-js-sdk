@@ -159,7 +159,8 @@ export type FirebaseEmulatorOptions = {
 };
 
 function trimmedBase64Encode(val: string): string {
-  return base64Encode(val).split("=")[0];
+  // Use base64url encoding and remove padding in the end (dot characters).
+  return base64Encode(val).replace(/\./g, "");
 }
 
 function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
