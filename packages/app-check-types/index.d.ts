@@ -32,7 +32,11 @@ export interface FirebaseAppCheck {
    * defaults to false and can be set in the app config.
    */
   activate(
-    siteKeyOrProvider: string | AppCheckProvider,
+    siteKeyOrProvider:
+      | string
+      | AppCheckProvider
+      | CustomProvider
+      | ReCaptchaV3Provider,
     isTokenAutoRefreshEnabled?: boolean
   ): void;
 
