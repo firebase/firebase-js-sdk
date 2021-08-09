@@ -177,14 +177,14 @@ describe('core/persistence/persistence_user_manager', () => {
       a.stub._isAvailable.resolves(false); // Important
       b.stub._isAvailable.resolves(true);
       c.stub._isAvailable.resolves(true);
-      b.stub._get.resolves(user.toJSON());
+      a.stub._get.resolves(user.toJSON());
       c.stub._get.resolves(testUser(auth, 'wrong-uid').toJSON());
 
-      let persistedUserInA: PersistenceValue | null = null;
+      let persistedUserInB: PersistenceValue | null = null;
       b.stub._set.callsFake(async (_, value) => {
-        persistedUserInA = value;
+        persistedUserInB = value;
       });
-      a.stub._get.callsFake(async () => persistedUserInA);
+      b.stub._get.callsFake(async () => persistedUserInB);
 
       const out = await PersistenceUserManager.create(auth, search);
       expect(b.stub._set).to.have.been.calledOnceWith(
