@@ -158,6 +158,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
   type = PersistenceType.LOCAL;
   db?: IDBDatabase;
+  readonly _shouldAllowMigration = true;
 
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
   private readonly localCache: Record<string, PersistenceValue | null> = {};

@@ -324,6 +324,7 @@ describe('core/auth/initializeAuth', () => {
         const stub = sinon.stub(
           _getInstance<PersistenceInternal>(browserSessionPersistence)
         );
+        stub._isAvailable.returns(Promise.resolve(true));
         stub._remove.returns(Promise.resolve());
         completeRedirectFnStub.returns(Promise.reject(new Error('no')));
 

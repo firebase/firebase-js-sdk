@@ -113,52 +113,77 @@ export class PersistenceUserManager {
       );
     }
 
-    // Use the first persistence that supports a full read-write roundtrip (or fallback to memory).
-    let chosenPersistence = _getInstance<PersistenceInternal>(
-      inMemoryPersistence
-    );
-    for (const persistence of persistenceHierarchy) {
-      if (await persistence._isAvailable()) {
-        chosenPersistence = persistence;
-        break;
-      }
-    }
+    // Eliminate any persistences that are not available
+    const availablePersistences = (
+      await Promise.all(
+        persistenceHierarchy.map(async persistence => {
+          if (await persistence._isAvailable()) {
+            return persistence;
+          }
+          return undefined;
+        })
+      )
+    ).filter(persistence => persistence) as PersistenceInternal[];
 
-    // However, attempt to migrate users stored in other persistences (in the hierarchy order).
-    let userToMigrate: UserInternal | null = null;
+    // Fall back to the first persistence listed, or in memory if none available
+    let selectedPersistence =
+      availablePersistences[0] ||
+      _getInstance<PersistenceInternal>(inMemoryPersistence);
+
     const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
+
+    // Pull out the existing user, setting the chosen persistence to that
+    // persistence if the user exists.
+    let userToMigrate: UserInternal | null = null;
+    // Note, here we check for a user in _all_ persistences, not just the
+    // ones deemed available. If we can migrate a user out of a broken
+    // persistence, we will (but only if that persistence supports migration).
     for (const persistence of persistenceHierarchy) {
-      // We attempt to call _get without checking _isAvailable since here we don't care if the full
-      // round-trip (read+write) is supported. We'll take the first one that we can read or give up.
       try {
-        const blob = await persistence._get<PersistedBlob>(key); // throws if unsupported
+        const blob = await persistence._get<PersistedBlob>(key);
         if (blob) {
           const user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
-          if (persistence !== chosenPersistence) {
+          if (persistence !== selectedPersistence) {
             userToMigrate = user;
           }
+          selectedPersistence = persistence;
           break;
         }
       } catch {}
     }
 
+    // If we find the user in a persistence that does support migration, use
+    // that migration path (of only persistences that support migration)
+    const migrationHierarchy = availablePersistences.filter(
+      p => p._shouldAllowMigration
+    );
+
+    // If the persistence does _not_ allow migration, just finish off here
+    if (
+      !selectedPersistence._shouldAllowMigration ||
+      !migrationHierarchy.length
+    ) {
+      return new PersistenceUserManager(selectedPersistence, auth, userKey);
+    }
+
+    selectedPersistence = migrationHierarchy[0];
     if (userToMigrate) {
       // This normally shouldn't throw since chosenPersistence.isAvailable() is true, but if it does
       // we'll just let it bubble to surface the error.
-      await chosenPersistence._set(key, userToMigrate.toJSON());
+      await selectedPersistence._set(key, userToMigrate.toJSON());
     }
 
     // Attempt to clear the key in other persistences but ignore errors. This helps prevent issues
     // such as users getting stuck with a previous account after signing out and refreshing the tab.
     await Promise.all(
       persistenceHierarchy.map(async persistence => {
-        if (persistence !== chosenPersistence) {
+        if (persistence !== selectedPersistence) {
           try {
             await persistence._remove(key);
           } catch {}
         }
       })
     );
-    return new PersistenceUserManager(chosenPersistence, auth, userKey);
+    return new PersistenceUserManager(selectedPersistence, auth, userKey);
   }
 }
