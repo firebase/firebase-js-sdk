@@ -30,7 +30,8 @@ interface UserCredentialParams {
 }
 
 export class UserCredentialImpl
-  implements UserCredentialInternal, UserCredentialParams {
+  implements UserCredentialInternal, UserCredentialParams
+{
   readonly user: UserInternal;
   readonly providerId: ProviderId | string | null;
   readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined;

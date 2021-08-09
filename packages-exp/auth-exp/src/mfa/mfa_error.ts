@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  MultiFactorError as MultiFactorErrorPublic
-} from '../model/public_types';
+import { MultiFactorError as MultiFactorErrorPublic } from '../model/public_types';
 import { FirebaseError } from '@firebase/util';
 import { AuthInternal } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
@@ -29,7 +27,8 @@ import { OperationType } from '../model/enums';
 
 export class MultiFactorError
   extends FirebaseError
-  implements MultiFactorErrorPublic {
+  implements MultiFactorErrorPublic
+{
   readonly name = 'FirebaseError';
   readonly code: string;
   readonly appName: string;

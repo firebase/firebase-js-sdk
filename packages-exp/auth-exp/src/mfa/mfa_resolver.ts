@@ -83,11 +83,12 @@ export class MultiFactorResolverImpl implements MultiFactorResolver {
         // TODO: we should collapse this switch statement into UserCredentialImpl._forOperation and have it support the SIGN_IN case
         switch (error.operationType) {
           case OperationType.SIGN_IN:
-            const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-              auth,
-              error.operationType,
-              idTokenResponse
-            );
+            const userCredential =
+              await UserCredentialImpl._fromIdTokenResponse(
+                auth,
+                error.operationType,
+                idTokenResponse
+              );
             await auth._updateCurrentUser(userCredential.user);
             return userCredential;
           case OperationType.REAUTHENTICATE:

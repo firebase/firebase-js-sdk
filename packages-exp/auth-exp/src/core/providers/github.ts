@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  UserCredential
-} from '../../model/public_types';
+import { UserCredential } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { TaggedWithTokenResponse } from '../../model/id_token';

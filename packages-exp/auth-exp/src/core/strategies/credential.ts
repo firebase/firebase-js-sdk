@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  UserCredential,
-  Auth,
-  User
-} from '../../model/public_types';
+import { UserCredential, Auth, User } from '../../model/public_types';
 
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { AuthInternal } from '../../model/auth';

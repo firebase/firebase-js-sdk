@@ -84,12 +84,8 @@ export class PhoneAuthCredential extends AuthCredential {
 
   /** @internal */
   _makeVerificationRequest(): SignInWithPhoneNumberRequest {
-    const {
-      temporaryProof,
-      phoneNumber,
-      verificationId,
-      verificationCode
-    } = this.params;
+    const { temporaryProof, phoneNumber, verificationId, verificationCode } =
+      this.params;
     if (temporaryProof && phoneNumber) {
       return { temporaryProof, phoneNumber };
     }
@@ -127,12 +123,8 @@ export class PhoneAuthCredential extends AuthCredential {
       json = JSON.parse(json);
     }
 
-    const {
-      verificationId,
-      verificationCode,
-      phoneNumber,
-      temporaryProof
-    } = json as { [key: string]: string };
+    const { verificationId, verificationCode, phoneNumber, temporaryProof } =
+      json as { [key: string]: string };
     if (
       !verificationCode &&
       !verificationId &&

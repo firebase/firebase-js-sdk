@@ -32,9 +32,7 @@
  * limitations under the License.
  */
 
-import {
-  UserCredential
-} from '../../model/public_types';
+import { UserCredential } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { SignInWithIdpResponse } from '../../api/authentication/idp';

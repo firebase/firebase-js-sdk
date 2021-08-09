@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  IdTokenResult,
-  User,
-  UserCredential,
-  UserInfo
-} from './public_types';
+import { IdTokenResult, User, UserCredential, UserInfo } from './public_types';
 import { NextFn } from '@firebase/util';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
