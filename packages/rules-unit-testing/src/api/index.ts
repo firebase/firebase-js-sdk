@@ -158,6 +158,10 @@ export type FirebaseEmulatorOptions = {
   };
 };
 
+function trimmedBase64Encode(val: string): string {
+  return base64Encode(val).split("=")[0];
+}
+
 function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
   // Unsecured JWTs use "none" as the algorithm.
   const header = {
@@ -199,8 +203,8 @@ function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
   return [
-    base64Encode(JSON.stringify(header)),
-    base64Encode(JSON.stringify(payload)),
+    trimmedBase64Encode(JSON.stringify(header)),
+    trimmedBase64Encode(JSON.stringify(payload)),
     signature
   ].join('.');
 }
