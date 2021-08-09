@@ -128,19 +128,19 @@ export interface Config {
 }
 
 /**
- * 
+ *
  * reCAPTCHA parameters
- * 
+ *
  * Check the reCAPTCHA docs for a comprehensive list. All parameters are accepted except for
  * the sitekey. Firebase Auth backend provisions a reCAPTCHA for each project and will
  * configure this upon rendering. For an invisible reCAPTCHA, a size key must have the value
  * 'invisible'.
- * 
+ *
  * @public
  */
 export interface RecaptchaParameters {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 /**

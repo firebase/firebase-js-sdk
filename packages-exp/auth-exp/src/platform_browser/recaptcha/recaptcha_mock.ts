@@ -37,7 +37,10 @@ export class MockReCaptcha implements Recaptcha {
 
   constructor(private readonly auth: AuthInternal) {}
 
-  render(container: string | HTMLElement, parameters?: RecaptchaParameters): number {
+  render(
+    container: string | HTMLElement,
+    parameters?: RecaptchaParameters
+  ): number {
     const id = this.counter;
     this._widgets.set(
       id,

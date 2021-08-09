@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { RecaptchaParameters } from "../../model/public_types";
+import { RecaptchaParameters } from '../../model/public_types';
 
 export interface Recaptcha {
   render: (container: HTMLElement, parameters: RecaptchaParameters) => number;
