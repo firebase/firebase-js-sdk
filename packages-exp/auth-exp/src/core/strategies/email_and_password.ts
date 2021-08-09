@@ -20,7 +20,6 @@ import {
   ActionCodeOperation,
   ActionCodeSettings,
   Auth,
-  OperationType,
   UserCredential
 } from '../../model/public_types';
 
@@ -36,6 +35,7 @@ import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
+import { OperationType } from '../../model/enums';
 
 /**
  * Sends a password reset email to the given email address.

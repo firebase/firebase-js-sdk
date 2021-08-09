@@ -16,8 +16,6 @@
  */
 
 import {
-  ProviderId,
-  SignInMethod,
   UserCredential
 } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
@@ -26,6 +24,7 @@ import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
 import { BaseOAuthProvider } from './oauth';
+import { ProviderId, SignInMethod } from '../../model/enums';
 
 /**
  * Provider for generating an {@link OAuthCredential} for {@link ProviderId}.FACEBOOK.

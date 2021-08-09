@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId, SignInMethod } from '../../model/public_types';
+import { ProviderId, SignInMethod } from '../../model/enums';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import {

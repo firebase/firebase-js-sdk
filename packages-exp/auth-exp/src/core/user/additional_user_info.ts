@@ -17,12 +17,12 @@
 
 import {
   AdditionalUserInfo,
-  ProviderId,
   UserCredential
 } from '../../model/public_types';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { _parseToken } from './id_token_result';
 import { UserCredentialInternal } from '../../model/user';
+import { ProviderId } from '../../model/enums';
 
 /**
  * Parse the `AdditionalUserInfo` from the ID token response.

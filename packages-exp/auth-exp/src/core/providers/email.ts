@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
+import { ProviderId, SignInMethod } from '../../model/enums';
 import {
-  ProviderId,
-  SignInMethod,
   AuthProvider
 } from '../../model/public_types';
 

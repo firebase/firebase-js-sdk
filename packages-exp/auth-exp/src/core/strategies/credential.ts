@@ -16,7 +16,6 @@
  */
 
 import {
-  OperationType,
   UserCredential,
   Auth,
   User
@@ -31,6 +30,7 @@ import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
+import { OperationType } from '../../model/enums';
 
 export async function _signInWithCredential(
   auth: AuthInternal,

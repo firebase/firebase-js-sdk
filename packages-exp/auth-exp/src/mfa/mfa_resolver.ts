@@ -18,7 +18,6 @@
 import {
   Auth,
   MultiFactorResolver,
-  OperationType,
   UserCredential,
   MultiFactorError
 } from '../model/public_types';
@@ -33,6 +32,7 @@ import { MultiFactorError as MultiFactorErrorInternal } from './mfa_error';
 import { MultiFactorInfoImpl } from './mfa_info';
 import { MultiFactorSessionImpl } from './mfa_session';
 import { getModularInstance } from '@firebase/util';
+import { OperationType } from '../model/enums';
 
 export class MultiFactorResolverImpl implements MultiFactorResolver {
   private constructor(

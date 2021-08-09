@@ -17,7 +17,6 @@
 
 import {
   IdTokenResult,
-  ProviderId,
   User,
   UserCredential,
   UserInfo
@@ -30,6 +29,7 @@ import { StsTokenManager } from '../core/user/token_manager';
 import { UserMetadata } from '../core/user/user_metadata';
 import { AuthInternal } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
+import { ProviderId } from './enums';
 
 export type MutableUserInfo = {
   -readonly [K in keyof UserInfo]: UserInfo[K];

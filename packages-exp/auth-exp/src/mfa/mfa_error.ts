@@ -16,8 +16,7 @@
  */
 
 import {
-  MultiFactorError as MultiFactorErrorPublic,
-  OperationType
+  MultiFactorError as MultiFactorErrorPublic
 } from '../model/public_types';
 import { FirebaseError } from '@firebase/util';
 import { AuthInternal } from '../model/auth';
@@ -26,6 +25,7 @@ import { AuthErrorCode } from '../core/errors';
 import { UserInternal } from '../model/user';
 import { AuthCredential } from '../core/credentials';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
+import { OperationType } from '../model/enums';
 
 export class MultiFactorError
   extends FirebaseError

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { OperationType, ProviderId, User } from '../../model/public_types';
+import { User } from '../../model/public_types';
 
 import { deleteLinkedAccounts } from '../../api/account_management/account';
 import { UserInternal, UserCredentialInternal } from '../../model/user';
@@ -27,6 +27,7 @@ import { _logoutIfInvalidated } from './invalidation';
 import { _reloadWithoutSaving } from './reload';
 import { UserCredentialImpl } from './user_credential_impl';
 import { getModularInstance } from '@firebase/util';
+import { OperationType, ProviderId } from '../../model/enums';
 
 /**
  * Unlinks a provider from a user account.
