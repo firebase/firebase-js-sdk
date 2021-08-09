@@ -35,7 +35,10 @@ import {
   addTokenListener,
   removeTokenListener
 } from './internal-api';
-import { ReCaptchaV3Provider as ReCaptchaV3ProviderImpl, CustomProvider as CustomProviderImpl } from './providers';
+import {
+  ReCaptchaV3Provider as ReCaptchaV3ProviderImpl,
+  CustomProvider as CustomProviderImpl
+} from './providers';
 import { Provider } from '@firebase/component';
 import { PartialObserver } from '@firebase/util';
 
@@ -49,7 +52,11 @@ export function factory(
   return {
     app,
     activate: (
-      siteKeyOrProvider: ReCaptchaV3Provider | CustomProvider | AppCheckProvider | string,
+      siteKeyOrProvider:
+        | ReCaptchaV3Provider
+        | CustomProvider
+        | AppCheckProvider
+        | string,
       isTokenAutoRefreshEnabled?: boolean
     ) =>
       activate(
@@ -57,7 +64,11 @@ export function factory(
         // Public types of ReCaptchaV3Provider/CustomProvider don't
         // expose getToken() and aren't recognized as the internal
         // class version of themselves.
-        siteKeyOrProvider as (ReCaptchaV3ProviderImpl | CustomProviderImpl |AppCheckProvider | string),
+        siteKeyOrProvider as
+          | ReCaptchaV3ProviderImpl
+          | CustomProviderImpl
+          | AppCheckProvider
+          | string,
         platformLoggerProvider,
         isTokenAutoRefreshEnabled
       ),
