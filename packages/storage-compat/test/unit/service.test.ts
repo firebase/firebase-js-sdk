@@ -18,11 +18,7 @@ import '../setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import * as modularStorage from '@firebase/storage';
-import {
-  makeTestCompatStorage,
-  fakeApp,
-  fakeStorage
-} from '../utils';
+import { makeTestCompatStorage, fakeApp, fakeStorage } from '../utils';
 import {
   FirebaseStorage,
   getStorage,
