@@ -1,5 +1,11 @@
 # @firebase/app-check-types
 
+## 0.3.1
+
+### Patch Changes
+
+- [`f1027e3c2`](https://github.com/firebase/firebase-js-sdk/commit/f1027e3c24cab52046766a898c6702860f5ad3f6) [#5261](https://github.com/firebase/firebase-js-sdk/pull/5261) (fixes [#5258](https://github.com/firebase/firebase-js-sdk/issues/5258)) - Fixed argument typings for `activate()`.
+
 ## 0.3.0
 
 ### Minor Changes
