@@ -1143,19 +1143,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           db
             .collection('test')
-            .where('foo', 'array-contains-any', [
-              1,
-              2,
-              3,
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              9,
-              9
-            ])
+            .where(
+              'foo',
+              'array-contains-any',
+              [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9]
+            )
         ).to.throw(
           "Invalid Query. 'array-contains-any' filters support a maximum of " +
             '10 elements in the value array.'

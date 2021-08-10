@@ -136,7 +136,7 @@ export class PersistencePromise<T> {
       return this.wrapUserFunction(() => nextFn(value));
     } else {
       // If there's no nextFn, then R must be the same as T
-      return PersistencePromise.resolve<R>((value as unknown) as R);
+      return PersistencePromise.resolve<R>(value as unknown as R);
     }
   }
 
@@ -204,9 +204,8 @@ export class PersistencePromise<T> {
   static or(
     predicates: Array<() => PersistencePromise<boolean>>
   ): PersistencePromise<boolean> {
-    let p: PersistencePromise<boolean> = PersistencePromise.resolve<boolean>(
-      false
-    );
+    let p: PersistencePromise<boolean> =
+      PersistencePromise.resolve<boolean>(false);
     for (const predicate of predicates) {
       p = p.next(isTrue => {
         if (isTrue) {
