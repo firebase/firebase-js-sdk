@@ -36,7 +36,7 @@ describe('Firebase Storage > Service', () => {
       const connectStorageEmulatorStub = stub(
         modularStorage,
         'connectStorageEmulator'
-      ).callsFake(() => { });
+      ).callsFake(() => {});
       const service = makeTestCompatStorage(fakeApp, fakeStorage);
       service.useEmulator('test.host.org', 1234);
 
@@ -69,14 +69,14 @@ describe('Firebase Storage > Service', () => {
     it('Works with http:// URLs', () => {
       const ref = service.refFromURL(
         `http://${DEFAULT_HOST}/v0/b/` +
-        'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
+          'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
       expect(ref.toString()).to.equal('gs://mybucket/child/path/image.png');
     });
     it('Works with https:// URLs', () => {
       const ref = service.refFromURL(
         `https://${DEFAULT_HOST}/v0/b/` +
-        'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
+          'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
       expect(ref.toString()).to.equal('gs://mybucket/child/path/image.png');
     });
@@ -184,7 +184,7 @@ GOOG4-RSA-SHA256`
     let service: StorageServiceCompat;
     let testCompatApp: FirebaseApp;
     let testModularStorage: FirebaseStorage;
-    before(() => { 
+    before(() => {
       testCompatApp = firebase.initializeApp({});
       testModularStorage = getStorage(testCompatApp);
       service = makeTestCompatStorage(testCompatApp, testModularStorage);
