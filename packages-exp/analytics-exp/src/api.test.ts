@@ -26,7 +26,10 @@ import { removeGtagScript } from '../testing/gtag-script-util';
 import * as getConfig from './get-config';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 
-const fakeDynamicConfig = stub(getConfig, 'fetchDynamicConfigWithRetry').resolves({
+const fakeDynamicConfig = stub(
+  getConfig,
+  'fetchDynamicConfigWithRetry'
+).resolves({
   appId: 'FAKE_APP_ID',
   measurementId: 'FAKE_MEASUREMENT_ID'
 });

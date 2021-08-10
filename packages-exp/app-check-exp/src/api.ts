@@ -33,6 +33,7 @@ import {
   addTokenListener,
   removeTokenListener
 } from './internal-api';
+import { CustomProvider, ReCaptchaV3Provider } from './providers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -55,16 +56,13 @@ export function initializeAppCheck(
   app = getModularInstance(app);
   const provider = _getProvider(app, 'app-check-exp');
 
-  // if (provider.isInitialized()) {
-  //   throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
-  //     appName: app.name
-  //   });
-  // }
-
   if (provider.isInitialized()) {
     const existingInstance = provider.getImmediate();
+    const initialOptions = provider.getOptions() as AppCheckOptions;
     if (
-      deepEqual(options.config || {}, existingInstance.options?.config || {})
+      initialOptions.isTokenAutoRefreshEnabled ===
+        options.isTokenAutoRefreshEnabled &&
+      initialOptions.provider.isEqual(options.provider)
     ) {
       return existingInstance;
     } else {

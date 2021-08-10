@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, initializeApp, _registerComponent } from '@firebase/app-exp';
+import {
+  FirebaseApp,
+  initializeApp,
+  _registerComponent
+} from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { registerAnalytics } from '../src';
-
 
 const fakeConfig = {
   projectId: 'projectId',
@@ -36,7 +39,7 @@ export function getFakeApp(fakeAppParams?: {
 }): FirebaseApp {
   return {
     name: 'appName',
-    options: {...fakeConfig, ...fakeAppParams},
+    options: { ...fakeConfig, ...fakeAppParams },
     automaticDataCollectionEnabled: true
   };
 }
@@ -70,6 +73,6 @@ export function getFullApp(fakeAppParams?: {
       ComponentType.PUBLIC
     )
   );
-  const app = initializeApp({...fakeConfig, ...fakeAppParams});
+  const app = initializeApp({ ...fakeConfig, ...fakeAppParams });
   return app;
 }

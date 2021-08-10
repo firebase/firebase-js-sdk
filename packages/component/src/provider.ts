@@ -38,8 +38,7 @@ export class Provider<T extends Name> {
     string,
     Deferred<NameServiceMapping[T]>
   > = new Map();
-  private readonly instancesOptions: Map<string, InitializeOptions> =
-    new Map();
+  private readonly instancesOptions: Map<string, InitializeOptions> = new Map();
   private onInitCallbacks: Map<string, Set<OnInitCallBack<T>>> = new Map();
 
   constructor(
