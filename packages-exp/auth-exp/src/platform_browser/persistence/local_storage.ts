@@ -46,7 +46,8 @@ const IE10_LOCAL_STORAGE_SYNC_DELAY = 10;
 
 class BrowserLocalPersistence
   extends BrowserPersistenceClass
-  implements InternalPersistence {
+  implements InternalPersistence
+{
   static type: 'LOCAL' = 'LOCAL';
 
   constructor() {
@@ -69,6 +70,7 @@ class BrowserLocalPersistence
     _iframeCannotSyncWebStorage() && _isIframe();
   // Whether to use polling instead of depending on window events
   private readonly fallbackToPolling = _isMobileBrowser();
+  readonly _shouldAllowMigration = true;
 
   private forAllChangedKeys(
     cb: (key: string, oldValue: string | null, newValue: string | null) => void

@@ -27,6 +27,7 @@ import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+import { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
 import { Auth } from './src/model/public_types';
@@ -136,7 +137,11 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
 
   return initializeAuth(app, {
     popupRedirectResolver: browserPopupRedirectResolver,
-    persistence: [indexedDBLocalPersistence, browserLocalPersistence]
+    persistence: [
+      indexedDBLocalPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence
+    ]
   });
 }
 

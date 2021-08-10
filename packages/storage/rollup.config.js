@@ -50,11 +50,10 @@ const es5Builds = [
   // Browser
   {
     input: './src/index.ts',
-    output: {
-      file: pkg.esm5,
-      format: 'es',
-      sourcemap: true
-    },
+    output: [
+      { file: 'dist/index.browser.cjs.js', format: 'cjs', sourcemap: true },
+      { file: pkg.esm5, format: 'es', sourcemap: true }
+    ],
     plugins: [alias(generateAliasConfig('browser')), ...es5Plugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {

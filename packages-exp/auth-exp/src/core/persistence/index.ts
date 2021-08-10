@@ -44,4 +44,6 @@ export interface PersistenceInternal extends Persistence {
   _remove(key: string): Promise<void>;
   _addListener(key: string, listener: StorageEventListener): void;
   _removeListener(key: string, listener: StorageEventListener): void;
+  // Should this persistence allow migration up the chosen hierarchy?
+  _shouldAllowMigration?: boolean;
 }
