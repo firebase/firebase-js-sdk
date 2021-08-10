@@ -98,7 +98,8 @@ describe('api', () => {
       const appCheckInstance = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      expect(initializeAppCheck(app, {
+      expect(
+        initializeAppCheck(app, {
           provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
         })
       ).to.equal(appCheckInstance);
