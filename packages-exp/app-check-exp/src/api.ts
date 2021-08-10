@@ -25,7 +25,7 @@ import {
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { getState, setState, AppCheckState } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
-import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
+import { getModularInstance, ErrorFn, NextFn, deepEqual } from '@firebase/util';
 import { AppCheckService } from './factory';
 import { AppCheckProvider, ListenerType } from './types';
 import {
@@ -55,10 +55,23 @@ export function initializeAppCheck(
   app = getModularInstance(app);
   const provider = _getProvider(app, 'app-check-exp');
 
+  // if (provider.isInitialized()) {
+  //   throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
+  //     appName: app.name
+  //   });
+  // }
+
   if (provider.isInitialized()) {
-    throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
-      appName: app.name
-    });
+    const existingInstance = provider.getImmediate();
+    if (
+      deepEqual(options.config || {}, existingInstance.options?.config || {})
+    ) {
+      return existingInstance;
+    } else {
+      throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
+        appName: app.name
+      });
+    }
   }
 
   const appCheck = provider.initialize({ options });

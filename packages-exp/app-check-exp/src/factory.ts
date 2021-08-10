@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AppCheck } from './public-types';
+import { AppCheck, AppCheckOptions } from './public-types';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 import { FirebaseAppCheckInternal, ListenerType } from './types';
 import {
@@ -32,7 +32,8 @@ import { getState } from './state';
 export class AppCheckService implements AppCheck, _FirebaseService {
   constructor(
     public app: FirebaseApp,
-    public platformLoggerProvider: Provider<'platform-logger'>
+    public platformLoggerProvider: Provider<'platform-logger'>,
+    public options: AppCheckOptions
   ) {}
   _delete(): Promise<void> {
     const { tokenObservers } = getState(this.app);
@@ -45,9 +46,10 @@ export class AppCheckService implements AppCheck, _FirebaseService {
 
 export function factory(
   app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>
+  platformLoggerProvider: Provider<'platform-logger'>,
+  options: AppCheckOptions
 ): AppCheckService {
-  return new AppCheckService(app, platformLoggerProvider);
+  return new AppCheckService(app, platformLoggerProvider, options);
 }
 
 export function internalFactory(

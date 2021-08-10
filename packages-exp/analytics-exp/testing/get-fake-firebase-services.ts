@@ -15,8 +15,19 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp, initializeApp, _registerComponent } from '@firebase/app-exp';
+import { Component, ComponentType } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
+import { registerAnalytics } from '../src';
+
+
+const fakeConfig = {
+  projectId: 'projectId',
+  authDomain: 'authDomain',
+  messagingSenderId: 'messagingSenderId',
+  databaseURL: 'databaseUrl',
+  storageBucket: 'storageBucket'
+};
 
 export function getFakeApp(fakeAppParams?: {
   appId?: string;
@@ -25,16 +36,7 @@ export function getFakeApp(fakeAppParams?: {
 }): FirebaseApp {
   return {
     name: 'appName',
-    options: {
-      apiKey: fakeAppParams?.apiKey,
-      projectId: 'projectId',
-      authDomain: 'authDomain',
-      messagingSenderId: 'messagingSenderId',
-      databaseURL: 'databaseUrl',
-      storageBucket: 'storageBucket',
-      appId: fakeAppParams?.appId,
-      measurementId: fakeAppParams?.measurementId
-    },
+    options: {...fakeConfig, ...fakeAppParams},
     automaticDataCollectionEnabled: true
   };
 }
@@ -51,4 +53,23 @@ export function getFakeInstallations(
     },
     getToken: async () => 'authToken'
   };
+}
+
+export function getFullApp(fakeAppParams?: {
+  appId?: string;
+  apiKey?: string;
+  measurementId?: string;
+}): FirebaseApp {
+  registerAnalytics();
+  _registerComponent(
+    new Component(
+      'installations-exp-internal',
+      () => {
+        return getFakeInstallations();
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  const app = initializeApp({...fakeConfig, ...fakeAppParams});
+  return app;
 }

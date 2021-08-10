@@ -21,7 +21,6 @@ import { getAnalytics, initializeAnalytics, logEvent } from '../../src/index';
 import '../setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { AnalyticsError } from '../../src/errors';
 
 let config: Record<string, string>;
 try {
@@ -85,16 +84,6 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
       const eventCalls = await checkForEventCalls();
       expect(eventCalls.length).to.equal(1);
       expect(eventCalls[0].name).to.include('method=email');
-    });
-    it('getAnalytics() does not throw if called after initializeAnalytics().', async () => {
-      const analyticsInstance = getAnalytics(app);
-      expect(analyticsInstance.app).to.equal(app);
-    });
-    it('initializeAnalytics() throws if called more than once.', async () => {
-      expect(() => initializeAnalytics(app)).to.throw(
-        AnalyticsError.ALREADY_INITIALIZED
-      );
-      await deleteApp(app);
     });
   });
 });
