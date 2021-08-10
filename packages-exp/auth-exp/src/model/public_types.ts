@@ -65,13 +65,13 @@ export interface Config {
 }
 
 /**
+ * Interface representing reCAPTCHA parameters.
  *
- * reCAPTCHA parameters
+ * See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param) 
+ * for the list of accepted parameters. All parameters are accepted except for `sitekey`: Firebase Auth 
+ * provisions a reCAPTCHA for each project and will configure the site key upon rendering.
  *
- * Check the reCAPTCHA docs for a comprehensive list. All parameters are accepted except for
- * the sitekey. Firebase Auth backend provisions a reCAPTCHA for each project and will
- * configure this upon rendering. For an invisible reCAPTCHA, a size key must have the value
- * 'invisible'.
+ * For an invisible reCAPTCHA, set the `size` key to `invisible`.
  *
  * @public
  */
