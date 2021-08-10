@@ -74,6 +74,39 @@ export interface UpdateData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [fieldPath: string]: any;
 }
+// Represents an update object to Firestore document data, which can contain either fields like {a: 2}
+// or dot-separated paths such as {"a.b" : 2} (which updates the nested property "b" in map field "a").
+export type TypedUpdateData<T> = T extends Builtin
+  ? T
+  : T extends Map<infer K, infer V>
+  ? Map<TypedUpdateData<K>, TypedUpdateData<V>>
+  : T extends {}
+  ? { [K in keyof T]?: TypedUpdateData<T[K]> | FieldValue } &
+      NestedUpdateFields<T>
+  : Partial<T>;
+
+// For each field (e.g. "bar"), calculate its nested keys (e.g. {"bar.baz": T1, "bar.quax": T2}), and then
+// intersect them together to make one giant map containing all possible keys (all marked as optional).
+type NestedUpdateFields<T extends Record<string, any>> = UnionToIntersection<
+  {
+    [K in keyof T & string]: T[K] extends Record<string, any> // Only allow nesting for map values
+      ? AddPrefixToKeys<K, TypedUpdateData<T[K]>> // Recurse into map and add "bar." in front of every key
+      : never;
+  }[keyof T & string]
+>;
+
+// Return a new map where every key is prepended with Prefix + dot.
+type AddPrefixToKeys<Prefix extends string, T extends Record<string, any>> =
+  // Remap K => Prefix.K. See https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
+  { [K in keyof T & string as `${Prefix}.${K}`]+?: T[K] };
+
+// This takes union type U = T1 | T2 | ... and returns a intersected type (T1 & T2 & ...)
+type UnionToIntersection<U> =
+  // Works because "multiple candidates for the same type variable in contra-variant positions causes an intersection type to be inferred"
+  // https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-inference-in-conditional-types
+  (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+    ? I
+    : never;
 
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link

@@ -44,6 +44,7 @@ import {
   NestedPartialWithFieldValue,
   Query,
   SetOptions,
+  TypedUpdateData,
   UpdateData,
   WithFieldValue
 } from './reference';
@@ -266,9 +267,9 @@ export function setDoc<T>(
  * @returns A Promise resolved once the data has been successfully written
  * to the backend.
  */
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  data: UpdateData
+export function updateDoc<T>(
+  reference: DocumentReference<T>,
+  data: TypedUpdateData<T>
 ): Promise<void>;
 /**
  * Updates fields in the document referred to by the specified
@@ -296,9 +297,9 @@ export function updateDoc(
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
-export function updateDoc(
+export function updateDoc<T>(
   reference: DocumentReference<unknown>,
-  fieldOrUpdateData: string | FieldPath | UpdateData,
+  fieldOrUpdateData: string | FieldPath | TypedUpdateData<T>,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
