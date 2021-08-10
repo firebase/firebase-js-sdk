@@ -25,7 +25,7 @@ import {
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { getState, setState, AppCheckState } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
-import { getModularInstance, ErrorFn, NextFn, deepEqual } from '@firebase/util';
+import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';
 import { AppCheckProvider, ListenerType } from './types';
 import {
@@ -33,7 +33,6 @@ import {
   addTokenListener,
   removeTokenListener
 } from './internal-api';
-import { CustomProvider, ReCaptchaV3Provider } from './providers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

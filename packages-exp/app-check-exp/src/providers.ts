@@ -138,7 +138,10 @@ export class CustomProvider implements AppCheckProvider {
    */
   isEqual(otherProvider: unknown): boolean {
     if (otherProvider instanceof CustomProvider) {
-      return this.getToken.toString() === otherProvider.getToken.toString();
+      return (
+        this._customProviderOptions.getToken.toString() ===
+        otherProvider._customProviderOptions.getToken.toString()
+      );
     } else {
       return false;
     }
