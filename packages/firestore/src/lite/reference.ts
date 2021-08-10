@@ -36,6 +36,7 @@ import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
+import { FieldValue } from './field_value';
 import { FirestoreDataConverter } from './snapshot';
 
 /**
@@ -47,6 +48,21 @@ export interface DocumentData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [field: string]: any;
 }
+
+type Primitive = string | number | boolean | bigint | undefined | null;
+// eslint-disable-next-line @typescript-eslint/ban-types
+type Builtin = Primitive | Function;
+
+/** Like Partial but recursive */
+export type NestedPartialWithFieldValue<T> = T extends Builtin
+  ? T
+  : T extends Map<infer K, infer V>
+  ? Map<NestedPartialWithFieldValue<K>, NestedPartialWithFieldValue<V>>
+  : T extends {}
+  ? { [K in keyof T]?: NestedPartialWithFieldValue<T[K]> | FieldValue }
+  : Partial<T>;
+
+export type WithFieldValue<T> = { [P in keyof T]: T[P] | FieldValue };
 
 /**
  * Update data (for use with {@link @firebase/firestore/lite#(updateDoc:1)}) consists of field paths (e.g.

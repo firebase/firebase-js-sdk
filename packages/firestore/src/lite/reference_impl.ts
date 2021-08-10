@@ -41,9 +41,11 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
+  NestedPartialWithFieldValue,
   Query,
   SetOptions,
-  UpdateData
+  UpdateData,
+  WithFieldValue
 } from './reference';
 import {
   DocumentSnapshot,
@@ -197,7 +199,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: T
+  data: WithFieldValue<T>
 ): Promise<void>;
 /**
  * Writes to the document referred to by the specified `DocumentReference`. If
@@ -217,12 +219,12 @@ export function setDoc<T>(
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: Partial<T>,
+  data: NestedPartialWithFieldValue<T>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: T,
+  data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);

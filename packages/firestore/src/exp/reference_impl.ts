@@ -42,9 +42,11 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
+  NestedPartialWithFieldValue,
   Query,
   SetOptions,
-  UpdateData
+  UpdateData,
+  WithFieldValue
 } from '../lite/reference';
 import { applyFirestoreDataConverter } from '../lite/reference_impl';
 import {
@@ -243,7 +245,7 @@ export function getDocsFromServer<T>(
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: T
+  data: WithFieldValue<T>
 ): Promise<void>;
 /**
  * Writes to the document referred to by the specified `DocumentReference`. If
@@ -258,12 +260,12 @@ export function setDoc<T>(
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: Partial<T>,
+  data: NestedPartialWithFieldValue<T>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: T,
+  data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
@@ -393,7 +395,7 @@ export function deleteDoc(
  */
 export function addDoc<T>(
   reference: CollectionReference<T>,
-  data: T
+  data: WithFieldValue<T>
 ): Promise<DocumentReference<T>> {
   const firestore = cast(reference.firestore, Firestore);
 

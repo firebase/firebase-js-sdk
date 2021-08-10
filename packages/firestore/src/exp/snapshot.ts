@@ -18,7 +18,14 @@
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite/field_path';
-import { DocumentData, Query, queryEqual, SetOptions } from '../lite/reference';
+import {
+  DocumentData,
+  NestedPartialWithFieldValue,
+  Query,
+  queryEqual,
+  SetOptions,
+  WithFieldValue
+} from '../lite/reference';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument,
@@ -84,7 +91,7 @@ export interface FirestoreDataConverter<T>
    * Firestore database). To use `set()` with `merge` and `mergeFields`,
    * `toFirestore()` must be defined with `Partial<T>`.
    */
-  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
@@ -92,7 +99,10 @@ export interface FirestoreDataConverter<T>
    * Firestore database). Used with {@link (setDoc:1)}, {@link (WriteBatch.set:1)}
    * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
    */
-  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  toFirestore(
+    modelObject: NestedPartialWithFieldValue<T>,
+    options: SetOptions
+  ): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

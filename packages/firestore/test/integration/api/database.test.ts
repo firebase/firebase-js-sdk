@@ -32,6 +32,7 @@ import {
   withTestDocAndInitialData
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
+import { NestedPartialWithFieldValue } from '../../../src/lite/reference';
 
 use(chaiAsPromised);
 
@@ -1351,7 +1352,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
     const postConverterMerge = {
       toFirestore(
-        post: Partial<Post>,
+        post: NestedPartialWithFieldValue<Post>,
         options?: firestore.SetOptions
       ): firestore.DocumentData {
         if (options && (options.merge || options.mergeFields)) {

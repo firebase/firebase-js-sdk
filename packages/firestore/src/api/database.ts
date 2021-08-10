@@ -127,6 +127,7 @@ import {
   NextFn,
   PartialObserver
 } from './observer';
+import { NestedPartialWithFieldValue, WithFieldValue } from '../lite/reference';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
@@ -597,19 +598,19 @@ class FirestoreDataConverter<U>
     );
   }
 
-  toFirestore(modelObject: U): PublicDocumentData;
+  toFirestore(modelObject: WithFieldValue<U>): PublicDocumentData;
   toFirestore(
-    modelObject: Partial<U>,
+    modelObject: NestedPartialWithFieldValue<U>,
     options: PublicSetOptions
   ): PublicDocumentData;
   toFirestore(
-    modelObject: U | Partial<U>,
+    modelObject: WithFieldValue<U> | NestedPartialWithFieldValue<U>,
     options?: PublicSetOptions
   ): PublicDocumentData {
     if (!options) {
       return this._delegate.toFirestore(modelObject as U);
     } else {
-      return this._delegate.toFirestore(modelObject, options);
+      return this._delegate.toFirestore(modelObject as Partial<U>, options);
     }
   }
 
@@ -733,7 +734,15 @@ export class DocumentReference<T = PublicDocumentData>
   set(value: T | Partial<T>, options?: PublicSetOptions): Promise<void> {
     options = validateSetOptions('DocumentReference.set', options);
     try {
-      return setDoc(this._delegate, value, options);
+      if (options) {
+        return setDoc(
+          this._delegate,
+          value as NestedPartialWithFieldValue<T>,
+          options
+        );
+      } else {
+        return setDoc(this._delegate, value as WithFieldValue<T>);
+      }
     } catch (e) {
       throw replaceFunctionName(e, 'setDoc()', 'DocumentReference.set()');
     }

@@ -57,7 +57,9 @@ import {
   collectionGroup,
   SetOptions,
   UpdateData,
-  DocumentData
+  DocumentData,
+  WithFieldValue,
+  NestedPartialWithFieldValue
 } from '../../src/lite/reference';
 import {
   addDoc,
@@ -337,10 +339,13 @@ describe('getDoc()', () => {
  * DocumentReference-based mutation API.
  */
 interface MutationTester {
-  set<T>(documentRef: DocumentReference<T>, data: T): Promise<void>;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: Partial<T>,
+    data: WithFieldValue<T>
+  ): Promise<void>;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: NestedPartialWithFieldValue<T>,
     options: SetOptions
   ): Promise<void>;
   update(
@@ -580,7 +585,11 @@ function genericMutationTests(
         const coll = collection(db, 'posts');
         const ref = doc(coll, 'post').withConverter(postConverterMerge);
         await setDoc(ref, new Post('walnut', 'author'));
-        await setDoc(ref, { title: 'olive' }, { merge: true });
+        await setDoc(
+          ref,
+          { title: 'olive', id: increment(2) },
+          { merge: true }
+        );
         const postDoc = await getDoc(ref);
         expect(postDoc.get('title')).to.equal('olive');
         expect(postDoc.get('author')).to.equal('author');
