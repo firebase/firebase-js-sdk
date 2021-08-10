@@ -176,7 +176,7 @@ describe('logToFirelog', () => {
       }, 1000);
     });
 
-    it('send log events if user logging permission is granted', done => {
+    it('sends log events if user logging permission is granted', done => {
       // set up
       fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
       messaging = getFakeMessagingService();
