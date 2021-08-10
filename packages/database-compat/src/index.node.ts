@@ -23,15 +23,15 @@ import * as types from '@firebase/database-types';
 import { CONSTANTS, isNodeSdk } from '@firebase/util';
 import { Client } from 'faye-websocket';
 
-import { enableLogging } from '../exp/index';
-import { Database } from '../src/api/Database';
-import * as INTERNAL from '../src/api/internal';
-import { DataSnapshot, Query, Reference } from '../src/api/Reference';
-import * as TEST_ACCESS from '../src/api/test_access';
-import { setSDKVersion } from '../src/core/version';
-import { setWebSocketImpl } from '../src/realtime/WebSocketConnection';
+import { enableLogging } from '../../database/exp/index';
+import { Database } from '../../database/src/api/Database';
+import * as INTERNAL from '../../database/src/api/internal';
+import { DataSnapshot, Query, Reference } from '../../database/src/api/Reference';
+import * as TEST_ACCESS from '../../database/src/api/test_access';
+import { setSDKVersion } from '../../database/src/core/version';
+import { setWebSocketImpl } from '../../database/src/realtime/WebSocketConnection';
 
-import { name, version } from './package.json';
+import { name, version } from '../package.json';
 
 setWebSocketImpl(Client);
 
@@ -136,7 +136,7 @@ try {
 // Types to export for the admin SDK
 export { Database, Query, Reference, enableLogging, ServerValue };
 
-export { OnDisconnect } from '../src/api/onDisconnect';
+export { OnDisconnect } from '../../database/src/api/onDisconnect';
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
@@ -151,4 +151,4 @@ declare module '@firebase/app-compat' {
     database?(): types.FirebaseDatabase;
   }
 }
-export { DataSnapshot } from '../src/api/Reference';
+export { DataSnapshot } from '../../database/src/api/Reference';

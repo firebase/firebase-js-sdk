@@ -24,7 +24,7 @@ import { name as appCheckName } from '../../../packages-exp/app-check-exp/packag
 import { name as authName } from '../../../packages-exp/auth-exp/package.json';
 import { name as authCompatName } from '../../../packages-exp/auth-compat-exp/package.json';
 import { name as databaseName } from '../../../packages/database/package.json';
-import { name as databaseCompatName } from '../../../packages/database/compat/package.json';
+import { name as databaseCompatName } from '../../../packages/database-compat/package.json';
 import { name as functionsName } from '../../../packages-exp/functions-exp/package.json';
 import { name as functionsCompatName } from '../../../packages-exp/functions-compat/package.json';
 import { name as installationsName } from '../../../packages-exp/installations-exp/package.json';

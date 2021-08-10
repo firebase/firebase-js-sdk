@@ -22,7 +22,7 @@ import path from 'path';
 import { getImportPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 import compatPkg from './compat/package.json';
-import pkg from './package.json';
+import pkg from '../database/package.json';
 
 const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
