@@ -8,8 +8,7 @@
   "browser": "dist/index.esm2017.js",
   "esm5": "dist/index.esm5.js",
   "files": [
-    "dist",
-    "exp/dist"
+    "dist"
   ],
   "scripts": {
     "bundle": "rollup -c",
@@ -20,12 +19,8 @@
     "dev": "rollup -c -w",
     "test": "run-p test:browser test:node lint",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
-    "test:browser:compat:unit": "karma start --single-run --compat --unit",
-    "test:browser:exp:unit": "karma start --single-run --exp --unit",
-    "test:browser:compat:integration": "karma start --single-run --compat --integration",
-    "test:browser:exp:integration": "karma start --single-run --exp --integration",
-    "test:browser:compat": "karma start --single-run --compat",
-    "test:browser:exp": "karma start --single-run --exp",
+    "test:browser:unit": "karma start --single-run --unit",
+    "test:browser:integration": "karma start --single-run --integration",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
@@ -34,7 +29,6 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/storage-types": "0.4.1",
     "@firebase/util": "1.2.0",
     "@firebase/component": "0.5.5",
     "node-fetch": "2.6.1",

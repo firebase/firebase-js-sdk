@@ -34,14 +34,6 @@ function getTestFiles(argv) {
   let unitTestFiles = ['test/unit/*'];
   let integrationTestFiles = ['test/integration/*'];
 
-  // if (argv.compat) {
-  //   unitTestFiles = unitTestFiles.filter(
-  //     filename => !filename.includes('.exp.')
-  //   );
-  //   integrationTestFiles = ['test/integration/*compat*'];
-  // } else {
-  //   integrationTestFiles = ['test/integration/*'];
-  // }
   if (argv.unit) {
     return unitTestFiles;
   } else if (argv.integration) {

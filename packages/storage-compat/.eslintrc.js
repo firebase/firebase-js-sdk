@@ -26,7 +26,6 @@ module.exports = {
     tsconfigRootDir: __dirname
   },
   rules: {
-    'no-throw-literal': 'off',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
