@@ -382,7 +382,7 @@ describe('WriteBatch', () => {
 
     set<T>(
       ref: DocumentReference<T>,
-      data: T | Partial<T>,
+      data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
       options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
@@ -392,9 +392,9 @@ describe('WriteBatch', () => {
       return batch.commit();
     }
 
-    update(
-      ref: DocumentReference<unknown>,
-      dataOrField: UpdateData | string | FieldPath,
+    update<T>(
+      ref: DocumentReference<T>,
+      dataOrField: TypedUpdateData<T> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -445,21 +445,21 @@ describe('Transaction', () => {
 
     set<T>(
       ref: DocumentReference<T>,
-      data: T | Partial<T>,
+      data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
       options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (options) {
-          transaction.set(ref, data, options);
+          transaction.set(ref, data as NestedPartialWithFieldValue<T>, options);
         } else {
-          transaction.set(ref, data);
+          transaction.set(ref, data as WithFieldValue<T>);
         }
       });
     }
 
-    update(
-      ref: DocumentReference<unknown>,
-      dataOrField: UpdateData | string | FieldPath,
+    update<T>(
+      ref: DocumentReference<T>,
+      dataOrField: TypedUpdateData<T> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {

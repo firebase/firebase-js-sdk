@@ -441,21 +441,24 @@ export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
 
   set<T>(
     documentRef: DocumentReference<T>,
-    data: Partial<T>,
+    data: NestedPartialWithFieldValue<T>,
     options: PublicSetOptions
   ): Transaction;
-  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: WithFieldValue<T>
+  ): Transaction;
   set<T>(
     documentRef: PublicDocumentReference<T>,
-    data: T | Partial<T>,
+    data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
     options?: PublicSetOptions
   ): Transaction {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('Transaction.set', options);
-      this._delegate.set(ref, data, options);
+      this._delegate.set(ref, data as NestedPartialWithFieldValue<T>, options);
     } else {
-      this._delegate.set(ref, data);
+      this._delegate.set(ref, data as WithFieldValue<T>);
     }
     return this;
   }
@@ -502,21 +505,24 @@ export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
   constructor(readonly _delegate: ExpWriteBatch) {}
   set<T>(
     documentRef: DocumentReference<T>,
-    data: Partial<T>,
+    data: NestedPartialWithFieldValue<T>,
     options: PublicSetOptions
   ): WriteBatch;
-  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: WithFieldValue<T>
+  ): WriteBatch;
   set<T>(
     documentRef: PublicDocumentReference<T>,
-    data: T | Partial<T>,
+    data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
     options?: PublicSetOptions
   ): WriteBatch {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('WriteBatch.set', options);
-      this._delegate.set(ref, data, options);
+      this._delegate.set(ref, data as NestedPartialWithFieldValue<T>, options);
     } else {
-      this._delegate.set(ref, data);
+      this._delegate.set(ref, data as WithFieldValue<T>);
     }
     return this;
   }
