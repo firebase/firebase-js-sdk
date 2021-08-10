@@ -33,16 +33,6 @@ module.exports = {
         varsIgnorePattern: '^_',
         args: 'none'
       }
-    ],
-    'import/no-extraneous-dependencies': [
-      'error',
-      {
-        'packageDir': [
-          path.resolve(__dirname, '../../'),
-          __dirname,
-          path.resolve(__dirname, 'exp')
-        ]
-      }
     ]
   }
 };

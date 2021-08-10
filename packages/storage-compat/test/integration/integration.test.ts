@@ -16,6 +16,7 @@
  */
 
 import firebase from '@firebase/app-compat';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import '@firebase/auth-compat';
 
 // See https://github.com/typescript-eslint/typescript-eslint/issues/363
