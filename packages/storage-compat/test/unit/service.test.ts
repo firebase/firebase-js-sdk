@@ -18,8 +18,16 @@ import '@firebase/storage-compat/test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import * as modularStorage from '@firebase/storage';
-import { makeTestCompatStorage, fakeApp, fakeStorage } from '@firebase/storage-compat/test/utils';
-import { FirebaseStorage, getStorage, FirebaseStorageError } from '@firebase/storage';
+import {
+  makeTestCompatStorage,
+  fakeApp,
+  fakeStorage
+} from '@firebase/storage-compat/test/utils';
+import {
+  FirebaseStorage,
+  getStorage,
+  FirebaseStorageError
+} from '@firebase/storage';
 import firebase from '@firebase/app-compat';
 
 const testCompatApp = firebase.initializeApp({});
@@ -30,7 +38,10 @@ const DEFAULT_HOST = 'firebasestorage.googleapis.com';
 describe.only('Firebase Storage > Service', () => {
   describe('useEmulator(host, port)', () => {
     it('calls connectStorageEmulator() correctly', () => {
-      const connectStorageEmulatorStub = stub(modularStorage, 'connectStorageEmulator').callsFake(() => { });
+      const connectStorageEmulatorStub = stub(
+        modularStorage,
+        'connectStorageEmulator'
+      ).callsFake(() => {});
       const service = makeTestCompatStorage(fakeApp, fakeStorage);
       service.useEmulator('test.host.org', 1234);
 
@@ -43,10 +54,7 @@ describe.only('Firebase Storage > Service', () => {
   });
 
   describe('refFromURL', () => {
-    const service = makeTestCompatStorage(
-      testCompatApp,
-      testModularStorage
-    );
+    const service = makeTestCompatStorage(testCompatApp, testModularStorage);
     it('Works with gs:// URLs', () => {
       const ref = service.refFromURL('gs://mybucket/child/path/image.png');
       expect(ref.toString()).to.equal('gs://mybucket/child/path/image.png');
@@ -54,14 +62,14 @@ describe.only('Firebase Storage > Service', () => {
     it('Works with http:// URLs', () => {
       const ref = service.refFromURL(
         `http://${DEFAULT_HOST}/v0/b/` +
-        'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
+          'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
       expect(ref.toString()).to.equal('gs://mybucket/child/path/image.png');
     });
     it('Works with https:// URLs', () => {
       const ref = service.refFromURL(
         `https://${DEFAULT_HOST}/v0/b/` +
-        'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
+          'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
       expect(ref.toString()).to.equal('gs://mybucket/child/path/image.png');
     });
@@ -101,29 +109,34 @@ GOOG4-RSA-SHA256`
   });
 
   describe('Argument verification', () => {
-    const service = makeTestCompatStorage(
-      testCompatApp,
-      testModularStorage
-    );
+    const service = makeTestCompatStorage(testCompatApp, testModularStorage);
 
     describe('ref', () => {
       it('Throws on gs:// argument', () => {
-        expect(() => service.ref('gs://yo')).to.throw('storage/invalid-argument');
+        expect(() => service.ref('gs://yo')).to.throw(
+          'storage/invalid-argument'
+        );
       });
     });
 
     describe('refFromURL', () => {
       it('Throws with a non-URL string arg', () => {
-        expect(() => { service.refFromURL('child') }).to.throw(/expected a full URL but got a child path.*storage\/invalid-argument/i);
+        expect(() => {
+          service.refFromURL('child');
+        }).to.throw(
+          /expected a full URL but got a child path.*storage\/invalid-argument/i
+        );
       });
       it('Throws with an invalid URL arg', () => {
-        expect(() => { service.refFromURL('notlegit://url') }).to.throw('storage/invalid-argument');
+        expect(() => {
+          service.refFromURL('notlegit://url');
+        }).to.throw('storage/invalid-argument');
       });
     });
 
     describe('MaxUploadRetryTime', () => {
       const modularStorage = {} as FirebaseStorage;
-      const service = makeTestCompatStorage(fakeApp, modularStorage)
+      const service = makeTestCompatStorage(fakeApp, modularStorage);
       it('reads from the modular instance', () => {
         modularStorage.maxUploadRetryTime = 999;
         expect(service.maxUploadRetryTime).to.equal(999);
@@ -135,9 +148,8 @@ GOOG4-RSA-SHA256`
       });
     });
     describe('MaxOperationRetryTime', () => {
-
       const modularStorage = {} as FirebaseStorage;
-      const service = makeTestCompatStorage(fakeApp, modularStorage)
+      const service = makeTestCompatStorage(fakeApp, modularStorage);
       it('reads from the modular instance', () => {
         modularStorage.maxOperationRetryTime = 999;
         expect(service.maxOperationRetryTime).to.equal(999);
@@ -151,10 +163,7 @@ GOOG4-RSA-SHA256`
   });
 
   describe('Deletion', () => {
-    const service = makeTestCompatStorage(
-      testCompatApp,
-      testModularStorage
-    );
+    const service = makeTestCompatStorage(testCompatApp, testModularStorage);
 
     it('In-flight requests are canceled when the service is deleted', async () => {
       const ref = service.refFromURL('gs://mybucket/image.jpg');

@@ -376,7 +376,7 @@ GOOG4-RSA-SHA256`
     describe('setMaxUploadRetryTime', () => {
       it('Throws on negative arg', () => {
         testShared.assertThrows(
-          () => service.maxOperationRetryTime = -10,
+          () => (service.maxOperationRetryTime = -10),
           'storage/invalid-argument'
         );
       });
@@ -384,7 +384,7 @@ GOOG4-RSA-SHA256`
     describe('setMaxOperationRetryTime', () => {
       it('Throws on negative arg', () => {
         testShared.assertThrows(
-          () => service.maxOperationRetryTime = -10,
+          () => (service.maxOperationRetryTime = -10),
           'storage/invalid-argument'
         );
       });
