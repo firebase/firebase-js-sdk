@@ -6,10 +6,10 @@
 
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { CompleteFn } from '@firebase/util';
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
-import { _FirebaseService } from '@firebase/app';
+import { _FirebaseService } from '@firebase/app-exp';
 import { NextFn } from '@firebase/util';
 import { Provider } from '@firebase/component';
 import { Subscribe } from '@firebase/util';

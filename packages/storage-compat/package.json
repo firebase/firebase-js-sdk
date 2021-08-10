@@ -20,7 +20,7 @@
     "test:browser:unit": "karma start --single-run --compat --unit",
     "test:browser:integration": "karma start --single-run --compat --integration",
     "test:browser": "karma start --single-run",
-    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.ts --config ../../config/mocharc.node.js",
+    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../storage/dist/storage-public.d.ts -o dist/storage-compat/src/index.d.ts -a -r FirebaseStorage:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
@@ -34,6 +34,13 @@
     "@firebase/util": "1.2.0",
     "@firebase/component": "0.5.5",
     "tslib": "^2.1.0"
+  },
+  "devDependencies": {
+    "rollup": "2.52.2",
+    "@rollup/plugin-alias": "3.1.2",
+    "@rollup/plugin-json": "4.1.0",
+    "rollup-plugin-typescript2": "0.30.0",
+    "typescript": "4.2.2"
   },
   "files": [
     "dist"

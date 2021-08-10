@@ -365,4 +365,29 @@ GOOG4-RSA-SHA256`
       return toReturn;
     });
   });
+
+  describe('Argument verification', () => {
+    const service = new FirebaseStorageImpl(
+      testShared.fakeApp,
+      testShared.fakeAuthProvider,
+      testShared.fakeAppCheckTokenProvider,
+      connectionPool
+    );
+    describe('setMaxUploadRetryTime', () => {
+      it('Throws on negative arg', () => {
+        testShared.assertThrows(
+          () => service.maxOperationRetryTime = -10,
+          'storage/invalid-argument'
+        );
+      });
+    });
+    describe('setMaxOperationRetryTime', () => {
+      it('Throws on negative arg', () => {
+        testShared.assertThrows(
+          () => service.maxOperationRetryTime = -10,
+          'storage/invalid-argument'
+        );
+      });
+    });
+  });
 });

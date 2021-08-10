@@ -27,7 +27,7 @@
     "test:browser:compat": "karma start --single-run --compat",
     "test:browser:exp": "karma start --single-run --exp",
     "test:browser": "karma start --single-run",
-    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.ts --config ../../config/mocharc.node.js",
+    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input dist/storage-public.d.ts --output dist/storage-public.d.ts"
@@ -60,5 +60,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/storage.d.ts"
+  "typings": "dist/src/index.d.ts"
 }

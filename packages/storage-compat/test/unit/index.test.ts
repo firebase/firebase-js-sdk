@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import '../../index';
-import firebase from '@firebase/app';
+import '../../src/index';
+import firebase from '@firebase/app-compat';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { StorageServiceCompat } from '../../compat/service';
-import { FirebaseStorageImpl } from '../../../storage/src/service';
+import { StorageServiceCompat } from '../../src/service';
+import { _FirebaseStorageImpl } from '@firebase/storage';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');
@@ -39,7 +39,7 @@ describe('Firebase Storage > API', () => {
     });
     const storage = firebase.storage!();
     expect(
-      ((storage as StorageServiceCompat)._delegate as FirebaseStorageImpl)
+      ((storage as StorageServiceCompat)._delegate as _FirebaseStorageImpl)
         ._bucket?.bucket
     ).to.equal(STORAGE_BUCKET);
     await app.delete();
@@ -53,7 +53,7 @@ describe('Firebase Storage > API', () => {
     });
     const storage = firebase.storage!(app, 'gs://foo-bar.appspot.com');
     expect(
-      ((storage as StorageServiceCompat)._delegate as FirebaseStorageImpl)
+      ((storage as StorageServiceCompat)._delegate as _FirebaseStorageImpl)
         ._bucket?.bucket
     ).to.equal(STORAGE_BUCKET);
     await app.delete();

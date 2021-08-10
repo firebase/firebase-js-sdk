@@ -21,8 +21,6 @@ import typescript from 'typescript';
 import alias from '@rollup/plugin-alias';
 import pkg from './package.json';
 
-import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
-
 function generateAliasConfig(platform) {
   return {
     entries: [
@@ -43,8 +41,7 @@ const nodeDeps = [...deps, 'util'];
 const es5Plugins = [
   typescriptPlugin({
     typescript,
-    abortOnError: false,
-    transformers: [importPathTransformer]
+    abortOnError: false
   }),
   json()
 ];
@@ -74,8 +71,7 @@ const es2017Plugins = [
         target: 'es2017'
       }
     },
-    abortOnError: false,
-    transformers: [importPathTransformer]
+    abortOnError: false
   }),
   json({ preferConst: true })
 ];
