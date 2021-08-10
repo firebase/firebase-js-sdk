@@ -7,7 +7,7 @@
 import { CompleteFn } from '@firebase/util';
 import { ErrorFactory } from '@firebase/util';
 import { ErrorFn } from '@firebase/util';
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
