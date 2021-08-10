@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@firebase/storage-compat/test/setup';
+import '../setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import * as modularStorage from '@firebase/storage';
@@ -22,7 +22,7 @@ import {
   makeTestCompatStorage,
   fakeApp,
   fakeStorage
-} from '@firebase/storage-compat/test/utils';
+} from '../utils';
 import {
   FirebaseStorage,
   getStorage,
@@ -35,7 +35,7 @@ const testModularStorage = getStorage(testCompatApp);
 
 const DEFAULT_HOST = 'firebasestorage.googleapis.com';
 
-describe.only('Firebase Storage > Service', () => {
+describe('Firebase Storage > Service', () => {
   describe('useEmulator(host, port)', () => {
     it('calls connectStorageEmulator() correctly', () => {
       const connectStorageEmulatorStub = stub(
