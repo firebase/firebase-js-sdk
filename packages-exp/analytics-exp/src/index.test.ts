@@ -67,7 +67,7 @@ function stubFetch(status: number, body: object): void {
 // Stub indexedDB.open() because sinon's clock does not know
 // how to wait for the real indexedDB callbacks to resolve.
 function stubIdbOpen(): void {
-    idbOpenStub = stub(indexedDB, 'open').returns(fakeRequest as any);
+  idbOpenStub = stub(indexedDB, 'open').returns(fakeRequest as any);
 }
 
 describe('FirebaseAnalytics instance tests', () => {
