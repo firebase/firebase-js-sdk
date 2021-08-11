@@ -56,14 +56,7 @@ export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
   if (provider.isInitialized()) {
     const auth = provider.getImmediate() as AuthImpl;
     const initialOptions = provider.getOptions() as Dependencies;
-    if (
-      initialOptions.errorMap === deps?.errorMap &&
-      initialOptions.popupRedirectResolver === deps?.popupRedirectResolver &&
-      deepEqual(
-        initialOptions.persistence as object,
-        deps?.persistence as object
-      )
-    ) {
+    if (deepEqual(initialOptions, deps ?? {})) {
       return auth;
     } else {
       _fail(auth, AuthErrorCode.ALREADY_INITIALIZED);
