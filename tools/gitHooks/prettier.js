@@ -101,7 +101,7 @@ async function doPrettier(changedFiles) {
   }
 
   const gitSpinner = ora(' Git staging prettier formatting changes.').start();
-  await exec('git add -u .', {stdio: 'inherit'});
+  await exec('git add -u .', { stdio: 'inherit' });
   gitSpinner.stopAndPersist({
     symbol: '▶️'
   });

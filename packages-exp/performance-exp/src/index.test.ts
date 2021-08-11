@@ -48,28 +48,30 @@ describe('Firebase Performance > initializePerformance()', () => {
     expect(initializePerformance(app)).to.equal(performanceInstance);
   });
   it('returns same instance if given same params a second time', () => {
-    const performanceInstance = initializePerformance(app, { dataCollectionEnabled: false });
-    expect(initializePerformance(app, { dataCollectionEnabled: false })).to.equal(performanceInstance);
+    const performanceInstance = initializePerformance(app, {
+      dataCollectionEnabled: false
+    });
+    expect(
+      initializePerformance(app, { dataCollectionEnabled: false })
+    ).to.equal(performanceInstance);
   });
   it('throws if called with params after being called with no params', () => {
     initializePerformance(app);
     const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
-    expect(() => initializePerformance(app, { dataCollectionEnabled: false })).to.throw(
-      expectedError.message
-    );
+    expect(() =>
+      initializePerformance(app, { dataCollectionEnabled: false })
+    ).to.throw(expectedError.message);
   });
   it('throws if called with no params after being called with params', () => {
     initializePerformance(app, { instrumentationEnabled: false });
     const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
-    expect(() => initializePerformance(app)).to.throw(
-      expectedError.message
-    );
+    expect(() => initializePerformance(app)).to.throw(expectedError.message);
   });
   it('throws if called a second time with different params', () => {
     initializePerformance(app, { instrumentationEnabled: true });
     const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
-    expect(() => initializePerformance(app, { instrumentationEnabled: false })).to.throw(
-      expectedError.message
-    );
+    expect(() =>
+      initializePerformance(app, { instrumentationEnabled: false })
+    ).to.throw(expectedError.message);
   });
 });

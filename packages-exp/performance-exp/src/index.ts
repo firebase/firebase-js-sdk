@@ -82,8 +82,10 @@ export function initializePerformance(
     const existingInstance = provider.getImmediate();
     const initialSettings = provider.getOptions() as PerformanceSettings;
     if (
-      settings?.dataCollectionEnabled === initialSettings?.dataCollectionEnabled && 
-      settings?.instrumentationEnabled === initialSettings?.instrumentationEnabled
+      settings?.dataCollectionEnabled ===
+        initialSettings?.dataCollectionEnabled &&
+      settings?.instrumentationEnabled ===
+        initialSettings?.instrumentationEnabled
     ) {
       return existingInstance;
     } else {
