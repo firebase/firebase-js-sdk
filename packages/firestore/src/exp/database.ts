@@ -150,7 +150,10 @@ export function initializeFirestore(
     } else {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'Firestore can only be initialized once per app.'
+        'initializeFirestore() has already been called with ' +
+          'different options. To avoid this error, call initializeFirestore() with the ' +
+          'same options as when it was originally called, or call getFirestore() to return the' +
+          ' already initialized instance.'
       );
     }
   }
