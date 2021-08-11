@@ -84,6 +84,7 @@ export async function getIdTokenResult(
     )!,
     signInProvider: signInProvider || null,
     signInSecondFactor: firebase?.['sign_in_second_factor'] || null
+    // TODO(lisajian): Add estimatedLocalExpirationTime
   };
 }
 

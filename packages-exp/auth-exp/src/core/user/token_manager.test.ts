@@ -88,6 +88,23 @@ describe('core/user/token_manager', () => {
       expect(stsTokenManager.accessToken).to.eq(idToken);
       expect(stsTokenManager.refreshToken).to.eq('refresh-token');
     });
+
+    it('sets refresh token to null when unset in server response', () => {
+      stsTokenManager.updateFromServerResponse({
+        idToken: 'id-token',
+        expiresIn: '60' // From the server this is 30s
+      } as IdTokenResponse);
+
+      expect(stsTokenManager.expirationTime).to.eq(now + 60_000);
+      expect(stsTokenManager.accessToken).to.eq('id-token');
+      expect(stsTokenManager.refreshToken).to.be.null;
+    });
+
+    it('throws an error when id token is missing', () => {
+      expect(() =>
+        stsTokenManager.updateFromServerResponse({} as IdTokenResponse)
+      ).to.throw(FirebaseError, 'auth/internal-error');
+    });
   });
 
   describe('#clearRefreshToken', () => {
