@@ -137,9 +137,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load with documents and queries with promise interface', () => {
     return withTestDb(persistence, async db => {
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
-        bundleString(db)
-      );
+      const fulfillProgress: firestore.LoadBundleTaskProgress =
+        await db.loadBundle(bundleString(db));
 
       verifySuccessProgress(fulfillProgress!);
 
@@ -213,9 +212,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('loaded documents should not be GC-ed right away', () => {
     return withTestDb(persistence, async db => {
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
-        bundleString(db)
-      );
+      const fulfillProgress: firestore.LoadBundleTaskProgress =
+        await db.loadBundle(bundleString(db));
 
       verifySuccessProgress(fulfillProgress!);
 

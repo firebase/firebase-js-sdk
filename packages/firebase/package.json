@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "8.9.0",
+  "version": "8.9.1",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -57,7 +57,7 @@
     "@firebase/performance": "0.4.17",
     "@firebase/remote-config": "0.1.42",
     "@firebase/analytics": "0.6.17",
-    "@firebase/app-check": "0.3.0",
+    "@firebase/app-check": "0.3.1",
     "@firebase/util": "1.2.0"
   },
   "devDependencies": {

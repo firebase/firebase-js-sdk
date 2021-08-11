@@ -1267,8 +1267,6 @@ declare namespace firebase {
    * {@link firebase.storage.Storage `Storage`} service associated with a
    * specific app.
    *
-   * @webonly
-   *
    * @example
    * ```javascript
    * // Get the Storage service for the default app
@@ -1466,8 +1464,6 @@ declare namespace firebase.app {
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
      *
-     * @webonly
-     *
      * @example
      * ```javascript
      * var storage = app.storage();
@@ -1580,14 +1576,18 @@ declare namespace firebase.appCheck {
   export interface AppCheck {
     /**
      * Activate AppCheck
-     * @param provider reCAPTCHA or custom token provider.
+     * @param provider reCAPTCHA provider, custom token provider, or reCAPTCHA site key.
      * @param isTokenAutoRefreshEnabled If true, the SDK automatically
      * refreshes App Check tokens as needed. If undefined, defaults to the
      * value of `app.automaticDataCollectionEnabled`, which defaults to
      * false and can be set in the app config.
      */
     activate(
-      provider: AppCheckProvider,
+      provider:
+        | ReCaptchaV3Provider
+        | CustomProvider
+        | AppCheckProvider
+        | string,
       isTokenAutoRefreshEnabled?: boolean
     ): void;
 
